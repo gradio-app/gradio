@@ -1,44 +1,77 @@
-import type { ActionReturn } from "svelte/action";
+import type WaveSurfer from "wavesurfer.js";
+import Regions from "wavesurfer.js/dist/plugins/regions.js";
+import { audioBufferToWav } from "./audioBufferToWav";
 
-interface LoadedParams {
-	crop_values?: [number, number];
+export interface LoadedParams {
 	autoplay?: boolean;
 }
 
-export function loaded(
-	node: HTMLAudioElement,
-	{ crop_values, autoplay }: LoadedParams = {}
-): ActionReturn {
-	function clamp_playback(): void {
-		if (crop_values === undefined) return;
+export function blob_to_data_url(blob: Blob): Promise<string> {
+	return new Promise((fulfill, reject) => {
+		let reader = new FileReader();
+		reader.onerror = reject;
+		reader.onload = () => fulfill(reader.result as string);
+		reader.readAsDataURL(blob);
+	});
+}
 
-		const start_time = (crop_values[0] / 100) * node.duration;
-		const end_time = (crop_values[1] / 100) * node.duration;
+export const process_audio = async (
+	audioBuffer: AudioBuffer,
+	start?: number,
+	end?: number
+): Promise<Uint8Array> => {
+	const audioContext = new AudioContext();
+	const numberOfChannels = audioBuffer.numberOfChannels;
+	const sampleRate = audioBuffer.sampleRate;
 
-		if (node.currentTime < start_time) {
-			node.currentTime = start_time;
-		}
+	let trimmedLength = audioBuffer.length;
+	let startOffset = 0;
 
-		if (node.currentTime > end_time) {
-			node.currentTime = start_time;
-			node.pause();
+	if (start && end) {
+		startOffset = Math.round(start * sampleRate);
+		const endOffset = Math.round(end * sampleRate);
+		trimmedLength = endOffset - startOffset;
+	}
+
+	const trimmedAudioBuffer = audioContext.createBuffer(
+		numberOfChannels,
+		trimmedLength,
+		sampleRate
+	);
+
+	for (let channel = 0; channel < numberOfChannels; channel++) {
+		const channelData = audioBuffer.getChannelData(channel);
+		const trimmedData = trimmedAudioBuffer.getChannelData(channel);
+		for (let i = 0; i < trimmedLength; i++) {
+			trimmedData[i] = channelData[startOffset + i];
 		}
 	}
 
+	return audioBufferToWav(trimmedAudioBuffer);
+};
+
+export function loaded(
+	node: HTMLAudioElement,
+	{ autoplay }: LoadedParams = {}
+): void {
 	async function handle_playback(): Promise<void> {
 		if (!autoplay) return;
-
 		node.pause();
 		await node.play();
 	}
-
-	node.addEventListener("loadeddata", handle_playback);
-	node.addEventListener("timeupdate", clamp_playback);
-
-	return {
-		destroy(): void {
-			node.removeEventListener("loadeddata", handle_playback);
-			node.removeEventListener("timeupdate", clamp_playback);
-		}
-	};
 }
+
+export const skipAudio = (waveform: WaveSurfer, amount: number): void => {
+	if (!waveform) return;
+	waveform.skip(amount);
+};
+
+export const getSkipRewindAmount = (
+	audioDuration: number,
+	skip_length?: number | null
+): number => {
+	if (!skip_length) {
+		skip_length = 5;
+	}
+	return (audioDuration / 100) * skip_length || 5;
+};

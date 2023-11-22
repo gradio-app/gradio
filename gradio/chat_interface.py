@@ -16,13 +16,13 @@ from gradio.blocks import Blocks
 from gradio.components import (
     Button,
     Chatbot,
-    IOComponent,
+    Component,
     Markdown,
     State,
     Textbox,
     get_component_instance,
 )
-from gradio.events import Dependency, EventListenerMethod, on
+from gradio.events import Dependency, on
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.helpers import special_args
 from gradio.layouts import Accordion, Column, Group, Row
@@ -59,8 +59,9 @@ class ChatInterface(Blocks):
         *,
         chatbot: Chatbot | None = None,
         textbox: Textbox | None = None,
-        additional_inputs: str | IOComponent | list[str | IOComponent] | None = None,
-        additional_inputs_accordion_name: str = "Additional Inputs",
+        additional_inputs: str | Component | list[str | Component] | None = None,
+        additional_inputs_accordion_name: str | None = None,
+        additional_inputs_accordion: str | Accordion | None = None,
         examples: list[str] | None = None,
         cache_examples: bool | None = None,
         title: str | None = None,
@@ -81,7 +82,8 @@ class ChatInterface(Blocks):
             chatbot: an instance of the gr.Chatbot component to use for the chat interface, if you would like to customize the chatbot properties. If not provided, a default gr.Chatbot component will be created.
             textbox: an instance of the gr.Textbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox component will be created.
             additional_inputs: an instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion.
-            additional_inputs_accordion_name: the label of the accordion to use for additional inputs, only used if additional_inputs is provided.
+            additional_inputs_accordion_name: Deprecated. Will be removed in a future version of Gradio. Use the `additional_inputs_accordion` parameter instead.
+            additional_inputs_accordion: If a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
             examples: sample inputs for the function; if provided, appear below the chatbot and can be clicked to populate the chatbot input.
             cache_examples: If True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
             title: a title for the interface; if provided, appears above chatbot in large font. Also used as the tab title when opened in a browser window.
@@ -115,7 +117,7 @@ class ChatInterface(Blocks):
             self.cache_examples = True
         else:
             self.cache_examples = cache_examples or False
-        self.buttons: list[Button] = []
+        self.buttons: list[Button | None] = []
 
         if additional_inputs:
             if not isinstance(additional_inputs, list):
@@ -125,7 +127,32 @@ class ChatInterface(Blocks):
             ]
         else:
             self.additional_inputs = []
-        self.additional_inputs_accordion_name = additional_inputs_accordion_name
+        if additional_inputs_accordion_name is not None:
+            print(
+                "The `additional_inputs_accordion_name` parameter is deprecated and will be removed in a future version of Gradio. Use the `additional_inputs_accordion` parameter instead."
+            )
+            self.additional_inputs_accordion_params = {
+                "label": additional_inputs_accordion_name
+            }
+        if additional_inputs_accordion is None:
+            self.additional_inputs_accordion_params = {
+                "label": "Additional Inputs",
+                "open": False,
+            }
+        elif isinstance(additional_inputs_accordion, str):
+            self.additional_inputs_accordion_params = {
+                "label": additional_inputs_accordion
+            }
+        elif isinstance(additional_inputs_accordion, Accordion):
+            self.additional_inputs_accordion_params = (
+                additional_inputs_accordion.recover_kwargs(
+                    additional_inputs_accordion.get_config()
+                )
+            )
+        else:
+            raise ValueError(
+                f"The `additional_inputs_accordion` parameter must be a string or gr.Accordion, not {type(additional_inputs_accordion)}"
+            )
 
         with self:
             if title:
@@ -146,7 +173,9 @@ class ChatInterface(Blocks):
                         if textbox:
                             textbox.container = False
                             textbox.show_label = False
-                            self.textbox = textbox.render()
+                            textbox_ = textbox.render()
+                            assert isinstance(textbox_, Textbox)
+                            self.textbox = textbox_
                         else:
                             self.textbox = Textbox(
                                 container=False,
@@ -186,7 +215,7 @@ class ChatInterface(Blocks):
                                 raise ValueError(
                                     f"The stop_btn parameter must be a gr.Button, string, or None, not {type(stop_btn)}"
                                 )
-                        self.buttons.extend([submit_btn, stop_btn])
+                        self.buttons.extend([submit_btn, stop_btn])  # type: ignore
 
                 with Row():
                     for btn in [retry_btn, undo_btn, clear_btn]:
@@ -199,7 +228,7 @@ class ChatInterface(Blocks):
                                 raise ValueError(
                                     f"All the _btn parameters must be a gr.Button, string, or None, not {type(btn)}"
                                 )
-                        self.buttons.append(btn)
+                        self.buttons.append(btn)  # type: ignore
 
                     self.fake_api_btn = Button("Fake API", visible=False)
                     self.fake_response_textbox = Textbox(
@@ -230,7 +259,7 @@ class ChatInterface(Blocks):
                 not inp.is_rendered for inp in self.additional_inputs
             )
             if self.additional_inputs and any_unrendered_inputs:
-                with Accordion(self.additional_inputs_accordion_name, open=False):
+                with Accordion(**self.additional_inputs_accordion_params):  # type: ignore
                     for input_component in self.additional_inputs:
                         if not input_component.is_rendered:
                             input_component.render()
@@ -240,7 +269,9 @@ class ChatInterface(Blocks):
                 client_utils.synchronize_async(self.examples_handler.cache)
 
             self.saved_input = State()
-            self.chatbot_state = State([])
+            self.chatbot_state = (
+                State(self.chatbot.value) if self.chatbot.value else State([])
+            )
 
             self._setup_events()
             self._setup_api()
@@ -327,7 +358,7 @@ class ChatInterface(Blocks):
             )
 
     def _setup_stop_events(
-        self, event_triggers: list[EventListenerMethod], event_to_cancel: Dependency
+        self, event_triggers: list[Callable], event_to_cancel: Dependency
     ) -> None:
         if self.stop_btn and self.is_generator:
             if self.submit_btn:

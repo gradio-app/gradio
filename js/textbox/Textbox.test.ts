@@ -3,7 +3,7 @@ import { spy } from "tinyspy";
 import { cleanup, fireEvent, render, get_text, wait } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 
-import Textbox from "./interactive";
+import Textbox from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {
@@ -27,7 +27,8 @@ describe("Textbox", () => {
 			loading_status,
 			lines: 1,
 			value: "hello world",
-			label: "Textbox"
+			label: "Textbox",
+			interactive: false
 		});
 
 		const item: HTMLInputElement = getByDisplayValue(
@@ -43,7 +44,8 @@ describe("Textbox", () => {
 			loading_status,
 			lines: 1,
 			value: "hi ",
-			label: "Textbox"
+			label: "Textbox",
+			interactive: true
 		});
 
 		const item: HTMLInputElement = getByDisplayValue("hi") as HTMLInputElement;

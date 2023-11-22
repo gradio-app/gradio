@@ -1,13 +1,12 @@
-# `@gradio/button`
+# `@gradio/json`
 
 ```html
 <script>
-	import { Button } from "@gradio/button";
+	import { BaseJSON } from "@gradio/json";
 </script>
-
-<button type="primary|secondary" href="string" on:click="{e.detail === href}">
-	content
-</button>
 ```
 
-hi
+BaseJSON
+```html
+	export let value: any = {};
+```

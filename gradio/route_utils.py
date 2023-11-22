@@ -1,11 +1,19 @@
 from __future__ import annotations
 
+import hashlib
 import json
-from typing import TYPE_CHECKING, Optional, Union
+from collections import deque
+from dataclasses import dataclass as python_dataclass
+from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
+from typing import TYPE_CHECKING, AsyncGenerator, BinaryIO, List, Optional, Tuple, Union
 
 import fastapi
 import httpx
+import multipart
 from gradio_client.documentation import document, set_documentation_group
+from multipart.multipart import parse_options_header
+from starlette.datastructures import FormData, Headers, UploadFile
+from starlette.formparsers import MultiPartException, MultipartPart
 
 from gradio import utils
 from gradio.data_classes import PredictBody
@@ -98,7 +106,7 @@ class Request:
     ):
         """
         Can be instantiated with either a fastapi.Request or by manually passing in
-        attributes (needed for websocket-based queueing).
+        attributes (needed for queueing).
         Parameters:
             request: A fastapi.Request
         """
@@ -153,10 +161,9 @@ def compile_gr_request(
         body.data = [body.session_hash]
     if body.request:
         if body.batched:
-            gr_request = [Request(username=username, **req) for req in body.request]
+            gr_request = [Request(username=username, request=request)]
         else:
-            assert isinstance(body.request, dict)
-            gr_request = Request(username=username, **body.request)
+            gr_request = Request(username=username, request=body.request)
     else:
         if request is None:
             raise ValueError("request must be provided if body.request is None")
@@ -166,7 +173,7 @@ def compile_gr_request(
 
 
 def restore_session_state(app: App, body: PredictBody):
-    fn_index = body.fn_index
+    event_id = body.event_id
     session_hash = getattr(body, "session_hash", None)
     if session_hash is not None:
         session_state = app.state_holder[session_hash]
@@ -175,27 +182,27 @@ def restore_session_state(app: App, body: PredictBody):
         # the /reset route will mark the jobs as having been reset.
         # That way if the cancel job finishes BEFORE the job being cancelled
         # the job being cancelled will not overwrite the state of the iterator.
-        if fn_index in app.iterators_to_reset[session_hash]:
-            iterators = {}
-            app.iterators_to_reset[session_hash].remove(fn_index)
+        if event_id is None:
+            iterator = None
+        elif event_id in app.iterators_to_reset:
+            iterator = None
+            app.iterators_to_reset.remove(event_id)
         else:
-            iterators = app.iterators[session_hash]
+            iterator = app.iterators.get(event_id)
     else:
         session_state = SessionState(app.get_blocks())
-        iterators = {}
+        iterator = None
 
-    return session_state, iterators
+    return session_state, iterator
 
 
 def prepare_event_data(
     blocks: Blocks,
     body: PredictBody,
-    fn_index_inferred: int,
 ) -> EventData:
-    dependency = blocks.dependencies[fn_index_inferred]
-    target = dependency["targets"][0] if len(dependency["targets"]) else None
+    target = body.trigger_id
     event_data = EventData(
-        blocks.blocks.get(target[0]) if target else None,
+        blocks.blocks.get(target) if target else None,
         body.event_data,
     )
     return event_data
@@ -207,13 +214,12 @@ async def call_process_api(
     gr_request: Union[Request, list[Request]],
     fn_index_inferred: int,
 ):
-    session_state, iterators = restore_session_state(app=app, body=body)
+    session_state, iterator = restore_session_state(app=app, body=body)
 
     dependency = app.get_blocks().dependencies[fn_index_inferred]
-    event_data = prepare_event_data(app.get_blocks(), body, fn_index_inferred)
-    event_id = getattr(body, "event_id", None)
+    event_data = prepare_event_data(app.get_blocks(), body)
+    event_id = body.event_id
 
-    fn_index = body.fn_index
     session_hash = getattr(body, "session_hash", None)
     inputs = body.data
 
@@ -228,19 +234,19 @@ async def call_process_api(
                 inputs=inputs,
                 request=gr_request,
                 state=session_state,
-                iterators=iterators,
+                iterator=iterator,
                 session_hash=session_hash,
                 event_id=event_id,
                 event_data=event_data,
                 in_event_listener=True,
             )
         iterator = output.pop("iterator", None)
-        if hasattr(body, "session_hash"):
-            app.iterators[body.session_hash][fn_index] = iterator
+        if event_id is not None:
+            app.iterators[event_id] = iterator  # type: ignore
         if isinstance(output, Error):
             raise output
     except BaseException:
-        iterator = iterators.get(fn_index, None)
+        iterator = app.iterators.get(event_id) if event_id is not None else None
         if iterator is not None:  # close off any streams that are still open
             run_id = id(iterator)
             pending_streams: dict[int, list] = (
@@ -264,3 +270,246 @@ def strip_url(orig_url: str) -> str:
     stripped_url = parsed_url.copy_with(query=None)
     stripped_url = str(stripped_url)
     return stripped_url.rstrip("/")
+
+
+def _user_safe_decode(src: bytes, codec: str) -> str:
+    try:
+        return src.decode(codec)
+    except (UnicodeDecodeError, LookupError):
+        return src.decode("latin-1")
+
+
+class GradioUploadFile(UploadFile):
+    """UploadFile with a sha attribute."""
+
+    def __init__(
+        self,
+        file: BinaryIO,
+        *,
+        size: int | None = None,
+        filename: str | None = None,
+        headers: Headers | None = None,
+    ) -> None:
+        super().__init__(file, size=size, filename=filename, headers=headers)
+        self.sha = hashlib.sha1()
+
+
+@python_dataclass(frozen=True)
+class FileUploadProgressUnit:
+    filename: str
+    chunk_size: int
+    is_done: bool
+
+
+class FileUploadProgress:
+    def __init__(self) -> None:
+        self._statuses: dict[str, deque[FileUploadProgressUnit]] = {}
+
+    def track(self, upload_id: str):
+        if upload_id not in self._statuses:
+            self._statuses[upload_id] = deque()
+
+    def update(self, upload_id: str, filename: str, message_bytes: bytes):
+        if upload_id not in self._statuses:
+            self._statuses[upload_id] = deque()
+        self._statuses[upload_id].append(
+            FileUploadProgressUnit(filename, len(message_bytes), is_done=False)
+        )
+
+    def set_done(self, upload_id: str):
+        self._statuses[upload_id].append(FileUploadProgressUnit("", 0, is_done=True))
+
+    def stop_tracking(self, upload_id: str):
+        if upload_id in self._statuses:
+            del self._statuses[upload_id]
+
+    def status(self, upload_id: str) -> deque[FileUploadProgressUnit]:
+        if upload_id not in self._statuses:
+            return deque()
+        return self._statuses[upload_id]
+
+    def is_tracked(self, upload_id: str):
+        return upload_id in self._statuses
+
+
+class GradioMultiPartParser:
+    """Vendored from starlette.MultipartParser.
+
+    Thanks starlette!
+
+    Made the following modifications
+        - Use GradioUploadFile instead of UploadFile
+        - Use NamedTemporaryFile instead of SpooledTemporaryFile
+        - Compute hash of data as the request is streamed
+
+    """
+
+    max_file_size = 1024 * 1024
+
+    def __init__(
+        self,
+        headers: Headers,
+        stream: AsyncGenerator[bytes, None],
+        *,
+        max_files: Union[int, float] = 1000,
+        max_fields: Union[int, float] = 1000,
+        upload_id: str | None = None,
+        upload_progress: FileUploadProgress | None = None,
+    ) -> None:
+        assert (
+            multipart is not None
+        ), "The `python-multipart` library must be installed to use form parsing."
+        self.headers = headers
+        self.stream = stream
+        self.max_files = max_files
+        self.max_fields = max_fields
+        self.items: List[Tuple[str, Union[str, UploadFile]]] = []
+        self.upload_id = upload_id
+        self.upload_progress = upload_progress
+        self._current_files = 0
+        self._current_fields = 0
+        self._current_partial_header_name: bytes = b""
+        self._current_partial_header_value: bytes = b""
+        self._current_part = MultipartPart()
+        self._charset = ""
+        self._file_parts_to_write: List[Tuple[MultipartPart, bytes]] = []
+        self._file_parts_to_finish: List[MultipartPart] = []
+        self._files_to_close_on_error: List[_TemporaryFileWrapper] = []
+
+    def on_part_begin(self) -> None:
+        self._current_part = MultipartPart()
+
+    def on_part_data(self, data: bytes, start: int, end: int) -> None:
+        message_bytes = data[start:end]
+        if self.upload_progress is not None:
+            self.upload_progress.update(
+                self.upload_id, self._current_part.file.filename, message_bytes  # type: ignore
+            )
+        if self._current_part.file is None:
+            self._current_part.data += message_bytes
+        else:
+            self._file_parts_to_write.append((self._current_part, message_bytes))
+
+    def on_part_end(self) -> None:
+        if self._current_part.file is None:
+            self.items.append(
+                (
+                    self._current_part.field_name,
+                    _user_safe_decode(self._current_part.data, self._charset),
+                )
+            )
+        else:
+            self._file_parts_to_finish.append(self._current_part)
+            # The file can be added to the items right now even though it's not
+            # finished yet, because it will be finished in the `parse()` method, before
+            # self.items is used in the return value.
+            self.items.append((self._current_part.field_name, self._current_part.file))
+
+    def on_header_field(self, data: bytes, start: int, end: int) -> None:
+        self._current_partial_header_name += data[start:end]
+
+    def on_header_value(self, data: bytes, start: int, end: int) -> None:
+        self._current_partial_header_value += data[start:end]
+
+    def on_header_end(self) -> None:
+        field = self._current_partial_header_name.lower()
+        if field == b"content-disposition":
+            self._current_part.content_disposition = self._current_partial_header_value
+        self._current_part.item_headers.append(
+            (field, self._current_partial_header_value)
+        )
+        self._current_partial_header_name = b""
+        self._current_partial_header_value = b""
+
+    def on_headers_finished(self) -> None:
+        disposition, options = parse_options_header(
+            self._current_part.content_disposition
+        )
+        try:
+            self._current_part.field_name = _user_safe_decode(
+                options[b"name"], self._charset
+            )
+        except KeyError as e:
+            raise MultiPartException(
+                'The Content-Disposition header field "name" must be ' "provided."
+            ) from e
+        if b"filename" in options:
+            self._current_files += 1
+            if self._current_files > self.max_files:
+                raise MultiPartException(
+                    f"Too many files. Maximum number of files is {self.max_files}."
+                )
+            filename = _user_safe_decode(options[b"filename"], self._charset)
+            tempfile = NamedTemporaryFile(delete=False)
+            self._files_to_close_on_error.append(tempfile)
+            self._current_part.file = GradioUploadFile(
+                file=tempfile,  # type: ignore[arg-type]
+                size=0,
+                filename=filename,
+                headers=Headers(raw=self._current_part.item_headers),
+            )
+        else:
+            self._current_fields += 1
+            if self._current_fields > self.max_fields:
+                raise MultiPartException(
+                    f"Too many fields. Maximum number of fields is {self.max_fields}."
+                )
+            self._current_part.file = None
+
+    def on_end(self) -> None:
+        pass
+
+    async def parse(self) -> FormData:
+        # Parse the Content-Type header to get the multipart boundary.
+        _, params = parse_options_header(self.headers["Content-Type"])
+        charset = params.get(b"charset", "utf-8")
+        if type(charset) == bytes:
+            charset = charset.decode("latin-1")
+        self._charset = charset
+        try:
+            boundary = params[b"boundary"]
+        except KeyError as e:
+            raise MultiPartException("Missing boundary in multipart.") from e
+
+        # Callbacks dictionary.
+        callbacks = {
+            "on_part_begin": self.on_part_begin,
+            "on_part_data": self.on_part_data,
+            "on_part_end": self.on_part_end,
+            "on_header_field": self.on_header_field,
+            "on_header_value": self.on_header_value,
+            "on_header_end": self.on_header_end,
+            "on_headers_finished": self.on_headers_finished,
+            "on_end": self.on_end,
+        }
+
+        # Create the parser.
+        parser = multipart.MultipartParser(boundary, callbacks)
+        try:
+            # Feed the parser with data from the request.
+            async for chunk in self.stream:
+                parser.write(chunk)
+                # Write file data, it needs to use await with the UploadFile methods
+                # that call the corresponding file methods *in a threadpool*,
+                # otherwise, if they were called directly in the callback methods above
+                # (regular, non-async functions), that would block the event loop in
+                # the main thread.
+                for part, data in self._file_parts_to_write:
+                    assert part.file  # for type checkers
+                    await part.file.write(data)
+                    part.file.sha.update(data)  # type: ignore
+                for part in self._file_parts_to_finish:
+                    assert part.file  # for type checkers
+                    await part.file.seek(0)
+                self._file_parts_to_write.clear()
+                self._file_parts_to_finish.clear()
+        except MultiPartException as exc:
+            # Close all the files if there was an error.
+            for file in self._files_to_close_on_error:
+                file.close()
+            raise exc
+
+        parser.finalize()
+        if self.upload_progress is not None:
+            self.upload_progress.set_done(self.upload_id)  # type: ignore
+        return FormData(self.items)

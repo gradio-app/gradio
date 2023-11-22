@@ -13,4 +13,4 @@ with gr.Blocks() as demo:
     label = gr.Label(label="Loader")
     load.click(load_set, outputs=label)
 
-demo.queue(concurrency_count=20).launch()
+demo.launch()

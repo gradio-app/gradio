@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/experimental-ct-svelte";
 import type { Page, Locator } from "@playwright/test";
-import Slider from "./interactive";
+import Slider from "./Index.svelte";
 import { spy } from "tinyspy";
 
 import type { LoadingStatus } from "@gradio/statustracker";
@@ -57,8 +57,11 @@ test("Slider Default Value And Label rendered", async ({ mount }) => {
 			label: "My Slider",
 			show_label: true,
 			step: 1,
-			mode: "dynamic",
-			loading_status: loading_status
+			interactive: true,
+			loading_status: loading_status,
+			gradio: {
+				dispatch() {}
+			}
 		}
 	});
 	await expect(component).toContainText("My Slider");
@@ -79,7 +82,7 @@ test("Slider respects show_label", async ({ mount, page }) => {
 			label: "My Slider",
 			show_label: false,
 			step: 1,
-			mode: "dynamic",
+			interactive: true,
 			loading_status: loading_status,
 			gradio: {
 				dispatch() {}
@@ -98,7 +101,7 @@ test("Slider Maximum/Minimum values", async ({ mount, page }) => {
 			label: "My Slider",
 			show_label: true,
 			step: 1,
-			mode: "dynamic",
+			interactive: true,
 			loading_status: loading_status,
 			gradio: {
 				dispatch() {}
@@ -147,7 +150,7 @@ test("Slider Change event", async ({ mount, page }) => {
 			label: "My Slider",
 			show_label: true,
 			step: 1,
-			mode: "dynamic",
+			interactive: true,
 			loading_status: loading_status,
 			gradio: {
 				dispatch: event

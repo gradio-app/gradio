@@ -4,7 +4,7 @@
 	import { createEventDispatcher } from "svelte";
 	import type { ShareData } from "@gradio/utils";
 	import { ShareError } from "@gradio/utils";
-	import { _ } from "svelte-i18n";
+	import type { I18nFormatter } from "@gradio/utils";
 
 	const dispatch = createEventDispatcher<{
 		share: ShareData;
@@ -13,12 +13,13 @@
 
 	export let formatter: (arg0: any) => Promise<string>;
 	export let value: any;
+	export let i18n: I18nFormatter;
 	let pending = false;
 </script>
 
 <IconButton
 	Icon={Community}
-	label={$_("common.share")}
+	label={i18n("common.share")}
 	{pending}
 	on:click={async () => {
 		try {

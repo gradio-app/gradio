@@ -24,7 +24,6 @@ with gr.Blocks(title="Styling Examples") as demo:
         audio = gr.Audio(show_label=False)
         file = gr.File(show_label=False)
         df = gr.Dataframe(show_label=False)
-        ts = gr.Timeseries(show_label=False)
         label = gr.Label(container=False)
         highlight = gr.HighlightedText(
             [("hello", None), ("goodbye", "-")],

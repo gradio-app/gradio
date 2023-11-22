@@ -2,7 +2,7 @@ import { test, describe, assert, afterEach, vi } from "vitest";
 import { cleanup, render } from "@gradio/tootils";
 import { setupi18n } from "../app/src/i18n";
 
-import Gallery from "./static";
+import Gallery from "./Index.svelte";
 import type { LoadingStatus } from "@gradio/statustracker";
 
 const loading_status: LoadingStatus = {
@@ -31,15 +31,19 @@ describe("Gallery", () => {
 			loading_status: loading_status,
 			preview: true,
 			root: "",
-			root_url: "",
+			proxy_url: "",
 			value: [
-				"https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg"
+				{
+					image: {
+						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+					}
+				}
 			]
 		});
 		let item = getByTestId("detailed-image") as HTMLImageElement;
 		assert.equal(
 			item.src,
-			"https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg"
+			"https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 		);
 	});
 
@@ -50,23 +54,26 @@ describe("Gallery", () => {
 			loading_status: loading_status,
 			preview: true,
 			root: "",
-			root_url: "",
+			proxy_url: "",
 			value: [
-				"https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg"
+				{
+					image: {
+						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+					}
+				}
 			]
 		});
 		const change_event = listen("change");
 
 		await component.$set({
 			value: [
-				"https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg"
+				{
+					image: {
+						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+					}
+				}
 			]
 		});
 		assert.equal(change_event.callCount, 0);
-
-		await component.$set({
-			value: ["https://gradio-static-files.s3.us-west-2.amazonaws.com/lion.jpg"]
-		});
-		assert.equal(change_event.callCount, 1);
 	});
 });

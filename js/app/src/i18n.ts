@@ -1,5 +1,3 @@
-/// <reference types="vite/client" />
-
 import { addMessages, init, getLocaleFromNavigator } from "svelte-i18n";
 
 const langs = import.meta.globEager("./lang/*.json");
@@ -28,8 +26,8 @@ for (const lang in processed_langs) {
 	addMessages(lang, processed_langs[lang]);
 }
 
-export function setupi18n(): void {
-	init({
+export async function setupi18n(): Promise<void> {
+	await init({
 		fallbackLocale: "en",
 		initialLocale: getLocaleFromNavigator()
 	});

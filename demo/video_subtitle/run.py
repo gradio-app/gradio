@@ -17,7 +17,7 @@ def video_demo(video, subtitle=None):
 demo = gr.Interface(
     fn=video_demo,
     inputs=[
-        gr.Video(type="file", label="In", interactive=True),
+        gr.Video(label="In", interactive=True),
         gr.File(label="Subtitle", file_types=[".srt", ".vtt"]),
     ],
     outputs=gr.Video(label="Out"),

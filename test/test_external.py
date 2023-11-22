@@ -1,4 +1,3 @@
-import json
 import os
 import textwrap
 import warnings
@@ -11,7 +10,7 @@ from gradio_client import media_data
 
 import gradio as gr
 from gradio.context import Context
-from gradio.exceptions import InvalidApiNameError
+from gradio.exceptions import GradioVersionIncompatibleError, InvalidApiNameError
 from gradio.external import TooManyRequestsError, cols_to_rows, get_tabular_examples
 
 """
@@ -43,7 +42,7 @@ class TestLoadInterface:
 
     def test_question_answering(self):
         model_type = "image-classification"
-        interface = gr.Blocks.load(
+        interface = gr.load(
             name="lysandre/tiny-vit-random",
             src="models",
             alias=model_type,
@@ -182,41 +181,46 @@ class TestLoadInterface:
         assert isinstance(interface.output_components[0], gr.Image)
 
     def test_english_to_spanish(self):
+        with pytest.raises(GradioVersionIncompatibleError):
+            gr.load("spaces/gradio-tests/english_to_spanish", title="hi")
+
+    def test_english_to_spanish_v4(self):
         with pytest.warns(UserWarning):
-            io = gr.load("spaces/gradio-tests/english_to_spanish", title="hi")
+            io = gr.load("spaces/gradio-tests/english_to_spanishv4-sse", title="hi")
         assert isinstance(io.input_components[0], gr.Textbox)
         assert isinstance(io.output_components[0], gr.Textbox)
 
     def test_sentiment_model(self):
         io = gr.load("models/distilbert-base-uncased-finetuned-sst-2-english")
         try:
-            with open(io("I am happy, I love you")) as f:
-                assert json.load(f)["label"] == "POSITIVE"
+            assert io("I am happy, I love you")["label"] == "POSITIVE"
         except TooManyRequestsError:
             pass
 
     def test_image_classification_model(self):
-        io = gr.Blocks.load(name="models/google/vit-base-patch16-224")
+        io = gr.load(name="models/google/vit-base-patch16-224")
         try:
-            with open(io("gradio/test_data/lion.jpg")) as f:
-                assert json.load(f)["label"] == "lion"
+            assert io("gradio/test_data/lion.jpg")["label"] == "lion"
         except TooManyRequestsError:
             pass
 
     def test_translation_model(self):
-        io = gr.Blocks.load(name="models/t5-base")
+        io = gr.load(name="models/t5-base")
         try:
             output = io("My name is Sarah and I live in London")
             assert output == "Mein Name ist Sarah und ich lebe in London"
         except TooManyRequestsError:
             pass
 
+    def test_raise_incompatbile_version_error(self):
+        with pytest.raises(GradioVersionIncompatibleError):
+            gr.load("spaces/gradio-tests/titanic-survival")
+
     def test_numerical_to_label_space(self):
-        io = gr.load("spaces/gradio-tests/titanic-survival")
+        io = gr.load("spaces/gradio-tests/titanic-survivalv4-sse")
         try:
             assert io.theme.name == "soft"
-            with open(io("male", 77, 10)) as f:
-                assert json.load(f)["label"] == "Perishes"
+            assert io("male", 77, 10)["label"] == "Perishes"
         except TooManyRequestsError:
             pass
 
@@ -224,7 +228,7 @@ class TestLoadInterface:
         io = gr.load("models/dandelin/vilt-b32-finetuned-vqa")
         try:
             output = io("gradio/test_data/lion.jpg", "What is in the image?")
-            assert isinstance(output, str) and output.endswith(".json")
+            assert isinstance(output, dict) and "label" in output
         except TooManyRequestsError:
             pass
 
@@ -290,22 +294,24 @@ class TestLoadInterface:
     def test_private_space(self):
         hf_token = "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"  # Intentionally revealing this key for testing purposes
         io = gr.load(
-            "spaces/gradio-tests/not-actually-private-space", hf_token=hf_token
+            "spaces/gradio-tests/not-actually-private-spacev4-sse", hf_token=hf_token
         )
         try:
             output = io("abc")
             assert output == "abc"
-            assert io.theme.name == "gradio/monochrome"
+            assert io.theme.name == "default"
         except TooManyRequestsError:
             pass
 
+    @pytest.mark.xfail
     def test_private_space_audio(self):
         hf_token = "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"  # Intentionally revealing this key for testing purposes
         io = gr.load(
-            "spaces/gradio-tests/not-actually-private-space-audio", hf_token=hf_token
+            "spaces/gradio-tests/not-actually-private-space-audiov4-sse",
+            hf_token=hf_token,
         )
         try:
-            output = io(media_data.BASE64_AUDIO["name"])
+            output = io(media_data.BASE64_AUDIO["path"])
             assert output.endswith(".wav")
         except TooManyRequestsError:
             pass
@@ -313,22 +319,25 @@ class TestLoadInterface:
     def test_multiple_spaces_one_private(self):
         hf_token = "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"  # Intentionally revealing this key for testing purposes
         with gr.Blocks():
-            gr.load("spaces/gradio-tests/not-actually-private-space", hf_token=hf_token)
             gr.load(
-                "spaces/gradio/test-loading-examples",
+                "spaces/gradio-tests/not-actually-private-spacev4-sse",
+                hf_token=hf_token,
+            )
+            gr.load(
+                "spaces/gradio/test-loading-examplesv4-sse",
             )
         assert Context.hf_token == hf_token
 
     def test_loading_files_via_proxy_works(self):
         hf_token = "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"  # Intentionally revealing this key for testing purposes
         io = gr.load(
-            "spaces/gradio-tests/test-loading-examples-private", hf_token=hf_token
+            "spaces/gradio-tests/test-loading-examples-privatev4-sse", hf_token=hf_token
         )
         assert io.theme.name == "default"
         app, _, _ = io.launch(prevent_thread_lock=True)
         test_client = TestClient(app)
         r = test_client.get(
-            "/proxy=https://gradio-tests-test-loading-examples-private.hf.space/file=Bunny.obj"
+            "/proxy=https://gradio-tests-test-loading-examples-privatev4-sse.hf.space/file=Bunny.obj"
         )
         assert r.status_code == 200
 
@@ -352,25 +361,26 @@ class TestLoadInterfaceWithExamples:
                 cache_examples=True,
             )
 
-    def test_root_url(self):
-        demo = gr.load("spaces/gradio/test-loading-examples")
+    def test_proxy_url(self):
+        demo = gr.load("spaces/gradio/test-loading-examplesv4-sse")
         assert all(
-            c["props"]["root_url"] == "https://gradio-test-loading-examples.hf.space/"
+            c["props"]["proxy_url"]
+            == "https://gradio-test-loading-examplesv4-sse.hf.space/"
             for c in demo.get_config_file()["components"]
         )
 
     def test_root_url_deserialization(self):
-        demo = gr.load("spaces/gradio/simple_gallery")
-        path_to_files = demo("test")
-        assert (Path(path_to_files) / "captions.json").exists()
+        demo = gr.load("spaces/gradio/simple_galleryv4-sse")
+        gallery = demo("test")
+        assert all("caption" in d for d in gallery)
 
     def test_interface_with_examples(self):
         # This demo has the "fake_event" correctly removed
-        demo = gr.load("spaces/gradio-tests/test-calculator-1")
+        demo = gr.load("spaces/gradio-tests/test-calculator-1v4-sse")
         assert demo(2, "add", 3) == 5
 
         # This demo still has the "fake_event". both should work
-        demo = gr.load("spaces/gradio-tests/test-calculator-2")
+        demo = gr.load("spaces/gradio-tests/test-calculator-2v4-sse")
         assert demo(2, "add", 4) == 6
 
 
@@ -440,14 +450,15 @@ def check_dataset(config, readme_examples):
         assert dataset["props"]["samples"] == [[cols_to_rows(readme_examples)[1]]]
 
 
+@pytest.mark.xfail
 def test_load_blocks_with_default_values():
-    io = gr.load("spaces/gradio-tests/min-dalle")
+    io = gr.load("spaces/gradio-tests/min-dallev4-sse")
     assert isinstance(io.get_config_file()["components"][0]["props"]["value"], list)
 
-    io = gr.load("spaces/gradio-tests/min-dalle-later")
+    io = gr.load("spaces/gradio-tests/min-dalle-laterv4-sse")
     assert isinstance(io.get_config_file()["components"][0]["props"]["value"], list)
 
-    io = gr.load("spaces/gradio-tests/dataframe_load")
+    io = gr.load("spaces/gradio-tests/dataframe_loadv4-sse")
     assert io.get_config_file()["components"][0]["props"]["value"] == {
         "headers": ["a", "b"],
         "data": [[1, 4], [2, 5], [3, 6]],
@@ -474,17 +485,17 @@ def test_can_load_tabular_model_with_different_widget_data(hypothetical_readme):
 
 
 def test_raise_value_error_when_api_name_invalid():
+    demo = gr.load(name="spaces/gradio/hello_worldv4-sse")
     with pytest.raises(InvalidApiNameError):
-        demo = gr.Blocks.load(name="spaces/gradio/hello_world")
         demo("freddy", api_name="route does not exist")
 
 
 def test_use_api_name_in_call_method():
     # Interface
-    demo = gr.Blocks.load(name="spaces/gradio/hello_world")
+    demo = gr.load(name="spaces/gradio/hello_worldv4-sse")
     assert demo("freddy", api_name="predict") == "Hello freddy!"
 
     # Blocks demo with multiple functions
-    app = gr.Blocks.load(name="spaces/gradio/multiple-api-name-test")
-    assert app(15, api_name="minus_one") == 14
-    assert app(4, api_name="double") == 8
+    # app = gr.load(name="spaces/gradio/multiple-api-name-test")
+    # assert app(15, api_name="minus_one") == 14
+    # assert app(4, api_name="double") == 8

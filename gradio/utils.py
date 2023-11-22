@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import dataclasses
 import functools
 import importlib
 import inspect
@@ -11,19 +12,18 @@ import json
 import json.decoder
 import os
 import pkgutil
-import random
 import re
 import threading
-import time
 import traceback
 import typing
+import urllib.parse
 import warnings
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from io import BytesIO
 from numbers import Number
 from pathlib import Path
-from types import GeneratorType
+from types import AsyncGeneratorType, GeneratorType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -37,7 +37,6 @@ from typing import (
 import anyio
 import matplotlib
 import requests
-from gradio_client.serializing import Serializable
 from typing_extensions import ParamSpec
 
 import gradio
@@ -45,7 +44,7 @@ from gradio.context import Context
 from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio.blocks import Block, BlockContext, Blocks
+    from gradio.blocks import BlockContext, Blocks
     from gradio.components import Component
     from gradio.routes import App, Request
 
@@ -97,8 +96,8 @@ class BaseReloader(ABC):
         assert self.running_app.blocks
         # Copy over the blocks to get new components and events but
         # not a new queue
-        if hasattr(self.running_app.blocks, "_queue"):
-            self.running_app.blocks._queue.blocks_dependencies = demo.dependencies
+        if self.running_app.blocks._queue:
+            self.running_app.blocks._queue.block_fns = demo.fns
             demo._queue = self.running_app.blocks._queue
         self.running_app.blocks = demo
 
@@ -108,7 +107,7 @@ class SourceFileReloader(BaseReloader):
         self,
         app: App,
         watch_dirs: list[str],
-        watch_file: str,
+        watch_module_name: str,
         stop_event: threading.Event,
         change_event: threading.Event,
         demo_name: str = "demo",
@@ -116,7 +115,7 @@ class SourceFileReloader(BaseReloader):
         super().__init__()
         self.app = app
         self.watch_dirs = watch_dirs
-        self.watch_file = watch_file
+        self.watch_module_name = watch_module_name
         self.stop_event = stop_event
         self.change_event = change_event
         self.demo_name = demo_name
@@ -148,7 +147,7 @@ def watchfn(reloader: SourceFileReloader):
     # The thread running watchfn will be the thread reloading
     # the app. So we need to modify this thread_data attr here
     # so that subsequent calls to reload don't launch the app
-    from gradio.reload import reload_thread
+    from gradio.cli.commands.reload import reload_thread
 
     reload_thread.running_reload = True
 
@@ -174,10 +173,13 @@ def watchfn(reloader: SourceFileReloader):
 
     module = None
     reload_dirs = [Path(dir_) for dir_ in reloader.watch_dirs]
+    import sys
+
+    for dir_ in reload_dirs:
+        sys.path.insert(0, str(dir_))
+
     mtimes = {}
     while reloader.should_watch():
-        import sys
-
         changed = get_changes()
         if changed:
             print(f"Changes detected in: {changed}")
@@ -198,11 +200,11 @@ def watchfn(reloader: SourceFileReloader):
                 if sourcefile and is_in_or_equal(sourcefile, dir_):
                     del sys.modules[k]
             try:
-                module = importlib.import_module(reloader.watch_file)
+                module = importlib.import_module(reloader.watch_module_name)
                 module = importlib.reload(module)
             except Exception as e:
                 print(
-                    f"Reloading {reloader.watch_file} failed with the following exception: "
+                    f"Reloading {reloader.watch_module_name} failed with the following exception: "
                 )
                 traceback.print_exception(None, value=e, tb=None)
                 mtimes = {}
@@ -287,12 +289,6 @@ def readme_to_html(article: str) -> str:
     except requests.exceptions.RequestException:
         pass
     return article
-
-
-def show_tip(interface: gradio.Blocks) -> None:
-    if interface.show_tips and random.random() < 1.5:
-        tip: str = random.choice(en["TIPS"])
-        print(f"Tip: {tip}")
 
 
 def launch_counter() -> None:
@@ -530,6 +526,15 @@ def set_directory(path: Path | str):
         os.chdir(origin)
 
 
+@contextmanager
+def no_raise_exception():
+    """Context manager that suppresses exceptions."""
+    try:
+        yield
+    except Exception:
+        pass
+
+
 def sanitize_value_for_csv(value: str | Number) -> str | Number:
     """
     Sanitizes a value that is being written to a CSV file to prevent CSV injection attacks.
@@ -593,16 +598,24 @@ def is_update(val):
 
 
 def get_continuous_fn(fn: Callable, every: float) -> Callable:
-    def continuous_fn(*args):
+    # For Wasm-compatibility, we need to use asyncio.sleep() instead of time.sleep(),
+    # so we need to make the function async.
+    async def continuous_coro(*args):
         while True:
             output = fn(*args)
             if isinstance(output, GeneratorType):
-                yield from output
+                for item in output:
+                    yield item
+            elif isinstance(output, AsyncGeneratorType):
+                async for item in output:
+                    yield item
+            elif inspect.isawaitable(output):
+                yield await output
             else:
                 yield output
-            time.sleep(every)
+            await asyncio.sleep(every)
 
-    return continuous_fn
+    return continuous_coro
 
 
 def function_wrapper(
@@ -788,10 +801,13 @@ def is_special_typed_parameter(name, parameter_types):
 def check_function_inputs_match(fn: Callable, inputs: list, inputs_as_dict: bool):
     """
     Checks if the input component set matches the function
-    Returns: None if valid, a string error message if mismatch
+    Returns: None if valid or if the function does not have a signature (e.g. is a built in),
+    or a string error message if mismatch
     """
-
-    signature = inspect.signature(fn)
+    try:
+        signature = inspect.signature(fn)
+    except ValueError:
+        return None
     parameter_types = get_type_hints(fn)
     min_args = 0
     max_args = 0
@@ -822,23 +838,6 @@ def check_function_inputs_match(fn: Callable, inputs: list, inputs_as_dict: bool
         )
 
 
-def concurrency_count_warning(queue: Callable[P, T]) -> Callable[P, T]:
-    @functools.wraps(queue)
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-        _self, *positional = args
-        if is_zero_gpu_space() and (
-            len(positional) >= 1 or "concurrency_count" in kwargs
-        ):
-            warnings.warn(
-                "Queue concurrency_count on ZeroGPU Spaces cannot be overridden "
-                "and is always equal to Block's max_threads. "
-                "Consider setting max_threads value on the Block instead"
-            )
-        return queue(*args, **kwargs)
-
-    return wrapper
-
-
 class TupleNoPrint(tuple):
     # To remove printing function return in notebook
     def __repr__(self):
@@ -867,7 +866,7 @@ def tex2svg(formula, *args):
         fig = plt.figure(figsize=(0.01, 0.01))
         fig.text(0, 0, rf"${formula}$", fontsize=fontsize)
         output = BytesIO()
-        fig.savefig(
+        fig.savefig(  # type: ignore
             output,
             dpi=dpi,
             transparent=True,
@@ -928,41 +927,6 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path):
     return True
 
 
-def get_serializer_name(block: Block) -> str | None:
-    if not hasattr(block, "serialize"):
-        return None
-
-    def get_class_that_defined_method(meth: Callable):
-        # Adapted from: https://stackoverflow.com/a/25959545/5209347
-        if isinstance(meth, functools.partial):
-            return get_class_that_defined_method(meth.func)
-        if inspect.ismethod(meth) or (
-            inspect.isbuiltin(meth)
-            and getattr(meth, "__self__", None) is not None
-            and getattr(meth.__self__, "__class__", None)
-        ):
-            for cls in inspect.getmro(meth.__self__.__class__):
-                # Find the first serializer defined in gradio_client that
-                if issubclass(cls, Serializable) and "gradio_client" in cls.__module__:
-                    return cls
-                if meth.__name__ in cls.__dict__:
-                    return cls
-            meth = getattr(meth, "__func__", meth)  # fallback to __qualname__ parsing
-        if inspect.isfunction(meth):
-            cls = getattr(
-                inspect.getmodule(meth),
-                meth.__qualname__.split(".<locals>", 1)[0].rsplit(".", 1)[0],
-                None,
-            )
-            if isinstance(cls, type):
-                return cls
-        return getattr(meth, "__objclass__", None)
-
-    cls = get_class_that_defined_method(block.serialize)  # type: ignore
-    if cls:
-        return cls.__name__
-
-
 HTML_TAG_RE = re.compile("<.*?>")
 
 
@@ -983,3 +947,43 @@ def find_user_stack_level() -> int:
         frame = frame.f_back
         n += 1
     return n
+
+
+class NamedString(str):
+    """
+    Subclass of str that includes a .name attribute equal to the value of the string itself. This class is used when returning
+    a value from the `.preprocess()` methods of the File and UploadButton components. Before Gradio 4.0, these methods returned a file
+    object which was then converted to a string filepath using the `.name` attribute. In Gradio 4.0, these methods now return a str
+    filepath directly, but to maintain backwards compatibility, we use this class instead of a regular str.
+    """
+
+    def __init__(self, *args):
+        super().__init__()
+        self.name = str(self) if args else ""
+
+
+def default_input_labels():
+    """
+    A generator that provides default input labels for components when the user's function
+    does not have named parameters. The labels are of the form "input 0", "input 1", etc.
+    """
+    n = 0
+    while True:
+        yield f"input {n}"
+        n += 1
+
+
+def get_extension_from_file_path_or_url(file_path_or_url: str) -> str:
+    """
+    Returns the file extension (without the dot) from a file path or URL. If the file path or URL does not have a file extension, returns an empty string.
+    For example, "https://example.com/avatar/xxxx.mp4?se=2023-11-16T06:51:23Z&sp=r" would return "mp4".
+    """
+    parsed_url = urllib.parse.urlparse(file_path_or_url)
+    file_extension = os.path.splitext(os.path.basename(parsed_url.path))[1]
+    return file_extension[1:] if file_extension else ""
+
+
+def convert_to_dict_if_dataclass(value):
+    if dataclasses.is_dataclass(value):
+        return dataclasses.asdict(value)
+    return value

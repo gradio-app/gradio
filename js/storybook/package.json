@@ -1,0 +1,9 @@
+{
+	"name": "@gradio/storybook",
+	"version": "0.2.0",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"author": "",
+	"license": "ISC",
+	"private": true
+}

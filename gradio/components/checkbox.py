@@ -2,29 +2,18 @@
 
 from __future__ import annotations
 
-import warnings
-from typing import Callable, Literal
+from typing import Any, Callable
 
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import BooleanSerializable
 
-from gradio.components.base import FormComponent, IOComponent, _Keywords
-from gradio.events import Changeable, EventListenerMethod, Inputable, Selectable
-from gradio.interpretation import NeighborInterpretable
+from gradio.components.base import FormComponent
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Checkbox(
-    FormComponent,
-    Changeable,
-    Inputable,
-    Selectable,
-    IOComponent,
-    BooleanSerializable,
-    NeighborInterpretable,
-):
+class Checkbox(FormComponent):
     """
     Creates a checkbox that can be set to `True` or `False`.
 
@@ -33,6 +22,8 @@ class Checkbox(
     Examples-format: a {bool} representing whether the box is checked.
     Demos: sentence_builder, titanic_survival
     """
+
+    EVENTS = [Events.change, Events.input, Events.select]
 
     def __init__(
         self,
@@ -49,12 +40,12 @@ class Checkbox(
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        **kwargs,
+        render: bool = True,
     ):
         """
         Parameters:
             value: if True, checked by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            label: component name in interface.
+            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -65,15 +56,9 @@ class Checkbox(
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
         """
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects or deselects Checkbox.
-        Uses event data gradio.SelectData to carry `value` referring to label of checkbox, and `selected` to refer to state of checkbox.
-        See EventData documentation on how to use this event data.
-        """
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             info=info,
             every=every,
@@ -85,48 +70,18 @@ class Checkbox(
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
             value=value,
-            **kwargs,
         )
-        NeighborInterpretable.__init__(self)
 
-    @staticmethod
-    def update(
-        value: bool | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        info: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Checkbox(...)` instead of `return gr.Checkbox.update(...)`."
-        )
-        return {
-            "label": label,
-            "info": info,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
+    def api_info(self) -> dict[str, Any]:
+        return {"type": "boolean"}
 
-    def get_interpretation_neighbors(self, x):
-        return [not x], {}
+    def example_inputs(self) -> bool:
+        return True
 
-    def get_interpretation_scores(self, x, neighbors, scores, **kwargs):
-        """
-        Returns:
-            The first value represents the interpretation score if the input is False, and the second if the input is True.
-        """
-        if x:
-            return scores[0], None
-        else:
-            return None, scores[0]
+    def preprocess(self, payload: bool | None) -> bool | None:
+        return payload
+
+    def postprocess(self, value: bool | None) -> bool | None:
+        return value

@@ -1,13 +1,20 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
-	import { loaded } from "./utils";
+	import Video from "./Video.svelte";
+	import VideoControls from "./VideoControls.svelte";
+	import type { FileData } from "@gradio/client";
+	import { prepare_files, upload } from "@gradio/client";
 
+	export let root = "";
 	export let src: string;
 	export let subtitle: string | null = null;
 	export let mirror: boolean;
 	export let autoplay: boolean;
 	export let label = "test";
+	export let interactive = false;
+	export let handle_change: (video: FileData) => void = () => {};
+	export let handle_reset_value: () => void = () => {};
 
 	const dispatch = createEventDispatcher<{
 		play: undefined;
@@ -20,6 +27,7 @@
 	let duration: number;
 	let paused = true;
 	let video: HTMLVideoElement;
+	let processingVideo = false;
 
 	function handleMove(e: TouchEvent | MouseEvent): void {
 		if (!duration) return;
@@ -77,29 +85,39 @@
 		dispatch("end");
 	}
 
+	const handle_trim_video = async (videoBlob: Blob): Promise<void> => {
+		let _video_blob = new File([videoBlob], "video.mp4");
+		const val = await prepare_files([_video_blob]);
+		let value = ((await upload(val, root))?.filter(Boolean) as FileData[])[0];
+
+		handle_change(value);
+	};
+
 	function open_full_screen(): void {
 		video.requestFullscreen();
 	}
 </script>
 
 <div class="wrap">
-	<video
-		{src}
-		preload="auto"
-		on:click={play_pause}
-		on:play
-		on:pause
-		on:ended={handle_end}
-		bind:currentTime={time}
-		bind:duration
-		bind:paused
-		bind:this={video}
-		class:mirror
-		use:loaded={{ autoplay }}
-		data-testid={`${label}-player`}
-	>
-		<track kind="captions" src={subtitle} default />
-	</video>
+	<div class:mirror>
+		<Video
+			{src}
+			preload="auto"
+			{autoplay}
+			on:click={play_pause}
+			on:play
+			on:pause
+			on:ended={handle_end}
+			bind:currentTime={time}
+			bind:duration
+			bind:paused
+			bind:node={video}
+			data-testid={`${label}-player`}
+			{processingVideo}
+		>
+			<track kind="captions" src={subtitle} default />
+		</Video>
+	</div>
 
 	<div class="controls">
 		<div class="inner">
@@ -145,6 +163,15 @@
 		</div>
 	</div>
 </div>
+{#if interactive}
+	<VideoControls
+		videoElement={video}
+		showRedo
+		{handle_trim_video}
+		{handle_reset_value}
+		bind:processingVideo
+	/>
+{/if}
 
 <style lang="postcss">
 	span {
@@ -166,14 +193,6 @@
 
 	progress::-webkit-progress-value {
 		background-color: rgba(255, 255, 255, 0.9);
-	}
-
-	video {
-		position: inherit;
-		background-color: black;
-		width: var(--size-full);
-		height: var(--size-full);
-		object-fit: contain;
 	}
 
 	.mirror {
@@ -227,5 +246,6 @@
 		background-color: var(--background-fill-secondary);
 		height: var(--size-full);
 		width: var(--size-full);
+		border-radius: var(--radius-xl);
 	}
 </style>

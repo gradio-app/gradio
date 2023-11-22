@@ -4,7 +4,7 @@
 	import {
 		EditorView,
 		keymap,
-		placeholder as placeholderExt,
+		placeholder as placeholderExt
 	} from "@codemirror/view";
 	import { StateEffect, EditorState, type Extension } from "@codemirror/state";
 	import { indentWithTab } from "@codemirror/commands";
@@ -28,7 +28,11 @@
 	export let readonly = false;
 	export let placeholder: string | HTMLElement | null | undefined = undefined;
 
-	const dispatch = createEventDispatcher<{ change: string }>();
+	const dispatch = createEventDispatcher<{
+		change: string;
+		blur: undefined;
+		focus: undefined;
+	}>();
 	let lang_extension: Extension | undefined;
 	let element: HTMLDivElement;
 	let view: EditorView;
@@ -50,8 +54,8 @@
 				changes: {
 					from: 0,
 					to: view.state.doc.length,
-					insert: newDoc,
-				},
+					insert: newDoc
+				}
 			});
 		}
 	}
@@ -63,10 +67,21 @@
 	}
 
 	function createEditorView(): EditorView {
-		return new EditorView({
+		const editorView = new EditorView({
 			parent: element,
-			state: createEditorState(value),
+			state: createEditorState(value)
 		});
+		editorView.dom.addEventListener("focus", handleFocus, true);
+		editorView.dom.addEventListener("blur", handleBlur, true);
+		return editorView;
+	}
+
+	function handleFocus(): void {
+		dispatch("focus");
+	}
+
+	function handleBlur(): void {
+		dispatch("blur");
 	}
 
 	function getGutterLineHeight(_view: EditorView): string | null {
@@ -119,7 +134,7 @@
 			),
 			FontTheme,
 			...getTheme(),
-			...extensions,
+			...extensions
 		];
 		return stateExtensions;
 	}
@@ -127,36 +142,36 @@
 	const FontTheme = EditorView.theme({
 		"&": {
 			fontSize: "var(--text-sm)",
-			backgroundColor: "var(--border-color-secondary)",
+			backgroundColor: "var(--border-color-secondary)"
 		},
 		".cm-content": {
 			paddingTop: "5px",
 			paddingBottom: "5px",
 			color: "var(--body-text-color)",
 			fontFamily: "var(--font-mono)",
-			minHeight: "100%",
+			minHeight: "100%"
 		},
 		".cm-gutters": {
 			marginRight: "1px",
 			borderRight: "1px solid var(--border-color-primary)",
 			backgroundColor: "transparent",
-			color: "var(--body-text-color-subdued)",
+			color: "var(--body-text-color-subdued)"
 		},
 		".cm-focused": {
-			outline: "none",
+			outline: "none"
 		},
 		".cm-scroller": {
-			height: "auto",
+			height: "auto"
 		},
 		".cm-cursor": {
-			borderLeftColor: "var(--body-text-color)",
-		},
+			borderLeftColor: "var(--body-text-color)"
+		}
 	});
 
 	function createEditorState(_value: string | null | undefined): EditorState {
 		return EditorState.create({
 			doc: _value ?? undefined,
-			extensions: getExtensions(),
+			extensions: getExtensions()
 		});
 	}
 
@@ -170,7 +185,7 @@
 		const extensions: Extension[] = [
 			EditorView.editable.of(!readonly),
 			EditorState.readOnly.of(readonly),
-			EditorView.contentAttributes.of({ "aria-label": "Code input container" }),
+			EditorView.contentAttributes.of({ "aria-label": "Code input container" })
 		];
 
 		if (basic) {
@@ -203,7 +218,7 @@
 
 	function reconfigure(): void {
 		view?.dispatch({
-			effects: StateEffect.reconfigure.of(getExtensions()),
+			effects: StateEffect.reconfigure.of(getExtensions())
 		});
 	}
 

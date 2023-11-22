@@ -9,6 +9,7 @@
 	export let py_client: any;
 
 	export let current_nav_link = "";
+	let docs_type = "python";
 
 	let show_nav = false;
 	let searchTerm = "";
@@ -104,6 +105,18 @@
 			autocomplete="off"
 		/>
 		<DropDown></DropDown>
+		<select
+			bind:value={docs_type}
+			on:change={() => {
+				if (docs_type == "js") {
+					window.location.href = "/main/docs/js/";
+				}
+			}}
+			class="rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0 text-xs mt-2 py-1 pl-2 pr-7 font-mono"
+		>
+			<option value="js">js</option>
+			<option value="python">python</option>
+		</select>
 	</div>
 
 	<p class="font-semibold px-4 my-2 block">Building Demos</p>
@@ -121,10 +134,9 @@
 	<a
 		class:current-nav-link={current_nav_link == "tabbedinterface"}
 		class="thin-link px-4 block"
-		href="./tabbedinterface/"
-		>TabbedInterface</a
+		href="./tabbedinterface/">TabbedInterface</a
 	>
-	
+
 	<a
 		class:current-nav-link={current_nav_link == "blocks"}
 		class="thin-link px-4 block"
@@ -222,6 +234,7 @@
 			href="./{name}/">{obj.name}</a
 		>
 	{/each}
+
 	<a
 		class:current_nav_link={current_nav_link == "js-client"}
 		class="link px-4 my-2 block"

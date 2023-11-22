@@ -41,6 +41,14 @@ export function determine_protocol(endpoint: string): {
 			http_protocol: protocol as "http:" | "https:",
 			host
 		};
+	} else if (endpoint.startsWith("file:")) {
+		// This case is only expected to be used for the Wasm mode (Gradio-lite),
+		// where users can create a local HTML file using it and open the page in a browser directly via the `file:` protocol.
+		return {
+			ws_protocol: "ws",
+			http_protocol: "http:",
+			host: "lite.local" // Special fake hostname only used for this case. This matches the hostname allowed in `is_self_host()` in `js/wasm/network/host.ts`.
+		};
 	}
 
 	// default to secure if no protocol is provided
@@ -84,7 +92,7 @@ export async function process_endpoint(
 				space_id: app_reference,
 				...determine_protocol(_host)
 			};
-		} catch (e) {
+		} catch (e: any) {
 			throw new Error("Space metadata could not be loaded." + e.message);
 		}
 	}
@@ -159,7 +167,7 @@ export async function get_space_hardware(
 		const { hardware } = await res.json();
 
 		return hardware;
-	} catch (e) {
+	} catch (e: any) {
 		throw new Error(e.message);
 	}
 }
@@ -188,7 +196,7 @@ export async function set_space_hardware(
 		const { hardware } = await res.json();
 
 		return hardware;
-	} catch (e) {
+	} catch (e: any) {
 		throw new Error(e.message);
 	}
 }
@@ -217,7 +225,7 @@ export async function set_space_timeout(
 		const { hardware } = await res.json();
 
 		return hardware;
-	} catch (e) {
+	} catch (e: any) {
 		throw new Error(e.message);
 	}
 }

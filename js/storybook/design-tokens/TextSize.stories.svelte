@@ -10,7 +10,7 @@
 		{ tokenName: "--text-md", value: "14px" },
 		{ tokenName: "--text-lg", value: "16px" },
 		{ tokenName: "--text-xl", value: "22px" },
-		{ tokenName: "--text-xxl", value: "26px" },
+		{ tokenName: "--text-xxl", value: "26px" }
 	];
 </script>
 

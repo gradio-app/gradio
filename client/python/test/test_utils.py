@@ -66,20 +66,24 @@ def test_decode_base64_to_file():
     assert isinstance(temp_file, tempfile._TemporaryFileWrapper)
 
 
-def test_download_private_file():
-    url_path = "https://gradio-tests-not-actually-private-space.hf.space/file=lion.jpg"
+def test_download_private_file(gradio_temp_dir):
+    url_path = (
+        "https://gradio-tests-not-actually-private-spacev4-sse.hf.space/file=lion.jpg"
+    )
     hf_token = "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"  # Intentionally revealing this key for testing purposes
-    file = utils.download_tmp_copy_of_file(url_path=url_path, hf_token=hf_token)
+    file = utils.download_file(
+        url_path=url_path, hf_token=hf_token, dir=str(gradio_temp_dir)
+    )
     assert Path(file).name.endswith(".jpg")
 
 
-def test_download_tmp_copy_of_file_does_not_save_errors(monkeypatch):
+def test_download_tmp_copy_of_file_does_not_save_errors(monkeypatch, gradio_temp_dir):
     error_response = requests.Response()
     error_response.status_code = 404
     error_response.close = lambda: 0  # Mock close method to avoid unrelated exception
     monkeypatch.setattr(requests, "get", lambda *args, **kwargs: error_response)
     with pytest.raises(requests.RequestException):
-        utils.download_tmp_copy_of_file("https://example.com/foo")
+        utils.download_file("https://example.com/foo", dir=str(gradio_temp_dir))
 
 
 @pytest.mark.parametrize(
@@ -115,8 +119,8 @@ async def test_get_pred_from_ws():
         json.dumps({"msg": "process_completed", "output": {"data": ["result!"]}}),
     ]
     mock_ws.recv.side_effect = messages
-    data = json.dumps({"data": ["foo"], "fn_index": "foo"})
-    hash_data = json.dumps({"session_hash": "daslskdf", "fn_index": "foo"})
+    data = {"data": ["foo"], "fn_index": "foo"}
+    hash_data = {"session_hash": "daslskdf", "fn_index": "foo"}
     output = await utils.get_pred_from_ws(mock_ws, data, hash_data)
     assert output == {"data": ["result!"]}
     mock_ws.send.assert_called_once_with(data)
@@ -158,7 +162,7 @@ def test_json_schema_to_python_type(schema):
     elif schema == "BooleanSerializable":
         answer = "bool"
     elif schema == "NumberSerializable":
-        answer = "int | float"
+        answer = "float"
     elif schema == "ImgSerializable":
         answer = "str"
     elif schema == "FileSerializable":

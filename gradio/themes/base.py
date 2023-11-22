@@ -506,6 +506,8 @@ class Base(ThemeClass):
         prose_text_size=None,
         prose_text_weight=None,
         prose_header_text_weight=None,
+        code_background_fill=None,
+        code_background_fill_dark=None,
         # Shadows: These set the high-level shadow rendering styles. These variables are often referenced by other component-specific shadow variables.
         shadow_drop=None,
         shadow_drop_lg=None,
@@ -566,8 +568,6 @@ class Base(ThemeClass):
         section_header_text_size=None,
         section_header_text_weight=None,
         # Component Atoms: These set the style for elements within components.
-        chatbot_code_background_color=None,
-        chatbot_code_background_color_dark=None,
         checkbox_background_color=None,
         checkbox_background_color_dark=None,
         checkbox_background_color_focus=None,
@@ -747,6 +747,8 @@ class Base(ThemeClass):
             prose_text_size: The text size used for markdown and other prose.
             prose_text_weight: The text weight used for markdown and other prose.
             prose_header_text_weight: The text weight of a header used for markdown and other prose.
+            code_background_fill: The background color of code blocks.
+            code_background_fill_dark: The background color of code blocks in dark mode.
             shadow_drop: Drop shadow used by other shadowed items.
             shadow_drop_lg: Larger drop shadow used by other shadowed items.
             shadow_inset: Inset shadow used by other shadowed items.
@@ -804,8 +806,6 @@ class Base(ThemeClass):
             panel_border_width_dark: The border width of a panel in dark mode.
             section_header_text_size: The text size of a section header (e.g. tab name).
             section_header_text_weight: The text weight of a section header (e.g. tab name).
-            chatbot_code_background_color: The background color of code blocks in the chatbot.
-            chatbot_code_background_color_dark: The background color of code blocks in the chatbot in dark mode.
             checkbox_background_color: The background of a checkbox square or radio circle.
             checkbox_background_color_dark: The background of a checkbox square or radio circle in dark mode.
             checkbox_background_color_focus: The background of a checkbox square or radio circle when focused.
@@ -1214,12 +1214,11 @@ class Base(ThemeClass):
             or getattr(self, "border_color_accent_subdued_dark", "*border_color_accent")
         )
         # Component Atoms
-        self.chatbot_code_background_color = chatbot_code_background_color or getattr(
-            self, "chatbot_code_background_color", "*neutral_100"
+        self.code_background_fill = code_background_fill or getattr(
+            self, "code_background_fill", "*neutral_100"
         )
-        self.chatbot_code_background_color_dark = (
-            chatbot_code_background_color_dark
-            or getattr(self, "chatbot_code_background_color_dark", "*neutral_800")
+        self.code_background_fill_dark = code_background_fill_dark or getattr(
+            self, "code_background_fill_dark", "*neutral_800"
         )
         self.checkbox_background_color = checkbox_background_color or getattr(
             self, "checkbox_background_color", "*background_fill_primary"

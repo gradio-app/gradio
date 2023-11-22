@@ -3,6 +3,8 @@ export interface Config {
 	auth_message: string;
 	components: any[];
 	css: string | null;
+	js: string | null;
+	head: string | null;
 	dependencies: any[];
 	dev_mode: boolean;
 	enable_queue: boolean;
@@ -18,6 +20,7 @@ export interface Config {
 	show_api: boolean;
 	stylesheets: string[];
 	path: string;
+	protocol?: "sse" | "ws";
 }
 
 export interface Payload {

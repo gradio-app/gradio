@@ -1,110 +1,263 @@
-<svelte:options accessors={true} />
-
 <script lang="ts">
-	import type { Gradio } from "@gradio/utils";
-	import { _ } from "svelte-i18n";
-	import { UploadText } from "@gradio/atoms";
+	import { onDestroy, createEventDispatcher } from "svelte";
+	import { Upload, ModifyUpload } from "@gradio/upload";
+	import { upload, prepare_files, type FileData } from "@gradio/client";
+	import { BlockLabel } from "@gradio/atoms";
+	import { Music } from "@gradio/icons";
+	import AudioPlayer from "../player/AudioPlayer.svelte";
 
-	import type { FileData } from "@gradio/upload";
-	import type { LoadingStatus } from "@gradio/statustracker";
+	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
+	import type { I18nFormatter } from "js/app/src/gradio_helper";
+	import AudioRecorder from "../recorder/AudioRecorder.svelte";
+	import StreamAudio from "../streaming/StreamAudio.svelte";
+	import { SelectSource } from "@gradio/atoms";
+	import type { WaveformOptions } from "../shared/types";
 
-	import Audio from "./Audio.svelte";
-	import { StatusTracker } from "@gradio/statustracker";
-	import { Block } from "@gradio/atoms";
-
-	import { normalise_file } from "@gradio/upload";
-
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible = true;
-	export let value: null | FileData | string = null;
-	export let name: string;
-	export let source: "microphone" | "upload";
+	export let value: null | FileData = null;
 	export let label: string;
 	export let root: string;
-	export let show_label: boolean;
-	export let pending: boolean;
-	export let streaming: boolean;
-	export let root_url: null | string;
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let loading_status: LoadingStatus;
-	export let autoplay = false;
-	export let show_edit_button = true;
-	export let gradio: Gradio<{
-		change: typeof value;
-		stream: typeof value;
-		error: string;
+	export let show_label = true;
+	export let sources:
+		| ["microphone"]
+		| ["upload"]
+		| ["microphone", "upload"]
+		| ["upload", "microphone"] = ["microphone", "upload"];
+	export let pending = false;
+	export let streaming = false;
+	export let i18n: I18nFormatter;
+	export let waveform_settings: Record<string, any>;
+	export let trim_region_settings = {};
+	export let waveform_options: WaveformOptions = {};
+	export let dragging: boolean;
+	export let active_source: "microphone" | "upload";
+	export let handle_reset_value: () => void = () => {};
+
+	$: dispatch("drag", dragging);
+
+	// TODO: make use of this
+	// export let type: "normal" | "numpy" = "normal";
+	let recording = false;
+	let recorder: IMediaRecorder;
+	let mode = "";
+	let header: Uint8Array | undefined = undefined;
+	let pending_stream: Uint8Array[] = [];
+	let submit_pending_stream_on_pending_end = false;
+	let inited = false;
+
+	const STREAM_TIMESLICE = 500;
+	const NUM_HEADER_BYTES = 44;
+	let audio_chunks: Blob[] = [];
+	let module_promises: [
+		Promise<typeof import("extendable-media-recorder")>,
+		Promise<typeof import("extendable-media-recorder-wav-encoder")>
+	];
+
+	function get_modules(): void {
+		module_promises = [
+			import("extendable-media-recorder"),
+			import("extendable-media-recorder-wav-encoder")
+		];
+	}
+
+	if (streaming) {
+		get_modules();
+	}
+
+	const dispatch = createEventDispatcher<{
+		change: FileData | null;
+		stream: FileData;
 		edit: never;
 		play: never;
 		pause: never;
 		stop: never;
 		end: never;
-		start_recording: never;
-		stop_recording: never;
-		upload: never;
-		clear: never;
-	}>;
+		drag: boolean;
+		error: string;
+		upload: FileData;
+		clear: undefined;
+		start_recording: undefined;
+		pause_recording: undefined;
+		stop_recording: undefined;
+	}>();
 
-	let old_value: null | FileData | string = null;
+	const dispatch_blob = async (
+		blobs: Uint8Array[] | Blob[],
+		event: "stream" | "change" | "stop_recording"
+	): Promise<void> => {
+		let _audio_blob = new File(blobs, "audio.wav");
+		const val = await prepare_files([_audio_blob], event === "stream");
+		value = ((await upload(val, root))?.filter(Boolean) as FileData[])[0];
 
-	let _value: null | FileData;
-	$: _value = normalise_file(value, root, root_url);
+		dispatch(event, value);
+	};
 
-	$: {
-		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
-			old_value = value;
-			gradio.dispatch("change");
+	onDestroy(() => {
+		if (streaming && recorder && recorder.state !== "inactive") {
+			recorder.stop();
+		}
+	});
+
+	async function prepare_audio(): Promise<void> {
+		let stream: MediaStream | null;
+
+		try {
+			stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+		} catch (err) {
+			if (!navigator.mediaDevices) {
+				dispatch("error", i18n("audio.no_device_support"));
+				return;
+			}
+			if (err instanceof DOMException && err.name == "NotAllowedError") {
+				dispatch("error", i18n("audio.allow_recording_access"));
+				return;
+			}
+			throw err;
+		}
+		if (stream == null) return;
+		if (streaming) {
+			const [{ MediaRecorder, register }, { connect }] = await Promise.all(
+				module_promises
+			);
+			await register(await connect());
+			recorder = new MediaRecorder(stream, { mimeType: "audio/wav" });
+			recorder.addEventListener("dataavailable", handle_chunk);
+		} else {
+			recorder = new MediaRecorder(stream);
+			recorder.addEventListener("dataavailable", (event) => {
+				audio_chunks.push(event.data);
+			});
+			recorder.addEventListener("stop", async () => {
+				recording = false;
+				await dispatch_blob(audio_chunks, "change");
+				await dispatch_blob(audio_chunks, "stop_recording");
+				audio_chunks = [];
+			});
+		}
+		inited = true;
+	}
+
+	async function handle_chunk(event: IBlobEvent): Promise<void> {
+		let buffer = await event.data.arrayBuffer();
+		let payload = new Uint8Array(buffer);
+		if (!header) {
+			header = new Uint8Array(buffer.slice(0, NUM_HEADER_BYTES));
+			payload = new Uint8Array(buffer.slice(NUM_HEADER_BYTES));
+		}
+		if (pending) {
+			pending_stream.push(payload);
+		} else {
+			let blobParts = [header].concat(pending_stream, [payload]);
+			dispatch_blob(blobParts, "stream");
+			pending_stream = [];
 		}
 	}
 
-	let dragging: boolean;
+	$: if (submit_pending_stream_on_pending_end && pending === false) {
+		submit_pending_stream_on_pending_end = false;
+		if (header && pending_stream) {
+			let blobParts: Uint8Array[] = [header].concat(pending_stream);
+			pending_stream = [];
+			dispatch_blob(blobParts, "stream");
+		}
+	}
+
+	async function record(): Promise<void> {
+		recording = true;
+		dispatch("start_recording");
+		if (!inited) await prepare_audio();
+		header = undefined;
+		if (streaming) {
+			recorder.start(STREAM_TIMESLICE);
+		}
+	}
+
+	function clear(): void {
+		dispatch("change", null);
+		dispatch("clear");
+		mode = "";
+		value = null;
+	}
+
+	function handle_load({ detail }: { detail: FileData }): void {
+		value = detail;
+		dispatch("change", detail);
+		dispatch("upload", detail);
+	}
+
+	function stop(): void {
+		recording = false;
+
+		if (streaming) {
+			dispatch("stop_recording");
+			recorder.stop();
+			if (pending) {
+				submit_pending_stream_on_pending_end = true;
+			}
+			dispatch_blob(audio_chunks, "stop_recording");
+			dispatch("clear");
+			mode = "";
+		}
+	}
 </script>
 
-<Block
-	variant={value === null && source === "upload" ? "dashed" : "solid"}
-	border_mode={dragging ? "focus" : "base"}
-	padding={false}
-	{elem_id}
-	{elem_classes}
-	{visible}
-	{container}
-	{scale}
-	{min_width}
->
-	<StatusTracker {...loading_status} />
-	<Audio
+<BlockLabel
+	{show_label}
+	Icon={Music}
+	float={active_source === "upload" && value === null}
+	label={label || i18n("audio.audio")}
+/>
+{#if value === null || streaming}
+	{#if active_source === "microphone"}
+		<ModifyUpload {i18n} on:clear={clear} absolute={true} />
+		{#if streaming}
+			<StreamAudio {record} {recording} {stop} {i18n} {waveform_settings} />
+		{:else}
+			<AudioRecorder
+				bind:mode
+				{i18n}
+				{dispatch_blob}
+				{waveform_settings}
+				{waveform_options}
+				{handle_reset_value}
+			/>
+		{/if}
+	{:else if active_source === "upload"}
+		<!-- explicitly listed out audio mimetypes due to iOS bug not recognizing audio/* -->
+		<Upload
+			filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
+			on:load={handle_load}
+			bind:dragging
+			on:error={({ detail }) => dispatch("error", detail)}
+			{root}
+			include_sources={sources.length > 1}
+		>
+			<slot />
+		</Upload>
+	{/if}
+{:else}
+	<ModifyUpload
+		{i18n}
+		on:clear={clear}
+		on:edit={() => (mode = "edit")}
+		absolute={true}
+	/>
+
+	<AudioPlayer
+		bind:mode
+		{value}
 		{label}
-		{show_label}
-		value={_value}
-		on:change={({ detail }) => (value = detail)}
-		on:stream={({ detail }) => {
-			value = detail;
-			gradio.dispatch("stream", value);
-		}}
-		on:drag={({ detail }) => (dragging = detail)}
-		{name}
-		{source}
-		{pending}
-		{streaming}
-		{autoplay}
-		{show_edit_button}
-		on:edit={() => gradio.dispatch("edit")}
-		on:play={() => gradio.dispatch("play")}
-		on:pause={() => gradio.dispatch("pause")}
-		on:stop={() => gradio.dispatch("stop")}
-		on:end={() => gradio.dispatch("end")}
-		on:start_recording={() => gradio.dispatch("start_recording")}
-		on:stop_recording={() => gradio.dispatch("stop_recording")}
-		on:upload={() => gradio.dispatch("upload")}
-		on:clear={() => gradio.dispatch("clear")}
-		on:error={({ detail }) => {
-			loading_status = loading_status || {};
-			loading_status.status = "error";
-			gradio.dispatch("error", detail);
-		}}
-	>
-		<UploadText type="audio" />
-	</Audio>
-</Block>
+		{i18n}
+		{dispatch_blob}
+		{waveform_settings}
+		{waveform_options}
+		{trim_region_settings}
+		{handle_reset_value}
+		interactive
+		on:stop
+		on:play
+		on:pause
+		on:edit
+	/>
+{/if}
+
+<SelectSource {sources} bind:active_source handle_clear={clear} />

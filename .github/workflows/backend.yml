@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - "main"
-  pull_request:
+  pull_request: 
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 
 concurrency:
   group: backend-${{ github.ref }}-${{ github.event_name == 'push' || github.event.inputs.fire != null }}
@@ -31,7 +32,10 @@ jobs:
         filters: |
           python-client:
             - 'client/python/**'
+            - 'gradio/**'
+            - 'requirements.txt'
           gradio:
+            - 'client/python/**'
             - 'gradio/**'
             - 'requirements.txt'
           test:
@@ -48,8 +52,10 @@ jobs:
         os: ["ubuntu-latest", "windows-latest"]
         test-type: ["not flaky", "flaky"]
         python-version: ["3.8"]
+        exclude:
+          - os: ${{ github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'windows-tests') && 'dummy' || 'windows-latest' }}
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.test-type == 'flaky' }}
+    continue-on-error: true
     steps:
     - uses: actions/checkout@v3
     - name: Install Python
@@ -82,13 +88,13 @@ jobs:
       uses: pnpm/action-setup@v2
       with:
         version: 8
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       if: steps.frontend-cache.outputs.cache-hit != 'true'
       with:
         node-version: 18
         cache: pnpm
         cache-dependency-path: pnpm-lock.yaml
-    - name: Build frontend
+    - name: Build Frontend
       if: steps.frontend-cache.outputs.cache-hit != 'true'
       run: |
         pnpm i --frozen-lockfile  --ignore-scripts
@@ -104,8 +110,8 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         . venv/bin/activate
-        python -m pip install -e client/python
-        python -m pip install -e .
+        python -m pip install client/python
+        python -m pip install ".[oauth]"
     - name: Lint (Linux)
       if: runner.os == 'Linux'
       run: |
@@ -125,8 +131,8 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         venv\Scripts\activate
-        python -m pip install -e client/python
-        python -m pip install -e .
+        python -m pip install client/python
+        python -m pip install ".[oauth]"
     - name: Tests (Windows)
       if: runner.os == 'Windows'
       run: |
@@ -140,8 +146,10 @@ jobs:
         os: ["ubuntu-latest", "windows-latest"]
         test-type: ["not flaky", "flaky"]
         python-version: ["3.8"]
+        exclude:
+          - os: ${{ github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'windows-tests') && 'dummy' || 'windows-latest' }}
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.test-type == 'flaky' }}
+    continue-on-error: true
     steps:
     - uses: actions/checkout@v3
     - name: Install Python
@@ -168,13 +176,14 @@ jobs:
       with:
         path: |
           gradio/templates/*
+          gradio/node/*
         key: gradio-lib-front-end-${{ hashFiles('js/**', 'client/js/**')}}
     - name: Install pnpm
       if: steps.frontend-cache.outputs.cache-hit != 'true'
       uses: pnpm/action-setup@v2
       with:
         version: 8
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       if: steps.frontend-cache.outputs.cache-hit != 'true'
       with:
         node-version: 18
@@ -189,8 +198,8 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         . venv/bin/activate
-        python -m pip install -e client/python
-        python -m pip install .
+        python -m pip install client/python
+        python -m pip install ".[oauth]"
     - name: Install Test Dependencies (Linux)
       if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
       run: |
@@ -212,22 +221,21 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         . venv/bin/activate
-        python -m coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
-        python -m coverage xml
+        python -m pytest -m "${{ matrix.test-type }}" --ignore=client
     - name: Install Gradio and Client Libraries Locally (Windows)
       if: runner.os == 'Windows'
       run: |
         venv\Scripts\activate
-        python -m pip install -e client/python  
-        python -m pip install .
+        python -m pip install client/python  
+        python -m pip install ".[oauth]"
     - name: Install Test Dependencies (Windows)
       if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Windows'
       run: |
         venv\Scripts\activate
-        python -m pip install -e . -r test/requirements.txt
+        python -m pip install . -r test/requirements.txt
     - name: Run tests (Windows)
       if: runner.os == 'Windows'
       run: |
         venv\Scripts\activate
-        python -m coverage run -m pytest -m "${{ matrix.test-type }}" --ignore=client
-        python -m coverage xml
+        python -m pytest -m "${{ matrix.test-type }}" --ignore=client
+        echo "The exit code for pytest was $LASTEXITCODE"

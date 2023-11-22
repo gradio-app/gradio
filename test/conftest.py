@@ -21,11 +21,13 @@ def test_file_dir():
 
 @pytest.fixture
 def io_components():
-    classes_to_check = gr.components.IOComponent.__subclasses__()
+    classes_to_check = gr.components.Component.__subclasses__()
     subclasses = []
 
     while classes_to_check:
         subclass = classes_to_check.pop()
+        if subclass in [gr.components.FormComponent, gr.State]:
+            continue
         children = subclass.__subclasses__()
 
         if children:
@@ -48,8 +50,7 @@ def connect():
             # because we should set a timeout
             # the tests that call .cancel() can get stuck
             # waiting for the thread to join
-            if demo.enable_queue:
-                demo._queue.close()
+            demo._queue.close()
             demo.is_running = False
             demo.server.should_exit = True
             demo.server.thread.join(timeout=1)

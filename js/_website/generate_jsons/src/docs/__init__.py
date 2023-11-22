@@ -3,18 +3,18 @@ import json
 import os
 
 from gradio_client.documentation import document_cls, generate_documentation
-
-from gradio.events import EventListener, EventListenerMethod
-
+import gradio
 from ..guides import guides
+
+import requests
 
 DIR = os.path.dirname(__file__)
 DEMOS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo"))
 JS_CLIENT_README = os.path.abspath(os.path.join(DIR, "../../../../../client/js/README.md"))
+JS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../js/"))
 
 docs = generate_documentation()
 docs["component"].sort(key=lambda x: x["name"])
-
 
 def add_component_shortcuts():
     for component in docs["component"]:
@@ -59,23 +59,19 @@ def add_demos():
 add_demos()
 
 def create_events_matrix():
-    events = []
-    for c in EventListener.__subclasses__():
-        methods = c().__dict__
-        for m in methods: 
-            if m[:1] != '_' and isinstance(methods[m], EventListenerMethod) and m not in events: 
-                events.append(m)
+    events = set({})
     component_events = {}
     for component in docs["component"]:
         component_event_list = []
-        for event in events:
+        for event in component["class"].EVENTS:
+            events.add(event)
             for fn in component["fns"]:
                 if event == fn["name"]:
                     component_event_list.append(event)
         component_events[component["name"]] = component_event_list
     
     
-    return events, component_events
+    return list(events), component_events
 
 events, component_events = create_events_matrix()
 
@@ -317,13 +313,45 @@ def organize_docs(d):
     organized["events_matrix"] = component_events
     organized["events"] = events
 
+    js = {}
+    js_pages = []
+
+    for js_component in os.listdir(JS_DIR):
+        if not js_component.startswith("_") and js_component not in ["app", "highlighted-text", "playground", "preview", "upload-button", "theme", "tootils"]:
+            if os.path.exists(os.path.join(JS_DIR, js_component, "package.json")):
+                with open(os.path.join(JS_DIR, js_component, "package.json")) as f:
+                    package_json = json.load(f)
+                    if package_json.get("private", False):
+                        continue
+            if os.path.exists(os.path.join(JS_DIR, js_component, "README.md")):
+                with open(os.path.join(JS_DIR, js_component, "README.md")) as f:
+                    readme_content = f.read()
+
+                try: 
+                    latest_npm = requests.get(f"https://registry.npmjs.org/@gradio/{js_component}/latest").json()["version"]
+                    latest_npm = f" [v{latest_npm}](https://www.npmjs.com/package/@gradio/{js_component})"
+                    readme_content = readme_content.split("\n")
+                    readme_content = "\n".join([readme_content[0], latest_npm, *readme_content[1:]])
+                except TypeError:
+                    pass
+
+                js[js_component] = readme_content
+                js_pages.append(js_component)
+
+
     with open(JS_CLIENT_README) as f:
         readme_content = f.read()
-    return {"docs": organized, "pages": pages, "js_client": readme_content}
+    js_pages.append("js-client")
+
+    js["js-client"] = readme_content
+
+    js_pages.sort()
+
+
+    return {"docs": organized, "pages": pages, "js": js, "js_pages": js_pages, "js_client": readme_content}
 
 
 docs = organize_docs(docs)
-
 
 def generate(json_path):
     with open(json_path, "w+") as f:

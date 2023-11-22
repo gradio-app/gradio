@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import Dropdown from "./shared/Dropdown.svelte";
 </script>

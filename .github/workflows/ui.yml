@@ -30,6 +30,8 @@ jobs:
         run: pnpm --filter @gradio/client build
       - name: build the wasm module
         run: pnpm --filter @gradio/wasm build
+      - name: format check
+        run: pnpm format:check
       - name: lint
         run: pnpm lint
       - name: typecheck
@@ -54,7 +56,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: deploy json to aws
-        if: steps.pr_details.outputs.source_branch == 'changeset-release/main' || steps.pr_details.outputs.source_branch == 'changeset-release/v4'
+        if: steps.pr_details.outputs.source_branch == 'changeset-release/main'
         run: |
           export AWS_ACCESS_KEY_ID=${{ secrets.AWSACCESSKEYID }}
           export AWS_SECRET_ACCESS_KEY=${{ secrets.AWSSECRETKEY }}

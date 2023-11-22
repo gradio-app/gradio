@@ -4,31 +4,18 @@ from __future__ import annotations
 
 import math
 import random
-import warnings
-from typing import Any, Callable, Literal
+from typing import Any, Callable
 
-import numpy as np
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import NumberSerializable
 
-from gradio.components.base import FormComponent, IOComponent, _Keywords
-from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import Changeable, Inputable, Releaseable
-from gradio.interpretation import NeighborInterpretable
+from gradio.components.base import FormComponent
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Slider(
-    FormComponent,
-    Changeable,
-    Inputable,
-    Releaseable,
-    IOComponent,
-    NumberSerializable,
-    NeighborInterpretable,
-):
+class Slider(FormComponent):
     """
     Creates a slider that ranges from {minimum} to {maximum} with a step size of {step}.
     Preprocessing: passes slider value as a {float} into the function.
@@ -38,6 +25,8 @@ class Slider(
     Demos: sentence_builder, slider_release, generate_tone, titanic_survival, interface_random_slider, blocks_random_slider
     Guides: create-your-own-friends-with-a-gan
     """
+
+    EVENTS = [Events.change, Events.input, Events.release]
 
     def __init__(
         self,
@@ -57,8 +46,8 @@ class Slider(
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
         randomize: bool = False,
-        **kwargs,
     ):
         """
         Parameters:
@@ -66,7 +55,7 @@ class Slider(
             maximum: maximum value for slider.
             value: default value. If callable, the function will be called whenever the app loads to set the initial value of the component. Ignored if randomized=True.
             step: increment between slider values.
-            label: component name in interface.
+            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -77,6 +66,7 @@ class Slider(
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             randomize: If True, the value of the slider when the app loads is taken uniformly at random from the range given by the minimum and maximum.
         """
         self.minimum = minimum
@@ -89,8 +79,7 @@ class Slider(
             self.step = step
         if randomize:
             value = self.get_random_value
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             info=info,
             every=every,
@@ -102,25 +91,18 @@ class Slider(
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
             value=value,
-            **kwargs,
         )
-        NeighborInterpretable.__init__(self)
 
-    def api_info(self) -> dict[str, dict | bool]:
+    def api_info(self) -> dict[str, Any]:
         return {
-            "info": {
-                "type": "number",
-                "description": f"numeric value between {self.minimum} and {self.maximum}",
-            },
-            "serialized_info": False,
+            "type": "number",
+            "description": f"numeric value between {self.minimum} and {self.maximum}",
         }
 
-    def example_inputs(self) -> dict[str, Any]:
-        return {
-            "raw": self.minimum,
-            "serialized": self.minimum,
-        }
+    def example_inputs(self) -> Any:
+        return self.minimum
 
     def get_random_value(self):
         n_steps = int((self.maximum - self.minimum) / self.step)
@@ -132,74 +114,8 @@ class Slider(
             value = round(value, n_decimals)
         return value
 
-    @staticmethod
-    def update(
-        value: float | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        minimum: float | None = None,
-        maximum: float | None = None,
-        step: float | None = None,
-        label: str | None = None,
-        info: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Slider(...)` instead of `return gr.Slider.update(...)`."
-        )
-        return {
-            "minimum": minimum,
-            "maximum": maximum,
-            "step": step,
-            "label": label,
-            "info": info,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "__type__": "update",
-        }
+    def postprocess(self, value: float | None) -> float:
+        return self.minimum if value is None else value
 
-    def postprocess(self, y: float | None) -> float | None:
-        """
-        Any postprocessing needed to be performed on function output.
-        Parameters:
-            y: numeric output
-        Returns:
-            numeric output or minimum number if None
-        """
-        return self.minimum if y is None else y
-
-    def set_interpret_parameters(self, steps: int = 8) -> Slider:
-        """
-        Calculates interpretation scores of numeric values ranging between the minimum and maximum values of the slider.
-        Parameters:
-            steps: Number of neighboring values to measure between the minimum and maximum values of the slider range.
-        """
-        self.interpretation_steps = steps
-        return self
-
-    def get_interpretation_neighbors(self, x) -> tuple[object, dict]:
-        return (
-            np.linspace(self.minimum, self.maximum, self.interpretation_steps).tolist(),
-            {},
-        )
-
-    def style(
-        self,
-        *,
-        container: bool | None = None,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if container is not None:
-            self.container = container
-        return self
+    def preprocess(self, payload: float) -> float:
+        return payload

@@ -71,9 +71,9 @@
 				</div>
 			</div>
 		</div>
-		<div class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:w-2/12 lg:block">
-
-		</div>
+		<div
+			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:w-2/12 lg:block"
+		></div>
 	</div>
 </main>
 

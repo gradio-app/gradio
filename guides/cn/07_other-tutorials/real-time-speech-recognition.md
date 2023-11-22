@@ -58,7 +58,7 @@ def transcribe(audio):
 
 gr.Interface(
     fn=transcribe,
-    inputs=gr.Audio(source="microphone", type="filepath"),
+    inputs=gr.Audio(sources=["microphone"], type="filepath"),
     outputs="text").launch()
 ```
 
@@ -90,7 +90,7 @@ def transcribe(audio, state=""):
 gr.Interface(
     fn=transcribe,
     inputs=[
-        gr.Audio(source="microphone", type="filepath", streaming=True),
+        gr.Audio(sources=["microphone"], type="filepath", streaming=True),
         "state"
     ],
     outputs=[
@@ -124,7 +124,7 @@ def transcribe(audio, state=""):
 gr.Interface(
     fn=transcribe,
     inputs=[
-        gr.Audio(source="microphone", type="filepath", streaming=True),
+        gr.Audio(sources=["microphone"], type="filepath", streaming=True),
         "state"
     ],
     outputs=[
@@ -208,7 +208,7 @@ import gradio as gr
 gr.Interface(
     fn=transcribe,
     inputs=[
-        gr.Audio(source="microphone", type="numpy"),
+        gr.Audio(sources=["microphone"], type="numpy"),
         "state"
     ],
     outputs= [

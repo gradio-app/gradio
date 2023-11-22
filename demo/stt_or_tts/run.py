@@ -10,6 +10,7 @@ tts_demo = gr.load(
     title=None,
     examples=tts_examples,
     description="Give me something to say!",
+    cache_examples=False
 )
 
 stt_demo = gr.load(

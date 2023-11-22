@@ -20,7 +20,6 @@ def fraud_detector(card_activity, categories, sensitivity):
 demo = gr.Interface(
     fraud_detector,
     [
-        gr.Timeseries(x="time", y=["retail", "food", "other"]),
         gr.CheckboxGroup(
             ["retail", "food", "other"], value=["retail", "food", "other"]
         ),
@@ -28,7 +27,6 @@ demo = gr.Interface(
     ],
     [
         "dataframe",
-        gr.Timeseries(x="time", y=["retail", "food", "other"]),
         gr.Label(label="Fraud Level"),
     ],
     examples=[

@@ -1,6 +1,7 @@
-import { test as base } from "@playwright/test";
+import { test as base, type Page } from "@playwright/test";
 import { basename } from "path";
 import { spy } from "tinyspy";
+import { readFileSync } from "fs";
 
 import type { SvelteComponent } from "svelte";
 import type { SpyFn } from "tinyspy";
@@ -41,5 +42,48 @@ export async function wait_for_event(
 	});
 }
 
+export interface ActionReturn<
+	Parameter = never,
+	Attributes extends Record<string, any> = Record<never, any>
+> {
+	update?: [Parameter] extends [never] ? never : (parameter: Parameter) => void;
+	destroy?: () => void;
+	/**
+	 * ### DO NOT USE THIS
+	 * This exists solely for type-checking and has no effect at runtime.
+	 * Set this through the `Attributes` generic instead.
+	 */
+	$$_attributes?: Attributes;
+}
+
 export { expect } from "@playwright/test";
 export * from "./render";
+
+export const drag_and_drop_file = async (
+	page: Page,
+	selector: string,
+	filePath: string,
+	fileName: string,
+	fileType = ""
+): Promise<void> => {
+	const buffer = readFileSync(filePath).toString("base64");
+
+	const dataTransfer = await page.evaluateHandle(
+		async ({ bufferData, localFileName, localFileType }) => {
+			const dt = new DataTransfer();
+
+			const blobData = await fetch(bufferData).then((res) => res.blob());
+
+			const file = new File([blobData], localFileName, { type: localFileType });
+			dt.items.add(file);
+			return dt;
+		},
+		{
+			bufferData: `data:application/octet-stream;base64,${buffer}`,
+			localFileName: fileName,
+			localFileType: fileType
+		}
+	);
+
+	await page.dispatchEvent(selector, "drop", { dataTransfer });
+};

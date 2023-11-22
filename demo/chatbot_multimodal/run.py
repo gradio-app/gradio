@@ -42,7 +42,7 @@ with gr.Blocks() as demo:
         btn = gr.UploadButton("📁", file_types=["image", "video", "audio"])
 
     txt_msg = txt.submit(add_text, [chatbot, txt], [chatbot, txt], queue=False).then(
-        bot, chatbot, chatbot
+        bot, chatbot, chatbot, api_name="bot_response"
     )
     txt_msg.then(lambda: gr.Textbox(interactive=True), None, [txt], queue=False)
     file_msg = btn.upload(add_file, [chatbot, btn], [chatbot], queue=False).then(

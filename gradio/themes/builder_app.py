@@ -356,12 +356,8 @@ with gr.Blocks(  # noqa: SIM117
                         height=320,
                     )
                     with gr.Row():
-                        go_btn = gr.Button(
-                            "Go", label="Primary Button", variant="primary"
-                        )
-                        clear_btn = gr.Button(
-                            "Clear", label="Secondary Button", variant="secondary"
-                        )
+                        go_btn = gr.Button("Go", variant="primary")
+                        clear_btn = gr.Button("Clear", variant="secondary")
 
                         def go(*args):
                             time.sleep(3)
@@ -383,9 +379,7 @@ with gr.Blocks(  # noqa: SIM117
                     with gr.Row():
                         btn1 = gr.Button("Button 1", size="sm")
                         btn2 = gr.UploadButton(size="sm")
-                        stop_btn = gr.Button(
-                            "Stop", label="Stop Button", variant="stop", size="sm"
-                        )
+                        stop_btn = gr.Button("Stop", variant="stop", size="sm")
 
             gr.Examples(
                 examples=[
@@ -471,7 +465,7 @@ with gr.Blocks(  # noqa: SIM117
             None,
             None,
             None,
-            _js="""() => {
+            js="""() => {
                 document.head.innerHTML += "<style id='theme_css'></style>";
                 let evt_listener = window.setTimeout(
                     () => {
@@ -847,7 +841,7 @@ with gr.Blocks(theme=theme) as demo:
                 None,
                 [secret_css, secret_font],
                 None,
-                _js="""(css, fonts) => {
+                js="""(css, fonts) => {
                     document.getElementById('theme_css').innerHTML = css;
                     let existing_font_links = document.querySelectorAll('link[rel="stylesheet"][href^="https://fonts.googleapis.com/css"]');
                     existing_font_links.forEach(link => {
@@ -929,7 +923,7 @@ with gr.Blocks(theme=theme) as demo:
             None,
             None,
             None,
-            _js="""() => {
+            js="""() => {
             if (document.querySelectorAll('.dark').length) {
                 document.querySelectorAll('.dark').forEach(el => el.classList.remove('dark'));
             } else {

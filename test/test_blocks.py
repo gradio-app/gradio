@@ -1,20 +1,16 @@
 import asyncio
 import copy
 import io
-import json
 import os
 import pathlib
 import random
 import sys
-import tempfile
 import time
 import unittest.mock as mock
 import uuid
-import warnings
 from concurrent.futures import wait
 from contextlib import contextmanager
 from functools import partial
-from pathlib import Path
 from string import capwords
 from unittest.mock import patch
 
@@ -22,13 +18,12 @@ import gradio_client as grc
 import numpy as np
 import pytest
 import uvicorn
-import websockets
 from fastapi.testclient import TestClient
 from gradio_client import media_data
 from PIL import Image
 
 import gradio as gr
-from gradio.blocks import get_api_info
+from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
 from gradio.networking import Server, get_first_available_port
@@ -75,77 +70,6 @@ class TestBlocksMethods:
             assert demo.share
             demo.close()
 
-    def test_default_enabled_deprecated(self):
-        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
-        with pytest.warns(
-            UserWarning, match="The default_enabled parameter of queue has no effect"
-        ):
-            io.queue(default_enabled=True)
-
-        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox())
-        with warnings.catch_warnings(record=True) as record:
-            warnings.simplefilter("always")
-            io.queue()
-        for warning in record:
-            assert "default_enabled" not in str(warning.message)
-
-    def test_xray(self):
-        def fake_func():
-            return "Hello There"
-
-        def xray_model(diseases, img):
-            return {disease: random.random() for disease in diseases}
-
-        def ct_model(diseases, img):
-            return {disease: 0.1 for disease in diseases}
-
-        with gr.Blocks() as demo:
-            gr.Markdown(
-                """
-            # Detect Disease From Scan
-            With this model you can lorem ipsum
-            - ipsum 1
-            - ipsum 2
-            """
-            )
-            disease = gr.CheckboxGroup(
-                choices=["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
-            )
-
-            with gr.Tabs():
-                with gr.TabItem("X-ray"):
-                    with gr.Row():
-                        xray_scan = gr.Image()
-                        xray_results = gr.JSON()
-                    xray_run = gr.Button("Run")
-                    xray_run.click(
-                        xray_model, inputs=[disease, xray_scan], outputs=xray_results
-                    )
-
-                with gr.TabItem("CT Scan"):
-                    with gr.Row():
-                        ct_scan = gr.Image()
-                        ct_results = gr.JSON()
-                    ct_run = gr.Button("Run")
-                    ct_run.click(
-                        ct_model, inputs=[disease, ct_scan], outputs=ct_results
-                    )
-            textbox = gr.Textbox()
-            demo.load(fake_func, [], [textbox])
-
-        config = demo.get_config_file()
-        xray_config_file = (
-            pathlib.Path(__file__).parent / "test_files" / "xray_config.json"
-        )
-        with open(xray_config_file) as fp:
-            xray_config = json.load(fp)
-
-        print(json.dumps(config))
-        assert assert_configs_are_equivalent_besides_ids(xray_config, config)
-        assert config["show_api"] is True
-        _ = demo.launch(prevent_thread_lock=True, show_api=False)
-        assert demo.config["show_api"] is False
-
     def test_load_from_config(self):
         fake_url = "https://fake.hf.space"
 
@@ -164,7 +88,7 @@ class TestBlocksMethods:
         demo2 = gr.Blocks.from_config(config1, [update], "https://fake.hf.space")
 
         for component in config1["components"]:
-            component["props"]["root_url"] = f"{fake_url}/"
+            component["props"]["proxy_url"] = f"{fake_url}/"
         config2 = demo2.get_config_file()
 
         assert assert_configs_are_equivalent_besides_ids(config1, config2)
@@ -293,14 +217,18 @@ class TestBlocksMethods:
                     num1 = gr.Number(value=4, precision=0)
                     o1 = gr.Number()
                     async_iterate = gr.Button(value="Async Iteration")
-                    async_iterate.click(async_iteration, num1, o1)
+                    async_iterate.click(
+                        async_iteration,
+                        num1,
+                        o1,
+                        concurrency_limit=2,
+                        concurrency_id="main",
+                    )
                 with gr.Column():
                     num2 = gr.Number(value=4, precision=0)
                     o2 = gr.Number()
                     iterate = gr.Button(value="Iterate")
-                    iterate.click(iteration, num2, o2)
-
-        demo.queue(concurrency_count=2)
+                    iterate.click(iteration, num2, o2, concurrency_id="main")
 
         with connect(demo) as client:
             job_1 = client.submit(3, fn_index=0)
@@ -392,19 +320,9 @@ class TestBlocksMethods:
         server.run_in_thread()
 
         try:
-            async with websockets.connect(f"ws://localhost:{port}/queue/join") as ws:
-                completed = False
-                while not completed:
-                    msg = json.loads(await ws.recv())
-                    if msg["msg"] == "send_data":
-                        await ws.send(json.dumps({"data": ["Victor"], "fn_index": 0}))
-                    if msg["msg"] == "send_hash":
-                        await ws.send(
-                            json.dumps({"fn_index": 0, "session_hash": "shdce"})
-                        )
-                    if msg["msg"] == "process_completed":
-                        completed = True
-                assert msg["output"]["data"][0] == "Victor"
+            client = grc.Client(f"http://localhost:{port}")
+            result = client.predict("Victor", api_name="/predict")
+            assert result == "Victor"
         finally:
             server.close()
 
@@ -425,32 +343,6 @@ class TestBlocksMethods:
         demo.launch(prevent_thread_lock=True)
         assert len(demo.get_config_file()["dependencies"]) == 1
 
-    def test_raise_error_if_event_queued_but_queue_not_enabled(self):
-        with gr.Blocks() as demo:
-            with gr.Row():
-                with gr.Column():
-                    input_ = gr.Textbox()
-                    btn = gr.Button("Greet")
-                with gr.Column():
-                    output = gr.Textbox()
-            btn.click(
-                lambda x: f"Hello, {x}", inputs=input_, outputs=output, queue=True
-            )
-
-        with pytest.raises(ValueError, match="The queue is enabled for event 0"):
-            demo.launch(prevent_thread_lock=True)
-
-        demo.close()
-
-    def test_concurrency_count_zero_gpu(self, monkeypatch):
-        monkeypatch.setenv("SPACES_ZERO_GPU", "true")
-        demo = gr.Blocks()
-        with pytest.warns():
-            demo.queue(concurrency_count=42)
-        with pytest.warns():
-            demo.queue(42)
-        assert demo._queue.max_thread_count == demo.max_threads
-
 
 class TestTempFile:
     def test_pil_images_hashed(self, connect, gradio_temp_dir):
@@ -468,11 +360,10 @@ class TestTempFile:
             outputs=gallery,
         )
         with connect(demo) as client:
-            path = client.predict(3)
-            _ = client.predict(3)
+            client.predict(3, api_name="/predict")
+            _ = client.predict(3, api_name="/predict")
         # only three files created and in temp directory
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 3
-        assert Path(tempfile.gettempdir()).resolve() in Path(path).resolve().parents
 
     def test_no_empty_image_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
@@ -484,52 +375,34 @@ class TestTempFile:
             outputs=gr.Image(),
         )
         with connect(demo) as client:
-            _ = client.predict(image)
-            _ = client.predict(image)
-            _ = client.predict(image)
-        # only three files created
-        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
+            _ = client.predict(image, api_name="/predict")
+            _ = client.predict(image, api_name="/predict")
+            _ = client.predict(image, api_name="/predict")
+        # Upload creates a file. image preprocessing creates another one.
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
     @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
     def test_file_component_uploads(self, component, connect, gradio_temp_dir):
         code_file = str(pathlib.Path(__file__))
         demo = gr.Interface(lambda x: x.name, component(), gr.File())
         with connect(demo) as client:
-            _ = client.predict(code_file)
-            _ = client.predict(code_file)
-        # the upload route does not hash the file so 2 files from there
+            _ = client.predict(code_file, api_name="/predict")
+            _ = client.predict(code_file, api_name="/predict")
+        # the upload route hashees the files so we get 1 from there
         # We create two tempfiles (empty) because API says we return
-        # preprocess/postprocess will only create one file since we hash
-        # so 2 + 2 + 1 = 5
-        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 5
-
-    @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
-    def test_file_component_uploads_no_serialize(
-        self, component, connect, gradio_temp_dir
-    ):
-        code_file = str(pathlib.Path(__file__))
-        demo = gr.Interface(lambda x: x.name, component(), gr.File())
-        with connect(demo, serialize=False) as client:
-            _ = client.predict(gr.File().serialize(code_file))
-            _ = client.predict(gr.File().serialize(code_file))
-        # We skip the upload route in this case
-        # We create two tempfiles (empty) because API says we return
-        # preprocess/postprocess will only create one file since we hash
-        # so 2 + 1 = 3
+        # preprocess/postprocess will create the same file as the upload route
+        # so 1 + 2 = 3
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 3
 
     def test_no_empty_video_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
         video = str(file_dir / "video_sample.mp4")
-        demo = gr.Interface(lambda x: x, gr.Video(type="file"), gr.Video())
+        demo = gr.Interface(lambda x: x, gr.Video(), gr.Video())
         with connect(demo) as client:
-            _, url, _ = demo.launch(prevent_thread_lock=True)
-            client = grc.Client(url)
-            _ = client.predict(video)
-            _ = client.predict(video)
-        # During preprocessing we compute the hash based on base64
-        # In postprocessing we compute it based on the file
-        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
+            _ = client.predict({"video": video}, api_name="/predict")
+            _ = client.predict({"video": video}, api_name="/predict")
+        # Upload route and postprocessing return the same file
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
     def test_no_empty_audio_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
@@ -541,10 +414,9 @@ class TestTempFile:
 
         demo = gr.Interface(fn=reverse_audio, inputs=gr.Audio(), outputs=gr.Audio())
         with connect(demo) as client:
-            _ = client.predict(audio)
-            _ = client.predict(audio)
-            # During preprocessing we compute the hash based on base64
-            # In postprocessing we compute it based on the file
+            _ = client.predict(audio, api_name="/predict")
+            _ = client.predict(audio, api_name="/predict")
+            # One for upload and one for reversal
             assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
 
@@ -570,7 +442,7 @@ class TestComponentsInBlocks:
                 label="Random Slider (Input 2)",
             )
         for component in demo.blocks.values():
-            if isinstance(component, gr.components.IOComponent):
+            if isinstance(component, gr.components.Component):
                 if "Non-random" in component.label:
                     assert not component.load_event_to_attach
                 else:
@@ -619,6 +491,7 @@ class TestBlocksPostprocessing:
                 gr.ScatterPlot,
                 gr.LinePlot,
                 gr.BarPlot,
+                gr.components.Fallback,
                 gr.FileExplorer,
             ]
         ]
@@ -635,8 +508,15 @@ class TestBlocksPostprocessing:
         output = demo.postprocess_data(
             0, [gr.update(value=None) for _ in io_components], state=None
         )
+
+        def process_and_dump(component):
+            output = component.postprocess(None)
+            if isinstance(output, (GradioModel, GradioRootModel)):
+                output = output.model_dump()
+            return output
+
         assert all(
-            o["value"] == c.postprocess(None) for o, c in zip(output, io_components)
+            o["value"] == process_and_dump(c) for o, c in zip(output, io_components)
         )
 
     def test_blocks_does_not_replace_keyword_literal(self):
@@ -744,9 +624,9 @@ class TestBlocksPostprocessing:
             output = await demo.process_api(fn_index, [], state=None)
             assert output["data"][0] == {
                 "__type__": "update",
-                "mode": "dynamic",
+                "interactive": True,
             }
-            assert output["data"][1] == {"__type__": "update", "mode": "dynamic"}
+            assert output["data"][1] == {"__type__": "update", "interactive": True}
 
     def test_error_raised_if_num_outputs_mismatch(self):
         with gr.Blocks() as demo:
@@ -949,6 +829,22 @@ class TestCallFunction:
         assert output == "Hi, World"
 
     @pytest.mark.asyncio
+    async def test_call_decorated_functions(self):
+        with gr.Blocks() as demo:
+            name = gr.Textbox(value="Abubakar")
+            output = gr.Textbox(label="Output Box")
+
+            @name.submit(inputs=name, outputs=output)
+            @demo.load(inputs=name, outputs=output)
+            def test(x):
+                return "Hello " + x
+
+        output = await demo.call_function(0, ["Adam"])
+        assert output["prediction"] == "Hello Adam"
+        output = await demo.call_function(1, ["Adam"])
+        assert output["prediction"] == "Hello Adam"
+
+    @pytest.mark.asyncio
     async def test_call_generator(self):
         def generator(x):
             yield from range(x)
@@ -1023,24 +919,6 @@ class TestBatchProcessing:
             return [trimmed_words]
 
         msg = "In order to use batching, the queue must be enabled."
-
-        with pytest.raises(ValueError, match=msg):
-            demo = gr.Interface(
-                trim, ["textbox", "number"], ["textbox"], batch=True, max_batch_size=16
-            )
-            demo.launch(prevent_thread_lock=True)
-
-        with pytest.raises(ValueError, match=msg):
-            with gr.Blocks() as demo:
-                with gr.Row():
-                    word = gr.Textbox(label="word")
-                    leng = gr.Number(label="leng")
-                    output = gr.Textbox(label="Output")
-                with gr.Row():
-                    run = gr.Button()
-
-                run.click(trim, [word, leng], output, batch=True, max_batch_size=16)
-            demo.launch(prevent_thread_lock=True)
 
         with pytest.raises(ValueError, match=msg):
             with gr.Blocks() as demo:
@@ -1182,8 +1060,8 @@ class TestUpdate:
         with gr.Blocks() as demo:
             with gr.Accordion(label="Open for greeting", open=False) as accordion:
                 gr.Textbox("Hello!")
-            open_btn = gr.Button(label="Open Accordion")
-            close_btn = gr.Button(label="Close Accordion")
+            open_btn = gr.Button("Open Accordion")
+            close_btn = gr.Button("Close Accordion")
             open_btn.click(
                 lambda: gr.Accordion(open=True, label="Open Accordion"),
                 inputs=None,
@@ -1367,17 +1245,13 @@ class TestCancel:
             yield a
 
         msg = "Queue needs to be enabled!"
-        with pytest.raises(ValueError, match=msg):
-            gr.Interface(iteration, inputs=gr.Number(), outputs=gr.Number()).launch(
-                prevent_thread_lock=True
-            )
 
         with pytest.raises(ValueError, match=msg):
             with gr.Blocks() as demo:
                 button = gr.Button(value="Predict")
                 click = button.click(None, None, None)
                 cancel = gr.Button(value="Cancel")
-                cancel.click(None, None, None, cancels=[click])
+                cancel.click(None, None, None, cancels=[click], queue=False)
             demo.launch(prevent_thread_lock=True)
 
         with pytest.raises(ValueError, match=msg):
@@ -1407,63 +1281,6 @@ class TestEvery:
                 num = gr.Number()
                 num.change(lambda s: s + 1, inputs=[num], outputs=[num], every=-0.1)
 
-    @pytest.mark.asyncio
-    async def test_every_does_not_block_queue(self):
-        with gr.Blocks() as demo:
-            num = gr.Number(value=0)
-            name = gr.Textbox()
-            greeting = gr.Textbox()
-            button = gr.Button(value="Greet")
-            name.change(lambda n: n + random.random(), num, num, every=0.5)
-            button.click(lambda s: f"Hello, {s}!", name, greeting)
-        app, _, _ = demo.queue(max_size=1).launch(prevent_thread_lock=True)
-        client = TestClient(app)
-
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join"
-        ) as ws:
-            completed = False
-            while not completed:
-                msg = json.loads(await ws.recv())
-                if msg["msg"] == "send_data":
-                    await ws.send(json.dumps({"data": [0], "fn_index": 0}))
-                if msg["msg"] == "send_hash":
-                    await ws.send(json.dumps({"fn_index": 0, "session_hash": "shdce"}))
-                    status = client.get("/queue/status")
-                    # If the continuous event got pushed to the queue, the size would be nonzero
-                    # asserting false will terminate the test
-                    if status.json()["queue_size"] != 0:
-                        raise AssertionError()
-                    else:
-                        break
-
-    @pytest.mark.asyncio
-    async def test_generating_event_cancelled_if_ws_closed(self, connect, capsys):
-        def generation():
-            for i in range(10):
-                time.sleep(0.1)
-                print(f"At step {i}")
-                yield i
-            return "Hello!"
-
-        with gr.Blocks() as demo:
-            greeting = gr.Textbox()
-            button = gr.Button(value="Greet")
-            button.click(generation, None, greeting)
-
-        with connect(demo) as client:
-            job = client.submit(0, fn_index=0)
-            for i, _ in enumerate(job):
-                if i == 2:
-                    job.cancel()
-
-        await asyncio.sleep(1)
-        # If the generation function did not get cancelled
-        # it would have finished running and `At step 9` would
-        # have been printed
-        captured = capsys.readouterr()
-        assert "At step 9" not in captured.out
-
 
 class TestGetAPIInfo:
     def test_many_endpoints(self):
@@ -1475,12 +1292,12 @@ class TestGetAPIInfo:
             t5 = gr.Textbox()
             t1.change(lambda x: x, t1, t2, api_name="change1")
             t2.change(lambda x: x, t2, t3, api_name="change2")
-            t3.change(lambda x: x, t3, t4)
+            t3.change(lambda x: x, t3, t4, api_name=False)
             t4.change(lambda x: x, t4, t5, api_name=False)
 
-        api_info = get_api_info(demo.get_config_file())
+        api_info = demo.get_api_info()
         assert len(api_info["named_endpoints"]) == 2
-        assert len(api_info["unnamed_endpoints"]) == 1
+        assert len(api_info["unnamed_endpoints"]) == 0
 
     def test_no_endpoints(self):
         with gr.Blocks() as demo:
@@ -1488,7 +1305,7 @@ class TestGetAPIInfo:
             t2 = gr.Textbox()
             t1.change(lambda x: x, t1, t2, api_name=False)
 
-        api_info = get_api_info(demo.get_config_file())
+        api_info = demo.get_api_info()
         assert len(api_info["named_endpoints"]) == 0
         assert len(api_info["unnamed_endpoints"]) == 0
 
@@ -1664,22 +1481,6 @@ class TestAddRequests:
         assert new_event_data.value == "foo"
 
 
-def test_queue_enabled_for_fn():
-    with gr.Blocks() as demo:
-        input = gr.Textbox()
-        output = gr.Textbox()
-        number = gr.Number()
-        button = gr.Button()
-        button.click(lambda x: f"Hello, {x}!", input, output)
-        button.click(lambda: 42, None, number, queue=True)
-
-    assert not demo.queue_enabled_for_fn(0)
-    assert demo.queue_enabled_for_fn(1)
-    demo.queue()
-    assert demo.queue_enabled_for_fn(0)
-    assert demo.queue_enabled_for_fn(1)
-
-
 @pytest.mark.asyncio
 async def test_queue_when_using_auth():
     sleep_time = 1
@@ -1695,56 +1496,17 @@ async def test_queue_when_using_auth():
         button.click(say_hello, _input, _output)
     demo.queue()
     app, _, _ = demo.launch(auth=("abc", "123"), prevent_thread_lock=True)
-    client = TestClient(app)
 
-    resp = client.post(
-        f"{demo.local_url}login",
-        data={"username": "abc", "password": "123"},
-        follow_redirects=False,
-    )
-    assert resp.status_code == 200
-    token = resp.cookies.get(f"access-token-{demo.app.cookie_id}")
-    assert token
+    with pytest.raises(ValueError):
+        grc.Client(f"http://localhost:{demo.server_port}")
 
-    with pytest.raises(Exception) as e:
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join",
-        ) as ws:
-            await ws.recv()
-    assert e.type == websockets.InvalidStatusCode
+    client = grc.Client(f"http://localhost:{demo.server_port}", auth=("abc", "123"))
+    jobs = []
+    for i in range(3):
+        jobs.append(client.submit(f"World {i}", fn_index=0))
 
-    async def run_ws(i):
-        async with websockets.connect(
-            f"{demo.local_url.replace('http', 'ws')}queue/join",
-            extra_headers={"Cookie": f"access-token-{demo.app.cookie_id}={token}"},
-        ) as ws:
-            while True:
-                try:
-                    msg = json.loads(await ws.recv())
-                except websockets.ConnectionClosedOK:
-                    break
-                if msg["msg"] == "send_hash":
-                    await ws.send(
-                        json.dumps({"fn_index": 0, "session_hash": "enwpitpex2q"})
-                    )
-                if msg["msg"] == "send_data":
-                    await ws.send(
-                        json.dumps(
-                            {
-                                "data": [str(i)],
-                                "fn_index": 0,
-                                "session_hash": "enwpitpex2q",
-                            }
-                        )
-                    )
-                    msg = json.loads(await ws.recv())
-                    assert msg["msg"] == "process_starts"
-                if msg["msg"] == "process_completed":
-                    assert msg["success"]
-                    assert msg["output"]["data"] == [f"Hello {i}!"]
-                    break
-
-    await asyncio.gather(*[run_ws(i) for i in range(3)])
+    for i, job in enumerate(jobs):
+        assert job.result() == f"Hello World {i}!"
 
 
 def test_temp_file_sets_get_extended():
@@ -1761,3 +1523,71 @@ def test_temp_file_sets_get_extended():
         demo2.render()
 
     assert demo3.temp_file_sets == demo1.temp_file_sets + demo2.temp_file_sets
+
+
+def test_recover_kwargs():
+    audio = gr.Audio(format="wav", autoplay=True)
+    props = audio.recover_kwargs(
+        {"format": "wav", "value": "foo.wav", "autoplay": False, "foo": "bar"}
+    )
+    assert props == {"format": "wav", "value": "foo.wav", "autoplay": False}
+    props = audio.recover_kwargs(
+        {"format": "wav", "value": "foo.wav", "autoplay": False, "foo": "bar"},
+        ["value"],
+    )
+    assert props == {"format": "wav", "autoplay": False}
+
+
+def test_deprecation_warning_emitted_when_concurrency_count_set():
+    with pytest.raises(DeprecationWarning):
+        gr.Interface(lambda x: x, gr.Textbox(), gr.Textbox()).queue(
+            concurrency_count=12
+        )
+
+
+def test_postprocess_update_dict():
+    block = gr.Textbox()
+    update_dict = {"value": 2.0, "visible": True, "invalid_arg": "hello"}
+    assert gr.blocks.postprocess_update_dict(block, update_dict, True) == {
+        "__type__": "update",
+        "value": "2.0",
+        "visible": True,
+    }
+
+    block = gr.Textbox(lines=10)
+    update_dict = {"value": 2.0, "lines": 10}
+    assert gr.blocks.postprocess_update_dict(block, update_dict, False) == {
+        "__type__": "update",
+        "value": 2.0,
+        "lines": 10,
+    }
+
+    block = gr.Dropdown(choices=["New Country A", "New Country B"])
+    update_dict = {
+        "value": "New Country A",
+        "choices": ["New Country A", "New Country B"],
+    }
+    assert gr.blocks.postprocess_update_dict(block, update_dict, False) == {
+        "__type__": "update",
+        "value": "New Country A",
+        "choices": [
+            ("New Country A", "New Country A"),
+            ("New Country B", "New Country B"),
+        ],
+    }
+
+
+def test_async_iterator_update_with_new_component(connect):
+    async def get_number_stream():
+        for i in range(10):
+            yield gr.Number(value=i, label="Number (updates every second)")
+
+            await asyncio.sleep(0.1)
+
+    demo = gr.Interface(fn=get_number_stream, inputs=None, outputs=["number"])
+    demo.queue()
+
+    with connect(demo) as client:
+        job = client.submit(api_name="/predict")
+        job.result()
+        assert [r["value"] for r in job.outputs()] == list(range(10))

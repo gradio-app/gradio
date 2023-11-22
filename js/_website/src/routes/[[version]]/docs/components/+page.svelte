@@ -60,17 +60,22 @@
 			</div>
 
 			{#if on_main}
-				<div class="bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 rounded-lg lg:ml-10">
+				<div
+					class="bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 rounded-lg lg:ml-10"
+				>
 					<p class="my-2">
 						To install Gradio from main, run the following command:
 					</p>
 					<div class="codeblock">
-						<pre class="language-bash" style="padding-right: 50px;"><code class="language-bash">pip install {wheel}</code></pre>
+						<pre class="language-bash" style="padding-right: 50px;"><code
+								class="language-bash">pip install {wheel}</code
+							></pre>
 					</div>
-						<p class="float-right text-sm">
-						*Note: Setting <code style="font-size: 0.85rem">share=True</code> in <code style="font-size: 0.85rem">launch()</code> will not work. 
+					<p class="float-right text-sm">
+						*Note: Setting <code style="font-size: 0.85rem">share=True</code> in
+						<code style="font-size: 0.85rem">launch()</code> will not work.
 					</p>
-					</div>
+				</div>
 			{/if}
 
 			<div class="lg:ml-10 flex justify-between mt-4">
@@ -113,9 +118,9 @@
 
 						<p class="mt-2 text-lg">
 							Consider an example with three inputs &lpar;Textbox, Number, and
-							Image&rpar; and two outputs &lpar;Number and Gallery&rpar;, below is
-							a diagram of what our preprocessing will send to the function and
-							what our postprocessing will require from it.
+							Image&rpar; and two outputs &lpar;Number and Gallery&rpar;, below
+							is a diagram of what our preprocessing will send to the function
+							and what our postprocessing will require from it.
 						</p>
 
 						<img src={dataflow_svg} class="mt-4" />
@@ -124,7 +129,8 @@
 							Components also come with certain events that they support. These
 							are methods that are triggered with user actions. Below is a table
 							showing which events are supported for each component. All events
-							are also listed &lpar;with parameters&rpar; in the component's docs.
+							are also listed &lpar;with parameters&rpar; in the component's
+							docs.
 						</p>
 					</div>
 
@@ -145,7 +151,9 @@
 							>
 								{#each Object.entries(components) as [name, obj] (name)}
 									<tr class="group hover:bg-gray-200/60">
-										<th class="p-3 w-1/5 bg-white sticky z-2 left-0 font-normal">
+										<th
+											class="p-3 w-1/5 bg-white sticky z-2 left-0 font-normal"
+										>
 											<a href={obj.name.toLowerCase()} class="thin-link"
 												>{obj.name}</a
 											>
@@ -185,7 +193,8 @@
 				</a>
 			</div>
 		</div>
-		<div class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:w-2/12 lg:block">
-		</div>
+		<div
+			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:w-2/12 lg:block"
+		></div>
 	</div>
 </main>

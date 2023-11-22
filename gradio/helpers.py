@@ -25,12 +25,13 @@ from matplotlib import animation
 
 from gradio import components, oauth, processing_utils, routes, utils, wasm_utils
 from gradio.context import Context, LocalContext
+from gradio.data_classes import GradioModel, GradioRootModel
+from gradio.events import EventData
 from gradio.exceptions import Error
 from gradio.flagging import CSVLogger
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio.blocks import Block
-    from gradio.components import IOComponent
+    from gradio.components import Component
 
 CACHED_FOLDER = "gradio_cached_examples"
 LOG_FILE = "log.csv"
@@ -40,8 +41,8 @@ set_documentation_group("helpers")
 
 def create_examples(
     examples: list[Any] | list[list[Any]] | str,
-    inputs: IOComponent | list[IOComponent],
-    outputs: IOComponent | list[IOComponent] | None = None,
+    inputs: Component | list[Component],
+    outputs: Component | list[Component] | None = None,
     fn: Callable | None = None,
     cache_examples: bool = False,
     examples_per_page: int = 10,
@@ -51,7 +52,7 @@ def create_examples(
     run_on_click: bool = False,
     preprocess: bool = True,
     postprocess: bool = True,
-    api_name: str | None | Literal[False] = False,
+    api_name: str | Literal[False] = "load_example",
     batch: bool = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
@@ -91,8 +92,8 @@ class Examples:
     def __init__(
         self,
         examples: list[Any] | list[list[Any]] | str,
-        inputs: IOComponent | list[IOComponent],
-        outputs: IOComponent | list[IOComponent] | None = None,
+        inputs: Component | list[Component],
+        outputs: Component | list[Component] | None = None,
         fn: Callable | None = None,
         cache_examples: bool = False,
         examples_per_page: int = 10,
@@ -102,7 +103,7 @@ class Examples:
         run_on_click: bool = False,
         preprocess: bool = True,
         postprocess: bool = True,
-        api_name: str | None | Literal[False] = False,
+        api_name: str | Literal[False] = "load_example",
         batch: bool = False,
         _initiated_directly: bool = True,
     ):
@@ -110,16 +111,16 @@ class Examples:
         Parameters:
             examples: example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
             inputs: the component or list of components corresponding to the examples
-            outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache` is True.
-            fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache` is True.
+            outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache_examples` is True.
+            fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache_examples` is True.
             cache_examples: if True, caches examples for fast runtime. If True, then `fn` and `outputs` must be provided. If `fn` is a generator function, then the last yielded value will be used as the output.
             examples_per_page: how many examples to show per page.
             label: the label to use for the examples component (by default, "Examples")
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM.
             run_on_click: if cache_examples is False, clicking on an example does not run the function when an example is clicked. Set this to True to run the function when an example is clicked. Has no effect if cache_examples is True.
-            preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if cache_examples is True.
-            postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if cache_examples is True.
-            api_name: Defines how the event associated with clicking on the examples appears in the API docs. Can be a string, None, or False. If False (default), the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
+            preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if `cache_examples` is True.
+            postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if `cache_examples` is True.
+            api_name: Defines how the event associated with clicking on the examples appears in the API docs. Can be a string or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use the example function.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is True.
         """
         if _initiated_directly:
@@ -206,13 +207,19 @@ class Examples:
         self.batch = batch
 
         with utils.set_directory(working_directory):
-            self.processed_examples = [
-                [
-                    component.postprocess(sample)
-                    for component, sample in zip(inputs, example)
-                ]
-                for example in examples
-            ]
+            self.processed_examples = []
+            for example in examples:
+                sub = []
+                for component, sample in zip(inputs, example):
+                    prediction_value = component.postprocess(sample)
+                    if isinstance(prediction_value, (GradioRootModel, GradioModel)):
+                        prediction_value = prediction_value.model_dump()
+                    prediction_value = processing_utils.move_files_to_cache(
+                        prediction_value, component, postprocess=True
+                    )
+                    sub.append(prediction_value)
+                self.processed_examples.append(sub)
+
         self.non_none_processed_examples = [
             [ex for (ex, keep) in zip(example, input_has_examples) if keep]
             for example in self.processed_examples
@@ -252,7 +259,14 @@ class Examples:
 
         async def load_example(example_id):
             processed_example = self.non_none_processed_examples[example_id]
-            return utils.resolve_singleton(processed_example)
+            if len(self.inputs_with_examples) == 1:
+                return update(
+                    value=processed_example[0], **self.dataset.component_props[0]
+                )
+            return [
+                update(value=processed_example[i], **self.dataset.component_props[i])
+                for i in range(len(self.inputs_with_examples))
+            ]
 
         if Context.root_block:
             self.load_input_event = self.dataset.click(
@@ -410,28 +424,28 @@ class Examples:
                 output.append(value_as_dict)
             except (ValueError, TypeError, SyntaxError, AssertionError):
                 output.append(
-                    component.serialize(
-                        value_to_use, self.cached_folder, allow_links=True
+                    component.read_from_flag(
+                        value_to_use,
+                        self.cached_folder,
                     )
                 )
         return output
 
 
 def merge_generated_values_into_output(
-    components: list[IOComponent], generated_values: list, output: list
+    components: list[Component], generated_values: list, output: list
 ):
-    from gradio.events import StreamableOutput
+    from gradio.components.base import StreamingOutput
 
     for output_index, output_component in enumerate(components):
-        if (
-            isinstance(output_component, StreamableOutput)
-            and output_component.streaming
-        ):
+        if isinstance(output_component, StreamingOutput) and output_component.streaming:
             binary_chunks = []
             for i, chunk in enumerate(generated_values):
                 if len(components) > 1:
                     chunk = chunk[output_index]
                 processed_chunk = output_component.postprocess(chunk)
+                if isinstance(processed_chunk, (GradioModel, GradioRootModel)):
+                    processed_chunk = processed_chunk.model_dump()
                 binary_chunks.append(
                     output_component.stream_output(processed_chunk, "", i == 0)[0]
                 )
@@ -445,9 +459,7 @@ def merge_generated_values_into_output(
                 f.write(binary_data)
 
             output[output_index] = {
-                "name": temp_file.name,
-                "is_file": True,
-                "data": None,
+                "path": temp_file.name,
             }
 
     return output
@@ -722,7 +734,10 @@ def special_args(
     Returns:
         updated inputs, progress index, event data index.
     """
-    signature = inspect.signature(fn)
+    try:
+        signature = inspect.signature(fn)
+    except ValueError:
+        return inputs or [], None, None
     type_hints = utils.get_type_hints(fn)
     positional_args = []
     for param in signature.parameters.values():
@@ -1059,37 +1074,6 @@ def make_waveform(
     return output_mp4.name
 
 
-@document()
-class EventData:
-    """
-    When a subclass of EventData is added as a type hint to an argument of an event listener method, this object will be passed as that argument.
-    It contains information about the event that triggered the listener, such the target object, and other data related to the specific event that are attributes of the subclass.
-
-    Example:
-        table = gr.Dataframe([[1, 2, 3], [4, 5, 6]])
-        gallery = gr.Gallery([("cat.jpg", "Cat"), ("dog.jpg", "Dog")])
-        textbox = gr.Textbox("Hello World!")
-
-        statement = gr.Textbox()
-
-        def on_select(evt: gr.SelectData):  # SelectData is a subclass of EventData
-            return f"You selected {evt.value} at {evt.index} from {evt.target}"
-
-        table.select(on_select, None, statement)
-        gallery.select(on_select, None, statement)
-        textbox.select(on_select, None, statement)
-    Demos: gallery_selections, tictactoe
-    """
-
-    def __init__(self, target: Block | None, _data: Any):
-        """
-        Parameters:
-            target: The target object that triggered the event. Can be used to distinguish if multiple components are bound to the same listener.
-        """
-        self.target = target
-        self._data = _data
-
-
 def log_message(message: str, level: Literal["info", "warning"] = "info"):
     from gradio.context import LocalContext
 
@@ -1102,11 +1086,6 @@ def log_message(message: str, level: Literal["info", "warning"] = "info"):
             print(message)
         elif level == "warning":
             warnings.warn(message)
-        return
-    if not blocks.enable_queue:
-        warnings.warn(
-            f"Queueing must be enabled to issue {level.capitalize()}: '{message}'."
-        )
         return
     blocks._queue.log_message(event_id=event_id, log=message, level=level)
 

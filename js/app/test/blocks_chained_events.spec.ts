@@ -1,5 +1,4 @@
 import { test, expect } from "@gradio/tootils";
-import type { Response } from "@playwright/test";
 
 test(".success should not run if function fails", async ({ page }) => {
 	let last_iteration;
@@ -82,10 +81,10 @@ test("ValueError makes the toast show up when show_error=True", async ({
 
 test("gr.Info makes the toast show up", async ({ page }) => {
 	await page.click("text=Trigger Info");
-	const toast = page.getByTestId("toast-body");
+	const toast = await page.getByTestId("toast-body");
 
 	expect(toast).toContainText("This is some info");
-	const close = page.getByTestId("toast-close");
+	const close = await page.getByTestId("toast-close");
 	await close.click();
 	await expect(page.getByTestId("toast-body")).toHaveCount(0);
 });

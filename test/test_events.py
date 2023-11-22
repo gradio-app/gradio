@@ -79,7 +79,7 @@ class TestEvent:
                 return "Hello " + name + "!"
 
             gr.on(
-                triggers=[name.submit, greet_btn.click],
+                triggers=[name.submit, greet_btn.click, demo.load],
                 fn=greet,
                 inputs=name,
                 outputs=output,
@@ -98,6 +98,7 @@ class TestEvent:
         assert demo.config["dependencies"][0]["targets"] == [
             (name._id, "submit"),
             (greet_btn._id, "click"),
+            (demo._id, "load"),
         ]
         assert demo.config["dependencies"][1]["targets"] == [
             (num1._id, "change"),

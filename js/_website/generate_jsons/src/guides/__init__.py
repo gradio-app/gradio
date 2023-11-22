@@ -85,6 +85,12 @@ for guide_folder in guide_folders:
             guide_content,
         )
 
+        guide_content = re.sub(
+            r"(\n\nTip: )(.*?)(?=\n\n|$)", 
+            lambda x: f"<p class='tip'>💡 {x.group(2)}</p>", 
+            guide_content,
+        )
+
         content_no_html = guide_content
 
         guide_content = "\n".join(
@@ -94,6 +100,7 @@ for guide_folder in guide_folders:
                 if not any(line.startswith(label) for label in metadata_labels)
             ]
         )
+        
         guide_content = re.sub(
             r"```([a-z]+)\n",
             lambda x: f"<div class='codeblock'><pre><code class='lang-{x.group(1)}'>",

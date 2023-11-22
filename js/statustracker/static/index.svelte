@@ -1,7 +1,6 @@
 <script context="module" lang="ts">
 	import { tick } from "svelte";
 	import { pretty_si } from "./utils";
-	import { _ } from "svelte-i18n";
 
 	let items: HTMLDivElement[] = [];
 
@@ -47,11 +46,12 @@
 
 <script lang="ts">
 	import { onDestroy } from "svelte";
-	// TODO: revisit this
-	import { app_state } from "../../app/src/stores";
+
 	import Loader from "./Loader.svelte";
 	import type { LoadingStatus } from "./types";
+	import type { I18nFormatter } from "@gradio/utils";
 
+	export let i18n: I18nFormatter;
 	export let eta: number | null = null;
 	export let queue = false;
 	export let queue_position: number | null;
@@ -67,6 +67,7 @@
 	export let absolute = true;
 	export let translucent = false;
 	export let border = false;
+	export let autoscroll: boolean;
 
 	let el: HTMLDivElement;
 
@@ -153,7 +154,7 @@
 	$: el &&
 		scroll_to_output &&
 		(status === "pending" || status === "complete") &&
-		scroll_into_view(el, $app_state.autoscroll);
+		scroll_into_view(el, autoscroll);
 
 	let formatted_eta: string | null = null;
 	$: {
@@ -269,7 +270,7 @@
 			<p class="loading">{loading_text}</p>
 		{/if}
 	{:else if status === "error"}
-		<span class="error">{$_("common.error")}</span>
+		<span class="error">{i18n("common.error")}</span>
 		<slot name="error" />
 	{/if}
 </div>
@@ -280,7 +281,7 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		z-index: var(--layer-5);
+		z-index: var(--layer-top);
 		transition: opacity 0.1s ease-in-out;
 		border-radius: var(--block-radius);
 		background: var(--block-background-fill);

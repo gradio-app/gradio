@@ -12,8 +12,7 @@ import { spy, spyOn } from "tinyspy";
 import { cleanup, render } from "@gradio/tootils";
 import { setupi18n } from "../app/src/i18n";
 
-import InteractiveVideo from "./interactive";
-import StaticVideo from "./static";
+import Video from "./Index.svelte";
 
 import type { LoadingStatus } from "@gradio/statustracker";
 
@@ -37,23 +36,22 @@ describe("Video", () => {
 	afterEach(() => cleanup());
 
 	test("renders provided value and label", async () => {
-		const { getByTestId, queryAllByText } = await render(InteractiveVideo, {
+		const { getByTestId, queryAllByText } = await render(Video, {
 			show_label: true,
 			loading_status,
-			value: [
-				{
-					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-					data: null,
-					is_file: true
+			value: {
+				video: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 				}
-			],
+			},
 			label: "Test Label",
 			root: "foo",
-			root_url: null,
+			proxy_url: null,
 			streaming: false,
 			pending: false,
 			name: "bar",
-			source: "upload"
+			sources: ["upload"],
+			interactive: true
 		});
 		let vid = getByTestId("Test Label-player") as HTMLVideoElement;
 		assert.equal(
@@ -64,42 +62,42 @@ describe("Video", () => {
 	});
 
 	test("hides label", async () => {
-		const { queryAllByText } = await render(InteractiveVideo, {
+		const { queryAllByText } = await render(Video, {
 			show_label: false,
 			loading_status,
 			value: {
-				name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-				data: null,
-				is_file: true
+				video: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+				}
 			},
 			label: "Video Component",
 			root: "foo",
-			root_url: null,
+			proxy_url: null,
 			streaming: false,
 			pending: false,
 			name: "bar",
-			source: "upload"
+			sources: ["upload"],
+			interactive: true
 		});
 		assert.equal(queryAllByText("Video Component").length, 1);
 	});
 
 	test("static Video sets value", async () => {
-		const { getByTestId } = await render(StaticVideo, {
+		const { getByTestId } = await render(Video, {
 			show_label: true,
 			loading_status,
-			value: [
-				{
-					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-					data: null,
-					is_file: true
+			value: {
+				video: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 				}
-			],
+			},
 			root: "foo",
-			root_url: null,
+			proxy_url: null,
 			streaming: false,
 			pending: false,
 			name: "bar",
-			source: "upload"
+			sources: ["upload"],
+			mode: "static"
 		});
 		let vid = getByTestId("test-player") as HTMLVideoElement;
 		assert.equal(
@@ -109,22 +107,20 @@ describe("Video", () => {
 	});
 
 	test("when autoplay is true `media.play` should be called in static mode", async () => {
-		const { getByTestId } = await render(StaticVideo, {
+		const { getByTestId } = await render(Video, {
 			show_label: true,
 			loading_status,
-			mode: "static",
-			value: [
-				{
-					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-					data: null,
-					is_file: true
+			interactive: false,
+			value: {
+				video: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 				}
-			],
+			},
 			root: "foo",
-			root_url: null,
+			proxy_url: null,
 			streaming: false,
 			pending: false,
-			source: "upload",
+			sources: ["upload"],
 			autoplay: true
 		});
 		const startButton = getByTestId("test-player") as HTMLVideoElement;
@@ -134,21 +130,19 @@ describe("Video", () => {
 	});
 
 	test("when autoplay is true `media.play` should be called in dynamic mode", async () => {
-		const { getByTestId } = await render(InteractiveVideo, {
+		const { getByTestId } = await render(Video, {
 			show_label: true,
 			loading_status,
-			value: [
-				{
-					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-					data: null,
-					is_file: true
+			value: {
+				video: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 				}
-			],
+			},
 			root: "foo",
-			root_url: null,
+			proxy_url: null,
 			streaming: false,
 			pending: false,
-			source: "upload",
+			sources: ["upload"],
 			autoplay: true
 		});
 		const startButton = getByTestId("test-player") as HTMLVideoElement;
@@ -158,116 +152,107 @@ describe("Video", () => {
 	});
 
 	test("when autoplay is true `media.play` should be called in static mode when the Video data is updated", async () => {
-		const { component, getByTestId } = await render(StaticVideo, {
+		const { component, getByTestId } = await render(Video, {
 			show_label: true,
 			loading_status,
-			mode: "static",
-			value: [
-				{
-					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-					data: null,
-					is_file: true
+			interactive: false,
+			value: {
+				video: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 				}
-			],
+			},
 			root: "foo",
-			root_url: null,
+			proxy_url: null,
 			streaming: false,
 			pending: false,
-			source: "upload",
+			sources: ["upload"],
 			autoplay: true
 		});
 		const startButton = getByTestId("test-player") as HTMLVideoElement;
 		const fn = spyOn(startButton, "play");
 		startButton.dispatchEvent(new Event("loadeddata"));
 		component.$set({
-			value: [
-				{
-					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-					data: null,
-					is_file: true
+			value: {
+				video: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 				}
-			]
+			}
 		});
 		startButton.dispatchEvent(new Event("loadeddata"));
 		assert.equal(fn.callCount, 2);
 	});
 
 	test("when autoplay is true `media.play` should be called in dynamic mode when the Video data is updated", async () => {
-		const { component, getByTestId } = await render(InteractiveVideo, {
+		const { component, getByTestId } = await render(Video, {
 			show_label: true,
 			loading_status,
-			mode: "dynamic",
-			value: [
-				{
-					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-					data: null,
-					is_file: true
+			interactive: true,
+			value: {
+				video: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 				}
-			],
+			},
 			root: "foo",
-			root_url: null,
+			proxy_url: null,
 			streaming: false,
 			pending: false,
-			source: "upload",
+			sources: ["upload"],
 			autoplay: true
 		});
 		const startButton = getByTestId("test-player") as HTMLVideoElement;
 		const fn = spyOn(startButton, "play");
 		startButton.dispatchEvent(new Event("loadeddata"));
 		component.$set({
-			value: [
-				{
-					name: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
-					data: null,
-					is_file: true
+			value: {
+				video: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
 				}
-			]
+			}
 		});
 		startButton.dispatchEvent(new Event("loadeddata"));
 		assert.equal(fn.callCount, 2);
 	});
 	test("renders video and download button", async () => {
-		const data = [
-			{
-				data: null,
-				name: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-				is_file: true
+		const data = {
+			video: {
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+			},
+			subtitles: {
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			}
-		];
-		const results = await render(StaticVideo, {
-			mode: "static",
+		};
+		const results = await render(Video, {
+			interactive: false,
 			label: "video",
 			show_label: true,
 			value: data,
-			root: "foo"
+			root: "https://localhost:8000"
 		});
 
 		const downloadButton = results.getAllByTestId("download-div")[0];
 		expect(
 			downloadButton.getElementsByTagName("a")[0].getAttribute("href")
-		).toBe(data[0].name);
+		).toBe(data.video.path);
 		expect(
 			downloadButton.getElementsByTagName("button").length
 		).toBeGreaterThan(0);
 	});
 
 	test("video change event trigger fires when value is changed and only fires once", async () => {
-		const { component, listen } = await render(InteractiveVideo, {
+		const { component, listen } = await render(Video, {
 			show_label: true,
 			loading_status,
-			mode: "dynamic",
+			interactive: true,
 			value: [
 				{
-					name: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
-					data: null,
-					is_file: true
+					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 				}
 			],
 			root: "foo",
-			root_url: null,
+			proxy_url: null,
 			streaming: false,
 			pending: false,
-			source: "upload",
+			sources: ["upload"],
 			autoplay: true
 		});
 
@@ -275,9 +260,7 @@ describe("Video", () => {
 
 		(component.value = [
 			{
-				name: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/b.mp4",
-				data: null,
-				is_file: true
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/b.mp4"
 			}
 		]),
 			assert.equal(mock.callCount, 1);

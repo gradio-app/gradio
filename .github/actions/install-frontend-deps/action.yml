@@ -28,8 +28,8 @@ runs:
       if: steps.frontend-cache.outputs.cache-hit != 'true' || inputs.always-install-pnpm == 'true'
       uses: pnpm/action-setup@v2
       with:
-        version: 8
-    - uses: actions/setup-node@v3
+        version: 8.9
+    - uses: actions/setup-node@v4
       with:
         node-version: 18
         cache: pnpm

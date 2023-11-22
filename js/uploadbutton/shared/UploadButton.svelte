@@ -1,24 +1,27 @@
 <script lang="ts">
-	import { BaseButton } from "@gradio/button/static";
-	import { createEventDispatcher } from "svelte";
-	import type { FileData } from "@gradio/upload";
+	import { tick, createEventDispatcher } from "svelte";
+	import { BaseButton } from "@gradio/button";
+	import { upload, prepare_files, type FileData } from "@gradio/client";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
+	export let label: string;
+	export let value: null | FileData | FileData[];
 	export let file_count: string;
 	export let file_types: string[] = [];
-	export let include_file_metadata = true;
+	export let root: string;
 	export let size: "sm" | "lg" = "lg";
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
-	export let label: string;
 	export let disabled = false;
 
-	let hidden_upload: HTMLInputElement;
 	const dispatch = createEventDispatcher();
+
+	let hidden_upload: HTMLInputElement;
 	let accept_file_types: string | null;
+
 	if (file_types == null) {
 		accept_file_types = null;
 	} else {
@@ -32,10 +35,11 @@
 	}
 
 	function openFileUpload(): void {
+		dispatch("click");
 		hidden_upload.click();
 	}
 
-	function loadFiles(files: FileList): void {
+	async function loadFiles(files: FileList): Promise<void> {
 		let _files: File[] = Array.from(files);
 		if (!files.length) {
 			return;
@@ -43,33 +47,22 @@
 		if (file_count === "single") {
 			_files = [files[0]];
 		}
-		var all_file_data: (FileData | File)[] = [];
-		_files.forEach((f, i) => {
-			all_file_data[i] = include_file_metadata
-				? {
-						name: f.name,
-						size: f.size,
-						data: "",
-						blob: f
-				  }
-				: f;
-			if (
-				all_file_data.filter((x) => x !== undefined).length === files.length
-			) {
-				dispatch(
-					"load",
-					file_count == "single" ? all_file_data[0] : all_file_data
-				);
-			}
-		});
+		let all_file_data = await prepare_files(_files);
+		await tick();
+
+		all_file_data = (await upload(all_file_data, root))?.filter(
+			(x) => x !== null
+		) as FileData[];
+		value = file_count === "single" ? all_file_data?.[0] : all_file_data;
+		dispatch("change", value);
+		dispatch("upload", value);
 	}
 
-	function loadFilesFromUpload(e: Event): void {
+	async function loadFilesFromUpload(e: Event): Promise<void> {
 		const target = e.target as HTMLInputElement;
-		if (!target.files) {
-			return;
-		}
-		loadFiles(target.files);
+
+		if (!target.files) return;
+		await loadFiles(target.files);
 	}
 
 	function clearInputValue(e: Event): void {

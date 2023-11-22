@@ -5,17 +5,16 @@ from __future__ import annotations
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Any, Callable, Literal, Optional
 
 from gradio_client import utils as client_utils
-from gradio_client.data_classes import FileData
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import VideoSerializable
 
+import gradio as gr
 from gradio import processing_utils, utils, wasm_utils
-from gradio.components.base import IOComponent, _Keywords
-from gradio.deprecation import warn_style_method_deprecation
-from gradio.events import Changeable, Clearable, Playable, Recordable, Uploadable
+from gradio.components.base import Component
+from gradio.data_classes import FileData, GradioModel
+from gradio.events import Events
 
 if not wasm_utils.IS_WASM:
     # TODO: Support ffmpeg on Wasm
@@ -24,16 +23,13 @@ if not wasm_utils.IS_WASM:
 set_documentation_group("component")
 
 
+class VideoData(GradioModel):
+    video: FileData
+    subtitles: Optional[FileData] = None
+
+
 @document()
-class Video(
-    Changeable,
-    Clearable,
-    Playable,
-    Recordable,
-    Uploadable,
-    IOComponent,
-    VideoSerializable,
-):
+class Video(Component):
     """
     Creates a video component that can be used to upload/record videos (as an input) or display videos (as an output).
     For the video to be playable in the browser it must have a compatible container and codec combination. Allowed
@@ -46,6 +42,20 @@ class Video(
     Demos: video_identity, video_subtitle
     """
 
+    data_model = VideoData
+
+    EVENTS = [
+        Events.change,
+        Events.clear,
+        Events.start_recording,
+        Events.stop_recording,
+        Events.stop,
+        Events.play,
+        Events.pause,
+        Events.end,
+        Events.upload,
+    ]
+
     def __init__(
         self,
         value: str
@@ -55,7 +65,7 @@ class Video(
         | None = None,
         *,
         format: str | None = None,
-        source: Literal["upload", "webcam"] = "upload",
+        sources: list[Literal["upload", "webcam"]] | None = None,
         height: int | None = None,
         width: int | None = None,
         label: str | None = None,
@@ -68,20 +78,22 @@ class Video(
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
         mirror_webcam: bool = True,
         include_audio: bool | None = None,
         autoplay: bool = False,
         show_share_button: bool | None = None,
-        **kwargs,
+        min_length: int | None = None,
+        max_length: int | None = None,
     ):
         """
         Parameters:
             value: A path or URL for the default value that Video component is going to take. Can also be a tuple consisting of (video filepath, subtitle filepath). If a subtitle file is provided, it should be of type .srt or .vtt. Or can be callable, in which case the function will be called whenever the app loads to set the initial value of the component.
             format: Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
-            source: Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
+            sources: A list of sources permitted for video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam. If None, defaults to ["upload, "webcam"].
             height: Height of the displayed video in pixels.
             width: Width of the displayed video in pixels.
-            label: component name in interface.
+            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
@@ -91,32 +103,46 @@ class Video(
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             include_audio: Whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
             autoplay: Whether to automatically play the video when the component is used as an output. Note: browsers will not autoplay video files if the user has not interacted with the page yet.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
+            min_length: The minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
+            max_length: The maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
         """
+        valid_sources: list[Literal["upload", "webcam"]] = ["webcam", "upload"]
+        if sources is None:
+            self.sources = valid_sources
+        elif isinstance(sources, str) and sources in valid_sources:
+            self.sources = [sources]
+        elif isinstance(sources, list):
+            self.sources = sources
+        else:
+            raise ValueError(
+                f"`sources` must be a list consisting of elements in {valid_sources}"
+            )
+        for source in self.sources:
+            if source not in valid_sources:
+                raise ValueError(
+                    f"`sources` must a list consisting of elements in {valid_sources}"
+                )
         self.format = format
         self.autoplay = autoplay
-        valid_sources = ["upload", "webcam"]
-        if source not in valid_sources:
-            raise ValueError(
-                f"Invalid value for parameter `source`: {source}. Please choose from one of: {valid_sources}"
-            )
-        self.source = source
         self.height = height
         self.width = width
         self.mirror_webcam = mirror_webcam
         self.include_audio = (
-            include_audio if include_audio is not None else source == "upload"
+            include_audio if include_audio is not None else "upload" in self.sources
         )
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None
             else show_share_button
         )
-        IOComponent.__init__(
-            self,
+        self.min_length = min_length
+        self.max_length = max_length
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -127,88 +153,28 @@ class Video(
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
             value=value,
-            **kwargs,
         )
 
-    @staticmethod
-    def update(
-        value: str
-        | tuple[str, str | None]
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        source: Literal["upload", "webcam"] | None = None,
-        height: int | None = None,
-        width: int | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        autoplay: bool | None = None,
-        show_share_button: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Video(...)` instead of `return gr.Video.update(...)`."
-        )
-        return {
-            "source": source,
-            "height": height,
-            "width": width,
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "autoplay": autoplay,
-            "show_share_button": show_share_button,
-            "__type__": "update",
-        }
-
-    def preprocess(
-        self, x: tuple[FileData, FileData | None] | FileData | None
-    ) -> str | None:
-        """
-        Parameters:
-            x: A tuple of (video file data, subtitle file data) or just video file data.
-        Returns:
-            A string file path or URL to the preprocessed video. Subtitle file data is ignored.
-        """
-        if x is None:
+    def preprocess(self, payload: VideoData | None) -> str | None:
+        if payload is None:
             return None
-        elif isinstance(x, dict):
-            video = x
-        else:
-            video = x[0]
-
-        file_name, file_data, is_file = (
-            video.get("name"),
-            video["data"],
-            video.get("is_file", False),
-        )
-
-        if is_file:
-            if file_name is None:
-                raise ValueError("Received file data without a file name.")
-            if client_utils.is_http_url_like(file_name):
-                fn = self.download_temp_copy_if_needed
-            else:
-                fn = self.make_temp_copy_if_needed
-            file_name = Path(fn(file_name))
-        else:
-            if file_data is None:
-                raise ValueError("Received empty file data.")
-            file_name = Path(self.base64_to_temp_file_if_needed(file_data, file_name))
-
+        assert payload.video.path
+        file_name = Path(payload.video.path)
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
-        flip = self.source == "webcam" and self.mirror_webcam
+        flip = self.sources == ["webcam"] and self.mirror_webcam
+        duration = processing_utils.get_video_length(file_name)
 
+        if self.min_length is not None and duration < self.min_length:
+            raise gr.Error(
+                f"Video is too short, and must be at least {self.min_length} seconds"
+            )
+        if self.max_length is not None and duration > self.max_length:
+            raise gr.Error(
+                f"Video is too long, and must be at most {self.max_length} seconds"
+            )
         if needs_formatting or flip:
             format = f".{self.format if needs_formatting else uploaded_format}"
             output_options = ["-vf", "hflip", "-c:a", "copy"] if flip else []
@@ -217,8 +183,9 @@ class Video(
             output_file_name = str(
                 file_name.with_name(f"{file_name.stem}{flip_suffix}{format}")
             )
-            if Path(output_file_name).exists():
-                return output_file_name
+            output_filepath = Path(output_file_name)
+            if output_filepath.exists():
+                return str(output_filepath.resolve())
             if wasm_utils.IS_WASM:
                 raise wasm_utils.WasmUnsupportedError(
                     "Video formatting is not supported in the Wasm mode."
@@ -228,7 +195,7 @@ class Video(
                 outputs={output_file_name: output_options},
             )
             ff.run()
-            return output_file_name
+            return str(output_filepath.resolve())
         elif not self.include_audio:
             output_file_name = str(file_name.with_name(f"muted_{file_name.name}"))
             if Path(output_file_name).exists():
@@ -248,29 +215,12 @@ class Video(
 
     def postprocess(
         self, y: str | Path | tuple[str | Path, str | Path | None] | None
-    ) -> tuple[FileData | None, FileData | None] | None:
-        """
-        Processes a video to ensure that it is in the correct format before returning it to the front end.
-        Parameters:
-            y: video data in either of the following formats: a tuple of (video filepath, optional subtitle filepath), or just a filepath or URL to an video file, or None.
-        Returns:
-            a tuple with the two dictionary, reresent to video and (optional) subtitle, which following formats:
-            - The first dictionary represents the video file and contains the following keys:
-                - 'name': a file path to a temporary copy of the processed video.
-                - 'data': None
-                - 'is_file': True
-            - The second dictionary represents the subtitle file and contains the following keys:
-                - 'name': None
-                - 'data': Base64 encode the processed subtitle data.
-                - 'is_file': False
-            - If subtitle is None, returns (video, None).
-            - If both video and subtitle are None, returns None.
-        """
-
+    ) -> VideoData | None:
         if y is None or y == [None, None] or y == (None, None):
             return None
         if isinstance(y, (str, Path)):
             processed_files = (self._format_video(y), None)
+
         elif isinstance(y, (tuple, list)):
             if len(y) != 2:
                 raise ValueError(
@@ -287,22 +237,15 @@ class Video(
                 self._format_video(video),
                 self._format_subtitle(subtitle),
             )
+
         else:
             raise Exception(f"Cannot process type as video: {type(y)}")
-
-        return processed_files
+        assert processed_files[0]
+        return VideoData(video=processed_files[0], subtitles=processed_files[1])
 
     def _format_video(self, video: str | Path | None) -> FileData | None:
         """
         Processes a video to ensure that it is in the correct format.
-        Parameters:
-            video: video data in either of the following formats: a string filepath or URL to an video file, or None.
-        Returns:
-            a dictionary with the following keys:
-
-            - 'name': a file path to a temporary copy of the processed video.
-            - 'data': None
-            - 'is_file': True
         """
         if video is None:
             return None
@@ -317,11 +260,13 @@ class Video(
 
         # For cases where the video is a URL and does not need to be converted to another format, we can just return the URL
         if is_url and not (conversion_needed):
-            return {"name": video, "data": None, "is_file": True}
+            return FileData(path=video)
 
         # For cases where the video needs to be converted to another format
         if is_url:
-            video = self.download_temp_copy_if_needed(video)
+            video = processing_utils.save_url_to_cache(
+                video, cache_dir=self.GRADIO_CACHE
+            )
         if (
             processing_utils.ffmpeg_installed()
             and not processing_utils.video_is_playable(video)
@@ -330,9 +275,8 @@ class Video(
                 "Video does not have browser-compatible container or codec. Converting to mp4"
             )
             video = processing_utils.convert_video_to_playable_mp4(video)
-        # Recalculate the format in case convert_video_to_playable_mp4 already made it the
-        # selected format
-        returned_format = video.split(".")[-1].lower()
+        # Recalculate the format in case convert_video_to_playable_mp4 already made it the selected format
+        returned_format = utils.get_extension_from_file_path_or_url(video).lower()
         if self.format is not None and returned_format != self.format:
             if wasm_utils.IS_WASM:
                 raise wasm_utils.WasmUnsupportedError(
@@ -347,25 +291,11 @@ class Video(
             ff.run()
             video = output_file_name
 
-        video = self.make_temp_copy_if_needed(video)
-
-        return {
-            "name": video,
-            "data": None,
-            "is_file": True,
-            "orig_name": Path(video).name,
-        }
+        return FileData(path=video, orig_name=Path(video).name)
 
     def _format_subtitle(self, subtitle: str | Path | None) -> FileData | None:
         """
         Convert subtitle format to VTT and process the video to ensure it meets the HTML5 requirements.
-        Parameters:
-            subtitle: subtitle path in either of the VTT and SRT format.
-        Returns:
-            a dictionary with the following keys:
-            - 'name': None
-            - 'data': base64-encoded subtitle data.
-            - 'is_file': False
         """
 
         def srt_to_vtt(srt_file_path, vtt_file_path):
@@ -394,22 +324,18 @@ class Video(
         # HTML5 only support vtt format
         if Path(subtitle).suffix == ".srt":
             temp_file = tempfile.NamedTemporaryFile(
-                delete=False, suffix=".vtt", dir=self.DEFAULT_TEMP_DIR
+                delete=False, suffix=".vtt", dir=self.GRADIO_CACHE
             )
 
             srt_to_vtt(subtitle, temp_file.name)
             subtitle = temp_file.name
 
-        subtitle_data = client_utils.encode_url_or_file_to_base64(subtitle)
-        return {"name": None, "data": subtitle_data, "is_file": False}
+        return FileData(path=str(subtitle))
 
-    def style(self, *, height: int | None = None, width: int | None = None, **kwargs):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if height is not None:
-            self.height = height
-        if width is not None:
-            self.width = width
-        return self
+    def example_inputs(self) -> Any:
+        return "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+
+    def as_example(self, input_data: str | Path | None) -> str | None:
+        if input_data is None:
+            return None
+        return self.move_resource_to_block_cache(input_data)

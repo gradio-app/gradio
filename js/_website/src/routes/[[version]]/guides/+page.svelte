@@ -61,8 +61,9 @@
 	<div class="mt-[-28px] mb-[28px] flex justify-end">
 		<DropDown />
 	</div>
+
 	{#each data.guides_by_category as { category, guides }, i (category)}
-		<div class="category mb-8">
+		<div class="category mb-8 p-4">
 			<h2
 				class:hidden={guides.filter(isNotHidden).length === 0}
 				class="mb-4 text-2xl font-thin block"
@@ -78,7 +79,9 @@
 						href=".{guide.url}"
 					>
 						<div class="flex flex-col p-4 h-min">
-							<h2 class="group-hover:underline text-lg">{guide.pretty_name}</h2>
+							<h2 class="group-hover:underline text-lg">
+								{guide.pretty_name}
+							</h2>
 							<div class="tags-holder">
 								{#if guide.tags}
 									<p class="text-gray-600">

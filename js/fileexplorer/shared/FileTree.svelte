@@ -6,7 +6,7 @@
 	import Checkbox from "./Checkbox.svelte";
 	import FileIcon from "../icons/light-file.svg";
 
-	export let mode: "static" | "interactive";
+	export let interactive: boolean;
 	export let tree: Node[] = [];
 	export let icons: any = {};
 	export let node_indices: number[] = [];
@@ -31,7 +31,7 @@
 		<li>
 			<span class="wrap">
 				<Checkbox
-					disabled={mode === "static" ||
+					disabled={!interactive ||
 						(type === "folder" && file_count === "single")}
 					bind:value={checked}
 					on:change={() => dispatch_change(i)}
@@ -44,9 +44,10 @@
 						on:click|stopPropagation={() =>
 							(tree[i].children_visible = !tree[i].children_visible)}
 						role="button"
+						aria-label="expand directory"
 						tabindex="0"
 						on:keydown={({ key }) =>
-							key === " " &&
+							(key === " " || key === "Enter") &&
 							(tree[i].children_visible = !tree[i].children_visible)}
 						><Arrow /></span
 					>
@@ -63,7 +64,7 @@
 					{icons}
 					on:check
 					node_indices={[...node_indices, i]}
-					{mode}
+					{interactive}
 					{file_count}
 				/>
 			{/if}
@@ -85,14 +86,13 @@
 		border-radius: 2px;
 		cursor: pointer;
 		transition: 0.1s;
+		flex-shrink: 0;
 	}
 
 	.file-icon {
 		display: inline-block;
 		height: 20px;
 		margin-left: -1px;
-		/* height: 20px; */
-		/* padding: 3px 3px 3px 3px; */
 		margin: 0;
 		flex-grow: 0;
 		display: inline-flex;
@@ -136,11 +136,12 @@
 	li {
 		margin-left: 0;
 		padding-left: 0;
-		/* display: flex; */
 		align-items: center;
 		margin: 8px 0;
 		font-family: var(--font-mono);
 		font-size: var(--scale-00);
+		overflow-wrap: anywhere;
+		word-break: break-word;
 	}
 
 	.wrap {

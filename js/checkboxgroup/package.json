@@ -1,18 +1,17 @@
 {
 	"name": "@gradio/checkboxgroup",
-	"version": "0.3.2",
+	"version": "0.3.4",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "index.svelte",
 	"author": "",
 	"license": "ISC",
-	"private": true,
+	"private": false,
 	"main_changeset": true,
+	"main": "./Index.svelte",
 	"exports": {
-		"./package.json": "./package.json",
-		"./interactive": "./interactive/index.ts",
-		"./static": "./static/index.ts",
-		"./example": "./example/index.ts"
+		".": "./Index.svelte",
+		"./example": "./Example.svelte",
+		"./package.json": "./package.json"
 	},
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",

@@ -13,11 +13,13 @@ import urllib.parse
 import uuid
 import warnings
 from concurrent.futures import Future
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from threading import Lock
 from typing import Any, Callable, Literal
 
+import httpx
 import huggingface_hub
 import requests
 import websockets
@@ -32,7 +34,6 @@ from packaging import version
 from gradio_client import serializing, utils
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.exceptions import SerializationSetupError
-from gradio_client.serializing import Serializable
 from gradio_client.utils import (
     Communicator,
     JobStatus,
@@ -72,8 +73,9 @@ class Client:
         hf_token: str | None = None,
         max_workers: int = 40,
         serialize: bool = True,
-        output_dir: str | Path | None = DEFAULT_TEMP_DIR,
+        output_dir: str | Path = DEFAULT_TEMP_DIR,
         verbose: bool = True,
+        auth: tuple[str, str] | None = None,
     ):
         """
         Parameters:
@@ -93,7 +95,10 @@ class Client:
             library_version=utils.__version__,
         )
         self.space_id = None
-        self.output_dir = output_dir
+        self.cookies: dict[str, str] = {}
+        self.output_dir = (
+            str(output_dir) if isinstance(output_dir, Path) else output_dir
+        )
 
         if src.startswith("http://") or src.startswith("https://"):
             _src = src if src.endswith("/") else src + "/"
@@ -121,16 +126,24 @@ class Client:
             print(f"Loaded as API: {self.src} ✔")
 
         self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
+        self.sse_url = urllib.parse.urljoin(self.src, utils.SSE_URL)
+        self.sse_data_url = urllib.parse.urljoin(self.src, utils.SSE_DATA_URL)
         self.ws_url = urllib.parse.urljoin(
             self.src.replace("http", "ws", 1), utils.WS_URL
         )
         self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
         self.reset_url = urllib.parse.urljoin(self.src, utils.RESET_URL)
+        if auth is not None:
+            self._login(auth)
         self.config = self._get_config()
+        self.app_version = version.parse(self.config.get("version", "2.0"))
+        self._info = self._get_api_info()
         self.session_hash = str(uuid.uuid4())
 
+        protocol = self.config.get("protocol")
+        endpoint_class = Endpoint if protocol == "sse" else EndpointV3Compatibility
         self.endpoints = [
-            Endpoint(self, fn_index, dependency)
+            endpoint_class(self, fn_index, dependency)
             for fn_index, dependency in enumerate(self.config["dependencies"])
         ]
 
@@ -240,7 +253,7 @@ class Client:
         )
         hardware = hardware or original_info.hardware
         if current_hardware != hardware:
-            huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
+            huggingface_hub.request_space_hardware(space_id, hardware, token=hf_token)  # type: ignore
             print(
                 f"-------\nNOTE: this Space uses upgraded hardware: {hardware}... see billing info at https://huggingface.co/settings/billing\n-------"
             )
@@ -291,6 +304,14 @@ class Client:
             )
         return self.submit(*args, api_name=api_name, fn_index=fn_index).result()
 
+    def new_helper(self, fn_index: int) -> Communicator:
+        return Communicator(
+            Lock(),
+            JobStatus(),
+            self.endpoints[fn_index].process_predictions,
+            self.reset_url,
+        )
+
     def submit(
         self,
         *args,
@@ -320,13 +341,8 @@ class Client:
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
 
         helper = None
-        if self.endpoints[inferred_fn_index].use_ws:
-            helper = Communicator(
-                Lock(),
-                JobStatus(),
-                self.endpoints[inferred_fn_index].process_predictions,
-                self.reset_url,
-            )
+        if self.endpoints[inferred_fn_index].protocol in ("ws", "sse"):
+            helper = self.new_helper(inferred_fn_index)
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
 
@@ -351,6 +367,32 @@ class Client:
                 job.add_done_callback(create_fn(callback))
 
         return job
+
+    def _get_api_info(self):
+        if self.serialize:
+            api_info_url = urllib.parse.urljoin(self.src, utils.API_INFO_URL)
+        else:
+            api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
+
+        if self.app_version > version.Version("3.36.1"):
+            r = requests.get(api_info_url, headers=self.headers, cookies=self.cookies)
+            if r.ok:
+                info = r.json()
+            else:
+                raise ValueError(f"Could not fetch api info for {self.src}: {r.text}")
+        else:
+            fetch = requests.post(
+                utils.SPACE_FETCHER_URL,
+                json={"config": json.dumps(self.config), "serialize": self.serialize},
+            )
+            if fetch.ok:
+                info = fetch.json()["api"]
+            else:
+                raise ValueError(
+                    f"Could not fetch api info for {self.src}: {fetch.text}"
+                )
+
+        return info
 
     def view_api(
         self,
@@ -427,42 +469,20 @@ class Client:
             }
 
         """
-        if self.serialize:
-            api_info_url = urllib.parse.urljoin(self.src, utils.API_INFO_URL)
-        else:
-            api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
-
-        # Versions of Gradio older than 3.29.0 returned format of the API info
-        # from the /info endpoint
-        if version.parse(self.config.get("version", "2.0")) > version.Version("3.36.1"):
-            r = requests.get(api_info_url, headers=self.headers)
-            if r.ok:
-                info = r.json()
-            else:
-                raise ValueError(f"Could not fetch api info for {self.src}")
-        else:
-            fetch = requests.post(
-                utils.SPACE_FETCHER_URL,
-                json={"config": json.dumps(self.config), "serialize": self.serialize},
-            )
-            if fetch.ok:
-                info = fetch.json()["api"]
-            else:
-                raise ValueError(f"Could not fetch api info for {self.src}")
-        num_named_endpoints = len(info["named_endpoints"])
-        num_unnamed_endpoints = len(info["unnamed_endpoints"])
+        num_named_endpoints = len(self._info["named_endpoints"])
+        num_unnamed_endpoints = len(self._info["unnamed_endpoints"])
         if num_named_endpoints == 0 and all_endpoints is None:
             all_endpoints = True
 
         human_info = "Client.predict() Usage Info\n---------------------------\n"
         human_info += f"Named API endpoints: {num_named_endpoints}\n"
 
-        for api_name, endpoint_info in info["named_endpoints"].items():
+        for api_name, endpoint_info in self._info["named_endpoints"].items():
             human_info += self._render_endpoints_info(api_name, endpoint_info)
 
         if all_endpoints:
             human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}\n"
-            for fn_index, endpoint_info in info["unnamed_endpoints"].items():
+            for fn_index, endpoint_info in self._info["unnamed_endpoints"].items():
                 # When loading from json, the fn_indices are read as strings
                 # because json keys can only be strings
                 human_info += self._render_endpoints_info(int(fn_index), endpoint_info)
@@ -475,7 +495,7 @@ class Client:
         if return_format == "str":
             return human_info
         elif return_format == "dict":
-            return info
+            return self._info
 
     def reset_session(self) -> None:
         self.session_hash = str(uuid.uuid4())
@@ -593,14 +613,33 @@ class Client:
     def _space_name_to_src(self, space) -> str | None:
         return huggingface_hub.space_info(space, token=self.hf_token).host  # type: ignore
 
+    def _login(self, auth: tuple[str, str]):
+        resp = requests.post(
+            urllib.parse.urljoin(self.src, utils.LOGIN_URL),
+            data={"username": auth[0], "password": auth[1]},
+        )
+        if not resp.ok:
+            raise ValueError(f"Could not login to {self.src}")
+        self.cookies = {
+            cookie.name: cookie.value
+            for cookie in resp.cookies
+            if cookie.value is not None
+        }
+
     def _get_config(self) -> dict:
         r = requests.get(
-            urllib.parse.urljoin(self.src, utils.CONFIG_URL), headers=self.headers
+            urllib.parse.urljoin(self.src, utils.CONFIG_URL),
+            headers=self.headers,
+            cookies=self.cookies,
         )
         if r.ok:
             return r.json()
+        elif r.status_code == 401:
+            raise ValueError(f"Could not load {self.src}. Please login.")
         else:  # to support older versions of Gradio
-            r = requests.get(self.src, headers=self.headers)
+            r = requests.get(self.src, headers=self.headers, cookies=self.cookies)
+            if not r.ok:
+                raise ValueError(f"Could not fetch config for {self.src}")
             # some basic regex to extract the config
             result = re.search(r"window.gradio_config = (.*?);[\s]*</script>", r.text)
             try:
@@ -661,12 +700,8 @@ class Client:
             raise ValueError(
                 f"api_name {api_names[0][0]} not present in {self.space_id or self.src}"
             )
-        inputs = [
-            inp for inp in fn.input_component_types if fn not in utils.SKIP_COMPONENTS
-        ]
-        outputs = [
-            inp for inp in fn.input_component_types if fn not in utils.SKIP_COMPONENTS
-        ]
+        inputs = [inp for inp in fn.input_component_types if not inp.skip]
+        outputs = [inp for inp in fn.input_component_types if not inp.skip]
         if not inputs == ["textbox"] and outputs == ["textbox"]:
             raise ValueError(
                 "Currently only api_names with a single textbox as input and output are supported. "
@@ -748,12 +783,24 @@ class Client:
             )
         if is_private:
             huggingface_hub.add_space_secret(
-                space_id, "HF_TOKEN", hf_token, token=hf_token
+                space_id, "HF_TOKEN", hf_token, token=hf_token  # type: ignore
             )
 
         url = f"https://huggingface.co/spaces/{space_id}"
         print(f"See your discord bot here! {url}")
         return url
+
+
+@dataclass
+class ComponentApiType:
+    skip: bool
+    value_is_file: bool
+    is_state: bool
+
+
+@dataclass
+class ReplaceMe:
+    index: int
 
 
 class Endpoint:
@@ -767,7 +814,288 @@ class Endpoint:
         self.api_name: str | Literal[False] | None = (
             "/" + api_name if isinstance(api_name, str) else api_name
         )
+        self.protocol = "sse"
+        self.input_component_types = [
+            self._get_component_type(id_) for id_ in dependency["inputs"]
+        ]
+        self.output_component_types = [
+            self._get_component_type(id_) for id_ in dependency["outputs"]
+        ]
+        self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
+        self.is_continuous = dependency.get("types", {}).get("continuous", False)
+        self.download_file = lambda d: self._download_file(
+            d,
+            save_dir=self.client.output_dir,
+            hf_token=self.client.hf_token,
+            root_url=self.root_url,
+        )
+        # Only a real API endpoint if backend_fn is True (so not just a frontend function), serializers are valid,
+        # and api_name is not False (meaning that the developer has explicitly disabled the API endpoint)
+        self.is_valid = self.dependency["backend_fn"] and self.api_name is not False
+
+    def _get_component_type(self, component_id: int):
+        component = next(
+            i for i in self.client.config["components"] if i["id"] == component_id
+        )
+        skip_api = component.get("skip_api", component["type"] in utils.SKIP_COMPONENTS)
+        return ComponentApiType(
+            skip_api,
+            self.value_is_file(component),
+            component["type"] == "state",
+        )
+
+    @staticmethod
+    def value_is_file(component: dict) -> bool:
+        # Hacky for now
+        if "api_info" not in component:
+            return False
+        return utils.value_is_file(component["api_info"])
+
+    def __repr__(self):
+        return f"Endpoint src: {self.client.src}, api_name: {self.api_name}, fn_index: {self.fn_index}"
+
+    def __str__(self):
+        return self.__repr__()
+
+    def make_end_to_end_fn(self, helper: Communicator | None = None):
+        _predict = self.make_predict(helper)
+
+        def _inner(*data):
+            if not self.is_valid:
+                raise utils.InvalidAPIEndpointError()
+            data = self.insert_state(*data)
+            if self.client.serialize:
+                data = self.serialize(*data)
+            predictions = _predict(*data)
+            predictions = self.process_predictions(*predictions)
+            # Append final output only if not already present
+            # for consistency between generators and not generators
+            if helper:
+                with helper.lock:
+                    if not helper.job.outputs:
+                        helper.job.outputs.append(predictions)
+            return predictions
+
+        return _inner
+
+    def make_predict(self, helper: Communicator | None = None):
+        def _predict(*data) -> tuple:
+            data = {
+                "data": data,
+                "fn_index": self.fn_index,
+                "session_hash": self.client.session_hash,
+            }
+
+            hash_data = {
+                "fn_index": self.fn_index,
+                "session_hash": self.client.session_hash,
+            }
+
+            result = utils.synchronize_async(self._sse_fn, data, hash_data, helper)
+            if "error" in result:
+                raise ValueError(result["error"])
+
+            try:
+                output = result["data"]
+            except KeyError as ke:
+                is_public_space = (
+                    self.client.space_id
+                    and not huggingface_hub.space_info(self.client.space_id).private
+                )
+                if "error" in result and "429" in result["error"] and is_public_space:
+                    raise utils.TooManyRequestsError(
+                        f"Too many requests to the API, please try again later. To avoid being rate-limited, "
+                        f"please duplicate the Space using Client.duplicate({self.client.space_id}) "
+                        f"and pass in your Hugging Face token."
+                    ) from None
+                elif "error" in result:
+                    raise ValueError(result["error"]) from None
+                raise KeyError(
+                    f"Could not find 'data' key in response. Response received: {result}"
+                ) from ke
+            return tuple(output)
+
+        return _predict
+
+    def _predict_resolve(self, *data) -> Any:
+        """Needed for gradio.load(), which has a slightly different signature for serializing/deserializing"""
+        outputs = self.make_predict()(*data)
+        if len(self.dependency["outputs"]) == 1:
+            return outputs[0]
+        return outputs
+
+    def _upload(
+        self, file_paths: list[str | list[str]]
+    ) -> list[str | list[str]] | list[dict[str, Any] | list[dict[str, Any]]]:
+        if not file_paths:
+            return []
+        # Put all the filepaths in one file
+        # but then keep track of which index in the
+        # original list they came from so we can recreate
+        # the original structure
+        files = []
+        indices = []
+        for i, fs in enumerate(file_paths):
+            if not isinstance(fs, list):
+                fs = [fs]
+            for f in fs:
+                files.append(("files", (Path(f).name, open(f, "rb"))))  # noqa: SIM115
+                indices.append(i)
+        r = requests.post(
+            self.client.upload_url, headers=self.client.headers, files=files
+        )
+        if r.status_code != 200:
+            uploaded = file_paths
+        else:
+            uploaded = []
+            result = r.json()
+            for i, fs in enumerate(file_paths):
+                if isinstance(fs, list):
+                    output = [o for ix, o in enumerate(result) if indices[ix] == i]
+                    res = [
+                        {
+                            "path": o,
+                            "orig_name": Path(f).name,
+                        }
+                        for f, o in zip(fs, output)
+                    ]
+                else:
+                    o = next(o for ix, o in enumerate(result) if indices[ix] == i)
+                    res = {
+                        "path": o,
+                        "orig_name": Path(fs).name,
+                    }
+                uploaded.append(res)
+        return uploaded
+
+    def insert_state(self, *data) -> tuple:
+        data = list(data)
+        for i, input_component_type in enumerate(self.input_component_types):
+            if input_component_type.is_state:
+                data.insert(i, None)
+        return tuple(data)
+
+    def remove_skipped_components(self, *data) -> tuple:
+        data = [d for d, oct in zip(data, self.output_component_types) if not oct.skip]
+        return tuple(data)
+
+    def reduce_singleton_output(self, *data) -> Any:
+        if len([oct for oct in self.output_component_types if not oct.skip]) == 1:
+            return data[0]
+        else:
+            return data
+
+    def _gather_files(self, *data):
+        file_list = []
+
+        def get_file(d):
+            if utils.is_file_obj(d):
+                file_list.append(d["path"])
+            else:
+                file_list.append(d)
+            return ReplaceMe(len(file_list) - 1)
+
+        new_data = []
+        for i, d in enumerate(data):
+            if self.input_component_types[i].value_is_file:
+                # Check file dicts and filepaths to upload
+                # file dict is a corner case but still needed for completeness
+                # most users should be using filepaths
+                d = utils.traverse(
+                    d, get_file, lambda s: utils.is_file_obj(s) or utils.is_filepath(s)
+                )
+            new_data.append(d)
+        return file_list, new_data
+
+    def _add_uploaded_files_to_data(self, data: list[Any], files: list[Any]):
+        def replace(d: ReplaceMe) -> dict:
+            return files[d.index]
+
+        new_data = []
+        for d in data:
+            d = utils.traverse(
+                d, replace, is_root=lambda node: isinstance(node, ReplaceMe)
+            )
+            new_data.append(d)
+        return new_data
+
+    def serialize(self, *data) -> tuple:
+        files, new_data = self._gather_files(*data)
+        uploaded_files = self._upload(files)
+        data = list(new_data)
+        data = self._add_uploaded_files_to_data(data, uploaded_files)
+        data = utils.traverse(
+            data,
+            lambda s: {"path": s},
+            utils.is_url,
+        )
+        o = tuple(data)
+        return o
+
+    @staticmethod
+    def _download_file(
+        x: dict,
+        save_dir: str,
+        root_url: str,
+        hf_token: str | None = None,
+    ) -> str | None:
+        if x is None:
+            return None
+        if isinstance(x, str):
+            file_name = utils.decode_base64_to_file(x, dir=save_dir).name
+        elif isinstance(x, dict):
+            filepath = x.get("path")
+            assert filepath is not None, f"The 'path' field is missing in {x}"
+            file_name = utils.download_file(
+                root_url + "file=" + filepath,
+                hf_token=hf_token,
+                dir=save_dir,
+            )
+
+        else:
+            raise ValueError(
+                f"A FileSerializable component can only deserialize a string or a dict, not a {type(x)}: {x}"
+            )
+        return file_name
+
+    def deserialize(self, *data) -> tuple:
+        data_ = list(data)
+
+        data_: list[Any] = utils.traverse(data_, self.download_file, utils.is_file_obj)
+        return tuple(data_)
+
+    def process_predictions(self, *predictions):
+        predictions = self.deserialize(*predictions)
+        predictions = self.remove_skipped_components(*predictions)
+        predictions = self.reduce_singleton_output(*predictions)
+        return predictions
+
+    async def _sse_fn(self, data: dict, hash_data: dict, helper: Communicator):
+        async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
+            return await utils.get_pred_from_sse(
+                client,
+                data,
+                hash_data,
+                helper,
+                self.client.sse_url,
+                self.client.sse_data_url,
+                self.client.cookies,
+            )
+
+
+class EndpointV3Compatibility:
+    """Endpoint class for connecting to v3 endpoints. Backwards compatibility."""
+
+    def __init__(self, client: Client, fn_index: int, dependency: dict):
+        self.client: Client = client
+        self.fn_index = fn_index
+        self.dependency = dependency
+        api_name = dependency.get("api_name")
+        self.api_name: str | Literal[False] | None = (
+            "/" + api_name if isinstance(api_name, str) else api_name
+        )
         self.use_ws = self._use_websocket(self.dependency)
+        self.protocol = "ws" if self.use_ws else "http"
         self.input_component_types = []
         self.output_component_types = []
         self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
@@ -822,7 +1150,6 @@ class Endpoint:
                     "session_hash": self.client.session_hash,
                 }
             )
-
             if self.use_ws:
                 result = utils.synchronize_async(self._ws_fn, data, hash_data, helper)
                 if "error" in result:
@@ -993,7 +1320,9 @@ class Endpoint:
         predictions = self.reduce_singleton_output(*predictions)
         return predictions
 
-    def _setup_serializers(self) -> tuple[list[Serializable], list[Serializable]]:
+    def _setup_serializers(
+        self,
+    ) -> tuple[list[serializing.Serializable], list[serializing.Serializable]]:
         inputs = self.dependency["inputs"]
         serializers = []
 
@@ -1100,13 +1429,9 @@ class Job(Future):
         if not self.communicator:
             raise StopIteration()
 
-        with self.communicator.lock:
-            if self.communicator.job.latest_status.code == Status.FINISHED:
-                raise StopIteration()
-
         while True:
             with self.communicator.lock:
-                if len(self.communicator.job.outputs) == self._counter + 1:
+                if len(self.communicator.job.outputs) >= self._counter + 1:
                     o = self.communicator.job.outputs[self._counter]
                     self._counter += 1
                     return o

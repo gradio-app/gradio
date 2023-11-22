@@ -1,11 +1,17 @@
-# `@gradio/button`
+# `@gradio/label`
 
 ```html
 <script>
-	import { Button } from "@gradio/button";
+	import { BaseLabel } from "@gradio/label";
 </script>
+```
 
-<button type="primary|secondary" href="string" on:click="{e.detail === href}">
-	content
-</button>
+BaseLabel
+```javascript
+	export let value: {
+		label?: string;
+		confidences?: { label: string; confidence: number }[];
+	};
+	export let color: string | undefined = undefined;
+	export let selectable = false;
 ```

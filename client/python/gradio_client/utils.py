@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import hashlib
 import json
 import mimetypes
 import os
@@ -26,8 +27,11 @@ from huggingface_hub import SpaceStage
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
 API_URL = "api/predict/"
+SSE_URL = "queue/join"
+SSE_DATA_URL = "queue/data"
 WS_URL = "queue/join"
 UPLOAD_URL = "upload"
+LOGIN_URL = "login"
 CONFIG_URL = "config"
 API_INFO_URL = "info"
 RAW_API_INFO_URL = "info?serialize=False"
@@ -35,20 +39,6 @@ SPACE_FETCHER_URL = "https://gradio-space-api-fetcher-v2.hf.space/api"
 RESET_URL = "reset"
 SPACE_URL = "https://hf.space/{}"
 
-SKIP_COMPONENTS = {
-    "state",
-    "row",
-    "column",
-    "tabs",
-    "tab",
-    "tabitem",
-    "box",
-    "form",
-    "accordion",
-    "group",
-    "interpretation",
-    "dataset",
-}
 STATE_COMPONENT = "state"
 INVALID_RUNTIME = [
     SpaceStage.NO_APP_FILE,
@@ -156,7 +146,7 @@ class ProgressUnit:
     desc: Optional[str]
 
     @classmethod
-    def from_ws_msg(cls, data: list[dict]) -> list[ProgressUnit]:
+    def from_msg(cls, data: list[dict]) -> list[ProgressUnit]:
         return [
             cls(
                 index=d.get("index"),
@@ -214,6 +204,7 @@ class Communicator:
     prediction_processor: Callable[..., tuple]
     reset_url: str
     should_cancel: bool = False
+    event_id: str | None = None
 
 
 ########################
@@ -295,7 +286,7 @@ async def get_pred_from_ws(
                     success=resp.get("success"),
                     time=datetime.now(),
                     eta=resp.get("rank_eta"),
-                    progress_data=ProgressUnit.from_ws_msg(resp["progress_data"])
+                    progress_data=ProgressUnit.from_msg(resp["progress_data"])
                     if has_progress
                     else None,
                 )
@@ -317,14 +308,155 @@ async def get_pred_from_ws(
     return resp["output"]
 
 
+async def get_pred_from_sse(
+    client: httpx.AsyncClient,
+    data: dict,
+    hash_data: dict,
+    helper: Communicator,
+    sse_url: str,
+    sse_data_url: str,
+    cookies: dict[str, str] | None = None,
+) -> dict[str, Any] | None:
+    done, pending = await asyncio.wait(
+        [
+            asyncio.create_task(check_for_cancel(helper, cookies)),
+            asyncio.create_task(
+                stream_sse(
+                    client, data, hash_data, helper, sse_url, sse_data_url, cookies
+                )
+            ),
+        ],
+        return_when=asyncio.FIRST_COMPLETED,
+    )
+
+    for task in pending:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+    assert len(done) == 1
+    for task in done:
+        return task.result()
+
+
+async def check_for_cancel(helper: Communicator, cookies: dict[str, str] | None):
+    while True:
+        await asyncio.sleep(0.05)
+        with helper.lock:
+            if helper.should_cancel:
+                break
+    if helper.event_id:
+        async with httpx.AsyncClient() as http:
+            await http.post(
+                helper.reset_url, json={"event_id": helper.event_id}, cookies=cookies
+            )
+    raise CancelledError()
+
+
+async def stream_sse(
+    client: httpx.AsyncClient,
+    data: dict,
+    hash_data: dict,
+    helper: Communicator,
+    sse_url: str,
+    sse_data_url: str,
+    cookies: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    try:
+        async with client.stream(
+            "GET", sse_url, params=hash_data, cookies=cookies
+        ) as response:
+            async for line in response.aiter_text():
+                if line.startswith("data:"):
+                    resp = json.loads(line[5:])
+                    with helper.lock:
+                        has_progress = "progress_data" in resp
+                        status_update = StatusUpdate(
+                            code=Status.msg_to_status(resp["msg"]),
+                            queue_size=resp.get("queue_size"),
+                            rank=resp.get("rank", None),
+                            success=resp.get("success"),
+                            time=datetime.now(),
+                            eta=resp.get("rank_eta"),
+                            progress_data=ProgressUnit.from_msg(resp["progress_data"])
+                            if has_progress
+                            else None,
+                        )
+                        output = resp.get("output", {}).get("data", [])
+                        if output and status_update.code != Status.FINISHED:
+                            try:
+                                result = helper.prediction_processor(*output)
+                            except Exception as e:
+                                result = [e]
+                            helper.job.outputs.append(result)
+                        helper.job.latest_status = status_update
+
+                    if resp["msg"] == "queue_full":
+                        raise QueueError("Queue is full! Please try again.")
+                    elif resp["msg"] == "send_data":
+                        event_id = resp["event_id"]
+                        helper.event_id = event_id
+                        req = await client.post(
+                            sse_data_url,
+                            json={"event_id": event_id, **data, **hash_data},
+                            cookies=cookies,
+                        )
+                        req.raise_for_status()
+                    elif resp["msg"] == "process_completed":
+                        return resp["output"]
+                else:
+                    raise ValueError(f"Unexpected message: {line}")
+        raise ValueError("Did not receive process_completed message.")
+    except asyncio.CancelledError:
+        raise
+
+
 ########################
 # Data processing utils
 ########################
 
 
+def download_file(
+    url_path: str,
+    dir: str,
+    hf_token: str | None = None,
+) -> str:
+    if dir is not None:
+        os.makedirs(dir, exist_ok=True)
+    headers = {"Authorization": "Bearer " + hf_token} if hf_token else {}
+
+    sha1 = hashlib.sha1()
+    temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
+    temp_dir.mkdir(exist_ok=True, parents=True)
+
+    with requests.get(url_path, headers=headers, stream=True) as r:
+        r.raise_for_status()
+        with open(temp_dir / Path(url_path).name, "wb") as f:
+            for chunk in r.iter_content(chunk_size=128 * sha1.block_size):
+                sha1.update(chunk)
+                f.write(chunk)
+
+    directory = Path(dir) / sha1.hexdigest()
+    directory.mkdir(exist_ok=True, parents=True)
+    dest = directory / Path(url_path).name
+    shutil.move(temp_dir / Path(url_path).name, dest)
+    return str(dest.resolve())
+
+
+def create_tmp_copy_of_file(file_path: str, dir: str | None = None) -> str:
+    directory = Path(dir or tempfile.gettempdir()) / secrets.token_hex(20)
+    directory.mkdir(exist_ok=True, parents=True)
+    dest = directory / Path(file_path).name
+    shutil.copy2(file_path, dest)
+    return str(dest.resolve())
+
+
 def download_tmp_copy_of_file(
     url_path: str, hf_token: str | None = None, dir: str | None = None
 ) -> str:
+    """Kept for backwards compatibility for 3.x spaces."""
     if dir is not None:
         os.makedirs(dir, exist_ok=True)
     headers = {"Authorization": "Bearer " + hf_token} if hf_token else {}
@@ -337,14 +469,6 @@ def download_tmp_copy_of_file(
         with open(file_path, "wb") as f:
             shutil.copyfileobj(r.raw, f)
     return str(file_path.resolve())
-
-
-def create_tmp_copy_of_file(file_path: str, dir: str | None = None) -> str:
-    directory = Path(dir or tempfile.gettempdir()) / secrets.token_hex(20)
-    directory.mkdir(exist_ok=True, parents=True)
-    dest = directory / Path(file_path).name
-    shutil.copy2(file_path, dest)
-    return str(dest.resolve())
 
 
 def get_mimetype(filename: str) -> str | None:
@@ -545,26 +669,52 @@ class APIInfoParseError(ValueError):
 
 
 def get_type(schema: dict):
-    if "type" in schema:
+    if "const" in schema:
+        return "const"
+    if "enum" in schema:
+        return "enum"
+    elif "type" in schema:
         return schema["type"]
+    elif schema.get("$ref"):
+        return "$ref"
     elif schema.get("oneOf"):
         return "oneOf"
     elif schema.get("anyOf"):
         return "anyOf"
+    elif schema.get("allOf"):
+        return "allOf"
+    elif "type" not in schema:
+        return {}
     else:
         raise APIInfoParseError(f"Cannot parse type for {schema}")
 
 
+FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)"
+
+
 def json_schema_to_python_type(schema: Any) -> str:
+    type_ = _json_schema_to_python_type(schema, schema.get("$defs"))
+    return type_.replace(FILE_DATA, "filepath")
+
+
+def _json_schema_to_python_type(schema: Any, defs) -> str:
     """Convert the json schema into a python type hint"""
+    if schema == {}:
+        return "Any"
     type_ = get_type(schema)
     if type_ == {}:
-        if "json" in schema["description"]:
+        if "json" in schema.get("description", {}):
             return "Dict[Any, Any]"
         else:
             return "Any"
+    elif type_ == "$ref":
+        return _json_schema_to_python_type(defs[schema["$ref"].split("/")[-1]], defs)
     elif type_ == "null":
         return "None"
+    elif type_ == "const":
+        return f"Litetal[{schema['const']}]"
+    elif type_ == "enum":
+        return f"Literal[{', '.join([str(v) for v in schema['enum']])}]"
     elif type_ == "integer":
         return "int"
     elif type_ == "string":
@@ -572,27 +722,97 @@ def json_schema_to_python_type(schema: Any) -> str:
     elif type_ == "boolean":
         return "bool"
     elif type_ == "number":
-        return "int | float"
+        return "float"
     elif type_ == "array":
-        items = schema.get("items")
+        items = schema.get("items", [])
         if "prefixItems" in items:
             elements = ", ".join(
-                [json_schema_to_python_type(i) for i in items["prefixItems"]]
+                [_json_schema_to_python_type(i, defs) for i in items["prefixItems"]]
+            )
+            return f"Tuple[{elements}]"
+        elif "prefixItems" in schema:
+            elements = ", ".join(
+                [_json_schema_to_python_type(i, defs) for i in schema["prefixItems"]]
             )
             return f"Tuple[{elements}]"
         else:
-            elements = json_schema_to_python_type(items)
+            elements = _json_schema_to_python_type(items, defs)
             return f"List[{elements}]"
     elif type_ == "object":
-        des = ", ".join(
-            [
-                f"{n}: {json_schema_to_python_type(v)} ({v.get('description')})"
-                for n, v in schema["properties"].items()
+
+        def get_desc(v):
+            return f" ({v.get('description')})" if v.get("description") else ""
+
+        props = schema.get("properties", {})
+
+        des = [
+            f"{n}: {_json_schema_to_python_type(v, defs)}{get_desc(v)}"
+            for n, v in props.items()
+            if n != "$defs"
+        ]
+
+        if "additionalProperties" in schema:
+            des += [
+                f"str, {_json_schema_to_python_type(schema['additionalProperties'], defs)}"
             ]
-        )
+        des = ", ".join(des)
         return f"Dict({des})"
     elif type_ in ["oneOf", "anyOf"]:
-        desc = " | ".join([json_schema_to_python_type(i) for i in schema[type_]])
+        desc = " | ".join([_json_schema_to_python_type(i, defs) for i in schema[type_]])
+        return desc
+    elif type_ == "allOf":
+        data = ", ".join(_json_schema_to_python_type(i, defs) for i in schema[type_])
+        desc = f"All[{data}]"
         return desc
     else:
         raise APIInfoParseError(f"Cannot parse schema {schema}")
+
+
+def traverse(json_obj: Any, func: Callable, is_root: Callable) -> Any:
+    if is_root(json_obj):
+        return func(json_obj)
+    elif isinstance(json_obj, dict):
+        new_obj = {}
+        for key, value in json_obj.items():
+            new_obj[key] = traverse(value, func, is_root)
+        return new_obj
+    elif isinstance(json_obj, (list, tuple)):
+        new_obj = []
+        for item in json_obj:
+            new_obj.append(traverse(item, func, is_root))
+        return new_obj
+    else:
+        return json_obj
+
+
+def value_is_file(api_info: dict) -> bool:
+    info = _json_schema_to_python_type(api_info, api_info.get("$defs"))
+    return FILE_DATA in info
+
+
+def is_filepath(s):
+    return isinstance(s, str) and Path(s).exists()
+
+
+def is_url(s):
+    return isinstance(s, str) and is_http_url_like(s)
+
+
+def is_file_obj(d):
+    return isinstance(d, dict) and "path" in d
+
+
+SKIP_COMPONENTS = {
+    "state",
+    "row",
+    "column",
+    "tabs",
+    "tab",
+    "tabitem",
+    "box",
+    "form",
+    "accordion",
+    "group",
+    "interpretation",
+    "dataset",
+}

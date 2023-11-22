@@ -13,4 +13,4 @@ with gr.Blocks() as demo:
   button = gr.Button()
   button.click(say_hello, inp, outp)
 
-  demo.queue(concurrency_count=41).launch()
+  demo.launch()

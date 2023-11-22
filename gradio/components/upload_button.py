@@ -4,22 +4,31 @@ from __future__ import annotations
 
 import tempfile
 import warnings
-from typing import Any, Callable, Literal
+from pathlib import Path
+from typing import Any, Callable, List, Literal
 
-from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import FileSerializable
 
-from gradio import utils
-from gradio.components.base import IOComponent, _Keywords
-from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
-from gradio.events import Clickable, Uploadable
+from gradio.components.base import Component
+from gradio.data_classes import FileData, GradioRootModel
+from gradio.events import Events
+from gradio.utils import NamedString
 
 set_documentation_group("component")
 
 
+class ListFiles(GradioRootModel):
+    root: List[FileData]
+
+    def __getitem__(self, index):
+        return self.root[index]
+
+    def __iter__(self):
+        return iter(self.root)
+
+
 @document()
-class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
+class UploadButton(Component):
     """
     Used to create an upload button, when clicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List[bytes]} depending on `type`)
@@ -28,11 +37,14 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
     Demos: upload_button
     """
 
+    EVENTS = [Events.click, Events.upload]
+
     def __init__(
         self,
         label: str = "Upload a File",
         value: str | list[str] | Callable | None = None,
         *,
+        every: float | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         visible: bool = True,
         size: Literal["sm", "lg"] | None = None,
@@ -41,15 +53,16 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
         interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        type: Literal["file", "bytes"] = "file",
+        render: bool = True,
+        type: Literal["filepath", "bytes"] = "filepath",
         file_count: Literal["single", "multiple", "directory"] = "single",
         file_types: list[str] | None = None,
-        **kwargs,
     ):
         """
         Parameters:
             label: Text to display on the button. Defaults to "Upload a File".
             value: File or list of files to upload by default.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
             size: Size of the button. Can be "sm" or "lg".
@@ -58,10 +71,19 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             interactive: If False, the UploadButton will be in a disabled state.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             type: Type of value to be returned by component. "file" returns a temporary file object with the same base name as the uploaded file, whose full path can be retrieved by file_obj.name, "binary" returns an bytes object.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
         """
+        valid_types = [
+            "filepath",
+            "binary",
+        ]
+        if type not in valid_types:
+            raise ValueError(
+                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
+            )
         self.type = type
         self.file_count = file_count
         if file_count == "directory" and file_types is not None:
@@ -72,129 +94,95 @@ class UploadButton(Clickable, Uploadable, IOComponent, FileSerializable):
             raise ValueError(
                 f"Parameter file_types must be a list. Received {file_types.__class__.__name__}"
             )
+        if self.file_count == "multiple":
+            self.data_model = ListFiles
+        else:
+            self.data_model = FileData
         self.size = size
         self.file_types = file_types
         self.label = label
         self.variant = variant
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
+            every=every,
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
             value=value,
             scale=scale,
             min_width=min_width,
             interactive=interactive,
-            **kwargs,
         )
 
-    @staticmethod
-    def update(
-        value: str
-        | list[str]
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        size: Literal["sm", "lg"] | None = None,
-        variant: Literal["primary", "secondary", "stop"] | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.UploadButton(...)` instead of `return gr.UploadButton.update(...)`."
-        )
-        return {
-            "variant": variant,
-            "interactive": interactive,
-            "size": size,
-            "visible": visible,
-            "value": value,
-            "scale": scale,
-            "min_width": min_width,
-            "label": label,
-            "__type__": "update",
-        }
+    def api_info(self) -> dict[str, list[str]]:
+        if self.file_count == "single":
+            return FileData.model_json_schema()
+        else:
+            return ListFiles.model_json_schema()
+
+    def example_inputs(self) -> Any:
+        if self.file_count == "single":
+            return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+        else:
+            return [
+                "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+            ]
+
+    def _process_single_file(self, f: FileData) -> bytes | NamedString:
+        file_name = f.path
+        if self.type == "filepath":
+            file = tempfile.NamedTemporaryFile(delete=False, dir=self.GRADIO_CACHE)
+            file.name = file_name
+            return NamedString(file_name)
+        elif self.type == "binary":
+            with open(file_name, "rb") as file_data:
+                return file_data.read()
+        else:
+            raise ValueError(
+                "Unknown type: "
+                + str(type)
+                + ". Please choose from: 'filepath', 'binary'."
+            )
 
     def preprocess(
-        self, x: list[dict[str, Any]] | None
-    ) -> (
-        bytes
-        | tempfile._TemporaryFileWrapper
-        | list[bytes | tempfile._TemporaryFileWrapper]
-        | None
-    ):
-        """
-        Parameters:
-            x: List of JSON objects with filename as 'name' property and base64 data as 'data' property
-        Returns:
-            File objects in requested format
-        """
-        if x is None:
+        self, payload: ListFiles | FileData | None
+    ) -> bytes | NamedString | list[bytes | NamedString] | None:
+        if payload is None:
             return None
 
-        def process_single_file(f) -> bytes | tempfile._TemporaryFileWrapper:
-            file_name, data, is_file = (
-                f["name"],
-                f["data"],
-                f.get("is_file", False),
-            )
-            if self.type == "file":
-                if is_file:
-                    path = self.make_temp_copy_if_needed(file_name)
-                else:
-                    data, _ = client_utils.decode_base64_to_binary(data)
-                    path = self.file_bytes_to_file(data, file_name=file_name)
-                    path = str(utils.abspath(path))
-                    self.temp_files.add(path)
-                file = tempfile.NamedTemporaryFile(
-                    delete=False, dir=self.DEFAULT_TEMP_DIR
-                )
-                file.name = path
-                file.orig_name = file_name  # type: ignore
-                return file
-            elif self.type == "bytes":
-                if is_file:
-                    with open(file_name, "rb") as file_data:
-                        return file_data.read()
-                return client_utils.decode_base64_to_binary(data)[0]
-            else:
-                raise ValueError(
-                    "Unknown type: "
-                    + str(self.type)
-                    + ". Please choose from: 'file', 'bytes'."
-                )
-
         if self.file_count == "single":
-            if isinstance(x, list):
-                return process_single_file(x[0])
+            if isinstance(payload, ListFiles):
+                return self._process_single_file(payload[0])
             else:
-                return process_single_file(x)
+                return self._process_single_file(payload)
         else:
-            if isinstance(x, list):
-                return [process_single_file(f) for f in x]
+            if isinstance(payload, ListFiles):
+                return [self._process_single_file(f) for f in payload]
             else:
-                return process_single_file(x)
+                return [self._process_single_file(payload)]
 
-    def style(
-        self,
-        *,
-        full_width: bool | None = None,
-        size: Literal["sm", "lg"] | None = None,
-        **kwargs,
-    ):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if full_width is not None:
-            warn_deprecation(
-                "Use `scale` in place of full_width in the constructor. "
-                "scale=1 will make the button expand, whereas 0 will not."
+    def postprocess(self, value: str | list[str] | None) -> ListFiles | FileData | None:
+        if value is None:
+            return None
+        if isinstance(value, list):
+            return ListFiles(
+                root=[
+                    FileData(
+                        path=file,
+                        orig_name=Path(file).name,
+                        size=Path(file).stat().st_size,
+                    )
+                    for file in value
+                ]
             )
-            self.scale = 1 if full_width else None
-        if size is not None:
-            self.size = size
-        return self
+        else:
+            return FileData(
+                path=value,
+                orig_name=Path(value).name,
+                size=Path(value).stat().st_size,
+            )
+
+    @property
+    def skip_api(self):
+        return False

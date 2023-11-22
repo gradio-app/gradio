@@ -5,7 +5,8 @@ asyncio
 black
 boto3
 coverage
-fastapi>=0.87.0
+fastapi>=0.101.0
+gradio_pdf==0.0.3
 httpx
 huggingface_hub
 pydantic

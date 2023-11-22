@@ -104,7 +104,9 @@ export class MessagePortWebSocket extends EventTarget {
 		this.readyState = 2;
 		this._port.postMessage({ type: "close", value: { code, reason } });
 		this.readyState = 3;
-		this.dispatchEvent(new CloseEvent("close", { code, reason }));
+		this.dispatchEvent(
+			new CloseEvent("close", { code, reason, wasClean: true })
+		);
 	}
 
 	private _onMessage(e: MessageEvent): void {
@@ -127,7 +129,9 @@ export class MessagePortWebSocket extends EventTarget {
 			case "close":
 				if (this.readyState < 3) {
 					this.readyState = 3;
-					this.dispatchEvent(new CloseEvent("close", { ...event.value }));
+					this.dispatchEvent(
+						new CloseEvent("close", { ...event.value, wasClean: true })
+					);
 					return;
 				}
 				break;

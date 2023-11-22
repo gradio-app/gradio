@@ -13,7 +13,6 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "blocks_group",
         "blocks_js_methods",
         "blocks_layout",
-        "blocks_mask",
         "blocks_multiple_event_triggers",
         "blocks_update",
         "calculator",
@@ -24,12 +23,9 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "code",
         "fake_gan",
         "fake_diffusion_with_gif",
-        "gender_sentence_default_interpretation",
         "image_mod_default_image",
         "image_segmentation",
-        "interface_parallel_load",
         "interface_random_slider",
-        "interface_series_load",
         "kitchen_sink",
         "kitchen_sink_random",
         "matrix_transpose",
@@ -76,5 +72,7 @@ if __name__ == "__main__":
     torch==1.12.1
     altair
     vega_datasets
+    pydantic==2.1.1
+    pydantic_core==2.4.0
     """
     open(reqs_file_path, "w").write(textwrap.dedent(requirements))

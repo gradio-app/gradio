@@ -3,29 +3,31 @@
 from __future__ import annotations
 
 import inspect
-import warnings
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Any, Callable, List, Literal, Optional, Tuple, Union
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import JSONSerializable
 
-from gradio import utils
-from gradio.components.base import IOComponent, _Keywords
-from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-    Likeable,
-    Selectable,
-)
+from gradio import processing_utils, utils
+from gradio.components.base import Component
+from gradio.data_classes import FileData, GradioModel, GradioRootModel
+from gradio.events import Events
 
 set_documentation_group("component")
 
 
+class FileMessage(GradioModel):
+    file: FileData
+    alt_text: Optional[str] = None
+
+
+class ChatbotData(GradioRootModel):
+    root: List[Tuple[Union[str, FileMessage, None], Union[str, FileMessage, None]]]
+
+
 @document()
-class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
+class Chatbot(Component):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, tables. Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links.
     Preprocessing: passes the messages in the Chatbot as a {List[List[str | None | Tuple]]}, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. See `Postprocessing` for the format of these messages.
@@ -35,12 +37,14 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
     Guides: creating-a-chatbot
     """
 
+    EVENTS = [Events.change, Events.select, Events.like]
+    data_model = ChatbotData
+
     def __init__(
         self,
         value: list[list[str | tuple[str] | tuple[str | Path, str] | None]]
         | Callable
         | None = None,
-        color_map: dict[str, str] | None = None,
         *,
         label: str | None = None,
         every: float | None = None,
@@ -51,6 +55,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
         height: int | None = None,
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         rtl: bool = False,
@@ -61,14 +66,13 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
         render_markdown: bool = True,
         bubble_full_width: bool = True,
         line_breaks: bool = True,
+        likeable: bool = False,
         layout: Literal["panel", "bubble"] | None = None,
-        **kwargs,
     ):
         """
         Parameters:
             value: Default value to show in chatbot. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            color_map: This parameter is deprecated.
-            label: component name in interface.
+            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
@@ -77,6 +81,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             height: height of the component in pixels.
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
             rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
@@ -87,28 +92,15 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
             render_markdown: If False, will disable Markdown rendering for chatbot messages.
             bubble_full_width: If False, the chat bubble will fit to the content of the message. If True (default), the chat bubble will be the full width of the component.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies if `render_markdown` is True.
+            likeable: Whether the chat messages display a like or dislike button. Set automatically by the .like method but has to be present in the signature for it to show up in the config.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
         """
-        if color_map is not None:
-            warn_deprecation("The 'color_map' parameter has been deprecated.")
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects message from Chatbot.
-        Uses event data gradio.SelectData to carry `value` referring to text of selected message, and `index` tuple to refer to [message, participant] index.
-        See EventData documentation on how to use this event data.
-        """
-        self.like: EventListenerMethod
-        """
-        Event listener for when the user likes or dislikes a message from Chatbot.
-        Uses event data gradio.LikeData to carry `value` referring to text of selected message, `index` tuple to refer to [message, participant] index, and `liked` bool which is True if the item was liked, False if disliked.
-        See EventData documentation on how to use this event data.
-        """
+        self.likeable = likeable
         self.height = height
         self.rtl = rtl
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
-        self.avatar_images = avatar_images or (None, None)
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None
@@ -120,8 +112,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
         self.bubble_full_width = bubble_full_width
         self.line_breaks = line_breaks
         self.layout = layout
-        IOComponent.__init__(
-            self,
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -131,80 +122,41 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
             value=value,
-            **kwargs,
         )
-
-    @staticmethod
-    def update(
-        value: list[list[str | tuple[str] | tuple[str, str] | None]]
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        container: bool | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        visible: bool | None = None,
-        height: int | None = None,
-        rtl: bool | None = None,
-        latex_delimiters: list[dict[str, str | bool]] | None = None,
-        show_share_button: bool | None = None,
-        show_copy_button: bool | None = None,
-        avatar_images: tuple[str | Path | None] | None = None,
-        sanitize_html: bool | None = None,
-        bubble_full_width: bool | None = None,
-        layout: Literal["panel", "bubble"] | None = None,
-        render_markdown: bool | None = None,
-        line_breaks: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Chatbot(...)` instead of `return gr.Chatbot.update(...)`."
-        )
-        updated_config = {
-            "label": label,
-            "show_label": show_label,
-            "container": container,
-            "scale": scale,
-            "min_width": min_width,
-            "visible": visible,
-            "value": value,
-            "height": height,
-            "show_share_button": show_share_button,
-            "rtl": rtl,
-            "latex_delimiters": latex_delimiters,
-            "show_copy_button": show_copy_button,
-            "avatar_images": avatar_images,
-            "sanitize_html": sanitize_html,
-            "bubble_full_width": bubble_full_width,
-            "render_markdown": render_markdown,
-            "line_breaks": line_breaks,
-            "layout": layout,
-            "__type__": "update",
-        }
-        return updated_config
+        self.avatar_images: list[str | None] = [None, None]
+        if avatar_images is None:
+            pass
+        else:
+            self.avatar_images = [
+                processing_utils.move_resource_to_block_cache(avatar_images[0], self),
+                processing_utils.move_resource_to_block_cache(avatar_images[1], self),
+            ]
 
     def _preprocess_chat_messages(
-        self, chat_message: str | dict | None
-    ) -> str | tuple[str] | tuple[str, str] | None:
+        self, chat_message: str | FileMessage | None
+    ) -> str | tuple[str | None] | tuple[str | None, str] | None:
         if chat_message is None:
             return None
-        elif isinstance(chat_message, dict):
-            if chat_message["alt_text"] is not None:
-                return (chat_message["name"], chat_message["alt_text"])
+        elif isinstance(chat_message, FileMessage):
+            if chat_message.alt_text is not None:
+                return (chat_message.file.path, chat_message.alt_text)
             else:
-                return (chat_message["name"],)
-        else:  # string
+                return (chat_message.file.path,)
+        elif isinstance(chat_message, str):
             return chat_message
+        else:
+            raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
 
     def preprocess(
         self,
-        y: list[list[str | dict | None] | tuple[str | dict | None, str | dict | None]],
+        payload: ChatbotData,
     ) -> list[list[str | tuple[str] | tuple[str, str] | None]]:
-        if y is None:
-            return y
+        if payload is None:
+            return payload
         processed_messages = []
-        for message_pair in y:
+        for message_pair in payload.root:
             if not isinstance(message_pair, (tuple, list)):
                 raise TypeError(
                     f"Expected a list of lists or list of tuples. Received: {message_pair}"
@@ -223,24 +175,17 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
 
     def _postprocess_chat_messages(
         self, chat_message: str | tuple | list | None
-    ) -> str | dict | None:
+    ) -> str | FileMessage | None:
         if chat_message is None:
             return None
         elif isinstance(chat_message, (tuple, list)):
-            file_uri = str(chat_message[0])
-            if utils.validate_url(file_uri):
-                filepath = file_uri
-            else:
-                filepath = self.make_temp_copy_if_needed(file_uri)
+            filepath = str(chat_message[0])
 
             mime_type = client_utils.get_mimetype(filepath)
-            return {
-                "name": filepath,
-                "mime_type": mime_type,
-                "alt_text": chat_message[1] if len(chat_message) > 1 else None,
-                "data": None,  # These last two fields are filled in by the frontend
-                "is_file": True,
-            }
+            return FileMessage(
+                file=FileData(path=filepath, mime_type=mime_type),
+                alt_text=chat_message[1] if len(chat_message) > 1 else None,
+            )
         elif isinstance(chat_message, str):
             chat_message = inspect.cleandoc(chat_message)
             return chat_message
@@ -249,18 +194,12 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
 
     def postprocess(
         self,
-        y: list[list[str | tuple[str] | tuple[str, str] | None] | tuple],
-    ) -> list[list[str | dict | None]]:
-        """
-        Parameters:
-            y: List of lists representing the message and response pairs. Each message and response should be a string, which may be in Markdown format.  It can also be a tuple whose first element is a string or pathlib.Path filepath or URL to an image/video/audio, and second (optional) element is the alt text, in which case the media file is displayed. It can also be None, in which case that message is not displayed.
-        Returns:
-            List of lists representing the message and response. Each message and response will be a string of HTML, or a dictionary with media information. Or None if the message is not to be displayed.
-        """
-        if y is None:
-            return []
+        value: list[list[str | tuple[str] | tuple[str, str] | None] | tuple],
+    ) -> ChatbotData:
+        if value is None:
+            return ChatbotData(root=[])
         processed_messages = []
-        for message_pair in y:
+        for message_pair in value:
             if not isinstance(message_pair, (tuple, list)):
                 raise TypeError(
                     f"Expected a list of lists or list of tuples. Received: {message_pair}"
@@ -275,13 +214,7 @@ class Chatbot(Changeable, Selectable, Likeable, IOComponent, JSONSerializable):
                     self._postprocess_chat_messages(message_pair[1]),
                 ]
             )
-        return processed_messages
+        return ChatbotData(root=processed_messages)
 
-    def style(self, height: int | None = None, **kwargs):
-        """
-        This method is deprecated. Please set these arguments in the constructor instead.
-        """
-        warn_style_method_deprecation()
-        if height is not None:
-            self.height = height
-        return self
+    def example_inputs(self) -> Any:
+        return [["Hello!", None]]

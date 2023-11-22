@@ -8,10 +8,14 @@ __pycache__/
 *$py.class
 build/
 __tmp/*
+*.pyi
+py.typed
 
 # JS build
-gradio/templates/cdn
-gradio/templates/frontend
+gradio/templates/*
+gradio/node/*
+gradio/_frontend_code/*
+js/gradio-preview/test/*
 
 # Secrets
 .env
@@ -73,6 +77,4 @@ build-storybook.log
 js/storybook/theme.css
 
 # playwright
-.config/playwright
-!.config/playwright/index.html
-!.config/playwright/index.ts
+.config/playwright/.cache

@@ -19,6 +19,8 @@ jobs:
     steps:
     - uses: 8BitJonny/gh-get-current-pr@2.2.0
       id: get-pr
+      with:
+        filterOutDraft: true
   comment-chromatic-start:
     uses: "./.github/workflows/comment-queue.yml"
     needs: get-current-pr
@@ -47,6 +49,8 @@ jobs:
         with:
           always-install-pnpm: true
           skip_build: 'true'
+      - name: build client
+        run: pnpm --filter @gradio/client build 
       - name: generate theme.css
         run: | 
           . venv/bin/activate
@@ -59,6 +63,7 @@ jobs:
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          onlyChanged: true
           exitOnceUploaded: true
   comment-chromatic-end:
     uses: "./.github/workflows/comment-queue.yml"

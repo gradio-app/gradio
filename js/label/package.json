@@ -1,12 +1,11 @@
 {
 	"name": "@gradio/label",
-	"version": "0.2.2",
+	"version": "0.2.3",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "./static/index.ts",
 	"author": "",
 	"license": "ISC",
-	"private": true,
+	"private": false,
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/icons": "workspace:^",
@@ -14,11 +13,9 @@
 		"@gradio/utils": "workspace:^"
 	},
 	"main_changeset": true,
+	"main": "./Index.svelte",
 	"exports": {
-		".": "./static/index.ts",
-		"./package.json": "./package.json",
-		"./interactive": "./interactive/index.ts",
-		"./static": "./static/index.ts",
-		"./example": "./example/index.ts"
+		".": "./Index.svelte",
+		"./package.json": "./package.json"
 	}
 }

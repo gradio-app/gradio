@@ -24,8 +24,9 @@ class DuplicateButton(Button):
 
     def __init__(
         self,
-        *,
         value: str = "Duplicate Space",
+        *,
+        every: float | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = "sm",
         icon: str | None = None,
@@ -34,14 +35,15 @@ class DuplicateButton(Button):
         interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
         scale: int | None = 0,
         min_width: int | None = None,
         _activate: bool = True,
-        **kwargs,
     ):
         """
         Parameters:
             value: Default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             size: Size of the button. Can be "sm" or "lg".
             icon: URL or path to the icon file to display within the button. If None, no icon will be displayed.
@@ -50,11 +52,13 @@ class DuplicateButton(Button):
             interactive: If False, the Button will be in a disabled state.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
         """
         super().__init__(
-            value,
+            value=value,
+            every=every,
             variant=variant,
             size=size,
             icon=icon,
@@ -63,9 +67,9 @@ class DuplicateButton(Button):
             interactive=interactive,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
             scale=scale,
             min_width=min_width,
-            **kwargs,
         )
         if _activate:
             self.activate()
@@ -75,5 +79,5 @@ class DuplicateButton(Button):
         if space_name is not None:
             self.click(
                 fn=None,
-                _js=f"() => {{ window.open(`https://huggingface.co/spaces/{space_name}?duplicate=true`, '_blank') }}",
+                js=f"() => {{ window.open(`https://huggingface.co/spaces/{space_name}?duplicate=true`, '_blank') }}",
             )

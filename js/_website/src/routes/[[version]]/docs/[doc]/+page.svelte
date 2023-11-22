@@ -105,19 +105,24 @@
 					See the <a class="link" href="/changelog">Release History</a>
 				</p>
 			</div>
-			
+
 			{#if on_main}
-				<div class="bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 rounded-lg lg:ml-10">
+				<div
+					class="bg-gray-100 border border-gray-200 text-gray-800 px-3 py-1 mt-4 rounded-lg lg:ml-10"
+				>
 					<p class="my-2">
 						To install Gradio from main, run the following command:
 					</p>
 					<div class="codeblock">
-						<pre class="language-bash" style="padding-right: 50px;"><code class="language-bash">pip install {wheel}</code></pre>
+						<pre class="language-bash" style="padding-right: 50px;"><code
+								class="language-bash">pip install {wheel}</code
+							></pre>
 					</div>
-						<p class="float-right text-sm">
-						*Note: Setting <code style="font-size: 0.85rem">share=True</code> in <code style="font-size: 0.85rem">launch()</code> will not work. 
+					<p class="float-right text-sm">
+						*Note: Setting <code style="font-size: 0.85rem">share=True</code> in
+						<code style="font-size: 0.85rem">launch()</code> will not work.
 					</p>
-					</div>
+				</div>
 			{/if}
 
 			<div class="flex justify-between mt-4 lg:ml-10">
@@ -165,11 +170,11 @@
 						</div>
 
 						<div class="codeblock">
-						{#if obj.override_signature}
+							{#if obj.override_signature}
 								<pre><code class="code language-python"
 										>{obj.override_signature}</code
 									></pre>
-						{:else}
+							{:else}
 								<pre><code class="code language-python"
 										>{obj.parent}.<span>{obj.name}&lpar;</span
 										><!--
@@ -182,8 +187,8 @@
 											>&rpar;</span
 										></code
 									></pre>
-						{/if}
-					</div>
+							{/if}
+						</div>
 
 						{#if mode === "components"}
 							<div class="embedded-component">
@@ -416,7 +421,7 @@
 															name={demo[0]}
 															code={demo[1]}
 															highlighted_code={demo[2]}
-															on_main={on_main}
+															{on_main}
 														/>
 													</div>
 												{/each}

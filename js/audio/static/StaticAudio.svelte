@@ -1,80 +1,89 @@
-<svelte:options accessors={true} />
-
 <script lang="ts">
-	import type { Gradio, ShareData } from "@gradio/utils";
-	import { _ } from "svelte-i18n";
+	import { uploadToHuggingFace } from "@gradio/utils";
+	import { Empty } from "@gradio/atoms";
+	import { ShareButton, IconButton, BlockLabel } from "@gradio/atoms";
+	import { Download, Music } from "@gradio/icons";
+	import type { I18nFormatter } from "@gradio/utils";
+	import AudioPlayer from "../player/AudioPlayer.svelte";
+	import { createEventDispatcher } from "svelte";
+	import type { FileData } from "@gradio/client";
+	import type { WaveformOptions } from "../shared/types";
 
-	import type { FileData } from "@gradio/upload";
-	import type { LoadingStatus } from "@gradio/statustracker";
-
-	import StaticAudio from "./AudioPlayer.svelte";
-	import { StatusTracker } from "@gradio/statustracker";
-	import { Block } from "@gradio/atoms";
-
-	import { normalise_file } from "@gradio/upload";
-
-	export let elem_id = "";
-	export let elem_classes: string[] = [];
-	export let visible = true;
-	export let mode: "static" | "interactive";
-	export let value: null | FileData | string = null;
-	export let source: "microphone" | "upload";
+	export let value: null | FileData = null;
 	export let label: string;
-	export let root: string;
-	export let show_label: boolean;
-	export let root_url: null | string;
-	export let container = true;
-	export let scale: number | null = null;
-	export let min_width: number | undefined = undefined;
-	export let loading_status: LoadingStatus;
-	export let autoplay = false;
+	export let show_label = true;
 	export let show_download_button = true;
 	export let show_share_button = false;
-	export let gradio: Gradio<{
-		change: typeof value;
-		share: ShareData;
-		error: string;
-	}>;
+	export let i18n: I18nFormatter;
+	export let waveform_settings: Record<string, any>;
+	export let waveform_options: WaveformOptions;
 
-	let old_value: null | FileData | string = null;
+	const dispatch = createEventDispatcher<{
+		change: FileData;
+		play: undefined;
+		pause: undefined;
+		end: undefined;
+		stop: undefined;
+	}>();
 
-	let _value: null | FileData;
-	$: _value = normalise_file(value, root, root_url);
-
-	$: {
-		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
-			old_value = value;
-			gradio.dispatch("change");
-		}
-	}
-
-	let dragging: boolean;
+	$: value && dispatch("change", value);
 </script>
 
-<Block
-	variant={mode === "interactive" && value === null && source === "upload"
-		? "dashed"
-		: "solid"}
-	border_mode={dragging ? "focus" : "base"}
-	padding={false}
-	{elem_id}
-	{elem_classes}
-	{visible}
-	{container}
-	{scale}
-	{min_width}
->
-	<StatusTracker {...loading_status} />
+<BlockLabel
+	{show_label}
+	Icon={Music}
+	float={false}
+	label={label || i18n("audio.audio")}
+/>
 
-	<StaticAudio
-		{autoplay}
-		{show_label}
-		{show_download_button}
-		{show_share_button}
-		value={_value}
-		name={_value?.name || "audio_file"}
+{#if value !== null}
+	<div class="icon-buttons">
+		{#if show_download_button}
+			<a
+				href={value.url}
+				target={window.__is_colab__ ? "_blank" : null}
+				download={value.orig_name || value.path}
+			>
+				<IconButton Icon={Download} label={i18n("common.download")} />
+			</a>
+		{/if}
+		{#if show_share_button}
+			<ShareButton
+				{i18n}
+				on:error
+				on:share
+				formatter={async (value) => {
+					if (!value) return "";
+					let url = await uploadToHuggingFace(value.url, "url");
+					return `<audio controls src="${url}"></audio>`;
+				}}
+				{value}
+			/>
+		{/if}
+	</div>
+
+	<AudioPlayer
+		{value}
 		{label}
-		on:share={(e) => gradio.dispatch("share", e.detail)}
-		on:error={(e) => gradio.dispatch("error", e.detail)}
+		{i18n}
+		{waveform_settings}
+		{waveform_options}
+		on:pause
+		on:play
+		on:stop
 	/>
-</Block>
+{:else}
+	<Empty size="small">
+		<Music />
+	</Empty>
+{/if}
+
+<style>
+	.icon-buttons {
+		display: flex;
+		position: absolute;
+		top: 6px;
+		right: 6px;
+		gap: var(--size-1);
+	}
+</style>

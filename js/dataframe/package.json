@@ -1,13 +1,13 @@
 {
 	"name": "@gradio/dataframe",
-	"version": "0.3.1",
+	"version": "0.3.8",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "./index.svelte",
 	"author": "",
 	"license": "ISC",
-	"private": true,
+	"private": false,
 	"main_changeset": true,
+	"main": "./Index.svelte",
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/button": "workspace:^",
@@ -25,9 +25,8 @@
 		"marked": "^7.0.0"
 	},
 	"exports": {
-		"./package.json": "./package.json",
-		"./interactive": "./interactive/index.ts",
-		"./static": "./static/index.ts",
-		"./example": "./example/index.ts"
+		".": "./Index.svelte",
+		"./example": "./Example.svelte",
+		"./package.json": "./package.json"
 	}
 }

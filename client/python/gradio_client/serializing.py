@@ -1,3 +1,4 @@
+"""Included for backwards compatibility with 3.x spaces/apps."""
 from __future__ import annotations
 
 import json
@@ -281,12 +282,11 @@ class FileSerializable(Serializable):
             filename = str(Path(load_dir) / x)
             size = Path(filename).stat().st_size
         return {
-            "name": filename,
+            "name": filename or None,
             "data": None
             if allow_links
             else utils.encode_url_or_file_to_base64(filename),
             "orig_name": Path(filename).name,
-            "is_file": allow_links,
             "size": size,
         }
 

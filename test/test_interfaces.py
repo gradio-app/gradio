@@ -7,10 +7,9 @@ from string import capwords
 
 import pytest
 import requests
-from fastapi.testclient import TestClient
 
 import gradio
-from gradio.blocks import Blocks, get_api_info
+from gradio.blocks import Blocks
 from gradio.components import Image, Textbox
 from gradio.interface import Interface, TabbedInterface, close_all, os
 from gradio.layouts import TabItem, Tabs
@@ -122,14 +121,6 @@ class TestInterface:
         assert prediction_fn.__name__ in repr[0]
         assert len(repr[0]) == len(repr[1])
 
-    @pytest.mark.asyncio
-    async def test_interface_none_interp(self):
-        interface = Interface(lambda x: x, "textbox", "label", interpretation=[None])
-        scores = (await interface.interpret(["quickest brown fox"]))[0][
-            "interpretation"
-        ]
-        assert scores is None
-
     @mock.patch("webbrowser.open")
     def test_interface_browser(self, mock_browser):
         interface = Interface(lambda x: x, "textbox", "label")
@@ -167,7 +158,7 @@ class TestInterface:
 
     def test_get_api_info(self):
         io = Interface(lambda x: x, Image(type="filepath"), "textbox")
-        api_info = get_api_info(io.get_config_file())
+        api_info = io.get_api_info()
         assert len(api_info["named_endpoints"]) == 1
         assert len(api_info["unnamed_endpoints"]) == 0
 
@@ -180,6 +171,11 @@ class TestInterface:
     def test_interface_in_blocks_does_not_error(self):
         with Blocks():
             Interface(fn=lambda x: x, inputs=Textbox(), outputs=Image())
+
+    def test_interface_with_built_ins(self):
+        t = Textbox()
+        Interface(fn=str, inputs=t, outputs=Textbox())
+        assert t.label == "input 0"
 
 
 class TestTabbedInterface:
@@ -201,74 +197,6 @@ class TestTabbedInterface:
         assert assert_configs_are_equivalent_besides_ids(
             demo.get_config_file(), tabbed_interface.get_config_file()
         )
-
-
-class TestDeprecatedInterface:
-    def test_deprecation_notice(self):
-        with pytest.warns(Warning):
-            _ = Interface(lambda x: x, "textbox", "textbox", verbose=True)
-
-
-class TestInterfaceInterpretation:
-    def test_interpretation_from_interface(self):
-        def quadratic(num1: float, num2: float) -> float:
-            return 3 * num1**2 + num2
-
-        iface = Interface(
-            fn=quadratic,
-            inputs=["number", "number"],
-            outputs="number",
-            interpretation="default",
-        )
-
-        interpretation_id = None
-        for c in iface.config["components"]:
-            if c["props"].get("value") == "Interpret" and c.get("type") == "button":
-                interpretation_id = c["id"]
-
-        # Make sure the event is configured correctly.
-        interpretation_dep = next(
-            d
-            for d in iface.config["dependencies"]
-            if d["targets"][0][0] == interpretation_id
-        )
-        interpretation_comps = [
-            c["id"]
-            for c in iface.config["components"]
-            if c.get("type") == "interpretation"
-        ]
-        interpretation_columns = [
-            c["id"]
-            for c in iface.config["components"]
-            if c.get("type") == "column" and c["props"].get("variant") == "default"
-        ]
-        assert sorted(interpretation_dep["outputs"]) == sorted(
-            interpretation_comps + interpretation_columns
-        )
-        assert sorted(interpretation_dep["inputs"]) == sorted(
-            [c._id for c in iface.input_components + iface.output_components]
-        )
-
-        app, _, _ = iface.launch(prevent_thread_lock=True)
-        client = TestClient(app)
-
-        btn = next(
-            c["id"]
-            for c in iface.config["components"]
-            if c["props"].get("value") == "Interpret"
-        )
-        fn_index = next(
-            i
-            for i, d in enumerate(iface.config["dependencies"])
-            if d["targets"][0][0] == btn
-        )
-
-        response = client.post(
-            "/api/predict/", json={"fn_index": fn_index, "data": [10, 50, 350]}
-        )
-        assert response.json()["data"][0]["interpretation"] is not None
-        iface.close()
-        close_all()
 
 
 @pytest.mark.parametrize(

@@ -223,7 +223,7 @@ const changelogFunctions = {
 				.trim()
 				.match(/^(feat|fix|highlight)\s*:\s*([^]*)/im) || [
 				,
-				false,
+				"feat",
 				changeset.summary
 			];
 

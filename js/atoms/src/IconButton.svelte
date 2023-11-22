@@ -1,13 +1,37 @@
 <script lang="ts">
-	export let Icon: any;
+	import { type ComponentType } from "svelte";
+	export let Icon: ComponentType;
 	export let label = "";
 	export let show_label = false;
 	export let pending = false;
+	export let size: "small" | "large" = "small";
+	export let padded = true;
+	export let highlight = false;
+	export let disabled = false;
+	export let hasPopup = false;
+	export let color = "var(--block-label-text-color)";
+	export let transparent = false;
+	export let background = "var(--background-fill-primary)";
+	$: _color = highlight ? "var(--color-accent)" : color;
 </script>
 
-<button on:click aria-label={label} title={label} class:pending>
+<button
+	{disabled}
+	on:click
+	aria-label={label}
+	aria-haspopup={hasPopup}
+	title={label}
+	class:pending
+	class:padded
+	class:highlight
+	class:transparent
+	style:color={!disabled && _color ? _color : "var(--block-label-text-color)"}
+	style:--bg-color={!disabled ? background : "auto"}
+>
 	{#if show_label}<span>{label}</span>{/if}
-	<div><Icon /></div>
+	<div class:small={size === "small"} class:large={size === "large"}>
+		<Icon />
+	</div>
 </button>
 
 <style>
@@ -16,17 +40,54 @@
 		justify-content: center;
 		align-items: center;
 		gap: 1px;
-		z-index: var(--layer-1);
-		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--button-secondary-border-color);
+		z-index: var(--layer-2);
+		/* background: var(--background-fill-primary); */
 		border-radius: var(--radius-sm);
-		background: var(--background-fill-primary);
-		padding: 2px;
 		color: var(--block-label-text-color);
+		border: 1px solid transparent;
 	}
 
-	button:hover {
+	button[disabled] {
+		opacity: 0.5;
+		box-shadow: none;
+	}
+
+	button[disabled]:hover {
+		cursor: not-allowed;
+		/* border: 1px solid var(--button-secondary-border-color); */
+		/* padding: 2px; */
+	}
+
+	.padded {
+		padding: 2px;
+		background: var(--bg-color);
+		box-shadow: var(--shadow-drop);
+		border: 1px solid var(--button-secondary-border-color);
+	}
+
+	/* .padded {
+		padding: 2px;
+		background: var(--background-fill-primary);
+
+		box-shadow: var(--shadow-drop);
+		border: 1px solid var(--button-secondary-border-color);
+	} */
+
+	/* .padded {
+		padding: 2px;
+		background: var(--background-fill-primary);
+
+		box-shadow: var(--shadow-drop);
+		border: 1px solid var(--button-secondary-border-color);
+	} */
+
+	button:hover,
+	button.highlight {
 		cursor: pointer;
+		color: var(--color-accent);
+	}
+
+	.padded:hover {
 		border: 2px solid var(--button-secondary-border-color-hover);
 		padding: 1px;
 		color: var(--block-label-text-color);
@@ -39,8 +100,18 @@
 
 	div {
 		padding: 2px;
+		display: flex;
+		align-items: flex-end;
+	}
+
+	.small {
 		width: 14px;
 		height: 14px;
+	}
+
+	.large {
+		width: 22px;
+		height: 22px;
 	}
 
 	.pending {
@@ -57,5 +128,11 @@
 		100% {
 			opacity: 0.5;
 		}
+	}
+
+	.transparent {
+		background: transparent;
+		border: none;
+		box-shadow: none;
 	}
 </style>

@@ -1,3 +1,5 @@
+//@ts-nocheck
+
 import semiver from "semiver";
 
 import {
@@ -22,9 +24,10 @@ import type {
 	UploadResponse,
 	Status,
 	SpaceStatus,
-	SpaceStatusCallback,
-	FileData
+	SpaceStatusCallback
 } from "./types.js";
+
+import { FileData, normalise_file } from "./upload";
 
 import type { Config } from "./types.js";
 
@@ -44,7 +47,8 @@ type client_return = {
 	submit: (
 		endpoint: string | number,
 		data?: unknown[],
-		event_data?: unknown
+		event_data?: unknown,
+		trigger_id?: number | null
 	) => SubmitReturn;
 	component_server: (
 		component_id: number,
@@ -153,7 +157,8 @@ interface Client {
 	upload_files: (
 		root: string,
 		files: File[],
-		token?: `hf_${string}`
+		token?: `hf_${string}`,
+		upload_id?: string
 	) => Promise<UploadResponse>;
 	client: (
 		app_reference: string,
@@ -205,7 +210,8 @@ export function api_factory(
 	async function upload_files(
 		root: string,
 		files: (Blob | File)[],
-		token?: `hf_${string}`
+		token?: `hf_${string}`,
+		upload_id?: string
 	): Promise<UploadResponse> {
 		const headers: {
 			Authorization?: string;
@@ -222,7 +228,10 @@ export function api_factory(
 				formData.append("files", file);
 			});
 			try {
-				var response = await fetch_implementation(`${root}/upload`, {
+				const upload_url = upload_id
+					? `${root}/upload?upload_id=${upload_id}`
+					: `${root}/upload`;
+				var response = await fetch_implementation(upload_url, {
 					method: "POST",
 					body: formData,
 					headers
@@ -251,7 +260,6 @@ export function api_factory(
 				submit,
 				view_api,
 				component_server
-				// duplicate
 			};
 
 			const transform_files = normalise_files ?? true;
@@ -405,7 +413,8 @@ export function api_factory(
 			function submit(
 				endpoint: string | number,
 				data: unknown[],
-				event_data?: unknown
+				event_data?: unknown,
+				trigger_id: number | null = null
 			): SubmitReturn {
 				let fn_index: number;
 				let api_info;
@@ -427,16 +436,17 @@ export function api_factory(
 				}
 
 				let websocket: WebSocket;
+				let eventSource: EventSource;
+				let protocol = config.protocol ?? "sse";
 
 				const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
 				let payload: Payload;
+				let event_id: string | null = null;
 				let complete: false | Record<string, any> = false;
 				const listener_map: ListenerMap<EventType> = {};
-				let url_params = ""
-				if (typeof(window) !== "undefined") {
-					url_params = new URLSearchParams(
-						window.location.search
-					).toString();
+				let url_params = "";
+				if (typeof window !== "undefined") {
+					url_params = new URLSearchParams(window.location.search).toString();
 				}
 
 				handle_blob(
@@ -445,7 +455,7 @@ export function api_factory(
 					api_info,
 					hf_token
 				).then((_payload) => {
-					payload = { data: _payload || [], event_data, fn_index };
+					payload = { data: _payload || [], event_data, fn_index, trigger_id };
 					if (skip_queue(fn_index, config)) {
 						fire_event({
 							type: "status",
@@ -516,7 +526,7 @@ export function api_factory(
 									time: new Date()
 								});
 							});
-					} else {
+					} else if (protocol == "ws") {
 						fire_event({
 							type: "status",
 							stage: "pending",
@@ -636,6 +646,126 @@ export function api_factory(
 								websocket.send(JSON.stringify({ hash: session_hash }))
 							);
 						}
+					} else {
+						fire_event({
+							type: "status",
+							stage: "pending",
+							queue: true,
+							endpoint: _endpoint,
+							fn_index,
+							time: new Date()
+						});
+						var params = new URLSearchParams({
+							fn_index: fn_index.toString(),
+							session_hash: session_hash
+						}).toString();
+						let url = new URL(
+							`${http_protocol}//${resolve_root(
+								host,
+								config.path,
+								true
+							)}/queue/join?${url_params ? url_params + "&" : ""}${params}`
+						);
+
+						eventSource = new EventSource(url);
+
+						eventSource.onmessage = async function (event) {
+							const _data = JSON.parse(event.data);
+							const { type, status, data } = handle_message(
+								_data,
+								last_status[fn_index]
+							);
+
+							if (type === "update" && status && !complete) {
+								// call 'status' listeners
+								fire_event({
+									type: "status",
+									endpoint: _endpoint,
+									fn_index,
+									time: new Date(),
+									...status
+								});
+								if (status.stage === "error") {
+									eventSource.close();
+								}
+							} else if (type === "data") {
+								event_id = _data.event_id as string;
+								let [_, status] = await post_data(
+									`${http_protocol}//${resolve_root(
+										host,
+										config.path,
+										true
+									)}/queue/data`,
+									{
+										...payload,
+										session_hash,
+										event_id
+									},
+									hf_token
+								);
+								if (status !== 200) {
+									fire_event({
+										type: "status",
+										stage: "error",
+										message: BROKEN_CONNECTION_MSG,
+										queue: true,
+										endpoint: _endpoint,
+										fn_index,
+										time: new Date()
+									});
+									eventSource.close();
+								}
+							} else if (type === "complete") {
+								complete = status;
+							} else if (type === "log") {
+								fire_event({
+									type: "log",
+									log: data.log,
+									level: data.level,
+									endpoint: _endpoint,
+									fn_index
+								});
+							} else if (type === "generating") {
+								fire_event({
+									type: "status",
+									time: new Date(),
+									...status,
+									stage: status?.stage!,
+									queue: true,
+									endpoint: _endpoint,
+									fn_index
+								});
+							}
+							if (data) {
+								fire_event({
+									type: "data",
+									time: new Date(),
+									data: transform_files
+										? transform_output(
+												data.data,
+												api_info,
+												config.root,
+												config.root_url
+										  )
+										: data.data,
+									endpoint: _endpoint,
+									fn_index
+								});
+
+								if (complete) {
+									fire_event({
+										type: "status",
+										time: new Date(),
+										...complete,
+										stage: status?.stage!,
+										queue: true,
+										endpoint: _endpoint,
+										fn_index
+									});
+									eventSource.close();
+								}
+							}
+						};
 					}
 				});
 
@@ -683,12 +813,19 @@ export function api_factory(
 						fn_index: fn_index
 					});
 
-					if (websocket && websocket.readyState === 0) {
-						websocket.addEventListener("open", () => {
+					let cancel_request = {};
+					if (protocol === "ws") {
+						if (websocket && websocket.readyState === 0) {
+							websocket.addEventListener("open", () => {
+								websocket.close();
+							});
+						} else {
 							websocket.close();
-						});
+						}
+						cancel_request = { fn_index, session_hash };
 					} else {
-						websocket.close();
+						eventSource.close();
+						cancel_request = { event_id };
 					}
 
 					try {
@@ -701,7 +838,7 @@ export function api_factory(
 							{
 								headers: { "Content-Type": "application/json" },
 								method: "POST",
-								body: JSON.stringify({ fn_index, session_hash })
+								body: JSON.stringify(cancel_request)
 							}
 						);
 					} catch (e) {
@@ -845,28 +982,21 @@ export function api_factory(
 		);
 
 		return Promise.all(
-			blob_refs.map(async ({ path, blob, data, type }) => {
+			blob_refs.map(async ({ path, blob, type }) => {
 				if (blob) {
 					const file_url = (await upload_files(endpoint, [blob], token))
 						.files[0];
-					return { path, file_url, type };
+					return { path, file_url, type, name: blob?.name };
 				}
-				return { path, base64: data, type };
+				return { path, type };
 			})
 		).then((r) => {
-			r.forEach(({ path, file_url, base64, type }) => {
-				if (base64) {
-					update_object(data, base64, path);
-				} else if (type === "Gallery") {
+			r.forEach(({ path, file_url, type, name }) => {
+				if (type === "Gallery") {
 					update_object(data, file_url, path);
 				} else if (file_url) {
-					const o = {
-						is_file: true,
-						name: `${file_url}`,
-						data: null
-						// orig_name: "file.csv"
-					};
-					update_object(data, o, path);
+					const file = new FileData({ path: file_url, orig_name: name });
+					update_object(data, file, path);
 				}
 			});
 
@@ -895,55 +1025,11 @@ function transform_output(
 					? [normalise_file(img[0], root_url, remote_url), img[1]]
 					: [normalise_file(img, root_url, remote_url), null];
 			});
-		} else if (typeof d === "object" && d?.is_file) {
+		} else if (typeof d === "object" && d.path) {
 			return normalise_file(d, root_url, remote_url);
 		}
 		return d;
 	});
-}
-
-function normalise_file(
-	file: FileData[],
-	root: string,
-	root_url: string | null
-): FileData[];
-function normalise_file(
-	file: FileData | string,
-	root: string,
-	root_url: string | null
-): FileData;
-function normalise_file(
-	file: null,
-	root: string,
-	root_url: string | null
-): null;
-function normalise_file(file, root, root_url): FileData[] | FileData | null {
-	if (file == null) return null;
-	if (typeof file === "string") {
-		return {
-			name: "file_data",
-			data: file
-		};
-	} else if (Array.isArray(file)) {
-		const normalized_file: (FileData | null)[] = [];
-
-		for (const x of file) {
-			if (x === null) {
-				normalized_file.push(null);
-			} else {
-				normalized_file.push(normalise_file(x, root, root_url));
-			}
-		}
-
-		return normalized_file as FileData[];
-	} else if (file.is_file) {
-		if (!root_url) {
-			file.data = root + "/file=" + file.name;
-		} else {
-			file.data = "/proxy=" + root_url + "file=" + file.name;
-		}
-	}
-	return file;
 }
 
 interface ApiData {
@@ -1112,7 +1198,6 @@ export async function walk_and_store_blobs(
 ): Promise<
 	{
 		path: string[];
-		data: string | false;
 		type: string;
 		blob: Blob | false;
 	}[]
@@ -1144,28 +1229,9 @@ export async function walk_and_store_blobs(
 			{
 				path: path,
 				blob: is_image ? false : new NodeBlob([param]),
-				data: is_image ? `${param.toString("base64")}` : false,
 				type
 			}
 		];
-	} else if (
-		param instanceof Blob ||
-		(typeof window !== "undefined" && param instanceof File)
-	) {
-		if (type === "Image") {
-			let data;
-
-			if (typeof window !== "undefined") {
-				// browser
-				data = await image_to_data_uri(param);
-			} else {
-				const buffer = await param.arrayBuffer();
-				data = Buffer.from(buffer).toString("base64");
-			}
-
-			return [{ path, data, type, blob: false }];
-		}
-		return [{ path: path, blob: param, type, data: false }];
 	} else if (typeof param === "object") {
 		let blob_refs = [];
 		for (let key in param) {

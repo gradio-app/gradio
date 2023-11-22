@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { afterUpdate, createEventDispatcher } from "svelte";
-	import { _ } from "svelte-i18n";
-	import type { SelectData } from "@gradio/utils";
+	import DropdownOptions from "./DropdownOptions.svelte";
+	import { createEventDispatcher, afterUpdate } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { DropdownArrow } from "@gradio/icons";
-	import DropdownOptions from "./DropdownOptions.svelte";
+	import type { SelectData } from "@gradio/utils";
 	import { handle_filter, handle_change, handle_shared_keys } from "./utils";
 
 	export let label: string;
@@ -106,13 +105,18 @@
 	function set_input_text(): void {
 		if (value === undefined) {
 			input_text = "";
+			selected_index = null;
 		} else if (choices_values.includes(value as string)) {
 			input_text = choices_names[choices_values.indexOf(value as string)];
+			selected_index = choices_values.indexOf(value as string);
 		} else if (allow_custom_value) {
 			input_text = value as string;
+			selected_index = null;
 		} else {
 			input_text = "";
+			selected_index = null;
 		}
+		old_selected_index = selected_index;
 	}
 
 	function handle_option_selected(e: any): void {
@@ -196,7 +200,9 @@
 					readonly={!filterable}
 				/>
 				{#if !disabled}
-					<DropdownArrow />
+					<div class="icon-wrap">
+						<DropdownArrow />
+					</div>
 				{/if}
 			</div>
 		</div>
@@ -213,6 +219,11 @@
 </label>
 
 <style>
+	.icon-wrap {
+		color: var(--body-text-color);
+		margin-right: var(--size-2);
+		width: var(--size-5);
+	}
 	label:not(.container),
 	label:not(.container) .wrap,
 	label:not(.container) .wrap-inner,

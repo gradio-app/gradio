@@ -3,40 +3,30 @@
 from __future__ import annotations
 
 import warnings
-from dataclasses import asdict, dataclass
-from typing import Callable, Literal
+from typing import Any, Callable, Dict, List, Literal, Optional
 
 import numpy as np
 import pandas as pd
 import semantic_version
 from gradio_client.documentation import document, set_documentation_group
-from gradio_client.serializing import JSONSerializable
 from pandas.io.formats.style import Styler
 
-from gradio.components.base import IOComponent, _Keywords
-from gradio.events import (
-    Changeable,
-    EventListenerMethod,
-    Inputable,
-    Selectable,
-)
+from gradio.components import Component
+from gradio.data_classes import GradioModel
+from gradio.events import Events
+
+
+class DataframeData(GradioModel):
+    headers: List[str]
+    data: List[List[Any]]
+    metadata: Optional[Dict[str, Optional[List[Any]]]] = None
+
 
 set_documentation_group("component")
 
 
-@dataclass
-class DataframeData:
-    """
-    This is a dataclass to represent all the data that is sent to or received from the frontend.
-    """
-
-    data: list[list[str | int | bool]]
-    headers: list[str] | list[int] | None = None
-    metadata: dict[str, list[list]] | None = None
-
-
 @document()
-class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable):
+class Dataframe(Component):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, or {List[List]} depending on `type`
@@ -44,6 +34,10 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
     Examples-format: a {str} filepath to a csv with data, a pandas dataframe, or a list of lists (excluding headers) where each sublist is a row of data.
     Demos: filter_records, matrix_transpose, tax_calculator
     """
+
+    EVENTS = [Events.change, Events.input, Events.select]
+
+    data_model = DataframeData
 
     def __init__(
         self,
@@ -62,9 +56,6 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         col_count: int | tuple[int, str] | None = None,
         datatype: str | list[str] = "str",
         type: Literal["pandas", "numpy", "array"] = "pandas",
-        max_rows: int | None = 20,
-        max_cols: int | None = None,
-        overflow_row_behaviour: Literal["paginate", "show_ends"] = "paginate",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
         show_label: bool | None = None,
@@ -76,9 +67,10 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         visible: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        render: bool = True,
         wrap: bool = False,
         line_breaks: bool = True,
-        **kwargs,
+        column_widths: list[str | int] | None = None,
     ):
         """
         Parameters:
@@ -88,12 +80,9 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             col_count: Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
             datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown".
             type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python list of lists.
-            label: component name in interface.
-            max_rows: Deprecated and has no effect. Use `row_count` instead.
-            max_cols: Deprecated and has no effect. Use `col_count` instead.
-            overflow_row_behaviour: Deprecated and has no effect.
-            latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$", "right": "$", "display": False }]`, so only expressions enclosed in $ delimiters will be rendered as LaTeX, and in the same line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html). Only applies to columns whose datatype is "markdown".
-            label: component name in interface.
+            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html). Only applies to columns whose datatype is "markdown".
+            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             show_label: if True, will display label.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             height: The maximum height of the dataframe, in pixels. If more rows are created than can fit in the height, a scrollbar will appear.
@@ -103,10 +92,11 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-            wrap: if True text in table cells will wrap when appropriate, if False the table will scroll horizontally. Defaults to False.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            wrap: If True, the text in table cells will wrap when appropriate. If False and the `column_width` parameter is not set, the column widths will expand based on the cell contents and the table may need to be horizontally scrolled. If `column_width` is set, then any overflow text will be hidden.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies for columns of type "markdown."
+            column_widths: An optional list representing the width of each column. The elements of the list should be in the format "100px" (ints are also accepted and converted to pixel values) or "10%". If not provided, the column widths will be automatically determined based on the content of the cells. Setting this parameter will cause the browser to try to fit the table within the page width.
         """
-
         self.wrap = wrap
         self.row_count = self.__process_counts(row_count)
         self.col_count = self.__process_counts(
@@ -116,7 +106,9 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         self.__validate_headers(headers, self.col_count[0])
 
         self.headers = (
-            headers if headers is not None else list(range(1, self.col_count[0] + 1))
+            headers
+            if headers is not None
+            else [str(i) for i in (range(1, self.col_count[0] + 1))]
         )
         self.datatype = (
             datatype if isinstance(datatype, list) else [datatype] * self.col_count[0]
@@ -138,27 +130,23 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         column_dtypes = (
             [datatype] * self.col_count[0] if isinstance(datatype, str) else datatype
         )
-        self.empty_input = [
-            [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
-        ]
+        self.empty_input = {
+            "headers": self.headers,
+            "data": [
+                [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
+            ],
+            "metadata": None,
+        }
 
-        self.max_rows = max_rows
-        self.max_cols = max_cols
-        self.overflow_row_behaviour = overflow_row_behaviour
         if latex_delimiters is None:
-            latex_delimiters = [{"left": "$", "right": "$", "display": False}]
+            latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
         self.height = height
         self.line_breaks = line_breaks
-
-        self.select: EventListenerMethod
-        """
-        Event listener for when the user selects cell within Dataframe.
-        Uses event data gradio.SelectData to carry `value` referring to value of selected cell, and `index` tuple to refer to index row and column.
-        See EventData documentation on how to use this event data.
-        """
-        IOComponent.__init__(
-            self,
+        self.column_widths = [
+            w if isinstance(w, str) else f"{w}px" for w in (column_widths or [])
+        ]
+        super().__init__(
             label=label,
             every=every,
             show_label=show_label,
@@ -168,69 +156,20 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
             visible=visible,
             elem_id=elem_id,
             elem_classes=elem_classes,
+            render=render,
             value=value,
-            **kwargs,
         )
 
-    @staticmethod
-    def update(
-        value: pd.DataFrame
-        | Styler
-        | np.ndarray
-        | list
-        | list[list]
-        | dict
-        | str
-        | Literal[_Keywords.NO_VALUE]
-        | None = _Keywords.NO_VALUE,
-        max_rows: int | None = None,
-        max_cols: str | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
-        latex_delimiters: list[dict[str, str | bool]] | None = None,
-        scale: int | None = None,
-        min_width: int | None = None,
-        height: int | None = None,
-        interactive: bool | None = None,
-        visible: bool | None = None,
-        line_breaks: bool | None = None,
-    ):
-        warnings.warn(
-            "Using the update method is deprecated. Simply return a new object instead, e.g. `return gr.Dataframe(...)` instead of `return gr.Dataframe.update(...)`."
-        )
-        return {
-            "max_rows": max_rows,
-            "max_cols": max_cols,
-            "label": label,
-            "show_label": show_label,
-            "scale": scale,
-            "min_width": min_width,
-            "height": height,
-            "interactive": interactive,
-            "visible": visible,
-            "value": value,
-            "latex_delimiters": latex_delimiters,
-            "line_breaks": line_breaks,
-            "__type__": "update",
-        }
-
-    def preprocess(self, x: dict) -> pd.DataFrame | np.ndarray | list:
-        """
-        Parameters:
-            x: Dictionary equivalent of DataframeData containing `headers`, `data`, and optionally `metadata` keys
-        Returns:
-            The Dataframe data in requested format
-        """
-        value = DataframeData(**x)
+    def preprocess(self, payload: DataframeData) -> pd.DataFrame | np.ndarray | list:
         if self.type == "pandas":
-            if value.headers is not None:
-                return pd.DataFrame(value.data, columns=value.headers)
+            if payload.headers is not None:
+                return pd.DataFrame(payload.data, columns=payload.headers)
             else:
-                return pd.DataFrame(value.data)
+                return pd.DataFrame(payload.data)
         if self.type == "numpy":
-            return np.array(value.data)
+            return np.array(payload.data)
         elif self.type == "array":
-            return value.data
+            return payload.data
         else:
             raise ValueError(
                 "Unknown type: "
@@ -240,19 +179,27 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
 
     def postprocess(
         self,
-        y: pd.DataFrame | Styler | np.ndarray | list | list[list] | dict | str | None,
-    ) -> dict:
-        """
-        Parameters:
-            y: dataframe in given format
-        Returns:
-            JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
-        """
-        if y is None:
+        value: pd.DataFrame
+        | Styler
+        | np.ndarray
+        | list
+        | list[list]
+        | dict
+        | str
+        | None,
+    ) -> DataframeData | dict:
+        if value is None:
             return self.postprocess(self.empty_input)
-        if isinstance(y, dict):
-            value = DataframeData(**y)
-        elif isinstance(y, Styler):
+        if isinstance(value, dict):
+            return value
+        if isinstance(value, (str, pd.DataFrame)):
+            if isinstance(value, str):
+                value = pd.read_csv(value)  # type: ignore
+            return DataframeData(
+                headers=list(value.columns),  # type: ignore
+                data=value.to_dict(orient="split")["data"],  # type: ignore
+            )
+        elif isinstance(value, Styler):
             if semantic_version.Version(pd.__version__) < semantic_version.Version(
                 "1.5.0"
             ):
@@ -263,42 +210,38 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
                 warnings.warn(
                     "Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe instead."
                 )
-            df: pd.DataFrame = y.data  # type: ignore
-            value = DataframeData(
+            df: pd.DataFrame = value.data  # type: ignore
+            return DataframeData(
                 headers=list(df.columns),
-                data=df.to_dict(orient="split")["data"],
-                metadata=self.__extract_metadata(y),
+                data=df.to_dict(orient="split")["data"],  # type: ignore
+                metadata=self.__extract_metadata(value),  # type: ignore
             )
-        elif isinstance(y, (str, pd.DataFrame)):
-            df = pd.read_csv(y) if isinstance(y, str) else y
-            value = DataframeData(
+        elif isinstance(value, (str, pd.DataFrame)):
+            df = pd.read_csv(value) if isinstance(value, str) else value  # type: ignore
+            return DataframeData(
                 headers=list(df.columns),
-                data=df.to_dict(orient="split")["data"],
+                data=df.to_dict(orient="split")["data"],  # type: ignore
             )
-        elif isinstance(y, (np.ndarray, list)):
-            if len(y) == 0:
+        elif isinstance(value, (np.ndarray, list)):
+            if len(value) == 0:
                 return self.postprocess([[]])
-            if isinstance(y, np.ndarray):
-                y = y.tolist()
-            if not isinstance(y, list):
+            if isinstance(value, np.ndarray):
+                value = value.tolist()
+            if not isinstance(value, list):
                 raise ValueError("output cannot be converted to list")
 
             _headers = self.headers
-            if len(self.headers) < len(y[0]):
-                _headers = [
+            if len(self.headers) < len(value[0]):
+                _headers: list[str] = [
                     *self.headers,
-                    *list(range(len(self.headers) + 1, len(y[0]) + 1)),
+                    *[str(i) for i in range(len(self.headers) + 1, len(value[0]) + 1)],
                 ]
-            elif len(self.headers) > len(y[0]):
-                _headers = self.headers[: len(y[0])]
+            elif len(self.headers) > len(value[0]):
+                _headers = self.headers[: len(value[0])]
 
-            value = DataframeData(
-                headers=_headers,
-                data=y,
-            )
+            return DataframeData(headers=_headers, data=value)
         else:
-            raise ValueError(f"Cannot process value as a Dataframe: {y}")
-        return asdict(value)
+            raise ValueError("Cannot process value as a Dataframe")
 
     @staticmethod
     def __get_cell_style(cell_id: str, cell_styles: list[dict]) -> str:
@@ -354,3 +297,6 @@ class Dataframe(Changeable, Inputable, Selectable, IOComponent, JSONSerializable
         elif isinstance(input_data, np.ndarray):
             return input_data.tolist()
         return input_data
+
+    def example_inputs(self) -> Any:
+        return {"headers": ["a", "b"], "data": [["foo", "bar"]]}

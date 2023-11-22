@@ -8,10 +8,7 @@ test("renders the correct elements", async ({ page }) => {
 
 	await textboxOne.fill("hi");
 	await textboxTwo.fill("dawood");
-	await Promise.all([
-		page.click('text="Submit"'),
-		page.waitForResponse("**/run/predict")
-	]);
+	await page.click('text="Submit"');
 
 	await expect(await page.getByLabel("Output")).toHaveValue("hi dawood");
 });

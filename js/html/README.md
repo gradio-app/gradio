@@ -1,11 +1,14 @@
-# `@gradio/button`
+# `@gradio/html`
 
-```html
-<script>
-	import { Button } from "@gradio/button";
-</script>
+```javascript
+import { BaseHTML } from "@gradio/html";
+```
 
-<button type="primary|secondary" href="string" on:click="{e.detail === href}">
-	content
-</button>
+BaseHTML
+```javascript
+	export let elem_id = "";
+	export let elem_classes: string[] = [];
+	export let value: string;
+	export let visible = true;
+	export let min_height = false;
 ```

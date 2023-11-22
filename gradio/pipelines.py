@@ -35,7 +35,7 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
     ):
         pipeline_info = {
             "inputs": components.Audio(
-                source="microphone",
+                sources=["microphone"],
                 type="filepath",
                 label="Input",
                 render=False,
@@ -50,7 +50,7 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
     ):
         pipeline_info = {
             "inputs": components.Audio(
-                source="microphone", type="filepath", label="Input", render=False
+                sources=["microphone"], type="filepath", label="Input", render=False
             ),
             "outputs": components.Textbox(label="Output", render=False),
             "preprocess": lambda i: {"inputs": i},
@@ -202,6 +202,33 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
             "preprocess": lambda i: {"images": i},
             "postprocess": lambda r: r[0]["generated_text"],
         }
+    elif hasattr(transformers, "ObjectDetectionPipeline") and isinstance(
+        pipeline, pipelines.object_detection.ObjectDetectionPipeline
+    ):
+        pipeline_info = {
+            "inputs": components.Image(
+                type="filepath", label="Input Image", render=False
+            ),
+            "outputs": components.AnnotatedImage(
+                label="Objects Detected", render=False
+            ),
+            "preprocess": lambda i: {"inputs": i},
+            "postprocess": lambda r, img: (
+                img,
+                [
+                    (
+                        (
+                            i["box"]["xmin"],
+                            i["box"]["ymin"],
+                            i["box"]["xmax"],
+                            i["box"]["ymax"],
+                        ),
+                        i["label"],
+                    )
+                    for i in r
+                ],
+            ),
+        }
     else:
         raise ValueError(f"Unsupported pipeline type: {type(pipeline)}")
 
@@ -220,7 +247,15 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
             data = pipeline(*data)
         else:
             data = pipeline(**data)
-        output = pipeline_info["postprocess"](data)
+        # special case for object-detection
+        # original input image sent to postprocess function
+        if isinstance(
+            pipeline,
+            pipelines.object_detection.ObjectDetectionPipeline,
+        ):
+            output = pipeline_info["postprocess"](data, params[0])
+        else:
+            output = pipeline_info["postprocess"](data)
         return output
 
     interface_info = pipeline_info.copy()

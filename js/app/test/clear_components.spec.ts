@@ -14,15 +14,9 @@ test("Components value can be set via callable to a non-None value", async ({
 });
 
 test("gr.ClearButton clears every component's value", async ({ page }) => {
-	await Promise.all([
-		page.waitForResponse("**/run/predict"),
-		page.click("text=Get Values")
-	]);
+	await page.click("text=Get Values");
 	await expect(page.getByLabel("Are all cleared?")).toHaveValue("False");
 	await page.click("text=Clear");
-	await Promise.all([
-		page.waitForResponse("**/run/predict"),
-		page.click("text=Get Values")
-	]);
+	await page.click("text=Get Values");
 	await expect(page.getByLabel("Are all cleared?")).toHaveValue("True");
 });

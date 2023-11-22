@@ -1,20 +1,17 @@
 <script lang="ts">
-	import { onMount, tick } from "svelte";
+	import { load_component } from "virtual:component-loader";
+
+	import { tick } from "svelte";
 	import { _ } from "svelte-i18n";
 	import type { client } from "@gradio/client";
 
-	import { component_map } from "./components/directory";
-	import { create_loading_status_store, app_state } from "./stores";
+	import { create_loading_status_store } from "./stores";
 	import type { LoadingStatusCollection } from "./stores";
 
-	import type {
-		ComponentMeta,
-		Dependency,
-		LayoutNode
-	} from "./components/types";
+	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import { setupi18n } from "./i18n";
 	import { ApiDocs } from "./api_docs/";
-	import type { ThemeMode } from "./components/types";
+	import type { ThemeMode, Payload } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
 	import type { ShareData } from "@gradio/utils";
@@ -41,18 +38,19 @@
 	export let app: Awaited<ReturnType<typeof client>>;
 	export let space_id: string | null;
 	export let version: string;
+	export let api_url: string;
+	export let js: string | null;
 
 	let loading_status = create_loading_status_store();
-
-	$: app_state.update((s) => ({ ...s, autoscroll }));
 
 	let rootNode: ComponentMeta = {
 		id: layout.id,
 		type: "column",
-		props: { mode: "static" },
+		props: { interactive: false },
 		has_modes: false,
 		instance: null as unknown as ComponentMeta["instance"],
-		component: null as unknown as ComponentMeta["component"]
+		component: null as unknown as ComponentMeta["component"],
+		component_class_id: ""
 	};
 
 	const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
@@ -117,56 +115,21 @@
 		default: ComponentMeta["component"];
 	};
 
-	async function load_component<T extends ComponentMeta["type"]>(
-		name: T,
-		mode: ComponentMeta["props"]["mode"]
-	): Promise<{
-		name: T;
-		component: LoadedComponent;
-	}> {
-		try {
-			//@ts-ignore
-			const c = await component_map[name][mode]();
-			return {
-				name,
-				component: c as LoadedComponent
-			};
-		} catch (e) {
-			if (mode === "interactive") {
-				try {
-					const c = await component_map[name]["static"]();
-					return {
-						name,
-						component: c as LoadedComponent
-					};
-				} catch (e) {
-					console.error(`failed to load: ${name}`);
-					console.error(e);
-					throw e;
-				}
-			} else {
-				console.error(`failed to load: ${name}`);
-				console.error(e);
-				throw e;
-			}
-		}
-	}
-
 	let component_set = new Set<
 		Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
 	>();
 
 	let _component_map = new Map<
-		`${ComponentMeta["type"]}_${ComponentMeta["props"]["mode"]}`,
+		`${ComponentMeta["type"]}_${ComponentMeta["props"]["interactive"]}`,
 		Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
 	>();
 
 	async function walk_layout(
 		node: LayoutNode,
-		type_map: Map<number, ComponentMeta["props"]["mode"]>,
+		type_map: Map<number, ComponentMeta["props"]["interactive"]>,
 		instance_map: { [id: number]: ComponentMeta },
 		component_map: Map<
-			`${ComponentMeta["type"]}_${ComponentMeta["props"]["mode"]}`,
+			`${ComponentMeta["type"]}_${ComponentMeta["props"]["interactive"]}`,
 			Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
 		>
 	): Promise<void> {
@@ -174,7 +137,7 @@
 		let instance = instance_map[node.id];
 
 		const _component = (await component_map.get(
-			`${instance.type}_${type_map.get(node.id) || "static"}`
+			`${instance.type}_${type_map.get(node.id) || "false"}`
 		))!.component;
 		instance.component = _component.default;
 
@@ -193,7 +156,26 @@
 
 	$: components, layout, prepare_components();
 
+	let target_map: Record<number, Record<string, number[]>> = {};
+
 	function prepare_components(): void {
+		target_map = dependencies.reduce(
+			(acc, dep, i) => {
+				dep.targets.forEach(([id, trigger]) => {
+					if (!acc[id]) {
+						acc[id] = {};
+					}
+					if (acc[id]?.[trigger]) {
+						acc[id][trigger].push(i);
+					} else {
+						acc[id][trigger] = [i];
+					}
+				});
+
+				return acc;
+			},
+			{} as Record<number, Record<string, number[]>>
+		);
 		loading_status = create_loading_status_store();
 
 		dependencies.forEach((v, i) => {
@@ -218,20 +200,24 @@
 		const _rootNode: typeof rootNode = {
 			id: layout.id,
 			type: "column",
-			props: { mode: "static" },
+			props: { interactive: false },
 			has_modes: false,
 			instance: null as unknown as ComponentMeta["instance"],
-			component: null as unknown as ComponentMeta["component"]
+			component: null as unknown as ComponentMeta["component"],
+			component_class_id: ""
 		};
 		components.push(_rootNode);
 		const _component_set = new Set<
 			Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
 		>();
 		const __component_map = new Map<
-			`${ComponentMeta["type"]}_${ComponentMeta["props"]["mode"]}`,
+			`${ComponentMeta["type"]}_${ComponentMeta["props"]["interactive"]}`,
 			Promise<{ name: ComponentMeta["type"]; component: LoadedComponent }>
 		>();
-		const __type_for_id = new Map<number, ComponentMeta["props"]["mode"]>();
+		const __type_for_id = new Map<
+			number,
+			ComponentMeta["props"]["interactive"]
+		>();
 		const _instance_map = components.reduce(
 			(acc, next) => {
 				acc[next.id] = next;
@@ -241,13 +227,13 @@
 		);
 		components.forEach((c) => {
 			if ((c.props as any).interactive === false) {
-				(c.props as any).mode = "static";
+				(c.props as any).interactive = false;
 			} else if ((c.props as any).interactive === true) {
-				(c.props as any).mode = "interactive";
+				(c.props as any).interactive = true;
 			} else if (dynamic_ids.has(c.id)) {
-				(c.props as any).mode = "interactive";
+				(c.props as any).interactive = true;
 			} else {
-				(c.props as any).mode = "static";
+				(c.props as any).interactive = false;
 			}
 
 			if ((c.props as any).server_fns) {
@@ -263,11 +249,46 @@
 				});
 				(c.props as any).server = server;
 			}
-			__type_for_id.set(c.id, c.props.mode);
 
-			const _c = load_component(c.type, c.props.mode);
+			if (target_map[c.id]) {
+				c.props.attached_events = Object.keys(target_map[c.id]);
+			}
+			__type_for_id.set(c.id, c.props.interactive);
+
+			if (c.type === "dataset") {
+				const example_component_map = new Map();
+
+				(c.props.components as string[]).forEach((name: string) => {
+					if (example_component_map.has(name)) {
+						return;
+					}
+					let _c;
+
+					const matching_component = components.find((c) => c.type === name);
+					if (matching_component) {
+						_c = load_component({
+							api_url,
+							name,
+							id: matching_component.component_class_id,
+							variant: "example"
+						});
+						example_component_map.set(name, _c);
+					}
+				});
+
+				c.props.component_map = example_component_map;
+			}
+
+			// maybe load custom
+
+			const _c = load_component({
+				api_url,
+				name: c.type,
+				id: c.component_class_id,
+				variant: "component"
+			});
 			_component_set.add(_c);
-			__component_map.set(`${c.type}_${c.props.mode}`, _c);
+			__component_map.set(`${c.type}_${c.props.interactive}`, _c);
 		});
 
 		Promise.all(Array.from(_component_set)).then(() => {
@@ -285,37 +306,22 @@
 		});
 	}
 
-	async function update_interactive_mode(
-		instance: ComponentMeta,
-		mode: "dynamic" | "interactive" | "static"
+	async function handle_update(
+		data: any,
+		fn_index: number,
+		outputs_set_to_non_interactive: number[]
 	): Promise<void> {
-		let new_mode: "interactive" | "static" =
-			mode === "dynamic" ? "interactive" : mode;
-
-		if (instance.props.mode === new_mode) return;
-
-		instance.props.mode = new_mode;
-		const _c = load_component(instance.type, instance.props.mode);
-		component_set.add(_c);
-		_component_map.set(
-			`${instance.type}_${instance.props.mode}`,
-			_c as Promise<{
-				name: ComponentMeta["type"];
-				component: LoadedComponent;
-			}>
-		);
-
-		_c.then((c) => {
-			instance.component = c.component.default;
-			rootNode = rootNode;
-		});
-	}
-
-	function handle_update(data: any, fn_index: number): void {
 		const outputs = dependencies[fn_index].outputs;
+
 		data?.forEach((value: any, i: number) => {
 			const output = instance_map[outputs[i]];
 			output.props.value_is_output = true;
+		});
+
+		rootNode = rootNode;
+		await tick();
+		data?.forEach((value: any, i: number) => {
+			const output = instance_map[outputs[i]];
 			if (
 				typeof value === "object" &&
 				value !== null &&
@@ -325,13 +331,10 @@
 					if (update_key === "__type__") {
 						continue;
 					} else {
-						if (update_key === "mode") {
-							update_interactive_mode(
-								output,
-								update_value as "dynamic" | "static"
-							);
-						}
 						output.props[update_key] = update_value;
+						if (update_key == "interactive" && !update_value) {
+							outputs_set_to_non_interactive.push(outputs[i]);
+						}
 					}
 				}
 			} else {
@@ -394,8 +397,16 @@
 	let showed_duplicate_message = false;
 	let showed_mobile_warning = false;
 
+	function get_data(comp: ComponentMeta): any | Promise<any> {
+		if (comp.instance.get_value) {
+			return comp.instance.get_value() as Promise<any>;
+		}
+		return comp.props.value;
+	}
+
 	async function trigger_api_call(
 		dep_index: number,
+		trigger_id: number | null = null,
 		event_data: unknown = null
 	): Promise<void> {
 		let dep = dependencies[dep_index];
@@ -410,46 +421,88 @@
 				})
 			);
 		}
-
 		if (current_status === "pending" || current_status === "generating") {
-			return;
+			dep.pending_request = true;
 		}
 
-		let payload = {
+		let payload: Payload = {
 			fn_index: dep_index,
-			data: dep.inputs.map((id) => instance_map[id].props.value),
-			event_data: dep.collects_event_data ? event_data : null
+			data: await Promise.all(
+				dep.inputs.map((id) => get_data(instance_map[id]))
+			),
+			event_data: dep.collects_event_data ? event_data : null,
+			trigger_id: trigger_id
 		};
 
 		if (dep.frontend_fn) {
 			dep
 				.frontend_fn(
 					payload.data.concat(
-						dep.outputs.map((id) => instance_map[id].props.value)
+						await Promise.all(
+							dep.inputs.map((id) => get_data(instance_map[id]))
+						)
 					)
 				)
 				.then((v: unknown[]) => {
 					if (dep.backend_fn) {
 						payload.data = v;
-						make_prediction();
+						make_prediction(payload);
 					} else {
-						handle_update(v, dep_index);
+						handle_update(v, dep_index, []);
 					}
 				});
 		} else {
 			if (dep.backend_fn) {
-				make_prediction();
+				if (dep.trigger_mode === "once") {
+					if (!dep.pending_request) make_prediction(payload);
+				} else if (dep.trigger_mode === "multiple") {
+					make_prediction(payload);
+				} else if (dep.trigger_mode === "always_last") {
+					if (!dep.pending_request) {
+						make_prediction(payload);
+					} else {
+						dep.final_event = payload;
+					}
+				}
 			}
 		}
 
-		function make_prediction(): void {
+		function make_prediction(payload: Payload): void {
+			const pending_outputs: number[] = [];
+			let outputs_set_to_non_interactive: number[] = [];
 			const submission = app
-				.submit(payload.fn_index, payload.data as unknown[], payload.event_data)
+				.submit(
+					payload.fn_index,
+					payload.data as unknown[],
+					payload.event_data,
+					payload.trigger_id
+				)
 				.on("data", ({ data, fn_index }) => {
-					handle_update(data, fn_index);
+					if (dep.pending_request && dep.final_event) {
+						dep.pending_request = false;
+						make_prediction(dep.final_event);
+					}
+					dep.pending_request = false;
+					handle_update(data, fn_index, outputs_set_to_non_interactive);
 				})
 				.on("status", ({ fn_index, ...status }) => {
 					tick().then(() => {
+						const outputs = dependencies[fn_index].outputs;
+						outputs.forEach((id) => {
+							if (
+								instance_map[id].props.interactive &&
+								status.stage === "pending"
+							) {
+								pending_outputs.push(id);
+								instance_map[id].props.interactive = false;
+							} else if (
+								status.stage === "complete" &&
+								pending_outputs.includes(id) &&
+								!outputs_set_to_non_interactive.includes(id)
+							) {
+								instance_map[id].props.interactive = true;
+							}
+						});
 						//@ts-ignore
 						loading_status.update({
 							...status,
@@ -487,7 +540,7 @@
 						if (status.stage === "complete") {
 							dependencies.map(async (dep, i) => {
 								if (dep.trigger_after === fn_index) {
-									trigger_api_call(i);
+									trigger_api_call(i, payload.trigger_id);
 								}
 							});
 
@@ -500,7 +553,7 @@
 									...messages
 								];
 							}, 0);
-							trigger_api_call(dep_index, event_data);
+							trigger_api_call(dep_index, payload.trigger_id, event_data);
 							user_left_page = false;
 						} else if (status.stage === "error") {
 							if (status.message) {
@@ -518,7 +571,7 @@
 									dep.trigger_after === fn_index &&
 									!dep.trigger_only_on_success
 								) {
-									trigger_api_call(i);
+									trigger_api_call(i, payload.trigger_id);
 								}
 							});
 
@@ -556,25 +609,15 @@
 	const is_external_url = (link: string | null): boolean =>
 		!!(link && new URL(link, location.href).origin !== location.origin);
 
-	$: target_map = dependencies.reduce(
-		(acc, dep, i) => {
-			dep.targets.forEach(([id, trigger]) => {
-				if (!acc[id]) {
-					acc[id] = {};
-				}
-				if (acc[id]?.[trigger]) {
-					acc[id][trigger].push(i);
-				} else {
-					acc[id][trigger] = [i];
-				}
-			});
-
-			return acc;
-		},
-		{} as Record<number, Record<string, number[]>>
-	);
-
 	async function handle_mount(): Promise<void> {
+		if (js) {
+			let blocks_frontend_fn = new AsyncFunction(
+				`let result = await (${js})();
+					return (!Array.isArray(result)) ? [result] : result;`
+			);
+			blocks_frontend_fn();
+		}
+
 		await tick();
 
 		var a = target.getElementsByTagName("a");
@@ -590,7 +633,7 @@
 
 		// handle load triggers
 		dependencies.forEach((dep, i) => {
-			if (dep.targets.length === 1 && dep.targets[0][1] === "load") {
+			if (dep.targets[0][1] === "load") {
 				trigger_api_call(i);
 			}
 		});
@@ -603,12 +646,12 @@
 			if (event === "share") {
 				const { title, description } = data as ShareData;
 				trigger_share(title, description);
-			} else if (event === "error") {
-				messages = [new_message(data, -1, "error"), ...messages];
+			} else if (event === "error" || event === "warning") {
+				messages = [new_message(data, -1, event), ...messages];
 			} else {
 				const deps = target_map[id]?.[event];
 				deps?.forEach((dep_id) => {
-					trigger_api_call(dep_id, data);
+					trigger_api_call(dep_id, id, data);
 				});
 			}
 		});
@@ -660,7 +703,9 @@
 				dataLayer.push(arguments);
 			}
 			gtag("js", new Date());
-			gtag("config", "UA-156449732-1");
+			gtag("config", "UA-156449732-1", {
+				cookie_flags: "samesite=none;secure"
+			});
 		</script>
 	{/if}
 </svelte:head>
@@ -678,6 +723,7 @@
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
 				{version}
+				{autoscroll}
 			/>
 		{/if}
 	</div>
@@ -784,8 +830,9 @@
 
 	.built-with img {
 		margin-right: var(--size-1);
-		margin-left: var(--size-2);
-		width: var(--size-3);
+		margin-left: var(--size-1);
+		margin-bottom: 1px;
+		width: var(--size-4);
 	}
 
 	.api-docs {

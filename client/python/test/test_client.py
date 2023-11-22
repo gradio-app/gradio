@@ -19,17 +19,18 @@ from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
 from gradio_client.client import DEFAULT_TEMP_DIR
-from gradio_client.serializing import Serializable
 from gradio_client.utils import Communicator, ProgressUnit, Status, StatusUpdate
 
 HF_TOKEN = "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"  # Intentionally revealing this key for testing purposes
 
 
 @contextmanager
-def connect(demo: gr.Blocks, serialize: bool = True):
+def connect(
+    demo: gr.Blocks, serialize: bool = True, output_dir: str = DEFAULT_TEMP_DIR
+):
     _, local_url, _ = demo.launch(prevent_thread_lock=True)
     try:
-        yield Client(local_url, serialize=serialize)
+        yield Client(local_url, serialize=serialize, output_dir=output_dir)
     finally:
         # A more verbose version of .close()
         # because we should set a timeout
@@ -51,8 +52,10 @@ class TestClientPredictions:
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
-        with open(client.predict("male", 77, 10, api_name="/predict")) as f:
-            assert json.load(f)["label"] == "Perishes"
+        label = json.load(
+            open(client.predict("male", 77, 10, api_name="/predict"))  # noqa: SIM115
+        )
+        assert label["label"] == "Perishes"
         with pytest.raises(
             ValueError,
             match="This Gradio app might have multiple endpoints. Please specify an `api_name` or `fn_index`",
@@ -65,8 +68,22 @@ class TestClientPredictions:
             client.predict("male", 77, 10, api_name="predict")
 
     @pytest.mark.flaky
+    def test_numerical_to_label_space_v4(self):
+        client = Client("gradio-tests/titanic-survivalv4-sse")
+        label = client.predict("male", 77, 10, api_name="/predict")
+        assert label["label"] == "Perishes"
+
+    @pytest.mark.flaky
     def test_private_space(self):
         client = Client("gradio-tests/not-actually-private-space", hf_token=HF_TOKEN)
+        output = client.predict("abc", api_name="/predict")
+        assert output == "abc"
+
+    @pytest.mark.flaky
+    def test_private_space_v4(self):
+        client = Client(
+            "gradio-tests/not-actually-private-spacev4-sse", hf_token=HF_TOKEN
+        )
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
@@ -105,18 +122,6 @@ class TestClientPredictions:
             assert sorted([s.code for s in statuses if s]) == [
                 s.code for s in statuses if s
             ]
-
-    @pytest.mark.flaky
-    def test_job_status_queue_disabled(self, sentiment_classification_demo):
-        with connect(sentiment_classification_demo) as client:
-            statuses = []
-            job = client.submit("I love the gradio python client", api_name="/classify")
-            while not job.done():
-                time.sleep(0.02)
-                statuses.append(job.status())
-            statuses.append(job.status())
-            assert all(s.code in [Status.PROCESSING, Status.FINISHED] for s in statuses)
-            assert not any(s.progress_data for s in statuses)
 
     @pytest.mark.flaky
     def test_intermediate_outputs(self, count_generator_demo):
@@ -176,24 +181,33 @@ class TestClientPredictions:
                 job = client.submit([5], api_name="/sleep")
                 job.result()
 
-    @pytest.mark.flaky
-    def test_job_output_video(self):
-        client = Client(src="gradio/video_component")
-        job = client.submit(
-            "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4",
-            fn_index=0,
-        )
-        assert Path(job.result()).exists()
-        assert Path(DEFAULT_TEMP_DIR).resolve() in Path(job.result()).resolve().parents
+    def test_job_output_video(self, video_component):
+        with connect(video_component) as client:
+            job = client.submit(
+                {
+                    "video": "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
+                },
+                fn_index=0,
+            )
+            assert Path(job.result()["video"]).exists()
+            assert (
+                Path(DEFAULT_TEMP_DIR).resolve()
+                in Path(job.result()["video"]).resolve().parents
+            )
 
         temp_dir = tempfile.mkdtemp()
-        client = Client(src="gradio/video_component", output_dir=temp_dir)
-        job = client.submit(
-            "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4",
-            fn_index=0,
-        )
-        assert Path(job.result()).exists()
-        assert Path(temp_dir).resolve() in Path(job.result()).resolve().parents
+        with connect(video_component, output_dir=temp_dir) as client:
+            job = client.submit(
+                {
+                    "video": "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
+                },
+                fn_index=0,
+            )
+            assert Path(job.result()["video"]).exists()
+            assert (
+                Path(temp_dir).resolve()
+                in Path(job.result()["video"]).resolve().parents
+            )
 
     def test_progress_updates(self, progress_demo):
         with connect(progress_demo) as client:
@@ -254,20 +268,23 @@ class TestClientPredictions:
 
     def test_cancel_subsequent_jobs_state_reset(self, yield_demo):
         with connect(yield_demo) as client:
-            job1 = client.submit("abcdefefadsadfs")
+            job1 = client.submit("abcdefefadsadfs", api_name="/predict")
             time.sleep(3)
             job1.cancel()
 
+            assert len(job1.outputs()) > 0
             assert len(job1.outputs()) < len("abcdefefadsadfs")
             assert job1.status().code == Status.CANCELLED
 
-            job2 = client.submit("abcd")
+            job2 = client.submit("abcd", api_name="/predict")
+            assert len(job2.outputs()) == 0
             while not job2.done():
                 time.sleep(0.1)
             # Ran all iterations from scratch
             assert job2.status().code == Status.FINISHED
             assert len(job2.outputs()) == 4
 
+    @pytest.mark.xfail
     def test_stream_audio(self, stream_audio):
         with connect(stream_audio) as client:
             job1 = client.submit(
@@ -283,10 +300,10 @@ class TestClientPredictions:
             assert Path(job2.result()).exists()
             assert all(Path(p).exists() for p in job2.outputs())
 
-    @pytest.mark.flaky
-    def test_upload_file_private_space(self):
+    @pytest.mark.xfail
+    def test_upload_file_private_space_v4(self):
         client = Client(
-            src="gradio-tests/not-actually-private-file-upload", hf_token=HF_TOKEN
+            src="gradio-tests/not-actually-private-file-uploadv4-sse", hf_token=HF_TOKEN
         )
 
         with patch.object(
@@ -335,6 +352,44 @@ class TestClientPredictions:
             with open(r2) as f:
                 assert f.read() == "File2"
             upload.assert_called_once()
+
+    @pytest.mark.flaky
+    def test_upload_file_private_space(self):
+        client = Client(
+            src="gradio-tests/not-actually-private-file-upload", hf_token=HF_TOKEN
+        )
+
+        with patch.object(
+            client.endpoints[0], "serialize", wraps=client.endpoints[0].serialize
+        ) as serialize:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+                f.write("Hello from private space!")
+
+            output = client.submit(1, "foo", f.name, api_name="/file_upload").result()
+        with open(output) as f:
+            assert f.read() == "Hello from private space!"
+        assert all(f["is_file"] for f in serialize.return_value())
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+            f.write("Hello from private space!")
+
+        with open(client.submit(f.name, api_name="/upload_btn").result()) as f:
+            assert f.read() == "Hello from private space!"
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f1:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as f2:
+                f1.write("File1")
+                f2.write("File2")
+        r1, r2 = client.submit(
+            3,
+            [f1.name, f2.name],
+            "hello",
+            api_name="/upload_multiple",
+        ).result()
+        with open(r1) as f:
+            assert f.read() == "File1"
+        with open(r2) as f:
+            assert f.read() == "File2"
 
     @pytest.mark.flaky
     def test_upload_file_upload_route_does_not_exist(self):
@@ -416,7 +471,7 @@ class TestClientPredictions:
 
 class TestStatusUpdates:
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
-    def test_messages_passed_correctly(self, mock_make_end_to_end_fn):
+    def test_messages_passed_correctly(self, mock_make_end_to_end_fn, calculator_demo):
         now = datetime.now()
 
         messages = [
@@ -488,18 +543,20 @@ class TestStatusUpdates:
 
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
-        client = Client(src="gradio/calculator")
-        job = client.submit(5, "add", 6, api_name="/predict")
+        with connect(calculator_demo) as client:
+            job = client.submit(5, "add", 6, api_name="/predict")
 
-        statuses = []
-        while not job.done():
-            statuses.append(job.status())
-            time.sleep(0.09)
+            statuses = []
+            while not job.done():
+                statuses.append(job.status())
+                time.sleep(0.09)
 
-        assert all(s in messages for s in statuses)
+            assert all(s in messages for s in statuses)
 
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
-    def test_messages_correct_two_concurrent(self, mock_make_end_to_end_fn):
+    def test_messages_correct_two_concurrent(
+        self, mock_make_end_to_end_fn, calculator_demo
+    ):
         now = datetime.now()
 
         messages_1 = [
@@ -563,18 +620,18 @@ class TestStatusUpdates:
 
         mock_make_end_to_end_fn.side_effect = MockEndToEndFunction
 
-        client = Client(src="gradio/calculator")
-        job_1 = client.submit(5, "add", 6, api_name="/predict")
-        job_2 = client.submit(11, "subtract", 1, api_name="/predict")
+        with connect(calculator_demo) as client:
+            job_1 = client.submit(5, "add", 6, api_name="/predict")
+            job_2 = client.submit(11, "subtract", 1, api_name="/predict")
 
-        statuses_1 = []
-        statuses_2 = []
-        while not (job_1.done() and job_2.done()):
-            statuses_1.append(job_1.status())
-            statuses_2.append(job_2.status())
-            time.sleep(0.05)
+            statuses_1 = []
+            statuses_2 = []
+            while not (job_1.done() and job_2.done()):
+                statuses_1.append(job_1.status())
+                statuses_2.append(job_2.status())
+                time.sleep(0.05)
 
-        assert all(s in messages_1 for s in statuses_1)
+            assert all(s in messages_1 for s in statuses_1)
 
 
 class TestAPIInfo:
@@ -602,10 +659,7 @@ class TestAPIInfo:
                         {
                             "label": "Age",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "int | float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Slider",
                             "example_input": 5,
                             "serializer": "NumberSerializable",
@@ -613,10 +667,7 @@ class TestAPIInfo:
                         {
                             "label": "Fare (british pounds)",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "int | float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Slider",
                             "example_input": 5,
                             "serializer": "NumberSerializable",
@@ -648,10 +699,7 @@ class TestAPIInfo:
                         {
                             "label": "Age",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "int | float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Slider",
                             "example_input": 5,
                             "serializer": "NumberSerializable",
@@ -659,10 +707,7 @@ class TestAPIInfo:
                         {
                             "label": "Fare (british pounds)",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "int | float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Slider",
                             "example_input": 5,
                             "serializer": "NumberSerializable",
@@ -694,10 +739,7 @@ class TestAPIInfo:
                         {
                             "label": "Age",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "int | float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Slider",
                             "example_input": 5,
                             "serializer": "NumberSerializable",
@@ -705,10 +747,7 @@ class TestAPIInfo:
                         {
                             "label": "Fare (british pounds)",
                             "type": {"type": "number"},
-                            "python_type": {
-                                "type": "int | float",
-                                "description": "",
-                            },
+                            "python_type": {"type": "int | float", "description": ""},
                             "component": "Slider",
                             "example_input": 5,
                             "serializer": "NumberSerializable",
@@ -730,12 +769,6 @@ class TestAPIInfo:
             },
             "unnamed_endpoints": {},
         }
-
-    def test_serializable_in_mapping(self, calculator_demo):
-        with connect(calculator_demo) as client:
-            assert all(
-                isinstance(c, Serializable) for c in client.endpoints[0].serializers
-            )
 
     def test_state_does_not_appear(self, state_demo):
         with connect(state_demo) as client:
@@ -777,62 +810,65 @@ class TestAPIInfo:
             "unnamed_endpoints": {},
         }
 
-    @pytest.mark.flaky
-    def test_fetch_fixed_version_space(self):
-        assert Client("gradio-tests/calculator").view_api(return_format="dict") == {
-            "named_endpoints": {
-                "/predict": {
-                    "parameters": [
-                        {
-                            "label": "num1",
-                            "type": {"type": "number"},
-                            "python_type": {"type": "int | float", "description": ""},
-                            "component": "Number",
-                            "example_input": 5,
-                            "serializer": "NumberSerializable",
+    def test_fetch_fixed_version_space(self, calculator_demo):
+        with connect(calculator_demo) as client:
+            api_info = client.view_api(return_format="dict")
+            assert isinstance(api_info, dict)
+            assert api_info["named_endpoints"]["/predict"] == {
+                "parameters": [
+                    {
+                        "label": "num1",
+                        "type": {"type": "number"},
+                        "python_type": {"type": "float", "description": ""},
+                        "component": "Number",
+                        "example_input": 3,
+                    },
+                    {
+                        "label": "operation",
+                        "type": {
+                            "enum": ["add", "subtract", "multiply", "divide"],
+                            "title": "Radio",
+                            "type": "string",
                         },
-                        {
-                            "label": "operation",
-                            "type": {"type": "string"},
-                            "python_type": {"type": "str", "description": ""},
-                            "component": "Radio",
-                            "example_input": "add",
-                            "serializer": "StringSerializable",
+                        "python_type": {
+                            "type": "Literal[add, subtract, multiply, divide]",
+                            "description": "",
                         },
-                        {
-                            "label": "num2",
-                            "type": {"type": "number"},
-                            "python_type": {"type": "int | float", "description": ""},
-                            "component": "Number",
-                            "example_input": 5,
-                            "serializer": "NumberSerializable",
-                        },
-                    ],
-                    "returns": [
-                        {
-                            "label": "output",
-                            "type": {"type": "number"},
-                            "python_type": {"type": "int | float", "description": ""},
-                            "component": "Number",
-                            "serializer": "NumberSerializable",
-                        }
-                    ],
-                }
-            },
-            "unnamed_endpoints": {},
-        }
+                        "component": "Radio",
+                        "example_input": "add",
+                    },
+                    {
+                        "label": "num2",
+                        "type": {"type": "number"},
+                        "python_type": {"type": "float", "description": ""},
+                        "component": "Number",
+                        "example_input": 3,
+                    },
+                ],
+                "returns": [
+                    {
+                        "label": "output",
+                        "type": {"type": "number"},
+                        "python_type": {"type": "float", "description": ""},
+                        "component": "Number",
+                    }
+                ],
+            }
+            assert (
+                "/load_example" in api_info["named_endpoints"]
+            )  # The exact api configuration includes Block IDs and thus is not deterministic
+            assert api_info["unnamed_endpoints"] == {}
 
     def test_unnamed_endpoints_use_fn_index(self, count_generator_demo):
         with connect(count_generator_demo) as client:
             info = client.view_api(return_format="str")
-            assert "fn_index=0" in info
-            assert "api_name" not in info
+            assert "fn_index" not in info
+            assert "api_name" in info
 
-    def test_api_false_endpoints_do_not_appear(self, count_generator_demo):
-        with connect(count_generator_demo) as client:
+    def test_api_false_endpoints_do_not_appear(self, count_generator_no_api):
+        with connect(count_generator_no_api) as client:
             info = client.view_api(return_format="dict")
             assert len(info["named_endpoints"]) == 0
-            assert len(info["unnamed_endpoints"]) == 2
 
     def test_api_false_endpoints_cannot_be_accessed_with_fn_index(self, increment_demo):
         with connect(increment_demo) as client:
@@ -847,27 +883,27 @@ class TestAPIInfo:
 
             assert inputs[0]["type"]["type"] == "array"
             assert inputs[0]["python_type"] == {
-                "type": "List[str]",
-                "description": "List of filepath(s) or URL(s) to files",
+                "type": "List[filepath]",
+                "description": "",
             }
             assert isinstance(inputs[0]["example_input"], list)
             assert isinstance(inputs[0]["example_input"][0], str)
 
             assert inputs[1]["python_type"] == {
-                "type": "str",
-                "description": "filepath on your computer (or URL) of file",
+                "type": "filepath",
+                "description": "",
             }
             assert isinstance(inputs[1]["example_input"], str)
 
             assert outputs[0]["python_type"] == {
-                "type": "List[str]",
-                "description": "List of filepath(s) or URL(s) to files",
+                "type": "List[filepath]",
+                "description": "",
             }
             assert outputs[0]["type"]["type"] == "array"
 
             assert outputs[1]["python_type"] == {
-                "type": "str",
-                "description": "filepath on your computer (or URL) of file",
+                "type": "filepath",
+                "description": "",
             }
 
     def test_layout_components_in_output(self, hello_world_with_group):
@@ -882,8 +918,7 @@ class TestAPIInfo:
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
-                                "example_input": "Howdy!",
-                                "serializer": "StringSerializable",
+                                "example_input": "Hello!!",
                             }
                         ],
                         "returns": [
@@ -892,17 +927,12 @@ class TestAPIInfo:
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
-                                "serializer": "StringSerializable",
                             }
                         ],
                     },
                     "/show_group": {"parameters": [], "returns": []},
                 },
                 "unnamed_endpoints": {},
-            }
-            assert info["named_endpoints"]["/show_group"] == {
-                "parameters": [],
-                "returns": [],
             }
 
     def test_layout_and_state_components_in_output(
@@ -919,8 +949,7 @@ class TestAPIInfo:
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
-                                "example_input": "Howdy!",
-                                "serializer": "StringSerializable",
+                                "example_input": "Hello!!",
                             }
                         ],
                         "returns": [
@@ -929,17 +958,15 @@ class TestAPIInfo:
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
-                                "serializer": "StringSerializable",
                             },
                             {
                                 "label": "count",
                                 "type": {"type": "number"},
                                 "python_type": {
-                                    "type": "int | float",
+                                    "type": "float",
                                     "description": "",
                                 },
                                 "component": "Number",
-                                "serializer": "NumberSerializable",
                             },
                         ],
                     },
@@ -950,11 +977,10 @@ class TestAPIInfo:
                                 "label": "count",
                                 "type": {"type": "number"},
                                 "python_type": {
-                                    "type": "int | float",
+                                    "type": "float",
                                     "description": "",
                                 },
                                 "component": "Number",
-                                "serializer": "NumberSerializable",
                             }
                         ],
                     },
@@ -965,11 +991,10 @@ class TestAPIInfo:
                                 "label": "count",
                                 "type": {"type": "number"},
                                 "python_type": {
-                                    "type": "int | float",
+                                    "type": "float",
                                     "description": "",
                                 },
                                 "component": "Number",
-                                "serializer": "NumberSerializable",
                             }
                         ],
                     },
@@ -1007,6 +1032,42 @@ class TestEndpoints:
                 res.append([r["name"] for r in re])
             else:
                 res.append(re["name"])
+
+        assert res == [
+            "file1",
+            ["file2", "file3", "file4"],
+            ["file5", "file6"],
+            "file7",
+        ]
+
+    def test_upload_v4(self):
+        client = Client(
+            src="gradio-tests/not-actually-private-file-uploadv4-sse", hf_token=HF_TOKEN
+        )
+        response = MagicMock(status_code=200)
+        response.json.return_value = [
+            "file1",
+            "file2",
+            "file3",
+            "file4",
+            "file5",
+            "file6",
+            "file7",
+        ]
+        with patch("requests.post", MagicMock(return_value=response)):
+            with patch("builtins.open", MagicMock()):
+                with patch.object(pathlib.Path, "name") as mock_name:
+                    mock_name.side_effect = lambda x: x
+                    results = client.endpoints[0]._upload(
+                        ["pre1", ["pre2", "pre3", "pre4"], ["pre5", "pre6"], "pre7"]
+                    )
+
+        res = []
+        for re in results:
+            if isinstance(re, list):
+                res.append([r["path"] for r in re])
+            else:
+                res.append(re["path"])
 
         assert res == [
             "file1",

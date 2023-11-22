@@ -16,10 +16,8 @@
 		"@sveltejs/kit": "^1.5.0",
 		"prettier": "^3.0.0",
 		"prettier-plugin-svelte": "^3.0.0",
-		"svelte": "^3.54.0",
 		"svelte-check": "^3.0.1",
-		"typescript": "^5.0.0",
-		"vite": "^4.3.0"
+		"typescript": "^5.0.0"
 	},
 	"type": "module",
 	"dependencies": {

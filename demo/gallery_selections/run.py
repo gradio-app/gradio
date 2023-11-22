@@ -3,7 +3,10 @@ import numpy as np
 
 with gr.Blocks() as demo:
     imgs = gr.State()
-    gallery = gr.Gallery()
+    gallery = gr.Gallery(allow_preview=False)
+
+    def deselect_images():
+        return gr.Gallery(selected_index=None)
 
     def generate_images():
         images = []
@@ -17,8 +20,11 @@ with gr.Blocks() as demo:
     demo.load(generate_images, None, [gallery, imgs])
 
     with gr.Row():
-        selected = gr.Number(show_label=False, placeholder="Selected")
+        selected = gr.Number(show_label=False)
         darken_btn = gr.Button("Darken selected")
+    deselect_button = gr.Button("Deselect")
+
+    deselect_button.click(deselect_images, None, gallery)
 
     def get_select_index(evt: gr.SelectData):
         return evt.index

@@ -105,7 +105,6 @@ demo = gr.Interface(
         ["second", False, 40, ["Sibling", "Child"], 10, "Q"],
         ["third", True, 30, ["Child"], 20, "S"],
     ],
-    interpretation="default",
     live=True,
 )
 

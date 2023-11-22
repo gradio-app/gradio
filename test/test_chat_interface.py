@@ -79,8 +79,8 @@ class TestInit:
         )
         prediction_hello = chatbot.examples_handler.load_from_cache(0)
         prediction_hi = chatbot.examples_handler.load_from_cache(1)
-        assert prediction_hello[0][0] == ["hello", "hello hello"]
-        assert prediction_hi[0][0] == ["hi", "hi hi"]
+        assert prediction_hello[0].root[0] == ("hello", "hello hello")
+        assert prediction_hi[0].root[0] == ("hi", "hi hi")
 
     def test_example_caching_async(self, monkeypatch):
         monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
@@ -89,8 +89,8 @@ class TestInit:
         )
         prediction_hello = chatbot.examples_handler.load_from_cache(0)
         prediction_hi = chatbot.examples_handler.load_from_cache(1)
-        assert prediction_hello[0][0] == ["abubakar", "hi, abubakar"]
-        assert prediction_hi[0][0] == ["tom", "hi, tom"]
+        assert prediction_hello[0].root[0] == ("abubakar", "hi, abubakar")
+        assert prediction_hi[0].root[0] == ("tom", "hi, tom")
 
     def test_example_caching_with_streaming(self, monkeypatch):
         monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
@@ -99,8 +99,8 @@ class TestInit:
         )
         prediction_hello = chatbot.examples_handler.load_from_cache(0)
         prediction_hi = chatbot.examples_handler.load_from_cache(1)
-        assert prediction_hello[0][0] == ["hello", "hello"]
-        assert prediction_hi[0][0] == ["hi", "hi"]
+        assert prediction_hello[0].root[0] == ("hello", "hello")
+        assert prediction_hi[0].root[0] == ("hi", "hi")
 
     def test_example_caching_with_streaming_async(self, monkeypatch):
         monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
@@ -109,8 +109,35 @@ class TestInit:
         )
         prediction_hello = chatbot.examples_handler.load_from_cache(0)
         prediction_hi = chatbot.examples_handler.load_from_cache(1)
-        assert prediction_hello[0][0] == ["hello", "hello"]
-        assert prediction_hi[0][0] == ["hi", "hi"]
+        assert prediction_hello[0].root[0] == ("hello", "hello")
+        assert prediction_hi[0].root[0] == ("hi", "hi")
+
+    def test_default_accordion_params(self):
+        chatbot = gr.ChatInterface(
+            echo_system_prompt_plus_message,
+            additional_inputs=["textbox", "slider"],
+        )
+        accordion = [
+            comp
+            for comp in chatbot.blocks.values()
+            if comp.get_config().get("name") == "accordion"
+        ][0]
+        assert accordion.get_config().get("open") is False
+        assert accordion.get_config().get("label") == "Additional Inputs"
+
+    def test_setting_accordion_params(self, monkeypatch):
+        chatbot = gr.ChatInterface(
+            echo_system_prompt_plus_message,
+            additional_inputs=["textbox", "slider"],
+            additional_inputs_accordion=gr.Accordion(open=True, label="MOAR"),
+        )
+        accordion = [
+            comp
+            for comp in chatbot.blocks.values()
+            if comp.get_config().get("name") == "accordion"
+        ][0]
+        assert accordion.get_config().get("open") is True
+        assert accordion.get_config().get("label") == "MOAR"
 
     def test_example_caching_with_additional_inputs(self, monkeypatch):
         monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
@@ -122,8 +149,8 @@ class TestInit:
         )
         prediction_hello = chatbot.examples_handler.load_from_cache(0)
         prediction_hi = chatbot.examples_handler.load_from_cache(1)
-        assert prediction_hello[0][0] == ["hello", "robot hello"]
-        assert prediction_hi[0][0] == ["hi", "ro"]
+        assert prediction_hello[0].root[0] == ("hello", "robot hello")
+        assert prediction_hi[0].root[0] == ("hi", "ro")
 
     def test_example_caching_with_additional_inputs_already_rendered(self, monkeypatch):
         monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
@@ -139,14 +166,14 @@ class TestInit:
                 )
         prediction_hello = chatbot.examples_handler.load_from_cache(0)
         prediction_hi = chatbot.examples_handler.load_from_cache(1)
-        assert prediction_hello[0][0] == ["hello", "robot hello"]
-        assert prediction_hi[0][0] == ["hi", "ro"]
+        assert prediction_hello[0].root[0] == ("hello", "robot hello")
+        assert prediction_hi[0].root[0] == ("hi", "ro")
 
 
 class TestAPI:
     def test_get_api_info(self):
         chatbot = gr.ChatInterface(double)
-        api_info = gr.blocks.get_api_info(chatbot.get_config_file())
+        api_info = chatbot.get_api_info()
         assert len(api_info["named_endpoints"]) == 1
         assert len(api_info["unnamed_endpoints"]) == 0
         assert "/chat" in api_info["named_endpoints"]

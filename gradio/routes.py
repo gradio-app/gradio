@@ -11,24 +11,25 @@ if sys.version_info >= (3, 9):
 else:
     from importlib_resources import files
 import inspect
+import json
 import mimetypes
 import os
 import posixpath
 import secrets
+import shutil
 import tempfile
 import threading
 import time
 import traceback
-from asyncio import TimeoutError as AsyncTimeOutError
-from collections import defaultdict
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
+from queue import Empty as EmptyQueue
+from typing import TYPE_CHECKING, Any, AsyncIterator, Dict, List, Optional, Type
 
 import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, WebSocket, status
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
@@ -38,22 +39,29 @@ from fastapi.responses import (
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
+from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from jinja2.exceptions import TemplateNotFound
+from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
 from starlette.responses import RedirectResponse, StreamingResponse
-from starlette.websockets import WebSocketState
 
 import gradio
 import gradio.ranged_response as ranged_response
 from gradio import route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
-from gradio.deprecation import warn_deprecation
 from gradio.exceptions import Error
+from gradio.helpers import CACHED_FOLDER
 from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation, Event
-from gradio.route_utils import Request  # noqa: F401
+from gradio.route_utils import (  # noqa: F401
+    FileUploadProgress,
+    GradioMultiPartParser,
+    GradioUploadFile,
+    MultiPartException,
+    Request,
+)
 from gradio.state_holder import StateHolder
 from gradio.utils import (
     cancel_tasks,
@@ -109,6 +117,14 @@ templates.env.filters["toorjson"] = toorjson
 client = httpx.AsyncClient()
 
 
+def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
+    for file, dest in zip(files, destinations):
+        shutil.move(file, dest)
+
+
+file_upload_statuses = FileUploadProgress()
+
+
 class App(FastAPI):
     """
     FastAPI App Wrapper
@@ -119,14 +135,14 @@ class App(FastAPI):
         self.auth = None
         self.blocks: gradio.Blocks | None = None
         self.state_holder = StateHolder()
-        self.iterators = defaultdict(dict)
-        self.iterators_to_reset = defaultdict(set)
+        self.iterators: dict[str, AsyncIterator] = {}
+        self.iterators_to_reset: set[str] = set()
         self.lock = utils.safe_get_lock()
         self.cookie_id = secrets.token_urlsafe(32)
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
         self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
-            Path(tempfile.gettempdir()) / "gradio"
+            (Path(tempfile.gettempdir()) / "gradio").resolve()
         )
         self.change_event: None | threading.Event = None
         self._asyncio_tasks: list[asyncio.Task] = []
@@ -164,7 +180,7 @@ class App(FastAPI):
         # Don't proxy a URL unless it's a URL specifically loaded by the user using
         # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.
         is_safe_url = any(
-            url.host == httpx.URL(root).host for root in self.blocks.root_urls
+            url.host == httpx.URL(root).host for root in self.blocks.proxy_urls
         )
         if not is_safe_url:
             raise PermissionError("This URL cannot be proxied.")
@@ -214,12 +230,6 @@ class App(FastAPI):
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
             )
 
-        async def ws_login_check(websocket: WebSocket) -> Optional[str]:
-            token = websocket.cookies.get(
-                f"access-token-{app.cookie_id}"
-            ) or websocket.cookies.get(f"access-token-unsecure-{app.cookie_id}")
-            return token  # token is returned to authenticate the websocket connection in the endpoint handler.
-
         @app.get("/token")
         @app.get("/token/")
         def get_token(request: fastapi.Request) -> dict:
@@ -231,38 +241,32 @@ class App(FastAPI):
         def app_id(request: fastapi.Request) -> dict:
             return {"app_id": app.get_blocks().app_id}
 
-        async def send_ping_periodically(websocket: WebSocket):
-            while True:
-                await websocket.send_text("PING")
-                await asyncio.sleep(1)
+        @app.get("/dev/reload", dependencies=[Depends(login_check)])
+        async def notify_changes(
+            request: fastapi.Request,
+        ):
+            async def reload_checker(request: fastapi.Request):
+                heartbeat_rate = 15
+                check_rate = 0.05
+                last_heartbeat = time.perf_counter()
 
-        async def listen_for_changes(websocket: WebSocket):
-            assert app.change_event
-            while True:
-                if app.change_event.is_set():
-                    await websocket.send_text("CHANGE")
-                    app.change_event.clear()
-                await asyncio.sleep(0.1)  # Short sleep to not make this a tight loop
+                while True:
+                    if await request.is_disconnected():
+                        return
 
-        @app.websocket("/dev/reload")
-        async def notify_changes(websocket: WebSocket):
-            await websocket.accept()
+                    if app.change_event and app.change_event.is_set():
+                        app.change_event.clear()
+                        yield """data: CHANGE\n\n"""
 
-            ping = asyncio.create_task(send_ping_periodically(websocket))
-            notify = asyncio.create_task(listen_for_changes(websocket))
-            tasks = {ping, notify}
-            ping.add_done_callback(tasks.remove)
-            notify.add_done_callback(tasks.remove)
-            done, pending = await asyncio.wait(
-                [ping, notify],
-                return_when=asyncio.FIRST_COMPLETED,
+                    await asyncio.sleep(check_rate)
+                    if time.perf_counter() - last_heartbeat > heartbeat_rate:
+                        yield """data: HEARTBEAT\n\n"""
+                        last_heartbeat = time.time()
+
+            return StreamingResponse(
+                reload_checker(request),
+                media_type="text/event-stream",
             )
-
-            for task in pending:
-                task.cancel()
-
-            if any(isinstance(task.exception(), Exception) for task in done):
-                await websocket.close()
 
         @app.post("/login")
         @app.post("/login/")
@@ -325,7 +329,7 @@ class App(FastAPI):
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
                     "space_id": app.get_blocks().space_id,
-                    "root": root_path,
+                    "root": route_utils.strip_url(root_path),
                 }
 
             try:
@@ -351,8 +355,8 @@ class App(FastAPI):
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
         def api_info(serialize: bool = True):
-            config = app.get_blocks().config
-            return gradio.blocks.get_api_info(config, serialize)  # type: ignore
+            # config = app.get_blocks().get_api_info()
+            return app.get_blocks().get_api_info()  # type: ignore
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
@@ -370,6 +374,32 @@ class App(FastAPI):
         def static_resource(path: str):
             static_file = safe_join(STATIC_PATH_LIB, path)
             return FileResponse(static_file)
+
+        @app.get("/custom_component/{id}/{type}/{file_name}")
+        def custom_component_path(id: str, type: str, file_name: str):
+            config = app.get_blocks().config
+            components = config["components"]
+            location = next(
+                (item for item in components if item["component_class_id"] == id), None
+            )
+
+            if location is None:
+                raise HTTPException(status_code=404, detail="Component not found.")
+
+            component_instance = app.get_blocks().get_component(location["id"])
+
+            module_name = component_instance.__class__.__module__
+            module_path = sys.modules[module_name].__file__
+
+            if module_path is None or component_instance is None:
+                raise HTTPException(status_code=404, detail="Component not found.")
+
+            return FileResponse(
+                safe_join(
+                    str(Path(module_path).parent),
+                    f"{component_instance.__class__.TEMPLATE_DIR}/{type}/{file_name}",
+                )
+            )
 
         @app.get("/assets/{path:path}")
         def build_resource(path: str):
@@ -408,28 +438,30 @@ class App(FastAPI):
                 return RedirectResponse(
                     url=path_or_url, status_code=status.HTTP_302_FOUND
                 )
-
             abs_path = utils.abspath(path_or_url)
 
             in_blocklist = any(
                 utils.is_in_or_equal(abs_path, blocked_path)
                 for blocked_path in blocks.blocked_paths
             )
-            is_dotfile = any(part.startswith(".") for part in abs_path.parts)
             is_dir = abs_path.is_dir()
 
-            if in_blocklist or is_dotfile or is_dir:
+            if in_blocklist or is_dir:
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
-            in_app_dir = utils.is_in_or_equal(abs_path, app.cwd)
             created_by_app = str(abs_path) in set().union(*blocks.temp_file_sets)
             in_allowlist = any(
                 utils.is_in_or_equal(abs_path, allowed_path)
                 for allowed_path in blocks.allowed_paths
             )
             was_uploaded = utils.is_in_or_equal(abs_path, app.uploaded_file_dir)
+            is_cached_example = utils.is_in_or_equal(
+                abs_path, utils.abspath(CACHED_FOLDER)
+            )
 
-            if not (in_app_dir or created_by_app or in_allowlist or was_uploaded):
+            if not (
+                created_by_app or in_allowlist or was_uploaded or is_cached_example
+            ):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             if not abs_path.exists():
@@ -449,6 +481,7 @@ class App(FastAPI):
                         stat_result=os.stat(abs_path),
                     )
                     return response
+
             return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
 
         @app.get(
@@ -493,11 +526,12 @@ class App(FastAPI):
         @app.post("/reset/")
         @app.post("/reset")
         async def reset_iterator(body: ResetBody):
-            if body.session_hash not in app.iterators:
+            if body.event_id not in app.iterators:
                 return {"success": False}
             async with app.lock:
-                app.iterators[body.session_hash][body.fn_index] = None
-                app.iterators_to_reset[body.session_hash].add(body.fn_index)
+                del app.iterators[body.event_id]
+                app.iterators_to_reset.add(body.event_id)
+                await app.get_blocks()._queue.clean_event(body.event_id)
             return {"success": True}
 
         # had to use '/run' endpoint for Colab compatibility, '/api' supported for backwards compatibility
@@ -519,6 +553,7 @@ class App(FastAPI):
                 fn_index_inferred
             ):
                 raise HTTPException(
+                    detail="This API endpoint does not accept direct HTTP POST requests. Please join the queue to use this API.",
                     status_code=status.HTTP_404_NOT_FOUND,
                 )
 
@@ -546,46 +581,33 @@ class App(FastAPI):
                 )
             return output
 
-        @app.websocket("/queue/join")
-        async def join_queue(
-            websocket: WebSocket,
-            token: Optional[str] = Depends(ws_login_check),
+        @app.get("/queue/join", dependencies=[Depends(login_check)])
+        async def queue_join(
+            fn_index: int,
+            session_hash: str,
+            request: fastapi.Request,
+            username: str = Depends(get_current_user),
+            data: Optional[str] = None,
         ):
             blocks = app.get_blocks()
-            if app.auth is not None and token is None:
-                await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-                return
             if blocks._queue.server_app is None:
                 blocks._queue.set_server_app(app)
-            await websocket.accept()
-            # In order to cancel jobs, we need the session_hash and fn_index
-            # to create a unique id for each job
-            try:
-                await asyncio.wait_for(
-                    websocket.send_json({"msg": "send_hash"}), timeout=5
+
+            event = Event(session_hash, fn_index, request, username)
+            if data is not None:
+                input_data = json.loads(data)
+                event.data = PredictBody(
+                    session_hash=session_hash,
+                    fn_index=fn_index,
+                    data=input_data,
+                    request=request,
                 )
-            except AsyncTimeOutError:
-                return
 
-            try:
-                session_info = await asyncio.wait_for(
-                    websocket.receive_json(), timeout=5
-                )
-            except AsyncTimeOutError:
-                return
-
-            event = Event(
-                websocket, session_info["session_hash"], session_info["fn_index"]
-            )
-            # set the username into Event to allow using the same username for call_prediction
-            event.username = app.tokens.get(token)
-            event.session_hash = session_info["session_hash"]
-
-            # Continuous events are not put in the queue  so that they do not
+            # Continuous events are not put in the queue so that they do not
             # occupy the queue's resource as they are expected to run forever
             if blocks.dependencies[event.fn_index].get("every", 0):
                 await cancel_tasks({f"{event.session_hash}_{event.fn_index}"})
-                await blocks._queue.reset_iterators(event.session_hash, event.fn_index)
+                await blocks._queue.reset_iterators(event._id)
                 blocks._queue.continuous_tasks.append(event)
                 task = run_coro_in_background(
                     blocks._queue.process_events, [event], False
@@ -594,17 +616,56 @@ class App(FastAPI):
                 app._asyncio_tasks.append(task)
             else:
                 rank = blocks._queue.push(event)
-
                 if rank is None:
-                    await blocks._queue.send_message(event, {"msg": "queue_full"})
-                    await event.disconnect()
-                    return
-                estimation = blocks._queue.get_estimation()
-                await blocks._queue.send_estimation(event, estimation, rank)
-            while True:
-                await asyncio.sleep(1)
-                if websocket.application_state == WebSocketState.DISCONNECTED:
-                    return
+                    event.send_message("queue_full", final=True)
+                else:
+                    estimation = blocks._queue.get_estimation()
+                    await blocks._queue.send_estimation(event, estimation, rank)
+
+            async def sse_stream(request: fastapi.Request):
+                try:
+                    last_heartbeat = time.perf_counter()
+                    while True:
+                        if await request.is_disconnected():
+                            await blocks._queue.clean_event(event)
+                        if not event.alive:
+                            return
+
+                        heartbeat_rate = 15
+                        check_rate = 0.05
+                        message = None
+                        try:
+                            message = event.message_queue.get_nowait()
+                            if message is None:  # end of stream marker
+                                return
+                        except EmptyQueue:
+                            await asyncio.sleep(check_rate)
+                            if time.perf_counter() - last_heartbeat > heartbeat_rate:
+                                message = {"msg": "heartbeat"}
+                                # Need to reset last_heartbeat with perf_counter
+                                # otherwise only a single hearbeat msg will be sent
+                                # and then the stream will retry leading to infinite queue 😬
+                                last_heartbeat = time.perf_counter()
+
+                        if message:
+                            yield f"data: {json.dumps(message)}\n\n"
+                except asyncio.CancelledError as e:
+                    await blocks._queue.clean_event(event)
+                    raise e
+
+            return StreamingResponse(
+                sse_stream(request),
+                media_type="text/event-stream",
+            )
+
+        @app.post("/queue/data", dependencies=[Depends(login_check)])
+        async def queue_data(
+            body: PredictBody,
+            request: fastapi.Request,
+            username: str = Depends(get_current_user),
+        ):
+            blocks = app.get_blocks()
+            blocks._queue.attach_data(body)
 
         @app.post("/component_server", dependencies=[Depends(login_check)])
         @app.post("/component_server/", dependencies=[Depends(login_check)])
@@ -627,17 +688,106 @@ class App(FastAPI):
         async def get_queue_status():
             return app.get_blocks()._queue.get_estimation()
 
+        @app.get("/upload_progress")
+        def get_upload_progress(upload_id: str, request: fastapi.Request):
+            async def sse_stream(request: fastapi.Request):
+                last_heartbeat = time.perf_counter()
+                is_done = False
+                while True:
+                    if await request.is_disconnected():
+                        file_upload_statuses.stop_tracking(upload_id)
+                        return
+                    if is_done:
+                        file_upload_statuses.stop_tracking(upload_id)
+                        return
+
+                    heartbeat_rate = 15
+                    check_rate = 0.05
+                    message = None
+                    try:
+                        if update := file_upload_statuses.status(upload_id).popleft():
+                            if update.is_done:
+                                message = {"msg": "done"}
+                                is_done = True
+                            else:
+                                message = {
+                                    "msg": "update",
+                                    "orig_name": update.filename,
+                                    "chunk_size": update.chunk_size,
+                                }
+                        else:
+                            await asyncio.sleep(check_rate)
+                            if time.perf_counter() - last_heartbeat > heartbeat_rate:
+                                message = {"msg": "heartbeat"}
+                                last_heartbeat = time.perf_counter()
+                        if message:
+                            yield f"data: {json.dumps(message)}\n\n"
+                    except IndexError:
+                        if not file_upload_statuses.is_tracked(upload_id):
+                            return
+                        # pop from empty queue
+                        continue
+
+            return StreamingResponse(
+                sse_stream(request),
+                media_type="text/event-stream",
+            )
+
         @app.post("/upload", dependencies=[Depends(login_check)])
         async def upload_file(
-            files: List[UploadFile] = File(...),
+            request: fastapi.Request,
+            bg_tasks: BackgroundTasks,
+            upload_id: Optional[str] = None,
         ):
+            content_type_header = request.headers.get("Content-Type")
+            content_type: bytes
+            content_type, _ = parse_options_header(content_type_header)
+            if content_type != b"multipart/form-data":
+                raise HTTPException(status_code=400, detail="Invalid content type.")
+
+            try:
+                if upload_id:
+                    file_upload_statuses.track(upload_id)
+                multipart_parser = GradioMultiPartParser(
+                    request.headers,
+                    request.stream(),
+                    max_files=1000,
+                    max_fields=1000,
+                    upload_id=upload_id if upload_id else None,
+                    upload_progress=file_upload_statuses if upload_id else None,
+                )
+                form = await multipart_parser.parse()
+            except MultiPartException as exc:
+                raise HTTPException(status_code=400, detail=exc.message) from exc
+
             output_files = []
-            file_manager = gradio.File()
-            for input_file in files:
-                output_files.append(
-                    await file_manager.save_uploaded_file(
-                        input_file, app.uploaded_file_dir
-                    )
+            files_to_copy = []
+            locations: list[str] = []
+            for temp_file in form.getlist("files"):
+                assert isinstance(temp_file, GradioUploadFile)
+                if temp_file.filename:
+                    file_name = Path(temp_file.filename).name
+                    name = client_utils.strip_invalid_filename_characters(file_name)
+                else:
+                    name = f"tmp{secrets.token_hex(5)}"
+                directory = Path(app.uploaded_file_dir) / temp_file.sha.hexdigest()
+                directory.mkdir(exist_ok=True, parents=True)
+                dest = (directory / name).resolve()
+                temp_file.file.close()
+                # we need to move the temp file to the cache directory
+                # but that's possibly blocking and we're in an async function
+                # so we try to rename (this is what shutil.move tries first)
+                # which should be super fast.
+                # if that fails, we move in the background.
+                try:
+                    os.rename(temp_file.file.name, dest)
+                except OSError:
+                    files_to_copy.append(temp_file.file.name)
+                    locations.append(temp_file.file.name)
+                output_files.append(dest)
+            if files_to_copy:
+                bg_tasks.add_task(
+                    move_uploaded_files_to_cache, files_to_copy, locations
                 )
             return output_files
 
@@ -717,7 +867,6 @@ def mount_gradio_app(
     app: fastapi.FastAPI,
     blocks: gradio.Blocks,
     path: str,
-    gradio_api_url: str | None = None,
     app_kwargs: dict[str, Any] | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
@@ -726,7 +875,6 @@ def mount_gradio_app(
         app: The parent FastAPI application.
         blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted.
-        gradio_api_url: Deprecated and has no effect.
         app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
     Example:
         from fastapi import FastAPI
@@ -744,13 +892,9 @@ def mount_gradio_app(
     blocks.validate_queue_settings()
     gradio_app = App.create_app(blocks, app_kwargs=app_kwargs)
 
-    if gradio_api_url is not None:
-        warn_deprecation("gradio_api_url is deprecated and has not effect.")
-
     @app.on_event("startup")
     async def start_queue():
-        if gradio_app.get_blocks().enable_queue:
-            gradio_app.get_blocks().startup_events()
+        gradio_app.get_blocks().startup_events()
 
     app.mount(path, gradio_app)
     return app
