@@ -3,7 +3,6 @@
 	import { browser } from "$app/environment";
 	import { goto } from "$app/navigation";
 	import { version } from "$lib/json/version.json";
-	import path from "path";
 
 	export let choices = [version, "3.50.1", "main"];
 	export let value: string = $page.params?.version || version;
@@ -32,19 +31,38 @@
 			: path_parts[path_parts.length - 1])
 	}`;
 
+	function reload() {
+		if (browser) {
+			if (is_docs) {
+				window.location.href = docs_url;
+			}
+			if (is_guide) {
+				window.location.href = guide_url;
+			}
+		}
+	}
+
+	// $: on_3_50_1 = value === "3.50.1";
+
+	// $: browser && value === "3.50.1" && reload();
+
+	// $: on_3_50_1, is_docs && reload(docs_url);
+	// $: on_3_50_1, is_guide && reload(guide_url);
+
 	$: browser && is_docs && goto(docs_url);
-	$: browser && is_guide && goto(guide_url);
+	$: browser && is_docs && goto(docs_url);
 </script>
 
 <svelte:head>
 	<script
-		type="module"
-		src="https://gradio.s3-us-west-2.amazonaws.com/{value === "main" ? version : value}/gradio.js"
+	type="module"
+	src="https://gradio.s3-us-west-2.amazonaws.com/{value === "main" ? version : value}/gradio.js"
 	></script>
 </svelte:head>
 
 <select
 	bind:value
+	on:change={reload}
 	class="rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0 text-xs mt-2 py-1 pl-2 pr-7 font-mono"
 >
 	{#each choices as choice}
