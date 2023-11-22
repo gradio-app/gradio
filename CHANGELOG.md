@@ -275,11 +275,11 @@ To summarize migration:
 
 **The new `ImageEditor` component**
 
-In Gradio 4.0, the `tool=` argument in `gr.Image()` has been removed. It has been replaced, as of Gradio 4.5.0, with a new `gr.ImageEditor` component. The `ImageEditor` component is a streamlined component that allows you to do basic manipulation of inputs. It offers much more flexibility to customize the component, particularly through the `Brush` and `Eraser` objects. 
+In Gradio 4.0, the `tool=` argument in `gr.Image()` was removed. It has been replaced, as of Gradio 4.5.0, with a new `gr.ImageEditor()` component. The `ImageEditor` component is a streamlined component that allows you to do basic manipulation of inputs. It offers much more flexibility to customize the component, particularly through the `Brush` and `Eraser` objects. 
 
 Here are some examples of how you might migrate from `Image(tool=...)` to `gr.ImageEditor()`. 
 
-* To create a couple of examples input that supports writing black strokes on a white background, you might have previously written:
+* To create a sketchpad input that supports writing black strokes on a white background, you might have previously written:
 
 ```py
 gr.Image(source="canvas", tools="sketch")
@@ -291,7 +291,34 @@ Now, you should write:
 gr.ImageEditor(sources=(), brush=gr.Brush(colors=["#000000"]))
 ```
 
-Here, you can supply a list of supported stroke colors in `gr.Brush` as well as control whether users can choose their own colors by setting the `color_mode` parameter of `gr.Brush` to be either 
+Note: you can supply a list of supported stroke colors in `gr.Brush`, as well as control whether users can choose their own colors by setting the `color_mode` parameter of `gr.Brush` to be either `"fixed"` or `"defaults"`.
+
+* If you want to create a sketchpad where users can draw in any color, simply omit the `brush` parameter. In other words, where previously, you would do:
+
+```py
+gr.Image(source="canvas", tools="color-sketch")
+```
+
+Now, you should write:
+
+```py
+gr.ImageEditor(sources=())
+```
+
+
+* If you want to allow users to upload an image and then draw on the image, previously, you would do:
+
+```py
+gr.Image(source="upload", tools="color-sketch")
+```
+
+Now, this is the default behavior of the `ImageEditor` component, so you should just write:
+
+```py
+gr.ImageEditor()
+```
+
+Please see the documentation of the `gr.ImageEditor` component for more details: https://www.gradio.app/docs/imageeditor
 
 ### Features
 
