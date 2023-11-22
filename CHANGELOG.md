@@ -195,8 +195,8 @@ Gradio 4.0 is a new major version, and includes breaking changes from 3.x. Here'
 * Removes `deprecation.py` -- this was designed for internal usage so unlikely to break gradio apps
 * Moves save to cache methods from component methods to standalone functions in processing_utils
 * Renames `source` param in `gr.Audio` and `gr.Video` to `sources`
-* Removes `show_edit_button` param from `gr.Audio``
-
+* Removes `show_edit_button` param from `gr.Audio`
+* The `tool=` argument in `gr.Image()` has been removed. As of `gradio==4.5.0`, we have a new `gr.ImageEditor` component that takes its place. It has several improvements, including the concept of layers, backgrounds, the ability to draw and erase, undo and redo, and crop. It is much more performant than before. See the **Migrating to Gradio 4.0** section below.
 
 **Other changes related to the `gradio` library**:
 
@@ -271,6 +271,13 @@ To summarize migration:
 * For events that execute quickly or don't use much CPU or GPU resources, you should set `concurrency_limit=None` in Gradio 4.0. (Previously you would set `queue=False`.)
 * For events that take significant resources (like the prediction function of your machine learning model), and you only want 1 execution of this function at a time, you don't have to set any parameters.
 * For events that take significant resources (like the prediction function of your machine learning model), and you only want `X` executions of this function at a time, you should set `concurrency_limit=X` parameter in the event trigger.(Previously you would set a global `concurrency_count=X`.)
+
+
+* **The new `ImageEditor` component**
+
+In Gradio 4.0, the `tool=` argument in `gr.Image()` has been removed and `Image` component has been simplified considerably. As of Gradio 4.5.0, we have a new `gr.ImageEditor` component that takes its place. The `ImageEditor` component is a simple + streamlined image editor that handles basic image manipulations. Here are some examples of how you might migrate from `Image(tool=...)` to `gr.ImageEditor()`:
+
+* To create a simple sketchapd component, you might have previously had 
 
 
 ### Features
