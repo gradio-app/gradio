@@ -281,6 +281,9 @@ importers:
       '@gradio/code':
         specifier: 0.2.9
         version: link:../code
+      '@gradio/dropdown':
+        specifier: 0.3.3
+        version: link:../dropdown
       '@sindresorhus/slugify':
         specifier: ^2.2.0
         version: 2.2.0

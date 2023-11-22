@@ -1,17 +1,16 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, tick } from "svelte";
 	import type { ComponentData } from "./utils";
 	import { getRandomIntInclusive, classToEmojiMapping } from "./utils";
-  	import { BaseMultiselect } from "@gradio/dropdown";
 	import Card from "./Card.svelte";
 	import Close from "./Close.svelte";
 
 	const API = "https://gradio-custom-component-gallery-backend.hf.space/";
 	const OFFSET = 0;
-	const LIMIT = 100;
+	const LIMIT = 50;
 
 	let components: ComponentData[] = [];
-  	let selection: string[] = [];
+	let selection: string = "";
 
 	let selectedComponent: ComponentData | null = null;
 
@@ -39,39 +38,61 @@
 		selectedComponent = component;
 	};
 
-	onMount(async () => {
-		components = await fetch(`${API}components?offset=${OFFSET}&limit=${LIMIT}`)
+	async function fetchComponents(selection: string[] = []) {
+		components = await fetch(
+			`${API}components?offset=${OFFSET}&limit=${LIMIT}&name_or_tags=${selection.join(
+				","
+			)}`
+		)
 			.then((response) => response.json())
 			.catch((error) => `Error: ${error}`);
 		components.map((x) => (x.background_color = randomColor()));
-	});
+	}
+
+	onMount(fetchComponents);
+
+	async function handle_keypress(e: KeyboardEvent): Promise<void> {
+		await tick();
+		if (e.key === "Enter") {
+			e.preventDefault();
+			fetchComponents(selection.split(","));
+		}
+	}
 </script>
 
-<BaseMultiselect bind:value={selection} c/>
-<div class="grid">
-	{#each components as component (component.id)}
-		<div
-			on:click={() => handleBoxClick(component)}
-			class="box group font:thin relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {component.background_color}"
-		>
-			<div class="absolute opacity-30 text-6xl mb-1">
-				{classToEmojiMapping[component.template] || "❓"}
+<div class="flex flex-col relative h-full">
+	<input
+		type="text"
+		class="m-8 border border-gray-200 p-1 rounded-md outline-none text-center text-lg mb-1 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
+		placeholder="Search component names, keywords and descriptions. Separate multiple keywords with commas and press Enter."
+		autocomplete="off"
+		on:keypress={handle_keypress}
+		bind:value={selection}
+	/>
+	<div class="grid relative">
+		{#each components as component (component.id)}
+			<div
+				on:click={() => handleBoxClick(component)}
+				class="box h-36 group font:thin relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {component.background_color}"
+			>
+				<div class="absolute opacity-30 text-6xl mb-1">
+					{classToEmojiMapping[component.template] || "❓"}
+				</div>
+				<h2
+					class="group-hover:underline font-md text-black font-bold max-w-full truncate text-center"
+				>
+					{component.name}
+				</h2>
+				<span
+					class="font-sm text-gray-600 text-end max-w-full truncate"
+					style="position:absolute; bottom:0;"
+				>
+					Tags: {component.tags.split(",").join(", ")}</span
+				>
 			</div>
-			<h2
-				class="group-hover:underline font-md text-black font-bold max-w-full truncate text-center"
-			>
-				{component.name}
-			</h2>
-			<span
-				class="font-sm text-gray-600 text-end max-w-full truncate"
-				style="position:absolute; bottom:0;"
-			>
-				Tags: {component.tags.split(",").join(", ")}</span
-			>
-		</div>
-	{/each}
+		{/each}
+	</div>
 </div>
-
 {#if selectedComponent}
 	<div class="details-panel open">
 		<button
