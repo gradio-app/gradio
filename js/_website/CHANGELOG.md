@@ -1,5 +1,11 @@
 # website
 
+## 0.18.0
+
+### Features
+
+- [#6549](https://github.com/gradio-app/gradio/pull/6549) [`3e60c13b9`](https://github.com/gradio-app/gradio/commit/3e60c13b9192fac04c5386135ede906d0e6a2025) - Add 3.x docs to the website!.  Thanks [@aliabd](https://github.com/aliabd)!
+
 ## 0.17.0
 
 ### Features
