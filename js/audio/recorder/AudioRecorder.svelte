@@ -196,16 +196,14 @@
 </script>
 
 <div class="component-wrapper">
-	{#if waveform_options.show_recording_waveform}
-		<div
-			class="microphone"
-			bind:this={microphoneContainer}
-			data-testid="microphone-waveform"
-		/>
-	{/if}
+	<div
+		class="microphone"
+		bind:this={microphoneContainer}
+		data-testid="microphone-waveform"
+	/>
 	<div bind:this={recordingContainer} data-testid="recording-waveform" />
 
-	{#if timing || recordedAudio}
+	{#if (timing || recordedAudio) && waveform_options.show_recording_waveform}
 		<div class="timestamps">
 			<time bind:this={timeRef} class="time">0:00</time>
 			<div>
@@ -221,8 +219,14 @@
 		</div>
 	{/if}
 
-	{#if micWaveform && !recordedAudio}
-		<WaveformRecordControls bind:record {i18n} />
+	{#if microphoneContainer && !recordedAudio}
+		<WaveformRecordControls
+			bind:record
+			{i18n}
+			{timing}
+			show_recording_waveform={waveform_options.show_recording_waveform}
+			record_time={format_time(seconds)}
+		/>
 	{/if}
 
 	{#if recordingWaveform && recordedAudio}
