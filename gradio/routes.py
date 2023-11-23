@@ -54,7 +54,7 @@ from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
 from gradio.exceptions import Error
 from gradio.helpers import CACHED_FOLDER
 from gradio.oauth import attach_oauth
-from gradio.queueing import Estimation, Event
+from gradio.queueing import Estimation
 from gradio.route_utils import (  # noqa: F401
     FileUploadProgress,
     GradioMultiPartParser,
@@ -612,7 +612,6 @@ class App(FastAPI):
                     status_code=400,
                     detail="Must provide either data or event_id.",
                 )
-
 
             # Continuous events are not put in the queue so that they do not
             # occupy the queue's resource as they are expected to run forever

@@ -101,6 +101,7 @@ class Status(Enum):
     PROGRESS = "PROGRESS"
     FINISHED = "FINISHED"
     CANCELLED = "CANCELLED"
+    LOG = "LOG"
 
     @staticmethod
     def ordering(status: Status) -> int:
@@ -134,6 +135,7 @@ class Status(Enum):
             "process_generating": Status.ITERATING,
             "process_completed": Status.FINISHED,
             "progress": Status.PROGRESS,
+            "log": Status.LOG,
         }[msg]
 
 
@@ -170,6 +172,7 @@ class StatusUpdate:
     success: bool | None
     time: datetime | None
     progress_data: list[ProgressUnit] | None
+    log: tuple[str, str] | None = None
 
 
 def create_initial_status_update():
@@ -324,7 +327,9 @@ async def get_pred_from_sse(
             asyncio.create_task(
                 stream_sse_v0(
                     client, data, hash_data, helper, sse_url, sse_data_url, cookies
-                ) if protocol == "sse" else stream_sse_v1(
+                )
+                if protocol == "sse"
+                else stream_sse_v1(
                     client, data, hash_data, helper, sse_url, sse_data_url, cookies
                 )
             ),
@@ -415,6 +420,7 @@ async def stream_sse_v0(
     except asyncio.CancelledError:
         raise
 
+
 async def stream_sse_v1(
     client: httpx.AsyncClient,
     data: dict,
@@ -425,7 +431,6 @@ async def stream_sse_v1(
     cookies: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     try:
-        print(1)
         req = await client.post(
             sse_data_url,
             json={**data, **hash_data},
@@ -441,8 +446,11 @@ async def stream_sse_v1(
             async for line in response.aiter_text():
                 if line.startswith("data:"):
                     resp = json.loads(line[5:])
+                    print(">", resp)
+
                     with helper.lock:
                         has_progress = "progress_data" in resp
+                        log_message = (resp.get("log"), resp.get("level")) if resp["msg"] == "log" else None
                         status_update = StatusUpdate(
                             code=Status.msg_to_status(resp["msg"]),
                             queue_size=resp.get("queue_size"),
@@ -453,6 +461,7 @@ async def stream_sse_v1(
                             progress_data=ProgressUnit.from_msg(resp["progress_data"])
                             if has_progress
                             else None,
+                            log=log_message,
                         )
                         output = resp.get("output", {}).get("data", [])
                         if output and status_update.code != Status.FINISHED:
@@ -466,12 +475,16 @@ async def stream_sse_v1(
                     if resp["msg"] == "queue_full":
                         raise QueueError("Queue is full! Please try again.")
                     elif resp["msg"] == "process_completed":
+                        print("out")
                         return resp["output"]
                 else:
                     raise ValueError(f"Unexpected message: {line}")
+        print("no out")
         raise ValueError("Did not receive process_completed message.")
     except asyncio.CancelledError:
+        print("cancelled")
         raise
+
 
 ########################
 # Data processing utils

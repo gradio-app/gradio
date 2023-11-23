@@ -23,7 +23,7 @@ from gradio.data_classes import (
 )
 from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
-from gradio.utils import run_coro_in_background, safe_get_lock, set_task_name, LRUCache
+from gradio.utils import LRUCache, run_coro_in_background, safe_get_lock, set_task_name
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction
@@ -153,12 +153,14 @@ class Queue:
         else:
             return 1
 
-    def load_event_data(self, body: PredictBody, request: fastapi.Request, username: str | None):
+    def load_event_data(
+        self, body: PredictBody, request: fastapi.Request, username: str | None
+    ):
         event = Event(body.session_hash, body.fn_index, request, username)
         event.data = body
         self.events_pending_connection[event._id] = event
         return event
-    
+
     def _cancel_asyncio_tasks(self):
         for task in self._asyncio_tasks:
             task.cancel()

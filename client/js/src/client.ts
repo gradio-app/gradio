@@ -776,7 +776,6 @@ export function api_factory(
 							time: new Date()
 						});
 
-
 						post_data(
 							`${http_protocol}//${resolve_root(
 								host,
@@ -785,7 +784,7 @@ export function api_factory(
 							)}/queue/data?${url_params}`,
 							{
 								...payload,
-								session_hash,
+								session_hash
 							},
 							hf_token
 						).then(([response, status]) => {
@@ -800,16 +799,15 @@ export function api_factory(
 									time: new Date()
 								});
 							} else {
-								
 								event_id = response.event_id as string;
-								var params = new URLSearchParams({event_id}).toString();
+								var params = new URLSearchParams({ event_id }).toString();
 								let url = new URL(
 									`${http_protocol}//${resolve_root(
 										host,
 										config.path,
 										true
 									)}/queue/join?${params}`
-								);		
+								);
 								eventSource = new EventSource(url);
 								eventSource.onmessage = async function (event) {
 									const _data = JSON.parse(event.data);
@@ -817,7 +815,7 @@ export function api_factory(
 										_data,
 										last_status[fn_index]
 									);
-		
+
 									if (type === "update" && status && !complete) {
 										// call 'status' listeners
 										fire_event({
@@ -866,7 +864,7 @@ export function api_factory(
 											endpoint: _endpoint,
 											fn_index
 										});
-		
+
 										if (complete) {
 											fire_event({
 												type: "status",
@@ -882,7 +880,7 @@ export function api_factory(
 									}
 								};
 							}
-						})
+						});
 					}
 				});
 

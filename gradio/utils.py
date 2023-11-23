@@ -19,6 +19,7 @@ import typing
 import urllib.parse
 import warnings
 from abc import ABC, abstractmethod
+from collections import OrderedDict
 from contextlib import contextmanager
 from io import BytesIO
 from numbers import Number
@@ -28,18 +29,17 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    Generic,
     Iterable,
     Iterator,
     Optional,
     TypeVar,
-    Generic
 )
 
 import anyio
 import matplotlib
 import requests
 from typing_extensions import ParamSpec
-from collections import OrderedDict
 
 import gradio
 from gradio.context import Context
@@ -990,8 +990,10 @@ def convert_to_dict_if_dataclass(value):
         return dataclasses.asdict(value)
     return value
 
-K = TypeVar('K')
-V = TypeVar('V')
+
+K = TypeVar("K")
+V = TypeVar("V")
+
 
 class LRUCache(OrderedDict, Generic[K, V]):
     def __init__(self, max_size: int = 100):

@@ -141,7 +141,9 @@ class Client:
         self.session_hash = str(uuid.uuid4())
 
         protocol: str = self.config.get("protocol", "ws")
-        endpoint_class = Endpoint if protocol.startswith("sse") else EndpointV3Compatibility
+        endpoint_class = (
+            Endpoint if protocol.startswith("sse") else EndpointV3Compatibility
+        )
         self.endpoints = [
             endpoint_class(self, fn_index, dependency, protocol)
             for fn_index, dependency in enumerate(self.config["dependencies"])
@@ -806,7 +808,9 @@ class ReplaceMe:
 class Endpoint:
     """Helper class for storing all the information about a single API endpoint."""
 
-    def __init__(self, client: Client, fn_index: int, dependency: dict, protocol: str = "sse_v1"):
+    def __init__(
+        self, client: Client, fn_index: int, dependency: dict, protocol: str = "sse_v1"
+    ):
         self.client: Client = client
         self.fn_index = fn_index
         self.dependency = dependency
@@ -1080,7 +1084,7 @@ class Endpoint:
                 self.client.sse_url,
                 self.client.sse_data_url,
                 self.client.cookies,
-                self.protocol
+                self.protocol,
             )
 
 
