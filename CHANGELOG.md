@@ -1,5 +1,11 @@
 # gradio
 
+## 4.8.0
+
+### Features
+
+- [#6559](https://github.com/gradio-app/gradio/pull/6559) [`e3459f195`](https://github.com/gradio-app/gradio/commit/e3459f195a881ab63a34d6396763185885ac9b55) - Hotfix: version on changelog.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 4.7.0
 
 ### Features
