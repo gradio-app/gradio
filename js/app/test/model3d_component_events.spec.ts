@@ -1,4 +1,4 @@
-import { test, expect } from "@gradio/tootils";
+import { test, expect, drag_and_drop_file } from "@gradio/tootils";
 
 test("Model3D click-to-upload uploads file successfuly. Upload and clear events work correctly. Downloading works.", async ({
 	page
@@ -24,4 +24,19 @@ test("Model3D click-to-upload uploads file successfuly. Upload and clear events 
 	await page.getByLabel("Download").click();
 	const download = await downloadPromise;
 	await expect(download.suggestedFilename()).toBe("face.obj");
+});
+
+test("Model3D drag-and-drop uploads a file to the server correctly.", async ({
+	page
+}) => {
+	await drag_and_drop_file(
+		page,
+		"input[type=file]",
+		"./test/files/face.obj",
+		"face.obj",
+		"/*"
+	);
+	await page.waitForResponse("**/upload?*");
+	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
+	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 });
