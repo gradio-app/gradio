@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Improve video trimming error handling
+fix:Improve video trimming and error handling
