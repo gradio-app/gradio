@@ -40,6 +40,8 @@ export async function load({ params, url }) {
 	let wheel: string = WHEEL;
 	let pages: string[] = docs_json.pages;
 
+	let url_version = params?.version || VERSION;
+
 	return {
 		docs,
 		components,
@@ -52,6 +54,7 @@ export async function load({ params, url }) {
 		on_main,
 		wheel,
 		pages,
-		js_client
+		js_client,
+		url_version
 	};
 }
