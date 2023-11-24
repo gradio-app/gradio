@@ -16,6 +16,17 @@
 	export let min_width = 0;
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
+
+	const getHeight = (): string | undefined => {
+		if (height === undefined) {
+			return undefined;
+		}
+		if (typeof height === "number") {
+			return height + "px";
+		} else if (typeof height === "string") {
+			return height;
+		}
+	};
 </script>
 
 <svelte:element
@@ -27,7 +38,7 @@
 	class:padded={padding}
 	class:border_focus={border_mode === "focus"}
 	class:hide-container={!explicit_call && !container}
-	style:height={typeof height === "number" ? height + "px" : undefined}
+	style:height={getHeight()}
 	style:width={typeof width === "number"
 		? `calc(min(${width}px, 100%))`
 		: undefined}
