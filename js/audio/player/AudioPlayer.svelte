@@ -190,6 +190,10 @@
 		padding: var(--size-3);
 	}
 
+	:global(::part(wrapper)) {
+		margin-bottom: var(--size-2);
+	}
+
 	.timestamps {
 		display: flex;
 		justify-content: space-between;
