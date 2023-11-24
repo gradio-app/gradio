@@ -5,6 +5,10 @@ import time
 # Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, & video). Plus shows support for streaming text.
 
 
+def print_like_dislike(x: gr.LikeData):
+    print(x.index, x.value, x.liked)
+
+
 def add_text(history, text):
     history = history + [(text, None)]
     return history, gr.Textbox(value="", interactive=False)
@@ -48,6 +52,9 @@ with gr.Blocks() as demo:
     file_msg = btn.upload(add_file, [chatbot, btn], [chatbot], queue=False).then(
         bot, chatbot, chatbot
     )
+
+    chatbot.like(print_like_dislike, None, None)
+
 
 demo.queue()
 if __name__ == "__main__":

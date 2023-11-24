@@ -1,5 +1,5 @@
 <script lang="ts">
-	export let actioned: boolean;
+	export let selected: boolean;
 </script>
 
 <svg
@@ -7,7 +7,7 @@
 	width="15px"
 	height="15px"
 	viewBox="0 0 24 24"
-	fill={actioned ? "currentColor" : "none"}
+	fill={selected ? "currentColor" : "none"}
 	stroke-width="1.5"
 	color="currentColor"
 	><path
