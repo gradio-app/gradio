@@ -1,8 +1,7 @@
 import gradio as gr
 
-
 with gr.Blocks() as demo:
-    chatbot = gr.Chatbot(
+    gr.Chatbot(
         value=[["Hello World", "Hey Gradio!"], ["❤️", "😍"], ["🔥", "🤗"]]
     )
 
