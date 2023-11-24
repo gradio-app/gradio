@@ -105,3 +105,12 @@
 		]
 	}}
 />
+
+<Story
+	name="Chatbot with percetage height"
+	args={{
+		bubble_full_width: false,
+		layout: "panel",
+		height: "50%"
+	}}
+/>
