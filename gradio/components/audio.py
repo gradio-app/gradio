@@ -23,9 +23,9 @@ set_documentation_group("component")
 class WaveformOptions:
     waveform_color: Optional[str] = None
     waveform_progress_color: Optional[str] = None
-    show_controls: Optional[bool] = None
+    show_controls: Optional[bool] = False
     skip_length: Optional[int] = None
-    show_recording_waveform: Optional[bool] = None
+    show_recording_waveform: Optional[bool] = True
 
 
 @document()
@@ -147,9 +147,9 @@ class Audio(
         )
 
         self.waveform_options = (
-                WaveformOptions(**waveform_options)
-                if isinstance(waveform_options, dict)
-                else waveform_options
+            WaveformOptions(**waveform_options)
+            if isinstance(waveform_options, dict)
+            else waveform_options
         )
         self.min_length = min_length
         self.max_length = max_length
