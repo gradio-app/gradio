@@ -1,5 +1,11 @@
 # @gradio/dropdown
 
+## 0.4.0
+
+### Features
+
+- [#6517](https://github.com/gradio-app/gradio/pull/6517) [`901f3eebd`](https://github.com/gradio-app/gradio/commit/901f3eebda0a67fa8f3050d80f7f7b5800c7f566) - Allow reselecting the original option in `gr.Dropdown` after value has changed programmatically.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.3.3
 
 ### Patch Changes

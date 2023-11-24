@@ -1,5 +1,13 @@
 # @gradio/image
 
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [[`71f1a1f99`](https://github.com/gradio-app/gradio/commit/71f1a1f9931489d465c2c1302a5c8d768a3cd23a)]:
+  - @gradio/client@0.8.2
+  - @gradio/upload@0.5.1
+
 ## 0.4.0
 
 ### Highlights
@@ -48,13 +56,13 @@ im = gr.ImageEditor(
 
 ```
 
- Thanks [@pngwn](https://github.com/pngwn)!
+Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.3.6
 
 ### Fixes
 
-- [#6441](https://github.com/gradio-app/gradio/pull/6441) [`2f805a7dd`](https://github.com/gradio-app/gradio/commit/2f805a7dd3d2b64b098f659dadd5d01258290521) - Small but important bugfixes for gr.Image: The upload event was not triggering at all. The paste-from-clipboard was not triggering an upload event. The clear button was not triggering a change event. The change event was triggering infinitely. Uploaded images were not preserving their original names. Uploading a new image should clear out the previous image.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6441](https://github.com/gradio-app/gradio/pull/6441) [`2f805a7dd`](https://github.com/gradio-app/gradio/commit/2f805a7dd3d2b64b098f659dadd5d01258290521) - Small but important bugfixes for gr.Image: The upload event was not triggering at all. The paste-from-clipboard was not triggering an upload event. The clear button was not triggering a change event. The change event was triggering infinitely. Uploaded images were not preserving their original names. Uploading a new image should clear out the previous image. Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
 
 ## 0.3.5
 

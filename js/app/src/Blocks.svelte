@@ -313,7 +313,7 @@
 	): Promise<void> {
 		const outputs = dependencies[fn_index].outputs;
 
-		data.forEach((value: any, i: number) => {
+		data?.forEach((value: any, i: number) => {
 			const output = instance_map[outputs[i]];
 			output.props.value_is_output = true;
 		});
@@ -491,7 +491,8 @@
 						outputs.forEach((id) => {
 							if (
 								instance_map[id].props.interactive &&
-								status.stage === "pending"
+								status.stage === "pending" &&
+								dep.targets[0][1] !== "focus"
 							) {
 								pending_outputs.push(id);
 								instance_map[id].props.interactive = false;
