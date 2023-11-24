@@ -177,3 +177,14 @@ test("when a new message is sent the chatbot should scroll to the latest message
 	const bot_message_text = bot_message.textContent();
 	await expect(bot_message_text).toBeTruthy();
 });
+
+test("chatbot like and dislike functionality", async ({ page }) => {
+	await page.getByTestId("textbox").click();
+	await page.getByTestId("textbox").fill("hello");
+	await page.keyboard.press("Enter");
+	await page.getByLabel("like", { exact: true }).click();
+	await page.getByLabel("dislike").click();
+
+	expect(await page.getByLabel("clicked dislike").count()).toEqual(1);
+	expect(await page.getByLabel("clicked like").count()).toEqual(0);
+});
