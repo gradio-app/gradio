@@ -107,7 +107,7 @@
 />
 
 <Story
-	name="Chatbot with percetage height"
+	name="Chatbot with percentage height"
 	args={{
 		bubble_full_width: false,
 		layout: "panel",
