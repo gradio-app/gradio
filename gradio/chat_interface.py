@@ -66,6 +66,7 @@ class ChatInterface(Blocks):
         cache_examples: bool | None = None,
         title: str | None = None,
         description: str | None = None,
+        placeholder: str | None = "Type a message...",
         theme: Theme | str | None = None,
         css: str | None = None,
         analytics_enabled: bool | None = None,
@@ -88,6 +89,7 @@ class ChatInterface(Blocks):
             cache_examples: If True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
             title: a title for the interface; if provided, appears above chatbot in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the chatbot and beneath the title in regular font. Accepts Markdown and HTML content.
+            placeholder: a placeholder for the chatbot textbox; if provided, appears as light text in the textbox before the user types.
             theme: Theme to use, loaded from gradio.themes.
             css: custom css or path to custom css file to use with interface.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
@@ -181,7 +183,7 @@ class ChatInterface(Blocks):
                                 container=False,
                                 show_label=False,
                                 label="Message",
-                                placeholder="Type a message...",
+                                placeholder=placeholder if placeholder else "Type a message...",
                                 scale=7,
                                 autofocus=autofocus,
                             )
