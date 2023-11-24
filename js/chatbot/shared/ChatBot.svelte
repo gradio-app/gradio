@@ -153,6 +153,7 @@
 								class:panel-full-width={layout === "panel"}
 								class:message-bubble-border={layout === "bubble"}
 								class:message-markdown-disabled={!render_markdown}
+								style:text-align={rtl && j == 0 ? "left" : "right"}
 							>
 								<button
 									data-testid={j == 0 ? "user" : "bot"}
@@ -160,7 +161,7 @@
 									class:message-markdown-disabled={!render_markdown}
 									style:user-select="text"
 									class:selectable
-									style:text-align="left"
+									style:text-align={rtl ? "right" : "left"}
 									on:click={() => handle_select(i, j, message)}
 									on:keydown={(e) => {
 										if (e.key === "Enter") {
@@ -301,7 +302,6 @@
 		display: flex;
 		flex-direction: column;
 		align-self: flex-end;
-		text-align: left;
 		background: var(--background-fill-secondary);
 		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
@@ -343,6 +343,7 @@
 	}
 	.bot {
 		border-bottom-left-radius: 0;
+		text-align: left;
 	}
 
 	/* Colors */
