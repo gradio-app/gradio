@@ -8,9 +8,9 @@ import time
 from pathlib import Path
 from unittest.mock import patch
 
+import gradio_client as grc
 import pytest
 from gradio_client import media_data, utils
-import gradio_client as grc
 from pydub import AudioSegment
 from starlette.testclient import TestClient
 from tqdm import tqdm
@@ -666,8 +666,13 @@ class TestProgressBar:
         status_updates = []
         while not job.done():
             status = job.status()
-            update = (status.progress_data[0].index if status.progress_data else None, status.progress_data[0].desc if status.progress_data else None)
-            if update != (None, None) and (len(status_updates) == 0 or status_updates[-1] != update):
+            update = (
+                status.progress_data[0].index if status.progress_data else None,
+                status.progress_data[0].desc if status.progress_data else None,
+            )
+            if update != (None, None) and (
+                len(status_updates) == 0 or status_updates[-1] != update
+            ):
                 status_updates.append(update)
             time.sleep(0.05)
 
@@ -706,8 +711,13 @@ class TestProgressBar:
         status_updates = []
         while not job.done():
             status = job.status()
-            update = (status.progress_data[0].index if status.progress_data else None, status.progress_data[0].desc if status.progress_data else None)
-            if update != (None, None) and (len(status_updates) == 0 or status_updates[-1] != update):
+            update = (
+                status.progress_data[0].index if status.progress_data else None,
+                status.progress_data[0].desc if status.progress_data else None,
+            )
+            if update != (None, None) and (
+                len(status_updates) == 0 or status_updates[-1] != update
+            ):
                 status_updates.append(update)
             time.sleep(0.05)
 
@@ -722,7 +732,6 @@ class TestProgressBar:
             (1, "alphabet"),
             (2, "alphabet"),
         ]
-
 
     @pytest.mark.asyncio
     async def test_progress_bar_track_tqdm_without_iterable(self):
@@ -742,8 +751,13 @@ class TestProgressBar:
         status_updates = []
         while not job.done():
             status = job.status()
-            update = (status.progress_data[0].index if status.progress_data else None, status.progress_data[0].unit if status.progress_data else None)
-            if update != (None, None) and (len(status_updates) == 0 or status_updates[-1] != update):
+            update = (
+                status.progress_data[0].index if status.progress_data else None,
+                status.progress_data[0].unit if status.progress_data else None,
+            )
+            if update != (None, None) and (
+                len(status_updates) == 0 or status_updates[-1] != update
+            ):
                 status_updates.append(update)
             time.sleep(0.05)
 
@@ -754,9 +768,8 @@ class TestProgressBar:
             (3, "steps"),
             (4, "steps"),
             (5, "steps"),
-            (6, "steps"),            
+            (6, "steps"),
         ]
-
 
     @pytest.mark.asyncio
     async def test_info_and_warning_alerts(self):
@@ -783,8 +796,13 @@ class TestProgressBar:
                 status_updates.append(update)
             time.sleep(0.05)
 
-        assert status_updates == [None, ('Letter J', 'info'), ('Letter o', 'info'), ('Letter n', 'info'), ('Too short!', 'warning')]
-
+        assert status_updates == [
+            None,
+            ("Letter J", "info"),
+            ("Letter o", "info"),
+            ("Letter n", "info"),
+            ("Too short!", "warning"),
+        ]
 
 
 @pytest.mark.asyncio
@@ -818,7 +836,9 @@ async def test_info_isolation(async_handler: bool):
         while not job.done():
             status = job.status()
             update = status.log
-            if update is not None and (len(status_updates) == 0 or status_updates[-1] != update):
+            if update is not None and (
+                len(status_updates) == 0 or status_updates[-1] != update
+            ):
                 status_updates.append(update)
             time.sleep(0.05)
         return status_updates[-1][0] if status_updates else None

@@ -450,7 +450,11 @@ async def stream_sse_v1(
 
                     with helper.lock:
                         has_progress = "progress_data" in resp
-                        log_message = (resp.get("log"), resp.get("level")) if resp["msg"] == "log" else None
+                        log_message = (
+                            (resp.get("log"), resp.get("level"))
+                            if resp["msg"] == "log"
+                            else None
+                        )
                         status_update = StatusUpdate(
                             code=Status.msg_to_status(resp["msg"]),
                             queue_size=resp.get("queue_size"),
