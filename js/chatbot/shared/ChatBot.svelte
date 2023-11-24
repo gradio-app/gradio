@@ -98,12 +98,12 @@
 		i: number,
 		j: number,
 		message: string | { file: FileData; alt_text: string | null } | null,
-		liked: boolean
+		selected: string | null
 	): void {
 		dispatch("like", {
 			index: [i, j],
 			value: message,
-			liked: liked
+			liked: selected === "like"
 		});
 	}
 </script>
@@ -237,12 +237,8 @@
 								>
 									{#if likeable && j == 1}
 										<LikeDislike
-											action="like"
-											handle_action={() => handle_like(i, j, message, true)}
-										/>
-										<LikeDislike
-											action="dislike"
-											handle_action={() => handle_like(i, j, message, false)}
+											handle_action={(selected) =>
+												handle_like(i, j, message, selected)}
 										/>
 									{/if}
 									{#if show_copy_button && message && typeof message === "string"}
