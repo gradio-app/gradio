@@ -1,7 +1,6 @@
 <script lang="ts">
 	export let fn: any;
 	import anchor from "../assets/img/anchor.svg";
-	import { style_formatted_text } from "$lib/text";
 
 	function handleAnchorClick(event: MouseEvent) {
 		event.preventDefault();
@@ -64,7 +63,7 @@
 			><img class="anchor-img-small" src={anchor} /></a
 		>
 	</h4>
-	<p class="mb-2 text-lg">{@html style_formatted_text(fn.description)}</p>
+	<p class="mb-2 text-lg">{@html fn.description}</p>
 
 	{#if fn.example}
 		<h4
@@ -127,7 +126,7 @@
 								{/if}
 							</td>
 							<td class="p-3 text-gray-700 break-words">
-								<p>{@html param["doc"] ? style_formatted_text(param["doc"]) : ""}</p>
+								<p>{@html param["doc"] || ""}</p>
 							</td>
 						</tr>
 					{/if}

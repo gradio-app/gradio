@@ -107,7 +107,9 @@ def escape_parameters(parameters):
 def escape_html_string_fields():
     for mode in docs:
         for cls in docs[mode]:
-            cls["description"] = html.escape(cls["description"])
+            # print(cls["description"])
+            # cls["description"] = html.escape(cls["description"])
+            # print(cls["description"])
             for tag in [
                 "preprocessing",
                 "postprocessing",
@@ -122,7 +124,7 @@ def escape_html_string_fields():
             for fn in cls["fns"]:
                 fn["description"] = html.escape(fn["description"])
                 fn["parameters"] = escape_parameters(fn["parameters"])
-
+            # 1/0
 
 escape_html_string_fields()
 

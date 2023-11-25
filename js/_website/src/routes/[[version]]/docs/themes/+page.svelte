@@ -4,7 +4,6 @@
 	import FunctionDoc from "$lib/components/FunctionDoc.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import anchor from "$lib/assets/img/anchor.svg";
-	import { style_formatted_text } from "$lib/text";
 	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
 
@@ -236,31 +235,31 @@
 									>
 								</h4>
 								<p class="mb-2 text-lg text-gray-600">
-									{@html style_formatted_text(obj.description)}
+									{@html obj.description}
 								</p>
 							{/if}
 
 							{#if mode === "components"}
 								<p class="mb-2 text-lg text-gray-500">
 									<span class="text-orange-500">As input: </span>
-									{@html style_formatted_text(obj.tags.preprocessing)}
+									{@html obj.tags.preprocessing}
 								</p>
 								<p class="mb-2 text-lg text-gray-500">
 									<span class="text-orange-500">As output:</span>
-									{@html style_formatted_text(obj.tags.postprocessing)}
+									{@html obj.tags.postprocessing}
 								</p>
 								{#if obj.tags.examples_format}
 									<p class="mb-2 text-lg text-gray-500">
 										<span class="text-orange-500"
 											>Format expected for examples:</span
 										>
-										{@html style_formatted_text(obj.tags.examples_format)}}
+										{@html obj.tags.examples_format}
 									</p>
 								{/if}
 								{#if obj.tags.events && obj.tags.events.length > 0}
 									<p class="text-lg text-gray-500">
 										<span class="text-orange-500">Supported events:</span>
-										<em>{@html style_formatted_text(obj.tags.events)}</em>
+										<em>{@html obj.tags.events}</em>
 									</p>
 								{/if}
 							{/if}
@@ -332,7 +331,7 @@
 														{/if}
 													</td>
 													<td class="p-3 text-gray-700 break-words">
-														<p>{@html param["doc"] ? style_formatted_text(param["doc"]) : ""}</p>
+														<p>{@html param["doc"] || ""}</p>
 													</td>
 												</tr>
 											{/if}

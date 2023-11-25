@@ -5,7 +5,6 @@
 	import EventListeners from "$lib/components/EventListeners.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import anchor from "$lib/assets/img/anchor.svg";
-	import { style_formatted_text } from "$lib/text";
 	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
 
@@ -230,7 +229,7 @@
 									><img class="anchor-img-small" src={anchor} /></a
 								>
 							</h4>
-							<p class="mb-2 text-lg text-gray-600">{@html style_formatted_text(obj.description)}</p>
+							<p class="mb-2 text-lg text-gray-600">{@html obj.description}</p>
 						</div>
 
 						{#if mode === "components"}
@@ -243,24 +242,24 @@
 								</h4>
 								<p class="text-lg text-gray-500">
 									<span class="text-gray-700">As input: </span>
-									{@html style_formatted_text(obj.tags.preprocessing)}
+									{@html obj.tags.preprocessing}
 								</p>
 								<p class="text-lg text-gray-500">
 									<span class="text-gray-700">As output:</span>
-									{@html style_formatted_text(obj.tags.postprocessing)}
+									{@html obj.tags.postprocessing}
 								</p>
 								{#if obj.tags.examples_format}
 									<p class="text-lg text-gray-500">
 										<span class="text-gray-700"
 											>Format expected for examples:</span
 										>
-										{@html style_formatted_text(obj.tags.examples_format)}
+										{@html obj.tags.examples_format}
 									</p>
 								{/if}
 								{#if obj.tags.events && obj.tags.events.length > 0}
 									<p class="text-lg text-gray-500">
 										<span class="text-gray-700">Supported events:</span>
-										<em>{@html style_formatted_text(obj.tags.events)}</em>
+										<em>{@html obj.tags.events}</em>
 									</p>
 								{/if}
 							</div>
@@ -332,7 +331,7 @@
 														{/if}
 													</td>
 													<td class="p-3 text-gray-700 break-words">
-														<p>{@html param["doc"] ? style_formatted_text(param["doc"]) : ""}</p>
+														<p>{@html param["doc"] || ""}</p>
 													</td>
 												</tr>
 											{/if}
