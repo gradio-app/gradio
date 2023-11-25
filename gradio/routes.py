@@ -783,7 +783,7 @@ class App(FastAPI):
                     os.rename(temp_file.file.name, dest)
                 except OSError:
                     files_to_copy.append(temp_file.file.name)
-                    locations.append(dest)
+                    locations.append(str(dest))
                 output_files.append(dest)
             if files_to_copy:
                 bg_tasks.add_task(
