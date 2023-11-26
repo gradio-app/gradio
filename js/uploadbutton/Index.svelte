@@ -17,6 +17,7 @@
 	export let root: string;
 	export let size: "sm" | "lg" = "lg";
 	export let scale: number | null = null;
+	export let icon: string | null = null;
 	export let min_width: number | undefined = undefined;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let gradio: Gradio<{
@@ -25,6 +26,7 @@
 		click: never;
 	}>;
 	export let interactive: boolean;
+	export let proxy_url: null | string = null;
 
 	$: disabled = !interactive;
 
@@ -45,6 +47,7 @@
 	{file_types}
 	{size}
 	{scale}
+	{icon}
 	{min_width}
 	{root}
 	{value}
