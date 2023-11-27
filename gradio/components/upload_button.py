@@ -48,6 +48,7 @@ class UploadButton(Component):
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         visible: bool = True,
         size: Literal["sm", "lg"] | None = None,
+        icon: str | None = None,
         scale: int | None = None,
         min_width: int | None = None,
         interactive: bool = True,
@@ -114,6 +115,7 @@ class UploadButton(Component):
             min_width=min_width,
             interactive=interactive,
         )
+        self.icon = self.move_resource_to_block_cache(icon)
 
     def api_info(self) -> dict[str, list[str]]:
         if self.file_count == "single":
