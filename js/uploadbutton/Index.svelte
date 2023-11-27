@@ -54,6 +54,7 @@
 	{disabled}
 	{variant}
 	{label}
+	{proxy_url}
 	on:click={() => gradio.dispatch("click")}
 	on:change={({ detail }) => handle_event(detail, "change")}
 	on:upload={({ detail }) => handle_event(detail, "upload")}
