@@ -236,24 +236,24 @@
 							{#if mode === "components"}
 								<p class="mb-2 text-lg text-gray-500">
 									<span class="text-orange-500">As input: </span>
-									{@html obj.preprocessing}
+									{@html obj.tags.preprocessing}
 								</p>
 								<p class="mb-2 text-lg text-gray-500">
 									<span class="text-orange-500">As output:</span>
-									{@html obj.postprocessing}
+									{@html obj.tags.postprocessing}
 								</p>
-								{#if obj.examples_format}
+								{#if obj.tags.examples_format}
 									<p class="mb-2 text-lg text-gray-500">
 										<span class="text-orange-500"
 											>Format expected for examples:</span
 										>
-										{@html obj.examples_format}}
+										{@html obj.tags.examples_format}
 									</p>
 								{/if}
-								{#if obj.events && obj.events.length > 0}
+								{#if obj.tags.events && obj.tags.events.length > 0}
 									<p class="text-lg text-gray-500">
 										<span class="text-orange-500">Supported events:</span>
-										<em>{@html obj.events}</em>
+										<em>{@html obj.tags.events}</em>
 									</p>
 								{/if}
 							{/if}
@@ -325,7 +325,7 @@
 														{/if}
 													</td>
 													<td class="p-3 text-gray-700 break-words">
-														<p>{param["doc"] || ""}</p>
+														<p>{@html param["doc"] || ""}</p>
 													</td>
 												</tr>
 											{/if}
