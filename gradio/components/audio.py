@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Callable, Literal, TypedDict
 
 import numpy as np
-import requests
+import httpx
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
@@ -248,7 +248,7 @@ class Audio(
         if isinstance(value, bytes):
             return value, output_file
         if client_utils.is_http_url_like(value["path"]):
-            response = requests.get(value["path"])
+            response = httpx.get(value["path"])
             binary_data = response.content
         else:
             output_file["orig_name"] = value["orig_name"]

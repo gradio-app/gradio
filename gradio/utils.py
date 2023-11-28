@@ -36,7 +36,7 @@ from typing import (
 
 import anyio
 import matplotlib
-import requests
+import httpx
 from typing_extensions import ParamSpec
 
 import gradio
@@ -283,10 +283,10 @@ def is_zero_gpu_space() -> bool:
 
 def readme_to_html(article: str) -> str:
     try:
-        response = requests.get(article, timeout=3)
-        if response.status_code == requests.codes.ok:  # pylint: disable=no-member
+        response = httpx.get(article, timeout=3)
+        if response.status_code == httpx.codes.OK:  # pylint: disable=no-member
             article = response.text
-    except requests.exceptions.RequestException:
+    except httpx.RequestError:
         pass
     return article
 
@@ -584,11 +584,11 @@ def append_unique_suffix(name: str, list_of_names: list[str]):
 def validate_url(possible_url: str) -> bool:
     headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
     try:
-        head_request = requests.head(possible_url, headers=headers)
+        head_request = httpx.head(possible_url, headers=headers)
         # some URLs, such as AWS S3 presigned URLs, return a 405 or a 403 for HEAD requests
         if head_request.status_code == 405 or head_request.status_code == 403:
-            return requests.get(possible_url, headers=headers).ok
-        return head_request.ok
+            return httpx.get(possible_url, headers=headers).OK
+        return head_request.OK
     except Exception:
         return False
 
