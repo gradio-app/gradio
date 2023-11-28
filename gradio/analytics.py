@@ -87,9 +87,7 @@ async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
 def version_check():
     try:
         current_pkg_version = get_package_version()
-        latest_pkg_version = httpx.get(url=PKG_VERSION_URL, timeout=3).json()[
-            "version"
-        ]
+        latest_pkg_version = httpx.get(url=PKG_VERSION_URL, timeout=3).json()["version"]
         if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
             print(
                 f"IMPORTANT: You are using gradio version {current_pkg_version}, "

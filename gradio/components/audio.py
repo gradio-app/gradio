@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Callable, Literal, TypedDict
 
-import numpy as np
 import httpx
+import numpy as np
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 

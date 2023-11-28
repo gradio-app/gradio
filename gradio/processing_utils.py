@@ -13,8 +13,8 @@ from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
-import numpy as np
 import httpx
+import numpy as np
 from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, PngImagePlugin
 

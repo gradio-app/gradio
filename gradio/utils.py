@@ -35,8 +35,8 @@ from typing import (
 )
 
 import anyio
-import matplotlib
 import httpx
+import matplotlib
 from typing_extensions import ParamSpec
 
 import gradio

@@ -7,8 +7,8 @@ import textwrap
 from pathlib import Path
 from typing import Iterable
 
-import huggingface_hub
 import httpx
+import huggingface_hub
 import semantic_version as semver
 from gradio_client.documentation import document, set_documentation_group
 from huggingface_hub import CommitOperationAdd
