@@ -599,6 +599,11 @@ class App(FastAPI):
                 if event is None:
                     raise HTTPException(status_code=404, detail="Event not found.")
             elif data is not None:
+                if session_hash is None or fn_index is None:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Must provide session_hash and fn_index if directly uploading data.",
+                    )
                 input_data = json.loads(data)
                 body = PredictBody(
                     session_hash=session_hash,

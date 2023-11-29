@@ -156,9 +156,11 @@ class Queue:
     def load_event_data(
         self, body: PredictBody, request: fastapi.Request, username: str | None
     ):
-        session_hash: str = body.session_hash
-        fn_index: int = body.fn_index
-        event = Event(session_hash, fn_index, request, username)
+        if body.session_hash is None:
+            raise ValueError("Session hash not found")
+        if body.fn_index is None:
+            raise ValueError("Function index not found")
+        event = Event(body.session_hash, body.fn_index, request, username)
         event.data = body
         self.events_pending_connection[event._id] = event
         return event
