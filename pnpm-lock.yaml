@@ -9,14 +9,14 @@ importers:
   .:
     dependencies:
       '@changesets/changelog-github':
-        specifier: ^0.4.8
-        version: 0.4.8
+        specifier: ^0.5.0
+        version: 0.5.0
       '@changesets/cli':
         specifier: ^2.26.1
         version: 2.26.1
       '@changesets/get-github-info':
-        specifier: ^0.5.2
-        version: 0.5.2
+        specifier: ^0.6.0
+        version: 0.6.0
       '@csstools/postcss-global-data':
         specifier: ^2.0.0
         version: 2.0.0(postcss@8.4.27)
@@ -2838,11 +2838,11 @@ packages:
       '@changesets/types': 5.2.1
     dev: false
 
-  /@changesets/changelog-github@0.4.8:
-    resolution: {integrity: sha512-jR1DHibkMAb5v/8ym77E4AMNWZKB5NPzw5a5Wtqm1JepAuIF+hrKp2u04NKM14oBZhHglkCfrla9uq8ORnK/dw==}
+  /@changesets/changelog-github@0.5.0:
+    resolution: {integrity: sha512-zoeq2LJJVcPJcIotHRJEEA2qCqX0AQIeFE+L21L8sRLPVqDhSXY8ZWAt2sohtBpFZkBwu+LUwMSKRr2lMy3LJA==}
     dependencies:
-      '@changesets/get-github-info': 0.5.2
-      '@changesets/types': 5.2.1
+      '@changesets/get-github-info': 0.6.0
+      '@changesets/types': 6.0.0
       dotenv: 8.6.0
     transitivePeerDependencies:
       - encoding
@@ -2915,8 +2915,8 @@ packages:
       semver: 7.5.4
     dev: false
 
-  /@changesets/get-github-info@0.5.2:
-    resolution: {integrity: sha512-JppheLu7S114aEs157fOZDjFqUDpm7eHdq5E8SSR0gUBTEK0cNSHsrSR5a66xs0z3RWuo46QvA3vawp8BxDHvg==}
+  /@changesets/get-github-info@0.6.0:
+    resolution: {integrity: sha512-v/TSnFVXI8vzX9/w3DU2Ol+UlTZcu3m0kXTjTT4KlAdwSvwutcByYwyYn9hwerPWfPkT2JfpoX0KgvCEi8Q/SA==}
     dependencies:
       dataloader: 1.4.0
       node-fetch: 2.7.0
@@ -2994,6 +2994,10 @@ packages:
 
   /@changesets/types@5.2.1:
     resolution: {integrity: sha512-myLfHbVOqaq9UtUKqR/nZA/OY7xFjQMdfgfqeZIBK4d0hA6pgxArvdv8M+6NUzzBsjWLOtvApv8YHr4qM+Kpfg==}
+    dev: false
+
+  /@changesets/types@6.0.0:
+    resolution: {integrity: sha512-b1UkfNulgKoWfqyHtzKS5fOZYSJO+77adgL7DLRDr+/7jhChN+QcHnbjiQVOz/U+Ts3PGNySq7diAItzDgugfQ==}
     dev: false
 
   /@changesets/write@0.2.3:
