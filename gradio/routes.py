@@ -584,7 +584,7 @@ class App(FastAPI):
         @app.get("/queue/join", dependencies=[Depends(login_check)])
         async def queue_join(
             request: fastapi.Request,
-            fn_index: Optional[str] = None,
+            fn_index: Optional[int] = None,
             session_hash: Optional[str] = None,
             username: str = Depends(get_current_user),
             data: Optional[str] = None,
