@@ -427,7 +427,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         ):  # HF doesn't allow additional parameters for binary files (e.g. images or audio files)
             data.update({"options": {"wait_for_model": True}})
             data = json.dumps(data)
-        response = httpx.request("POST", api_url, headers=headers, data=data)
+        response = httpx.request("POST", api_url, headers=headers, data=data)  # type: ignore
         if response.status_code != 200:
             errors_json = response.json()
             errors, warns = "", ""
@@ -556,7 +556,7 @@ def from_spaces_interface(
     # The function should call the API with preprocessed data
     def fn(*data):
         data = json.dumps({"data": data})
-        response = httpx.post(api_url, headers=headers, data=data)
+        response = httpx.post(api_url, headers=headers, data=data)  # type: ignore
         result = json.loads(response.content.decode("utf-8"))
         if "error" in result and "429" in result["error"]:
             raise TooManyRequestsError("Too many requests to the Hugging Face API")

@@ -587,8 +587,8 @@ def validate_url(possible_url: str) -> bool:
         head_request = httpx.head(possible_url, headers=headers)
         # some URLs, such as AWS S3 presigned URLs, return a 405 or a 403 for HEAD requests
         if head_request.status_code == 405 or head_request.status_code == 403:
-            return httpx.get(possible_url, headers=headers).OK
-        return head_request.OK
+            return httpx.get(possible_url, headers=headers).is_success
+        return head_request.is_success
     except Exception:
         return False
 
