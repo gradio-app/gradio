@@ -116,6 +116,7 @@
 			input_text = "";
 			selected_index = null;
 		}
+		old_selected_index = selected_index;
 	}
 
 	function handle_option_selected(e: any): void {
