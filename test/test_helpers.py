@@ -791,12 +791,13 @@ class TestProgressBar:
         while not job.done():
             status = job.status()
             update = status.log
-            if len(status_updates) == 0 or status_updates[-1] != update:
+            if update is not None and (
+                len(status_updates) == 0 or status_updates[-1] != update
+            ):
                 status_updates.append(update)
             time.sleep(0.05)
 
         assert status_updates == [
-            None,
             ("Letter J", "info"),
             ("Letter o", "info"),
             ("Letter n", "info"),
