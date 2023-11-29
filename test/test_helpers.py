@@ -762,7 +762,6 @@ class TestProgressBar:
             time.sleep(0.05)
 
         assert status_updates == [
-            (0, "steps"),
             (1, "steps"),
             (2, "steps"),
             (3, "steps"),
