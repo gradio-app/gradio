@@ -22,7 +22,7 @@
 		"@types/prismjs": "1.26.3",
 		"dompurify": "^3.0.3",
 		"katex": "^0.16.7",
-		"marked": "^7.0.0",
+		"marked": "^11.0.0",
 		"marked-highlight": "^2.0.1",
 		"prismjs": "1.29.0"
 	}
