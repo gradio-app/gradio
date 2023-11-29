@@ -323,7 +323,14 @@ async def get_pred_from_sse(
             asyncio.create_task(check_for_cancel(helper, cookies)),
             asyncio.create_task(
                 stream_sse(
-                    client, data, hash_data, helper, sse_url, sse_data_url, headers=headers, cookies=cookies,
+                    client,
+                    data,
+                    hash_data,
+                    helper,
+                    sse_url,
+                    sse_data_url,
+                    headers=headers,
+                    cookies=cookies,
                 )
             ),
         ],
@@ -368,7 +375,11 @@ async def stream_sse(
 ) -> dict[str, Any]:
     try:
         async with client.stream(
-            "GET", sse_url, params=hash_data, cookies=cookies, headers=headers,
+            "GET",
+            sse_url,
+            params=hash_data,
+            cookies=cookies,
+            headers=headers,
         ) as response:
             async for line in response.aiter_text():
                 if line.startswith("data:"):
