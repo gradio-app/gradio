@@ -7,7 +7,6 @@ import textwrap
 from pathlib import Path
 from typing import Iterable
 
-import httpx
 import huggingface_hub
 import semantic_version as semver
 from gradio_client.documentation import document, set_documentation_group
@@ -163,7 +162,7 @@ class ThemeClass:
 
         try:
             space_info = api.space_info(name)
-        except httpx.HTTPError as e:
+        except huggingface_hub.utils._errors.RepositoryNotFoundError as e:
             raise ValueError(f"The space {name} does not exist") from e
 
         assets = get_theme_assets(space_info)
@@ -240,7 +239,7 @@ class ThemeClass:
 
         try:
             space_info = api.space_info(space_id)
-        except httpx.HTTPError:
+        except Exception:
             space_info = None
 
         space_exists = space_info is not None
