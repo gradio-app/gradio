@@ -75,15 +75,19 @@ class TestClientPredictions:
 
     @pytest.mark.flaky
     def test_private_space(self):
-        client = Client("gradio-tests/not-actually-private-space", hf_token=HF_TOKEN)
+        space_id = "gradio-tests/not-actually-private-space"
+        api = huggingface_hub.HfApi(token=HF_TOKEN)
+        assert api.space_info(space_id).private
+        client = Client(space_id, hf_token=HF_TOKEN)
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
     @pytest.mark.flaky
     def test_private_space_v4(self):
-        client = Client(
-            "gradio-tests/not-actually-private-spacev4-sse", hf_token=HF_TOKEN
-        )
+        space_id = "gradio-tests/not-actually-private-spacev4-sse"
+        api = huggingface_hub.HfApi(token=HF_TOKEN)
+        assert api.space_info(space_id).private
+        client = Client(space_id, hf_token=HF_TOKEN)
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
