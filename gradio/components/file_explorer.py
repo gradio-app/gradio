@@ -113,9 +113,9 @@ class FileExplorer(Component):
                     f"Expected only one file, but {len(payload.root)} were selected."
                 )
             elif len(payload.root) == 0:
-              return None
+                return None
             else:
-              return self._safe_join(payload.root[0])
+                return self._safe_join(payload.root[0])
 
         return [self._safe_join(file) for file in (payload.root)]
 
