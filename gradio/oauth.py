@@ -136,8 +136,9 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
         request.session.pop("oauth_token", None)
         return RedirectResponse("/")
 
+
 @dataclass
-class OAuthProfile(typing.Dict): # inherit from Dict for backward compatibility
+class OAuthProfile(typing.Dict):  # inherit from Dict for backward compatibility
     """
     A Gradio OAuthProfile object that can be used to inject the profile of a user in a
     function. If a function expects `OAuthProfile` or `Optional[OAuthProfile]` as input,
@@ -167,17 +168,19 @@ class OAuthProfile(typing.Dict): # inherit from Dict for backward compatibility
             gr.LogoutButton()
             gr.Markdown().attach_load_event(hello, None)
     """
-    name: str = field(init=False)
-    username: str= field(init=False)
-    profile: str= field(init=False)
-    picture: str= field(init=False)
 
-    def __init__(self, data: dict): # hack to make OAuthProfile backward compatible
+    name: str = field(init=False)
+    username: str = field(init=False)
+    profile: str = field(init=False)
+    picture: str = field(init=False)
+
+    def __init__(self, data: dict):  # hack to make OAuthProfile backward compatible
         self.update(data)
         self.name = self["name"]
         self.username = self["preferred_username"]
         self.profile = self["profile"]
         self.picture = self["picture"]
+
 
 @dataclass
 class OAuthToken:
@@ -211,9 +214,11 @@ class OAuthToken:
             gr.LogoutButton()
             gr.Markdown().attach_load_event(list_organizations, None)
     """
+
     token: str
     scope: str
     expires_at: int
+
 
 MOCKED_OAUTH_TOKEN = {
     "access_token": "hf_oauth_AAAAAAAAAAAAAAAAAAAAAAAAAA",

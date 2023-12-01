@@ -776,17 +776,29 @@ def special_args(
                 )
 
                 # Inject user profile
-                if type_hint == Optional[oauth.OAuthProfile] or type_hint == oauth.OAuthProfile:
-                    oauth_profile = session["oauth_profile"] if "oauth_profile" in session else None
+                if (
+                    type_hint == Optional[oauth.OAuthProfile]
+                    or type_hint == oauth.OAuthProfile
+                ):
+                    oauth_profile = (
+                        session["oauth_profile"] if "oauth_profile" in session else None
+                    )
                     if oauth_profile is not None:
                         oauth_profile = oauth.OAuthProfile(oauth_profile)
                     elif type_hint == oauth.OAuthProfile:
-                        raise Error("This action requires a logged in user. Please sign in and retry.")
+                        raise Error(
+                            "This action requires a logged in user. Please sign in and retry."
+                        )
                     inputs.insert(i, oauth_profile)
 
                 # Inject user token
-                elif type_hint == Optional[oauth.OAuthToken] or type_hint == oauth.OAuthToken:
-                    oauth_token = session["oauth_token"] if "oauth_token" in session else None
+                elif (
+                    type_hint == Optional[oauth.OAuthToken]
+                    or type_hint == oauth.OAuthToken
+                ):
+                    oauth_token = (
+                        session["oauth_token"] if "oauth_token" in session else None
+                    )
                     if oauth_token is not None:
                         oauth_token = oauth.OAuthToken(
                             token=oauth_token["access_token"],
@@ -794,7 +806,9 @@ def special_args(
                             expires_at=oauth_token["expires_at"],
                         )
                     elif type_hint == oauth.OAuthToken:
-                        raise Error("This action requires a logged in user. Please sign in and retry.")
+                        raise Error(
+                            "This action requires a logged in user. Please sign in and retry."
+                        )
                     inputs.insert(i, oauth_token)
         elif (
             type_hint
