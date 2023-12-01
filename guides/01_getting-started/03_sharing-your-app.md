@@ -212,7 +212,7 @@ def hello(profile: gr.OAuthProfile | None) -> str:
         return "I don't know you."
     return f"Hello {profile.name}"
 
-def list_organizations(oauth_token: Optional[gr.OAuthToken]) -> str:
+def list_organizations(oauth_token: gr.OAuthToken | None) -> str:
     if oauth_token is None:
         return "Please log in to list organizations."
     org_names = [org["name"] for org in whoami(oauth_token.token)["orgs"]]
