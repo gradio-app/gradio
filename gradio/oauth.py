@@ -4,6 +4,7 @@ import hashlib
 import os
 import typing
 import warnings
+from dataclasses import dataclass, field
 
 import fastapi
 from fastapi.responses import RedirectResponse
@@ -135,14 +136,20 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
         request.session.pop("oauth_token", None)
         return RedirectResponse("/")
 
-
-class OAuthProfile(typing.Dict):
+@dataclass
+class OAuthProfile(typing.Dict): # inherit from Dict for backward compatibility
     """
     A Gradio OAuthProfile object that can be used to inject the profile of a user in a
     function. If a function expects `OAuthProfile` or `Optional[OAuthProfile]` as input,
     the value will be injected from the FastAPI session if the user is logged in. If the
     user is not logged in and the function expects `OAuthProfile`, an error will be
     raised.
+
+    Attributes:
+        name (str): The name of the user (e.g. 'Abubakar Abid').
+        username (str): The username of the user (e.g. 'abidlabs')
+        profile (str): The profile URL of the user (e.g. 'https://huggingface.co/abidlabs').
+        picture (str): The profile picture URL of the user.
 
     Example:
         import gradio as gr
@@ -160,7 +167,53 @@ class OAuthProfile(typing.Dict):
             gr.LogoutButton()
             gr.Markdown().attach_load_event(hello, None)
     """
+    name: str = field(init=False)
+    username: str= field(init=False)
+    profile: str= field(init=False)
+    picture: str= field(init=False)
 
+    def __init__(self, data: dict): # hack to make OAuthProfile backward compatible
+        self.update(data)
+        self.name = self["name"]
+        self.username = self["preferred_username"]
+        self.profile = self["profile"]
+        self.picture = self["picture"]
+
+@dataclass
+class OAuthToken:
+    """
+    A Gradio OAuthToken object that can be used to inject the access token of a user in a
+    function. If a function expects `OAuthToken` or `Optional[OAuthToken]` as input,
+    the value will be injected from the FastAPI session if the user is logged in. If the
+    user is not logged in and the function expects `OAuthToken`, an error will be
+    raised.
+
+    Attributes:
+        token (str): The access token of the user.
+        scope (str): The scope of the access token.
+        expires_at (int): The expiration timestamp of the access token.
+
+    Example:
+        import gradio as gr
+        from typing import Optional
+        from huggingface_hub import whoami
+
+
+        def list_organizations(oauth_token: Optional[gr.OAuthToken]) -> str:
+            if oauth_token is None:
+                return "Please log in to list organizations."
+            org_names = [org["name"] for org in whoami(oauth_token.token)["orgs"]]
+            return f"You belong to {', '.join(org_names)}."
+
+
+        with gr.Blocks() as demo:
+            gr.LoginButton()
+            gr.LogoutButton()
+            gr.Markdown().attach_load_event(list_organizations, None)
+    """
+    token: str
+    scope: str
+    expires_at: int
 
 MOCKED_OAUTH_TOKEN = {
     "access_token": "hf_oauth_AAAAAAAAAAAAAAAAAAAAAAAAAA",

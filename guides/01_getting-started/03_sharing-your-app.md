@@ -191,13 +191,15 @@ This is not the case by default for Safari, Chrome Incognito Mode.
 ### OAuth (Login via Hugging Face)
 
 Gradio supports OAuth login via Hugging Face. This feature is currently **experimental** and only available on Spaces.
-If allows to add a _"Sign in with Hugging Face"_ button to your demo. Check out [this Space](https://huggingface.co/spaces/Wauplin/gradio-oauth-demo)
-for a live demo.
+If allows to add a _"Sign in with Hugging Face"_ button to your demo. Check out [this Space](https://huggingface.co/spaces/Wauplin/gradio-oauth-demo) for a live demo.
 
 To enable OAuth, you must set `hf_oauth: true` as a Space metadata in your README.md file. This will register your Space
 as an OAuth application on Hugging Face. Next, you can use `gr.LoginButton` and `gr.LogoutButton` to add login and logout buttons to
 your Gradio app. Once a user is logged in with their HF account, you can retrieve their profile by adding a parameter of type
-`gr.OAuthProfile` to any Gradio function. The user profile will be automatically injected as a parameter value.
+`gr.OAuthProfile` to any Gradio function. The user profile will be automatically injected as a parameter value. If you want
+to perform actions on behalf of the user (e.g. list user's private repos, create repo, etc.), you can retrieve the user
+token by adding a parameter of type `gr.OAuthToken`. You must define which scopes you will use in your Space metadata
+(see [documentation](https://huggingface.co/docs/hub/spaces-oauth#scopes) for more details).
 
 Here is a short example:
 
@@ -210,11 +212,17 @@ def hello(profile: gr.OAuthProfile | None) -> str:
         return "I don't know you."
     return f"Hello {profile.name}"
 
+def list_organizations(oauth_token: Optional[gr.OAuthToken]) -> str:
+    if oauth_token is None:
+        return "Please log in to list organizations."
+    org_names = [org["name"] for org in whoami(oauth_token.token)["orgs"]]
+    return f"You belong to {', '.join(org_names)}."
 
 with gr.Blocks() as demo:
     gr.LoginButton()
     gr.LogoutButton()
     gr.Markdown().attach_load_event(hello, None)
+    gr.Markdown().attach_load_event(list_organizations, None)
 ```
 
 When the user clicks on the login button, they get redirected in a new page to authorize your Space.

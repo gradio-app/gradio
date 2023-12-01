@@ -745,7 +745,7 @@ def get_cancel_function(
 def get_type_hints(fn):
     # Importing gradio with the canonical abbreviation. Used in typing._eval_type.
     import gradio as gr  # noqa: F401
-    from gradio import OAuthProfile, Request  # noqa: F401
+    from gradio import OAuthProfile, OAuthToken, Request  # noqa: F401
 
     if inspect.isfunction(fn) or inspect.ismethod(fn):
         pass
@@ -768,6 +768,9 @@ def get_type_hints(fn):
             if param.annotation == "gr.OAuthProfile | None":
                 # Special case: we want to inject the OAuthProfile value even on Python 3.9
                 type_hints[name] = Optional[OAuthProfile]
+            if param.annotation == "gr.OAuthToken | None":
+                # Special case: we want to inject the OAuthToken value even on Python 3.9
+                type_hints[name] = Optional[OAuthToken]
             if "|" in str(param.annotation):
                 continue
             # To convert the string annotation to a class, we use the
@@ -785,15 +788,15 @@ def get_type_hints(fn):
 
 def is_special_typed_parameter(name, parameter_types):
     from gradio.helpers import EventData
-    from gradio.oauth import OAuthProfile
+    from gradio.oauth import OAuthProfile, OAuthToken
     from gradio.routes import Request
 
-    """Checks if parameter has a type hint designating it as a gr.Request, gr.EventData or gr.OAuthProfile."""
+    """Checks if parameter has a type hint designating it as a gr.Request, gr.EventData, gr.OAuthProfile or gr.OAuthToken."""
     hint = parameter_types.get(name)
     if not hint:
         return False
     is_request = hint == Request
-    is_oauth_arg = hint in (OAuthProfile, Optional[OAuthProfile])
+    is_oauth_arg = hint in (OAuthProfile, Optional[OAuthProfile], OAuthToken, Optional[OAuthToken])
     is_event_data = inspect.isclass(hint) and issubclass(hint, EventData)
     return is_request or is_event_data or is_oauth_arg
 
