@@ -29,9 +29,10 @@ def _setup_config(
     demo_path: Path,
     demo_name: str = "demo",
     additional_watch_dirs: list[str] | None = None,
+    encoding: str = "utf-8",
 ):
     original_path = Path(demo_path)
-    app_text = original_path.read_text()
+    app_text = original_path.read_text(encoding=encoding)
 
     patterns = [
         f"with gr\\.Blocks\\(\\) as {demo_name}",
@@ -96,11 +97,11 @@ def _setup_config(
 
 
 def main(
-    demo_path: Path, demo_name: str = "demo", watch_dirs: Optional[List[str]] = None
+    demo_path: Path, demo_name: str = "demo", watch_dirs: Optional[List[str]] = None, encoding: str = "utf-8"
 ):
     # default execution pattern to start the server and watch changes
     module_name, path, watch_dirs, demo_name = _setup_config(
-        demo_path, demo_name, watch_dirs
+        demo_path, demo_name, watch_dirs, encoding
     )
     # extra_args = args[1:] if len(args) == 1 or args[1].startswith("--") else args[2:]
     popen = subprocess.Popen(
