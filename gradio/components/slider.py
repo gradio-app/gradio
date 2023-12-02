@@ -22,7 +22,7 @@ class Slider(FormComponent):
     Postprocessing: expects an {int} or {float} returned from function and sets slider value to it as long as it is within range.
     Examples-format: A {float} or {int} representing the slider's value.
 
-    Demos: sentence_builder, slider_release, generate_tone, titanic_survival, interface_random_slider, blocks_random_slider
+    Demos: sentence_builder, slider_release, interface_random_slider, blocks_random_slider
     Guides: create-your-own-friends-with-a-gan
     """
 
