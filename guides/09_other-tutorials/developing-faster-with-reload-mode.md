@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
 Then you would launch it in reload mode like this: `gradio run.py my_demo`.
 
-By default, the Gradio use UTF-8 encoding for scripts. **For reload mode**, If you are using encoding formats other than UTF-8 (such as cp1252 or cp936, etc.), make sure you've done like this:
+By default, the Gradio use UTF-8 encoding for scripts. **For reload mode**, If you are using encoding formats other than UTF-8 (such as cp1252), make sure you've done like this:
 
 1. Configure encoding declaration of python script, for example: `# -*- coding: cp1252 -*-`
 2. Confirm that your code editor has identified that encoding format. 
