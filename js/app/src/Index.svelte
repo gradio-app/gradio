@@ -147,14 +147,10 @@
 	): Promise<void> {
 		const parser = new DOMParser();
 		if (head_string) {
-			const parsed_head_html = Array.from(
-				parser.parseFromString(head_string, "text/html").head.children
-			);
-
-			if (parsed_head_html) {
-				for (let head_element of parsed_head_html) {
-					document.head.append(head_element);
-				}
+			const head_html = parser.parseFromString(head_string, "text/html").head
+				.firstChild;
+			if (head_html) {
+				document.head.append(head_html);
 			}
 		}
 	}
