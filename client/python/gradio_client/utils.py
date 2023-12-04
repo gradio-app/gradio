@@ -314,6 +314,7 @@ async def get_pred_from_sse(
     helper: Communicator,
     sse_url: str,
     sse_data_url: str,
+    headers: dict[str, str],
     cookies: dict[str, str] | None = None,
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
@@ -321,7 +322,14 @@ async def get_pred_from_sse(
             asyncio.create_task(check_for_cancel(helper, cookies)),
             asyncio.create_task(
                 stream_sse(
-                    client, data, hash_data, helper, sse_url, sse_data_url, cookies
+                    client,
+                    data,
+                    hash_data,
+                    helper,
+                    sse_url,
+                    sse_data_url,
+                    headers=headers,
+                    cookies=cookies,
                 )
             ),
         ],
@@ -361,11 +369,16 @@ async def stream_sse(
     helper: Communicator,
     sse_url: str,
     sse_data_url: str,
+    headers: dict[str, str],
     cookies: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     try:
         async with client.stream(
-            "GET", sse_url, params=hash_data, cookies=cookies
+            "GET",
+            sse_url,
+            params=hash_data,
+            cookies=cookies,
+            headers=headers,
         ) as response:
             async for line in response.aiter_text():
                 if line.startswith("data:"):
@@ -401,6 +414,7 @@ async def stream_sse(
                             sse_data_url,
                             json={"event_id": event_id, **data, **hash_data},
                             cookies=cookies,
+                            headers=headers,
                         )
                         req.raise_for_status()
                     elif resp["msg"] == "process_completed":
