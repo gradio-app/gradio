@@ -38,16 +38,14 @@
 					<div class="flex">
 						<a
 							class="subheading block thin-link mr-1 px-2 rounded-lg w-min border border-orange-500"
-							href={heading.href}
-							>{heading.text}</a
+							href={heading.href}>{heading.text}</a
 						>
 						<p class="inline">🔥</p>
 					</div>
 				{:else}
 					<a
 						class="subheading block thin-link mr-2 px-2 rounded-lg"
-						href={heading.href}
-						>{heading.text}</a
+						href={heading.href}>{heading.text}</a
 					>
 				{/if}
 			{/each}

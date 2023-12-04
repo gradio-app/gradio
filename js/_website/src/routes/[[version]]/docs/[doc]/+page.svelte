@@ -210,9 +210,7 @@
 						<div id="description">
 							<h4 class="mt-8 text-xl text-orange-500 font-light group">
 								Description
-								<a
-									href="#description"
-									class="invisible group-hover-visible"
+								<a href="#description" class="invisible group-hover-visible"
 									><img class="anchor-img-small" src={anchor} /></a
 								>
 							</h4>
@@ -256,9 +254,7 @@
 							<div id="example-usage">
 								<h4 class="mt-4 text-xl text-orange-500 font-light group">
 									Example Usage
-									<a
-										href="#example-usage"
-										class="invisible group-hover-visible"
+									<a href="#example-usage" class="invisible group-hover-visible"
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
@@ -331,9 +327,7 @@
 							<div id="shortcuts">
 								<h4 class="mt-6 text-xl text-orange-500 font-light group">
 									Shortcuts
-									<a
-										href="#shortcuts"
-										class="invisible group-hover-visible"
+									<a href="#shortcuts" class="invisible group-hover-visible"
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
@@ -380,9 +374,7 @@
 								<div class="category my-8" id="examples">
 									<h4 class="text-xl text-orange-500 font-light group">
 										Demos
-										<a
-											href="#demos"
-											class="invisible group-hover-visible"
+										<a href="#demos" class="invisible group-hover-visible"
 											><img class="anchor-img-small" src={anchor} /></a
 										>
 									</h4>
@@ -443,9 +435,7 @@
 								<div id="methods">
 									<h4 class="mt-4 p-3 text-xl text-orange-500 font-light group">
 										Methods
-										<a
-											href="#methods"
-											class="invisible group-hover-visible"
+										<a href="#methods" class="invisible group-hover-visible"
 											><img class="anchor-img-small" src={anchor} /></a
 										>
 									</h4>
@@ -463,9 +453,7 @@
 							<div id="guides">
 								<h4 class="mt-4 p-3 text-xl text-orange-500 font-light group">
 									Guides
-									<a
-										href="#guides"
-										class="invisible group-hover-visible"
+									<a href="#guides" class="invisible group-hover-visible"
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
@@ -528,9 +516,7 @@
 			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:block lg:w-2/12"
 		>
 			<div class="mx-8">
-				<a
-					class="thin-link py-2 block text-lg"
-					href="#{obj.slug}">{obj.name}</a
+				<a class="thin-link py-2 block text-lg" href="#{obj.slug}">{obj.name}</a
 				>
 				{#if headers.length > 0}
 					<ul class="text-slate-700 text-lg leading-6">

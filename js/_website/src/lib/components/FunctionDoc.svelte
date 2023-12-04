@@ -9,9 +9,7 @@
 	<div class="flex flex-row items-center justify-between">
 		<h3 class="group text-3xl font-light py-4">
 			{fn.name}
-			<a
-				href="#{fn.slug}"
-				class="invisible group-hover-visible"
+			<a href="#{fn.slug}" class="invisible group-hover-visible"
 				><img class="anchor-img" src={anchor} /></a
 			>
 		</h3>
@@ -44,9 +42,7 @@
 		id="{fn.slug}-description"
 	>
 		Description
-		<a
-			href="#{fn.slug}-description"
-			class="invisible group-hover-visible"
+		<a href="#{fn.slug}-description" class="invisible group-hover-visible"
 			><img class="anchor-img-small" src={anchor} /></a
 		>
 	</h4>
@@ -58,9 +54,7 @@
 			id="{fn.slug}-example-usage"
 		>
 			Example Usage
-			<a
-				href="#{fn.slug}-example-usage"
-				class="invisible group-hover-visible"
+			<a href="#{fn.slug}-example-usage" class="invisible group-hover-visible"
 				><img class="anchor-img-small" src={anchor} /></a
 			>
 		</h4>
@@ -77,9 +71,7 @@
 			id="{fn.slug}-arguments"
 		>
 			Agruments
-			<a
-				href="#{fn.slug}-arguments"
-				class="invisible group-hover-visible"
+			<a href="#{fn.slug}-arguments" class="invisible group-hover-visible"
 				><img class="anchor-img-small" src={anchor} /></a
 			>
 		</h4>

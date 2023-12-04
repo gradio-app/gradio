@@ -105,8 +105,7 @@
 						class:current-nav-link={guide.name == guide_page.name}
 						class="guide-link -indent-2 ml-2 thin-link px-4 block overflow-hidden"
 						style="max-width: 12rem"
-						href="..{guide.url}"
-						>{guide.pretty_name}</a
+						href="..{guide.url}">{guide.pretty_name}</a
 					>
 
 					<div
@@ -115,8 +114,7 @@
 						{#each guide_slug as heading}
 							<a
 								class="subheading block thin-link -indent-2 ml-4 mr-2"
-								href={heading.href}
-								>{heading.text}</a
+								href={heading.href}>{heading.text}</a
 							>
 						{/each}
 					</div>

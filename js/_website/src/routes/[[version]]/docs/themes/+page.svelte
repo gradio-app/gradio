@@ -133,9 +133,7 @@
 						<div class="flex flex-row items-center justify-between">
 							<h3 id="themes-header" class="group text-3xl font-light py-4">
 								Themes
-								<a
-									href="#themes"
-									class="invisible group-hover-visible"
+								<a href="#themes" class="invisible group-hover-visible"
 									><img class="anchor-img" src={anchor} /></a
 								>
 							</h3>
@@ -146,9 +144,7 @@
 							id="description"
 						>
 							Description
-							<a
-								href="#description"
-								class="invisible group-hover-visible"
+							<a href="#description" class="invisible group-hover-visible"
 								><img class="anchor-img-small" src={anchor} /></a
 							>
 						</h4>
@@ -385,9 +381,7 @@
 									id="guides"
 								>
 									Guides
-									<a
-										href="#guides"
-										class="invisible group-hover-visible"
+									<a href="#guides" class="invisible group-hover-visible"
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
@@ -488,11 +482,7 @@
 			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:block lg:w-2/12"
 		>
 			<div class="mx-8">
-				<a
-					class="thin-link py-2 block text-lg"
-					href="#themes"
-					>Themes</a
-				>
+				<a class="thin-link py-2 block text-lg" href="#themes">Themes</a>
 				{#if headers.length > 0}
 					<ul class="text-slate-700 text-lg leading-6">
 						{#each headers as header}
