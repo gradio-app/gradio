@@ -207,7 +207,7 @@ class Block:
         for parameter in signature.parameters.values():
             if hasattr(self, parameter.name):
                 value = getattr(self, parameter.name)
-                config[parameter.name] = value
+                config[parameter.name] = utils.convert_to_dict_if_dataclass(value)
         for e in self.events:
             to_add = e.config_data()
             if to_add:

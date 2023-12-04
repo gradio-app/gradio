@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import dataclasses
 import functools
 import importlib
 import inspect
@@ -106,7 +107,7 @@ class SourceFileReloader(BaseReloader):
         self,
         app: App,
         watch_dirs: list[str],
-        watch_file: str,
+        watch_module_name: str,
         stop_event: threading.Event,
         change_event: threading.Event,
         demo_name: str = "demo",
@@ -114,7 +115,7 @@ class SourceFileReloader(BaseReloader):
         super().__init__()
         self.app = app
         self.watch_dirs = watch_dirs
-        self.watch_file = watch_file
+        self.watch_module_name = watch_module_name
         self.stop_event = stop_event
         self.change_event = change_event
         self.demo_name = demo_name
@@ -199,11 +200,11 @@ def watchfn(reloader: SourceFileReloader):
                 if sourcefile and is_in_or_equal(sourcefile, dir_):
                     del sys.modules[k]
             try:
-                module = importlib.import_module(reloader.watch_file)
+                module = importlib.import_module(reloader.watch_module_name)
                 module = importlib.reload(module)
             except Exception as e:
                 print(
-                    f"Reloading {reloader.watch_file} failed with the following exception: "
+                    f"Reloading {reloader.watch_module_name} failed with the following exception: "
                 )
                 traceback.print_exception(None, value=e, tb=None)
                 mtimes = {}
@@ -980,3 +981,9 @@ def get_extension_from_file_path_or_url(file_path_or_url: str) -> str:
     parsed_url = urllib.parse.urlparse(file_path_or_url)
     file_extension = os.path.splitext(os.path.basename(parsed_url.path))[1]
     return file_extension[1:] if file_extension else ""
+
+
+def convert_to_dict_if_dataclass(value):
+    if dataclasses.is_dataclass(value):
+        return dataclasses.asdict(value)
+    return value

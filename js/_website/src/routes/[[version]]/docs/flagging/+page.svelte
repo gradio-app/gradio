@@ -236,24 +236,24 @@
 							{#if mode === "components"}
 								<p class="mb-2 text-lg text-gray-500">
 									<span class="text-orange-500">As input: </span>
-									{@html obj.preprocessing}
+									{@html obj.tags.preprocessing}
 								</p>
 								<p class="mb-2 text-lg text-gray-500">
 									<span class="text-orange-500">As output:</span>
-									{@html obj.postprocessing}
+									{@html obj.tags.postprocessing}
 								</p>
-								{#if obj.examples_format}
+								{#if obj.tags.examples_format}
 									<p class="mb-2 text-lg text-gray-500">
 										<span class="text-orange-500"
 											>Format expected for examples:</span
 										>
-										{@html obj.examples_format}}
+										{@html obj.tags.examples_format}
 									</p>
 								{/if}
-								{#if obj.events && obj.events.length > 0}
+								{#if obj.tags.events && obj.tags.events.length > 0}
 									<p class="text-lg text-gray-500">
 										<span class="text-orange-500">Supported events:</span>
-										<em>{@html obj.events}</em>
+										<em>{@html obj.tags.events}</em>
 									</p>
 								{/if}
 							{/if}
@@ -325,7 +325,7 @@
 														{/if}
 													</td>
 													<td class="p-3 text-gray-700 break-words">
-														<p>{param["doc"] || ""}</p>
+														<p>{@html param["doc"] || ""}</p>
 													</td>
 												</tr>
 											{/if}
@@ -400,7 +400,7 @@
 											class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {data
 												.COLOR_SETS[i][0]} {data.COLOR_SETS[i][1]}"
 											target="_blank"
-											href={guide.url}
+											href="..{guide.url}"
 										>
 											<div class="flex flex-col p-4 h-min">
 												<p class="group-hover:underline text-l">

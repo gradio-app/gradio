@@ -21,6 +21,10 @@
 	export let height: number | undefined = undefined;
 	export let file_count: "single" | "multiple" = "multiple";
 
+	export let glob: string;
+	export let ignore_glob: string;
+	export let root: string;
+
 	export let loading_status: LoadingStatus;
 	export let container = true;
 	export let scale: number | null = null;
@@ -63,6 +67,9 @@
 		{file_count}
 		{server}
 		{interactive}
+		{root}
+		{glob}
+		{ignore_glob}
 		on:change={() => gradio.dispatch("change")}
 	/>
 </Block>
