@@ -4,10 +4,35 @@ import os
 import sys
 import copy
 import pathlib
+from fastapi import FastAPI, Request
+from fastapi.templating import Jinja2Templates
+import uvicorn
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 demo_dir = pathlib.Path(__file__).parent / "demos"
+
+
+app = FastAPI()
+
+templates = Jinja2Templates(directory="templates")
+
+names = sorted(os.listdir("./demos"))
+
+
+@app.get("/{name}")
+def display_content(request: Request, name: str):
+    # You can customize the content for each route based on the `name` parameter
+    app_url = request.base_url._url + f"demo/{name}"
+    print(app_url)
+    return templates.TemplateResponse("index.html", {"request": request, "names": names, "app_url": app_url})
+
+
+@app.get("/")
+def index(request: Request):
+    app_url = request.base_url._url + f"demo/{names[0]}"
+    print(app_url)
+    return templates.TemplateResponse("index.html", {"request": request, "names": names, "app_url": app_url})
 
 
 all_demos = []
@@ -20,16 +45,15 @@ for p in sorted(os.listdir("./demos")):
             demo_module = importlib.import_module(f"run")
         else:
             demo_module = importlib.reload(demo_module)
-        all_demos.append((p, demo_module.demo))
+        all_demos.append((p, demo_module.demo.queue()))
     except Exception as e:
-        p = p + " ❌"
         with gr.Blocks() as demo:
             gr.Markdown(f"Error loading demo: {e}")
         all_demos.append((p, demo))
 
-with gr.Blocks() as mega_demo:
-    for demo_name, demo in all_demos:
-        with gr.Tab(demo_name):
-            demo.render()
+for demo_name, demo in all_demos:
+    app = gr.mount_gradio_app(app, demo, f"/demo/{demo_name}")
 
-mega_demo.queue().launch()
+
+if __name__ == "__main__":
+    uvicorn.run(app, port=7860, host="0.0.0.0")

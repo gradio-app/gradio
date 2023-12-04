@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<script
+	type="module"
+	src="https://gradio.s3-us-west-2.amazonaws.com/4.7.1/gradio.js"
+></script>
+<head>
+    <title></title>
+    <style>
+        /* Styling for the sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 300px;
+            background-color: #f1f1f1;
+            overflow-y: auto;
+            font-family: monospace;
+        }
+        .sidebar a {
+            display: block;
+            padding: 8px 16px;
+            text-decoration: none;
+            color: #000;
+        }
+        .sidebar a:hover {
+            background-color: #ddd;
+        }
+        /* Styling for the content */
+        .content {
+            padding: 20px;
+            margin-left: 20px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        {% for name in names %}
+            <a href="/{{ name }}">{{ name }}</a>
+        {% endfor %}
+    </div>
+    <div class="content">
+        <iframe src="{{ app_url }}?__theme=light" height="800px" width="100%" style="border:0;">
+    </div>
+</body>
+</html>
