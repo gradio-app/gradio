@@ -17,7 +17,9 @@
 		event: "stream" | "change" | "stop_recording"
 	) => Promise<void> | undefined;
 	export let waveform_settings: Record<string, any>;
-	export let waveform_options: WaveformOptions;
+	export let waveform_options: WaveformOptions = {
+		show_recording_waveform: true
+	};
 	export let handle_reset_value: () => void;
 
 	let micWaveform: WaveSurfer;
@@ -69,8 +71,10 @@
 		start_interval();
 		timing = true;
 		dispatch("start_recording");
-		let waveformCanvas = microphoneContainer;
-		if (waveformCanvas) waveformCanvas.style.display = "block";
+		if (waveform_options.show_recording_waveform) {
+			let waveformCanvas = microphoneContainer;
+			if (waveformCanvas) waveformCanvas.style.display = "block";
+		}
 	});
 
 	$: record?.on("record-end", async (blob) => {
@@ -124,14 +128,13 @@
 	});
 
 	const create_mic_waveform = (): void => {
-		const recorder = microphoneContainer;
-		if (recorder) recorder.innerHTML = "";
+		if (microphoneContainer) microphoneContainer.innerHTML = "";
 		if (micWaveform !== undefined) micWaveform.destroy();
-		if (!recorder) return;
+		if (!microphoneContainer) return;
 		micWaveform = WaveSurfer.create({
 			...waveform_settings,
 			normalize: false,
-			container: recorder
+			container: microphoneContainer
 		});
 
 		record = micWaveform.registerPlugin(RecordPlugin.create());
@@ -200,7 +203,7 @@
 	/>
 	<div bind:this={recordingContainer} data-testid="recording-waveform" />
 
-	{#if timing || recordedAudio}
+	{#if (timing || recordedAudio) && waveform_options.show_recording_waveform}
 		<div class="timestamps">
 			<time bind:this={timeRef} class="time">0:00</time>
 			<div>
@@ -216,8 +219,14 @@
 		</div>
 	{/if}
 
-	{#if micWaveform && !recordedAudio}
-		<WaveformRecordControls bind:record {i18n} />
+	{#if microphoneContainer && !recordedAudio}
+		<WaveformRecordControls
+			bind:record
+			{i18n}
+			{timing}
+			show_recording_waveform={waveform_options.show_recording_waveform}
+			record_time={format_time(seconds)}
+		/>
 	{/if}
 
 	{#if recordingWaveform && recordedAudio}
