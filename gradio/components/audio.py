@@ -23,9 +23,9 @@ set_documentation_group("component")
 class WaveformOptions:
     waveform_color: str | None = None
     waveform_progress_color: str | None = None
-    show_controls: bool | None = False
+    show_controls: bool = False
     skip_length: str | None = None
-    show_recording_waveform: bool | None = True
+    show_recording_waveform: bool = True
 
 
 @document()
