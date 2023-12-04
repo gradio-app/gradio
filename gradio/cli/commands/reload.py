@@ -97,7 +97,10 @@ def _setup_config(
 
 
 def main(
-    demo_path: Path, demo_name: str = "demo", watch_dirs: Optional[List[str]] = None, encoding: str = "utf-8"
+    demo_path: Path,
+    demo_name: str = "demo",
+    watch_dirs: Optional[List[str]] = None,
+    encoding: str = "utf-8",
 ):
     # default execution pattern to start the server and watch changes
     module_name, path, watch_dirs, demo_name = _setup_config(
