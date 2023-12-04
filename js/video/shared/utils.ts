@@ -66,15 +66,19 @@ export async function trimVideo(
 	endTime: number,
 	videoElement: HTMLVideoElement
 ): Promise<any> {
+	const videoUrl = videoElement.src;
+	const mimeType = lookup(videoElement.src) || "video/mp4";
+	const blobUrl = await toBlobURL(videoUrl, mimeType);
+	const response = await fetch(blobUrl);
+	const vidBlob = await response.blob();
+	const type = getVideoExtensionFromMimeType(mimeType) || "mp4";
+	const inputName = `input.${type}`;
+	const outputName = `output.${type}`;
+
 	try {
-		const videoUrl = videoElement.src;
-		const mimeType = lookup(videoElement.src) || "video/mp4";
-		const blobUrl = await toBlobURL(videoUrl, mimeType);
-		const response = await fetch(blobUrl);
-		const vidBlob = await response.blob();
-		const type = getVideoExtensionFromMimeType(mimeType) || "mp4";
-		const inputName = `input.${type}`;
-		const outputName = `output.${type}`;
+		if (startTime === 0 && endTime === 0) {
+			return vidBlob;
+		}
 
 		await ffmpeg.writeFile(
 			inputName,
@@ -84,10 +88,8 @@ export async function trimVideo(
 		let command = [
 			"-i",
 			inputName,
-			"-ss",
-			startTime.toString(),
-			"-to",
-			endTime.toString(),
+			...(startTime !== 0 ? ["-ss", startTime.toString()] : []),
+			...(endTime !== 0 ? ["-to", endTime.toString()] : []),
 			"-c:a",
 			"copy",
 			outputName
@@ -102,6 +104,7 @@ export async function trimVideo(
 		return outputBlob;
 	} catch (error) {
 		console.error("Error initializing FFmpeg:", error);
+		return vidBlob;
 	}
 }
 
