@@ -20,6 +20,7 @@
 	let py_client = data.py_client;
 	let on_main: boolean;
 	let wheel: string = data.wheel;
+	let url_version: string = data.url_version;
 
 	let headers: [string, string][];
 	let method_headers: [string, string][];
@@ -67,6 +68,7 @@
 	$: modals = data.modals;
 	$: routes = data.routes;
 	$: py_client = data.py_client;
+	$: url_version = data.url_version;
 </script>
 
 <MetaTags
@@ -193,11 +195,17 @@
 							<div class="embedded-component">
 								{#key obj.name}
 									{#if obj.name !== "State"}
-										{#if on_main}
+										{#if url_version === "main"}
 											<gradio-app
 												space={"gradio/" +
 													obj.name.toLowerCase() +
 													"_component_main"}
+											/>
+										{:else if url_version === "3.50.2"}
+											<gradio-app
+												space={"gradio/" +
+													obj.name.toLowerCase() +
+													"_component_3-x"}
 											/>
 										{:else}
 											<gradio-app
@@ -234,24 +242,24 @@
 								</h4>
 								<p class="text-lg text-gray-500">
 									<span class="text-gray-700">As input: </span>
-									{@html obj.preprocessing}
+									{@html obj.tags.preprocessing}
 								</p>
 								<p class="text-lg text-gray-500">
 									<span class="text-gray-700">As output:</span>
-									{@html obj.postprocessing}
+									{@html obj.tags.postprocessing}
 								</p>
-								{#if obj.examples_format}
+								{#if obj.tags.examples_format}
 									<p class="text-lg text-gray-500">
 										<span class="text-gray-700"
 											>Format expected for examples:</span
 										>
-										{@html obj.examples_format}
+										{@html obj.tags.examples_format}
 									</p>
 								{/if}
-								{#if obj.events && obj.events.length > 0}
+								{#if obj.tags.events && obj.tags.events.length > 0}
 									<p class="text-lg text-gray-500">
 										<span class="text-gray-700">Supported events:</span>
-										<em>{@html obj.events}</em>
+										<em>{@html obj.tags.events}</em>
 									</p>
 								{/if}
 							</div>
@@ -323,7 +331,7 @@
 														{/if}
 													</td>
 													<td class="p-3 text-gray-700 break-words">
-														<p>{param["doc"] || ""}</p>
+														<p>{@html param["doc"] || ""}</p>
 													</td>
 												</tr>
 											{/if}
@@ -420,7 +428,7 @@
 															name={demo[0]}
 															code={demo[1]}
 															highlighted_code={demo[2]}
-															{on_main}
+															{url_version}
 														/>
 													</div>
 												{/each}
@@ -489,7 +497,7 @@
 											class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {data
 												.COLOR_SETS[i][0]} {data.COLOR_SETS[i][1]}"
 											target="_blank"
-											href={guide.url}
+											href="..{guide.url}"
 										>
 											<div class="flex flex-col p-4 h-min">
 												<p class="group-hover:underline text-l">

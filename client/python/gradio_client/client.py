@@ -253,7 +253,7 @@ class Client:
         )
         hardware = hardware or original_info.hardware
         if current_hardware != hardware:
-            huggingface_hub.request_space_hardware(space_id, hardware)  # type: ignore
+            huggingface_hub.request_space_hardware(space_id, hardware, token=hf_token)  # type: ignore
             print(
                 f"-------\nNOTE: this Space uses upgraded hardware: {hardware}... see billing info at https://huggingface.co/settings/billing\n-------"
             )
@@ -1077,9 +1077,10 @@ class Endpoint:
                 data,
                 hash_data,
                 helper,
-                self.client.sse_url,
-                self.client.sse_data_url,
-                self.client.cookies,
+                sse_url=self.client.sse_url,
+                sse_data_url=self.client.sse_data_url,
+                headers=self.client.headers,
+                cookies=self.client.cookies,
             )
 
 
