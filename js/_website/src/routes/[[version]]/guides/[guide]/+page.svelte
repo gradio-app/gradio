@@ -3,6 +3,7 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
 	import DropDown from "$lib/components/VersionDropdown.svelte";
+	import { goto } from "$app/navigation";
 
 	export let data: {
 		guide: any;
@@ -37,17 +38,6 @@
 	let target_link: HTMLElement;
 	let navigation;
 	let y: number;
-
-	function handleAnchorClick(event: MouseEvent) {
-		event.preventDefault();
-		const link = event.currentTarget as HTMLAnchorElement;
-		const anchorId = new URL(link.href).hash.replace("#", "");
-		const anchor = document.getElementById(anchorId);
-		window.scrollTo({
-			top: anchor?.offsetTop,
-			behavior: "smooth"
-		});
-	}
 
 	let flattened_guides = guide_names.map((category) => category.guides).flat();
 	let prev_guide: any;
@@ -116,7 +106,7 @@
 						class="guide-link -indent-2 ml-2 thin-link px-4 block overflow-hidden"
 						style="max-width: 12rem"
 						href="..{guide.url}"
-						on:click={handleAnchorClick}>{guide.pretty_name}</a
+						>{guide.pretty_name}</a
 					>
 
 					<div
@@ -126,7 +116,7 @@
 							<a
 								class="subheading block thin-link -indent-2 ml-4 mr-2"
 								href={heading.href}
-								on:click={handleAnchorClick}>{heading.text}</a
+								>{heading.text}</a
 							>
 						{/each}
 					</div>

@@ -1,18 +1,6 @@
 <script lang="ts">
 	export let fn: any;
 	import anchor from "../assets/img/anchor.svg";
-
-	function handleAnchorClick(event: MouseEvent) {
-		event.preventDefault();
-		const link = event.currentTarget as HTMLAnchorElement;
-
-		const anchorId = new URL(link.href).hash.replace("#", "");
-		const anchor = document.getElementById(anchorId);
-		window.scrollTo({
-			top: anchor?.offsetTop,
-			behavior: "smooth"
-		});
-	}
 </script>
 
 <!-- name, signature, description, params -->
@@ -24,7 +12,7 @@
 			<a
 				href="#{fn.slug}"
 				class="invisible group-hover-visible"
-				on:click={handleAnchorClick}><img class="anchor-img" src={anchor} /></a
+				><img class="anchor-img" src={anchor} /></a
 			>
 		</h3>
 	</div>
@@ -59,7 +47,6 @@
 		<a
 			href="#{fn.slug}-description"
 			class="invisible group-hover-visible"
-			on:click={handleAnchorClick}
 			><img class="anchor-img-small" src={anchor} /></a
 		>
 	</h4>
@@ -74,7 +61,6 @@
 			<a
 				href="#{fn.slug}-example-usage"
 				class="invisible group-hover-visible"
-				on:click={handleAnchorClick}
 				><img class="anchor-img-small" src={anchor} /></a
 			>
 		</h4>
@@ -94,7 +80,6 @@
 			<a
 				href="#{fn.slug}-arguments"
 				class="invisible group-hover-visible"
-				on:click={handleAnchorClick}
 				><img class="anchor-img-small" src={anchor} /></a
 			>
 		</h4>

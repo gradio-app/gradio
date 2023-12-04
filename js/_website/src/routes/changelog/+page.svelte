@@ -12,17 +12,6 @@
 
 	let content = data.content;
 	let slugs = data.changelog_slug;
-
-	function handleAnchorClick(event: MouseEvent) {
-		event.preventDefault();
-		const link = event.currentTarget as HTMLAnchorElement;
-		const anchorId = new URL(link.href).hash.replace("#", "");
-		const anchor = document.getElementById(anchorId);
-		window.scrollTo({
-			top: anchor?.offsetTop,
-			behavior: "smooth"
-		});
-	}
 </script>
 
 <MetaTags
@@ -50,7 +39,7 @@
 						<a
 							class="subheading block thin-link mr-1 px-2 rounded-lg w-min border border-orange-500"
 							href={heading.href}
-							on:click={handleAnchorClick}>{heading.text}</a
+							>{heading.text}</a
 						>
 						<p class="inline">🔥</p>
 					</div>
@@ -58,7 +47,7 @@
 					<a
 						class="subheading block thin-link mr-2 px-2 rounded-lg"
 						href={heading.href}
-						on:click={handleAnchorClick}>{heading.text}</a
+						>{heading.text}</a
 					>
 				{/if}
 			{/each}

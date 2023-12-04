@@ -21,16 +21,6 @@
 	let py_client = data.py_client;
 
 	let current_selection = 0;
-	function handleAnchorClick(event: MouseEvent) {
-		event.preventDefault();
-		const link = event.currentTarget as HTMLAnchorElement;
-		const anchorId = new URL(link.href).hash.replace("#", "");
-		const anchor = document.getElementById(anchorId);
-		window.scrollTo({
-			top: anchor?.offsetTop,
-			behavior: "smooth"
-		});
-	}
 
 	let y: number;
 	let header_targets: { [key: string]: HTMLElement } = {};
@@ -146,7 +136,6 @@
 								<a
 									href="#flagging"
 									class="invisible group-hover-visible"
-									on:click={handleAnchorClick}
 									><img class="anchor-img" src={anchor} /></a
 								>
 							</h3>
@@ -160,7 +149,7 @@
 							<a
 								href="#description"
 								class="invisible group-hover-visible"
-								on:click={handleAnchorClick}
+								
 								><img class="anchor-img-small" src={anchor} /></a
 							>
 						</h4>
@@ -178,7 +167,6 @@
 									<a
 										href="#{obj.slug}-header"
 										class="invisible group-hover-visible"
-										on:click={handleAnchorClick}
 										><img class="anchor-img" src={anchor} /></a
 									>
 								</h3>
@@ -227,7 +215,6 @@
 								<a
 									href="#{obj.name}-description"
 									class="invisible group-hover-visible"
-									on:click={handleAnchorClick}
 									><img class="anchor-img-small" src={anchor} /></a
 								>
 							</h4>
@@ -267,7 +254,6 @@
 									<a
 										href="#{obj.name}-example-usage"
 										class="invisible group-hover-visible"
-										on:click={handleAnchorClick}
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
@@ -287,7 +273,6 @@
 									<a
 										href="#{obj.name}-initialization"
 										class="invisible group-hover-visible"
-										on:click={handleAnchorClick}
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
@@ -387,7 +372,6 @@
 									<a
 										href="#guides"
 										class="invisible group-hover-visible"
-										on:click={handleAnchorClick}
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
@@ -422,7 +406,6 @@
 										<a
 											href="#{obj.name}-demos"
 											class="invisible group-hover-visible"
-											on:click={handleAnchorClick}
 											><img class="anchor-img-small" src={anchor} /></a
 										>
 									</h4>
@@ -492,7 +475,7 @@
 				<a
 					class="thin-link py-2 block text-lg"
 					href="#flagging"
-					on:click={handleAnchorClick}>Flagging</a
+					>Flagging</a
 				>
 				{#if headers.length > 0}
 					<ul class="text-slate-700 text-lg leading-6">
@@ -502,7 +485,7 @@
 									bind:this={header_targets[header[1]]}
 									href="#{header[1]}"
 									class="thin-link block py-2 font-light second-nav-link"
-									on:click={handleAnchorClick}>{header[0]}</a
+									>{header[0]}</a
 								>
 							</li>
 						{/each}
@@ -512,7 +495,7 @@
 									<a
 										href="#{method_header[1]}"
 										class="thin-link block py-2 font-light second-nav-link"
-										on:click={handleAnchorClick}>{method_header[0]}</a
+										>{method_header[0]}</a
 									>
 								</li>
 							{/each}
