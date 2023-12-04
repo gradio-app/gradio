@@ -19,4 +19,4 @@
 	</Row>
 </Template>
 
-<Story name="Row" />
+<Story name="Row Layout" />
