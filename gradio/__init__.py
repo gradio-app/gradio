@@ -57,6 +57,7 @@ from gradio.components import (
     Video,
     component,
 )
+from gradio.components.audio import WaveformOptions
 from gradio.data_classes import FileData
 from gradio.events import EventData, LikeData, SelectData, on
 from gradio.exceptions import Error

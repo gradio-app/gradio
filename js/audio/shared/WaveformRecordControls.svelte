@@ -14,6 +14,10 @@
 	let stopButton: HTMLButtonElement;
 	let stopButtonPaused: HTMLButtonElement;
 
+	export let record_time: string;
+	export let show_recording_waveform: boolean | undefined;
+	export let timing = false;
+
 	const dispatch = createEventDispatcher<{
 		error: string;
 	}>();
@@ -120,6 +124,9 @@
 			class="resume-button"
 			on:click={() => record.resumeRecording()}>{i18n("audio.resume")}</button
 		>
+		{#if timing && !show_recording_waveform}
+			<time class="duration-button duration">{record_time}</time>
+		{/if}
 	</div>
 
 	<select
@@ -145,6 +152,7 @@
 		border-radius: var(--radius-full);
 		font-size: var(--text-md);
 		border: 1px solid var(--neutral-400);
+		margin: var(--size-1) var(--size-1) 0 0;
 	}
 	.controls {
 		display: flex;
@@ -156,7 +164,7 @@
 
 	.controls select {
 		text-overflow: ellipsis;
-		margin: var(--size-2) 0;
+		max-width: var(--size-40);
 	}
 
 	@media (max-width: 375px) {
@@ -168,7 +176,7 @@
 	.wrapper {
 		display: flex;
 		align-items: center;
-		justify-content: center;
+		flex-wrap: wrap;
 	}
 
 	.record {
@@ -183,7 +191,7 @@
 		border-radius: var(--radius-3xl);
 		align-items: center;
 		border: 1px solid var(--neutral-400);
-		margin-right: 5px;
+		margin: var(--size-1) var(--size-1) 0 0;
 	}
 
 	.stop-button-paused::before {
@@ -212,7 +220,7 @@
 		border-radius: var(--radius-3xl);
 		align-items: center;
 		border: 1px solid var(--primary-600);
-		margin-right: 5px;
+		margin: var(--size-1) var(--size-1) 0 0;
 	}
 
 	.record-button::before {
@@ -265,6 +273,7 @@
 		border: 1px solid var(--neutral-400);
 		border-radius: var(--radius-3xl);
 		padding: var(--spacing-md);
+		margin: var(--size-1) var(--size-1) 0 0;
 	}
 
 	.resume-button {
@@ -276,6 +285,19 @@
 		padding: var(--spacing-xl);
 		line-height: 1px;
 		font-size: var(--text-md);
+		margin: var(--size-1) var(--size-1) 0 0;
+	}
+
+	.duration {
+		display: flex;
+		height: var(--size-8);
+		width: var(--size-20);
+		border: 1px solid var(--neutral-400);
+		border-radius: var(--radius-3xl);
+		padding: var(--spacing-md);
+		align-items: center;
+		justify-content: center;
+		margin: var(--size-1) var(--size-1) 0 0;
 	}
 
 	:global(::part(region)) {

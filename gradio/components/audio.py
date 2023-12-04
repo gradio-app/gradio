@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import dataclasses
 from pathlib import Path
-from typing import Any, Callable, Literal, TypedDict
+from typing import Any, Callable, Literal
 
 import numpy as np
 import requests
@@ -18,11 +19,13 @@ from gradio.events import Events
 set_documentation_group("component")
 
 
-class WaveformOptions(TypedDict, total=False):
-    waveform_color: str
-    waveform_progress_color: str
-    show_controls: bool
-    skip_length: int
+@dataclasses.dataclass
+class WaveformOptions:
+    waveform_color: str | None = None
+    waveform_progress_color: str | None = None
+    show_controls: bool = False
+    skip_length: str | None = None
+    show_recording_waveform: bool = True
 
 
 @document()
@@ -80,7 +83,7 @@ class Audio(
         show_share_button: bool | None = None,
         min_length: int | None = None,
         max_length: int | None = None,
-        waveform_options: WaveformOptions | None = None,
+        waveform_options: WaveformOptions | dict | None = None,
     ):
         """
         Parameters:
@@ -142,7 +145,13 @@ class Audio(
             if show_share_button is None
             else show_share_button
         )
-        self.waveform_options = waveform_options
+        if waveform_options is None:
+            self.waveform_options = WaveformOptions()
+        self.waveform_options = (
+            WaveformOptions(**waveform_options)
+            if isinstance(waveform_options, dict)
+            else waveform_options
+        )
         self.min_length = min_length
         self.max_length = max_length
         super().__init__(
