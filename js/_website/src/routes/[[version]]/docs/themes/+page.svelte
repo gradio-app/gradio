@@ -21,16 +21,6 @@
 	let py_client = data.py_client;
 
 	let current_selection = 0;
-	function handleAnchorClick(event: MouseEvent) {
-		event.preventDefault();
-		const link = event.currentTarget as HTMLAnchorElement;
-		const anchorId = new URL(link.href).hash.replace("#", "");
-		const anchor = document.getElementById(anchorId);
-		window.scrollTo({
-			top: anchor?.offsetTop,
-			behavior: "smooth"
-		});
-	}
 
 	let y: number;
 	let header_targets: { [key: string]: HTMLElement } = {};
@@ -143,10 +133,7 @@
 						<div class="flex flex-row items-center justify-between">
 							<h3 id="themes-header" class="group text-3xl font-light py-4">
 								Themes
-								<a
-									href="#themes"
-									class="invisible group-hover-visible"
-									on:click={handleAnchorClick}
+								<a href="#themes" class="invisible group-hover-visible"
 									><img class="anchor-img" src={anchor} /></a
 								>
 							</h3>
@@ -157,10 +144,7 @@
 							id="description"
 						>
 							Description
-							<a
-								href="#description"
-								class="invisible group-hover-visible"
-								on:click={handleAnchorClick}
+							<a href="#description" class="invisible group-hover-visible"
 								><img class="anchor-img-small" src={anchor} /></a
 							>
 						</h4>
@@ -180,7 +164,6 @@
 									<a
 										href="#{obj.slug}-header"
 										class="invisible group-hover-visible"
-										on:click={handleAnchorClick}
 										><img class="anchor-img" src={anchor} /></a
 									>
 								</h3>
@@ -230,7 +213,6 @@
 									<a
 										href="#{obj.name}-description"
 										class="invisible group-hover-visible"
-										on:click={handleAnchorClick}
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
@@ -273,7 +255,6 @@
 									<a
 										href="#{obj.name}-example-usage"
 										class="invisible group-hover-visible"
-										on:click={handleAnchorClick}
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
@@ -293,7 +274,6 @@
 									<a
 										href="#{obj.name}-initialization"
 										class="invisible group-hover-visible"
-										on:click={handleAnchorClick}
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
@@ -383,7 +363,6 @@
 									<a
 										href="#{obj.name}-methods"
 										class="invisible group-hover-visible"
-										on:click={handleAnchorClick}
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
@@ -402,10 +381,7 @@
 									id="guides"
 								>
 									Guides
-									<a
-										href="#guides"
-										class="invisible group-hover-visible"
-										on:click={handleAnchorClick}
+									<a href="#guides" class="invisible group-hover-visible"
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
@@ -440,7 +416,6 @@
 										<a
 											href="#{obj.name}-demos"
 											class="invisible group-hover-visible"
-											on:click={handleAnchorClick}
 											><img class="anchor-img-small" src={anchor} /></a
 										>
 									</h4>
@@ -507,11 +482,7 @@
 			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:block lg:w-2/12"
 		>
 			<div class="mx-8">
-				<a
-					class="thin-link py-2 block text-lg"
-					href="#themes"
-					on:click={handleAnchorClick}>Themes</a
-				>
+				<a class="thin-link py-2 block text-lg" href="#themes">Themes</a>
 				{#if headers.length > 0}
 					<ul class="text-slate-700 text-lg leading-6">
 						{#each headers as header}
@@ -520,7 +491,7 @@
 									bind:this={header_targets[header[1]]}
 									href="#{header[1]}"
 									class="thin-link block py-2 font-light second-nav-link"
-									on:click={handleAnchorClick}>{header[0]}</a
+									>{header[0]}</a
 								>
 							</li>
 						{/each}
@@ -530,7 +501,6 @@
 									<a
 										href="#{method_header[1]}"
 										class="thin-link block py-2 font-light second-nav-link sub-link"
-										on:click={handleAnchorClick}
 										>&nbsp&nbsp&nbsp&nbsp{method_header[0]}</a
 									>
 								</li>

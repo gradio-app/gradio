@@ -29,17 +29,6 @@
 
 	let current_selection = 0;
 
-	function handleAnchorClick(event: MouseEvent) {
-		event.preventDefault();
-		const link = event.currentTarget as HTMLAnchorElement;
-		const anchorId = new URL(link?.href).hash.replace("#", "");
-		const anchor = document.getElementById(anchorId);
-		window.scrollTo({
-			top: anchor?.offsetTop,
-			behavior: "smooth"
-		});
-	}
-
 	let y: number;
 	let header_targets: { [key: string]: HTMLElement } = {};
 	let target_elem: HTMLElement;
@@ -164,7 +153,6 @@
 								<a
 									href="#{obj.slug}-header"
 									class="invisible group-hover-visible"
-									on:click={handleAnchorClick}
 									><img class="anchor-img" src={anchor} /></a
 								>
 							</h3>
@@ -222,10 +210,7 @@
 						<div id="description">
 							<h4 class="mt-8 text-xl text-orange-500 font-light group">
 								Description
-								<a
-									href="#description"
-									class="invisible group-hover-visible"
-									on:click={handleAnchorClick}
+								<a href="#description" class="invisible group-hover-visible"
 									><img class="anchor-img-small" src={anchor} /></a
 								>
 							</h4>
@@ -269,10 +254,7 @@
 							<div id="example-usage">
 								<h4 class="mt-4 text-xl text-orange-500 font-light group">
 									Example Usage
-									<a
-										href="#example-usage"
-										class="invisible group-hover-visible"
-										on:click={handleAnchorClick}
+									<a href="#example-usage" class="invisible group-hover-visible"
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
@@ -345,10 +327,7 @@
 							<div id="shortcuts">
 								<h4 class="mt-6 text-xl text-orange-500 font-light group">
 									Shortcuts
-									<a
-										href="#shortcuts"
-										class="invisible group-hover-visible"
-										on:click={handleAnchorClick}
+									<a href="#shortcuts" class="invisible group-hover-visible"
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
@@ -395,10 +374,7 @@
 								<div class="category my-8" id="examples">
 									<h4 class="text-xl text-orange-500 font-light group">
 										Demos
-										<a
-											href="#demos"
-											class="invisible group-hover-visible"
-											on:click={handleAnchorClick}
+										<a href="#demos" class="invisible group-hover-visible"
 											><img class="anchor-img-small" src={anchor} /></a
 										>
 									</h4>
@@ -447,7 +423,6 @@
 										<a
 											href="#event-listeners"
 											class="invisible group-hover-visible"
-											on:click={handleAnchorClick}
 											><img class="anchor-img-small" src={anchor} /></a
 										>
 									</h4>
@@ -460,10 +435,7 @@
 								<div id="methods">
 									<h4 class="mt-4 p-3 text-xl text-orange-500 font-light group">
 										Methods
-										<a
-											href="#methods"
-											class="invisible group-hover-visible"
-											on:click={handleAnchorClick}
+										<a href="#methods" class="invisible group-hover-visible"
 											><img class="anchor-img-small" src={anchor} /></a
 										>
 									</h4>
@@ -481,10 +453,7 @@
 							<div id="guides">
 								<h4 class="mt-4 p-3 text-xl text-orange-500 font-light group">
 									Guides
-									<a
-										href="#guides"
-										class="invisible group-hover-visible"
-										on:click={handleAnchorClick}
+									<a href="#guides" class="invisible group-hover-visible"
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
@@ -547,10 +516,7 @@
 			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:block lg:w-2/12"
 		>
 			<div class="mx-8">
-				<a
-					class="thin-link py-2 block text-lg"
-					href="#{obj.slug}"
-					on:click={handleAnchorClick}>{obj.name}</a
+				<a class="thin-link py-2 block text-lg" href="#{obj.slug}">{obj.name}</a
 				>
 				{#if headers.length > 0}
 					<ul class="text-slate-700 text-lg leading-6">
@@ -560,7 +526,7 @@
 									bind:this={header_targets[header[1]]}
 									href="#{header[1]}"
 									class="thin-link block py-2 font-light second-nav-link"
-									on:click={handleAnchorClick}>{header[0]}</a
+									>{header[0]}</a
 								>
 							</li>
 						{/each}
@@ -571,7 +537,6 @@
 										bind:this={header_targets[method_header[1]]}
 										href="#{method_header[1]}"
 										class="thin-link block py-2 font-light second-nav-link sub-link"
-										on:click={handleAnchorClick}
 										>&nbsp&nbsp&nbsp&nbsp{method_header[0]}</a
 									>
 								</li>
@@ -583,7 +548,7 @@
 									bind:this={header_targets["guides"]}
 									href="#guides"
 									class="thin-link block py-2 font-light second-nav-link"
-									on:click={handleAnchorClick}>Guides</a
+									>Guides</a
 								>
 							</li>
 						{/if}
