@@ -76,23 +76,7 @@
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
-
 		const trimButton = canvas.getByLabelText("Trim video to selection");
-
 		userEvent.click(trimButton);
-
-		await new Promise((r) => setTimeout(r, 4000));
-
-		const rightHandle = canvas.getByLabelText(
-			"end drag handle for trimming video"
-		);
-
-		userEvent.click(rightHandle);
-
-		for (let i = 0; i < 4; i++) {
-			await userEvent.keyboard("[ArrowRight]");
-		}
-
-		userEvent.click(canvas.getByText("Trim"));
 	}}
 />

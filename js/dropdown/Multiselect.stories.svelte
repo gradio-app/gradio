@@ -22,7 +22,7 @@
 </Template>
 
 <Story
-	name="Multiselect"
+	name="Multiselect Interactive"
 	args={{
 		value: ["swim", "run"],
 		choices: [
