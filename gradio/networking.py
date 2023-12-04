@@ -223,8 +223,10 @@ def setup_tunnel(
             response = httpx.get(GRADIO_API_SERVER)
             payload = response.json()[0]
             remote_host, remote_port = payload["host"], int(payload["port"])
-        except:
-            raise RuntimeError("Could not get share link from Gradio API Server.")
+        except Exception as e:
+            raise RuntimeError(
+                "Could not get share link from Gradio API Server."
+            ) from e
     else:
         remote_host, remote_port = share_server_address.split(":")
         remote_port = int(remote_port)

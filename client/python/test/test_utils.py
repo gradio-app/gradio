@@ -5,8 +5,8 @@ from copy import deepcopy
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import httpx
 import pytest
-import requests
 
 from gradio_client import media_data, utils
 
@@ -41,10 +41,9 @@ def test_encode_url_to_base64():
 
 
 def test_encode_url_to_base64_doesnt_encode_errors(monkeypatch):
-    error_response = requests.Response()
-    error_response.status_code = 404
-    monkeypatch.setattr(requests, "get", lambda *args, **kwargs: error_response)
-    with pytest.raises(requests.RequestException):
+    error_response = httpx.Response(status_code=404)
+    monkeypatch.setattr(httpx, "get", lambda *args, **kwargs: error_response)
+    with pytest.raises(httpx.HTTPStatusError):
         utils.encode_url_to_base64("https://example.com/foo")
 
 
@@ -78,11 +77,9 @@ def test_download_private_file(gradio_temp_dir):
 
 
 def test_download_tmp_copy_of_file_does_not_save_errors(monkeypatch, gradio_temp_dir):
-    error_response = requests.Response()
-    error_response.status_code = 404
-    error_response.close = lambda: 0  # Mock close method to avoid unrelated exception
-    monkeypatch.setattr(requests, "get", lambda *args, **kwargs: error_response)
-    with pytest.raises(requests.RequestException):
+    error_response = httpx.Response(status_code=404)
+    monkeypatch.setattr(httpx, "get", lambda *args, **kwargs: error_response)
+    with pytest.raises(httpx.RequestError):
         utils.download_file("https://example.com/foo", dir=str(gradio_temp_dir))
 
 
@@ -121,7 +118,7 @@ async def test_get_pred_from_ws():
     mock_ws.recv.side_effect = messages
     data = {"data": ["foo"], "fn_index": "foo"}
     hash_data = {"session_hash": "daslskdf", "fn_index": "foo"}
-    output = await utils.get_pred_from_ws(mock_ws, data, hash_data)
+    output = await utils.get_pred_from_ws(mock_ws, data, hash_data)  # type: ignore
     assert output == {"data": ["result!"]}
     mock_ws.send.assert_called_once_with(data)
 
@@ -143,8 +140,10 @@ def test_sleep_successful(mock_post):
 
 
 @patch(
-    "requests.post",
-    return_value=MagicMock(raise_for_status=MagicMock(side_effect=requests.HTTPError)),
+    "httpx.post",
+    return_value=MagicMock(
+        raise_for_status=MagicMock(side_effect=httpx.HTTPStatusError)
+    ),
 )
 def test_sleep_unsuccessful(mock_post):
     with pytest.raises(utils.SpaceDuplicationError):
