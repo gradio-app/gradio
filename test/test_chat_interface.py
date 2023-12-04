@@ -49,6 +49,12 @@ class TestInit:
         assert chatbot.submit_btn is None
         assert chatbot.retry_btn is None
 
+    def test_concurrency_limit(self):
+        chat = gr.ChatInterface(double, concurrency_limit=10)
+        assert chat.concurrency_limit == 10
+        fns = [fn for fn in chat.fns if fn.name in {"_submit_fn", "_api_submit_fn"}]
+        assert all(fn.concurrency_limit == 10 for fn in fns)
+
     def test_events_attached(self):
         chatbot = gr.ChatInterface(double)
         dependencies = chatbot.dependencies
