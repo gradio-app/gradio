@@ -2,4 +2,4 @@
 "website": minor
 ---
 
-feat:Better anchor links and smooth scrolling
+feat:Removes smooth scrolling from website
