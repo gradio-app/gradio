@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 from pathlib import Path
-from typing import Any, Callable, Literal, Optional
+from typing import Any, Callable, Literal
 
 import numpy as np
 import requests
@@ -21,11 +21,11 @@ set_documentation_group("component")
 
 @dataclasses.dataclass
 class WaveformOptions:
-    waveform_color: Optional[str] = None
-    waveform_progress_color: Optional[str] = None
-    show_controls: Optional[bool] = False
-    skip_length: Optional[int] = None
-    show_recording_waveform: Optional[bool] = True
+    waveform_color: str | None = None
+    waveform_progress_color: str | None = None
+    show_controls: bool | None = False
+    skip_length: str | None = None
+    show_recording_waveform: bool | None = True
 
 
 @document()
@@ -145,7 +145,8 @@ class Audio(
             if show_share_button is None
             else show_share_button
         )
-
+        if waveform_options is None:
+            self.waveform_options = WaveformOptions()
         self.waveform_options = (
             WaveformOptions(**waveform_options)
             if isinstance(waveform_options, dict)
