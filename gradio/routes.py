@@ -232,13 +232,13 @@ class App(FastAPI):
 
         @app.get("/token")
         @app.get("/token/")
-        def get_token(request: fastapi.Request) -> dict:
+        def get_token(request: fastapi.Request):
             token = request.cookies.get(f"access-token-{app.cookie_id}")
             return {"token": token, "user": app.tokens.get(token)}
 
         @app.get("/app_id")
         @app.get("/app_id/")
-        def app_id(request: fastapi.Request) -> dict:
+        def app_id(request: fastapi.Request):
             return {"app_id": app.get_blocks().app_id}
 
         @app.get("/dev/reload", dependencies=[Depends(login_check)])
