@@ -35,14 +35,14 @@ def _setup_config(
     app_text = original_path.read_text(encoding=encoding)
 
     patterns = [
-        f"with gr\\.Blocks\\(\\) as {demo_name}",
+        f"with gr\\.Blocks\\(.+\\) as {demo_name}",
         f"{demo_name} = gr\\.Blocks",
         f"{demo_name} = gr\\.Interface",
         f"{demo_name} = gr\\.ChatInterface",
         f"{demo_name} = gr\\.TabbedInterface",
     ]
 
-    if not any(re.search(p, app_text) for p in patterns):
+    if not any(re.search(p, app_text, flags=re.DOTALL) for p in patterns):
         print(
             f"\n[bold red]Warning[/]: Cannot statically find a gradio demo called {demo_name}. "
             "Reload work may fail."
