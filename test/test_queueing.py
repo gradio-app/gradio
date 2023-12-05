@@ -18,8 +18,6 @@ class TestQueueing:
 
             name.submit(greet, name, output)
 
-        demo.launch(prevent_thread_lock=True)
-
         with connect(demo) as client:
             job = client.submit("x", fn_index=0)
             assert job.result() == "Hello, x!"
