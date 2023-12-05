@@ -18,7 +18,7 @@
 	let tag = type === "fieldset" ? "fieldset" : "div";
 
 	const get_height = (
-		height: string | number | undefined,
+		height: string | number | undefined
 	): string | undefined => {
 		if (height === undefined) {
 			return undefined;
