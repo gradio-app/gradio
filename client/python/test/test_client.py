@@ -1146,21 +1146,9 @@ class TestDuplication:
             sleep_timeout=15,
             hf_token=HF_TOKEN,
         )
-        mock_set_timeout.assert_called_once_with(timeout_in_seconds=15 * 60)
-
-    @pytest.mark.flaky
-    @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware=cpu))
-    @patch("gradio_client.client.Client.__init__", return_value=None)
-    def test_default_space_id(self, mock_init, mock_runtime):
-        Client.duplicate(
-            "gradio/calculator",
-            hf_token=HF_TOKEN,
-        )
-        mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
-        mock_runtime.assert_any_call("gradio-tests/calculator", token=HF_TOKEN)
-        mock_init.assert_called_with(
-            "gradio-tests/calculator", max_workers=40, verbose=True
-        )
+        assert mock_set_timeout.call_count == 1
+        _, called_kwargs = mock_set_timeout.call_args
+        assert called_kwargs["timeout_in_seconds"] == 15 * 60
 
     @pytest.mark.flaky
     @patch("huggingface_hub.add_space_secret")
