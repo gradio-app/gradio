@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 from gradio_client import media_data
+from huggingface_hub import HfFolder
 
 import gradio as gr
 from gradio.context import Context
@@ -27,10 +28,7 @@ pytestmark = pytest.mark.flaky
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
-HF_HOME = Path.home() / ".cache" / "huggingface" / "token"
-HF_TOKEN = os.getenv("HF_TOKEN") or (
-    Path(HF_HOME).read_text().strip() if Path(HF_HOME).exists() else None
-)
+HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
 
 
 class TestLoadInterface:

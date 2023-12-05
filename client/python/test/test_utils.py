@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
+from huggingface_hub import HfFolder
 
 from gradio_client import media_data, utils
 
@@ -19,10 +20,7 @@ types["MultipleFile"] = {
 types["SingleFile"] = {"type": "string", "description": "filepath or URL to file"}
 
 
-HF_HOME = Path.home() / ".cache" / "huggingface" / "token"
-HF_TOKEN = os.getenv("HF_TOKEN") or (
-    Path(HF_HOME).read_text().strip() if Path(HF_HOME).exists() else None
-)
+HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
 
 
 def test_encode_url_or_file_to_base64():

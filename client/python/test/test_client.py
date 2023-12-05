@@ -16,16 +16,14 @@ import pytest
 import uvicorn
 from fastapi import FastAPI
 from gradio.networking import Server
+from huggingface_hub import HfFolder
 from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
 from gradio_client.client import DEFAULT_TEMP_DIR
 from gradio_client.utils import Communicator, ProgressUnit, Status, StatusUpdate
 
-HF_HOME = Path.home() / ".cache" / "huggingface" / "token"
-HF_TOKEN = os.getenv("HF_TOKEN") or (
-    Path(HF_HOME).read_text().strip() if Path(HF_HOME).exists() else None
-)
+HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
 
 
 @contextmanager
