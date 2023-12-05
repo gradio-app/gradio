@@ -278,6 +278,9 @@ export function api_factory(
 
 			const session_hash = Math.random().toString(36).substring(2);
 			const last_status: Record<string, Status["stage"]> = {};
+			let stream_open = false;
+			let event_stream: EventSource | null = null;
+			const event_callbacks: Record<string, () => Promise<void>> = {};
 			let config: Config;
 			let api_map: Record<string, number> = {};
 
@@ -766,7 +769,7 @@ export function api_factory(
 								}
 							}
 						};
-					} else {
+					} else if (protocol == "sse_v1") {
 						fire_event({
 							type: "status",
 							stage: "pending",
@@ -800,17 +803,11 @@ export function api_factory(
 								});
 							} else {
 								event_id = response.event_id as string;
-								var params = new URLSearchParams({ event_id }).toString();
-								let url = new URL(
-									`${http_protocol}//${resolve_root(
-										host,
-										config.path,
-										true
-									)}/queue/join?${params}`
-								);
-								eventSource = new EventSource(url);
-								eventSource.onmessage = async function (event) {
-									const _data = JSON.parse(event.data);
+								if (!stream_open) {
+									open_stream();
+								}
+
+								let callback = async function (_data: object) {
 									const { type, status, data } = handle_message(
 										_data,
 										last_status[fn_index]
@@ -825,9 +822,6 @@ export function api_factory(
 											time: new Date(),
 											...status
 										});
-										if (status.stage === "error") {
-											eventSource.close();
-										}
 									} else if (type === "complete") {
 										complete = status;
 									} else if (type === "log") {
@@ -875,10 +869,10 @@ export function api_factory(
 												endpoint: _endpoint,
 												fn_index
 											});
-											eventSource.close();
 										}
 									}
 								};
+								event_callbacks[event_id] = callback;
 							}
 						});
 					}
@@ -910,6 +904,13 @@ export function api_factory(
 					let listeners = narrowed_listener_map[eventType] || [];
 					listeners = listeners?.filter((l) => l !== listener);
 					narrowed_listener_map[eventType] = listeners;
+
+					if (event_callbacks[event_id]) {
+						delete event_callbacks[event_id];
+						if (Object.keys(event_callbacks).length === 0) {
+							close_stream();
+						}
+					}
 
 					return { on, off, cancel, destroy };
 				}
@@ -977,6 +978,31 @@ export function api_factory(
 					cancel,
 					destroy
 				};
+			}
+
+			function open_stream(): void {
+				console.log("opening stream");
+				stream_open = true;
+				let params = new URLSearchParams({
+					session_hash: session_hash
+				}).toString();
+				let url = new URL(
+					`${http_protocol}//${resolve_root(
+						host,
+						config.path,
+						true
+					)}/queue/join?${params}`
+				);
+				event_stream = new EventSource(url);
+				event_stream.onmessage = async function (event) {
+					let _data = JSON.parse(event.data);
+					await event_callbacks[_data.event_id](_data);
+				};
+			}
+
+			function close_stream(): void {
+				stream_open = false;
+				event_stream?.close();
 			}
 
 			async function component_server(

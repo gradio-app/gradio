@@ -318,8 +318,9 @@ async def get_pred_from_sse(
     helper: Communicator,
     sse_url: str,
     sse_data_url: str,
-    cookies: dict[str, str] | None = None,
-    protocol: str = "sse_v1",
+    cookies: dict[str, str] | None,
+    protocol: str,
+    pending_message_per_event: dict[str, list[str]],
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
@@ -330,7 +331,7 @@ async def get_pred_from_sse(
                 )
                 if protocol == "sse"
                 else stream_sse_v1(
-                    client, data, hash_data, helper, sse_url, sse_data_url, cookies
+                    client, data, hash_data, helper, sse_data_url, cookies, pending_message_per_event
                 )
             ),
         ],
@@ -426,9 +427,9 @@ async def stream_sse_v1(
     data: dict,
     hash_data: dict,
     helper: Communicator,
-    sse_url: str,
     sse_data_url: str,
-    cookies: dict[str, str] | None = None,
+    cookies: dict[str, str] | None,
+    pending_message_per_event: dict[str, list[str]],
 ) -> dict[str, Any]:
     try:
         req = await client.post(
@@ -440,51 +441,51 @@ async def stream_sse_v1(
         resp = req.json()
         event_id = resp["event_id"]
 
-        async with client.stream(
-            "GET", sse_url, params={"event_id": event_id}, cookies=cookies
-        ) as response:
-            async for line in response.aiter_text():
-                if line.startswith("data:"):
-                    resp = json.loads(line[5:])
-                    print(">", resp)
+        while event_id not in pending_message_per_event:
+            await asyncio.sleep(0.05)
+        pending_messages = pending_message_per_event[event_id]
 
-                    with helper.lock:
-                        has_progress = "progress_data" in resp
-                        log_message = (
-                            (resp.get("log"), resp.get("level"))
-                            if resp["msg"] == "log"
-                            else None
-                        )
-                        status_update = StatusUpdate(
-                            code=Status.msg_to_status(resp["msg"]),
-                            queue_size=resp.get("queue_size"),
-                            rank=resp.get("rank", None),
-                            success=resp.get("success"),
-                            time=datetime.now(),
-                            eta=resp.get("rank_eta"),
-                            progress_data=ProgressUnit.from_msg(resp["progress_data"])
-                            if has_progress
-                            else None,
-                            log=log_message,
-                        )
-                        output = resp.get("output", {}).get("data", [])
-                        if output and status_update.code != Status.FINISHED:
-                            try:
-                                result = helper.prediction_processor(*output)
-                            except Exception as e:
-                                result = [e]
-                            helper.job.outputs.append(result)
-                        helper.job.latest_status = status_update
+        while True:
+            if len(pending_messages) > 0:
+                resp = pending_messages.pop(0)
+            else:
+                await asyncio.sleep(0.05)
+                continue
+                
+            with helper.lock:
+                has_progress = "progress_data" in resp
+                log_message = (
+                    (resp.get("log"), resp.get("level"))
+                    if resp["msg"] == "log"
+                    else None
+                )
+                status_update = StatusUpdate(
+                    code=Status.msg_to_status(resp["msg"]),
+                    queue_size=resp.get("queue_size"),
+                    rank=resp.get("rank", None),
+                    success=resp.get("success"),
+                    time=datetime.now(),
+                    eta=resp.get("rank_eta"),
+                    progress_data=ProgressUnit.from_msg(resp["progress_data"])
+                    if has_progress
+                    else None,
+                    log=log_message,
+                )
+                output = resp.get("output", {}).get("data", [])
+                if output and status_update.code != Status.FINISHED:
+                    try:
+                        result = helper.prediction_processor(*output)
+                    except Exception as e:
+                        result = [e]
+                    helper.job.outputs.append(result)
+                helper.job.latest_status = status_update
 
-                    if resp["msg"] == "queue_full":
-                        raise QueueError("Queue is full! Please try again.")
-                    elif resp["msg"] == "process_completed":
-                        print("out")
-                        return resp["output"]
-                else:
-                    raise ValueError(f"Unexpected message: {line}")
-        print("no out")
-        raise ValueError("Did not receive process_completed message.")
+            if resp["msg"] == "queue_full":
+                raise QueueError("Queue is full! Please try again.")
+            elif resp["msg"] == "process_completed":
+                del pending_message_per_event[event_id]
+                return resp["output"]
+
     except asyncio.CancelledError:
         print("cancelled")
         raise

@@ -19,11 +19,11 @@ class PredictBody(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    session_hash: Optional[str] = None
+    session_hash: str
     event_id: Optional[str] = None
     data: List[Any]
     event_data: Optional[Any] = None
-    fn_index: Optional[int] = None
+    fn_index: int
     trigger_id: Optional[int] = None
     batched: Optional[
         bool

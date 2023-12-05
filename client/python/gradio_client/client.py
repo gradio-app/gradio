@@ -140,12 +140,12 @@ class Client:
         self._info = self._get_api_info()
         self.session_hash = str(uuid.uuid4())
 
-        protocol: str = self.config.get("protocol", "ws")
+        self.protocol: str = self.config.get("protocol", "ws")
         endpoint_class = (
-            Endpoint if protocol.startswith("sse") else EndpointV3Compatibility
+            Endpoint if self.protocol.startswith("sse") else EndpointV3Compatibility
         )
         self.endpoints = [
-            endpoint_class(self, fn_index, dependency, protocol)
+            endpoint_class(self, fn_index, dependency, self.protocol)
             for fn_index, dependency in enumerate(self.config["dependencies"])
         ]
 
@@ -154,6 +154,32 @@ class Client:
 
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
         threading.Thread(target=self._telemetry_thread).start()
+
+        self.stream_open = False
+        self.streaming_future: Future | None = None
+        self.pending_messages_per_event: dict[str, list[str]] = {}
+
+    async def stream_messages(self, sse_url: str, hash_data: dict, cookies: dict[str, str] | None) -> None:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
+            async with client.stream(
+                "GET", sse_url, params=hash_data, cookies=cookies
+            ) as response:
+                async for line in response.aiter_text():
+                    if line.startswith("data:"):
+                        resp = json.loads(line[5:])
+                        if resp["msg"] == "heartbeat":
+                            if self.stream_open:
+                                continue
+                            else:
+                                break
+                        event_id = resp["event_id"]
+                        if event_id not in self.pending_messages_per_event:
+                            self.pending_messages_per_event[event_id] = []
+                        self.pending_messages_per_event[event_id].append(resp)
+                    else:
+                        raise ValueError(f"Unexpected SSE line: {line}")
+        
+
 
     @classmethod
     def duplicate(
@@ -368,6 +394,22 @@ class Client:
             for callback in result_callbacks:
                 job.add_done_callback(create_fn(callback))
 
+        if self.protocol == "sse_v1":
+            if not self.stream_open:
+                self.stream_open = True
+
+                def open_stream():
+                    utils.synchronize_async(self.stream_messages, self.sse_url, {"session_hash": self.session_hash}, self.cookies)
+
+                if self.streaming_future is None or self.streaming_future.done():
+                    self.streaming_future = self.executor.submit(open_stream)
+
+            def close_stream(_):
+                if self.stream_open and len(self.pending_messages_per_event) == 0:
+                    self.stream_open = False
+  
+            job.add_done_callback(close_stream)
+            
         return job
 
     def _get_api_info(self):
@@ -1085,6 +1127,7 @@ class Endpoint:
                 self.client.sse_data_url,
                 self.client.cookies,
                 self.protocol,
+                self.client.pending_messages_per_event,
             )
 
 

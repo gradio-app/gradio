@@ -64,10 +64,7 @@ from gradio.route_utils import (  # noqa: F401
 )
 from gradio.state_holder import StateHolder
 from gradio.utils import (
-    cancel_tasks,
     get_package_version,
-    run_coro_in_background,
-    set_task_name,
 )
 
 if TYPE_CHECKING:
@@ -584,75 +581,31 @@ class App(FastAPI):
         @app.get("/queue/join", dependencies=[Depends(login_check)])
         async def queue_join(
             request: fastapi.Request,
-            fn_index: Optional[int] = None,
-            session_hash: Optional[str] = None,
-            username: str = Depends(get_current_user),
-            data: Optional[str] = None,
-            event_id: Optional[str] = None,
+            session_hash: str,
         ):
             blocks = app.get_blocks()
             if blocks._queue.server_app is None:
                 blocks._queue.set_server_app(app)
-
-            if event_id is not None:
-                event = blocks._queue.events_pending_connection.pop(event_id, None)
-                if event is None:
-                    raise HTTPException(status_code=404, detail="Event not found.")
-            elif data is not None:
-                if session_hash is None or fn_index is None:
-                    raise HTTPException(
-                        status_code=400,
-                        detail="Must provide session_hash and fn_index if directly uploading data.",
-                    )
-                input_data = json.loads(data)
-                body = PredictBody(
-                    session_hash=session_hash,
-                    fn_index=fn_index,
-                    data=input_data,
-                    request=request,
-                )
-                event = blocks._queue.load_event_data(body, request, username)
-            else:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Must provide either data or event_id.",
-                )
-
-            # Continuous events are not put in the queue so that they do not
-            # occupy the queue's resource as they are expected to run forever
-            if blocks.dependencies[event.fn_index].get("every", 0):
-                await cancel_tasks({f"{event.session_hash}_{event.fn_index}"})
-                await blocks._queue.reset_iterators(event._id)
-                blocks._queue.continuous_tasks.append(event)
-                task = run_coro_in_background(
-                    blocks._queue.process_events, [event], False
-                )
-                set_task_name(task, event.session_hash, event.fn_index, batch=False)
-                app._asyncio_tasks.append(task)
-            else:
-                rank = blocks._queue.push(event)
-                if rank is None:
-                    event.send_message("queue_full", final=True)
-                else:
-                    estimation = blocks._queue.get_estimation()
-                    await blocks._queue.send_estimation(event, estimation, rank)
 
             async def sse_stream(request: fastapi.Request):
                 try:
                     last_heartbeat = time.perf_counter()
                     while True:
                         if await request.is_disconnected():
-                            await blocks._queue.clean_event(event)
-                        if not event.alive:
+                            await blocks._queue.clean_events(session_hash)
+                            print("disconnected")
                             return
+
+                        if session_hash not in blocks._queue.pending_messages_per_session:
+                            await asyncio.sleep(0.05)
+                            continue
 
                         heartbeat_rate = 15
                         check_rate = 0.05
                         message = None
                         try:
-                            message = event.message_queue.get_nowait()
-                            if message is None:  # end of stream marker
-                                return
+                            messages = blocks._queue.pending_messages_per_session[session_hash]
+                            message = messages.get_nowait()
                         except EmptyQueue:
                             await asyncio.sleep(check_rate)
                             if time.perf_counter() - last_heartbeat > heartbeat_rate:
@@ -665,7 +618,7 @@ class App(FastAPI):
                         if message:
                             yield f"data: {json.dumps(message)}\n\n"
                 except asyncio.CancelledError as e:
-                    await blocks._queue.clean_event(event)
+                    await blocks._queue.clean_events(session_hash)
                     raise e
 
             return StreamingResponse(
@@ -679,8 +632,8 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            event = blocks._queue.load_event_data(body, request, username)
-            return {"event_id": event._id}
+            event_id = await blocks._queue.push(body, request, username)
+            return {"event_id": event_id}
 
         @app.post("/component_server", dependencies=[Depends(login_check)])
         @app.post("/component_server/", dependencies=[Depends(login_check)])

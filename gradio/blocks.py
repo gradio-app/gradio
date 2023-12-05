@@ -893,6 +893,13 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             fn = get_continuous_fn(fn, every)
         elif every:
             raise ValueError("Cannot set a value for `every` without a `fn`.")
+        if every and conccurrency_limit is not None:
+            if concurrency_limit == "default":
+                concurrency_limit = None
+            else:
+                raise ValueError(
+                    "Cannot set a value for `concurrency_limit` with `every`."
+                )
 
         if _targets[0][1] == "change" and trigger_mode is None:
             trigger_mode = "always_last"
