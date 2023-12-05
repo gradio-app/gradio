@@ -5,7 +5,6 @@ from __future__ import annotations
 import itertools
 import os
 import re
-from glob import glob as glob_func
 from pathlib import Path
 from typing import Any, Callable, List, Literal
 
@@ -113,7 +112,10 @@ class FileExplorer(Component):
                 raise ValueError(
                     f"Expected only one file, but {len(payload.root)} were selected."
                 )
-            return self._safe_join(payload.root[0])
+            elif len(payload.root) == 0:
+                return None
+            else:
+                return self._safe_join(payload.root[0])
 
         return [self._safe_join(file) for file in (payload.root)]
 
@@ -190,16 +192,15 @@ class FileExplorer(Component):
 
         files = []
         for result in expand_braces(self.glob):
-            files += glob_func(result, recursive=True, root_dir=self.root)  # type: ignore
+            files += list(Path(self.root).resolve().glob(result))
 
         ignore_files = []
         if self.ignore_glob:
             for result in expand_braces(self.ignore_glob):
-                ignore_files += glob_func(result, recursive=True, root_dir=self.root)  # type: ignore
+                ignore_files += list(Path(self.ignore_glob).resolve().glob(result))
             files = list(set(files) - set(ignore_files))
 
-        tree = make_tree(files)
-
+        tree = make_tree([str(f.relative_to(self.root)) for f in files])
         return tree
 
     def _safe_join(self, folders):

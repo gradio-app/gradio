@@ -31,6 +31,7 @@ except ImportError:
 import gradio as gr
 from gradio import processing_utils, utils
 from gradio.components.dataframe import DataframeData
+from gradio.components.file_explorer import FileExplorerData
 from gradio.components.video import VideoData
 from gradio.data_classes import FileData
 
@@ -2682,6 +2683,46 @@ class TestCode:
             "proxy_url": None,
             "_selectable": False,
         }
+
+
+class TestFileExplorer:
+    def test_component_functions(self):
+        """
+        Preprocess, get_config
+        """
+        file_explorer = gr.FileExplorer(file_count="single")
+
+        config = file_explorer.get_config()
+        assert config["glob"] == "**/*.*"
+        assert config["value"] is None
+        assert config["file_count"] == "single"
+        assert config["server_fns"] == ["ls"]
+
+        input_data = FileExplorerData(root=[["test/test_files/bus.png"]])
+        preprocessed_data = file_explorer.preprocess(input_data)
+        assert isinstance(preprocessed_data, str)
+        assert Path(preprocessed_data).name == "bus.png"
+
+        input_data = FileExplorerData(root=[])
+        preprocessed_data = file_explorer.preprocess(input_data)
+        assert preprocessed_data is None
+
+        file_explorer = gr.FileExplorer(file_count="multiple")
+
+        config = file_explorer.get_config()
+        assert config["glob"] == "**/*.*"
+        assert config["value"] is None
+        assert config["file_count"] == "multiple"
+        assert config["server_fns"] == ["ls"]
+
+        input_data = FileExplorerData(root=[["test/test_files/bus.png"]])
+        preprocessed_data = file_explorer.preprocess(input_data)
+        assert isinstance(preprocessed_data, list)
+        assert Path(preprocessed_data[0]).name == "bus.png"
+
+        input_data = FileExplorerData(root=[])
+        preprocessed_data = file_explorer.preprocess(input_data)
+        assert preprocessed_data == []
 
 
 def test_component_class_ids():

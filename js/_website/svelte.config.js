@@ -18,12 +18,13 @@ const config = {
 				"*",
 				`/${version}/docs`,
 				`/${version}/guides`,
-				`/${version}/docs/js`,
-				`/${version}/docs/js/storybook`,
-				`/${version}/docs/js/`,
 				`/main/docs`,
 				`/main/guides`,
 				`/main/docs/js`,
+				`/main/docs/js/storybook`,
+				`/main/docs/js/`,
+				`/3.50.2/docs`,
+				`/3.50.2/guides`,
 				...Object.keys(redirects)
 			]
 		},

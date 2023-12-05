@@ -1,5 +1,20 @@
 # @gradio/uploadbutton
 
+## 0.3.0
+
+### Features
+
+- [#6584](https://github.com/gradio-app/gradio/pull/6584) [`9bcb1da`](https://github.com/gradio-app/gradio/commit/9bcb1da189a9738d023ef6daad8c6c827e3f6371) - Feat: make UploadButton accept icon.  Thanks [@Justin-Xiang](https://github.com/Justin-Xiang)!
+
+## 0.2.2
+
+### Patch Changes
+
+- Updated dependencies [[`71f1a1f99`](https://github.com/gradio-app/gradio/commit/71f1a1f9931489d465c2c1302a5c8d768a3cd23a)]:
+  - @gradio/client@0.8.2
+  - @gradio/button@0.2.8
+  - @gradio/upload@0.5.1
+
 ## 0.2.1
 
 ### Patch Changes

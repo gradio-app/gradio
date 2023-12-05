@@ -1,3 +1,7 @@
+import ast
+import inspect
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -159,3 +163,23 @@ class TestEventErrors:
 
         with pytest.raises(AttributeError):
             textbox.change(lambda x: x + x, textbox, textbox)
+
+
+def test_event_pyi_file_matches_source_code():
+    """Test that the template used to create pyi files (search INTERFACE_TEMPLATE in component_meta) matches the source code of EventListener._setup."""
+    code = (
+        Path(__file__).parent / ".." / "gradio" / "components" / "button.pyi"
+    ).read_text()
+    mod = ast.parse(code)
+    segment = None
+    for node in ast.walk(mod):
+        if isinstance(node, ast.FunctionDef) and node.name == "click":
+            segment = ast.get_source_segment(code, node)
+
+    # This would fail if Button no longer has a click method
+    assert segment
+    sig = inspect.signature(gr.Button.click)
+    for param in sig.parameters.values():
+        if param.name == "block":
+            continue
+        assert param.name in segment

@@ -1,5 +1,20 @@
 # @gradio/video
 
+## 0.1.9
+
+### Fixes
+
+- [#6566](https://github.com/gradio-app/gradio/pull/6566) [`d548202`](https://github.com/gradio-app/gradio/commit/d548202d2b5bd8a99e3ebc5bf56820b0282ce0f5) - Improve video trimming and error handling.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
+## 0.1.8
+
+### Patch Changes
+
+- Updated dependencies [[`71f1a1f99`](https://github.com/gradio-app/gradio/commit/71f1a1f9931489d465c2c1302a5c8d768a3cd23a)]:
+  - @gradio/client@0.8.2
+  - @gradio/image@0.4.1
+  - @gradio/upload@0.5.1
+
 ## 0.1.7
 
 ### Patch Changes
