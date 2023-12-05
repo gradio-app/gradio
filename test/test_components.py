@@ -640,6 +640,17 @@ class TestImage:
         component = gr.Image(None)
         assert component.get_config().get("value") is None
 
+    def test_images_upright_after_preprocess(self):
+        """
+        postprocess
+        """
+        component = gr.Image(type="pil")
+        file_path = "test/test_files/rotated_image.jpeg"
+        im = PIL.Image.open(file_path)
+        assert im.getexif().get(274) != 1
+        image = component.preprocess(FileData(path=file_path))
+        assert image == PIL.ImageOps.exif_transpose(im)
+
 
 class TestPlot:
     @pytest.mark.asyncio
