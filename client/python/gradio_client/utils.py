@@ -523,7 +523,6 @@ async def stream_sse_v1(
                 return msg["output"]
 
     except asyncio.CancelledError:
-        print("cancelled")
         raise
 
 
