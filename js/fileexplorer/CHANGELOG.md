@@ -1,5 +1,11 @@
 # @gradio/fileexplorer
 
+## 0.3.9
+
+### Fixes
+
+- [#6550](https://github.com/gradio-app/gradio/pull/6550) [`3156598`](https://github.com/gradio-app/gradio/commit/315659817e5e67a04a1375d35ea6fa58d20622d2) - Make FileExplorer work on python 3.8 and 3.9. Also make it update on changes to root, glob, or glob_dir.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.3.8
 
 ### Patch Changes

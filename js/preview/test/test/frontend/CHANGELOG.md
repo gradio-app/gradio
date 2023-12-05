@@ -1,10 +1,18 @@
 # gradio_test
 
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/atoms@0.3.1
+  - @gradio/statustracker@0.4.1
+
 ## 0.3.0
 
 ### Features
 
-- [#6532](https://github.com/gradio-app/gradio/pull/6532) [`96290d304`](https://github.com/gradio-app/gradio/commit/96290d304a61064b52c10a54b2feeb09ca007542) - tweak deps.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6532](https://github.com/gradio-app/gradio/pull/6532) [`96290d304`](https://github.com/gradio-app/gradio/commit/96290d304a61064b52c10a54b2feeb09ca007542) - tweak deps. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.2.3
 
