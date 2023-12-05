@@ -22,16 +22,12 @@ names = sorted(os.listdir("./demos"))
 
 @app.get("/{name}")
 def display_content(request: Request, name: str):
-    app_url = request.base_url._url + f"demo/{name}"
-    print(app_url)
-    return templates.TemplateResponse("index.html", {"request": request, "names": names, "app_url": app_url})
+    return templates.TemplateResponse("index.html", {"request": request, "names": names, "app_url": f"demo/{name}"})
 
 
 @app.get("/")
 def index(request: Request):
-    app_url = request.base_url._url + f"demo/{names[0]}"
-    print(app_url)
-    return templates.TemplateResponse("index.html", {"request": request, "names": names, "app_url": app_url})
+    return templates.TemplateResponse("index.html", {"request": request, "names": names, "app_url": f"demo/{names[0]}"})
 
 
 all_demos = []
