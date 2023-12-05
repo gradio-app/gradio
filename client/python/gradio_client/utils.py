@@ -489,7 +489,6 @@ async def stream_sse_v1(
                 continue
 
             with helper.lock:
-                has_progress = "progress_data" in msg
                 log_message = None
                 if msg["msg"] == "log":
                     log = msg.get("log")

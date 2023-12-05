@@ -48,7 +48,6 @@ class Event:
         self.alive = True
 
 
-
 class Queue:
     def __init__(
         self,
@@ -121,7 +120,6 @@ class Queue:
         messages = self.pending_messages_per_session[event.session_hash]
         messages.put_nowait({"msg": message_type, "event_id": event._id, **data})
 
-
     def _resolve_concurrency_limit(self, default_concurrency_limit):
         """
         Handles the logic of resolving the default_concurrency_limit as this can be specified via a combination
@@ -157,7 +155,7 @@ class Queue:
         self.event_queue.append(event)
 
         estimation = self.get_estimation()
-        await self.send_estimation(event, estimation, queue_len)        
+        await self.send_estimation(event, estimation, queue_len)
 
         return event._id
 
@@ -323,14 +321,13 @@ class Queue:
                 )
                 self.send_message(event, "log", log_message.model_dump())
 
-
     async def clean_events(self, session_hash: str) -> None:
         for job_set in self.active_jobs:
             if job_set:
                 for job in job_set:
                     if job.session_hash == session_hash:
                         job.alive = False
-            
+
         events_to_remove = []
         for event in self.event_queue:
             if event.session_hash == session_hash:
@@ -487,7 +484,8 @@ class Queue:
                 response = None
                 err = e
                 for event in awake_events:
-                    self.send_message(event, 
+                    self.send_message(
+                        event,
                         "process_completed",
                         {
                             "output": {
@@ -505,7 +503,8 @@ class Queue:
                     old_response = response
                     old_err = err
                     for event in awake_events:
-                        self.send_message(event, 
+                        self.send_message(
+                            event,
                             "process_generating",
                             {
                                 "output": old_response,
@@ -526,7 +525,8 @@ class Queue:
                         relevant_response = err
                     else:
                         relevant_response = old_response or old_err
-                    self.send_message(event, 
+                    self.send_message(
+                        event,
                         "process_completed",
                         {
                             "output": {"error": str(relevant_response)}
@@ -541,8 +541,9 @@ class Queue:
                 for e, event in enumerate(awake_events):
                     if batch and "data" in output:
                         output["data"] = list(zip(*response.get("data")))[e]
-                    self.send_message(event, 
-                        "process_completed",\
+                    self.send_message(
+                        event,
+                        "process_completed",
                         {
                             "output": output,
                             "success": response is not None,

@@ -596,7 +596,10 @@ class App(FastAPI):
                             print("disconnected")
                             return
 
-                        if session_hash not in blocks._queue.pending_messages_per_session:
+                        if (
+                            session_hash
+                            not in blocks._queue.pending_messages_per_session
+                        ):
                             await asyncio.sleep(0.05)
                             continue
 
@@ -604,7 +607,9 @@ class App(FastAPI):
                         check_rate = 0.05
                         message = None
                         try:
-                            messages = blocks._queue.pending_messages_per_session[session_hash]
+                            messages = blocks._queue.pending_messages_per_session[
+                                session_hash
+                            ]
                             message = messages.get_nowait()
                         except EmptyQueue:
                             await asyncio.sleep(check_rate)
