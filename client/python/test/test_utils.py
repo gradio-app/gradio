@@ -142,9 +142,7 @@ def test_sleep_successful(mock_post):
 
 @patch(
     "httpx.post",
-    return_value=MagicMock(
-        raise_for_status=MagicMock(side_effect=httpx.HTTPStatusError)
-    ),
+    side_effect=httpx.HTTPStatusError("error", request=None, response=None),
 )
 def test_sleep_unsuccessful(mock_post):
     with pytest.raises(utils.SpaceDuplicationError):

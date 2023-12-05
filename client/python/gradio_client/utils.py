@@ -649,11 +649,11 @@ def set_space_timeout(
             json={"seconds": timeout_in_seconds},
             headers=headers,
         )
-    except Exception as err:
+    except httpx.HTTPStatusError as e:
         raise SpaceDuplicationError(
             f"Could not set sleep timeout on duplicated Space. Please visit {SPACE_URL.format(space_id)} "
             "to set a timeout manually to reduce billing charges."
-        ) from err
+        ) from e
 
 
 ########################
