@@ -215,7 +215,7 @@ class App(FastAPI):
 
         @app.get("/user")
         @app.get("/user/")
-        def get_current_user(request: fastapi.Request):
+        def get_current_user(request: fastapi.Request) -> Optional[str]:
             token = request.cookies.get(
                 f"access-token-{app.cookie_id}"
             ) or request.cookies.get(f"access-token-unsecure-{app.cookie_id}")
@@ -232,13 +232,13 @@ class App(FastAPI):
 
         @app.get("/token")
         @app.get("/token/")
-        def get_token(request: fastapi.Request):
+        def get_token(request: fastapi.Request) -> dict:
             token = request.cookies.get(f"access-token-{app.cookie_id}")
             return {"token": token, "user": app.tokens.get(token)}
 
         @app.get("/app_id")
         @app.get("/app_id/")
-        def app_id(request: fastapi.Request):
+        def app_id(request: fastapi.Request) -> dict:
             return {"app_id": app.get_blocks().app_id}
 
         @app.get("/dev/reload", dependencies=[Depends(login_check)])
@@ -268,8 +268,8 @@ class App(FastAPI):
                 media_type="text/event-stream",
             )
 
-        @app.post("/login", response_model=None)
-        @app.post("/login/", response_model=None)
+        @app.post("/login")
+        @app.post("/login/")
         def login(form_data: OAuth2PasswordRequestForm = Depends()):
             username, password = form_data.username.strip(), form_data.password
             if app.auth is None:
