@@ -27,6 +27,13 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 # Mark the whole module as flaky
 pytestmark = pytest.mark.flaky
 
+HF_HOME = "~/.cache/huggingface/token"
+HF_TOKEN = (
+    os.getenv("HF_TOKEN") or Path(HF_HOME).read_text().strip()
+    if Path(HF_HOME).exists()
+    else None
+)
+
 
 class TestLoadInterface:
     def test_audio_to_audio(self):
@@ -292,9 +299,8 @@ class TestLoadInterface:
             pass
 
     def test_private_space(self):
-        hf_token = "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"  # Intentionally revealing this key for testing purposes
         io = gr.load(
-            "spaces/gradio-tests/not-actually-private-spacev4-sse", hf_token=hf_token
+            "spaces/gradio-tests/not-actually-private-spacev4-sse", hf_token=HF_TOKEN
         )
         try:
             output = io("abc")
@@ -305,10 +311,9 @@ class TestLoadInterface:
 
     @pytest.mark.xfail
     def test_private_space_audio(self):
-        hf_token = "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"  # Intentionally revealing this key for testing purposes
         io = gr.load(
             "spaces/gradio-tests/not-actually-private-space-audiov4-sse",
-            hf_token=hf_token,
+            hf_token=HF_TOKEN,
         )
         try:
             output = io(media_data.BASE64_AUDIO["path"])
@@ -317,21 +322,19 @@ class TestLoadInterface:
             pass
 
     def test_multiple_spaces_one_private(self):
-        hf_token = "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"  # Intentionally revealing this key for testing purposes
         with gr.Blocks():
             gr.load(
                 "spaces/gradio-tests/not-actually-private-spacev4-sse",
-                hf_token=hf_token,
+                hf_token=HF_TOKEN,
             )
             gr.load(
                 "spaces/gradio/test-loading-examplesv4-sse",
             )
-        assert Context.hf_token == hf_token
+        assert Context.hf_token == HF_TOKEN
 
     def test_loading_files_via_proxy_works(self):
-        hf_token = "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"  # Intentionally revealing this key for testing purposes
         io = gr.load(
-            "spaces/gradio-tests/test-loading-examples-privatev4-sse", hf_token=hf_token
+            "spaces/gradio-tests/test-loading-examples-privatev4-sse", hf_token=HF_TOKEN
         )
         assert io.theme.name == "default"
         app, _, _ = io.launch(prevent_thread_lock=True)

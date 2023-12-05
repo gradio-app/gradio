@@ -19,10 +19,11 @@ types["MultipleFile"] = {
 types["SingleFile"] = {"type": "string", "description": "filepath or URL to file"}
 
 
-hf_token = (
-    Path("~/.cache/huggingface/token").read_text().strip()
-    if Path("~/.cache/huggingface/token").exists()
-    else os.getenv("HF_TOKEN", None)
+HF_HOME = "~/.cache/huggingface/token"
+HF_TOKEN = (
+    os.getenv("HF_TOKEN") or Path(HF_HOME).read_text().strip()
+    if Path(HF_HOME).exists()
+    else None
 )
 
 
@@ -79,9 +80,8 @@ def test_download_private_file(gradio_temp_dir):
     url_path = (
         "https://gradio-tests-not-actually-private-spacev4-sse.hf.space/file=lion.jpg"
     )
-    hf_token = "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"  # Intentionally revealing this key for testing purposes
     file = utils.download_file(
-        url_path=url_path, hf_token=hf_token, dir=str(gradio_temp_dir)
+        url_path=url_path, hf_token=HF_TOKEN, dir=str(gradio_temp_dir)
     )
     assert Path(file).name.endswith(".jpg")
 
