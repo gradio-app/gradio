@@ -318,6 +318,7 @@ async def get_pred_from_sse(
     helper: Communicator,
     sse_url: str,
     sse_data_url: str,
+    headers: dict[str, str],
     cookies: dict[str, str] | None,
     protocol: str,
     pending_message_per_event: dict[str, list[str]],
@@ -327,11 +328,11 @@ async def get_pred_from_sse(
             asyncio.create_task(check_for_cancel(helper, cookies)),
             asyncio.create_task(
                 stream_sse_v0(
-                    client, data, hash_data, helper, sse_url, sse_data_url, cookies
+                    client, data, hash_data, helper, sse_url, sse_data_url, headers, cookies
                 )
                 if protocol == "sse"
                 else stream_sse_v1(
-                    client, data, hash_data, helper, sse_data_url, cookies, pending_message_per_event
+                    client, data, hash_data, helper, sse_data_url, headers, cookies, pending_message_per_event
                 )
             ),
         ],
@@ -371,11 +372,16 @@ async def stream_sse_v0(
     helper: Communicator,
     sse_url: str,
     sse_data_url: str,
-    cookies: dict[str, str] | None = None,
+    headers: dict[str, str],
+    cookies: dict[str, str] | None,
 ) -> dict[str, Any]:
     try:
         async with client.stream(
-            "GET", sse_url, params=hash_data, cookies=cookies
+            "GET",
+            sse_url,
+            params=hash_data,
+            cookies=cookies,
+            headers=headers,
         ) as response:
             async for line in response.aiter_text():
                 if line.startswith("data:"):
@@ -411,6 +417,7 @@ async def stream_sse_v0(
                             sse_data_url,
                             json={"event_id": event_id, **data, **hash_data},
                             cookies=cookies,
+                            headers=headers,
                         )
                         req.raise_for_status()
                     elif resp["msg"] == "process_completed":
@@ -428,6 +435,7 @@ async def stream_sse_v1(
     hash_data: dict,
     helper: Communicator,
     sse_data_url: str,
+    headers: dict[str, str],
     cookies: dict[str, str] | None,
     pending_message_per_event: dict[str, list[str]],
 ) -> dict[str, Any]:

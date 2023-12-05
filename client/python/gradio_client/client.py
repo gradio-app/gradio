@@ -1123,11 +1123,18 @@ class Endpoint:
                 data,
                 hash_data,
                 helper,
+<<<<<<< HEAD
                 self.client.sse_url,
                 self.client.sse_data_url,
                 self.client.cookies,
                 self.protocol,
                 self.client.pending_messages_per_event,
+=======
+                sse_url=self.client.sse_url,
+                sse_data_url=self.client.sse_data_url,
+                headers=self.client.headers,
+                cookies=self.client.cookies,
+>>>>>>> origin
             )
 
 
