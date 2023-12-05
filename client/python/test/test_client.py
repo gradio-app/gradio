@@ -22,11 +22,9 @@ from gradio_client import Client
 from gradio_client.client import DEFAULT_TEMP_DIR
 from gradio_client.utils import Communicator, ProgressUnit, Status, StatusUpdate
 
-HF_HOME = "~/.cache/huggingface/token"
-HF_TOKEN = (
-    Path(HF_HOME).read_text().strip()
-    if Path(HF_HOME).exists()
-    else os.getenv("HF_TOKEN", None)
+HF_HOME = Path.home() / ".cache" / "huggingface" / "token"
+HF_TOKEN = os.getenv("HF_TOKEN") or (
+    Path(HF_HOME).read_text().strip() if Path(HF_HOME).exists() else None
 )
 
 
