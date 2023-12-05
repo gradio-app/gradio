@@ -9,7 +9,7 @@ import time
 from pathlib import Path
 from typing import List
 
-import requests
+import httpx
 
 VERSION = "0.2"
 CURRENT_TUNNELS: List["Tunnel"] = []
@@ -46,7 +46,7 @@ class Tunnel:
     @staticmethod
     def download_binary():
         if not Path(BINARY_PATH).exists():
-            resp = requests.get(BINARY_URL)
+            resp = httpx.get(BINARY_URL)
 
             if resp.status_code == 403:
                 raise OSError(

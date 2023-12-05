@@ -13,8 +13,8 @@ from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
+import httpx
 import numpy as np
-import requests
 from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, PngImagePlugin
 
@@ -205,8 +205,9 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
     full_temp_file_path = str(abspath(temp_dir / name))
 
     if not Path(full_temp_file_path).exists():
-        with requests.get(url, stream=True) as r, open(full_temp_file_path, "wb") as f:
-            shutil.copyfileobj(r.raw, f)
+        with httpx.stream("GET", url) as r, open(full_temp_file_path, "wb") as f:
+            for chunk in r.iter_raw():
+                f.write(chunk)
 
     return full_temp_file_path
 

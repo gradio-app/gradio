@@ -8,8 +8,8 @@ import warnings
 from pathlib import Path
 from unittest.mock import MagicMock
 
+import httpx
 import pytest
-import requests
 from typing_extensions import Literal
 
 from gradio import EventData, Request
@@ -55,9 +55,9 @@ class TestUtils:
         mock_get_ipython.return_value = None
         assert ipython_check() is False
 
-    @mock.patch("requests.get")
+    @mock.patch("httpx.get")
     def test_readme_to_html_doesnt_crash_on_connection_error(self, mock_get):
-        mock_get.side_effect = requests.ConnectionError()
+        mock_get.side_effect = httpx.ConnectError("Connection error")
         readme_to_html("placeholder")
 
     def test_readme_to_html_correct_parse(self):

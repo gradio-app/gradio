@@ -10,7 +10,7 @@ import warnings
 from distutils.version import StrictVersion
 from typing import Any
 
-import requests
+import httpx
 
 import gradio
 from gradio import wasm_utils
@@ -60,8 +60,8 @@ def _do_analytics_request(url: str, data: dict[str, Any]) -> None:
 def _do_normal_analytics_request(url: str, data: dict[str, Any]) -> None:
     data["ip_address"] = get_local_ip_address()
     try:
-        requests.post(url, data=data, timeout=5)
-    except (requests.ConnectionError, requests.exceptions.ReadTimeout):
+        httpx.post(url, data=data, timeout=5)
+    except (httpx.ConnectError, httpx.ReadTimeout):
         pass  # do not push analytics if no network
 
 
@@ -87,9 +87,7 @@ async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
 def version_check():
     try:
         current_pkg_version = get_package_version()
-        latest_pkg_version = requests.get(url=PKG_VERSION_URL, timeout=3).json()[
-            "version"
-        ]
+        latest_pkg_version = httpx.get(url=PKG_VERSION_URL, timeout=3).json()["version"]
         if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
             print(
                 f"IMPORTANT: You are using gradio version {current_pkg_version}, "
@@ -116,10 +114,10 @@ def get_local_ip_address() -> str:
 
     if Context.ip_address is None:
         try:
-            ip_address = requests.get(
+            ip_address = httpx.get(
                 "https://checkip.amazonaws.com/", timeout=3
             ).text.strip()
-        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
+        except (httpx.ConnectError, httpx.ReadTimeout):
             ip_address = "No internet connection"
         Context.ip_address = ip_address
     else:

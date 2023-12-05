@@ -1030,7 +1030,7 @@ class TestEndpoints:
             "file6",
             "file7",
         ]
-        with patch("requests.post", MagicMock(return_value=response)):
+        with patch("httpx.post", MagicMock(return_value=response)):
             with patch("builtins.open", MagicMock()):
                 with patch.object(pathlib.Path, "name") as mock_name:
                     mock_name.side_effect = lambda x: x
@@ -1067,7 +1067,7 @@ class TestEndpoints:
             "file6",
             "file7",
         ]
-        with patch("requests.post", MagicMock(return_value=response)):
+        with patch("httpx.post", MagicMock(return_value=response)):
             with patch("builtins.open", MagicMock()):
                 with patch.object(pathlib.Path, "name") as mock_name:
                     mock_name.side_effect = lambda x: x
