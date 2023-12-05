@@ -17,7 +17,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, TypedDict
 
 import fsspec.asyn
 import httpx
@@ -47,6 +47,19 @@ INVALID_RUNTIME = [
     SpaceStage.RUNTIME_ERROR,
     SpaceStage.PAUSED,
 ]
+
+
+class Message(TypedDict, total=False):
+    msg: str
+    output: dict[str, Any]
+    event_id: str
+    rank: int
+    rank_eta: float
+    queue_size: int
+    success: bool
+    progress_data: list[dict]
+    log: str
+    level: str
 
 
 def get_package_version() -> str:
@@ -321,18 +334,32 @@ async def get_pred_from_sse(
     headers: dict[str, str],
     cookies: dict[str, str] | None,
     protocol: str,
-    pending_messages_per_event: dict[str, list[dict[str, Any]]],
+    pending_messages_per_event: dict[str, list[Message]],
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
             asyncio.create_task(check_for_cancel(helper, cookies)),
             asyncio.create_task(
                 stream_sse_v0(
-                    client, data, hash_data, helper, sse_url, sse_data_url, headers, cookies
+                    client,
+                    data,
+                    hash_data,
+                    helper,
+                    sse_url,
+                    sse_data_url,
+                    headers,
+                    cookies,
                 )
                 if protocol == "sse"
                 else stream_sse_v1(
-                    client, data, hash_data, helper, sse_data_url, headers, cookies, pending_messages_per_event
+                    client,
+                    data,
+                    hash_data,
+                    helper,
+                    sse_data_url,
+                    headers,
+                    cookies,
+                    pending_messages_per_event,
                 )
             ),
         ],
@@ -437,7 +464,7 @@ async def stream_sse_v1(
     sse_data_url: str,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
-    pending_messages_per_event: dict[str, list[dict[str, Any]]],
+    pending_messages_per_event: dict[str, list[Message]],
 ) -> dict[str, Any]:
     try:
         req = await client.post(
@@ -460,14 +487,15 @@ async def stream_sse_v1(
             else:
                 await asyncio.sleep(0.05)
                 continue
-                
+
             with helper.lock:
                 has_progress = "progress_data" in msg
-                log_message = (
-                    (msg.get("log"), msg.get("level"))
-                    if msg["msg"] == "log"
-                    else None
-                )
+                log_message = None
+                if msg["msg"] == "log":
+                    log = msg.get("log")
+                    level = msg.get("level")
+                    if log and level:
+                        log_message = (log, level)
                 status_update = StatusUpdate(
                     code=Status.msg_to_status(msg["msg"]),
                     queue_size=msg.get("queue_size"),
@@ -476,7 +504,7 @@ async def stream_sse_v1(
                     time=datetime.now(),
                     eta=msg.get("rank_eta"),
                     progress_data=ProgressUnit.from_msg(msg["progress_data"])
-                    if has_progress
+                    if "progress_data" in msg
                     else None,
                     log=log_message,
                 )

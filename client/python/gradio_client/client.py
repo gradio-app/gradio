@@ -37,6 +37,7 @@ from gradio_client.exceptions import SerializationSetupError
 from gradio_client.utils import (
     Communicator,
     JobStatus,
+    Message,
     Status,
     StatusUpdate,
 )
@@ -157,12 +158,16 @@ class Client:
 
         self.stream_open = False
         self.streaming_future: Future | None = None
-        self.pending_messages_per_event: dict[str, list[dict[str, Any]]] = {}
+        self.pending_messages_per_event: dict[str, list[Message]] = {}
 
     async def stream_messages(self) -> None:
         async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
             async with client.stream(
-                "GET", self.sse_url, params={"session_hash": self.session_hash}, headers=self.headers, cookies=self.cookies
+                "GET",
+                self.sse_url,
+                params={"session_hash": self.session_hash},
+                headers=self.headers,
+                cookies=self.cookies,
             ) as response:
                 async for line in response.aiter_text():
                     if line.startswith("data:"):
@@ -178,8 +183,6 @@ class Client:
                         self.pending_messages_per_event[event_id].append(resp)
                     else:
                         raise ValueError(f"Unexpected SSE line: {line}")
-        
-
 
     @classmethod
     def duplicate(
@@ -407,9 +410,9 @@ class Client:
             def close_stream(_):
                 if self.stream_open and len(self.pending_messages_per_event) == 0:
                     self.stream_open = False
-  
+
             job.add_done_callback(close_stream)
-            
+
         return job
 
     def _get_api_info(self):

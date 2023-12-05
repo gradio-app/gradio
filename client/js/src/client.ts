@@ -807,7 +807,7 @@ export function api_factory(
 									open_stream();
 								}
 
-								let callback = async function (_data: object) {
+								let callback = async function (_data: object): void {
 									const { type, status, data } = handle_message(
 										_data,
 										last_status[fn_index]
@@ -981,7 +981,6 @@ export function api_factory(
 			}
 
 			function open_stream(): void {
-				console.log("opening stream");
 				stream_open = true;
 				let params = new URLSearchParams({
 					session_hash: session_hash
