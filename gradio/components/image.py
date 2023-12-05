@@ -166,7 +166,10 @@ class Image(StreamingInput, Component):
         exif = im.getexif()
         # 274 is the code for image rotation and 1 means "correct orientation"
         if exif.get(274, 1) != 1 and hasattr(ImageOps, "exif_transpose"):
-            im = ImageOps.exif_transpose(im)
+            try:
+                im = ImageOps.exif_transpose(im)
+            except Exception:
+                print(f"Failed to transpose image {file_path} based on EXIF data.")
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
