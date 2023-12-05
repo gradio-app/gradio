@@ -23,8 +23,9 @@ names = sorted(os.listdir("./demos"))
 
 @app.get("/")
 def index(request: Request):
+    names = [[p[0], p[2]] for p in all_demos]
     return templates.TemplateResponse("index.html", {"request": request, "names": names,
-                                                     "initial_demo": names[0], "is_space": get_space()})
+                                                     "initial_demo": names[0][0], "is_space": get_space()})
 
 
 all_demos = []
@@ -37,13 +38,13 @@ for p in sorted(os.listdir("./demos")):
             demo_module = importlib.import_module(f"run")
         else:
             demo_module = importlib.reload(demo_module)
-        all_demos.append((p, demo_module.demo.queue()))
+        all_demos.append((p, demo_module.demo.queue(), False))
     except Exception as e:
         with gr.Blocks() as demo:
             gr.Markdown(f"Error loading demo: {e}")
-        all_demos.append((p, demo))
+        all_demos.append((p, demo, True))
 
-for demo_name, demo in all_demos:
+for demo_name, demo, _ in all_demos:
     app = gr.mount_gradio_app(app, demo, f"/demo/{demo_name}")
 
 
