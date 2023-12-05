@@ -75,6 +75,7 @@ def test_decode_base64_to_file():
 
 @pytest.mark.flaky
 def test_download_private_file(gradio_temp_dir):
+    print("Hf token:", HF_TOKEN)
     url_path = (
         "https://gradio-tests-not-actually-private-spacev4-sse.hf.space/file=lion.jpg"
     )
