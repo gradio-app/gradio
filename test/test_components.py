@@ -641,9 +641,6 @@ class TestImage:
         assert component.get_config().get("value") is None
 
     def test_images_upright_after_preprocess(self):
-        """
-        postprocess
-        """
         component = gr.Image(type="pil")
         file_path = "test/test_files/rotated_image.jpeg"
         im = PIL.Image.open(file_path)
