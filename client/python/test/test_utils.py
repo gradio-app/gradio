@@ -19,7 +19,7 @@ types["MultipleFile"] = {
 types["SingleFile"] = {"type": "string", "description": "filepath or URL to file"}
 
 
-HF_HOME = "~/.cache/huggingface/token"
+HF_HOME = Path.home() / ".cache" / "huggingface" / "token"
 HF_TOKEN = os.getenv("HF_TOKEN") or (
     Path(HF_HOME).read_text().strip() if Path(HF_HOME).exists() else None
 )
