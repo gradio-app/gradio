@@ -380,8 +380,8 @@ async def stream_sse_v0(
             "GET",
             sse_url,
             params=hash_data,
-            cookies=cookies,
             headers=headers,
+            cookies=cookies,
         ) as response:
             async for line in response.aiter_text():
                 if line.startswith("data:"):
@@ -416,8 +416,8 @@ async def stream_sse_v0(
                         req = await client.post(
                             sse_data_url,
                             json={"event_id": event_id, **data, **hash_data},
-                            cookies=cookies,
                             headers=headers,
+                            cookies=cookies,
                         )
                         req.raise_for_status()
                     elif resp["msg"] == "process_completed":
@@ -443,6 +443,7 @@ async def stream_sse_v1(
         req = await client.post(
             sse_data_url,
             json={**data, **hash_data},
+            headers=headers,
             cookies=cookies,
         )
         req.raise_for_status()

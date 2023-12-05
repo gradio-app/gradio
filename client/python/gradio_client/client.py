@@ -159,10 +159,10 @@ class Client:
         self.streaming_future: Future | None = None
         self.pending_messages_per_event: dict[str, list[str]] = {}
 
-    async def stream_messages(self, sse_url: str, hash_data: dict, cookies: dict[str, str] | None) -> None:
+    async def stream_messages(self) -> None:
         async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
             async with client.stream(
-                "GET", sse_url, params=hash_data, cookies=cookies
+                "GET", self.sse_url, params={"session_hash": self.session_hash}, headers=self.headers, cookies=self.cookies
             ) as response:
                 async for line in response.aiter_text():
                     if line.startswith("data:"):
@@ -399,7 +399,7 @@ class Client:
                 self.stream_open = True
 
                 def open_stream():
-                    utils.synchronize_async(self.stream_messages, self.sse_url, {"session_hash": self.session_hash}, self.cookies)
+                    utils.synchronize_async(self.stream_messages)
 
                 if self.streaming_future is None or self.streaming_future.done():
                     self.streaming_future = self.executor.submit(open_stream)
@@ -1123,18 +1123,12 @@ class Endpoint:
                 data,
                 hash_data,
                 helper,
-<<<<<<< HEAD
                 self.client.sse_url,
                 self.client.sse_data_url,
+                self.client.headers,
                 self.client.cookies,
                 self.protocol,
                 self.client.pending_messages_per_event,
-=======
-                sse_url=self.client.sse_url,
-                sse_data_url=self.client.sse_data_url,
-                headers=self.client.headers,
-                cookies=self.client.cookies,
->>>>>>> origin
             )
 
 
