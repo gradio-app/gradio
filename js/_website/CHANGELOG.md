@@ -1,5 +1,12 @@
 # website
 
+## 0.19.0
+
+### Features
+
+- [#5885](https://github.com/gradio-app/gradio/pull/5885) [`9919b8a`](https://github.com/gradio-app/gradio/commit/9919b8ab43bee3d1d7cc65fd641fc8bc9725e102) - Fix the docstring decoration.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6650](https://github.com/gradio-app/gradio/pull/6650) [`d59ceec`](https://github.com/gradio-app/gradio/commit/d59ceec99d16f52e71d165448d959ba6b5624425) - Removes smooth scrolling from website.  Thanks [@aliabd](https://github.com/aliabd)!
+
 ## 0.18.0
 
 ### Features
