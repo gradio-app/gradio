@@ -1,5 +1,5 @@
 <script lang="ts">
-	export let height: number | undefined = undefined;
+	export let height: number | string | undefined = undefined;
 	export let width: number | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -17,7 +17,9 @@
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
 
-	const getHeight = (): string | undefined => {
+	const get_height = (
+		height: string | number | undefined,
+	): string | undefined => {
 		if (height === undefined) {
 			return undefined;
 		}
@@ -38,7 +40,7 @@
 	class:padded={padding}
 	class:border_focus={border_mode === "focus"}
 	class:hide-container={!explicit_call && !container}
-	style:height={getHeight()}
+	style:height={get_height(height)}
 	style:width={typeof width === "number"
 		? `calc(min(${width}px, 100%))`
 		: undefined}
