@@ -28,10 +28,8 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 pytestmark = pytest.mark.flaky
 
 HF_HOME = "~/.cache/huggingface/token"
-HF_TOKEN = (
-    os.getenv("HF_TOKEN") or Path(HF_HOME).read_text().strip()
-    if Path(HF_HOME).exists()
-    else None
+HF_TOKEN = os.getenv("HF_TOKEN") or (
+    Path(HF_HOME).read_text().strip() if Path(HF_HOME).exists() else None
 )
 
 
