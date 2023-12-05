@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Fix hf token2
+feat:Update HF token used in CI tests
