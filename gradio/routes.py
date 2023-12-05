@@ -268,8 +268,8 @@ class App(FastAPI):
                 media_type="text/event-stream",
             )
 
-        @app.post("/login")
-        @app.post("/login/")
+        @app.post("/login", response_model=None)
+        @app.post("/login/", response_model=None)
         def login(form_data: OAuth2PasswordRequestForm = Depends()):
             username, password = form_data.username.strip(), form_data.password
             if app.auth is None:
