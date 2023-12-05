@@ -17,12 +17,13 @@
         }
 
         .sidebar {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
             height: 100vh;
+            max-height: calc(100vh - 50px);
             width: 300px;
-            overflow-y: auto;
+            overflow-y: scroll;
             overflow-x: hidden;
             font-size: 0.875rem; /* 14px */
             line-height: 1.25rem; /* 20px */
@@ -59,6 +60,7 @@
             border: none;
             background-color: white;
             font-size: xx-large;
+            position: relative;
         }
 
         /* Styling for the content */
@@ -98,12 +100,12 @@
 </head>
 <body x-data="{ current_demo: '{{ initial_demo }}', is_collapsed: false }">
     <div style="display: flex; flex-direction: column;">
-        <div style="display: block">
+        <div>
             <button @click="is_collapsed = !is_collapsed" class="close-btn">
                 <a x-text="is_collapsed ? '➡️' : '⬅️'"></a>
             </button>
         </div>
-        <div :class="{ 'sidebar': true, 'collapsed': is_collapsed }" style="margin-top: 50px; display: block;">
+        <div :class="{ 'sidebar': true, 'collapsed': is_collapsed }" style="margin-top: 50px;">
             {% for name in names %}
                 <a @click="current_demo = '{{ name[0] }}'" :class="current_demo == '{{ name[0] }}' ? 'active' : ''">{{ name[0] }} {% if name[1] %}❌{% endif %}</a>
             {% endfor %}
