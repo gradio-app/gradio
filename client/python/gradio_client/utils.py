@@ -321,7 +321,7 @@ async def get_pred_from_sse(
     headers: dict[str, str],
     cookies: dict[str, str] | None,
     protocol: str,
-    pending_message_per_event: dict[str, list[str]],
+    pending_messages_per_event: dict[str, list[dict[str, Any]]],
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
@@ -332,7 +332,7 @@ async def get_pred_from_sse(
                 )
                 if protocol == "sse"
                 else stream_sse_v1(
-                    client, data, hash_data, helper, sse_data_url, headers, cookies, pending_message_per_event
+                    client, data, hash_data, helper, sse_data_url, headers, cookies, pending_messages_per_event
                 )
             ),
         ],
@@ -437,7 +437,7 @@ async def stream_sse_v1(
     sse_data_url: str,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
-    pending_message_per_event: dict[str, list[str]],
+    pending_messages_per_event: dict[str, list[dict[str, Any]]],
 ) -> dict[str, Any]:
     try:
         req = await client.post(
@@ -450,37 +450,37 @@ async def stream_sse_v1(
         resp = req.json()
         event_id = resp["event_id"]
 
-        while event_id not in pending_message_per_event:
+        while event_id not in pending_messages_per_event:
             await asyncio.sleep(0.05)
-        pending_messages = pending_message_per_event[event_id]
+        pending_messages = pending_messages_per_event[event_id]
 
         while True:
             if len(pending_messages) > 0:
-                resp = pending_messages.pop(0)
+                msg = pending_messages.pop(0)
             else:
                 await asyncio.sleep(0.05)
                 continue
                 
             with helper.lock:
-                has_progress = "progress_data" in resp
+                has_progress = "progress_data" in msg
                 log_message = (
-                    (resp.get("log"), resp.get("level"))
-                    if resp["msg"] == "log"
+                    (msg.get("log"), msg.get("level"))
+                    if msg["msg"] == "log"
                     else None
                 )
                 status_update = StatusUpdate(
-                    code=Status.msg_to_status(resp["msg"]),
-                    queue_size=resp.get("queue_size"),
-                    rank=resp.get("rank", None),
-                    success=resp.get("success"),
+                    code=Status.msg_to_status(msg["msg"]),
+                    queue_size=msg.get("queue_size"),
+                    rank=msg.get("rank", None),
+                    success=msg.get("success"),
                     time=datetime.now(),
-                    eta=resp.get("rank_eta"),
-                    progress_data=ProgressUnit.from_msg(resp["progress_data"])
+                    eta=msg.get("rank_eta"),
+                    progress_data=ProgressUnit.from_msg(msg["progress_data"])
                     if has_progress
                     else None,
                     log=log_message,
                 )
-                output = resp.get("output", {}).get("data", [])
+                output = msg.get("output", {}).get("data", [])
                 if output and status_update.code != Status.FINISHED:
                     try:
                         result = helper.prediction_processor(*output)
@@ -489,11 +489,11 @@ async def stream_sse_v1(
                     helper.job.outputs.append(result)
                 helper.job.latest_status = status_update
 
-            if resp["msg"] == "queue_full":
+            if msg["msg"] == "queue_full":
                 raise QueueError("Queue is full! Please try again.")
-            elif resp["msg"] == "process_completed":
-                del pending_message_per_event[event_id]
-                return resp["output"]
+            elif msg["msg"] == "process_completed":
+                del pending_messages_per_event[event_id]
+                return msg["output"]
 
     except asyncio.CancelledError:
         print("cancelled")

@@ -474,13 +474,6 @@ class Queue:
         awake_events: list[Event] = []
         try:
             for event in events:
-                if not event.data:
-                    self.awaiting_data_events[event._id] = event
-                    client_awake = await event.get_data()
-                    del self.awaiting_data_events[event._id]
-                    if not client_awake:
-                        await self.clean_event(event)
-                        continue
                 self.send_message(event, "process_starts")
                 awake_events.append(event)
             if not awake_events:

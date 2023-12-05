@@ -893,7 +893,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             fn = get_continuous_fn(fn, every)
         elif every:
             raise ValueError("Cannot set a value for `every` without a `fn`.")
-        if every and conccurrency_limit is not None:
+        if every and concurrency_limit is not None:
             if concurrency_limit == "default":
                 concurrency_limit = None
             else:

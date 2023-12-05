@@ -157,7 +157,7 @@ class Client:
 
         self.stream_open = False
         self.streaming_future: Future | None = None
-        self.pending_messages_per_event: dict[str, list[str]] = {}
+        self.pending_messages_per_event: dict[str, list[dict[str, Any]]] = {}
 
     async def stream_messages(self) -> None:
         async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
