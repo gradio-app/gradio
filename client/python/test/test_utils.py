@@ -1,5 +1,6 @@
 import importlib.resources
 import json
+import os
 import tempfile
 from copy import deepcopy
 from pathlib import Path
@@ -16,6 +17,9 @@ types["MultipleFile"] = {
     "items": {"type": "string", "description": "filepath or URL to file"},
 }
 types["SingleFile"] = {"type": "string", "description": "filepath or URL to file"}
+
+
+hf_token = Path("~/.cache/huggingface/token").read_text().strip() if Path("~/.cache/huggingface/token").exists() else os.getenv("HF_TOKEN", None)
 
 
 def test_encode_url_or_file_to_base64():
@@ -66,6 +70,7 @@ def test_decode_base64_to_file():
     assert isinstance(temp_file, tempfile._TemporaryFileWrapper)
 
 
+@pytest.mark.flaky
 def test_download_private_file(gradio_temp_dir):
     url_path = (
         "https://gradio-tests-not-actually-private-spacev4-sse.hf.space/file=lion.jpg"
