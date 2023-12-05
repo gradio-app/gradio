@@ -637,7 +637,6 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            print("data for", body.fn_index)
             event_id = await blocks._queue.push(body, request, username)
             return {"event_id": event_id}
 
