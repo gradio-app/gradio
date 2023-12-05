@@ -143,6 +143,10 @@ class Queue:
     async def push(
         self, body: PredictBody, request: fastapi.Request, username: str | None
     ):
+        if body.session_hash is None:
+            raise ValueError("No session hash provided.")
+        if body.fn_index is None:
+            raise ValueError("No function index provided.")
         queue_len = len(self.event_queue)
         if self.max_size is not None and queue_len >= self.max_size:
             raise ValueError(
@@ -321,16 +325,18 @@ class Queue:
                 )
                 self.send_message(event, "log", log_message.model_dump())
 
-    async def clean_events(self, session_hash: str) -> None:
+    async def clean_events(
+        self, *, session_hash: str | None = None, event_id: str | None = None
+    ) -> None:
         for job_set in self.active_jobs:
             if job_set:
                 for job in job_set:
-                    if job.session_hash == session_hash:
+                    if job.session_hash == session_hash or job._id == event_id:
                         job.alive = False
 
         events_to_remove = []
         for event in self.event_queue:
-            if event.session_hash == session_hash:
+            if event.session_hash == session_hash or event._id == event_id:
                 events_to_remove.append(event)
 
         for event in events_to_remove:

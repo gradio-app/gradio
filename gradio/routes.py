@@ -528,7 +528,7 @@ class App(FastAPI):
             async with app.lock:
                 del app.iterators[body.event_id]
                 app.iterators_to_reset.add(body.event_id)
-                await app.get_blocks()._queue.clean_event(body.event_id)
+                await app.get_blocks()._queue.clean_events(event_id=body.event_id)
             return {"success": True}
 
         # had to use '/run' endpoint for Colab compatibility, '/api' supported for backwards compatibility
@@ -592,7 +592,7 @@ class App(FastAPI):
                     last_heartbeat = time.perf_counter()
                     while True:
                         if await request.is_disconnected():
-                            await blocks._queue.clean_events(session_hash)
+                            await blocks._queue.clean_events(session_hash=session_hash)
                             print("disconnected")
                             return
 
@@ -623,7 +623,7 @@ class App(FastAPI):
                         if message:
                             yield f"data: {json.dumps(message)}\n\n"
                 except asyncio.CancelledError as e:
-                    await blocks._queue.clean_events(session_hash)
+                    await blocks._queue.clean_events(session_hash=session_hash)
                     raise e
 
             return StreamingResponse(
