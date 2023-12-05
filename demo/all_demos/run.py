@@ -7,6 +7,7 @@ import pathlib
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 import uvicorn
+from gradio.utils import get_space
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -20,14 +21,10 @@ templates = Jinja2Templates(directory="templates")
 names = sorted(os.listdir("./demos"))
 
 
-@app.get("/{name}")
-def display_content(request: Request, name: str):
-    return templates.TemplateResponse("index.html", {"request": request, "names": names, "app_url": f"demo/{name}"})
-
-
 @app.get("/")
 def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request, "names": names, "app_url": f"demo/{names[0]}"})
+    return templates.TemplateResponse("index.html", {"request": request, "names": names,
+                                                     "initial_demo": names[0], "is_space": get_space()})
 
 
 all_demos = []

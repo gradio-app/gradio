@@ -1,12 +1,20 @@
 <!DOCTYPE html>
 <html>
-<script
-	type="module"
-	src="https://gradio.s3-us-west-2.amazonaws.com/4.7.1/gradio.js"
-></script>
 <head>
-    <title></title>
+    {%if is_space %}
+        <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    {% endif %}
     <style>
+        /* Reset some default styles */
+        body, h1, h2, h3, p, ul {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+        }
+
         /* Styling for the sidebar */
         .sidebar {
             position: fixed;
@@ -14,35 +22,71 @@
             left: 0;
             height: 100vh;
             width: 300px;
-            background-color: #f1f1f1;
             overflow-y: auto;
-            font-family: monospace;
+            overflow-x: hidden;
+            font-size: 0.875rem; /* 14px */
+            line-height: 1.25rem; /* 20px */
         }
+
         .sidebar a {
             display: block;
             padding: 8px 16px;
             text-decoration: none;
-            color: #000;
+            color: inherit;
         }
+
         .sidebar a:hover {
-            background-color: #ddd;
+            color: black;
+            transform: translateX(1px);
+            
         }
+
+        /* Apply a different style to the selected item in the sidebar */
+        .sidebar a.active {
+            background-color: rgb(251 146 60);
+            color: white;
+            border-radius: 0.75rem;
+            font-weight: bold;
+        }
+
         /* Styling for the content */
         .content {
-            padding: 20px;
             margin-left: 300px;
+            padding: 20px;
             display: block;
+            height: 100vh;
+        }
+
+        /* Make the iframe responsive */
+        .content iframe {
+            width: 100%;
+            border: 0;
+            height: 100%;
+        }
+
+        @media only screen and (max-width: 600px) {
+            /* Adjust styles for smaller screens */
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+
+            .content {
+                margin-left: 0;
+            }
         }
     </style>
+    <script src="//unpkg.com/alpinejs" defer></script>
 </head>
-<body>
+<body x-data="{current_demo: 'altair_plot' }">
     <div class="sidebar">
         {% for name in names %}
-            <a href="/{{ name }}">{{ name }}</a>
+            <a @click="current_demo = '{{ name }}'" :class="current_demo == '{{ name }}' ? 'active' : ''">{{ name }}</a>
         {% endfor %}
     </div>
     <div class="content">
-        <iframe src="/{{ app_url }}?__theme=light" height="800px" width="100%" style="border:0;">
+        <iframe :src="`/demo/${current_demo}?__theme=light`"></iframe>
     </div>
 </body>
 </html>
