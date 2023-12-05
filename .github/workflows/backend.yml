@@ -123,8 +123,6 @@ jobs:
       run: |
         . venv/bin/activate
         python -m pytest -m "${{ matrix.test-type }}" client/python/
-      env: 
-        HF_TOKEN: ${{ secrets.HF_TOKEN }}
     - name: Install Test Requirements (Windows)
       if: runner.os == 'Windows'
       run: |
@@ -141,8 +139,6 @@ jobs:
       run: |
         venv\Scripts\activate
         python -m pytest -m "${{ matrix.test-type }}" client/python/
-      env:
-        HF_TOKEN: ${{ secrets.HF_TOKEN }}
   test:
     needs: [changes]
     if: needs.changes.outputs.gradio == 'true' || needs.changes.outputs.workflows == 'true' || needs.changes.outputs.scripts == 'true' || needs.changes.outputs.test == 'true'
@@ -227,8 +223,6 @@ jobs:
       run: |
         . venv/bin/activate
         python -m pytest -m "${{ matrix.test-type }}" --ignore=client
-      env:
-        HF_TOKEN: ${{ secrets.HF_TOKEN }}  
     - name: Install Gradio and Client Libraries Locally (Windows)
       if: runner.os == 'Windows'
       run: |
@@ -246,6 +240,3 @@ jobs:
         venv\Scripts\activate
         python -m pytest -m "${{ matrix.test-type }}" --ignore=client
         echo "The exit code for pytest was $LASTEXITCODE"
-      env:
-        HF_TOKEN: ${{ secrets.HF_TOKEN }}
-  
