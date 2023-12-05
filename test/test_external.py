@@ -406,7 +406,7 @@ def test_get_tabular_examples_replaces_nan_with_str_nan():
     mock_response.status_code = 200
     mock_response.text = textwrap.dedent(readme)
 
-    with patch("gradio.external.requests.get", return_value=mock_response):
+    with patch("gradio.external.httpx.get", return_value=mock_response):
         examples = get_tabular_examples("foo-model")
         assert examples["measurement_2"] == [14.206, 15.094, "NaN"]
 

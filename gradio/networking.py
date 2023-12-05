@@ -12,7 +12,7 @@ import warnings
 from functools import partial
 from typing import TYPE_CHECKING
 
-import requests
+import httpx
 import uvicorn
 from uvicorn.config import Config
 
@@ -219,11 +219,14 @@ def setup_tunnel(
     local_host: str, local_port: int, share_token: str, share_server_address: str | None
 ) -> str:
     if share_server_address is None:
-        response = requests.get(GRADIO_API_SERVER)
-        if not (response and response.status_code == 200):
-            raise RuntimeError("Could not get share link from Gradio API Server.")
-        payload = response.json()[0]
-        remote_host, remote_port = payload["host"], int(payload["port"])
+        try:
+            response = httpx.get(GRADIO_API_SERVER)
+            payload = response.json()[0]
+            remote_host, remote_port = payload["host"], int(payload["port"])
+        except Exception as e:
+            raise RuntimeError(
+                "Could not get share link from Gradio API Server."
+            ) from e
     else:
         remote_host, remote_port = share_server_address.split(":")
         remote_port = int(remote_port)
@@ -240,10 +243,10 @@ def url_ok(url: str) -> bool:
         for _ in range(5):
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore")
-                r = requests.head(url, timeout=3, verify=False)
+                r = httpx.head(url, timeout=3, verify=False)
             if r.status_code in (200, 401, 302):  # 401 or 302 if auth is set
                 return True
             time.sleep(0.500)
-    except (ConnectionError, requests.exceptions.ConnectionError):
+    except (ConnectionError, httpx.ConnectError):
         return False
     return False
