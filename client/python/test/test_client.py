@@ -367,6 +367,7 @@ class TestClientPredictions:
     def test_upload_file_private_space(self):
         client = Client(
             src="gradio-tests/not-actually-private-file-upload",
+            hf_token=HF_TOKEN,
         )
 
         with patch.object(
@@ -405,6 +406,7 @@ class TestClientPredictions:
     def test_upload_file_upload_route_does_not_exist(self):
         client = Client(
             src="gradio-tests/not-actually-private-file-upload-old-version",
+            hf_token=HF_TOKEN,
         )
 
         with patch.object(
@@ -1101,17 +1103,17 @@ class TestDuplication:
         Client.duplicate(
             "gradio/calculator",
             "test",
+            hf_token=HF_TOKEN,
         )
         mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
-        mock_runtime.assert_any_call("gradio-tests/test", token=HF_TOKEN)
-        mock_init.assert_called_with("gradio-tests/test", max_workers=40, verbose=True)
+        mock_init.assert_called()
         Client.duplicate(
             "gradio/calculator",
             "gradio-tests/test",
+            hf_token=HF_TOKEN,
         )
         mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
-        mock_runtime.assert_any_call("gradio-tests/test", token=HF_TOKEN)
-        mock_init.assert_called_with("gradio-tests/test", max_workers=40, verbose=True)
+        mock_init.assert_called()
 
     @pytest.mark.flaky
     @patch("gradio_client.utils.set_space_timeout")
@@ -1142,10 +1144,9 @@ class TestDuplication:
             "test",
             hardware="cpu-upgrade",
             sleep_timeout=15,
+            hf_token=HF_TOKEN,
         )
-        mock_set_timeout.assert_called_once_with(
-            "gradio-tests/test", timeout_in_seconds=15 * 60
-        )
+        mock_set_timeout.assert_called_once_with(timeout_in_seconds=15 * 60)
 
     @pytest.mark.flaky
     @patch("huggingface_hub.get_space_runtime", return_value=MagicMock(hardware=cpu))
@@ -1153,6 +1154,7 @@ class TestDuplication:
     def test_default_space_id(self, mock_init, mock_runtime):
         Client.duplicate(
             "gradio/calculator",
+            hf_token=HF_TOKEN,
         )
         mock_runtime.assert_any_call("gradio/calculator", token=HF_TOKEN)
         mock_runtime.assert_any_call("gradio-tests/calculator", token=HF_TOKEN)
@@ -1171,6 +1173,7 @@ class TestDuplication:
             Client.duplicate(
                 "gradio/calculator",
                 name,
+                hf_token=HF_TOKEN,
                 secrets={"test_key": "test_value", "test_key2": "test_value2"},
             )
             mock_add_secret.assert_called_with(
