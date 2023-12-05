@@ -22,10 +22,10 @@ These tests actually test gr.load() and gr.Blocks.load() but are
 included in a separate file because of the above-mentioned dependency.
 """
 
-os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
-
 # Mark the whole module as flaky
 pytestmark = pytest.mark.flaky
+
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 HF_HOME = Path.home() / ".cache" / "huggingface" / "token"
 HF_TOKEN = os.getenv("HF_TOKEN") or (
