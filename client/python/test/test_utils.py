@@ -41,7 +41,8 @@ def test_encode_url_to_base64():
 
 
 def test_encode_url_to_base64_doesnt_encode_errors(monkeypatch):
-    error_response = httpx.Response(status_code=404)
+    request = httpx.Request("GET", "https://example.com/foo")
+    error_response = httpx.Response(status_code=404, request=request)
     monkeypatch.setattr(httpx, "get", lambda *args, **kwargs: error_response)
     with pytest.raises(httpx.HTTPStatusError):
         utils.encode_url_to_base64("https://example.com/foo")
@@ -79,7 +80,7 @@ def test_download_private_file(gradio_temp_dir):
 def test_download_tmp_copy_of_file_does_not_save_errors(monkeypatch, gradio_temp_dir):
     error_response = httpx.Response(status_code=404)
     monkeypatch.setattr(httpx, "get", lambda *args, **kwargs: error_response)
-    with pytest.raises(httpx.RequestError):
+    with pytest.raises(httpx.HTTPStatusError):
         utils.download_file("https://example.com/foo", dir=str(gradio_temp_dir))
 
 
@@ -134,7 +135,7 @@ async def test_get_pred_from_ws_raises_if_queue_full():
         await utils.get_pred_from_ws(mock_ws, data, hash_data)
 
 
-@patch("requests.post")
+@patch("httpx.post")
 def test_sleep_successful(mock_post):
     utils.set_space_timeout("gradio/calculator")
 
