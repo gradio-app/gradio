@@ -19,7 +19,11 @@ types["MultipleFile"] = {
 types["SingleFile"] = {"type": "string", "description": "filepath or URL to file"}
 
 
-hf_token = Path("~/.cache/huggingface/token").read_text().strip() if Path("~/.cache/huggingface/token").exists() else os.getenv("HF_TOKEN", None)
+hf_token = (
+    Path("~/.cache/huggingface/token").read_text().strip()
+    if Path("~/.cache/huggingface/token").exists()
+    else os.getenv("HF_TOKEN", None)
+)
 
 
 def test_encode_url_or_file_to_base64():
