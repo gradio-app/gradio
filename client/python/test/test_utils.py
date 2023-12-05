@@ -1,5 +1,6 @@
 import importlib.resources
 import json
+import os
 import tempfile
 from copy import deepcopy
 from pathlib import Path
@@ -7,6 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
+from huggingface_hub import HfFolder
 
 from gradio_client import media_data, utils
 
@@ -16,6 +18,9 @@ types["MultipleFile"] = {
     "items": {"type": "string", "description": "filepath or URL to file"},
 }
 types["SingleFile"] = {"type": "string", "description": "filepath or URL to file"}
+
+
+HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
 
 
 def test_encode_url_or_file_to_base64():
@@ -66,13 +71,13 @@ def test_decode_base64_to_file():
     assert isinstance(temp_file, tempfile._TemporaryFileWrapper)
 
 
+@pytest.mark.flaky
 def test_download_private_file(gradio_temp_dir):
     url_path = (
         "https://gradio-tests-not-actually-private-spacev4-sse.hf.space/file=lion.jpg"
     )
-    hf_token = "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"  # Intentionally revealing this key for testing purposes
     file = utils.download_file(
-        url_path=url_path, hf_token=hf_token, dir=str(gradio_temp_dir)
+        url_path=url_path, hf_token=HF_TOKEN, dir=str(gradio_temp_dir)
     )
     assert Path(file).name.endswith(".jpg")
 
