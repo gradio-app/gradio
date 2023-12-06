@@ -8,8 +8,8 @@ from typing import Any, Literal, cast
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
-from PIL import Image as _Image
-from PIL import ImageOps  # using _ to minimize namespace pollution
+from PIL import Image as _Image  # using _ to minimize namespace pollution
+from PIL import ImageOps
 
 import gradio.image_utils as image_utils
 from gradio import utils
