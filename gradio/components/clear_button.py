@@ -88,7 +88,9 @@ class ClearButton(Button):
         clear_values = json.dumps(none_values)
         self.click(None, [], components, js=f"() => {clear_values}")
         if state_components:
-            self.click(lambda: resolve_singleton(initial_states), None, state_components)
+            self.click(
+                lambda: resolve_singleton(initial_states), None, state_components
+            )
         return self
 
     def postprocess(self, value: str | None) -> str | None:
