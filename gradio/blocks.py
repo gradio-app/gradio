@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, Sequenc
 from urllib.parse import urlparse, urlunparse
 
 import anyio
-import requests
+import httpx
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
@@ -1911,7 +1911,7 @@ Received outputs:
             if not wasm_utils.IS_WASM:
                 # Cannot run async functions in background other than app's scope.
                 # Workaround by triggering the app endpoint
-                requests.get(f"{self.local_url}startup-events", verify=ssl_verify)
+                httpx.get(f"{self.local_url}startup-events", verify=ssl_verify)
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
                 # that `self._queue.start()` is called in another thread which is managed by the HTTP server, `uvicorn`
@@ -1995,7 +1995,7 @@ Received outputs:
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
-            except (RuntimeError, requests.exceptions.ConnectionError):
+            except (RuntimeError, httpx.ConnectError):
                 if self.analytics_enabled:
                     analytics.error_analytics("Not able to set up tunnel")
                 self.share_url = None
