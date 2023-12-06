@@ -89,7 +89,10 @@ class ClearButton(Button):
         self.click(None, [], components, js=f"() => {clear_values}")
         if state_components:
             self.click(
-                lambda: resolve_singleton(initial_states), None, state_components
+                lambda: resolve_singleton(initial_states),
+                None,
+                state_components,
+                api_name="reset_state",
             )
         return self
 
