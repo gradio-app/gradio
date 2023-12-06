@@ -11,7 +11,7 @@ import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
-import requests
+import httpx
 from gradio_client import Client
 from gradio_client import utils as client_utils
 from gradio_client.client import Endpoint
@@ -146,7 +146,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     headers = {"Authorization": f"Bearer {hf_token}"} if hf_token is not None else {}
 
     # Checking if model exists, and if so, it gets the pipeline
-    response = requests.request("GET", api_url, headers=headers)
+    response = httpx.request("GET", api_url, headers=headers)
     if response.status_code != 200:
         raise ModelNotFoundError(
             f"Could not find model: {model_name}. If it is a private or gated model, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `hf_token` parameter."
@@ -427,7 +427,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         ):  # HF doesn't allow additional parameters for binary files (e.g. images or audio files)
             data.update({"options": {"wait_for_model": True}})
             data = json.dumps(data)
-        response = requests.request("POST", api_url, headers=headers, data=data)
+        response = httpx.request("POST", api_url, headers=headers, data=data)  # type: ignore
         if response.status_code != 200:
             errors_json = response.json()
             errors, warns = "", ""
@@ -485,7 +485,7 @@ def from_spaces(
         headers["Authorization"] = f"Bearer {hf_token}"
 
     iframe_url = (
-        requests.get(
+        httpx.get(
             f"https://huggingface.co/api/spaces/{space_name}/host", headers=headers
         )
         .json()
@@ -497,7 +497,7 @@ def from_spaces(
             f"Could not find Space: {space_name}. If it is a private or gated Space, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `hf_token` parameter."
         )
 
-    r = requests.get(iframe_url, headers=headers)
+    r = httpx.get(iframe_url, headers=headers)
 
     result = re.search(
         r"window.gradio_config = (.*?);[\s]*</script>", r.text
@@ -556,7 +556,7 @@ def from_spaces_interface(
     # The function should call the API with preprocessed data
     def fn(*data):
         data = json.dumps({"data": data})
-        response = requests.post(api_url, headers=headers, data=data)
+        response = httpx.post(api_url, headers=headers, data=data)  # type: ignore
         result = json.loads(response.content.decode("utf-8"))
         if "error" in result and "429" in result["error"]:
             raise TooManyRequestsError("Too many requests to the Hugging Face API")
