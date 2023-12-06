@@ -46,7 +46,7 @@ class Tunnel:
     @staticmethod
     def download_binary():
         if not Path(BINARY_PATH).exists():
-            resp = httpx.get(BINARY_URL)
+            resp = httpx.get(BINARY_URL, timeout=30)
 
             if resp.status_code == 403:
                 raise OSError(
