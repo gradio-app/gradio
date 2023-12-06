@@ -2,7 +2,6 @@
 IPython
 altair
 asyncio
-black
 boto3
 coverage
 fastapi>=0.101.0
@@ -13,7 +12,7 @@ pydantic
 pytest
 pytest-asyncio
 pytest-cov
-ruff>=0.0.260
+ruff>=0.1.7
 respx
 scikit-image
 shap
