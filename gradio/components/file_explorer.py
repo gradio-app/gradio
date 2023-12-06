@@ -201,13 +201,15 @@ class FileExplorer(Component):
             for result in expand_braces(self.ignore_glob):
                 ignore_files += list(Path(self.root).resolve().glob(result))
             files = list(set(files) - set(ignore_files))
+        
+        files_with_sep = []
+        for f in files:
+            file = str(f.relative_to(self.root))
+            if f.is_dir():
+                file += os.path.sep
+            files_with_sep.append(file)
 
-        tree = make_tree(
-            [
-                str(f.relative_to(self.root)) + os.path.sep if f.is_dir() else ""
-                for f in files
-            ]
-        )
+        tree = make_tree(files_with_sep)
         return tree
 
     def _safe_join(self, folders):
