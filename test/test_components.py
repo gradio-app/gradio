@@ -2745,6 +2745,14 @@ class TestFileExplorer:
 
         file_explorer = gr.FileExplorer(glob="**/", root=Path(tmpdir))
         tree = file_explorer.ls()
+
+        def sort_answer(answer):
+            answer = sorted(answer, key=lambda x: x["path"])
+            for item in answer:
+                if item["children"]:
+                    item["children"] = sort_answer(item["children"])
+            return answer
+
         answer = [
             {
                 "children": [
@@ -2785,7 +2793,7 @@ class TestFileExplorer:
                 "type": "folder",
             },
         ]
-        assert tree == answer
+        assert sort_answer(tree) == sort_answer(answer)
 
 
 def test_component_class_ids():
