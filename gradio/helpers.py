@@ -780,7 +780,7 @@ def special_args(
                     type_hint == Optional[oauth.OAuthProfile]
                     or type_hint == oauth.OAuthProfile
                 ):
-                    oauth_profile = session.get("oauth_info", {}).get("userinfo")
+                    oauth_profile = session["oauth_info"]["userinfo"] if "oauth_info" in session else None
                     if oauth_profile is not None:
                         oauth_profile = oauth.OAuthProfile(oauth_profile)
                     elif type_hint == oauth.OAuthProfile:
@@ -794,7 +794,7 @@ def special_args(
                     type_hint == Optional[oauth.OAuthToken]
                     or type_hint == oauth.OAuthToken
                 ):
-                    oauth_info = session.get("oauth_info")
+                    oauth_info = session["oauth_info"] if "oauth_info" in session else None
                     oauth_token = (
                         oauth.OAuthToken(
                             token=oauth_info["access_token"],
