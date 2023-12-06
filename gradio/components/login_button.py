@@ -74,10 +74,10 @@ class LoginButton(Button):
         session = getattr(request, "session", None) or getattr(
             request.request, "session", None
         )
-        if session is None or "oauth_profile" not in session:
+        if session is None or "oauth_info" not in session:
             return LoginButton("Sign in with Hugging Face", interactive=True)
         else:
-            username = session["oauth_profile"]["preferred_username"]
+            username = session["oauth_info"]["preferred_username"]
             return LoginButton(f"Signed in as {username}", interactive=False)
 
 

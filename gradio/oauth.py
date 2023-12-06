@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 
 import fastapi
 from fastapi.responses import RedirectResponse
+from huggingface_hub import HfFolder, whoami
 
 from .utils import get_space
 
@@ -92,16 +93,14 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
     @app.get("/login/callback")
     async def oauth_redirect_callback(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that handles the OAuth callback."""
-        token = await oauth.huggingface.authorize_access_token(request)  # type: ignore
-        request.session["oauth_profile"] = token["userinfo"]
-        request.session["oauth_token"] = token
+        oauth_info = await oauth.huggingface.authorize_access_token(request)  # type: ignore
+        request.session["oauth_info"] = oauth_info
         return RedirectResponse("/")
 
     @app.get("/logout")
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
-        request.session.pop("oauth_profile", None)
-        request.session.pop("oauth_token", None)
+        request.session.pop("oauth_info", None)
         return RedirectResponse("/")
 
 
@@ -112,9 +111,11 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
     instead of authenticating with HF, a mocked user profile is added to the session.
     """
     warnings.warn(
-        "Gradio does not support OAuth features outside of a Space environment. "
-        "To help you debug your app locally, the login and logout buttons are mocked with a fake user profile."
+        "Gradio does not support OAuth features outside of a Space environment. To help"
+        " you debug your app locally, the login and logout buttons are mocked with your"
+        " profile. To make it work, your machine must be logged in to Huggingface."
     )
+    mocked_oauth_info = _get_mocked_oauth_info()
 
     # Define OAuth routes
     @app.get("/login/huggingface")
@@ -125,15 +126,13 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
     @app.get("/login/callback")
     async def oauth_redirect_callback(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that handles the OAuth callback."""
-        request.session["oauth_profile"] = MOCKED_OAUTH_TOKEN["userinfo"]
-        request.session["oauth_token"] = MOCKED_OAUTH_TOKEN
+        request.session["oauth_info"] = mocked_oauth_info
         return RedirectResponse("/")
 
     @app.get("/logout")
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
-        request.session.pop("oauth_profile", None)
-        request.session.pop("oauth_token", None)
+        request.session.pop("oauth_info", None)
         return RedirectResponse("/")
 
 
@@ -220,25 +219,43 @@ class OAuthToken:
     expires_at: int
 
 
-MOCKED_OAUTH_TOKEN = {
-    "access_token": "hf_oauth_AAAAAAAAAAAAAAAAAAAAAAAAAA",
-    "token_type": "bearer",
-    "expires_in": 3600,
-    "id_token": "AAAAAAAAAAAAAAAAAAAAAAAAAA",
-    "scope": "openid profile",
-    "expires_at": 1691676444,
-    "userinfo": {
-        "sub": "11111111111111111111111",
-        "name": "Fake Gradio User",
-        "preferred_username": "FakeGradioUser",
-        "profile": "https://huggingface.co/FakeGradioUser",
-        "picture": "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
-        "website": "",
-        "aud": "00000000-0000-0000-0000-000000000000",
-        "auth_time": 1691672844,
-        "nonce": "aaaaaaaaaaaaaaaaaaa",
-        "iat": 1691672844,
-        "exp": 1691676444,
-        "iss": "https://huggingface.co",
-    },
-}
+def _get_mocked_oauth_info() -> typing.Dict:
+    token = HfFolder.get_token()
+    if token is None:
+        raise ValueError(
+            "Your machine must be logged in to HF to debug a Gradio app locally. Please"
+            " run `huggingface-cli login` or set `HF_TOKEN` as environment variable "
+            "with one of your access token. You can generate a new token in your "
+            "settings page (https://huggingface.co/settings/tokens)."
+        )
+
+    user = whoami()
+    if user["type"] != "user":
+        raise ValueError(
+            "Your machine is not logged in with a personal account. Please use a "
+            "personal access token. You can generate a new token in your settings page"
+            " (https://huggingface.co/settings/tokens)."
+        )
+
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "expires_in": 3600,
+        "id_token": "AAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "scope": "openid profile",
+        "expires_at": 1691676444,
+        "userinfo": {
+            "sub": "11111111111111111111111",
+            "name": user["fullname"],
+            "preferred_username": user["name"],
+            "profile": f"https://huggingface.co/{user['name']}",
+            "picture": user["avatarUrl"],
+            "website": "",
+            "aud": "00000000-0000-0000-0000-000000000000",
+            "auth_time": 1691672844,
+            "nonce": "aaaaaaaaaaaaaaaaaaa",
+            "iat": 1691672844,
+            "exp": 1691676444,
+            "iss": "https://huggingface.co",
+        },
+    }

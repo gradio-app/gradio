@@ -780,9 +780,7 @@ def special_args(
                     type_hint == Optional[oauth.OAuthProfile]
                     or type_hint == oauth.OAuthProfile
                 ):
-                    oauth_profile = (
-                        session["oauth_profile"] if "oauth_profile" in session else None
-                    )
+                    oauth_profile = session.get("oauth_info", {}).get("userinfo")
                     if oauth_profile is not None:
                         oauth_profile = oauth.OAuthProfile(oauth_profile)
                     elif type_hint == oauth.OAuthProfile:
@@ -796,16 +794,17 @@ def special_args(
                     type_hint == Optional[oauth.OAuthToken]
                     or type_hint == oauth.OAuthToken
                 ):
+                    oauth_info = session.get("oauth_info")
                     oauth_token = (
-                        session["oauth_token"] if "oauth_token" in session else None
-                    )
-                    if oauth_token is not None:
-                        oauth_token = oauth.OAuthToken(
-                            token=oauth_token["access_token"],
-                            scope=oauth_token["scope"],
-                            expires_at=oauth_token["expires_at"],
+                        oauth.OAuthToken(
+                            token=oauth_info["access_token"],
+                            scope=oauth_info["scope"],
+                            expires_at=oauth_info["expires_at"],
                         )
-                    elif type_hint == oauth.OAuthToken:
+                        if oauth_info is not None
+                        else None
+                    )
+                    if oauth_token is None and type_hint == oauth.OAuthToken:
                         raise Error(
                             "This action requires a logged in user. Please sign in and retry."
                         )
