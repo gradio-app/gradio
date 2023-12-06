@@ -1,6 +1,6 @@
 ---
-"gradio": minor
-"gradio_client": minor
+"gradio": patch
+"gradio_client": patch
 ---
 
-feat:Python client properly handles hearbeat and log messages. Also handles responses longer than 65k
+fix:Python client properly handles hearbeat and log messages. Also handles responses longer than 65k
