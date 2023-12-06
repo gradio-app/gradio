@@ -2734,6 +2734,59 @@ class TestFileExplorer:
         preprocessed_data = file_explorer.preprocess(input_data)
         assert preprocessed_data == []
 
+    def test_file_explorer_dir_only_glob(self, tmpdir):
+        tmpdir.mkdir("foo")
+        tmpdir.mkdir("bar")
+        tmpdir.mkdir("baz")
+        (Path(tmpdir) / "baz" / "qux").mkdir()
+        (Path(tmpdir) / "foo" / "abc").mkdir()
+        (Path(tmpdir) / "foo" / "abc" / "def").mkdir()
+        (Path(tmpdir) / "foo" / "abc" / "def" / "file.txt").touch()
+
+        file_explorer = gr.FileExplorer(glob="**/", root=Path(tmpdir))
+        tree = file_explorer.ls()
+        answer = [
+            {
+                "children": [
+                    {"children": None, "path": "", "type": "file"},
+                    {
+                        "children": [
+                            {"children": None, "path": "", "type": "file"},
+                            {
+                                "children": [
+                                    {"children": None, "path": "", "type": "file"}
+                                ],
+                                "path": "def",
+                                "type": "folder",
+                            },
+                        ],
+                        "path": "abc",
+                        "type": "folder",
+                    },
+                ],
+                "path": "foo",
+                "type": "folder",
+            },
+            {
+                "children": [
+                    {"children": None, "path": "", "type": "file"},
+                    {
+                        "children": [{"children": None, "path": "", "type": "file"}],
+                        "path": "qux",
+                        "type": "folder",
+                    },
+                ],
+                "path": "baz",
+                "type": "folder",
+            },
+            {
+                "children": [{"children": None, "path": "", "type": "file"}],
+                "path": "bar",
+                "type": "folder",
+            },
+        ]
+        assert tree == answer
+
 
 def test_component_class_ids():
     button_id = gr.Button().component_class_id

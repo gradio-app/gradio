@@ -190,9 +190,11 @@ class FileExplorer(Component):
                     _tree.append({"path": parts[i], "type": type, "children": []})
                     _tree = _tree[-1]["children"]
 
-        files = []
+        files: list[Path] = []
         for result in expand_braces(self.glob):
             files += list(Path(self.root).resolve().glob(result))
+
+        files = [f for f in files if f != Path(self.root).resolve()]
 
         ignore_files = []
         if self.ignore_glob:
@@ -200,7 +202,12 @@ class FileExplorer(Component):
                 ignore_files += list(Path(self.root).resolve().glob(result))
             files = list(set(files) - set(ignore_files))
 
-        tree = make_tree([str(f.relative_to(self.root)) for f in files])
+        tree = make_tree(
+            [
+                str(f.relative_to(self.root)) + os.path.sep if f.is_dir() else ""
+                for f in files
+            ]
+        )
         return tree
 
     def _safe_join(self, folders):
