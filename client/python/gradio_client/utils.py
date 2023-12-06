@@ -102,6 +102,19 @@ class SpaceDuplicationError(Exception):
     pass
 
 
+class ServerMessage(str, Enum):
+    send_hash = "send_hash"
+    queue_full = "queue_full"
+    estimation = "estimation"
+    send_data = "send_data"
+    process_starts = "process_starts"
+    process_generating = "process_generating"
+    process_completed = "process_completed"
+    log = "log"
+    progress = "progress"
+    heartbeat = "heartbeat"
+
+
 class Status(Enum):
     """Status codes presented to client users."""
 
@@ -141,15 +154,14 @@ class Status(Enum):
     def msg_to_status(msg: str) -> Status:
         """Map the raw message from the backend to the status code presented to users."""
         return {
-            "send_hash": Status.JOINING_QUEUE,
-            "queue_full": Status.QUEUE_FULL,
-            "estimation": Status.IN_QUEUE,
-            "send_data": Status.SENDING_DATA,
-            "process_starts": Status.PROCESSING,
-            "process_generating": Status.ITERATING,
-            "process_completed": Status.FINISHED,
-            "progress": Status.PROGRESS,
-            "log": Status.LOG,
+            ServerMessage.send_hash: Status.JOINING_QUEUE,
+            ServerMessage.queue_full: Status.QUEUE_FULL,
+            ServerMessage.estimation: Status.IN_QUEUE,
+            ServerMessage.send_data: Status.SENDING_DATA,
+            ServerMessage.process_starts: Status.PROCESSING,
+            ServerMessage.process_generating: Status.ITERATING,
+            ServerMessage.process_completed: Status.FINISHED,
+            ServerMessage.progress: Status.PROGRESS,
         }[msg]
 
 
@@ -436,9 +448,13 @@ async def stream_sse_v0(
             headers=headers,
             cookies=cookies,
         ) as response:
-            async for line in response.aiter_text():
+            async for line in response.aiter_lines():
+                if len(line) == 0:
+                    continue
                 if line.startswith("data:"):
                     resp = json.loads(line[5:])
+                    if resp["msg"] in [ServerMessage.log, ServerMessage.heartbeat]:
+                        continue
                     with helper.lock:
                         has_progress = "progress_data" in resp
                         status_update = StatusUpdate(
