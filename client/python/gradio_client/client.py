@@ -780,7 +780,10 @@ class Client:
             )
         if is_private:
             huggingface_hub.add_space_secret(
-                space_id, "HF_TOKEN", hf_token, token=hf_token  # type: ignore
+                space_id,
+                "HF_TOKEN",
+                hf_token,  # type: ignore
+                token=hf_token,
             )
 
         url = f"https://huggingface.co/spaces/{space_id}"
