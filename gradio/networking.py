@@ -29,9 +29,8 @@ if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
 INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
 TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))
 LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
-GRADIO_API_SERVER = os.getenv(
-    "GRADIO_API_SERVER", "https://api.gradio.app/v2/tunnel-request"
-)
+GRADIO_API_SERVER = "https://api.gradio.app/v2/tunnel-request"
+GRADIO_SHARE_SERVER_ADDRESS = os.getenv("GRADIO_SHARE_SERVER_ADDRESS")
 
 should_watch = bool(os.getenv("GRADIO_WATCH_DIRS", False))
 GRADIO_WATCH_DIRS = (
@@ -220,6 +219,11 @@ def start_server(
 def setup_tunnel(
     local_host: str, local_port: int, share_token: str, share_server_address: str | None
 ) -> str:
+    share_server_address = (
+        GRADIO_SHARE_SERVER_ADDRESS
+        if share_server_address is None
+        else share_server_address
+    )
     if share_server_address is None:
         response = requests.get(GRADIO_API_SERVER)
         if not (response and response.status_code == 200):
