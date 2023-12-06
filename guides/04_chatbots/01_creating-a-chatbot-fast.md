@@ -177,7 +177,7 @@ from langchain.schema import AIMessage, HumanMessage
 import openai
 import gradio as gr
 
-os.envrion["OPENAI_API_KEY"] = "sk-..."  # Replace with your key
+os.environ["OPENAI_API_KEY"] = "sk-..."  # Replace with your key
 
 llm = ChatOpenAI(temperature=1.0, model='gpt-3.5-turbo-0613')
 

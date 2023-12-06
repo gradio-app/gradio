@@ -21,7 +21,6 @@ from typing import Any, Callable, Literal
 
 import httpx
 import huggingface_hub
-import requests
 import websockets
 from huggingface_hub import CommitOperationAdd, SpaceHardware, SpaceStage
 from huggingface_hub.utils import (
@@ -375,17 +374,17 @@ class Client:
             api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
 
         if self.app_version > version.Version("3.36.1"):
-            r = requests.get(api_info_url, headers=self.headers, cookies=self.cookies)
-            if r.ok:
+            r = httpx.get(api_info_url, headers=self.headers, cookies=self.cookies)
+            if r.is_success:
                 info = r.json()
             else:
                 raise ValueError(f"Could not fetch api info for {self.src}: {r.text}")
         else:
-            fetch = requests.post(
+            fetch = httpx.post(
                 utils.SPACE_FETCHER_URL,
                 json={"config": json.dumps(self.config), "serialize": self.serialize},
             )
-            if fetch.ok:
+            if fetch.is_success:
                 info = fetch.json()["api"]
             else:
                 raise ValueError(
@@ -614,31 +613,29 @@ class Client:
         return huggingface_hub.space_info(space, token=self.hf_token).host  # type: ignore
 
     def _login(self, auth: tuple[str, str]):
-        resp = requests.post(
+        resp = httpx.post(
             urllib.parse.urljoin(self.src, utils.LOGIN_URL),
             data={"username": auth[0], "password": auth[1]},
         )
-        if not resp.ok:
+        if not resp.is_success:
             raise ValueError(f"Could not login to {self.src}")
         self.cookies = {
-            cookie.name: cookie.value
-            for cookie in resp.cookies
-            if cookie.value is not None
+            name: value for name, value in resp.cookies.items() if value is not None
         }
 
     def _get_config(self) -> dict:
-        r = requests.get(
+        r = httpx.get(
             urllib.parse.urljoin(self.src, utils.CONFIG_URL),
             headers=self.headers,
             cookies=self.cookies,
         )
-        if r.ok:
+        if r.is_success:
             return r.json()
         elif r.status_code == 401:
             raise ValueError(f"Could not load {self.src}. Please login.")
         else:  # to support older versions of Gradio
-            r = requests.get(self.src, headers=self.headers, cookies=self.cookies)
-            if not r.ok:
+            r = httpx.get(self.src, headers=self.headers, cookies=self.cookies)
+            if not r.is_success:
                 raise ValueError(f"Could not fetch config for {self.src}")
             # some basic regex to extract the config
             result = re.search(r"window.gradio_config = (.*?);[\s]*</script>", r.text)
@@ -941,9 +938,7 @@ class Endpoint:
             for f in fs:
                 files.append(("files", (Path(f).name, open(f, "rb"))))  # noqa: SIM115
                 indices.append(i)
-        r = requests.post(
-            self.client.upload_url, headers=self.client.headers, files=files
-        )
+        r = httpx.post(self.client.upload_url, headers=self.client.headers, files=files)
         if r.status_code != 200:
             uploaded = file_paths
         else:
@@ -1077,9 +1072,10 @@ class Endpoint:
                 data,
                 hash_data,
                 helper,
-                self.client.sse_url,
-                self.client.sse_data_url,
-                self.client.cookies,
+                sse_url=self.client.sse_url,
+                sse_data_url=self.client.sse_data_url,
+                headers=self.client.headers,
+                cookies=self.client.cookies,
             )
 
 
@@ -1155,8 +1151,8 @@ class EndpointV3Compatibility:
                 if "error" in result:
                     raise ValueError(result["error"])
             else:
-                response = requests.post(
-                    self.client.api_url, headers=self.client.headers, data=data
+                response = httpx.post(
+                    self.client.api_url, headers=self.client.headers, json=data
                 )
                 result = json.loads(response.content.decode("utf-8"))
             try:
@@ -1205,9 +1201,7 @@ class EndpointV3Compatibility:
             for f in fs:
                 files.append(("files", (Path(f).name, open(f, "rb"))))  # noqa: SIM115
                 indices.append(i)
-        r = requests.post(
-            self.client.upload_url, headers=self.client.headers, files=files
-        )
+        r = httpx.post(self.client.upload_url, headers=self.client.headers, files=files)
         if r.status_code != 200:
             uploaded = file_paths
         else:
