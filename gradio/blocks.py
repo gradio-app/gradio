@@ -1311,7 +1311,7 @@ Received inputs:
 
         dep_outputs = dependency["outputs"]
 
-        if type(predictions) is not list and type(predictions) is not tuple:
+        if not isinstance(predictions, (list, tuple)):
             predictions = [predictions]
 
         if len(predictions) < len(dep_outputs):
@@ -1349,7 +1349,7 @@ Received outputs:
         dependency = self.dependencies[fn_index]
         batch = dependency["batch"]
 
-        if type(predictions) is dict and len(predictions) > 0:
+        if isinstance(predictions, dict) and len(predictions) > 0:
             predictions = convert_component_dict_to_list(
                 dependency["outputs"], predictions
             )

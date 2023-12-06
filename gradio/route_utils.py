@@ -465,7 +465,7 @@ class GradioMultiPartParser:
         # Parse the Content-Type header to get the multipart boundary.
         _, params = parse_options_header(self.headers["Content-Type"])
         charset = params.get(b"charset", "utf-8")
-        if type(charset) == bytes:
+        if isinstance(charset, bytes):
             charset = charset.decode("latin-1")
         self._charset = charset
         try:
