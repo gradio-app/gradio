@@ -324,7 +324,7 @@ async def get_pred_from_ws(
     return resp["output"]
 
 
-async def get_pred_from_sse(
+async def get_pred_from_sse_v0(
     client: httpx.AsyncClient,
     data: dict,
     hash_data: dict,
@@ -333,8 +333,6 @@ async def get_pred_from_sse(
     sse_data_url: str,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
-    protocol: str,
-    pending_messages_per_event: dict[str, list[Message]],
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
@@ -350,16 +348,37 @@ async def get_pred_from_sse(
                     headers,
                     cookies,
                 )
-                if protocol == "sse"
-                else stream_sse_v1(
-                    client,
-                    data,
-                    hash_data,
+            ),
+        ],
+        return_when=asyncio.FIRST_COMPLETED,
+    )
+
+    for task in pending:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+    assert len(done) == 1
+    for task in done:
+        return task.result()
+
+
+async def get_pred_from_sse_v1(
+    helper: Communicator,
+    cookies: dict[str, str] | None,
+    pending_messages_per_event: dict[str, list[Message]],
+    event_id: list[str]
+) -> dict[str, Any] | None:
+    done, pending = await asyncio.wait(
+        [
+            asyncio.create_task(check_for_cancel(helper, cookies)),
+            asyncio.create_task(
+                stream_sse_v1(
                     helper,
-                    sse_data_url,
-                    headers,
-                    cookies,
                     pending_messages_per_event,
+                    event_id,
                 )
             ),
         ],
@@ -457,26 +476,11 @@ async def stream_sse_v0(
 
 
 async def stream_sse_v1(
-    client: httpx.AsyncClient,
-    data: dict,
-    hash_data: dict,
     helper: Communicator,
-    sse_data_url: str,
-    headers: dict[str, str],
-    cookies: dict[str, str] | None,
     pending_messages_per_event: dict[str, list[Message]],
+    event_id: str,
 ) -> dict[str, Any]:
     try:
-        req = await client.post(
-            sse_data_url,
-            json={**data, **hash_data},
-            headers=headers,
-            cookies=cookies,
-        )
-        req.raise_for_status()
-        resp = req.json()
-        event_id = resp["event_id"]
-
         while event_id not in pending_messages_per_event:
             await asyncio.sleep(0.05)
         pending_messages = pending_messages_per_event[event_id]

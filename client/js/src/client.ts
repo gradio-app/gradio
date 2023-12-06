@@ -871,6 +871,15 @@ export function api_factory(
 											});
 										}
 									}
+
+									if (status.stage === "complete" || status.stage === "error") {
+										if (event_callbacks[event_id]) {
+											delete event_callbacks[event_id];
+											if (Object.keys(event_callbacks).length === 0) {
+												close_stream();
+											}
+										}										
+									}									
 								};
 								event_callbacks[event_id] = callback;
 							}
@@ -904,13 +913,6 @@ export function api_factory(
 					let listeners = narrowed_listener_map[eventType] || [];
 					listeners = listeners?.filter((l) => l !== listener);
 					narrowed_listener_map[eventType] = listeners;
-
-					if (event_callbacks[event_id]) {
-						delete event_callbacks[event_id];
-						if (Object.keys(event_callbacks).length === 0) {
-							close_stream();
-						}
-					}
 
 					return { on, off, cancel, destroy };
 				}

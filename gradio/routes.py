@@ -571,7 +571,7 @@ class App(FastAPI):
                 )
             except BaseException as error:
                 show_error = app.get_blocks().show_error or isinstance(error, Error)
-                traceback.print_exc()
+                traceback._exc()
                 return JSONResponse(
                     content={"error": str(error) if show_error else None},
                     status_code=500,
@@ -584,8 +584,6 @@ class App(FastAPI):
             session_hash: str,
         ):
             blocks = app.get_blocks()
-            if blocks._queue.server_app is None:
-                blocks._queue.set_server_app(app)
 
             async def sse_stream(request: fastapi.Request):
                 try:
@@ -593,24 +591,17 @@ class App(FastAPI):
                     while True:
                         if await request.is_disconnected():
                             await blocks._queue.clean_events(session_hash=session_hash)
-                            print("disconnected")
                             return
-
-                        if (
-                            session_hash
-                            not in blocks._queue.pending_messages_per_session
-                        ):
-                            await asyncio.sleep(0.05)
-                            continue
 
                         heartbeat_rate = 15
                         check_rate = 0.05
                         message = None
                         try:
-                            messages = blocks._queue.pending_messages_per_session[
-                                session_hash
-                            ]
-                            message = messages.get_nowait()
+                            if session_hash in blocks._queue.pending_messages_per_session:
+                                messages = blocks._queue.pending_messages_per_session[
+                                    session_hash
+                                ]
+                                message = messages.get_nowait()
                         except EmptyQueue:
                             await asyncio.sleep(check_rate)
                             if time.perf_counter() - last_heartbeat > heartbeat_rate:
@@ -622,6 +613,9 @@ class App(FastAPI):
 
                         if message:
                             yield f"data: {json.dumps(message)}\n\n"
+                            if message["msg"] == "process_completed":
+                                if len(blocks._queue.pending_event_ids_session[session_hash]) == 0:
+                                    return
                 except asyncio.CancelledError as e:
                     await blocks._queue.clean_events(session_hash=session_hash)
                     raise e
@@ -637,6 +631,9 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
+            if blocks._queue.server_app is None:
+                blocks._queue.set_server_app(app)
+
             event_id = await blocks._queue.push(body, request, username)
             return {"event_id": event_id}
 
