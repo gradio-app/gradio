@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import json
 from typing import Any, Literal
 
@@ -62,6 +63,8 @@ class ClearButton(Button):
         """
         Adds a component or list of components to the list of components that will be cleared when the button is clicked.
         """
+        from gradio.components import State
+
         if not components:
             # This needs to be here because when the ClearButton is created in an gr.Interface, we don't
             # want to create dependencies for it before we have created the dependencies for the submit function.
@@ -71,13 +74,19 @@ class ClearButton(Button):
         if isinstance(components, Component):
             components = [components]
         none_values = []
+        state_components = []
+        initial_states = []
         for component in components:
+            if isinstance(component, State):
+                state_components.append(component)
+                initial_states.append(copy.deepcopy(component.value))
             none = component.postprocess(None)
             if isinstance(none, (GradioModel, GradioRootModel)):
                 none = none.model_dump()
             none_values.append(none)
         clear_values = json.dumps(none_values)
         self.click(None, [], components, js=f"() => {clear_values}")
+        self.click(lambda: initial_states, None, state_components)
         return self
 
     def postprocess(self, value: str | None) -> str | None:
