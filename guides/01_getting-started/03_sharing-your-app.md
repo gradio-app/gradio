@@ -191,7 +191,7 @@ This is not the case by default for Safari, Chrome Incognito Mode.
 ### OAuth (Login via Hugging Face)
 
 Gradio supports OAuth login via Hugging Face. This feature is currently **experimental** and only available on Spaces.
-If allows to add a _"Sign in with Hugging Face"_ button to your demo. Check out [this Space](https://huggingface.co/spaces/Wauplin/gradio-oauth-demo) for a live demo.
+It allows you to add a _"Sign in with Hugging Face"_ button to your demo. Check out [this Space](https://huggingface.co/spaces/Wauplin/gradio-oauth-demo) for a live demo.
 
 To enable OAuth, you must set `hf_oauth: true` as a Space metadata in your README.md file. This will register your Space
 as an OAuth application on Hugging Face. Next, you can use `gr.LoginButton` and `gr.LogoutButton` to add login and logout buttons to
@@ -221,8 +221,10 @@ def list_organizations(oauth_token: gr.OAuthToken | None) -> str:
 with gr.Blocks() as demo:
     gr.LoginButton()
     gr.LogoutButton()
-    gr.Markdown().attach_load_event(hello, None)
-    gr.Markdown().attach_load_event(list_organizations, None)
+    m1 = gr.Markdown()
+    m2 = gr.Markdown()
+    demo.load(hello, None, m1)
+    demo.load(list_organizations, None, m)
 ```
 
 When the user clicks on the login button, they get redirected in a new page to authorize your Space.
