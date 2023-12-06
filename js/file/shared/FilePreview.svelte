@@ -58,9 +58,9 @@
 								href={file.url}
 								download={window.__is_colab__ ? null : file.orig_name}
 							>
-							{@html file.size != null
-								? prettyBytes(file.size)
-								: "(size unknown)"}&nbsp;&#8675;
+								{@html file.size != null
+									? prettyBytes(file.size)
+									: "(size unknown)"}&nbsp;&#8675;
 							</DownloadLink>
 						{:else}
 							{i18n("file.uploading")}
