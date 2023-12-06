@@ -1,6 +1,6 @@
 ---
-"@gradio/fileexplorer": minor
-"gradio": minor
+"@gradio/fileexplorer": patch
+"gradio": patch
 ---
 
-feat:Ensure checked files persist after FileExplorer rerenders
+fix:Ensure checked files persist after FileExplorer rerenders
