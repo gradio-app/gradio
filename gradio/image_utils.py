@@ -29,12 +29,18 @@ def format_image(
     elif type == "filepath":
         try:
             path = processing_utils.save_pil_to_cache(
-                im, cache_dir=cache_dir, name=name, format=fmt or format  # type: ignore
+                im,
+                cache_dir=cache_dir,
+                name=name,
+                format=fmt or format,  # type: ignore
             )
         # Catch error if format is not supported by PIL
         except (KeyError, ValueError):
             path = processing_utils.save_pil_to_cache(
-                im, cache_dir=cache_dir, name=name, format="png"  # type: ignore
+                im,
+                cache_dir=cache_dir,
+                name=name,
+                format="png",  # type: ignore
             )
         return path
     else:
@@ -54,7 +60,9 @@ def save_image(y: np.ndarray | _Image.Image | str | Path, cache_dir: str):
         fmt = y.format
         try:
             path = processing_utils.save_pil_to_cache(
-                y, cache_dir=cache_dir, format=fmt  # type: ignore
+                y,
+                cache_dir=cache_dir,
+                format=fmt,  # type: ignore
             )
         # Catch error if format is not supported by PIL
         except (KeyError, ValueError):

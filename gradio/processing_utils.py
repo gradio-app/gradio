@@ -597,7 +597,9 @@ def _convert(image, dtype, force_copy=False, uniform=False):
                 image_out = np.multiply(image, imax_out, dtype=computation_type)  # type: ignore
             else:
                 image_out = np.multiply(
-                    image, (imax_out - imin_out) / 2, dtype=computation_type  # type: ignore
+                    image,
+                    (imax_out - imin_out) / 2,
+                    dtype=computation_type,  # type: ignore
                 )
                 image_out -= 1.0 / 2.0
             np.rint(image_out, out=image_out)
@@ -607,7 +609,9 @@ def _convert(image, dtype, force_copy=False, uniform=False):
             np.clip(image_out, 0, imax_out, out=image_out)  # type: ignore
         else:
             image_out = np.multiply(
-                image, (imax_out - imin_out + 1.0) / 2.0, dtype=computation_type  # type: ignore
+                image,
+                (imax_out - imin_out + 1.0) / 2.0,
+                dtype=computation_type,  # type: ignore
             )
             np.floor(image_out, out=image_out)
             np.clip(image_out, imin_out, imax_out, out=image_out)  # type: ignore
