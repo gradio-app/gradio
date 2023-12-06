@@ -667,7 +667,7 @@ export function api_factory(
 							)}/queue/join?${url_params ? url_params + "&" : ""}${params}`
 						);
 
-						eventSource = new EventSource(url);
+						eventSource = new EventSource(url.toString());
 
 						eventSource.onmessage = async function (event) {
 							const _data = JSON.parse(event.data);
@@ -1025,7 +1025,7 @@ function transform_output(
 					? [normalise_file(img[0], root_url, remote_url), img[1]]
 					: [normalise_file(img, root_url, remote_url), null];
 			});
-		} else if (typeof d === "object" && d.path) {
+		} else if (typeof d === "object" & d !== null && d.path) {
 			return normalise_file(d, root_url, remote_url);
 		}
 		return d;
