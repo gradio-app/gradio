@@ -48,7 +48,7 @@ def get_tabular_examples(model_name: str) -> Dict[str, List[float]]:
 
 
 def cols_to_rows(
-    example_data: Dict[str, List[float]]
+    example_data: Dict[str, List[float]],
 ) -> Tuple[List[str], List[List[float]]]:
     headers = list(example_data.keys())
     n_rows = max(len(example_data[header] or []) for header in headers)

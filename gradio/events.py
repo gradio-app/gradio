@@ -415,9 +415,16 @@ def on(
     if Context.root_block is None:
         raise Exception("Cannot call on() outside of a gradio.Blocks context.")
     if triggers is None:
-        triggers = [EventListenerMethod(input, "change") for input in inputs] if inputs is not None else []  # type: ignore
+        triggers = (
+            [EventListenerMethod(input, "change") for input in inputs]
+            if inputs is not None
+            else []
+        )  # type: ignore
     else:
-        triggers = [EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name) for t in triggers]  # type: ignore
+        triggers = [
+            EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name)
+            for t in triggers
+        ]  # type: ignore
     dep, dep_index = Context.root_block.set_event_trigger(
         triggers,
         fn,
