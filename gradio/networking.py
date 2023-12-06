@@ -220,7 +220,7 @@ def setup_tunnel(
 ) -> str:
     if share_server_address is None:
         try:
-            response = httpx.get(GRADIO_API_SERVER)
+            response = httpx.get(GRADIO_API_SERVER, timeout=30)
             payload = response.json()[0]
             remote_host, remote_port = payload["host"], int(payload["port"])
         except Exception as e:
