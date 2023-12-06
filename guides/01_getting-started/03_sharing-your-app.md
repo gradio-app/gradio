@@ -223,8 +223,8 @@ with gr.Blocks() as demo:
     gr.LogoutButton()
     m1 = gr.Markdown()
     m2 = gr.Markdown()
-    demo.load(hello, None, m1)
-    demo.load(list_organizations, None, m)
+    demo.load(hello, inputs=None, outputs=m1)
+    demo.load(list_organizations, inputs=None, outputs=m2)
 ```
 
 When the user clicks on the login button, they get redirected in a new page to authorize your Space.
