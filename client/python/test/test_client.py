@@ -488,6 +488,12 @@ class TestClientPredictions:
             assert demo.predict(api_name="/close") == 4
             assert demo.predict("Ali", api_name="/greeting") == ("Hello Ali", 5)
 
+    def test_long_response_time_with_gr_info_and_big_payload(
+        self, long_response_with_info
+    ):
+        with connect(long_response_with_info) as demo:
+            assert demo.predict(api_name="/predict") == "\ta\nb" * 90000
+
 
 class TestStatusUpdates:
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
