@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Allow percentage height in `Blocks.svelte`
+feat:Allow passing height with any unit in `Blocks.svelte`
