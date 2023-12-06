@@ -72,7 +72,5 @@ if __name__ == "__main__":
     torch==1.12.1
     altair
     vega_datasets
-    pydantic==2.1.1
-    pydantic_core==2.4.0
     """
     open(reqs_file_path, "w").write(textwrap.dedent(requirements))

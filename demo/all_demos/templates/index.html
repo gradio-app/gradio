@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {%if is_space %}
+        <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    {% endif %}
+    <style>
+        /* Reset some default styles */
+        body, h1, h2, h3, p, ul {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            overflow-y: hidden;
+        }
+
+        .sidebar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            max-height: calc(100vh - 50px);
+            width: 300px;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            font-size: 0.875rem; /* 14px */
+            line-height: 1.25rem; /* 20px */
+            transition: width 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            width: 0;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 8px 16px;
+            text-decoration: none;
+            color: rgb(107 114 128);
+        }
+
+        .sidebar a:hover {
+            color: black;
+            transform: translateX(1px);
+        }
+
+        /* Apply a different style to the selected item in the sidebar */
+        .sidebar a.active {
+            background-color: rgb(251 146 60);
+            color: white;
+            border-radius: 0.75rem;
+            font-weight: bold;
+        }
+
+        /* Styling for the close button */
+        .close-btn {
+            cursor: pointer;
+            border: none;
+            background-color: white;
+            font-size: xx-large;
+            position: relative;
+        }
+
+        /* Styling for the content */
+        .content {
+            margin-left: 300px;
+            padding: 20px;
+            display: block;
+            height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        .content.collapsed {
+            margin-left: 0;
+        }
+
+        /* Make the iframe responsive */
+        .content iframe {
+            width: 100%;
+            border: 0;
+            height: 100%;
+        }
+
+        @media only screen and (max-width: 600px) {
+            /* Adjust styles for smaller screens */
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+
+            .content {
+                margin-left: 0;
+            }
+        }
+    </style>
+    <script src="//unpkg.com/alpinejs" defer></script>
+</head>
+<body x-data="{ current_demo: '{{ initial_demo }}', is_collapsed: false }">
+    <div style="display: flex; flex-direction: column;">
+        <div>
+            <button @click="is_collapsed = !is_collapsed" class="close-btn">
+                <a x-text="is_collapsed ? '➡️' : '⬅️'"></a>
+            </button>
+        </div>
+        <div :class="{ 'sidebar': true, 'collapsed': is_collapsed }" style="margin-top: 50px;">
+            {% for name in names %}
+                <a @click="current_demo = '{{ name[0] }}'" :class="current_demo == '{{ name[0] }}' ? 'active' : ''">{{ name[0] }} {% if name[1] %}❌{% endif %}</a>
+            {% endfor %}
+        </div>
+    </div>
+    <div :class="{ 'content': true, 'collapsed': is_collapsed }">
+        <iframe :src="`/demo/${current_demo}${document.location.search}`"></iframe>
+    </div>
+</body>
+</html>
