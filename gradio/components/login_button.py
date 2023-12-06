@@ -77,7 +77,7 @@ class LoginButton(Button):
         if session is None or "oauth_info" not in session:
             return LoginButton("Sign in with Hugging Face", interactive=True)
         else:
-            username = session["oauth_info"]["preferred_username"]
+            username = session["oauth_info"]["userinfo"]["preferred_username"]
             return LoginButton(f"Signed in as {username}", interactive=False)
 
 
