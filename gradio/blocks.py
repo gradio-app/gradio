@@ -1419,8 +1419,10 @@ Received outputs:
                         )
                     prediction_value = block.postprocess(prediction_value)
                 outputs_cached = processing_utils.move_files_to_cache(
-                    prediction_value, block, postprocess=True
-                )  # type: ignore
+                    prediction_value,
+                    block,
+                    postprocess=True,  # type: ignore
+                )
                 output.append(outputs_cached)
 
         return output

@@ -383,9 +383,9 @@ class GradioMultiPartParser:
         message_bytes = data[start:end]
         if self.upload_progress is not None:
             self.upload_progress.update(
-                self.upload_id,
-                self._current_part.file.filename,
-                message_bytes,  # type: ignore
+                self.upload_id,  # type: ignore
+                self._current_part.file.filename,  # type: ignore
+                message_bytes,
             )
         if self._current_part.file is None:
             self._current_part.data += message_bytes

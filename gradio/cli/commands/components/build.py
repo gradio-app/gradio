@@ -38,8 +38,8 @@ def _build(
         if bump_version:
             pyproject_toml = parse((path / "pyproject.toml").read_text())
             version = semantic_version.Version(
-                pyproject_toml["project"]["version"]
-            ).next_patch()  # type: ignore
+                pyproject_toml["project"]["version"]  # type: ignore
+            ).next_patch()
             live.update(
                 f":1234: Using version [bold][magenta]{version}[/][/]. "
                 "Set [bold][magenta]--no-bump-version[/][/] to use the version in pyproject.toml file."

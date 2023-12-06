@@ -139,9 +139,9 @@ def _create(
                 print(
                     f":snake: Using requires-python of [bold][magenta]{requires_python}[/][/]"
                 )
-                pyproject_toml["project"]["requires-python"] = (
+                pyproject_toml["project"]["requires-python"] = (  # type: ignore
                     requires_python or ">=3.8"
-                )  # type: ignore
+                )
 
                 keywords = []
                 print(
