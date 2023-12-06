@@ -201,7 +201,7 @@ class FileExplorer(Component):
             for result in expand_braces(self.ignore_glob):
                 ignore_files += list(Path(self.root).resolve().glob(result))
             files = list(set(files) - set(ignore_files))
-        
+
         files_with_sep = []
         for f in files:
             file = str(f.relative_to(self.root))
