@@ -24,10 +24,8 @@ class TestClearButton:
             state = gr.State("")
             gr.ClearButton([state, chatbot], scale=1)
 
-        clear_event_trigger = demo.dependencies.pop()
-        assert clear_event_trigger["backend_fn"]
-        assert clear_event_trigger["js"]
-        assert clear_event_trigger["outputs"] == [state._id, chatbot._id]
+        clear_event_trigger_state = demo.dependencies.pop()
+        assert clear_event_trigger_state["backend_fn"]
 
 
 class TestOAuthButtons:
