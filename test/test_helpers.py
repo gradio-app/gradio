@@ -10,7 +10,6 @@ from unittest.mock import patch
 
 import httpx
 import pytest
-import requests
 from gradio_client import media_data, utils
 from pydub import AudioSegment
 from starlette.testclient import TestClient
@@ -673,7 +672,7 @@ class TestProgressBar:
                         msg = json.loads(line[5:])
                     if msg["msg"] == "send_data":
                         event_id = msg["event_id"]
-                        req = requests.post(
+                        req = await client.post(
                             f"http://localhost:{demo.server_port}/queue/data",
                             json={
                                 "event_id": event_id,
@@ -681,7 +680,7 @@ class TestProgressBar:
                                 "fn_index": 0,
                             },
                         )
-                        if not req.ok:
+                        if not req.is_success:
                             raise ValueError(
                                 f"Could not send payload to endpoint: {req.text}"
                             )
@@ -739,7 +738,7 @@ class TestProgressBar:
                         msg = json.loads(line[5:])
                     if msg["msg"] == "send_data":
                         event_id = msg["event_id"]
-                        req = requests.post(
+                        req = await client.post(
                             f"http://localhost:{demo.server_port}/queue/data",
                             json={
                                 "event_id": event_id,
@@ -747,7 +746,7 @@ class TestProgressBar:
                                 "fn_index": 0,
                             },
                         )
-                        if not req.ok:
+                        if not req.is_success:
                             raise ValueError(
                                 f"Could not send payload to endpoint: {req.text}"
                             )
@@ -824,7 +823,7 @@ class TestProgressBar:
                         msg = json.loads(line[5:])
                     if msg["msg"] == "send_data":
                         event_id = msg["event_id"]
-                        req = requests.post(
+                        req = await client.post(
                             f"http://localhost:{demo.server_port}/queue/data",
                             json={
                                 "event_id": event_id,
@@ -832,7 +831,7 @@ class TestProgressBar:
                                 "fn_index": 0,
                             },
                         )
-                        if not req.ok:
+                        if not req.is_success:
                             raise ValueError(
                                 f"Could not send payload to endpoint: {req.text}"
                             )
@@ -896,7 +895,7 @@ class TestProgressBar:
                         msg = json.loads(line[5:])
                     if msg["msg"] == "send_data":
                         event_id = msg["event_id"]
-                        req = requests.post(
+                        req = await client.post(
                             f"http://localhost:{demo.server_port}/queue/data",
                             json={
                                 "event_id": event_id,
@@ -904,7 +903,7 @@ class TestProgressBar:
                                 "fn_index": 0,
                             },
                         )
-                        if not req.ok:
+                        if not req.is_success:
                             raise ValueError(
                                 f"Could not send payload to endpoint: {req.text}"
                             )
@@ -957,7 +956,7 @@ async def test_info_isolation(async_handler: bool):
                         msg = json.loads(line[5:])
                     if msg["msg"] == "send_data":
                         event_id = msg["event_id"]
-                        req = requests.post(
+                        req = await client.post(
                             f"http://localhost:{demo.server_port}/queue/data",
                             json={
                                 "event_id": event_id,
@@ -965,7 +964,7 @@ async def test_info_isolation(async_handler: bool):
                                 "fn_index": 0,
                             },
                         )
-                        if not req.ok:
+                        if not req.is_success:
                             raise ValueError(
                                 f"Could not send payload to endpoint: {req.text}"
                             )

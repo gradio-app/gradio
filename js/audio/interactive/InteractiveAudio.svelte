@@ -222,7 +222,14 @@
 	{#if active_source === "microphone"}
 		<ModifyUpload {i18n} on:clear={clear} absolute={true} />
 		{#if streaming}
-			<StreamAudio {record} {recording} {stop} {i18n} {waveform_settings} />
+			<StreamAudio
+				{record}
+				{recording}
+				{stop}
+				{i18n}
+				{waveform_settings}
+				{waveform_options}
+			/>
 		{:else}
 			<AudioRecorder
 				bind:mode

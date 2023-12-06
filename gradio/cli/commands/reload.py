@@ -29,19 +29,20 @@ def _setup_config(
     demo_path: Path,
     demo_name: str = "demo",
     additional_watch_dirs: list[str] | None = None,
+    encoding: str = "utf-8",
 ):
     original_path = Path(demo_path)
-    app_text = original_path.read_text()
+    app_text = original_path.read_text(encoding=encoding)
 
     patterns = [
-        f"with gr\\.Blocks\\(\\) as {demo_name}",
+        f"with gr\\.Blocks\\(.*\\) as {demo_name}",
         f"{demo_name} = gr\\.Blocks",
         f"{demo_name} = gr\\.Interface",
         f"{demo_name} = gr\\.ChatInterface",
         f"{demo_name} = gr\\.TabbedInterface",
     ]
 
-    if not any(re.search(p, app_text) for p in patterns):
+    if not any(re.search(p, app_text, flags=re.DOTALL) for p in patterns):
         print(
             f"\n[bold red]Warning[/]: Cannot statically find a gradio demo called {demo_name}. "
             "Reload work may fail."
@@ -96,11 +97,14 @@ def _setup_config(
 
 
 def main(
-    demo_path: Path, demo_name: str = "demo", watch_dirs: Optional[List[str]] = None
+    demo_path: Path,
+    demo_name: str = "demo",
+    watch_dirs: Optional[List[str]] = None,
+    encoding: str = "utf-8",
 ):
     # default execution pattern to start the server and watch changes
     module_name, path, watch_dirs, demo_name = _setup_config(
-        demo_path, demo_name, watch_dirs
+        demo_path, demo_name, watch_dirs, encoding
     )
     # extra_args = args[1:] if len(args) == 1 or args[1].startswith("--") else args[2:]
     popen = subprocess.Popen(

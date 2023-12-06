@@ -13,3 +13,11 @@
 {:catch error}
 	<p style="color: red;">{error.message}</p>
 {/await}
+
+<style>
+	img {
+		width: 100%;
+		height: 100%;
+		border-radius: var(--radius-lg);
+	}
+</style>
