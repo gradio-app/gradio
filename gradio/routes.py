@@ -47,7 +47,6 @@ from jinja2.exceptions import TemplateNotFound
 from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
 from starlette.responses import RedirectResponse, StreamingResponse
-from typing_extensions import Annotated
 
 import gradio
 import gradio.ranged_response as ranged_response
@@ -270,7 +269,7 @@ class App(FastAPI):
 
         @app.post("/login")
         @app.post("/login/")
-        def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+        def login(form_data: OAuth2PasswordRequestForm = Depends()):
             username, password = form_data.username.strip(), form_data.password
             if app.auth is None:
                 return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
