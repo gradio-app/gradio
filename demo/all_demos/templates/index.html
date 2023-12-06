@@ -99,6 +99,13 @@
     <script src="//unpkg.com/alpinejs" defer></script>
 </head>
 <body x-data="{ current_demo: '{{ initial_demo }}', is_collapsed: false }">
+    <script>
+        function light_theme() {
+            var searchParams = new URLSearchParams(window.location.search);
+            searchParams.set("__theme", "light");
+            return searchParams.toString();
+        }
+    </script>
     <div style="display: flex; flex-direction: column;">
         <div>
             <button @click="is_collapsed = !is_collapsed" class="close-btn">
@@ -112,7 +119,7 @@
         </div>
     </div>
     <div :class="{ 'content': true, 'collapsed': is_collapsed }">
-        <iframe :src="`/demo/${current_demo}?__theme=light`"></iframe>
+        <iframe :src="`/demo/${current_demo}?${light_theme()}`"></iframe>
     </div>
 </body>
 </html>
