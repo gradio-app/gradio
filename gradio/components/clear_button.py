@@ -63,7 +63,7 @@ class ClearButton(Button):
         """
         Adds a component or list of components to the list of components that will be cleared when the button is clicked.
         """
-        from gradio.components import State
+        from gradio.components import State  # Avoid circular import
 
         if not components:
             # This needs to be here because when the ClearButton is created in an gr.Interface, we don't
