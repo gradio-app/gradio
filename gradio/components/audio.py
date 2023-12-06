@@ -6,8 +6,8 @@ import dataclasses
 from pathlib import Path
 from typing import Any, Callable, Literal
 
+import httpx
 import numpy as np
-import requests
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
@@ -15,6 +15,7 @@ from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingInput, StreamingOutput
 from gradio.data_classes import FileData
 from gradio.events import Events
+from gradio.exceptions import Error
 
 set_documentation_group("component")
 
@@ -190,11 +191,11 @@ class Audio(
 
         duration = len(data) / sample_rate
         if self.min_length is not None and duration < self.min_length:
-            raise ValueError(
+            raise Error(
                 f"Audio is too short, and must be at least {self.min_length} seconds"
             )
         if self.max_length is not None and duration > self.max_length:
-            raise ValueError(
+            raise Error(
                 f"Audio is too long, and must be at most {self.max_length} seconds"
             )
 
@@ -257,7 +258,7 @@ class Audio(
         if isinstance(value, bytes):
             return value, output_file
         if client_utils.is_http_url_like(value["path"]):
-            response = requests.get(value["path"])
+            response = httpx.get(value["path"])
             binary_data = response.content
         else:
             output_file["orig_name"] = value["orig_name"]
