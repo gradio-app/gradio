@@ -878,8 +878,8 @@ export function api_factory(
 											if (Object.keys(event_callbacks).length === 0) {
 												close_stream();
 											}
-										}										
-									}									
+										}
+									}
 								};
 								event_callbacks[event_id] = callback;
 							}

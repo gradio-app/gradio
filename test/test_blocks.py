@@ -263,6 +263,7 @@ class TestBlocksMethods:
             for output in client.submit("abc", api_name="/predict"):
                 outputs.append(output)
         assert outputs == ["a", "b", "c"]
+        demo.queue().launch(prevent_thread_lock=True)
 
     def test_socket_reuse(self):
         try:

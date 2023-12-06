@@ -369,7 +369,7 @@ async def get_pred_from_sse_v1(
     helper: Communicator,
     cookies: dict[str, str] | None,
     pending_messages_per_event: dict[str, list[Message]],
-    event_id: list[str]
+    event_id: str,
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [

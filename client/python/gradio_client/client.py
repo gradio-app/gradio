@@ -18,7 +18,6 @@ from datetime import datetime
 from pathlib import Path
 from threading import Lock
 from typing import Any, Callable, Literal
-import asyncio
 
 import httpx
 import huggingface_hub
@@ -160,39 +159,34 @@ class Client:
         self.stream_open = False
         self.streaming_future: Future | None = None
         self.pending_messages_per_event: dict[str, list[Message]] = {}
-        self.pending_event_ids: list[str] = []
+        self.pending_event_ids: set[str] = set()
 
     async def stream_messages(self) -> None:
-        print("Starting stream...")
-        try:
-            async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
-                async with client.stream(
-                    "GET",
-                    self.sse_url,
-                    params={"session_hash": self.session_hash},
-                    headers=self.headers,
-                    cookies=self.cookies,
-                ) as response:
-                    async for line in response.aiter_text():
-                        if line.startswith("data:"):
-                            print(line)
-                            resp = json.loads(line[5:])
-                            if resp["msg"] == "heartbeat":
-                                continue
-                            event_id = resp["event_id"]
-                            if event_id not in self.pending_messages_per_event:
-                                self.pending_messages_per_event[event_id] = []
-                            self.pending_messages_per_event[event_id].append(resp)
-                            if resp["msg"] == "process_completed":
-                                self.pending_event_ids.remove(event_id)
-                            if len(self.pending_event_ids) == 0:
-                                self.stream_open = False
-                                return
-                        else:
-                            raise ValueError(f"Unexpected SSE line: {line}")
-        except BaseException  as e:
-            print(e)
-            raise e
+        async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
+            async with client.stream(
+                "GET",
+                self.sse_url,
+                params={"session_hash": self.session_hash},
+                headers=self.headers,
+                cookies=self.cookies,
+            ) as response:
+                async for line in response.aiter_text():
+                    if line.startswith("data:"):
+                        print(line)
+                        resp = json.loads(line[5:])
+                        if resp["msg"] == "heartbeat":
+                            continue
+                        event_id = resp["event_id"]
+                        if event_id not in self.pending_messages_per_event:
+                            self.pending_messages_per_event[event_id] = []
+                        self.pending_messages_per_event[event_id].append(resp)
+                        if resp["msg"] == "process_completed":
+                            self.pending_event_ids.remove(event_id)
+                        if len(self.pending_event_ids) == 0:
+                            self.stream_open = False
+                            return
+                    else:
+                        raise ValueError(f"Unexpected SSE line: {line}")
 
     def send_data(self, data, hash_data):
         req = httpx.post(
@@ -209,13 +203,15 @@ class Client:
             self.stream_open = True
 
             def open_stream():
-                utils.synchronize_async(self.stream_messages)
+                return utils.synchronize_async(self.stream_messages)
 
             if self.streaming_future is None or self.streaming_future.done():
                 self.streaming_future = self.executor.submit(open_stream)
+                self.streaming_future.add_done_callback(
+                    lambda f: print("res:", f.result())
+                )
 
         return event_id
-
 
     @classmethod
     def duplicate(
@@ -957,13 +953,16 @@ class Endpoint:
                 "session_hash": self.client.session_hash,
             }
 
-            if self.protocol == "sse_v1":
-                event_id = self.client.send_data(data, hash_data)
-
             if self.protocol == "sse":
-                result = utils.synchronize_async(self._sse_fn_v0, data, hash_data, helper)
+                result = utils.synchronize_async(
+                    self._sse_fn_v0, data, hash_data, helper
+                )
             elif self.protocol == "sse_v1":
-                result = utils.synchronize_async(self._sse_fn_v1, data, hash_data, helper, event_id)
+                event_id = self.client.send_data(data, hash_data)
+                self.client.pending_event_ids.add(event_id)
+                result = utils.synchronize_async(self._sse_fn_v1, helper, event_id)
+            else:
+                raise ValueError(f"Unsupported protocol: {self.protocol}")
 
             if "error" in result:
                 raise ValueError(result["error"])
@@ -1154,18 +1153,15 @@ class Endpoint:
                 self.client.sse_data_url,
                 self.client.headers,
                 self.client.cookies,
-                self.protocol,
             )
 
-
-    async def _sse_fn_v1(self, data: dict, hash_data: dict, helper: Communicator, event_id: str):
-        async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
-            return await utils.get_pred_from_sse_v1(
-                helper,
-                self.client.cookies,
-                self.client.pending_messages_per_event,
-                event_id
-            )
+    async def _sse_fn_v1(self, helper: Communicator, event_id: str):
+        return await utils.get_pred_from_sse_v1(
+            helper,
+            self.client.cookies,
+            self.client.pending_messages_per_event,
+            event_id,
+        )
 
 
 class EndpointV3Compatibility:

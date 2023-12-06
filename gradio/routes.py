@@ -571,7 +571,7 @@ class App(FastAPI):
                 )
             except BaseException as error:
                 show_error = app.get_blocks().show_error or isinstance(error, Error)
-                traceback._exc()
+                traceback.print_exc()
                 return JSONResponse(
                     content={"error": str(error) if show_error else None},
                     status_code=500,
@@ -597,7 +597,10 @@ class App(FastAPI):
                         check_rate = 0.05
                         message = None
                         try:
-                            if session_hash in blocks._queue.pending_messages_per_session:
+                            if (
+                                session_hash
+                                in blocks._queue.pending_messages_per_session
+                            ):
                                 messages = blocks._queue.pending_messages_per_session[
                                     session_hash
                                 ]
@@ -613,9 +616,15 @@ class App(FastAPI):
 
                         if message:
                             yield f"data: {json.dumps(message)}\n\n"
-                            if message["msg"] == "process_completed":
-                                if len(blocks._queue.pending_event_ids_session[session_hash]) == 0:
-                                    return
+                            if message["msg"] == "process_completed" and (
+                                len(
+                                    blocks._queue.pending_event_ids_session[
+                                        session_hash
+                                    ]
+                                )
+                                == 0
+                            ):
+                                return
                 except asyncio.CancelledError as e:
                     await blocks._queue.clean_events(session_hash=session_hash)
                     raise e
