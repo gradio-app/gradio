@@ -10,6 +10,7 @@ from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components import Button, Component
 from gradio.data_classes import GradioModel, GradioRootModel
+from gradio.utils import resolve_singleton
 
 set_documentation_group("component")
 
@@ -86,7 +87,7 @@ class ClearButton(Button):
             none_values.append(none)
         clear_values = json.dumps(none_values)
         self.click(None, [], components, js=f"() => {clear_values}")
-        self.click(lambda: initial_states, None, state_components)
+        self.click(lambda: resolve_singleton(initial_states) , None, state_components)
         return self
 
     def postprocess(self, value: str | None) -> str | None:
