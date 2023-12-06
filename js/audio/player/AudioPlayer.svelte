@@ -80,7 +80,11 @@
 	);
 
 	$: waveform?.on("ready", () => {
-		if (waveform_settings.autoplay) waveform?.play();
+		if (!waveform_settings.autoplay) {
+			waveform?.stop();
+		} else {
+			waveform?.play();
+		}
 	});
 
 	$: waveform?.on("finish", () => {
@@ -188,6 +192,10 @@
 <style>
 	.component-wrapper {
 		padding: var(--size-3);
+	}
+
+	:global(::part(wrapper)) {
+		margin-bottom: var(--size-2);
 	}
 
 	.timestamps {

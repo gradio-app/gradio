@@ -1,18 +1,6 @@
 <script lang="ts">
 	export let fn: any;
 	import anchor from "../assets/img/anchor.svg";
-
-	function handleAnchorClick(event: MouseEvent) {
-		event.preventDefault();
-		const link = event.currentTarget as HTMLAnchorElement;
-
-		const anchorId = new URL(link.href).hash.replace("#", "");
-		const anchor = document.getElementById(anchorId);
-		window.scrollTo({
-			top: anchor?.offsetTop,
-			behavior: "smooth"
-		});
-	}
 </script>
 
 <!-- name, signature, description, params -->
@@ -21,10 +9,8 @@
 	<div class="flex flex-row items-center justify-between">
 		<h3 class="group text-3xl font-light py-4">
 			{fn.name}
-			<a
-				href="#{fn.slug}"
-				class="invisible group-hover-visible"
-				on:click={handleAnchorClick}><img class="anchor-img" src={anchor} /></a
+			<a href="#{fn.slug}" class="invisible group-hover-visible"
+				><img class="anchor-img" src={anchor} /></a
 			>
 		</h3>
 	</div>
@@ -56,10 +42,7 @@
 		id="{fn.slug}-description"
 	>
 		Description
-		<a
-			href="#{fn.slug}-description"
-			class="invisible group-hover-visible"
-			on:click={handleAnchorClick}
+		<a href="#{fn.slug}-description" class="invisible group-hover-visible"
 			><img class="anchor-img-small" src={anchor} /></a
 		>
 	</h4>
@@ -71,10 +54,7 @@
 			id="{fn.slug}-example-usage"
 		>
 			Example Usage
-			<a
-				href="#{fn.slug}-example-usage"
-				class="invisible group-hover-visible"
-				on:click={handleAnchorClick}
+			<a href="#{fn.slug}-example-usage" class="invisible group-hover-visible"
 				><img class="anchor-img-small" src={anchor} /></a
 			>
 		</h4>
@@ -91,10 +71,7 @@
 			id="{fn.slug}-arguments"
 		>
 			Agruments
-			<a
-				href="#{fn.slug}-arguments"
-				class="invisible group-hover-visible"
-				on:click={handleAnchorClick}
+			<a href="#{fn.slug}-arguments" class="invisible group-hover-visible"
 				><img class="anchor-img-small" src={anchor} /></a
 			>
 		</h4>
@@ -126,7 +103,7 @@
 								{/if}
 							</td>
 							<td class="p-3 text-gray-700 break-words">
-								<p>{param["doc"] || ""}</p>
+								<p>{@html param["doc"] || ""}</p>
 							</td>
 						</tr>
 					{/if}

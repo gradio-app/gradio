@@ -46,7 +46,7 @@ class TextArea(components.Textbox):
 
 class Sketchpad(components.ImageEditor):
     """
-    Sets: image_mode="L", sources=(), crop_size=(28, 28), brush=Brush(colors=["#000000"])
+    Sets: sources=(), brush=Brush(colors=["#000000"], color_mode="fixed")
     """
 
     is_template = True
@@ -59,7 +59,7 @@ class Sketchpad(components.ImageEditor):
         width: int | None = None,
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
-        ] = "L",
+        ] = "RGBA",
         sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (),
         type: Literal["numpy", "pil", "filepath"] = "numpy",
         label: str | None = None,
@@ -77,13 +77,13 @@ class Sketchpad(components.ImageEditor):
         mirror_webcam: bool = True,
         show_share_button: bool | None = None,
         _selectable: bool = False,
-        crop_size: tuple[int | float, int | float] | str | None = (28, 28),
+        crop_size: tuple[int | float, int | float] | str | None = None,
         transforms: Iterable[Literal["crop"]] = ("crop",),
         eraser: Eraser | None = None,
         brush: Brush | None = None,
     ):
         if not brush:
-            brush = Brush(colors=["#000000"])
+            brush = Brush(colors=["#000000"], color_mode="fixed")
         super().__init__(
             value=value,
             height=height,
@@ -182,7 +182,7 @@ class Paint(components.ImageEditor):
 
 class ImageMask(components.ImageEditor):
     """
-    Sets:
+    Sets: brush=Brush(colors=["#000000"], color_mode="fixed")
     """
 
     is_template = True
@@ -223,7 +223,7 @@ class ImageMask(components.ImageEditor):
         brush: Brush | None = None,
     ):
         if not brush:
-            brush = Brush(colors=["#000000"])
+            brush = Brush(colors=["#000000"], color_mode="fixed")
         super().__init__(
             value=value,
             height=height,

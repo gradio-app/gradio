@@ -1,5 +1,25 @@
 # website
 
+## 0.19.0
+
+### Features
+
+- [#5885](https://github.com/gradio-app/gradio/pull/5885) [`9919b8a`](https://github.com/gradio-app/gradio/commit/9919b8ab43bee3d1d7cc65fd641fc8bc9725e102) - Fix the docstring decoration.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6650](https://github.com/gradio-app/gradio/pull/6650) [`d59ceec`](https://github.com/gradio-app/gradio/commit/d59ceec99d16f52e71d165448d959ba6b5624425) - Removes smooth scrolling from website.  Thanks [@aliabd](https://github.com/aliabd)!
+
+## 0.18.0
+
+### Features
+
+- [#6549](https://github.com/gradio-app/gradio/pull/6549) [`3e60c13b9`](https://github.com/gradio-app/gradio/commit/3e60c13b9192fac04c5386135ede906d0e6a2025) - Add 3.x docs to the website!.  Thanks [@aliabd](https://github.com/aliabd)!
+
+## 0.17.0
+
+### Features
+
+- [#6533](https://github.com/gradio-app/gradio/pull/6533) [`e2810fcfc`](https://github.com/gradio-app/gradio/commit/e2810fcfc84e2d66797736d8002c6a16f5b330d6) - Fix redirected paths on website.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6532](https://github.com/gradio-app/gradio/pull/6532) [`96290d304`](https://github.com/gradio-app/gradio/commit/96290d304a61064b52c10a54b2feeb09ca007542) - tweak deps.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.16.1
 
 ### Patch Changes
