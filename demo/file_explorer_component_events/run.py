@@ -23,6 +23,9 @@ with gr.Blocks() as demo:
     dir_only_glob.select(lambda s: gr.FileExplorer(glob="**/" if s else "**/*.*",
                                                    file_count="multiple",
                                                    root=str(base_root / "dir3")) , inputs=[dir_only_glob], outputs=[fe])
+    dir_only_glob.select(lambda s: gr.FileExplorer(glob="**/" if s else "**/*.*",
+                                                   file_count="multiple",
+                                                   root=str(base_root / "dir3")) , inputs=[dir_only_glob], outputs=[fe])
     dd.select(lambda s: gr.FileExplorer(root=s), inputs=[dd], outputs=[fe])
     run.click(lambda s: ",".join(s) if isinstance(s, list) else s, inputs=[fe], outputs=[textbox])
 
