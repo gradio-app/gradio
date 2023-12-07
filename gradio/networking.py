@@ -55,8 +55,6 @@ class Server(uvicorn.Server):
         pass
 
     def run_in_thread(self):
-        assert isinstance(self.running_app, App) and self.running_app.blocks
-        self.running_app.blocks.is_running = True
         self.thread = threading.Thread(target=self.run, daemon=True)
         if self.reloader:
             self.watch_thread = threading.Thread(target=self.watch, daemon=True)
@@ -71,8 +69,6 @@ class Server(uvicorn.Server):
                 )
 
     def close(self):
-        assert isinstance(self.running_app, App) and self.running_app.blocks
-        self.running_app.blocks.is_running = False
         self.should_exit = True
         if self.reloader:
             self.reloader.stop()

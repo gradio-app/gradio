@@ -619,7 +619,7 @@ class App(FastAPI):
                                 # and then the stream will retry leading to infinite queue 😬
                                 last_heartbeat = time.perf_counter()
 
-                        if not blocks.is_running:
+                        if blocks._queue.stopped:
                             message = {"msg": "server_stopped", "success": False}
                         if message:
                             yield f"data: {json.dumps(message)}\n\n"
