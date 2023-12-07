@@ -756,10 +756,14 @@ def special_args(
             if inputs is not None:
                 inputs.insert(i, request)
         elif (
-            type_hint == Optional[oauth.OAuthProfile] or type_hint == oauth.OAuthProfile
+            type_hint == Optional[oauth.OAuthProfile]
+            or type_hint == oauth.OAuthProfile
+            or type_hint == Optional[oauth.OAuthToken]
+            or type_hint == oauth.OAuthToken
             # Note: "OAuthProfile | None" is equals to Optional[OAuthProfile] in Python
             #       => it is automatically handled as well by the above condition
             #       (adding explicit "OAuthProfile | None" would break in Python3.9)
+            #       (same for "OAuthToken")
         ):
             if inputs is not None:
                 # Retrieve session from gr.Request, if it exists (i.e. if user is logged in)
@@ -770,14 +774,47 @@ def special_args(
                     # or request.request.session (if gr.Request obj i.e. websocket call)
                     getattr(getattr(request, "request", None), "session", {})
                 )
-                oauth_profile = (
-                    session["oauth_profile"] if "oauth_profile" in session else None
-                )
-                if type_hint == oauth.OAuthProfile and oauth_profile is None:
-                    raise Error(
-                        "This action requires a logged in user. Please sign in and retry."
+
+                # Inject user profile
+                if (
+                    type_hint == Optional[oauth.OAuthProfile]
+                    or type_hint == oauth.OAuthProfile
+                ):
+                    oauth_profile = (
+                        session["oauth_info"]["userinfo"]
+                        if "oauth_info" in session
+                        else None
                     )
-                inputs.insert(i, oauth_profile)
+                    if oauth_profile is not None:
+                        oauth_profile = oauth.OAuthProfile(oauth_profile)
+                    elif type_hint == oauth.OAuthProfile:
+                        raise Error(
+                            "This action requires a logged in user. Please sign in and retry."
+                        )
+                    inputs.insert(i, oauth_profile)
+
+                # Inject user token
+                elif (
+                    type_hint == Optional[oauth.OAuthToken]
+                    or type_hint == oauth.OAuthToken
+                ):
+                    oauth_info = (
+                        session["oauth_info"] if "oauth_info" in session else None
+                    )
+                    oauth_token = (
+                        oauth.OAuthToken(
+                            token=oauth_info["access_token"],
+                            scope=oauth_info["scope"],
+                            expires_at=oauth_info["expires_at"],
+                        )
+                        if oauth_info is not None
+                        else None
+                    )
+                    if oauth_token is None and type_hint == oauth.OAuthToken:
+                        raise Error(
+                            "This action requires a logged in user. Please sign in and retry."
+                        )
+                    inputs.insert(i, oauth_token)
         elif (
             type_hint
             and inspect.isclass(type_hint)
