@@ -5,13 +5,13 @@
 	import { BlockLabel } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
-	import { _ } from "svelte-i18n";
 
 	import type { IBlobEvent, IMediaRecorder } from "extendable-media-recorder";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import AudioRecorder from "../recorder/AudioRecorder.svelte";
 	import StreamAudio from "../streaming/StreamAudio.svelte";
 	import { SelectSource } from "@gradio/atoms";
+	import type { WaveformOptions } from "../shared/types";
 
 	export let value: null | FileData = null;
 	export let label: string;
@@ -25,7 +25,9 @@
 	export let pending = false;
 	export let streaming = false;
 	export let i18n: I18nFormatter;
-	export let waveform_settings = {};
+	export let waveform_settings: Record<string, any>;
+	export let trim_region_settings = {};
+	export let waveform_options: WaveformOptions = {};
 	export let dragging: boolean;
 	export let active_source: "microphone" | "upload";
 	export let handle_reset_value: () => void = () => {};
@@ -191,7 +193,7 @@
 			if (pending) {
 				submit_pending_stream_on_pending_end = true;
 			}
-			dispatch_blob(audio_chunks, "change");
+			dispatch_blob(audio_chunks, "stop_recording");
 			dispatch("clear");
 			mode = "";
 		}
@@ -208,14 +210,21 @@
 	{#if active_source === "microphone"}
 		<ModifyUpload {i18n} on:clear={clear} absolute={true} />
 		{#if streaming}
-			<StreamAudio {record} {recording} {stop} {i18n} {waveform_settings} />
+			<StreamAudio
+				{record}
+				{recording}
+				{stop}
+				{i18n}
+				{waveform_settings}
+				{waveform_options}
+			/>
 		{:else}
 			<AudioRecorder
 				bind:mode
 				{i18n}
-				{dispatch}
 				{dispatch_blob}
 				{waveform_settings}
+				{waveform_options}
 				{handle_reset_value}
 			/>
 		{/if}
@@ -245,11 +254,16 @@
 		{value}
 		{label}
 		{i18n}
-		{dispatch}
 		{dispatch_blob}
 		{waveform_settings}
+		{waveform_options}
+		{trim_region_settings}
 		{handle_reset_value}
 		interactive
+		on:stop
+		on:play
+		on:pause
+		on:edit
 	/>
 {/if}
 

@@ -192,7 +192,8 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
             "postprocess": lambda r: {i["answer"]: i["score"] for i in r},
         }
     elif hasattr(transformers, "ImageToTextPipeline") and isinstance(
-        pipeline, pipelines.image_to_text.ImageToTextPipeline  # type: ignore
+        pipeline,
+        pipelines.image_to_text.ImageToTextPipeline,  # type: ignore
     ):
         pipeline_info = {
             "inputs": components.Image(
@@ -201,6 +202,33 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
             "outputs": components.Textbox(label="Text", render=False),
             "preprocess": lambda i: {"images": i},
             "postprocess": lambda r: r[0]["generated_text"],
+        }
+    elif hasattr(transformers, "ObjectDetectionPipeline") and isinstance(
+        pipeline, pipelines.object_detection.ObjectDetectionPipeline
+    ):
+        pipeline_info = {
+            "inputs": components.Image(
+                type="filepath", label="Input Image", render=False
+            ),
+            "outputs": components.AnnotatedImage(
+                label="Objects Detected", render=False
+            ),
+            "preprocess": lambda i: {"inputs": i},
+            "postprocess": lambda r, img: (
+                img,
+                [
+                    (
+                        (
+                            i["box"]["xmin"],
+                            i["box"]["ymin"],
+                            i["box"]["xmax"],
+                            i["box"]["ymax"],
+                        ),
+                        i["label"],
+                    )
+                    for i in r
+                ],
+            ),
         }
     else:
         raise ValueError(f"Unsupported pipeline type: {type(pipeline)}")
@@ -220,7 +248,15 @@ def load_from_pipeline(pipeline: pipelines.base.Pipeline) -> dict:
             data = pipeline(*data)
         else:
             data = pipeline(**data)
-        output = pipeline_info["postprocess"](data)
+        # special case for object-detection
+        # original input image sent to postprocess function
+        if isinstance(
+            pipeline,
+            pipelines.object_detection.ObjectDetectionPipeline,
+        ):
+            output = pipeline_info["postprocess"](data, params[0])
+        else:
+            output = pipeline_info["postprocess"](data)
         return output
 
     interface_info = pipeline_info.copy()

@@ -2,33 +2,29 @@
 	import { Like } from "@gradio/icons";
 	import { Dislike } from "@gradio/icons";
 
-	export let action: "like" | "dislike";
-	export let handle_action: () => void;
+	export let handle_action: (selected: string | null) => void;
 
-	let actioned = false;
-	let Icon = action === "like" ? Like : Dislike;
-
-	function action_feedback(): void {
-		actioned = true;
-	}
+	let selected: "like" | "dislike" | null = null;
 </script>
 
 <button
 	on:click={() => {
-		action_feedback();
-		handle_action();
+		selected = "like";
+		handle_action(selected);
 	}}
-	on:keydown={(e) => {
-		if (e.key === "Enter") {
-			action_feedback();
-			handle_action();
-		}
-	}}
-	title={action + " message"}
-	aria-label={actioned ? `clicked ${action}` : action}
-	class="action"
+	aria-label={selected === "like" ? "clicked like" : "like"}
 >
-	<Icon {actioned} />
+	<Like selected={selected === "like"} />
+</button>
+
+<button
+	on:click={() => {
+		selected = "dislike";
+		handle_action(selected);
+	}}
+	aria-label={selected === "dislike" ? "clicked dislike" : "dislike"}
+>
+	<Dislike selected={selected === "dislike"} />
 </button>
 
 <style>

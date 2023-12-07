@@ -14,9 +14,10 @@
 	export let disable_click = false;
 	export let root: string;
 	export let hidden = false;
+	export let format: "blob" | "file" = "file";
 	export let include_sources = false;
+	export let uploading = false;
 
-	let uploading = false;
 	let upload_id: string;
 	let file_data: FileData[];
 
@@ -63,7 +64,15 @@
 	async function load_files_from_upload(e: Event): Promise<void> {
 		const target = e.target as HTMLInputElement;
 		if (!target.files) return;
-		await load_files(Array.from(target.files));
+		if (format != "blob") {
+			await load_files(Array.from(target.files));
+		} else {
+			if (file_count === "single") {
+				dispatch("load", target.files[0]);
+				return;
+			}
+			dispatch("load", target.files);
+		}
 	}
 
 	function is_valid_mimetype(
@@ -107,6 +116,7 @@
 		class:boundedheight
 		class:flex
 		style:height={include_sources ? "calc(100% - 40px" : "100%"}
+		tabindex={hidden ? -1 : 0}
 		on:drag|preventDefault|stopPropagation
 		on:dragstart|preventDefault|stopPropagation
 		on:dragend|preventDefault|stopPropagation
@@ -121,6 +131,7 @@
 	>
 		<slot />
 		<input
+			aria-label="file upload"
 			type="file"
 			bind:this={hidden_upload}
 			on:change={load_files_from_upload}
@@ -140,8 +151,10 @@
 
 	.hidden {
 		display: none;
-		height: 0;
+		height: 0 !important;
 		position: absolute;
+		width: 0;
+		flex-grow: 0;
 	}
 
 	.center {

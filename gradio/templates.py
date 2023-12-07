@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Literal
+from typing import Any, Callable, Iterable, Literal
 
 import numpy as np
+from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import components
+from gradio.components.image_editor import Brush, Eraser
 
 
 class TextArea(components.Textbox):
@@ -42,249 +44,213 @@ class TextArea(components.Textbox):
         )
 
 
-# class Sketchpad(components.Image):
-#     """
-#     Sets: image_mode="L", source="canvas", shape=(28, 28), invert_colors=True, interactive=True
-#     """
+class Sketchpad(components.ImageEditor):
+    """
+    Sets: sources=(), brush=Brush(colors=["#000000"], color_mode="fixed")
+    """
 
-#     is_template = True
+    is_template = True
 
-#     def __init__(
-#         self,
-#         value: str | Image | np.ndarray | None = None,
-#         *,
-#         shape: tuple[int, int] = (28, 28),
-#         image_mode: Literal["L"] = "L",
-#         invert_colors: bool = True,
-#         source: Literal["canvas"] = "canvas",
-#         tool: Literal["editor", "select", "sketch", "color-sketch"] | None = None,
-#         type: Literal["numpy", "pil", "filepath"] = "numpy",
-#         label: str | None = None,
-#         show_label: bool = True,
-#         interactive: bool | None = True,
-#         visible: bool = True,
-#         streaming: bool = False,
-#         elem_id: str | None = None,
-#         mirror_webcam: bool = True,
-#         brush_radius: float | None = None,
-#         brush_color: str = "#000000",
-#         **kwargs,
-#     ):
-#         super().__init__(
-#             value=value,
-#             shape=shape,
-#             image_mode=image_mode,
-#             invert_colors=invert_colors,
-#             source=source,
-#             tool=tool,
-#             type=type,
-#             label=label,
-#             show_label=show_label,
-#             interactive=interactive,
-#             visible=visible,
-#             streaming=streaming,
-#             elem_id=elem_id,
-#             mirror_webcam=mirror_webcam,
-#             brush_radius=brush_radius,
-#             brush_color=brush_color,
-#             **kwargs,
-#         )
-
-
-# class Paint(components.Image):
-#     """
-#     Sets: source="canvas", tool="color-sketch", interactive=True
-#     """
-
-#     is_template = True
-
-#     def __init__(
-#         self,
-#         value: str | Image | np.ndarray | None = None,
-#         *,
-#         shape: tuple[int, int] | None = None,
-#         image_mode: Literal["RGB"] = "RGB",
-#         invert_colors: bool = False,
-#         source: Literal["canvas"] = "canvas",
-#         tool: Literal["color-sketch"] = "color-sketch",
-#         type: Literal["numpy", "pil", "filepath"] = "numpy",
-#         label: str | None = None,
-#         show_label: bool = True,
-#         interactive: bool | None = True,
-#         visible: bool = True,
-#         streaming: bool = False,
-#         elem_id: str | None = None,
-#         mirror_webcam: bool = True,
-#         brush_radius: float | None = None,
-#         brush_color: str = "#000000",
-#         **kwargs,
-#     ):
-#         super().__init__(
-#             value=value,
-#             shape=shape,
-#             image_mode=image_mode,
-#             invert_colors=invert_colors,
-#             source=source,
-#             tool=tool,
-#             type=type,
-#             label=label,
-#             show_label=show_label,
-#             interactive=interactive,
-#             visible=visible,
-#             streaming=streaming,
-#             elem_id=elem_id,
-#             mirror_webcam=mirror_webcam,
-#             brush_radius=brush_radius,
-#             brush_color=brush_color,
-#             **kwargs,
-#         )
+    def __init__(
+        self,
+        value: str | _Image.Image | np.ndarray | None = None,
+        *,
+        height: int | None = None,
+        width: int | None = None,
+        image_mode: Literal[
+            "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
+        ] = "RGBA",
+        sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (),
+        type: Literal["numpy", "pil", "filepath"] = "numpy",
+        label: str | None = None,
+        every: float | None = None,
+        show_label: bool | None = None,
+        show_download_button: bool = True,
+        container: bool = True,
+        scale: int | None = None,
+        min_width: int = 160,
+        interactive: bool | None = None,
+        visible: bool = True,
+        elem_id: str | None = None,
+        elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        mirror_webcam: bool = True,
+        show_share_button: bool | None = None,
+        _selectable: bool = False,
+        crop_size: tuple[int | float, int | float] | str | None = None,
+        transforms: Iterable[Literal["crop"]] = ("crop",),
+        eraser: Eraser | None = None,
+        brush: Brush | None = None,
+    ):
+        if not brush:
+            brush = Brush(colors=["#000000"], color_mode="fixed")
+        super().__init__(
+            value=value,
+            height=height,
+            width=width,
+            image_mode=image_mode,
+            sources=sources,
+            type=type,
+            label=label,
+            every=every,
+            show_label=show_label,
+            show_download_button=show_download_button,
+            container=container,
+            scale=scale,
+            min_width=min_width,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            render=render,
+            mirror_webcam=mirror_webcam,
+            show_share_button=show_share_button,
+            _selectable=_selectable,
+            crop_size=crop_size,
+            transforms=transforms,
+            eraser=eraser,
+            brush=brush,
+        )
 
 
-# class ImageMask(components.Image):
-#     """
-#     Sets: source="upload", tool="sketch", interactive=True
-#     """
+class Paint(components.ImageEditor):
+    """
+    Sets: sources=()
+    """
 
-#     is_template = True
+    is_template = True
 
-#     def __init__(
-#         self,
-#         value: str | Image | np.ndarray | None = None,
-#         *,
-#         shape: tuple[int, int] | None = None,
-#         image_mode: Literal["RGB", "L"] = "RGB",
-#         invert_colors: bool = False,
-#         source: Literal["upload"] = "upload",
-#         tool: Literal["sketch"] = "sketch",
-#         type: Literal["numpy", "pil", "filepath"] = "numpy",
-#         label: str | None = None,
-#         show_label: bool = True,
-#         interactive: bool | None = True,
-#         visible: bool = True,
-#         streaming: bool = False,
-#         elem_id: str | None = None,
-#         mirror_webcam: bool = True,
-#         brush_radius: float | None = None,
-#         brush_color: str = "#000000",
-#         **kwargs,
-#     ):
-#         super().__init__(
-#             value=value,
-#             shape=shape,
-#             image_mode=image_mode,
-#             invert_colors=invert_colors,
-#             source=source,
-#             tool=tool,
-#             type=type,
-#             label=label,
-#             show_label=show_label,
-#             interactive=interactive,
-#             visible=visible,
-#             streaming=streaming,
-#             elem_id=elem_id,
-#             mirror_webcam=mirror_webcam,
-#             brush_radius=brush_radius,
-#             brush_color=brush_color,
-#             **kwargs,
-#         )
-
-
-# class ImagePaint(components.Image):
-#     """
-#     Sets: source="upload", tool="color-sketch", interactive=True
-#     """
-
-#     is_template = True
-
-#     def __init__(
-#         self,
-#         value: str | Image | np.ndarray | None = None,
-#         *,
-#         shape: tuple[int, int] | None = None,
-#         image_mode: Literal["RGB", "L"] = "RGB",
-#         invert_colors: bool = False,
-#         source: Literal["upload"] = "upload",
-#         tool: Literal["color-sketch"] = "color-sketch",
-#         type: Literal["numpy", "pil", "filepath"] = "numpy",
-#         label: str | None = None,
-#         show_label: bool = True,
-#         interactive: bool | None = True,
-#         visible: bool = True,
-#         streaming: bool = False,
-#         elem_id: str | None = None,
-#         mirror_webcam: bool = True,
-#         brush_radius: float | None = None,
-#         brush_color: str = "#000000",
-#         **kwargs,
-#     ):
-#         super().__init__(
-#             value=value,
-#             shape=shape,
-#             image_mode=image_mode,
-#             invert_colors=invert_colors,
-#             source=source,
-#             tool=tool,
-#             type=type,
-#             label=label,
-#             show_label=show_label,
-#             interactive=interactive,
-#             visible=visible,
-#             streaming=streaming,
-#             elem_id=elem_id,
-#             mirror_webcam=mirror_webcam,
-#             brush_radius=brush_radius,
-#             brush_color=brush_color,
-#             **kwargs,
-#         )
+    def __init__(
+        self,
+        value: str | _Image.Image | np.ndarray | None = None,
+        *,
+        height: int | None = None,
+        width: int | None = None,
+        image_mode: Literal[
+            "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
+        ] = "RGBA",
+        sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (),
+        type: Literal["numpy", "pil", "filepath"] = "numpy",
+        label: str | None = None,
+        every: float | None = None,
+        show_label: bool | None = None,
+        show_download_button: bool = True,
+        container: bool = True,
+        scale: int | None = None,
+        min_width: int = 160,
+        interactive: bool | None = None,
+        visible: bool = True,
+        elem_id: str | None = None,
+        elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        mirror_webcam: bool = True,
+        show_share_button: bool | None = None,
+        _selectable: bool = False,
+        crop_size: tuple[int | float, int | float] | str | None = None,
+        transforms: Iterable[Literal["crop"]] = ("crop",),
+        eraser: Eraser | None = None,
+        brush: Brush | None = None,
+    ):
+        super().__init__(
+            value=value,
+            height=height,
+            width=width,
+            image_mode=image_mode,
+            sources=sources,
+            type=type,
+            label=label,
+            every=every,
+            show_label=show_label,
+            show_download_button=show_download_button,
+            container=container,
+            scale=scale,
+            min_width=min_width,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            render=render,
+            mirror_webcam=mirror_webcam,
+            show_share_button=show_share_button,
+            _selectable=_selectable,
+            crop_size=crop_size,
+            transforms=transforms,
+            eraser=eraser,
+            brush=brush,
+        )
 
 
-# class Pil(components.Image):
-#     """
-#     Sets: type="pil"
-#     """
+class ImageMask(components.ImageEditor):
+    """
+    Sets: brush=Brush(colors=["#000000"], color_mode="fixed")
+    """
 
-#     is_template = True
+    is_template = True
 
-#     def __init__(
-#         self,
-#         value: str | Image | np.ndarray | None = None,
-#         *,
-#         shape: tuple[int, int] | None = None,
-#         image_mode: Literal["RGB", "L"] = "RGB",
-#         invert_colors: bool = False,
-#         source: Literal["upload", "webcam", "canvas"] = "upload",
-#         tool: Literal["editor", "select", "sketch", "color-sketch"] | None = None,
-#         type: Literal["pil"] = "pil",
-#         label: str | None = None,
-#         show_label: bool = True,
-#         interactive: bool | None = None,
-#         visible: bool = True,
-#         streaming: bool = False,
-#         elem_id: str | None = None,
-#         mirror_webcam: bool = True,
-#         brush_radius: float | None = None,
-#         brush_color: str = "#000000",
-#         **kwargs,
-#     ):
-#         super().__init__(
-#             value=value,
-#             shape=shape,
-#             image_mode=image_mode,
-#             invert_colors=invert_colors,
-#             source=source,
-#             tool=tool,
-#             type=type,
-#             label=label,
-#             show_label=show_label,
-#             interactive=interactive,
-#             visible=visible,
-#             streaming=streaming,
-#             elem_id=elem_id,
-#             mirror_webcam=mirror_webcam,
-#             brush_radius=brush_radius,
-#             brush_color=brush_color,
-#             **kwargs,
-#         )
+    def __init__(
+        self,
+        value: str | _Image.Image | np.ndarray | None = None,
+        *,
+        height: int | None = None,
+        width: int | None = None,
+        image_mode: Literal[
+            "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
+        ] = "RGBA",
+        sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (
+            "upload",
+            "webcam",
+            "clipboard",
+        ),
+        type: Literal["numpy", "pil", "filepath"] = "numpy",
+        label: str | None = None,
+        every: float | None = None,
+        show_label: bool | None = None,
+        show_download_button: bool = True,
+        container: bool = True,
+        scale: int | None = None,
+        min_width: int = 160,
+        interactive: bool | None = None,
+        visible: bool = True,
+        elem_id: str | None = None,
+        elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        mirror_webcam: bool = True,
+        show_share_button: bool | None = None,
+        _selectable: bool = False,
+        crop_size: tuple[int | float, int | float] | str | None = None,
+        transforms: Iterable[Literal["crop"]] = ("crop",),
+        eraser: Eraser | None = None,
+        brush: Brush | None = None,
+    ):
+        if not brush:
+            brush = Brush(colors=["#000000"], color_mode="fixed")
+        super().__init__(
+            value=value,
+            height=height,
+            width=width,
+            image_mode=image_mode,
+            sources=sources,
+            type=type,
+            label=label,
+            every=every,
+            show_label=show_label,
+            show_download_button=show_download_button,
+            container=container,
+            scale=scale,
+            min_width=min_width,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            elem_classes=elem_classes,
+            render=render,
+            mirror_webcam=mirror_webcam,
+            show_share_button=show_share_button,
+            _selectable=_selectable,
+            crop_size=crop_size,
+            transforms=transforms,
+            eraser=eraser,
+            brush=brush,
+        )
 
 
 class PlayableVideo(components.Video):
@@ -326,7 +292,7 @@ class PlayableVideo(components.Video):
 
 class Microphone(components.Audio):
     """
-    Sets: source="microphone"
+    Sets: sources=["microphone"]
     """
 
     is_template = True
@@ -335,8 +301,7 @@ class Microphone(components.Audio):
         self,
         value: str | tuple[int, np.ndarray] | Callable | None = None,
         *,
-        sources: list[Literal["upload", "microphone"]]
-        | None = ["microphone"],  # noqa: B006
+        sources: list[Literal["upload", "microphone"]] | None = ["microphone"],  # noqa: B006
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
         show_label: bool = True,

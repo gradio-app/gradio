@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, Sequenc
 from urllib.parse import urlparse, urlunparse
 
 import anyio
-import requests
+import httpx
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
@@ -207,7 +207,7 @@ class Block:
         for parameter in signature.parameters.values():
             if hasattr(self, parameter.name):
                 value = getattr(self, parameter.name)
-                config[parameter.name] = value
+                config[parameter.name] = utils.convert_to_dict_if_dataclass(value)
         for e in self.events:
             to_add = e.config_data()
             if to_add:
@@ -366,7 +366,7 @@ class BlockFunction:
         inputs_as_dict: bool,
         batch: bool = False,
         max_batch_size: int = 4,
-        concurrency_limit: int | None = 1,
+        concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
         tracks_progress: bool = False,
     ):
@@ -592,6 +592,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.output_components = None
         self.__name__ = None
         self.api_mode = None
+
         self.progress_tracking = None
         self.ssl_verify = True
 
@@ -822,7 +823,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
         trigger_mode: Literal["once", "multiple", "always_last"] | None = "once",
-        concurrency_limit: int | None = 1,
+        concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
     ) -> tuple[dict[str, Any], int]:
         """
@@ -836,7 +837,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             postprocess: whether to run the postprocess methods of components
             scroll_to_output: whether to scroll to output of dependency on trigger
             show_progress: whether to show progress animation while running.
-            api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
+            api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
             queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
@@ -848,7 +849,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             trigger_after: if set, this event will be triggered after 'trigger_after' function index
             trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
             trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
-            concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Extra events triggered by this listener will be queued. On Spaces, this is set to 1 by default.
+            concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `queue()`, which itself is 1 by default).
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
         Returns: dependency information, dependency index
         """
@@ -925,7 +926,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 api_name, [dep["api_name"] for dep in self.dependencies]
             )
             if api_name != api_name_:
-                warnings.warn(f"api_name {api_name} already exists, using {api_name_}")
                 api_name = api_name_
 
         if collects_event_data is None:
@@ -984,9 +984,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         [dep["api_name"] for dep in Context.root_block.dependencies],
                     )
                     if api_name != api_name_:
-                        warnings.warn(
-                            f"api_name {api_name} already exists, using {api_name_}"
-                        )
                         dependency["api_name"] = api_name_
                 dependency["cancels"] = [
                     c + dependency_offset for c in dependency["cancels"]
@@ -1314,7 +1311,7 @@ Received inputs:
 
         dep_outputs = dependency["outputs"]
 
-        if type(predictions) is not list and type(predictions) is not tuple:
+        if not isinstance(predictions, (list, tuple)):
             predictions = [predictions]
 
         if len(predictions) < len(dep_outputs):
@@ -1352,7 +1349,7 @@ Received outputs:
         dependency = self.dependencies[fn_index]
         batch = dependency["batch"]
 
-        if type(predictions) is dict and len(predictions) > 0:
+        if isinstance(predictions, dict) and len(predictions) > 0:
             predictions = convert_component_dict_to_list(
                 dependency["outputs"], predictions
             )
@@ -1421,7 +1418,11 @@ Received outputs:
                             f"{block.__class__} Component with id {output_id} not a valid output component."
                         )
                     prediction_value = block.postprocess(prediction_value)
-                outputs_cached = processing_utils.move_files_to_cache(prediction_value, block, postprocess=True)  # type: ignore
+                outputs_cached = processing_utils.move_files_to_cache(
+                    prediction_value,
+                    block,  # type: ignore
+                    postprocess=True,
+                )
                 output.append(outputs_cached)
 
         return output
@@ -1653,6 +1654,8 @@ Received outputs:
         api_open: bool | None = None,
         max_size: int | None = None,
         concurrency_count: int | None = None,
+        *,
+        default_concurrency_limit: int | None | Literal["not_set"] = "not_set",
     ):
         """
         By enabling the queue you can control when users know their position in the queue, and set a limit on maximum number of events allowed.
@@ -1661,6 +1664,7 @@ Received outputs:
             api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
             max_size: The maximum number of events the queue will store at any given moment. If the queue is full, new events will not be added and a user will receive a message saying that the queue is full. If None, the queue size will be unlimited.
             concurrency_count: Deprecated and has no effect. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch().
+            default_concurrency_limit: The default value of `concurrency_limit` to use for event listeners that don't specify a value. Can be set by environment variable GRADIO_DEFAULT_CONCURRENCY_LIMIT. Defaults to 1 if not set otherwise.
         Example: (Blocks)
             with gr.Blocks() as demo:
                 button = gr.Button(label="Generate Image")
@@ -1686,6 +1690,7 @@ Received outputs:
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
             max_size=max_size,
             block_fns=self.fns,
+            default_concurrency_limit=default_concurrency_limit,
         )
         self.config = self.get_config_file()
         self.app = routes.App.create_app(self)
@@ -1903,7 +1908,7 @@ Received outputs:
             if not wasm_utils.IS_WASM:
                 # Cannot run async functions in background other than app's scope.
                 # Workaround by triggering the app endpoint
-                requests.get(f"{self.local_url}startup-events", verify=ssl_verify)
+                httpx.get(f"{self.local_url}startup-events", verify=ssl_verify)
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
                 # that `self._queue.start()` is called in another thread which is managed by the HTTP server, `uvicorn`
@@ -1987,7 +1992,7 @@ Received outputs:
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
-            except (RuntimeError, requests.exceptions.ConnectionError):
+            except (RuntimeError, httpx.ConnectError):
                 if self.analytics_enabled:
                     analytics.error_analytics("Not able to set up tunnel")
                 self.share_url = None

@@ -52,7 +52,7 @@ def create_examples(
     run_on_click: bool = False,
     preprocess: bool = True,
     postprocess: bool = True,
-    api_name: str | None | Literal[False] = None,
+    api_name: str | Literal[False] = "load_example",
     batch: bool = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
@@ -103,7 +103,7 @@ class Examples:
         run_on_click: bool = False,
         preprocess: bool = True,
         postprocess: bool = True,
-        api_name: str | None | Literal[False] = False,
+        api_name: str | Literal[False] = "load_example",
         batch: bool = False,
         _initiated_directly: bool = True,
     ):
@@ -111,16 +111,16 @@ class Examples:
         Parameters:
             examples: example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
             inputs: the component or list of components corresponding to the examples
-            outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache` is True.
-            fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache` is True.
+            outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache_examples` is True.
+            fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache_examples` is True.
             cache_examples: if True, caches examples for fast runtime. If True, then `fn` and `outputs` must be provided. If `fn` is a generator function, then the last yielded value will be used as the output.
             examples_per_page: how many examples to show per page.
             label: the label to use for the examples component (by default, "Examples")
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM.
             run_on_click: if cache_examples is False, clicking on an example does not run the function when an example is clicked. Set this to True to run the function when an example is clicked. Has no effect if cache_examples is True.
-            preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if cache_examples is True.
-            postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if cache_examples is True.
-            api_name: Defines how the event associated with clicking on the examples appears in the API docs. Can be a string, None, or False. If False (default), the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
+            preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if `cache_examples` is True.
+            postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if `cache_examples` is True.
+            api_name: Defines how the event associated with clicking on the examples appears in the API docs. Can be a string or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use the example function.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is True.
         """
         if _initiated_directly:
@@ -756,8 +756,7 @@ def special_args(
             if inputs is not None:
                 inputs.insert(i, request)
         elif (
-            type_hint == Optional[oauth.OAuthProfile]
-            or type_hint == oauth.OAuthProfile
+            type_hint == Optional[oauth.OAuthProfile] or type_hint == oauth.OAuthProfile
             # Note: "OAuthProfile | None" is equals to Optional[OAuthProfile] in Python
             #       => it is automatically handled as well by the above condition
             #       (adding explicit "OAuthProfile | None" would break in Python3.9)

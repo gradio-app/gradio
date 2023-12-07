@@ -24,13 +24,14 @@ from gradio_client import utils as client_utils
 from scipy.io import wavfile
 
 try:
-    from typing_extensions import cast
+    from typing import cast
 except ImportError:
     from typing import cast
 
 import gradio as gr
 from gradio import processing_utils, utils
 from gradio.components.dataframe import DataframeData
+from gradio.components.file_explorer import FileExplorerData
 from gradio.components.video import VideoData
 from gradio.data_classes import FileData
 
@@ -889,7 +890,7 @@ class TestFile:
 
         file_input = gr.File(type="binary")
         output = file_input.preprocess(x_file)
-        assert type(output) == bytes
+        assert isinstance(output, bytes)
 
         output1 = file_input.postprocess("test/test_files/sample_file.pdf")
         output2 = file_input.postprocess("test/test_files/sample_file.pdf")
@@ -2645,6 +2646,46 @@ class TestCode:
             "proxy_url": None,
             "_selectable": False,
         }
+
+
+class TestFileExplorer:
+    def test_component_functions(self):
+        """
+        Preprocess, get_config
+        """
+        file_explorer = gr.FileExplorer(file_count="single")
+
+        config = file_explorer.get_config()
+        assert config["glob"] == "**/*.*"
+        assert config["value"] is None
+        assert config["file_count"] == "single"
+        assert config["server_fns"] == ["ls"]
+
+        input_data = FileExplorerData(root=[["test/test_files/bus.png"]])
+        preprocessed_data = file_explorer.preprocess(input_data)
+        assert isinstance(preprocessed_data, str)
+        assert Path(preprocessed_data).name == "bus.png"
+
+        input_data = FileExplorerData(root=[])
+        preprocessed_data = file_explorer.preprocess(input_data)
+        assert preprocessed_data is None
+
+        file_explorer = gr.FileExplorer(file_count="multiple")
+
+        config = file_explorer.get_config()
+        assert config["glob"] == "**/*.*"
+        assert config["value"] is None
+        assert config["file_count"] == "multiple"
+        assert config["server_fns"] == ["ls"]
+
+        input_data = FileExplorerData(root=[["test/test_files/bus.png"]])
+        preprocessed_data = file_explorer.preprocess(input_data)
+        assert isinstance(preprocessed_data, list)
+        assert Path(preprocessed_data[0]).name == "bus.png"
+
+        input_data = FileExplorerData(root=[])
+        preprocessed_data = file_explorer.preprocess(input_data)
+        assert preprocessed_data == []
 
 
 def test_component_class_ids():

@@ -1,5 +1,29 @@
 # @gradio/number
 
+## 0.3.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/atoms@0.3.1
+  - @gradio/statustracker@0.4.1
+
+## 0.3.3
+
+### Patch Changes
+
+- Updated dependencies [[`9caddc17b`](https://github.com/gradio-app/gradio/commit/9caddc17b1dea8da1af8ba724c6a5eab04ce0ed8)]:
+  - @gradio/atoms@0.3.0
+  - @gradio/statustracker@0.4.0
+
+## 0.3.2
+
+### Patch Changes
+
+- Updated dependencies [[`f816136a0`](https://github.com/gradio-app/gradio/commit/f816136a039fa6011be9c4fb14f573e4050a681a)]:
+  - @gradio/atoms@0.2.2
+  - @gradio/statustracker@0.3.2
+
 ## 0.3.1
 
 ### Patch Changes

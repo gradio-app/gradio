@@ -7,6 +7,7 @@
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "@gradio/client";
+	import type { WaveformOptions } from "../shared/types";
 
 	export let value: null | FileData = null;
 	export let label: string;
@@ -14,7 +15,8 @@
 	export let show_download_button = true;
 	export let show_share_button = false;
 	export let i18n: I18nFormatter;
-	export let waveform_settings = {};
+	export let waveform_settings: Record<string, any>;
+	export let waveform_options: WaveformOptions;
 
 	const dispatch = createEventDispatcher<{
 		change: FileData;
@@ -40,7 +42,7 @@
 			<a
 				href={value.url}
 				target={window.__is_colab__ ? "_blank" : null}
-				download={value.url}
+				download={value.orig_name || value.path}
 			>
 				<IconButton Icon={Download} label={i18n("common.download")} />
 			</a>
@@ -60,7 +62,16 @@
 		{/if}
 	</div>
 
-	<AudioPlayer {value} {label} {i18n} {dispatch} {waveform_settings} />
+	<AudioPlayer
+		{value}
+		{label}
+		{i18n}
+		{waveform_settings}
+		{waveform_options}
+		on:pause
+		on:play
+		on:stop
+	/>
 {:else}
 	<Empty size="small">
 		<Music />

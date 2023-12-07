@@ -642,7 +642,10 @@ class App(FastAPI):
                             await asyncio.sleep(check_rate)
                             if time.perf_counter() - last_heartbeat > heartbeat_rate:
                                 message = {"msg": "heartbeat"}
-                                last_heartbeat = time.time()
+                                # Need to reset last_heartbeat with perf_counter
+                                # otherwise only a single hearbeat msg will be sent
+                                # and then the stream will retry leading to infinite queue 😬
+                                last_heartbeat = time.perf_counter()
 
                         if message:
                             yield f"data: {json.dumps(message)}\n\n"
@@ -780,7 +783,7 @@ class App(FastAPI):
                     os.rename(temp_file.file.name, dest)
                 except OSError:
                     files_to_copy.append(temp_file.file.name)
-                    locations.append(temp_file.file.name)
+                    locations.append(str(dest))
                 output_files.append(dest)
             if files_to_copy:
                 bg_tasks.add_task(

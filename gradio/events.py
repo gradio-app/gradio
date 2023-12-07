@@ -207,7 +207,7 @@ class EventListener(str):
             every: float | None = None,
             trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
             js: str | None = None,
-            concurrency_limit: int | None = 1,
+            concurrency_limit: int | None | Literal["default"] = "default",
             concurrency_id: str | None = None,
         ) -> Dependency:
             """
@@ -215,7 +215,7 @@ class EventListener(str):
                 fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
                 inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
                 outputs: List of gradio.components to use as outputs. If the function returns no outputs, this should be an empty list.
-                api_name: Defines how the endpoint appears in the API docs. Can be a string, None, or False. If False, the endpoint will not be exposed in the api docs. If set to None, the endpoint will be given the name of the python function fn. If no fn is passed in, it will be given the name 'unnamed'. If set to a string, the endpoint will be exposed in the api docs with the given name.
+                api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
                 scroll_to_output: If True, will scroll to output component on completion
                 show_progress: If True, will show progress animation while pending
                 queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
@@ -227,7 +227,7 @@ class EventListener(str):
                 every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
                 trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
                 js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-                concurrency_limit: If set, this this is the maximum number of events that can be running simultaneously. Extra requests will be queued.
+                concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
                 concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
             """
 
@@ -351,7 +351,7 @@ def on(
     cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
     every: float | None = None,
     js: str | None = None,
-    concurrency_limit: int | None = 1,
+    concurrency_limit: int | None | Literal["default"] = "default",
     concurrency_id: str | None = None,
 ) -> Dependency:
     """
@@ -371,7 +371,7 @@ def on(
         cancels: A list of other events to cancel when this listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
         every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
         js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs', return should be a list of values for output components.
-        concurrency_limit: If set, this this is the maximum number of events that can be running simultaneously. Extra requests will be queued.
+        concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
         concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
     """
     from gradio.components.base import Component
@@ -415,9 +415,16 @@ def on(
     if Context.root_block is None:
         raise Exception("Cannot call on() outside of a gradio.Blocks context.")
     if triggers is None:
-        triggers = [EventListenerMethod(input, "change") for input in inputs] if inputs is not None else []  # type: ignore
+        triggers = (
+            [EventListenerMethod(input, "change") for input in inputs]
+            if inputs is not None
+            else []
+        )  # type: ignore
     else:
-        triggers = [EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name) for t in triggers]  # type: ignore
+        triggers = [
+            EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name)
+            for t in triggers
+        ]  # type: ignore
     dep, dep_index = Context.root_block.set_event_trigger(
         triggers,
         fn,

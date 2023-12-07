@@ -5,8 +5,8 @@ from contextlib import contextmanager
 from functools import partial
 from string import capwords
 
+import httpx
 import pytest
-import requests
 
 import gradio
 from gradio.blocks import Blocks
@@ -31,11 +31,11 @@ class TestInterface:
     def test_close(self):
         io = Interface(lambda input: None, "textbox", "label")
         _, local_url, _ = io.launch(prevent_thread_lock=True)
-        response = requests.get(local_url)
+        response = httpx.get(local_url)
         assert response.status_code == 200
         io.close()
         with pytest.raises(Exception):
-            response = requests.get(local_url)
+            response = httpx.get(local_url)
 
     def test_close_all(self):
         interface = Interface(lambda input: None, "textbox", "label")

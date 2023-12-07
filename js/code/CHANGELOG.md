@@ -1,10 +1,54 @@
 # @gradio/code
 
+## 0.2.9
+
+### Patch Changes
+
+- Updated dependencies [[`206af31`](https://github.com/gradio-app/gradio/commit/206af31d7c1a31013364a44e9b40cf8df304ba50)]:
+  - @gradio/icons@0.3.1
+  - @gradio/atoms@0.3.1
+  - @gradio/statustracker@0.4.1
+  - @gradio/upload@0.5.2
+
+## 0.2.8
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/upload@0.5.1
+
+## 0.2.7
+
+### Patch Changes
+
+- Updated dependencies [[`9caddc17b`](https://github.com/gradio-app/gradio/commit/9caddc17b1dea8da1af8ba724c6a5eab04ce0ed8)]:
+  - @gradio/atoms@0.3.0
+  - @gradio/icons@0.3.0
+  - @gradio/statustracker@0.4.0
+  - @gradio/upload@0.5.0
+
+## 0.2.6
+
+### Patch Changes
+
+- Updated dependencies [[`2f805a7dd`](https://github.com/gradio-app/gradio/commit/2f805a7dd3d2b64b098f659dadd5d01258290521), [`f816136a0`](https://github.com/gradio-app/gradio/commit/f816136a039fa6011be9c4fb14f573e4050a681a)]:
+  - @gradio/upload@0.4.2
+  - @gradio/atoms@0.2.2
+  - @gradio/icons@0.2.1
+  - @gradio/statustracker@0.3.2
+
+## 0.2.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/upload@0.4.1
+
 ## 0.2.4
 
 ### Fixes
 
-- [#6323](https://github.com/gradio-app/gradio/pull/6323) [`55fda81fa`](https://github.com/gradio-app/gradio/commit/55fda81fa5918b48952729232d6e2fc55af9351d) - Textbox and Code Component Blur/Focus Fixes.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#6323](https://github.com/gradio-app/gradio/pull/6323) [`55fda81fa`](https://github.com/gradio-app/gradio/commit/55fda81fa5918b48952729232d6e2fc55af9351d) - Textbox and Code Component Blur/Focus Fixes. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
 
 ## 0.2.3
 

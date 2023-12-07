@@ -5,6 +5,7 @@
 	export { default as BaseImageUploader } from "./shared/ImageUploader.svelte";
 	export { default as BaseStaticImage } from "./shared/ImagePreview.svelte";
 	export { default as BaseExample } from "./Example.svelte";
+	export { default as BaseImage } from "./shared/Image.svelte";
 </script>
 
 <script lang="ts">
@@ -61,7 +62,9 @@
 		share: ShareData;
 	}>;
 
-	$: value?.url && gradio.dispatch("change");
+	$: url = _value?.url;
+	$: url && gradio.dispatch("change");
+
 	let dragging: boolean;
 	let active_tool: null | "webcam" = null;
 </script>
@@ -127,7 +130,10 @@
 			{root}
 			{sources}
 			on:edit={() => gradio.dispatch("edit")}
-			on:clear={() => gradio.dispatch("clear")}
+			on:clear={() => {
+				gradio.dispatch("clear");
+				gradio.dispatch("change");
+			}}
 			on:stream={() => gradio.dispatch("stream")}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload={() => gradio.dispatch("upload")}

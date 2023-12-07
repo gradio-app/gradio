@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { onMount } from "svelte";
 	import { Pause } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
+	import { createEventDispatcher } from "svelte";
 
 	export let record: RecordPlugin;
 	export let i18n: I18nFormatter;
-	export let dispatch: (event: string, detail?: any) => void;
 
 	let micDevices: MediaDeviceInfo[] = [];
 	let recordButton: HTMLButtonElement;
@@ -14,6 +13,14 @@
 	let resumeButton: HTMLButtonElement;
 	let stopButton: HTMLButtonElement;
 	let stopButtonPaused: HTMLButtonElement;
+
+	export let record_time: string;
+	export let show_recording_waveform: boolean | undefined;
+	export let timing = false;
+
+	const dispatch = createEventDispatcher<{
+		error: string;
+	}>();
 
 	$: try {
 		let tempDevices: MediaDeviceInfo[] = [];
@@ -34,15 +41,6 @@
 		}
 		throw err;
 	}
-	onMount(() => {
-		recordButton = document.getElementById("record") as HTMLButtonElement;
-		pauseButton = document.getElementById("pause") as HTMLButtonElement;
-		resumeButton = document.getElementById("resume") as HTMLButtonElement;
-		stopButton = document.getElementById("stop") as HTMLButtonElement;
-		stopButtonPaused = document.getElementById(
-			"stop-paused"
-		) as HTMLButtonElement;
-	});
 
 	$: record.on("record-start", () => {
 		record.startMic();
@@ -84,13 +82,13 @@
 <div class="controls">
 	<div class="wrapper">
 		<button
-			id="record"
-			class="record-button"
+			bind:this={recordButton}
+			class="record record-button"
 			on:click={() => record.startRecording()}>{i18n("audio.record")}</button
 		>
 
 		<button
-			id="stop"
+			bind:this={stopButton}
 			class="stop-button {record.isPaused() ? 'stop-button-paused' : ''}"
 			on:click={() => {
 				if (record.isPaused()) {
@@ -103,6 +101,7 @@
 		>
 
 		<button
+			bind:this={stopButtonPaused}
 			id="stop-paused"
 			class="stop-button-paused"
 			on:click={() => {
@@ -116,19 +115,22 @@
 		>
 
 		<button
-			id="pause"
+			bind:this={pauseButton}
 			class="pause-button"
 			on:click={() => record.pauseRecording()}><Pause /></button
 		>
 		<button
-			id="resume"
+			bind:this={resumeButton}
 			class="resume-button"
 			on:click={() => record.resumeRecording()}>{i18n("audio.resume")}</button
 		>
+		{#if timing && !show_recording_waveform}
+			<time class="duration-button duration">{record_time}</time>
+		{/if}
 	</div>
 
 	<select
-		id="mic-select"
+		class="mic-select"
 		aria-label="Select input device"
 		disabled={micDevices.length === 0}
 	>
@@ -143,13 +145,14 @@
 </div>
 
 <style>
-	#mic-select {
+	.mic-select {
 		height: var(--size-8);
 		background: var(--block-background-fill);
 		padding: 0px var(--spacing-xxl);
 		border-radius: var(--radius-full);
 		font-size: var(--text-md);
 		border: 1px solid var(--neutral-400);
+		margin: var(--size-1) var(--size-1) 0 0;
 	}
 	.controls {
 		display: flex;
@@ -161,7 +164,7 @@
 
 	.controls select {
 		text-overflow: ellipsis;
-		margin: var(--size-2) 0;
+		max-width: var(--size-40);
 	}
 
 	@media (max-width: 375px) {
@@ -173,10 +176,10 @@
 	.wrapper {
 		display: flex;
 		align-items: center;
-		justify-content: center;
+		flex-wrap: wrap;
 	}
 
-	#record {
+	.record {
 		margin-right: var(--spacing-md);
 	}
 
@@ -188,7 +191,7 @@
 		border-radius: var(--radius-3xl);
 		align-items: center;
 		border: 1px solid var(--neutral-400);
-		margin-right: 5px;
+		margin: var(--size-1) var(--size-1) 0 0;
 	}
 
 	.stop-button-paused::before {
@@ -217,7 +220,7 @@
 		border-radius: var(--radius-3xl);
 		align-items: center;
 		border: 1px solid var(--primary-600);
-		margin-right: 5px;
+		margin: var(--size-1) var(--size-1) 0 0;
 	}
 
 	.record-button::before {
@@ -270,6 +273,7 @@
 		border: 1px solid var(--neutral-400);
 		border-radius: var(--radius-3xl);
 		padding: var(--spacing-md);
+		margin: var(--size-1) var(--size-1) 0 0;
 	}
 
 	.resume-button {
@@ -281,6 +285,19 @@
 		padding: var(--spacing-xl);
 		line-height: 1px;
 		font-size: var(--text-md);
+		margin: var(--size-1) var(--size-1) 0 0;
+	}
+
+	.duration {
+		display: flex;
+		height: var(--size-8);
+		width: var(--size-20);
+		border: 1px solid var(--neutral-400);
+		border-radius: var(--radius-3xl);
+		padding: var(--spacing-md);
+		align-items: center;
+		justify-content: center;
+		margin: var(--size-1) var(--size-1) 0 0;
 	}
 
 	:global(::part(region)) {

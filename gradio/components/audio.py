@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import dataclasses
 from pathlib import Path
-from typing import Any, Callable, Literal, TypedDict
+from typing import Any, Callable, Literal
 
+import httpx
 import numpy as np
-import requests
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
@@ -14,15 +15,18 @@ from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingInput, StreamingOutput
 from gradio.data_classes import FileData
 from gradio.events import Events
+from gradio.exceptions import Error
 
 set_documentation_group("component")
 
 
-class WaveformOptions(TypedDict, total=False):
-    waveform_color: str
-    waveform_progress_color: str
-    show_controls: bool
-    skip_length: int
+@dataclasses.dataclass
+class WaveformOptions:
+    waveform_color: str | None = None
+    waveform_progress_color: str | None = None
+    show_controls: bool = False
+    skip_length: str | None = None
+    show_recording_waveform: bool = True
 
 
 @document()
@@ -80,7 +84,7 @@ class Audio(
         show_share_button: bool | None = None,
         min_length: int | None = None,
         max_length: int | None = None,
-        waveform_options: WaveformOptions | None = None,
+        waveform_options: WaveformOptions | dict | None = None,
     ):
         """
         Parameters:
@@ -142,7 +146,13 @@ class Audio(
             if show_share_button is None
             else show_share_button
         )
-        self.waveform_options = waveform_options
+        if waveform_options is None:
+            self.waveform_options = WaveformOptions()
+        self.waveform_options = (
+            WaveformOptions(**waveform_options)
+            if isinstance(waveform_options, dict)
+            else waveform_options
+        )
         self.min_length = min_length
         self.max_length = max_length
         super().__init__(
@@ -181,11 +191,11 @@ class Audio(
 
         duration = len(data) / sample_rate
         if self.min_length is not None and duration < self.min_length:
-            raise ValueError(
+            raise Error(
                 f"Audio is too short, and must be at least {self.min_length} seconds"
             )
         if self.max_length is not None and duration > self.max_length:
-            raise ValueError(
+            raise Error(
                 f"Audio is too long, and must be at most {self.max_length} seconds"
             )
 
@@ -213,6 +223,7 @@ class Audio(
         Returns:
             base64 url data
         """
+        orig_name = None
         if value is None:
             return None
         if isinstance(value, bytes):
@@ -221,16 +232,19 @@ class Audio(
             file_path = processing_utils.save_bytes_to_cache(
                 value, "audio", cache_dir=self.GRADIO_CACHE
             )
+            orig_name = Path(file_path).name
         elif isinstance(value, tuple):
             sample_rate, data = value
             file_path = processing_utils.save_audio_to_cache(
                 data, sample_rate, format=self.format, cache_dir=self.GRADIO_CACHE
             )
+            orig_name = Path(file_path).name
         else:
             if not isinstance(value, (str, Path)):
                 raise ValueError(f"Cannot process {value} as Audio")
             file_path = str(value)
-        return FileData(path=file_path)
+            orig_name = Path(file_path).name if Path(file_path).exists() else None
+        return FileData(path=file_path, orig_name=orig_name)
 
     def stream_output(
         self, value, output_id: str, first_chunk: bool
@@ -244,7 +258,7 @@ class Audio(
         if isinstance(value, bytes):
             return value, output_file
         if client_utils.is_http_url_like(value["path"]):
-            response = requests.get(value["path"])
+            response = httpx.get(value["path"])
             binary_data = response.content
         else:
             output_file["orig_name"] = value["orig_name"]
