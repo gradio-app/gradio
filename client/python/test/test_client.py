@@ -4,7 +4,7 @@ import pathlib
 import tempfile
 import time
 import uuid
-from concurrent.futures import CancelledError, TimeoutError
+from concurrent.futures import CancelledError, TimeoutError, wait
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -21,7 +21,13 @@ from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
 from gradio_client.client import DEFAULT_TEMP_DIR
-from gradio_client.utils import Communicator, ProgressUnit, Status, StatusUpdate
+from gradio_client.utils import (
+    Communicator,
+    ProgressUnit,
+    QueueError,
+    Status,
+    StatusUpdate,
+)
 
 HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
 
@@ -493,6 +499,18 @@ class TestClientPredictions:
     ):
         with connect(long_response_with_info) as demo:
             assert demo.predict(api_name="/predict") == "\ta\nb" * 90000
+
+    def test_queue_full_raises_error(self):
+        demo = gr.Interface(lambda s: f"Hello {s}", "textbox", "textbox").queue(
+            max_size=1
+        )
+        with connect(demo) as client:
+            with pytest.raises(QueueError):
+                job1 = client.submit("Freddy", api_name="/predict")
+                job2 = client.submit("Abubakar", api_name="/predict")
+                wait([job1, job2])
+                job1.result()
+                job2.result()
 
 
 class TestStatusUpdates:
