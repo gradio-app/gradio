@@ -162,9 +162,7 @@ class Status(Enum):
             ServerMessage.process_generating: Status.ITERATING,
             ServerMessage.process_completed: Status.FINISHED,
             ServerMessage.progress: Status.PROGRESS,
-        }[
-            msg
-        ]  # type: ignore
+        }[msg]  # type: ignore
 
 
 @dataclass
