@@ -4,9 +4,11 @@ import hashlib
 import os
 import typing
 import warnings
+from dataclasses import dataclass, field
 
 import fastapi
 from fastapi.responses import RedirectResponse
+from huggingface_hub import HfFolder, whoami
 
 from .utils import get_space
 
@@ -36,9 +38,12 @@ def attach_oauth(app: fastapi.FastAPI):
     # Session Middleware requires a secret key to sign the cookies. Let's use a hash
     # of the OAuth secret key to make it unique to the Space + updated in case OAuth
     # config gets updated.
+    session_secret = (OAUTH_CLIENT_SECRET or "") + "-v2"
+    # ^ if we change the session cookie format in the future, we can bump the version of the session secret to make
+    #   sure cookies are invalidated. Otherwise some users with an old cookie format might get a HTTP 500 error.
     app.add_middleware(
         SessionMiddleware,
-        secret_key=hashlib.sha256((OAUTH_CLIENT_SECRET or "").encode()).hexdigest(),
+        secret_key=hashlib.sha256(session_secret.encode()).hexdigest(),
         same_site="none",
         https_only=True,
     )
@@ -91,16 +96,14 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
     @app.get("/login/callback")
     async def oauth_redirect_callback(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that handles the OAuth callback."""
-        token = await oauth.huggingface.authorize_access_token(request)  # type: ignore
-        request.session["oauth_profile"] = token["userinfo"]
-        request.session["oauth_token"] = token
+        oauth_info = await oauth.huggingface.authorize_access_token(request)  # type: ignore
+        request.session["oauth_info"] = oauth_info
         return RedirectResponse("/")
 
     @app.get("/logout")
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
-        request.session.pop("oauth_profile", None)
-        request.session.pop("oauth_token", None)
+        request.session.pop("oauth_info", None)
         return RedirectResponse("/")
 
 
@@ -111,9 +114,11 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
     instead of authenticating with HF, a mocked user profile is added to the session.
     """
     warnings.warn(
-        "Gradio does not support OAuth features outside of a Space environment. "
-        "To help you debug your app locally, the login and logout buttons are mocked with a fake user profile."
+        "Gradio does not support OAuth features outside of a Space environment. To help"
+        " you debug your app locally, the login and logout buttons are mocked with your"
+        " profile. To make it work, your machine must be logged in to Huggingface."
     )
+    mocked_oauth_info = _get_mocked_oauth_info()
 
     # Define OAuth routes
     @app.get("/login/huggingface")
@@ -124,25 +129,30 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
     @app.get("/login/callback")
     async def oauth_redirect_callback(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that handles the OAuth callback."""
-        request.session["oauth_profile"] = MOCKED_OAUTH_TOKEN["userinfo"]
-        request.session["oauth_token"] = MOCKED_OAUTH_TOKEN
+        request.session["oauth_info"] = mocked_oauth_info
         return RedirectResponse("/")
 
     @app.get("/logout")
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
-        request.session.pop("oauth_profile", None)
-        request.session.pop("oauth_token", None)
+        request.session.pop("oauth_info", None)
         return RedirectResponse("/")
 
 
-class OAuthProfile(typing.Dict):
+@dataclass
+class OAuthProfile(typing.Dict):  # inherit from Dict for backward compatibility
     """
     A Gradio OAuthProfile object that can be used to inject the profile of a user in a
     function. If a function expects `OAuthProfile` or `Optional[OAuthProfile]` as input,
     the value will be injected from the FastAPI session if the user is logged in. If the
     user is not logged in and the function expects `OAuthProfile`, an error will be
     raised.
+
+    Attributes:
+        name (str): The name of the user (e.g. 'Abubakar Abid').
+        username (str): The username of the user (e.g. 'abidlabs')
+        profile (str): The profile URL of the user (e.g. 'https://huggingface.co/abidlabs').
+        picture (str): The profile picture URL of the user.
 
     Example:
         import gradio as gr
@@ -161,26 +171,94 @@ class OAuthProfile(typing.Dict):
             gr.Markdown().attach_load_event(hello, None)
     """
 
+    name: str = field(init=False)
+    username: str = field(init=False)
+    profile: str = field(init=False)
+    picture: str = field(init=False)
 
-MOCKED_OAUTH_TOKEN = {
-    "access_token": "hf_oauth_AAAAAAAAAAAAAAAAAAAAAAAAAA",
-    "token_type": "bearer",
-    "expires_in": 3600,
-    "id_token": "AAAAAAAAAAAAAAAAAAAAAAAAAA",
-    "scope": "openid profile",
-    "expires_at": 1691676444,
-    "userinfo": {
-        "sub": "11111111111111111111111",
-        "name": "Fake Gradio User",
-        "preferred_username": "FakeGradioUser",
-        "profile": "https://huggingface.co/FakeGradioUser",
-        "picture": "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
-        "website": "",
-        "aud": "00000000-0000-0000-0000-000000000000",
-        "auth_time": 1691672844,
-        "nonce": "aaaaaaaaaaaaaaaaaaa",
-        "iat": 1691672844,
-        "exp": 1691676444,
-        "iss": "https://huggingface.co",
-    },
-}
+    def __init__(self, data: dict):  # hack to make OAuthProfile backward compatible
+        self.update(data)
+        self.name = self["name"]
+        self.username = self["preferred_username"]
+        self.profile = self["profile"]
+        self.picture = self["picture"]
+
+
+@dataclass
+class OAuthToken:
+    """
+    A Gradio OAuthToken object that can be used to inject the access token of a user in a
+    function. If a function expects `OAuthToken` or `Optional[OAuthToken]` as input,
+    the value will be injected from the FastAPI session if the user is logged in. If the
+    user is not logged in and the function expects `OAuthToken`, an error will be
+    raised.
+
+    Attributes:
+        token (str): The access token of the user.
+        scope (str): The scope of the access token.
+        expires_at (int): The expiration timestamp of the access token.
+
+    Example:
+        import gradio as gr
+        from typing import Optional
+        from huggingface_hub import whoami
+
+
+        def list_organizations(oauth_token: Optional[gr.OAuthToken]) -> str:
+            if oauth_token is None:
+                return "Please log in to list organizations."
+            org_names = [org["name"] for org in whoami(oauth_token.token)["orgs"]]
+            return f"You belong to {', '.join(org_names)}."
+
+
+        with gr.Blocks() as demo:
+            gr.LoginButton()
+            gr.LogoutButton()
+            gr.Markdown().attach_load_event(list_organizations, None)
+    """
+
+    token: str
+    scope: str
+    expires_at: int
+
+
+def _get_mocked_oauth_info() -> typing.Dict:
+    token = HfFolder.get_token()
+    if token is None:
+        raise ValueError(
+            "Your machine must be logged in to HF to debug a Gradio app locally. Please"
+            " run `huggingface-cli login` or set `HF_TOKEN` as environment variable "
+            "with one of your access token. You can generate a new token in your "
+            "settings page (https://huggingface.co/settings/tokens)."
+        )
+
+    user = whoami()
+    if user["type"] != "user":
+        raise ValueError(
+            "Your machine is not logged in with a personal account. Please use a "
+            "personal access token. You can generate a new token in your settings page"
+            " (https://huggingface.co/settings/tokens)."
+        )
+
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "expires_in": 3600,
+        "id_token": "AAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "scope": "openid profile",
+        "expires_at": 1691676444,
+        "userinfo": {
+            "sub": "11111111111111111111111",
+            "name": user["fullname"],
+            "preferred_username": user["name"],
+            "profile": f"https://huggingface.co/{user['name']}",
+            "picture": user["avatarUrl"],
+            "website": "",
+            "aud": "00000000-0000-0000-0000-000000000000",
+            "auth_time": 1691672844,
+            "nonce": "aaaaaaaaaaaaaaaaaaa",
+            "iat": 1691672844,
+            "exp": 1691676444,
+            "iss": "https://huggingface.co",
+        },
+    }
