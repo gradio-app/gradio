@@ -1318,7 +1318,7 @@ Received inputs:
 
         dep_outputs = dependency["outputs"]
 
-        if type(predictions) is not list and type(predictions) is not tuple:
+        if not isinstance(predictions, (list, tuple)):
             predictions = [predictions]
 
         if len(predictions) < len(dep_outputs):
@@ -1356,7 +1356,7 @@ Received outputs:
         dependency = self.dependencies[fn_index]
         batch = dependency["batch"]
 
-        if type(predictions) is dict and len(predictions) > 0:
+        if isinstance(predictions, dict) and len(predictions) > 0:
             predictions = convert_component_dict_to_list(
                 dependency["outputs"], predictions
             )
@@ -1425,7 +1425,11 @@ Received outputs:
                             f"{block.__class__} Component with id {output_id} not a valid output component."
                         )
                     prediction_value = block.postprocess(prediction_value)
-                outputs_cached = processing_utils.move_files_to_cache(prediction_value, block, postprocess=True)  # type: ignore
+                outputs_cached = processing_utils.move_files_to_cache(
+                    prediction_value,
+                    block,  # type: ignore
+                    postprocess=True,
+                )
                 output.append(outputs_cached)
 
         return output

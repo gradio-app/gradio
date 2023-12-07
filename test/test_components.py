@@ -890,7 +890,7 @@ class TestFile:
 
         file_input = gr.File(type="binary")
         output = file_input.preprocess(x_file)
-        assert type(output) == bytes
+        assert isinstance(output, bytes)
 
         output1 = file_input.postprocess("test/test_files/sample_file.pdf")
         output2 = file_input.postprocess("test/test_files/sample_file.pdf")

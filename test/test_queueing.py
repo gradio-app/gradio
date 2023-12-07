@@ -56,11 +56,14 @@ class TestQueueing:
         if queue_size != sizes[-1]:
             sizes.append(queue_size)
 
-        assert max(sizes) in [
-            2,
-            3,
-            4,
-        ]  # Can be 2 - 4, depending on if the workers have picked up jobs before the queue status is checked
+        assert (
+            max(sizes)
+            in [
+                2,
+                3,
+                4,
+            ]
+        )  # Can be 2 - 4, depending on if the workers have picked up jobs before the queue status is checked
 
         assert min(sizes) == 0
         assert sizes[-1] == 0

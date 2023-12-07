@@ -109,7 +109,7 @@ def test_strip_invalid_filename_characters(orig_filename, new_filename):
 
 class AsyncMock(MagicMock):
     async def __call__(self, *args, **kwargs):
-        return super(AsyncMock, self).__call__(*args, **kwargs)
+        return super().__call__(*args, **kwargs)
 
 
 @pytest.mark.asyncio

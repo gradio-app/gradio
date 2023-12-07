@@ -328,17 +328,13 @@ class Base(ThemeClass):
         text_size: sizes.Size | str = sizes.text_md,
         spacing_size: sizes.Size | str = sizes.spacing_md,
         radius_size: sizes.Size | str = sizes.radius_md,
-        font: fonts.Font
-        | str
-        | Iterable[fonts.Font | str] = (
+        font: fonts.Font | str | Iterable[fonts.Font | str] = (
             fonts.GoogleFont("Source Sans Pro"),
             "ui-sans-serif",
             "system-ui",
             "sans-serif",
         ),
-        font_mono: fonts.Font
-        | str
-        | Iterable[fonts.Font | str] = (
+        font_mono: fonts.Font | str | Iterable[fonts.Font | str] = (
             fonts.GoogleFont("IBM Plex Mono"),
             "ui-monospace",
             "Consolas",
