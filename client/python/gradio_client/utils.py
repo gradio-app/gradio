@@ -480,8 +480,6 @@ async def stream_sse_v1(
     event_id: str,
 ) -> dict[str, Any]:
     try:
-        while event_id not in pending_messages_per_event:
-            await asyncio.sleep(0.05)
         pending_messages = pending_messages_per_event[event_id]
 
         while True:
