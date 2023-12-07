@@ -43,9 +43,4 @@
 	button:focus {
 		color: var(--body-text-color);
 	}
-
-	.action {
-		width: 15px;
-		height: 15px;
-	}
 </style>
