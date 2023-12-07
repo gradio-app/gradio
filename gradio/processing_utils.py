@@ -58,21 +58,6 @@ def extract_base64_data(x: str) -> str:
 #########################
 
 
-def decode_base64_to_image(encoding: str) -> Image.Image:
-    image_encoded = extract_base64_data(encoding)
-    img = Image.open(BytesIO(base64.b64decode(image_encoded)))
-    try:
-        if hasattr(ImageOps, "exif_transpose"):
-            img = ImageOps.exif_transpose(img)
-    except Exception:
-        log.warning(
-            "Failed to transpose image %s based on EXIF data.",
-            img,
-            exc_info=True,
-        )
-    return img
-
-
 def encode_plot_to_base64(plt):
     with BytesIO() as output_bytes:
         plt.savefig(output_bytes, format="png")
