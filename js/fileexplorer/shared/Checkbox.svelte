@@ -3,6 +3,8 @@
 	export let value: boolean;
 	export let disabled: boolean;
 
+	$: console.log("disabled", disabled);
+
 	const dispatch = createEventDispatcher<{ change: boolean }>();
 </script>
 

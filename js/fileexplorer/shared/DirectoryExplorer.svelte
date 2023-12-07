@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
+	import type { Node } from "./utils";
 	import { dequal } from "dequal";
 	import FileTree from "./FileTree.svelte";
 	import { make_fs_store } from "./utils";
@@ -28,6 +29,12 @@
 		});
 
 	$: value.length && $tree && set_checked_from_paths();
+
+	function is_checked(node: Node): boolean {
+		return node.checked || (node.children?.some(is_checked) ?? false);
+	}
+
+	$: any_checked = ($tree ?? []).some(is_checked);
 
 	function set_checked_from_paths(): void {
 		value = file_count === "single" ? [value[0] || []] : value;
@@ -61,6 +68,7 @@
 			{interactive}
 			on:check={({ detail }) => handle_select(detail)}
 			{file_count}
+			{any_checked}
 		/>
 	</div>
 {:else}

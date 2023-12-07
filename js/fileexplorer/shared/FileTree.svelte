@@ -11,10 +11,19 @@
 	export let icons: any = {};
 	export let node_indices: number[] = [];
 	export let file_count: "single" | "multiple" = "multiple";
+	export let any_checked: boolean;
 
 	const dispatch = createEventDispatcher<{
 		check: { node_indices: number[]; checked: boolean };
 	}>();
+
+	// function is_checked(node: Node): boolean {
+	// 	return node.checked || (node.children?.some(is_checked) ?? false);
+	// }
+
+	// $: any_checked = tree.some(is_checked);
+	// $: console.log(any_checked);
+	// $: console.log("file_count", file_count);
 
 	async function dispatch_change(i: number): Promise<void> {
 		await tick();
@@ -31,8 +40,7 @@
 		<li>
 			<span class="wrap">
 				<Checkbox
-					disabled={!interactive ||
-						(type === "folder" && file_count === "single")}
+					disabled={!interactive || (file_count === "single" && any_checked && !checked)}
 					bind:value={checked}
 					on:change={() => dispatch_change(i)}
 				/>
@@ -66,6 +74,7 @@
 					node_indices={[...node_indices, i]}
 					{interactive}
 					{file_count}
+					{any_checked}
 				/>
 			{/if}
 		</li>
