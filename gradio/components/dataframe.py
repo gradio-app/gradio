@@ -275,7 +275,7 @@ class Dataframe(Component):
     def __process_counts(count, default=3) -> tuple[int, str]:
         if count is None:
             return (default, "dynamic")
-        if type(count) == int or type(count) == float:
+        if isinstance(count, (int, float)):
             return (int(count), "dynamic")
         else:
             return count

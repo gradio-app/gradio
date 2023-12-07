@@ -18,6 +18,15 @@ class TestClearButton:
         assert clear_event_trigger["js"]
         assert clear_event_trigger["outputs"] == [textbox._id, chatbot._id]
 
+    def test_clear_event_setup_correctly_with_state(self):
+        with gr.Blocks() as demo:
+            chatbot = gr.Chatbot([["Hello", "How are you?"]])
+            state = gr.State("")
+            gr.ClearButton([state, chatbot], scale=1)
+
+        clear_event_trigger_state = demo.dependencies.pop()
+        assert clear_event_trigger_state["backend_fn"]
+
 
 class TestOAuthButtons:
     def test_login_button_warns_when_not_on_spaces(self):
