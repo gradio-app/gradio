@@ -240,6 +240,8 @@ class TestGetThemeAssets:
                 },
             ],
             tags=["gradio-theme", "gradio"],
+            private=False,
+            likes=0,
         )
 
         assert get_theme_assets(space_info) == [
@@ -256,18 +258,6 @@ class TestGetThemeAssets:
     def test_load_space_from_hub_works(self):
         theme = gr.Theme.from_hub("gradio/seafoam")
         assert isinstance(theme, gr.Theme)
-
-    # def test_raises_if_space_not_properly_tagged(self):
-    #     space_info = huggingface_hub.hf_api.SpaceInfo(
-    #         id="freddyaboulton/dracula", tags=["gradio"]
-    #     )
-
-    #     with pytest.raises(
-    #         ValueError,
-    #         match="freddyaboulton/dracula is not a valid gradio-theme space!",
-    #     ):
-    #         with patch("huggingface_hub.HfApi.space_info", return_value=space_info):
-    #             get_theme_assets(space_info)
 
 
 class TestBuiltInThemes:
@@ -289,7 +279,7 @@ class TestThemeUploadDownload:
     @patch("gradio.themes.base.get_theme_assets", return_value=assets)
     def test_get_next_version(self, mock):
         next_version = gr.themes.Base._get_next_version(
-            SpaceInfo(id="gradio/dracula_test")
+            SpaceInfo(id="gradio/dracula_test", private=False, likes=0, tags=[])
         )
         assert next_version == "3.20.2"
 
