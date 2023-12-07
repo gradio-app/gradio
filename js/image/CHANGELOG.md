@@ -1,5 +1,11 @@
 # @gradio/image
 
+## 0.4.2
+
+### Fixes
+
+- [#6635](https://github.com/gradio-app/gradio/pull/6635) [`b639e04`](https://github.com/gradio-app/gradio/commit/b639e040741e6c0d9104271c81415d7befbd8cf3) - Quick Image + Text Component Fixes.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.4.1
 
 ### Patch Changes

@@ -16,18 +16,14 @@ class Glass(Base):
         spacing_size: sizes.Size | str = sizes.spacing_sm,
         radius_size: sizes.Size | str = sizes.radius_sm,
         text_size: sizes.Size | str = sizes.text_sm,
-        font: fonts.Font
-        | str
-        | Iterable[fonts.Font | str] = (
+        font: fonts.Font | str | Iterable[fonts.Font | str] = (
             "Optima",
             "Candara",
             "Noto Sans",
             "source-sans-pro",
             "sans-serif",
         ),
-        font_mono: fonts.Font
-        | str
-        | Iterable[fonts.Font | str] = (
+        font_mono: fonts.Font | str | Iterable[fonts.Font | str] = (
             fonts.GoogleFont("IBM Plex Mono"),
             "ui-monospace",
             "Consolas",
