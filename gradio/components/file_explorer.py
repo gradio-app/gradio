@@ -217,7 +217,6 @@ class FileExplorer(Component):
             files_with_sep.append(file)
 
         tree = make_tree(files_with_sep)
-        print(tree)
         return tree
 
     def _safe_join(self, folders):

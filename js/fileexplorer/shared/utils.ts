@@ -81,7 +81,7 @@ export const make_fs_store = (): FSStore => {
 				if (seen_nodes.has(path.join("/"))) {
 					return;
 				}
-				if (node.type === "file") {
+				if (node.type === "file" || node.type === "folder") {
 					new_checked_paths.push(path);
 				}
 				seen_nodes.add(path.join("/"));
@@ -126,9 +126,7 @@ export const make_fs_store = (): FSStore => {
 					new_checked_paths = new Map();
 				}
 
-				if (nodes[i].type === "file") {
-					new_checked_paths.set(_path.join("/"), _path);
-				}
+				new_checked_paths.set(_path.join("/"), _path);
 			}
 		}
 
