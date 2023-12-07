@@ -1,6 +1,6 @@
 import { addMessages, init, getLocaleFromNavigator } from "svelte-i18n";
 
-const langs = import.meta.globEager("./lang/*.json");
+const langs = import.meta.glob("./lang/*.json", { eager: true });
 
 type LangsRecord = Record<
 	string,

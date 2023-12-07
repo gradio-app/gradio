@@ -83,9 +83,9 @@
 		"tinyspy": "^2.0.0",
 		"typescript": "^5.0.0",
 		"typescript-svelte-plugin": "^0.3.34",
-		"vite": "^4.3.9",
+		"vite": "^5.0.6",
 		"vite-plugin-turbosnap": "1.0.3",
-		"vitest": "^0.34.6"
+		"vitest": "^1.0.2"
 	},
 	"devDependencies": {
 		"@storybook/addon-a11y": "^7.5.1",
