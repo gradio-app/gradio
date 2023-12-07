@@ -140,8 +140,9 @@
 	function handle_blur(): void {
 		if (!allow_custom_value) {
 			input_text = choices_names[choices_values.indexOf(value as string)];
+		} else {
+			value = input_text;
 		}
-		value = input_text;
 		show_options = false;
 		active_index = null;
 		dispatch("blur");
