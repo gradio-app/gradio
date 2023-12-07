@@ -7,13 +7,13 @@
 		{ tokenName: "--shadow-drop", value: "rgba(0,0,0,0.05) 0px 1px 2px 0px" },
 		{
 			tokenName: "--shadow-drop-lg",
-			value: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+			value: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)"
 		},
 		{
 			tokenName: "--shadow-inset",
-			value: "rgba(0,0,0,0.05) 0px 2px 4px 0px inset",
+			value: "rgba(0,0,0,0.05) 0px 2px 4px 0px inset"
 		},
-		{ tokenName: "--shadow-spread", value: "3px" },
+		{ tokenName: "--shadow-spread", value: "3px" }
 	];
 </script>
 
