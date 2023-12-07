@@ -18,7 +18,7 @@ with gr.Blocks() as demo:
     
     dir_only_glob_single.select(lambda s: gr.FileExplorer(glob="**/" if s else "**/*.*",
                                                    file_count="single",
-                                                   root=str(base_root / "dir3")) , inputs=[dir_only_glob], outputs=[fe])
+                                                   root=str(base_root / "dir3")) , inputs=[dir_only_glob_single], outputs=[fe])
     dir_only_glob.select(lambda s: gr.FileExplorer(glob="**/" if s else "**/*.*",
                                                    file_count="multiple",
                                                    root=str(base_root / "dir3")) , inputs=[dir_only_glob], outputs=[fe])

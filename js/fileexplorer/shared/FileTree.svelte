@@ -32,7 +32,8 @@
 		<li>
 			<span class="wrap">
 				<Checkbox
-					disabled={!interactive || (file_count === "single" && any_checked && !checked)}
+					disabled={!interactive ||
+						(file_count === "single" && any_checked && !checked)}
 					bind:value={checked}
 					on:change={() => dispatch_change(i)}
 				/>
