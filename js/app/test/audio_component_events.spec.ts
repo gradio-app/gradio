@@ -68,7 +68,7 @@ test("Audio drag-and-drop displays a warning when the file is of the wrong mime 
 test("Play, Pause, and stop events work correctly.", async ({ page }) => {
 	const uploader = await page.locator("input[type=file]");
 	await Promise.all([
-		uploader.setInputFiles(["../../test/test_files/audio_sample.wav"]),
+		uploader.setInputFiles(["../../demo/audio_debugger/cantina.wav"]),
 		page.waitForResponse("**/upload?*")
 	]);
 
@@ -82,7 +82,15 @@ test("Play, Pause, and stop events work correctly.", async ({ page }) => {
 		.getByLabel("Play", { exact: true })
 		.click();
 
-	await expect(page.getByLabel("# Output Play Events")).toHaveValue("1");
-	await expect(page.getByLabel("# Output Pause Events")).toHaveValue("1");
-	await expect(page.getByLabel("# Output Stop Events")).toHaveValue("1");
+	const event_triggered = async (label: string) => {
+		const value = await page.getByLabel(label).inputValue();
+		expect(Number(value)).toBeGreaterThan(0);
+	};
+
+	// toPass will retry the function until it passes or times out
+	// need this because the stop event is only triggered when the video is done playing
+	// hard to time otherwise
+	await expect(async () => event_triggered("# Output Play Events")).toPass();
+	await expect(async () => event_triggered("# Output Pause Events")).toPass();
+	await expect(async () => event_triggered("# Output Stop Events")).toPass();
 });
