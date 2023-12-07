@@ -5,14 +5,18 @@
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 
 	export let src: HTMLImgAttributes["src"] = undefined;
+
+	// Use `src` to render <img/> immediately without waiting
+	// for the asynchronous Wasm src resolving.
+	// This is necessary to avoid flickering of the image element.
+	let resolved_src = src;
+	$: resolve_wasm_src(src).then(s => {
+		resolved_src = s;
+	});
 </script>
 
-{#await resolve_wasm_src(src) then resolved_src}
-	<!-- svelte-ignore a11y-missing-attribute -->
-	<img src={resolved_src} {...$$restProps} />
-{:catch error}
-	<p style="color: red;">{error.message}</p>
-{/await}
+<!-- svelte-ignore a11y-missing-attribute -->
+<img src={resolved_src} {...$$restProps} />
 
 <style>
 	img {
