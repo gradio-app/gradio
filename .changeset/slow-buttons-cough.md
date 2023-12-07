@@ -2,7 +2,7 @@
 "@gradio/chatbot": patch
 "@gradio/dropdown": patch
 "@gradio/icons": patch
-"@gradio/storybook": patch
+"@gradio/row": patch
 "gradio": patch
 ---
 
