@@ -161,39 +161,54 @@ class Client:
         self.pending_event_ids: set[str] = set()
 
     async def stream_messages(self) -> None:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
-            async with client.stream(
-                "GET",
-                self.sse_url,
-                params={"session_hash": self.session_hash},
+        try:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
+                async with client.stream(
+                    "GET",
+                    self.sse_url,
+                    params={"session_hash": self.session_hash},
+                    headers=self.headers,
+                    cookies=self.cookies,
+                ) as response:
+                    async for line in response.aiter_text():
+                        if line.startswith("data:"):
+                            resp = json.loads(line[5:])
+                            if resp["msg"] == "heartbeat":
+                                continue
+                            elif resp["msg"] == "server_stopped":
+                                print("Server stopped!!!", self.src)
+                                for (
+                                    pending_messages
+                                ) in self.pending_messages_per_event.values():
+                                    pending_messages.append(resp)
+                                break
+                            event_id = resp["event_id"]
+                            if event_id not in self.pending_messages_per_event:
+                                self.pending_messages_per_event[event_id] = []
+                            self.pending_messages_per_event[event_id].append(resp)
+                            if resp["msg"] == "process_completed":
+                                self.pending_event_ids.remove(event_id)
+                            if len(self.pending_event_ids) == 0:
+                                self.stream_open = False
+                                return
+                        elif line == "":
+                            continue
+                        else:
+                            raise ValueError(f"Unexpected SSE line: '{line}'")
+        except BaseException as e:
+            import traceback
+
+            traceback.print_exc()
+            raise e
+
+    async def send_data(self, data, hash_data):
+        async with httpx.AsyncClient() as client:
+            req = await client.post(
+                self.sse_data_url,
+                json={**data, **hash_data},
                 headers=self.headers,
                 cookies=self.cookies,
-            ) as response:
-                async for line in response.aiter_text():
-                    if line.startswith("data:"):
-                        print(line)
-                        resp = json.loads(line[5:])
-                        if resp["msg"] == "heartbeat":
-                            continue
-                        event_id = resp["event_id"]
-                        if event_id not in self.pending_messages_per_event:
-                            self.pending_messages_per_event[event_id] = []
-                        self.pending_messages_per_event[event_id].append(resp)
-                        if resp["msg"] == "process_completed":
-                            self.pending_event_ids.remove(event_id)
-                        if len(self.pending_event_ids) == 0:
-                            self.stream_open = False
-                            return
-                    else:
-                        raise ValueError(f"Unexpected SSE line: {line}")
-
-    def send_data(self, data, hash_data):
-        req = httpx.post(
-            self.sse_data_url,
-            json={**data, **hash_data},
-            headers=self.headers,
-            cookies=self.cookies,
-        )
+            )
         req.raise_for_status()
         resp = req.json()
         event_id = resp["event_id"]
@@ -955,7 +970,9 @@ class Endpoint:
                     self._sse_fn_v0, data, hash_data, helper
                 )
             elif self.protocol == "sse_v1":
-                event_id = self.client.send_data(data, hash_data)
+                event_id = utils.synchronize_async(
+                    self.client.send_data, data, hash_data
+                )
                 self.client.pending_event_ids.add(event_id)
                 result = utils.synchronize_async(self._sse_fn_v1, helper, event_id)
             else:

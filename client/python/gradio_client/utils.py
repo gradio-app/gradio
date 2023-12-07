@@ -524,6 +524,8 @@ async def stream_sse_v1(
             elif msg["msg"] == "process_completed":
                 del pending_messages_per_event[event_id]
                 return msg["output"]
+            elif msg["msg"] == "server_stopped":
+                raise ValueError("Server stopped.")
 
     except asyncio.CancelledError:
         raise

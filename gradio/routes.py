@@ -593,18 +593,23 @@ class App(FastAPI):
                             await blocks._queue.clean_events(session_hash=session_hash)
                             return
 
+                        if (
+                            session_hash
+                            not in blocks._queue.pending_messages_per_session
+                        ):
+                            raise HTTPException(
+                                status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Session not found.",
+                            )
+
                         heartbeat_rate = 15
                         check_rate = 0.05
                         message = None
                         try:
-                            if (
+                            messages = blocks._queue.pending_messages_per_session[
                                 session_hash
-                                in blocks._queue.pending_messages_per_session
-                            ):
-                                messages = blocks._queue.pending_messages_per_session[
-                                    session_hash
-                                ]
-                                message = messages.get_nowait()
+                            ]
+                            message = messages.get_nowait()
                         except EmptyQueue:
                             await asyncio.sleep(check_rate)
                             if time.perf_counter() - last_heartbeat > heartbeat_rate:
@@ -614,18 +619,28 @@ class App(FastAPI):
                                 # and then the stream will retry leading to infinite queue 😬
                                 last_heartbeat = time.perf_counter()
 
+                        if not blocks.is_running:
+                            message = {"msg": "server_stopped", "success": False}
                         if message:
                             yield f"data: {json.dumps(message)}\n\n"
-                            if message["msg"] == "process_completed" and (
-                                len(
-                                    blocks._queue.pending_event_ids_session[
-                                        session_hash
-                                    ]
-                                )
-                                == 0
-                            ):
-                                return
+                            if message["msg"] == "process_completed":
+                                blocks._queue.pending_event_ids_session[
+                                    session_hash
+                                ].remove(message["event_id"])
+                                if message["msg"] == "server_stopped" or (
+                                    message["msg"] == "process_completed"
+                                    and (
+                                        len(
+                                            blocks._queue.pending_event_ids_session[
+                                                session_hash
+                                            ]
+                                        )
+                                        == 0
+                                    )
+                                ):
+                                    return
                 except asyncio.CancelledError as e:
+                    del blocks._queue.pending_messages_per_session[session_hash]
                     await blocks._queue.clean_events(session_hash=session_hash)
                     raise e
 
@@ -640,6 +655,9 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
+            from datetime import datetime
+
+            print("recieved data @", datetime.now().strftime("%H:%M:%S.%f")[:-3])
             if blocks._queue.server_app is None:
                 blocks._queue.set_server_app(app)
 
