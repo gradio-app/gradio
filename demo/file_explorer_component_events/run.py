@@ -12,6 +12,7 @@ with gr.Blocks() as demo:
             dir_only_glob = gr.Checkbox(label="Show only directories", value=False)
             dir_only_glob_single = gr.Checkbox(label="Show only directories (single)", value=False)
 
+        dir_only_glob = gr.Checkbox(label="Show only directories", value=False)
     fe = gr.FileExplorer(root=str(base_root / "dir1"), interactive=True)
     textbox = gr.Textbox(label="Selected Directory")
     run = gr.Button("Run")
