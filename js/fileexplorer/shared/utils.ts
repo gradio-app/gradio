@@ -103,9 +103,12 @@ export const make_fs_store = (): FSStore => {
 	): string[][] {
 		let _node = root;
 
+		console.log("checked_paths", checked_paths);
+
 		if (file_count === "single") {
 			check_node_and_children(root.children, false, []);
 			set(root.children!);
+			console.log("checked_paths", checked_paths)
 		}
 
 		for (let i = 0; i < indices.length; i++) {
@@ -113,15 +116,19 @@ export const make_fs_store = (): FSStore => {
 		}
 
 		_node.checked = checked;
-		const nodes = check_node_and_children(_node.children, checked, [_node]);
+		const nodes = check_node_and_children(_node.children, file_count === "single" ? false : checked, [_node]);
+
+		console.log("nodes", nodes);
 
 		let new_checked_paths = new Map(checked_paths.map((v) => [v.join("/"), v]));
+		console.log("new_checked_paths", new_checked_paths);
 
 		for (let i = 0; i < nodes.length; i++) {
 			const _path = get_full_path(nodes[i]);
-			if (!checked) {
+			console.log("_path", _path)
+			if (!nodes[i].checked) {
 				new_checked_paths.delete(_path.join("/"));
-			} else if (checked) {
+			} else if (nodes[i].checked) {
 				if (file_count === "single") {
 					new_checked_paths = new Map();
 				}
@@ -130,7 +137,10 @@ export const make_fs_store = (): FSStore => {
 			}
 		}
 
+		console.log("new_checked_paths 2", new_checked_paths);
+		console.log("_node before checked", _node);
 		check_parent(_node);
+		console.log("checked_parent", _node);
 		set(root.children!);
 		old_checked_paths = Array.from(new_checked_paths).map((v) => v[1]);
 		return old_checked_paths;
@@ -259,7 +269,8 @@ function check_parent(node: Node | null | undefined): void {
 		nodes_checked.push(_node.checked);
 		_node = _node.previous;
 	}
-
+	console.log("node", node)
+	console.log("_node", _node)
 	if (nodes_checked.every((v) => v === true)) {
 		node.parent!.checked = true;
 		check_parent(node?.parent);

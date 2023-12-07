@@ -17,14 +17,6 @@
 		check: { node_indices: number[]; checked: boolean };
 	}>();
 
-	// function is_checked(node: Node): boolean {
-	// 	return node.checked || (node.children?.some(is_checked) ?? false);
-	// }
-
-	// $: any_checked = tree.some(is_checked);
-	// $: console.log(any_checked);
-	// $: console.log("file_count", file_count);
-
 	async function dispatch_change(i: number): Promise<void> {
 		await tick();
 

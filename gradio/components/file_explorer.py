@@ -82,7 +82,6 @@ class FileExplorer(Component):
             raise ValueError(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_file_count}"
             )
-        print(file_count)
         self.file_count = file_count
         self.height = height
 

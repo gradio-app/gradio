@@ -53,6 +53,7 @@
 		node_indices: number[];
 		checked: boolean;
 	}): void {
+
 		value = tree.set_checked(node_indices, checked, value, file_count);
 		if (!dequal(value, old_value)) {
 			old_value = value;
