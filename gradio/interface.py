@@ -208,10 +208,12 @@ class Interface(Blocks):
             self.cache_examples = False
 
         self.input_components = [
-            get_component_instance(i, unrender=True) for i in inputs  # type: ignore
+            get_component_instance(i, unrender=True)
+            for i in inputs  # type: ignore
         ]
         self.output_components = [
-            get_component_instance(o, unrender=True) for o in outputs  # type: ignore
+            get_component_instance(o, unrender=True)
+            for o in outputs  # type: ignore
         ]
 
         for component in self.input_components + self.output_components:
@@ -355,7 +357,8 @@ class Interface(Blocks):
                 pass
             else:
                 self.flagging_callback.setup(
-                    self.input_components + self.output_components, self.flagging_dir  # type: ignore
+                    self.input_components + self.output_components,
+                    self.flagging_dir,  # type: ignore
                 )
 
         # Render the Gradio UI
@@ -649,9 +652,7 @@ class Interface(Blocks):
         clear_btn.click(
             None,
             [],
-            (
-                [input_component_column] if input_component_column else []
-            ),  # type: ignore
+            ([input_component_column] if input_component_column else []),  # type: ignore
             js=f"""() => {json.dumps(
                 
                     [{'variant': None, 'visible': True, '__type__': 'update'}]
