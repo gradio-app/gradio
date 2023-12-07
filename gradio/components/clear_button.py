@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import json
 from typing import Any, Literal
 
@@ -9,6 +10,7 @@ from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components import Button, Component
 from gradio.data_classes import GradioModel, GradioRootModel
+from gradio.utils import resolve_singleton
 
 set_documentation_group("component")
 
@@ -62,6 +64,8 @@ class ClearButton(Button):
         """
         Adds a component or list of components to the list of components that will be cleared when the button is clicked.
         """
+        from gradio.components import State  # Avoid circular import
+
         if not components:
             # This needs to be here because when the ClearButton is created in an gr.Interface, we don't
             # want to create dependencies for it before we have created the dependencies for the submit function.
@@ -71,13 +75,25 @@ class ClearButton(Button):
         if isinstance(components, Component):
             components = [components]
         none_values = []
+        state_components = []
+        initial_states = []
         for component in components:
+            if isinstance(component, State):
+                state_components.append(component)
+                initial_states.append(copy.deepcopy(component.value))
             none = component.postprocess(None)
             if isinstance(none, (GradioModel, GradioRootModel)):
                 none = none.model_dump()
             none_values.append(none)
         clear_values = json.dumps(none_values)
         self.click(None, [], components, js=f"() => {clear_values}")
+        if state_components:
+            self.click(
+                lambda: resolve_singleton(initial_states),
+                None,
+                state_components,
+                api_name="reset_state",
+            )
         return self
 
     def postprocess(self, value: str | None) -> str | None:
