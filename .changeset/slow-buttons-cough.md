@@ -1,9 +1,9 @@
 ---
-"@gradio/chatbot": minor
-"@gradio/dropdown": minor
-"@gradio/icons": minor
-"@gradio/storybook": minor
-"gradio": minor
+"@gradio/chatbot": patch
+"@gradio/dropdown": patch
+"@gradio/icons": patch
+"@gradio/storybook": patch
+"gradio": patch
 ---
 
 feat:Improve CSS token documentation in Storybook
