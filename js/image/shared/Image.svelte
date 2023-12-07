@@ -11,15 +11,14 @@
 	// This is necessary to avoid flickering of the image element.
 	let resolved_src = src;
 	// The `src` prop can be updated before the Promise from `resolve_wasm_src` is resolved.
-	// In such a case, the promise dispatched for the old `src` has to be ignored,
-	// This variable `latest_promise` is used for that purpose.
-	let latest_promise: ReturnType<typeof resolve_wasm_src>;
+	// In such a case, the resolved value for the old `src` has to be discarded,
+	// This variable `latest_src` is used to pick up only the value resolved for the latest `src` prop.
+	let latest_src: typeof src;
 	$: {
-		const current_promise = resolve_wasm_src(src);
-		latest_promise = current_promise;
-
-		current_promise.then((s) => {
-			if (latest_promise === current_promise) {
+		latest_src = src;
+		const resolving_src = src;
+		resolve_wasm_src(resolving_src).then((s) => {
+			if (latest_src === resolving_src) {
 				resolved_src = s;
 			}
 		});
