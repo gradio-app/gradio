@@ -13,6 +13,7 @@ concurrency:
 
 env:
   NODE_OPTIONS: "--max-old-space-size=4096"
+  HF_TOKEN: ${{ secrets.HF_TOKEN }}
 
 jobs:
   changes:
