@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.9'
     - name: Install pip
@@ -62,7 +62,7 @@ jobs:
         github.event.workflow_run.conclusion == 'success'
       id: upload-website-demos
       run: |
-        python scripts/upload_website_demos.py --AUTH_TOKEN ${{ secrets.SPACES_DEPLOY_TOKEN }} \
+        python scripts/upload_website_demos.py --AUTH_TOKEN ${{ secrets.WEBSITE_SPACES_DEPLOY_TOKEN }} \
         --WHEEL_URL https://gradio-builds.s3.amazonaws.com/${{ steps.set-outputs.outputs.gh_sha }}/ \
         --GRADIO_VERSION ${{ steps.set-outputs.outputs.gradio_version }}
 

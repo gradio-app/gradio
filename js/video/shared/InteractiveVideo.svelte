@@ -4,11 +4,12 @@
 	import type { FileData } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Webcam } from "@gradio/image";
-	import { Video, Upload as UploadIcon } from "@gradio/icons";
+	import { Video } from "@gradio/icons";
 
 	import { prettyBytes, playable } from "./utils";
 	import Player from "./Player.svelte";
 	import type { I18nFormatter } from "@gradio/utils";
+	import { SelectSource } from "@gradio/atoms";
 
 	export let value: FileData | null = null;
 	export let subtitle: FileData | null = null;
@@ -48,7 +49,6 @@
 
 	function handle_clear(): void {
 		value = null;
-		active_source = sources[0];
 		dispatch("change", null);
 		dispatch("clear");
 	}
@@ -68,7 +68,9 @@
 			bind:dragging
 			filetype="video/x-m4v,video/*"
 			on:load={handle_load}
+			on:error={({ detail }) => dispatch("error", detail)}
 			{root}
+			include_sources={sources.length > 1}
 		>
 			<slot />
 		</Upload>
@@ -112,26 +114,7 @@
 	{/if}
 {/if}
 
-{#if sources.length > 1}
-	<span class="source-selection">
-		<button
-			class="icon"
-			aria-label="Upload video"
-			on:click={() => {
-				handle_clear();
-				active_source = "upload";
-			}}><UploadIcon /></button
-		>
-		<button
-			class="icon"
-			aria-label="Record audio"
-			on:click={() => {
-				handle_clear();
-				active_source = "webcam";
-			}}><Video /></button
-		>
-	</span>
-{/if}
+<SelectSource {sources} bind:active_source {handle_clear} />
 
 <style>
 	.file-name {
@@ -143,28 +126,5 @@
 	.file-size {
 		padding: var(--size-2);
 		font-size: var(--text-xl);
-	}
-
-	.source-selection {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border-top: 1px solid var(--border-color-primary);
-		width: 95%;
-		margin: 0 auto;
-	}
-
-	.icon {
-		width: 22px;
-		height: 22px;
-		margin: var(--spacing-lg) var(--spacing-xs);
-		padding: var(--spacing-xs);
-		color: var(--neutral-400);
-		border-radius: var(--radius-md);
-	}
-
-	.icon:hover,
-	.icon:focus {
-		color: var(--color-accent);
 	}
 </style>

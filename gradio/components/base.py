@@ -7,9 +7,7 @@ from __future__ import annotations
 import abc
 import hashlib
 import json
-import os
 import sys
-import tempfile
 import warnings
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -162,14 +160,10 @@ class Component(ComponentBase, Block):
         if not elem_classes:
             elem_classes = []
 
-        # This gets overriden when `select` is called
+        # This gets overridden when `select` is called
         self._selectable = False
         if not hasattr(self, "data_model"):
             self.data_model: type[GradioDataModel] | None = None
-        self.temp_files: set[str] = set()
-        self.GRADIO_CACHE = os.environ.get("GRADIO_TEMP_DIR") or str(
-            Path(tempfile.gettempdir()) / "gradio"
-        )
 
         Block.__init__(
             self,
@@ -203,12 +197,8 @@ class Component(ComponentBase, Block):
         self.load_event: None | dict[str, Any] = None
         self.load_event_to_attach: None | tuple[Callable, float | None] = None
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
-        initial_value = (
-            initial_value
-            if self._skip_init_processing
-            else self.postprocess(initial_value)
-        )
-        self.value = move_files_to_cache(initial_value, self)  # type: ignore
+        initial_value = self.postprocess(initial_value)
+        self.value = move_files_to_cache(initial_value, self, postprocess=True)  # type: ignore
 
         if callable(load_fn):
             self.attach_load_event(load_fn, every)
@@ -224,7 +214,6 @@ class Component(ComponentBase, Block):
             config["info"] = self.info
         if len(self.server_fns):
             config["server_fns"] = [fn.__name__ for fn in self.server_fns]
-        config.pop("_skip_init_processing", None)
         config.pop("render", None)
         return config
 
@@ -273,6 +262,7 @@ class Component(ComponentBase, Block):
         """
         if self.data_model:
             payload = self.data_model.from_json(payload)
+            Path(flag_dir).mkdir(exist_ok=True)
             return payload.copy_to_dir(flag_dir).model_dump_json()
         return payload
 

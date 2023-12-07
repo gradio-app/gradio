@@ -21,6 +21,13 @@ class TestDefaultFlagging:
             assert row_count == 2  # 3 rows written including header
         io.close()
 
+    def test_flagging_does_not_create_unnecessary_directories(self):
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            io = gr.Interface(lambda x: x, "text", "text", flagging_dir=tmpdirname)
+            io.launch(prevent_thread_lock=True)
+            io.flagging_callback.flag(["test", "test"])
+            assert os.listdir(tmpdirname) == ["log.csv"]
+
 
 class TestSimpleFlagging:
     def test_simple_csv_flagging_callback(self):

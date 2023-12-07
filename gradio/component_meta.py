@@ -21,7 +21,6 @@ INTERFACE_TEMPLATE = '''
         inputs: Component | Sequence[Component] | set[Component] | None = None,
         outputs: Component | Sequence[Component] | None = None,
         api_name: str | None | Literal[False] = None,
-        status_tracker: None = None,
         scroll_to_output: bool = False,
         show_progress: Literal["full", "minimal", "hidden"] = "full",
         queue: bool | None = None,
@@ -32,7 +31,9 @@ INTERFACE_TEMPLATE = '''
         cancels: dict[str, Any] | list[dict[str, Any]] | None = None,
         every: float | None = None,
         trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
-        js: str | None = None,) -> Dependency:
+        js: str | None = None,
+        concurrency_limit: int | None | Literal["default"] = "default",
+        concurrency_id: str | None = None) -> Dependency:
         """
         Parameters:
             fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
@@ -50,6 +51,8 @@ INTERFACE_TEMPLATE = '''
             every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
             trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+            concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
+            concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
         """
         ...
     {% endfor %}
@@ -132,7 +135,13 @@ def updateable(fn):
     def wrapper(*args, **kwargs):
         fn_args = inspect.getfullargspec(fn).args
         self = args[0]
-        if not hasattr(self, "_constructor_args"):
+
+        # We need to ensure __init__ is always called at least once
+        # so that the component has all the variables in self defined
+        # test_blocks.py::test_async_iterator_update_with_new_component
+        # checks this
+        initialized_before = hasattr(self, "_constructor_args")
+        if not initialized_before:
             self._constructor_args = []
         for i, arg in enumerate(args):
             if i == 0 or i >= len(fn_args):  #  skip self, *args
@@ -140,7 +149,7 @@ def updateable(fn):
             arg_name = fn_args[i]
             kwargs[arg_name] = arg
         self._constructor_args.append(kwargs)
-        if in_event_listener():
+        if in_event_listener() and initialized_before:
             return None
         else:
             return fn(self, **kwargs)

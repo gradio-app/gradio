@@ -20,6 +20,7 @@
 	let py_client = data.py_client;
 	let on_main: boolean;
 	let wheel: string = data.wheel;
+	let url_version: string = data.url_version;
 
 	let headers: [string, string][];
 	let method_headers: [string, string][];
@@ -27,17 +28,6 @@
 	$: method_headers = data.method_headers;
 
 	let current_selection = 0;
-
-	function handleAnchorClick(event: MouseEvent) {
-		event.preventDefault();
-		const link = event.currentTarget as HTMLAnchorElement;
-		const anchorId = new URL(link?.href).hash.replace("#", "");
-		const anchor = document.getElementById(anchorId);
-		window.scrollTo({
-			top: anchor?.offsetTop,
-			behavior: "smooth"
-		});
-	}
 
 	let y: number;
 	let header_targets: { [key: string]: HTMLElement } = {};
@@ -67,6 +57,7 @@
 	$: modals = data.modals;
 	$: routes = data.routes;
 	$: py_client = data.py_client;
+	$: url_version = data.url_version;
 </script>
 
 <MetaTags
@@ -162,7 +153,6 @@
 								<a
 									href="#{obj.slug}-header"
 									class="invisible group-hover-visible"
-									on:click={handleAnchorClick}
 									><img class="anchor-img" src={anchor} /></a
 								>
 							</h3>
@@ -193,11 +183,17 @@
 							<div class="embedded-component">
 								{#key obj.name}
 									{#if obj.name !== "State"}
-										{#if on_main}
+										{#if url_version === "main"}
 											<gradio-app
 												space={"gradio/" +
 													obj.name.toLowerCase() +
 													"_component_main"}
+											/>
+										{:else if url_version === "3.50.2"}
+											<gradio-app
+												space={"gradio/" +
+													obj.name.toLowerCase() +
+													"_component_3-x"}
 											/>
 										{:else}
 											<gradio-app
@@ -214,10 +210,7 @@
 						<div id="description">
 							<h4 class="mt-8 text-xl text-orange-500 font-light group">
 								Description
-								<a
-									href="#description"
-									class="invisible group-hover-visible"
-									on:click={handleAnchorClick}
+								<a href="#description" class="invisible group-hover-visible"
 									><img class="anchor-img-small" src={anchor} /></a
 								>
 							</h4>
@@ -234,24 +227,24 @@
 								</h4>
 								<p class="text-lg text-gray-500">
 									<span class="text-gray-700">As input: </span>
-									{@html obj.preprocessing}
+									{@html obj.tags.preprocessing}
 								</p>
 								<p class="text-lg text-gray-500">
 									<span class="text-gray-700">As output:</span>
-									{@html obj.postprocessing}
+									{@html obj.tags.postprocessing}
 								</p>
-								{#if obj.examples_format}
+								{#if obj.tags.examples_format}
 									<p class="text-lg text-gray-500">
 										<span class="text-gray-700"
 											>Format expected for examples:</span
 										>
-										{@html obj.examples_format}
+										{@html obj.tags.examples_format}
 									</p>
 								{/if}
-								{#if obj.events && obj.events.length > 0}
+								{#if obj.tags.events && obj.tags.events.length > 0}
 									<p class="text-lg text-gray-500">
 										<span class="text-gray-700">Supported events:</span>
-										<em>{@html obj.events}</em>
+										<em>{@html obj.tags.events}</em>
 									</p>
 								{/if}
 							</div>
@@ -261,10 +254,7 @@
 							<div id="example-usage">
 								<h4 class="mt-4 text-xl text-orange-500 font-light group">
 									Example Usage
-									<a
-										href="#example-usage"
-										class="invisible group-hover-visible"
-										on:click={handleAnchorClick}
+									<a href="#example-usage" class="invisible group-hover-visible"
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
@@ -323,7 +313,7 @@
 														{/if}
 													</td>
 													<td class="p-3 text-gray-700 break-words">
-														<p>{param["doc"] || ""}</p>
+														<p>{@html param["doc"] || ""}</p>
 													</td>
 												</tr>
 											{/if}
@@ -337,10 +327,7 @@
 							<div id="shortcuts">
 								<h4 class="mt-6 text-xl text-orange-500 font-light group">
 									Shortcuts
-									<a
-										href="#shortcuts"
-										class="invisible group-hover-visible"
-										on:click={handleAnchorClick}
+									<a href="#shortcuts" class="invisible group-hover-visible"
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
@@ -387,10 +374,7 @@
 								<div class="category my-8" id="examples">
 									<h4 class="text-xl text-orange-500 font-light group">
 										Demos
-										<a
-											href="#demos"
-											class="invisible group-hover-visible"
-											on:click={handleAnchorClick}
+										<a href="#demos" class="invisible group-hover-visible"
 											><img class="anchor-img-small" src={anchor} /></a
 										>
 									</h4>
@@ -420,7 +404,7 @@
 															name={demo[0]}
 															code={demo[1]}
 															highlighted_code={demo[2]}
-															{on_main}
+															{url_version}
 														/>
 													</div>
 												{/each}
@@ -439,7 +423,6 @@
 										<a
 											href="#event-listeners"
 											class="invisible group-hover-visible"
-											on:click={handleAnchorClick}
 											><img class="anchor-img-small" src={anchor} /></a
 										>
 									</h4>
@@ -452,10 +435,7 @@
 								<div id="methods">
 									<h4 class="mt-4 p-3 text-xl text-orange-500 font-light group">
 										Methods
-										<a
-											href="#methods"
-											class="invisible group-hover-visible"
-											on:click={handleAnchorClick}
+										<a href="#methods" class="invisible group-hover-visible"
 											><img class="anchor-img-small" src={anchor} /></a
 										>
 									</h4>
@@ -473,10 +453,7 @@
 							<div id="guides">
 								<h4 class="mt-4 p-3 text-xl text-orange-500 font-light group">
 									Guides
-									<a
-										href="#guides"
-										class="invisible group-hover-visible"
-										on:click={handleAnchorClick}
+									<a href="#guides" class="invisible group-hover-visible"
 										><img class="anchor-img-small" src={anchor} /></a
 									>
 								</h4>
@@ -489,7 +466,7 @@
 											class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {data
 												.COLOR_SETS[i][0]} {data.COLOR_SETS[i][1]}"
 											target="_blank"
-											href={guide.url}
+											href="..{guide.url}"
 										>
 											<div class="flex flex-col p-4 h-min">
 												<p class="group-hover:underline text-l">
@@ -539,10 +516,7 @@
 			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:block lg:w-2/12"
 		>
 			<div class="mx-8">
-				<a
-					class="thin-link py-2 block text-lg"
-					href="#{obj.slug}"
-					on:click={handleAnchorClick}>{obj.name}</a
+				<a class="thin-link py-2 block text-lg" href="#{obj.slug}">{obj.name}</a
 				>
 				{#if headers.length > 0}
 					<ul class="text-slate-700 text-lg leading-6">
@@ -552,7 +526,7 @@
 									bind:this={header_targets[header[1]]}
 									href="#{header[1]}"
 									class="thin-link block py-2 font-light second-nav-link"
-									on:click={handleAnchorClick}>{header[0]}</a
+									>{header[0]}</a
 								>
 							</li>
 						{/each}
@@ -563,7 +537,6 @@
 										bind:this={header_targets[method_header[1]]}
 										href="#{method_header[1]}"
 										class="thin-link block py-2 font-light second-nav-link sub-link"
-										on:click={handleAnchorClick}
 										>&nbsp&nbsp&nbsp&nbsp{method_header[0]}</a
 									>
 								</li>
@@ -575,7 +548,7 @@
 									bind:this={header_targets["guides"]}
 									href="#guides"
 									class="thin-link block py-2 font-light second-nav-link"
-									on:click={handleAnchorClick}>Guides</a
+									>Guides</a
 								>
 							</li>
 						{/if}

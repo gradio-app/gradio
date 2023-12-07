@@ -49,6 +49,12 @@ class TestInit:
         assert chatbot.submit_btn is None
         assert chatbot.retry_btn is None
 
+    def test_concurrency_limit(self):
+        chat = gr.ChatInterface(double, concurrency_limit=10)
+        assert chat.concurrency_limit == 10
+        fns = [fn for fn in chat.fns if fn.name in {"_submit_fn", "_api_submit_fn"}]
+        assert all(fn.concurrency_limit == 10 for fn in fns)
+
     def test_events_attached(self):
         chatbot = gr.ChatInterface(double)
         dependencies = chatbot.dependencies
@@ -111,6 +117,33 @@ class TestInit:
         prediction_hi = chatbot.examples_handler.load_from_cache(1)
         assert prediction_hello[0].root[0] == ("hello", "hello")
         assert prediction_hi[0].root[0] == ("hi", "hi")
+
+    def test_default_accordion_params(self):
+        chatbot = gr.ChatInterface(
+            echo_system_prompt_plus_message,
+            additional_inputs=["textbox", "slider"],
+        )
+        accordion = [
+            comp
+            for comp in chatbot.blocks.values()
+            if comp.get_config().get("name") == "accordion"
+        ][0]
+        assert accordion.get_config().get("open") is False
+        assert accordion.get_config().get("label") == "Additional Inputs"
+
+    def test_setting_accordion_params(self, monkeypatch):
+        chatbot = gr.ChatInterface(
+            echo_system_prompt_plus_message,
+            additional_inputs=["textbox", "slider"],
+            additional_inputs_accordion=gr.Accordion(open=True, label="MOAR"),
+        )
+        accordion = [
+            comp
+            for comp in chatbot.blocks.values()
+            if comp.get_config().get("name") == "accordion"
+        ][0]
+        assert accordion.get_config().get("open") is True
+        assert accordion.get_config().get("label") == "MOAR"
 
     def test_example_caching_with_additional_inputs(self, monkeypatch):
         monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())

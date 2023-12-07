@@ -1,7 +1,7 @@
 # Frequently Asked Questions
 
 ## What do I need to install before using Custom Components?
-Before using Custom Components, make sure you have Python 3.8+, Node.js v16.14+, npm 9+, and Gradio 4.0 installed.
+Before using Custom Components, make sure you have Python 3.8+, Node.js v16.14+, npm 9+, and Gradio 4.0+ installed.
 
 ## What templates can I use to create my custom component?
 Run `gradio cc show` to see the list of built-in templates.
@@ -39,3 +39,12 @@ You can define event triggers in the `EVENTS` class attribute by listing the des
 ## Can I implement a custom Gradio component without defining a `data_model`?
 
 Yes, it is possible to create custom components without a `data_model`, but you are going to have to manually implement `api_info`, `example_inputs`, `flag`, and `read_from_flag` methods.
+
+## Are there sample custom components I can learn from?
+
+We have prepared this [collection](https://huggingface.co/collections/gradio/custom-components-65497a761c5192d981710b12) of custom components on the HuggingFace Hub that you can use to get started!
+
+## How can I find custom components created by the Gradio community?
+
+We're working on creating a gallery to make it really easy to discover new custom components.
+In the meantime, you can search for HuggingFace Spaces that are tagged as a `gradio-custom-component` [here](https://huggingface.co/search/full-text?q=gradio-custom-component&type=space)

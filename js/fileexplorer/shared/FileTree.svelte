@@ -44,9 +44,10 @@
 						on:click|stopPropagation={() =>
 							(tree[i].children_visible = !tree[i].children_visible)}
 						role="button"
+						aria-label="expand directory"
 						tabindex="0"
 						on:keydown={({ key }) =>
-							key === " " &&
+							(key === " " || key === "Enter") &&
 							(tree[i].children_visible = !tree[i].children_visible)}
 						><Arrow /></span
 					>
@@ -85,14 +86,13 @@
 		border-radius: 2px;
 		cursor: pointer;
 		transition: 0.1s;
+		flex-shrink: 0;
 	}
 
 	.file-icon {
 		display: inline-block;
 		height: 20px;
 		margin-left: -1px;
-		/* height: 20px; */
-		/* padding: 3px 3px 3px 3px; */
 		margin: 0;
 		flex-grow: 0;
 		display: inline-flex;
@@ -136,11 +136,12 @@
 	li {
 		margin-left: 0;
 		padding-left: 0;
-		/* display: flex; */
 		align-items: center;
 		margin: 8px 0;
 		font-family: var(--font-mono);
 		font-size: var(--scale-00);
+		overflow-wrap: anywhere;
+		word-break: break-word;
 	}
 
 	.wrap {

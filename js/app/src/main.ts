@@ -21,6 +21,15 @@ let FONTS: string | [];
 FONTS = "__FONTS_CSS__";
 
 let IndexComponent: typeof Index;
+let _res: (value?: unknown) => void;
+let pending = new Promise((res) => {
+	_res = res;
+});
+async function get_index(): Promise<void> {
+	IndexComponent = (await import("./Index.svelte")).default;
+	_res();
+}
+
 function create_custom_element(): void {
 	const o = {
 		SvelteComponent: svelte.SvelteComponent
@@ -72,7 +81,7 @@ function create_custom_element(): void {
 		}
 
 		async connectedCallback(): Promise<void> {
-			IndexComponent = (await import("./Index.svelte")).default;
+			await get_index();
 			this.loading = true;
 
 			if (this.app) {
@@ -136,11 +145,12 @@ function create_custom_element(): void {
 			return ["src", "space", "host"];
 		}
 
-		attributeChangedCallback(
+		async attributeChangedCallback(
 			name: string,
 			old_val: string,
 			new_val: string
-		): void {
+		): Promise<void> {
+			await pending;
 			if (
 				(name === "host" || name === "space" || name === "src") &&
 				new_val !== old_val

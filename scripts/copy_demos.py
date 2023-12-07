@@ -13,7 +13,6 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "blocks_group",
         "blocks_js_methods",
         "blocks_layout",
-        "blocks_mask",
         "blocks_multiple_event_triggers",
         "blocks_update",
         "calculator",
@@ -73,7 +72,5 @@ if __name__ == "__main__":
     torch==1.12.1
     altair
     vega_datasets
-    pydantic==2.1.1
-    pydantic_core==2.4.0
     """
     open(reqs_file_path, "w").write(textwrap.dedent(requirements))

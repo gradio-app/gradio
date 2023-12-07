@@ -42,6 +42,7 @@ class Model3D(Component):
             None,
         ),
         zoom_speed: float = 1,
+        pan_speed: float = 1,
         height: int | None = None,
         label: str | None = None,
         show_label: bool | None = None,
@@ -61,6 +62,7 @@ class Model3D(Component):
             clear_color: background color of scene, should be a tuple of 4 floats between 0 and 1 representing RGBA values.
             camera_position: initial camera position of scene, provided as a tuple of `(alpha, beta, radius)`. Each value is optional. If provided, `alpha` and `beta` should be in degrees reflecting the angular position along the longitudinal and latitudinal axes, respectively. Radius corresponds to the distance from the center of the object to the camera.
             zoom_speed: the speed of zooming in and out of the scene when the cursor wheel is rotated or when screen is pinched on a mobile device. Should be a positive float, increase this value to make zooming faster, decrease to make it slower. Affects the wheelPrecision property of the camera.
+            pan_speed: the speed of panning the scene when the cursor is dragged or when the screen is dragged on a mobile device. Should be a positive float, increase this value to make panning faster, decrease to make it slower. Affects the panSensibility property of the camera.
             height: height of the model3D component, in pixels.
             interactive: if True, will allow users to upload a file; if False, can only be used to display files. If not provided, this is inferred based on whether the component is used as an input or output.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
@@ -78,6 +80,7 @@ class Model3D(Component):
         self.camera_position = camera_position
         self.height = height
         self.zoom_speed = zoom_speed
+        self.pan_speed = pan_speed
         super().__init__(
             label=label,
             every=every,
@@ -101,7 +104,7 @@ class Model3D(Component):
     def postprocess(self, value: str | Path | None) -> FileData | None:
         if value is None:
             return value
-        return FileData(path=str(value))
+        return FileData(path=str(value), orig_name=Path(value).name)
 
     def as_example(self, input_data: str | None) -> str:
         return Path(input_data).name if input_data else ""

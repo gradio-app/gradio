@@ -1,9 +1,10 @@
+<svelte:options immutable={true} />
+
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { afterUpdate } from "svelte";
 
 	export let gradio: Gradio<{
 		change: never;
@@ -14,46 +15,30 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: (string | number)[] = [];
-	export let value_is_output = false;
-	export let choices: [string, number][];
+	export let choices: [string, string | number][];
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let label = gradio.i18n("checkbox.checkbox_group");
 	export let info: string | undefined = undefined;
-	export let show_label: boolean;
+	export let show_label = true;
 
 	export let loading_status: LoadingStatus;
-	export let interactive: boolean;
+	export let interactive = true;
 
-	let old_value: (string | number)[] = value.slice();
-
-	function toggleChoice(choice: string | number): void {
-		// update the old
-		if (old_value.includes(choice)) {
-			old_value.splice(old_value.indexOf(choice), 1);
+	function toggle_choice(choice: string | number): void {
+		if (value.includes(choice)) {
+			value = value.filter((v) => v !== choice);
 		} else {
-			old_value.push(choice);
+			value = [...value, choice];
 		}
-		old_value = [...old_value];
-	}
 
-	function handle_change(): void {
-		gradio.dispatch("change");
-		if (!value_is_output) {
-			gradio.dispatch("input");
-		}
+		gradio.dispatch("input");
 	}
-
-	afterUpdate(() => {
-		value_is_output = false;
-	});
 
 	$: disabled = !interactive;
 
-	// When old_value changes, update value and call handle_change()
-	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
-	$: (value = [...old_value]), handle_change();
+	$: value && gradio.dispatch("change");
 </script>
 
 <Block
@@ -73,33 +58,33 @@
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap" data-testid="checkbox-group">
-		{#each choices as choice, i}
-			<label class:disabled class:selected={value.includes(choice[1])}>
+		{#each choices as [display_value, internal_value], i}
+			<label class:disabled class:selected={value.includes(internal_value)}>
 				<input
 					{disabled}
-					on:change={() => toggleChoice(choice[1])}
+					on:change={() => toggle_choice(internal_value)}
 					on:input={(evt) =>
 						gradio.dispatch("select", {
 							index: i,
-							value: choice[1],
+							value: internal_value,
 							selected: evt.currentTarget.checked
 						})}
 					on:keydown={(event) => {
 						if (event.key === "Enter") {
-							toggleChoice(choice[1]);
+							toggle_choice(internal_value);
 							gradio.dispatch("select", {
 								index: i,
-								value: choice[1],
-								selected: !value.includes(choice[1])
+								value: internal_value,
+								selected: !value.includes(internal_value)
 							});
 						}
 					}}
-					checked={value.includes(choice[1])}
+					checked={value.includes(internal_value)}
 					type="checkbox"
-					name={choice[1]?.toString()}
-					title={choice[1]?.toString()}
+					name={internal_value?.toString()}
+					title={internal_value?.toString()}
 				/>
-				<span class="ml-2">{choice[0]}</span>
+				<span class="ml-2">{display_value}</span>
 			</label>
 		{/each}
 	</div>

@@ -2,46 +2,47 @@
 /* eslint-env worker */
 
 import type { PyodideInterface } from "pyodide";
+import type { PyProxy } from "pyodide/ffi";
 import type {
 	InMessage,
-	InMessageInit,
+	InMessageInitEnv,
+	InMessageInitApp,
 	OutMessage,
 	ReplyMessageError,
 	ReplyMessageSuccess
 } from "../message-types";
-import { writeFileWithParents, renameWithParents } from "./file";
+import {
+	writeFileWithParents,
+	renameWithParents,
+	addAppIdIfRelative
+} from "./file";
 import { verifyRequirements } from "./requirements";
 import { makeHttpRequest } from "./http";
 import { initWebSocket } from "./websocket";
+import { generateRandomString } from "./random";
 import scriptRunnerPySource from "./py/script_runner.py?raw";
 import unloadModulesPySource from "./py/unload_modules.py?raw";
 
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.24.0/full/pyodide.js");
 
-let pyodide: PyodideInterface;
+type MessageTransceiver = DedicatedWorkerGlobalScope | MessagePort;
 
-let pyodideReadyPromise: undefined | Promise<void> = undefined;
+let pyodide: PyodideInterface;
+let micropip: PyProxy;
 
 let call_asgi_app_from_js: (
+	appId: string,
 	scope: unknown,
 	receive: () => Promise<unknown>,
 	send: (event: any) => Promise<void>
 ) => Promise<void>;
-let run_script: (path: string) => Promise<void>;
+let run_code: (appId: string, code: string, path?: string) => Promise<void>;
+let run_script: (appId: string, path: string) => Promise<void>;
 let unload_local_modules: (target_dir_path?: string) => void;
 
-function updateProgress(log: string): void {
-	const message: OutMessage = {
-		type: "progress-update",
-		data: {
-			log
-		}
-	};
-	self.postMessage(message);
-}
-
-async function loadPyodideAndPackages(
-	options: InMessageInit["data"]
+async function initializeEnvironment(
+	options: InMessageInitEnv["data"],
+	updateProgress: (log: string) => void
 ): Promise<void> {
 	console.debug("Loading Pyodide.");
 	updateProgress("Loading Pyodide");
@@ -51,33 +52,10 @@ async function loadPyodideAndPackages(
 	});
 	console.debug("Pyodide is loaded.");
 
-	console.debug("Mounting files.", options.files);
-	updateProgress("Mounting files");
-	await Promise.all(
-		Object.keys(options.files).map(async (path) => {
-			const file = options.files[path];
-
-			let data: string | ArrayBufferView;
-			if ("url" in file) {
-				console.debug(`Fetch a file from ${file.url}`);
-				data = await fetch(file.url)
-					.then((res) => res.arrayBuffer())
-					.then((buffer) => new Uint8Array(buffer));
-			} else {
-				data = file.data;
-			}
-			const { opts } = options.files[path];
-
-			console.debug(`Write a file "${path}"`);
-			writeFileWithParents(pyodide, path, data, opts);
-		})
-	);
-	console.debug("Files are mounted.");
-
 	console.debug("Loading micropip");
 	updateProgress("Loading micropip");
 	await pyodide.loadPackage("micropip");
-	const micropip = pyodide.pyimport("micropip");
+	micropip = pyodide.pyimport("micropip");
 	console.debug("micropip is loaded.");
 
 	const gradioWheelUrls = [
@@ -96,11 +74,6 @@ async function loadPyodideAndPackages(
 		keep_going: true
 	});
 	console.debug("Gradio wheels are loaded.");
-
-	console.debug("Installing packages.", options.requirements);
-	updateProgress("Installing packages");
-	await micropip.install.callKwargs(options.requirements, { keep_going: true });
-	console.debug("Packages are installed.");
 
 	console.debug("Mocking os module methods.");
 	updateProgress("Mock os module methods");
@@ -128,7 +101,7 @@ os.link = lambda src, dst: None
 	await pyodide.runPythonAsync(`
 # Based on Shiny's App.call_pyodide().
 # https://github.com/rstudio/py-shiny/blob/v0.3.3/shiny/_app.py#L224-L258
-async def _call_asgi_app_from_js(scope, receive, send):
+async def _call_asgi_app_from_js(app_id, scope, receive, send):
 	# TODO: Pretty sure there are objects that need to be destroy()'d here?
 	scope = scope.to_py()
 
@@ -153,7 +126,7 @@ async def _call_asgi_app_from_js(scope, receive, send):
 	async def snd(event):
 			await send(event)
 
-	app = gradio.wasm_utils.get_registered_app()
+	app = gradio.wasm_utils.get_registered_app(app_id)
 	if app is None:
 		raise RuntimeError("Gradio app has not been launched.")
 
@@ -188,6 +161,7 @@ matplotlib.use("agg")
 	console.debug("Setting up Python utility functions.");
 	updateProgress("Setting up Python utility functions");
 	await pyodide.runPythonAsync(scriptRunnerPySource);
+	run_code = pyodide.globals.get("_run_code");
 	run_script = pyodide.globals.get("_run_script");
 	await pyodide.runPythonAsync(unloadModulesPySource);
 	unload_local_modules = pyodide.globals.get("unload_local_modules");
@@ -196,184 +170,294 @@ matplotlib.use("agg")
 	updateProgress("Initialization completed");
 }
 
-self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
-	const msg = event.data;
-	console.debug("worker.onmessage", msg);
+async function initializeApp(
+	appId: string,
+	options: InMessageInitApp["data"],
+	updateProgress: (log: string) => void
+): Promise<void> {
+	console.debug("Mounting files.", options.files);
+	updateProgress("Mounting files");
+	await Promise.all(
+		Object.keys(options.files).map(async (path) => {
+			const file = options.files[path];
 
-	const messagePort = event.ports[0];
-
-	try {
-		if (msg.type === "init") {
-			pyodideReadyPromise = loadPyodideAndPackages(msg.data);
-
-			pyodideReadyPromise
-				.then(() => {
-					const replyMessage: ReplyMessageSuccess = {
-						type: "reply:success",
-						data: null
-					};
-					messagePort.postMessage(replyMessage);
-				})
-				.catch((error) => {
-					const replyMessage: ReplyMessageError = {
-						type: "reply:error",
-						error
-					};
-					messagePort.postMessage(replyMessage);
-				});
-			return;
-		}
-
-		if (pyodideReadyPromise == null) {
-			throw new Error("Pyodide Initialization is not started.");
-		}
-
-		await pyodideReadyPromise;
-
-		switch (msg.type) {
-			case "echo": {
-				const replyMessage: ReplyMessageSuccess = {
-					type: "reply:success",
-					data: msg.data
-				};
-				messagePort.postMessage(replyMessage);
-				break;
+			let data: string | ArrayBufferView;
+			if ("url" in file) {
+				console.debug(`Fetch a file from ${file.url}`);
+				data = await fetch(file.url)
+					.then((res) => res.arrayBuffer())
+					.then((buffer) => new Uint8Array(buffer));
+			} else {
+				data = file.data;
 			}
-			case "run-python-code": {
-				unload_local_modules();
+			const { opts } = options.files[path];
 
-				await pyodide.runPythonAsync(msg.data.code);
+			const appifiedPath = addAppIdIfRelative(appId, path);
+			console.debug(`Write a file "${appifiedPath}"`);
+			writeFileWithParents(pyodide, appifiedPath, data, opts);
+		})
+	);
+	console.debug("Files are mounted.");
 
-				const replyMessage: ReplyMessageSuccess = {
-					type: "reply:success",
-					data: null // We don't send back the execution result because it's not needed for our purpose, and sometimes the result is of type `pyodide.ffi.PyProxy` which cannot be cloned across threads and causes an error.
-				};
-				messagePort.postMessage(replyMessage);
-				break;
+	console.debug("Installing packages.", options.requirements);
+	updateProgress("Installing packages");
+	await micropip.install.callKwargs(options.requirements, { keep_going: true });
+	console.debug("Packages are installed.");
+}
+
+const ctx = self as DedicatedWorkerGlobalScope | SharedWorkerGlobalScope;
+
+/**
+ * Set up the onmessage event listener.
+ */
+if ("postMessage" in ctx) {
+	// Dedicated worker
+	setupMessageHandler(ctx);
+} else {
+	// Shared worker
+	ctx.onconnect = (event: MessageEvent): void => {
+		const port = event.ports[0];
+
+		setupMessageHandler(port);
+
+		port.start();
+	};
+}
+
+// Environment initialization is global and should be done only once, so its promise is managed in a global scope.
+let envReadyPromise: Promise<void> | undefined = undefined;
+
+function setupMessageHandler(receiver: MessageTransceiver): void {
+	const appId = generateRandomString(8);
+
+	const updateProgress = (log: string): void => {
+		const message: OutMessage = {
+			type: "progress-update",
+			data: {
+				log
 			}
-			case "run-python-file": {
-				unload_local_modules();
+		};
+		receiver.postMessage(message);
+	};
 
-				await run_script(msg.data.path);
+	// App initialization is per app or receiver, so its promise is managed in this scope.
+	let appReadyPromise: Promise<void> | undefined = undefined;
 
-				const replyMessage: ReplyMessageSuccess = {
-					type: "reply:success",
-					data: null
-				};
-				messagePort.postMessage(replyMessage);
-				break;
-			}
-			case "http-request": {
-				const request = msg.data.request;
-				const response = await makeHttpRequest(call_asgi_app_from_js, request);
-				const replyMessage: ReplyMessageSuccess = {
-					type: "reply:success",
-					data: {
-						response
-					}
-				};
-				messagePort.postMessage(replyMessage);
-				break;
-			}
-			case "websocket": {
-				const { path } = msg.data;
+	receiver.onmessage = async function (
+		event: MessageEvent<InMessage>
+	): Promise<void> {
+		const msg = event.data;
+		console.debug("worker.onmessage", msg);
 
-				console.debug("Initialize a WebSocket connection: ", { path });
-				initWebSocket(call_asgi_app_from_js, path, messagePort); // This promise is not awaited because it won't resolves until the WebSocket connection is closed.
-				break;
-			}
-			case "file:write": {
-				const { path, data: fileData, opts } = msg.data;
+		const messagePort = event.ports[0];
 
-				console.debug(`Write a file "${path}"`);
-				writeFileWithParents(pyodide, path, fileData, opts);
+		try {
+			if (msg.type === "init-env") {
+				if (envReadyPromise == null) {
+					envReadyPromise = initializeEnvironment(msg.data, updateProgress);
+				} else {
+					updateProgress(
+						"Pyodide environment initialization is ongoing in another session"
+					);
+				}
 
-				const replyMessage: ReplyMessageSuccess = {
-					type: "reply:success",
-					data: null
-				};
-				messagePort.postMessage(replyMessage);
-				break;
-			}
-			case "file:rename": {
-				const { oldPath, newPath } = msg.data;
-
-				console.debug(`Rename "${oldPath}" to ${newPath}`);
-				renameWithParents(pyodide, oldPath, newPath);
-
-				const replyMessage: ReplyMessageSuccess = {
-					type: "reply:success",
-					data: null
-				};
-				messagePort.postMessage(replyMessage);
-				break;
-			}
-			case "file:unlink": {
-				const { path } = msg.data;
-
-				console.debug(`Remove "${path}`);
-				pyodide.FS.unlink(path);
-
-				const replyMessage: ReplyMessageSuccess = {
-					type: "reply:success",
-					data: null
-				};
-				messagePort.postMessage(replyMessage);
-				break;
-			}
-			case "install": {
-				const { requirements } = msg.data;
-
-				const micropip = pyodide.pyimport("micropip");
-
-				console.debug("Install the requirements:", requirements);
-				verifyRequirements(requirements); // Blocks the not allowed wheel URL schemes.
-				await micropip.install
-					.callKwargs(requirements, { keep_going: true })
+				envReadyPromise
 					.then(() => {
-						if (requirements.includes("matplotlib")) {
-							// Ref: https://github.com/streamlit/streamlit/blob/1.22.0/lib/streamlit/web/bootstrap.py#L111
-							// This backend setting is required to use matplotlib in Wasm environment.
-							return pyodide.runPythonAsync(`
-								import matplotlib
-								matplotlib.use("agg")
-              `);
-						}
-					})
-					.then(() => {
-						console.debug("Successfully installed");
-
 						const replyMessage: ReplyMessageSuccess = {
 							type: "reply:success",
 							data: null
 						};
 						messagePort.postMessage(replyMessage);
+					})
+					.catch((error) => {
+						const replyMessage: ReplyMessageError = {
+							type: "reply:error",
+							error
+						};
+						messagePort.postMessage(replyMessage);
 					});
-				break;
+				return;
 			}
+
+			if (envReadyPromise == null) {
+				throw new Error("Pyodide Initialization is not started.");
+			}
+			await envReadyPromise;
+
+			if (msg.type === "init-app") {
+				appReadyPromise = initializeApp(appId, msg.data, updateProgress);
+
+				const replyMessage: ReplyMessageSuccess = {
+					type: "reply:success",
+					data: null
+				};
+				messagePort.postMessage(replyMessage);
+				return;
+			}
+
+			if (appReadyPromise == null) {
+				throw new Error("App initialization is not started.");
+			}
+			await appReadyPromise;
+
+			switch (msg.type) {
+				case "echo": {
+					const replyMessage: ReplyMessageSuccess = {
+						type: "reply:success",
+						data: msg.data
+					};
+					messagePort.postMessage(replyMessage);
+					break;
+				}
+				case "run-python-code": {
+					unload_local_modules();
+
+					await run_code(appId, msg.data.code);
+
+					const replyMessage: ReplyMessageSuccess = {
+						type: "reply:success",
+						data: null // We don't send back the execution result because it's not needed for our purpose, and sometimes the result is of type `pyodide.ffi.PyProxy` which cannot be cloned across threads and causes an error.
+					};
+					messagePort.postMessage(replyMessage);
+					break;
+				}
+				case "run-python-file": {
+					unload_local_modules();
+
+					await run_script(appId, addAppIdIfRelative(appId, msg.data.path));
+
+					const replyMessage: ReplyMessageSuccess = {
+						type: "reply:success",
+						data: null
+					};
+					messagePort.postMessage(replyMessage);
+					break;
+				}
+				case "http-request": {
+					const request = msg.data.request;
+					const response = await makeHttpRequest(
+						call_asgi_app_from_js.bind(null, appId),
+						request
+					);
+					const replyMessage: ReplyMessageSuccess = {
+						type: "reply:success",
+						data: {
+							response
+						}
+					};
+					messagePort.postMessage(replyMessage);
+					break;
+				}
+				case "websocket": {
+					const { path } = msg.data;
+
+					console.debug("Initialize a WebSocket connection: ", { path });
+					initWebSocket(
+						call_asgi_app_from_js.bind(null, appId),
+						path,
+						messagePort
+					); // This promise is not awaited because it won't resolves until the WebSocket connection is closed.
+					break;
+				}
+				case "file:write": {
+					const { path, data: fileData, opts } = msg.data;
+
+					const appifiedPath = addAppIdIfRelative(appId, path);
+
+					console.debug(`Write a file "${appifiedPath}"`);
+					writeFileWithParents(pyodide, appifiedPath, fileData, opts);
+
+					const replyMessage: ReplyMessageSuccess = {
+						type: "reply:success",
+						data: null
+					};
+					messagePort.postMessage(replyMessage);
+					break;
+				}
+				case "file:rename": {
+					const { oldPath, newPath } = msg.data;
+
+					const appifiedOldPath = addAppIdIfRelative(appId, oldPath);
+					const appifiedNewPath = addAppIdIfRelative(appId, newPath);
+					console.debug(`Rename "${appifiedOldPath}" to ${appifiedNewPath}`);
+					renameWithParents(pyodide, appifiedOldPath, appifiedNewPath);
+
+					const replyMessage: ReplyMessageSuccess = {
+						type: "reply:success",
+						data: null
+					};
+					messagePort.postMessage(replyMessage);
+					break;
+				}
+				case "file:unlink": {
+					const { path } = msg.data;
+
+					const appifiedPath = addAppIdIfRelative(appId, path);
+
+					console.debug(`Remove "${appifiedPath}`);
+					pyodide.FS.unlink(appifiedPath);
+
+					const replyMessage: ReplyMessageSuccess = {
+						type: "reply:success",
+						data: null
+					};
+					messagePort.postMessage(replyMessage);
+					break;
+				}
+				case "install": {
+					const { requirements } = msg.data;
+
+					const micropip = pyodide.pyimport("micropip");
+
+					console.debug("Install the requirements:", requirements);
+					verifyRequirements(requirements); // Blocks the not allowed wheel URL schemes.
+					await micropip.install
+						.callKwargs(requirements, { keep_going: true })
+						.then(() => {
+							if (requirements.includes("matplotlib")) {
+								// Ref: https://github.com/streamlit/streamlit/blob/1.22.0/lib/streamlit/web/bootstrap.py#L111
+								// This backend setting is required to use matplotlib in Wasm environment.
+								return pyodide.runPythonAsync(`
+									import matplotlib
+									matplotlib.use("agg")
+								`);
+							}
+						})
+						.then(() => {
+							console.debug("Successfully installed");
+
+							const replyMessage: ReplyMessageSuccess = {
+								type: "reply:success",
+								data: null
+							};
+							messagePort.postMessage(replyMessage);
+						});
+					break;
+				}
+			}
+		} catch (error) {
+			console.error(error);
+
+			if (!(error instanceof Error)) {
+				throw error;
+			}
+
+			// The `error` object may contain non-serializable properties such as function (for example Pyodide.FS.ErrnoError which has a `.setErrno` function),
+			// so it must be converted to a plain object before sending it to the main thread.
+			// Otherwise, the following error will be thrown:
+			// `Uncaught (in promise) DOMException: Failed to execute 'postMessage' on 'MessagePort': #<Object> could not be cloned.`
+			// Also, the JSON.stringify() and JSON.parse() approach like https://stackoverflow.com/a/42376465/13103190
+			// does not work for Error objects because the Error object is not enumerable.
+			// So we use the following approach to clone the Error object.
+			const cloneableError = new Error(error.message);
+			cloneableError.name = error.name;
+			cloneableError.stack = error.stack;
+
+			const replyMessage: ReplyMessageError = {
+				type: "reply:error",
+				error: cloneableError
+			};
+			messagePort.postMessage(replyMessage);
 		}
-	} catch (error) {
-		console.error(error);
-
-		if (!(error instanceof Error)) {
-			throw error;
-		}
-
-		// The `error` object may contain non-serializable properties such as function (for example Pyodide.FS.ErrnoError which has a `.setErrno` function),
-		// so it must be converted to a plain object before sending it to the main thread.
-		// Otherwise, the following error will be thrown:
-		// `Uncaught (in promise) DOMException: Failed to execute 'postMessage' on 'MessagePort': #<Object> could not be cloned.`
-		// Also, the JSON.stringify() and JSON.parse() approach like https://stackoverflow.com/a/42376465/13103190
-		// does not work for Error objects because the Error object is not enumerable.
-		// So we use the following approach to clone the Error object.
-		const cloneableError = new Error(error.message);
-		cloneableError.name = error.name;
-		cloneableError.stack = error.stack;
-
-		const replyMessage: ReplyMessageError = {
-			type: "reply:error",
-			error: cloneableError
-		};
-		messagePort.postMessage(replyMessage);
-	}
-};
+	};
+}

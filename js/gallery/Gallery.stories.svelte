@@ -68,32 +68,54 @@
 	<Gallery
 		value={[
 			{
-				image:
-					"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah_running.avif",
+				image: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah_running.avif",
+					url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah_running.avif",
+					orig_name: "cheetah_running.avif"
+				},
 				caption: "A fast cheetah"
 			},
 			{
-				image:
-					"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"
+				image: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+					url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+					orig_name: "cheetah-002.jpg"
+				}
 			},
 			{
-				image:
-					"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-003.jpg"
+				image: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-003.jpg",
+					url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-003.jpg",
+					orig_name: "cheetah-003.jpg"
+				}
 			},
 			{
-				image: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah3.webp"
+				image: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah3.webp",
+					url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah3.webp",
+					orig_name: "cheetah3.webp"
+				}
 			},
 			{
-				image:
-					"https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg"
+				image: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+					url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+					orig_name: "ghepardo-primo-piano.jpg"
+				}
 			},
 			{
-				image:
-					"https://gradio-builds.s3.amazonaws.com/demo-files/main-qimg-0bbf31c18a22178cb7a8dd53640a3d05-lq.jpeg"
+				image: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/main-qimg-0bbf31c18a22178cb7a8dd53640a3d05-lq.jpeg",
+					url: "https://gradio-builds.s3.amazonaws.com/demo-files/main-qimg-0bbf31c18a22178cb7a8dd53640a3d05-lq.jpeg",
+					orig_name: "main-qimg-0bbf31c18a22178cb7a8dd53640a3d05-lq.jpeg"
+				}
 			},
 			{
-				image:
-					"https://gradio-builds.s3.amazonaws.com/demo-files/TheCheethcat.jpg"
+				image: {
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/TheCheethcat.jpg",
+					url: "https://gradio-builds.s3.amazonaws.com/demo-files/TheCheethcat.jpg",
+					orig_name: "TheCheethcat.jpg"
+				}
 			}
 		]}
 		{...args}
@@ -204,29 +226,7 @@
 		show_label: true,
 		rows: 2,
 		columns: 2,
-		height: 400,
-		value: [
-			{
-				image:
-					"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"
-			},
-			{
-				image:
-					"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-003.jpg"
-			},
-			{
-				image:
-					"https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg"
-			},
-			{
-				image:
-					"https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg"
-			},
-			{
-				image:
-					"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"
-			}
-		]
+		height: 400
 	}}
 />
 
@@ -236,12 +236,6 @@
 		label: "My Cheetah Gallery",
 		rows: 2,
 		height: 400,
-		show_download_button: true,
-		value: [
-			{
-				image:
-					"https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"
-			}
-		]
+		show_download_button: true
 	}}
 />

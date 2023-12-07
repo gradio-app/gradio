@@ -24,13 +24,14 @@ from gradio_client import utils as client_utils
 from scipy.io import wavfile
 
 try:
-    from typing_extensions import cast
+    from typing import cast
 except ImportError:
     from typing import cast
 
 import gradio as gr
 from gradio import processing_utils, utils
 from gradio.components.dataframe import DataframeData
+from gradio.components.file_explorer import FileExplorerData
 from gradio.components.video import VideoData
 from gradio.data_classes import FileData
 
@@ -572,7 +573,7 @@ class TestImage:
         image_input = gr.Image(type="pil", label="Upload Your Image")
         assert image_input.get_config() == {
             "image_mode": "RGB",
-            "sources": ("upload", "webcam", "clipboard"),
+            "sources": ["upload", "webcam", "clipboard"],
             "name": "image",
             "show_share_button": False,
             "show_download_button": True,
@@ -604,6 +605,8 @@ class TestImage:
         with pytest.raises(ValueError):
             gr.Image(type="unknown")
 
+        string_source = gr.Image(sources="upload")
+        assert string_source.sources == ["upload"]
         # Output functionalities
         image_output = gr.Image(type="pil")
         processed_image = image_output.postprocess(
@@ -636,6 +639,14 @@ class TestImage:
         assert base64 == media_data.BASE64_IMAGE
         component = gr.Image(None)
         assert component.get_config().get("value") is None
+
+    def test_images_upright_after_preprocess(self):
+        component = gr.Image(type="pil")
+        file_path = "test/test_files/rotated_image.jpeg"
+        im = PIL.Image.open(file_path)
+        assert im.getexif().get(274) != 1
+        image = component.preprocess(FileData(path=file_path))
+        assert image == PIL.ImageOps.exif_transpose(im)
 
 
 class TestPlot:
@@ -712,7 +723,7 @@ class TestAudio:
         audio_input = gr.Audio(label="Upload Your Audio")
         assert audio_input.get_config() == {
             "autoplay": False,
-            "sources": ["microphone", "upload"],
+            "sources": ["upload", "microphone"],
             "name": "audio",
             "show_download_button": True,
             "show_share_button": False,
@@ -776,7 +787,7 @@ class TestAudio:
             "type": "filepath",
             "format": "wav",
             "streamable": False,
-            "sources": ["microphone", "upload"],
+            "sources": ["upload", "microphone"],
             "waveform_options": None,
             "_selectable": False,
         }
@@ -788,7 +799,7 @@ class TestAudio:
     def test_default_value_postprocess(self):
         x_wav = deepcopy(media_data.BASE64_AUDIO)
         audio = gr.Audio(value=x_wav["path"])
-        assert processing_utils.is_in_or_equal(audio.value["path"], audio.GRADIO_CACHE)
+        assert utils.is_in_or_equal(audio.value["path"], audio.GRADIO_CACHE)
 
     def test_in_interface(self):
         def reverse_audio(audio):
@@ -887,7 +898,7 @@ class TestFile:
 
         file_input = gr.File(type="binary")
         output = file_input.preprocess(x_file)
-        assert type(output) == bytes
+        assert isinstance(output, bytes)
 
         output1 = file_input.postprocess("test/test_files/sample_file.pdf")
         output2 = file_input.postprocess("test/test_files/sample_file.pdf")
@@ -997,6 +1008,14 @@ class TestDataframe:
         dataframe_input = gr.Dataframe()
         output = dataframe_input.preprocess(DataframeData(**x_data))
         assert output["Age"][1] == 24
+
+        x_data = {
+            "data": [["Tim", 12, False], ["Jan", 24, True]],
+            "headers": ["Name", "Age", "Member"],
+            "metadata": {"display_value": None, "styling": None},
+        }
+        dataframe_input.preprocess(DataframeData(**x_data))
+
         with pytest.raises(ValueError):
             gr.Dataframe(type="unknown")
 
@@ -1864,13 +1883,19 @@ class TestChatbot:
             "likeable": False,
             "rtl": False,
             "show_copy_button": False,
-            "avatar_images": (None, None),
+            "avatar_images": [None, None],
             "sanitize_html": True,
             "render_markdown": True,
             "bubble_full_width": True,
             "line_breaks": True,
             "layout": None,
         }
+
+    def test_avatar_images_are_moved_to_cache(self):
+        chatbot = gr.Chatbot(avatar_images=("test/test_files/bus.png", None))
+        assert chatbot.avatar_images[0]
+        assert utils.is_in_or_equal(chatbot.avatar_images[0], chatbot.GRADIO_CACHE)
+        assert chatbot.avatar_images[1] is None
 
 
 class TestJSON:
@@ -1894,6 +1919,23 @@ class TestJSON:
             "proxy_url": None,
             "_selectable": False,
         }
+
+    def test_chatbot_selectable_in_config(self):
+        with gr.Blocks() as demo:
+            cb = gr.Chatbot(label="Chatbot")
+            cb.like(lambda: print("foo"))
+            gr.Chatbot(label="Chatbot2")
+
+        assertion_count = 0
+        for component in demo.config["components"]:
+            if component["props"]["label"] == "Chatbot":
+                assertion_count += 1
+                assert component["props"]["likeable"]
+            elif component["props"]["label"] == "Chatbot2":
+                assertion_count += 1
+                assert not component["props"]["likeable"]
+
+        assert assertion_count == 2
 
     @pytest.mark.asyncio
     async def test_in_interface(self):
@@ -1999,13 +2041,16 @@ class TestModel3D:
             "camera_position": (None, None, None),
             "height": None,
             "zoom_speed": 1,
+            "pan_speed": 1,
             "_selectable": False,
         }
 
         file = "test/test_files/Box.gltf"
         output1 = model_component.postprocess(file)
         output2 = model_component.postprocess(Path(file))
-        assert output1 == output2
+        assert output1
+        assert output2
+        assert Path(output1.path).name == Path(output2.path).name
 
     def test_in_interface(self):
         """
@@ -2069,6 +2114,11 @@ class TestColorPicker:
 
 
 class TestGallery:
+    def test_postprocess(self):
+        url = "https://huggingface.co/Norod78/SDXL-VintageMagStyle-Lora/resolve/main/Examples/00015-20230906102032-7778-Wonderwoman VintageMagStyle   _lora_SDXL-VintageMagStyle-Lora_1_, Very detailed, clean, high quality, sharp image.jpg"
+        gallery = gr.Gallery([url])
+        assert gallery.get_config()["value"][0]["image"]["path"] == url
+
     @patch("uuid.uuid4", return_value="my-uuid")
     def test_gallery(self, mock_uuid):
         gallery = gr.Gallery()
@@ -2606,6 +2656,46 @@ class TestCode:
         }
 
 
+class TestFileExplorer:
+    def test_component_functions(self):
+        """
+        Preprocess, get_config
+        """
+        file_explorer = gr.FileExplorer(file_count="single")
+
+        config = file_explorer.get_config()
+        assert config["glob"] == "**/*.*"
+        assert config["value"] is None
+        assert config["file_count"] == "single"
+        assert config["server_fns"] == ["ls"]
+
+        input_data = FileExplorerData(root=[["test/test_files/bus.png"]])
+        preprocessed_data = file_explorer.preprocess(input_data)
+        assert isinstance(preprocessed_data, str)
+        assert Path(preprocessed_data).name == "bus.png"
+
+        input_data = FileExplorerData(root=[])
+        preprocessed_data = file_explorer.preprocess(input_data)
+        assert preprocessed_data is None
+
+        file_explorer = gr.FileExplorer(file_count="multiple")
+
+        config = file_explorer.get_config()
+        assert config["glob"] == "**/*.*"
+        assert config["value"] is None
+        assert config["file_count"] == "multiple"
+        assert config["server_fns"] == ["ls"]
+
+        input_data = FileExplorerData(root=[["test/test_files/bus.png"]])
+        preprocessed_data = file_explorer.preprocess(input_data)
+        assert isinstance(preprocessed_data, list)
+        assert Path(preprocessed_data[0]).name == "bus.png"
+
+        input_data = FileExplorerData(root=[])
+        preprocessed_data = file_explorer.preprocess(input_data)
+        assert preprocessed_data == []
+
+
 def test_component_class_ids():
     button_id = gr.Button().component_class_id
     textbox_id = gr.Textbox().component_class_id
@@ -2628,7 +2718,7 @@ def test_component_class_ids():
 
 def test_constructor_args():
     assert gr.Textbox(max_lines=314).constructor_args == {"max_lines": 314}
-    assert gr.LoginButton(icon="F00.svg", value="Log in please").constructor_args == {
-        "icon": "F00.svg",
+    assert gr.LoginButton(visible=False, value="Log in please").constructor_args == {
+        "visible": False,
         "value": "Log in please",
     }

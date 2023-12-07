@@ -9,7 +9,7 @@ from typing import Any, Callable, List, Literal, Optional, Tuple, Union
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio import utils
+from gradio import processing_utils, utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
@@ -66,6 +66,7 @@ class Chatbot(Component):
         render_markdown: bool = True,
         bubble_full_width: bool = True,
         line_breaks: bool = True,
+        likeable: bool = False,
         layout: Literal["panel", "bubble"] | None = None,
     ):
         """
@@ -91,15 +92,15 @@ class Chatbot(Component):
             render_markdown: If False, will disable Markdown rendering for chatbot messages.
             bubble_full_width: If False, the chat bubble will fit to the content of the message. If True (default), the chat bubble will be the full width of the component.
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies if `render_markdown` is True.
+            likeable: Whether the chat messages display a like or dislike button. Set automatically by the .like method but has to be present in the signature for it to show up in the config.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
         """
-        self.likeable = False
+        self.likeable = likeable
         self.height = height
         self.rtl = rtl
         if latex_delimiters is None:
             latex_delimiters = [{"left": "$$", "right": "$$", "display": True}]
         self.latex_delimiters = latex_delimiters
-        self.avatar_images = avatar_images or (None, None)
         self.show_share_button = (
             (utils.get_space() is not None)
             if show_share_button is None
@@ -111,7 +112,6 @@ class Chatbot(Component):
         self.bubble_full_width = bubble_full_width
         self.line_breaks = line_breaks
         self.layout = layout
-
         super().__init__(
             label=label,
             every=every,
@@ -125,6 +125,14 @@ class Chatbot(Component):
             render=render,
             value=value,
         )
+        self.avatar_images: list[str | None] = [None, None]
+        if avatar_images is None:
+            pass
+        else:
+            self.avatar_images = [
+                processing_utils.move_resource_to_block_cache(avatar_images[0], self),
+                processing_utils.move_resource_to_block_cache(avatar_images[1], self),
+            ]
 
     def _preprocess_chat_messages(
         self, chat_message: str | FileMessage | None

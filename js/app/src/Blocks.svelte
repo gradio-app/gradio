@@ -156,7 +156,26 @@
 
 	$: components, layout, prepare_components();
 
+	let target_map: Record<number, Record<string, number[]>> = {};
+
 	function prepare_components(): void {
+		target_map = dependencies.reduce(
+			(acc, dep, i) => {
+				dep.targets.forEach(([id, trigger]) => {
+					if (!acc[id]) {
+						acc[id] = {};
+					}
+					if (acc[id]?.[trigger]) {
+						acc[id][trigger].push(i);
+					} else {
+						acc[id][trigger] = [i];
+					}
+				});
+
+				return acc;
+			},
+			{} as Record<number, Record<string, number[]>>
+		);
 		loading_status = create_loading_status_store();
 
 		dependencies.forEach((v, i) => {
@@ -230,6 +249,10 @@
 				});
 				(c.props as any).server = server;
 			}
+
+			if (target_map[c.id]) {
+				c.props.attached_events = Object.keys(target_map[c.id]);
+			}
 			__type_for_id.set(c.id, c.props.interactive);
 
 			if (c.type === "dataset") {
@@ -283,11 +306,22 @@
 		});
 	}
 
-	function handle_update(data: any, fn_index: number): void {
+	async function handle_update(
+		data: any,
+		fn_index: number,
+		outputs_set_to_non_interactive: number[]
+	): Promise<void> {
 		const outputs = dependencies[fn_index].outputs;
+
 		data?.forEach((value: any, i: number) => {
 			const output = instance_map[outputs[i]];
 			output.props.value_is_output = true;
+		});
+
+		rootNode = rootNode;
+		await tick();
+		data?.forEach((value: any, i: number) => {
+			const output = instance_map[outputs[i]];
 			if (
 				typeof value === "object" &&
 				value !== null &&
@@ -298,6 +332,9 @@
 						continue;
 					} else {
 						output.props[update_key] = update_value;
+						if (update_key == "interactive" && !update_value) {
+							outputs_set_to_non_interactive.push(outputs[i]);
+						}
 					}
 				}
 			} else {
@@ -360,8 +397,16 @@
 	let showed_duplicate_message = false;
 	let showed_mobile_warning = false;
 
+	function get_data(comp: ComponentMeta): any | Promise<any> {
+		if (comp.instance.get_value) {
+			return comp.instance.get_value() as Promise<any>;
+		}
+		return comp.props.value;
+	}
+
 	async function trigger_api_call(
 		dep_index: number,
+		trigger_id: number | null = null,
 		event_data: unknown = null
 	): Promise<void> {
 		let dep = dependencies[dep_index];
@@ -382,15 +427,20 @@
 
 		let payload: Payload = {
 			fn_index: dep_index,
-			data: dep.inputs.map((id) => instance_map[id].props.value),
-			event_data: dep.collects_event_data ? event_data : null
+			data: await Promise.all(
+				dep.inputs.map((id) => get_data(instance_map[id]))
+			),
+			event_data: dep.collects_event_data ? event_data : null,
+			trigger_id: trigger_id
 		};
 
 		if (dep.frontend_fn) {
 			dep
 				.frontend_fn(
 					payload.data.concat(
-						dep.outputs.map((id) => instance_map[id].props.value)
+						await Promise.all(
+							dep.inputs.map((id) => get_data(instance_map[id]))
+						)
 					)
 				)
 				.then((v: unknown[]) => {
@@ -398,7 +448,7 @@
 						payload.data = v;
 						make_prediction(payload);
 					} else {
-						handle_update(v, dep_index);
+						handle_update(v, dep_index, []);
 					}
 				});
 		} else {
@@ -419,15 +469,21 @@
 
 		function make_prediction(payload: Payload): void {
 			const pending_outputs: number[] = [];
+			let outputs_set_to_non_interactive: number[] = [];
 			const submission = app
-				.submit(payload.fn_index, payload.data as unknown[], payload.event_data)
+				.submit(
+					payload.fn_index,
+					payload.data as unknown[],
+					payload.event_data,
+					payload.trigger_id
+				)
 				.on("data", ({ data, fn_index }) => {
 					if (dep.pending_request && dep.final_event) {
 						dep.pending_request = false;
 						make_prediction(dep.final_event);
 					}
 					dep.pending_request = false;
-					handle_update(data, fn_index);
+					handle_update(data, fn_index, outputs_set_to_non_interactive);
 				})
 				.on("status", ({ fn_index, ...status }) => {
 					tick().then(() => {
@@ -435,13 +491,15 @@
 						outputs.forEach((id) => {
 							if (
 								instance_map[id].props.interactive &&
-								status.stage === "pending"
+								status.stage === "pending" &&
+								dep.targets[0][1] !== "focus"
 							) {
 								pending_outputs.push(id);
 								instance_map[id].props.interactive = false;
 							} else if (
 								status.stage === "complete" &&
-								pending_outputs.includes(id)
+								pending_outputs.includes(id) &&
+								!outputs_set_to_non_interactive.includes(id)
 							) {
 								instance_map[id].props.interactive = true;
 							}
@@ -483,7 +541,7 @@
 						if (status.stage === "complete") {
 							dependencies.map(async (dep, i) => {
 								if (dep.trigger_after === fn_index) {
-									trigger_api_call(i);
+									trigger_api_call(i, payload.trigger_id);
 								}
 							});
 
@@ -496,7 +554,7 @@
 									...messages
 								];
 							}, 0);
-							trigger_api_call(dep_index, event_data);
+							trigger_api_call(dep_index, payload.trigger_id, event_data);
 							user_left_page = false;
 						} else if (status.stage === "error") {
 							if (status.message) {
@@ -514,7 +572,7 @@
 									dep.trigger_after === fn_index &&
 									!dep.trigger_only_on_success
 								) {
-									trigger_api_call(i);
+									trigger_api_call(i, payload.trigger_id);
 								}
 							});
 
@@ -552,23 +610,6 @@
 	const is_external_url = (link: string | null): boolean =>
 		!!(link && new URL(link, location.href).origin !== location.origin);
 
-	$: target_map = dependencies.reduce(
-		(acc, dep, i) => {
-			dep.targets.forEach(([id, trigger]) => {
-				if (!acc[id]) {
-					acc[id] = {};
-				}
-				if (acc[id]?.[trigger]) {
-					acc[id][trigger].push(i);
-				} else {
-					acc[id][trigger] = [i];
-				}
-			});
-
-			return acc;
-		},
-		{} as Record<number, Record<string, number[]>>
-	);
 	async function handle_mount(): Promise<void> {
 		if (js) {
 			let blocks_frontend_fn = new AsyncFunction(
@@ -606,12 +647,12 @@
 			if (event === "share") {
 				const { title, description } = data as ShareData;
 				trigger_share(title, description);
-			} else if (event === "error") {
-				messages = [new_message(data, -1, "error"), ...messages];
+			} else if (event === "error" || event === "warning") {
+				messages = [new_message(data, -1, event), ...messages];
 			} else {
 				const deps = target_map[id]?.[event];
 				deps?.forEach((dep_id) => {
-					trigger_api_call(dep_id, data);
+					trigger_api_call(dep_id, id, data);
 				});
 			}
 		});
@@ -663,7 +704,9 @@
 				dataLayer.push(arguments);
 			}
 			gtag("js", new Date());
-			gtag("config", "UA-156449732-1");
+			gtag("config", "UA-156449732-1", {
+				cookie_flags: "samesite=none;secure"
+			});
 		</script>
 	{/if}
 </svelte:head>

@@ -74,6 +74,7 @@ artifacts = [
   "/gradio/_frontend_code",
   "*.pyi",
   "/gradio/node",
+  "py.typed"
 ]
 
 [tool.hatch.build.targets.wheel.hooks.custom]

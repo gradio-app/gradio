@@ -64,6 +64,9 @@
 		}
 	}
 	afterUpdate(() => {
+		if (autofocus) {
+			el.focus();
+		}
 		if (can_scroll && autoscroll) {
 			scroll();
 		}
@@ -133,7 +136,7 @@
 		event: Event | { target: HTMLTextAreaElement | HTMLInputElement }
 	): Promise<void> {
 		await tick();
-		if (lines === max_lines || !container) return;
+		if (lines === max_lines) return;
 
 		let max =
 			max_lines === undefined

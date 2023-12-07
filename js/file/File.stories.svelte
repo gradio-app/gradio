@@ -21,25 +21,27 @@
 </Template>
 
 <Story
-	name="Default"
+	name="Single File"
 	args={{
 		value: [
 			{
-				name: "groot.jpg",
-				data: "https://i.ibb.co/6BgKdSj/groot.jpg",
+				path: "groot.jpg",
+				orig_name: "groot.jpg",
+				url: "https://i.ibb.co/6BgKdSj/groot.jpg",
 				size: 10000
 			}
 		]
 	}}
 />
 <Story
-	name="With height set to 80px"
+	name="Multiple files, with height set to 150px"
 	args={{
 		value: Array(10).fill({
-			name: "groot.jpg",
-			data: "https://i.ibb.co/6BgKdSj/groot.jpg",
+			path: "groot.jpg",
+			orig_name: "groot.jpg",
+			url: "https://i.ibb.co/6BgKdSj/groot.jpg",
 			size: 10000
 		}),
-		height: 80
+		height: 150
 	}}
 />

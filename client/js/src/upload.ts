@@ -88,6 +88,7 @@ export function get_fetchable_url_or_file(
 export async function upload(
 	file_data: FileData[],
 	root: string,
+	upload_id?: string,
 	upload_fn: typeof upload_files = upload_files
 ): Promise<(FileData | null)[] | null> {
 	let files = (Array.isArray(file_data) ? file_data : [file_data]).map(
@@ -95,7 +96,7 @@ export async function upload(
 	);
 
 	return await Promise.all(
-		await upload_fn(root, files).then(
+		await upload_fn(root, files, undefined, upload_id).then(
 			async (response: { files?: string[]; error?: string }) => {
 				if (response.error) {
 					throw new Error(response.error);
@@ -135,7 +136,7 @@ export async function prepare_files(
 export class FileData {
 	path: string;
 	url?: string;
-	orig_name: string;
+	orig_name?: string;
 	size?: number;
 	blob?: File;
 	is_stream?: boolean;
@@ -154,7 +155,7 @@ export class FileData {
 	}: {
 		path: string;
 		url?: string;
-		orig_name: string;
+		orig_name?: string;
 		size?: number;
 		blob?: File;
 		is_stream?: boolean;

@@ -12,8 +12,11 @@
 <Story
 	name="Audio Player"
 	args={{
-		value:
-			"https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+		value: {
+			path: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+			url: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+			orig_name: "sample-0.mp3"
+		},
 		label: "Audio Player"
 	}}
 />
@@ -22,7 +25,45 @@
 	name="Audio Recorder"
 	args={{
 		value: null,
+		interactive: true,
 		sources: ["microphone"],
 		label: "Audio Recorder"
+	}}
+/>
+
+<Story
+	name="Upload Audio"
+	args={{
+		value: null,
+		interactive: true,
+		sources: ["upload", "microphone"],
+		label: "Audio Upload"
+	}}
+/>
+
+<Story
+	name="with autoplay"
+	args={{
+		value: {
+			path: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+			url: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+			orig_name: "sample-0.mp3"
+		},
+		interactive: true,
+		sources: ["microphone", "upload"],
+		label: "Audio Upload",
+		autoplay: true
+	}}
+/>
+
+<Story
+	name="with hidden recording waveform"
+	args={{
+		value: null,
+		interactive: true,
+		sources: ["microphone"],
+		waveform_options: {
+			show_recording_waveform: false
+		}
 	}}
 />

@@ -37,6 +37,7 @@ from gradio.components import (
     HighlightedText,
     Highlightedtext,
     Image,
+    ImageEditor,
     Json,
     Label,
     LinePlot,
@@ -56,6 +57,7 @@ from gradio.components import (
     Video,
     component,
 )
+from gradio.components.audio import WaveformOptions  # type: ignore
 from gradio.data_classes import FileData
 from gradio.events import EventData, LikeData, SelectData, on
 from gradio.exceptions import Error
@@ -78,21 +80,19 @@ from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.interface import Interface, TabbedInterface, close_all
 from gradio.ipython_ext import load_ipython_extension
 from gradio.layouts import Accordion, Column, Group, Row, Tab, TabItem, Tabs
-from gradio.oauth import OAuthProfile
+from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.routes import Request, mount_gradio_app
 from gradio.templates import (
     Files,
-    # ImageMask,
-    # ImagePaint,
+    ImageMask,
     List,
     Matrix,
     Mic,
     Microphone,
     Numpy,
-    # Paint,
-    # Pil,
+    Paint,
     PlayableVideo,
-    # Sketchpad,
+    Sketchpad,
     TextArea,
 )
 from gradio.themes import Base as Theme

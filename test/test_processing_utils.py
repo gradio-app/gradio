@@ -1,6 +1,3 @@
-import base64
-import io
-import logging
 import os
 import shutil
 import tempfile
@@ -99,21 +96,13 @@ class TestTempFileManagement:
         f = processing_utils.save_url_to_cache(url2, cache_dir=gradio_temp_dir)
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 2
 
+    def test_save_url_to_cache_with_spaces(self, gradio_temp_dir):
+        url = "https://huggingface.co/datasets/freddyaboulton/gradio-reviews/resolve/main00015-20230906102032-7778-Wonderwoman VintageMagStyle   _lora_SDXL-VintageMagStyle-Lora_1_, Very detailed, clean, high quality, sharp image.jpg"
+        processing_utils.save_url_to_cache(url, cache_dir=gradio_temp_dir)
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
+
 
 class TestImagePreprocessing:
-    def test_decode_base64_to_image(self):
-        output_image = processing_utils.decode_base64_to_image(
-            deepcopy(media_data.BASE64_IMAGE)
-        )
-        assert isinstance(output_image, Image.Image)
-
-        b64_img_without_header = deepcopy(media_data.BASE64_IMAGE).split(",")[1]
-        output_image_without_header = processing_utils.decode_base64_to_image(
-            b64_img_without_header
-        )
-
-        assert output_image == output_image_without_header
-
     def test_encode_plot_to_base64(self):
         with utils.MatplotlibBackendMananger():
             import matplotlib.pyplot as plt
@@ -191,24 +180,6 @@ class TestImagePreprocessing:
             img_cp2, cache_dir=gradio_temp_dir
         )
         assert len({img_path, img_metadata_path, img_cp1_path, img_cp2_path}) == 4
-
-    def test_encode_pil_to_base64_keeps_pnginfo(self):
-        input_img = Image.open("gradio/test_data/test_image.png")
-        input_img = input_img.convert("RGB")
-        input_img.info = {"key1": "value1", "key2": "value2"}
-
-        encoded_image = processing_utils.encode_pil_to_base64(input_img)
-        decoded_image = processing_utils.decode_base64_to_image(encoded_image)
-
-        assert decoded_image.info == input_img.info
-
-    @patch("PIL.Image.Image.getexif", return_value={274: 3})
-    @patch("PIL.ImageOps.exif_transpose")
-    def test_base64_to_image_does_rotation(self, mock_rotate, mock_exif):
-        input_img = Image.open("gradio/test_data/test_image.png")
-        base64 = processing_utils.encode_pil_to_base64(input_img)
-        processing_utils.decode_base64_to_image(base64)
-        mock_rotate.assert_called_once()
 
     def test_resize_and_crop(self):
         img = Image.open("gradio/test_data/test_image.png")
@@ -356,20 +327,3 @@ class TestVideoProcessing:
             )
             # If the conversion succeeded it'd be .mp4
             assert Path(playable_vid).suffix == ".avi"
-
-
-def test_decode_base64_to_image_does_not_crash_when_image_has_bogus_exif_data(caplog):
-    from PIL.PngImagePlugin import PngInfo
-
-    caplog.set_level(logging.WARNING)
-    i = Image.new("RGB", (32, 32), "orange")
-    bio = io.BytesIO()
-    # since `exif` is the `.info` key for EXIF data parsed from a JPEG,
-    # adding an iTXt chunk with the same name should trigger the warning
-    pi = PngInfo()
-    pi.add_text("exif", "bogus")
-    i.save(bio, format="png", pnginfo=pi)
-    bio.seek(0)
-    encoded = base64.b64encode(bio.getvalue()).decode()
-    assert processing_utils.decode_base64_to_image(encoded).size == (32, 32)
-    assert "Failed to transpose image" in caplog.text

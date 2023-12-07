@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/preview",
-	"version": "0.1.1",
+	"version": "0.5.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "src/index.ts",
@@ -21,7 +21,7 @@
 	"dependencies": {
 		"@originjs/vite-plugin-commonjs": "^1.0.3",
 		"@rollup/plugin-sucrase": "^5.0.1",
-		"@sveltejs/vite-plugin-svelte": "^2.4.2",
+		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"@types/which": "^3.0.0",
 		"coffeescript": "^2.7.0",
 		"css-tree": "2.3.1",
@@ -30,7 +30,7 @@
 		"pug": "^3.0.2",
 		"rollup-plugin-ignore": "^1.0.10",
 		"sass": "^1.66.1",
-		"stylus": "^0.60.0",
+		"stylus": "^0.62.0",
 		"sucrase": "^3.34.0",
 		"sugarss": "^4.0.1",
 		"which": "4.0.0",

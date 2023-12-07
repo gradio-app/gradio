@@ -326,4 +326,85 @@ describe("Dropdown", () => {
 		await item.blur();
 		expect(item.value).toBe("applepie");
 	});
+
+	test("setting a value should update the displayed value and selected indices", async () => {
+		const { getByLabelText, getAllByTestId, component } = await render(
+			Dropdown,
+			{
+				show_label: true,
+				loading_status,
+				value: "",
+				allow_custom_value: false,
+				label: "Dropdown",
+				choices: [
+					["apple", "apple"],
+					["zebra", "zebra"],
+					["pony", "pony"]
+				],
+				filterable: true,
+				interactive: true
+			}
+		);
+
+		const item: HTMLInputElement = getByLabelText(
+			"Dropdown"
+		) as HTMLInputElement;
+
+		expect(item.value).toBe("apple");
+		await item.focus();
+		let options = getAllByTestId("dropdown-option");
+		expect(options[0]).toHaveClass("selected");
+
+		await component.$set({ value: "zebra" });
+		expect(item.value).toBe("zebra");
+		options = getAllByTestId("dropdown-option");
+		expect(options[0]).toHaveClass("selected");
+
+		await component.$set({ value: undefined });
+		expect(item.value).toBe("");
+		options = getAllByTestId("dropdown-option");
+		expect(options[0]).not.toHaveClass("selected");
+
+		await component.$set({ value: "zebra" });
+		expect(item.value).toBe("zebra");
+		options = getAllByTestId("dropdown-option");
+		expect(options[0]).toHaveClass("selected");
+	});
+
+	test("blurring a dropdown should set the input text to the previously selected value", async () => {
+		const { getByLabelText, getAllByTestId, component } = await render(
+			Dropdown,
+			{
+				show_label: true,
+				loading_status,
+				value: "",
+				allow_custom_value: false,
+				label: "Dropdown",
+				choices: [
+					["apple", "apple_internal_value"],
+					["zebra", "zebra_internal_value"],
+					["pony", "pony_internal_value"]
+				],
+				filterable: true,
+				interactive: true
+			}
+		);
+
+		const item: HTMLInputElement = getByLabelText(
+			"Dropdown"
+		) as HTMLInputElement;
+
+		expect(item.value).toBe("apple");
+		await item.focus();
+		let options = getAllByTestId("dropdown-option");
+		expect(options[0]).toHaveClass("selected");
+		await item.blur();
+		expect(item.value).toBe("apple");
+
+		await item.focus();
+		await event.keyboard("z");
+		expect(item.value).toBe("applez");
+		await item.blur();
+		expect(item.value).toBe("apple");
+	});
 });

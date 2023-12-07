@@ -18,7 +18,6 @@ const vite_client = require.resolve("vite/dist/client/client.mjs");
 const hmr = require.resolve("svelte-hmr");
 
 const output_svelte_dir = "../../gradio/templates/frontend/assets/svelte";
-const output_svelte_dir_cdn = "../../gradio/templates/cdn/assets/svelte";
 
 const onwarn = (warning, warn) => {
 	if (warning.plugin === "typescript") return;
@@ -153,32 +152,21 @@ export default [
 	},
 	{
 		input: "src/svelte-submodules.ts",
-		output: [
-			{
-				file: join(output_svelte_dir, "svelte-submodules.js"),
-				format: "esm"
-			},
-			{
-				file: join(output_svelte_dir_cdn, "svelte-submodules.js"),
-				format: "esm"
-			}
-		],
+		output: {
+			file: join(output_svelte_dir, "svelte-submodules.js"),
+			format: "esm"
+		},
+
 		onwarn,
 		plugins
 	},
 
 	{
 		input: "src/svelte-internal.ts",
-		output: [
-			{
-				file: join(output_svelte_dir, "svelte.js"),
-				format: "esm"
-			},
-			{
-				file: join(output_svelte_dir_cdn, "svelte.js"),
-				format: "esm"
-			}
-		],
+		output: {
+			file: join(output_svelte_dir, "svelte.js"),
+			format: "esm"
+		},
 		onwarn,
 		plugins
 	},

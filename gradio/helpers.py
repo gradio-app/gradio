@@ -52,7 +52,7 @@ def create_examples(
     run_on_click: bool = False,
     preprocess: bool = True,
     postprocess: bool = True,
-    api_name: str | None | Literal[False] = False,
+    api_name: str | Literal[False] = "load_example",
     batch: bool = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
@@ -103,7 +103,7 @@ class Examples:
         run_on_click: bool = False,
         preprocess: bool = True,
         postprocess: bool = True,
-        api_name: str | None | Literal[False] = False,
+        api_name: str | Literal[False] = "load_example",
         batch: bool = False,
         _initiated_directly: bool = True,
     ):
@@ -111,16 +111,16 @@ class Examples:
         Parameters:
             examples: example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
             inputs: the component or list of components corresponding to the examples
-            outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache` is True.
-            fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache` is True.
+            outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache_examples` is True.
+            fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache_examples` is True.
             cache_examples: if True, caches examples for fast runtime. If True, then `fn` and `outputs` must be provided. If `fn` is a generator function, then the last yielded value will be used as the output.
             examples_per_page: how many examples to show per page.
             label: the label to use for the examples component (by default, "Examples")
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM.
             run_on_click: if cache_examples is False, clicking on an example does not run the function when an example is clicked. Set this to True to run the function when an example is clicked. Has no effect if cache_examples is True.
-            preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if cache_examples is True.
-            postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if cache_examples is True.
-            api_name: Defines how the event associated with clicking on the examples appears in the API docs. Can be a string, None, or False. If False (default), the endpoint will not be exposed in the api docs. If set to None, the endpoint will be exposed in the api docs as an unnamed endpoint, although this behavior will be changed in Gradio 4.0. If set to a string, the endpoint will be exposed in the api docs with the given name.
+            preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if `cache_examples` is True.
+            postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if `cache_examples` is True.
+            api_name: Defines how the event associated with clicking on the examples appears in the API docs. Can be a string or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use the example function.
             batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is True.
         """
         if _initiated_directly:
@@ -215,7 +215,7 @@ class Examples:
                     if isinstance(prediction_value, (GradioRootModel, GradioModel)):
                         prediction_value = prediction_value.model_dump()
                     prediction_value = processing_utils.move_files_to_cache(
-                        prediction_value, component
+                        prediction_value, component, postprocess=True
                     )
                     sub.append(prediction_value)
                 self.processed_examples.append(sub)
@@ -734,7 +734,10 @@ def special_args(
     Returns:
         updated inputs, progress index, event data index.
     """
-    signature = inspect.signature(fn)
+    try:
+        signature = inspect.signature(fn)
+    except ValueError:
+        return inputs or [], None, None
     type_hints = utils.get_type_hints(fn)
     positional_args = []
     for param in signature.parameters.values():
@@ -755,9 +758,12 @@ def special_args(
         elif (
             type_hint == Optional[oauth.OAuthProfile]
             or type_hint == oauth.OAuthProfile
+            or type_hint == Optional[oauth.OAuthToken]
+            or type_hint == oauth.OAuthToken
             # Note: "OAuthProfile | None" is equals to Optional[OAuthProfile] in Python
             #       => it is automatically handled as well by the above condition
             #       (adding explicit "OAuthProfile | None" would break in Python3.9)
+            #       (same for "OAuthToken")
         ):
             if inputs is not None:
                 # Retrieve session from gr.Request, if it exists (i.e. if user is logged in)
@@ -768,14 +774,47 @@ def special_args(
                     # or request.request.session (if gr.Request obj i.e. websocket call)
                     getattr(getattr(request, "request", None), "session", {})
                 )
-                oauth_profile = (
-                    session["oauth_profile"] if "oauth_profile" in session else None
-                )
-                if type_hint == oauth.OAuthProfile and oauth_profile is None:
-                    raise Error(
-                        "This action requires a logged in user. Please sign in and retry."
+
+                # Inject user profile
+                if (
+                    type_hint == Optional[oauth.OAuthProfile]
+                    or type_hint == oauth.OAuthProfile
+                ):
+                    oauth_profile = (
+                        session["oauth_info"]["userinfo"]
+                        if "oauth_info" in session
+                        else None
                     )
-                inputs.insert(i, oauth_profile)
+                    if oauth_profile is not None:
+                        oauth_profile = oauth.OAuthProfile(oauth_profile)
+                    elif type_hint == oauth.OAuthProfile:
+                        raise Error(
+                            "This action requires a logged in user. Please sign in and retry."
+                        )
+                    inputs.insert(i, oauth_profile)
+
+                # Inject user token
+                elif (
+                    type_hint == Optional[oauth.OAuthToken]
+                    or type_hint == oauth.OAuthToken
+                ):
+                    oauth_info = (
+                        session["oauth_info"] if "oauth_info" in session else None
+                    )
+                    oauth_token = (
+                        oauth.OAuthToken(
+                            token=oauth_info["access_token"],
+                            scope=oauth_info["scope"],
+                            expires_at=oauth_info["expires_at"],
+                        )
+                        if oauth_info is not None
+                        else None
+                    )
+                    if oauth_token is None and type_hint == oauth.OAuthToken:
+                        raise Error(
+                            "This action requires a logged in user. Please sign in and retry."
+                        )
+                    inputs.insert(i, oauth_token)
         elif (
             type_hint
             and inspect.isclass(type_hint)

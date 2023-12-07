@@ -12,7 +12,7 @@ import warnings
 from functools import partial
 from typing import TYPE_CHECKING
 
-import requests
+import httpx
 import uvicorn
 from uvicorn.config import Config
 
@@ -30,12 +30,13 @@ INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
 TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))
 LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v2/tunnel-request"
+GRADIO_SHARE_SERVER_ADDRESS = os.getenv("GRADIO_SHARE_SERVER_ADDRESS")
 
 should_watch = bool(os.getenv("GRADIO_WATCH_DIRS", False))
 GRADIO_WATCH_DIRS = (
     os.getenv("GRADIO_WATCH_DIRS", "").split(",") if should_watch else []
 )
-GRADIO_WATCH_FILE = os.getenv("GRADIO_WATCH_FILE", "app")
+GRADIO_WATCH_MODULE_NAME = os.getenv("GRADIO_WATCH_MODULE_NAME", "app")
 GRADIO_WATCH_DEMO_NAME = os.getenv("GRADIO_WATCH_DEMO_NAME", "demo")
 
 
@@ -200,7 +201,7 @@ def start_server(
                 reloader = SourceFileReloader(
                     app=app,
                     watch_dirs=GRADIO_WATCH_DIRS,
-                    watch_file=GRADIO_WATCH_FILE,
+                    watch_module_name=GRADIO_WATCH_MODULE_NAME,
                     demo_name=GRADIO_WATCH_DEMO_NAME,
                     stop_event=threading.Event(),
                     change_event=change_event,
@@ -229,12 +230,20 @@ def start_server(
 def setup_tunnel(
     local_host: str, local_port: int, share_token: str, share_server_address: str | None
 ) -> str:
+    share_server_address = (
+        GRADIO_SHARE_SERVER_ADDRESS
+        if share_server_address is None
+        else share_server_address
+    )
     if share_server_address is None:
-        response = requests.get(GRADIO_API_SERVER)
-        if not (response and response.status_code == 200):
-            raise RuntimeError("Could not get share link from Gradio API Server.")
-        payload = response.json()[0]
-        remote_host, remote_port = payload["host"], int(payload["port"])
+        try:
+            response = httpx.get(GRADIO_API_SERVER, timeout=30)
+            payload = response.json()[0]
+            remote_host, remote_port = payload["host"], int(payload["port"])
+        except Exception as e:
+            raise RuntimeError(
+                "Could not get share link from Gradio API Server."
+            ) from e
     else:
         remote_host, remote_port = share_server_address.split(":")
         remote_port = int(remote_port)
@@ -251,10 +260,10 @@ def url_ok(url: str) -> bool:
         for _ in range(5):
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore")
-                r = requests.head(url, timeout=3, verify=False)
+                r = httpx.head(url, timeout=3, verify=False)
             if r.status_code in (200, 401, 302):  # 401 or 302 if auth is set
                 return True
             time.sleep(0.500)
-    except (ConnectionError, requests.exceptions.ConnectionError):
+    except (ConnectionError, httpx.ConnectError):
         return False
     return False
