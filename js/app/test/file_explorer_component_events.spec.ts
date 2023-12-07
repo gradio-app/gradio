@@ -53,7 +53,6 @@ test("File Explorer correctly displays only directories and clicking a directory
 		.getByRole("checkbox")
 		.check();
 	await page.getByRole("button", { name: "Run" }).click();
-	await page.waitForResponse("**/queue/join*");
 
 	const directory_paths_displayed = async () => {
 		const value = await page.getByLabel("Selected Directory").inputValue();
@@ -80,7 +79,6 @@ test("File Explorer only sets single directory (not its children) as value when 
 		.getByRole("checkbox")
 		.check();
 	await page.getByRole("button", { name: "Run" }).click();
-	await page.waitForResponse("**/queue/join*");
 
 	const only_dir4_displayed = async () => {
 		const value = await page.getByLabel("Selected Directory").inputValue();
@@ -96,7 +94,6 @@ test("File Explorer only sets single directory (not its children) as value when 
 		.getByRole("checkbox")
 		.check();
 	await page.getByRole("button", { name: "Run" }).click();
-	await page.waitForResponse("**/queue/join*");
 
 	const only_dir_5_displayed = async () => {
 		const value = await page.getByLabel("Selected Directory").inputValue();
