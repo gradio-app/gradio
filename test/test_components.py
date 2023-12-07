@@ -2756,14 +2756,10 @@ class TestFileExplorer:
         answer = [
             {
                 "children": [
-                    {"children": None, "path": "", "type": "file"},
                     {
                         "children": [
-                            {"children": None, "path": "", "type": "file"},
                             {
-                                "children": [
-                                    {"children": None, "path": "", "type": "file"}
-                                ],
+                                "children": [],
                                 "path": "def",
                                 "type": "folder",
                             },
@@ -2777,9 +2773,8 @@ class TestFileExplorer:
             },
             {
                 "children": [
-                    {"children": None, "path": "", "type": "file"},
                     {
-                        "children": [{"children": None, "path": "", "type": "file"}],
+                        "children": [],
                         "path": "qux",
                         "type": "folder",
                     },
@@ -2788,7 +2783,7 @@ class TestFileExplorer:
                 "type": "folder",
             },
             {
-                "children": [{"children": None, "path": "", "type": "file"}],
+                "children": [],
                 "path": "bar",
                 "type": "folder",
             },

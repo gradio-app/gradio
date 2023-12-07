@@ -163,12 +163,19 @@ class FileExplorer(Component):
 
                     yield from expand_braces("".join(replaced), seen)
 
+        def remove_empty(tree):
+            tree = [item for item in tree if item["path"] != ""]
+            for item in tree:
+                if item["children"]:
+                    item["children"] = remove_empty(item["children"])
+            return tree
+
         def make_tree(files):
             tree = []
             for file in files:
                 parts = file.split("/")
                 make_node(parts, tree)
-            return tree
+            return remove_empty(tree)
 
         def make_node(parts, tree):
             _tree = tree
@@ -210,6 +217,7 @@ class FileExplorer(Component):
             files_with_sep.append(file)
 
         tree = make_tree(files_with_sep)
+        print(tree)
         return tree
 
     def _safe_join(self, folders):
