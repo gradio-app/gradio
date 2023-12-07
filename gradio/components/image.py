@@ -169,7 +169,7 @@ class Image(StreamingInput, Component):
             try:
                 im = ImageOps.exif_transpose(im)
             except Exception:
-                print(f"Failed to transpose image {file_path} based on EXIF data.")
+                warnings.warn(f"Failed to transpose image {file_path} based on EXIF data.")
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
