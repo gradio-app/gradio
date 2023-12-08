@@ -20,6 +20,7 @@
 		"test:browser:full": "run-s build test:browser",
 		"test:browser:verbose": "pnpm test:browser",
 		"test:browser:dev": "pnpm --filter @gradio/app test:browser:dev",
+		"test:custom-components": "pnpm --filter @gradio/app test:custom-components",
 		"storybook": "storybook dev -p 6006 --config-dir js/storybook",
 		"build-storybook": "storybook build --config-dir js/storybook",
 		"ci:version": "changeset version && pnpm i --lockfile-only && node ./.changeset/fix_changelogs.cjs",
