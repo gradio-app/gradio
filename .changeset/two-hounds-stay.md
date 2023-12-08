@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Allow passing height as string in `Blocks.svelte`
+feat:Allow passing height and width as string in `Blocks.svelte`
