@@ -2,6 +2,7 @@ import Prism from "prismjs";
 import "prismjs/components/prism-python";
 import { make_slug_processor } from "$lib/utils";
 import { error } from "@sveltejs/kit";
+import { style_formatted_text } from "$lib/text";
 
 let language = "python";
 
@@ -24,7 +25,8 @@ export async function load({ params, parent }) {
 		routes,
 		on_main,
 		wheel,
-		pages
+		pages,
+		url_version
 	} = await parent();
 
 	let name = params.doc;
@@ -68,6 +70,7 @@ export async function load({ params, parent }) {
 
 				if ("description" in obj) {
 					headers.push(["Description", "description"]);
+					obj.description = style_formatted_text(obj.description);
 				}
 
 				if ("demos" in obj) {
@@ -119,6 +122,45 @@ export async function load({ params, parent }) {
 							}
 						}
 					}
+					for (const fn of obj.fns) {
+						if ("description" in fn) {
+							fn.description = style_formatted_text(fn.description);
+						}
+						if (fn.parameters.length > 0) {
+							for (const param of fn.parameters) {
+								if (param.doc) {
+									param.doc = style_formatted_text(param.doc);
+								}
+							}
+						}
+					}
+				}
+				if ("tags" in obj) {
+					if ("preprocessing" in obj.tags) {
+						obj.tags.preprocessing = style_formatted_text(
+							obj.tags.preprocessing
+						);
+					}
+					if ("postprocessing" in obj.tags) {
+						obj.tags.postprocessing = style_formatted_text(
+							obj.tags.postprocessing
+						);
+					}
+					if ("examples_format" in obj.tags) {
+						obj.tags.examples_format = style_formatted_text(
+							obj.tags.examples_format
+						);
+					}
+					if ("events" in obj.tags) {
+						obj.tags.events = style_formatted_text(obj.tags.events);
+					}
+				}
+				if (obj.parameters.length > 0) {
+					for (const param of obj.parameters) {
+						if (param.doc) {
+							param.doc = style_formatted_text(param.doc);
+						}
+					}
 				}
 			}
 		}
@@ -137,6 +179,7 @@ export async function load({ params, parent }) {
 		headers,
 		method_headers,
 		on_main,
-		wheel
+		wheel,
+		url_version
 	};
 }

@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { tick, createEventDispatcher } from "svelte";
 	import { BaseButton } from "@gradio/button";
-	import { upload, prepare_files, type FileData } from "@gradio/client";
+	import {
+		upload,
+		prepare_files,
+		type FileData,
+		get_fetchable_url_or_file
+	} from "@gradio/client";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -12,10 +17,13 @@
 	export let file_types: string[] = [];
 	export let root: string;
 	export let size: "sm" | "lg" = "lg";
+	export let icon: string | null = null;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let disabled = false;
+	export let proxy_url: string | null = null;
+	$: icon_path = get_fetchable_url_or_file(icon, root, proxy_url);
 
 	const dispatch = createEventDispatcher();
 
@@ -95,11 +103,19 @@
 	{min_width}
 	{disabled}
 >
+	{#if icon}
+		<img class="button-icon" src={icon_path} alt={`${value} icon`} />
+	{/if}
 	<slot />
 </BaseButton>
 
 <style>
 	.hide {
 		display: none;
+	}
+	.button-icon {
+		width: var(--text-xl);
+		height: var(--text-xl);
+		margin-right: var(--spacing-xl);
 	}
 </style>

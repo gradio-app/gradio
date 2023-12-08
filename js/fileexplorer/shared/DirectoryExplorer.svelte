@@ -6,6 +6,9 @@
 	import { File } from "@gradio/icons";
 	import { Empty } from "@gradio/atoms";
 
+	export let glob: string;
+	export let ignore_glob: string;
+	export let root: string;
 	export let interactive: boolean;
 	export let server: any;
 	export let file_count: "single" | "multiple" = "multiple";
@@ -17,9 +20,12 @@
 	}>();
 	const tree = make_fs_store();
 
-	server.ls().then((v: any) => {
-		tree.create_fs_graph(v);
-	});
+	$: glob,
+		ignore_glob,
+		root,
+		server.ls().then((v: any) => {
+			tree.create_fs_graph(v);
+		});
 
 	$: value.length && $tree && set_checked_from_paths();
 

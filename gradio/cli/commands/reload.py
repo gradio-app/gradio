@@ -29,26 +29,32 @@ def _setup_config(
     demo_path: Path,
     demo_name: str = "demo",
     additional_watch_dirs: list[str] | None = None,
+    encoding: str = "utf-8",
 ):
-    original_path = demo_path
-    app_text = Path(original_path).read_text()
+    original_path = Path(demo_path)
+    app_text = original_path.read_text(encoding=encoding)
 
     patterns = [
-        f"with gr\\.Blocks\\(\\) as {demo_name}",
+        f"with gr\\.Blocks\\(.*\\) as {demo_name}",
         f"{demo_name} = gr\\.Blocks",
         f"{demo_name} = gr\\.Interface",
         f"{demo_name} = gr\\.ChatInterface",
         f"{demo_name} = gr\\.TabbedInterface",
     ]
 
-    if not any(re.search(p, app_text) for p in patterns):
+    if not any(re.search(p, app_text, flags=re.DOTALL) for p in patterns):
         print(
             f"\n[bold red]Warning[/]: Cannot statically find a gradio demo called {demo_name}. "
             "Reload work may fail."
         )
 
     abs_original_path = utils.abspath(original_path)
-    filename = Path(original_path).stem
+
+    if original_path.is_absolute():
+        relpath = original_path.relative_to(Path.cwd())
+    else:
+        relpath = original_path
+    module_name = str(relpath.parent / relpath.stem).replace(os.path.sep, ".")
 
     gradio_folder = Path(inspect.getfile(gradio)).parent
 
@@ -68,12 +74,12 @@ def _setup_config(
             message += ","
         message += f" '{abs_parent}'"
 
-    abs_parent = Path(".").resolve()
-    if str(abs_parent).strip():
-        watching_dirs.append(abs_parent)
+    abs_current = Path.cwd().absolute()
+    if str(abs_current).strip():
+        watching_dirs.append(abs_current)
         if message_change_count == 1:
             message += ","
-        message += f" '{abs_parent}'"
+        message += f" '{abs_current}'"
 
     for wd in additional_watch_dirs or []:
         if Path(wd) not in watching_dirs:
@@ -87,15 +93,18 @@ def _setup_config(
 
     # guaranty access to the module of an app
     sys.path.insert(0, os.getcwd())
-    return filename, abs_original_path, [str(s) for s in watching_dirs], demo_name
+    return module_name, abs_original_path, [str(s) for s in watching_dirs], demo_name
 
 
 def main(
-    demo_path: Path, demo_name: str = "demo", watch_dirs: Optional[List[str]] = None
+    demo_path: Path,
+    demo_name: str = "demo",
+    watch_dirs: Optional[List[str]] = None,
+    encoding: str = "utf-8",
 ):
     # default execution pattern to start the server and watch changes
-    filename, path, watch_dirs, demo_name = _setup_config(
-        demo_path, demo_name, watch_dirs
+    module_name, path, watch_dirs, demo_name = _setup_config(
+        demo_path, demo_name, watch_dirs, encoding
     )
     # extra_args = args[1:] if len(args) == 1 or args[1].startswith("--") else args[2:]
     popen = subprocess.Popen(
@@ -103,7 +112,7 @@ def main(
         env=dict(
             os.environ,
             GRADIO_WATCH_DIRS=",".join(watch_dirs),
-            GRADIO_WATCH_FILE=filename,
+            GRADIO_WATCH_MODULE_NAME=module_name,
             GRADIO_WATCH_DEMO_NAME=demo_name,
         ),
     )

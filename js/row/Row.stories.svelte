@@ -1,22 +1,16 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import Row from "./Index.svelte";
-	import Image from "@gradio/image";
+	import Button from "../button/shared/Button.svelte";
 </script>
 
 <Meta title="Layout Elements/Row" component={Row} />
 
 <Template let:args>
 	<Row {...args}>
-		<Image
-			{...args}
-			value={{ name: "https://i.ibb.co/6BgKdSj/groot.jpg", is_file: true }}
-		/>
-		<Image
-			{...args}
-			value={{ name: "https://i.ibb.co/6BgKdSj/groot.jpg", is_file: true }}
-		/>
+		<Button elem_id="btn" size="lg">test</Button>
+		<Button elem_id="btn" size="lg">test</Button>
 	</Row>
 </Template>
 
-<Story name="Row" />
+<Story name="Row Layout" />
