@@ -56,7 +56,7 @@ class Chatbot(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        height: int | None = None,
+        height: int | str | None = None,
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         rtl: bool = False,
         show_share_button: bool | None = None,

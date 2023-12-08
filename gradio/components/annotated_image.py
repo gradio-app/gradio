@@ -51,7 +51,7 @@ class AnnotatedImage(Component):
         | None = None,
         *,
         show_legend: bool = True,
-        height: int | None = None,
+        height: int | str | None = None,
         width: int | None = None,
         color_map: dict[str, str] | None = None,
         label: str | None = None,

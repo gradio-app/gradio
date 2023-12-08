@@ -67,7 +67,7 @@ class LinePlot(Plot):
             "none",
         ]
         | None = None,
-        height: int | None = None,
+        height: int | str | None = None,
         width: int | None = None,
         x_lim: list[int] | None = None,
         y_lim: list[int] | None = None,
@@ -197,7 +197,7 @@ class LinePlot(Plot):
             "none",
         ]
         | None = None,
-        height: int | None = None,
+        height: int | str | None = None,
         width: int | None = None,
         x_lim: list[int] | None = None,
         y_lim: list[int] | None = None,

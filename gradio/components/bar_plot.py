@@ -55,7 +55,7 @@ class BarPlot(Plot):
             "none",
         ]
         | None = None,
-        height: int | None = None,
+        height: int | str | None = None,
         width: int | None = None,
         y_lim: list[int] | None = None,
         caption: str | None = None,

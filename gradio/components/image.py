@@ -45,7 +45,7 @@ class Image(StreamingInput, Component):
         self,
         value: str | _Image.Image | np.ndarray | None = None,
         *,
-        height: int | None = None,
+        height: int | str | None = None,
         width: int | None = None,
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"

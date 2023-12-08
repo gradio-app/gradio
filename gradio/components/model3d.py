@@ -43,7 +43,7 @@ class Model3D(Component):
         ),
         zoom_speed: float = 1,
         pan_speed: float = 1,
-        height: int | None = None,
+        height: int | str | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         every: float | None = None,
