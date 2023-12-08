@@ -40,6 +40,7 @@ test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
 	}
 
 	_process.stdout.on("data", std_out);
+	_process.stderr.on("data", std_out);
 
 	while (!port) {
 		await new Promise((r) => setTimeout(r, 1000));
