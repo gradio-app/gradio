@@ -78,7 +78,6 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 				'<div class="code_wrap">' +
 				COPY_BUTTON_CODE +
 				"<pre><code>" +
-				"language-" +
 				(escaped ? code : escape(code, true)) +
 				"</code></pre></div>\n"
 			);
@@ -88,6 +87,7 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 			'<div class="code_wrap">' +
 			COPY_BUTTON_CODE +
 			'<pre><code class="' +
+			"language-" +
 			escape(lang) +
 			'">' +
 			(escaped ? code : escape(code, true)) +
