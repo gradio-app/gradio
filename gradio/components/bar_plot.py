@@ -56,7 +56,7 @@ class BarPlot(Plot):
         ]
         | None = None,
         height: int | str | None = None,
-        width: int | None = None,
+        width: int | str | None = None,
         y_lim: list[int] | None = None,
         caption: str | None = None,
         interactive: bool | None = True,
@@ -91,7 +91,7 @@ class BarPlot(Plot):
             group_title: The label displayed on top of the subplot columns (or rows if vertical=True). Use an empty string to omit.
             color_legend_position: The position of the color legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
             height: The height of the plot, specified in pixels if a number is passed, or in CSS units if a string is passed.
-            width: The width of the plot in pixels.
+            width: The width of the plot, specified in pixels if a number is passed, or in CSS units if a string is passed.
             y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
             caption: The (optional) caption to display below the plot.
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.

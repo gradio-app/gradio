@@ -83,7 +83,7 @@ class ScatterPlot(Plot):
         ]
         | None = None,
         height: int | str | None = None,
-        width: int | None = None,
+        width: int | str | None = None,
         x_lim: list[int | float] | None = None,
         y_lim: list[int | float] | None = None,
         caption: str | None = None,
@@ -121,7 +121,7 @@ class ScatterPlot(Plot):
             size_legend_position: The position of the size legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
             shape_legend_position: The position of the shape legend. If the string value 'none' is passed, this legend is omitted. For other valid position values see: https://vega.github.io/vega/docs/legends/#orientation.
             height: The height of the plot, specified in pixels if a number is passed, or in CSS units if a string is passed.
-            width: The width of the plot in pixels.
+            width: The width of the plot, specified in pixels if a number is passed, or in CSS units if a string is passed.
             x_lim: A tuple or list containing the limits for the x-axis, specified as [x_min, x_max].
             y_lim: A tuple of list containing the limits for the y-axis, specified as [y_min, y_max].
             caption: The (optional) caption to display below the plot.

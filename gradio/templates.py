@@ -56,7 +56,7 @@ class Sketchpad(components.ImageEditor):
         value: str | _Image.Image | np.ndarray | None = None,
         *,
         height: int | str | None = None,
-        width: int | None = None,
+        width: int | str | None = None,
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
         ] = "RGBA",
