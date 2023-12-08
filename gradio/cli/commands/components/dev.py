@@ -18,8 +18,7 @@ def _dev(
         typer.Argument(
             help="The path to the app. By default, looks for demo/app.py in the current directory."
         ),
-    ] = Path("demo")
-    / "app.py",
+    ] = Path("demo") / "app.py",
     component_directory: Annotated[
         Path,
         typer.Option(

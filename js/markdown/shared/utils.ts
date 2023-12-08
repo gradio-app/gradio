@@ -3,6 +3,7 @@ import { markedHighlight } from "marked-highlight";
 import Prism from "prismjs";
 import "prismjs/components/prism-python";
 import "prismjs/components/prism-latex";
+import "prismjs/components/prism-bash";
 // import loadLanguages from "prismjs/components/";
 
 // loadLanguages(["python", "latex"]);
@@ -69,13 +70,6 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 		escaped: boolean
 	) {
 		const lang = (infostring ?? "").match(/\S*/)?.[0] ?? "";
-		if (this.options.highlight) {
-			const out = this.options.highlight(code, lang);
-			if (out != null && out !== code) {
-				escaped = true;
-				code = out;
-			}
-		}
 
 		code = code.replace(/\n$/, "") + "\n";
 
@@ -93,7 +87,7 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 			'<div class="code_wrap">' +
 			COPY_BUTTON_CODE +
 			'<pre><code class="' +
-			this.options.langPrefix +
+			"language-" +
 			escape(lang) +
 			'">' +
 			(escaped ? code : escape(code, true)) +
@@ -105,9 +99,7 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 marked.use(
 	{
 		gfm: true,
-		pedantic: false,
-		headerIds: false,
-		mangle: false
+		pedantic: false
 	},
 	markedHighlight({
 		highlight: (code: string, lang: string) => {

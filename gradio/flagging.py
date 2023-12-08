@@ -439,9 +439,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                 if deserialized:
                     path_in_repo = str(  # returned filepath is absolute, we want it relative to compute URL
                         Path(deserialized).relative_to(self.dataset_dir)
-                    ).replace(
-                        "\\", "/"
-                    )
+                    ).replace("\\", "/")
                     row.append(
                         huggingface_hub.hf_hub_url(
                             repo_id=self.dataset_id,
