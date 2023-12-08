@@ -383,7 +383,9 @@ class GradioMultiPartParser:
         message_bytes = data[start:end]
         if self.upload_progress is not None:
             self.upload_progress.update(
-                self.upload_id, self._current_part.file.filename, message_bytes  # type: ignore
+                self.upload_id,  # type: ignore
+                self._current_part.file.filename,  # type: ignore
+                message_bytes,
             )
         if self._current_part.file is None:
             self._current_part.data += message_bytes
@@ -463,7 +465,7 @@ class GradioMultiPartParser:
         # Parse the Content-Type header to get the multipart boundary.
         _, params = parse_options_header(self.headers["Content-Type"])
         charset = params.get(b"charset", "utf-8")
-        if type(charset) == bytes:
+        if isinstance(charset, bytes):
             charset = charset.decode("latin-1")
         self._charset = charset
         try:

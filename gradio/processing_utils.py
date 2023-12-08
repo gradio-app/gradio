@@ -13,8 +13,8 @@ from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
+import httpx
 import numpy as np
-import requests
 from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, PngImagePlugin
 
@@ -56,21 +56,6 @@ def extract_base64_data(x: str) -> str:
 #########################
 # IMAGE PRE-PROCESSING
 #########################
-
-
-def decode_base64_to_image(encoding: str) -> Image.Image:
-    image_encoded = extract_base64_data(encoding)
-    img = Image.open(BytesIO(base64.b64decode(image_encoded)))
-    try:
-        if hasattr(ImageOps, "exif_transpose"):
-            img = ImageOps.exif_transpose(img)
-    except Exception:
-        log.warning(
-            "Failed to transpose image %s based on EXIF data.",
-            img,
-            exc_info=True,
-        )
-    return img
 
 
 def encode_plot_to_base64(plt):
@@ -205,8 +190,9 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
     full_temp_file_path = str(abspath(temp_dir / name))
 
     if not Path(full_temp_file_path).exists():
-        with requests.get(url, stream=True) as r, open(full_temp_file_path, "wb") as f:
-            shutil.copyfileobj(r.raw, f)
+        with httpx.stream("GET", url) as r, open(full_temp_file_path, "wb") as f:
+            for chunk in r.iter_raw():
+                f.write(chunk)
 
     return full_temp_file_path
 
@@ -596,7 +582,9 @@ def _convert(image, dtype, force_copy=False, uniform=False):
                 image_out = np.multiply(image, imax_out, dtype=computation_type)  # type: ignore
             else:
                 image_out = np.multiply(
-                    image, (imax_out - imin_out) / 2, dtype=computation_type  # type: ignore
+                    image,
+                    (imax_out - imin_out) / 2,  # type: ignore
+                    dtype=computation_type,
                 )
                 image_out -= 1.0 / 2.0
             np.rint(image_out, out=image_out)
@@ -606,7 +594,9 @@ def _convert(image, dtype, force_copy=False, uniform=False):
             np.clip(image_out, 0, imax_out, out=image_out)  # type: ignore
         else:
             image_out = np.multiply(
-                image, (imax_out - imin_out + 1.0) / 2.0, dtype=computation_type  # type: ignore
+                image,
+                (imax_out - imin_out + 1.0) / 2.0,  # type: ignore
+                dtype=computation_type,
             )
             np.floor(image_out, out=image_out)
             np.clip(image_out, imin_out, imax_out, out=image_out)  # type: ignore

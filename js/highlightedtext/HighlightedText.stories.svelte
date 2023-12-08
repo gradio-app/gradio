@@ -25,7 +25,7 @@
 	/>
 </Template>
 
-<Story name="Highlighted Text" />
+<Story name="Highlighted Text Default" />
 <Story name="Highlighted Text with legend" args={{ show_legend: true }} />
 <Story name="Highlighted Text with label" args={{ label: "animals" }} />
 <Story
