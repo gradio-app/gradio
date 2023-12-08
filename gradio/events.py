@@ -197,7 +197,7 @@ class EventListener(str):
             outputs: Component | list[Component] | None = None,
             api_name: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
-            show_progress: Literal["full", "minimal", "hidden"] = "full",
+            show_progress: Literal["full", "minimal", "hidden"] = _show_progress,
             queue: bool | None = None,
             batch: bool = False,
             max_batch_size: int = 4,
