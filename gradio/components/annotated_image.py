@@ -69,7 +69,7 @@ class AnnotatedImage(Component):
         Parameters:
             value: Tuple of base image and list of (subsection, label) pairs.
             show_legend: If True, will show a legend of the subsections.
-            height: Height of the displayed image.
+            height: The height of the component, specified in pixels if a number is passed, or in CSS units if a string is passed.
             width: Width of the displayed image.
             color_map: A dictionary mapping labels to colors. The colors must be specified as hex codes.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
