@@ -16,6 +16,8 @@ test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
 		}
 	});
 
+	console.log("Starting gradio cc dev");
+
 	_process.stdout.setEncoding("utf8");
 	_process.stderr.setEncoding("utf8");
 
