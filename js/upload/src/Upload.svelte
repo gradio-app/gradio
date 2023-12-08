@@ -20,6 +20,7 @@
 
 	let upload_id: string;
 	let file_data: FileData[];
+	let accept_file_types: string | null;
 
 	// Needed for wasm support
 	const upload_fn = getContext<typeof upload_files>("upload_files");
@@ -28,6 +29,17 @@
 
 	const dispatch = createEventDispatcher();
 
+	$: if (filetype == null || typeof filetype === "string") {
+		accept_file_types = filetype;
+	} else {
+		filetype = filetype.map((x) => {
+			if (x.startsWith(".")) {
+				return x;
+			}
+			return x + "/*";
+		});
+		accept_file_types = filetype.join(", ");
+	}
 	function updateDragging(): void {
 		dragging = !dragging;
 	}
@@ -139,7 +151,7 @@
 			type="file"
 			bind:this={hidden_upload}
 			on:change={load_files_from_upload}
-			accept={filetype}
+			accept={accept_file_types}
 			multiple={file_count === "multiple" || undefined}
 			webkitdirectory={file_count === "directory" || undefined}
 			mozdirectory={file_count === "directory" || undefined}
