@@ -4,22 +4,17 @@ import which from "which";
 import { join } from "path";
 
 test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
-
 	test.setTimeout(45 * 1000);
 
-	const _process = spawn(
-		which("gradio"),
-		["cc", "dev"],
-		{
-			shell: true,
-			stdio: "pipe",
-			cwd: join(process.cwd(), "mycomponent"),
-			env: {
-				...process.env,
-				PYTHONUNBUFFERED: "true"
-			}
+	const _process = spawn(which("gradio"), ["cc", "dev"], {
+		shell: true,
+		stdio: "pipe",
+		cwd: join(process.cwd(), "mycomponent"),
+		env: {
+			...process.env,
+			PYTHONUNBUFFERED: "true"
 		}
-	);
+	});
 
 	_process.stdout.setEncoding("utf8");
 	_process.stderr.setEncoding("utf8");
@@ -35,7 +30,7 @@ test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
 
 		const portRegExp = /:(\d+)/;
 		const match = portRegExp.exec(_data);
-			
+
 		if (match && match[1]) {
 			port = parseInt(match[1], 10);
 		}
@@ -53,9 +48,6 @@ test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
 	kill_process(_process);
 });
 
-
 function kill_process(process) {
-process.kill("SIGKILL");
+	process.kill("SIGKILL");
 }
-
-
