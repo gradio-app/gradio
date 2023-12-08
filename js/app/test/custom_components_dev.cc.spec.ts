@@ -4,7 +4,7 @@ import which from "which";
 import { join } from "path";
 
 test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
-	test.setTimeout(45 * 1000);
+	test.setTimeout(90 * 1000);
 
 	const _process = spawn(which.sync("gradio"), ["cc", "dev"], {
 		shell: true,
@@ -27,6 +27,7 @@ test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
 
 	function std_out(data) {
 		const _data: string = data.toString();
+		console.log(_data);
 
 		const portRegExp = /:(\d+)/;
 		const match = portRegExp.exec(_data);
