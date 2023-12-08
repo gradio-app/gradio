@@ -99,7 +99,7 @@
 </script>
 
 <div class="wrap">
-	<div class:mirror>
+	<div class="mirror-wrap" class:mirror>
 		<Video
 			{src}
 			preload="auto"
@@ -197,6 +197,12 @@
 
 	.mirror {
 		transform: scaleX(-1);
+	}
+
+	.mirror-wrap {
+		position: relative;
+		height: 100%;
+		width: 100%;
 	}
 
 	.controls {

@@ -19,6 +19,8 @@
 		"babylonjs-loaders",
 		"postcss-load-config",
 		"postcss-nested",
-		"svelte"
+		"svelte",
+		"vite",
+		"vitest"
 	]
 }

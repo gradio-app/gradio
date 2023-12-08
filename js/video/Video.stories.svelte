@@ -4,7 +4,6 @@
 	import { format } from "svelte-i18n";
 	import { get } from "svelte/store";
 	import { userEvent, within } from "@storybook/testing-library";
-	import { waitFor } from "@testing-library/dom";
 </script>
 
 <Meta title="Components/Video" component={Video} />
@@ -35,6 +34,23 @@
 				path: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
 				url: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
 				orig_name: "world.mp4"
+			}
+		},
+		label: "world video",
+		show_label: true,
+		interactive: false,
+		height: 200,
+		width: 400
+	}}
+/>
+<Story
+	name="Static video with vertical video"
+	args={{
+		value: {
+			video: {
+				path: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world_vertical.mp4",
+				url: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world_vertical.mp4",
+				orig_name: "world_vertical.mp4"
 			}
 		},
 		label: "world video",

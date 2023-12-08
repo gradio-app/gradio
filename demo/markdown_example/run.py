@@ -68,7 +68,7 @@ Dillinger requires [Node.js](https://nodejs.org/) v10+ to run.
 
 Install the dependencies and devDependencies and start the server.
 
-```sh
+```bash
 cd dillinger
 npm i
 node app
@@ -76,7 +76,7 @@ node app
 
 For production environments...
 
-```sh
+```bash
 npm install --production
 NODE_ENV=production node app
 ```
@@ -106,19 +106,19 @@ Open your favorite Terminal and run these commands.
 
 First Tab:
 
-```sh
+```bash
 node app
 ```
 
 Second Tab:
 
-```sh
+```bash
 gulp watch
 ```
 
 (optional) Third:
 
-```sh
+```bash
 karma test
 ```
 
@@ -126,13 +126,13 @@ karma test
 
 For production release:
 
-```sh
+```bash
 gulp build --prod
 ```
 
 Generating pre-built zip archives for distribution:
 
-```sh
+```bash
 gulp build dist --prod
 ```
 
@@ -144,7 +144,7 @@ By default, the Docker will expose port 8080, so change this within the
 Dockerfile if necessary. When ready, simply use the Dockerfile to
 build the image.
 
-```sh
+```bash
 cd dillinger
 docker build -t <youruser>/dillinger:${package.json.version} .
 ```
@@ -157,7 +157,7 @@ Once done, run the Docker image and map the port to whatever you wish on
 your host. In this example, we simply map port 8000 of the host to
 port 8080 of the Docker (or whatever port was exposed in the Dockerfile):
 
-```sh
+```bash
 docker run -d -p 8000:8080 --restart=always --cap-add=SYS_ADMIN --name=dillinger <youruser>/dillinger:${package.json.version}
 ```
 
@@ -166,7 +166,7 @@ docker run -d -p 8000:8080 --restart=always --cap-add=SYS_ADMIN --name=dillinger
 Verify the deployment by navigating to your server address in
 your preferred browser.
 
-```sh
+```bash
 127.0.0.1:8000
 ```
 
