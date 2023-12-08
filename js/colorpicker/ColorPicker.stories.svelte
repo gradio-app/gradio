@@ -12,11 +12,11 @@
 <Story name="Default" />
 <Story
 	name="Color Picker with a color value and hidden label"
-	args={{ value: "#FFC0CB", show_label: false }}
+	args={{ value: "#FFC0CB", show_label: false, interactive: true }}
 />
 <Story
 	name="Color Picker with a color value and label"
-	args={{ value: "#FFC0CB", label: "This is a neat color" }}
+	args={{ value: "#FFC0CB", label: "This is a neat color", interactive: true }}
 />
 
 <Story
@@ -26,5 +26,5 @@
 
 <Story
 	name="Color Picker with a color value and info"
-	args={{ value: "#FFC0CB", info: "This is a neat color" }}
+	args={{ value: "#FFC0CB", info: "This is a neat color", interactive: true }}
 />
