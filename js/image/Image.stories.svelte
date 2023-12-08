@@ -34,9 +34,9 @@
 	name="Static Image with label and download button"
 	args={{
 		value: {
-			path: "https://i.ibb.co/6BgKdSj/groot.jpg",
-			url: "https://i.ibb.co/6BgKdSj/groot.jpg",
-			orig_name: "groot.jpg"
+			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			orig_name: "cheetah.jpg"
 		},
 		show_label: true,
 		show_download_button: true
@@ -47,9 +47,9 @@
 	name="Static Image with no label or download button"
 	args={{
 		value: {
-			path: "https://i.ibb.co/6BgKdSj/groot.jpg",
-			url: "https://i.ibb.co/6BgKdSj/groot.jpg",
-			orig_name: "groot.jpg"
+			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			orig_name: "cheetah.jpg"
 		},
 		show_label: false,
 		show_download_button: false
