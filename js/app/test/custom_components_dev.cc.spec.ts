@@ -6,7 +6,7 @@ import { join } from "path";
 test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
 	test.setTimeout(45 * 1000);
 
-	const _process = spawn(which("gradio"), ["cc", "dev"], {
+	const _process = spawn(which.sync("gradio"), ["cc", "dev"], {
 		shell: true,
 		stdio: "pipe",
 		cwd: join(process.cwd(), "mycomponent"),
