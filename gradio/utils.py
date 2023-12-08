@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import dataclasses
 import functools
 import importlib
 import inspect
@@ -34,8 +35,8 @@ from typing import (
 )
 
 import anyio
+import httpx
 import matplotlib
-import requests
 from typing_extensions import ParamSpec
 
 import gradio
@@ -106,7 +107,7 @@ class SourceFileReloader(BaseReloader):
         self,
         app: App,
         watch_dirs: list[str],
-        watch_file: str,
+        watch_module_name: str,
         stop_event: threading.Event,
         change_event: threading.Event,
         demo_name: str = "demo",
@@ -114,7 +115,7 @@ class SourceFileReloader(BaseReloader):
         super().__init__()
         self.app = app
         self.watch_dirs = watch_dirs
-        self.watch_file = watch_file
+        self.watch_module_name = watch_module_name
         self.stop_event = stop_event
         self.change_event = change_event
         self.demo_name = demo_name
@@ -199,11 +200,11 @@ def watchfn(reloader: SourceFileReloader):
                 if sourcefile and is_in_or_equal(sourcefile, dir_):
                     del sys.modules[k]
             try:
-                module = importlib.import_module(reloader.watch_file)
+                module = importlib.import_module(reloader.watch_module_name)
                 module = importlib.reload(module)
             except Exception as e:
                 print(
-                    f"Reloading {reloader.watch_file} failed with the following exception: "
+                    f"Reloading {reloader.watch_module_name} failed with the following exception: "
                 )
                 traceback.print_exception(None, value=e, tb=None)
                 mtimes = {}
@@ -282,10 +283,10 @@ def is_zero_gpu_space() -> bool:
 
 def readme_to_html(article: str) -> str:
     try:
-        response = requests.get(article, timeout=3)
-        if response.status_code == requests.codes.ok:  # pylint: disable=no-member
+        response = httpx.get(article, timeout=3)
+        if response.status_code == httpx.codes.OK:  # pylint: disable=no-member
             article = response.text
-    except requests.exceptions.RequestException:
+    except httpx.RequestError:
         pass
     return article
 
@@ -583,11 +584,11 @@ def append_unique_suffix(name: str, list_of_names: list[str]):
 def validate_url(possible_url: str) -> bool:
     headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
     try:
-        head_request = requests.head(possible_url, headers=headers)
+        head_request = httpx.head(possible_url, headers=headers, follow_redirects=True)
         # some URLs, such as AWS S3 presigned URLs, return a 405 or a 403 for HEAD requests
         if head_request.status_code == 405 or head_request.status_code == 403:
-            return requests.get(possible_url, headers=headers).ok
-        return head_request.ok
+            return httpx.get(possible_url, headers=headers).is_success
+        return head_request.is_success
     except Exception:
         return False
 
@@ -719,7 +720,7 @@ def set_task_name(task, session_hash: str, fn_index: int, batch: bool):
 
 
 def get_cancel_function(
-    dependencies: list[dict[str, Any]]
+    dependencies: list[dict[str, Any]],
 ) -> tuple[Callable, list[int]]:
     fn_to_comp = {}
     for dep in dependencies:
@@ -744,7 +745,7 @@ def get_cancel_function(
 def get_type_hints(fn):
     # Importing gradio with the canonical abbreviation. Used in typing._eval_type.
     import gradio as gr  # noqa: F401
-    from gradio import OAuthProfile, Request  # noqa: F401
+    from gradio import OAuthProfile, OAuthToken, Request  # noqa: F401
 
     if inspect.isfunction(fn) or inspect.ismethod(fn):
         pass
@@ -767,6 +768,9 @@ def get_type_hints(fn):
             if param.annotation == "gr.OAuthProfile | None":
                 # Special case: we want to inject the OAuthProfile value even on Python 3.9
                 type_hints[name] = Optional[OAuthProfile]
+            if param.annotation == "gr.OAuthToken | None":
+                # Special case: we want to inject the OAuthToken value even on Python 3.9
+                type_hints[name] = Optional[OAuthToken]
             if "|" in str(param.annotation):
                 continue
             # To convert the string annotation to a class, we use the
@@ -784,15 +788,20 @@ def get_type_hints(fn):
 
 def is_special_typed_parameter(name, parameter_types):
     from gradio.helpers import EventData
-    from gradio.oauth import OAuthProfile
+    from gradio.oauth import OAuthProfile, OAuthToken
     from gradio.routes import Request
 
-    """Checks if parameter has a type hint designating it as a gr.Request, gr.EventData or gr.OAuthProfile."""
+    """Checks if parameter has a type hint designating it as a gr.Request, gr.EventData, gr.OAuthProfile or gr.OAuthToken."""
     hint = parameter_types.get(name)
     if not hint:
         return False
     is_request = hint == Request
-    is_oauth_arg = hint in (OAuthProfile, Optional[OAuthProfile])
+    is_oauth_arg = hint in (
+        OAuthProfile,
+        Optional[OAuthProfile],
+        OAuthToken,
+        Optional[OAuthToken],
+    )
     is_event_data = inspect.isclass(hint) and issubclass(hint, EventData)
     return is_request or is_event_data or is_oauth_arg
 
@@ -980,3 +989,9 @@ def get_extension_from_file_path_or_url(file_path_or_url: str) -> str:
     parsed_url = urllib.parse.urlparse(file_path_or_url)
     file_extension = os.path.splitext(os.path.basename(parsed_url.path))[1]
     return file_extension[1:] if file_extension else ""
+
+
+def convert_to_dict_if_dataclass(value):
+    if dataclasses.is_dataclass(value):
+        return dataclasses.asdict(value)
+    return value

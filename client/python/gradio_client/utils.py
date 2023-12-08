@@ -22,7 +22,6 @@ from typing import Any, Callable, Optional
 import fsspec.asyn
 import httpx
 import huggingface_hub
-import requests
 from huggingface_hub import SpaceStage
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
@@ -225,11 +224,11 @@ def probe_url(possible_url: str) -> bool:
     """
     headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
     try:
-        with requests.session() as sess:
-            head_request = sess.head(possible_url, headers=headers)
+        with httpx.Client() as client:
+            head_request = client.head(possible_url, headers=headers)
             if head_request.status_code == 405:
-                return sess.get(possible_url, headers=headers).ok
-            return head_request.ok
+                return client.get(possible_url, headers=headers).is_success
+            return head_request.is_success
     except Exception:
         return False
 
@@ -315,6 +314,7 @@ async def get_pred_from_sse(
     helper: Communicator,
     sse_url: str,
     sse_data_url: str,
+    headers: dict[str, str],
     cookies: dict[str, str] | None = None,
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
@@ -322,7 +322,14 @@ async def get_pred_from_sse(
             asyncio.create_task(check_for_cancel(helper, cookies)),
             asyncio.create_task(
                 stream_sse(
-                    client, data, hash_data, helper, sse_url, sse_data_url, cookies
+                    client,
+                    data,
+                    hash_data,
+                    helper,
+                    sse_url,
+                    sse_data_url,
+                    headers=headers,
+                    cookies=cookies,
                 )
             ),
         ],
@@ -362,11 +369,16 @@ async def stream_sse(
     helper: Communicator,
     sse_url: str,
     sse_data_url: str,
+    headers: dict[str, str],
     cookies: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     try:
         async with client.stream(
-            "GET", sse_url, params=hash_data, cookies=cookies
+            "GET",
+            sse_url,
+            params=hash_data,
+            cookies=cookies,
+            headers=headers,
         ) as response:
             async for line in response.aiter_text():
                 if line.startswith("data:"):
@@ -402,6 +414,7 @@ async def stream_sse(
                             sse_data_url,
                             json={"event_id": event_id, **data, **hash_data},
                             cookies=cookies,
+                            headers=headers,
                         )
                         req.raise_for_status()
                     elif resp["msg"] == "process_completed":
@@ -431,10 +444,10 @@ def download_file(
     temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
     temp_dir.mkdir(exist_ok=True, parents=True)
 
-    with requests.get(url_path, headers=headers, stream=True) as r:
-        r.raise_for_status()
+    with httpx.stream("GET", url_path, headers=headers) as response:
+        response.raise_for_status()
         with open(temp_dir / Path(url_path).name, "wb") as f:
-            for chunk in r.iter_content(chunk_size=128 * sha1.block_size):
+            for chunk in response.iter_bytes(chunk_size=128 * sha1.block_size):
                 sha1.update(chunk)
                 f.write(chunk)
 
@@ -464,10 +477,11 @@ def download_tmp_copy_of_file(
     directory.mkdir(exist_ok=True, parents=True)
     file_path = directory / Path(url_path).name
 
-    with requests.get(url_path, headers=headers, stream=True) as r:
-        r.raise_for_status()
+    with httpx.stream("GET", url_path, headers=headers) as response:
+        response.raise_for_status()
         with open(file_path, "wb") as f:
-            shutil.copyfileobj(r.raw, f)
+            for chunk in response.iter_raw():
+                f.write(chunk)
     return str(file_path.resolve())
 
 
@@ -507,7 +521,7 @@ def encode_file_to_base64(f: str | Path):
 
 
 def encode_url_to_base64(url: str):
-    resp = requests.get(url)
+    resp = httpx.get(url)
     resp.raise_for_status()
     encoded_string = base64.b64encode(resp.content)
     base64_str = str(encoded_string, "utf-8")
@@ -629,18 +643,17 @@ def set_space_timeout(
         library_name="gradio_client",
         library_version=__version__,
     )
-    req = requests.post(
-        f"https://huggingface.co/api/spaces/{space_id}/sleeptime",
-        json={"seconds": timeout_in_seconds},
-        headers=headers,
-    )
     try:
-        huggingface_hub.utils.hf_raise_for_status(req)
-    except huggingface_hub.utils.HfHubHTTPError as err:
+        httpx.post(
+            f"https://huggingface.co/api/spaces/{space_id}/sleeptime",
+            json={"seconds": timeout_in_seconds},
+            headers=headers,
+        )
+    except httpx.HTTPStatusError as e:
         raise SpaceDuplicationError(
             f"Could not set sleep timeout on duplicated Space. Please visit {SPACE_URL.format(space_id)} "
             "to set a timeout manually to reduce billing charges."
-        ) from err
+        ) from e
 
 
 ########################

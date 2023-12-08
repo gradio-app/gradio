@@ -134,7 +134,7 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
             del parameters[param_name]
         if param.default != inspect.Parameter.empty:
             default = param.default
-            if type(default) == str:
+            if isinstance(default, str):
                 default = '"' + default + '"'
             if default.__class__.__module__ != "builtins":
                 default = f"{default.__class__.__name__}()"

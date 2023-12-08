@@ -156,6 +156,7 @@
 	{:else}
 		<div id="timeline" class="thumbnail-wrapper">
 			<button
+				aria-label="start drag handle for trimming video"
 				class="handle left"
 				on:mousedown={() => startDragging("left")}
 				on:blur={stopDragging}
@@ -176,6 +177,7 @@
 				<img src={thumbnail} alt={`frame-${i}`} draggable="false" />
 			{/each}
 			<button
+				aria-label="end drag handle for trimming video"
 				class="handle right"
 				on:mousedown={() => startDragging("right")}
 				on:blur={stopDragging}
