@@ -79,6 +79,10 @@ jobs:
           name: playwright-screenshots
           path: |
             ./test-results
+      - name: run gradio custom components test
+        run: |
+          . venv/bin/activate
+          pnpm run test:custom-components
       - name: run browser component tests
         run: |
           . venv/bin/activate
