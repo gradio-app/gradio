@@ -42,7 +42,7 @@
 />
 
 <Story
-	name="Audio with autoplay"
+	name="with autoplay"
 	args={{
 		value: {
 			path: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
@@ -53,5 +53,17 @@
 		sources: ["microphone", "upload"],
 		label: "Audio Upload",
 		autoplay: true
+	}}
+/>
+
+<Story
+	name="with hidden recording waveform"
+	args={{
+		value: null,
+		interactive: true,
+		sources: ["microphone"],
+		waveform_options: {
+			show_recording_waveform: false
+		}
 	}}
 />

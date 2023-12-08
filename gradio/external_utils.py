@@ -7,7 +7,7 @@ import re
 import warnings
 from typing import Dict, List, Tuple
 
-import requests
+import httpx
 import yaml
 
 from gradio import components
@@ -18,7 +18,7 @@ from gradio import components
 
 
 def get_tabular_examples(model_name: str) -> Dict[str, List[float]]:
-    readme = requests.get(f"https://huggingface.co/{model_name}/resolve/main/README.md")
+    readme = httpx.get(f"https://huggingface.co/{model_name}/resolve/main/README.md")
     if readme.status_code != 200:
         warnings.warn(f"Cannot load examples from README for {model_name}", UserWarning)
         example_data = {}
@@ -48,7 +48,7 @@ def get_tabular_examples(model_name: str) -> Dict[str, List[float]]:
 
 
 def cols_to_rows(
-    example_data: Dict[str, List[float]]
+    example_data: Dict[str, List[float]],
 ) -> Tuple[List[str], List[List[float]]]:
     headers = list(example_data.keys())
     n_rows = max(len(example_data[header] or []) for header in headers)
@@ -87,7 +87,7 @@ def postprocess_label(scores: Dict) -> Dict:
     }
 
 
-def encode_to_base64(r: requests.Response) -> str:
+def encode_to_base64(r: httpx.Response) -> str:
     # Handles the different ways HF API returns the prediction
     base64_repr = base64.b64encode(r.content).decode("utf-8")
     data_prefix = ";base64,"

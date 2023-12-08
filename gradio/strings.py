@@ -2,7 +2,7 @@ import os
 import threading
 from typing import Dict
 
-import requests
+import httpx
 
 from gradio import wasm_utils
 
@@ -30,7 +30,7 @@ en = {
 
 def get_updated_messaging(en: Dict):
     try:
-        updated_messaging = requests.get(MESSAGING_API_ENDPOINT, timeout=3).json()
+        updated_messaging = httpx.get(MESSAGING_API_ENDPOINT, timeout=3).json()
         en.update(updated_messaging)
     except Exception:  # Use default messaging
         pass

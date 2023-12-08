@@ -1,5 +1,28 @@
 # gradio
 
+## 4.8.0
+
+### Features
+
+- [#6624](https://github.com/gradio-app/gradio/pull/6624) [`1751f14`](https://github.com/gradio-app/gradio/commit/1751f14c1b26c72c0fcc6ba4c69c060c7a199e5d) - Remove 2 slider demos from docs.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6622](https://github.com/gradio-app/gradio/pull/6622) [`4396f3f`](https://github.com/gradio-app/gradio/commit/4396f3f8f0984d7fcd7e1b88a793af86c7d4e5bb) - Fix encoding issue #6364 of reload mode.  Thanks [@curiousRay](https://github.com/curiousRay)!
+- [#5885](https://github.com/gradio-app/gradio/pull/5885) [`9919b8a`](https://github.com/gradio-app/gradio/commit/9919b8ab43bee3d1d7cc65fd641fc8bc9725e102) - Fix the docstring decoration.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6565](https://github.com/gradio-app/gradio/pull/6565) [`9bf1ad4`](https://github.com/gradio-app/gradio/commit/9bf1ad43eac543c9991e59f37e1910f217f8d739) - Fix uploaded file wasn't moved to custom temp dir at different disks.  Thanks [@dodysw](https://github.com/dodysw)!
+- [#6584](https://github.com/gradio-app/gradio/pull/6584) [`9bcb1da`](https://github.com/gradio-app/gradio/commit/9bcb1da189a9738d023ef6daad8c6c827e3f6371) - Feat: make UploadButton accept icon.  Thanks [@Justin-Xiang](https://github.com/Justin-Xiang)!
+- [#6512](https://github.com/gradio-app/gradio/pull/6512) [`4f040c7`](https://github.com/gradio-app/gradio/commit/4f040c752bb3b0586a4e16eca25a1e5f596eee48) - Update zh-CN.json.  Thanks [@cibimo](https://github.com/cibimo)!
+
+### Fixes
+
+- [#6607](https://github.com/gradio-app/gradio/pull/6607) [`13ace03`](https://github.com/gradio-app/gradio/commit/13ace035ed58f14f8f5ce584d94b81c56f83b5d4) - Update file_explorer.py - Fixing error if nothing selected in file_count=single mode (return None rather).  Thanks [@v-chabaux](https://github.com/v-chabaux)!
+- [#6574](https://github.com/gradio-app/gradio/pull/6574) [`2b625ad`](https://github.com/gradio-app/gradio/commit/2b625ad9403c3449b34a8a3da68ae48c4347c2db) - Ensure Chatbot messages are properly aligned when `rtl` is true.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6635](https://github.com/gradio-app/gradio/pull/6635) [`b639e04`](https://github.com/gradio-app/gradio/commit/b639e040741e6c0d9104271c81415d7befbd8cf3) - Quick Image + Text Component Fixes.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#6572](https://github.com/gradio-app/gradio/pull/6572) [`206af31`](https://github.com/gradio-app/gradio/commit/206af31d7c1a31013364a44e9b40cf8df304ba50) - Improve like/dislike functionality.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6566](https://github.com/gradio-app/gradio/pull/6566) [`d548202`](https://github.com/gradio-app/gradio/commit/d548202d2b5bd8a99e3ebc5bf56820b0282ce0f5) - Improve video trimming and error handling.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6653](https://github.com/gradio-app/gradio/pull/6653) [`d92c819`](https://github.com/gradio-app/gradio/commit/d92c8194191d0e3530d6780a72d6f5c4c545e175) - Add concurrency_limit to ChatInterface, add IDE support for concurrency_limit.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6551](https://github.com/gradio-app/gradio/pull/6551) [`8fc562a`](https://github.com/gradio-app/gradio/commit/8fc562a8abc0932fc312ac33bcc015f6cf2700f6) - Add `show_recording_waveform` to Audio.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6550](https://github.com/gradio-app/gradio/pull/6550) [`3156598`](https://github.com/gradio-app/gradio/commit/315659817e5e67a04a1375d35ea6fa58d20622d2) - Make FileExplorer work on python 3.8 and 3.9. Also make it update on changes to root, glob, or glob_dir.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6602](https://github.com/gradio-app/gradio/pull/6602) [`b8034a1`](https://github.com/gradio-app/gradio/commit/b8034a1e72c3aac649ee0ad9178ffdbaaa60fc61) - Fix: Gradio Client work with private Spaces.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 4.7.1
 
 ### Features

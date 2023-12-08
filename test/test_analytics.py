@@ -5,8 +5,8 @@ import os
 import warnings
 from unittest import mock as mock
 
+import httpx
 import pytest
-import requests
 
 from gradio import analytics, wasm_utils
 from gradio.context import Context
@@ -15,7 +15,7 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestAnalytics:
-    @mock.patch("requests.get")
+    @mock.patch("httpx.get")
     def test_should_warn_with_unable_to_parse(self, mock_get, monkeypatch):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         mock_get.side_effect = json.decoder.JSONDecodeError("Expecting value", "", 0)
@@ -28,16 +28,16 @@ class TestAnalytics:
                 == "unable to parse version details from package URL."
             )
 
-    @mock.patch("requests.post")
+    @mock.patch("httpx.post")
     def test_error_analytics_doesnt_crash_on_connection_error(
         self, mock_post, monkeypatch
     ):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
-        mock_post.side_effect = requests.ConnectionError()
+        mock_post.side_effect = httpx.ConnectError("Connection error")
         analytics._do_normal_analytics_request("placeholder", {})
         mock_post.assert_called()
 
-    @mock.patch("requests.post")
+    @mock.patch("httpx.post")
     def test_error_analytics_successful(self, mock_post, monkeypatch):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         analytics.error_analytics("placeholder")
@@ -73,9 +73,9 @@ class TestIPAddress:
             return
         ipaddress.ip_address(ip)
 
-    @mock.patch("requests.get")
+    @mock.patch("httpx.get")
     def test_get_ip_without_internet(self, mock_get, monkeypatch):
-        mock_get.side_effect = requests.ConnectionError()
+        mock_get.side_effect = httpx.ConnectError("Connection error")
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         Context.ip_address = None
         ip = analytics.get_local_ip_address()

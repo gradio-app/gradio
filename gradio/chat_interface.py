@@ -6,7 +6,7 @@ This file defines a useful high-level abstraction to build Gradio chatbots: Chat
 from __future__ import annotations
 
 import inspect
-from typing import AsyncGenerator, Callable
+from typing import AsyncGenerator, Callable, Literal, Union, cast
 
 import anyio
 from gradio_client import utils as client_utils
@@ -75,6 +75,7 @@ class ChatInterface(Blocks):
         undo_btn: str | None | Button = "↩️ Undo",
         clear_btn: str | None | Button = "🗑️  Clear",
         autofocus: bool = True,
+        concurrency_limit: int | None | Literal["default"] = "default",
     ):
         """
         Parameters:
@@ -97,6 +98,7 @@ class ChatInterface(Blocks):
             undo_btn: Text to display on the delete last button. If None, no button will be displayed. If a Button object, that button will be used.
             clear_btn: Text to display on the clear button. If None, no button will be displayed. If a Button object, that button will be used.
             autofocus: If True, autofocuses to the textbox when the page loads.
+            concurrency_limit: If set, this this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -105,6 +107,7 @@ class ChatInterface(Blocks):
             title=title or "Gradio",
             theme=theme,
         )
+        self.concurrency_limit = concurrency_limit
         self.fn = fn
         self.is_async = inspect.iscoroutinefunction(
             self.fn
@@ -123,7 +126,8 @@ class ChatInterface(Blocks):
             if not isinstance(additional_inputs, list):
                 additional_inputs = [additional_inputs]
             self.additional_inputs = [
-                get_component_instance(i) for i in additional_inputs  # type: ignore
+                get_component_instance(i)
+                for i in additional_inputs  # type: ignore
             ]
         else:
             self.additional_inputs = []
@@ -304,6 +308,9 @@ class ChatInterface(Blocks):
                 [self.saved_input, self.chatbot_state] + self.additional_inputs,
                 [self.chatbot, self.chatbot_state],
                 api_name=False,
+                concurrency_limit=cast(
+                    Union[int, Literal["default"], None], self.concurrency_limit
+                ),
             )
         )
         self._setup_stop_events(submit_triggers, submit_event)
@@ -329,6 +336,9 @@ class ChatInterface(Blocks):
                     [self.saved_input, self.chatbot_state] + self.additional_inputs,
                     [self.chatbot, self.chatbot_state],
                     api_name=False,
+                    concurrency_limit=cast(
+                        Union[int, Literal["default"], None], self.concurrency_limit
+                    ),
                 )
             )
             self._setup_stop_events([self.retry_btn.click], retry_event)
@@ -412,6 +422,9 @@ class ChatInterface(Blocks):
             [self.textbox, self.chatbot_state] + self.additional_inputs,
             [self.textbox, self.chatbot_state],
             api_name="chat",
+            concurrency_limit=cast(
+                Union[int, Literal["default"], None], self.concurrency_limit
+            ),
         )
 
     def _clear_and_save_textbox(self, message: str) -> tuple[str, str]:

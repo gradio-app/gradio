@@ -1,52 +1,74 @@
 # Setting Up a Demo for Maximum Performance
 
-Tags: QUEUE, PERFORMANCE
+Tags: CONCURRENCY, LATENCY, PERFORMANCE
 
 Let's say that your Gradio demo goes _viral_ on social media -- you have lots of users trying it out simultaneously, and you want to provide your users with the best possible experience or, in other words, minimize the amount of time that each user has to wait in the queue to see their prediction.
 
-How can you configure your Gradio demo to handle the most traffic? In this Guide, we dive into some of the parameters of Gradio's `.queue()` method as well as some other related configurations, and discuss how to set these parameters in a way that allows you to serve lots of users simultaneously with minimal latency.
+How can you configure your Gradio demo to handle the most traffic? In this Guide, we dive into some of the parameters of Gradio's `.queue()` method as well as some other related parameters, and discuss how to set these parameters in a way that allows you to serve lots of users simultaneously with minimal latency.
 
 This is an advanced guide, so make sure you know the basics of Gradio already, such as [how to create and launch a Gradio Interface](https://gradio.app/guides/quickstart/). Most of the information in this Guide is relevant whether you are hosting your demo on [Hugging Face Spaces](https://hf.space) or on your own server.
 
-## Enabling Gradio's Queueing System
+## Overview of Gradio's Queueing System
 
-By default, a Gradio demo does not use queueing and instead sends prediction requests via a POST request to the server where your Gradio server and Python code are running. However, regular POST requests have two big limitations:
+By default, every Gradio demo includes a built-in queuing system that scales to thousands of requests. When a user of your app submits a request (i.e. submits an input to your function), Gradio adds the request to the queue, and requests are processed in order, generally speaking (this is not exactly true, as discussed below). When the user's request has finished processing, the Gradio server returns the result back to the user using server-side events (SSE). The SSE protocol has several advantages over simply using HTTP POST requests: 
 
-(1) They time out -- most browsers raise a timeout error
-if they do not get a response to a POST request after a short period of time (e.g. 1 min).
-This can be a problem if your inference function takes longer than 1 minute to run or
-if many people are trying out your demo at the same time, resulting in increased latency.
+(1) They do not time out -- most browsers raise a timeout error if they do not get a response to a POST request after a short period of time (e.g. 1 min). This can be a problem if your inference function takes longer than 1 minute to run or if many people are trying out your demo at the same time, resulting in increased latency.
 
-(2) They do not allow bi-directional communication between the Gradio demo and the Gradio server. This means, for example, that you cannot get a real-time ETA of how long your prediction will take to complete.
+(2) They allow the server to send multiple updates to the frontend. This means, for example, that the server can send a real-time ETA of how long your prediction will take to complete.
 
-To address these limitations, any Gradio app can be converted to use **websockets** instead, simply by adding `.queue()` before launching an Interface or a Blocks. Here's an example:
+To configure the queue, simply call the `.queue()` method before launching an `Interface`, `TabbedInterface`, `ChatInterface` or any `Blocks`. Here's an example:
 
 ```py
+import gradio as gr
+
 app = gr.Interface(lambda x:x, "image", "image")
 app.queue()  # <-- Sets up a queue with default parameters
 app.launch()
 ```
 
-In the demo `app` above, predictions will now be sent over a websocket instead.
-Unlike POST requests, websockets do not timeout and they allow bidirectional traffic. On the Gradio server, a **queue** is set up, which adds each request that comes to a list. When a worker is free, the first available request is passed into the worker for inference. When the inference is complete, the queue sends the prediction back through the websocket to the particular Gradio user who called that prediction.
+**How Requests are Processed from the Queue**
 
-Note: If you host your Gradio app on [Hugging Face Spaces](https://hf.space), the queue is already **enabled by default**. You can still call the `.queue()` method manually in order to configure the queue parameters described below.
+When a Gradio server is launched, a pool of threads is used to execute requests from the queue. By default, the maximum size of this thread pool is `40` (which is the default inherited from FastAPI, on which the Gradio server is based). However, this does *not* mean that 40 requests are always processed in parallel from the queue. 
 
-## Queuing Parameters
+Instead, Gradio uses a **single-function-single-worker** model by default. This means that each worker thread is only assigned a single function from among all of the functions that could be part of your Gradio app. This ensures that you do not see, for example, out-of-memory errors, due to multiple workers calling a machine learning model at the same time. Suppose you have 3 functions in your Gradio app: A, B, and C. And you see the following sequence of 7 requests come in from users using your app:
 
-There are several parameters that can be used to configure the queue and help reduce latency. Let's go through them one-by-one.
+```
+1 2 3 4 5 6 7
+-------------
+A B A A C B A
+```
 
-### The `concurrency_limit` parameter
+Initially, 3 workers will get dispatched to handle requests 1, 2, and 5 (corresponding to functions: A, B, C). As soon as any of these workers finish, they will start processing the next function in the queue of the same function type, e.g. the worker that finished processing request 1 will start processing request 3, and so on.
 
-The first parameter we will explore is the `concurrency_limit` parameter of any event listener, e.g. `btn.click(..., concurrency_limit=20)` or `gr.Interface(..., concurrency_limit=20)`. This parameter is used to set the maximum number of worker threads in the Gradio server that can be processing your requests at once. By default, this parameter is set to `1` but increasing this can **linearly multiply the capacity of your server to handle requests**.
+If you want to change this behavior, there are several parameters that can be used to configure the queue and help reduce latency. Let's go through them one-by-one.
 
-So why not set this parameter much higher? Keep in mind that since requests are processed in parallel, each request will consume memory to store the data and weights for processing. This means that you might get out-of-memory errors if you increase the `concurrency_limit` too high. You may also start to get diminishing returns if the `concurrency_limit` is too high because of costs of switching between different worker threads.
 
-**Recommendation**: Increase the `concurrency_limit` parameter as high as you can while you continue to see performance gains or until you hit memory limits on your machine. You can [read about Hugging Face Spaces machine specs here](https://huggingface.co/docs/hub/spaces-overview).
+### The `default_concurrency_limit` parameter in `queue()`
 
-_Note_: there is a second parameter which controls the _total_ number of threads that Gradio can generate, across all your events. This is the `max_threads` parameter in the `launch()` method. You may want to manually increase this.
+The first parameter we will explore is the `default_concurrency_limit` parameter in `queue()`. This controls how many workers can execute the same event. By default, this is set to `1`, but you can set it to a higher integer: `2`, `10`, or even `None` (in the last case, there is no limit besides the total number of available workers). 
 
-### The `max_size` parameter
+This is useful, for example, if your Gradio app does not call any resource-intensive functions. If your app only queries external APIs, then you can set the `default_concurrency_limit` much higher. Increasing this parameter can **linearly multiply the capacity of your server to handle requests**.
+
+So why not set this parameter much higher all the time? Keep in mind that since requests are processed in parallel, each request will consume memory to store the data and weights for processing. This means that you might get out-of-memory errors if you increase the `default_concurrency_limit` too high. You may also start to get diminishing returns if the `default_concurrency_limit` is too high because of costs of switching between different worker threads.
+
+**Recommendation**: Increase the `default_concurrency_limit` parameter as high as you can while you continue to see performance gains or until you hit memory limits on your machine. You can [read about Hugging Face Spaces machine specs here](https://huggingface.co/docs/hub/spaces-overview).
+
+
+### The `concurrency_limit` parameter in events
+
+You can also set the number of requests that can be processed in parallel for each event individually. These take priority over the  `default_concurrency_limit` parameter described previously.
+
+To do this, set the `concurrency_limit` parameter of any event listener, e.g. `btn.click(..., concurrency_limit=20)` or in the `Interface` or `ChatInterface` classes: e.g. `gr.Interface(..., concurrency_limit=20)`. By default, this parameter is set to the global `default_concurrency_limit`.
+
+### The `max_workers` parameter in `launch()`
+
+
+If you have maxed out the `concurrency_count` and you'd like to further increase the number of requests that should be processed in parallel, you can increase the number of threads that can process requests from the queue. 
+
+You do this by setting the `max_workers` parameter in the `launch()` method. (The default value is 40.)
+
+
+### The `max_size` parameter in `queue()`
 
 A more blunt way to reduce the wait times is simply to prevent too many people from joining the queue in the first place. You can set the maximum number of requests that the queue processes using the `max_size` parameter of `queue()`. If a request arrives when the queue is already of the maximum size, it will not be allowed to join the queue and instead, the user will receive an error saying that the queue is full and to try again. By default, `max_size=None`, meaning that there is no limit to the number of users that can join the queue.
 
@@ -54,7 +76,7 @@ Paradoxically, setting a `max_size` can often improve user experience because it
 
 **Recommendation**: For a better user experience, set a `max_size` that is reasonable given your expectations of how long users might be willing to wait for a prediction.
 
-### The `max_batch_size` parameter
+### The `max_batch_size` parameter in events
 
 Another way to increase the parallelism of your Gradio demo is to write your function so that it can accept **batches** of inputs. Most deep learning models can process batches of samples more efficiently than processing individual samples.
 
@@ -89,13 +111,7 @@ The second function can be used with `batch=True` and an appropriate `max_batch_
 
 **Recommendation**: If possible, write your function to accept batches of samples, and then set `batch` to `True` and the `max_batch_size` as high as possible based on your machine's memory limits.
 
-### The `api_open` parameter
-
-When creating a Gradio demo, you may want to restrict all traffic to happen through the user interface as opposed to the [programmatic API](/guides/sharing-your-app/#api-page) that is automatically created for your Gradio demo. This is important because when people make requests through the programmatic API, they can potentially bypass users who are waiting in the queue and degrade the experience of these users.
-
-**Recommendation**: set the `api_open` parameter in `queue()` to `False` in your demo to prevent programmatic requests.
-
-### Upgrading your Hardware (GPUs, TPUs, etc.)
+## Upgrading your Hardware (GPUs, TPUs, etc.)
 
 If you have done everything above, and your demo is still not fast enough, you can upgrade the hardware that your model is running on. Changing the model from running on CPUs to running on GPUs will usually provide a 10x-50x increase in inference time for deep learning models.
 
@@ -106,7 +122,7 @@ It is particularly straightforward to upgrade your Hardware on Hugging Face Spac
 While you might need to adapt portions of your machine learning inference code to run on a GPU (here's a [handy guide](https://cnvrg.io/pytorch-cuda/) if you are using PyTorch), Gradio is completely agnostic to the choice of hardware and will work completely fine if you use it with CPUs, GPUs, TPUs, or any other hardware!
 
 Note: your GPU memory is different than your CPU memory, so if you upgrade your hardware,
-you might need to adjust the value of the `concurrency_limit` parameter described above.
+you might need to adjust the value of the `default_concurrency_limit` parameter described above.
 
 ## Conclusion
 

@@ -1,5 +1,11 @@
 # gradio_client
 
+## 0.7.1
+
+### Fixes
+
+- [#6602](https://github.com/gradio-app/gradio/pull/6602) [`b8034a1`](https://github.com/gradio-app/gradio/commit/b8034a1e72c3aac649ee0ad9178ffdbaaa60fc61) - Fix: Gradio Client work with private Spaces.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.7.0
 
 ### Features

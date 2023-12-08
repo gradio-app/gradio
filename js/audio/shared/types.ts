@@ -4,4 +4,5 @@ export type WaveformOptions = {
 	show_controls?: boolean;
 	skip_length?: number;
 	trim_region_color?: string;
+	show_recording_waveform?: boolean;
 };

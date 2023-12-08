@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, Sequenc
 from urllib.parse import urlparse, urlunparse
 
 import anyio
-import requests
+import httpx
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
@@ -1311,7 +1311,7 @@ Received inputs:
 
         dep_outputs = dependency["outputs"]
 
-        if type(predictions) is not list and type(predictions) is not tuple:
+        if not isinstance(predictions, (list, tuple)):
             predictions = [predictions]
 
         if len(predictions) < len(dep_outputs):
@@ -1349,7 +1349,7 @@ Received outputs:
         dependency = self.dependencies[fn_index]
         batch = dependency["batch"]
 
-        if type(predictions) is dict and len(predictions) > 0:
+        if isinstance(predictions, dict) and len(predictions) > 0:
             predictions = convert_component_dict_to_list(
                 dependency["outputs"], predictions
             )
@@ -1418,7 +1418,11 @@ Received outputs:
                             f"{block.__class__} Component with id {output_id} not a valid output component."
                         )
                     prediction_value = block.postprocess(prediction_value)
-                outputs_cached = processing_utils.move_files_to_cache(prediction_value, block, postprocess=True)  # type: ignore
+                outputs_cached = processing_utils.move_files_to_cache(
+                    prediction_value,
+                    block,  # type: ignore
+                    postprocess=True,
+                )
                 output.append(outputs_cached)
 
         return output
@@ -1904,7 +1908,7 @@ Received outputs:
             if not wasm_utils.IS_WASM:
                 # Cannot run async functions in background other than app's scope.
                 # Workaround by triggering the app endpoint
-                requests.get(f"{self.local_url}startup-events", verify=ssl_verify)
+                httpx.get(f"{self.local_url}startup-events", verify=ssl_verify)
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
                 # that `self._queue.start()` is called in another thread which is managed by the HTTP server, `uvicorn`
@@ -1988,7 +1992,7 @@ Received outputs:
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
-            except (RuntimeError, requests.exceptions.ConnectionError):
+            except (RuntimeError, httpx.ConnectError):
                 if self.analytics_enabled:
                     analytics.error_analytics("Not able to set up tunnel")
                 self.share_url = None
