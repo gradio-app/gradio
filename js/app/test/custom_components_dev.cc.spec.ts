@@ -1,12 +1,22 @@
 import { test, expect } from "@playwright/test";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import which from "which";
 import { join } from "path";
 
 test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
-	test.setTimeout(90 * 1000);
+	test.setTimeout(45 * 1000);
 
-	const _process = spawn(which.sync("gradio"), ["cc", "dev"], {
+	spawnSync(`gradio cc install`, {
+		shell: true,
+		stdio: "pipe",
+		cwd: join(process.cwd(), "mycomponent"),
+		env: {
+			...process.env,
+			PYTHONUNBUFFERED: "true"
+		}
+	});
+
+	const _process = spawn(`gradio cc dev`, {
 		shell: true,
 		stdio: "pipe",
 		cwd: join(process.cwd(), "mycomponent"),
