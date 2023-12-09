@@ -19,7 +19,7 @@ from gradio.events import Events
 set_documentation_group("component")
 
 
-GalleryImageType = np.ndarray | _Image.Image | Path, str
+GalleryImageType = Union[np.ndarray, _Image.Image, Path, str]
 CaptionedGalleryImageType = Tuple[GalleryImageType, str]
 
 
