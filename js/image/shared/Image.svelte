@@ -32,11 +32,3 @@
 
 <!-- svelte-ignore a11y-missing-attribute -->
 <img src={resolved_src} {...$$restProps} />
-
-<style>
-	img {
-		width: 100%;
-		height: 100%;
-		border-radius: var(--radius-lg);
-	}
-</style>
