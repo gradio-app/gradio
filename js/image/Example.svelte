@@ -17,6 +17,11 @@
 </div>
 
 <style>
+	.container :global(img) {
+		max-width: 100%;
+		max-height: 100%;
+	}
+
 	.container.selected {
 		border-color: var(--border-color-accent);
 	}
@@ -25,6 +30,7 @@
 		margin: 0 auto;
 		border: 2px solid var(--border-color-primary);
 		border-radius: var(--radius-lg);
+		overflow: hidden;
 		width: var(--size-20);
 		height: var(--size-20);
 		object-fit: cover;

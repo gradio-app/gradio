@@ -46,6 +46,12 @@
 		border: 2px solid var(--border-color-primary);
 		border-radius: var(--radius-lg);
 		max-width: none;
+		overflow: hidden;
+	}
+	.container :global(video) {
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: cover;
 	}
 
 	.container:hover,
