@@ -20,7 +20,7 @@ set_documentation_group("component")
 
 
 GalleryImageType = np.ndarray | _Image.Image | Path, str
-CaptionedGalleryImageType = tuple[GalleryImageType, str]
+CaptionedGalleryImageType = Tuple[GalleryImageType, str]
 
 
 class GalleryImage(GradioModel):
