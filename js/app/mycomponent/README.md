@@ -1,6 +1,6 @@
 
 # gradio_mycomponent
-A Custom Gradio component. Used to test the dev mode without having to spend time building a component.
+A Custom Gradio component.
 
 ## Example usage
 
