@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, List, Literal, Optional, Tuple, Union
+from typing import Any, Callable, List, Literal, Optional, Union
 from urllib.parse import urlparse
 
 import numpy as np
@@ -20,7 +20,7 @@ set_documentation_group("component")
 
 
 GalleryImageType = Union[np.ndarray, _Image.Image, Path, str]
-CaptionedGalleryImageType = Tuple[GalleryImageType, str]
+CaptionedGalleryImageType = tuple[GalleryImageType, str]
 
 
 class GalleryImage(GradioModel):
