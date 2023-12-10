@@ -367,8 +367,8 @@
 		border-radius: var(--radius-full);
 		background: var(--background-fill-primary);
 		padding: var(--size-0-5);
-		width: 18px;
-		height: 18px;
+		width: 16px;
+		height: 16px;
 	}
 
 	.secondary-wrap {
