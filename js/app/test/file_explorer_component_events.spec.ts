@@ -1,4 +1,4 @@
-import { test } from "@gradio/tootils";
+import { test, expect } from "@gradio/tootils";
 
 test("File Explorer is interactive and re-runs the server_fn when root is updated", async ({
 	page
@@ -26,4 +26,14 @@ test("File Explorer is interactive and re-runs the server_fn when root is update
 		.filter({ hasText: "foo.png" })
 		.getByRole("checkbox")
 		.check();
+
+	await page.locator("#input-box").getByTestId("textbox").fill("test");
+
+	await expect(
+		page.locator("span").filter({ hasText: "baz.png" }).getByRole("checkbox")
+	).toBeChecked();
+
+	await expect(
+		page.locator("span").filter({ hasText: "foo.png" }).getByRole("checkbox")
+	).toBeChecked();
 });

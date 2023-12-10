@@ -10,8 +10,5 @@
 	"exports": {
 		".": "./Index.svelte",
 		"./package.json": "./package.json"
-	},
-	"devDependencies": {
-		"@gradio/image": "workspace:^"
 	}
 }

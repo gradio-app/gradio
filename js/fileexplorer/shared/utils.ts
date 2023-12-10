@@ -30,7 +30,7 @@ interface FSStore {
 }
 
 export const make_fs_store = (): FSStore => {
-	const { subscribe, set, update } = writable<Node[] | null>(null);
+	const { subscribe, set } = writable<Node[] | null>(null);
 	let root: Node = {
 		type: "folder",
 		path: "",
@@ -38,16 +38,18 @@ export const make_fs_store = (): FSStore => {
 		children_visible: false,
 		parent: null
 	};
+	let tree_updated = false;
 
 	function create_fs_graph(serialised_node: SerialisedNode[]): void {
 		root.children = process_tree(serialised_node);
+		tree_updated = true;
 		set(root.children);
 	}
 
 	let old_checked_paths: string[][] = [];
 
 	function set_checked_from_paths(checked_paths: string[][]): string[][] {
-		if (dequal(checked_paths, old_checked_paths)) {
+		if (dequal(checked_paths, old_checked_paths) && !tree_updated) {
 			return checked_paths;
 		}
 		old_checked_paths = checked_paths;
@@ -87,6 +89,8 @@ export const make_fs_store = (): FSStore => {
 		}
 
 		set(root.children!);
+
+		tree_updated = false;
 
 		return new_checked_paths;
 	}
@@ -235,7 +239,6 @@ function check_node_and_children(
 	checked: boolean,
 	checked_nodes: Node[]
 ): Node[] {
-	// console.log(node, checked);
 	if (node === null || node === undefined) return checked_nodes;
 	for (let i = 0; i < node.length; i++) {
 		node[i].checked = checked;

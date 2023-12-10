@@ -25,9 +25,9 @@
 	args={{
 		value: [
 			{
-				path: "groot.jpg",
-				orig_name: "groot.jpg",
-				url: "https://i.ibb.co/6BgKdSj/groot.jpg",
+				path: "cheetah.jpg",
+				orig_name: "cheetah.jpg",
+				url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
 				size: 10000
 			}
 		]
@@ -37,9 +37,9 @@
 	name="Multiple files, with height set to 150px"
 	args={{
 		value: Array(10).fill({
-			path: "groot.jpg",
-			orig_name: "groot.jpg",
-			url: "https://i.ibb.co/6BgKdSj/groot.jpg",
+			path: "cheetah.jpg",
+			orig_name: "cheetah.jpg",
+			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
 			size: 10000
 		}),
 		height: 150

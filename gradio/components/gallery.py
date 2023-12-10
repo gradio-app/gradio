@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, List, Literal, Optional
+from typing import Any, Callable, List, Literal, Optional, Tuple, Union
+from urllib.parse import urlparse
 
 import numpy as np
 from gradio_client.documentation import document, set_documentation_group
@@ -16,6 +17,10 @@ from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
 
 set_documentation_group("component")
+
+
+GalleryImageType = Union[np.ndarray, _Image.Image, Path, str]
+CaptionedGalleryImageType = Tuple[GalleryImageType, str]
 
 
 class GalleryImage(GradioModel):
@@ -125,9 +130,7 @@ class Gallery(Component):
 
     def postprocess(
         self,
-        value: list[np.ndarray | _Image.Image | str]
-        | list[tuple[np.ndarray | _Image.Image | str, str]]
-        | None,
+        value: list[GalleryImageType | CaptionedGalleryImageType] | None,
     ) -> GalleryData:
         """
         Parameters:
@@ -141,6 +144,7 @@ class Gallery(Component):
         for img in value:
             url = None
             caption = None
+            orig_name = None
             if isinstance(img, (tuple, list)):
                 img, caption = img
             if isinstance(img, np.ndarray):
@@ -155,13 +159,20 @@ class Gallery(Component):
                 file_path = str(utils.abspath(file))
             elif isinstance(img, str):
                 file_path = img
-                url = img if is_http_url_like(img) else None
+                if is_http_url_like(img):
+                    url = img
+                    orig_name = Path(urlparse(img).path).name
+                else:
+                    url = None
+                    orig_name = Path(img).name
             elif isinstance(img, Path):
                 file_path = str(img)
+                orig_name = img.name
             else:
                 raise ValueError(f"Cannot process type as image: {type(img)}")
             entry = GalleryImage(
-                image=FileData(path=file_path, url=url), caption=caption
+                image=FileData(path=file_path, url=url, orig_name=orig_name),
+                caption=caption,
             )
             output.append(entry)
         return GalleryData(root=output)

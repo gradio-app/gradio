@@ -276,5 +276,5 @@ function isDedicatedWorker(
 function isMessagePort(
 	obj: globalThis.Worker | MessagePort
 ): obj is MessagePort {
-	return "postMessage" in obj;
+	return "close" in obj;
 }
