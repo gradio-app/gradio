@@ -4,6 +4,7 @@
 
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 
+
 	declare let BUILD_MODE: string;
 	interface Config {
 		auth_required: boolean | undefined;
@@ -153,7 +154,9 @@
 
 			if (parsed_head_html) {
 				for (let head_element of parsed_head_html) {
-					document.head.append(head_element);
+					let script = document.createElement('script');
+					script.textContent = head_element.textContent;
+					document.head.appendChild(script);
 				}
 			}
 		}
