@@ -24,7 +24,6 @@ export function prefix_css(
 	version: string,
 	style_element = document.createElement("style")
 ): HTMLStyleElement {
-	//  create style element
 	style_element.remove();
 
 	const stylesheet = new CSSStyleSheet();
@@ -45,6 +44,7 @@ export function prefix_css(
 					.map((s) => `.gradio-container-${version} .contain ${s.trim()}`)
 					.join(",");
 
+				css_string += rule.cssText;
 				css_string += rule.cssText.replace(selector, new_selector);
 			}
 		}
