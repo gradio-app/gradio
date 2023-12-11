@@ -23,6 +23,7 @@
 	export let waveform_options: WaveformOptions = {};
 	export let trim_region_settings: WaveformOptions = {};
 	export let show_volume_slider = false;
+	export let editable = true;
 
 	export let trimDuration = 0;
 
@@ -251,7 +252,7 @@
 			</button>
 		{/if}
 
-		{#if interactive}
+		{#if interactive && editable}
 			{#if mode === ""}
 				<button
 					class="action icon"
