@@ -11,7 +11,7 @@
 	export let icons: any = {};
 	export let node_indices: number[] = [];
 	export let file_count: "single" | "multiple" = "multiple";
-	export let any_checked: boolean;
+	export let include_dirs: boolean;
 
 	const dispatch = createEventDispatcher<{
 		check: { node_indices: number[]; checked: boolean };
@@ -33,7 +33,7 @@
 			<span class="wrap">
 				<Checkbox
 					disabled={!interactive ||
-						(file_count === "single" && any_checked && !checked)}
+						(file_count === "single" && !include_dirs && type === "folder")}
 					bind:value={checked}
 					on:change={() => dispatch_change(i)}
 				/>
@@ -67,7 +67,7 @@
 					node_indices={[...node_indices, i]}
 					{interactive}
 					{file_count}
-					{any_checked}
+					{include_dirs}
 				/>
 			{/if}
 		</li>

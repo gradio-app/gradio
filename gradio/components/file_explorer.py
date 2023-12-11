@@ -39,6 +39,7 @@ class FileExplorer(Component):
         *,
         value: str | list[str] | Callable | None = None,
         file_count: Literal["single", "multiple"] = "multiple",
+        include_dirs: bool = False,
         root: str | Path = ".",
         ignore_glob: str | None = None,
         label: str | None = None,
@@ -59,6 +60,7 @@ class FileExplorer(Component):
             glob: The glob-style pattern used to select which files to display, e.g. "*" to match all files, "*.png" to match all .png files, "**/*.txt" to match any .txt file in any subdirectory, etc. The default value matches all files and folders recursively. See the Python glob documentation at https://docs.python.org/3/library/glob.html for more information.
             value: The file (or list of files, depending on the `file_count` parameter) to show as "selected" when the component is first loaded. If a callable is provided, it will be called when the app loads to set the initial value of the component. If not provided, no files are shown as selected.
             file_count: Whether to allow single or multiple files to be selected. If "single", the component will return a single absolute file path as a string. If "multiple", the component will return a list of absolute file paths as a list of strings.
+            include_dirs: Whether 
             root: Path to root directory to select files from. If not provided, defaults to current working directory.
             ignore_glob: The glob-tyle pattern that will be used to exclude files from the list. For example, "*.py" will exclude all .py files from the list. See the Python glob documentation at https://docs.python.org/3/library/glob.html for more information.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
@@ -84,6 +86,7 @@ class FileExplorer(Component):
             )
         self.file_count = file_count
         self.height = height
+        self.include_dirs = include_dirs
 
         super().__init__(
             label=label,
@@ -116,8 +119,13 @@ class FileExplorer(Component):
                 return None
             else:
                 return self._safe_join(payload.root[0])
-
-        return [self._safe_join(file) for file in (payload.root)]
+        files = []
+        for file in payload.root:
+            file_ = self._safe_join(file)
+            if not self.include_dirs and Path(file_).is_dir():
+                continue
+            files.append(file_)
+        return files
 
     def _strip_root(self, path):
         if path.startswith(self.root):
@@ -129,10 +137,13 @@ class FileExplorer(Component):
             return None
 
         files = [value] if isinstance(value, str) else value
+        root = []
+        for file in files:
+            if not self.include_dirs and Path(file).is_dir():
+                continue
+            root.append(self._strip_root(file).split(os.path.sep))
 
-        return FileExplorerData(
-            root=[self._strip_root(file).split(os.path.sep) for file in files]
-        )
+        return FileExplorerData(root=root)
 
     @server
     def ls(self, value=None) -> list[dict[str, str]] | None:

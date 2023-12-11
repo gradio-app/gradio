@@ -1,5 +1,6 @@
 import { writable, type Readable } from "svelte/store";
 import { dequal } from "dequal";
+import { _ } from "svelte-i18n";
 export interface Node {
 	type: "file" | "folder";
 	path: string;
@@ -24,9 +25,10 @@ interface FSStore {
 		indices: number[],
 		checked: boolean,
 		checked_paths: string[][],
-		file_count: "single" | "multiple"
+		file_count: "single" | "multiple",
+		include_dirs: boolean
 	) => string[][];
-	set_checked_from_paths: (checked_paths: string[][]) => string[][];
+	set_checked_from_paths: (checked_paths: string[][], include_dirs: boolean) => string[][];
 }
 
 export const make_fs_store = (): FSStore => {
@@ -41,6 +43,7 @@ export const make_fs_store = (): FSStore => {
 	let tree_updated = false;
 
 	function create_fs_graph(serialised_node: SerialisedNode[]): void {
+		console.log("here")
 		root.children = process_tree(serialised_node);
 		tree_updated = true;
 		set(root.children);
@@ -48,7 +51,7 @@ export const make_fs_store = (): FSStore => {
 
 	let old_checked_paths: string[][] = [];
 
-	function set_checked_from_paths(checked_paths: string[][]): string[][] {
+	function set_checked_from_paths(checked_paths: string[][], include_dirs: boolean): string[][] {
 		if (dequal(checked_paths, old_checked_paths) && !tree_updated) {
 			return checked_paths;
 		}
@@ -73,8 +76,8 @@ export const make_fs_store = (): FSStore => {
 
 			_node.checked = true;
 			ensure_visible(_node);
-			const nodes = check_node_and_children(_node.children, true, [_node]);
-			check_parent(_node);
+			const nodes = check_node_and_children(_node.children, include_dirs ? false : true, [_node]);
+			if (!include_dirs) check_parent(_node);
 
 			nodes.forEach((node) => {
 				const path = get_full_path(node);
@@ -99,7 +102,8 @@ export const make_fs_store = (): FSStore => {
 		indices: number[],
 		checked: boolean,
 		checked_paths: string[][],
-		file_count: "single" | "multiple"
+		file_count: "single" | "multiple",
+		include_dirs: boolean = false
 	): string[][] {
 		let _node = root;
 
@@ -115,7 +119,7 @@ export const make_fs_store = (): FSStore => {
 		_node.checked = checked;
 		const nodes = check_node_and_children(
 			_node.children,
-			file_count === "single" ? false : checked,
+			file_count === "single" && include_dirs ? false : checked,
 			[_node]
 		);
 
@@ -133,8 +137,8 @@ export const make_fs_store = (): FSStore => {
 				new_checked_paths.set(_path.join("/"), _path);
 			}
 		}
-
-		check_parent(_node);
+		
+		if (!include_dirs) check_parent(_node);
 		set(root.children!);
 		old_checked_paths = Array.from(new_checked_paths).map((v) => v[1]);
 		return old_checked_paths;

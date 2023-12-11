@@ -20,6 +20,7 @@
 	export let show_label: boolean;
 	export let height: number | undefined = undefined;
 	export let file_count: "single" | "multiple" = "multiple";
+	export let include_dirs: boolean;
 
 	export let glob: string;
 	export let ignore_glob: string;
@@ -70,6 +71,7 @@
 		{root}
 		{glob}
 		{ignore_glob}
+		{include_dirs}
 		on:change={() => gradio.dispatch("change")}
 	/>
 </Block>

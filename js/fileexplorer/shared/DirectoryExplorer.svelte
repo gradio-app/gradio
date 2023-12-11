@@ -13,6 +13,7 @@
 	export let interactive: boolean;
 	export let server: any;
 	export let file_count: "single" | "multiple" = "multiple";
+	export let include_dirs: boolean;
 
 	export let value: string[][] = [];
 
@@ -29,16 +30,13 @@
 		});
 
 	$: value.length && $tree && set_checked_from_paths();
-
-	function is_checked(node: Node): boolean {
-		return node.checked || (node.children?.some(is_checked) ?? false);
-	}
-
-	$: any_checked = ($tree ?? []).some(is_checked);
+	$: console.log("value", value)
+	$: console.log("old_value", old_value)
 
 	function set_checked_from_paths(): void {
 		value = file_count === "single" ? [value[0] || []] : value;
-		value = tree.set_checked_from_paths(value);
+		value = tree.set_checked_from_paths(value, include_dirs);
+		console.log("value after set_checked_from_paths", value)
 		if (!dequal(value, old_value)) {
 			old_value = value;
 			dispatch("change", value);
@@ -53,7 +51,7 @@
 		node_indices: number[];
 		checked: boolean;
 	}): void {
-		value = tree.set_checked(node_indices, checked, value, file_count);
+		value = tree.set_checked(node_indices, checked, value, file_count, include_dirs);
 		if (!dequal(value, old_value)) {
 			old_value = value;
 			dispatch("change", value);
@@ -68,7 +66,7 @@
 			{interactive}
 			on:check={({ detail }) => handle_select(detail)}
 			{file_count}
-			{any_checked}
+			{include_dirs}
 		/>
 	</div>
 {:else}
