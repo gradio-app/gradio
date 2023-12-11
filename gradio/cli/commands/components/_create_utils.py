@@ -81,7 +81,9 @@ OVERRIDES = {
     "Chatbot": ComponentFiles(template="Chatbot", demo_code=static_only_demo_code),
     "Gallery": ComponentFiles(template="Gallery", demo_code=static_only_demo_code),
     "HTML": ComponentFiles(template="HTML", demo_code=static_only_demo_code),
-    # "ImageEditor": ComponentFiles(template="ImageEditor", python_file_name="image_editor.py"),
+    "ImageEditor": ComponentFiles(
+        template="ImageEditor", python_file_name="image_editor.py"
+    ),
     "Label": ComponentFiles(template="Label", demo_code=static_only_demo_code),
     "Markdown": ComponentFiles(template="Markdown", demo_code=static_only_demo_code),
     "Fallback": ComponentFiles(template="Fallback", demo_code=fallback_code),
