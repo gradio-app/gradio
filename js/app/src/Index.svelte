@@ -146,17 +146,20 @@
 	async function add_custom_html_head(
 		head_string: string | null
 	): Promise<void> {
-		const parser = new DOMParser();
 		if (head_string) {
+			const parser = new DOMParser();
 			const parsed_head_html = Array.from(
 				parser.parseFromString(head_string, "text/html").head.children
 			);
 
 			if (parsed_head_html) {
 				for (let head_element of parsed_head_html) {
-					let script = document.createElement('script');
-					script.textContent = head_element.textContent;
-					document.head.appendChild(script);
+					let newScriptTag = document.createElement('script');
+					Array.from(head_element.attributes).forEach(attr => {
+						newScriptTag.setAttribute(attr.name, attr.value);
+					});
+					newScriptTag.textContent = head_element.textContent;
+					document.head.appendChild(newScriptTag);
 				}
 			}
 		}
