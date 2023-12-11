@@ -6,7 +6,7 @@ import { join } from "path";
 test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
 	test.setTimeout(45 * 1000);
 
-	spawnSync(`gradio cc install`, {
+	const install = spawnSync(`gradio cc install`, {
 		shell: true,
 		stdio: "pipe",
 		cwd: join(process.cwd(), "mycomponent"),
@@ -15,6 +15,8 @@ test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
 			PYTHONUNBUFFERED: "true"
 		}
 	});
+	console.log("install stdout", install.stdout.toString());
+	console.log("install stderr", install.stderr.toString());
 
 	const _process = spawn(`gradio cc dev`, {
 		shell: true,
