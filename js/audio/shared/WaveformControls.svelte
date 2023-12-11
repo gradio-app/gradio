@@ -238,21 +238,21 @@
 	</div>
 
 	<div class="settings-wrapper">
-		{#if showRedo && mode === ""}
-			<button
-				class="action icon"
-				aria-label="Reset audio"
-				on:click={() => {
-					handle_reset_value();
-					clearRegions();
-					mode = "";
-				}}
-			>
-				<Undo />
-			</button>
-		{/if}
+		{#if editable && interactive}
+			{#if showRedo && mode === ""}
+				<button
+					class="action icon"
+					aria-label="Reset audio"
+					on:click={() => {
+						handle_reset_value();
+						clearRegions();
+						mode = "";
+					}}
+				>
+					<Undo />
+				</button>
+			{/if}
 
-		{#if interactive && editable}
 			{#if mode === ""}
 				<button
 					class="action icon"
