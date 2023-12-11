@@ -236,5 +236,5 @@ bash scripts/build_frontend.sh
 ```
 ---
 
-_Could these guidelines be clearer? Feel free to open a PR to help us faciltiate open-source contributions!_
+_Could these guidelines be clearer? Feel free to open a PR to help us facilitate open-source contributions!_
 
