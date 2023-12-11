@@ -43,9 +43,12 @@
 <style>
 	.container {
 		flex: none;
-		border: 2px solid var(--border-color-primary);
-		border-radius: var(--radius-lg);
 		max-width: none;
+	}
+	.container :global(video) {
+		width: var(--size-full);
+		height: var(--size-full);
+		object-fit: cover;
 	}
 
 	.container:hover,
@@ -54,6 +57,9 @@
 	}
 	.container.table {
 		margin: 0 auto;
+		border: 2px solid var(--border-color-primary);
+		border-radius: var(--radius-lg);
+		overflow: hidden;
 		width: var(--size-20);
 		height: var(--size-20);
 		object-fit: cover;
