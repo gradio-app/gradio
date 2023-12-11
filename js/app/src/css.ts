@@ -41,7 +41,10 @@ export function prefix_css(
 			if (selector) {
 				const new_selector = selector
 					.split(",")
-					.map((s) => `.gradio-container-${version} .contain ${s.trim()}`)
+					.map(
+						(s) =>
+							`gradio-app .gradio-container.gradio-container-${version} .contain ${s.trim()}`
+					)
 					.join(",");
 
 				css_string += rule.cssText;
