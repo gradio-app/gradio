@@ -2176,7 +2176,7 @@ Received outputs:
         try:
             if wasm_utils.IS_WASM:
                 # NOTE:
-                # Normally, queue-related async tasks (e.g. continuous events created by `gr.Blocks.load(..., every=interval)`, whose async tasks are started at the `/queue/join` endpoint function)
+                # Normally, queue-related async tasks (e.g. continuous events created by `gr.Blocks.load(..., every=interval)`, whose async tasks are started at the `/queue/data` endpoint function)
                 # are running in an event loop in the server thread,
                 # so they will be cancelled by `self.server.close()` below.
                 # However, in the Wasm env, we don't have the `server` and

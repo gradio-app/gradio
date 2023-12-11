@@ -176,7 +176,6 @@ class Client:
                             if resp["msg"] == "heartbeat":
                                 continue
                             elif resp["msg"] == "server_stopped":
-                                print("Server stopped!!!", self.src)
                                 for (
                                     pending_messages
                                 ) in self.pending_messages_per_event.values():
@@ -1174,6 +1173,7 @@ class Endpoint:
     async def _sse_fn_v1(self, helper: Communicator, event_id: str):
         return await utils.get_pred_from_sse_v1(
             helper,
+            self.client.headers,
             self.client.cookies,
             self.client.pending_messages_per_event,
             event_id,

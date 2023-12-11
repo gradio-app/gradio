@@ -578,8 +578,8 @@ class App(FastAPI):
                 )
             return output
 
-        @app.get("/queue/join", dependencies=[Depends(login_check)])
-        async def queue_join(
+        @app.get("/queue/data", dependencies=[Depends(login_check)])
+        async def queue_data(
             request: fastapi.Request,
             session_hash: str,
         ):
@@ -649,15 +649,12 @@ class App(FastAPI):
                 media_type="text/event-stream",
             )
 
-        @app.post("/queue/data", dependencies=[Depends(login_check)])
-        async def queue_data(
+        @app.post("/queue/join", dependencies=[Depends(login_check)])
+        async def queue_join(
             body: PredictBody,
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            from datetime import datetime
-
-            print("recieved data @", datetime.now().strftime("%H:%M:%S.%f")[:-3])
             if blocks._queue.server_app is None:
                 blocks._queue.set_server_app(app)
 

@@ -26,9 +26,9 @@ from huggingface_hub import SpaceStage
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
 API_URL = "api/predict/"
-SSE_URL = "queue/join"
-SSE_DATA_URL = "queue/data"
-WS_URL = "queue/join"
+SSE_URL = "queue/data"
+SSE_DATA_URL = "queue/join"
+WS_URL = "queue/data"
 UPLOAD_URL = "upload"
 LOGIN_URL = "login"
 CONFIG_URL = "config"
@@ -335,7 +335,7 @@ async def get_pred_from_sse_v0(
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
-            asyncio.create_task(check_for_cancel(helper, cookies)),
+            asyncio.create_task(check_for_cancel(helper, headers, cookies)),
             asyncio.create_task(
                 stream_sse_v0(
                     client,
@@ -366,13 +366,14 @@ async def get_pred_from_sse_v0(
 
 async def get_pred_from_sse_v1(
     helper: Communicator,
+    headers: dict[str, str],
     cookies: dict[str, str] | None,
     pending_messages_per_event: dict[str, list[Message]],
     event_id: str,
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
-            asyncio.create_task(check_for_cancel(helper, cookies)),
+            asyncio.create_task(check_for_cancel(helper, headers, cookies)),
             asyncio.create_task(
                 stream_sse_v1(
                     helper,
@@ -396,7 +397,7 @@ async def get_pred_from_sse_v1(
         return task.result()
 
 
-async def check_for_cancel(helper: Communicator, cookies: dict[str, str] | None):
+async def check_for_cancel(helper: Communicator, headers: dict[str, str], cookies: dict[str, str] | None):
     while True:
         await asyncio.sleep(0.05)
         with helper.lock:
@@ -405,7 +406,7 @@ async def check_for_cancel(helper: Communicator, cookies: dict[str, str] | None)
     if helper.event_id:
         async with httpx.AsyncClient() as http:
             await http.post(
-                helper.reset_url, json={"event_id": helper.event_id}, cookies=cookies
+                helper.reset_url, json={"event_id": helper.event_id}, headers=headers, cookies=cookies
             )
     raise CancelledError()
 
