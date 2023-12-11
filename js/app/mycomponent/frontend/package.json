@@ -1,21 +1,21 @@
 {
-  "name": "gradio_mycomponent",
-  "version": "0.1.4",
-  "description": "Gradio UI packages",
-  "type": "module",
-  "author": "",
-  "license": "ISC",
-  "private": false,
-  "main_changeset": true,
-  "exports": {
-    ".": "./Index.svelte",
-    "./example": "./Example.svelte",
-    "./package.json": "./package.json"
-  },
-  "dependencies": {
-    "@gradio/atoms": "0.3.1",
-    "@gradio/icons": "0.3.1",
-    "@gradio/statustracker": "0.4.1",
-    "@gradio/utils": "0.2.0"
-  }
+	"name": "gradio_mycomponent",
+	"version": "0.1.4",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"author": "",
+	"license": "ISC",
+	"private": false,
+	"main_changeset": true,
+	"exports": {
+		".": "./Index.svelte",
+		"./example": "./Example.svelte",
+		"./package.json": "./package.json"
+	},
+	"dependencies": {
+		"@gradio/atoms": "0.3.1",
+		"@gradio/icons": "0.3.1",
+		"@gradio/statustracker": "0.4.1",
+		"@gradio/utils": "0.2.0"
+	}
 }
