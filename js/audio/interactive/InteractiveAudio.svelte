@@ -31,6 +31,7 @@
 	export let dragging: boolean;
 	export let active_source: "microphone" | "upload";
 	export let handle_reset_value: () => void = () => {};
+	export let editable = true;
 
 	$: dispatch("drag", dragging);
 
@@ -259,6 +260,7 @@
 		{waveform_options}
 		{trim_region_settings}
 		{handle_reset_value}
+		{editable}
 		interactive
 		on:stop
 		on:play
