@@ -11,6 +11,21 @@ from gradio.cli.commands.components.publish import _get_version_from_file
 from gradio.cli.commands.components.show import _show
 
 
+def test_create_smoke(io_components, tmp_path):
+    for component in io_components:
+        try:
+            _create(
+                "MyComponent",
+                tmp_path,
+                template=component.__name__,
+                overwrite=True,
+                install=False,
+                configure_metadata=False,
+            )
+        except Exception as e:
+            raise ValueError(f"Cannot create component template for {component}") from e
+
+
 @pytest.mark.parametrize(
     "template",
     [

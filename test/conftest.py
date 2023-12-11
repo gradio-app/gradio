@@ -32,7 +32,10 @@ def io_components():
 
         if children:
             classes_to_check.extend(children)
-        if "value" in inspect.signature(subclass.__init__).parameters:
+        if (
+            "value" in inspect.signature(subclass.__init__).parameters
+            and "gradio.components" in subclass.__module__
+        ):
             subclasses.append(subclass)
 
     return subclasses
