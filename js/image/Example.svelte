@@ -37,7 +37,6 @@
 	}
 
 	.container.gallery {
-		border: 2px solid var(--border-color-primary);
 		height: var(--size-20);
 		max-height: var(--size-20);
 		object-fit: cover;
