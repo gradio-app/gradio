@@ -46,7 +46,7 @@ test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
 		const portRegExp = /:(\d+)/;
 		const match = portRegExp.exec(_data);
 
-		if (match && match[1]) {
+		if (match && match[1] && _data.includes("Go here")) {
 			port = parseInt(match[1], 10);
 		}
 	}
