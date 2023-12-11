@@ -777,6 +777,7 @@ class TestAudio:
             "max_length": None,
             "min_length": None,
             "container": True,
+            "editable": True,
             "min_width": 160,
             "scale": None,
             "elem_id": None,
