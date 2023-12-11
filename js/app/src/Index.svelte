@@ -4,7 +4,6 @@
 
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 
-
 	declare let BUILD_MODE: string;
 	interface Config {
 		auth_required: boolean | undefined;
@@ -154,8 +153,8 @@
 
 			if (parsed_head_html) {
 				for (let head_element of parsed_head_html) {
-					let newScriptTag = document.createElement('script');
-					Array.from(head_element.attributes).forEach(attr => {
+					let newScriptTag = document.createElement("script");
+					Array.from(head_element.attributes).forEach((attr) => {
 						newScriptTag.setAttribute(attr.name, attr.value);
 					});
 					newScriptTag.textContent = head_element.textContent;
