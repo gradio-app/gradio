@@ -220,9 +220,6 @@ class Client:
 
             if self.streaming_future is None or self.streaming_future.done():
                 self.streaming_future = self.executor.submit(open_stream)
-                self.streaming_future.add_done_callback(
-                    lambda f: print("res:", f.result())
-                )
 
         return event_id
 
