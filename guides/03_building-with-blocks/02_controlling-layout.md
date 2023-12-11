@@ -55,7 +55,7 @@ You can control the height and width of various components, where the parameters
 
 Below is an example illustrating the use of viewport width (vw):
 
-```
+```python
 import gradio as gr
 
 with gr.Blocks() as demo:
@@ -69,7 +69,7 @@ demo.launch()
 When using percentage values for dimensions, you may want to define a parent component with an absolute unit (e.g. `px` or `vw`). This approach ensures that child components with relative dimensions are sized appropriately:
 
 
-```
+```python
 import gradio as gr
 
 css = """
