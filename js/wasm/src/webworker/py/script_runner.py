@@ -1,4 +1,5 @@
 import ast
+import os
 import sys
 import tokenize
 import types
@@ -85,22 +86,31 @@ def _new_module(name: str) -> types.ModuleType:
     return types.ModuleType(name)
 
 
-async def _run_script(app_id: str, script_path: str) -> None:
+def set_home_dir(home_dir: str) -> None:
+    os.environ["HOME"] = home_dir
+    os.chdir(home_dir)
+
+
+async def _run_script(app_id: str, home_dir: str, script_path: str) -> None:
     # This function is based on the following code from Streamlit:
     # https://github.com/streamlit/streamlit/blob/1.24.0/lib/streamlit/runtime/scriptrunner/script_runner.py#L519-L554
     # with modifications to support top-level await.
+    set_home_dir(home_dir)
 
     with tokenize.open(script_path) as f:
         filebody = f.read()
 
-    await _run_code(app_id, filebody, script_path)
+    await _run_code(app_id, home_dir, filebody, script_path)
 
 
 async def _run_code(
         app_id: str,
+        home_dir: str,
         filebody: str,
         script_path: str = '<string>'  # This default value follows the convention. Ref: https://docs.python.org/3/library/functions.html#compile
     ) -> None:
+    set_home_dir(home_dir)
+
     # NOTE: In Streamlit, the bytecode caching mechanism has been introduced.
     # However, we skipped it here for simplicity and because Gradio doesn't need to rerun the script so frequently,
     # while we may do it in the future.
