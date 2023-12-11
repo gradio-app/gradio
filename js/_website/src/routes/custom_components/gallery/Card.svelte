@@ -1,21 +1,21 @@
 <script lang="ts">
 	import type { ComponentData } from "./utils";
-	import CopyButton from "./CopyButton.svelte";
+	import CopyButton from "$lib/icons/CopyButton.svelte";
 	import { BaseCode } from "@gradio/code";
 	import { onMount } from "svelte";
 
 	export let data: ComponentData;
 
-	let sourceCodeLink = `https://huggingface.co/spaces/${data.id}`;
-	let authorLink = `https://huggingface.co/${data.author}`;
-	let discussionLink = `https://huggingface.co/spaces/${data.id}/discussions/new`;
-	let codeUrl = `https://huggingface.co/spaces/${data.id}/raw/main/app.py`;
+	let source_code_link = `https://huggingface.co/spaces/${data.id}`;
+	let author_link = `https://huggingface.co/${data.author}`;
+	let discussion_link = `https://huggingface.co/spaces/${data.id}/discussions/new`;
+	let code_url = `https://huggingface.co/spaces/${data.id}/raw/main/app.py`;
 	const tabs = ["Demo", "Code"];
-	let activeTab = 0;
+	let active_tab = 0;
 	let code: string;
 
 	onMount(async () => {
-		code = await fetch(codeUrl).then((res) => res.text());
+		code = await fetch(code_url).then((res) => res.text());
 	});
 </script>
 
@@ -31,7 +31,7 @@
 		<div class="ml-2">
 			<strong>🖋️ Author</strong>
 			<a
-				href={authorLink}
+				href={author_link}
 				target="_blank"
 				class="link text-orange-400 font-bold">{data.author}</a
 			>
@@ -47,7 +47,7 @@
 		<div class="ml-2">
 			<strong>🧬</strong>
 			<a
-				href={sourceCodeLink}
+				href={source_code_link}
 				target="_blank"
 				class="link text-orange-400 font-bold">code</a
 			>
@@ -63,7 +63,7 @@
 		<div class="ml-2">
 			<strong>🤝 Feedback? Stuck?</strong>
 			<a
-				href={discussionLink}
+				href={discussion_link}
 				target="_blank"
 				class="link text-orange-400 font-bold"
 			>
@@ -75,20 +75,20 @@
 		<div class="tabs flex flex-row relative">
 			{#each tabs as tab, index}
 				<div
-					class="tab bg-white {activeTab === index
+					class="tab bg-white {active_tab === index
 						? 'active'
-						: ''} {activeTab === index
+						: ''} {active_tab === index
 						? ''
 						: 'border-b-2'} px-8 py-1 rounded-t-md border-x-2 border-t-2 border-orange-300 content-center"
 					on:click={() => {
-						activeTab = index;
+						active_tab = index;
 					}}
 				>
 					{tab}
 				</div>
 			{/each}
 		</div>
-		{#if activeTab === 0}
+		{#if active_tab === 0}
 			<iframe
 				src={`https://${data.subdomain}.hf.space?__theme=light`}
 				height="100%"
@@ -96,7 +96,7 @@
 			></iframe>
 		{:else}
 			<div class="bg-white">
-				<BaseCode value={code} language="python" />
+				<BaseCode value={code} language="python" dark_mode={false} />
 			</div>
 		{/if}
 	</div>

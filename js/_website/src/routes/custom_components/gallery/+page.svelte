@@ -3,7 +3,7 @@
 	import type { ComponentData } from "./utils";
 	import { getRandomIntInclusive, classToEmojiMapping } from "./utils";
 	import Card from "./Card.svelte";
-	import Close from "./Close.svelte";
+	import Close from "$lib/icons/Close.svelte";
 
 	const API = "https://gradio-custom-component-gallery-backend.hf.space/";
 	const OFFSET = 0;
@@ -12,7 +12,7 @@
 	let components: ComponentData[] = [];
 	let selection: string = "";
 
-	let selectedComponent: ComponentData | null = null;
+	let selected_component: ComponentData | null = null;
 
 	const COLOR_SETS = [
 		["from-green-100", "to-green-50"],
@@ -29,16 +29,16 @@
 		["from-purple-100", "to-purple-50"]
 	];
 
-	function randomColor(): string {
+	function random_color(): string {
 		const color = COLOR_SETS[getRandomIntInclusive(0, COLOR_SETS.length - 1)];
 		return `${color[0]} ${color[1]}`;
 	}
 
-	const handleBoxClick = (component: ComponentData) => {
-		selectedComponent = component;
+	const handle_box_click = (component: ComponentData) => {
+		selected_component = component;
 	};
 
-	async function fetchComponents(selection: string[] = []) {
+	async function fetch_components(selection: string[] = []) {
 		components = await fetch(
 			`${API}components?offset=${OFFSET}&limit=${LIMIT}&name_or_tags=${selection.join(
 				","
@@ -46,16 +46,16 @@
 		)
 			.then((response) => response.json())
 			.catch((error) => `Error: ${error}`);
-		components.map((x) => (x.background_color = randomColor()));
+		components.map((x) => (x.background_color = random_color()));
 	}
 
-	onMount(fetchComponents);
+	onMount(fetch_components);
 
 	async function handle_keypress(e: KeyboardEvent): Promise<void> {
 		await tick();
 		if (e.key === "Enter") {
 			e.preventDefault();
-			fetchComponents(selection.split(","));
+			fetch_components(selection.split(","));
 		}
 	}
 </script>
@@ -72,7 +72,7 @@
 	<div class="grid relative">
 		{#each components as component (component.id)}
 			<div
-				on:click={() => handleBoxClick(component)}
+				on:click={() => handle_box_click(component)}
 				class="box h-36 group font:thin relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {component.background_color}"
 			>
 				<div class="absolute opacity-30 text-6xl mb-1">
@@ -93,20 +93,20 @@
 		{/each}
 	</div>
 </div>
-{#if selectedComponent}
+{#if selected_component}
 	<div class="details-panel open">
 		<button
 			class="absolute right-3 top-3 w-4"
-			on:click={() => (selectedComponent = null)}
+			on:click={() => (selected_component = null)}
 		>
 			<Close />
 		</button>
 		<div>
 			<p class="text-4xl text-black text-center font-bold">
-				{selectedComponent.name}
+				{selected_component.name}
 			</p>
 		</div>
-		<Card data={selectedComponent}></Card>
+		<Card data={selected_component}></Card>
 	</div>
 {/if}
 
