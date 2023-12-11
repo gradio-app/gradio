@@ -72,7 +72,6 @@
 <Story
 	name="Chatbot with copy button"
 	args={{
-		rtl: true,
 		latex_delimiters: [{ left: "$$", right: "$$", display: true }],
 		show_copy_button: true
 	}}
@@ -113,5 +112,14 @@
 			"https://avatars.githubusercontent.com/u/100000?v=4",
 			"https://avatars.githubusercontent.com/u/100000?v=4"
 		]
+	}}
+/>
+
+<Story
+	name="Chatbot with percentage height"
+	args={{
+		bubble_full_width: false,
+		layout: "panel",
+		height: "50%"
 	}}
 />

@@ -1,13 +1,16 @@
 import path from "path-browserify";
 import type { PyodideInterface } from "pyodide";
 
-export function addAppIdIfRelative(appId: string, filePath: string): string {
-	if (path.isAbsolute(filePath)) {
-		return filePath;
-	}
-
-	return path.join(appId, filePath);
-}
+export const globalHomeDir = "/home/pyodide";
+export const getAppHomeDir = (appId: string): string =>
+	`${globalHomeDir}/${appId}`;
+export const resolveAppHomeBasedPath = (
+	appId: string,
+	filePath: string
+): string => {
+	const normalized = path.normalize(filePath);
+	return path.resolve(getAppHomeDir(appId), filePath);
+};
 
 function ensureParent(pyodide: PyodideInterface, filePath: string): void {
 	const normalized = path.normalize(filePath);

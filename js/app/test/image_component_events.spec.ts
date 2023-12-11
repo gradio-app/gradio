@@ -45,14 +45,16 @@ test("Image click-to-upload uploads image successfuly. Clear button dispatches e
 });
 
 test("Image drag-to-upload uploads image successfuly.", async ({ page }) => {
-	await drag_and_drop_file(
-		page,
-		"input[type=file]",
-		"./test/files/cheetah1.jpg",
-		"cheetag1.jpg",
-		"image/*"
-	);
-	await page.waitForResponse("**/upload?*");
+	await Promise.all([
+		drag_and_drop_file(
+			page,
+			"input[type=file]",
+			"./test/files/cheetah1.jpg",
+			"cheetag1.jpg",
+			"image/*"
+		),
+		page.waitForResponse("**/upload?*")
+	]);
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 });

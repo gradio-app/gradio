@@ -1,5 +1,11 @@
 # @gradio/app
 
+## 1.15.0
+
+### Features
+
+- [#6512](https://github.com/gradio-app/gradio/pull/6512) [`4f040c7`](https://github.com/gradio-app/gradio/commit/4f040c752bb3b0586a4e16eca25a1e5f596eee48) - Update zh-CN.json.  Thanks [@cibimo](https://github.com/cibimo)!
+
 ## 1.14.0
 
 ### Features

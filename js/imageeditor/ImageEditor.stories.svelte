@@ -44,9 +44,9 @@
 	name="Image Editor Interactions"
 	args={{
 		value: {
-			path: "https://i.ibb.co/6BgKdSj/groot.jpg",
-			url: "https://i.ibb.co/6BgKdSj/groot.jpg",
-			orig_name: "groot.jpg"
+			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			orig_name: "cheetah.jpg"
 		},
 		type: "pil",
 		sources: ["upload", "webcam"],

@@ -99,11 +99,6 @@
 						>
 						<a
 							class="thin-link inline-block px-4 py-2 hover:bg-gray-100"
-							href="https://discuss.huggingface.co/c/gradio/26"
-							target="_blank">Discuss</a
-						>
-						<a
-							class="thin-link inline-block px-4 py-2 hover:bg-gray-100"
 							target="_blank"
 							href="https://discord.gg/feTf9x3ZSB">Discord</a
 						>
