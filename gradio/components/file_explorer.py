@@ -197,7 +197,7 @@ class FileExplorer(Component):
         ignore_files = []
         if self.ignore_glob:
             for result in expand_braces(self.ignore_glob):
-                ignore_files += list(Path(self.ignore_glob).resolve().glob(result))
+                ignore_files += list(Path(self.root).resolve().glob(result))
             files = list(set(files) - set(ignore_files))
 
         tree = make_tree([str(f.relative_to(self.root)) for f in files])
