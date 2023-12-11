@@ -731,6 +731,7 @@ class TestAudio:
             "show_label": True,
             "label": "Upload Your Audio",
             "container": True,
+            "editable": True,
             "min_width": 160,
             "scale": None,
             "elem_id": None,
