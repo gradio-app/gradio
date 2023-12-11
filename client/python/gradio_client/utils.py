@@ -397,7 +397,9 @@ async def get_pred_from_sse_v1(
         return task.result()
 
 
-async def check_for_cancel(helper: Communicator, headers: dict[str, str], cookies: dict[str, str] | None):
+async def check_for_cancel(
+    helper: Communicator, headers: dict[str, str], cookies: dict[str, str] | None
+):
     while True:
         await asyncio.sleep(0.05)
         with helper.lock:
@@ -406,7 +408,10 @@ async def check_for_cancel(helper: Communicator, headers: dict[str, str], cookie
     if helper.event_id:
         async with httpx.AsyncClient() as http:
             await http.post(
-                helper.reset_url, json={"event_id": helper.event_id}, headers=headers, cookies=cookies
+                helper.reset_url,
+                json={"event_id": helper.event_id},
+                headers=headers,
+                cookies=cookies,
             )
     raise CancelledError()
 
