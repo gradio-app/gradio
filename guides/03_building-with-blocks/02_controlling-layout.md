@@ -49,6 +49,48 @@ See how the first column has two Textboxes arranged vertically. The second colum
 
 Learn more about Columns in the [docs](https://gradio.app/docs/#column).
 
+# Dimensions
+
+You can control the height and width of various components, where the parameters are available. These parameters accept either a number (interpreted as pixels) or a string. Using a string allows the direct application of any CSS unit to the encapsulating Block element, catering to more specifc design requirements. When omitted, Gradio uses default dimensions suited for most use cases.
+
+Below is an example illustrating the use of viewport width (vw):
+
+```python
+import gradio as gr
+
+with gr.Blocks() as demo:
+    im = gr.ImageEditor(
+        width="50vw",
+    )
+
+demo.launch()
+```
+
+When using percentage values for dimensions, you may want to define a parent component with an absolute unit (e.g. `px` or `vw`). This approach ensures that child components with relative dimensions are sized appropriately:
+
+
+```python
+import gradio as gr
+
+css = """
+.container {
+    height: 100vh;
+}
+"""
+
+with gr.Blocks(css=css) as demo:
+    with gr.Column(elem_classes=["container"]):
+        name = gr.Chatbot(value=[["1", "2"]], height="70%")
+
+demo.launch()
+```
+
+In this example, the Column layout component is given a height of 100% of the viewport height (100vh), and the Chatbot component inside it takes up 70% of the Column's height.
+
+You can apply any valid CSS unit for these parameters. For a comprehensive list of CSS units, refer to [this guide](https://www.w3schools.com/cssref/css_units.php). We recommend you always consider responsiveness and test your interfaces on various screen sizes to ensure a consistent user experience.
+
+
+
 ## Tabs and Accordions
 
 You can also create Tabs using the `with gr.Tab('tab_name'):` clause. Any component created inside of a `with gr.Tab('tab_name'):` context appears in that tab. Consecutive Tab clauses are grouped together so that a single tab can be selected at one time, and only the components within that Tab's context are shown.

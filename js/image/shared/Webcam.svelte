@@ -189,11 +189,11 @@
 			>
 				{#if mode === "video"}
 					{#if recording}
-						<div class="icon" title="stop recording">
+						<div class="icon red" title="stop recording">
 							<Square />
 						</div>
 					{:else}
-						<div class="icon" title="start recording">
+						<div class="icon red" title="start recording">
 							<Circle />
 						</div>
 					{/if}
@@ -295,6 +295,11 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+	}
+
+	.red {
+		fill: red;
+		stroke: red;
 	}
 
 	.flip {
