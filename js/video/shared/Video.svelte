@@ -140,13 +140,4 @@ Then, even when `controls` is false, the compiled DOM would be `<video controls=
 			background: #fff;
 		}
 	}
-
-	video {
-		position: inherit;
-		background-color: black;
-		width: var(--size-full);
-		height: var(--size-full);
-		object-fit: contain;
-		border-radius: var(--radius-xl);
-	}
 </style>

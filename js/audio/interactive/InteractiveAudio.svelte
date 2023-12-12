@@ -36,6 +36,7 @@
 	export let dragging: boolean;
 	export let active_source: "microphone" | "upload";
 	export let handle_reset_value: () => void = () => {};
+	export let editable = true;
 
 	// Needed for wasm support
 	const upload_fn = getContext<typeof upload_files>("upload_files");
@@ -271,6 +272,7 @@
 		{waveform_options}
 		{trim_region_settings}
 		{handle_reset_value}
+		{editable}
 		interactive
 		on:stop
 		on:play

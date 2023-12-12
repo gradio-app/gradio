@@ -18,9 +18,8 @@
 
 <style>
 	.container :global(img) {
-		max-width: 100%;
-		max-height: 100%;
-		border-radius: var(--radius-lg);
+		width: 100%;
+		height: 100%;
 	}
 
 	.container.selected {
@@ -31,13 +30,13 @@
 		margin: 0 auto;
 		border: 2px solid var(--border-color-primary);
 		border-radius: var(--radius-lg);
+		overflow: hidden;
 		width: var(--size-20);
 		height: var(--size-20);
 		object-fit: cover;
 	}
 
 	.container.gallery {
-		border: 2px solid var(--border-color-primary);
 		height: var(--size-20);
 		max-height: var(--size-20);
 		object-fit: cover;

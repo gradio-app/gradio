@@ -20,6 +20,7 @@
 		event: "stream" | "change" | "stop_recording"
 	) => Promise<void> = () => Promise.resolve();
 	export let interactive = false;
+	export let editable = true;
 	export let trim_region_settings = {};
 	export let waveform_settings: Record<string, any>;
 	export let waveform_options: WaveformOptions;
@@ -188,6 +189,7 @@
 				{handle_reset_value}
 				{waveform_options}
 				{trim_region_settings}
+				{editable}
 			/>
 		{/if}
 	</div>

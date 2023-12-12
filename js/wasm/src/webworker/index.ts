@@ -14,7 +14,8 @@ import type {
 import {
 	writeFileWithParents,
 	renameWithParents,
-	addAppIdIfRelative
+	getAppHomeDir,
+	resolveAppHomeBasedPath
 } from "./file";
 import { verifyRequirements } from "./requirements";
 import { makeAsgiRequest } from "./asgi";
@@ -35,8 +36,17 @@ let call_asgi_app_from_js: (
 	receive: () => Promise<unknown>,
 	send: (event: any) => Promise<void>
 ) => Promise<void>;
-let run_code: (appId: string, code: string, path?: string) => Promise<void>;
-let run_script: (appId: string, path: string) => Promise<void>;
+let run_code: (
+	appId: string,
+	home_dir: string,
+	code: string,
+	path?: string
+) => Promise<void>;
+let run_script: (
+	appId: string,
+	home_dir: string,
+	path: string
+) => Promise<void>;
 let unload_local_modules: (target_dir_path?: string) => void;
 
 async function initializeEnvironment(
@@ -194,7 +204,7 @@ async function initializeApp(
 			}
 			const { opts } = options.files[path];
 
-			const appifiedPath = addAppIdIfRelative(appId, path);
+			const appifiedPath = resolveAppHomeBasedPath(appId, path);
 			console.debug(`Write a file "${appifiedPath}"`);
 			writeFileWithParents(pyodide, appifiedPath, data, opts);
 		})
@@ -230,6 +240,13 @@ if ("postMessage" in ctx) {
 let envReadyPromise: Promise<void> | undefined = undefined;
 
 function setupMessageHandler(receiver: MessageTransceiver): void {
+	// A concept of "app" is introduced to support multiple apps in a single worker.
+	// Each app has its own home directory (`getAppHomeDir(appId)`) in a shared single Pyodide filesystem.
+	// The home directory is used as the current working directory for the app.
+	// Each frontend app has a connection to the worker which is the `receiver` object passed above
+	// and it is associated with one app.
+	// One app also has one Gradio server app which is managed by the `gradio.wasm_utils` module.`
+	// This multi-app mechanism was introduced for a SharedWorker, but the same mechanism is used for a DedicatedWorker as well.
 	const appId = generateRandomString(8);
 
 	const updateProgress = (log: string): void => {
@@ -314,7 +331,7 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 				case "run-python-code": {
 					unload_local_modules();
 
-					await run_code(appId, msg.data.code);
+					await run_code(appId, getAppHomeDir(appId), msg.data.code);
 
 					const replyMessage: ReplyMessageSuccess = {
 						type: "reply:success",
@@ -326,7 +343,7 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 				case "run-python-file": {
 					unload_local_modules();
 
-					await run_script(appId, addAppIdIfRelative(appId, msg.data.path));
+					await run_script(appId, getAppHomeDir(appId), msg.data.path);
 
 					const replyMessage: ReplyMessageSuccess = {
 						type: "reply:success",
@@ -347,7 +364,7 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 				case "file:write": {
 					const { path, data: fileData, opts } = msg.data;
 
-					const appifiedPath = addAppIdIfRelative(appId, path);
+					const appifiedPath = resolveAppHomeBasedPath(appId, path);
 
 					console.debug(`Write a file "${appifiedPath}"`);
 					writeFileWithParents(pyodide, appifiedPath, fileData, opts);
@@ -362,8 +379,8 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 				case "file:rename": {
 					const { oldPath, newPath } = msg.data;
 
-					const appifiedOldPath = addAppIdIfRelative(appId, oldPath);
-					const appifiedNewPath = addAppIdIfRelative(appId, newPath);
+					const appifiedOldPath = resolveAppHomeBasedPath(appId, oldPath);
+					const appifiedNewPath = resolveAppHomeBasedPath(appId, newPath);
 					console.debug(`Rename "${appifiedOldPath}" to ${appifiedNewPath}`);
 					renameWithParents(pyodide, appifiedOldPath, appifiedNewPath);
 
@@ -377,7 +394,7 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 				case "file:unlink": {
 					const { path } = msg.data;
 
-					const appifiedPath = addAppIdIfRelative(appId, path);
+					const appifiedPath = resolveAppHomeBasedPath(appId, path);
 
 					console.debug(`Remove "${appifiedPath}`);
 					pyodide.FS.unlink(appifiedPath);

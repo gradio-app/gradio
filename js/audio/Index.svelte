@@ -34,6 +34,7 @@
 	export let autoplay = false;
 	export let show_download_button = true;
 	export let show_share_button = false;
+	export let editable = true;
 	export let waveform_options: WaveformOptions = {};
 	export let pending: boolean;
 	export let streaming: boolean;
@@ -190,6 +191,7 @@
 			{pending}
 			{streaming}
 			{handle_reset_value}
+			{editable}
 			bind:dragging
 			on:edit={() => gradio.dispatch("edit")}
 			on:play={() => gradio.dispatch("play")}
