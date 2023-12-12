@@ -47,6 +47,7 @@ export default defineConfig(({ mode }) => {
 		"dev:custom": "../../gradio/templates/frontend"
 	};
 	const production = mode === "production" || mode === "production:lite";
+	const development = mode === "development" || mode === "development:lite";
 	const is_lite = mode.endsWith(":lite");
 
 	return {
@@ -131,7 +132,7 @@ export default defineConfig(({ mode }) => {
 			}
 		},
 		plugins: [
-			resolve_svelte(mode === "development"),
+			resolve_svelte(development && !is_lite),
 
 			svelte({
 				inspector: true,
@@ -150,7 +151,12 @@ export default defineConfig(({ mode }) => {
 					}
 				})
 			}),
-			generate_dev_entry({ enable: mode !== "development" && mode !== "test" }),
+			generate_dev_entry({
+				enable:
+					!development &&
+					!is_lite && // At the moment of https://github.com/gradio-app/gradio/pull/6398, I skipped to make Gradio-lite work custom component. Will do it, and remove this condition.
+					mode !== "test"
+			}),
 			inject_ejs(),
 			generate_cdn_entry({ version: GRADIO_VERSION, cdn_base: CDN_BASE }),
 			handle_ce_css(),
