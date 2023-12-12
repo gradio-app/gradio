@@ -1,20 +1,10 @@
 import { test, expect } from "@gradio/tootils";
 
 test(".success should not run if function fails", async ({ page }) => {
-	let last_iteration;
 	const textbox = page.getByLabel("Result");
 	await expect(textbox).toHaveValue("");
 
-	page.on("websocket", (ws) => {
-		last_iteration = ws.waitForEvent("framereceived", {
-			predicate: (event) => {
-				return JSON.parse(event.payload as string).msg === "process_completed";
-			}
-		});
-	});
-
 	await page.click("text=Trigger Failure");
-	await last_iteration;
 	expect(textbox).toHaveValue("");
 });
 
@@ -38,17 +28,7 @@ test("Consecutive .success event is triggered successfully", async ({
 });
 
 test("gr.Error makes the toast show up", async ({ page }) => {
-	let complete;
-	page.on("websocket", (ws) => {
-		complete = ws.waitForEvent("framereceived", {
-			predicate: (event) => {
-				return JSON.parse(event.payload as string).msg === "process_completed";
-			}
-		});
-	});
-
 	await page.click("text=Trigger Failure");
-	await complete;
 
 	const toast = page.getByTestId("toast-body");
 	expect(toast).toContainText("error");
@@ -60,17 +40,7 @@ test("gr.Error makes the toast show up", async ({ page }) => {
 test("ValueError makes the toast show up when show_error=True", async ({
 	page
 }) => {
-	let complete;
-	page.on("websocket", (ws) => {
-		complete = ws.waitForEvent("framereceived", {
-			predicate: (event) => {
-				return JSON.parse(event.payload as string).msg === "process_completed";
-			}
-		});
-	});
-
 	await page.click("text=Trigger Failure With ValueError");
-	await complete;
 
 	const toast = page.getByTestId("toast-body");
 	expect(toast).toContainText("error");

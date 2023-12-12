@@ -19,6 +19,7 @@ import typing
 import urllib.parse
 import warnings
 from abc import ABC, abstractmethod
+from collections import OrderedDict
 from contextlib import contextmanager
 from io import BytesIO
 from numbers import Number
@@ -28,6 +29,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    Generic,
     Iterable,
     Iterator,
     Optional,
@@ -997,3 +999,20 @@ def convert_to_dict_if_dataclass(value):
     if dataclasses.is_dataclass(value):
         return dataclasses.asdict(value)
     return value
+
+
+K = TypeVar("K")
+V = TypeVar("V")
+
+
+class LRUCache(OrderedDict, Generic[K, V]):
+    def __init__(self, max_size: int = 100):
+        super().__init__()
+        self.max_size: int = max_size
+
+    def __setitem__(self, key: K, value: V) -> None:
+        if key in self:
+            self.move_to_end(key)
+        elif len(self) >= self.max_size:
+            self.popitem(last=False)
+        super().__setitem__(key, value)

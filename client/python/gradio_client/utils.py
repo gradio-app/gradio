@@ -17,7 +17,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, TypedDict
 
 import fsspec.asyn
 import httpx
@@ -26,8 +26,10 @@ from huggingface_hub import SpaceStage
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
 API_URL = "api/predict/"
-SSE_URL = "queue/join"
-SSE_DATA_URL = "queue/data"
+SSE_URL_V0 = "queue/join"
+SSE_DATA_URL_V0 = "queue/data"
+SSE_URL = "queue/data"
+SSE_DATA_URL = "queue/join"
 WS_URL = "queue/join"
 UPLOAD_URL = "upload"
 LOGIN_URL = "login"
@@ -46,6 +48,19 @@ INVALID_RUNTIME = [
     SpaceStage.RUNTIME_ERROR,
     SpaceStage.PAUSED,
 ]
+
+
+class Message(TypedDict, total=False):
+    msg: str
+    output: dict[str, Any]
+    event_id: str
+    rank: int
+    rank_eta: float
+    queue_size: int
+    success: bool
+    progress_data: list[dict]
+    log: str
+    level: str
 
 
 def get_package_version() -> str:
@@ -100,6 +115,7 @@ class Status(Enum):
     PROGRESS = "PROGRESS"
     FINISHED = "FINISHED"
     CANCELLED = "CANCELLED"
+    LOG = "LOG"
 
     @staticmethod
     def ordering(status: Status) -> int:
@@ -133,6 +149,7 @@ class Status(Enum):
             "process_generating": Status.ITERATING,
             "process_completed": Status.FINISHED,
             "progress": Status.PROGRESS,
+            "log": Status.LOG,
         }[msg]
 
 
@@ -169,6 +186,7 @@ class StatusUpdate:
     success: bool | None
     time: datetime | None
     progress_data: list[ProgressUnit] | None
+    log: tuple[str, str] | None = None
 
 
 def create_initial_status_update():
@@ -307,7 +325,7 @@ async def get_pred_from_ws(
     return resp["output"]
 
 
-async def get_pred_from_sse(
+async def get_pred_from_sse_v0(
     client: httpx.AsyncClient,
     data: dict,
     hash_data: dict,
@@ -315,21 +333,21 @@ async def get_pred_from_sse(
     sse_url: str,
     sse_data_url: str,
     headers: dict[str, str],
-    cookies: dict[str, str] | None = None,
+    cookies: dict[str, str] | None,
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
-            asyncio.create_task(check_for_cancel(helper, cookies)),
+            asyncio.create_task(check_for_cancel(helper, headers, cookies)),
             asyncio.create_task(
-                stream_sse(
+                stream_sse_v0(
                     client,
                     data,
                     hash_data,
                     helper,
                     sse_url,
                     sse_data_url,
-                    headers=headers,
-                    cookies=cookies,
+                    headers,
+                    cookies,
                 )
             ),
         ],
@@ -348,7 +366,42 @@ async def get_pred_from_sse(
         return task.result()
 
 
-async def check_for_cancel(helper: Communicator, cookies: dict[str, str] | None):
+async def get_pred_from_sse_v1(
+    helper: Communicator,
+    headers: dict[str, str],
+    cookies: dict[str, str] | None,
+    pending_messages_per_event: dict[str, list[Message | None]],
+    event_id: str,
+) -> dict[str, Any] | None:
+    done, pending = await asyncio.wait(
+        [
+            asyncio.create_task(check_for_cancel(helper, headers, cookies)),
+            asyncio.create_task(
+                stream_sse_v1(
+                    helper,
+                    pending_messages_per_event,
+                    event_id,
+                )
+            ),
+        ],
+        return_when=asyncio.FIRST_COMPLETED,
+    )
+
+    for task in pending:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+    assert len(done) == 1
+    for task in done:
+        return task.result()
+
+
+async def check_for_cancel(
+    helper: Communicator, headers: dict[str, str], cookies: dict[str, str] | None
+):
     while True:
         await asyncio.sleep(0.05)
         with helper.lock:
@@ -357,12 +410,15 @@ async def check_for_cancel(helper: Communicator, cookies: dict[str, str] | None)
     if helper.event_id:
         async with httpx.AsyncClient() as http:
             await http.post(
-                helper.reset_url, json={"event_id": helper.event_id}, cookies=cookies
+                helper.reset_url,
+                json={"event_id": helper.event_id},
+                headers=headers,
+                cookies=cookies,
             )
     raise CancelledError()
 
 
-async def stream_sse(
+async def stream_sse_v0(
     client: httpx.AsyncClient,
     data: dict,
     hash_data: dict,
@@ -370,15 +426,15 @@ async def stream_sse(
     sse_url: str,
     sse_data_url: str,
     headers: dict[str, str],
-    cookies: dict[str, str] | None = None,
+    cookies: dict[str, str] | None,
 ) -> dict[str, Any]:
     try:
         async with client.stream(
             "GET",
             sse_url,
             params=hash_data,
-            cookies=cookies,
             headers=headers,
+            cookies=cookies,
         ) as response:
             async for line in response.aiter_text():
                 if line.startswith("data:"):
@@ -413,8 +469,8 @@ async def stream_sse(
                         req = await client.post(
                             sse_data_url,
                             json={"event_id": event_id, **data, **hash_data},
-                            cookies=cookies,
                             headers=headers,
+                            cookies=cookies,
                         )
                         req.raise_for_status()
                     elif resp["msg"] == "process_completed":
@@ -422,6 +478,64 @@ async def stream_sse(
                 else:
                     raise ValueError(f"Unexpected message: {line}")
         raise ValueError("Did not receive process_completed message.")
+    except asyncio.CancelledError:
+        raise
+
+
+async def stream_sse_v1(
+    helper: Communicator,
+    pending_messages_per_event: dict[str, list[Message | None]],
+    event_id: str,
+) -> dict[str, Any]:
+    try:
+        pending_messages = pending_messages_per_event[event_id]
+
+        while True:
+            if len(pending_messages) > 0:
+                msg = pending_messages.pop(0)
+            else:
+                await asyncio.sleep(0.05)
+                continue
+
+            if msg is None:
+                raise CancelledError()
+
+            with helper.lock:
+                log_message = None
+                if msg["msg"] == "log":
+                    log = msg.get("log")
+                    level = msg.get("level")
+                    if log and level:
+                        log_message = (log, level)
+                status_update = StatusUpdate(
+                    code=Status.msg_to_status(msg["msg"]),
+                    queue_size=msg.get("queue_size"),
+                    rank=msg.get("rank", None),
+                    success=msg.get("success"),
+                    time=datetime.now(),
+                    eta=msg.get("rank_eta"),
+                    progress_data=ProgressUnit.from_msg(msg["progress_data"])
+                    if "progress_data" in msg
+                    else None,
+                    log=log_message,
+                )
+                output = msg.get("output", {}).get("data", [])
+                if output and status_update.code != Status.FINISHED:
+                    try:
+                        result = helper.prediction_processor(*output)
+                    except Exception as e:
+                        result = [e]
+                    helper.job.outputs.append(result)
+                helper.job.latest_status = status_update
+
+            if msg["msg"] == "queue_full":
+                raise QueueError("Queue is full! Please try again.")
+            elif msg["msg"] == "process_completed":
+                del pending_messages_per_event[event_id]
+                return msg["output"]
+            elif msg["msg"] == "server_stopped":
+                raise ValueError("Server stopped.")
+
     except asyncio.CancelledError:
         raise
 
