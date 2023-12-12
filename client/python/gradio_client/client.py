@@ -125,6 +125,9 @@ class Client:
         if self.verbose:
             print(f"Loaded as API: {self.src} ✔")
 
+        if auth is not None:
+            self._login(auth)
+
         self.config = self._get_config()
         self.protocol: str = self.config.get("protocol", "ws")
         self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
@@ -140,8 +143,6 @@ class Client:
         )
         self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
         self.reset_url = urllib.parse.urljoin(self.src, utils.RESET_URL)
-        if auth is not None:
-            self._login(auth)
         self.app_version = version.parse(self.config.get("version", "2.0"))
         self._info = self._get_api_info()
         self.session_hash = str(uuid.uuid4())
