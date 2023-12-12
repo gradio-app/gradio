@@ -41,7 +41,7 @@
 		"@manypkg/get-packages": "^2.2.0",
 		"@playwright/experimental-ct-svelte": "^1.39.0",
 		"@playwright/test": "^1.39.0",
-		"@sveltejs/vite-plugin-svelte": "^3.0.0",
+		"@sveltejs/vite-plugin-svelte": "^2.5.2",
 		"@tailwindcss/forms": "^0.5.0",
 		"@testing-library/dom": "^9.0.0",
 		"@testing-library/jest-dom": "^6.0.0",
