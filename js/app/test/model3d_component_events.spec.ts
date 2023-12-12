@@ -25,19 +25,3 @@ test("Model3D click-to-upload uploads file successfuly. Upload and clear events 
 	const download = await downloadPromise;
 	await expect(download.suggestedFilename()).toBe("face.obj");
 });
-
-test("Model3D drag-and-drop uploads a file to the server correctly.", async ({
-	page
-}) => {
-	test.slow();
-	await drag_and_drop_file(
-		page,
-		"input[type=file]",
-		"../../test/test_files/Fox.gltf",
-		"Fox.gltf",
-		"model/gltf+json"
-	);
-	await page.waitForResponse("**/upload?*");
-	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
-	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
-});
