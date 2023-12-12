@@ -39,7 +39,6 @@ class FileExplorer(Component):
         *,
         value: str | list[str] | Callable | None = None,
         file_count: Literal["single", "multiple"] = "multiple",
-        include_dirs: bool = False,
         root: str | Path = ".",
         ignore_glob: str | None = None,
         label: str | None = None,
@@ -86,7 +85,6 @@ class FileExplorer(Component):
             )
         self.file_count = file_count
         self.height = height
-        self.include_dirs = include_dirs
 
         super().__init__(
             label=label,
@@ -122,8 +120,6 @@ class FileExplorer(Component):
         files = []
         for file in payload.root:
             file_ = self._safe_join(file)
-            if not self.include_dirs and Path(file_).is_dir():
-                continue
             files.append(file_)
         return files
 
@@ -139,8 +135,6 @@ class FileExplorer(Component):
         files = [value] if isinstance(value, str) else value
         root = []
         for file in files:
-            if not self.include_dirs and Path(file).is_dir():
-                continue
             root.append(self._strip_root(file).split(os.path.sep))
 
         return FileExplorerData(root=root)
@@ -174,19 +168,12 @@ class FileExplorer(Component):
 
                     yield from expand_braces("".join(replaced), seen)
 
-        def remove_empty(tree):
-            tree = [item for item in tree if item["path"] != ""]
-            for item in tree:
-                if item["children"]:
-                    item["children"] = remove_empty(item["children"])
-            return tree
-
         def make_tree(files):
             tree = []
             for file in files:
                 parts = file.split("/")
                 make_node(parts, tree)
-            return remove_empty(tree)
+            return tree
 
         def make_node(parts, tree):
             _tree = tree

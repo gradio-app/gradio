@@ -5,13 +5,13 @@
 	import Arrow from "./ArrowIcon.svelte";
 	import Checkbox from "./Checkbox.svelte";
 	import FileIcon from "../icons/light-file.svg";
+	import FolderIcon from "../icons/light-folder.svg";
 
 	export let interactive: boolean;
 	export let tree: Node[] = [];
 	export let icons: any = {};
 	export let node_indices: number[] = [];
 	export let file_count: "single" | "multiple" = "multiple";
-	export let include_dirs: boolean;
 
 	const dispatch = createEventDispatcher<{
 		check: { node_indices: number[]; checked: boolean };
@@ -33,7 +33,7 @@
 			<span class="wrap">
 				<Checkbox
 					disabled={!interactive ||
-						(file_count === "single" && !include_dirs && type === "folder")}
+						(type === "folder" && file_count === "single")}
 					bind:value={checked}
 					on:change={() => dispatch_change(i)}
 				/>
@@ -52,12 +52,16 @@
 							(tree[i].children_visible = !tree[i].children_visible)}
 						><Arrow /></span
 					>
+				{:else if path === ""}
+					<span class="file-icon">
+						<img src={FolderIcon} alt="folder icon" />
+					</span>
 				{:else}
 					<span class="file-icon">
 						<img src={FileIcon} alt="file icon" />
 					</span>
 				{/if}
-				{path}
+				{path ? path : "."}
 			</span>
 			{#if children && children_visible}
 				<svelte:self
@@ -67,7 +71,6 @@
 					node_indices={[...node_indices, i]}
 					{interactive}
 					{file_count}
-					{include_dirs}
 				/>
 			{/if}
 		</li>
