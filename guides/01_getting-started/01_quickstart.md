@@ -1,22 +1,21 @@
 # Quickstart
 
-**Prerequisite**: Gradio requires Python 3.8 or higher, that's all!
+Gradio is an open-source Python package that allows you to quickly create a beautiful demo or web application for your machine learning model, API, or any arbitary Python function. You can then share a link to your demo or web application in just a few seconds using Gradio's built-in sharing features. No JavaScript, CSS, or web hosting experience needed!
 
-## What Does Gradio Do?
+Usually, it just takes a few lines of code, so let's get started 💫
 
-One of the _best ways to share_ your machine learning model, API, or data science workflow with others is to create an **interactive app** that allows your users or colleagues to try out the demo in their browsers.
+## Installation
 
-Gradio allows you to **build demos and share them, all in Python.** And usually in just a few lines of code! So let's get started.
+**Prerequisite**: Gradio requires [Python 3.8 or higher](https://www.python.org/downloads/), that's all!
 
-## Hello, World
 
-To get Gradio running with a simple "Hello, World" example, follow these three steps:
-
-1\. Install Gradio using pip:
+We recommend Install Gradio using pip:
 
 ```bash
 pip install gradio
 ```
+
+## Hello World
 
 2\. Run the code below as a Python script or in a Jupyter Notebook (or [Google Colab](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing)):
 

@@ -21,21 +21,6 @@
 
 # Gradio: Build Machine Learning Web Apps — in Python
 
-Gradio is an open-source Python library that is used to build machine learning and data science demos and web applications.
-
-With Gradio, you can quickly create a beautiful user interface around your machine learning models or data science workflow and let people "try it out" by dragging-and-dropping in their own images,
-pasting text, recording their own voice, and interacting with your demo, all through the browser.
-
-![Interface montage](readme_files/header-image.jpg)
-
-Gradio is useful for:
-
-- **Demoing** your machine learning models for clients/collaborators/users/students.
-
-- **Deploying** your models quickly with automatic shareable links and getting feedback on model performance.
-
-- **Debugging** your model interactively during development using built-in input manipulation tools.
-
 $getting_started
 
 ## Open Source Stack
