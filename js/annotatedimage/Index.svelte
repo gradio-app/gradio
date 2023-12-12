@@ -41,19 +41,60 @@
 	let active: string | null = null;
 	export let loading_status: LoadingStatus;
 
+	// `value` can be updated before the Promises from `resolve_wasm_src` are resolved.
+	// In such a case, the resolved values for the old `value` have to be discarded,
+	// This variable `latest_promise` is used to pick up only the values resolved for the latest `value`.
+	let latest_promise: Promise<unknown> | null = null;
 	$: {
 		if (value !== old_value) {
 			old_value = value;
 			gradio.dispatch("change");
 		}
 		if (value) {
-			_value = {
+			const normalised_value = {
 				image: normalise_file(value.image, root, proxy_url) as FileData,
 				annotations: value.annotations.map((ann) => ({
 					image: normalise_file(ann.image, root, proxy_url) as FileData,
 					label: ann.label
 				}))
 			};
+			_value = normalised_value;
+
+			// In normal (non-Wasm) Gradio, the `<img>` element should be rendered with the passed values immediately
+			// without waiting for `resolve_wasm_src()` to resolve.
+			// If it waits, a blank image is displayed until the async task finishes
+			// and it leads to undesirable flickering.
+			// So set `_value` immediately above, and update it with the resolved values below later.
+			const image_url_promise = resolve_wasm_src(normalised_value.image.url);
+			const annotation_url_promises = Promise.all(
+				normalised_value.annotations.map((ann) =>
+					resolve_wasm_src(ann.image.url)
+				)
+			);
+			const all_promise = Promise.all([
+				image_url_promise,
+				annotation_url_promises
+			]);
+			latest_promise = all_promise;
+			all_promise.then(([image_url, annotation_urls]) => {
+				if (latest_promise !== all_promise) {
+					return;
+				}
+				const async_resolved_value: typeof _value = {
+					image: {
+						...normalised_value.image,
+						url: image_url ?? undefined
+					},
+					annotations: normalised_value.annotations.map((ann, i) => ({
+						...ann,
+						image: {
+							...ann.image,
+							url: annotation_urls[i] ?? undefined
+						}
+					}))
+				};
+				_value = async_resolved_value;
+			});
 		} else {
 			_value = null;
 		}
@@ -101,29 +142,25 @@
 			<Empty size="large" unpadded_box={true}><Image /></Empty>
 		{:else}
 			<div class="image-container">
-				{#await _value ? resolve_wasm_src(_value.image.url) : null then resolved_src}
-					<img
-						class="base-image"
-						class:fit-height={height}
-						src={resolved_src}
-						alt="the base file that is annotated"
-					/>
-				{/await}
+				<img
+					class="base-image"
+					class:fit-height={height}
+					src={_value ? _value.image.url : null}
+					alt="the base file that is annotated"
+				/>
 				{#each _value ? _value?.annotations : [] as ann, i}
-					{#await resolve_wasm_src(ann.image.url) then resolved_src}
-						<img
-							alt="segmentation mask identifying {label} within the uploaded file"
-							class="mask fit-height"
-							class:active={active == ann.label}
-							class:inactive={active != ann.label && active != null}
-							src={resolved_src}
-							style={color_map && ann.label in color_map
-								? null
-								: `filter: hue-rotate(${Math.round(
-										(i * 360) / _value?.annotations.length
-								  )}deg);`}
-						/>
-					{/await}
+					<img
+						alt="segmentation mask identifying {label} within the uploaded file"
+						class="mask fit-height"
+						class:active={active == ann.label}
+						class:inactive={active != ann.label && active != null}
+						src={ann.image.url}
+						style={color_map && ann.label in color_map
+							? null
+							: `filter: hue-rotate(${Math.round(
+									(i * 360) / _value?.annotations.length
+							  )}deg);`}
+					/>
 				{/each}
 			</div>
 			{#if show_legend && _value}
