@@ -15,7 +15,6 @@
 	export let root: string;
 	export let hidden = false;
 	export let format: "blob" | "file" = "file";
-	export let include_sources = false;
 	export let uploading = false;
 
 	let upload_id: string;
@@ -115,7 +114,7 @@
 		class:center
 		class:boundedheight
 		class:flex
-		style:height={include_sources ? "calc(100% - 40px" : "100%"}
+		style:height="100%"
 		tabindex={hidden ? -1 : 0}
 		on:drag|preventDefault|stopPropagation
 		on:dragstart|preventDefault|stopPropagation

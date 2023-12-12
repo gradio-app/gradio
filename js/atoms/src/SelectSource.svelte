@@ -1,9 +1,18 @@
 <script lang="ts">
-	import { Microphone, Upload, Video } from "@gradio/icons";
+	import { Microphone, Upload, Webcam, ImagePaste } from "@gradio/icons";
 
-	export let sources: string[];
-	export let active_source: string;
+	type sources = "upload" | "microphone" | "webcam" | "clipboard" | null;
+
+	export let sources: Partial<sources>[];
+	export let active_source: Partial<sources>;
 	export let handle_clear: () => void = () => {};
+	export let handle_select: (source_type: Partial<sources>) => void = () => {};
+
+	async function handle_select_source(source: Partial<sources>): Promise<void> {
+		handle_clear();
+		active_source = source;
+		handle_select(source);
+	}
 </script>
 
 {#if sources.length > 1}
@@ -11,12 +20,9 @@
 		{#if sources.includes("upload")}
 			<button
 				class="icon"
-				class:selected={active_source === "upload"}
+				class:selected={active_source === "upload" || !active_source}
 				aria-label="Upload file"
-				on:click={() => {
-					handle_clear();
-					active_source = "upload";
-				}}><Upload /></button
+				on:click={() => handle_select_source("upload")}><Upload /></button
 			>
 		{/if}
 
@@ -25,10 +31,8 @@
 				class="icon"
 				class:selected={active_source === "microphone"}
 				aria-label="Record audio"
-				on:click={() => {
-					handle_clear();
-					active_source = "microphone";
-				}}><Microphone /></button
+				on:click={() => handle_select_source("microphone")}
+				><Microphone /></button
 			>
 		{/if}
 
@@ -37,10 +41,16 @@
 				class="icon"
 				class:selected={active_source === "webcam"}
 				aria-label="Record video"
-				on:click={() => {
-					handle_clear();
-					active_source = "webcam";
-				}}><Video /></button
+				on:click={() => handle_select_source("webcam")}><Webcam /></button
+			>
+		{/if}
+		{#if sources.includes("clipboard")}
+			<button
+				class="icon"
+				class:selected={active_source === "clipboard"}
+				aria-label="Paste from clipboard"
+				on:click={() => handle_select_source("clipboard")}
+				><ImagePaste /></button
 			>
 		{/if}
 	</span>

@@ -110,6 +110,7 @@
 		"drop_csv": "Drop CSV Here",
 		"drop_file": "Drop File Here",
 		"drop_image": "Drop Image Here",
-		"drop_video": "Drop Video Here"
+		"drop_video": "Drop Video Here",
+		"paste_clipboard": "Paste from Clipboard"
 	}
 }
