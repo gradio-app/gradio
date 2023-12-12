@@ -190,7 +190,7 @@ class Client:
                                         pending_messages
                                     ) in self.pending_messages_per_event.values():
                                         pending_messages.append(resp)
-                                    break
+                                    return
                                 event_id = resp["event_id"]
                                 if event_id not in self.pending_messages_per_event:
                                     self.pending_messages_per_event[event_id] = []
