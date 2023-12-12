@@ -182,7 +182,7 @@
 	<!-- need to suppress for video streaming https://github.com/sveltejs/svelte/issues/5967 -->
 	<video bind:this={video_source} class:flip={mirror_webcam} />
 	{#if !streaming}
-		<div class:capture={!recording} class="button-wrap">
+		<div class="button-wrap">
 			<button
 				on:click={mode === "image" ? take_picture : take_recording}
 				aria-label={mode === "image" ? "capture photo" : "start recording"}
@@ -212,29 +212,24 @@
 					<div class="icon" title="select video source">
 						<DropdownArrow />
 					</div>
-
-					{#if options_open}
-						<div class="select-wrap" use:click_outside={handle_click_outside}>
-							<!-- svelte-ignore a11y-click-events-have-key-events-->
-							<!-- svelte-ignore a11y-no-static-element-interactions-->
-							<span
-								class="inset-icon"
-								on:click|stopPropagation={() => (options_open = false)}
-							>
-								<DropdownArrow />
-							</span>
-							{#each video_sources as source}
-								<!-- svelte-ignore a11y-click-events-have-key-events-->
-								<!-- svelte-ignore a11y-no-static-element-interactions-->
-								<div on:click={() => selectVideoSource(source.deviceId)}>
-									{source.label}
-								</div>
-							{/each}
-						</div>
-					{/if}
 				</button>
 			{/if}
 		</div>
+		{#if options_open}
+			<select class="select-wrap" use:click_outside={handle_click_outside}>
+				<button
+					class="inset-icon"
+					on:click|stopPropagation={() => (options_open = false)}
+				>
+					<DropdownArrow />
+				</button>
+				{#each video_sources as source}
+					<option on:click={() => selectVideoSource(source.deviceId)}>
+						{source.label}
+					</option>
+				{/each}
+			</select>
+		{/if}
 	{/if}
 </div>
 
@@ -243,36 +238,27 @@
 		position: relative;
 		width: var(--size-full);
 		height: var(--size-full);
-		min-height: var(--size-60);
 	}
 
 	video {
 		width: var(--size-full);
 		height: var(--size-full);
+		object-fit: cover;
 	}
 
 	.button-wrap {
-		display: flex;
 		position: absolute;
-		right: 0px;
+		background-color: var(--block-background-fill);
+		border: 1px solid var(--border-color-accent);
+		border-radius: var(--radius-xl);
+		padding: var(--size-1-5);
+		display: flex;
 		bottom: var(--size-2);
-		left: 0px;
-		justify-content: center;
-		align-items: center;
-		margin: auto;
+		left: 50%;
+		transform: translate(-50%, 0);
 		box-shadow: var(--shadow-drop-lg);
 		border-radius: var(--radius-xl);
-		background-color: rgba(0, 0, 0, 0.9);
-		width: var(--size-10);
-		height: var(--size-8);
-		padding: var(--size-2-5);
-		padding-right: var(--size-1);
-		z-index: var(--layer-3);
-	}
-
-	.capture {
-		width: var(--size-14);
-		transform: translateX(var(--size-2-5));
+		line-height: var(--size-3);
 	}
 
 	@media (--screen-md) {
@@ -289,8 +275,8 @@
 
 	.icon {
 		opacity: 0.8;
-		width: 100%;
-		height: 100%;
+		width: 18px;
+		height: 18px;
 		color: white;
 		display: flex;
 		justify-content: space-between;
@@ -310,35 +296,40 @@
 		-webkit-appearance: none;
 		-moz-appearance: none;
 		appearance: none;
+		color: var(--body-text-color);
 		background-color: transparent;
 		border: none;
-		width: auto;
-		font-size: 1rem;
-		/* padding: 0.5rem; */
-		width: max-content;
+		width: 95%;
+		font-size: var(--text-md);
 		position: absolute;
-		top: 0;
-		right: 0;
+		bottom: var(--size-2);
 		background-color: var(--block-background-fill);
 		box-shadow: var(--shadow-drop-lg);
 		border-radius: var(--radius-xl);
 		z-index: var(--layer-top);
 		border: 1px solid var(--border-color-accent);
 		text-align: left;
-		overflow: hidden;
+		line-height: var(--size-4);
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		left: 50%;
+		transform: translate(-50%, 0);
+		max-width: var(--size-52);
 	}
 
-	.select-wrap > div {
+	.select-wrap > option {
 		padding: 0.25rem 0.5rem;
 		border-bottom: 1px solid var(--border-color-accent);
 		padding-right: var(--size-8);
+		text-overflow: ellipsis;
+		overflow: hidden;
 	}
 
-	.select-wrap > div:hover {
+	.select-wrap > option:hover {
 		background-color: var(--color-accent);
 	}
 
-	.select-wrap > div:last-child {
+	.select-wrap > option:last-child {
 		border: none;
 	}
 
