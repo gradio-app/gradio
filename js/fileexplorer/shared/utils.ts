@@ -42,7 +42,6 @@ export const make_fs_store = (): FSStore => {
 	let tree_updated = false;
 
 	function create_fs_graph(serialised_node: SerialisedNode[]): void {
-		console.log("here");
 		root.children = process_tree(serialised_node);
 		tree_updated = true;
 		set(root.children);
