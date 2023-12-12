@@ -154,8 +154,7 @@
 	{/if}
 	<div class="upload-container">
 		<Upload
-			hidden={value !== null ||
-				(active_tool === "webcam" && (!uploading || streaming))}
+			hidden={value !== null || active_tool === "webcam"}
 			bind:this={upload}
 			bind:uploading
 			bind:dragging
