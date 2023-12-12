@@ -1,5 +1,7 @@
 ---
 "@gradio/annotatedimage": minor
+"@gradio/image": minor
+"@gradio/video": minor
 "gradio": minor
 ---
 
