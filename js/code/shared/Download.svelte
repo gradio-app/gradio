@@ -2,6 +2,7 @@
 	import { onDestroy } from "svelte";
 	import { fade } from "svelte/transition";
 	import { Download, Check } from "@gradio/icons";
+	import { DownloadLink } from "@gradio/wasm/svelte";
 
 	export let value: string;
 	export let language: string;
@@ -50,30 +51,27 @@
 	});
 </script>
 
-<a
-	download="file.{ext}"
-	href={download_value}
-	class:copied
-	on:click={copy_feedback}
->
-	<Download />
-	{#if copied}
-		<span class="check" transition:fade><Check /></span>
-	{/if}
-</a>
+<div class="container">
+	<DownloadLink
+		download="file.{ext}"
+		href={download_value}
+		on:click={copy_feedback}
+	>
+		<Download />
+		{#if copied}
+			<span class="check" transition:fade><Check /></span>
+		{/if}
+	</DownloadLink>
+</div>
 
 <style>
-	a {
+	.container {
 		position: relative;
 		cursor: pointer;
 		padding: 5px;
 
 		width: 22px;
 		height: 22px;
-	}
-
-	.copied {
-		color: var(--color-green-500);
 	}
 
 	.check {
