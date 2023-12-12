@@ -162,7 +162,7 @@ class Client:
 
         self.stream_open = False
         self.streaming_future: Future | None = None
-        self.pending_messages_per_event: dict[str, list[Message]] = {}
+        self.pending_messages_per_event: dict[str, list[Message | None]] = {}
         self.pending_event_ids: set[str] = set()
 
     async def stream_messages(self) -> None:
@@ -223,8 +223,14 @@ class Client:
             def open_stream():
                 return utils.synchronize_async(self.stream_messages)
 
+            def close_stream(_):
+                self.stream_open = False
+                for _, pending_messages in self.pending_messages_per_event.items():
+                    pending_messages.append(None)
+
             if self.streaming_future is None or self.streaming_future.done():
                 self.streaming_future = self.executor.submit(open_stream)
+                self.streaming_future.add_done_callback(close_stream)
 
         return event_id
 

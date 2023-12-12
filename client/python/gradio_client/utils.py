@@ -370,7 +370,7 @@ async def get_pred_from_sse_v1(
     helper: Communicator,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
-    pending_messages_per_event: dict[str, list[Message]],
+    pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
@@ -484,7 +484,7 @@ async def stream_sse_v0(
 
 async def stream_sse_v1(
     helper: Communicator,
-    pending_messages_per_event: dict[str, list[Message]],
+    pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
 ) -> dict[str, Any]:
     try:
@@ -496,6 +496,9 @@ async def stream_sse_v1(
             else:
                 await asyncio.sleep(0.05)
                 continue
+
+            if msg is None:
+                raise CancelledError()
 
             with helper.lock:
                 log_message = None
