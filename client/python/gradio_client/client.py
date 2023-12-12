@@ -128,8 +128,13 @@ class Client:
         self.config = self._get_config()
         self.protocol: str = self.config.get("protocol", "ws")
         self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
-        self.sse_url = urllib.parse.urljoin(self.src, utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL)
-        self.sse_data_url = urllib.parse.urljoin(self.src, utils.SSE_DATA_URL_V0 if self.protocol == "sse" else utils.SSE_DATA_URL)
+        self.sse_url = urllib.parse.urljoin(
+            self.src, utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL
+        )
+        self.sse_data_url = urllib.parse.urljoin(
+            self.src,
+            utils.SSE_DATA_URL_V0 if self.protocol == "sse" else utils.SSE_DATA_URL,
+        )
         self.ws_url = urllib.parse.urljoin(
             self.src.replace("http", "ws", 1), utils.WS_URL
         )
