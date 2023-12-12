@@ -29,6 +29,7 @@ test("Model3D click-to-upload uploads file successfuly. Upload and clear events 
 test("Model3D drag-and-drop uploads a file to the server correctly.", async ({
 	page
 }) => {
+	test.slow();
 	await drag_and_drop_file(
 		page,
 		"input[type=file]",

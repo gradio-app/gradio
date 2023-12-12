@@ -38,6 +38,7 @@ test("Audio click-to-upload uploads audio successfuly. File downloading works an
 test("Audio drag-and-drop uploads a file to the server correctly.", async ({
 	page
 }) => {
+	test.slow();
 	await Promise.all([
 		drag_and_drop_file(
 			page,

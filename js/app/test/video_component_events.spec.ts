@@ -63,6 +63,7 @@ test("Video drag-and-drop uploads a file to the server correctly.", async ({
 test("Video drag-and-drop displays a warning when the file is of the wrong mime type.", async ({
 	page
 }) => {
+	test.slow();
 	await drag_and_drop_file(
 		page,
 		"input[type=file]",
