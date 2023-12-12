@@ -2755,37 +2755,42 @@ class TestFileExplorer:
 
         answer = [
             {
-                "children": [
-                    {
-                        "children": [
-                            {
-                                "children": [],
-                                "path": "def",
-                                "type": "folder",
-                            },
-                        ],
-                        "path": "abc",
-                        "type": "folder",
-                    },
-                ],
-                "path": "foo",
-                "type": "folder",
-            },
-            {
-                "children": [
-                    {
-                        "children": [],
-                        "path": "qux",
-                        "type": "folder",
-                    },
-                ],
-                "path": "baz",
-                "type": "folder",
-            },
-            {
-                "children": [],
                 "path": "bar",
                 "type": "folder",
+                "children": [{"path": "", "type": "file", "children": None}],
+            },
+            {
+                "path": "baz",
+                "type": "folder",
+                "children": [
+                    {"path": "", "type": "file", "children": None},
+                    {
+                        "path": "qux",
+                        "type": "folder",
+                        "children": [{"path": "", "type": "file", "children": None}],
+                    },
+                ],
+            },
+            {
+                "path": "foo",
+                "type": "folder",
+                "children": [
+                    {"path": "", "type": "file", "children": None},
+                    {
+                        "path": "abc",
+                        "type": "folder",
+                        "children": [
+                            {"path": "", "type": "file", "children": None},
+                            {
+                                "path": "def",
+                                "type": "folder",
+                                "children": [
+                                    {"path": "", "type": "file", "children": None}
+                                ],
+                            },
+                        ],
+                    },
+                ],
             },
         ]
         assert sort_answer(tree) == sort_answer(answer)
