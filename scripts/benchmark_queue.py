@@ -107,7 +107,7 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--output", type=str, help="path to write output to", required=False)     
     args = parser.parse_args()
 
-    host = f"{demo.local_url.replace('http', 'ws')}queue/join"
+    host = f"{demo.local_url.replace('http', 'ws')}queue/data"
     data = asyncio.run(main(host, n_results=args.n_jobs))
     data = dict(zip(data["fn_to_hit"], data["duration"]))
     

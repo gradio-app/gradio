@@ -8,7 +8,7 @@ import time
 from pathlib import Path
 from unittest.mock import patch
 
-import httpx
+import gradio_client as grc
 import pytest
 from gradio_client import media_data, utils
 from pydub import AudioSegment
@@ -660,50 +660,29 @@ class TestProgressBar:
             button.click(greet, name, greeting)
         demo.queue(max_size=1).launch(prevent_thread_lock=True)
 
-        progress_updates = []
-        async with httpx.AsyncClient() as client:
-            async with client.stream(
-                "GET",
-                f"http://localhost:{demo.server_port}/queue/join",
-                params={"fn_index": 0, "session_hash": "shdce"},
-            ) as response:
-                async for line in response.aiter_text():
-                    if line.startswith("data:"):
-                        msg = json.loads(line[5:])
-                    if msg["msg"] == "send_data":
-                        event_id = msg["event_id"]
-                        req = await client.post(
-                            f"http://localhost:{demo.server_port}/queue/data",
-                            json={
-                                "event_id": event_id,
-                                "data": [0],
-                                "fn_index": 0,
-                            },
-                        )
-                        if not req.is_success:
-                            raise ValueError(
-                                f"Could not send payload to endpoint: {req.text}"
-                            )
-                    if msg["msg"] == "progress":
-                        progress_updates.append(msg["progress_data"])
-                    if msg["msg"] == "process_completed":
-                        break
+        client = grc.Client(demo.local_url)
+        job = client.submit("Gradio")
 
-        assert progress_updates == [
-            [
-                {
-                    "index": None,
-                    "length": None,
-                    "unit": "steps",
-                    "progress": 0.0,
-                    "desc": "start",
-                }
-            ],
-            [{"index": 0, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-            [{"index": 1, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-            [{"index": 2, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-            [{"index": 3, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-            [{"index": 4, "length": 4, "unit": "iter", "progress": None, "desc": None}],
+        status_updates = []
+        while not job.done():
+            status = job.status()
+            update = (
+                status.progress_data[0].index if status.progress_data else None,
+                status.progress_data[0].desc if status.progress_data else None,
+            )
+            if update != (None, None) and (
+                len(status_updates) == 0 or status_updates[-1] != update
+            ):
+                status_updates.append(update)
+            time.sleep(0.05)
+
+        assert status_updates == [
+            (None, "start"),
+            (0, None),
+            (1, None),
+            (2, None),
+            (3, None),
+            (4, None),
         ]
 
     @pytest.mark.asyncio
@@ -726,77 +705,32 @@ class TestProgressBar:
             button.click(greet, name, greeting)
         demo.queue(max_size=1).launch(prevent_thread_lock=True)
 
-        progress_updates = []
-        async with httpx.AsyncClient() as client:
-            async with client.stream(
-                "GET",
-                f"http://localhost:{demo.server_port}/queue/join",
-                params={"fn_index": 0, "session_hash": "shdce"},
-            ) as response:
-                async for line in response.aiter_text():
-                    if line.startswith("data:"):
-                        msg = json.loads(line[5:])
-                    if msg["msg"] == "send_data":
-                        event_id = msg["event_id"]
-                        req = await client.post(
-                            f"http://localhost:{demo.server_port}/queue/data",
-                            json={
-                                "event_id": event_id,
-                                "data": [0],
-                                "fn_index": 0,
-                            },
-                        )
-                        if not req.is_success:
-                            raise ValueError(
-                                f"Could not send payload to endpoint: {req.text}"
-                            )
-                    if msg["msg"] == "progress":
-                        progress_updates.append(msg["progress_data"])
-                    if msg["msg"] == "process_completed":
-                        break
+        client = grc.Client(demo.local_url)
+        job = client.submit("Gradio")
 
-        assert progress_updates == [
-            [
-                {
-                    "index": None,
-                    "length": None,
-                    "unit": "steps",
-                    "progress": 0.0,
-                    "desc": "start",
-                }
-            ],
-            [{"index": 0, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-            [{"index": 1, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-            [{"index": 2, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-            [{"index": 3, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-            [{"index": 4, "length": 4, "unit": "iter", "progress": None, "desc": None}],
-            [
-                {
-                    "index": 0,
-                    "length": 3,
-                    "unit": "steps",
-                    "progress": None,
-                    "desc": "alphabet",
-                }
-            ],
-            [
-                {
-                    "index": 1,
-                    "length": 3,
-                    "unit": "steps",
-                    "progress": None,
-                    "desc": "alphabet",
-                }
-            ],
-            [
-                {
-                    "index": 2,
-                    "length": 3,
-                    "unit": "steps",
-                    "progress": None,
-                    "desc": "alphabet",
-                }
-            ],
+        status_updates = []
+        while not job.done():
+            status = job.status()
+            update = (
+                status.progress_data[0].index if status.progress_data else None,
+                status.progress_data[0].desc if status.progress_data else None,
+            )
+            if update != (None, None) and (
+                len(status_updates) == 0 or status_updates[-1] != update
+            ):
+                status_updates.append(update)
+            time.sleep(0.05)
+
+        assert status_updates == [
+            (None, "start"),
+            (0, None),
+            (1, None),
+            (2, None),
+            (3, None),
+            (4, None),
+            (0, "alphabet"),
+            (1, "alphabet"),
+            (2, "alphabet"),
         ]
 
     @pytest.mark.asyncio
@@ -811,63 +745,29 @@ class TestProgressBar:
         demo = gr.Interface(greet, "text", "text")
         demo.queue().launch(prevent_thread_lock=True)
 
-        progress_updates = []
-        async with httpx.AsyncClient() as client:
-            async with client.stream(
-                "GET",
-                f"http://localhost:{demo.server_port}/queue/join",
-                params={"fn_index": 0, "session_hash": "shdce"},
-            ) as response:
-                async for line in response.aiter_text():
-                    if line.startswith("data:"):
-                        msg = json.loads(line[5:])
-                    if msg["msg"] == "send_data":
-                        event_id = msg["event_id"]
-                        req = await client.post(
-                            f"http://localhost:{demo.server_port}/queue/data",
-                            json={
-                                "event_id": event_id,
-                                "data": ["abc"],
-                                "fn_index": 0,
-                            },
-                        )
-                        if not req.is_success:
-                            raise ValueError(
-                                f"Could not send payload to endpoint: {req.text}"
-                            )
-                    if msg["msg"] == "progress":
-                        progress_updates.append(msg["progress_data"])
-                    if msg["msg"] == "process_completed":
-                        break
+        client = grc.Client(demo.local_url)
+        job = client.submit("Gradio")
 
-        assert progress_updates == [
-            [
-                {
-                    "index": 1,
-                    "length": 3,
-                    "unit": "steps",
-                    "progress": None,
-                    "desc": None,
-                }
-            ],
-            [
-                {
-                    "index": 2,
-                    "length": 3,
-                    "unit": "steps",
-                    "progress": None,
-                    "desc": None,
-                }
-            ],
-            [
-                {
-                    "index": 3,
-                    "length": 3,
-                    "unit": "steps",
-                    "progress": None,
-                    "desc": None,
-                }
-            ],
+        status_updates = []
+        while not job.done():
+            status = job.status()
+            update = (
+                status.progress_data[0].index if status.progress_data else None,
+                status.progress_data[0].unit if status.progress_data else None,
+            )
+            if update != (None, None) and (
+                len(status_updates) == 0 or status_updates[-1] != update
+            ):
+                status_updates.append(update)
+            time.sleep(0.05)
+
+        assert status_updates == [
+            (1, "steps"),
+            (2, "steps"),
+            (3, "steps"),
+            (4, "steps"),
+            (5, "steps"),
+            (6, "steps"),
         ]
 
     @pytest.mark.asyncio
@@ -878,45 +778,30 @@ class TestProgressBar:
                 time.sleep(0.15)
             if len(s) < 5:
                 gr.Warning("Too short!")
+                time.sleep(0.15)
             return f"Hello, {s}!"
 
         demo = gr.Interface(greet, "text", "text")
         demo.queue().launch(prevent_thread_lock=True)
 
-        log_messages = []
-        async with httpx.AsyncClient() as client:
-            async with client.stream(
-                "GET",
-                f"http://localhost:{demo.server_port}/queue/join",
-                params={"fn_index": 0, "session_hash": "shdce"},
-            ) as response:
-                async for line in response.aiter_text():
-                    if line.startswith("data:"):
-                        msg = json.loads(line[5:])
-                    if msg["msg"] == "send_data":
-                        event_id = msg["event_id"]
-                        req = await client.post(
-                            f"http://localhost:{demo.server_port}/queue/data",
-                            json={
-                                "event_id": event_id,
-                                "data": ["abc"],
-                                "fn_index": 0,
-                            },
-                        )
-                        if not req.is_success:
-                            raise ValueError(
-                                f"Could not send payload to endpoint: {req.text}"
-                            )
-                    if msg["msg"] == "log":
-                        log_messages.append([msg["log"], msg["level"]])
-                    if msg["msg"] == "process_completed":
-                        break
+        client = grc.Client(demo.local_url)
+        job = client.submit("Jon")
 
-        assert log_messages == [
-            ["Letter a", "info"],
-            ["Letter b", "info"],
-            ["Letter c", "info"],
-            ["Too short!", "warning"],
+        status_updates = []
+        while not job.done():
+            status = job.status()
+            update = status.log
+            if update is not None and (
+                len(status_updates) == 0 or status_updates[-1] != update
+            ):
+                status_updates.append(update)
+            time.sleep(0.05)
+
+        assert status_updates == [
+            ("Letter J", "info"),
+            ("Letter o", "info"),
+            ("Letter n", "info"),
+            ("Too short!", "warning"),
         ]
 
 
@@ -926,11 +811,13 @@ async def test_info_isolation(async_handler: bool):
     async def greet_async(name):
         await asyncio.sleep(2)
         gr.Info(f"Hello {name}")
+        await asyncio.sleep(1)
         return name
 
     def greet_sync(name):
         time.sleep(2)
         gr.Info(f"Hello {name}")
+        time.sleep(1)
         return name
 
     demo = gr.Interface(
@@ -942,42 +829,24 @@ async def test_info_isolation(async_handler: bool):
     demo.launch(prevent_thread_lock=True)
 
     async def session_interaction(name, delay=0):
-        await asyncio.sleep(delay)
+        client = grc.Client(demo.local_url)
+        job = client.submit(name)
 
-        log_messages = []
-        async with httpx.AsyncClient() as client:
-            async with client.stream(
-                "GET",
-                f"http://localhost:{demo.server_port}/queue/join",
-                params={"fn_index": 0, "session_hash": name},
-            ) as response:
-                async for line in response.aiter_text():
-                    if line.startswith("data:"):
-                        msg = json.loads(line[5:])
-                    if msg["msg"] == "send_data":
-                        event_id = msg["event_id"]
-                        req = await client.post(
-                            f"http://localhost:{demo.server_port}/queue/data",
-                            json={
-                                "event_id": event_id,
-                                "data": [name],
-                                "fn_index": 0,
-                            },
-                        )
-                        if not req.is_success:
-                            raise ValueError(
-                                f"Could not send payload to endpoint: {req.text}"
-                            )
-                    if msg["msg"] == "log":
-                        log_messages.append(msg["log"])
-                    if msg["msg"] == "process_completed":
-                        break
-        return log_messages
+        status_updates = []
+        while not job.done():
+            status = job.status()
+            update = status.log
+            if update is not None and (
+                len(status_updates) == 0 or status_updates[-1] != update
+            ):
+                status_updates.append(update)
+            time.sleep(0.05)
+        return status_updates[-1][0] if status_updates else None
 
     alice_logs, bob_logs = await asyncio.gather(
         session_interaction("Alice"),
         session_interaction("Bob", delay=1),
     )
 
-    assert alice_logs == ["Hello Alice"]
-    assert bob_logs == ["Hello Bob"]
+    assert alice_logs == "Hello Alice"
+    assert bob_logs == "Hello Bob"
