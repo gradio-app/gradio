@@ -33,7 +33,8 @@ test("Model3D drag-and-drop uploads a file to the server correctly.", async ({
 		page,
 		"input[type=file]",
 		"../../test/test_files/Fox.gltf",
-		"Fox.gltf"
+		"Fox.gltf",
+		"model/gltf+json"
 	);
 	await page.waitForResponse("**/upload?*");
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
