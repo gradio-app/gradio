@@ -21,7 +21,7 @@
 	"dependencies": {
 		"@originjs/vite-plugin-commonjs": "^1.0.3",
 		"@rollup/plugin-sucrase": "^5.0.1",
-		"@sveltejs/vite-plugin-svelte": "^3.0.0",
+		"@sveltejs/vite-plugin-svelte": "^2.5.2",
 		"@types/which": "^3.0.0",
 		"coffeescript": "^2.7.0",
 		"css-tree": "2.3.1",

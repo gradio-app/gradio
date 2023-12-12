@@ -893,6 +893,13 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             fn = get_continuous_fn(fn, every)
         elif every:
             raise ValueError("Cannot set a value for `every` without a `fn`.")
+        if every and concurrency_limit is not None:
+            if concurrency_limit == "default":
+                concurrency_limit = None
+            else:
+                raise ValueError(
+                    "Cannot set a value for `concurrency_limit` with `every`."
+                )
 
         if _targets[0][1] == "change" and trigger_mode is None:
             trigger_mode = "always_last"
@@ -1581,7 +1588,7 @@ Received outputs:
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
-            "protocol": "sse",
+            "protocol": "sse_v1",
         }
 
         def get_layout(block):
@@ -2169,7 +2176,7 @@ Received outputs:
         try:
             if wasm_utils.IS_WASM:
                 # NOTE:
-                # Normally, queue-related async tasks (e.g. continuous events created by `gr.Blocks.load(..., every=interval)`, whose async tasks are started at the `/queue/join` endpoint function)
+                # Normally, queue-related async tasks (e.g. continuous events created by `gr.Blocks.load(..., every=interval)`, whose async tasks are started at the `/queue/data` endpoint function)
                 # are running in an event loop in the server thread,
                 # so they will be cancelled by `self.server.close()` below.
                 # However, in the Wasm env, we don't have the `server` and

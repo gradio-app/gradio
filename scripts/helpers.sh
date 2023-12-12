@@ -10,7 +10,7 @@
 #######################################
 function program_required() {
   if [ ! -x "$(command -v ${1})" ]; then
-    echo "${1} is not installed in the computer..."
+    echo "${1} is not installed on the computer..."
     if [ "${2}" ]; then
       echo "Check out this link: ${2}"
     fi

@@ -95,6 +95,17 @@ class TestClientPredictions:
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
+    @pytest.mark.flaky
+    def test_private_space_v4_sse_v1(self):
+        space_id = "gradio-tests/not-actually-private-spacev4-sse-v1"
+        api = huggingface_hub.HfApi()
+        assert api.space_info(space_id).private
+        client = Client(
+            space_id,
+        )
+        output = client.predict("abc", api_name="/predict")
+        assert output == "abc"
+
     def test_state(self, increment_demo):
         with connect(increment_demo) as client:
             output = client.predict(api_name="/increment_without_queue")

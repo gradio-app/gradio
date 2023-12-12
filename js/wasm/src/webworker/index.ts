@@ -14,11 +14,11 @@ import type {
 import {
 	writeFileWithParents,
 	renameWithParents,
-	addAppIdIfRelative
+	getAppHomeDir,
+	resolveAppHomeBasedPath
 } from "./file";
 import { verifyRequirements } from "./requirements";
-import { makeHttpRequest } from "./http";
-import { initWebSocket } from "./websocket";
+import { makeAsgiRequest } from "./asgi";
 import { generateRandomString } from "./random";
 import scriptRunnerPySource from "./py/script_runner.py?raw";
 import unloadModulesPySource from "./py/unload_modules.py?raw";
@@ -36,8 +36,17 @@ let call_asgi_app_from_js: (
 	receive: () => Promise<unknown>,
 	send: (event: any) => Promise<void>
 ) => Promise<void>;
-let run_code: (appId: string, code: string, path?: string) => Promise<void>;
-let run_script: (appId: string, path: string) => Promise<void>;
+let run_code: (
+	appId: string,
+	home_dir: string,
+	code: string,
+	path?: string
+) => Promise<void>;
+let run_script: (
+	appId: string,
+	home_dir: string,
+	path: string
+) => Promise<void>;
 let unload_local_modules: (target_dir_path?: string) => void;
 
 async function initializeEnvironment(
@@ -70,9 +79,12 @@ async function initializeEnvironment(
 	await micropip.install(["typing-extensions>=4.8.0"]); // Typing extensions needs to be installed first otherwise the versions from the pyodide lockfile is used which is incompatible with the latest fastapi.
 	await micropip.install(["markdown-it-py[linkify]~=2.2.0"]); // On 3rd June 2023, markdown-it-py 3.0.0 has been released. The `gradio` package depends on its `>=2.0.0` version so its 3.x will be resolved. However, it conflicts with `mdit-py-plugins`'s dependency `markdown-it-py >=1.0.0,<3.0.0` and micropip currently can't resolve it. So we explicitly install the compatible version of the library here.
 	await micropip.install(["anyio==3.*"]); // `fastapi` depends on `anyio>=3.4.0,<5` so its 4.* can be installed, but it conflicts with the anyio version `httpx` depends on, `==3.*`. Seems like micropip can't resolve it for now, so we explicitly install the compatible version of the library here.
+	await micropip.add_mock_package("pydantic", "2.4.2"); // PydanticV2 is not supported on Pyodide yet. Mock it here for installing the `gradio` package to pass the version check. Then, install PydanticV1 below.
 	await micropip.install.callKwargs(gradioWheelUrls, {
 		keep_going: true
 	});
+	await micropip.remove_mock_package("pydantic");
+	await micropip.install(["pydantic==1.*"]); // Pydantic is necessary for `gradio` to run, so install v1 here as a fallback. Some tricks has been introduced in `gradio/data_classes.py` to make it work with v1.
 	console.debug("Gradio wheels are loaded.");
 
 	console.debug("Mocking os module methods.");
@@ -192,7 +204,7 @@ async function initializeApp(
 			}
 			const { opts } = options.files[path];
 
-			const appifiedPath = addAppIdIfRelative(appId, path);
+			const appifiedPath = resolveAppHomeBasedPath(appId, path);
 			console.debug(`Write a file "${appifiedPath}"`);
 			writeFileWithParents(pyodide, appifiedPath, data, opts);
 		})
@@ -228,6 +240,13 @@ if ("postMessage" in ctx) {
 let envReadyPromise: Promise<void> | undefined = undefined;
 
 function setupMessageHandler(receiver: MessageTransceiver): void {
+	// A concept of "app" is introduced to support multiple apps in a single worker.
+	// Each app has its own home directory (`getAppHomeDir(appId)`) in a shared single Pyodide filesystem.
+	// The home directory is used as the current working directory for the app.
+	// Each frontend app has a connection to the worker which is the `receiver` object passed above
+	// and it is associated with one app.
+	// One app also has one Gradio server app which is managed by the `gradio.wasm_utils` module.`
+	// This multi-app mechanism was introduced for a SharedWorker, but the same mechanism is used for a DedicatedWorker as well.
 	const appId = generateRandomString(8);
 
 	const updateProgress = (log: string): void => {
@@ -312,7 +331,7 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 				case "run-python-code": {
 					unload_local_modules();
 
-					await run_code(appId, msg.data.code);
+					await run_code(appId, getAppHomeDir(appId), msg.data.code);
 
 					const replyMessage: ReplyMessageSuccess = {
 						type: "reply:success",
@@ -324,7 +343,7 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 				case "run-python-file": {
 					unload_local_modules();
 
-					await run_script(appId, addAppIdIfRelative(appId, msg.data.path));
+					await run_script(appId, getAppHomeDir(appId), msg.data.path);
 
 					const replyMessage: ReplyMessageSuccess = {
 						type: "reply:success",
@@ -333,36 +352,19 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 					messagePort.postMessage(replyMessage);
 					break;
 				}
-				case "http-request": {
-					const request = msg.data.request;
-					const response = await makeHttpRequest(
+				case "asgi-request": {
+					console.debug("ASGI request", msg.data);
+					makeAsgiRequest(
 						call_asgi_app_from_js.bind(null, appId),
-						request
-					);
-					const replyMessage: ReplyMessageSuccess = {
-						type: "reply:success",
-						data: {
-							response
-						}
-					};
-					messagePort.postMessage(replyMessage);
-					break;
-				}
-				case "websocket": {
-					const { path } = msg.data;
-
-					console.debug("Initialize a WebSocket connection: ", { path });
-					initWebSocket(
-						call_asgi_app_from_js.bind(null, appId),
-						path,
+						msg.data.scope,
 						messagePort
-					); // This promise is not awaited because it won't resolves until the WebSocket connection is closed.
+					); // This promise is not awaited because it won't resolves until the HTTP connection is closed.
 					break;
 				}
 				case "file:write": {
 					const { path, data: fileData, opts } = msg.data;
 
-					const appifiedPath = addAppIdIfRelative(appId, path);
+					const appifiedPath = resolveAppHomeBasedPath(appId, path);
 
 					console.debug(`Write a file "${appifiedPath}"`);
 					writeFileWithParents(pyodide, appifiedPath, fileData, opts);
@@ -377,8 +379,8 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 				case "file:rename": {
 					const { oldPath, newPath } = msg.data;
 
-					const appifiedOldPath = addAppIdIfRelative(appId, oldPath);
-					const appifiedNewPath = addAppIdIfRelative(appId, newPath);
+					const appifiedOldPath = resolveAppHomeBasedPath(appId, oldPath);
+					const appifiedNewPath = resolveAppHomeBasedPath(appId, newPath);
 					console.debug(`Rename "${appifiedOldPath}" to ${appifiedNewPath}`);
 					renameWithParents(pyodide, appifiedOldPath, appifiedNewPath);
 
@@ -392,7 +394,7 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 				case "file:unlink": {
 					const { path } = msg.data;
 
-					const appifiedPath = addAppIdIfRelative(appId, path);
+					const appifiedPath = resolveAppHomeBasedPath(appId, path);
 
 					console.debug(`Remove "${appifiedPath}`);
 					pyodide.FS.unlink(appifiedPath);
