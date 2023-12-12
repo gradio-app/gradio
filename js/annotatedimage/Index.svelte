@@ -71,13 +71,13 @@
 					resolve_wasm_src(ann.image.url)
 				)
 			);
-			const all_promise = Promise.all([
+			const current_promise = Promise.all([
 				image_url_promise,
 				annotation_url_promises
 			]);
-			latest_promise = all_promise;
-			all_promise.then(([image_url, annotation_urls]) => {
-				if (latest_promise !== all_promise) {
+			latest_promise = current_promise;
+			current_promise.then(([image_url, annotation_urls]) => {
+				if (latest_promise !== current_promise) {
 					return;
 				}
 				const async_resolved_value: typeof _value = {
