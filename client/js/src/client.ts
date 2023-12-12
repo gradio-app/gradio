@@ -543,7 +543,7 @@ export function api_factory(
 							config.path,
 							true
 						)}
-							/queue/data${url_params ? "?" + url_params : ""}`);
+							/queue/join${url_params ? "?" + url_params : ""}`);
 
 						if (jwt) {
 							url.searchParams.set("__sign", jwt);
@@ -667,7 +667,7 @@ export function api_factory(
 								host,
 								config.path,
 								true
-							)}/queue/data?${url_params ? url_params + "&" : ""}${params}`
+							)}/queue/join?${url_params ? url_params + "&" : ""}${params}`
 						);
 
 						eventSource = new EventSource(url);
@@ -698,7 +698,7 @@ export function api_factory(
 										host,
 										config.path,
 										true
-									)}/queue/join`,
+									)}/queue/data`,
 									{
 										...payload,
 										session_hash,

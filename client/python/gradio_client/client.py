@@ -125,9 +125,11 @@ class Client:
         if self.verbose:
             print(f"Loaded as API: {self.src} ✔")
 
+        self.config = self._get_config()
+        self.protocol: str = self.config.get("protocol", "ws")
         self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
-        self.sse_url = urllib.parse.urljoin(self.src, utils.SSE_URL)
-        self.sse_data_url = urllib.parse.urljoin(self.src, utils.SSE_DATA_URL)
+        self.sse_url = urllib.parse.urljoin(self.src, utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL)
+        self.sse_data_url = urllib.parse.urljoin(self.src, utils.SSE_DATA_URL_V0 if self.protocol == "sse" else utils.SSE_DATA_URL)
         self.ws_url = urllib.parse.urljoin(
             self.src.replace("http", "ws", 1), utils.WS_URL
         )
@@ -135,12 +137,10 @@ class Client:
         self.reset_url = urllib.parse.urljoin(self.src, utils.RESET_URL)
         if auth is not None:
             self._login(auth)
-        self.config = self._get_config()
         self.app_version = version.parse(self.config.get("version", "2.0"))
         self._info = self._get_api_info()
         self.session_hash = str(uuid.uuid4())
 
-        self.protocol: str = self.config.get("protocol", "ws")
         endpoint_class = (
             Endpoint if self.protocol.startswith("sse") else EndpointV3Compatibility
         )

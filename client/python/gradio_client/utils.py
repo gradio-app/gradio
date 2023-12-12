@@ -26,6 +26,8 @@ from huggingface_hub import SpaceStage
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
 API_URL = "api/predict/"
+SSE_URL_V0 = "queue/join"
+SSE_DATA_URL_V0 = "queue/data"
 SSE_URL = "queue/data"
 SSE_DATA_URL = "queue/join"
 WS_URL = "queue/data"
