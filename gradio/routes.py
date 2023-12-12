@@ -4,6 +4,7 @@ module use the Optional/Union notation so that they work correctly with pydantic
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import sys
 
 if sys.version_info >= (3, 9):
@@ -886,9 +887,17 @@ def mount_gradio_app(
     blocks.validate_queue_settings()
     gradio_app = App.create_app(blocks, app_kwargs=app_kwargs)
 
-    @app.on_event("startup")
-    async def start_queue():
-        gradio_app.get_blocks().startup_events()
+    old_lifespan = app.router.lifespan_context
+
+    @contextlib.asynccontextmanager
+    async def new_lifespan(app: FastAPI):
+        async with old_lifespan(
+            app
+        ):  # Instert the startup events inside the FastAPI context manager
+            gradio_app.get_blocks().startup_events()
+            yield
+
+    app.router.lifespan_context = new_lifespan
 
     app.mount(path, gradio_app)
     return app

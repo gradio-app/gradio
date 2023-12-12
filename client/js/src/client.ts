@@ -178,7 +178,7 @@ interface Client {
 
 export function api_factory(
 	fetch_implementation: typeof fetch,
-	WebSocket_factory: (url: URL) => WebSocket
+	EventSource_factory: (url: URL) => EventSource
 ): Client {
 	return { post_data, upload_files, client, handle_blob };
 
@@ -549,7 +549,7 @@ export function api_factory(
 							url.searchParams.set("__sign", jwt);
 						}
 
-						websocket = WebSocket_factory(url);
+						websocket = new WebSocket(url);
 
 						websocket.onclose = (evt) => {
 							if (!evt.wasClean) {
@@ -670,7 +670,7 @@ export function api_factory(
 							)}/queue/join?${url_params ? url_params + "&" : ""}${params}`
 						);
 
-						eventSource = new EventSource(url);
+						eventSource = EventSource_factory(url);
 
 						eventSource.onmessage = async function (event) {
 							const _data = JSON.parse(event.data);
@@ -1149,7 +1149,7 @@ export function api_factory(
 
 export const { post_data, upload_files, client, handle_blob } = api_factory(
 	fetch,
-	(...args) => new WebSocket(...args)
+	(...args) => new EventSource(...args)
 );
 
 function transform_output(

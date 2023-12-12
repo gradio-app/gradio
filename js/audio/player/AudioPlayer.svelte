@@ -57,8 +57,12 @@
 	const create_waveform = (): void => {
 		waveform = WaveSurfer.create({
 			container: container,
-			url: value?.url,
 			...waveform_settings
+		});
+		resolve_wasm_src(value?.url).then((resolved_src) => {
+			if (resolved_src && waveform) {
+				return waveform.load(resolved_src);
+			}
 		});
 	};
 
