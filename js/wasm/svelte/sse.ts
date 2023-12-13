@@ -1,5 +1,5 @@
-import { type WorkerProxy, WasmWorkerEventSource } from "@gradio/wasm";
-import { is_self_host } from "@gradio/wasm/network";
+import { type WorkerProxy, WasmWorkerEventSource } from "../dist";
+import { is_self_host } from "../network";
 
 /**
  * A WebSocket factory that proxies requests to the worker,

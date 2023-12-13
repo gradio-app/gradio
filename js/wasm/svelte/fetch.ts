@@ -1,5 +1,5 @@
-import type { WorkerProxy } from "@gradio/wasm";
-import { is_self_host } from "@gradio/wasm/network";
+import type { WorkerProxy } from "../dist";
+import { is_self_host } from "../network";
 
 /**
  * A fetch() function that proxies HTTP requests to the worker,

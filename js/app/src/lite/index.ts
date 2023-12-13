@@ -5,8 +5,10 @@ import "@gradio/theme/src/typography.css";
 import type { SvelteComponent } from "svelte";
 import { WorkerProxy, type WorkerProxyOptions } from "@gradio/wasm";
 import { api_factory } from "@gradio/client";
-import { wasm_proxied_fetch } from "./fetch";
-import { wasm_proxied_EventSource_factory } from "./sse";
+import {
+	wasm_proxied_fetch,
+	wasm_proxied_EventSource_factory
+} from "@gradio/wasm/svelte";
 import { wasm_proxied_mount_css, mount_prebuilt_css } from "./css";
 import type { mount_css } from "../css";
 import Index from "../Index.svelte";
