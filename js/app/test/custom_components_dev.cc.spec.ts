@@ -4,9 +4,9 @@ import which from "which";
 import { join } from "path";
 
 test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
-	test.setTimeout(45 * 1000);
+	test.setTimeout(60 * 1000);
 
-	const install = spawnSync(`gradio cc install`, {
+	const install = spawnSync(`gradio cc create MyComponent --template SimpleTextbox --overwrite`, {
 		shell: true,
 		stdio: "pipe",
 		cwd: join(process.cwd(), "mycomponent"),
