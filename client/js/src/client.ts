@@ -212,7 +212,7 @@ export function api_factory(
 			output = { error: `Could not parse server response: ${e}` };
 			status = 500;
 		}
-		return [output, response.status];
+		return [output, status];
 	}
 
 	async function upload_files(
@@ -801,9 +801,13 @@ export function api_factory(
 						).then(([response, status]) => {
 							if (status === 503) {
 								fire_event({
-									type: "update",
+									type: "status",
 									stage: "error",
-									message: QUEUE_FULL_MSG
+									message: QUEUE_FULL_MSG,
+									queue: true,
+									endpoint: _endpoint,
+									fn_index,
+									time: new Date()
 								});
 							} else if (status !== 200) {
 								fire_event({
