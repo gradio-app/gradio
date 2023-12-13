@@ -98,7 +98,7 @@
 			return true;
 		}
 		if (typeof file_accept === "string" && file_accept.endsWith("/*")) {
-			return mime_type.startsWith(file_accept.slice(0, -1));
+			return (file_accept.split(",").includes(mime_type) || mime_type.startsWith(file_accept.slice(0, -1)));
 		}
 		if (Array.isArray(file_accept)) {
 			return file_accept.includes(mime_type);
