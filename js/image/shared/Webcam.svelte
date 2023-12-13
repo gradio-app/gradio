@@ -253,7 +253,7 @@
 	.button-wrap {
 		position: absolute;
 		background-color: var(--block-background-fill);
-		border: 1px solid var(--border-color-accent);
+		border: 1px solid var(--border-color-primary);
 		border-radius: var(--radius-xl);
 		padding: var(--size-1-5);
 		display: flex;
@@ -263,6 +263,7 @@
 		box-shadow: var(--shadow-drop-lg);
 		border-radius: var(--radius-xl);
 		line-height: var(--size-3);
+		color: var(--button-secondary-text-color);
 	}
 
 	@media (--screen-md) {
@@ -281,7 +282,6 @@
 		opacity: 0.8;
 		width: 18px;
 		height: 18px;
-		color: var(--neutral-400);
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -300,9 +300,8 @@
 		-webkit-appearance: none;
 		-moz-appearance: none;
 		appearance: none;
-		color: var(--body-text-color);
+		color: var(--button-secondary-text-color);
 		background-color: transparent;
-		border: none;
 		width: 95%;
 		font-size: var(--text-md);
 		position: absolute;
@@ -311,7 +310,7 @@
 		box-shadow: var(--shadow-drop-lg);
 		border-radius: var(--radius-xl);
 		z-index: var(--layer-top);
-		border: 1px solid var(--border-color-accent);
+		border: 1px solid var(--border-color-primary);
 		text-align: left;
 		line-height: var(--size-4);
 		white-space: nowrap;

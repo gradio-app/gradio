@@ -70,7 +70,6 @@
 		right: 0;
 		margin-left: auto;
 		margin-right: auto;
-		align-self: flex-end;
 	}
 
 	.icon {
