@@ -2144,10 +2144,11 @@ class TestGallery:
                 Path("test/test_files/qux.png"),
             ]
         ).model_dump()
+        assert True
         assert postprocessed_gallery == [
             {
                 "image": {
-                    "path": str(Path("test/test_files/foo.png")),
+                    "path": os.path.join("test", "test_files", "foo.png"),
                     "orig_name": "foo.png",
                     "mime_type": None,
                     "size": None,
