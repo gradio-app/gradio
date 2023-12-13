@@ -14,7 +14,9 @@ Let's go through some of the most popular features of Gradio! Here are Gradio's 
 10. [Batch functions](#batch-functions)
 11. [Running on collaborative notebooks](#colab-notebooks)
 
-## Example Inputs
+## Components
+
+<!-- ## Example Inputs
 
 You can provide example data that a user can easily load into `Interface`. This can be helpful to demonstrate the types of inputs the model expects, as well as to provide a way to explore your dataset in conjunction with your model. To load example data, you can provide a **nested list** to the `examples=` keyword argument of the Interface constructor. Each sublist within the outer list represents a data sample, and each element within the sublist represents an input for each input component. The format of example data for each component is specified in the [Docs](https://gradio.app/docs#components).
 
@@ -23,7 +25,8 @@ $demo_calculator
 
 You can load a large dataset into the examples to browse and interact with the dataset through Gradio. The examples will be automatically paginated (you can configure this through the `examples_per_page` argument of `Interface`).
 
-Continue learning about examples in the [More On Examples](https://gradio.app/guides/more-on-examples) guide.
+Continue learning about examples in the [More On Examples](https://gradio.app/guides/more-on-examples) guide. -->
+
 
 ## Alerts
 

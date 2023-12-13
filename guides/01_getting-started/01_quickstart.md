@@ -9,65 +9,62 @@ Usually, it just takes a few lines of Python to create a beautiful demo, so let'
 **Prerequisite**: Gradio requires [Python 3.8 or higher](https://www.python.org/downloads/), that's all!
 
 
-We recommend Install Gradio using `pip`, which is included by default in Python. Run this in your terminal or command prompt:
+We recommend installing Gradio using `pip`, which is included by default in Python. Run this in your terminal or command prompt:
 
 ```bash
 pip install gradio
 ```
 
+
 Tip: it is best to install Gradio in a virtual environment. Detailed installation instructions for all common operating systems are here. 
 
 ## Building Your First Demo
 
-You can run Gradio in your favorite code editor, Jupyter notebook, or [Google Colab](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing). 
+You can run Gradio in your favorite code editor, Jupyter notebook, [Google Colab](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing), or anywhere else you write Python. Let's write our first Gradio app:
+
 
 $code_hello_world
 
-Tip: We shorten the imported name to `gr` for better readability of code using Gradio. This is a widely adopted convention that you should follow so that anyone working with your code can easily understand it. 
+
+Tip: We shorten the imported name to `gr` for better readability of code. This is a widely adopted convention that you should follow so that anyone working with your code can easily understand it. 
 
 Now, run your code. If you've written the Python code in a file named, for example, `app.py`, then you would run `python app.py` from the terminal.
 
-The demo below will open in a browser on [http://localhost:7860](http://localhost:7860) if running from a script. If you are running within a browser, it will appear automatically within the notebook.
+The demo below will open in a browser on [http://localhost:7860](http://localhost:7860) if running from a file. If you are running within a notebook, the demo will appear embedded within the notebook.
 
 $demo_hello_world
 
-Tip: When developing locally, you can use the Gradio CLI to launch an app **in hot reload mode**, which automatically reloads the Gradio app whenever you change the file source. To do this, simply type in `gradio` before the name of the file instead of `python`. In the example above, you would type: `gradio app.py`. Learn more about hot reloading in the [Auto-Reloading Guide](https://gradio.app/developing-faster-with-reload-mode/).
+
+Tip: When developing locally, you can use the Gradio CLI to run a file containing a Gradio app **in hot reload mode**, which automatically reloads the Gradio app whenever you make changes to the file. To do this, simply type in `gradio` before the name of the file instead of `python`. In the example above, you would type: `gradio app.py`. Learn more about hot reloading in the [Hot Reloading Guide](https://gradio.app/developing-faster-with-reload-mode/).
 
 
-## The `Interface` Class
+## Input/Output Demos: The `Interface` Class
 
-You'll notice that in order to make the demo, we created an instance of the `gr.Interface` class. This `Interface` class can wrap any Python function with a user interface. In the example above, we saw a simple text-based function, but the function could be anything from music generator to a tax calculator to the prediction function of a pretrained machine learning model.
+You'll notice that in order to make your first demo, you created an instance of the `gr.Interface` class. The `Interface` class is designed to create demos for machine learning models which accept one or more inputs, and return one or more outputs. 
+
+The `Interface` class is very flexible -- it can wrap *any* Python function with a user interface (UI). In the example above, we saw a simple text-based function, but the function could be anything from music generator to a tax calculator to the prediction function of a pretrained machine learning model.
 
 The core `Interface` class is initialized with three required parameters:
 
 - `fn`: the function to wrap a UI around
-- `inputs`: which component(s) to use for the input (e.g. `"text"`, `"image"` or `"audio"`)
-- `outputs`: which component(s) to use for the output (e.g. `"text"`, `"image"` or `"label"`)
-
-Let's take a closer look at these components used to provide input and output.
-
-## Components Attributes
-
-We saw some simple `Textbox` components in the previous examples, but what if you want to change how the UI components look or behave?
-
-Let's say you want to customize the input text field — for example, you wanted it to be larger and have a text placeholder. If we use the actual class for `Textbox` instead of using the string shortcut, you have access to much more customizability through component attributes.
-
-$code_hello_world_2
-$demo_hello_world_2
-
-## Multiple Input and Output Components
-
-Suppose you had a more complex function, with multiple inputs and outputs. In the example below, we define a function that takes a string, boolean, and number, and returns a string and number. Take a look how you pass a list of input and output components.
-
-$code_hello_world_3
-$demo_hello_world_3
-
-You simply wrap the components in a list. Each component in the `inputs` list corresponds to one of the parameters of the function, in order. Each component in the `outputs` list corresponds to one of the values returned by the function, again in order.
+- `inputs`: which Gradio component(s) to use for the input. The number of components should match the number of arguments in your function.
+- `outputs`: which Gradio component(s) to use for the output. The number of components should match the number of return values from your function.
 
 
-## Chatbots
+As discussed in the next guide, Gradio includes approximately 30 built-in component classes. For the `inputs` and `outputs` arguments, you must pass in the name of one of these components as a string, or a class instance. Passing in a class instance allows you to customize the properties of the your component. 
 
-Gradio includes a high-level class, `gr.ChatInterface`, which is similar to `gr.Interface`, but is specifically designed for chatbot UIs. The `gr.ChatInterface` class also wraps a function but this function must have a specific signature. The function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order)
+If your function accepts more than one argument, you can pass in a list of input components to `inputs`, with each input component corresponding to one of the arguments of the function, in order. The same holds true if your function returns more than one value: simply pass in a list of components to `outputs`. 
+
+The following example shows how to use `gr.Interface` with multiple inputs and outputs:
+
+
+We discuss [more about `gr.Interface` here]().
+
+## Chatbots: The `ChatInterface` Class
+
+Gradio includes another high-level class, `gr.ChatInterface`, which is similar to `gr.Interface`, but is specifically designed to create Chatbot UIs. 
+
+The `gr.ChatInterface` class also wraps a function but this function must have a specific signature. The function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order)
 
 - `message`: a `str` representing the user's input
 - `history`: a `list` of `list` representing the conversations up until that point. Each inner list consists of two `str` representing a pair: `[user input, bot response]`.
@@ -83,17 +80,13 @@ $demo_chatinterface_random_response
 
 You can [read more about `gr.ChatInterface` here](https://gradio.app/guides/creating-a-chatbot-fast).
 
-## Blocks: More Flexibility and Control
+## Complex Demos: The `Blocks` Class
 
-Gradio offers two approaches to build apps:
+So far, we've discussed the **Interface** and **ChatInterface** classes, which provide high-level abstractions that let you very quickly create demos for input/output models and chatbots respectively. But what if your demo doesn't fall into one of these cases?
 
-1\. **Interface** and **ChatInterface**, which provide a high-level abstraction for creating demos that we've been discussing so far.
+Gradio also includes a **Blocks** class, which offers a low-level API for designing web apps with more flexible layouts and data flows. Blocks allows you to do things like control where components appear on the page, handle complex data flows (e.g. outputs can serve as inputs to other functions), and update properties/visibility of components based on user interaction — still all in Python. 
 
-2\. **Blocks**, a low-level API for designing web apps with more flexible layouts and data flows. Blocks allows you to do things like feature multiple data flows and demos, control where components appear on the page, handle complex data flows (e.g. outputs can serve as inputs to other functions), and update properties/visibility of components based on user interaction — still all in Python. If this customizability is what you need, try `Blocks` instead!
-
-## Hello, Blocks
-
-Let's take a look at a simple example. Note how the API here differs from `Interface`.
+Let's take a look at a simple example, similar to our first `Interface` demo. Notice how the syntax here differs from `gr.Interface`.
 
 $code_hello_blocks
 $demo_hello_blocks
@@ -102,15 +95,17 @@ Things to note:
 
 - `Blocks` are made with a `with` clause, and any component created inside this clause is automatically added to the app.
 - Components appear vertically in the app in the order they are created. (Later we will cover customizing layouts!)
-- A `Button` was created, and then a `click` event-listener was added to this button. The API for this should look familiar! Like an `Interface`, the `click` method takes a Python function, input components, and output components.
+- A `Button` was created, and then a `click()` event-listener was added to this button. The arguments for the `click()` event should look familiar! Like an `Interface`, the `click()` method takes a Python function, input components, and output components.
 
-## More Complexity
+You can build very, very complex applications using `gr.Blocks()`. For example, check out the Foocus 
 
-Here's an app to give you a taste of what's possible with `Blocks`:
+## Sharing Your Demo
 
-$code_blocks_flipper
-$demo_blocks_flipper
+What's a good demo if you can't share it? Gradio lets you easily share a machine learning demo without having to worry about the hassle of hosting on a web server. Simply set `share=True`, and a publicly accessible URL will be created for your 
 
-A lot more going on here! We'll cover how to create complex `Blocks` apps like this in the [building with blocks](https://gradio.app/blocks-and-event-listeners) section for you.
 
-Congrats, you're now familiar with the basics of Gradio! 🥳 Go to our [next guide](https://gradio.app/key_features) to learn more about the key features of Gradio.
+## The Gradio Ecosystem
+
+So far, we've been discussing the core `gradio` Python library. But Gradio is so much more! Its an entire ecosystem of Python and JavaScript libraries that let you build machine learning applications, or query them, quickly in Python or JavaScript. Here are other parts of the Gradio ecosystem:
+
+* Gradio Python Client (`gradio_client`): the easiest way to query any Gradio app
