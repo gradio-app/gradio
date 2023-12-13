@@ -7,21 +7,21 @@
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { type FileData, normalise_file } from "@gradio/client";
 
+	type Annotation = {
+		image: FileData;
+		label: string;
+	};
+	type AnnotatedImage = {
+		image: FileData;
+		annotations: Annotation[];
+	};
+
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: {
-		image: FileData;
-		annotations: { image: FileData; label: string }[] | [];
-	} | null = null;
-	let old_value: {
-		image: FileData;
-		annotations: { image: FileData; label: string }[] | [];
-	} | null = null;
-	let _value: {
-		image: FileData;
-		annotations: { image: FileData; label: string }[];
-	} | null = null;
+	export let value: AnnotatedImage | null = null;
+	let old_value: typeof value = null;
+	let normalized_value: typeof value = null;
 	export let gradio: Gradio<{
 		change: undefined;
 		select: SelectData;
@@ -46,7 +46,7 @@
 			gradio.dispatch("change");
 		}
 		if (value) {
-			_value = {
+			normalized_value = {
 				image: normalise_file(value.image, root, proxy_url),
 				annotations: value.annotations.map((ann) => ({
 					image: normalise_file(ann.image, root, proxy_url),
@@ -54,7 +54,7 @@
 				}))
 			};
 		} else {
-			_value = null;
+			normalized_value = null;
 		}
 	}
 	function handle_mouseover(_label: string): void {
@@ -96,17 +96,17 @@
 	/>
 
 	<div class="container">
-		{#if _value == null}
+		{#if normalized_value == null}
 			<Empty size="large" unpadded_box={true}><Image /></Empty>
 		{:else}
 			<div class="image-container">
 				<img
 					class="base-image"
 					class:fit-height={height}
-					src={_value ? _value.image.url : null}
+					src={normalized_value ? normalized_value.image.url : null}
 					alt="the base file that is annotated"
 				/>
-				{#each _value ? _value?.annotations : [] as ann, i}
+				{#each normalized_value ? normalized_value?.annotations : [] as ann, i}
 					<img
 						alt="segmentation mask identifying {label} within the uploaded file"
 						class="mask fit-height"
@@ -116,20 +116,20 @@
 						style={color_map && ann.label in color_map
 							? null
 							: `filter: hue-rotate(${Math.round(
-									(i * 360) / _value?.annotations.length
+									(i * 360) / normalized_value?.annotations.length
 							  )}deg);`}
 					/>
 				{/each}
 			</div>
-			{#if show_legend && _value}
+			{#if show_legend && normalized_value}
 				<div class="legend">
-					{#each _value.annotations as ann, i}
+					{#each normalized_value.annotations as ann, i}
 						<button
 							class="legend-item"
 							style="background-color: {color_map && ann.label in color_map
 								? color_map[ann.label] + '88'
 								: `hsla(${Math.round(
-										(i * 360) / _value.annotations.length
+										(i * 360) / normalized_value.annotations.length
 								  )}, 100%, 50%, 0.3)`}"
 							on:mouseover={() => handle_mouseover(ann.label)}
 							on:focus={() => handle_mouseover(ann.label)}
