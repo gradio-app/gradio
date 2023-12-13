@@ -48,7 +48,8 @@
 		"remove": "Remove",
 		"share": "Share",
 		"submit": "Submit",
-		"undo": "Undo"
+		"undo": "Undo",
+		"no_devices": "No devices found"
 	},
 	"dataframe": {
 		"incorrect_format": "Incorrect format, only CSV and TSV files are supported",

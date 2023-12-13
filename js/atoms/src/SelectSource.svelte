@@ -1,16 +1,20 @@
 <script lang="ts">
 	import { Microphone, Upload, Webcam, ImagePaste } from "@gradio/icons";
 
-	type sources = "upload" | "microphone" | "webcam" | "clipboard" | null;
+	type source_types = "upload" | "microphone" | "webcam" | "clipboard" | null;
 
-	export let sources: Partial<sources>[];
-	export let active_source: Partial<sources>;
+	export let sources: Partial<source_types>[];
+	export let active_source: Partial<source_types>;
 	export let handle_clear: () => void = () => {};
-	export let handle_select: (source_type: Partial<sources>) => void = () => {};
+	export let handle_select: (
+		source_type: Partial<source_types>
+	) => void = () => {};
 
-	let unique_sources = [...new Set(sources)];
+	$: unique_sources = [...new Set(sources)];
 
-	async function handle_select_source(source: Partial<sources>): Promise<void> {
+	async function handle_select_source(
+		source: Partial<source_types>
+	): Promise<void> {
 		handle_clear();
 		active_source = source;
 		handle_select(source);

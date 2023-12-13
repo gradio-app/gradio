@@ -227,11 +227,15 @@
 				>
 					<DropdownArrow />
 				</button>
-				{#each video_sources as source}
-					<option on:click={() => selectVideoSource(source.deviceId)}>
-						{source.label}
-					</option>
-				{/each}
+				{#if video_sources.length === 0}
+					<option value="">{i18n("common.no_devices")}</option>
+				{:else}
+					{#each video_sources as source}
+						<option on:click={() => selectVideoSource(source.deviceId)}>
+							{source.label}
+						</option>
+					{/each}
+				{/if}
 			</select>
 		{/if}
 	{/if}
