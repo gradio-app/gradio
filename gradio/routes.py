@@ -663,8 +663,8 @@ class App(FastAPI):
             if blocks._queue.server_app is None:
                 blocks._queue.set_server_app(app)
 
-            succes, event_id = await blocks._queue.push(body, request, username)
-            if not succes:
+            success, event_id = await blocks._queue.push(body, request, username)
+            if not success:
                 status_code = (
                     status.HTTP_503_SERVICE_UNAVAILABLE
                     if "Queue is full." in event_id
