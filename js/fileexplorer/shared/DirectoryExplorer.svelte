@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
+	import type { Node } from "./utils";
 	import { dequal } from "dequal";
 	import FileTree from "./FileTree.svelte";
 	import { make_fs_store } from "./utils";
