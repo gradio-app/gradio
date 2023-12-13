@@ -47,9 +47,9 @@
 		}
 		if (value) {
 			_value = {
-				image: normalise_file(value.image, root, proxy_url) as FileData,
+				image: normalise_file(value.image, root, proxy_url),
 				annotations: value.annotations.map((ann) => ({
-					image: normalise_file(ann.image, root, proxy_url) as FileData,
+					image: normalise_file(ann.image, root, proxy_url),
 					label: ann.label
 				}))
 			};

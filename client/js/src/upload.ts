@@ -1,44 +1,27 @@
 import { upload_files } from "./client";
 
-export function normalise_file(
-	file: FileData | null,
+export function normalise_file<T extends FileData[] | FileData | null>(
+	file: T,
 	server_url: string,
 	proxy_url: string | null
-): FileData | null;
-
-export function normalise_file(
-	file: FileData[] | null,
-	server_url: string,
-	proxy_url: string | null
-): FileData[] | null;
-
+): T;
 export function normalise_file(
 	file: FileData[] | FileData | null,
-	server_url: string, // root: string,
-	proxy_url: string | null // root_url: string | null
-): FileData[] | FileData | null;
-
-export function normalise_file(
-	file: FileData[] | FileData | null,
-	server_url: string, // root: string,
-	proxy_url: string | null // root_url: string | null
+	server_url: string, // Config.root: string,
+	proxy_url: string | null // Config.root_url: string?
 ): FileData[] | FileData | null {
 	if (file == null) {
 		return null;
 	}
 
 	if (Array.isArray(file)) {
-		const normalized_file: (FileData | null)[] = [];
+		const normalized_file: FileData[] = [];
 
 		for (const x of file) {
-			if (x == null) {
-				normalized_file.push(null);
-			} else {
-				normalized_file.push(normalise_file(x, server_url, proxy_url));
-			}
+			normalized_file.push(normalise_file(x, server_url, proxy_url));
 		}
 
-		return normalized_file as FileData[];
+		return normalized_file;
 	}
 
 	if (file.is_stream) {
