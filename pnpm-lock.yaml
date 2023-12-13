@@ -522,6 +522,10 @@ importers:
       postcss-prefix-selector:
         specifier: ^1.16.0
         version: 1.16.0(postcss@8.4.27)
+    devDependencies:
+      which:
+        specifier: 4.0.0
+        version: 4.0.0
 
   js/atoms:
     dependencies:
@@ -11385,7 +11389,6 @@ packages:
   /isexe@3.1.1:
     resolution: {integrity: sha512-LpB/54B+/2J5hqQ7imZHfdU31OlgQqx7ZicVlkm9kzg9/w8GKLEcFfJl/t7DCEDueOyBAD6zCCwTO6Fzs0NoEQ==}
     engines: {node: '>=16'}
-    dev: false
 
   /ismobilejs@1.1.1:
     resolution: {integrity: sha512-VaFW53yt8QO61k2WJui0dHf4SlL8lxBofUuUmwBo0ljPk0Drz2TiuDW4jo3wDcv41qy/SxrJ+VAzJ/qYqsmzRw==}
@@ -16465,7 +16468,6 @@ packages:
     hasBin: true
     dependencies:
       isexe: 3.1.1
-    dev: false
 
   /why-is-node-running@2.2.2:
     resolution: {integrity: sha512-6tSwToZxTOcotxHeA+qGCq1mVzKR3CwcJGmVcY+QE8SHy6TnpFnh8PAvPNHYr7EcuVeG0QSMxtYCuO1ta/G/oA==}
