@@ -216,7 +216,11 @@
 			{/if}
 		</div>
 		{#if options_open}
-			<select class="select-wrap" use:click_outside={handle_click_outside}>
+			<select
+				class="select-wrap"
+				aria-label="select source"
+				use:click_outside={handle_click_outside}
+			>
 				<button
 					class="inset-icon"
 					on:click|stopPropagation={() => (options_open = false)}

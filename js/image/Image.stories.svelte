@@ -4,23 +4,7 @@
 	import { userEvent, within } from "@storybook/testing-library";
 </script>
 
-<Meta
-	title="Components/Image"
-	component={Image}
-	argTypes={{
-		value: {
-			control: "object",
-			description: "The image URL or file to display",
-			name: "value"
-		},
-		show_download_button: {
-			options: [true, false],
-			description: "If false, the download button will not be visible",
-			control: { type: "boolean" },
-			defaultValue: true
-		}
-	}}
-/>
+<Meta title="Components/Image" component={Image} />
 
 <Template let:args>
 	<div
@@ -68,12 +52,17 @@
 		},
 		show_label: false,
 		show_download_button: false,
-		interactive: true
+		interactive: "true"
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
-		const webcamButton = await canvas.findByLabelText("Capture from camera");
 
+		const webcamButton = await canvas.findByLabelText("Capture from camera");
 		userEvent.click(webcamButton);
+
+		userEvent.click(await canvas.findByTitle("select video source"));
+		userEvent.click(await canvas.findByLabelText("select source"));
+		userEvent.click(await canvas.findByLabelText("Upload file"));
+		userEvent.click(await canvas.findByLabelText("Paste from clipboard"));
 	}}
 />
