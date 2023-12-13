@@ -8,6 +8,8 @@
 	export let handle_clear: () => void = () => {};
 	export let handle_select: (source_type: Partial<sources>) => void = () => {};
 
+	let unique_sources = [...new Set(sources)];
+
 	async function handle_select_source(source: Partial<sources>): Promise<void> {
 		handle_clear();
 		active_source = source;
@@ -15,7 +17,7 @@
 	}
 </script>
 
-{#if sources.length > 1}
+{#if unique_sources.length > 1}
 	<span class="source-selection" data-testid="source-select">
 		{#if sources.includes("upload")}
 			<button

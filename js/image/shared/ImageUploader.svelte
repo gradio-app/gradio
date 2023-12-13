@@ -77,10 +77,8 @@
 		}
 	}
 
-	$: {
-		if (sources.length === 1 && sources[0] === "webcam") {
-			active_source = "webcam";
-		}
+	$: if (!active_source) {
+		active_source = sources[0];
 	}
 
 	async function handle_toolbar(
@@ -166,7 +164,7 @@
 		<SelectSource
 			{sources}
 			bind:active_source
-			handle_clear={() => handle_clear()}
+			{handle_clear}
 			handle_select={handle_toolbar}
 		/>
 	{/if}
