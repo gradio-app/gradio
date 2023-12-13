@@ -16,7 +16,7 @@ pip install gradio
 ```
 
 
-Tip: it is best to install Gradio in a virtual environment. Detailed installation instructions for all common operating systems are here. 
+Tip: it is best to install Gradio in a virtual environment. Detailed installation instructions for all common operating systems <a href="/guides/installing-gradio-in-a-virtual-environment">are here</a>. 
 
 ## Building Your First Demo
 
@@ -36,7 +36,7 @@ $demo_hello_world
 
 Type your name in the textbox on the left, and then press the Submit button. You should see a friendly greeting on the right.
 
-Tip: When developing locally, you can use the Gradio CLI to run a file containing a Gradio app in <strong>hot reload mode</strong>, which automatically reloads the Gradio app whenever you make changes to the file. To do this, simply type in <code>gradio</code> before the name of the file instead of `python`. In the example above, you would type: `gradio app.py` in your terminal. Learn more about hot reloading in the <a href="https://gradio.app/developing-faster-with-reload-mode/">Hot Reloading Guide</a>.
+Tip: When developing locally, you can run your Gradio app in <strong>hot reload mode</strong>, which automatically reloads the Gradio app whenever you make changes to the file. To do this, simply type in <code>gradio</code> before the name of the file instead of <code>python</code>. In the example above, you would type: `gradio app.py` in your terminal. Learn more about hot reloading in the <a href="https://gradio.app/developing-faster-with-reload-mode/">Hot Reloading Guide</a>.
 
 
 ## Input/Output Demos: The `Interface` Class
@@ -52,25 +52,25 @@ The core `Interface` class is initialized with three required parameters:
 - `outputs`: which Gradio component(s) to use for the output. The number of components should match the number of return values from your function.
 
 
-As discussed in the next guide, Gradio includes approximately 30 built-in component classes. For the `inputs` and `outputs` arguments, you must pass in the name of one of these components as a string, or a class instance. Passing in a class instance allows you to customize the properties of the your component (e.g. the number of lines in a `gr.Textbox()`). 
+As discussed in the next guide, Gradio includes approximately 30 built-in components (such as the `gr.Textbox()`, `gr.Image()`, `gr.HTML()`, and so on). For the `inputs` and `outputs` arguments, you must pass in the name of one of these components as a string, or an instance of the class. Passing in a class instance allows you to customize the properties of the your component (e.g. the number of lines in a `gr.Textbox()`). 
 
 If your function accepts more than one argument, you can pass in a list of input components to `inputs`, with each input component corresponding to one of the arguments of the function, in order. The same holds true if your function returns more than one value: simply pass in a list of components to `outputs`. 
 
 The following example shows how to use `gr.Interface` with multiple inputs and outputs:
 
 
-We discuss [more about `gr.Interface` here]().
+We dive deeper into the `gr.Interface` on our series on [building Interfaces]().
 
 ## Chatbots: The `ChatInterface` Class
 
-Gradio includes another high-level class, `gr.ChatInterface`, which is similar to `gr.Interface`, but is specifically designed to create Chatbot UIs. The `ChatInterface` class also includes the notion of a saved *history* of messages.
+Gradio includes another high-level class, `gr.ChatInterface`, which is specifically designed to create Chatbot UIs
 
-The `gr.ChatInterface` class also wraps a function but this function must have a specific signature. The function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order)
+The `gr.ChatInterface` class also wraps a function, but this function must have a specific signature. The function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order)
 
 - `message`: a `str` representing the user's input
 - `history`: a `list` of `list` representing the conversations up until that point. Each inner list consists of two `str` representing a pair: `[user input, bot response]`.
 
-Your function should return a single string response, which is the bot's response to the particular user input `message`.
+The function should return a single `str` response, which is the bot's response to the particular user input's `message`, and it can also take into account the `history` of messages so far.
 
 Other than that, `gr.ChatInterface` has no required parameters (though several are available for customization of the UI).
 
