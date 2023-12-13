@@ -9,19 +9,11 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 	const uploader = await page.locator("input[type=file]");
 	await Promise.all([
 		uploader.setInputFiles(["./test/files/file_test.ogg"]),
-		page.waitForResponse("**/upload")
+		page.waitForResponse("**/upload*?*")
 	]);
 
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
-
-	await page.getByLabel("play-pause-replay-button").nth(0).click();
-	await page.waitForLoadState("networkidle");
-	await page.getByLabel("play-pause-replay-button").nth(0).click();
-	await page.waitForLoadState("networkidle");
-
-	await expect(page.getByLabel("# Play Events")).toHaveValue("1");
-	await expect(page.getByLabel("# Pause Events")).toHaveValue("1");
 
 	await page.getByLabel("Clear").click();
 	await expect(page.getByLabel("# Change Events")).toHaveValue("2");
@@ -31,23 +23,32 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 
 	await Promise.all([
 		uploader.setInputFiles(["./test/files/file_test.ogg"]),
-		page.waitForResponse("**/upload")
+		page.waitForResponse("**/upload*?*")
 	]);
 
 	await expect(page.getByLabel("# Change Events")).toHaveValue("3");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("2");
 
-	await page.getByLabel("play-pause-replay-button").first().click();
-	await page.waitForLoadState("networkidle");
-	await page.getByLabel("play-pause-replay-button").first().click();
-	await page.waitForLoadState("networkidle");
-	await expect(page.getByLabel("# Play Events")).toHaveValue("2");
-	await expect(page.getByLabel("# Pause Events")).toHaveValue("2");
-
 	const downloadPromise = page.waitForEvent("download");
 	await page.getByLabel("Download").click();
 	const download = await downloadPromise;
 	await expect(download.suggestedFilename()).toBe("file_test.ogg");
+});
+
+test("Video play, pause events work correctly.", async ({ page }) => {
+	await page
+		.getByRole("button", { name: "Drop Video Here - or - Click to Upload" })
+		.click();
+	const uploader = await page.locator("input[type=file]");
+	await Promise.all([uploader.setInputFiles(["./test/files/file_test.ogg"])]);
+
+	// Wait change event to trigger
+	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
+
+	await page.getByLabel("play-pause-replay-button").first().click();
+	await expect(page.getByLabel("# Play Events")).toHaveValue("1");
+	await page.getByLabel("play-pause-replay-button").first().click();
+	await expect(page.getByLabel("# Pause Events")).toHaveValue("1");
 });
 
 test("Video drag-and-drop uploads a file to the server correctly.", async ({
@@ -60,7 +61,7 @@ test("Video drag-and-drop uploads a file to the server correctly.", async ({
 		"file_test.ogg",
 		"video/*"
 	);
-	await page.waitForResponse("**/upload");
+	await page.waitForResponse("**/upload*?*");
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 });

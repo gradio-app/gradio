@@ -9,14 +9,13 @@ test("Model3D click-to-upload uploads file successfuly. Upload and clear events 
 	const uploader = await page.locator("input[type=file]");
 	await Promise.all([
 		uploader.setInputFiles(["./test/files/face.obj"]),
-		page.waitForResponse("**/upload")
+		page.waitForResponse("**/upload*?*")
 	]);
 
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 
 	await page.getByLabel("Clear").nth(0).click();
-	await page.waitForLoadState("networkidle");
 	await expect(page.getByLabel("# Change Events")).toHaveValue("2");
 	await expect(page.getByLabel("# Clear Events")).toHaveValue("1");
 	await expect(page.getByLabel("Clear Value")).toHaveValue("");
