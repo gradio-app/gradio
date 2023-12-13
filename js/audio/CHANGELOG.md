@@ -1,5 +1,12 @@
 # @gradio/audio
 
+## 0.6.0
+
+### Features
+
+- [#6398](https://github.com/gradio-app/gradio/pull/6398) [`67ddd40`](https://github.com/gradio-app/gradio/commit/67ddd40b4b70d3a37cb1637c33620f8d197dbee0) - Lite v4.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6745](https://github.com/gradio-app/gradio/pull/6745) [`3240d04`](https://github.com/gradio-app/gradio/commit/3240d042e907a3f2f679c2310c0dc6a688d2c07e) - Add `editable` parameter to Audio.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.5.5
 
 ### Fixes

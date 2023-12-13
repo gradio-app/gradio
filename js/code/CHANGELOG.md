@@ -1,5 +1,11 @@
 # @gradio/code
 
+## 0.3.0
+
+### Features
+
+- [#6398](https://github.com/gradio-app/gradio/pull/6398) [`67ddd40`](https://github.com/gradio-app/gradio/commit/67ddd40b4b70d3a37cb1637c33620f8d197dbee0) - Lite v4.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 0.2.9
 
 ### Patch Changes

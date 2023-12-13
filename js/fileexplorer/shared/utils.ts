@@ -1,5 +1,6 @@
 import { writable, type Readable } from "svelte/store";
 import { dequal } from "dequal";
+
 export interface Node {
 	type: "file" | "folder";
 	path: string;
@@ -75,16 +76,18 @@ export const make_fs_store = (): FSStore => {
 			ensure_visible(_node);
 			const nodes = check_node_and_children(_node.children, true, [_node]);
 			check_parent(_node);
-
 			nodes.forEach((node) => {
 				const path = get_full_path(node);
-				if (seen_nodes.has(path.join("/"))) {
-					return;
-				}
+				const normalized_path = path.join("/");
+				// let normalized_path = path.join("/");
+				// normalized_path = normalized_path.endsWith("/") ? normalized_path.slice(0, -1) : normalized_path;
 				if (node.type === "file") {
+					if (seen_nodes.has(normalized_path)) {
+						return;
+					}
 					new_checked_paths.push(path);
+					seen_nodes.add(normalized_path);
 				}
-				seen_nodes.add(path.join("/"));
 			});
 		}
 
@@ -119,20 +122,19 @@ export const make_fs_store = (): FSStore => {
 
 		for (let i = 0; i < nodes.length; i++) {
 			const _path = get_full_path(nodes[i]);
-			if (!checked) {
+			if (!nodes[i].checked) {
 				new_checked_paths.delete(_path.join("/"));
-			} else if (checked) {
+			} else if (nodes[i].checked) {
 				if (file_count === "single") {
 					new_checked_paths = new Map();
 				}
 
-				if (nodes[i].type === "file") {
-					new_checked_paths.set(_path.join("/"), _path);
-				}
+				new_checked_paths.set(_path.join("/"), _path);
 			}
 		}
 
 		check_parent(_node);
+
 		set(root.children!);
 		old_checked_paths = Array.from(new_checked_paths).map((v) => v[1]);
 		return old_checked_paths;
@@ -261,7 +263,6 @@ function check_parent(node: Node | null | undefined): void {
 		nodes_checked.push(_node.checked);
 		_node = _node.previous;
 	}
-
 	if (nodes_checked.every((v) => v === true)) {
 		node.parent!.checked = true;
 		check_parent(node?.parent);

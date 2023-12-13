@@ -2,7 +2,6 @@
 	import { createEventDispatcher } from "svelte";
 	export let value: boolean;
 	export let disabled: boolean;
-
 	const dispatch = createEventDispatcher<{ change: boolean }>();
 </script>
 
