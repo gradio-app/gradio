@@ -20,6 +20,7 @@
 		event: "stream" | "change" | "stop_recording"
 	) => Promise<void> = () => Promise.resolve();
 	export let interactive = false;
+	export let editable = true;
 	export let trim_region_settings = {};
 	export let waveform_settings: Record<string, any>;
 	export let waveform_options: WaveformOptions;
@@ -56,8 +57,12 @@
 	const create_waveform = (): void => {
 		waveform = WaveSurfer.create({
 			container: container,
-			url: value?.url,
 			...waveform_settings
+		});
+		resolve_wasm_src(value?.url).then((resolved_src) => {
+			if (resolved_src && waveform) {
+				return waveform.load(resolved_src);
+			}
 		});
 	};
 
@@ -184,6 +189,7 @@
 				{handle_reset_value}
 				{waveform_options}
 				{trim_region_settings}
+				{editable}
 			/>
 		{/if}
 	</div>

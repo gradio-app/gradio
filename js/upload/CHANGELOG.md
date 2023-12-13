@@ -1,5 +1,11 @@
 # @gradio/upload
 
+## 0.5.3
+
+### Fixes
+
+- [#6709](https://github.com/gradio-app/gradio/pull/6709) [`6a9151d`](https://github.com/gradio-app/gradio/commit/6a9151d5c9432c724098da7d88a539aaaf5ffe88) - Remove progress animation on streaming.  Thanks [@aliabid94](https://github.com/aliabid94)!
+
 ## 0.5.2
 
 ### Patch Changes

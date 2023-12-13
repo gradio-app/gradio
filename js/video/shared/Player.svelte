@@ -254,4 +254,8 @@
 		width: var(--size-full);
 		border-radius: var(--radius-xl);
 	}
+	.wrap :global(video) {
+		height: var(--size-full);
+		width: var(--size-full);
+	}
 </style>

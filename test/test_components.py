@@ -731,6 +731,7 @@ class TestAudio:
             "show_label": True,
             "label": "Upload Your Audio",
             "container": True,
+            "editable": True,
             "min_width": 160,
             "scale": None,
             "elem_id": None,
@@ -776,6 +777,7 @@ class TestAudio:
             "max_length": None,
             "min_length": None,
             "container": True,
+            "editable": True,
             "min_width": 160,
             "scale": None,
             "elem_id": None,
@@ -2731,6 +2733,67 @@ class TestFileExplorer:
         input_data = FileExplorerData(root=[])
         preprocessed_data = file_explorer.preprocess(input_data)
         assert preprocessed_data == []
+
+    def test_file_explorer_dir_only_glob(self, tmpdir):
+        tmpdir.mkdir("foo")
+        tmpdir.mkdir("bar")
+        tmpdir.mkdir("baz")
+        (Path(tmpdir) / "baz" / "qux").mkdir()
+        (Path(tmpdir) / "foo" / "abc").mkdir()
+        (Path(tmpdir) / "foo" / "abc" / "def").mkdir()
+        (Path(tmpdir) / "foo" / "abc" / "def" / "file.txt").touch()
+
+        file_explorer = gr.FileExplorer(glob="**/", root=Path(tmpdir))
+        tree = file_explorer.ls()
+
+        def sort_answer(answer):
+            answer = sorted(answer, key=lambda x: x["path"])
+            for item in answer:
+                if item["children"]:
+                    item["children"] = sort_answer(item["children"])
+            return answer
+
+        answer = [
+            {
+                "path": "bar",
+                "type": "folder",
+                "children": [{"path": "", "type": "file", "children": None}],
+            },
+            {
+                "path": "baz",
+                "type": "folder",
+                "children": [
+                    {"path": "", "type": "file", "children": None},
+                    {
+                        "path": "qux",
+                        "type": "folder",
+                        "children": [{"path": "", "type": "file", "children": None}],
+                    },
+                ],
+            },
+            {
+                "path": "foo",
+                "type": "folder",
+                "children": [
+                    {"path": "", "type": "file", "children": None},
+                    {
+                        "path": "abc",
+                        "type": "folder",
+                        "children": [
+                            {"path": "", "type": "file", "children": None},
+                            {
+                                "path": "def",
+                                "type": "folder",
+                                "children": [
+                                    {"path": "", "type": "file", "children": None}
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ]
+        assert sort_answer(tree) == sort_answer(answer)
 
 
 def test_component_class_ids():

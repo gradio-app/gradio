@@ -1,5 +1,12 @@
 # @gradio/preview
 
+## 0.6.0
+
+### Features
+
+- [#6738](https://github.com/gradio-app/gradio/pull/6738) [`f3c4d78`](https://github.com/gradio-app/gradio/commit/f3c4d78b710854b94d9a15db78178e504a02c680) - reload on css changes + fix css specificity.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6654](https://github.com/gradio-app/gradio/pull/6654) [`95827bb`](https://github.com/gradio-app/gradio/commit/95827bbe6e5e766c44d8e357cd513c3330534f75) - Update dependency @sveltejs/vite-plugin-svelte to v3.  Thanks [@renovate](https://github.com/apps/renovate)!
+
 ## 0.5.0
 
 ### Features
