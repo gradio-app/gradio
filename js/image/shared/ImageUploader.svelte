@@ -55,7 +55,8 @@
 		pending = false;
 	}
 
-	$: if (uploading) value = null;
+	$: active_streaming = streaming && active_tool === "webcam";
+	$: if (uploading && !active_streaming) value = null;
 
 	$: value && !value.url && (value = normalise_file(value, root, null));
 
@@ -144,7 +145,7 @@
 <BlockLabel {show_label} Icon={ImageIcon} label={label || "Image"} />
 
 <div data-testid="image" class="image-container">
-	{#if value?.url}
+	{#if value?.url && !active_streaming}
 		<ClearImage
 			on:remove_image={() => {
 				value = null;
