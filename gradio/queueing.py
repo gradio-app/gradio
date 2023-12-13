@@ -145,15 +145,16 @@ class Queue:
 
     async def push(
         self, body: PredictBody, request: fastapi.Request, username: str | None
-    ):
+    ) -> tuple[bool, str]:
         if body.session_hash is None:
-            raise ValueError("No session hash provided.")
+            return False, "No session hash provided."
         if body.fn_index is None:
-            raise ValueError("No function index provided.")
+            return False, "No function index provided."
         queue_len = len(self.event_queue)
         if self.max_size is not None and queue_len >= self.max_size:
-            raise ValueError(
-                f"Queue is full. Max size is {self.max_size} and current size is {queue_len}."
+            return (
+                False,
+                f"Queue is full. Max size is {self.max_size} and size is {queue_len}.",
             )
 
         event = Event(body.session_hash, body.fn_index, request, username)
@@ -169,7 +170,7 @@ class Queue:
         estimation = self.get_estimation()
         await self.send_estimation(event, estimation, queue_len)
 
-        return event._id
+        return True, event._id
 
     def _cancel_asyncio_tasks(self):
         for task in self._asyncio_tasks:
@@ -287,7 +288,9 @@ class Queue:
             for event in events:
                 if event.progress_pending and event.progress:
                     event.progress_pending = False
-                    self.send_message(event, "progress", event.progress.model_dump())
+                    self.send_message(
+                        event, ServerMessage.progress, event.progress.model_dump()
+                    )
 
             await asyncio.sleep(self.progress_update_sleep_when_free)
 
@@ -331,7 +334,7 @@ class Queue:
                     log=log,
                     level=level,
                 )
-                self.send_message(event, "log", log_message.model_dump())
+                self.send_message(event, ServerMessage.log, log_message.model_dump())
 
     async def clean_events(
         self, *, session_hash: str | None = None, event_id: str | None = None
@@ -391,7 +394,7 @@ class Queue:
             if None not in self.active_jobs:
                 # Add estimated amount of time for a thread to get empty
                 estimation.rank_eta += self.avg_concurrent_process_time
-        self.send_message(event, "estimation", estimation.model_dump())
+        self.send_message(event, ServerMessage.estimation, estimation.model_dump())
         return estimation
 
     def update_estimation(self, duration: float) -> None:
@@ -485,7 +488,7 @@ class Queue:
         awake_events: list[Event] = []
         try:
             for event in events:
-                self.send_message(event, "process_starts")
+                self.send_message(event, ServerMessage.process_starts)
                 awake_events.append(event)
             if not awake_events:
                 return
@@ -500,7 +503,7 @@ class Queue:
                 for event in awake_events:
                     self.send_message(
                         event,
-                        "process_completed",
+                        ServerMessage.process_completed,
                         {
                             "output": {
                                 "error": None
@@ -519,7 +522,7 @@ class Queue:
                     for event in awake_events:
                         self.send_message(
                             event,
-                            "process_generating",
+                            ServerMessage.process_generating,
                             {
                                 "output": old_response,
                                 "success": old_response is not None,
@@ -541,7 +544,7 @@ class Queue:
                         relevant_response = old_response or old_err
                     self.send_message(
                         event,
-                        "process_completed",
+                        ServerMessage.process_completed,
                         {
                             "output": {"error": str(relevant_response)}
                             if isinstance(relevant_response, Exception)
@@ -557,7 +560,7 @@ class Queue:
                         output["data"] = list(zip(*response.get("data")))[e]
                     self.send_message(
                         event,
-                        "process_completed",
+                        ServerMessage.process_completed,
                         {
                             "output": output,
                             "success": response is not None,

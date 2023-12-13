@@ -508,9 +508,25 @@ class TestClientPredictions:
             with pytest.raises(QueueError):
                 job1 = client.submit("Freddy", api_name="/predict")
                 job2 = client.submit("Abubakar", api_name="/predict")
-                wait([job1, job2])
+                job3 = client.submit("Pete", api_name="/predict")
+                wait([job1, job2, job3])
                 job1.result()
                 job2.result()
+                job3.result()
+
+    def test_json_parse_error(self):
+        data = (
+            "Bonjour Olivier, tu as l'air bien r\u00e9veill\u00e9 ce matin. Tu veux que je te pr\u00e9pare tes petits-d\u00e9j.\n",
+            None,
+        )
+
+        def return_bad():
+            return data
+
+        demo = gr.Interface(return_bad, None, ["text", "text"])
+        with connect(demo) as client:
+            pred = client.predict(api_name="/predict")
+            assert pred[0] == data[0]
 
 
 class TestStatusUpdates:

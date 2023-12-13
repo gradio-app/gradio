@@ -113,6 +113,7 @@ class ServerMessage(str, Enum):
     log = "log"
     progress = "progress"
     heartbeat = "heartbeat"
+    server_stopped = "server_stopped"
 
 
 class Status(Enum):
@@ -162,6 +163,8 @@ class Status(Enum):
             ServerMessage.process_generating: Status.ITERATING,
             ServerMessage.process_completed: Status.FINISHED,
             ServerMessage.progress: Status.PROGRESS,
+            ServerMessage.log: Status.LOG,
+            ServerMessage.server_stopped: Status.FINISHED,
         }[msg]  # type: ignore
 
 
@@ -519,7 +522,7 @@ async def stream_sse_v1(
 
             with helper.lock:
                 log_message = None
-                if msg["msg"] == "log":
+                if msg["msg"] == ServerMessage.log:
                     log = msg.get("log")
                     level = msg.get("level")
                     if log and level:
@@ -544,13 +547,10 @@ async def stream_sse_v1(
                         result = [e]
                     helper.job.outputs.append(result)
                 helper.job.latest_status = status_update
-
-            if msg["msg"] == "queue_full":
-                raise QueueError("Queue is full! Please try again.")
-            elif msg["msg"] == "process_completed":
+            if msg["msg"] == ServerMessage.process_completed:
                 del pending_messages_per_event[event_id]
                 return msg["output"]
-            elif msg["msg"] == "server_stopped":
+            elif msg["msg"] == ServerMessage.server_stopped:
                 raise ValueError("Server stopped.")
 
     except asyncio.CancelledError:

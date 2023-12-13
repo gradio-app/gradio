@@ -622,15 +622,18 @@ class App(FastAPI):
                                 last_heartbeat = time.perf_counter()
 
                         if blocks._queue.stopped:
-                            message = {"msg": "server_stopped", "success": False}
+                            message = {
+                                "msg": ServerMessage.server_stopped,
+                                "success": False,
+                            }
                         if message:
                             yield f"data: {json.dumps(message)}\n\n"
-                            if message["msg"] == "process_completed":
+                            if message["msg"] == ServerMessage.process_completed:
                                 blocks._queue.pending_event_ids_session[
                                     session_hash
                                 ].remove(message["event_id"])
-                                if message["msg"] == "server_stopped" or (
-                                    message["msg"] == "process_completed"
+                                if message["msg"] == ServerMessage.server_stopped or (
+                                    message["msg"] == ServerMessage.process_completed
                                     and (
                                         len(
                                             blocks._queue.pending_event_ids_session[
@@ -660,7 +663,14 @@ class App(FastAPI):
             if blocks._queue.server_app is None:
                 blocks._queue.set_server_app(app)
 
-            event_id = await blocks._queue.push(body, request, username)
+            succes, event_id = await blocks._queue.push(body, request, username)
+            if not succes:
+                status_code = (
+                    status.HTTP_503_SERVICE_UNAVAILABLE
+                    if "Queue is full." in event_id
+                    else status.HTTP_400_BAD_REQUEST
+                )
+                raise HTTPException(status_code=status_code, detail=event_id)
             return {"event_id": event_id}
 
         @app.post("/component_server", dependencies=[Depends(login_check)])
