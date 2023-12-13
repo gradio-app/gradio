@@ -1,5 +1,12 @@
 # @gradio/tootils
 
+## 0.1.6
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/statustracker@0.4.2
+
 ## 0.1.5
 
 ### Patch Changes

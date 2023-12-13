@@ -1,5 +1,12 @@
 # @gradio/fileexplorer
 
+## 0.3.10
+
+### Fixes
+
+- [#6689](https://github.com/gradio-app/gradio/pull/6689) [`c9673ca`](https://github.com/gradio-app/gradio/commit/c9673cacd6470296ee01d7717e2080986e750572) - Fix directory-only glob for FileExplorer.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6691](https://github.com/gradio-app/gradio/pull/6691) [`128ab5d`](https://github.com/gradio-app/gradio/commit/128ab5d65b51390e706a515a1708fe6c88659209) - Ensure checked files persist after FileExplorer rerenders.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.3.9
 
 ### Fixes
