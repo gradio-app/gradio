@@ -6,15 +6,18 @@ import { join } from "path";
 test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
 	test.setTimeout(60 * 1000);
 
-	const install = spawnSync(`gradio cc create MyComponent --no-configure-metadata --template SimpleTextbox --overwrite`, {
-		shell: true,
-		stdio: "pipe",
-		cwd: join(process.cwd(), "mycomponent"),
-		env: {
-			...process.env,
-			PYTHONUNBUFFERED: "true"
+	const install = spawnSync(
+		`gradio cc create MyComponent --no-configure-metadata --template SimpleTextbox --overwrite`,
+		{
+			shell: true,
+			stdio: "pipe",
+			cwd: join(process.cwd(), "mycomponent"),
+			env: {
+				...process.env,
+				PYTHONUNBUFFERED: "true"
+			}
 		}
-	});
+	);
 	console.log("install stdout", install.stdout.toString());
 	console.log("install stderr", install.stderr.toString());
 
