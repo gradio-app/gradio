@@ -112,7 +112,7 @@ import { client } from "@gradio/client";
 
 const app = await client("abidlabs/whisper");
 
-const app_info = await app.view_info();
+const app_info = await app.view_api();
 
 console.log(app_info);
 ```
