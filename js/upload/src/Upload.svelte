@@ -91,25 +91,20 @@
 		file_accept: string | string[] | null,
 		mime_type: string
 	): boolean {
-		if (!file_accept) {
-			return true;
-		}
-		if (file_accept === "*" || file_accept === "file/*") {
+		if (!file_accept || file_accept === "*" || file_accept === "file/*") {
 			return true;
 		}
 		if (typeof file_accept === "string" && file_accept.endsWith("/*")) {
-			const types = file_accept.split(",");
+			file_accept = file_accept.split(",");
+		}
+		if (Array.isArray(file_accept)) {
 			return (
-				types.includes(mime_type) ||
-				mime_type.startsWith(file_accept.slice(0, -1)) ||
-				types.some((type) => {
+				file_accept.includes(mime_type) ||
+				file_accept.some((type) => {
 					const [category] = type.split("/");
 					return type.endsWith("/*") && mime_type.startsWith(category + "/");
 				})
 			);
-		}
-		if (Array.isArray(file_accept)) {
-			return file_accept.includes(mime_type);
 		}
 		return file_accept === mime_type;
 	}
