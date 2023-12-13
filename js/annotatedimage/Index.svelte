@@ -51,23 +51,23 @@
 			gradio.dispatch("change");
 		}
 		if (value) {
-			const normalised_value = {
+			const normalized_value = {
 				image: normalise_file(value.image, root, proxy_url) as FileData,
 				annotations: value.annotations.map((ann) => ({
 					image: normalise_file(ann.image, root, proxy_url) as FileData,
 					label: ann.label
 				}))
 			};
-			_value = normalised_value;
+			_value = normalized_value;
 
 			// In normal (non-Wasm) Gradio, the `<img>` element should be rendered with the passed values immediately
 			// without waiting for `resolve_wasm_src()` to resolve.
 			// If it waits, a blank image is displayed until the async task finishes
 			// and it leads to undesirable flickering.
 			// So set `_value` immediately above, and update it with the resolved values below later.
-			const image_url_promise = resolve_wasm_src(normalised_value.image.url);
+			const image_url_promise = resolve_wasm_src(normalized_value.image.url);
 			const annotation_urls_promise = Promise.all(
-				normalised_value.annotations.map((ann) =>
+				normalized_value.annotations.map((ann) =>
 					resolve_wasm_src(ann.image.url)
 				)
 			);
@@ -82,10 +82,10 @@
 				}
 				const async_resolved_value: typeof _value = {
 					image: {
-						...normalised_value.image,
+						...normalized_value.image,
 						url: image_url ?? undefined
 					},
-					annotations: normalised_value.annotations.map((ann, i) => ({
+					annotations: normalized_value.annotations.map((ann, i) => ({
 						...ann,
 						image: {
 							...ann.image,
