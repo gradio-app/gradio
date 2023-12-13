@@ -98,7 +98,11 @@
 			return true;
 		}
 		if (typeof file_accept === "string" && file_accept.endsWith("/*")) {
-			return (file_accept.split(",").includes(mime_type) || mime_type.startsWith(file_accept.slice(0, -1)));
+			const types = file_accept.split(',');
+			return types.includes(mime_type) || mime_type.startsWith(file_accept.slice(0, -1)) || types.some(type => {
+				const [category] = type.split('/');
+				return type.endsWith('/*') && mime_type.startsWith(category + '/');
+			});
 		}
 		if (Array.isArray(file_accept)) {
 			return file_accept.includes(mime_type);
