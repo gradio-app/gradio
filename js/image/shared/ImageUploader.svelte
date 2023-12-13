@@ -135,7 +135,7 @@
 				<slot />
 			{/if}
 		</Upload>
-		{#if active_source === "webcam"}
+		{#if active_source === "webcam" && !value}
 			<Webcam
 				on:capture={(e) => handle_save(e.detail)}
 				on:stream={(e) => handle_save(e.detail)}
