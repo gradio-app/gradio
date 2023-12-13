@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { FileData } from "@gradio/client";
 	import { onMount, createEventDispatcher } from "svelte";
+	import { WasmWorkerEventSource } from "@gradio/wasm";
+	import { getWorkerProxyContext } from "@gradio/wasm/svelte";
 
 	type FileDataWithProgress = FileData & { progress: number };
 
@@ -35,9 +37,22 @@
 		return (file.progress * 100) / (file.size || 0) || 0;
 	}
 
+	const maybeWorkerProxy = getWorkerProxyContext();
+	function createEventSource(url: URL): EventSource {
+		if (maybeWorkerProxy) {
+			// In Wasm mode
+			return new WasmWorkerEventSource(
+				maybeWorkerProxy,
+				url
+			) as unknown as EventSource;
+		}
+		// In normal mode
+		return new EventSource(url);
+	}
+
 	onMount(() => {
-		event_source = new EventSource(
-			`${root}/upload_progress?upload_id=${upload_id}`
+		event_source = createEventSource(
+			new URL(`${root}/upload_progress?upload_id=${upload_id}`)
 		);
 		// Event listener for progress updates
 		event_source.onmessage = async function (event) {
