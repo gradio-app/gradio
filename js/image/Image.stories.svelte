@@ -16,7 +16,7 @@
 </Template>
 
 <Story
-	name="Static Image with label and download button"
+	name="static with label and download button"
 	args={{
 		value: {
 			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
@@ -29,7 +29,7 @@
 />
 
 <Story
-	name="Static Image with no label or download button"
+	name="static with no label or download button"
 	args={{
 		value: {
 			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
@@ -42,7 +42,7 @@
 />
 
 <Story
-	name="Interactive Image with source selection"
+	name="interactive with upload, clipboard, and webcam"
 	args={{
 		sources: ["upload", "clipboard", "webcam"],
 		value: {
@@ -52,7 +52,7 @@
 		},
 		show_label: false,
 		show_download_button: false,
-		interactive: "true"
+		interactive: true
 	}}
 	play={async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
@@ -64,5 +64,23 @@
 		userEvent.click(await canvas.findByLabelText("select source"));
 		userEvent.click(await canvas.findByLabelText("Upload file"));
 		userEvent.click(await canvas.findByLabelText("Paste from clipboard"));
+	}}
+/>
+
+<Story
+	name="interactive with webcam"
+	args={{
+		sources: ["webcam"],
+		show_download_button: true,
+		interactive: true
+	}}
+/>
+
+<Story
+	name="interactive with clipboard"
+	args={{
+		sources: ["clipboard"],
+		show_download_button: true,
+		interactive: true
 	}}
 />
