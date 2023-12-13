@@ -1,4 +1,5 @@
 import time
+from concurrent.futures import wait
 
 import gradio_client as grc
 import pytest
@@ -197,6 +198,20 @@ class TestQueueing:
                 "PROCESSING",
                 "PROCESSING",
             ]
+            wait(
+                [
+                    add_job_1,
+                    add_job_2,
+                    add_job_3,
+                    sub_job_1,
+                    sub_job_2,
+                    sub_job_3,
+                    sub_job_3,
+                    mul_job_1,
+                    div_job_1,
+                    mul_job_2,
+                ]
+            )
 
     def test_every_does_not_block_queue(self):
         with gr.Blocks() as demo:
