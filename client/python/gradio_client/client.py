@@ -37,6 +37,8 @@ from gradio_client.utils import (
     Communicator,
     JobStatus,
     Message,
+    QueueError,
+    ServerMessage,
     Status,
     StatusUpdate,
 )
@@ -169,7 +171,6 @@ class Client:
     async def stream_messages(self) -> None:
         try:
             async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
-                buffer = ""
                 async with client.stream(
                     "GET",
                     self.sse_url,
@@ -177,33 +178,31 @@ class Client:
                     headers=self.headers,
                     cookies=self.cookies,
                 ) as response:
-                    async for line in response.aiter_text():
-                        buffer += line
-                        while "\n\n" in buffer:
-                            message, buffer = buffer.split("\n\n", 1)
-                            if message.startswith("data:"):
-                                resp = json.loads(message[5:])
-                                if resp["msg"] == "heartbeat":
-                                    continue
-                                elif resp["msg"] == "server_stopped":
-                                    for (
-                                        pending_messages
-                                    ) in self.pending_messages_per_event.values():
-                                        pending_messages.append(resp)
-                                    return
-                                event_id = resp["event_id"]
-                                if event_id not in self.pending_messages_per_event:
-                                    self.pending_messages_per_event[event_id] = []
-                                self.pending_messages_per_event[event_id].append(resp)
-                                if resp["msg"] == "process_completed":
-                                    self.pending_event_ids.remove(event_id)
-                                if len(self.pending_event_ids) == 0:
-                                    self.stream_open = False
-                                    return
-                            elif message == "":
+                    async for line in response.aiter_lines():
+                        line = line.rstrip("\n")
+                        if not len(line):
+                            continue
+                        if line.startswith("data:"):
+                            resp = json.loads(line[5:])
+                            if resp["msg"] == ServerMessage.heartbeat:
                                 continue
-                            else:
-                                raise ValueError(f"Unexpected SSE line: '{message}'")
+                            elif resp["msg"] == ServerMessage.server_stopped:
+                                for (
+                                    pending_messages
+                                ) in self.pending_messages_per_event.values():
+                                    pending_messages.append(resp)
+                                return
+                            event_id = resp["event_id"]
+                            if event_id not in self.pending_messages_per_event:
+                                self.pending_messages_per_event[event_id] = []
+                            self.pending_messages_per_event[event_id].append(resp)
+                            if resp["msg"] == ServerMessage.process_completed:
+                                self.pending_event_ids.remove(event_id)
+                            if len(self.pending_event_ids) == 0:
+                                self.stream_open = False
+                                return
+                        else:
+                            raise ValueError(f"Unexpected SSE line: '{line}'")
         except BaseException as e:
             import traceback
 
@@ -218,6 +217,8 @@ class Client:
                 headers=self.headers,
                 cookies=self.cookies,
             )
+        if req.status_code == 503:
+            raise QueueError("Queue is full! Please try again.")
         req.raise_for_status()
         resp = req.json()
         event_id = resp["event_id"]
