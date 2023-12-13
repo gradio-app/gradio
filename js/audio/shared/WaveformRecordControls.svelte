@@ -164,7 +164,7 @@
 
 	.controls select {
 		text-overflow: ellipsis;
-		max-width: var(--size-40);
+		max-width: 100%;
 	}
 
 	@media (max-width: 375px) {
