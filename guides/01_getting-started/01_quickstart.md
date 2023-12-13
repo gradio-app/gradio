@@ -26,7 +26,7 @@ You can run Gradio in your favorite code editor, Jupyter notebook, [Google Colab
 $code_hello_world
 
 
-Tip: We shorten the imported name to `gr` for better readability of code. This is a widely adopted convention that you should follow so that anyone working with your code can easily understand it. 
+Tip: We shorten the imported name from <code>gradio</code> to <code>gr</code> for better readability of code. This is a widely adopted convention that you should follow so that anyone working with your code can easily understand it. 
 
 Now, run your code. If you've written the Python code in a file named, for example, `app.py`, then you would run `python app.py` from the terminal.
 
@@ -34,8 +34,9 @@ The demo below will open in a browser on [http://localhost:7860](http://localhos
 
 $demo_hello_world
 
+Type your name in the textbox on the left, and then press the Submit button. You should see a friendly greeting on the right.
 
-Tip: When developing locally, you can use the Gradio CLI to run a file containing a Gradio app **in hot reload mode**, which automatically reloads the Gradio app whenever you make changes to the file. To do this, simply type in `gradio` before the name of the file instead of `python`. In the example above, you would type: `gradio app.py`. Learn more about hot reloading in the <a href="https://gradio.app/developing-faster-with-reload-mode/">Hot Reloading Guide</a>.
+Tip: When developing locally, you can use the Gradio CLI to run a file containing a Gradio app in <strong>hot reload mode</strong>, which automatically reloads the Gradio app whenever you make changes to the file. To do this, simply type in <code>gradio</code> before the name of the file instead of `python`. In the example above, you would type: `gradio app.py` in your terminal. Learn more about hot reloading in the <a href="https://gradio.app/developing-faster-with-reload-mode/">Hot Reloading Guide</a>.
 
 
 ## Input/Output Demos: The `Interface` Class
@@ -51,7 +52,7 @@ The core `Interface` class is initialized with three required parameters:
 - `outputs`: which Gradio component(s) to use for the output. The number of components should match the number of return values from your function.
 
 
-As discussed in the next guide, Gradio includes approximately 30 built-in component classes. For the `inputs` and `outputs` arguments, you must pass in the name of one of these components as a string, or a class instance. Passing in a class instance allows you to customize the properties of the your component. 
+As discussed in the next guide, Gradio includes approximately 30 built-in component classes. For the `inputs` and `outputs` arguments, you must pass in the name of one of these components as a string, or a class instance. Passing in a class instance allows you to customize the properties of the your component (e.g. the number of lines in a `gr.Textbox()`). 
 
 If your function accepts more than one argument, you can pass in a list of input components to `inputs`, with each input component corresponding to one of the arguments of the function, in order. The same holds true if your function returns more than one value: simply pass in a list of components to `outputs`. 
 
