@@ -175,6 +175,12 @@
 		object-fit: cover;
 	}
 
+	.image-frame {
+		object-fit: cover;
+		width: 100%;
+		height: 100%;
+	}
+
 	.upload-container {
 		height: 100%;
 		flex-shrink: 1;
