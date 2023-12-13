@@ -5,6 +5,7 @@
 	import Arrow from "./ArrowIcon.svelte";
 	import Checkbox from "./Checkbox.svelte";
 	import FileIcon from "../icons/light-file.svg";
+	import FolderIcon from "../icons/light-folder.svg";
 
 	export let interactive: boolean;
 	export let tree: Node[] = [];
@@ -51,12 +52,16 @@
 							(tree[i].children_visible = !tree[i].children_visible)}
 						><Arrow /></span
 					>
+				{:else if path === ""}
+					<span class="file-icon">
+						<img src={FolderIcon} alt="folder icon" />
+					</span>
 				{:else}
 					<span class="file-icon">
 						<img src={FileIcon} alt="file icon" />
 					</span>
 				{/if}
-				{path}
+				{path ? path : "."}
 			</span>
 			{#if children && children_visible}
 				<svelte:self

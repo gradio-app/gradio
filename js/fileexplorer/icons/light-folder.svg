@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 32 32"
+   version="1.1"
+   id="svg7"
+   sodipodi:docname="light-folder-new.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="7.375"
+     inkscape:cx="15.932203"
+     inkscape:cy="16"
+     inkscape:window-width="1312"
+     inkscape:window-height="529"
+     inkscape:window-x="0"
+     inkscape:window-y="38"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg7" />
+  <defs
+     id="defs6">
+    <clipPath
+       id="clipPath1">
+      <path
+         d="m69.63 12.145h-.052c-22.727-.292-46.47 4.077-46.709 4.122-2.424.451-4.946 2.974-5.397 5.397-.044.237-4.414 23.983-4.122 46.71-.292 22.777 4.078 46.523 4.122 46.761.451 2.423 2.974 4.945 5.398 5.398.237.044 23.982 4.413 46.709 4.121 22.779.292 46.524-4.077 46.761-4.121 2.423-.452 4.946-2.976 5.398-5.399.044-.236 4.413-23.981 4.121-46.709.292-22.777-4.077-46.523-4.121-46.761-.453-2.423-2.976-4.946-5.398-5.397-.238-.045-23.984-4.414-46.71-4.122"
+         id="path1" />
+    </clipPath>
+    <linearGradient
+       gradientUnits="userSpaceOnUse"
+       y2="352.98"
+       x2="-601.15"
+       y1="663.95"
+       x1="-591.02"
+       id="2">
+      <stop
+         stop-color="#a0a0a0"
+         id="stop1" />
+      <stop
+         offset="1"
+         stop-color="#aaa"
+         id="stop2" />
+    </linearGradient>
+    <linearGradient
+       gradientUnits="userSpaceOnUse"
+       y2="354.29"
+       x2="-704.05"
+       y1="647.77"
+       x1="-701.19"
+       id="1">
+      <stop
+         stop-color="#acabab"
+         id="stop3" />
+      <stop
+         offset="1"
+         stop-color="#d4d4d4"
+         id="stop4" />
+    </linearGradient>
+    <linearGradient
+       id="0"
+       x1="59.12"
+       y1="-19.888"
+       x2="59.15"
+       y2="-37.783"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(4.17478 0 0 4.16765-1069.7 447.73)">
+      <stop
+         stop-color="#a0a0a0"
+         id="stop5" />
+      <stop
+         offset="1"
+         stop-color="#bdbdbd"
+         id="stop6" />
+    </linearGradient>
+  </defs>
+  <g
+     transform="matrix(.07089 0 0 .07017 23.295-40.67)"
+     fill="#60aae5"
+     id="g7"
+     style="fill:#888888;fill-opacity:1">
+    <path
+       transform="matrix(.7872 0 0 .79524 415.34 430.11)"
+       d="m-884.1 294.78c-4.626 0-8.349 3.718-8.349 8.335v161.41l468.19 1v-121.2c0-4.618-3.724-8.335-8.35-8.335h-272.65c-8.51.751-9.607-.377-13.812-5.981-5.964-7.968-14.969-21.443-20.84-29.21-4.712-6.805-5.477-6.02-13.292-6.02z"
+       fill="url(#0)"
+       color="#000"
+       id="path6"
+       style="fill:#888888;fill-opacity:1" />
+    <rect
+       transform="matrix(.7872 0 0 .79524 415.34 430.11)"
+       y="356.85"
+       x="-890.28"
+       height="295.13"
+       width="463.85"
+       fill="url(#1)"
+       stroke="url(#1)"
+       stroke-width="2.378"
+       rx="9.63"
+       id="rect6"
+       style="fill:#888888;fill-opacity:1" />
+    <rect
+       width="463.85"
+       height="295.13"
+       x="-890.28"
+       y="356.85"
+       transform="matrix(.7872 0 0 .79524 415.34 430.11)"
+       fill="none"
+       stroke="url(#2)"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       stroke-width="5.376"
+       rx="9.63"
+       id="rect7"
+       style="fill:#888888;fill-opacity:1" />
+  </g>
+</svg>
