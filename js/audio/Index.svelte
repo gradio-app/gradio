@@ -84,7 +84,7 @@
 
 	let dragging: boolean;
 
-	$: if (sources) {
+	$: if (!active_source && sources) {
 		active_source = sources[0];
 	}
 

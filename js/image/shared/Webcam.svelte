@@ -277,7 +277,7 @@
 		opacity: 0.8;
 		width: 18px;
 		height: 18px;
-		color: white;
+		color: var(--neutral-400);
 		display: flex;
 		justify-content: space-between;
 		align-items: center;

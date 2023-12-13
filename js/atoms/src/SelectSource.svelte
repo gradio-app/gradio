@@ -42,7 +42,7 @@
 			<button
 				class="icon"
 				class:selected={active_source === "webcam"}
-				aria-label="Record video"
+				aria-label="Capture from camera"
 				on:click={() => handle_select_source("webcam")}><Webcam /></button
 			>
 		{/if}

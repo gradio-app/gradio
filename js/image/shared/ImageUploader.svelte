@@ -45,7 +45,6 @@
 		const f = await upload.load_files([new File([img_blob], `webcam.png`)]);
 
 		value = f?.[0] || null;
-		if (!streaming) active_source = null;
 
 		await tick();
 
@@ -77,7 +76,7 @@
 		}
 	}
 
-	$: if (!active_source) {
+	$: if (!active_source && sources) {
 		active_source = sources[0];
 	}
 

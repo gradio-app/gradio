@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import StaticImage from "./Index.svelte";
+	import { userEvent, within } from "@storybook/testing-library";
 </script>
 
 <Meta
@@ -53,5 +54,26 @@
 		},
 		show_label: false,
 		show_download_button: false
+	}}
+/>
+
+<Story
+	name="Interactive Image with source selection"
+	args={{
+		sources: ["upload", "clipboard", "webcam"],
+		value: {
+			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			orig_name: "cheetah.jpg"
+		},
+		show_label: false,
+		show_download_button: false,
+		interactive: true
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+		const webcamButton = await canvas.findByLabelText("Capture from camera");
+
+		userEvent.click(webcamButton);
 	}}
 />
