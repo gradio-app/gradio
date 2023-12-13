@@ -63,7 +63,7 @@ We discuss [more about `gr.Interface` here]().
 
 ## Chatbots: The `ChatInterface` Class
 
-Gradio includes another high-level class, `gr.ChatInterface`, which is similar to `gr.Interface`, but is specifically designed to create Chatbot UIs. 
+Gradio includes another high-level class, `gr.ChatInterface`, which is similar to `gr.Interface`, but is specifically designed to create Chatbot UIs. The `ChatInterface` class also includes the notion of a saved *history* of messages.
 
 The `gr.ChatInterface` class also wraps a function but this function must have a specific signature. The function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order)
 
