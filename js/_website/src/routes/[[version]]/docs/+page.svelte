@@ -34,7 +34,7 @@
             <div class="relative pr-4 text-smd font-normal text-gray-400">Use Gradio's Javascript components in cusome components or outside the context of Gradio.</div>
         </a>
 
-        <a href="/docs/custom-components" target="_self" class="group group relative flex flex-col overflow-hidden border md:first:row-span-2 border-orange-50 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-orange-500/5 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"><div class="absolute hidden h-16 w-[550px] rotate-45 transform bg-red-500/10 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"></div>
+        <a href="main/docs/custom-components" target="_self" class="group group relative flex flex-col overflow-hidden border md:first:row-span-2 border-orange-50 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-orange-500/5 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"><div class="absolute hidden h-16 w-[550px] rotate-45 transform bg-red-500/10 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"></div>
             <div class="relative mb-2 mt-auto flex items-center text-lg font-semibold"><span class="mr-1.5 h-1.5 w-1.5 rounded-full bg-orange-500"></span>
                 <span class="group-hover:underline">Custom Components</span></div>
             <div class="relative pr-4 text-smd font-normal text-gray-400">Create, use and share your own custom components.</div>

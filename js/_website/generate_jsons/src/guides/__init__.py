@@ -40,7 +40,11 @@ guide_folders.remove("cn")
 guides = []
 guides_by_category = []
 guide_names = []
+cc_guide_names = []
+cc_guide_names.append({"category": "Custom Components", "guides": []})
+
 guide_urls = []
+cc_guide_urls = []
 absolute_index = 0
 for guide_folder in guide_folders:
     guide_list = sorted(os.listdir(os.path.join(GUIDES_DIR, guide_folder)))
@@ -73,6 +77,8 @@ for guide_folder in guide_folders:
         contributor = get_labeled_metadata("Contributed by", is_list=False)
 
         url = f"/guides/{guide_name}/"
+        if guide_category == "custom-components":
+            url = f"/{guide_name}/"
         
         guide_content = re.sub(
             r"\$code_([a-z _\-0-9]+)",
@@ -137,6 +143,9 @@ for guide_folder in guide_folders:
         guides_by_category[-1]["guides"].append(guide_data)
         guide_names[-1]["guides"].append({"name": guide_name, "pretty_name": pretty_guide_name, "url": url})
         guide_urls.append(guide_name)
+        if guide_category == "custom-components":
+            cc_guide_names[-1]["guides"].append({"name": guide_name, "pretty_name": pretty_guide_name, "url": url})
+            cc_guide_urls.append(guide_name)
         absolute_index += 1
 
 
@@ -152,10 +161,23 @@ def generate(json_path):
             json.dump({
                 "guide": guide
                 }, f)
+        if guide["category"] == "custom-components":
+            if not os.path.isdir(json_path + "../custom_components"):
+                os.mkdir(json_path + "../custom_components")
+            with open(json_path + "../custom_components/" + guide["name"] + ".json", 'w+') as f:
+                json.dump({
+                    "guide": guide
+                    }, f)
     with open(json_path + "guide_names.json", 'w+') as f:
         json.dump({
             "guide_names": guide_names,
             "guide_urls": guide_urls
             }, f)
+    with open(json_path + "cc_guide_names.json", 'w+') as f:
+        json.dump({
+            "guide_names": cc_guide_names,
+            "guide_urls": [url.replace("/guide", "") for url in cc_guide_urls]
+            }, f)
+    
 
 
