@@ -1,5 +1,11 @@
 # @gradio/gallery
 
+## 0.4.11
+
+### Fixes
+
+- [#6487](https://github.com/gradio-app/gradio/pull/6487) [`9a5811d`](https://github.com/gradio-app/gradio/commit/9a5811df9218b622af59ba243a937a9c36ba00f9) - Fix the download button of the `gr.Gallery()` component to work.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 0.4.10
 
 ### Patch Changes

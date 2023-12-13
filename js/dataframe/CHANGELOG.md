@@ -1,5 +1,11 @@
 # @gradio/dataframe
 
+## 0.4.0
+
+### Features
+
+- [#6603](https://github.com/gradio-app/gradio/pull/6603) [`6b1401c`](https://github.com/gradio-app/gradio/commit/6b1401c514c2ec012b0a50c72a6ec81cb673bf1d) - chore(deps): update dependency marked to v11.  Thanks [@renovate](https://github.com/apps/renovate)!
+
 ## 0.3.11
 
 ### Patch Changes

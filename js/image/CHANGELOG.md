@@ -1,5 +1,17 @@
 # @gradio/image
 
+## 0.5.0
+
+### Features
+
+- [#6726](https://github.com/gradio-app/gradio/pull/6726) [`21cfb0a`](https://github.com/gradio-app/gradio/commit/21cfb0acc309bb1a392f4d8a8e42f6be864c5978) - Remove the styles from the Image/Video primitive components and Fix the container styles.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6398](https://github.com/gradio-app/gradio/pull/6398) [`67ddd40`](https://github.com/gradio-app/gradio/commit/67ddd40b4b70d3a37cb1637c33620f8d197dbee0) - Lite v4.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6399](https://github.com/gradio-app/gradio/pull/6399) [`053bec9`](https://github.com/gradio-app/gradio/commit/053bec98be1127e083414024e02cf0bebb0b5142) - Improve CSS token documentation in Storybook.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
+### Fixes
+
+- [#6709](https://github.com/gradio-app/gradio/pull/6709) [`6a9151d`](https://github.com/gradio-app/gradio/commit/6a9151d5c9432c724098da7d88a539aaaf5ffe88) - Remove progress animation on streaming.  Thanks [@aliabid94](https://github.com/aliabid94)!
+
 ## 0.4.2
 
 ### Fixes

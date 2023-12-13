@@ -1,5 +1,11 @@
 # @gradio/row
 
+## 0.1.1
+
+### Features
+
+- [#6399](https://github.com/gradio-app/gradio/pull/6399) [`053bec9`](https://github.com/gradio-app/gradio/commit/053bec98be1127e083414024e02cf0bebb0b5142) - Improve CSS token documentation in Storybook.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.1.0
 
 ### Features
