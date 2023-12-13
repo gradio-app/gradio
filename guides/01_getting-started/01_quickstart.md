@@ -35,7 +35,7 @@ The demo below will open in a browser on [http://localhost:7860](http://localhos
 $demo_hello_world
 
 
-Tip: When developing locally, you can use the Gradio CLI to run a file containing a Gradio app **in hot reload mode**, which automatically reloads the Gradio app whenever you make changes to the file. To do this, simply type in `gradio` before the name of the file instead of `python`. In the example above, you would type: `gradio app.py`. Learn more about hot reloading in the [Hot Reloading Guide](https://gradio.app/developing-faster-with-reload-mode/).
+Tip: When developing locally, you can use the Gradio CLI to run a file containing a Gradio app **in hot reload mode**, which automatically reloads the Gradio app whenever you make changes to the file. To do this, simply type in `gradio` before the name of the file instead of `python`. In the example above, you would type: `gradio app.py`. Learn more about hot reloading in the <a href="https://gradio.app/developing-faster-with-reload-mode/">Hot Reloading Guide</a>.
 
 
 ## Input/Output Demos: The `Interface` Class
