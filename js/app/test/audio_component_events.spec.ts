@@ -9,7 +9,7 @@ test("Audio click-to-upload uploads audio successfuly. File downloading works an
 	const uploader = await page.locator("input[type=file]");
 	await Promise.all([
 		uploader.setInputFiles(["../../test/test_files/audio_sample.wav"]),
-		page.waitForLoadState("networkidle")
+		page.waitForResponse("**/upload")
 	]);
 
 	await expect(page.getByLabel("# Input Change Events")).toHaveValue("1");
@@ -23,7 +23,7 @@ test("Audio click-to-upload uploads audio successfuly. File downloading works an
 
 	await Promise.all([
 		uploader.setInputFiles(["../../test/test_files/audio_sample.wav"]),
-		page.waitForLoadState("networkidle")
+		page.waitForResponse("**/upload")
 	]);
 
 	await expect(page.getByLabel("# Input Change Events")).toHaveValue("3");
@@ -46,7 +46,7 @@ test("Audio drag-and-drop uploads a file to the server correctly.", async ({
 			"audio_sample.wav",
 			"audio/wav"
 		),
-		page.waitForLoadState("networkidle")
+		page.waitForResponse("**/upload")
 	]);
 	await expect(page.getByLabel("# Input Change Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Input Upload Events")).toHaveValue("1");
@@ -69,7 +69,7 @@ test("Play, Pause, and stop events work correctly.", async ({ page }) => {
 	const uploader = await page.locator("input[type=file]");
 	await Promise.all([
 		uploader.setInputFiles(["../../demo/audio_debugger/cantina.wav"]),
-		page.waitForLoadState("networkidle")
+		page.waitForResponse("**/upload")
 	]);
 
 	await page

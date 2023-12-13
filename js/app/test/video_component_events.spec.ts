@@ -9,7 +9,7 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 	const uploader = await page.locator("input[type=file]");
 	await Promise.all([
 		uploader.setInputFiles(["./test/files/file_test.ogg"]),
-		page.waitForLoadState("networkidle")
+		page.waitForResponse("**/upload")
 	]);
 
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
@@ -31,7 +31,7 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 
 	await Promise.all([
 		uploader.setInputFiles(["./test/files/file_test.ogg"]),
-		page.waitForLoadState("networkidle")
+		page.waitForResponse("**/upload")
 	]);
 
 	await expect(page.getByLabel("# Change Events")).toHaveValue("3");
@@ -60,7 +60,7 @@ test("Video drag-and-drop uploads a file to the server correctly.", async ({
 		"file_test.ogg",
 		"video/*"
 	);
-	await page.waitForLoadState("networkidle");
+	await page.waitForResponse("**/upload");
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 });
