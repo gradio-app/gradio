@@ -66,14 +66,14 @@
 			// and it leads to undesirable flickering.
 			// So set `_value` immediately above, and update it with the resolved values below later.
 			const image_url_promise = resolve_wasm_src(normalised_value.image.url);
-			const annotation_url_promises = Promise.all(
+			const annotation_urls_promise = Promise.all(
 				normalised_value.annotations.map((ann) =>
 					resolve_wasm_src(ann.image.url)
 				)
 			);
 			const current_promise = Promise.all([
 				image_url_promise,
-				annotation_url_promises
+				annotation_urls_promise
 			]);
 			latest_promise = current_promise;
 			current_promise.then(([image_url, annotation_urls]) => {
