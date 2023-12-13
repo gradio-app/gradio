@@ -4,6 +4,7 @@
 	import type { FileData } from "@gradio/client";
 	import { Video, Download } from "@gradio/icons";
 	import { uploadToHuggingFace } from "@gradio/utils";
+	import { DownloadLink } from "@gradio/wasm/svelte";
 
 	import Player from "./Player.svelte";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
@@ -67,13 +68,9 @@
 	{/key}
 	<div class="icon-buttons" data-testid="download-div">
 		{#if show_download_button}
-			<a
-				href={value.url}
-				target={window.__is_colab__ ? "_blank" : null}
-				download={value.orig_name || value.path}
-			>
+			<DownloadLink href={value.url} download={value.orig_name || value.path}>
 				<IconButton Icon={Download} label="Download" />
-			</a>
+			</DownloadLink>
 		{/if}
 		{#if show_share_button}
 			<ShareButton

@@ -124,7 +124,9 @@
 </script>
 
 {#if uploading}
-	<UploadProgress {root} {upload_id} files={file_data} />
+	{#if !hidden}
+		<UploadProgress {root} {upload_id} files={file_data} />
+	{/if}
 {:else}
 	<button
 		class:hidden

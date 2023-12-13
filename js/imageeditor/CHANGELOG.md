@@ -1,5 +1,18 @@
 # @gradio/imageeditor
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [[`6a9151d`](https://github.com/gradio-app/gradio/commit/6a9151d5c9432c724098da7d88a539aaaf5ffe88), [`21cfb0a`](https://github.com/gradio-app/gradio/commit/21cfb0acc309bb1a392f4d8a8e42f6be864c5978), [`d76bcaa`](https://github.com/gradio-app/gradio/commit/d76bcaaaf0734aaf49a680f94ea9d4d22a602e70), [`67ddd40`](https://github.com/gradio-app/gradio/commit/67ddd40b4b70d3a37cb1637c33620f8d197dbee0), [`053bec9`](https://github.com/gradio-app/gradio/commit/053bec98be1127e083414024e02cf0bebb0b5142), [`bdf81fe`](https://github.com/gradio-app/gradio/commit/bdf81fead86e1d5a29e6b036f1fff677f6480e6b), [`4d1cbbc`](https://github.com/gradio-app/gradio/commit/4d1cbbcf30833ef1de2d2d2710c7492a379a9a00), [`5177132`](https://github.com/gradio-app/gradio/commit/5177132d718c77f6d47869b4334afae6380394cb)]:
+  - @gradio/image@0.5.0
+  - @gradio/upload@0.5.3
+  - @gradio/client@0.9.0
+  - @gradio/wasm@0.4.0
+  - @gradio/icons@0.3.2
+  - @gradio/atoms@0.4.0
+  - @gradio/statustracker@0.4.2
+
 ## 0.1.2
 
 ### Patch Changes
