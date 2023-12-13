@@ -15,13 +15,7 @@ export function normalise_file(
 	}
 
 	if (Array.isArray(file)) {
-		const normalized_file: FileData[] = [];
-
-		for (const x of file) {
-			normalized_file.push(normalise_file(x, server_url, proxy_url));
-		}
-
-		return normalized_file;
+		return file.map((x) => normalise_file(x, server_url, proxy_url));
 	}
 
 	if (file.is_stream) {
