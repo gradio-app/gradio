@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import { BlockLabel } from "@gradio/atoms";
-	import { Image } from "@gradio/icons";
+	import { Image as ImageIcon } from "@gradio/icons";
 	import type { SelectData, I18nFormatter } from "@gradio/utils";
 	import { get_coordinates_of_clicked_image } from "./utils";
 	import {
@@ -15,6 +15,7 @@
 	import { Upload } from "@gradio/upload";
 	import { type FileData, normalise_file } from "@gradio/client";
 	import ClearImage from "./ClearImage.svelte";
+	import Image from "./Image.svelte";
 
 	export let value: null | FileData;
 	export let label: string | undefined = undefined;
@@ -54,7 +55,8 @@
 		pending = false;
 	}
 
-	$: if (uploading) value = null;
+	$: active_streaming = streaming && active_tool === "webcam";
+	$: if (uploading && !active_streaming) value = null;
 
 	$: value && !value.url && (value = normalise_file(value, root, null));
 
@@ -140,10 +142,10 @@
 	}
 </script>
 
-<BlockLabel {show_label} Icon={Image} label={label || "Image"} />
+<BlockLabel {show_label} Icon={ImageIcon} label={label || "Image"} />
 
 <div data-testid="image" class="image-container">
-	{#if value?.url}
+	{#if value?.url && !active_streaming}
 		<ClearImage
 			on:remove_image={() => {
 				value = null;
@@ -182,13 +184,10 @@
 			/>
 		{:else if value !== null && !streaming}
 			<!-- svelte-ignore a11y-click-events-have-key-events-->
-			<!-- svelte-ignore a11y-no-noninteractive-element-interactions-->
-			<img
-				src={value.url}
-				alt={value.alt_text}
-				on:click={handle_click}
-				class:selectable
-			/>
+			<!-- svelte-ignore a11y-no-static-element-interactions-->
+			<div class:selectable class="image-frame" on:click={handle_click}>
+				<Image src={value.url} alt={value.alt_text} />
+			</div>
 		{/if}
 	</div>
 	{#if sources.length > 1 || sources.includes("clipboard")}
@@ -207,10 +206,7 @@
 </div>
 
 <style>
-	/* .image-container {
-		height: auto;
-	} */
-	img {
+	.image-frame :global(img) {
 		width: var(--size-full);
 		height: var(--size-full);
 	}

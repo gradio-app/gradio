@@ -2,7 +2,7 @@
 import functools
 import os
 import tempfile
-from contextlib import closing
+from contextlib import asynccontextmanager, closing
 from unittest import mock as mock
 
 import gradio_client as grc
@@ -338,6 +338,50 @@ class TestRoutes:
         # Use context manager to trigger start up events
         with TestClient(app) as client:
             assert client.get("/echo/docs-custom").is_success
+
+    def test_mount_gradio_app_with_lifespan(self):
+        @asynccontextmanager
+        async def empty_lifespan(app: FastAPI):
+            yield
+
+        app = FastAPI(lifespan=empty_lifespan)
+
+        demo = gr.Interface(
+            lambda s: f"Hello from ps, {s}!", "textbox", "textbox"
+        ).queue()
+        demo1 = gr.Interface(
+            lambda s: f"Hello from py, {s}!", "textbox", "textbox"
+        ).queue()
+
+        app = gr.mount_gradio_app(app, demo, path="/ps")
+        app = gr.mount_gradio_app(app, demo1, path="/py")
+
+        # Use context manager to trigger start up events
+        with TestClient(app) as client:
+            assert client.get("/ps").is_success
+            assert client.get("/py").is_success
+
+    def test_mount_gradio_app_with_startup(self):
+        app = FastAPI()
+
+        @app.on_event("startup")
+        async def empty_startup():
+            return
+
+        demo = gr.Interface(
+            lambda s: f"Hello from ps, {s}!", "textbox", "textbox"
+        ).queue()
+        demo1 = gr.Interface(
+            lambda s: f"Hello from py, {s}!", "textbox", "textbox"
+        ).queue()
+
+        app = gr.mount_gradio_app(app, demo, path="/ps")
+        app = gr.mount_gradio_app(app, demo1, path="/py")
+
+        # Use context manager to trigger start up events
+        with TestClient(app) as client:
+            assert client.get("/ps").is_success
+            assert client.get("/py").is_success
 
     def test_static_file_missing(self, test_client):
         response = test_client.get(r"/static/not-here.js")
