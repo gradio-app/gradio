@@ -1,3 +1,4 @@
+import shutil
 import textwrap
 from pathlib import Path
 
@@ -6,7 +7,6 @@ import pytest
 from gradio.cli.commands.components._create_utils import OVERRIDES
 from gradio.cli.commands.components.build import _build
 from gradio.cli.commands.components.create import _create
-from gradio.cli.commands.components.install_component import _install
 from gradio.cli.commands.components.publish import _get_version_from_file
 from gradio.cli.commands.components.show import _show
 
@@ -106,39 +106,35 @@ def test_show(capsys):
     assert "Dataset" not in stdout
 
 
-@pytest.mark.xfail
-@pytest.mark.parametrize("template", ["Audio", "Video", "Image", "Textbox"])
-def test_build(template, tmp_path):
-    _create(
-        "TestTextbox",
-        template=template,
-        directory=tmp_path,
-        overwrite=True,
-        install=True,
-        configure_metadata=False,
-    )
-    _build(tmp_path, build_frontend=True)
-    template_dir: Path = (
-        tmp_path.resolve() / "backend" / "gradio_testtextbox" / "templates"
-    )
-    assert template_dir.exists() and template_dir.is_dir()
-    assert list(template_dir.glob("**/index.js"))
-    assert (tmp_path / "dist").exists() and list((tmp_path / "dist").glob("*.whl"))
-
-
-def test_install(tmp_path):
-    _create(
-        "TestTextbox",
-        template="Textbox",
-        directory=tmp_path,
-        overwrite=True,
-        install=False,
-        configure_metadata=False,
-    )
-
-    assert not (tmp_path / "frontend" / "node_modules").exists()
-    _install(tmp_path)
-    assert (tmp_path / "frontend" / "node_modules").exists()
+@pytest.mark.parametrize("template", ["Audio", "Image"])
+def test_build(template):
+    pnpm_lock = Path(__file__).parent / ".." / "pnpm-lock.yaml"
+    pnpm_copy = Path(__file__).parent / ".." / "pnpm-lock-copy.yaml"
+    shutil.copy(str(pnpm_lock), str(pnpm_copy))
+    # Using the js/preview/test directory will use the workspace code
+    dir_ = Path(__file__).parent / ".." / "js" / "preview" / "test" / "testtextbox"
+    shutil.rmtree(str(dir_), ignore_errors=True)
+    try:
+        _create(
+            "TestTextbox",
+            template=template,
+            directory=dir_,
+            overwrite=True,
+            install=True,
+            configure_metadata=False,
+        )
+        assert (dir_ / "frontend" / "node_modules").exists()
+        _build(dir_, build_frontend=True)
+        template_dir: Path = (
+            dir_.resolve() / "backend" / "gradio_testtextbox" / "templates"
+        )
+        assert template_dir.exists() and template_dir.is_dir()
+        assert list(template_dir.glob("**/index.js"))
+        assert (dir_ / "dist").exists() and list((dir_ / "dist").glob("*.whl"))
+    finally:
+        pass
+        shutil.rmtree(str(dir_), ignore_errors=True)
+        shutil.move(str(pnpm_copy), str(pnpm_lock))
 
 
 def test_fallback_template_app(tmp_path):
