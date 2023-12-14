@@ -6,7 +6,6 @@ test("UploadButton properly dispatches load event and click event for the single
 	await page.getByRole("button", { name: "Upload Single File" }).click();
 	const uploader = await page.getByTestId("Upload Single File-upload-button");
 	await uploader.setInputFiles(["./test/files/face.obj"]);
-	await page.waitForLoadState("networkidle");
 
 	await expect(page.getByLabel("# Load Upload Single File")).toHaveValue("1");
 	await expect(
@@ -30,6 +29,7 @@ test("UploadButton properly dispatches load event and click event for the multip
 		"./test/files/face.obj",
 		"./test/files/cheetah1.jpg"
 	]);
+
 
 	await expect(page.getByLabel("# Load Upload Multiple Files")).toHaveValue(
 		"1"
