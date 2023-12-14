@@ -2,11 +2,11 @@
 
 Let's go through some of the most popular features of Gradio! Here are Gradio's key features:
 
-1. [Adding example inputs](#example-inputs)
+<!-- 1. [Adding example inputs](#example-inputs) -->
 2. [Passing custom error messages](#alerts)
-3. [Adding descriptive content](#descriptive-content)
-4. [Setting up flagging](#flagging)
-5. [Preprocessing and postprocessing](#preprocessing-and-postprocessing)
+<!-- 3. [Adding descriptive content](#descriptive-content) -->
+<!-- 4. [Setting up flagging](#flagging) -->
+<!-- 5. [Preprocessing and postprocessing](#preprocessing-and-postprocessing) -->
 6. [Styling demos](#styling)
 7. [Queuing users](#queuing)
 8. [Iterative outputs](#iterative-outputs)
@@ -15,6 +15,9 @@ Let's go through some of the most popular features of Gradio! Here are Gradio's 
 11. [Running on collaborative notebooks](#colab-notebooks)
 
 ## Components
+
+## Streaming
+
 
 <!-- ## Example Inputs
 

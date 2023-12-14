@@ -110,7 +110,7 @@ We dive deeper into the `gr.Blocks` on our series on [building with Blocks](/gui
 
 ## Sharing Your Demo
 
-What good is a cool demo if you can't share it? Gradio lets you easily share a machine learning demo without having to worry about the hassle of hosting on a web server. Simply set `share=True` in `launch()`, and a publicly accessible URL will be created for your demo. To revisit our first example:
+What good is a cool demo if you can't share it? Gradio lets you easily share a machine learning demo without having to worry about the hassle of hosting on a web server. Simply set `share=True` in `launch()`, and a publicly accessible URL will be created for your demo. To revisit our first example, notice the last line of code here:
 
 ```python
 import gradio as gr
@@ -122,6 +122,10 @@ demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
     
 demo.launch(share=True) 
 ```
+
+When you run this code, a public URL will be generated for your demo in a matter of seconds, something like:
+
+`https://a23dsf231adb.gradio.live`
 
 Now, anyone around the world can use your Gradio application from their browser, while the machine learning model and all computation continues to run locally on your computer. Sharing a demo works this way whether you are launching an `Interface`, `ChatInterface`, or `Blocks`.
 
@@ -137,7 +141,7 @@ So far, we've been discussing the core `gradio` Python library. But Gradio is ac
 
 ## What's Next?
 
-Keep learning about Gradio through our conceptual guides, which include explanations as well as example code and embedded interactive demos. Next up: [Key Features in Gradio](/guides/01_getting-started/02_key-features.md).
+Keep learning about Gradio through our conceptual guides, which include explanations as well as example code and embedded interactive demos. Next up: [Building Interfaces](/guides/02_building-interfaces/01_interface-state.md).
 
 Or, if you already know the basics, you can jump to the more [technical documentation](https://www.gradio.app/docs/).
 
