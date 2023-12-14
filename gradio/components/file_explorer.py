@@ -170,7 +170,7 @@ class FileExplorer(Component):
         def make_tree(files):
             tree = []
             for file in files:
-                parts = file.split("/")
+                parts = file.split(os.path.sep)
                 make_node(parts, tree)
             return tree
 
