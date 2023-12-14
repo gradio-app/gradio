@@ -40,7 +40,7 @@ pip install gradio
 ```
 
 
-✍️ Tip: it is best to install Gradio in a virtual environment. Detailed installation instructions for all common operating systems <a href="/guides/installing-gradio-in-a-virtual-environment">are provided here</a>. 
+✍️ **Tip:** it is best to install Gradio in a virtual environment. Detailed installation instructions for all common operating systems <a href="/guides/installing-gradio-in-a-virtual-environment">are provided here</a>. 
 
 ### Building Your First Demo
 
@@ -60,7 +60,7 @@ demo.launch()
 
 
 
-✍️ Tip: We shorten the imported name from <code>gradio</code> to <code>gr</code> for better readability of code. This is a widely adopted convention that you should follow so that anyone working with your code can easily understand it. 
+✍️ **Tip:** We shorten the imported name from <code>gradio</code> to <code>gr</code> for better readability of code. This is a widely adopted convention that you should follow so that anyone working with your code can easily understand it. 
 
 Now, run your code. If you've written the Python code in a file named, for example, `app.py`, then you would run `python app.py` from the terminal.
 
@@ -70,7 +70,7 @@ The demo below will open in a browser on [http://localhost:7860](http://localhos
 
 Type your name in the textbox on the left, and then press the Submit button. You should see a friendly greeting on the right.
 
-✍️ Tip: When developing locally, you can run your Gradio app in <strong>hot reload mode</strong>, which automatically reloads the Gradio app whenever you make changes to the file. To do this, simply type in <code>gradio</code> before the name of the file instead of <code>python</code>. In the example above, you would type: `gradio app.py` in your terminal. Learn more about hot reloading in the <a href="https://gradio.app/developing-faster-with-reload-mode/">Hot Reloading Guide</a>.
+✍️ **Tip:** When developing locally, you can run your Gradio app in <strong>hot reload mode</strong>, which automatically reloads the Gradio app whenever you make changes to the file. To do this, simply type in <code>gradio</code> before the name of the file instead of <code>python</code>. In the example above, you would type: `gradio app.py` in your terminal. Learn more about hot reloading in the <a href="https://gradio.app/developing-faster-with-reload-mode/">Hot Reloading Guide</a>.
 
 
 ### Input/Output Demos: The `Interface` Class
