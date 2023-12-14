@@ -8,8 +8,8 @@ test("Model3D click-to-upload uploads file successfuly. Upload and clear events 
 		.click();
 	const uploader = await page.locator("input[type=file]");
 	await Promise.all([
-		uploader.setInputFiles(["./test/files/face.obj"]),
-		page.waitForResponse("**/upload*")
+		page.waitForResponse("**/upload*"),
+		uploader.setInputFiles(["./test/files/face.obj"])
 	]);
 
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
