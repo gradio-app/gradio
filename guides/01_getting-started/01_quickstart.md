@@ -16,7 +16,7 @@ pip install gradio
 ```
 
 
-Tip: it is best to install Gradio in a virtual environment. Detailed installation instructions for all common operating systems <a href="/guides/installing-gradio-in-a-virtual-environment">are here</a>. 
+Tip: it is best to install Gradio in a virtual environment. Detailed installation instructions for all common operating systems <a href="/guides/installing-gradio-in-a-virtual-environment">are provided here</a>. 
 
 ## Building Your First Demo
 
@@ -134,4 +134,11 @@ So far, we've been discussing the core `gradio` Python library. But Gradio is ac
 * Gradio Python Client (`gradio_client`): the easiest way to query any Gradio app via an API from Python.
 * Gradio JavaScript Client (`@gradio/client`): the easiest way to query any Gradio app via an API from JavaScript.
 * Gradio-Lite (`@gradio/lite`): write Gradio apps in Python that run entirely in the browser (no server needed!), thanks to Pyodide. 
+
+## What's Next?
+
+Keep learning about Gradio through our conceptual guides, which include explanations as well as example code and embedded interactive demos. Next up: [Key Features in Gradio](/guides/01_getting-started/02_key-features.md).
+
+Or, if you already know the basics, you can jump to the more [technical documentation](https://www.gradio.app/docs/).
+
 
