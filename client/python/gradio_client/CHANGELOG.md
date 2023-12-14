@@ -1,5 +1,11 @@
 # gradio_client
 
+## 0.7.3
+
+### Fixes
+
+- [#6693](https://github.com/gradio-app/gradio/pull/6693) [`34f9431`](https://github.com/gradio-app/gradio/commit/34f943101bf7dd6b8a8974a6131c1ed7c4a0dac0) - Python client properly handles hearbeat and log messages. Also handles responses longer than 65k.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.7.2
 
 ### Features
