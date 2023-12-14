@@ -125,7 +125,7 @@ demo.launch(share=True)
 
 When you run this code, a public URL will be generated for your demo in a matter of seconds, something like:
 
-`https://a23dsf231adb.gradio.live`
+👉 &nbsp; `https://a23dsf231adb.gradio.live`
 
 Now, anyone around the world can use your Gradio application from their browser, while the machine learning model and all computation continues to run locally on your computer. Sharing a demo works this way whether you are launching an `Interface`, `ChatInterface`, or `Blocks`.
 
