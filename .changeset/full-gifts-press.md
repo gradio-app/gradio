@@ -1,7 +1,7 @@
 ---
-"@gradio/audio": minor
-"@gradio/imageeditor": minor
-"gradio": minor
+"@gradio/audio": patch
+"@gradio/imageeditor": patch
+"gradio": patch
 ---
 
-feat:Adds docstrings for `gr.WaveformOptions`
+feat:Adds docstrings for `gr.WaveformOptions`, `gr.Brush`, and `gr.Eraser`
