@@ -13,8 +13,8 @@ import gradio
 
 
 def _in_test_dir():
-    """Check if the current working directory ends with gradio/js/gradio-preview/test."""
-    return Path.cwd().parts[-4:] == ("gradio", "js", "gradio-preview", "test")
+    """Check if the current working directory ends with gradio/js/preview/test."""
+    return Path.cwd().parts[-4:] == ("gradio", "js", "preview", "test")
 
 
 default_demo_code = """
