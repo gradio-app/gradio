@@ -71,9 +71,7 @@ test("Image copy from clipboard dispatches upload event.", async ({ page }) => {
 		navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
 	});
 
-	await page.pause();
 	await page.getByLabel("clipboard-image-toolbar-btn").click();
-	await page.pause();
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 });
