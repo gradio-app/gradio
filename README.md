@@ -41,7 +41,7 @@ pip install gradio
 ```
 
 
-Tip: it is best to install Gradio in a virtual environment. Detailed installation instructions for all common operating systems <a href="/guides/installing-gradio-in-a-virtual-environment">are here</a>. 
+Tip: it is best to install Gradio in a virtual environment. Detailed installation instructions for all common operating systems <a href="/guides/installing-gradio-in-a-virtual-environment">are provided here</a>. 
 
 ### Building Your First Demo
 
@@ -87,7 +87,7 @@ The core `Interface` class has three core arguments:
 - `outputs`: which Gradio component(s) to use for the output. The number of components should match the number of return values from your function.
 
 
-As discussed in [the next guide](/guides/01_getting-started/02_key-features.md), Gradio includes approximately 30 built-in components (such as the `gr.Textbox()`, `gr.Image()`, `gr.HTML()`, and so on). For the `inputs` and `outputs` arguments, you must pass in the name of one of these components as a string, or an instance of the class. Passing in a class instance allows you to customize the properties of the your component (e.g. the number of lines in a `gr.Textbox()`). 
+As discussed in [the next guide](/guides/01_getting-started/02_key-features.md), Gradio includes more than 30 built-in components (such as the `gr.Textbox()`, `gr.Image()`, `gr.HTML()`, and so on). For the `inputs` and `outputs` arguments, you must pass in the name of one of these components as a string, or an instance of the class. Passing in a class instance allows you to customize the properties of the your component (e.g. the number of lines in a `gr.Textbox()`). 
 
 If your function accepts more than one argument, you can pass in a list of input components to `inputs`, with each input component corresponding to one of the arguments of the function, in order. The same holds true if your function returns more than one value: simply pass in a list of components to `outputs`. 
 
@@ -213,11 +213,24 @@ So far, we've been discussing the core `gradio` Python library. But Gradio is ac
 * Gradio JavaScript Client (`@gradio/client`): the easiest way to query any Gradio app via an API from JavaScript.
 * Gradio-Lite (`@gradio/lite`): write Gradio apps in Python that run entirely in the browser (no server needed!), thanks to Pyodide. 
 
+### What's Next?
 
+Keep learning about Gradio through our conceptual guides, which include explanations as well as example code and embedded interactive demos. Next up: [Key Features in Gradio](/guides/01_getting-started/02_key-features.md).
+
+Or, if you already know the basics, you can jump to the more [technical documentation](https://www.gradio.app/docs/).
+
+
+
+
+## Questions?
+
+If you'd like to report a bug or have a feature request, please create an [issue on GitHub](https://github.com/gradio-app/gradio/issues/new/choose). For general questions about usage, we are available on [our Discord server](https://discord.com/invite/feTf9x3ZSB) and happy to help.
+
+If you like Gradio, please leave us a ⭐ on GitHub!
 
 ## Open Source Stack
 
-Gradio is built with many wonderful open-source libraries, please support them as well!
+Gradio is built on top of many wonderful open-source libraries!
 
 [<img src="readme_files/huggingface_mini.svg" alt="huggingface" height=40>](https://huggingface.co)
 [<img src="readme_files/python.svg" alt="python" height=40>](https://www.python.org)

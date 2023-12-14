@@ -23,9 +23,15 @@
 
 $getting_started
 
+## Questions?
+
+If you'd like to report a bug or have a feature request, please create an [issue on GitHub](https://github.com/gradio-app/gradio/issues/new/choose). For general questions about usage, we are available on [our Discord server](https://discord.com/invite/feTf9x3ZSB) and happy to help.
+
+If you like Gradio, please leave us a ⭐ on GitHub!
+
 ## Open Source Stack
 
-Gradio is built with many wonderful open-source libraries, please support them as well!
+Gradio is built on top of many wonderful open-source libraries!
 
 [<img src="readme_files/huggingface_mini.svg" alt="huggingface" height=40>](https://huggingface.co)
 [<img src="readme_files/python.svg" alt="python" height=40>](https://www.python.org)
