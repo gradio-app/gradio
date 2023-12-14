@@ -12,6 +12,5 @@ export default defineConfig({
 	},
 	testMatch: /.*.spec.ts/,
 	testDir: "..",
-	globalSetup: "./playwright-setup.js",
-	workers: process.env.CI ? 1 : undefined
+	globalSetup: "./playwright-setup.js"
 });

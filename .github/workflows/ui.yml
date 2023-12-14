@@ -71,7 +71,7 @@ jobs:
       - name: run browser tests
         run: |
           . venv/bin/activate
-          CI=1 pnpm test:browser
+          pnpm test:browser
       - name: upload screenshots
         uses: actions/upload-artifact@v3
         if: always()
