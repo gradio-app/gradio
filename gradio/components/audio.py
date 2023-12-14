@@ -22,11 +22,20 @@ set_documentation_group("component")
 
 @dataclasses.dataclass
 class WaveformOptions:
-    waveform_color: str | None = None
-    waveform_progress_color: str | None = None
-    show_controls: bool = False
-    skip_length: str | None = None
+    """
+    A dataclass for specifying options for the waveform display in the gr.Audio component.
+    Parameters:
+        waveform_color: The color (as a hex string or valid CSS color) of the full waveform representing the amplitude of the audio. Defaults to a light gray color.
+        waveform_progress_color: The color (as a hex string or valid CSS color) that the waveform fills up to as the audio plays. Defaults to an orange color.
+        show_recording_waveform: Whether to show the waveform when recording audio. Defaults to True.
+        show_controls: Whether to show the standard HTML audio player below the waveform when recording audio or playing recorded audio. Defaults to False.
+        skip_length: The percentage (between 0 and 100) of the audio to skip when clicking on the skip forward / skip backward buttons. Defaults to 5.
+    """
+    waveform_color: str = "#9ca3af"
+    waveform_progress_color: str = "#f97316"
     show_recording_waveform: bool = True
+    show_controls: bool = False
+    skip_length: int | float = 5
 
 
 @document()
