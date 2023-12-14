@@ -289,6 +289,7 @@ export function api_factory(
 			let stream_open = false;
 			let event_stream: EventSource | null = null;
 			const event_callbacks: Record<string, () => Promise<void>> = {};
+			const event_ids = [];
 			let config: Config;
 			let api_map: Record<string, number> = {};
 
@@ -821,14 +822,13 @@ export function api_factory(
 								});
 							} else {
 								event_id = response.event_id as string;
-								if (!stream_open) {
-									open_stream();
-								}
+								console.log("event_id", event_id, "HERE");
 								let callback = async function (_data: object): void {
 									const { type, status, data } = handle_message(
 										_data,
 										last_status[fn_index]
 									);
+									console.log("data", type, status, data);
 
 									if (type === "update" && status && !complete) {
 										// call 'status' listeners
@@ -841,6 +841,16 @@ export function api_factory(
 										});
 									} else if (type === "complete") {
 										complete = status;
+									} else if (type == "unexpected_error") {
+										fire_event({
+											type: "status",
+											stage: "error",
+											message: data.message,
+											queue: true,
+											endpoint: _endpoint,
+											fn_index,
+											time: new Date()
+										});
 									} else if (type === "log") {
 										fire_event({
 											type: "log",
@@ -898,7 +908,13 @@ export function api_factory(
 										}
 									}
 								};
+								event_ids.push(event_id);
 								event_callbacks[event_id] = callback;
+								console.log("HERE");
+								if (!stream_open) {
+									console.log("OPENING");
+									open_stream();
+								}
 							}
 						});
 					}
@@ -1014,6 +1030,28 @@ export function api_factory(
 				event_stream = new EventSource(url);
 				event_stream.onmessage = async function (event) {
 					let _data = JSON.parse(event.data);
+					if (_data.session_hash) {
+						// const status = {
+						// 		type: "update",
+						// 		status: {
+						// 			queue: true,
+						// 			message: _data.message,
+						// 			stage: "error",
+						// 			success: false
+						// 		}
+						// 	}
+						// fire_event({
+						// 	type: "status",
+						// 	...status,
+						// 	endpoint: _endpoint,
+						// 	fn_index,
+						// 	time: new Date()
+						// });
+						await Promise.all(
+							event_ids.map((event_id) => event_callbacks[event_id](_data))
+						);
+						return;
+					}
 					await event_callbacks[_data.event_id](_data);
 				};
 			}
@@ -1581,6 +1619,16 @@ function handle_message(
 					stage: "error",
 					code: data.code,
 					success: data.success
+				}
+			};
+		case "unexpected_error":
+			return {
+				type: "update",
+				status: {
+					queue,
+					message: data.message,
+					stage: "error",
+					success: false
 				}
 			};
 		case "estimation":

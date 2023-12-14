@@ -615,6 +615,7 @@ class App(FastAPI):
                         except EmptyQueue:
                             await asyncio.sleep(check_rate)
                             if time.perf_counter() - last_heartbeat > heartbeat_rate:
+                                # Fix this
                                 message = {"msg": ServerMessage.heartbeat}
                                 # Need to reset last_heartbeat with perf_counter
                                 # otherwise only a single hearbeat msg will be sent
@@ -623,8 +624,10 @@ class App(FastAPI):
 
                         if blocks._queue.stopped:
                             message = {
-                                "msg": ServerMessage.server_stopped,
+                                "msg": "unexpected_error",
+                                "message": "Server stopped unexpectedly.",
                                 "success": False,
+                                "event_id": session_hash,
                             }
                         if message:
                             yield f"data: {json.dumps(message)}\n\n"
@@ -644,9 +647,17 @@ class App(FastAPI):
                                     )
                                 ):
                                     return
-                except asyncio.CancelledError as e:
-                    del blocks._queue.pending_messages_per_session[session_hash]
-                    await blocks._queue.clean_events(session_hash=session_hash)
+                except Exception as e:
+                    message = {
+                                "msg": "unexpected_error",
+                                "success": False,
+                                "message": str(e),
+                                "session_hash": session_hash,
+                            }
+                    yield f"data: {json.dumps(message)}\n\n"
+                    if isinstance(e, asyncio.CancelledError):
+                        del blocks._queue.pending_messages_per_session[session_hash]
+                        await blocks._queue.clean_events(session_hash=session_hash)
                     raise e
 
             return StreamingResponse(
