@@ -3,7 +3,7 @@ import re
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Optional, List
+from typing import List, Optional
 
 import semantic_version
 from huggingface_hub import HfApi

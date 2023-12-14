@@ -5,7 +5,7 @@ test("UploadButton properly dispatches load event and click event for the single
 }) => {
 	await page.getByRole("button", { name: "Upload Single File" }).click();
 	const uploader = await page.getByTestId("Upload Single File-upload-button");
-	await uploader.setInputFiles(["./test/files/face.obj"]);
+	await uploader.setInputFiles(["./test/files/cheetah1.jpg"]);
 
 	await expect(page.getByLabel("# Load Upload Single File")).toHaveValue("1");
 	await expect(
@@ -15,7 +15,7 @@ test("UploadButton properly dispatches load event and click event for the single
 	const downloadPromise = page.waitForEvent("download");
 	await page.getByRole("link").nth(0).click();
 	const download = await downloadPromise;
-	await expect(download.suggestedFilename()).toBe("face.obj");
+	await expect(download.suggestedFilename()).toBe("cheetah1.jpg");
 });
 
 test("UploadButton properly dispatches load event and click event for the multiple file case.", async ({
@@ -29,7 +29,6 @@ test("UploadButton properly dispatches load event and click event for the multip
 		"./test/files/face.obj",
 		"./test/files/cheetah1.jpg"
 	]);
-
 
 	await expect(page.getByLabel("# Load Upload Multiple Files")).toHaveValue(
 		"1"
