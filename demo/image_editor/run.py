@@ -11,6 +11,7 @@ with gr.Blocks() as demo:
     im = gr.ImageEditor(
         type="pil",
         crop_size="1:1",
+        eraser=gr.Eraser()
     )
 
     with gr.Group():
