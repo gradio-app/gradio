@@ -1,5 +1,17 @@
 # gradio
 
+## 4.9.1
+
+### Features
+
+- [#6781](https://github.com/gradio-app/gradio/pull/6781) [`a807ede`](https://github.com/gradio-app/gradio/commit/a807ede818e0690949aca41020e75a96f0110ece) - Fix backend tests on Windows.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+### Fixes
+
+- [#6525](https://github.com/gradio-app/gradio/pull/6525) [`5d51fbc`](https://github.com/gradio-app/gradio/commit/5d51fbce7826da840a2fd4940feb5d9ad6f1bc5a) - Fixes Drag and Drop for Upload.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#6780](https://github.com/gradio-app/gradio/pull/6780) [`51e241a`](https://github.com/gradio-app/gradio/commit/51e241addd20dad9a0cdf3e72f747cab112815d1) - Fix flaky CI tests (again 😓 ).  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6693](https://github.com/gradio-app/gradio/pull/6693) [`34f9431`](https://github.com/gradio-app/gradio/commit/34f943101bf7dd6b8a8974a6131c1ed7c4a0dac0) - Python client properly handles hearbeat and log messages. Also handles responses longer than 65k.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 4.9.0
 
 ### Features
