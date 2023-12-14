@@ -72,8 +72,28 @@ test("Image copy from clipboard dispatches upload event.", async ({ page }) => {
 	});
 
 	await page.pause();
-	await page.getByLabel("clipboard-image-toolbar-btn").click();
+	await page.getByLabel("Paste from clipboard").click();
 	await page.pause();
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
+
+	await page.evaluate(async () => {
+		navigator.clipboard.writeText("");
+	});
+
+	await page.getByLabel("Upload file").click();
+	await page.getByLabel("Paste from clipboard").click();
+
+	await page.evaluate(async () => {
+		const blob = await (
+			await fetch(
+				`https://gradio-builds.s3.amazonaws.com/assets/PDFDisplay.png`
+			)
+		).blob();
+		navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+	});
+
+	await page.getByText("Paste from clipboard").click();
+	await page.pause();
+	await expect(page.getByLabel("# Change Events").first()).toHaveValue("4");
 });

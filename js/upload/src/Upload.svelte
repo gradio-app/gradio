@@ -31,6 +31,25 @@
 		dragging = !dragging;
 	}
 
+	export function paste_clipboard(): void {
+		navigator.clipboard.read().then(async (items) => {
+			for (let i = 0; i < items.length; i++) {
+				const type = items[i].types.find((t) => t.startsWith("image/"));
+				if (type) {
+					dispatch("load", null);
+					items[i].getType(type).then(async (blob) => {
+						const f = await load_files([
+							new File([blob], `clipboard.${type.replace("image/", "")}`)
+						]);
+						f;
+						dispatch("load", f?.[0] || null);
+					});
+					break;
+				}
+			}
+		});
+	}
+
 	export function open_file_upload(): void {
 		if (disable_click) return;
 		hidden_upload.value = "";
@@ -106,7 +125,19 @@
 	}
 </script>
 
-{#if uploading}
+{#if filetype === "clipboard"}
+	<button
+		class:hidden
+		class:center
+		class:boundedheight
+		class:flex
+		style:height="100%"
+		tabindex={hidden ? -1 : 0}
+		on:click={paste_clipboard}
+	>
+		<slot />
+	</button>
+{:else if uploading}
 	{#if !hidden}
 		<UploadProgress {root} {upload_id} files={file_data} />
 	{/if}

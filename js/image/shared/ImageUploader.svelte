@@ -82,27 +82,12 @@
 		active_source = sources[0];
 	}
 
-	async function handle_toolbar(
+	async function handle_select_source(
 		source: (typeof sources)[number]
 	): Promise<void> {
 		switch (source) {
 			case "clipboard":
-				navigator.clipboard.read().then(async (items) => {
-					for (let i = 0; i < items.length; i++) {
-						const type = items[i].types.find((t) => t.startsWith("image/"));
-						if (type) {
-							value = null;
-							items[i].getType(type).then(async (blob) => {
-								const f = await upload.load_files([
-									new File([blob], `clipboard.${type.replace("image/", "")}`)
-								]);
-								f;
-								value = f?.[0] || null;
-							});
-							break;
-						}
-					}
-				});
+				upload.paste_clipboard();
 				break;
 			default:
 				break;
@@ -127,7 +112,7 @@
 			bind:this={upload}
 			bind:uploading
 			bind:dragging
-			filetype="image/*"
+			filetype={active_source === "clipboard" ? "clipboard" : "image/*"}
 			on:load={handle_upload}
 			on:error
 			{root}
@@ -163,7 +148,7 @@
 			{sources}
 			bind:active_source
 			{handle_clear}
-			handle_select={handle_toolbar}
+			handle_select={handle_select_source}
 		/>
 	{/if}
 </div>
