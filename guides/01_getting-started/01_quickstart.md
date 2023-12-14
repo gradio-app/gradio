@@ -43,7 +43,7 @@ Tip: When developing locally, you can run your Gradio app in <strong>hot reload 
 
 You'll notice that in order to make your first demo, you created an instance of the `gr.Interface` class. The `Interface` class is designed to create demos for machine learning models which accept one or more inputs, and return one or more outputs. 
 
-The `Interface` class is very flexible -- it can wrap *any* Python function with a user interface (UI). In the example above, we saw a simple text-based function, but the function could be anything from music generator to a tax calculator to the prediction function of a pretrained machine learning model.
+Despite its simplicity, the `Interface` class is very flexible -- it can wrap *any* Python function with a user interface (UI). In the example above, we saw a simple text-based function, but the function could be anything from music generator to a tax calculator to the prediction function of a pretrained machine learning model.
 
 The core `Interface` class has three core arguments:
 
@@ -67,7 +67,7 @@ We dive deeper into the `gr.Interface` on our series on [building Interfaces](/g
 
 ## Chatbots: The `ChatInterface` Class
 
-Gradio includes another high-level class, `gr.ChatInterface`, which is specifically designed to create Chatbot UIs
+Gradio includes another high-level class, `gr.ChatInterface`, which is specifically designed to create Chatbot UIs.
 
 The `gr.ChatInterface` class also wraps a function, but this function must have a specific signature. The function should take two arguments: `message` and then `history` (the arguments can be named anything, but must be in this order)
 
@@ -76,15 +76,15 @@ The `gr.ChatInterface` class also wraps a function, but this function must have 
 
 The function should return a single `str` response, which is the bot's response to the particular user input's `message`, and it can also take into account the `history` of messages so far.
 
-Other than that, `gr.ChatInterface` has no required parameters (though several are available for customization of the UI).
+Other than that, `ChatInterface` has no required arguments (though several are available for customization of the UI).
 
-Here's a toy example:
+Here's a toy example showing how to use `ChatInterfae`:
 
 $code_chatinterface_random_response
 
 $demo_chatinterface_random_response
 
-You can [read more about `gr.ChatInterface` here](https://gradio.app/guides/creating-a-chatbot-fast).
+You can read more about `gr.ChatInterface` in [our dedicated guide](https://gradio.app/guides/creating-a-chatbot-fast).
 
 ## Complex Demos: The `Blocks` Class
 
@@ -100,8 +100,8 @@ $demo_hello_blocks
 
 Things to note:
 
-- `Blocks` are made with a `with` clause, and any component created inside this clause is automatically added to the app.
-- Components appear vertically in the app in the order they are created. (Later we will cover customizing layouts!)
+- a `Blocks` demo starts with a `with` clause, and any component created inside this clause is automatically added to the app.
+- Components appear vertically in the app in the order they are created. (Later, we will cover customizing layouts!)
 - A `Button` was created, and then a `click()` event-listener was added to this button. The arguments for the `click()` event should look familiar! Like an `Interface`, the `click()` method takes a Python function, input components, and output components.
 
 You can build very custom and complex applications using `gr.Blocks()`. For example, the popular image generation [Automatic1111 Web UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) is built using Gradio Blocks.
