@@ -830,6 +830,10 @@ export function api_factory(
 									);
 									console.log("data", type, status, data);
 
+									if (type == "heartbeat") {
+										return;
+									}
+
 									if (type === "update" && status && !complete) {
 										// call 'status' listeners
 										fire_event({
@@ -1620,6 +1624,10 @@ function handle_message(
 					code: data.code,
 					success: data.success
 				}
+			};
+		case "heartbeat":
+			return {
+				type: "heartbeat"
 			};
 		case "unexpected_error":
 			return {

@@ -616,7 +616,10 @@ class App(FastAPI):
                             await asyncio.sleep(check_rate)
                             if time.perf_counter() - last_heartbeat > heartbeat_rate:
                                 # Fix this
-                                message = {"msg": ServerMessage.heartbeat}
+                                message = {
+                                    "msg": ServerMessage.heartbeat,
+                                    "session_hash": session_hash,
+                                }
                                 # Need to reset last_heartbeat with perf_counter
                                 # otherwise only a single hearbeat msg will be sent
                                 # and then the stream will retry leading to infinite queue 😬
@@ -627,7 +630,7 @@ class App(FastAPI):
                                 "msg": "unexpected_error",
                                 "message": "Server stopped unexpectedly.",
                                 "success": False,
-                                "event_id": session_hash,
+                                "session_hash": session_hash,
                             }
                         if message:
                             yield f"data: {json.dumps(message)}\n\n"
@@ -649,11 +652,11 @@ class App(FastAPI):
                                     return
                 except Exception as e:
                     message = {
-                                "msg": "unexpected_error",
-                                "success": False,
-                                "message": str(e),
-                                "session_hash": session_hash,
-                            }
+                        "msg": "unexpected_error",
+                        "success": False,
+                        "message": str(e),
+                        "session_hash": session_hash,
+                    }
                     yield f"data: {json.dumps(message)}\n\n"
                     if isinstance(e, asyncio.CancelledError):
                         del blocks._queue.pending_messages_per_session[session_hash]
