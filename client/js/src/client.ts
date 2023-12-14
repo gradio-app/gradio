@@ -203,8 +203,16 @@ export function api_factory(
 		} catch (e) {
 			return [{ error: BROKEN_CONNECTION_MSG }, 500];
 		}
-		const output: PostResponse = await response.json();
-		return [output, response.status];
+		let output: PostResponse;
+		let status: int;
+		try {
+			output = await response.json();
+			status = response.status;
+		} catch (e) {
+			output = { error: `Could not parse server response: ${e}` };
+			status = 500;
+		}
+		return [output, status];
 	}
 
 	async function upload_files(
@@ -791,7 +799,17 @@ export function api_factory(
 							},
 							hf_token
 						).then(([response, status]) => {
-							if (status !== 200) {
+							if (status === 503) {
+								fire_event({
+									type: "status",
+									stage: "error",
+									message: QUEUE_FULL_MSG,
+									queue: true,
+									endpoint: _endpoint,
+									fn_index,
+									time: new Date()
+								});
+							} else if (status !== 200) {
 								fire_event({
 									type: "status",
 									stage: "error",
@@ -806,7 +824,6 @@ export function api_factory(
 								if (!stream_open) {
 									open_stream();
 								}
-
 								let callback = async function (_data: object): void {
 									const { type, status, data } = handle_message(
 										_data,
