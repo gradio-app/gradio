@@ -1035,22 +1035,6 @@ export function api_factory(
 				event_stream.onmessage = async function (event) {
 					let _data = JSON.parse(event.data);
 					if (_data.session_hash) {
-						// const status = {
-						// 		type: "update",
-						// 		status: {
-						// 			queue: true,
-						// 			message: _data.message,
-						// 			stage: "error",
-						// 			success: false
-						// 		}
-						// 	}
-						// fire_event({
-						// 	type: "status",
-						// 	...status,
-						// 	endpoint: _endpoint,
-						// 	fn_index,
-						// 	time: new Date()
-						// });
 						await Promise.all(
 							event_ids.map((event_id) => event_callbacks[event_id](_data))
 						);
