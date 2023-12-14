@@ -36,6 +36,11 @@ class EditorData(GradioModel):
 
 @dataclasses.dataclass
 class Eraser:
+    """
+    A dataclass for specifying options for the eraser tool in the ImageEditor component. An instance of this class can be passed to the `eraser` parameter of the ImageEditor component.
+    Parameters:
+        default_size: The default size of the eraser tool. If "auto" (default), the size will be automatically determined based on the size of the image.
+    """
     default_size: int | Literal["auto"] = "auto"
 
 
@@ -142,6 +147,7 @@ class ImageEditor(Component):
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             crop_size: The size of the crop box in pixels. If a tuple, the first value is the width and the second value is the height. If a string, the value must be a ratio in the form `width:height` (e.g. "16:9").
             transforms: The transforms tools to make available to users. "crop" allows the user to crop the image.
+            eraser: 
         """
         self._selectable = _selectable
         self.mirror_webcam = mirror_webcam

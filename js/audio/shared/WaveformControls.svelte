@@ -206,7 +206,8 @@
 			)} seconds`}
 			on:click={() =>
 				waveform.skip(
-					get_skip_rewind_amount(audio_duration, waveform_options.skip_length) * -1
+					get_skip_rewind_amount(audio_duration, waveform_options.skip_length) *
+						-1
 				)}
 		>
 			<Backward />
