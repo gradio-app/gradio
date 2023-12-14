@@ -208,10 +208,10 @@ To learn more about sharing your demo, read our dedicated guide on [sharing your
 
 ### The Gradio Ecosystem
 
-So far, we've been discussing the core `gradio` Python library. But Gradio is actually so much more! Its an entire ecosystem of Python and JavaScript libraries that let you build machine learning applications, or query them via API, in Python or JavaScript. Here are other related parts of the Gradio ecosystem:
+So far, we've been discussing the core `gradio` Python library. But Gradio is actually so much more! Its an entire ecosystem of Python and JavaScript libraries that let you build machine learning applications, or query them programmatically, in Python or JavaScript. Here are other related parts of the Gradio ecosystem:
 
-* [Gradio Python Client](/guides/08_client-libraries/01_getting-started-with-the-python-client.md) (`gradio_client`): the easiest way to query any Gradio app via an API from Python.
-* [Gradio JavaScript Client](/guides/08_client-libraries/02_getting-started-with-the-js-client.md) (`@gradio/client`): the easiest way to query any Gradio app via an API from JavaScript.
+* [Gradio Python Client](/guides/08_client-libraries/01_getting-started-with-the-python-client.md) (`gradio_client`): the easiest way to query any Gradio app programmatically in Python.
+* [Gradio JavaScript Client](/guides/08_client-libraries/02_getting-started-with-the-js-client.md) (`@gradio/client`): the easiest way to query any Gradio app programmatically in JavaScript.
 * [Gradio-Lite](/guides/09_other-tutorials/gradio-lite.md) (`@gradio/lite`): write Gradio apps in Python that run entirely in the browser (no server needed!), thanks to Pyodide. 
 * [Hugging Face Spaces](https://huggingface.co/spaces): the most popular place to host Gradio applications, supports CPU instances (for free 🤗) as well as GPU instances.
 
