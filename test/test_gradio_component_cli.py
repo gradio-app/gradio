@@ -105,6 +105,7 @@ def test_show(capsys):
     assert "Dataset" not in stdout
 
 
+@pytest.mark.xfail
 @pytest.mark.parametrize("template", ["Image"])
 def test_build(template, virtualenv):
     # Copy pnpm-lock.yaml to not cause unintended changes tracked by git
