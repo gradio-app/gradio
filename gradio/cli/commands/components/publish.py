@@ -3,7 +3,7 @@ import re
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 import semantic_version
 from huggingface_hub import HfApi
@@ -69,7 +69,7 @@ def _get_version_from_file(dist_file: Path) -> Optional[str]:
         return match.group(1)
 
 
-def _get_max_version(distribution_files: list[Path]) -> Optional[str]:
+def _get_max_version(distribution_files: List[Path]) -> Optional[str]:
     versions = []
     for p in distribution_files:
         version = _get_version_from_file(p)
