@@ -42,6 +42,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
+from gradio_client.utils import ServerMessage
 from jinja2.exceptions import TemplateNotFound
 from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
@@ -614,22 +615,25 @@ class App(FastAPI):
                         except EmptyQueue:
                             await asyncio.sleep(check_rate)
                             if time.perf_counter() - last_heartbeat > heartbeat_rate:
-                                message = {"msg": "heartbeat"}
+                                message = {"msg": ServerMessage.heartbeat}
                                 # Need to reset last_heartbeat with perf_counter
                                 # otherwise only a single hearbeat msg will be sent
                                 # and then the stream will retry leading to infinite queue 😬
                                 last_heartbeat = time.perf_counter()
 
                         if blocks._queue.stopped:
-                            message = {"msg": "server_stopped", "success": False}
+                            message = {
+                                "msg": ServerMessage.server_stopped,
+                                "success": False,
+                            }
                         if message:
                             yield f"data: {json.dumps(message)}\n\n"
-                            if message["msg"] == "process_completed":
+                            if message["msg"] == ServerMessage.process_completed:
                                 blocks._queue.pending_event_ids_session[
                                     session_hash
                                 ].remove(message["event_id"])
-                                if message["msg"] == "server_stopped" or (
-                                    message["msg"] == "process_completed"
+                                if message["msg"] == ServerMessage.server_stopped or (
+                                    message["msg"] == ServerMessage.process_completed
                                     and (
                                         len(
                                             blocks._queue.pending_event_ids_session[
@@ -659,7 +663,14 @@ class App(FastAPI):
             if blocks._queue.server_app is None:
                 blocks._queue.set_server_app(app)
 
-            event_id = await blocks._queue.push(body, request, username)
+            success, event_id = await blocks._queue.push(body, request, username)
+            if not success:
+                status_code = (
+                    status.HTTP_503_SERVICE_UNAVAILABLE
+                    if "Queue is full." in event_id
+                    else status.HTTP_400_BAD_REQUEST
+                )
+                raise HTTPException(status_code=status_code, detail=event_id)
             return {"event_id": event_id}
 
         @app.post("/component_server", dependencies=[Depends(login_check)])
