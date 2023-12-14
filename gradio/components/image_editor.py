@@ -37,15 +37,23 @@ class EditorData(GradioModel):
 @dataclasses.dataclass
 class Eraser:
     """
-    A dataclass for specifying options for the eraser tool in the ImageEditor component. An instance of this class can be passed to the `eraser` parameter of the ImageEditor component.
+    A dataclass for specifying options for the eraser tool in the ImageEditor component. An instance of this class can be passed to the `eraser` parameter of `gr.ImageEditor`.
     Parameters:
-        default_size: The default size of the eraser tool. If "auto" (default), the size will be automatically determined based on the size of the image.
+        default_size: The default radius, in pixels, of the eraser tool. Defaults to "auto" in which case the radius is automatically determined based on the size of the image (generally 1/50th of smaller dimension).
     """
     default_size: int | Literal["auto"] = "auto"
 
 
 @dataclasses.dataclass
 class Brush(Eraser):
+    """
+    A dataclass for specifying options for the brush tool in the ImageEditor component. An instance of this class can be passed to the `brush` parameter of `gr.ImageEditor`.
+    Parameters:
+        default_size: The default radius, in pixels, of the brush tool. Defaults to "auto" in which case the radius is automatically determined based on the size of the image (generally 1/50th of smaller dimension).
+        colors: A list of colors to make available to the user when using the brush. Defaults to a list of 5 colors.
+        default_color: The default color of the brush. Defaults to the first color in the `colors` list.
+        color_mode: If set to "fixed", user can only select from among the colors in `colors`. If "defaults", the colors in `colors` are provided as a default palette, but the user can also select any color using a color picker.
+    """
     colors: Union[
         list[str],
         str,
