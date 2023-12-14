@@ -7,10 +7,9 @@ test("Model3D click-to-upload uploads file successfuly. Upload and clear events 
 		.getByRole("button", { name: "Drop File Here - or - Click to Upload" })
 		.click();
 	const uploader = await page.locator("input[type=file]");
-	await Promise.all([
-		page.waitForResponse("**/upload*"),
-		uploader.setInputFiles(["./test/files/face.obj"])
-	]);
+	await uploader.setInputFiles(["./test/files/face.obj"])
+
+	await page.waitForLoadState("networkidle");
 
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");

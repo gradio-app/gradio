@@ -8,7 +8,7 @@ test("Image click-to-upload uploads image successfuly. Clear button dispatches e
 	const uploader = await page.locator("input[type=file]");
 	await Promise.all([
 		uploader.setInputFiles(["./test/files/cheetah1.jpg"]),
-		page.waitForResponse("**/upload*")
+		page.waitForLoadState("networkidle")
 	]);
 
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("1");
@@ -29,7 +29,7 @@ test("Image click-to-upload uploads image successfuly. Clear button dispatches e
 
 	await Promise.all([
 		uploader.setInputFiles(["./test/files/gradio-logo.svg"]),
-		page.waitForResponse("**/upload*")
+		page.waitForLoadState("networkidle")
 	]);
 
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("3");
@@ -53,7 +53,7 @@ test("Image drag-to-upload uploads image successfuly.", async ({ page }) => {
 			"cheetag1.jpg",
 			"image/*"
 		),
-		page.waitForResponse("**/upload*")
+		page.waitForLoadState("networkidle")
 	]);
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
