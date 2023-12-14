@@ -128,8 +128,8 @@ class ImageEditor(Component):
         _selectable: bool = False,
         crop_size: tuple[int | float, int | float] | str | None = None,
         transforms: Iterable[Literal["crop"]] = ("crop",),
-        eraser: Eraser | None | bool = None,
-        brush: Brush | None | bool = None,
+        eraser: Eraser | None | Literal[False] = None,
+        brush: Brush | None | Literal[False] = None,
     ):
         """
         Parameters:
@@ -155,7 +155,8 @@ class ImageEditor(Component):
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             crop_size: The size of the crop box in pixels. If a tuple, the first value is the width and the second value is the height. If a string, the value must be a ratio in the form `width:height` (e.g. "16:9").
             transforms: The transforms tools to make available to users. "crop" allows the user to crop the image.
-            eraser: 
+            eraser: The options for the eraser tool in the image editor. Should be an instance of the `gr.Eraser` class, or None to use the default settings. Can also be False to hide the eraser tool.
+            brush: The options for the brush tool in the image editor. Should be an instance of the `gr.Brush` class, or None to use the default settings. Can also be False to hide the brush tool, which will also hide the eraser tool.
         """
         self._selectable = _selectable
         self.mirror_webcam = mirror_webcam
@@ -188,8 +189,8 @@ class ImageEditor(Component):
 
         self.crop_size = crop_size
         self.transforms = transforms
-        self.eraser = eraser if eraser is not None and eraser is not True else Eraser()
-        self.brush = brush if brush is not None and brush is not True else Brush()
+        self.eraser = Eraser() if eraser is None else eraser
+        self.brush = Brush() if brush is None else brush
 
         super().__init__(
             label=label,
