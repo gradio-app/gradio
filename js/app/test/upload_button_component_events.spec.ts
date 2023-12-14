@@ -5,10 +5,8 @@ test("UploadButton properly dispatches load event and click event for the single
 }) => {
 	await page.getByRole("button", { name: "Upload Single File" }).click();
 	const uploader = await page.getByTestId("Upload Single File-upload-button");
-	await Promise.all([
-		uploader.setInputFiles(["./test/files/face.obj"]),
-		page.waitForLoadState("networkidle")
-	]);
+	await uploader.setInputFiles(["./test/files/face.obj"]);
+	await page.waitForLoadState("networkidle");
 
 	await expect(page.getByLabel("# Load Upload Single File")).toHaveValue("1");
 	await expect(

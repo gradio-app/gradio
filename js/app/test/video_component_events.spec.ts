@@ -7,10 +7,8 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 		.getByRole("button", { name: "Drop Video Here - or - Click to Upload" })
 		.click();
 	const uploader = await page.locator("input[type=file]");
-	await Promise.all([
-		uploader.setInputFiles(["./test/files/file_test.ogg"]),
-		page.waitForLoadState("networkidle")
-	]);
+	await uploader.setInputFiles(["./test/files/file_test.ogg"]);
+	await page.waitForLoadState("networkidle");
 
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
@@ -21,10 +19,8 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 		.getByRole("button", { name: "Drop Video Here - or - Click to Upload" })
 		.click();
 
-	await Promise.all([
-		uploader.setInputFiles(["./test/files/file_test.ogg"]),
-		page.waitForLoadState("networkidle")
-	]);
+	await uploader.setInputFiles(["./test/files/file_test.ogg"]);
+	await page.waitForLoadState("networkidle");
 
 	await expect(page.getByLabel("# Change Events")).toHaveValue("3");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("2");
@@ -40,7 +36,7 @@ test("Video play, pause events work correctly.", async ({ page }) => {
 		.getByRole("button", { name: "Drop Video Here - or - Click to Upload" })
 		.click();
 	const uploader = await page.locator("input[type=file]");
-	await Promise.all([uploader.setInputFiles(["./test/files/file_test.ogg"])]);
+	await uploader.setInputFiles(["./test/files/file_test.ogg"]);
 
 	// Wait change event to trigger
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");

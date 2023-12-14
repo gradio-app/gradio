@@ -6,10 +6,8 @@ test("Image click-to-upload uploads image successfuly. Clear button dispatches e
 }) => {
 	await page.getByRole("button", { name: "Drop Image Here" }).click();
 	const uploader = await page.locator("input[type=file]");
-	await Promise.all([
-		uploader.setInputFiles(["./test/files/cheetah1.jpg"]),
-		page.waitForLoadState("networkidle")
-	]);
+	await uploader.setInputFiles(["./test/files/cheetah1.jpg"]);
+	await page.waitForLoadState("networkidle");
 
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("1");
 	await expect(await page.getByLabel("# Upload Events")).toHaveValue("1");
@@ -27,11 +25,8 @@ test("Image click-to-upload uploads image successfuly. Clear button dispatches e
 	await expect(page.getByLabel("# Clear Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("2");
 
-	await Promise.all([
-		uploader.setInputFiles(["./test/files/gradio-logo.svg"]),
-		page.waitForLoadState("networkidle")
-	]);
-
+	await uploader.setInputFiles(["./test/files/gradio-logo.svg"]);
+	await page.waitForLoadState("networkidle");
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("3");
 	await expect(await page.getByLabel("# Upload Events")).toHaveValue("2");
 	await expect(await page.getByLabel("# Change Events Output")).toHaveValue(
@@ -45,16 +40,14 @@ test("Image click-to-upload uploads image successfuly. Clear button dispatches e
 });
 
 test("Image drag-to-upload uploads image successfuly.", async ({ page }) => {
-	await Promise.all([
-		drag_and_drop_file(
-			page,
-			"input[type=file]",
-			"./test/files/cheetah1.jpg",
-			"cheetag1.jpg",
-			"image/*"
-		),
-		page.waitForLoadState("networkidle")
-	]);
+	await drag_and_drop_file(
+		page,
+		"input[type=file]",
+		"./test/files/cheetah1.jpg",
+		"cheetag1.jpg",
+		"image/*"
+	);
+	await page.waitForLoadState("networkidle");
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 });

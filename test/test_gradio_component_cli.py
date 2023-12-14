@@ -122,7 +122,7 @@ def test_build(template, virtualenv):
         # Local installs of gradio and gradio-client
         gradio_dir = Path(__file__).parent / ".."
         client = Path(__file__).parent / ".." / "client" / "python"
-
+        virtualenv.run(f"pip install build")
         virtualenv.run(f"pip install -e {str(gradio_dir)}")
         virtualenv.run(f"pip install -e {str(client)}")
 
