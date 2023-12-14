@@ -31,8 +31,6 @@ test("UploadButton properly dispatches load event and click event for the multip
 		"./test/files/cheetah1.jpg"
 	]);
 
-	await page.waitForLoadState("networkidle");
-
 	await expect(page.getByLabel("# Load Upload Multiple Files")).toHaveValue(
 		"1"
 	);

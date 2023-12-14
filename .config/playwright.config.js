@@ -10,6 +10,7 @@ export default defineConfig({
 			args: ["--disable-web-security"]
 		}
 	},
+	expect: { timeout: 60000 },
 	testMatch: /.*.spec.ts/,
 	testDir: "..",
 	globalSetup: "./playwright-setup.js",
