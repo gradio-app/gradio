@@ -53,7 +53,7 @@ jobs:
       env:
         NODE_OPTIONS: --max_old_space_size=8192
     - name: Upload wheel
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: gradio-${{ steps.get_pr_number.outputs.GRADIO_VERSION }}-py3-none-any.whl
         path: dist/gradio-${{ steps.get_pr_number.outputs.GRADIO_VERSION }}-py3-none-any.whl
@@ -62,7 +62,7 @@ jobs:
         python scripts/copy_demos.py https://gradio-builds.s3.amazonaws.com/${{ github.sha }}/gradio-${{ steps.get_pr_number.outputs.GRADIO_VERSION }}-py3-none-any.whl \
         "gradio-client @ git+https://github.com/gradio-app/gradio@${{ github.sha }}#subdirectory=client/python"
     - name: Upload all_demos
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: all_demos
         path: demo/all_demos
@@ -70,7 +70,7 @@ jobs:
       run: |
         python -c "import json; json.dump({'gh_sha': '${{ github.sha }}', 'pr_number': ${{ steps.get_pr_number.outputs.pr_number }}, 'version': '${{ steps.get_pr_number.outputs.GRADIO_VERSION }}', 'wheel': 'gradio-${{ steps.get_pr_number.outputs.GRADIO_VERSION }}-py3-none-any.whl'},  open('metadata.json', 'w'))"
     - name: Upload metadata
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: metadata.json
         path: metadata.json
