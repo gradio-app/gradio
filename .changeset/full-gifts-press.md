@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Adds docstrings for `gr.WaveformOptions`
+feat:Adds docstrings for `gr.WaveformOptions`, `gr.Brush`, and `gr.Eraser`
