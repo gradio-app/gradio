@@ -9,7 +9,7 @@ GETTING_STARTED_TEMPLATE_FILEPATH = "guides/01_getting-started/01_quickstart.md"
 readme_template = Path(README_TEMPLATE_FILEPATH).read_text()
 getting_started_template = Path(GETTING_STARTED_TEMPLATE_FILEPATH).read_text()
 getting_started_template = getting_started_template.replace("# Quickstart", "")
-getting_started_template = getting_started_template.replace("Tip:", "_Tip:_")
+getting_started_template = getting_started_template.replace("Tip:", "✍️ Tip:")
 
 # Extract all the code and demo tags from the getting started template
 code_tags = re.findall(r"\$code_([^\s]+)", getting_started_template)
