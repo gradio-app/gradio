@@ -8,7 +8,6 @@ test("Audio click-to-upload uploads audio successfuly. File downloading works an
 		.click();
 	const uploader = await page.locator("input[type=file]");
 	await uploader.setInputFiles(["../../test/test_files/audio_sample.wav"]);
-	await page.waitForLoadState("networkidle");
 
 	await expect(page.getByLabel("# Input Change Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Input Upload Events")).toHaveValue("1");
@@ -20,7 +19,6 @@ test("Audio click-to-upload uploads audio successfuly. File downloading works an
 		.click();
 
 	await uploader.setInputFiles(["../../test/test_files/audio_sample.wav"]);
-	await page.waitForLoadState("networkidle");
 
 	await expect(page.getByLabel("# Input Change Events")).toHaveValue("3");
 	await expect(page.getByLabel("# Input Upload Events")).toHaveValue("2");
@@ -41,7 +39,6 @@ test("Audio drag-and-drop uploads a file to the server correctly.", async ({
 		"audio_sample.wav",
 		"audio/wav"
 	);
-	await page.waitForLoadState("networkidle");
 	await expect(page.getByLabel("# Input Change Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Input Upload Events")).toHaveValue("1");
 });
@@ -62,7 +59,6 @@ test("Audio drag-and-drop displays a warning when the file is of the wrong mime 
 test("Play, Pause, and stop events work correctly.", async ({ page }) => {
 	const uploader = await page.locator("input[type=file]");
 	await uploader.setInputFiles(["../../demo/audio_debugger/cantina.wav"]);
-	await page.waitForLoadState("networkidle");
 	const event_triggered = async (label: string) => {
 		const value = await page.getByLabel(label).inputValue();
 		expect(Number(value)).toBeGreaterThan(0);

@@ -8,7 +8,6 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 		.click();
 	const uploader = await page.locator("input[type=file]");
 	await uploader.setInputFiles(["./test/files/file_test.ogg"]);
-	await page.waitForLoadState("networkidle");
 
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
@@ -20,7 +19,6 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 		.click();
 
 	await uploader.setInputFiles(["./test/files/file_test.ogg"]);
-	await page.waitForLoadState("networkidle");
 
 	await expect(page.getByLabel("# Change Events")).toHaveValue("3");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("2");
@@ -57,7 +55,6 @@ test("Video drag-and-drop uploads a file to the server correctly.", async ({
 		"file_test.ogg",
 		"video/*"
 	);
-	await page.waitForLoadState("networkidle");
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 });

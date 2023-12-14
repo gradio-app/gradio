@@ -9,8 +9,6 @@ test("Model3D click-to-upload uploads file successfuly. Upload and clear events 
 	const uploader = await page.locator("input[type=file]");
 	await uploader.setInputFiles(["./test/files/face.obj"]);
 
-	await page.waitForLoadState("networkidle");
-
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 
@@ -34,7 +32,6 @@ test("Model3D drag-and-drop uploads a file to the server correctly.", async ({
 		"./test/files/face.obj",
 		"face.obj"
 	);
-	await page.waitForLoadState("networkidle");
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 });
