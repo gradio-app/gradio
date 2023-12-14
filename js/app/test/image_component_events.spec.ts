@@ -8,7 +8,9 @@ test("Image click-to-upload uploads image successfuly. Clear button dispatches e
 	const uploader = await page.locator("input[type=file]");
 	await uploader.setInputFiles(["./test/files/cheetah1.jpg"]);
 
-	await expect(page.getByLabel("# Change Events").first()).toHaveValue("1");
+	await expect(await page.getByLabel("# Change Events").first()).toHaveValue(
+		"1"
+	);
 	await expect(await page.getByLabel("# Upload Events")).toHaveValue("1");
 	await expect(await page.getByLabel("# Change Events Output")).toHaveValue(
 		"1"
@@ -21,11 +23,16 @@ test("Image click-to-upload uploads image successfuly. Clear button dispatches e
 	await expect(download.suggestedFilename()).toBe("cheetah1.jpeg");
 
 	await page.getByLabel("Remove Image").click();
-	await expect(page.getByLabel("# Clear Events")).toHaveValue("1");
-	await expect(page.getByLabel("# Change Events").first()).toHaveValue("2");
+	await expect(await page.getByLabel("# Clear Events")).toHaveValue("1");
+	await expect(await page.getByLabel("# Change Events").first()).toHaveValue(
+		"2"
+	);
+	await expect(await page.getByLabel("# Upload Events")).toHaveValue("1");
 
 	await uploader.setInputFiles(["./test/files/gradio-logo.svg"]);
-	await expect(page.getByLabel("# Change Events").first()).toHaveValue("3");
+	await expect(await page.getByLabel("# Change Events").first()).toHaveValue(
+		"3"
+	);
 	await expect(await page.getByLabel("# Upload Events")).toHaveValue("2");
 	await expect(await page.getByLabel("# Change Events Output")).toHaveValue(
 		"2"
