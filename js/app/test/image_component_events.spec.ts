@@ -6,7 +6,9 @@ test("Image click-to-upload uploads image successfuly. Clear button dispatches e
 }) => {
 	await page.getByRole("button", { name: "Drop Image Here" }).click();
 	const uploader = await page.locator("input[type=file]");
-	const change_counter = await page.getByLabel("# Change Events").first();
+	const change_counter = await page.getByLabel("# Change Events", {
+		exact: true
+	});
 	const clear_counter = await page.getByLabel("# Clear Events");
 	const upload_counter = await page.getByLabel("# Upload Events");
 	const change_output_counter = await page.getByLabel("# Change Events Output");
@@ -29,7 +31,7 @@ test("Image click-to-upload uploads image successfuly. Clear button dispatches e
 	await expect(upload_counter).toHaveValue("1");
 
 	await uploader.setInputFiles("./test/files/gradio-logo.svg");
-	await expect(clear_counter).toHaveValue("3");
+	await expect(change_counter).toHaveValue("3");
 	await expect(upload_counter).toHaveValue("2");
 	await expect(change_output_counter).toHaveValue("2");
 
