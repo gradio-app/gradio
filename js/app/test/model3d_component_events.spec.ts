@@ -9,7 +9,7 @@ test("Model3D click-to-upload uploads file successfuly. Upload and clear events 
 	const uploader = await page.locator("input[type=file]");
 	await Promise.all([
 		uploader.setInputFiles(["./test/files/face.obj"]),
-		page.waitForResponse("**/upload?*")
+		page.waitForResponse("**/upload*")
 	]);
 
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
@@ -35,7 +35,7 @@ test("Model3D drag-and-drop uploads a file to the server correctly.", async ({
 		"./test/files/face.obj",
 		"face.obj"
 	);
-	await page.waitForResponse("**/upload?*");
+	await page.waitForResponse("**/upload*");
 	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 });
