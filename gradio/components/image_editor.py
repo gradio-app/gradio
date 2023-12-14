@@ -41,6 +41,7 @@ class Eraser:
     Parameters:
         default_size: The default radius, in pixels, of the eraser tool. Defaults to "auto" in which case the radius is automatically determined based on the size of the image (generally 1/50th of smaller dimension).
     """
+
     default_size: int | Literal["auto"] = "auto"
 
 
@@ -54,6 +55,7 @@ class Brush(Eraser):
         default_color: The default color of the brush. Defaults to the first color in the `colors` list.
         color_mode: If set to "fixed", user can only select from among the colors in `colors`. If "defaults", the colors in `colors` are provided as a default palette, but the user can also select any color using a color picker.
     """
+
     colors: Union[
         list[str],
         str,
