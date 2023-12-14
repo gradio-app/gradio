@@ -6,37 +6,32 @@ test("Image click-to-upload uploads image successfuly. Clear button dispatches e
 }) => {
 	await page.getByRole("button", { name: "Drop Image Here" }).click();
 	const uploader = await page.locator("input[type=file]");
-	await uploader.setInputFiles(["./test/files/cheetah1.jpg"]);
+	const change_counter = await page.getByLabel("# Change Events").first();
+	const clear_counter = await page.getByLabel("# Clear Events");
+	const upload_counter = await page.getByLabel("# Upload Events");
+	const change_output_counter = await page.getByLabel("# Change Events Output");
 
-	await expect(await page.getByLabel("# Change Events").first()).toHaveValue(
-		"1"
-	);
-	await expect(await page.getByLabel("# Upload Events")).toHaveValue("1");
-	await expect(await page.getByLabel("# Change Events Output")).toHaveValue(
-		"1"
-	);
+	await uploader.setInputFiles("./test/files/cheetah1.jpg");
+
+	await expect(change_counter).toHaveValue("1");
+	await expect(upload_counter).toHaveValue("1");
+	await expect(change_output_counter).toHaveValue("1");
 
 	const downloadPromise = page.waitForEvent("download");
 	await page.getByLabel("Download").click();
 	const download = await downloadPromise;
-	// Automatically convert to png in the backend since PIL is very picky
+	// PIL converts from .jpg to .jpeg
 	await expect(download.suggestedFilename()).toBe("cheetah1.jpeg");
 
 	await page.getByLabel("Remove Image").click();
-	await expect(await page.getByLabel("# Clear Events")).toHaveValue("1");
-	await expect(await page.getByLabel("# Change Events").first()).toHaveValue(
-		"2"
-	);
-	await expect(await page.getByLabel("# Upload Events")).toHaveValue("1");
+	await expect(clear_counter).toHaveValue("1");
+	await expect(change_counter).toHaveValue("2");
+	await expect(upload_counter).toHaveValue("1");
 
-	await uploader.setInputFiles(["./test/files/gradio-logo.svg"]);
-	await expect(await page.getByLabel("# Change Events").first()).toHaveValue(
-		"3"
-	);
-	await expect(await page.getByLabel("# Upload Events")).toHaveValue("2");
-	await expect(await page.getByLabel("# Change Events Output")).toHaveValue(
-		"2"
-	);
+	await uploader.setInputFiles("./test/files/gradio-logo.svg");
+	await expect(clear_counter).toHaveValue("3");
+	await expect(upload_counter).toHaveValue("2");
+	await expect(change_output_counter).toHaveValue("2");
 
 	const SVGdownloadPromise = page.waitForEvent("download");
 	await page.getByLabel("Download").click();
