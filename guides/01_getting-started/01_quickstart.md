@@ -141,8 +141,8 @@ So far, we've been discussing the core `gradio` Python library. But Gradio is ac
 
 ## What's Next?
 
-Keep learning about Gradio through our conceptual guides, which include explanations as well as example code and embedded interactive demos. Next up: [Building Interfaces](/guides/02_building-interfaces/01_interface-state.md).
+Keep learning about Gradio through our conceptual guides, which include explanations as well as example code and embedded interactive demos. Next up: our series on [building Interfaces](/guides/02_building-interfaces/01_interface-state.md).
 
-Or, if you already know the basics, you can jump to the more [technical documentation](https://www.gradio.app/docs/).
+Or, if you already know the basics and are looking for something specific, you can search the more [technical API documentation](https://www.gradio.app/docs/).
 
 
