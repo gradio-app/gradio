@@ -84,7 +84,7 @@ $code_chatinterface_random_response
 
 $demo_chatinterface_random_response
 
-If you're interested in creating a chatbot, you can jump straight to `gr.ChatInterface` in [our dedicated guide](https://gradio.app/guides/creating-a-chatbot-fast).
+If you're interested in creating a chatbot, you can jump straight to `gr.ChatInterface` in [our dedicated guide](/guides/creating-a-chatbot-fast).
 
 ## Complex Demos: The `Blocks` Class
 
