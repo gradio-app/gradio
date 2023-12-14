@@ -28,13 +28,12 @@ test("UploadButton properly dispatches load event and click event for the multip
 	const uploader = await page.getByTestId(
 		"Upload Multiple Files-upload-button"
 	);
-	await Promise.all([
-		uploader.setInputFiles([
-			"./test/files/face.obj",
-			"./test/files/cheetah1.jpg"
-		]),
-		page.waitForLoadState("networkidle")
+	await uploader.setInputFiles([
+		"./test/files/face.obj",
+		"./test/files/cheetah1.jpg"
 	]);
+
+	await page.waitForLoadState("networkidle");
 
 	await expect(page.getByLabel("# Load Upload Multiple Files")).toHaveValue(
 		"1"
