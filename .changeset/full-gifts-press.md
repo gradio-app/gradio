@@ -4,4 +4,4 @@
 "gradio": patch
 ---
 
-feat:Adds docstrings for `gr.WaveformOptions`, `gr.Brush`, and `gr.Eraser`
+fix:Adds docstrings for `gr.WaveformOptions`, `gr.Brush`, and `gr.Eraser`
