@@ -931,7 +931,6 @@ export function api_factory(
 											time: new Date()
 										});
 										close_stream();
-										console.trace()
 									}
 								};
 								event_ids.push(event_id);
