@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Fix ImageEditor interaction story
+feat:Fix `ImageEditor` interaction story
