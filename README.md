@@ -40,7 +40,8 @@ pip install gradio
 ```
 
 
-✍️ **Tip:** it is best to install Gradio in a virtual environment. Detailed installation instructions for all common operating systems <a href="/guides/installing-gradio-in-a-virtual-environment">are provided here</a>. 
+> [!TIP]
+> it is best to install Gradio in a virtual environment. Detailed installation instructions for all common operating systems <a href="/guides/installing-gradio-in-a-virtual-environment">are provided here</a>. 
 
 ### Building Your First Demo
 
