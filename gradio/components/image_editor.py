@@ -325,7 +325,11 @@ class ImageEditor(Component):
         if input_data is None:
             return None
         elif isinstance(input_data, str):
-            input_data = {"background": input_data, "layers": [], "composite": None}
+            input_data = {
+                "background": input_data,
+                "layers": [],
+                "composite": input_data,
+            }
 
         input_data["background"] = resolve_path(input_data["background"])
         input_data["layers"] = (
