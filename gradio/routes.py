@@ -650,7 +650,7 @@ class App(FastAPI):
                                     )
                                 ):
                                     return
-                except Exception as e:
+                except BaseException as e:
                     message = {
                         "msg": "unexpected_error",
                         "success": False,
