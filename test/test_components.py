@@ -2138,16 +2138,18 @@ class TestGallery:
 
         postprocessed_gallery = gallery.postprocess(
             [
-                ("test/test_files/foo.png", "foo_caption"),
+                (str(Path("test/test_files/foo.png")), "foo_caption"),
                 (Path("test/test_files/bar.png"), "bar_caption"),
-                "test/test_files/baz.png",
+                str(Path("test/test_files/baz.png")),
                 Path("test/test_files/qux.png"),
             ]
         ).model_dump()
+
+        # Using str(Path(...)) to ensure that the test passes on all platforms
         assert postprocessed_gallery == [
             {
                 "image": {
-                    "path": "test/test_files/foo.png",
+                    "path": str(Path("test") / "test_files" / "foo.png"),
                     "orig_name": "foo.png",
                     "mime_type": None,
                     "size": None,
@@ -2157,7 +2159,7 @@ class TestGallery:
             },
             {
                 "image": {
-                    "path": "test/test_files/bar.png",
+                    "path": str(Path("test") / "test_files" / "bar.png"),
                     "orig_name": "bar.png",
                     "mime_type": None,
                     "size": None,
@@ -2167,7 +2169,7 @@ class TestGallery:
             },
             {
                 "image": {
-                    "path": "test/test_files/baz.png",
+                    "path": str(Path("test") / "test_files" / "baz.png"),
                     "orig_name": "baz.png",
                     "mime_type": None,
                     "size": None,
@@ -2177,7 +2179,7 @@ class TestGallery:
             },
             {
                 "image": {
-                    "path": "test/test_files/qux.png",
+                    "path": str(Path("test") / "test_files" / "qux.png"),
                     "orig_name": "qux.png",
                     "mime_type": None,
                     "size": None,
