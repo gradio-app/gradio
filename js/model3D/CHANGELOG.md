@@ -1,10 +1,18 @@
 # @gradio/model3d
 
+## 0.4.10
+
+### Patch Changes
+
+- Updated dependencies [[`245d58e`](https://github.com/gradio-app/gradio/commit/245d58eff788e8d44a59d37a2d9b26d0f08a62b4)]:
+  - @gradio/client@0.9.2
+  - @gradio/upload@0.5.5
+
 ## 0.4.9
 
 ### Fixes
 
-- [#6525](https://github.com/gradio-app/gradio/pull/6525) [`5d51fbc`](https://github.com/gradio-app/gradio/commit/5d51fbce7826da840a2fd4940feb5d9ad6f1bc5a) - Fixes Drag and Drop for Upload.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#6525](https://github.com/gradio-app/gradio/pull/6525) [`5d51fbc`](https://github.com/gradio-app/gradio/commit/5d51fbce7826da840a2fd4940feb5d9ad6f1bc5a) - Fixes Drag and Drop for Upload. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
 
 ## 0.4.8
 

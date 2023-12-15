@@ -1,5 +1,11 @@
 # @gradio/imageeditor
 
+## 0.1.5
+
+### Fixes
+
+- [#6799](https://github.com/gradio-app/gradio/pull/6799) [`c352811`](https://github.com/gradio-app/gradio/commit/c352811f76d4126613ece0a584f8c552fdd8d1f6) - Adds docstrings for `gr.WaveformOptions`, `gr.Brush`, and `gr.Eraser`, fixes examples for `ImageEditor`, and allows individual images to be used as the initial `value` for `ImageEditor`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.1.4
 
 ### Patch Changes

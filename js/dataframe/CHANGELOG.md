@@ -1,5 +1,13 @@
 # @gradio/dataframe
 
+## 0.4.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/button@0.2.12
+  - @gradio/upload@0.5.5
+
 ## 0.4.1
 
 ### Patch Changes
