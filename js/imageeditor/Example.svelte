@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { BaseImage as Image } from "@gradio/image";
-	import type {
-		EditorData,
-	} from "./shared/InteractiveImageEditor.svelte";
+	import type { EditorData } from "./shared/InteractiveImageEditor.svelte";
 
 	export let value: EditorData;
 	export let samples_dir: string;
@@ -24,7 +22,7 @@
 		width: 100%;
 		height: 100%;
 	}
-	
+
 	.container.selected {
 		border-color: var(--border-color-accent);
 	}

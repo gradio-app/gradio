@@ -22,10 +22,12 @@ set_documentation_group("component")
 _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
+ImageType = Union[np.ndarray, _Image.Image, str]
+
 class EditorValue(TypedDict):
-    background: Optional[Union[np.ndarray, _Image.Image, str]]
-    layers: list[Union[np.ndarray, _Image.Image, str]]
-    composite: Optional[Union[np.ndarray, _Image.Image, str]]
+    background: Optional[ImageType]
+    layers: list[ImageType]
+    composite: Optional[ImageType]
 
 class EditorExampleValue(TypedDict):
     background: Optional[str]
@@ -87,9 +89,9 @@ class Brush(Eraser):
 class ImageEditor(Component):
     """
     Creates an image component that can be used to upload and edit images (as an input) or display images (as an output).
-    Preprocessing: passes the uploaded image as a dictionary of {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
-    Postprocessing: expects a dictionary of {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
-    Examples-format: a {str} local filepath or URL to an image.
+    Preprocessing: passes the uploaded images as a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` are images, while `layers` is a list of images. The images are of type PIL.Image, np.array, or str filepath, depending on the `type` parameter.
+    Postprocessing: expects a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` should be images or None, while `layers` should be a list of images. Images can be of type PIL.Image, np.array, or str filepath/URL. Or, the value can be simply a single image, in which case it will be used as the background.
+    Examples-format: a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` should be strings or None, while `layers` should be a list of strings. The image corresponding to `composite`, if not None, is used as the example image. Otherwise, the image corresonding to `background` is used. The strings should be filepaths or URLs. Or, the value can be simply a single string filepath/URL to an image, which is used directly as the example image.
     Demos: image_editor
     """
 
@@ -103,7 +105,7 @@ class ImageEditor(Component):
 
     def __init__(
         self,
-        value: EditorValue | None = None,
+        value: EditorValue | ImageType | None = None,
         *,
         height: int | str | None = None,
         width: int | str | None = None,
@@ -245,39 +247,33 @@ class ImageEditor(Component):
             name=name,
         )
 
-    def preprocess(self, x: EditorData | None) -> EditorValue | None:
-        """
-        Parameters:
-            x: FileData containing an image path pointing to the user's image
-        Returns:
-            image in requested format, or (if tool == "sketch") a dict of image and mask in requested format
-        """
-        if x is None:
-            return x
+    def preprocess(self, payload: EditorData | None) -> EditorValue | None:
+        if payload is None:
+            return payload
 
-        bg = self.convert_and_format_image(x.background)
+        bg = self.convert_and_format_image(payload.background)
         layers = (
-            [self.convert_and_format_image(layer) for layer in x.layers]
-            if x.layers
+            [self.convert_and_format_image(layer) for layer in payload.layers]
+            if payload.layers
             else None
         )
-        composite = self.convert_and_format_image(x.composite)
+        composite = self.convert_and_format_image(payload.composite)
         return {
             "background": bg,
             "layers": [x for x in layers if x is not None] if layers else [],
             "composite": composite,
         }
 
-    def postprocess(self, y: EditorValue | None) -> EditorData | None:
-        """
-        Parameters:
-            y: image as a numpy array, PIL Image, string/Path filepath, or string URL
-        Returns:
-            base64 url data
-        """
-        if y is None:
+    def postprocess(self, value: EditorValue | ImageType | None) -> EditorData | None:
+        if value is None:
             return None
-
+        elif isinstance(value, dict):
+            pass
+        elif isinstance(value, (np.ndarray, _Image.Image, str)):
+            value = {"background": value, "layers": [], "composite": value}
+        else:
+            raise ValueError("The value to `gr.ImageEditor` must be a dictionary of images or a single image.")
+        
         layers = (
             [
                 FileData(
@@ -286,30 +282,30 @@ class ImageEditor(Component):
                         self.GRADIO_CACHE,
                     )
                 )
-                for layer in y["layers"]
+                for layer in value["layers"]
             ]
-            if y["layers"]
+            if value["layers"]
             else []
         )
 
         return EditorData(
             background=FileData(
-                path=image_utils.save_image(y["background"], self.GRADIO_CACHE)
+                path=image_utils.save_image(value["background"], self.GRADIO_CACHE)
             )
-            if y["background"] is not None
+            if value["background"] is not None
             else None,
             layers=layers,
             composite=FileData(
                 path=image_utils.save_image(
-                    cast(Union[np.ndarray, _Image.Image, str], y["composite"]),
+                    cast(Union[np.ndarray, _Image.Image, str], value["composite"]),
                     self.GRADIO_CACHE,
                 )
             )
-            if y["composite"] is not None
+            if value["composite"] is not None
             else None,
         )
 
-    def as_example(self, input_data: EditorExampleValue | None) -> EditorExampleValue | None:
+    def as_example(self, input_data: EditorExampleValue | str | None) -> EditorExampleValue | None:
         def resolve_path(file_or_url: str | None) -> str | None:
             if file_or_url is None:
                 return None
@@ -321,9 +317,13 @@ class ImageEditor(Component):
 
         if input_data is None:
             return None
+        elif isinstance(input_data, str):
+            input_data = {"background": input_data, "layers": [], "composite": None}
+
         input_data["background"] = resolve_path(input_data["background"])
         input_data["layers"] = [resolve_path(f) for f in input_data["layers"]] if input_data["layers"] else []
         input_data["composite"] = resolve_path(input_data["composite"])
+        
         return input_data
 
     def example_inputs(self) -> Any:
