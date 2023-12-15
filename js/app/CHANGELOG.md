@@ -1,37 +1,60 @@
 # @gradio/app
 
+## 1.16.1
+
+### Patch Changes
+
+- Updated dependencies [[`5d51fbc`](https://github.com/gradio-app/gradio/commit/5d51fbce7826da840a2fd4940feb5d9ad6f1bc5a), [`34f9431`](https://github.com/gradio-app/gradio/commit/34f943101bf7dd6b8a8974a6131c1ed7c4a0dac0)]:
+  - @gradio/model3d@0.4.9
+  - @gradio/upload@0.5.4
+  - @gradio/client@0.9.1
+  - @gradio/annotatedimage@0.3.11
+  - @gradio/audio@0.6.1
+  - @gradio/button@0.2.11
+  - @gradio/chatbot@0.5.3
+  - @gradio/code@0.3.1
+  - @gradio/dataframe@0.4.1
+  - @gradio/dataset@0.1.11
+  - @gradio/file@0.4.1
+  - @gradio/fileexplorer@0.3.11
+  - @gradio/gallery@0.4.12
+  - @gradio/image@0.5.1
+  - @gradio/imageeditor@0.1.4
+  - @gradio/uploadbutton@0.3.2
+  - @gradio/video@0.2.1
+
 ## 1.16.0
 
 ### Features
 
-- [#6398](https://github.com/gradio-app/gradio/pull/6398) [`67ddd40`](https://github.com/gradio-app/gradio/commit/67ddd40b4b70d3a37cb1637c33620f8d197dbee0) - Lite v4.  Thanks [@whitphx](https://github.com/whitphx)!
-- [#6738](https://github.com/gradio-app/gradio/pull/6738) [`f3c4d78`](https://github.com/gradio-app/gradio/commit/f3c4d78b710854b94d9a15db78178e504a02c680) - reload on css changes + fix css specificity.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6398](https://github.com/gradio-app/gradio/pull/6398) [`67ddd40`](https://github.com/gradio-app/gradio/commit/67ddd40b4b70d3a37cb1637c33620f8d197dbee0) - Lite v4. Thanks [@whitphx](https://github.com/whitphx)!
+- [#6738](https://github.com/gradio-app/gradio/pull/6738) [`f3c4d78`](https://github.com/gradio-app/gradio/commit/f3c4d78b710854b94d9a15db78178e504a02c680) - reload on css changes + fix css specificity. Thanks [@pngwn](https://github.com/pngwn)!
 
 ### Fixes
 
-- [#6639](https://github.com/gradio-app/gradio/pull/6639) [`9a6ff70`](https://github.com/gradio-app/gradio/commit/9a6ff704cd8429289c5376d3af5e4b8492df4773) - Fix issue with `head` param when adding more than one script tag.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#6639](https://github.com/gradio-app/gradio/pull/6639) [`9a6ff70`](https://github.com/gradio-app/gradio/commit/9a6ff704cd8429289c5376d3af5e4b8492df4773) - Fix issue with `head` param when adding more than one script tag. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
 
 ## 1.15.0
 
 ### Features
 
-- [#6512](https://github.com/gradio-app/gradio/pull/6512) [`4f040c7`](https://github.com/gradio-app/gradio/commit/4f040c752bb3b0586a4e16eca25a1e5f596eee48) - Update zh-CN.json.  Thanks [@cibimo](https://github.com/cibimo)!
+- [#6512](https://github.com/gradio-app/gradio/pull/6512) [`4f040c7`](https://github.com/gradio-app/gradio/commit/4f040c752bb3b0586a4e16eca25a1e5f596eee48) - Update zh-CN.json. Thanks [@cibimo](https://github.com/cibimo)!
 
 ## 1.14.0
 
 ### Features
 
-- [#6537](https://github.com/gradio-app/gradio/pull/6537) [`6d3fecfa4`](https://github.com/gradio-app/gradio/commit/6d3fecfa42dde1c70a60c397434c88db77289be6) - chore(deps): update all non-major dependencies.  Thanks [@renovate](https://github.com/apps/renovate)!
+- [#6537](https://github.com/gradio-app/gradio/pull/6537) [`6d3fecfa4`](https://github.com/gradio-app/gradio/commit/6d3fecfa42dde1c70a60c397434c88db77289be6) - chore(deps): update all non-major dependencies. Thanks [@renovate](https://github.com/apps/renovate)!
 
 ### Fixes
 
-- [#6530](https://github.com/gradio-app/gradio/pull/6530) [`13ef0f0ca`](https://github.com/gradio-app/gradio/commit/13ef0f0caa13e5a1cea70d572684122419419599) - Quick fix: Make component interactive when it is in focus.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#6530](https://github.com/gradio-app/gradio/pull/6530) [`13ef0f0ca`](https://github.com/gradio-app/gradio/commit/13ef0f0caa13e5a1cea70d572684122419419599) - Quick fix: Make component interactive when it is in focus. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
 
 ## 1.13.1
 
 ### Fixes
 
-- [#6536](https://github.com/gradio-app/gradio/pull/6536) [`1bbd6cab3`](https://github.com/gradio-app/gradio/commit/1bbd6cab3f0abe183b514b82061f0937c8480966) - Fix undefined `data` TypeError in Blocks.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6536](https://github.com/gradio-app/gradio/pull/6536) [`1bbd6cab3`](https://github.com/gradio-app/gradio/commit/1bbd6cab3f0abe183b514b82061f0937c8480966) - Fix undefined `data` TypeError in Blocks. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ## 1.13.0
 
@@ -81,28 +104,28 @@ im = gr.ImageEditor(
 
 ```
 
- Thanks [@pngwn](https://github.com/pngwn)!
+Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 1.12.0
 
 ### Features
 
-- [#6427](https://github.com/gradio-app/gradio/pull/6427) [`e0fc14659`](https://github.com/gradio-app/gradio/commit/e0fc146598ba9b081bc5fa9616d0a41c2aba2427) - Allow google analytics to work on Spaces (and other iframe situations).  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6427](https://github.com/gradio-app/gradio/pull/6427) [`e0fc14659`](https://github.com/gradio-app/gradio/commit/e0fc146598ba9b081bc5fa9616d0a41c2aba2427) - Allow google analytics to work on Spaces (and other iframe situations). Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ### Fixes
 
-- [#6254](https://github.com/gradio-app/gradio/pull/6254) [`f816136a0`](https://github.com/gradio-app/gradio/commit/f816136a039fa6011be9c4fb14f573e4050a681a) - Add volume control to Audio.  Thanks [@hannahblair](https://github.com/hannahblair)!
-- [#6457](https://github.com/gradio-app/gradio/pull/6457) [`d00fcf89d`](https://github.com/gradio-app/gradio/commit/d00fcf89d1c3ecbc910e81bb1311479ec2b73e4e) - Gradio custom component dev mode now detects changes to Example.svelte file.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6254](https://github.com/gradio-app/gradio/pull/6254) [`f816136a0`](https://github.com/gradio-app/gradio/commit/f816136a039fa6011be9c4fb14f573e4050a681a) - Add volume control to Audio. Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6457](https://github.com/gradio-app/gradio/pull/6457) [`d00fcf89d`](https://github.com/gradio-app/gradio/commit/d00fcf89d1c3ecbc910e81bb1311479ec2b73e4e) - Gradio custom component dev mode now detects changes to Example.svelte file. Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
 
 ## 1.11.0
 
 ### Features
 
-- [#6099](https://github.com/gradio-app/gradio/pull/6099) [`d84209703`](https://github.com/gradio-app/gradio/commit/d84209703b7a0728cdb49221e543500ddb6a8d33) - Lite: SharedWorker mode.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6099](https://github.com/gradio-app/gradio/pull/6099) [`d84209703`](https://github.com/gradio-app/gradio/commit/d84209703b7a0728cdb49221e543500ddb6a8d33) - Lite: SharedWorker mode. Thanks [@whitphx](https://github.com/whitphx)!
 
 ### Fixes
 
-- [#6383](https://github.com/gradio-app/gradio/pull/6383) [`324867f63`](https://github.com/gradio-app/gradio/commit/324867f63c920113d89a565892aa596cf8b1e486) - Fix event target.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#6383](https://github.com/gradio-app/gradio/pull/6383) [`324867f63`](https://github.com/gradio-app/gradio/commit/324867f63c920113d89a565892aa596cf8b1e486) - Fix event target. Thanks [@aliabid94](https://github.com/aliabid94)!
 
 ## 1.10.3
 

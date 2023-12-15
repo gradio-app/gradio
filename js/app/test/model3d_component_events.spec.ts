@@ -7,18 +7,19 @@ test("Model3D click-to-upload uploads file successfuly. Upload and clear events 
 		.getByRole("button", { name: "Drop File Here - or - Click to Upload" })
 		.click();
 	const uploader = await page.locator("input[type=file]");
-	await Promise.all([
-		uploader.setInputFiles(["./test/files/face.obj"]),
-		page.waitForResponse("**/upload?*?*")
-	]);
+	const change_counter = await page.getByLabel("# Change Events");
+	const upload_counter = await page.getByLabel("# Upload Events");
+	const clear_counter = await page.getByLabel("# Clear Events");
 
-	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
-	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
+	await uploader.setInputFiles("./test/files/face.obj");
+
+	await expect(change_counter).toHaveValue("1");
+	await expect(upload_counter).toHaveValue("1");
 
 	await page.getByLabel("Clear").nth(0).click();
-	await expect(page.getByLabel("# Change Events")).toHaveValue("2");
-	await expect(page.getByLabel("# Clear Events")).toHaveValue("1");
-	await expect(page.getByLabel("Clear Value")).toHaveValue("");
+	await expect(change_counter).toHaveValue("2");
+	await expect(clear_counter).toHaveValue("1");
+	await expect(await page.getByLabel("Clear Value")).toHaveValue("");
 
 	const downloadPromise = page.waitForEvent("download");
 	await page.getByLabel("Download").click();
@@ -35,7 +36,6 @@ test("Model3D drag-and-drop uploads a file to the server correctly.", async ({
 		"./test/files/face.obj",
 		"face.obj"
 	);
-	await page.waitForResponse("**/upload?*");
-	await expect(page.getByLabel("# Change Events")).toHaveValue("1");
-	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
+	await expect(await page.getByLabel("# Change Events")).toHaveValue("1");
+	await expect(await page.getByLabel("# Upload Events")).toHaveValue("1");
 });
