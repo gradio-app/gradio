@@ -25,17 +25,12 @@
 		interactive: "true",
 		brush: {
 			default_size: "auto",
-			sizes: "auto",
-			size_mode: "fixed",
-			antialias: true,
 			colors: ["#ff0000", "#00ff00", "#0000ff"],
-			default_color: "#ff0000"
+			default_color: "#ff0000",
+			color_mode: "defaults"
 		},
 		eraser: {
-			default_size: "auto",
-			sizes: "auto",
-			size_mode: "fixed",
-			antialias: true
+			default_size: "auto"
 		}
 	}}
 />
@@ -53,17 +48,12 @@
 		interactive: "true",
 		brush: {
 			default_size: "auto",
-			sizes: "auto",
-			size_mode: "fixed",
-			antialias: true,
 			colors: ["#ff0000", "#00ff00", "#0000ff"],
-			default_color: "#ff0000"
+			default_color: "#ff0000",
+			color_mode: "defaults"
 		},
 		eraser: {
-			default_size: "auto",
-			sizes: "auto",
-			size_mode: "fixed",
-			antialias: true
+			default_size: "auto"
 		}
 	}}
 	play={async ({ canvasElement }) => {
