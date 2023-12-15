@@ -42,7 +42,7 @@ class LoginButton(Button):
     ):
         """
         Parameters:
-        signed_in_value: The text to display when the user is signed in. The string should contain a placeholder for the username, e.g. "Signed in as {}".
+            signed_in_value: The text to display when the user is signed in. The string should contain a placeholder for the username, e.g. "Signed in as {}".
         """
         if signed_in_value is None:
             signed_in_value = "Signed in as {}"
