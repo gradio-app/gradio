@@ -24,15 +24,18 @@ _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 ImageType = Union[np.ndarray, _Image.Image, str]
 
+
 class EditorValue(TypedDict):
     background: Optional[ImageType]
     layers: list[ImageType]
     composite: Optional[ImageType]
 
+
 class EditorExampleValue(TypedDict):
     background: Optional[str]
     layers: Optional[list[str | None]]
     composite: Optional[str]
+
 
 class EditorData(GradioModel):
     background: Optional[FileData] = None
@@ -272,8 +275,10 @@ class ImageEditor(Component):
         elif isinstance(value, (np.ndarray, _Image.Image, str)):
             value = {"background": value, "layers": [], "composite": value}
         else:
-            raise ValueError("The value to `gr.ImageEditor` must be a dictionary of images or a single image.")
-        
+            raise ValueError(
+                "The value to `gr.ImageEditor` must be a dictionary of images or a single image."
+            )
+
         layers = (
             [
                 FileData(
@@ -305,7 +310,9 @@ class ImageEditor(Component):
             else None,
         )
 
-    def as_example(self, input_data: EditorExampleValue | str | None) -> EditorExampleValue | None:
+    def as_example(
+        self, input_data: EditorExampleValue | str | None
+    ) -> EditorExampleValue | None:
         def resolve_path(file_or_url: str | None) -> str | None:
             if file_or_url is None:
                 return None
@@ -321,14 +328,18 @@ class ImageEditor(Component):
             input_data = {"background": input_data, "layers": [], "composite": None}
 
         input_data["background"] = resolve_path(input_data["background"])
-        input_data["layers"] = [resolve_path(f) for f in input_data["layers"]] if input_data["layers"] else []
+        input_data["layers"] = (
+            [resolve_path(f) for f in input_data["layers"]]
+            if input_data["layers"]
+            else []
+        )
         input_data["composite"] = resolve_path(input_data["composite"])
-        
+
         return input_data
 
     def example_inputs(self) -> Any:
         return {
             "background": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
             "layers": [],
-            "composite": None
+            "composite": None,
         }
