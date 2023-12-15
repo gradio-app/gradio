@@ -36,7 +36,7 @@ if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
 CACHED_FOLDER = str(
     Path(
         os.environ.get("GRADIO_EXAMPLES_CACHE")
-        or str("gradio_cached_examples")
+        or "gradio_cached_examples"
     ).resolve()
 )
 
