@@ -1,5 +1,11 @@
 # @gradio/upload
 
+## 0.5.4
+
+### Fixes
+
+- [#6525](https://github.com/gradio-app/gradio/pull/6525) [`5d51fbc`](https://github.com/gradio-app/gradio/commit/5d51fbce7826da840a2fd4940feb5d9ad6f1bc5a) - Fixes Drag and Drop for Upload.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.5.3
 
 ### Fixes
