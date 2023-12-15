@@ -289,7 +289,6 @@ export function api_factory(
 			let stream_open = false;
 			let event_stream: EventSource | null = null;
 			const event_callbacks: Record<string, () => Promise<void>> = {};
-			const event_ids = [];
 			let config: Config;
 			let api_map: Record<string, number> = {};
 
@@ -933,7 +932,6 @@ export function api_factory(
 										close_stream();
 									}
 								};
-								event_ids.push(event_id);
 								event_callbacks[event_id] = callback;
 								if (!stream_open) {
 									open_stream();
@@ -1055,7 +1053,9 @@ export function api_factory(
 					let _data = JSON.parse(event.data);
 					if (_data.session_hash) {
 						await Promise.all(
-							event_ids.map((event_id) => event_callbacks[event_id](_data))
+							Object.keys(event_callbacks).map((event_id) =>
+								event_callbacks[event_id](_data)
+							)
 						);
 						return;
 					}
