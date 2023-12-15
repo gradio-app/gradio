@@ -837,14 +837,6 @@ export function api_factory(
 											return;
 										}
 
-										// TODO: Find out how to print this information
-										// only during testing
-										// console.info("data", type, status, data);
-
-										if (type == "heartbeat") {
-											return;
-										}
-
 										if (type === "update" && status && !complete) {
 											// call 'status' listeners
 											fire_event({
@@ -857,7 +849,7 @@ export function api_factory(
 										} else if (type === "complete") {
 											complete = status;
 										} else if (type == "unexpected_error") {
-											console.error("Unexpected error", status.message);
+											console.error("Unexpected error", status?.message);
 											fire_event({
 												type: "status",
 												stage: "error",
@@ -875,6 +867,7 @@ export function api_factory(
 												endpoint: _endpoint,
 												fn_index
 											});
+											return;
 										} else if (type === "generating") {
 											fire_event({
 												type: "status",
@@ -938,6 +931,7 @@ export function api_factory(
 											time: new Date()
 										});
 										close_stream();
+										console.trace()
 									}
 								};
 								event_ids.push(event_id);
