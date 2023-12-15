@@ -24,6 +24,7 @@ class LoginButton(Button):
     def __init__(
         self,
         value: str = "Sign in with Hugging Face",
+        signed_in_value: str = "Signed in as {}",
         *,
         every: float | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
@@ -39,6 +40,13 @@ class LoginButton(Button):
         scale: int | None = 0,
         min_width: int | None = None,
     ):
+        """
+        Parameters:
+        signed_in_value: The text to display when the user is signed in. The string should contain a placeholder for the username, e.g. "Signed in as {}".
+        """
+        if signed_in_value is None:
+            signed_in_value = "Signed in as {}"
+        self.signed_in_value = signed_in_value
         super().__init__(
             value,
             every=every,
@@ -78,7 +86,8 @@ class LoginButton(Button):
             return LoginButton(value=self.value, interactive=True)
         else:
             username = session["oauth_info"]["userinfo"]["preferred_username"]
-            return LoginButton(f"Signed in as {username}", interactive=False)
+            signed_in_text = self.signed_in_value.format(username)
+            return LoginButton(signed_in_text, interactive=False)
 
 
 # JS code to redirects to /login/huggingface if user is not logged in.
