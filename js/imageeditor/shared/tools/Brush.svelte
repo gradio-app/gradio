@@ -6,18 +6,6 @@
 		 * The default size of the eraser.
 		 */
 		default_size: number | "auto";
-		/**
-		 * The sizes to show in the size swatch
-		 */
-		sizes: number[] | "auto";
-		/**
-		 * Whether to show _only_ the sizes specified in `sizes`, or to show the sizes specified in `sizes` along with the size slider.
-		 */
-		size_mode: "fixed" | "defaults";
-		/**
-		 * Whether to use antialiasing when drawing the eraser.
-		 */
-		antialias: boolean;
 	}
 
 	export interface Brush extends Eraser {
