@@ -51,9 +51,9 @@ The core `Interface` class has three core arguments:
 
 The `fn` argument is very flexible -- you can pass *any* Python function that you want to wrap with a UI. In the example above, we saw a simple text-based function, but the function could be anything from music generator to a tax calculator to the prediction function of a pretrained machine learning model.
 
-The `input` and `output` arguments take one or more Gradio components. As we'll see, Gradio includes more than [30 built-in components](https://www.gradio.app/docs/components) (such as the `gr.Textbox()`, `gr.Image()`, `gr.Label()`, `gr.HighlightedText()`, `gr.HTML()`, etc.) that are designed for machine learning applications. For the `inputs` and `outputs` arguments, you must pass in the name of one of these components as a string, or an instance of the class.
+The `input` and `output` arguments take one or more Gradio components. As we'll see, Gradio includes more than [30 built-in components](https://www.gradio.app/docs/components) (such as the `gr.Textbox()`, `gr.Image()`, `gr.Label()`, `gr.HighlightedText()`, `gr.HTML()`, etc.) that are designed for machine learning applications. For the `inputs` and `outputs` arguments, pass in the name of one of these components as a string or an instance of the class.
 
-If your function accepts more than one argument, you can pass in a list of input components to `inputs`, with each input component corresponding to one of the arguments of the function, in order. The same holds true if your function returns more than one value: simply pass in a list of components to `outputs`. This flexibility makes the `Interface` class a very powerful way to create demos.
+Tip: If your function accepts more than one argument, you can pass in a list of input components to `inputs`, with each input component corresponding to one of the arguments of the function, in order. The same holds true if your function returns more than one value: simply pass in a list of components to `outputs`. This flexibility makes the `Interface` class a very powerful way to create demos.
 
 We'll dive deeper into the `gr.Interface` on our series on [building Interfaces](/guides/02_building-interfaces/01_interface-state.md).
 
