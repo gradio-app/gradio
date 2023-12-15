@@ -28,8 +28,7 @@ class LoginButton(Button):
         every: float | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
         size: Literal["sm", "lg"] | None = None,
-        icon: str
-        | None = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
+        icon: str | None = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
         link: str | None = None,
         visible: bool = True,
         interactive: bool = True,
@@ -75,7 +74,7 @@ class LoginButton(Button):
             request.request, "session", None
         )
         if session is None or "oauth_info" not in session:
-            return LoginButton("Sign in with Hugging Face", interactive=True)
+            return LoginButton(value=self.value, interactive=True)
         else:
             username = session["oauth_info"]["userinfo"]["preferred_username"]
             return LoginButton(f"Signed in as {username}", interactive=False)
