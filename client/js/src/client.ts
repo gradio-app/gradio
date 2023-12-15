@@ -828,7 +828,7 @@ export function api_factory(
 											_data,
 											last_status[fn_index]
 										);
-\
+
 										// TODO: Find out how to print this information
 										// only during testing
 										// console.info("data", type, status, data);
