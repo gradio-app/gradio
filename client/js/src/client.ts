@@ -823,32 +823,112 @@ export function api_factory(
 							} else {
 								event_id = response.event_id as string;
 								let callback = async function (_data: object): void {
-									const { type, status, data } = handle_message(
-										_data,
-										last_status[fn_index]
-									);
+									try {
+										const { type, status, data } = handle_message(
+											_data,
+											last_status[fn_index]
+										);
+										throw new Error("Bad!");
 
-									// TODO: Find out how to print this information
-									// only during testing
-									// console.info("data", type, status, data);
+										// TODO: Find out how to print this information
+										// only during testing
+										// console.info("data", type, status, data);
 
-									if (type == "heartbeat") {
-										return;
-									}
+										if (type == "heartbeat") {
+											return;
+										}
 
-									if (type === "update" && status && !complete) {
-										// call 'status' listeners
-										fire_event({
-											type: "status",
-											endpoint: _endpoint,
-											fn_index,
-											time: new Date(),
-											...status
-										});
-									} else if (type === "complete") {
-										complete = status;
-									} else if (type == "unexpected_error") {
-										console.error("Unexpected error", status.message);
+										// TODO: Find out how to print this information
+										// only during testing
+										// console.info("data", type, status, data);
+
+										if (type == "heartbeat") {
+											return;
+										}
+
+										if (type === "update" && status && !complete) {
+											// call 'status' listeners
+											fire_event({
+												type: "status",
+												endpoint: _endpoint,
+												fn_index,
+												time: new Date(),
+												...status
+											});
+										} else if (type === "complete") {
+											complete = status;
+										} else if (type == "unexpected_error") {
+											console.error("Unexpected error", status.message);
+											fire_event({
+												type: "status",
+												stage: "error",
+												message: "An Unexpected Error Occurred!",
+												queue: true,
+												endpoint: _endpoint,
+												fn_index,
+												time: new Date()
+											});
+										} else if (type === "log") {
+											fire_event({
+												type: "log",
+												log: data.log,
+												level: data.level,
+												endpoint: _endpoint,
+												fn_index
+											});
+										} else if (type === "generating") {
+											fire_event({
+												type: "status",
+												time: new Date(),
+												...status,
+												stage: status?.stage!,
+												queue: true,
+												endpoint: _endpoint,
+												fn_index
+											});
+										}
+										if (data) {
+											fire_event({
+												type: "data",
+												time: new Date(),
+												data: transform_files
+													? transform_output(
+															data.data,
+															api_info,
+															config.root,
+															config.root_url
+													  )
+													: data.data,
+												endpoint: _endpoint,
+												fn_index
+											});
+
+											if (complete) {
+												fire_event({
+													type: "status",
+													time: new Date(),
+													...complete,
+													stage: status?.stage!,
+													queue: true,
+													endpoint: _endpoint,
+													fn_index
+												});
+											}
+										}
+
+										if (
+											status.stage === "complete" ||
+											status.stage === "error"
+										) {
+											if (event_callbacks[event_id]) {
+												delete event_callbacks[event_id];
+												if (Object.keys(event_callbacks).length === 0) {
+													close_stream();
+												}
+											}
+										}
+									} catch (e) {
+										console.error("Unexpected client exception", e);
 										fire_event({
 											type: "status",
 											stage: "error",
@@ -858,61 +938,7 @@ export function api_factory(
 											fn_index,
 											time: new Date()
 										});
-									} else if (type === "log") {
-										fire_event({
-											type: "log",
-											log: data.log,
-											level: data.level,
-											endpoint: _endpoint,
-											fn_index
-										});
-									} else if (type === "generating") {
-										fire_event({
-											type: "status",
-											time: new Date(),
-											...status,
-											stage: status?.stage!,
-											queue: true,
-											endpoint: _endpoint,
-											fn_index
-										});
-									}
-									if (data) {
-										fire_event({
-											type: "data",
-											time: new Date(),
-											data: transform_files
-												? transform_output(
-														data.data,
-														api_info,
-														config.root,
-														config.root_url
-												  )
-												: data.data,
-											endpoint: _endpoint,
-											fn_index
-										});
-
-										if (complete) {
-											fire_event({
-												type: "status",
-												time: new Date(),
-												...complete,
-												stage: status?.stage!,
-												queue: true,
-												endpoint: _endpoint,
-												fn_index
-											});
-										}
-									}
-
-									if (status.stage === "complete" || status.stage === "error") {
-										if (event_callbacks[event_id]) {
-											delete event_callbacks[event_id];
-											if (Object.keys(event_callbacks).length === 0) {
-												close_stream();
-											}
-										}
+										close_stream();
 									}
 								};
 								event_ids.push(event_id);
