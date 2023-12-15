@@ -27,6 +27,10 @@ class EditorValue(TypedDict):
     layers: list[Union[np.ndarray, _Image.Image, str]]
     composite: Optional[Union[np.ndarray, _Image.Image, str]]
 
+class EditorExampleValue(TypedDict):
+    background: Optional[str]
+    layers: Optional[list[str | None]]
+    composite: Optional[str]
 
 class EditorData(GradioModel):
     background: Optional[FileData] = None
@@ -86,8 +90,7 @@ class ImageEditor(Component):
     Preprocessing: passes the uploaded image as a dictionary of {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
     Postprocessing: expects a dictionary of {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
     Examples-format: a {str} local filepath or URL to an image.
-    Demos: image_mod, image_mod_default_image
-    Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, building-a-pictionary_app, create-your-own-friends-with-a-gan
+    Demos: image_editor
     """
 
     EVENTS = [
@@ -100,7 +103,7 @@ class ImageEditor(Component):
 
     def __init__(
         self,
-        value: str | _Image.Image | np.ndarray | None = None,
+        value: EditorValue | None = None,
         *,
         height: int | str | None = None,
         width: int | str | None = None,
@@ -135,12 +138,12 @@ class ImageEditor(Component):
     ):
         """
         Parameters:
-            value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            height: The height of the displayed image, specified in pixels if a number is passed, or in CSS units if a string is passed.
-            width: The width of the displayed image, specified in pixels if a number is passed, or in CSS units if a string is passed.
+            value: Optional initial image(s) to populate the image editor. Should be a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` should be images or None, while `layers` should be a list of images. Images can be of type PIL.Image, np.array, or str filepath/URL. Or, the value can be a callable, in which case the function will be called whenever the app loads to set the initial value of the component.
+            height: The height of the displayed images, specified in pixels if a number is passed, or in CSS units if a string is passed.
+            width: The width of the displayed images, specified in pixels if a number is passed, or in CSS units if a string is passed.
             image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning.
-            sources: List of sources for the image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard.
-            type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image.
+            sources: List of sources that can be used to set the background image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard.
+            type: The format the images are converted to before being passed into the prediction function. "numpy" converts the images to numpy arrays with shape (height, width, 3) and values from 0 to 255, "pil" converts the images to PIL image objects, "filepath" passes images as str filepaths to temporary copies of the images.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -306,14 +309,26 @@ class ImageEditor(Component):
             else None,
         )
 
-    def as_example(self, input_data: str | Path | None) -> str:
+    def as_example(self, input_data: EditorExampleValue | None) -> EditorExampleValue | None:
+        def resolve_path(file_or_url: str | None) -> str | None:
+            if file_or_url is None:
+                return None
+            input_data = str(file_or_url)
+            # If an externally hosted image or a URL, don't convert to absolute path
+            if self.proxy_url or client_utils.is_http_url_like(input_data):
+                return input_data
+            return str(utils.abspath(input_data))
+
         if input_data is None:
-            return ""
-        input_data = str(input_data)
-        # If an externally hosted image or a URL, don't convert to absolute path
-        if self.proxy_url or client_utils.is_http_url_like(input_data):
-            return input_data
-        return str(utils.abspath(input_data))
+            return None
+        input_data["background"] = resolve_path(input_data["background"])
+        input_data["layers"] = [resolve_path(f) for f in input_data["layers"]] if input_data["layers"] else []
+        input_data["composite"] = resolve_path(input_data["composite"])
+        return input_data
 
     def example_inputs(self) -> Any:
-        return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+        return {
+            "background": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+            "layers": [],
+            "composite": None
+        }
