@@ -1051,7 +1051,7 @@ export function api_factory(
 				event_stream = new EventSource(url);
 				event_stream.onmessage = async function (event) {
 					let _data = JSON.parse(event.data);
-					if (_data.session_hash) {
+					if (!("event_id" in _data)) {
 						await Promise.all(
 							Object.keys(event_callbacks).map((event_id) =>
 								event_callbacks[event_id](_data)

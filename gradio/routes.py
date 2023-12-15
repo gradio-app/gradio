@@ -618,7 +618,6 @@ class App(FastAPI):
                                 # Fix this
                                 message = {
                                     "msg": ServerMessage.heartbeat,
-                                    "session_hash": session_hash,
                                 }
                                 # Need to reset last_heartbeat with perf_counter
                                 # otherwise only a single hearbeat msg will be sent
@@ -630,7 +629,6 @@ class App(FastAPI):
                                 "msg": "unexpected_error",
                                 "message": "Server stopped unexpectedly.",
                                 "success": False,
-                                "session_hash": session_hash,
                             }
                         if message:
                             yield f"data: {json.dumps(message)}\n\n"
@@ -655,7 +653,6 @@ class App(FastAPI):
                         "msg": "unexpected_error",
                         "success": False,
                         "message": str(e),
-                        "session_hash": session_hash,
                     }
                     yield f"data: {json.dumps(message)}\n\n"
                     if isinstance(e, asyncio.CancelledError):
