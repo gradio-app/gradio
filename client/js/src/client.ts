@@ -822,13 +822,15 @@ export function api_factory(
 								});
 							} else {
 								event_id = response.event_id as string;
-								console.log("event_id", event_id, "HERE");
 								let callback = async function (_data: object): void {
 									const { type, status, data } = handle_message(
 										_data,
 										last_status[fn_index]
 									);
-									console.log("data", type, status, data);
+
+									// TODO: Find out how to print this information
+									// only during testing
+									// console.info("data", type, status, data);
 
 									if (type == "heartbeat") {
 										return;
@@ -846,10 +848,11 @@ export function api_factory(
 									} else if (type === "complete") {
 										complete = status;
 									} else if (type == "unexpected_error") {
+										console.error("Unexpected error", status.message);
 										fire_event({
 											type: "status",
 											stage: "error",
-											message: data.message,
+											message: "An Unexpected Error Occurred!",
 											queue: true,
 											endpoint: _endpoint,
 											fn_index,
@@ -914,9 +917,7 @@ export function api_factory(
 								};
 								event_ids.push(event_id);
 								event_callbacks[event_id] = callback;
-								console.log("HERE");
 								if (!stream_open) {
-									console.log("OPENING");
 									open_stream();
 								}
 							}
@@ -1615,7 +1616,7 @@ function handle_message(
 			};
 		case "unexpected_error":
 			return {
-				type: "update",
+				type: "unexpected_error",
 				status: {
 					queue,
 					message: data.message,
