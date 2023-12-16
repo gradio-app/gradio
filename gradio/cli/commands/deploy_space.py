@@ -111,7 +111,7 @@ def add_configuration_to_readme(
 
 def format_title(title: str):
     title = title.replace(" ", "_")
-    title = re.sub(r"[^a-zA-Z0-9\-._]", "", title)
+    title = re.sub(r"[^\w\-.]", "", title)
     title = re.sub("-+", "-", title)
     while title.startswith("."):
         title = title[1:]
