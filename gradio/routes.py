@@ -433,7 +433,7 @@ class App(FastAPI):
         @app.get("/file={path_or_url:path}", dependencies=[Depends(login_check)])
         async def file(path_or_url: str, request: fastapi.Request):
             blocks = app.get_blocks()
-            if utils.validate_url(path_or_url):
+            if client_utils.is_http_url_like(path_or_url):
                 return RedirectResponse(
                     url=path_or_url, status_code=status.HTTP_302_FOUND
                 )
@@ -615,7 +615,10 @@ class App(FastAPI):
                         except EmptyQueue:
                             await asyncio.sleep(check_rate)
                             if time.perf_counter() - last_heartbeat > heartbeat_rate:
-                                message = {"msg": ServerMessage.heartbeat}
+                                # Fix this
+                                message = {
+                                    "msg": ServerMessage.heartbeat,
+                                }
                                 # Need to reset last_heartbeat with perf_counter
                                 # otherwise only a single hearbeat msg will be sent
                                 # and then the stream will retry leading to infinite queue 😬
@@ -623,7 +626,8 @@ class App(FastAPI):
 
                         if blocks._queue.stopped:
                             message = {
-                                "msg": ServerMessage.server_stopped,
+                                "msg": "unexpected_error",
+                                "message": "Server stopped unexpectedly.",
                                 "success": False,
                             }
                         if message:
@@ -644,9 +648,16 @@ class App(FastAPI):
                                     )
                                 ):
                                     return
-                except asyncio.CancelledError as e:
-                    del blocks._queue.pending_messages_per_session[session_hash]
-                    await blocks._queue.clean_events(session_hash=session_hash)
+                except BaseException as e:
+                    message = {
+                        "msg": "unexpected_error",
+                        "success": False,
+                        "message": str(e),
+                    }
+                    yield f"data: {json.dumps(message)}\n\n"
+                    if isinstance(e, asyncio.CancelledError):
+                        del blocks._queue.pending_messages_per_session[session_hash]
+                        await blocks._queue.clean_events(session_hash=session_hash)
                     raise e
 
             return StreamingResponse(

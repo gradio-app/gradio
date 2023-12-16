@@ -44,7 +44,7 @@ jobs:
           python -c "import json; json.dump({'pr_number': ${{ env.PR_NUMBER }}},  open('metadata.json', 'w'))"
       - name: Upload metadata
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: metadata.json
           path: metadata.json
