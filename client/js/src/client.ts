@@ -287,7 +287,7 @@ export function api_factory(
 			const session_hash = Math.random().toString(36).substring(2);
 			const last_status: Record<string, Status["stage"]> = {};
 			let stream_open = false;
-			let pending_stream_messages: Record<string, any[]> = {};  // Event messages may be received by the SSE stream before the initial data POST request is complete. To resolve this race condition, we store the messages in a dictionary and process them when the POST request is complete.
+			let pending_stream_messages: Record<string, any[]> = {}; // Event messages may be received by the SSE stream before the initial data POST request is complete. To resolve this race condition, we store the messages in a dictionary and process them when the POST request is complete.
 			let event_stream: EventSource | null = null;
 			const event_callbacks: Record<string, () => Promise<void>> = {};
 			let config: Config;
@@ -1715,7 +1715,7 @@ function handle_message(
 					message: !data.success ? data.output.error : undefined,
 					stage: data.success ? "complete" : "error",
 					code: data.code,
-					progress_data: data.progress_data,
+					progress_data: data.progress_data
 				},
 				data: data.success ? data.output : null
 			};

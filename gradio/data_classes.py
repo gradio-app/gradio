@@ -103,6 +103,7 @@ class Estimation(BaseModel):
     queue_size: int
     rank_eta: Optional[float] = None
 
+
 class ProgressUnit(BaseModel):
     index: Optional[int] = None
     length: Optional[int] = None
