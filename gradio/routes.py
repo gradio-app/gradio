@@ -663,6 +663,12 @@ class App(FastAPI):
             if blocks._queue.server_app is None:
                 blocks._queue.set_server_app(app)
 
+            if blocks._queue.stopped:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Queue is stopped.",
+                )
+
             success, event_id = await blocks._queue.push(body, request, username)
             if not success:
                 status_code = (
@@ -692,7 +698,7 @@ class App(FastAPI):
             response_model=Estimation,
         )
         async def get_queue_status():
-            return app.get_blocks()._queue.get_estimation()
+            return app.get_blocks()._queue.get_status()
 
         @app.get("/upload_progress")
         def get_upload_progress(upload_id: str, request: fastapi.Request):

@@ -287,6 +287,7 @@ export function api_factory(
 			const session_hash = Math.random().toString(36).substring(2);
 			const last_status: Record<string, Status["stage"]> = {};
 			let stream_open = false;
+			let pending_stream_messages: Record<string, any[]> = {};  // Event messages may be received by the SSE stream before the initial data POST request is complete. To resolve this race condition, we store the messages in a dictionary and process them when the POST request is complete.
 			let event_stream: EventSource | null = null;
 			const event_callbacks: Record<string, () => Promise<void>> = {};
 			let config: Config;
@@ -889,7 +890,7 @@ export function api_factory(
 										}
 									}
 
-									if (status.stage === "complete" || status.stage === "error") {
+									if (status?.stage === "complete" || status?.stage === "error") {
 										if (event_callbacks[event_id]) {
 											delete event_callbacks[event_id];
 											if (Object.keys(event_callbacks).length === 0) {
@@ -898,6 +899,12 @@ export function api_factory(
 										}
 									}
 								};
+								if (event_id in pending_stream_messages) {
+									pending_stream_messages[event_id].forEach((msg) =>
+										callback(msg)
+									);
+									delete pending_stream_messages[event_id];
+								}
 								event_callbacks[event_id] = callback;
 							}
 						});
@@ -1014,7 +1021,16 @@ export function api_factory(
 				event_stream = new EventSource(url);
 				event_stream.onmessage = async function (event) {
 					let _data = JSON.parse(event.data);
-					await event_callbacks[_data.event_id](_data);
+					const event_id = _data.event_id;
+					if (!event_id) return;
+					if (event_callbacks[event_id]) {
+						await event_callbacks[event_id](_data);
+					} else {
+						if (!pending_stream_messages[event_id]) {
+							pending_stream_messages[event_id] = [];
+						}
+						pending_stream_messages[event_id].push(_data);
+					}
 				};
 			}
 
@@ -1643,7 +1659,6 @@ function handle_message(
 					stage: data.success ? "complete" : "error",
 					code: data.code,
 					progress_data: data.progress_data,
-					eta: data.output.average_duration
 				},
 				data: data.success ? data.output : null
 			};
@@ -1657,7 +1672,8 @@ function handle_message(
 					code: data.code,
 					size: data.rank,
 					position: 0,
-					success: data.success
+					success: data.success,
+					eta: data.eta
 				}
 			};
 	}

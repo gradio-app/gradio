@@ -119,6 +119,7 @@
 	}
 
 	const start_timer = (): void => {
+		eta = old_eta = formatted_eta = null;
 		timer_start = performance.now();
 		timer_diff = 0;
 		_timer = true;
@@ -134,6 +135,7 @@
 
 	function stop_timer(): void {
 		timer_diff = 0;
+		eta = old_eta = formatted_eta = null;
 
 		if (!_timer) return;
 		_timer = false;
