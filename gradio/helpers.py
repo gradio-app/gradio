@@ -33,9 +33,7 @@ from gradio.flagging import CSVLogger
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.components import Component
 
-CACHED_FOLDER = str(
-    Path(os.environ.get("GRADIO_EXAMPLES_CACHE") or "gradio_cached_examples").resolve()
-)
+CACHED_FOLDER = os.environ.get("GRADIO_EXAMPLES_CACHE", "gradio_cached_examples")
 
 LOG_FILE = "log.csv"
 
