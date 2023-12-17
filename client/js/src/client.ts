@@ -203,8 +203,16 @@ export function api_factory(
 		} catch (e) {
 			return [{ error: BROKEN_CONNECTION_MSG }, 500];
 		}
-		const output: PostResponse = await response.json();
-		return [output, response.status];
+		let output: PostResponse;
+		let status: int;
+		try {
+			output = await response.json();
+			status = response.status;
+		} catch (e) {
+			output = { error: `Could not parse server response: ${e}` };
+			status = 500;
+		}
+		return [output, status];
 	}
 
 	async function upload_files(
@@ -791,7 +799,17 @@ export function api_factory(
 							},
 							hf_token
 						).then(([response, status]) => {
-							if (status !== 200) {
+							if (status === 503) {
+								fire_event({
+									type: "status",
+									stage: "error",
+									message: QUEUE_FULL_MSG,
+									queue: true,
+									endpoint: _endpoint,
+									fn_index,
+									time: new Date()
+								});
+							} else if (status !== 200) {
 								fire_event({
 									type: "status",
 									stage: "error",
@@ -803,85 +821,121 @@ export function api_factory(
 								});
 							} else {
 								event_id = response.event_id as string;
-								if (!stream_open) {
-									open_stream();
-								}
-
 								let callback = async function (_data: object): void {
-									const { type, status, data } = handle_message(
-										_data,
-										last_status[fn_index]
-									);
+									try {
+										const { type, status, data } = handle_message(
+											_data,
+											last_status[fn_index]
+										);
 
-									if (type === "update" && status && !complete) {
-										// call 'status' listeners
-										fire_event({
-											type: "status",
-											endpoint: _endpoint,
-											fn_index,
-											time: new Date(),
-											...status
-										});
-									} else if (type === "complete") {
-										complete = status;
-									} else if (type === "log") {
-										fire_event({
-											type: "log",
-											log: data.log,
-											level: data.level,
-											endpoint: _endpoint,
-											fn_index
-										});
-									} else if (type === "generating") {
-										fire_event({
-											type: "status",
-											time: new Date(),
-											...status,
-											stage: status?.stage!,
-											queue: true,
-											endpoint: _endpoint,
-											fn_index
-										});
-									}
-									if (data) {
-										fire_event({
-											type: "data",
-											time: new Date(),
-											data: transform_files
-												? transform_output(
-														data.data,
-														api_info,
-														config.root,
-														config.root_url
-												  )
-												: data.data,
-											endpoint: _endpoint,
-											fn_index
-										});
+										// TODO: Find out how to print this information
+										// only during testing
+										// console.info("data", type, status, data);
 
-										if (complete) {
+										if (type == "heartbeat") {
+											return;
+										}
+
+										if (type === "update" && status && !complete) {
+											// call 'status' listeners
+											fire_event({
+												type: "status",
+												endpoint: _endpoint,
+												fn_index,
+												time: new Date(),
+												...status
+											});
+										} else if (type === "complete") {
+											complete = status;
+										} else if (type == "unexpected_error") {
+											console.error("Unexpected error", status?.message);
+											fire_event({
+												type: "status",
+												stage: "error",
+												message: "An Unexpected Error Occurred!",
+												queue: true,
+												endpoint: _endpoint,
+												fn_index,
+												time: new Date()
+											});
+										} else if (type === "log") {
+											fire_event({
+												type: "log",
+												log: data.log,
+												level: data.level,
+												endpoint: _endpoint,
+												fn_index
+											});
+											return;
+										} else if (type === "generating") {
 											fire_event({
 												type: "status",
 												time: new Date(),
-												...complete,
+												...status,
 												stage: status?.stage!,
 												queue: true,
 												endpoint: _endpoint,
 												fn_index
 											});
 										}
-									}
+										if (data) {
+											fire_event({
+												type: "data",
+												time: new Date(),
+												data: transform_files
+													? transform_output(
+															data.data,
+															api_info,
+															config.root,
+															config.root_url
+													  )
+													: data.data,
+												endpoint: _endpoint,
+												fn_index
+											});
 
-									if (status.stage === "complete" || status.stage === "error") {
-										if (event_callbacks[event_id]) {
-											delete event_callbacks[event_id];
-											if (Object.keys(event_callbacks).length === 0) {
-												close_stream();
+											if (complete) {
+												fire_event({
+													type: "status",
+													time: new Date(),
+													...complete,
+													stage: status?.stage!,
+													queue: true,
+													endpoint: _endpoint,
+													fn_index
+												});
 											}
 										}
+
+										if (
+											status.stage === "complete" ||
+											status.stage === "error"
+										) {
+											if (event_callbacks[event_id]) {
+												delete event_callbacks[event_id];
+												if (Object.keys(event_callbacks).length === 0) {
+													close_stream();
+												}
+											}
+										}
+									} catch (e) {
+										console.error("Unexpected client exception", e);
+										fire_event({
+											type: "status",
+											stage: "error",
+											message: "An Unexpected Error Occurred!",
+											queue: true,
+											endpoint: _endpoint,
+											fn_index,
+											time: new Date()
+										});
+										close_stream();
 									}
 								};
 								event_callbacks[event_id] = callback;
+								if (!stream_open) {
+									open_stream();
+								}
 							}
 						});
 					}
@@ -997,6 +1051,14 @@ export function api_factory(
 				event_stream = new EventSource(url);
 				event_stream.onmessage = async function (event) {
 					let _data = JSON.parse(event.data);
+					if (!("event_id" in _data)) {
+						await Promise.all(
+							Object.keys(event_callbacks).map((event_id) =>
+								event_callbacks[event_id](_data)
+							)
+						);
+						return;
+					}
 					await event_callbacks[_data.event_id](_data);
 				};
 			}
@@ -1564,6 +1626,20 @@ function handle_message(
 					stage: "error",
 					code: data.code,
 					success: data.success
+				}
+			};
+		case "heartbeat":
+			return {
+				type: "heartbeat"
+			};
+		case "unexpected_error":
+			return {
+				type: "unexpected_error",
+				status: {
+					queue,
+					message: data.message,
+					stage: "error",
+					success: false
 				}
 			};
 		case "estimation":

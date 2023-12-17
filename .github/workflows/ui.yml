@@ -71,9 +71,9 @@ jobs:
       - name: run browser tests
         run: |
           . venv/bin/activate
-          pnpm test:browser
+          CI=1 pnpm test:browser
       - name: upload screenshots
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-screenshots
@@ -84,7 +84,7 @@ jobs:
           . venv/bin/activate
           pnpm run test:ct
       - name: save artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: website-json-${{ steps.pr_details.outputs.pr_number }}
           path: |
