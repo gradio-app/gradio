@@ -4,6 +4,7 @@ import asyncio
 import copy
 import json
 import os
+import random
 import time
 import traceback
 import uuid
@@ -231,7 +232,10 @@ class Queue:
         return count
 
     def get_events(self) -> tuple[list[Event], bool, str] | None:
-        for concurrency_id, event_queue in self.event_queue_per_concurrency_id.items():
+        concurrency_ids = list(self.event_queue_per_concurrency_id.keys())
+        random.shuffle(concurrency_ids)
+        for concurrency_id in concurrency_ids:
+            event_queue = self.event_queue_per_concurrency_id[concurrency_id]
             if len(event_queue.queue) and (
                 event_queue.concurrency_limit is None
                 or event_queue.current_concurrency < event_queue.concurrency_limit
