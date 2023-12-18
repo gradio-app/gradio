@@ -232,12 +232,32 @@ class TestNumber:
         assert numeric_input.postprocess(2.1421) == 2.14
         assert numeric_input.postprocess(None) is None
 
+    def test_precision_none_with_integer(self):
+        """
+        Preprocess, postprocess
+        """
+        numeric_input = gr.Number(precision=None)
+        assert numeric_input.preprocess(5) == 5
+        assert isinstance(numeric_input.preprocess(5), int)
+        assert numeric_input.postprocess(5) == 5
+        assert isinstance(numeric_input.postprocess(5), int)
+
+    def test_precision_none_with_float(self):
+        """
+        Preprocess, postprocess
+        """
+        numeric_input = gr.Number(value=5.5, precision=None)
+        assert numeric_input.preprocess(5.5) == 5.5
+        assert isinstance(numeric_input.preprocess(5.5), float)
+        assert numeric_input.postprocess(5.5) == 5.5
+        assert isinstance(numeric_input.postprocess(5.5), float)
+
     def test_in_interface_as_input(self):
         """
         Interface, process
         """
         iface = gr.Interface(lambda x: x**2, "number", "textbox")
-        assert iface(2) == "4.0"
+        assert iface(2) == "4"
 
     def test_precision_0_in_interface(self):
         """
@@ -261,6 +281,8 @@ class TestNumber:
         assert component.get_config().get("value") is None
         component = gr.Number(3)
         assert component.get_config().get("value") == 3.0
+
+   
 
 
 class TestSlider:
