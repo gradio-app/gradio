@@ -7,6 +7,7 @@
 	import AudioPlayer from "../player/AudioPlayer.svelte";
 	import { createEventDispatcher } from "svelte";
 	import type { FileData } from "@gradio/client";
+	import { DownloadLink } from "@gradio/wasm/svelte";
 	import type { WaveformOptions } from "../shared/types";
 
 	export let value: null | FileData = null;
@@ -39,13 +40,9 @@
 {#if value !== null}
 	<div class="icon-buttons">
 		{#if show_download_button}
-			<a
-				href={value.url}
-				target={window.__is_colab__ ? "_blank" : null}
-				download={value.orig_name || value.path}
-			>
+			<DownloadLink href={value.url} download={value.orig_name || value.path}>
 				<IconButton Icon={Download} label={i18n("common.download")} />
-			</a>
+			</DownloadLink>
 		{/if}
 		{#if show_share_button}
 			<ShareButton

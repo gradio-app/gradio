@@ -22,7 +22,7 @@ We should not focus on code coverage but on test coverage following the below cr
 
 - The documented Gradio API (that's the bit that users interact with via python) should be tested thoroughly. (1)
 - Additional gradio elements that are both publicly available and used internally (such as the Python and JS client libraries) should be tested thoroughly. (1)
-- Additional gradio elements that are publicly available should be tested as throughly as is reasonable (this could be things like demos/the gradio CLI/ other tooling). The importance of each individual component. and the appropriate investment of effort, needs to assessed on a case-by-case basis. (1)
+- Additional gradio elements that are publicly available should be tested as thoroughly as is reasonable (this could be things like demos/the gradio CLI/ other tooling). The importance of each individual component, and the appropriate investment of effort, needs to be assessed on a case-by-case basis. (1)
 - Element boundaries should be tested where there is reasonable cause to do so (e.g. config generation) (1)
 - Implementation details should only be tested where there is sufficient complexity to warrant it. (1)
 - Bug fixes should be accompanied by tests wherever is reasonably possible. (3)
@@ -37,7 +37,7 @@ Our tests will broadly fall into one of three categories:
 
 ### Static Quality checks
 
-Static quality check are generally very fast to run and do not require building the code base. They also provide the least value. These tests would be things like linting, typechecking, and formatting.
+Static quality checks are generally very fast to run and do not require building the code base. They also provide the least value. These tests would be things like linting, typechecking, and formatting.
 
 While they offer little in terms of testing functionality they align very closely with objective (4, 5) as they generally help to keep the codebase in good shape and offer very fast feedback. Such check are almost free from an authoring point of view as fixes can be mostly automated (either via scripts or editor integrations).
 
@@ -47,7 +47,7 @@ These tests generally test either isolated pieces of code or test the relationsh
 
 These test are usually either unit or integration tests. They are generally pretty quick to write (especially unit tests) and run and offer a moderate amount of confidence. They align closely with Objectives 2 and 3 and a little bit of 1.
 
-This kind of tests should probably make up the bulk of our handwritten tests.
+These kind of tests should probably make up the bulk of our handwritten tests.
 
 ### Dynamic functional tests
 
@@ -96,15 +96,15 @@ All unspecified version segments (`x`) refer to latest.
 
 ## Test execution
 
-Tests need to be executed in a number of environments and at different stages on the development cycle in orsder to be useful. The requirements for tests are as follows:
+Tests need to be executed in a number of environments and at different stages of the development cycle in order to be useful. The requirements for tests are as follows:
 
 - **Locally**: it is important that developers can easily run most tests locally to ensure a passing suite before making a PR. There are some exceptions to this, certain tests may require access to secret values which we cannot make available to all possible contributors for practical security reasons. It is reasonable that it isn't possible to run these tests but they should be disabled by default when running locally.
-- **CI** - It is _critical_ that all tests run successfully in CI with no exceptions. Not every tests is required to pass to satisfy CI checks for practical reasons but it is required that all tests should run in CI and notify us if something unexpected happens in order for the development team to take appropriate action.
+- **CI** - It is _critical_ that all tests run successfully in CI with no exceptions. Not every test is required to pass to satisfy CI checks for practical reasons but it is required that all tests should run in CI and notify us if something unexpected happens in order for the development team to take appropriate action.
 
 For instructions on how to write and run tests see the [contributing guide](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md).
 
 ## Managing defects
 
-As we formalise our testing strategy and bring / keep our test up to standard, it is important that we have some principles on managing defects as they ocurr/ are reported. For now we can have one very simple rule:
+As we formalise our testing strategy and bring / keep our test up to standard, it is important that we have some principles on managing defects as they occur/ are reported. For now we can have one very simple rule:
 
 - Every bug fix should be accompanied by a test that failed before the fix and passes afterwards. This test should _typically_ be a dynamic code test but it could be a linting rule or new type if that is appropriate. There are always exceptions but we should think very carefully before ignoring this rule.

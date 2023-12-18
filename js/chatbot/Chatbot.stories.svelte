@@ -114,3 +114,12 @@
 		]
 	}}
 />
+
+<Story
+	name="Chatbot with percentage height"
+	args={{
+		bubble_full_width: false,
+		layout: "panel",
+		height: "50%"
+	}}
+/>

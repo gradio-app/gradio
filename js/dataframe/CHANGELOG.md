@@ -1,5 +1,27 @@
 # @gradio/dataframe
 
+## 0.4.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/button@0.2.12
+  - @gradio/upload@0.5.5
+
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [[`5d51fbc`](https://github.com/gradio-app/gradio/commit/5d51fbce7826da840a2fd4940feb5d9ad6f1bc5a)]:
+  - @gradio/upload@0.5.4
+  - @gradio/button@0.2.11
+
+## 0.4.0
+
+### Features
+
+- [#6603](https://github.com/gradio-app/gradio/pull/6603) [`6b1401c`](https://github.com/gradio-app/gradio/commit/6b1401c514c2ec012b0a50c72a6ec81cb673bf1d) - chore(deps): update dependency marked to v11. Thanks [@renovate](https://github.com/apps/renovate)!
+
 ## 0.3.11
 
 ### Patch Changes

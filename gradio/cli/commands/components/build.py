@@ -1,6 +1,5 @@
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 import semantic_version
@@ -83,7 +82,7 @@ def _build(
             else:
                 live.update(":white_check_mark: Build succeeded!")
 
-        cmds = [sys.executable, "-m", "build", str(name)]
+        cmds = [shutil.which("python"), "-m", "build", str(name)]
         live.update(f":construction_worker: Building... [grey37]({' '.join(cmds)})[/]")
         pipe = subprocess.run(cmds, capture_output=True, text=True)
         if pipe.returncode != 0:

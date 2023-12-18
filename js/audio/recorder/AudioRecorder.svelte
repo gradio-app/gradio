@@ -3,7 +3,7 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
 	import WaveSurfer from "wavesurfer.js";
-	import { skipAudio, process_audio } from "../shared/utils";
+	import { skip_audio, process_audio } from "../shared/utils";
 	import WSRecord from "wavesurfer.js/dist/plugins/record.js";
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import WaveformRecordControls from "../shared/WaveformRecordControls.svelte";
@@ -35,7 +35,7 @@
 	// timestamps
 	let timeRef: HTMLTimeElement;
 	let durationRef: HTMLTimeElement;
-	let audioDuration: number;
+	let audio_duration: number;
 	let seconds = 0;
 	let interval: NodeJS.Timeout;
 	let timing = false;
@@ -102,7 +102,7 @@
 	});
 
 	$: recordingWaveform?.on("decode", (duration: any) => {
-		audioDuration = duration;
+		audio_duration = duration;
 		durationRef && (durationRef.textContent = format_time(duration));
 	});
 
@@ -187,9 +187,9 @@
 
 		window.addEventListener("keydown", (e) => {
 			if (e.key === "ArrowRight") {
-				skipAudio(recordingWaveform, 0.1);
+				skip_audio(recordingWaveform, 0.1);
 			} else if (e.key === "ArrowLeft") {
-				skipAudio(recordingWaveform, -0.1);
+				skip_audio(recordingWaveform, -0.1);
 			}
 		});
 	});
@@ -234,7 +234,7 @@
 			bind:waveform={recordingWaveform}
 			container={recordingContainer}
 			{playing}
-			{audioDuration}
+			{audio_duration}
 			{i18n}
 			interactive={true}
 			{handle_trim_audio}

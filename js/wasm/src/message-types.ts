@@ -1,15 +1,5 @@
-export interface HttpRequest {
-	method: "GET" | "POST" | "PUT" | "DELETE";
-	path: string;
-	query_string: string;
-	headers: Record<string, string>;
-	body?: Uint8Array;
-}
-export interface HttpResponse {
-	status: number;
-	headers: Record<string, string>;
-	body: Uint8Array;
-}
+import type { ASGIScope } from "./asgi-types";
+
 export interface EmscriptenFile {
 	data: string | ArrayBufferView;
 	opts?: Record<string, string>;
@@ -50,16 +40,10 @@ export interface InMessageRunPythonFile extends InMessageBase {
 		path: string;
 	};
 }
-export interface InMessageHttpRequest extends InMessageBase {
-	type: "http-request";
+export interface InMessageAsgiRequest extends InMessageBase {
+	type: "asgi-request";
 	data: {
-		request: HttpRequest;
-	};
-}
-export interface InMessageWebSocket extends InMessageBase {
-	type: "websocket";
-	data: {
-		path: string;
+		scope: ASGIScope;
 	};
 }
 export interface InMessageFileWrite extends InMessageBase {
@@ -101,8 +85,7 @@ export type InMessage =
 	| InMessageInitApp
 	| InMessageRunPythonCode
 	| InMessageRunPythonFile
-	| InMessageWebSocket
-	| InMessageHttpRequest
+	| InMessageAsgiRequest
 	| InMessageFileWrite
 	| InMessageFileRename
 	| InMessageFileUnlink

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Play, Pause, Forward, Backward, Undo, Trim } from "@gradio/icons";
-	import { getSkipRewindAmount } from "../shared/utils";
+	import { get_skip_rewind_amount } from "../shared/utils";
 	import type { I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
 	import RegionsPlugin, {
@@ -11,7 +11,7 @@
 	import VolumeControl from "./VolumeControl.svelte";
 
 	export let waveform: WaveSurfer;
-	export let audioDuration: number;
+	export let audio_duration: number;
 	export let i18n: I18nFormatter;
 	export let playing: boolean;
 	export let showRedo = false;
@@ -23,6 +23,7 @@
 	export let waveform_options: WaveformOptions = {};
 	export let trim_region_settings: WaveformOptions = {};
 	export let show_volume_slider = false;
+	export let editable = true;
 
 	export let trimDuration = 0;
 
@@ -56,8 +57,8 @@
 
 	const addTrimRegion = (): void => {
 		activeRegion = trimRegion.addRegion({
-			start: audioDuration / 4,
-			end: audioDuration / 2,
+			start: audio_duration / 4,
+			end: audio_duration / 2,
 			...trim_region_settings
 		});
 
@@ -199,13 +200,14 @@
 	<div class="play-pause-wrapper">
 		<button
 			class="rewind icon"
-			aria-label={`Skip backwards by ${getSkipRewindAmount(
-				audioDuration,
+			aria-label={`Skip backwards by ${get_skip_rewind_amount(
+				audio_duration,
 				waveform_options.skip_length
 			)} seconds`}
 			on:click={() =>
 				waveform.skip(
-					getSkipRewindAmount(audioDuration, waveform_options.skip_length) * -1
+					get_skip_rewind_amount(audio_duration, waveform_options.skip_length) *
+						-1
 				)}
 		>
 			<Backward />
@@ -223,13 +225,13 @@
 		</button>
 		<button
 			class="skip icon"
-			aria-label="Skip forward by {getSkipRewindAmount(
-				audioDuration,
+			aria-label="Skip forward by {get_skip_rewind_amount(
+				audio_duration,
 				waveform_options.skip_length
 			)} seconds"
 			on:click={() =>
 				waveform.skip(
-					getSkipRewindAmount(audioDuration, waveform_options.skip_length)
+					get_skip_rewind_amount(audio_duration, waveform_options.skip_length)
 				)}
 		>
 			<Forward />
@@ -237,21 +239,21 @@
 	</div>
 
 	<div class="settings-wrapper">
-		{#if showRedo && mode === ""}
-			<button
-				class="action icon"
-				aria-label="Reset audio"
-				on:click={() => {
-					handle_reset_value();
-					clearRegions();
-					mode = "";
-				}}
-			>
-				<Undo />
-			</button>
-		{/if}
+		{#if editable && interactive}
+			{#if showRedo && mode === ""}
+				<button
+					class="action icon"
+					aria-label="Reset audio"
+					on:click={() => {
+						handle_reset_value();
+						clearRegions();
+						mode = "";
+					}}
+				>
+					<Undo />
+				</button>
+			{/if}
 
-		{#if interactive}
 			{#if mode === ""}
 				<button
 					class="action icon"

@@ -340,6 +340,18 @@ class TestLoadInterface:
         )
         assert r.status_code == 200
 
+    def test_private_space_v4_sse_v1(self):
+        io = gr.load(
+            "spaces/gradio-tests/not-actually-private-spacev4-sse-v1",
+            hf_token=HfFolder.get_token(),
+        )
+        try:
+            output = io("abc")
+            assert output == "abc"
+            assert io.theme.name == "gradio/monochrome"
+        except TooManyRequestsError:
+            pass
+
 
 class TestLoadInterfaceWithExamples:
     def test_interface_load_examples(self, tmp_path):

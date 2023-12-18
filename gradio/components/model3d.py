@@ -43,7 +43,7 @@ class Model3D(Component):
         ),
         zoom_speed: float = 1,
         pan_speed: float = 1,
-        height: int | None = None,
+        height: int | str | None = None,
         label: str | None = None,
         show_label: bool | None = None,
         every: float | None = None,
@@ -63,7 +63,7 @@ class Model3D(Component):
             camera_position: initial camera position of scene, provided as a tuple of `(alpha, beta, radius)`. Each value is optional. If provided, `alpha` and `beta` should be in degrees reflecting the angular position along the longitudinal and latitudinal axes, respectively. Radius corresponds to the distance from the center of the object to the camera.
             zoom_speed: the speed of zooming in and out of the scene when the cursor wheel is rotated or when screen is pinched on a mobile device. Should be a positive float, increase this value to make zooming faster, decrease to make it slower. Affects the wheelPrecision property of the camera.
             pan_speed: the speed of panning the scene when the cursor is dragged or when the screen is dragged on a mobile device. Should be a positive float, increase this value to make panning faster, decrease to make it slower. Affects the panSensibility property of the camera.
-            height: height of the model3D component, in pixels.
+            height: The height of the model3D component, specified in pixels if a number is passed, or in CSS units if a string is passed.
             interactive: if True, will allow users to upload a file; if False, can only be used to display files. If not provided, this is inferred based on whether the component is used as an input or output.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             show_label: if True, will display label.

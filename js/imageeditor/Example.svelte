@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { BaseImage as Image } from "@gradio/image";
+	import type { EditorData } from "./shared/InteractiveImageEditor.svelte";
 
-	export let value: string;
+	export let value: EditorData;
 	export let samples_dir: string;
 	export let type: "gallery" | "table";
 	export let selected = false;
@@ -13,10 +14,15 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	<Image src={samples_dir + value} alt="" />
+	<Image src={samples_dir + (value.composite || value.background)} alt="" />
 </div>
 
 <style>
+	.container :global(img) {
+		width: 100%;
+		height: 100%;
+	}
+
 	.container.selected {
 		border-color: var(--border-color-accent);
 	}

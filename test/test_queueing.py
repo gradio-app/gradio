@@ -1,4 +1,5 @@
 import time
+from concurrent.futures import wait
 
 import gradio_client as grc
 import pytest
@@ -17,8 +18,6 @@ class TestQueueing:
                 return f"Hello, {x}!"
 
             name.submit(greet, name, output)
-
-        demo.launch(prevent_thread_lock=True)
 
         with connect(demo) as client:
             job = client.submit("x", fn_index=0)
@@ -92,7 +91,7 @@ class TestQueueing:
 
             @add_btn.click(inputs=[a, b], outputs=output)
             def add(x, y):
-                time.sleep(2)
+                time.sleep(4)
                 return x + y
 
         demo.queue(default_concurrency_limit=default_concurrency_limit)
@@ -105,7 +104,7 @@ class TestQueueing:
         add_job_2 = client.submit(1, 1, fn_index=0)
         add_job_3 = client.submit(1, 1, fn_index=0)
 
-        time.sleep(1)
+        time.sleep(2)
 
         add_job_statuses = [add_job_1.status(), add_job_2.status(), add_job_3.status()]
         assert sorted([s.code.value for s in add_job_statuses]) == statuses
@@ -161,12 +160,11 @@ class TestQueueing:
             sub_job_1 = client.submit(1, 1, fn_index=1)
             sub_job_2 = client.submit(1, 1, fn_index=1)
             sub_job_3 = client.submit(1, 1, fn_index=1)
-            sub_job_3 = client.submit(1, 1, fn_index=1)
             mul_job_1 = client.submit(1, 1, fn_index=2)
             div_job_1 = client.submit(1, 1, fn_index=3)
             mul_job_2 = client.submit(1, 1, fn_index=2)
 
-            time.sleep(1)
+            time.sleep(2)
 
             add_job_statuses = [
                 add_job_1.status(),
@@ -200,6 +198,20 @@ class TestQueueing:
                 "PROCESSING",
                 "PROCESSING",
             ]
+            wait(
+                [
+                    add_job_1,
+                    add_job_2,
+                    add_job_3,
+                    sub_job_1,
+                    sub_job_2,
+                    sub_job_3,
+                    sub_job_3,
+                    mul_job_1,
+                    div_job_1,
+                    mul_job_2,
+                ]
+            )
 
     def test_every_does_not_block_queue(self):
         with gr.Blocks() as demo:

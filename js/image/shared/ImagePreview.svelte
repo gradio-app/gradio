@@ -5,8 +5,10 @@
 	import { BlockLabel, Empty, IconButton, ShareButton } from "@gradio/atoms";
 	import { Download } from "@gradio/icons";
 	import { get_coordinates_of_clicked_image } from "./utils";
+	import Image from "./Image.svelte";
+	import { DownloadLink } from "@gradio/wasm/svelte";
 
-	import { Image } from "@gradio/icons";
+	import { Image as ImageIcon } from "@gradio/icons";
 	import { type FileData, normalise_file } from "@gradio/client";
 	import type { I18nFormatter } from "@gradio/utils";
 
@@ -31,19 +33,19 @@
 	};
 </script>
 
-<BlockLabel {show_label} Icon={Image} label={label || i18n("image.image")} />
+<BlockLabel
+	{show_label}
+	Icon={ImageIcon}
+	label={label || i18n("image.image")}
+/>
 {#if value === null || !value.url}
-	<Empty unpadded_box={true} size="large"><Image /></Empty>
+	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
 	<div class="icon-buttons">
 		{#if show_download_button}
-			<a
-				href={value.url}
-				target={window.__is_colab__ ? "_blank" : null}
-				download={value.orig_name || "image"}
-			>
+			<DownloadLink href={value.url} download={value.orig_name || "image"}>
 				<IconButton Icon={Download} label={i18n("common.download")} />
-			</a>
+			</DownloadLink>
 		{/if}
 		{#if show_share_button}
 			<ShareButton
@@ -60,12 +62,14 @@
 		{/if}
 	</div>
 	<button on:click={handle_click}>
-		<img src={value.url} alt="" class:selectable loading="lazy" />
+		<div class:selectable class="image-container">
+			<Image src={value.url} alt="" loading="lazy" />
+		</div>
 	</button>
 {/if}
 
 <style>
-	img,
+	.image-container :global(img),
 	button {
 		width: var(--size-full);
 		height: var(--size-full);

@@ -3,6 +3,7 @@
 	import { prettyBytes } from "./utils";
 	import { createEventDispatcher } from "svelte";
 	import type { I18nFormatter, SelectData } from "@gradio/utils";
+	import { DownloadLink } from "@gradio/wasm/svelte";
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
@@ -53,15 +54,14 @@
 
 					<td class="download">
 						{#if file.url}
-							<a
+							<DownloadLink
 								href={file.url}
-								target="_blank"
 								download={window.__is_colab__ ? null : file.orig_name}
 							>
 								{@html file.size != null
 									? prettyBytes(file.size)
 									: "(size unknown)"}&nbsp;&#8675;
-							</a>
+							</DownloadLink>
 						{:else}
 							{i18n("file.uploading")}
 						{/if}
@@ -114,17 +114,17 @@
 	.download:hover {
 		text-decoration: underline;
 	}
-	.download > a {
+	.download > :global(a) {
 		color: var(--link-text-color);
 	}
 
-	.download > a:hover {
+	.download > :global(a:hover) {
 		color: var(--link-text-color-hover);
 	}
-	.download > a:visited {
+	.download > :global(a:visited) {
 		color: var(--link-text-color-visited);
 	}
-	.download > a:active {
+	.download > :global(a:active) {
 		color: var(--link-text-color-active);
 	}
 	.selectable {

@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
-	import { mount_css as default_mount_css } from "./css";
+	import { mount_css as default_mount_css, prefix_css } from "./css";
 
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 
@@ -119,14 +119,14 @@
 		app_id = config.app_id;
 	}
 
-	async function mount_custom_css(
-		target: HTMLElement,
-		css_string: string | null
-	): Promise<void> {
+	let css_text_stylesheet: HTMLStyleElement | null = null;
+	async function mount_custom_css(css_string: string | null): Promise<void> {
 		if (css_string) {
-			let style = document.createElement("style");
-			style.innerHTML = css_string;
-			target.appendChild(style);
+			css_text_stylesheet = prefix_css(
+				css_string,
+				version,
+				css_text_stylesheet || undefined
+			);
 		}
 		await mount_css(config.root + "/theme.css", document.head);
 		if (!config.stylesheets) return;
@@ -135,22 +135,36 @@
 			config.stylesheets.map((stylesheet) => {
 				let absolute_link =
 					stylesheet.startsWith("http:") || stylesheet.startsWith("https:");
-				return mount_css(
-					absolute_link ? stylesheet : config.root + "/" + stylesheet,
-					document.head
-				);
+				if (absolute_link) {
+					return mount_css(stylesheet, document.head);
+				}
+
+				return fetch(config.root + "/" + stylesheet)
+					.then((response) => response.text())
+					.then((css_string) => {
+						prefix_css(css_string, version);
+					});
 			})
 		);
 	}
 	async function add_custom_html_head(
 		head_string: string | null
 	): Promise<void> {
-		const parser = new DOMParser();
 		if (head_string) {
-			const head_html = parser.parseFromString(head_string, "text/html").head
-				.firstChild;
-			if (head_html) {
-				document.head.append(head_html);
+			const parser = new DOMParser();
+			const parsed_head_html = Array.from(
+				parser.parseFromString(head_string, "text/html").head.children
+			);
+
+			if (parsed_head_html) {
+				for (let head_element of parsed_head_html) {
+					let newScriptTag = document.createElement("script");
+					Array.from(head_element.attributes).forEach((attr) => {
+						newScriptTag.setAttribute(attr.name, attr.value);
+					});
+					newScriptTag.textContent = head_element.textContent;
+					document.head.appendChild(newScriptTag);
+				}
 			}
 		}
 	}
@@ -243,7 +257,7 @@
 			detail: "RUNNING"
 		};
 
-		await mount_custom_css(wrapper, config.css);
+		await mount_custom_css(config.css);
 		await add_custom_html_head(config.head);
 		css_ready = true;
 		window.__is_colab__ = config.is_colab;
@@ -259,22 +273,12 @@
 							status_callback: handle_status,
 							normalise_files: false
 						});
+
 						config = app.config;
 						window.__gradio_space__ = config.space_id;
+						await mount_custom_css(config.css);
 					}
 				};
-
-				// websocket = new WebSocket(url);
-				// websocket.onmessage = async function (event) {
-				// 	if (event.data === "CHANGE") {
-				// 		app = await client(api_url, {
-				// 			status_callback: handle_status,
-				// 			normalise_files: false
-				// 		});
-				// 		config = app.config;
-				// 		window.__gradio_space__ = config.space_id;
-				// 	}
-				// };
 			}, 200);
 		}
 	});

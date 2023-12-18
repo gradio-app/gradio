@@ -36,6 +36,9 @@ from gradio_client.exceptions import SerializationSetupError
 from gradio_client.utils import (
     Communicator,
     JobStatus,
+    Message,
+    QueueError,
+    ServerMessage,
     Status,
     StatusUpdate,
 )
@@ -124,25 +127,33 @@ class Client:
         if self.verbose:
             print(f"Loaded as API: {self.src} ✔")
 
+        if auth is not None:
+            self._login(auth)
+
+        self.config = self._get_config()
+        self.protocol: str = self.config.get("protocol", "ws")
         self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
-        self.sse_url = urllib.parse.urljoin(self.src, utils.SSE_URL)
-        self.sse_data_url = urllib.parse.urljoin(self.src, utils.SSE_DATA_URL)
+        self.sse_url = urllib.parse.urljoin(
+            self.src, utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL
+        )
+        self.sse_data_url = urllib.parse.urljoin(
+            self.src,
+            utils.SSE_DATA_URL_V0 if self.protocol == "sse" else utils.SSE_DATA_URL,
+        )
         self.ws_url = urllib.parse.urljoin(
             self.src.replace("http", "ws", 1), utils.WS_URL
         )
         self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
         self.reset_url = urllib.parse.urljoin(self.src, utils.RESET_URL)
-        if auth is not None:
-            self._login(auth)
-        self.config = self._get_config()
         self.app_version = version.parse(self.config.get("version", "2.0"))
         self._info = self._get_api_info()
         self.session_hash = str(uuid.uuid4())
 
-        protocol = self.config.get("protocol")
-        endpoint_class = Endpoint if protocol == "sse" else EndpointV3Compatibility
+        endpoint_class = (
+            Endpoint if self.protocol.startswith("sse") else EndpointV3Compatibility
+        )
         self.endpoints = [
-            endpoint_class(self, fn_index, dependency)
+            endpoint_class(self, fn_index, dependency, self.protocol)
             for fn_index, dependency in enumerate(self.config["dependencies"])
         ]
 
@@ -151,6 +162,83 @@ class Client:
 
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
         threading.Thread(target=self._telemetry_thread).start()
+
+        self.stream_open = False
+        self.streaming_future: Future | None = None
+        self.pending_messages_per_event: dict[str, list[Message | None]] = {}
+        self.pending_event_ids: set[str] = set()
+
+    async def stream_messages(self) -> None:
+        try:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
+                async with client.stream(
+                    "GET",
+                    self.sse_url,
+                    params={"session_hash": self.session_hash},
+                    headers=self.headers,
+                    cookies=self.cookies,
+                ) as response:
+                    async for line in response.aiter_lines():
+                        line = line.rstrip("\n")
+                        if not len(line):
+                            continue
+                        if line.startswith("data:"):
+                            resp = json.loads(line[5:])
+                            if resp["msg"] == ServerMessage.heartbeat:
+                                continue
+                            elif resp["msg"] == ServerMessage.server_stopped:
+                                for (
+                                    pending_messages
+                                ) in self.pending_messages_per_event.values():
+                                    pending_messages.append(resp)
+                                return
+                            event_id = resp["event_id"]
+                            if event_id not in self.pending_messages_per_event:
+                                self.pending_messages_per_event[event_id] = []
+                            self.pending_messages_per_event[event_id].append(resp)
+                            if resp["msg"] == ServerMessage.process_completed:
+                                self.pending_event_ids.remove(event_id)
+                            if len(self.pending_event_ids) == 0:
+                                self.stream_open = False
+                                return
+                        else:
+                            raise ValueError(f"Unexpected SSE line: '{line}'")
+        except BaseException as e:
+            import traceback
+
+            traceback.print_exc()
+            raise e
+
+    async def send_data(self, data, hash_data):
+        async with httpx.AsyncClient() as client:
+            req = await client.post(
+                self.sse_data_url,
+                json={**data, **hash_data},
+                headers=self.headers,
+                cookies=self.cookies,
+            )
+        if req.status_code == 503:
+            raise QueueError("Queue is full! Please try again.")
+        req.raise_for_status()
+        resp = req.json()
+        event_id = resp["event_id"]
+
+        if not self.stream_open:
+            self.stream_open = True
+
+            def open_stream():
+                return utils.synchronize_async(self.stream_messages)
+
+            def close_stream(_):
+                self.stream_open = False
+                for _, pending_messages in self.pending_messages_per_event.items():
+                    pending_messages.append(None)
+
+            if self.streaming_future is None or self.streaming_future.done():
+                self.streaming_future = self.executor.submit(open_stream)
+                self.streaming_future.add_done_callback(close_stream)
+
+        return event_id
 
     @classmethod
     def duplicate(
@@ -340,7 +428,7 @@ class Client:
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
 
         helper = None
-        if self.endpoints[inferred_fn_index].protocol in ("ws", "sse"):
+        if self.endpoints[inferred_fn_index].protocol in ("ws", "sse", "sse_v1"):
             helper = self.new_helper(inferred_fn_index)
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
@@ -806,7 +894,9 @@ class ReplaceMe:
 class Endpoint:
     """Helper class for storing all the information about a single API endpoint."""
 
-    def __init__(self, client: Client, fn_index: int, dependency: dict):
+    def __init__(
+        self, client: Client, fn_index: int, dependency: dict, protocol: str = "sse_v1"
+    ):
         self.client: Client = client
         self.fn_index = fn_index
         self.dependency = dependency
@@ -814,7 +904,7 @@ class Endpoint:
         self.api_name: str | Literal[False] | None = (
             "/" + api_name if isinstance(api_name, str) else api_name
         )
-        self.protocol = "sse"
+        self.protocol = protocol
         self.input_component_types = [
             self._get_component_type(id_) for id_ in dependency["inputs"]
         ]
@@ -891,7 +981,20 @@ class Endpoint:
                 "session_hash": self.client.session_hash,
             }
 
-            result = utils.synchronize_async(self._sse_fn, data, hash_data, helper)
+            if self.protocol == "sse":
+                result = utils.synchronize_async(
+                    self._sse_fn_v0, data, hash_data, helper
+                )
+            elif self.protocol == "sse_v1":
+                event_id = utils.synchronize_async(
+                    self.client.send_data, data, hash_data
+                )
+                self.client.pending_event_ids.add(event_id)
+                self.client.pending_messages_per_event[event_id] = []
+                result = utils.synchronize_async(self._sse_fn_v1, helper, event_id)
+            else:
+                raise ValueError(f"Unsupported protocol: {self.protocol}")
+
             if "error" in result:
                 raise ValueError(result["error"])
 
@@ -1068,24 +1171,33 @@ class Endpoint:
         predictions = self.reduce_singleton_output(*predictions)
         return predictions
 
-    async def _sse_fn(self, data: dict, hash_data: dict, helper: Communicator):
+    async def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
         async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
-            return await utils.get_pred_from_sse(
+            return await utils.get_pred_from_sse_v0(
                 client,
                 data,
                 hash_data,
                 helper,
-                sse_url=self.client.sse_url,
-                sse_data_url=self.client.sse_data_url,
-                headers=self.client.headers,
-                cookies=self.client.cookies,
+                self.client.sse_url,
+                self.client.sse_data_url,
+                self.client.headers,
+                self.client.cookies,
             )
+
+    async def _sse_fn_v1(self, helper: Communicator, event_id: str):
+        return await utils.get_pred_from_sse_v1(
+            helper,
+            self.client.headers,
+            self.client.cookies,
+            self.client.pending_messages_per_event,
+            event_id,
+        )
 
 
 class EndpointV3Compatibility:
     """Endpoint class for connecting to v3 endpoints. Backwards compatibility."""
 
-    def __init__(self, client: Client, fn_index: int, dependency: dict):
+    def __init__(self, client: Client, fn_index: int, dependency: dict, *args):
         self.client: Client = client
         self.fn_index = fn_index
         self.dependency = dependency
