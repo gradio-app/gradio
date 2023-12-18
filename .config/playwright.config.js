@@ -7,7 +7,8 @@ export default defineConfig({
 		permissions: ["clipboard-read", "clipboard-write"],
 		bypassCSP: true,
 		launchOptions: {
-			args: ["--disable-web-security"]
+			args: ["--disable-web-security"],
+			slowMo: 100,
 		}
 	},
 	expect: { timeout: 60000 },
