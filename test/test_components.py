@@ -282,8 +282,6 @@ class TestNumber:
         component = gr.Number(3)
         assert component.get_config().get("value") == 3.0
 
-   
-
 
 class TestSlider:
     def test_component_functions(self):
