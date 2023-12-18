@@ -54,7 +54,6 @@ from gradio import route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
 from gradio.exceptions import Error
-from gradio.helpers import CACHED_FOLDER
 from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation
 from gradio.route_utils import (  # noqa: F401
@@ -455,7 +454,7 @@ class App(FastAPI):
             )
             was_uploaded = utils.is_in_or_equal(abs_path, app.uploaded_file_dir)
             is_cached_example = utils.is_in_or_equal(
-                abs_path, utils.abspath(CACHED_FOLDER)
+                abs_path, utils.abspath(utils.get_cache_folder())
             )
 
             if not (
