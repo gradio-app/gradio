@@ -90,7 +90,7 @@ Here's an example of a function that does _not_ accept a batch of inputs -- it p
 import time
 
 def trim_words(word, length):
-    return w[:int(length)]
+    return word[:int(length)]
 
 ```
 
