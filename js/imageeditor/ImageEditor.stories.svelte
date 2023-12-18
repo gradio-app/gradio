@@ -105,7 +105,11 @@
 
 		await userEvent.click(canvas.getByLabelText("Color button"));
 
-		await userEvent.click(document.getElementsByClassName("color")[1]);
+		var availableColors = document.querySelectorAll(
+			"button.color:not(.empty):not(.selected):not(.hidden)"
+		);
+
+		await userEvent.click(availableColors[0]);
 
 		await userEvent.keyboard("{Escape}");
 
