@@ -8,7 +8,7 @@ export default defineConfig({
 		bypassCSP: true,
 		launchOptions: {
 			args: ["--disable-web-security"],
-			slowMo: 100,
+			slowMo: 100
 		}
 	},
 	expect: { timeout: 60000 },
