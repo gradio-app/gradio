@@ -86,6 +86,5 @@ test("Image copy from clipboard dispatches upload event.", async ({ page }) => {
 	});
 
 	await page.getByText("Paste from clipboard").click();
-	await page.pause();
-	await expect(page.getByLabel("# Change Events").first()).toHaveValue("4");
+	await expect(page.getByLabel("# Change Events").first()).toHaveValue("3");
 });

@@ -4,7 +4,7 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 	page
 }) => {
 	await page
-		.getByRole("button", { name: "Drop Video Here - or - Click to Upload" })
+		.getByRole("button", { name: "Upload file" })
 		.click();
 	const uploader = await page.locator("input[type=file]");
 	await uploader.setInputFiles(["./test/files/file_test.ogg"]);
@@ -15,7 +15,7 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 	await page.getByLabel("Clear").click();
 	await expect(page.getByLabel("# Change Events")).toHaveValue("2");
 	await page
-		.getByRole("button", { name: "Drop Video Here - or - Click to Upload" })
+		.getByRole("button", { name: "Upload file" })
 		.click();
 
 	await uploader.setInputFiles(["./test/files/file_test.ogg"]);
@@ -31,7 +31,7 @@ test("Video click-to-upload uploads video successfuly. Clear, play, and pause bu
 
 test("Video play, pause events work correctly.", async ({ page }) => {
 	await page
-		.getByRole("button", { name: "Drop Video Here - or - Click to Upload" })
+		.getByLabel("Upload file")
 		.click();
 	const uploader = await page.locator("input[type=file]");
 	await uploader.setInputFiles(["./test/files/file_test.ogg"]);
@@ -48,6 +48,9 @@ test("Video play, pause events work correctly.", async ({ page }) => {
 test("Video drag-and-drop uploads a file to the server correctly.", async ({
 	page
 }) => {
+	await page
+	.getByLabel("Upload file")
+	.click();
 	await drag_and_drop_file(
 		page,
 		"input[type=file]",
@@ -62,6 +65,9 @@ test("Video drag-and-drop uploads a file to the server correctly.", async ({
 test("Video drag-and-drop displays a warning when the file is of the wrong mime type.", async ({
 	page
 }) => {
+	await page
+	.getByLabel("Upload file")
+	.click();
 	await drag_and_drop_file(
 		page,
 		"input[type=file]",
