@@ -66,7 +66,7 @@ _注_：还有第二个参数可控制 Gradio 能够生成的*总*线程数，�
 import time
 
 def trim_words(word, length):
-    return w[:int(length)]
+    return word[:int(length)]
 
 ```
 

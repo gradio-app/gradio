@@ -41,6 +41,7 @@ class Markdown(Component):
         render: bool = True,
         sanitize_html: bool = True,
         line_breaks: bool = False,
+        header_links: bool = False,
     ):
         """
         Parameters:
@@ -56,6 +57,7 @@ class Markdown(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             sanitize_html: If False, will disable HTML sanitization when converted from markdown. This is not recommended, as it can lead to security vulnerabilities.
             line_breaks: If True, will enable Github-flavored Markdown line breaks in chatbot messages. If False (default), single new lines will be ignored.
+            header_links: If True, will automatically create anchors for headings, displaying a link icon on hover.
         """
         self.rtl = rtl
         if latex_delimiters is None:
@@ -63,6 +65,7 @@ class Markdown(Component):
         self.latex_delimiters = latex_delimiters
         self.sanitize_html = sanitize_html
         self.line_breaks = line_breaks
+        self.header_links = header_links
 
         super().__init__(
             label=label,
