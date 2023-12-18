@@ -22,10 +22,19 @@ set_documentation_group("component")
 _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
+ImageType = Union[np.ndarray, _Image.Image, str]
+
+
 class EditorValue(TypedDict):
-    background: Optional[Union[np.ndarray, _Image.Image, str]]
-    layers: list[Union[np.ndarray, _Image.Image, str]]
-    composite: Optional[Union[np.ndarray, _Image.Image, str]]
+    background: Optional[ImageType]
+    layers: list[ImageType]
+    composite: Optional[ImageType]
+
+
+class EditorExampleValue(TypedDict):
+    background: Optional[str]
+    layers: Optional[list[str | None]]
+    composite: Optional[str]
 
 
 class EditorData(GradioModel):
@@ -36,11 +45,26 @@ class EditorData(GradioModel):
 
 @dataclasses.dataclass
 class Eraser:
+    """
+    A dataclass for specifying options for the eraser tool in the ImageEditor component. An instance of this class can be passed to the `eraser` parameter of `gr.ImageEditor`.
+    Parameters:
+        default_size: The default radius, in pixels, of the eraser tool. Defaults to "auto" in which case the radius is automatically determined based on the size of the image (generally 1/50th of smaller dimension).
+    """
+
     default_size: int | Literal["auto"] = "auto"
 
 
 @dataclasses.dataclass
 class Brush(Eraser):
+    """
+    A dataclass for specifying options for the brush tool in the ImageEditor component. An instance of this class can be passed to the `brush` parameter of `gr.ImageEditor`.
+    Parameters:
+        default_size: The default radius, in pixels, of the brush tool. Defaults to "auto" in which case the radius is automatically determined based on the size of the image (generally 1/50th of smaller dimension).
+        colors: A list of colors to make available to the user when using the brush. Defaults to a list of 5 colors.
+        default_color: The default color of the brush. Defaults to the first color in the `colors` list.
+        color_mode: If set to "fixed", user can only select from among the colors in `colors`. If "defaults", the colors in `colors` are provided as a default palette, but the user can also select any color using a color picker.
+    """
+
     colors: Union[
         list[str],
         str,
@@ -68,11 +92,10 @@ class Brush(Eraser):
 class ImageEditor(Component):
     """
     Creates an image component that can be used to upload and edit images (as an input) or display images (as an output).
-    Preprocessing: passes the uploaded image as a dictionary of {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
-    Postprocessing: expects a dictionary of {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
-    Examples-format: a {str} local filepath or URL to an image.
-    Demos: image_mod, image_mod_default_image
-    Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, building-a-pictionary_app, create-your-own-friends-with-a-gan
+    Preprocessing: passes the uploaded images as a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` are images, while `layers` is a list of images. The images are of type PIL.Image, np.array, or str filepath, depending on the `type` parameter.
+    Postprocessing: expects a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` should be images or None, while `layers` should be a list of images. Images can be of type PIL.Image, np.array, or str filepath/URL. Or, the value can be simply a single image, in which case it will be used as the background.
+    Examples-format: a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` should be strings or None, while `layers` should be a list of strings. The image corresponding to `composite`, if not None, is used as the example image. Otherwise, the image corresonding to `background` is used. The strings should be filepaths or URLs. Or, the value can be simply a single string filepath/URL to an image, which is used directly as the example image.
+    Demos: image_editor
     """
 
     EVENTS = [
@@ -85,7 +108,7 @@ class ImageEditor(Component):
 
     def __init__(
         self,
-        value: str | _Image.Image | np.ndarray | None = None,
+        value: EditorValue | ImageType | None = None,
         *,
         height: int | str | None = None,
         width: int | str | None = None,
@@ -115,17 +138,17 @@ class ImageEditor(Component):
         _selectable: bool = False,
         crop_size: tuple[int | float, int | float] | str | None = None,
         transforms: Iterable[Literal["crop"]] = ("crop",),
-        eraser: Eraser | None | bool = None,
-        brush: Brush | None | bool = None,
+        eraser: Eraser | None | Literal[False] = None,
+        brush: Brush | None | Literal[False] = None,
     ):
         """
         Parameters:
-            value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            height: The height of the displayed image, specified in pixels if a number is passed, or in CSS units if a string is passed.
-            width: The width of the displayed image, specified in pixels if a number is passed, or in CSS units if a string is passed.
+            value: Optional initial image(s) to populate the image editor. Should be a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` should be images or None, while `layers` should be a list of images. Images can be of type PIL.Image, np.array, or str filepath/URL. Or, the value can be a callable, in which case the function will be called whenever the app loads to set the initial value of the component.
+            height: The height of the displayed images, specified in pixels if a number is passed, or in CSS units if a string is passed.
+            width: The width of the displayed images, specified in pixels if a number is passed, or in CSS units if a string is passed.
             image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning.
-            sources: List of sources for the image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard.
-            type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image.
+            sources: List of sources that can be used to set the background image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard.
+            type: The format the images are converted to before being passed into the prediction function. "numpy" converts the images to numpy arrays with shape (height, width, 3) and values from 0 to 255, "pil" converts the images to PIL image objects, "filepath" passes images as str filepaths to temporary copies of the images.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -142,6 +165,8 @@ class ImageEditor(Component):
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             crop_size: The size of the crop box in pixels. If a tuple, the first value is the width and the second value is the height. If a string, the value must be a ratio in the form `width:height` (e.g. "16:9").
             transforms: The transforms tools to make available to users. "crop" allows the user to crop the image.
+            eraser: The options for the eraser tool in the image editor. Should be an instance of the `gr.Eraser` class, or None to use the default settings. Can also be False to hide the eraser tool.
+            brush: The options for the brush tool in the image editor. Should be an instance of the `gr.Brush` class, or None to use the default settings. Can also be False to hide the brush tool, which will also hide the eraser tool.
         """
         self._selectable = _selectable
         self.mirror_webcam = mirror_webcam
@@ -174,8 +199,8 @@ class ImageEditor(Component):
 
         self.crop_size = crop_size
         self.transforms = transforms
-        self.eraser = eraser if eraser is not None and eraser is not True else Eraser()
-        self.brush = brush if brush is not None and brush is not True else Brush()
+        self.eraser = Eraser() if eraser is None else eraser
+        self.brush = Brush() if brush is None else brush
 
         super().__init__(
             label=label,
@@ -225,38 +250,34 @@ class ImageEditor(Component):
             name=name,
         )
 
-    def preprocess(self, x: EditorData | None) -> EditorValue | None:
-        """
-        Parameters:
-            x: FileData containing an image path pointing to the user's image
-        Returns:
-            image in requested format, or (if tool == "sketch") a dict of image and mask in requested format
-        """
-        if x is None:
-            return x
+    def preprocess(self, payload: EditorData | None) -> EditorValue | None:
+        if payload is None:
+            return payload
 
-        bg = self.convert_and_format_image(x.background)
+        bg = self.convert_and_format_image(payload.background)
         layers = (
-            [self.convert_and_format_image(layer) for layer in x.layers]
-            if x.layers
+            [self.convert_and_format_image(layer) for layer in payload.layers]
+            if payload.layers
             else None
         )
-        composite = self.convert_and_format_image(x.composite)
+        composite = self.convert_and_format_image(payload.composite)
         return {
             "background": bg,
             "layers": [x for x in layers if x is not None] if layers else [],
             "composite": composite,
         }
 
-    def postprocess(self, y: EditorValue | None) -> EditorData | None:
-        """
-        Parameters:
-            y: image as a numpy array, PIL Image, string/Path filepath, or string URL
-        Returns:
-            base64 url data
-        """
-        if y is None:
+    def postprocess(self, value: EditorValue | ImageType | None) -> EditorData | None:
+        if value is None:
             return None
+        elif isinstance(value, dict):
+            pass
+        elif isinstance(value, (np.ndarray, _Image.Image, str)):
+            value = {"background": value, "layers": [], "composite": value}
+        else:
+            raise ValueError(
+                "The value to `gr.ImageEditor` must be a dictionary of images or a single image."
+            )
 
         layers = (
             [
@@ -266,37 +287,63 @@ class ImageEditor(Component):
                         self.GRADIO_CACHE,
                     )
                 )
-                for layer in y["layers"]
+                for layer in value["layers"]
             ]
-            if y["layers"]
+            if value["layers"]
             else []
         )
 
         return EditorData(
             background=FileData(
-                path=image_utils.save_image(y["background"], self.GRADIO_CACHE)
+                path=image_utils.save_image(value["background"], self.GRADIO_CACHE)
             )
-            if y["background"] is not None
+            if value["background"] is not None
             else None,
             layers=layers,
             composite=FileData(
                 path=image_utils.save_image(
-                    cast(Union[np.ndarray, _Image.Image, str], y["composite"]),
+                    cast(Union[np.ndarray, _Image.Image, str], value["composite"]),
                     self.GRADIO_CACHE,
                 )
             )
-            if y["composite"] is not None
+            if value["composite"] is not None
             else None,
         )
 
-    def as_example(self, input_data: str | Path | None) -> str:
+    def as_example(
+        self, input_data: EditorExampleValue | str | None
+    ) -> EditorExampleValue | None:
+        def resolve_path(file_or_url: str | None) -> str | None:
+            if file_or_url is None:
+                return None
+            input_data = str(file_or_url)
+            # If an externally hosted image or a URL, don't convert to absolute path
+            if self.proxy_url or client_utils.is_http_url_like(input_data):
+                return input_data
+            return str(utils.abspath(input_data))
+
         if input_data is None:
-            return ""
-        input_data = str(input_data)
-        # If an externally hosted image or a URL, don't convert to absolute path
-        if self.proxy_url or client_utils.is_http_url_like(input_data):
-            return input_data
-        return str(utils.abspath(input_data))
+            return None
+        elif isinstance(input_data, str):
+            input_data = {
+                "background": input_data,
+                "layers": [],
+                "composite": input_data,
+            }
+
+        input_data["background"] = resolve_path(input_data["background"])
+        input_data["layers"] = (
+            [resolve_path(f) for f in input_data["layers"]]
+            if input_data["layers"]
+            else []
+        )
+        input_data["composite"] = resolve_path(input_data["composite"])
+
+        return input_data
 
     def example_inputs(self) -> Any:
-        return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+        return {
+            "background": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+            "layers": [],
+            "composite": None,
+        }

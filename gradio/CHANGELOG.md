@@ -1,5 +1,30 @@
 # gradio
 
+## 4.10.0
+
+### Features
+
+- [#6798](https://github.com/gradio-app/gradio/pull/6798) [`245d58e`](https://github.com/gradio-app/gradio/commit/245d58eff788e8d44a59d37a2d9b26d0f08a62b4) - Improve how server/js client handle unexpected errors.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6794](https://github.com/gradio-app/gradio/pull/6794) [`7ba8c5d`](https://github.com/gradio-app/gradio/commit/7ba8c5da45b004edd12c0460be9222f5b5f5f055) - Fix SSRF vulnerability on `/file=` route.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+### Fixes
+
+- [#6799](https://github.com/gradio-app/gradio/pull/6799) [`c352811`](https://github.com/gradio-app/gradio/commit/c352811f76d4126613ece0a584f8c552fdd8d1f6) - Adds docstrings for `gr.WaveformOptions`, `gr.Brush`, and `gr.Eraser`, fixes examples for `ImageEditor`, and allows individual images to be used as the initial `value` for `ImageEditor`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6808](https://github.com/gradio-app/gradio/pull/6808) [`6b130e2`](https://github.com/gradio-app/gradio/commit/6b130e26b9a6061e7984923b355a04a5484a1c96) - Ensure LoginButton `value` text is displayed.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6810](https://github.com/gradio-app/gradio/pull/6810) [`526fb6c`](https://github.com/gradio-app/gradio/commit/526fb6c446468f1567d614c83266bb5f5797ce9c) - Fix `gr.load()` so that it works with the SSE v1 protocol.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+## 4.9.1
+
+### Features
+
+- [#6781](https://github.com/gradio-app/gradio/pull/6781) [`a807ede`](https://github.com/gradio-app/gradio/commit/a807ede818e0690949aca41020e75a96f0110ece) - Fix backend tests on Windows.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+### Fixes
+
+- [#6525](https://github.com/gradio-app/gradio/pull/6525) [`5d51fbc`](https://github.com/gradio-app/gradio/commit/5d51fbce7826da840a2fd4940feb5d9ad6f1bc5a) - Fixes Drag and Drop for Upload.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#6780](https://github.com/gradio-app/gradio/pull/6780) [`51e241a`](https://github.com/gradio-app/gradio/commit/51e241addd20dad9a0cdf3e72f747cab112815d1) - Fix flaky CI tests (again 😓 ).  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6693](https://github.com/gradio-app/gradio/pull/6693) [`34f9431`](https://github.com/gradio-app/gradio/commit/34f943101bf7dd6b8a8974a6131c1ed7c4a0dac0) - Python client properly handles hearbeat and log messages. Also handles responses longer than 65k.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 4.9.0
 
 ### Features
