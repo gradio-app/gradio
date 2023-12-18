@@ -908,8 +908,8 @@ def abspath(path: str | Path) -> Path:
     """Returns absolute path of a str or Path path, but does not resolve symlinks."""
     path = Path(path)
 
-    # if path.is_absolute():
-    #     return path
+    if path.is_absolute():
+        return path
 
     # recursively check if there is a symlink within the path
     is_symlink = path.is_symlink() or any(
