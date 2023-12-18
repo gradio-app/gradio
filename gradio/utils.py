@@ -932,7 +932,7 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path):
     """
     path_1, path_2 = abspath(path_1), abspath(path_2)
     try:
-        if str(path_1.relative_to(path_2)).startswith(".."):  # prevent path traversal
+        if ".." in str(path_1.relative_to(path_2)):  # prevent path traversal
             return False
     except ValueError:
         return False
