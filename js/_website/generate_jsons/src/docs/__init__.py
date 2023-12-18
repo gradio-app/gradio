@@ -13,6 +13,7 @@ DEMOS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo"))
 JS_CLIENT_README = os.path.abspath(os.path.join(DIR, "../../../../../client/js/README.md"))
 JS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../js/"))
 
+#### PYTHON LIBRARY
 docs = generate_documentation()
 docs["component"].sort(key=lambda x: x["name"])
 
@@ -107,9 +108,6 @@ def escape_parameters(parameters):
 def escape_html_string_fields():
     for mode in docs:
         for cls in docs[mode]:
-            # print(cls["description"])
-            # cls["description"] = html.escape(cls["description"])
-            # print(cls["description"])
             for tag in [
                 "preprocessing",
                 "postprocessing",
@@ -124,7 +122,6 @@ def escape_html_string_fields():
             for fn in cls["fns"]:
                 fn["description"] = html.escape(fn["description"])
                 fn["parameters"] = escape_parameters(fn["parameters"])
-            # 1/0
 
 escape_html_string_fields()
 
@@ -160,10 +157,11 @@ def organize_docs(d):
         "modals": {},
         "routes": {},
         "events": {},
-        "py-client": {},
         "chatinterface": {}
     }
+    py_client_docs = {}
     pages = []
+    py_client_pages = []
     for mode in d:
         for c in d[mode]:
             c["parent"] = "gradio"
@@ -184,13 +182,13 @@ def organize_docs(d):
             if mode == "component":
                 organized["components"][c["name"].lower()] = c
                 pages.append(c["name"].lower())
-            elif mode in ["helpers", "routes", "py-client", "chatinterface", "modals"]:
+            elif mode in ["helpers", "routes", "chatinterface", "modals"]:
                 organized[mode][c["name"].lower()] = c
                 pages.append(c["name"].lower())
-                
+            elif mode == "py-client":
+                py_client_docs[c["name"].lower()] = c
+                py_client_pages.append(c["name"].lower())
             else:
-                # if mode not in organized["building"]:
-                #     organized["building"][mode] = {}
                 organized["building"][c["name"].lower()] = c
                 pages.append(c["name"].lower())
 
@@ -271,23 +269,22 @@ def organize_docs(d):
             organized["routes"][cls]["next_obj"] = organized["routes"][c_keys[i + 1]][
                 "name"
             ]
-    c_keys = list(organized["py-client"].keys())
-    for i, cls in enumerate(organized["py-client"]):
+    c_keys = list(py_client_docs.keys())
+    for i, cls in enumerate(py_client_docs):
         if not i:
-            organized["py-client"][cls]["prev_obj"] = "Python-Client"
-            organized["py-client"][cls]["next_obj"] = organized["py-client"][c_keys[1]][
+            py_client_docs[cls]["prev_obj"] = "Python-Client"
+            py_client_docs[cls]["next_obj"] = py_client_docs[c_keys[1]][
                 "name"
             ]
         elif i == len(c_keys) - 1:
-            organized["py-client"][cls]["prev_obj"] = organized["py-client"][
+            py_client_docs[cls]["prev_obj"] = py_client_docs[
                 c_keys[len(c_keys) - 2]
             ]["name"]
-            organized["py-client"][cls]["next_obj"] = "JS-Client"
         else:
-            organized["py-client"][cls]["prev_obj"] = organized["py-client"][
+            py_client_docs[cls]["prev_obj"] = py_client_docs[
                 c_keys[i - 1]
             ]["name"]
-            organized["py-client"][cls]["next_obj"] = organized["py-client"][
+            py_client_docs[cls]["next_obj"] = py_client_docs[
                 c_keys[i + 1]
             ]["name"]
     
@@ -350,7 +347,7 @@ def organize_docs(d):
     js_pages.sort()
 
 
-    return {"docs": organized, "pages": pages, "js": js, "js_pages": js_pages, "js_client": readme_content}
+    return {"docs": organized, "pages": pages, "js": js, "js_pages": js_pages, "js_client": readme_content, "py_client_docs": py_client_docs, "py_client_pages": py_client_pages}
 
 
 docs = organize_docs(docs)

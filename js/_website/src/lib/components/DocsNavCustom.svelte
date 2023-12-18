@@ -2,10 +2,8 @@
 	// @ts-nocheck
 	import { clickOutside } from "./clickOutside.js";
 
-	export let components: any;
-	export let helpers: any;
-	export let modals: any;
-	export let routes: any;
+	export let items: any;
+	export let title: string;
 
 	export let current_nav_link = "";
 	let docs_type = "python";
@@ -104,7 +102,7 @@
 			autocomplete="off"
 		/>
 		<!-- <DropDown></DropDown> -->
-		<select
+		<!-- <select
 			bind:value={docs_type}
 			on:change={() => {
 				if (docs_type == "js") {
@@ -115,116 +113,15 @@
 		>
 			<option value="js">js</option>
 			<option value="python">python</option>
-		</select>
+		</select> -->
 	</div>
 
-	<p class="font-semibold px-4 my-2 block">Building Demos</p>
-	<a
-		class:current-nav-link={current_nav_link == "interface"}
-		class="thin-link px-4 block"
-		href="./interface/">Interface</a
-	>
-	<a
-		class:current-nav-link={current_nav_link == "chatinterface"}
-		class="thin-link px-4 block"
-		href="./chatinterface/"
-		>ChatInterface<sup class="text-orange-500">NEW</sup></a
-	>
-	<a
-		class:current-nav-link={current_nav_link == "tabbedinterface"}
-		class="thin-link px-4 block"
-		href="./tabbedinterface/">TabbedInterface</a
-	>
-
-	<a
-		class:current-nav-link={current_nav_link == "blocks"}
-		class="thin-link px-4 block"
-		href="./blocks/">Blocks</a
-	>
-
-	<p class="font-semibold px-4 my-2 block">Block Layouts</p>
-
-	<a
-		class:current-nav-link={current_nav_link == "row"}
-		class="thin-link px-4 block"
-		href="./row/">Row</a
-	>
-	<a
-		class:current-nav-link={current_nav_link == "column"}
-		class="thin-link px-4 block"
-		href="./column/">Column</a
-	>
-	<a
-		class:current-nav-link={current_nav_link == "tab"}
-		class="thin-link px-4 block"
-		href="./tab/">Tab</a
-	>
-	<a
-		class:current-nav-link={current_nav_link == "group"}
-		class="thin-link px-4 block"
-		href="./group/">Group</a
-	>
-	<a
-		class:current-nav-link={current_nav_link == "accordion"}
-		class="thin-link px-4 block"
-		href="./accordion/">Accordion</a
-	>
-
-	<a
-		class:current-nav-link={current_nav_link == "components"}
-		class="link px-4 my-2 block"
-		href="./components/">Components</a
-	>
-	{#each Object.entries(components) as [name, obj] (name)}
+	<p class="font-semibold px-4 my-2 block">{title}</p>
+	{#each Object.entries(items) as [name, url] (name)}
 		<a
 			class:current-nav-link={current_nav_link == name}
 			class="px-4 block thin-link"
-			href="./{name}/">{obj.name}</a
+			href="./{url}/">{name}</a
 		>
 	{/each}
-	<p class="font-semibold px-4 my-2 block">Helpers</p>
-	{#each Object.entries(helpers) as [name, obj] (name)}
-		<a
-			class:current-nav-link={current_nav_link == name}
-			class="px-4 block thin-link"
-			href="./{name}/">{obj.name}</a
-		>
-	{/each}
-	<p class="font-semibold px-4 my-2 block">Modals</p>
-	{#each Object.entries(modals) as [name, obj] (name)}
-		<a
-			class:current-nav-link={current_nav_link == name}
-			class="px-4 block thin-link"
-			href="./{name}/">{obj.name}</a
-		>
-	{/each}
-
-	<p class="font-semibold px-4 my-2 block">Routes</p>
-	{#each Object.entries(routes) as [name, obj] (name)}
-		<a
-			class:current-nav-link={current_nav_link == name}
-			class="px-4 block thin-link"
-			href="./{name}/">{obj.name}</a
-		>
-	{/each}
-
-	<p class="font-semibold px-4 my-2 block">Other</p>
-
-	<a
-		class:current-nav-link={current_nav_link == "flagging"}
-		class="thin-link px-4 block"
-		href="./flagging/">Flagging</a
-	>
-	<a
-		class:current-nav-link={current_nav_link == "themes"}
-		class="thin-link px-4 block"
-		href="./themes/">Themes</a
-	>
-
-
-	<a
-		class:current_nav_link={current_nav_link == "js-client"}
-		class="link px-4 my-2 block"
-		href="./js-client/">JavaScript Client</a
-	>
 </div>

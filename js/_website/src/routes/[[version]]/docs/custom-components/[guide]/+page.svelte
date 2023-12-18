@@ -74,10 +74,7 @@
 		bind:this={sidebar}
 		class="side-navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto overflow-x-hidden hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50 lg:w-3/12"
 	>
-		<a
-			class="subheading block thin-link -indent-2 ml-4 mr-2"
-			href="/gallery">Gallery</a
-		>
+	
 		{#each guide_names as guides, i}
 			<div
 				class="category-link my-2 font-semibold px-4 pt-2 text-ellipsis block"
@@ -85,6 +82,14 @@
 			>
 				{guides.category}
 			</div>
+			<p
+			class="mx-4 block bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-0.5 mr-2 rounded-full text-orange-800 mb-5 w-fit hover:shadow-lg"
+		>
+			<a class="inline-block" href="./gallery">
+				Gallery &rarr;</a
+			>
+			</p>
+
 			{#each guides.guides as guide, j}
 				{#if guide.name == guide_page.name}
 					<a
