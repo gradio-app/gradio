@@ -29,11 +29,18 @@
 		right: string;
 		display: boolean;
 	}[];
+	export let header_links = false;
 
 	$: label, gradio.dispatch("change");
 </script>
 
-<Block {visible} {elem_id} {elem_classes} container={false}>
+<Block
+	{visible}
+	{elem_id}
+	{elem_classes}
+	container={false}
+	allow_overflow={true}
+>
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
@@ -51,6 +58,7 @@
 			{latex_delimiters}
 			{sanitize_html}
 			{line_breaks}
+			{header_links}
 		/>
 	</div>
 </Block>
