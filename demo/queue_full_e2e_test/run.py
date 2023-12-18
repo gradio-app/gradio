@@ -32,5 +32,7 @@ with gr.Blocks() as demo:
     third.click(get_random_number, None, third_o, concurrency_id="f")
     fourth.click(get_random_number, None, fourth_o, concurrency_id="f")
 
+demo.queue(max_size=2)
+
 if __name__ == "__main__":
-    demo.queue(max_size=2).launch()
+    demo.launch()
