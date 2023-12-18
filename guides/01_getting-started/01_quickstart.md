@@ -98,7 +98,7 @@ You can build very custom and complex applications using `gr.Blocks()`. For exam
 
 ### The Gradio Python & JavaScript Ecosystem
 
-So far, we've been discussing the core `gradio` Python library. But Gradio is actually so much more! Its an entire ecosystem of Python and JavaScript libraries that let you build machine learning applications, or query them programmatically, in Python or JavaScript. Here are other related parts of the Gradio ecosystem:
+That's the gist of the core `gradio` Python library, but Gradio is actually so much more! Its an entire ecosystem of Python and JavaScript libraries that let you build machine learning applications, or query them programmatically, in Python or JavaScript. Here are other related parts of the Gradio ecosystem:
 
 * [Gradio Python Client](/guides/08_client-libraries/01_getting-started-with-the-python-client.md) (`gradio_client`): the easiest way to query any Gradio app programmatically in Python.
 * [Gradio JavaScript Client](/guides/08_client-libraries/02_getting-started-with-the-js-client.md) (`@gradio/client`): the easiest way to query any Gradio app programmatically in JavaScript.
