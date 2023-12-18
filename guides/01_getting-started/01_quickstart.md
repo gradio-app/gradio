@@ -49,7 +49,7 @@ The `Interface` class has three core arguments:
 - `inputs`: which Gradio component(s) to use for the input. The number of components should match the number of arguments in your function.
 - `outputs`: which Gradio component(s) to use for the output. The number of components should match the number of return values from your function.
 
-The `fn` argument is very flexible -- you can pass *any* Python function that you want to wrap with a UI. In the example above, we saw a simple text-based function, but the function could be anything from music generator to a tax calculator to the prediction function of a pretrained machine learning model.
+The `fn` argument is very flexible -- you can pass *any* Python function that you want to wrap with a UI. In the example above, we saw a simple text-based function, but the function could be anything from a music generator to a tax calculator to the prediction function of a pretrained machine learning model.
 
 The `input` and `output` arguments take one or more Gradio components. As we'll see, Gradio includes more than [30 built-in components](https://www.gradio.app/docs/components) (such as the `gr.Textbox()`, `gr.Image()`, `gr.Label()`, `gr.HighlightedText()`, `gr.HTML()`, etc.) that are designed for machine learning applications. For the `inputs` and `outputs` arguments, pass in the name of one of these components as a string or an instance of the class.
 
