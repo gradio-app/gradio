@@ -105,7 +105,7 @@
 		normalize: true,
 		minPxPerSec: 20,
 		mediaControls: waveform_options.show_controls,
-		sampleRate: 44100,
+		sampleRate: 44100
 	};
 
 	const trim_region_settings = {
