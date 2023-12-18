@@ -81,7 +81,7 @@
 	.app {
 		position: relative;
 		margin: auto;
-		padding: var(--size-4);
+		padding: var(--size-4) var(--size-8);
 		width: 100%;
 		height: 100%;
 	}

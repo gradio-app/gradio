@@ -218,6 +218,6 @@ MIT
 
 """
 with gr.Blocks(css=css) as demo:
-    gr.Markdown(value=md)
+    gr.Markdown(value=md, header_links=True)
 
 demo.launch()
