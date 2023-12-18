@@ -1,5 +1,4 @@
 import { test, expect } from "@gradio/tootils";
-import { launch_app_background, kill_process } from "./utils";
 
 test("When the queue is full the queue full message gets shown. Also when there is an exception in a user function the queue does not get blocked", async ({
 	page
