@@ -1,5 +1,13 @@
 # @gradio/checkbox
 
+## 0.2.5
+
+### Patch Changes
+
+- Updated dependencies [[`4d1cbbc`](https://github.com/gradio-app/gradio/commit/4d1cbbcf30833ef1de2d2d2710c7492a379a9a00)]:
+  - @gradio/atoms@0.4.0
+  - @gradio/statustracker@0.4.2
+
 ## 0.2.4
 
 ### Patch Changes

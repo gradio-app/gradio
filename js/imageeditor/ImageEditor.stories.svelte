@@ -25,17 +25,12 @@
 		interactive: "true",
 		brush: {
 			default_size: "auto",
-			sizes: "auto",
-			size_mode: "fixed",
-			antialias: true,
 			colors: ["#ff0000", "#00ff00", "#0000ff"],
-			default_color: "#ff0000"
+			default_color: "#ff0000",
+			color_mode: "defaults"
 		},
 		eraser: {
-			default_size: "auto",
-			sizes: "auto",
-			size_mode: "fixed",
-			antialias: true
+			default_size: "auto"
 		}
 	}}
 />
@@ -53,17 +48,12 @@
 		interactive: "true",
 		brush: {
 			default_size: "auto",
-			sizes: "auto",
-			size_mode: "fixed",
-			antialias: true,
 			colors: ["#ff0000", "#00ff00", "#0000ff"],
-			default_color: "#ff0000"
+			default_color: "#ff0000",
+			color_mode: "defaults"
 		},
 		eraser: {
-			default_size: "auto",
-			sizes: "auto",
-			size_mode: "fixed",
-			antialias: true
+			default_size: "auto"
 		}
 	}}
 	play={async ({ canvasElement }) => {
@@ -115,7 +105,11 @@
 
 		await userEvent.click(canvas.getByLabelText("Color button"));
 
-		await userEvent.click(document.getElementsByClassName("color")[1]);
+		var availableColors = document.querySelectorAll(
+			"button.color:not(.empty):not(.selected):not(.hidden)"
+		);
+
+		await userEvent.click(availableColors[0]);
 
 		await userEvent.keyboard("{Escape}");
 

@@ -52,7 +52,7 @@ httpx==0.23.0
     # via
     #   -r requirements.in
     #   respx
-huggingface-hub==0.14.0
+huggingface-hub==0.19.3
     # via
     #   -r requirements.in
     #   transformers
@@ -141,6 +141,7 @@ pytest==7.1.2
     #   -r requirements.in
     #   pytest-asyncio
     #   pytest-cov
+pytest-virtualenv==1.7.0
 pytest-asyncio==0.19.0
     # via -r requirements.in
 pytest-cov==3.0.0
