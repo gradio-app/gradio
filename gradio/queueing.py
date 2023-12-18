@@ -11,6 +11,7 @@ from queue import Queue as ThreadQueue
 from typing import TYPE_CHECKING
 
 import fastapi
+from gradio_client.utils import ServerMessage
 from typing_extensions import Literal
 
 from gradio import route_utils, routes
@@ -23,7 +24,7 @@ from gradio.data_classes import (
 )
 from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
-from gradio.utils import run_coro_in_background, safe_get_lock, set_task_name
+from gradio.utils import LRUCache, run_coro_in_background, safe_get_lock, set_task_name
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction
@@ -37,7 +38,6 @@ class Event:
         request: fastapi.Request,
         username: str | None,
     ):
-        self.message_queue = ThreadQueue()
         self.session_hash = session_hash
         self.fn_index = fn_index
         self.request = request
@@ -47,28 +47,6 @@ class Event:
         self.progress: Progress | None = None
         self.progress_pending: bool = False
         self.alive = True
-
-    def send_message(
-        self,
-        message_type: str,
-        data: dict | None = None,
-        final: bool = False,
-    ):
-        data = {} if data is None else data
-        self.message_queue.put_nowait({"msg": message_type, **data})
-        if final:
-            self.message_queue.put_nowait(None)
-
-    async def get_data(self, timeout=5) -> bool:
-        self.send_message("send_data", {"event_id": self._id})
-        sleep_interval = 0.05
-        wait_time = 0
-        while wait_time < timeout and self.alive:
-            if self.data is not None:
-                break
-            await asyncio.sleep(sleep_interval)
-            wait_time += sleep_interval
-        return self.data is not None
 
 
 class Queue:
@@ -81,6 +59,9 @@ class Queue:
         block_fns: list[BlockFunction],
         default_concurrency_limit: int | None | Literal["not_set"] = "not_set",
     ):
+        self.pending_messages_per_session: LRUCache[str, ThreadQueue] = LRUCache(2000)
+        self.pending_event_ids_session: dict[str, set[str]] = {}
+        self.pending_message_lock = safe_get_lock()
         self.event_queue: list[Event] = []
         self.awaiting_data_events: dict[str, Event] = {}
         self.stopped = False
@@ -132,6 +113,16 @@ class Queue:
     def close(self):
         self.stopped = True
 
+    def send_message(
+        self,
+        event: Event,
+        message_type: str,
+        data: dict | None = None,
+    ):
+        data = {} if data is None else data
+        messages = self.pending_messages_per_session[event.session_hash]
+        messages.put_nowait({"msg": message_type, "event_id": event._id, **data})
+
     def _resolve_concurrency_limit(self, default_concurrency_limit):
         """
         Handles the logic of resolving the default_concurrency_limit as this can be specified via a combination
@@ -152,13 +143,34 @@ class Queue:
         else:
             return 1
 
-    def attach_data(self, body: PredictBody):
-        event_id = body.event_id
-        if event_id in self.awaiting_data_events:
-            event = self.awaiting_data_events[event_id]
-            event.data = body
-        else:
-            raise ValueError("Event not found", event_id)
+    async def push(
+        self, body: PredictBody, request: fastapi.Request, username: str | None
+    ) -> tuple[bool, str]:
+        if body.session_hash is None:
+            return False, "No session hash provided."
+        if body.fn_index is None:
+            return False, "No function index provided."
+        queue_len = len(self.event_queue)
+        if self.max_size is not None and queue_len >= self.max_size:
+            return (
+                False,
+                f"Queue is full. Max size is {self.max_size} and size is {queue_len}.",
+            )
+
+        event = Event(body.session_hash, body.fn_index, request, username)
+        event.data = body
+        async with self.pending_message_lock:
+            if body.session_hash not in self.pending_messages_per_session:
+                self.pending_messages_per_session[body.session_hash] = ThreadQueue()
+            if body.session_hash not in self.pending_event_ids_session:
+                self.pending_event_ids_session[body.session_hash] = set()
+        self.pending_event_ids_session[body.session_hash].add(event._id)
+        self.event_queue.append(event)
+
+        estimation = self.get_estimation()
+        await self.send_estimation(event, estimation, queue_len)
+
+        return True, event._id
 
     def _cancel_asyncio_tasks(self):
         for task in self._asyncio_tasks:
@@ -276,7 +288,9 @@ class Queue:
             for event in events:
                 if event.progress_pending and event.progress:
                     event.progress_pending = False
-                    event.send_message("progress", event.progress.model_dump())
+                    self.send_message(
+                        event, ServerMessage.progress, event.progress.model_dump()
+                    )
 
             await asyncio.sleep(self.progress_update_sleep_when_free)
 
@@ -320,34 +334,23 @@ class Queue:
                     log=log,
                     level=level,
                 )
-                event.send_message("log", log_message.model_dump())
+                self.send_message(event, ServerMessage.log, log_message.model_dump())
 
-    def push(self, event: Event) -> int | None:
-        """
-        Add event to queue, or return None if Queue is full
-        Parameters:
-            event: Event to add to Queue
-        Returns:
-            rank of submitted Event
-        """
-        queue_len = len(self.event_queue)
-        if self.max_size is not None and queue_len >= self.max_size:
-            return None
-        self.event_queue.append(event)
-        return queue_len
+    async def clean_events(
+        self, *, session_hash: str | None = None, event_id: str | None = None
+    ) -> None:
+        for job_set in self.active_jobs:
+            if job_set:
+                for job in job_set:
+                    if job.session_hash == session_hash or job._id == event_id:
+                        job.alive = False
 
-    async def clean_event(self, event: Event | str) -> None:
-        if isinstance(event, str):
-            for job_set in self.active_jobs:
-                if job_set:
-                    for job in job_set:
-                        if job._id == event:
-                            event = job
-                            break
-        if isinstance(event, str):
-            raise ValueError("Event not found", event)
-        event.alive = False
-        if event in self.event_queue:
+        events_to_remove = []
+        for event in self.event_queue:
+            if event.session_hash == session_hash or event._id == event_id:
+                events_to_remove.append(event)
+
+        for event in events_to_remove:
             async with self.delete_lock:
                 self.event_queue.remove(event)
 
@@ -391,7 +394,7 @@ class Queue:
             if None not in self.active_jobs:
                 # Add estimated amount of time for a thread to get empty
                 estimation.rank_eta += self.avg_concurrent_process_time
-        event.send_message("estimation", estimation.model_dump())
+        self.send_message(event, ServerMessage.estimation, estimation.model_dump())
         return estimation
 
     def update_estimation(self, duration: float) -> None:
@@ -485,14 +488,7 @@ class Queue:
         awake_events: list[Event] = []
         try:
             for event in events:
-                if not event.data:
-                    self.awaiting_data_events[event._id] = event
-                    client_awake = await event.get_data()
-                    del self.awaiting_data_events[event._id]
-                    if not client_awake:
-                        await self.clean_event(event)
-                        continue
-                event.send_message("process_starts")
+                self.send_message(event, ServerMessage.process_starts)
                 awake_events.append(event)
             if not awake_events:
                 return
@@ -505,8 +501,9 @@ class Queue:
                 response = None
                 err = e
                 for event in awake_events:
-                    event.send_message(
-                        "process_completed",
+                    self.send_message(
+                        event,
+                        ServerMessage.process_completed,
                         {
                             "output": {
                                 "error": None
@@ -515,7 +512,6 @@ class Queue:
                             },
                             "success": False,
                         },
-                        final=True,
                     )
             if response and response.get("is_generating", False):
                 old_response = response
@@ -524,8 +520,9 @@ class Queue:
                     old_response = response
                     old_err = err
                     for event in awake_events:
-                        event.send_message(
-                            "process_generating",
+                        self.send_message(
+                            event,
+                            ServerMessage.process_generating,
                             {
                                 "output": old_response,
                                 "success": old_response is not None,
@@ -545,8 +542,9 @@ class Queue:
                         relevant_response = err
                     else:
                         relevant_response = old_response or old_err
-                    event.send_message(
-                        "process_completed",
+                    self.send_message(
+                        event,
+                        ServerMessage.process_completed,
                         {
                             "output": {"error": str(relevant_response)}
                             if isinstance(relevant_response, Exception)
@@ -554,20 +552,19 @@ class Queue:
                             "success": relevant_response
                             and not isinstance(relevant_response, Exception),
                         },
-                        final=True,
                     )
             elif response:
                 output = copy.deepcopy(response)
                 for e, event in enumerate(awake_events):
                     if batch and "data" in output:
                         output["data"] = list(zip(*response.get("data")))[e]
-                    event.send_message(
-                        "process_completed",
+                    self.send_message(
+                        event,
+                        ServerMessage.process_completed,
                         {
                             "output": output,
                             "success": response is not None,
                         },
-                        final=True,
                     )
             end_time = time.time()
             if response is not None:

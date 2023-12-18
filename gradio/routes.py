@@ -4,6 +4,7 @@ module use the Optional/Union notation so that they work correctly with pydantic
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import sys
 
 if sys.version_info >= (3, 9):
@@ -41,6 +42,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
+from gradio_client.utils import ServerMessage
 from jinja2.exceptions import TemplateNotFound
 from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
@@ -54,7 +56,7 @@ from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
 from gradio.exceptions import Error
 from gradio.helpers import CACHED_FOLDER
 from gradio.oauth import attach_oauth
-from gradio.queueing import Estimation, Event
+from gradio.queueing import Estimation
 from gradio.route_utils import (  # noqa: F401
     FileUploadProgress,
     GradioMultiPartParser,
@@ -64,10 +66,7 @@ from gradio.route_utils import (  # noqa: F401
 )
 from gradio.state_holder import StateHolder
 from gradio.utils import (
-    cancel_tasks,
     get_package_version,
-    run_coro_in_background,
-    set_task_name,
 )
 
 if TYPE_CHECKING:
@@ -434,7 +433,7 @@ class App(FastAPI):
         @app.get("/file={path_or_url:path}", dependencies=[Depends(login_check)])
         async def file(path_or_url: str, request: fastapi.Request):
             blocks = app.get_blocks()
-            if utils.validate_url(path_or_url):
+            if client_utils.is_http_url_like(path_or_url):
                 return RedirectResponse(
                     url=path_or_url, status_code=status.HTTP_302_FOUND
                 )
@@ -531,7 +530,7 @@ class App(FastAPI):
             async with app.lock:
                 del app.iterators[body.event_id]
                 app.iterators_to_reset.add(body.event_id)
-                await app.get_blocks()._queue.clean_event(body.event_id)
+                await app.get_blocks()._queue.clean_events(event_id=body.event_id)
             return {"success": True}
 
         # had to use '/run' endpoint for Colab compatibility, '/api' supported for backwards compatibility
@@ -581,76 +580,84 @@ class App(FastAPI):
                 )
             return output
 
-        @app.get("/queue/join", dependencies=[Depends(login_check)])
-        async def queue_join(
-            fn_index: int,
-            session_hash: str,
+        @app.get("/queue/data", dependencies=[Depends(login_check)])
+        async def queue_data(
             request: fastapi.Request,
-            username: str = Depends(get_current_user),
-            data: Optional[str] = None,
+            session_hash: str,
         ):
             blocks = app.get_blocks()
-            if blocks._queue.server_app is None:
-                blocks._queue.set_server_app(app)
-
-            event = Event(session_hash, fn_index, request, username)
-            if data is not None:
-                input_data = json.loads(data)
-                event.data = PredictBody(
-                    session_hash=session_hash,
-                    fn_index=fn_index,
-                    data=input_data,
-                    request=request,
-                )
-
-            # Continuous events are not put in the queue so that they do not
-            # occupy the queue's resource as they are expected to run forever
-            if blocks.dependencies[event.fn_index].get("every", 0):
-                await cancel_tasks({f"{event.session_hash}_{event.fn_index}"})
-                await blocks._queue.reset_iterators(event._id)
-                blocks._queue.continuous_tasks.append(event)
-                task = run_coro_in_background(
-                    blocks._queue.process_events, [event], False
-                )
-                set_task_name(task, event.session_hash, event.fn_index, batch=False)
-                app._asyncio_tasks.append(task)
-            else:
-                rank = blocks._queue.push(event)
-                if rank is None:
-                    event.send_message("queue_full", final=True)
-                else:
-                    estimation = blocks._queue.get_estimation()
-                    await blocks._queue.send_estimation(event, estimation, rank)
 
             async def sse_stream(request: fastapi.Request):
                 try:
                     last_heartbeat = time.perf_counter()
                     while True:
                         if await request.is_disconnected():
-                            await blocks._queue.clean_event(event)
-                        if not event.alive:
+                            await blocks._queue.clean_events(session_hash=session_hash)
                             return
+
+                        if (
+                            session_hash
+                            not in blocks._queue.pending_messages_per_session
+                        ):
+                            raise HTTPException(
+                                status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Session not found.",
+                            )
 
                         heartbeat_rate = 15
                         check_rate = 0.05
                         message = None
                         try:
-                            message = event.message_queue.get_nowait()
-                            if message is None:  # end of stream marker
-                                return
+                            messages = blocks._queue.pending_messages_per_session[
+                                session_hash
+                            ]
+                            message = messages.get_nowait()
                         except EmptyQueue:
                             await asyncio.sleep(check_rate)
                             if time.perf_counter() - last_heartbeat > heartbeat_rate:
-                                message = {"msg": "heartbeat"}
+                                # Fix this
+                                message = {
+                                    "msg": ServerMessage.heartbeat,
+                                }
                                 # Need to reset last_heartbeat with perf_counter
                                 # otherwise only a single hearbeat msg will be sent
                                 # and then the stream will retry leading to infinite queue 😬
                                 last_heartbeat = time.perf_counter()
 
+                        if blocks._queue.stopped:
+                            message = {
+                                "msg": "unexpected_error",
+                                "message": "Server stopped unexpectedly.",
+                                "success": False,
+                            }
                         if message:
                             yield f"data: {json.dumps(message)}\n\n"
-                except asyncio.CancelledError as e:
-                    await blocks._queue.clean_event(event)
+                            if message["msg"] == ServerMessage.process_completed:
+                                blocks._queue.pending_event_ids_session[
+                                    session_hash
+                                ].remove(message["event_id"])
+                                if message["msg"] == ServerMessage.server_stopped or (
+                                    message["msg"] == ServerMessage.process_completed
+                                    and (
+                                        len(
+                                            blocks._queue.pending_event_ids_session[
+                                                session_hash
+                                            ]
+                                        )
+                                        == 0
+                                    )
+                                ):
+                                    return
+                except BaseException as e:
+                    message = {
+                        "msg": "unexpected_error",
+                        "success": False,
+                        "message": str(e),
+                    }
+                    yield f"data: {json.dumps(message)}\n\n"
+                    if isinstance(e, asyncio.CancelledError):
+                        del blocks._queue.pending_messages_per_session[session_hash]
+                        await blocks._queue.clean_events(session_hash=session_hash)
                     raise e
 
             return StreamingResponse(
@@ -658,14 +665,24 @@ class App(FastAPI):
                 media_type="text/event-stream",
             )
 
-        @app.post("/queue/data", dependencies=[Depends(login_check)])
-        async def queue_data(
+        @app.post("/queue/join", dependencies=[Depends(login_check)])
+        async def queue_join(
             body: PredictBody,
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            blocks = app.get_blocks()
-            blocks._queue.attach_data(body)
+            if blocks._queue.server_app is None:
+                blocks._queue.set_server_app(app)
+
+            success, event_id = await blocks._queue.push(body, request, username)
+            if not success:
+                status_code = (
+                    status.HTTP_503_SERVICE_UNAVAILABLE
+                    if "Queue is full." in event_id
+                    else status.HTTP_400_BAD_REQUEST
+                )
+                raise HTTPException(status_code=status_code, detail=event_id)
+            return {"event_id": event_id}
 
         @app.post("/component_server", dependencies=[Depends(login_check)])
         @app.post("/component_server/", dependencies=[Depends(login_check)])
@@ -892,9 +909,17 @@ def mount_gradio_app(
     blocks.validate_queue_settings()
     gradio_app = App.create_app(blocks, app_kwargs=app_kwargs)
 
-    @app.on_event("startup")
-    async def start_queue():
-        gradio_app.get_blocks().startup_events()
+    old_lifespan = app.router.lifespan_context
+
+    @contextlib.asynccontextmanager
+    async def new_lifespan(app: FastAPI):
+        async with old_lifespan(
+            app
+        ):  # Instert the startup events inside the FastAPI context manager
+            gradio_app.get_blocks().startup_events()
+            yield
+
+    app.router.lifespan_context = new_lifespan
 
     app.mount(path, gradio_app)
     return app

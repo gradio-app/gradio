@@ -1,5 +1,11 @@
 # @gradio/atoms
 
+## 0.4.0
+
+### Features
+
+- [#6569](https://github.com/gradio-app/gradio/pull/6569) [`4d1cbbc`](https://github.com/gradio-app/gradio/commit/4d1cbbcf30833ef1de2d2d2710c7492a379a9a00) - Allow passing height and width as string in `Blocks.svelte`.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.3.1
 
 ### Patch Changes

@@ -138,7 +138,7 @@ class EventListener(str):
         event_name: str,
         has_trigger: bool = True,
         config_data: Callable[..., dict[str, Any]] = lambda: {},
-        show_progress: Literal["full", "minimal", "hidden"] | None = None,
+        show_progress: Literal["full", "minimal", "hidden"] = "full",
         callback: Callable | None = None,
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
@@ -185,7 +185,7 @@ class EventListener(str):
     def _setup(
         _event_name: str,
         _has_trigger: bool,
-        _show_progress: Literal["full", "minimal", "hidden"] | None,
+        _show_progress: Literal["full", "minimal", "hidden"],
         _callback: Callable | None,
         _trigger_after: int | None,
         _trigger_only_on_success: bool,
@@ -197,7 +197,7 @@ class EventListener(str):
             outputs: Component | list[Component] | None = None,
             api_name: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
-            show_progress: Literal["full", "minimal", "hidden"] = "full",
+            show_progress: Literal["full", "minimal", "hidden"] = _show_progress,
             queue: bool | None = None,
             batch: bool = False,
             max_batch_size: int = 4,
@@ -305,9 +305,7 @@ class EventListener(str):
                 preprocess=preprocess,
                 postprocess=postprocess,
                 scroll_to_output=scroll_to_output,
-                show_progress=show_progress
-                if show_progress is not None
-                else _show_progress,
+                show_progress=show_progress,
                 api_name=api_name,
                 js=js,
                 concurrency_limit=concurrency_limit,

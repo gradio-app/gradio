@@ -1,6 +1,6 @@
 <script lang="ts">
-	export let height: number | undefined = undefined;
-	export let width: number | undefined = undefined;
+	export let height: number | string | undefined = undefined;
+	export let width: number | string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let variant: "solid" | "dashed" | "none" = "solid";
@@ -16,6 +16,19 @@
 	export let min_width = 0;
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
+
+	const get_dimension = (
+		dimension_value: string | number | undefined
+	): string | undefined => {
+		if (dimension_value === undefined) {
+			return undefined;
+		}
+		if (typeof dimension_value === "number") {
+			return dimension_value + "px";
+		} else if (typeof dimension_value === "string") {
+			return dimension_value;
+		}
+	};
 </script>
 
 <svelte:element
@@ -27,10 +40,10 @@
 	class:padded={padding}
 	class:border_focus={border_mode === "focus"}
 	class:hide-container={!explicit_call && !container}
-	style:height={typeof height === "number" ? height + "px" : undefined}
+	style:height={get_dimension(height)}
 	style:width={typeof width === "number"
 		? `calc(min(${width}px, 100%))`
-		: undefined}
+		: get_dimension(width)}
 	style:border-style={variant}
 	style:overflow={allow_overflow ? "visible" : "hidden"}
 	style:flex-grow={scale}

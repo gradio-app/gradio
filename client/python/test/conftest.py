@@ -381,3 +381,18 @@ def gradio_temp_dir(monkeypatch, tmp_path):
     """
     monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
     return tmp_path
+
+
+@pytest.fixture
+def long_response_with_info():
+    def long_response(x):
+        gr.Info("Beginning long response")
+        time.sleep(17)
+        gr.Info("Done!")
+        return "\ta\nb" * 90000
+
+    return gr.Interface(
+        long_response,
+        None,
+        gr.Textbox(label="Output"),
+    )

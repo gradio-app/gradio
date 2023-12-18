@@ -67,7 +67,7 @@ class FileExplorer(Component):
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
-            height: The maximum height of the file component, in pixels. If more files are uploaded than can fit in the height, a scrollbar will appear.
+            height: The maximum height of the file component, specified in pixels if a number is passed, or in CSS units if a string is passed. If more files are uploaded than can fit in the height, a scrollbar will appear.
             interactive: if True, will allow users to upload a file; if False, can only be used to display files. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -116,8 +116,11 @@ class FileExplorer(Component):
                 return None
             else:
                 return self._safe_join(payload.root[0])
-
-        return [self._safe_join(file) for file in (payload.root)]
+        files = []
+        for file in payload.root:
+            file_ = self._safe_join(file)
+            files.append(file_)
+        return files
 
     def _strip_root(self, path):
         if path.startswith(self.root):
@@ -129,10 +132,11 @@ class FileExplorer(Component):
             return None
 
         files = [value] if isinstance(value, str) else value
+        root = []
+        for file in files:
+            root.append(self._strip_root(file).split(os.path.sep))
 
-        return FileExplorerData(
-            root=[self._strip_root(file).split(os.path.sep) for file in files]
-        )
+        return FileExplorerData(root=root)
 
     @server
     def ls(self, value=None) -> list[dict[str, str]] | None:
@@ -166,7 +170,7 @@ class FileExplorer(Component):
         def make_tree(files):
             tree = []
             for file in files:
-                parts = file.split("/")
+                parts = file.split(os.path.sep)
                 make_node(parts, tree)
             return tree
 
@@ -190,17 +194,26 @@ class FileExplorer(Component):
                     _tree.append({"path": parts[i], "type": type, "children": []})
                     _tree = _tree[-1]["children"]
 
-        files = []
+        files: list[Path] = []
         for result in expand_braces(self.glob):
             files += list(Path(self.root).resolve().glob(result))
+
+        files = [f for f in files if f != Path(self.root).resolve()]
 
         ignore_files = []
         if self.ignore_glob:
             for result in expand_braces(self.ignore_glob):
-                ignore_files += list(Path(self.ignore_glob).resolve().glob(result))
+                ignore_files += list(Path(self.root).resolve().glob(result))
             files = list(set(files) - set(ignore_files))
 
-        tree = make_tree([str(f.relative_to(self.root)) for f in files])
+        files_with_sep = []
+        for f in files:
+            file = str(f.relative_to(self.root))
+            if f.is_dir():
+                file += os.path.sep
+            files_with_sep.append(file)
+
+        tree = make_tree(files_with_sep)
         return tree
 
     def _safe_join(self, folders):

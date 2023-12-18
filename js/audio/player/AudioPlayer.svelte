@@ -3,7 +3,7 @@
 	import { Music } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
-	import { skipAudio, process_audio } from "../shared/utils";
+	import { skip_audio, process_audio } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import { Empty } from "@gradio/atoms";
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
@@ -20,6 +20,7 @@
 		event: "stream" | "change" | "stop_recording"
 	) => Promise<void> = () => Promise.resolve();
 	export let interactive = false;
+	export let editable = true;
 	export let trim_region_settings = {};
 	export let waveform_settings: Record<string, any>;
 	export let waveform_options: WaveformOptions;
@@ -32,7 +33,7 @@
 
 	let timeRef: HTMLTimeElement;
 	let durationRef: HTMLTimeElement;
-	let audioDuration: number;
+	let audio_duration: number;
 
 	let trimDuration = 0;
 
@@ -56,8 +57,12 @@
 	const create_waveform = (): void => {
 		waveform = WaveSurfer.create({
 			container: container,
-			url: value?.url,
 			...waveform_settings
+		});
+		resolve_wasm_src(value?.url).then((resolved_src) => {
+			if (resolved_src && waveform) {
+				return waveform.load(resolved_src);
+			}
 		});
 	};
 
@@ -69,7 +74,7 @@
 	}
 
 	$: waveform?.on("decode", (duration: any) => {
-		audioDuration = duration;
+		audio_duration = duration;
 		durationRef && (durationRef.textContent = formatTime(duration));
 	});
 
@@ -130,9 +135,9 @@
 		window.addEventListener("keydown", (e) => {
 			if (!waveform || show_volume_slider) return;
 			if (e.key === "ArrowRight" && mode !== "edit") {
-				skipAudio(waveform, 0.1);
+				skip_audio(waveform, 0.1);
 			} else if (e.key === "ArrowLeft" && mode !== "edit") {
-				skipAudio(waveform, -0.1);
+				skip_audio(waveform, -0.1);
 			}
 		});
 	});
@@ -173,7 +178,7 @@
 				{container}
 				{waveform}
 				{playing}
-				{audioDuration}
+				{audio_duration}
 				{i18n}
 				{interactive}
 				{handle_trim_audio}
@@ -184,6 +189,7 @@
 				{handle_reset_value}
 				{waveform_options}
 				{trim_region_settings}
+				{editable}
 			/>
 		{/if}
 	</div>
