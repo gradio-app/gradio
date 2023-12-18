@@ -43,7 +43,7 @@ Tip: When developing locally, you can run your Gradio app in <strong>hot reload 
 
 You'll notice that in order to make your first demo, you created an instance of the `gr.Interface` class. The `Interface` class is designed to create demos for machine learning models which accept one or more inputs, and return one or more outputs. 
 
-The core `Interface` class has three core arguments:
+The `Interface` class has three core arguments:
 
 - `fn`: the function to wrap a user interface (UI) around
 - `inputs`: which Gradio component(s) to use for the input. The number of components should match the number of arguments in your function.
