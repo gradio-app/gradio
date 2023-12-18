@@ -120,6 +120,20 @@ class TestExamples:
             file
         ) == utils.encode_url_or_file_to_base64("test/test_files/bus.png")
 
+    def test_cached_folder_default(self, monkeypatch):
+        monkeypatch.delenv("GRADIO_EXAMPLES_CACHE", raising=False)
+        CACHED_FOLDER = os.environ.get(
+            "GRADIO_EXAMPLES_CACHE", "gradio_cached_examples"
+        )
+        assert CACHED_FOLDER == "gradio_cached_examples"
+
+    def test_cached_folder_env_var(self, monkeypatch):
+        monkeypatch.setenv("GRADIO_EXAMPLES_CACHE", "test_folder")
+        CACHED_FOLDER = os.environ.get(
+            "GRADIO_EXAMPLES_CACHE", "gradio_cached_examples"
+        )
+        assert CACHED_FOLDER == "test_folder"
+
 
 @patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
 class TestExamplesDataset:
