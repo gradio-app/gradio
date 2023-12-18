@@ -24,6 +24,6 @@ test("When the queue is full the queue full message gets shown. Also when there 
 		.poll(async () => page.getByLabel("First Result").inputValue())
 		.toBeTruthy();
 	await expect
-		.poll(async () => page.getByLabel("First Result").inputValue())
+		.poll(async () => page.getByLabel("Third Result").inputValue())
 		.toBeTruthy();
 });
