@@ -1065,7 +1065,6 @@ export function api_factory(
 								event_callbacks[event_id](_data)
 							)
 						);
-						return;
 					} else if (event_callbacks[event_id]) {
 						await event_callbacks[event_id](_data);
 					} else {
