@@ -43,13 +43,13 @@ Tip: When developing locally, you can run your Gradio app in <strong>hot reload 
 
 You'll notice that in order to make your first demo, you created an instance of the `gr.Interface` class. The `Interface` class is designed to create demos for machine learning models which accept one or more inputs, and return one or more outputs. 
 
-The core `Interface` class has three core arguments:
+The `Interface` class has three core arguments:
 
 - `fn`: the function to wrap a user interface (UI) around
 - `inputs`: which Gradio component(s) to use for the input. The number of components should match the number of arguments in your function.
 - `outputs`: which Gradio component(s) to use for the output. The number of components should match the number of return values from your function.
 
-The `fn` argument is very flexible -- you can pass *any* Python function that you want to wrap with a UI. In the example above, we saw a simple text-based function, but the function could be anything from music generator to a tax calculator to the prediction function of a pretrained machine learning model.
+The `fn` argument is very flexible -- you can pass *any* Python function that you want to wrap with a UI. In the example above, we saw a simple text-based function, but the function could be anything from a music generator to a tax calculator to the prediction function of a pretrained machine learning model.
 
 The `input` and `output` arguments take one or more Gradio components. As we'll see, Gradio includes more than [30 built-in components](https://www.gradio.app/docs/components) (such as the `gr.Textbox()`, `gr.Image()`, `gr.Label()`, `gr.HighlightedText()`, `gr.HTML()`, etc.) that are designed for machine learning applications. For the `inputs` and `outputs` arguments, pass in the name of one of these components as a string or an instance of the class.
 
@@ -98,7 +98,7 @@ You can build very custom and complex applications using `gr.Blocks()`. For exam
 
 ### The Gradio Python & JavaScript Ecosystem
 
-So far, we've been discussing the core `gradio` Python library. But Gradio is actually so much more! Its an entire ecosystem of Python and JavaScript libraries that let you build machine learning applications, or query them programmatically, in Python or JavaScript. Here are other related parts of the Gradio ecosystem:
+That's the gist of the core `gradio` Python library, but Gradio is actually so much more! Its an entire ecosystem of Python and JavaScript libraries that let you build machine learning applications, or query them programmatically, in Python or JavaScript. Here are other related parts of the Gradio ecosystem:
 
 * [Gradio Python Client](/guides/08_client-libraries/01_getting-started-with-the-python-client.md) (`gradio_client`): the easiest way to query any Gradio app programmatically in Python.
 * [Gradio JavaScript Client](/guides/08_client-libraries/02_getting-started-with-the-js-client.md) (`@gradio/client`): the easiest way to query any Gradio app programmatically in JavaScript.
