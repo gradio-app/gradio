@@ -1272,6 +1272,21 @@ importers:
         specifier: ^0.15.3
         version: 0.15.3(svelte@4.2.3)
 
+  js/preview/test/mycomponent/frontend:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../../../../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../../../../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../../../../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../../../../utils
+
   js/preview/test/test/frontend:
     dependencies:
       '@gradio/atoms':
