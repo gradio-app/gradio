@@ -82,7 +82,7 @@
 		timing = false;
 		clearInterval(interval);
 		const array_buffer = await blob.arrayBuffer();
-		const context = new AudioContext();
+		const context = new AudioContext({ sampleRate: 44100 });
 		const audio_buffer = await context.decodeAudioData(array_buffer);
 
 		if (audio_buffer)

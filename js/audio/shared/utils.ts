@@ -20,7 +20,7 @@ export const process_audio = async (
 	start?: number,
 	end?: number
 ): Promise<Uint8Array> => {
-	const audioContext = new AudioContext();
+	const audioContext = new AudioContext({ sampleRate: audioBuffer.sampleRate });
 	const numberOfChannels = audioBuffer.numberOfChannels;
 	const sampleRate = audioBuffer.sampleRate;
 
