@@ -99,10 +99,10 @@ class Number(FormComponent):
             num: Number to round.
             precision: Precision to round to.
         Returns:
-            rounded number
+            rounded number or the original number if precision is None
         """
         if precision is None:
-            return float(num)
+            return num
         elif precision == 0:
             return int(round(num, precision))
         else:
