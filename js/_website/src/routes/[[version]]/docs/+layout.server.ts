@@ -32,7 +32,8 @@ export async function load({ params, url }) {
 	let helpers = docs_json.docs.helpers;
 	let modals = docs_json.docs.modals || [];
 	let routes = docs_json.docs.routes;
-	let py_client = docs_json.docs["py-client"];
+	let py_client = docs_json["py_client_docs"];
+	let py_client_pages = docs_json["py_client_pages"];
 	let js = docs_json.js || {};
 	let js_pages = docs_json.js_pages || [];
 	let js_client = docs_json.js_client;
@@ -49,6 +50,7 @@ export async function load({ params, url }) {
 		modals,
 		routes,
 		py_client,
+		py_client_pages,
 		js,
 		js_pages,
 		on_main,

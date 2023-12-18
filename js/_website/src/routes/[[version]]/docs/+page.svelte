@@ -4,7 +4,7 @@
     </h1>
 
     <nav class="grid grid-cols-1 gap-4 md:grid-cols-3 mt-8">
-        <a href="/docs/interface" target="_self" class="group group relative flex flex-col overflow-hidden border md:first:row-span-3 border-yellow-50 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-yellow-500/5 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"><div class="absolute hidden h-16 w-[550px] rotate-45 transform bg-red-500/10 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"></div>
+        <a href="/docs/python-library" target="_self" class="group group relative flex flex-col overflow-hidden border md:first:row-span-3 border-yellow-50 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-yellow-500/5 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"><div class="absolute hidden h-16 w-[550px] rotate-45 transform bg-red-500/10 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"></div>
             <div class="relative mb-2 mt-auto flex items-center text-lg font-semibold"><span class="mr-1.5 h-1.5 w-1.5 rounded-full bg-yellow-500"></span>
                 <span class="group-hover:underline">Python Library</span></div>
             <div class="relative pr-4 text-smd font-normal text-gray-400">Build and share machine learning demos and web apps, in just a few lines of Python.</div>
@@ -16,7 +16,7 @@
             <div class="relative pr-4 text-smd font-normal text-gray-400">Turn any Gradio app into an API.</div>
         </a>
         
-        <a href="/docs/lite" target="_self" class="group group relative flex flex-col overflow-hidden border md:first:row-span-2 border-violet-50 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-violet-500/5 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"><div class="absolute hidden h-16 w-[550px] rotate-45 transform bg-red-500/10 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"></div>
+        <a href="/guides/gradio-lite" target="_self" class="group group relative flex flex-col overflow-hidden border md:first:row-span-2 border-violet-50 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-violet-500/5 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"><div class="absolute hidden h-16 w-[550px] rotate-45 transform bg-red-500/10 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"></div>
             <div class="relative mb-2 mt-auto flex items-center text-lg font-semibold"><span class="mr-1.5 h-1.5 w-1.5 rounded-full bg-violet-500"></span>
                 <span class="group-hover:underline">Gradio Lite</span></div>
             <div class="relative pr-4 text-smd font-normal text-gray-400">Serverless Gradio running entirely in your browser.</div>
