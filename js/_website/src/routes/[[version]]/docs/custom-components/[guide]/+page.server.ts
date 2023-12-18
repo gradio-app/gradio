@@ -69,7 +69,9 @@ async function load_release_guide_names(
 }
 
 async function load_main_guides(guide: string) {
-	return await import(`../../../../../lib/json/custom_components/${guide}.json`);
+	return await import(
+		`../../../../../lib/json/custom_components/${guide}.json`
+	);
 }
 
 async function load_main_guide_names() {
