@@ -104,6 +104,7 @@
 
 	.empty::after {
 		content: "+";
+		margin-bottom: var(--size-1);
 	}
 
 	.color {
