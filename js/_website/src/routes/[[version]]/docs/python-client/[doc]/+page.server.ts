@@ -41,7 +41,6 @@ export async function load({ params, parent }) {
 		throw error(404);
 	}
 
-
 	for (const key in py_client) {
 		if (py_client[key].name) {
 			py_client[key].slug = get_slug(py_client[key].name);
@@ -138,9 +137,7 @@ export async function load({ params, parent }) {
 			}
 			if ("tags" in obj) {
 				if ("preprocessing" in obj.tags) {
-					obj.tags.preprocessing = style_formatted_text(
-						obj.tags.preprocessing
-					);
+					obj.tags.preprocessing = style_formatted_text(obj.tags.preprocessing);
 				}
 				if ("postprocessing" in obj.tags) {
 					obj.tags.postprocessing = style_formatted_text(

@@ -31,15 +31,13 @@
 
 <main class="container mx-auto px-4 flex gap-4">
 	<div class="flex w-full">
-		<DocsNavCustom 
-		current_nav_link={"python-client"}
-		items = {
-			{
-			"Client": "python-client/client",
-			"Job": "python-client/job",
-			}
-		}
-		title = {"Python Client"}
+		<DocsNavCustom
+			current_nav_link={"python-client"}
+			items={{
+				Client: "python-client/client",
+				Job: "python-client/job"
+			}}
+			title={"Python Client"}
 		/>
 
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
