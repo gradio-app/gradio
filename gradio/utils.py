@@ -908,8 +908,8 @@ def abspath(path: str | Path) -> Path:
     """Returns absolute path of a str or Path path, but does not resolve symlinks."""
     path = Path(path)
 
-    if path.is_absolute():
-        return path
+    # if path.is_absolute():
+    #     return path
 
     # recursively check if there is a symlink within the path
     is_symlink = path.is_symlink() or any(
@@ -932,7 +932,7 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path):
     """
     path_1, path_2 = abspath(path_1), abspath(path_2)
     try:
-        if str(path_1.relative_to(path_2)).startswith(".."):  # prevent path traversal
+        if ".." in str(path_1.relative_to(path_2)):  # prevent path traversal
             return False
     except ValueError:
         return False
