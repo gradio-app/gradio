@@ -6,7 +6,7 @@ import which from "which";
 
 test.beforeAll(() => {
 	// copy pnpm-lock.yml to copy function
-	spawnSync(
+	const pnpm_copy = spawnSync(
 		`cp ${join(process.cwd(), "..", "..", "pnpm-lock.yaml")} ${join(
 			process.cwd(),
 			"..",
@@ -66,13 +66,7 @@ test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
 
 	// create a new python virtual environment and activate it
 	const venv_create = spawnSync(
-		`${which.sync("python")} -m venv ${join(
-			process.cwd(),
-			"..",
-			"preview",
-			"test",
-			"venv"
-		)}`,
+		`python3 -m venv ${join(process.cwd(), "..", "preview", "test", "venv")}`,
 		{
 			shell: true,
 			stdio: "pipe",
@@ -82,42 +76,22 @@ test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
 			}
 		}
 	);
-	if (venv_create.error) {
+	if (venv_create.status !== 0) {
 		console.log("venv create stdout", venv_create.stdout.toString());
 		console.log("venv create stderr", venv_create.stderr.toString());
 	}
 
-	// activate the virtual environment
-	const venv_activate = spawnSync(
-		`source ${join(
-			process.cwd(),
-			"..",
-			"preview",
-			"test",
-			"venv",
-			"bin",
-			"activate"
-		)}`,
-		{
-			shell: true,
-			stdio: "pipe",
-			env: {
-				...process.env,
-				PYTHONUNBUFFERED: "true"
-			}
-		}
+	const pip = join(
+		process.cwd(),
+		"..",
+		"preview",
+		"test",
+		"venv",
+		"bin",
+		"pip"
 	);
-	if (venv_activate.error) {
-		console.log("venv activate stdout", venv_activate.stdout.toString());
-		console.log("venv activate stderr", venv_activate.stderr.toString());
-	}
-	// install local copies of gradio and gradio client
 	const gradio_install = spawnSync(
-		`${which.sync("python")} -m pip install -e ${join(
-			process.cwd(),
-			"..",
-			".."
-		)}`,
+		`${pip} install -e ${join(process.cwd(), "..", "..")}`,
 		{
 			shell: true,
 			stdio: "pipe",
@@ -127,19 +101,13 @@ test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
 			}
 		}
 	);
-	if (gradio_install.error) {
+	if (gradio_install.status !== 0) {
 		console.log("gradio install stdout", gradio_install.stdout.toString());
 		console.log("gradio install stderr", gradio_install.stderr.toString());
 	}
 	// install local copies of gradio and gradio client
 	const client_install = spawnSync(
-		`${which.sync("python")} -m pip install -e ${join(
-			process.cwd(),
-			"..",
-			"..",
-			"client",
-			"python"
-		)}`,
+		`${pip} install -e ${join(process.cwd(), "..", "..", "client", "python")}`,
 		{
 			shell: true,
 			stdio: "pipe",
@@ -149,14 +117,22 @@ test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
 			}
 		}
 	);
-	if (client_install.error) {
+
+	if (client_install.status !== 0) {
 		console.log("client install stdout", client_install.stdout.toString());
 		console.log("client install stderr", client_install.stderr.toString());
 	}
+	const gradio = join(
+		process.cwd(),
+		"..",
+		"preview",
+		"test",
+		"venv",
+		"bin",
+		"gradio"
+	);
 	const create = spawnSync(
-		`${which(
-			"gradio"
-		)} cc create MyComponent --no-configure-metadata --template SimpleTextbox --overwrite`,
+		`${gradio} cc create MyComponent --no-configure-metadata --template SimpleTextbox --overwrite`,
 		{
 			shell: true,
 			stdio: "pipe",
@@ -167,7 +143,7 @@ test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
 			}
 		}
 	);
-	if (create.error) {
+	if (create.status !== 0) {
 		console.log("create stdout", create.stdout.toString());
 		console.log("create stderr", create.stderr.toString());
 	}
@@ -175,7 +151,7 @@ test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
 	let _process;
 	try {
 		const { port, process: _process } = await launch_app_background(
-			`${which.sync("gradio")} cc dev`,
+			`${gradio} cc dev`,
 			join(process.cwd(), "..", "preview", "test", "mycomponent")
 		);
 		console.log("Connected to port", port);
