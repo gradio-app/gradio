@@ -20,7 +20,7 @@ Tip: it is best to install Gradio in a virtual environment. Detailed installatio
 
 ## Building Your First Demo
 
-You can run Gradio in your favorite code editor, Jupyter notebook, [Google Colab](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing), or anywhere else you write Python. Let's write our first Gradio app:
+You can run Gradio in your favorite code editor, Jupyter notebook, Google Colab, or anywhere else you write Python. Let's write our first Gradio app:
 
 
 $code_hello_world
