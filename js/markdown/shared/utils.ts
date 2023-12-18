@@ -101,6 +101,8 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 	}
 };
 
+const slugger = new GithubSlugger();
+
 export function create_marked({
 	header_links,
 	line_breaks
@@ -126,7 +128,6 @@ export function create_marked({
 	);
 
 	if (header_links) {
-		const slugger = new GithubSlugger();
 		if (header_links) {
 			marked.use(gfmHeadingId());
 			marked.use({
