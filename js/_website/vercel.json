@@ -95,7 +95,7 @@
 		{
 			"source": "guides/advanced-interface-features",
 			"destination": "guides/using-hugging-face-integrations"
-		}
+		},
 		{
 			"source": "/key-features",
 			"destination": "/guides/key-features"
