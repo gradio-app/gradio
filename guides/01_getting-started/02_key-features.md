@@ -1,11 +1,9 @@
 # Key Features
 
-Let's go through some of the key features of Gradio. This Guide is intended to be a high-level overview of various things that you may be interested in 
+Let's go through some of the key features of Gradio. This Guide is intended to be a high-level overview of various things that you should be aware of as you build your demo. Where appropriate, we link to more detailed Guides on specific topics.
 
+1. [Components](#components)
 2. [Passing custom error messages](#alerts)
-<!-- 3. [Adding descriptive content](#descriptive-content) -->
-<!-- 4. [Setting up flagging](#flagging) -->
-<!-- 5. [Preprocessing and postprocessing](#preprocessing-and-postprocessing) -->
 6. [Styling demos](#styling)
 7. [Queuing users](#queuing)
 8. [Iterative outputs](#iterative-outputs)
@@ -15,6 +13,42 @@ Let's go through some of the key features of Gradio. This Guide is intended to b
 
 ## Components
 
+Gradio includes more than 30 pre-built components (as well as many user-built _custom components_) that can be used as inputs or outputs in your demo with a single line of code. These components correspond to common data types in machine learning and data science, e.g. the `gr.Image` component is designed to handle input or output images, the `gr.Label` component displays classification labels and probabilities, the `gr.Plot` component displays various kinds of plots, and so on.
+
+Each component includes various constructor attributes that control the properties of the component. For example, you can control the number of lines in a `gr.Textbox` using the `lines` argument (which takes a positive integer) in its constructor. Or you can control the way that a user can provide an image in the `gr.Image` component using the `sources` parameter (which takes a list like `["webcam", "upload"]`).
+
+**Static and Interactive Components**
+
+Every component has a _static_ version that is designed to *display* data, and most components also have an _interactive_ version designed to let users input or modify the data. Typically, you don't need to think about this distinction, because when you build a Gradio demo, Gradio automatically figures out whether the component should be static or interactive based on whether it is being used as an input or output. However, you can set this manually using the `interactive` argument that every component supports.
+
+When a component is used as an input, Gradio automatically handles the _preprocessing_ needed to convert the data from a type sent by the user's browser (such as an uploaded image) to a form that can be accepted by your function (such as a `numpy` array).
+
+
+Similarly, when a component is used as an output, Gradio automatically handles the _postprocessing_ needed to convert the data from what is returned by your function (such as a list of image paths) to a form that can be displayed in the user's browser (a gallery of images).
+
+Consider an example demo with three input components (`gr.Textbox`, `gr.Number`, and `gr.Image`) and two outputs (`gr.Number` and `gr.Gallery`) that serve as a UI for your image generation model. Below is a diagram of what our preprocessing will send to the model and what our postprocessing will require from it.
+
+![](https://github.com/gradio-app/gradio/blob/main/guides/assets/dataflow.svg?raw=true)
+
+As you've seen, Gradio includes components that can handle a variety of different data types, such as images, audio, and video. Most components can be used both as inputs or outputs.
+
+
+
+You can control the _preprocessing_ using the parameters when constructing the image component. For example, here if you instantiate the `Image` component with the following parameters, it will convert the image to the `PIL` type and reshape it to be `(100, 100)` no matter the original size that it was submitted as:
+
+```py
+img = gr.Image(shape=(100, 100), type="pil")
+```
+
+In contrast, here we keep the original size of the image, but invert the colors before converting it to a numpy array:
+
+```py
+img = gr.Image(invert_colors=True, type="numpy")
+```
+
+Postprocessing is a lot easier! Gradio automatically recognizes the format of the returned data (e.g. is the `Image` a `numpy` array or a `str` filepath?) and postprocesses it into a format that can be displayed by the browser.
+
+Take a look at the [Docs](https://gradio.app/docs) to see all the preprocessing-related parameters for each Component.
 
 
 ## Alerts
@@ -38,29 +72,6 @@ def start_process(name):
 
 ## Preprocessing and Postprocessing
 
-![](https://github.com/gradio-app/gradio/blob/main/guides/assets/dataflow.svg?raw=true)
-
-As you've seen, Gradio includes components that can handle a variety of different data types, such as images, audio, and video. Most components can be used both as inputs or outputs.
-
-When a component is used as an input, Gradio automatically handles the _preprocessing_ needed to convert the data from a type sent by the user's browser (such as a base64 representation of a webcam snapshot) to a form that can be accepted by your function (such as a `numpy` array).
-
-Similarly, when a component is used as an output, Gradio automatically handles the _postprocessing_ needed to convert the data from what is returned by your function (such as a list of image paths) to a form that can be displayed in the user's browser (such as a `Gallery` of images in base64 format).
-
-You can control the _preprocessing_ using the parameters when constructing the image component. For example, here if you instantiate the `Image` component with the following parameters, it will convert the image to the `PIL` type and reshape it to be `(100, 100)` no matter the original size that it was submitted as:
-
-```py
-img = gr.Image(shape=(100, 100), type="pil")
-```
-
-In contrast, here we keep the original size of the image, but invert the colors before converting it to a numpy array:
-
-```py
-img = gr.Image(invert_colors=True, type="numpy")
-```
-
-Postprocessing is a lot easier! Gradio automatically recognizes the format of the returned data (e.g. is the `Image` a `numpy` array or a `str` filepath?) and postprocesses it into a format that can be displayed by the browser.
-
-Take a look at the [Docs](https://gradio.app/docs) to see all the preprocessing-related parameters for each Component.
 
 ## Styling
 
