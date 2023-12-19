@@ -16,7 +16,14 @@ How to share your Gradio app:
 Gradio demos can be easily shared publicly by setting `share=True` in the `launch()` method. Like this:
 
 ```python
-demo.launch(share=True)
+import gradio as gr
+
+def greet(name):
+    return "Hello " + name + "!"
+
+demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
+    
+demo.launch(share=True)  # Share your demo with just 1 extra parameter 🚀
 ```
 
 This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on), you don't have to worry about any packaging any dependencies. A share link usually looks something like this: **https://07ff8706ab.gradio.live**. Although the link is served through the Gradio Share Servers, these servers are only a proxy for your local server, and do not store any data sent through your app. 
