@@ -1,4 +1,5 @@
 import os
+import tempfile
 import textwrap
 import warnings
 from pathlib import Path
@@ -356,7 +357,7 @@ class TestLoadInterface:
 class TestLoadInterfaceWithExamples:
     def test_interface_load_examples(self, tmp_path):
         test_file_dir = Path(Path(__file__).parent, "test_files")
-        with patch("gradio.helpers.CACHED_FOLDER", tmp_path):
+        with patch("gradio.utils.get_cache_folder", return_value=tmp_path):
             gr.load(
                 name="models/google/vit-base-patch16-224",
                 examples=[Path(test_file_dir, "cheetah1.jpg")],
@@ -365,7 +366,9 @@ class TestLoadInterfaceWithExamples:
 
     def test_interface_load_cache_examples(self, tmp_path):
         test_file_dir = Path(Path(__file__).parent, "test_files")
-        with patch("gradio.helpers.CACHED_FOLDER", tmp_path):
+        with patch(
+            "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
+        ):
             gr.load(
                 name="models/google/vit-base-patch16-224",
                 examples=[Path(test_file_dir, "cheetah1.jpg")],
