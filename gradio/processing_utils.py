@@ -712,6 +712,10 @@ def convert_video_to_playable_mp4(video_path: str) -> str:
 
 
 def get_video_length(video_path: str | Path):
+    if wasm_utils.IS_WASM:
+        raise wasm_utils.WasmUnsupportedError(
+            "Video duration is not supported in the Wasm mode."
+        )
     duration = subprocess.check_output(
         [
             "ffprobe",

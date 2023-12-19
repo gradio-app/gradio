@@ -116,8 +116,11 @@ class FileExplorer(Component):
                 return None
             else:
                 return self._safe_join(payload.root[0])
-
-        return [self._safe_join(file) for file in (payload.root)]
+        files = []
+        for file in payload.root:
+            file_ = self._safe_join(file)
+            files.append(file_)
+        return files
 
     def _strip_root(self, path):
         if path.startswith(self.root):
@@ -129,10 +132,11 @@ class FileExplorer(Component):
             return None
 
         files = [value] if isinstance(value, str) else value
+        root = []
+        for file in files:
+            root.append(self._strip_root(file).split(os.path.sep))
 
-        return FileExplorerData(
-            root=[self._strip_root(file).split(os.path.sep) for file in files]
-        )
+        return FileExplorerData(root=root)
 
     @server
     def ls(self, value=None) -> list[dict[str, str]] | None:
@@ -166,7 +170,7 @@ class FileExplorer(Component):
         def make_tree(files):
             tree = []
             for file in files:
-                parts = file.split("/")
+                parts = file.split(os.path.sep)
                 make_node(parts, tree)
             return tree
 
@@ -190,9 +194,11 @@ class FileExplorer(Component):
                     _tree.append({"path": parts[i], "type": type, "children": []})
                     _tree = _tree[-1]["children"]
 
-        files = []
+        files: list[Path] = []
         for result in expand_braces(self.glob):
             files += list(Path(self.root).resolve().glob(result))
+
+        files = [f for f in files if f != Path(self.root).resolve()]
 
         ignore_files = []
         if self.ignore_glob:
@@ -200,7 +206,14 @@ class FileExplorer(Component):
                 ignore_files += list(Path(self.root).resolve().glob(result))
             files = list(set(files) - set(ignore_files))
 
-        tree = make_tree([str(f.relative_to(self.root)) for f in files])
+        files_with_sep = []
+        for f in files:
+            file = str(f.relative_to(self.root))
+            if f.is_dir():
+                file += os.path.sep
+            files_with_sep.append(file)
+
+        tree = make_tree(files_with_sep)
         return tree
 
     def _safe_join(self, folders):
