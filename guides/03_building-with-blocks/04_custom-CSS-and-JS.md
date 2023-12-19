@@ -59,8 +59,8 @@ There are 3 ways to add javascript code to your Gradio demo:
 
 Below is an example of adding custom js to show an animated welcome message when the demo first loads.
 
-$:code_blocks_js_load
-$demo_blocks_js_methods
+$code_blocks_js_load
+$demo_blocks_js_load
 
 Note: You can also supply your custom js code as a file path. For example, if you have a file called `custom.js` in the same directory as your Python script, you can add it to your demo like so: `with gr.Blocks(js="custom.js") as demo:`. Same goes for `Interface` (ex: `gr.Interface(..., js="custom.js")`).
 
