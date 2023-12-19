@@ -27,7 +27,7 @@ When a component is used as an input, Gradio automatically handles the _preproce
 
 Similarly, when a component is used as an output, Gradio automatically handles the _postprocessing_ needed to convert the data from what is returned by your function (such as a list of image paths) to a form that can be displayed in the user's browser (a gallery of images).
 
-Consider an example demo with three input components (`gr.Textbox`, `gr.Number`, and `gr.Image`) and two outputs (`gr.Number` and `gr.Gallery`) that serve as a UI for your image generation model. Below is a diagram of what our preprocessing will send to the model and what our postprocessing will require from it.
+Consider an example demo with three input components (`gr.Textbox`, `gr.Number`, and `gr.Image`) and two outputs (`gr.Number` and `gr.Gallery`) that serve as a UI for your image-to-image generation model. Below is a diagram of what our preprocessing will send to the model and what our postprocessing will require from it.
 
 ![](https://github.com/gradio-app/gradio/blob/main/guides/assets/dataflow.svg?raw=true)
 
@@ -35,22 +35,22 @@ In this image, the following preprocessing steps happen to send the data from th
 
 * The text in the textbox is converted to a Python `str` (essentially no preprocessing)
 * The number in the number input in converted to a Python `float` (essentially no preprocessing)
-* The image supplied by the user is converted to a `numpy.array` representation of the RGB values in the image
+* Most importantly, ihe image supplied by the user is converted to a `numpy.array` representation of the RGB values in the image
 
-You can usually control the _preprocessing_ using the parameters when constructing the image component. For example, here if you instantiate the `Image` component with the following parameters, it will convert the image to the `PIL` type instead:
+Images are converted to NumPy arrays because they are a common format for machine learning workflows. You can control the _preprocessing_ using the component's parameters when constructing the component. For example, if you instantiate the `Image` component with the following parameters, it will preprocess the image to the `PIL` format instead:
 
 ```py
-img = gr.Image( type="pil")
+img = gr.Image(type="pil")
 ```
 
-Postprocessing is a lot easier!Gradio automatically recognizes the format of the returned data (e.g. does the user's function return a `numpy` array or a `str` filepath for the `gr.Image` component) and postprocesses it into a format that can be displayed by the browser.
+Postprocessing is even simpler! Gradio automatically recognizes the format of the returned data (e.g. does the user's function return a `numpy` array or a `str` filepath for the `gr.Image` component?) and postprocesses it appropriately into a format that can be displayed by the browser.
 
 So in the image above, the following postprocessing steps happen to send the data returned from a user's function to the browser:
 
 * The `float` is displayed as a number and displayed directly to the user
-* The list of string filepaths (`list[str]`) is interpreted as a list of image filepaths and displayed in the browser
+* The list of string filepaths (`list[str]`) is interpreted as a list of image filepaths and displayed as a gallery in the browser
 
-Take a look at the [Docs](https://gradio.app/docs) to see all the preprocessing-related parameters for each Component.
+Take a look at the [Docs](https://gradio.app/docs) to see all the parameters for each Gradio component.
 
 ## Queuing
 
@@ -59,13 +59,13 @@ Every Gradio app comes with a built-in queuing system that can scale to thousand
 For example, you can control the number of requests processed at a single time by setting the `default_concurrency_limit` parameter of `queue()`, e.g.
 
 ```python
-demo = gr.Interface(...).queue(default_concurrency_limit=2)
+demo = gr.Interface(...).queue(default_concurrency_limit=5)
 demo.launch()
 ```
 
-This limits the number of requests processed for this event listener at a single time to 2. By default, the `default_concurrency_limit` is set to `1`, which means that when many users are using your app, only a single user's request will be processed at a time. This is because many machine learning functions consume a significant amount of memory and so it is only suitable to have a single user using the demo at a time. However, you can change this parameter in your demo easily.
+This limits the number of requests processed for this event listener at a single time to 5. By default, the `default_concurrency_limit` is actually set to `1`, which means that when many users are using your app, only a single user's request will be processed at a time. This is because many machine learning functions consume a significant amount of memory and so it is only suitable to have a single user using the demo at a time. However, you can change this parameter in your demo easily.
 
-See the [Docs on queueing](/docs/#queue) on configuring the queuing parameters.
+See the [docs on queueing](/docs/#queue) for more details on configuring the queuing parameters.
 
 ## Streaming Outputs
 
@@ -89,9 +89,7 @@ Note that we've added a `time.sleep(1)` in the iterator to create an artificial 
 
 ## Alerts
 
-You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. If you try to divide by zero in the calculator demo above, a popup modal will display the custom error message. Learn more about Error in the [docs](https://gradio.app/docs#error).
-
-You can also issue `gr.Warning("message")` and `gr.Info("message")` by having them as standalone lines in your function, which will immediately display modals while continuing the execution of your function. Queueing needs to be enabled for this to work.
+You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. You can also issue `gr.Warning("message")` and `gr.Info("message")` by having them as standalone lines in your function, which will immediately display modals while continuing the execution of your function. Queueing needs to be enabled for this to work.
 
 Note below how the `gr.Error` has to be raised, while the `gr.Warning` and `gr.Info` are single lines.
 
@@ -117,13 +115,7 @@ demo = gr.Interface(..., theme=gr.themes.Monochrome())
 
 Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](https://gradio.app/guides/theming-guide) for more details.
 
-For additional styling ability, you can pass any CSS to your app using the `css=` kwarg.
-The base class for the Gradio app is `gradio-container`, so here's an example that changes the background color of the Gradio app:
-
-```python
-with gr.Interface(css=".gradio-container {background-color: red}") as demo:
-    ...
-```
+For additional styling ability, you can pass any CSS (as well as custom JavaScript) to your Gradio application. This is discussed in more detail in our 
 
 
 ## Progress Bars
@@ -154,22 +146,24 @@ def trim_words(words, lens):
     return [trimmed_words]
 ```
 
-The advantage of using batched functions is that if you enable queuing, the Gradio
-server can automatically _batch_ incoming requests and process them in parallel,
-potentially speeding up your demo. Here's what the Gradio code looks like (notice
-the `batch=True` and `max_batch_size=16` -- both of these parameters can be passed
-into event triggers or into the `Interface` class)
+The advantage of using batched functions is that if you enable queuing, the Gradio server can automatically _batch_ incoming requests and process them in parallel,
+potentially speeding up your demo. Here's what the Gradio code looks like (notice the `batch=True` and `max_batch_size=16`)
 
-With `Interface`:
+With the `gr.Interface` class:
 
 ```python
-demo = gr.Interface(trim_words, ["textbox", "number"], ["output"],
-                    batch=True, max_batch_size=16)
-demo.queue()
+demo = gr.Interface(
+    fn=trim_words, 
+    inputs=["textbox", "number"], 
+    outputs=["output"],
+    batch=True, 
+    max_batch_size=16
+)
+
 demo.launch()
 ```
 
-With `Blocks`:
+With the `gr.Blocks` class:
 
 ```py
 import gradio as gr
@@ -184,15 +178,11 @@ with gr.Blocks() as demo:
 
     event = run.click(trim_words, [word, leng], output, batch=True, max_batch_size=16)
 
-demo.queue()
 demo.launch()
 ```
 
-In the example above, 16 requests could be processed in parallel (for a total inference
-time of 5 seconds), instead of each request being processed separately (for a total
-inference time of 80 seconds). Many Hugging Face `transformers` and `diffusers` models
-work very naturally with Gradio's batch mode: here's [an example demo using diffusers to
+In the example above, 16 requests could be processed in parallel (for a total inference time of 5 seconds), instead of each request being processed separately (for a total
+inference time of 80 seconds). Many Hugging Face `transformers` and `diffusers` models work very naturally with Gradio's batch mode: here's [an example demo using diffusers to
 generate images in batches](https://github.com/gradio-app/gradio/blob/main/demo/diffusers_with_batching/run.py)
 
-Note: using batch functions with Gradio **requires** you to enable queuing in the underlying Interface or Blocks (see the queuing section above).
 
