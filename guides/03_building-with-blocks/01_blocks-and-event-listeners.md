@@ -1,6 +1,8 @@
 # Blocks and Event Listeners
 
-We took a quick look at Blocks in the [Quickstart](https://gradio.app/guides/quickstart/#blocks-more-flexibility-and-control). Let's dive deeper. This guide will cover the how Blocks are structured, event listeners and their types, running events continuously, updating configurations, and using dictionaries vs lists.
+We briefly descirbed the Blocks class in the [Quickstart](/guides/01_getting-started/01_quickstart.md#custom-demos-with-grblocks) as a way to build custom demos. Let's dive deeper. 
+
+This guide will cover the how to use Gradio components with `gr.Blocks`, event listeners and their types, running events continuously, updating configurations, and using dictionaries vs lists.
 
 ## Blocks Structure
 
