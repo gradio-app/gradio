@@ -1,5 +1,4 @@
 import { test, expect, drag_and_drop_file } from "@gradio/tootils";
-import fs from "fs";
 
 test("Image click-to-upload uploads image successfuly. Clear button dispatches event correctly. Downloading the file works and has the correct name.", async ({
 	page
@@ -66,17 +65,18 @@ test("Image copy from clipboard dispatches upload event.", async ({ page }) => {
 	});
 
 	await page.getByLabel("Paste from clipboard").click();
-	await page.waitForTimeout(1000);
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
+});
 
+test("Image paste to clipboard via the Upload component works", async ({
+	page
+}) => {
 	await page.evaluate(async () => {
-		navigator.clipboard.writeText("");
+		navigator.clipboard.writeText("123");
 	});
 
-	await page.getByLabel("Upload file").click();
 	await page.getByLabel("Paste from clipboard").click();
-
 	await page.evaluate(async () => {
 		const blob = await (
 			await fetch(
@@ -86,7 +86,6 @@ test("Image copy from clipboard dispatches upload event.", async ({ page }) => {
 		navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
 	});
 
-	await page.getByText("Paste from clipboard").click();
-	await page.waitForTimeout(1000);
-	await expect(page.getByLabel("# Change Events").first()).toHaveValue("3");
+	await page.getByLabel("Paste from clipboard").click();
+	await expect(page.getByLabel("# Upload Events")).toHaveValue("2");
 });

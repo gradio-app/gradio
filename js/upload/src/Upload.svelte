@@ -50,11 +50,15 @@
 				if (type) {
 					dispatch("load", null);
 					items[i].getType(type).then(async (blob) => {
-						const f = await load_files([
-							new File([blob], `clipboard.${type.replace("image/", "")}`)
-						]);
-						f;
-						dispatch("load", f?.[0] || null);
+						const file = new File(
+							[blob],
+							`clipboard.${type.replace("image/", "")}`
+						);
+						const f = await load_files([file]);
+						// check if file is valid
+						if (f && f.length > 0 && f[0]) {
+							dispatch("load", f[0]);
+						}
 					});
 					break;
 				}
