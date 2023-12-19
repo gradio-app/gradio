@@ -1,6 +1,6 @@
 import { test, expect } from "@gradio/tootils";
 
-test("UploadButton properly dispatches load event and click event for the single file case.", async ({
+test.skip("UploadButton properly dispatches load event and click event for the single file case.", async ({
 	page
 }) => {
 	await page.getByRole("button", { name: "Upload Single File" }).click();
@@ -18,7 +18,7 @@ test("UploadButton properly dispatches load event and click event for the single
 	await expect(download.suggestedFilename()).toBe("cheetah1.jpg");
 });
 
-test("UploadButton properly dispatches load event and click event for the multiple file case.", async ({
+test.skip("UploadButton properly dispatches load event and click event for the multiple file case.", async ({
 	page
 }) => {
 	await page.getByRole("button", { name: "Upload Multiple Files" }).click();

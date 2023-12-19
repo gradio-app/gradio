@@ -1,4 +1,4 @@
-import { marked, type Renderer } from "marked";
+import { type Renderer, Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
 import { gfmHeadingId } from "marked-gfm-heading-id";
 import Prism from "prismjs";
@@ -75,9 +75,7 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 		escaped: boolean
 	) {
 		const lang = (infostring ?? "").match(/\S*/)?.[0] ?? "";
-
 		code = code.replace(/\n$/, "") + "\n";
-
 		if (!lang) {
 			return (
 				'<div class="code_wrap">' +
@@ -87,7 +85,6 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 				"</code></pre></div>\n"
 			);
 		}
-
 		return (
 			'<div class="code_wrap">' +
 			COPY_BUTTON_CODE +
@@ -110,6 +107,8 @@ export function create_marked({
 	header_links: boolean;
 	line_breaks: boolean;
 }): typeof marked {
+	const marked = new Marked();
+
 	marked.use(
 		{
 			gfm: true,
@@ -128,28 +127,26 @@ export function create_marked({
 	);
 
 	if (header_links) {
-		if (header_links) {
-			marked.use(gfmHeadingId());
-			marked.use({
-				extensions: [
-					{
-						name: "heading",
-						level: "block",
-						renderer(token) {
-							const raw = token.raw
-								.toLowerCase()
-								.trim()
-								.replace(/<[!\/a-z].*?>/gi, "");
-							const id = "h" + slugger.slug(raw);
-							const level = token.depth;
-							const text = this.parser.parseInline(token.tokens!);
+		marked.use(gfmHeadingId());
+		marked.use({
+			extensions: [
+				{
+					name: "heading",
+					level: "block",
+					renderer(token) {
+						const raw = token.raw
+							.toLowerCase()
+							.trim()
+							.replace(/<[!\/a-z].*?>/gi, "");
+						const id = "h" + slugger.slug(raw);
+						const level = token.depth;
+						const text = this.parser.parseInline(token.tokens!);
 
-							return `<h${level} id="${id}"><a class="md-header-anchor" href="#${id}">${LINK_ICON_CODE}</a>${text}</h${level}>\n`;
-						}
+						return `<h${level} id="${id}"><a class="md-header-anchor" href="#${id}">${LINK_ICON_CODE}</a>${text}</h${level}>\n`;
 					}
-				]
-			});
-		}
+				}
+			]
+		});
 	}
 
 	return marked;
@@ -221,5 +218,3 @@ async function copy_to_clipboard(value: string): Promise<boolean> {
 
 	return copied;
 }
-
-export { marked };
