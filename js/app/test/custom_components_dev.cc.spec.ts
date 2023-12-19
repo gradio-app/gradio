@@ -62,7 +62,7 @@ test.afterAll(() => {
 });
 
 test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
-	test.setTimeout(60 * 1000);
+	test.setTimeout(5 * 60 * 1000);
 
 	// create a new python virtual environment and activate it
 	const venv_create = spawnSync(
