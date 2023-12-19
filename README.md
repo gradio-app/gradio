@@ -26,7 +26,9 @@
 
 Gradio is an open-source Python package that allows you to quickly **build** a demo or web application for your machine learning model, API, or any arbitary Python function. You can then **share** a link to your demo or web application in just a few seconds using Gradio's built-in sharing features. *No JavaScript, CSS, or web hosting experience needed!*
 
-It just takes a few lines of Python to create a beautiful demo, so let's get started 💫
+<img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/lcm-screenshot-2.gif" style="padding-bottom: 10px">
+
+It just takes a few lines of Python to create a beautiful demo like the one above, so let's get started 💫
 
 ### Installation
 
@@ -99,7 +101,7 @@ The `input` and `output` arguments take one or more Gradio components. As we'll 
 
 If your function accepts more than one argument, as is the case above, pass a list of input components to `inputs`, with each input component corresponding to one of the arguments of the function, in order. The same holds true if your function returns more than one value: simply pass in a list of components to `outputs`. This flexibility makes the `Interface` class a very powerful way to create demos.
 
-We'll dive deeper into the `gr.Interface` on our series on [building Interfaces](https://www.gradio.app/guides/the-interface-class).
+We'll dive deeper into the `gr.Interface` on our series on [building Interfaces](https://www.gradio.app/main/guides/the-interface-class).
 
 ### Sharing Your Demo
 
