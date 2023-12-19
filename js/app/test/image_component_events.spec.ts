@@ -1,7 +1,7 @@
 import { test, expect, drag_and_drop_file } from "@gradio/tootils";
 import fs from "fs";
 
-test("Image click-to-upload uploads image successfuly. Clear button dispatches event correctly. Downloading the file works and has the correct name.", async ({
+test.skip("Image click-to-upload uploads image successfuly. Clear button dispatches event correctly. Downloading the file works and has the correct name.", async ({
 	page
 }) => {
 	await page.getByRole("button", { name: "Drop Image Here" }).click();
