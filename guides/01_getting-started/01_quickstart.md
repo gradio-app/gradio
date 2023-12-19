@@ -46,8 +46,8 @@ You'll notice that in order to make your first demo, you created an instance of 
 The `Interface` class has three core arguments:
 
 - `fn`: the function to wrap a user interface (UI) around
-- `inputs`: the Gradio component(s) to use for the input. 
-- `outputs`: the Gradio component(s) to use for the output.
+- `inputs`: the Gradio component(s) to use for the input. The number of components should match the number of arguments in your function.
+- `outputs`: the Gradio component(s) to use for the output. The number of components should match the number of return values from your function.
 
 The `fn` argument is very flexible -- you can pass *any* Python function that you want to wrap with a UI. In the example above, we saw a relatively simple function, but the function could be anything from a music generator to a tax calculator to the prediction function of a pretrained machine learning model.
 

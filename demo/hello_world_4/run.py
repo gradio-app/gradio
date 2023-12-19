@@ -8,5 +8,6 @@ demo = gr.Interface(
     inputs=["text", "slider"],
     outputs=["text"],
 )
+
 if __name__ == "__main__":
     demo.launch()

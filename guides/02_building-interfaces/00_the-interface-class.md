@@ -2,7 +2,7 @@
 
 As mentioned in the [Quickstart](/guides/01_getting-started/01_quickstart.md), the `gr.Interface` class is a high-level abstraction in Gradio that allows you to quickly create a demo for any Python function simply by specifying the input types and the output types. Revisiting our first demo:
 
-$code_hello_world
+$code_hello_world_4
 
 
 We see that the `Interface` class is initialized with three required parameters:
@@ -15,21 +15,23 @@ Let's take a closer look at these components used to provide input and output.
 
 ## Components Attributes
 
-We used two textbox components in the previous examples, but what if you want to change how the UI components look or behave?
+We used the default versions of the `gr.Textbox` and `gr.Slider`, but what if you want to change how the UI components look or behave?
 
-Let's say you want to customize the input text field — for example, you wanted it to be larger and have a text placeholder. If we use the actual class for `Textbox` instead of using the string shortcut, you have access to much more customizability through component attributes.
+Let's say you want to customize the slider to have values from 1 to 10, with a default of 2. And you wanted to customize the output text field — you want it to be larger and have a label.
+
+If you use the actual class for `gr.Textbox` and `gr.Slider` instead of using the string shortcut, you have access to much more customizability through component attributes.
 
 $code_hello_world_2
 $demo_hello_world_2
 
 ## Multiple Input and Output Components
 
-Suppose you had a more complex function, with multiple inputs and outputs. In the example below, we define a function that takes a string, boolean, and number, and returns a string and number. Take a look how you pass a list of input and output components.
+Suppose you had a more complex function, with multiple outputs as well. In the example below, we define a function that takes a string, boolean, and number, and returns a string and number. 
 
 $code_hello_world_3
 $demo_hello_world_3
 
-You simply wrap the components in a list. Each component in the `inputs` list corresponds to one of the parameters of the function, in order. Each component in the `outputs` list corresponds to one of the values returned by the function, again in order.
+Just as each component in the `inputs` list corresponds to one of the parameters of the function, in order, each component in the `outputs` list corresponds to one of the values returned by the function, in order.
 
 ## An Image Example
 
