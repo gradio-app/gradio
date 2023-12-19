@@ -5,11 +5,11 @@ How to share your Gradio app:
 1. [Sharing demos with the share parameter](#sharing-demos)
 2. [Hosting on HF Spaces](#hosting-on-hf-spaces)
 3. [Embedding hosted spaces](#embedding-hosted-spaces)
-5. [Using the API page](#api-page)
-6. [Adding authentication to the page](#authentication)
-7. [Accessing network requests](#accessing-the-network-request-directly)
-8. [Mounting within FastAPI](#mounting-within-another-fast-api-app)
-9. [Security and file access](#security-and-file-access)
+4. [Using the API page](#api-page)
+5. [Authentication](#authentication)
+6. [Accessing network requests](#accessing-the-network-request-directly)
+7. [Mounting within FastAPI](#mounting-within-another-fast-api-app)
+8. [Security and file access](#security-and-file-access)
 
 ## Sharing Demos
 
