@@ -1,8 +1,7 @@
 # Key Features
 
-Let's go through some of the most popular features of Gradio! Here are Gradio's key features:
+Let's go through some of the key features of Gradio. This Guide is intended to be a high-level overview of various things that you may be interested in 
 
-<!-- 1. [Adding example inputs](#example-inputs) -->
 2. [Passing custom error messages](#alerts)
 <!-- 3. [Adding descriptive content](#descriptive-content) -->
 <!-- 4. [Setting up flagging](#flagging) -->
@@ -16,19 +15,6 @@ Let's go through some of the most popular features of Gradio! Here are Gradio's 
 
 ## Components
 
-## Streaming
-
-
-<!-- ## Example Inputs
-
-You can provide example data that a user can easily load into `Interface`. This can be helpful to demonstrate the types of inputs the model expects, as well as to provide a way to explore your dataset in conjunction with your model. To load example data, you can provide a **nested list** to the `examples=` keyword argument of the Interface constructor. Each sublist within the outer list represents a data sample, and each element within the sublist represents an input for each input component. The format of example data for each component is specified in the [Docs](https://gradio.app/docs#components).
-
-$code_calculator
-$demo_calculator
-
-You can load a large dataset into the examples to browse and interact with the dataset through Gradio. The examples will be automatically paginated (you can configure this through the `examples_per_page` argument of `Interface`).
-
-Continue learning about examples in the [More On Examples](https://gradio.app/guides/more-on-examples) guide. -->
 
 
 ## Alerts
@@ -49,69 +35,6 @@ def start_process(name):
         raise gr.Error("Process failed")
 ```
 
-## Descriptive Content
-
-In the previous example, you may have noticed the `title=` and `description=` keyword arguments in the `Interface` constructor that helps users understand your app.
-
-There are three arguments in the `Interface` constructor to specify where this content should go:
-
-- `title`: which accepts text and can display it at the very top of interface, and also becomes the page title.
-- `description`: which accepts text, markdown or HTML and places it right under the title.
-- `article`: which also accepts text, markdown or HTML and places it below the interface.
-
-![annotated](https://github.com/gradio-app/gradio/blob/main/guides/assets/annotated.png?raw=true)
-
-If you're using the `Blocks` API instead, you can insert text, markdown, or HTML anywhere using the `gr.Markdown(...)` or `gr.HTML(...)` components, with descriptive content inside the `Component` constructor.
-
-Another useful keyword argument is `label=`, which is present in every `Component`. This modifies the label text at the top of each `Component`. You can also add the `info=` keyword argument to form elements like `Textbox` or `Radio` to provide further information on their usage.
-
-```python
-gr.Number(label='Age', info='In years, must be greater than 0')
-```
-
-## Flagging
-
-By default, an `Interface` will have "Flag" button. When a user testing your `Interface` sees input with interesting output, such as erroneous or unexpected model behaviour, they can flag the input for you to review. Within the directory provided by the `flagging_dir=` argument to the `Interface` constructor, a CSV file will log the flagged inputs. If the interface involves file data, such as for Image and Audio components, folders will be created to store those flagged data as well.
-
-For example, with the calculator interface shown above, we would have the flagged data stored in the flagged directory shown below:
-
-```directory
-+-- calculator.py
-+-- flagged/
-|   +-- logs.csv
-```
-
-_flagged/logs.csv_
-
-```csv
-num1,operation,num2,Output
-5,add,7,12
-6,subtract,1.5,4.5
-```
-
-With the sepia interface shown earlier, we would have the flagged data stored in the flagged directory shown below:
-
-```directory
-+-- sepia.py
-+-- flagged/
-|   +-- logs.csv
-|   +-- im/
-|   |   +-- 0.png
-|   |   +-- 1.png
-|   +-- Output/
-|   |   +-- 0.png
-|   |   +-- 1.png
-```
-
-_flagged/logs.csv_
-
-```csv
-im,Output
-im/0.png,Output/0.png
-im/1.png,Output/1.png
-```
-
-If you wish for the user to provide a reason for flagging, you can pass a list of strings to the `flagging_options` argument of Interface. Users will have to select one of the strings when flagging, which will be saved as an additional column to the CSV.
 
 ## Preprocessing and Postprocessing
 
@@ -294,6 +217,3 @@ generate images in batches](https://github.com/gradio-app/gradio/blob/main/demo/
 
 Note: using batch functions with Gradio **requires** you to enable queuing in the underlying Interface or Blocks (see the queuing section above).
 
-## Colab Notebooks
-
-Gradio is able to run anywhere you run Python, including local jupyter notebooks as well as collaborative notebooks, such as [Google Colab](https://colab.research.google.com/). In the case of local jupyter notebooks and Google Colab notbooks, Gradio runs on a local server which you can interact with in your browser. (Note: for Google Colab, this is accomplished by [service worker tunneling](https://github.com/tensorflow/tensorboard/blob/master/docs/design/colab_integration.md), which requires cookies to be enabled in your browser.) For other remote notebooks, Gradio will also run on a server, but you will need to use [SSH tunneling](https://coderwall.com/p/ohk6cg/remote-access-to-ipython-notebooks-via-ssh) to view the app in your local browser. Often a simpler options is to use Gradio's built-in public links, [discussed in the next Guide](https://gradio.app/guides/sharing-your-app/#sharing-demos).

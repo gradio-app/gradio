@@ -28,11 +28,11 @@ demo.launch(share=True)  # Share your demo with just 1 extra parameter 🚀
 
 This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on), you don't have to worry about any packaging any dependencies. A share link usually looks something like this: **https://07ff8706ab.gradio.live**. Although the link is served through the Gradio Share Servers, these servers are only a proxy for your local server, and do not store any data sent through your app. 
 
-Keep in mind that share links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default, except in colab notebooks), only a local link is created, which can be shared by [port-forwarding](https://www.ssh.com/ssh/tunneling/example) with specific users. 
+Keep in mind that share links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default, except in Google Colab notebooks), only a local link is created, which can be shared by [port-forwarding](https://www.ssh.com/ssh/tunneling/example) with specific users. 
 
 ![sharing](https://github.com/gradio-app/gradio/blob/main/guides/assets/sharing.svg?raw=true)
 
-Share links expire after 72 hours. (Note: it is [also possible to set up your own Share Server](https://github.com/huggingface/frp/) to overcome this restriction.)
+Share links expire after 72 hours. (Note: it is [also possible to set up your own Share Server](https://github.com/huggingface/frp/) with your cloud provider to overcome this restriction.)
 
 ## Hosting on HF Spaces
 
