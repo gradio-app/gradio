@@ -62,7 +62,7 @@ Here, `create_repo` creates a gradio repo with the target name under a specific 
 
 ## Loading demos from Spaces
 
-You can also use and remix existing Gradio demos on Hugging Face Spaces. For example, you could take two existing Gradio demos and put them as separate tabs and create a new demo. You can run this new demo locally, or upload it to Spaces, allowing endless possibilities to remix and create new demos!
+You can also use and remix existing Gradio demos on Hugging Face Spaces. For example, you could take two existing Gradio demos on Spaces and put them as separate tabs and create a new demo. You can run this new demo locally, or upload it to Spaces, allowing endless possibilities to remix and create new demos!
 
 Here's an example that does exactly that:
 
@@ -78,7 +78,9 @@ with gr.Blocks() as demo:
 demo.launch()
 ```
 
-Notice that we use `gr.load()`, the same method we used to load models using the Inference API. However, here we specify that the `src` is `spaces` (Hugging Face Spaces). Note that loading a Space in this way does not load the entire Space, rather it 
+Notice that we use `gr.load()`, the same method we used to load models using the Inference API. However, here we specify that the `src` is `spaces` (Hugging Face Spaces). 
+
+Note: loading a Space in this way may result in slight differences from the original Space. In particular, any attributes that apply to the entire Blocks, such as the theme or custom CSS/JS, will not be loaded. You can copy these properties from the Space you are loading into your own `Blocks` object. 
 
 ## Demos with the `Pipeline` in `transformers`
 
