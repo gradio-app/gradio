@@ -53,7 +53,6 @@
 
 	export let i18n: I18nFormatter;
 	export let eta: number | null = null;
-	export let queue = false;
 	export let queue_position: number | null;
 	export let queue_size: number | null;
 	export let status: "complete" | "pending" | "error" | "generating";
@@ -75,6 +74,7 @@
 	let timer_start = 0;
 	let timer_diff = 0;
 	let old_eta: number | null = null;
+	let eta_from_start: number | null = null;
 	let message_visible = false;
 	let eta_level: number | null = 0;
 	let progress_level: (number | undefined)[] | null = null;
@@ -83,9 +83,9 @@
 	let show_eta_bar = true;
 
 	$: eta_level =
-		eta === null || eta <= 0 || !timer_diff
+		eta_from_start === null || eta_from_start <= 0 || !timer_diff
 			? null
-			: Math.min(timer_diff / eta, 1);
+			: Math.min(timer_diff / eta_from_start, 1);
 	$: if (progress != null) {
 		show_eta_bar = false;
 	}
@@ -119,6 +119,7 @@
 	}
 
 	const start_timer = (): void => {
+		eta = old_eta = formatted_eta = null;
 		timer_start = performance.now();
 		timer_diff = 0;
 		_timer = true;
@@ -134,6 +135,7 @@
 
 	function stop_timer(): void {
 		timer_diff = 0;
+		eta = old_eta = formatted_eta = null;
 
 		if (!_timer) return;
 		_timer = false;
@@ -160,11 +162,10 @@
 	$: {
 		if (eta === null) {
 			eta = old_eta;
-		} else if (queue) {
-			eta = (performance.now() - timer_start) / 1000 + eta;
 		}
-		if (eta != null) {
-			formatted_eta = eta.toFixed(1);
+		if (eta != null && old_eta !== eta) {
+			eta_from_start = (performance.now() - timer_start) / 1000 + eta;
+			formatted_eta = eta_from_start.toFixed(1);
 			old_eta = eta;
 		}
 	}
