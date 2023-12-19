@@ -23,7 +23,7 @@ Tip: it is best to install Gradio in a virtual environment. Detailed installatio
 You can run Gradio in your favorite code editor, Jupyter notebook, Google Colab, or anywhere else you write Python. Let's write your first Gradio app:
 
 
-$code_hello_world
+$code_hello_world_4
 
 
 Tip: We shorten the imported name from <code>gradio</code> to <code>gr</code> for better readability of code. This is a widely adopted convention that you should follow so that anyone working with your code can easily understand it. 
@@ -32,9 +32,9 @@ Now, run your code. If you've written the Python code in a file named, for examp
 
 The demo below will open in a browser on [http://localhost:7860](http://localhost:7860) if running from a file. If you are running within a notebook, the demo will appear embedded within the notebook.
 
-$demo_hello_world
+$demo_hello_world_4
 
-Type your name in the textbox on the left, and then press the Submit button. You should see a friendly greeting on the right.
+Type your name in the textbox on the left, drag the slider, and then press the Submit button. You should see a friendly greeting on the right.
 
 Tip: When developing locally, you can run your Gradio app in <strong>hot reload mode</strong>, which automatically reloads the Gradio app whenever you make changes to the file. To do this, simply type in <code>gradio</code> before the name of the file instead of <code>python</code>. In the example above, you would type: `gradio app.py` in your terminal. Learn more about hot reloading in the <a href="/guides/other-tutorials/developing-faster-with-reload-mode">Hot Reloading Guide</a>.
 
@@ -46,14 +46,16 @@ You'll notice that in order to make your first demo, you created an instance of 
 The `Interface` class has three core arguments:
 
 - `fn`: the function to wrap a user interface (UI) around
-- `inputs`: which Gradio component(s) to use for the input.
-- `outputs`: which Gradio component(s) to use for the output.
+- `inputs`: the Gradio component(s) to use for the input. 
+- `outputs`: the Gradio component(s) to use for the output.
 
-The `fn` argument is very flexible -- you can pass *any* Python function that you want to wrap with a UI. In the example above, we saw a simple text-based function, but the function could be anything from a music generator to a tax calculator to the prediction function of a pretrained machine learning model.
+The `fn` argument is very flexible -- you can pass *any* Python function that you want to wrap with a UI. In the example above, we saw a relatively simple function, but the function could be anything from a music generator to a tax calculator to the prediction function of a pretrained machine learning model.
 
-The `input` and `output` arguments take one or more Gradio components. As we'll see, Gradio includes more than [30 built-in components](https://www.gradio.app/docs/components) (such as the `gr.Textbox()`, `gr.Image()`, and `gr.HTML()` components) that are designed for machine learning applications. For the `inputs` and `outputs` arguments, pass in the name of one of these components as a string (`"textbox"`) or an instance of the class (`gr.Textbox()`).
+The `input` and `output` arguments take one or more Gradio components. As we'll see, Gradio includes more than [30 built-in components](https://www.gradio.app/docs/components) (such as the `gr.Textbox()`, `gr.Image()`, and `gr.HTML()` components) that are designed for machine learning applications. 
 
-Tip: If your function accepts more than one argument, you can pass in a list of input components to `inputs`, with each input component corresponding to one of the arguments of the function, in order. The same holds true if your function returns more than one value: simply pass in a list of components to `outputs`. This flexibility makes the `Interface` class a very powerful way to create demos.
+Tip: For the `inputs` and `outputs` arguments, you can pass in the name of these components as a string (`"textbox"`) or an instance of the class (`gr.Textbox()`).
+
+If your function accepts more than one argument, as is the case above, pass a list of input components to `inputs`, with each input component corresponding to one of the arguments of the function, in order. The same holds true if your function returns more than one value: simply pass in a list of components to `outputs`. This flexibility makes the `Interface` class a very powerful way to create demos.
 
 We'll dive deeper into the `gr.Interface` on our series on [building Interfaces](/guides/building-interfaces/interface-state).
 

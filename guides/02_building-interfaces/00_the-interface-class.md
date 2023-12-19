@@ -15,7 +15,7 @@ Let's take a closer look at these components used to provide input and output.
 
 ## Components Attributes
 
-We saw some simple `Textbox` components in the previous examples, but what if you want to change how the UI components look or behave?
+We used two textbox components in the previous examples, but what if you want to change how the UI components look or behave?
 
 Let's say you want to customize the input text field — for example, you wanted it to be larger and have a text placeholder. If we use the actual class for `Textbox` instead of using the string shortcut, you have access to much more customizability through component attributes.
 

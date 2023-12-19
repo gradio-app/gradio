@@ -5,10 +5,11 @@ Let's go through some of the key features of Gradio. This Guide is intended to b
 1. [Components](#components)
 2. [Queuing](#queuing)
 3. [Streaming outputs](#streaming-outputs)
-4. [Alerts](#alerts)
-5. [Styling](#styling)
-6. [Progress bars](#progress-bars)
-7. [Batch functions](#batch-functions)
+4. [Streaming inputs](#streaming-inputs)
+5. [Alert modals](#alert-modals)
+6. [Styling](#styling)
+7. [Progress bars](#progress-bars)
+8. [Batch functions](#batch-functions)
 
 ## Components
 
@@ -67,7 +68,7 @@ This limits the number of requests processed for this event listener at a single
 
 See the [docs on queueing](/docs/#queue) for more details on configuring the queuing parameters.
 
-## Streaming Outputs
+## Streaming outputs
 
 In some cases, you may want to stream a sequence of outputs rather than show a single output at once. For example, you might have an image generation model and you want to show the image that is generated at each step, leading up to the final image. Or you might have a chatbot which streams its response one token at a time instead of returning it all at once.
 
@@ -86,10 +87,13 @@ $demo_fake_diffusion
 
 Note that we've added a `time.sleep(1)` in the iterator to create an artificial pause between steps so that you are able to observe the steps of the iterator (in a real image generation model, this probably wouldn't be necessary).
 
+## Streaming inputs
 
-## Alerts
+Similarly, Gradio can handle streaming inputs, e.g. a live audio stream that can gets transcribed to text in real time, or an image generation model that reruns every time a user types a letter in a textbox. This is covered in more details in our guide on building [reactive Interfaces](/guides/building-interfaces/01_reactive-interfaces). 
 
-You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. You can also issue `gr.Warning("message")` and `gr.Info("message")` by having them as standalone lines in your function, which will immediately display modals while continuing the execution of your function. Queueing needs to be enabled for this to work.
+## Alert modals
+
+You wish to raise alerts to the user. To do so, raise a `gr.Error("custom message")` to display an error message. You can also issue `gr.Warning("message")` and `gr.Info("message")` by having them as standalone lines in your function, which will immediately display modals while continuing the execution of your function. Queueing needs to be enabled for this to work.
 
 Note below how the `gr.Error` has to be raised, while the `gr.Warning` and `gr.Info` are single lines.
 
@@ -113,12 +117,12 @@ Gradio themes are the easiest way to customize the look and feel of your app. Yo
 demo = gr.Interface(..., theme=gr.themes.Monochrome())
 ```
 
-Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](https://gradio.app/guides/theming-guide) for more details.
+Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [theming guide](https://gradio.app/guides/theming-guide) for more details.
 
-For additional styling ability, you can pass any CSS (as well as custom JavaScript) to your Gradio application. This is discussed in more detail in our 
+For additional styling ability, you can pass any CSS (as well as custom JavaScript) to your Gradio application. This is discussed in more detail in our [custom JS and CSS guide](/guides/building-with-blocks/custom-CSS-and-JS).
 
 
-## Progress Bars
+## Progress bars
 
 Gradio supports the ability to create a custom Progress Bars so that you have customizability and control over the progress update that you show to the user. In order to enable this, simply add an argument to your method that has a default value of a `gr.Progress` instance. Then you can update the progress levels by calling this instance directly with a float between 0 and 1, or using the `tqdm()` method of the `Progress` instance to track progress over an iterable, as shown below.
 
@@ -127,7 +131,7 @@ $demo_progress_simple
 
 If you use the `tqdm` library, you can even report progress updates automatically from any `tqdm.tqdm` that already exists within your function by setting the default argument as `gr.Progress(track_tqdm=True)`!
 
-## Batch Functions
+## Batch functions
 
 Gradio supports the ability to pass _batch_ functions. Batch functions are just
 functions which take in a list of inputs and return a list of predictions.
