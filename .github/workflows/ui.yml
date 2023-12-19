@@ -71,7 +71,7 @@ jobs:
       - name: run browser tests
         run: |
           . venv/bin/activate
-          CC_TEST=0 CI=1 pnpm test:browser
+          CI=1 pnpm test:browser
       - name: run gradio custom components test
         run: |
           . venv/bin/activate
