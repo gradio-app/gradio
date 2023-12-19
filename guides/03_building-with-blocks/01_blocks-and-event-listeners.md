@@ -1,6 +1,6 @@
 # Blocks and Event Listeners
 
-We briefly descirbed the Blocks class in the [Quickstart](/guides/01_getting-started/01_quickstart.md#custom-demos-with-grblocks) as a way to build custom demos. Let's dive deeper. 
+We briefly descirbed the Blocks class in the [Quickstart](/guides/quickstart#custom-demos-with-grblocks) as a way to build custom demos. Let's dive deeper. 
 
 
 ## Blocks Structure

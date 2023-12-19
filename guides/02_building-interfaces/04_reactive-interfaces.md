@@ -25,4 +25,4 @@ Streaming can also be done in an output component. A `gr.Audio(streaming=True)` 
 
 $code_stream_audio_out
 
-For a more detailed example, see our guide on performing [automatic speech recognition](/guides/other-tutorials/real-time-speech-recognition) with Gradio.
+For a more detailed example, see our guide on performing [automatic speech recognition](/guides/real-time-speech-recognition) with Gradio.

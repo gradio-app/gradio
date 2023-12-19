@@ -1,6 +1,6 @@
 # The `Interface` class
 
-As mentioned in the [Quickstart](/guides/01_getting-started/01_quickstart.md), the `gr.Interface` class is a high-level abstraction in Gradio that allows you to quickly create a demo for any Python function simply by specifying the input types and the output types. Revisiting our first demo:
+As mentioned in the [Quickstart](/guides/quickstart), the `gr.Interface` class is a high-level abstraction in Gradio that allows you to quickly create a demo for any Python function simply by specifying the input types and the output types. Revisiting our first demo:
 
 $code_hello_world_4
 

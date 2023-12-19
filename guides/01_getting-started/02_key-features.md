@@ -89,7 +89,7 @@ Note that we've added a `time.sleep(1)` in the iterator to create an artificial 
 
 ## Streaming inputs
 
-Similarly, Gradio can handle streaming inputs, e.g. a live audio stream that can gets transcribed to text in real time, or an image generation model that reruns every time a user types a letter in a textbox. This is covered in more details in our guide on building [reactive Interfaces](/guides/building-interfaces/01_reactive-interfaces). 
+Similarly, Gradio can handle streaming inputs, e.g. a live audio stream that can gets transcribed to text in real time, or an image generation model that reruns every time a user types a letter in a textbox. This is covered in more details in our guide on building [reactive Interfaces](/guides/reactive-interfaces). 
 
 ## Alert modals
 
@@ -119,7 +119,7 @@ demo = gr.Interface(..., theme=gr.themes.Monochrome())
 
 Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [theming guide](https://gradio.app/guides/theming-guide) for more details.
 
-For additional styling ability, you can pass any CSS (as well as custom JavaScript) to your Gradio application. This is discussed in more detail in our [custom JS and CSS guide](/guides/building-with-blocks/custom-CSS-and-JS).
+For additional styling ability, you can pass any CSS (as well as custom JavaScript) to your Gradio application. This is discussed in more detail in our [custom JS and CSS guide](/guides/custom-CSS-and-JS).
 
 
 ## Progress bars
