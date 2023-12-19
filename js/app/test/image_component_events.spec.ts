@@ -86,6 +86,6 @@ test("Image paste to clipboard via the Upload component works", async ({
 		navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
 	});
 
-	await page.getByLabel("Paste from clipboard").click();
+	await page.getByText("Paste from clipboard").click();
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("2");
 });
