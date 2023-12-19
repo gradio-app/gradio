@@ -6,7 +6,7 @@ Let's go through some of the key features of Gradio. This Guide is intended to b
 2. [Passing custom error messages](#alerts)
 6. [Styling demos](#styling)
 7. [Queuing users](#queuing)
-8. [Iterative outputs](#iterative-outputs)
+8. [Streaming outputs](#streaming-outputs)
 9. [Progress bars](#progress-bars)
 10. [Batch functions](#batch-functions)
 11. [Running on collaborative notebooks](#colab-notebooks)
@@ -29,9 +29,6 @@ Similarly, when a component is used as an output, Gradio automatically handles t
 Consider an example demo with three input components (`gr.Textbox`, `gr.Number`, and `gr.Image`) and two outputs (`gr.Number` and `gr.Gallery`) that serve as a UI for your image generation model. Below is a diagram of what our preprocessing will send to the model and what our postprocessing will require from it.
 
 ![](https://github.com/gradio-app/gradio/blob/main/guides/assets/dataflow.svg?raw=true)
-
-As you've seen, Gradio includes components that can handle a variety of different data types, such as images, audio, and video. Most components can be used both as inputs or outputs.
-
 
 
 You can control the _preprocessing_ using the parameters when constructing the image component. For example, here if you instantiate the `Image` component with the following parameters, it will convert the image to the `PIL` type and reshape it to be `(100, 100)` no matter the original size that it was submitted as:
@@ -160,7 +157,7 @@ Supplying a generator into Gradio **requires** you to enable queuing in the unde
 
 ## Progress Bars
 
-Gradio supports the ability to create a custom Progress Bars so that you have customizability and control over the progress update that you show to the user. In order to enable this, simply add an argument to your method that has a default value of a `gr.Progress` instance. Then you can update the progress levels by calling this instance directly with a float between 0 and 1, or using the `tqdm()` method of the `Progress` instance to track progress over an iterable, as shown below. Queueing must be enabled for progress updates.
+Gradio supports the ability to create a custom Progress Bars so that you have customizability and control over the progress update that you show to the user. In order to enable this, simply add an argument to your method that has a default value of a `gr.Progress` instance. Then you can update the progress levels by calling this instance directly with a float between 0 and 1, or using the `tqdm()` method of the `Progress` instance to track progress over an iterable, as shown below.
 
 $code_progress_simple
 $demo_progress_simple
