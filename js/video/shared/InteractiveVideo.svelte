@@ -62,59 +62,62 @@
 </script>
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
-{#if value === null || value.url === undefined}
-	{#if active_source === "upload"}
-		<Upload
-			bind:dragging
-			filetype="video/x-m4v,video/*"
-			on:load={handle_load}
-			on:error={({ detail }) => dispatch("error", detail)}
-			{root}
-			include_sources={sources.length > 1}
-		>
-			<slot />
-		</Upload>
-	{:else if active_source === "webcam"}
-		<Webcam
-			{mirror_webcam}
-			{include_audio}
-			mode="video"
-			on:error
-			on:capture={() => dispatch("change")}
-			on:start_recording
-			on:stop_recording
-			{i18n}
-		/>
-	{/if}
-{:else}
-	<ModifyUpload {i18n} on:clear={handle_clear} />
-	{#if playable()}
-		{#key value?.url}
-			<Player
-				{root}
-				interactive
-				{autoplay}
-				src={value.url}
-				subtitle={subtitle?.url}
-				on:play
-				on:pause
-				on:stop
-				on:end
-				mirror={mirror_webcam && active_source === "webcam"}
-				{label}
-				{handle_change}
-				{handle_reset_value}
-			/>
-		{/key}
-	{:else if value.size}
-		<div class="file-name">{value.orig_name || value.url}</div>
-		<div class="file-size">
-			{prettyBytes(value.size)}
+<div data-testid="video" class="video-container">
+	{#if value === null || value.url === undefined}
+		<div class="upload-container">
+			{#if active_source === "upload"}
+				<Upload
+					bind:dragging
+					filetype="video/x-m4v,video/*"
+					on:load={handle_load}
+					on:error={({ detail }) => dispatch("error", detail)}
+					{root}
+				>
+					<slot />
+				</Upload>
+			{:else if active_source === "webcam"}
+				<Webcam
+					{mirror_webcam}
+					{include_audio}
+					mode="video"
+					on:error
+					on:capture={() => dispatch("change")}
+					on:start_recording
+					on:stop_recording
+					{i18n}
+				/>
+			{/if}
 		</div>
+	{:else}
+		<ModifyUpload {i18n} on:clear={handle_clear} />
+		{#if playable()}
+			{#key value?.url}
+				<Player
+					{root}
+					interactive
+					{autoplay}
+					src={value.url}
+					subtitle={subtitle?.url}
+					on:play
+					on:pause
+					on:stop
+					on:end
+					mirror={mirror_webcam && active_source === "webcam"}
+					{label}
+					{handle_change}
+					{handle_reset_value}
+				/>
+			{/key}
+		{:else if value.size}
+			<div class="file-name">{value.orig_name || value.url}</div>
+			<div class="file-size">
+				{prettyBytes(value.size)}
+			</div>
+		{/if}
 	{/if}
-{/if}
 
-<SelectSource {sources} bind:active_source {handle_clear} />
+	<SelectSource {sources} bind:active_source {handle_clear} />
+</div>
 
 <style>
 	.file-name {
@@ -126,5 +129,17 @@
 	.file-size {
 		padding: var(--size-2);
 		font-size: var(--text-xl);
+	}
+
+	.upload-container {
+		height: 100%;
+	}
+
+	.video-container {
+		display: flex;
+		height: 100%;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
 	}
 </style>

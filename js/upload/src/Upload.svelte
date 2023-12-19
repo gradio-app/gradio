@@ -15,7 +15,6 @@
 	export let root: string;
 	export let hidden = false;
 	export let format: "blob" | "file" = "file";
-	export let include_sources = false;
 	export let uploading = false;
 
 	let upload_id: string;
@@ -42,6 +41,26 @@
 	}
 	function updateDragging(): void {
 		dragging = !dragging;
+	}
+
+	export function paste_clipboard(): void {
+		navigator.clipboard.read().then(async (items) => {
+			for (let i = 0; i < items.length; i++) {
+				const type = items[i].types.find((t) => t.startsWith("image/"));
+				if (type) {
+					dispatch("load", null);
+					items[i].getType(type).then(async (blob) => {
+						const file = new File(
+							[blob],
+							`clipboard.${type.replace("image/", "")}`
+						);
+						const f = await load_files([file]);
+						dispatch("load", f?.[0]);
+					});
+					break;
+				}
+			}
+		});
 	}
 
 	export function open_file_upload(): void {
@@ -126,7 +145,19 @@
 	}
 </script>
 
-{#if uploading}
+{#if filetype === "clipboard"}
+	<button
+		class:hidden
+		class:center
+		class:boundedheight
+		class:flex
+		style:height="100%"
+		tabindex={hidden ? -1 : 0}
+		on:click={paste_clipboard}
+	>
+		<slot />
+	</button>
+{:else if uploading}
 	{#if !hidden}
 		<UploadProgress {root} {upload_id} files={file_data} />
 	{/if}
@@ -136,7 +167,7 @@
 		class:center
 		class:boundedheight
 		class:flex
-		style:height={include_sources ? "calc(100% - 40px" : "100%"}
+		style:height="100%"
 		tabindex={hidden ? -1 : 0}
 		on:drag|preventDefault|stopPropagation
 		on:dragstart|preventDefault|stopPropagation

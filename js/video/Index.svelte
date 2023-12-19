@@ -73,12 +73,8 @@
 		value = initial_value;
 	};
 
-	$: if (sources) {
-		if (sources.length > 1) {
-			active_source = "upload";
-		} else {
-			active_source = sources[0];
-		}
+	$: if (sources && !active_source) {
+		active_source = sources[0];
 	}
 
 	$: {
