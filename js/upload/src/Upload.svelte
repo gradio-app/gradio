@@ -55,10 +55,7 @@
 							`clipboard.${type.replace("image/", "")}`
 						);
 						const f = await load_files([file]);
-						// check if file is valid
-						if (f && f.length > 0 && f[0]) {
-							dispatch("load", f[0]);
-						}
+						dispatch("load", f?.[0]);
 					});
 					break;
 				}
