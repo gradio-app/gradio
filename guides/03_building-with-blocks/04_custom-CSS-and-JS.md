@@ -1,10 +1,10 @@
-# Custom JS and CSS
+# Customizing your demo with CSS and Javascript
 
-This guide covers how to style Blocks with more flexibility, as well as adding Javascript code to event listeners.
+Gradio allows you to customize your demo in several ways. You can customize the layout of your demo, add custom HTML, and add custom theming as well. This tutorial will go beyond that and walk you through how to add custom CSS and JavaScript code to your demo in order to add stuff like custom styling, animations, custom UI functionality, analytics, and more.
 
 **Warning**: The use of query selectors in custom JS and CSS is _not_ guaranteed to work across Gradio versions as the Gradio HTML DOM may change. We recommend using query selectors sparingly.
 
-## Custom CSS
+## Adding custom CSS to your demo
 
 Gradio themes are the easiest way to customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `Blocks` constructor. For example:
 
@@ -51,9 +51,38 @@ with gr.Blocks(css=css) as demo:
 
 The CSS `#warning` ruleset will only target the second Textbox, while the `.feedback` ruleset will target both. Note that when targeting classes, you might need to put the `!important` selector to override the default Gradio styles.
 
-## Custom JS
+## Adding custom JavaScript to your demo
 
-Event listeners have a `_js` argument that can take a Javascript function as a string and treat it just like a Python event listener function. You can pass both a Javascript function and a Python function (in which case the Javascript function is run first) or only Javascript (and set the Python `fn` to `None`). Take a look at the code below:
+There are 3 ways to add javascript code to your Gradio demo:
 
+1. You can add javascript code as a string or as a filepath to the `js` parameter of the `Blocks` or `Interface` initializer. This will run the js code when the demo is first loaded.
+
+Below is an example of adding custom js to show an animated welcome message when the demo first loads.
+
+$:code_blocks_js_load
+$demo_blocks_js_methods
+
+Note: You can also supply your custom js code as a file path. For example, if you have a file called `custom.js` in the same directory as your Python script, you can add it to your demo like so: `with gr.Blocks(js="custom.js") as demo:`. Same goes for `Interface` (ex: `gr.Interface(..., js="custom.js")`).
+
+2. When using `Blocks` and event listeners, events have a `js` argument that can take a Javascript function as a string and treat it just like a Python event listener function. You can pass both a Javascript function and a Python function (in which case the Javascript function is run first) or only Javascript (and set the Python `fn` to `None`). Take a look at the code below:
+   
 $code_blocks_js_methods
 $demo_blocks_js_methods
+
+3. Lastly, you can add javascript code to the `head` param of the `Blocks` initializer. This will add the code to the head of the HTML document. For example, you can add Google Analytics to your demo like so:
+
+
+```python
+head = f"""
+<script async src="https://www.googletagmanager.com/gtag/js?id={google_analytics_tracking_id}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){{dataLayer.push(arguments);}}
+  gtag('js', new Date());
+  gtag('config', '{google_analytics_tracking_id}');
+</script>
+"""
+
+with gr.Blocks(head=head) as demo:
+    ...demo code...
+```
