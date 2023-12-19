@@ -67,7 +67,9 @@ test("Image copy from clipboard dispatches upload event.", async ({ page }) => {
 
 	await page.getByLabel("Paste from clipboard").click();
 	await Promise.all([
-		page.waitForResponse(resp => resp.url().includes('/clipboard.png') && resp.status() === 200),
+		page.waitForResponse(
+			(resp) => resp.url().includes("/clipboard.png") && resp.status() === 200
+		)
 	]);
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
