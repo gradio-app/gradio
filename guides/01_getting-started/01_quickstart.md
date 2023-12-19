@@ -57,7 +57,7 @@ Tip: For the `inputs` and `outputs` arguments, you can pass in the name of these
 
 If your function accepts more than one argument, as is the case above, pass a list of input components to `inputs`, with each input component corresponding to one of the arguments of the function, in order. The same holds true if your function returns more than one value: simply pass in a list of components to `outputs`. This flexibility makes the `Interface` class a very powerful way to create demos.
 
-We'll dive deeper into the `gr.Interface` on our series on [building Interfaces](https://www.gradio.app/guides/the-interface-class).
+We'll dive deeper into the `gr.Interface` on our series on [building Interfaces](https://www.gradio.app/main/guides/the-interface-class).
 
 ## Sharing Your Demo
 
