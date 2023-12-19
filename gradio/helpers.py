@@ -33,7 +33,6 @@ from gradio.flagging import CSVLogger
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.components import Component
 
-CACHED_FOLDER = "gradio_cached_examples"
 LOG_FILE = "log.csv"
 
 set_documentation_group("helpers")
@@ -248,7 +247,7 @@ class Examples:
                 elem_id=elem_id,
             )
 
-        self.cached_folder = Path(CACHED_FOLDER) / str(self.dataset._id)
+        self.cached_folder = utils.get_cache_folder() / str(self.dataset._id)
         self.cached_file = Path(self.cached_folder) / "log.csv"
         self.cache_examples = cache_examples
         self.run_on_click = run_on_click

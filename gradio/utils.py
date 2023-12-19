@@ -1016,3 +1016,7 @@ class LRUCache(OrderedDict, Generic[K, V]):
         elif len(self) >= self.max_size:
             self.popitem(last=False)
         super().__setitem__(key, value)
+
+
+def get_cache_folder() -> Path:
+    return Path(os.environ.get("GRADIO_EXAMPLES_CACHE", "gradio_cached_examples"))
