@@ -169,7 +169,6 @@ btn.click(add, [num1, num2], output, api_name="addition")
 
 This will add and document the endpoint `/api/addition/` to the automatically generated API page. Otherwise, your API endpoints will appear as "unnamed" endpoints.
 
-_Note_: For Gradio apps in which [queueing is enabled](https://gradio.app/guides/key-features#queuing), users can bypass the queue if they make a POST request to your API endpoint. To disable this behavior, set `api_open=False` in the `queue()` method. To disable the API page altogether, set `show_api=False` in `.launch()`.
 
 ## Authentication
 
