@@ -162,11 +162,10 @@
 	$: {
 		if (eta === null) {
 			eta = old_eta;
-		} else if (queue) {
-			eta = (performance.now() - timer_start) / 1000 + eta;
 		}
 		if (eta != null) {
-			formatted_eta = eta.toFixed(1);
+			let eta_from_start = (performance.now() - timer_start) / 1000 + eta;
+			formatted_eta = eta_from_start.toFixed(1);
 			old_eta = eta;
 		}
 	}

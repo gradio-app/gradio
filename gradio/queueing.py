@@ -59,6 +59,7 @@ class EventQueue:
         self.concurrency_id = concurrency_id
         self.concurrency_limit = concurrency_limit
         self.current_concurrency = 0
+        self.start_times_per_fn_index: defaultdict[int, set[float]] = defaultdict(set)
 
 
 class ProcessTime:
@@ -175,12 +176,10 @@ class Queue:
             return 1
 
     def __len__(self):
-        return sum(
-            [
-                len(event_queue.queue)
-                for event_queue in self.event_queue_per_concurrency_id.values()
-            ]
-        )
+        total_len = 0
+        for event_queue in self.event_queue_per_concurrency_id.values():
+            total_len += len(event_queue.queue)
+        return total_len
 
     async def push(
         self, body: PredictBody, request: fastapi.Request, username: str | None
@@ -255,8 +254,6 @@ class Queue:
                     event_queue.queue.remove(event)
 
                 return events, batch, concurrency_id
-
-        return None
 
     async def start_processing(self) -> None:
         try:
@@ -399,6 +396,24 @@ class Queue:
     ) -> None:
         wait_so_far = 0
         event_queue = self.event_queue_per_concurrency_id[concurrency_id]
+        time_till_available_worker: int | None = 0
+
+        if event_queue.current_concurrency == event_queue.concurrency_limit:
+            expected_end_times = []
+            for fn_index, start_times in event_queue.start_times_per_fn_index.items():
+                if fn_index not in self.process_time_per_fn_index:
+                    time_till_available_worker = None
+                    break
+                process_time = self.process_time_per_fn_index[fn_index].avg_time
+                expected_end_times += [
+                    start_time + process_time for start_time in start_times
+                ]
+            if time_till_available_worker is not None and len(expected_end_times) > 0:
+                time_of_first_completion = min(expected_end_times)
+                time_till_available_worker = max(
+                    time_of_first_completion - time.time(), 0
+                )
+
         for rank, event in enumerate(event_queue.queue):
             process_time_for_fn = (
                 self.process_time_per_fn_index[event.fn_index].avg_time
@@ -406,17 +421,12 @@ class Queue:
                 else None
             )
             rank_eta = (
-                process_time_for_fn + wait_so_far
-                if process_time_for_fn is not None and wait_so_far is not None
+                process_time_for_fn + wait_so_far + time_till_available_worker
+                if process_time_for_fn is not None
+                and wait_so_far is not None
+                and time_till_available_worker is not None
                 else None
             )
-            if (
-                rank_eta is not None
-                and event_queue.current_concurrency == event_queue.concurrency_limit
-                and process_time_for_fn is not None
-                and event_queue.concurrency_limit is not None
-            ):
-                rank_eta += process_time_for_fn / event_queue.concurrency_limit / 2
 
             if after is None or rank >= after:
                 self.send_message(
@@ -502,6 +512,8 @@ class Queue:
 
     async def process_events(self, events: list[Event], batch: bool) -> None:
         awake_events: list[Event] = []
+        begin_time = time.time()
+        fn_index = events[0].fn_index
         try:
             for event in events:
                 if event.alive:
@@ -509,17 +521,16 @@ class Queue:
                         event,
                         ServerMessage.process_starts,
                         {
-                            "eta": self.process_time_per_fn_index[
-                                event.fn_index
-                            ].avg_time
-                            if event.fn_index in self.process_time_per_fn_index
+                            "eta": self.process_time_per_fn_index[fn_index].avg_time
+                            if fn_index in self.process_time_per_fn_index
                             else None
                         },
                     )
                     awake_events.append(event)
             if not awake_events:
                 return
-            begin_time = time.time()
+            event_queue = self.event_queue_per_concurrency_id[events[0].concurrency_id]
+            event_queue.start_times_per_fn_index[fn_index].add(begin_time)
             try:
                 response = await self.call_prediction(awake_events, batch)
                 err = None
@@ -600,8 +611,11 @@ class Queue:
         except Exception as e:
             traceback.print_exc()
         finally:
-            concurrency_id = events[0].concurrency_id
-            self.event_queue_per_concurrency_id[concurrency_id].current_concurrency -= 1
+            event_queue = self.event_queue_per_concurrency_id[events[0].concurrency_id]
+            event_queue.current_concurrency -= 1
+            start_times = event_queue.start_times_per_fn_index[fn_index]
+            if begin_time in start_times:
+                start_times.remove(begin_time)
             try:
                 self.active_jobs[self.active_jobs.index(events)] = None
             except ValueError:
