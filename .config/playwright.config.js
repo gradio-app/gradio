@@ -15,6 +15,6 @@ export default defineConfig({
 	timeout: 90000,
 	testMatch: /.*.spec.ts/,
 	testDir: "..",
-	globalSetup: "./playwright-setup.js",
+	globalSetup: process.env.CC_TEST ? undefined : "./playwright-setup.js",
 	workers: process.env.CI ? 1 : undefined
 });

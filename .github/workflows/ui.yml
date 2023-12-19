@@ -75,7 +75,7 @@ jobs:
       - name: run gradio custom components test
         run: |
           . venv/bin/activate
-          pnpm test:custom-components
+          CC_TEST=1 pnpm test:custom-components
       - name: upload screenshots
         uses: actions/upload-artifact@v4
         if: always()
