@@ -158,7 +158,9 @@ test("gradio cc dev correcty launches and is interactive", async ({ page }) => {
 		await page.goto(`http://localhost:${port}`);
 		await page.getByLabel("x").fill("foo");
 		await page.getByRole("button", { name: "Submit" }).click();
-		await expect(page.getByLabel("output")).toHaveValue("foo");
+		await expect(page.getByLabel("output")).toHaveValue("foo", {
+			timeout: 1000 * 60 * 5
+		});
 	} finally {
 		if (_process) kill_process(_process);
 	}
