@@ -233,7 +233,9 @@ with gr.Blocks() as demo:
 
 When the user clicks on the login button, they get redirected in a new page to authorize your Space.
 
-![Allow Space app](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/oauth_sign_in.png)
+<center>
+<img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/oauth_sign_in.png" style="width:300px; max-width:80%">
+</center>
 
 Users can revoke access to their profile at any time in their [settings](https://huggingface.co/settings/connected-applications).
 
