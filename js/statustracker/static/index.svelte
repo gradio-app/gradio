@@ -53,7 +53,6 @@
 
 	export let i18n: I18nFormatter;
 	export let eta: number | null = null;
-	export let queue = false;
 	export let queue_position: number | null;
 	export let queue_size: number | null;
 	export let status: "complete" | "pending" | "error" | "generating";
@@ -75,6 +74,7 @@
 	let timer_start = 0;
 	let timer_diff = 0;
 	let old_eta: number | null = null;
+	let eta_from_start: number | null = null;
 	let message_visible = false;
 	let eta_level: number | null = 0;
 	let progress_level: (number | undefined)[] | null = null;
@@ -83,9 +83,9 @@
 	let show_eta_bar = true;
 
 	$: eta_level =
-		eta === null || eta <= 0 || !timer_diff
+		eta_from_start === null || eta_from_start <= 0 || !timer_diff
 			? null
-			: Math.min(timer_diff / eta, 1);
+			: Math.min(timer_diff / eta_from_start, 1);
 	$: if (progress != null) {
 		show_eta_bar = false;
 	}
@@ -163,8 +163,8 @@
 		if (eta === null) {
 			eta = old_eta;
 		}
-		if (eta != null) {
-			let eta_from_start = (performance.now() - timer_start) / 1000 + eta;
+		if (eta != null && old_eta !== eta) {
+			eta_from_start = (performance.now() - timer_start) / 1000 + eta;
 			formatted_eta = eta_from_start.toFixed(1);
 			old_eta = eta;
 		}

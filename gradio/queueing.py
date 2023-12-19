@@ -275,8 +275,12 @@ class Queue:
                     self.active_jobs[self.active_jobs.index(None)] = events
                     event_queue = self.event_queue_per_concurrency_id[concurrency_id]
                     event_queue.current_concurrency += 1
+                    start_time = time.time()
+                    event_queue.start_times_per_fn_index[events[0].fn_index].add(
+                        start_time
+                    )
                     process_event_task = run_coro_in_background(
-                        self.process_events, events, batch
+                        self.process_events, events, batch, start_time
                     )
                     set_task_name(
                         process_event_task,
@@ -510,9 +514,10 @@ class Queue:
 
         return response_json
 
-    async def process_events(self, events: list[Event], batch: bool) -> None:
+    async def process_events(
+        self, events: list[Event], batch: bool, begin_time: float
+    ) -> None:
         awake_events: list[Event] = []
-        begin_time = time.time()
         fn_index = events[0].fn_index
         try:
             for event in events:
@@ -529,8 +534,6 @@ class Queue:
                     awake_events.append(event)
             if not awake_events:
                 return
-            event_queue = self.event_queue_per_concurrency_id[events[0].concurrency_id]
-            event_queue.start_times_per_fn_index[fn_index].add(begin_time)
             try:
                 response = await self.call_prediction(awake_events, batch)
                 err = None
