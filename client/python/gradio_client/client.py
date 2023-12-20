@@ -922,9 +922,8 @@ class Endpoint:
             hf_token=self.client.hf_token,
             root_url=self.root_url,
         )
-        # Only a real API endpoint if backend_fn is True (so not just a frontend function), serializers are valid,
-        # and api_name is not False (meaning that the developer has explicitly disabled the API endpoint)
-        self.is_valid = self.dependency["backend_fn"] and self.api_name is not False
+        # Disallow hitting endpoints that the developer has explicitly disabled
+        self.is_valid = self.api_name is not False
 
     def _get_component_type(self, component_id: int):
         component = next(
