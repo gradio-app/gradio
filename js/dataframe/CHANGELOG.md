@@ -1,5 +1,16 @@
 # @gradio/dataframe
 
+## 0.4.3
+
+### Patch Changes
+
+- Updated dependencies [[`846d52d`](https://github.com/gradio-app/gradio/commit/846d52d1c92d429077382ce494eea27fd062d9f6), [`828fb9e`](https://github.com/gradio-app/gradio/commit/828fb9e6ce15b6ea08318675a2361117596a1b5d), [`f3abde8`](https://github.com/gradio-app/gradio/commit/f3abde80884d96ad69b825020c46486d9dd5cac5), [`73268ee`](https://github.com/gradio-app/gradio/commit/73268ee2e39f23ebdd1e927cb49b8d79c4b9a144)]:
+  - @gradio/markdown@0.6.0
+  - @gradio/statustracker@0.4.3
+  - @gradio/atoms@0.4.1
+  - @gradio/upload@0.5.6
+  - @gradio/button@0.2.13
+
 ## 0.4.2
 
 ### Patch Changes

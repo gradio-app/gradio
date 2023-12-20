@@ -1,5 +1,22 @@
 # gradio
 
+## 4.11.0
+
+### Features
+
+- [#6842](https://github.com/gradio-app/gradio/pull/6842) [`846d52d`](https://github.com/gradio-app/gradio/commit/846d52d1c92d429077382ce494eea27fd062d9f6) - Fix md highlight.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6831](https://github.com/gradio-app/gradio/pull/6831) [`f3abde8`](https://github.com/gradio-app/gradio/commit/f3abde80884d96ad69b825020c46486d9dd5cac5) - Add an option to enable header links for markdown.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6814](https://github.com/gradio-app/gradio/pull/6814) [`828fb9e`](https://github.com/gradio-app/gradio/commit/828fb9e6ce15b6ea08318675a2361117596a1b5d) - Refactor queue so that there are separate queues for each concurrency id.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#6809](https://github.com/gradio-app/gradio/pull/6809) [`1401d99`](https://github.com/gradio-app/gradio/commit/1401d99ade46d87da75b5f5808a3354c49f1d1ea) - Fix `ImageEditor` interaction story.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6803](https://github.com/gradio-app/gradio/pull/6803) [`77c9003`](https://github.com/gradio-app/gradio/commit/77c900311e2ba37b8f849ce088ceb48aa196af18) - Fixes issue 5781: Enables specifying a caching directory for Examples.  Thanks [@cswamy](https://github.com/cswamy)!
+- [#6823](https://github.com/gradio-app/gradio/pull/6823) [`67a2b7f`](https://github.com/gradio-app/gradio/commit/67a2b7f12cb06355fcc41e40d47e8b2ad211d7d1) - Fixed duplicate word ("this this").  Thanks [@Cassini-chris](https://github.com/Cassini-chris)!
+- [#6833](https://github.com/gradio-app/gradio/pull/6833) [`1b9d423`](https://github.com/gradio-app/gradio/commit/1b9d4234d6c25ef250d882c7b90e1f4039ed2d76) - Prevent file traversals.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+### Fixes
+
+- [#6829](https://github.com/gradio-app/gradio/pull/6829) [`50496f9`](https://github.com/gradio-app/gradio/commit/50496f967f8209032b753912a4379eb9cea66627) - Adjust rounding logic when precision is `None` in `gr.Number()`.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6766](https://github.com/gradio-app/gradio/pull/6766) [`73268ee`](https://github.com/gradio-app/gradio/commit/73268ee2e39f23ebdd1e927cb49b8d79c4b9a144) - Improve source selection UX.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 4.10.0
 
 ### Features

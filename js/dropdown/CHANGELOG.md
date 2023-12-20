@@ -1,14 +1,22 @@
 # @gradio/dropdown
 
+## 0.4.3
+
+### Patch Changes
+
+- Updated dependencies [[`828fb9e`](https://github.com/gradio-app/gradio/commit/828fb9e6ce15b6ea08318675a2361117596a1b5d), [`73268ee`](https://github.com/gradio-app/gradio/commit/73268ee2e39f23ebdd1e927cb49b8d79c4b9a144)]:
+  - @gradio/statustracker@0.4.3
+  - @gradio/atoms@0.4.1
+
 ## 0.4.2
 
 ### Features
 
-- [#6399](https://github.com/gradio-app/gradio/pull/6399) [`053bec9`](https://github.com/gradio-app/gradio/commit/053bec98be1127e083414024e02cf0bebb0b5142) - Improve CSS token documentation in Storybook.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6399](https://github.com/gradio-app/gradio/pull/6399) [`053bec9`](https://github.com/gradio-app/gradio/commit/053bec98be1127e083414024e02cf0bebb0b5142) - Improve CSS token documentation in Storybook. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ### Fixes
 
-- [#6694](https://github.com/gradio-app/gradio/pull/6694) [`dfc61ec`](https://github.com/gradio-app/gradio/commit/dfc61ec4d09da72ddd6e7ab726820529621dbd38) - Fix dropdown blur bug when values are provided as tuples.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6694](https://github.com/gradio-app/gradio/pull/6694) [`dfc61ec`](https://github.com/gradio-app/gradio/commit/dfc61ec4d09da72ddd6e7ab726820529621dbd38) - Fix dropdown blur bug when values are provided as tuples. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.4.1
 

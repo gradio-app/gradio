@@ -1,5 +1,15 @@
 # @gradio/app
 
+## 1.17.0
+
+### Features
+
+- [#6831](https://github.com/gradio-app/gradio/pull/6831) [`f3abde8`](https://github.com/gradio-app/gradio/commit/f3abde80884d96ad69b825020c46486d9dd5cac5) - Add an option to enable header links for markdown.  Thanks [@pngwn](https://github.com/pngwn)!
+
+### Fixes
+
+- [#6766](https://github.com/gradio-app/gradio/pull/6766) [`73268ee`](https://github.com/gradio-app/gradio/commit/73268ee2e39f23ebdd1e927cb49b8d79c4b9a144) - Improve source selection UX.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 1.16.2
 
 ### Patch Changes

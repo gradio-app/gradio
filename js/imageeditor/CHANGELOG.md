@@ -1,5 +1,11 @@
 # @gradio/imageeditor
 
+## 0.2.0
+
+### Features
+
+- [#6809](https://github.com/gradio-app/gradio/pull/6809) [`1401d99`](https://github.com/gradio-app/gradio/commit/1401d99ade46d87da75b5f5808a3354c49f1d1ea) - Fix `ImageEditor` interaction story.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.1.5
 
 ### Fixes
