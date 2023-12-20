@@ -33,8 +33,8 @@ INTERFACE_TEMPLATE = '''
         trigger_mode: Literal["once", "multiple", "always_last"] | None = None,
         js: str | None = None,
         concurrency_limit: int | None | Literal["default"] = "default",
-        concurrency_id: str | None = None) -> Dependency:
-        show_api: bool = True
+        concurrency_id: str | None = None,
+        show_api: bool = True) -> Dependency:
         """
         Parameters:
             fn: the function to call when this event is triggered. Often a machine learning model's prediction function. Each parameter of the function corresponds to one input component, and the function should return a single value or a tuple of values, with each element in the tuple corresponding to one output component.
