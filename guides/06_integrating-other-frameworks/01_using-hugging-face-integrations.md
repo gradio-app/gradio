@@ -1,6 +1,6 @@
 # Using Hugging Face Integrations
 
-Related spaces: https://huggingface.co/spaces/gradio/helsinki_translation_en_es
+Related spaces: https://huggingface.co/spaces/gradio/en2es
 Tags: HUB, SPACES, EMBED
 
 Contributed by <a href="https://huggingface.co/osanseviero">Omar Sanseviero</a> 🦙
@@ -71,7 +71,7 @@ import gradio as gr
 
 with gr.Blocks() as demo:
   with gr.Tab("Translate to Spanish"):
-    gr.load("gradio/helsinki_translation_en_es", src="spaces")
+    gr.load("gradio/en2es", src="spaces")
   with gr.Tab("Translate to French"):
     gr.load("abidlabs/en2fr", src="spaces")
 
