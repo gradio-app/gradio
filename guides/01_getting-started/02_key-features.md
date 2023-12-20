@@ -1,35 +1,99 @@
 # Key Features
 
-Let's go through some of the most popular features of Gradio! Here are Gradio's key features:
+Let's go through some of the key features of Gradio. This guide is intended to be a high-level overview of various things that you should be aware of as you build your demo. Where appropriate, we link to more detailed guides on specific topics.
 
-1. [Adding example inputs](#example-inputs)
-2. [Passing custom error messages](#alerts)
-3. [Adding descriptive content](#descriptive-content)
-4. [Setting up flagging](#flagging)
-5. [Preprocessing and postprocessing](#preprocessing-and-postprocessing)
-6. [Styling demos](#styling)
-7. [Queuing users](#queuing)
-8. [Iterative outputs](#iterative-outputs)
-9. [Progress bars](#progress-bars)
-10. [Batch functions](#batch-functions)
-11. [Running on collaborative notebooks](#colab-notebooks)
+1. [Components](#components)
+2. [Queuing](#queuing)
+3. [Streaming outputs](#streaming-outputs)
+4. [Streaming inputs](#streaming-inputs)
+5. [Alert modals](#alert-modals)
+6. [Styling](#styling)
+7. [Progress bars](#progress-bars)
+8. [Batch functions](#batch-functions)
 
-## Example Inputs
+## Components
 
-You can provide example data that a user can easily load into `Interface`. This can be helpful to demonstrate the types of inputs the model expects, as well as to provide a way to explore your dataset in conjunction with your model. To load example data, you can provide a **nested list** to the `examples=` keyword argument of the Interface constructor. Each sublist within the outer list represents a data sample, and each element within the sublist represents an input for each input component. The format of example data for each component is specified in the [Docs](https://gradio.app/docs#components).
+Gradio includes more than 30 pre-built components (as well as many user-built _custom components_) that can be used as inputs or outputs in your demo with a single line of code. These components correspond to common data types in machine learning and data science, e.g. the `gr.Image` component is designed to handle input or output images, the `gr.Label` component displays classification labels and probabilities, the `gr.Plot` component displays various kinds of plots, and so on.
 
-$code_calculator
-$demo_calculator
+Each component includes various constructor attributes that control the properties of the component. For example, you can control the number of lines in a `gr.Textbox` using the `lines` argument (which takes a positive integer) in its constructor. Or you can control the way that a user can provide an image in the `gr.Image` component using the `sources` parameter (which takes a list like `["webcam", "upload"]`).
 
-You can load a large dataset into the examples to browse and interact with the dataset through Gradio. The examples will be automatically paginated (you can configure this through the `examples_per_page` argument of `Interface`).
+**Static and Interactive Components**
 
-Continue learning about examples in the [More On Examples](https://gradio.app/guides/more-on-examples) guide.
+Every component has a _static_ version that is designed to *display* data, and most components also have an _interactive_ version designed to let users input or modify the data. Typically, you don't need to think about this distinction, because when you build a Gradio demo, Gradio automatically figures out whether the component should be static or interactive based on whether it is being used as an input or output. However, you can set this manually using the `interactive` argument that every component supports.
 
-## Alerts
+**Preprocessing and Postprocessing**
 
-You wish to pass custom error messages to the user. To do so, raise a `gr.Error("custom message")` to display an error message. If you try to divide by zero in the calculator demo above, a popup modal will display the custom error message. Learn more about Error in the [docs](https://gradio.app/docs#error).
+When a component is used as an input, Gradio automatically handles the _preprocessing_ needed to convert the data from a type sent by the user's browser (such as an uploaded image) to a form that can be accepted by your function (such as a `numpy` array).
 
-You can also issue `gr.Warning("message")` and `gr.Info("message")` by having them as standalone lines in your function, which will immediately display modals while continuing the execution of your function. Queueing needs to be enabled for this to work.
+
+Similarly, when a component is used as an output, Gradio automatically handles the _postprocessing_ needed to convert the data from what is returned by your function (such as a list of image paths) to a form that can be displayed in the user's browser (a gallery of images).
+
+Consider an example demo with three input components (`gr.Textbox`, `gr.Number`, and `gr.Image`) and two outputs (`gr.Number` and `gr.Gallery`) that serve as a UI for your image-to-image generation model. Below is a diagram of what our preprocessing will send to the model and what our postprocessing will require from it.
+
+![](https://github.com/gradio-app/gradio/blob/main/guides/assets/dataflow.svg?raw=true)
+
+In this image, the following preprocessing steps happen to send the data from the browser to your function:
+
+* The text in the textbox is converted to a Python `str` (essentially no preprocessing)
+* The number in the number input in converted to a Python `float` (essentially no preprocessing)
+* Most importantly, ihe image supplied by the user is converted to a `numpy.array` representation of the RGB values in the image
+
+Images are converted to NumPy arrays because they are a common format for machine learning workflows. You can control the _preprocessing_ using the component's parameters when constructing the component. For example, if you instantiate the `Image` component with the following parameters, it will preprocess the image to the `PIL` format instead:
+
+```py
+img = gr.Image(type="pil")
+```
+
+Postprocessing is even simpler! Gradio automatically recognizes the format of the returned data (e.g. does the user's function return a `numpy` array or a `str` filepath for the `gr.Image` component?) and postprocesses it appropriately into a format that can be displayed by the browser.
+
+So in the image above, the following postprocessing steps happen to send the data returned from a user's function to the browser:
+
+* The `float` is displayed as a number and displayed directly to the user
+* The list of string filepaths (`list[str]`) is interpreted as a list of image filepaths and displayed as a gallery in the browser
+
+Take a look at the [Docs](https://gradio.app/docs) to see all the parameters for each Gradio component.
+
+## Queuing
+
+Every Gradio app comes with a built-in queuing system that can scale to thousands of concurrent users. You can configure the queue by using `queue()` method which is supported by the `gr.Interface`, `gr.Blocks`, and `gr.ChatInterface` classes. 
+
+For example, you can control the number of requests processed at a single time by setting the `default_concurrency_limit` parameter of `queue()`, e.g.
+
+```python
+demo = gr.Interface(...).queue(default_concurrency_limit=5)
+demo.launch()
+```
+
+This limits the number of requests processed for this event listener at a single time to 5. By default, the `default_concurrency_limit` is actually set to `1`, which means that when many users are using your app, only a single user's request will be processed at a time. This is because many machine learning functions consume a significant amount of memory and so it is only suitable to have a single user using the demo at a time. However, you can change this parameter in your demo easily.
+
+See the [docs on queueing](/docs/interface#interface-queue) for more details on configuring the queuing parameters.
+
+## Streaming outputs
+
+In some cases, you may want to stream a sequence of outputs rather than show a single output at once. For example, you might have an image generation model and you want to show the image that is generated at each step, leading up to the final image. Or you might have a chatbot which streams its response one token at a time instead of returning it all at once.
+
+In such cases, you can supply a **generator** function into Gradio instead of a regular function. Creating generators in Python is very simple: instead of a single `return` value, a function should `yield` a series of values instead. Usually the `yield` statement is put in some kind of loop. Here's an example of an generator that simply counts up to a given number:
+
+```python
+def my_generator(x):
+    for i in range(x):
+        yield i
+```
+
+You supply a generator into Gradio the same way as you would a regular function. For example, here's a a (fake) image generation model that generates noise for several steps before outputting an image using the `gr.Interface` class:
+
+$code_fake_diffusion
+$demo_fake_diffusion
+
+Note that we've added a `time.sleep(1)` in the iterator to create an artificial pause between steps so that you are able to observe the steps of the iterator (in a real image generation model, this probably wouldn't be necessary).
+
+## Streaming inputs
+
+Similarly, Gradio can handle streaming inputs, e.g. a live audio stream that can gets transcribed to text in real time, or an image generation model that reruns every time a user types a letter in a textbox. This is covered in more details in our guide on building [reactive Interfaces](/guides/reactive-interfaces). 
+
+## Alert modals
+
+You may wish to raise alerts to the user. To do so, raise a `gr.Error("custom message")` to display an error message. You can also issue `gr.Warning("message")` and `gr.Info("message")` by having them as standalone lines in your function, which will immediately display modals while continuing the execution of your function. Queueing needs to be enabled for this to work.
 
 Note below how the `gr.Error` has to be raised, while the `gr.Warning` and `gr.Info` are single lines.
 
@@ -43,95 +107,7 @@ def start_process(name):
         raise gr.Error("Process failed")
 ```
 
-## Descriptive Content
 
-In the previous example, you may have noticed the `title=` and `description=` keyword arguments in the `Interface` constructor that helps users understand your app.
-
-There are three arguments in the `Interface` constructor to specify where this content should go:
-
-- `title`: which accepts text and can display it at the very top of interface, and also becomes the page title.
-- `description`: which accepts text, markdown or HTML and places it right under the title.
-- `article`: which also accepts text, markdown or HTML and places it below the interface.
-
-![annotated](https://github.com/gradio-app/gradio/blob/main/guides/assets/annotated.png?raw=true)
-
-If you're using the `Blocks` API instead, you can insert text, markdown, or HTML anywhere using the `gr.Markdown(...)` or `gr.HTML(...)` components, with descriptive content inside the `Component` constructor.
-
-Another useful keyword argument is `label=`, which is present in every `Component`. This modifies the label text at the top of each `Component`. You can also add the `info=` keyword argument to form elements like `Textbox` or `Radio` to provide further information on their usage.
-
-```python
-gr.Number(label='Age', info='In years, must be greater than 0')
-```
-
-## Flagging
-
-By default, an `Interface` will have "Flag" button. When a user testing your `Interface` sees input with interesting output, such as erroneous or unexpected model behaviour, they can flag the input for you to review. Within the directory provided by the `flagging_dir=` argument to the `Interface` constructor, a CSV file will log the flagged inputs. If the interface involves file data, such as for Image and Audio components, folders will be created to store those flagged data as well.
-
-For example, with the calculator interface shown above, we would have the flagged data stored in the flagged directory shown below:
-
-```directory
-+-- calculator.py
-+-- flagged/
-|   +-- logs.csv
-```
-
-_flagged/logs.csv_
-
-```csv
-num1,operation,num2,Output
-5,add,7,12
-6,subtract,1.5,4.5
-```
-
-With the sepia interface shown earlier, we would have the flagged data stored in the flagged directory shown below:
-
-```directory
-+-- sepia.py
-+-- flagged/
-|   +-- logs.csv
-|   +-- im/
-|   |   +-- 0.png
-|   |   +-- 1.png
-|   +-- Output/
-|   |   +-- 0.png
-|   |   +-- 1.png
-```
-
-_flagged/logs.csv_
-
-```csv
-im,Output
-im/0.png,Output/0.png
-im/1.png,Output/1.png
-```
-
-If you wish for the user to provide a reason for flagging, you can pass a list of strings to the `flagging_options` argument of Interface. Users will have to select one of the strings when flagging, which will be saved as an additional column to the CSV.
-
-## Preprocessing and Postprocessing
-
-![](https://github.com/gradio-app/gradio/blob/main/guides/assets/dataflow.svg?raw=true)
-
-As you've seen, Gradio includes components that can handle a variety of different data types, such as images, audio, and video. Most components can be used both as inputs or outputs.
-
-When a component is used as an input, Gradio automatically handles the _preprocessing_ needed to convert the data from a type sent by the user's browser (such as a base64 representation of a webcam snapshot) to a form that can be accepted by your function (such as a `numpy` array).
-
-Similarly, when a component is used as an output, Gradio automatically handles the _postprocessing_ needed to convert the data from what is returned by your function (such as a list of image paths) to a form that can be displayed in the user's browser (such as a `Gallery` of images in base64 format).
-
-You can control the _preprocessing_ using the parameters when constructing the image component. For example, here if you instantiate the `Image` component with the following parameters, it will convert the image to the `PIL` type and reshape it to be `(100, 100)` no matter the original size that it was submitted as:
-
-```py
-img = gr.Image(shape=(100, 100), type="pil")
-```
-
-In contrast, here we keep the original size of the image, but invert the colors before converting it to a numpy array:
-
-```py
-img = gr.Image(invert_colors=True, type="numpy")
-```
-
-Postprocessing is a lot easier! Gradio automatically recognizes the format of the returned data (e.g. is the `Image` a `numpy` array or a `str` filepath?) and postprocesses it into a format that can be displayed by the browser.
-
-Take a look at the [Docs](https://gradio.app/docs) to see all the preprocessing-related parameters for each Component.
 
 ## Styling
 
@@ -141,93 +117,21 @@ Gradio themes are the easiest way to customize the look and feel of your app. Yo
 demo = gr.Interface(..., theme=gr.themes.Monochrome())
 ```
 
-Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](https://gradio.app/guides/theming-guide) for more details.
+Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [theming guide](https://gradio.app/guides/theming-guide) for more details.
 
-For additional styling ability, you can pass any CSS to your app using the `css=` kwarg.
-The base class for the Gradio app is `gradio-container`, so here's an example that changes the background color of the Gradio app:
+For additional styling ability, you can pass any CSS (as well as custom JavaScript) to your Gradio application. This is discussed in more detail in our [custom JS and CSS guide](/guides/custom-CSS-and-JS).
 
-```python
-with gr.Interface(css=".gradio-container {background-color: red}") as demo:
-    ...
-```
 
-## Queuing
+## Progress bars
 
-If your app expects heavy traffic, use the `queue()` method to control processing rate. This will queue up calls so only a certain number of requests are processed at a single time. Queueing uses websockets, which also prevent network timeouts, so you should use queueing if the inference time of your function is long (> 1min).
-
-With `Interface`:
-
-```python
-demo = gr.Interface(...).queue()
-demo.launch()
-```
-
-With `Blocks`:
-
-```python
-with gr.Blocks() as demo:
-    #...
-demo.queue()
-demo.launch()
-```
-
-You can control the number of requests processed at a single time as such:
-
-```python
-with gr.Blocks() as demo:
-    btn = gr.Button("Run")
-    btn.click(..., concurrency_limit=2)
-```
-
-This limits the number of requests processed for this event listener at a single time to 2.
-
-See the [Docs on queueing](/docs/#queue) on configuring other queuing parameters.
-
-To specify only certain functions for queueing in Blocks:
-
-```python
-with gr.Blocks() as demo2:
-    num1 = gr.Number()
-    num2 = gr.Number()
-    output = gr.Number()
-    gr.Button("Add").click(
-        lambda a, b: a + b, [num1, num2], output)
-    gr.Button("Multiply").click(
-        lambda a, b: a * b, [num1, num2], output, queue=True)
-demo2.launch()
-```
-
-## Iterative Outputs
-
-In some cases, you may want to stream a sequence of outputs rather than show a single output at once. For example, you might have an image generation model and you want to show the image that is generated at each step, leading up to the final image. Or you might have a chatbot which streams its response one word at a time instead of returning it all at once.
-
-In such cases, you can supply a **generator** function into Gradio instead of a regular function. Creating generators in Python is very simple: instead of a single `return` value, a function should `yield` a series of values instead. Usually the `yield` statement is put in some kind of loop. Here's an example of an generator that simply counts up to a given number:
-
-```python
-def my_generator(x):
-    for i in range(x):
-        yield i
-```
-
-You supply a generator into Gradio the same way as you would a regular function. For example, here's a a (fake) image generation model that generates noise for several steps before outputting an image:
-
-$code_fake_diffusion
-$demo_fake_diffusion
-
-Note that we've added a `time.sleep(1)` in the iterator to create an artificial pause between steps so that you are able to observe the steps of the iterator (in a real image generation model, this probably wouldn't be necessary).
-
-Supplying a generator into Gradio **requires** you to enable queuing in the underlying Interface or Blocks (see the queuing section above).
-
-## Progress Bars
-
-Gradio supports the ability to create a custom Progress Bars so that you have customizability and control over the progress update that you show to the user. In order to enable this, simply add an argument to your method that has a default value of a `gr.Progress` instance. Then you can update the progress levels by calling this instance directly with a float between 0 and 1, or using the `tqdm()` method of the `Progress` instance to track progress over an iterable, as shown below. Queueing must be enabled for progress updates.
+Gradio supports the ability to create custom Progress Bars so that you have customizability and control over the progress update that you show to the user. In order to enable this, simply add an argument to your method that has a default value of a `gr.Progress` instance. Then you can update the progress levels by calling this instance directly with a float between 0 and 1, or using the `tqdm()` method of the `Progress` instance to track progress over an iterable, as shown below.
 
 $code_progress_simple
 $demo_progress_simple
 
 If you use the `tqdm` library, you can even report progress updates automatically from any `tqdm.tqdm` that already exists within your function by setting the default argument as `gr.Progress(track_tqdm=True)`!
 
-## Batch Functions
+## Batch functions
 
 Gradio supports the ability to pass _batch_ functions. Batch functions are just
 functions which take in a list of inputs and return a list of predictions.
@@ -246,22 +150,24 @@ def trim_words(words, lens):
     return [trimmed_words]
 ```
 
-The advantage of using batched functions is that if you enable queuing, the Gradio
-server can automatically _batch_ incoming requests and process them in parallel,
-potentially speeding up your demo. Here's what the Gradio code looks like (notice
-the `batch=True` and `max_batch_size=16` -- both of these parameters can be passed
-into event triggers or into the `Interface` class)
+The advantage of using batched functions is that if you enable queuing, the Gradio server can automatically _batch_ incoming requests and process them in parallel,
+potentially speeding up your demo. Here's what the Gradio code looks like (notice the `batch=True` and `max_batch_size=16`)
 
-With `Interface`:
+With the `gr.Interface` class:
 
 ```python
-demo = gr.Interface(trim_words, ["textbox", "number"], ["output"],
-                    batch=True, max_batch_size=16)
-demo.queue()
+demo = gr.Interface(
+    fn=trim_words, 
+    inputs=["textbox", "number"], 
+    outputs=["output"],
+    batch=True, 
+    max_batch_size=16
+)
+
 demo.launch()
 ```
 
-With `Blocks`:
+With the `gr.Blocks` class:
 
 ```py
 import gradio as gr
@@ -276,18 +182,11 @@ with gr.Blocks() as demo:
 
     event = run.click(trim_words, [word, leng], output, batch=True, max_batch_size=16)
 
-demo.queue()
 demo.launch()
 ```
 
-In the example above, 16 requests could be processed in parallel (for a total inference
-time of 5 seconds), instead of each request being processed separately (for a total
-inference time of 80 seconds). Many Hugging Face `transformers` and `diffusers` models
-work very naturally with Gradio's batch mode: here's [an example demo using diffusers to
+In the example above, 16 requests could be processed in parallel (for a total inference time of 5 seconds), instead of each request being processed separately (for a total
+inference time of 80 seconds). Many Hugging Face `transformers` and `diffusers` models work very naturally with Gradio's batch mode: here's [an example demo using diffusers to
 generate images in batches](https://github.com/gradio-app/gradio/blob/main/demo/diffusers_with_batching/run.py)
 
-Note: using batch functions with Gradio **requires** you to enable queuing in the underlying Interface or Blocks (see the queuing section above).
 
-## Colab Notebooks
-
-Gradio is able to run anywhere you run Python, including local jupyter notebooks as well as collaborative notebooks, such as [Google Colab](https://colab.research.google.com/). In the case of local jupyter notebooks and Google Colab notbooks, Gradio runs on a local server which you can interact with in your browser. (Note: for Google Colab, this is accomplished by [service worker tunneling](https://github.com/tensorflow/tensorboard/blob/master/docs/design/colab_integration.md), which requires cookies to be enabled in your browser.) For other remote notebooks, Gradio will also run on a server, but you will need to use [SSH tunneling](https://coderwall.com/p/ohk6cg/remote-access-to-ipython-notebooks-via-ssh) to view the app in your local browser. Often a simpler options is to use Gradio's built-in public links, [discussed in the next Guide](https://gradio.app/guides/sharing-your-app/#sharing-demos).
