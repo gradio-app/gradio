@@ -55,7 +55,7 @@ The CSS `#warning` ruleset will only target the second Textbox, while the `.feed
 
 There are 3 ways to add javascript code to your Gradio demo:
 
-1. You can add javascript code as a string or as a filepath to the `js` parameter of the `Blocks` or `Interface` initializer. This will run the js code when the demo is first loaded.
+1. You can add JavaScript code as a string or as a filepath to the `js` parameter of the `Blocks` or `Interface` initializer. This will run the JavaScript code when the demo is first loaded.
 
 Below is an example of adding custom js to show an animated welcome message when the demo first loads.
 
