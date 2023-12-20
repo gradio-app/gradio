@@ -2,11 +2,12 @@
 	import { BlockLabel, Empty, ShareButton } from "@gradio/atoms";
 	import { ModifyUpload } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
+	import { Image } from "@gradio/image/shared";
 	import { dequal } from "dequal";
 	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
 
-	import { Download, Image } from "@gradio/icons";
+	import { Download, Image as ImageIcon } from "@gradio/icons";
 	import { normalise_file, type FileData } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
 	import { IconButton } from "@gradio/atoms";
@@ -199,10 +200,10 @@
 <svelte:window bind:innerHeight={window_height} />
 
 {#if show_label}
-	<BlockLabel {show_label} Icon={Image} label={label || "Gallery"} />
+	<BlockLabel {show_label} Icon={ImageIcon} label={label || "Gallery"} />
 {/if}
 {#if value == null || resolved_value == null || resolved_value.length === 0}
-	<Empty unpadded_box={true} size="large"><Image /></Empty>
+	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
 	{#if selected_image && allow_preview}
 		<button on:keydown={on_keydown} class="preview">
@@ -238,12 +239,12 @@
 				style="height: calc(100% - {selected_image.caption ? '80px' : '60px'})"
 				aria-label="detailed view of selected image"
 			>
-				<img
+				<Image
 					data-testid="detailed-image"
 					src={selected_image.image.url}
 					alt={selected_image.caption || ""}
 					title={selected_image.caption || null}
-					class:with-caption={!!selected_image.caption}
+					class={selected_image.caption && "with-caption"}
 					loading="lazy"
 				/>
 			</button>
@@ -265,7 +266,7 @@
 						class:selected={selected_index === i}
 						aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
 					>
-						<img
+						<Image
 							src={image.image.url}
 							title={image.caption || null}
 							data-testid={"thumbnail " + (i + 1)}
@@ -306,7 +307,7 @@
 					on:click={() => (selected_index = i)}
 					aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
 				>
-					<img
+					<Image
 						alt={entry.caption || ""}
 						src={typeof entry.image === "string"
 							? entry.image
@@ -355,13 +356,13 @@
 		width: 100%;
 		display: flex;
 	}
-	.preview img {
+	.preview :global(img) {
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: contain;
 	}
 
-	.preview img.with-caption {
+	.preview :global(img.with-caption) {
 		height: var(--size-full);
 	}
 
@@ -449,7 +450,7 @@
 		gap: var(--spacing-lg);
 	}
 
-	.thumbnail-lg > img {
+	.thumbnail-lg > :global(img) {
 		width: var(--size-full);
 		height: var(--size-full);
 		overflow: hidden;
