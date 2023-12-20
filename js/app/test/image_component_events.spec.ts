@@ -1,7 +1,7 @@
 import { test, expect, drag_and_drop_file } from "@gradio/tootils";
 import fs from "fs";
 
-test.skip("Image click-to-upload uploads image successfuly. Clear button dispatches event correctly. Downloading the file works and has the correct name.", async ({
+test("Image click-to-upload uploads image successfuly. Clear button dispatches event correctly. Downloading the file works and has the correct name.", async ({
 	page
 }) => {
 	await page.getByRole("button", { name: "Drop Image Here" }).click();
@@ -53,7 +53,9 @@ test("Image drag-to-upload uploads image successfuly.", async ({ page }) => {
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 });
 
-test("Image copy from clipboard dispatches upload event.", async ({ page }) => {
+test.skip("Image copy from clipboard dispatches upload event.", async ({
+	page
+}) => {
 	// Need to make request from inside browser for blob to be formatted correctly
 	// tried lots of different things
 	await page.evaluate(async () => {
