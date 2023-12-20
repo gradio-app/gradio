@@ -19,7 +19,7 @@
 		"@ffmpeg/util": "^0.12.1"
 	},
 	"devDependencies": {
-		"mrmime": "^1.0.1"
+		"mrmime": "^2.0.0"
 	},
 	"exports": {
 		".": "./index.ts",
