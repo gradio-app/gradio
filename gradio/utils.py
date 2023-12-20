@@ -932,7 +932,7 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path):
     """
     path_1, path_2 = abspath(path_1), abspath(path_2)
     try:
-        if str(path_1.relative_to(path_2)).startswith(".."):  # prevent path traversal
+        if ".." in str(path_1.relative_to(path_2)):  # prevent path traversal
             return False
     except ValueError:
         return False
@@ -1016,3 +1016,7 @@ class LRUCache(OrderedDict, Generic[K, V]):
         elif len(self) >= self.max_size:
             self.popitem(last=False)
         super().__setitem__(key, value)
+
+
+def get_cache_folder() -> Path:
+    return Path(os.environ.get("GRADIO_EXAMPLES_CACHE", "gradio_cached_examples"))
