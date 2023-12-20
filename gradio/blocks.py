@@ -2257,9 +2257,12 @@ Received outputs:
         api_info = {"named_endpoints": {}}
 
         for dependency in config["dependencies"]:
-            dependency_info = {"parameters": [], "returns": []}
+            if not dependency["backend_fn"] or not dependency["show_api"] or dependency["api_name"] is False:
+                continue
+            
             skip_endpoint = False
-
+            dependency_info = {"parameters": [], "returns": []}
+            
             inputs = dependency["inputs"]
             for i in inputs:
                 for component in config["components"]:
@@ -2318,14 +2321,9 @@ Received outputs:
                     }
                 )
 
-            if not dependency["backend_fn"] or not dependency["show_api"] or dependency["api_name"] is not False:
-                skip_endpoint = True
-
-            if skip_endpoint:
-                continue
-            
-            api_info["named_endpoints"][
-                f"/{dependency['api_name']}"
-            ] = dependency_info
+            if not skip_endpoint:
+                api_info["named_endpoints"][
+                    f"/{dependency['api_name']}"
+                ] = dependency_info
 
         return api_info
