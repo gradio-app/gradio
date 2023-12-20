@@ -13,7 +13,7 @@ It just takes a few lines of Python to create a beautiful demo like the one abov
 
 We recommend installing Gradio using `pip`, which is included by default in Python. Run this in your terminal or command prompt:
 
-```
+```bash
 pip install gradio
 ```
 
