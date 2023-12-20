@@ -825,6 +825,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         trigger_mode: Literal["once", "multiple", "always_last"] | None = "once",
         concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
+        show_api: bool = True,
     ) -> tuple[dict[str, Any], int]:
         """
         Adds an event to the component's dependencies.
@@ -851,6 +852,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
             concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `queue()`, which itself is 1 by default).
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
+            show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps to use this event.
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
@@ -962,6 +964,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             "trigger_after": trigger_after,
             "trigger_only_on_success": trigger_only_on_success,
             "trigger_mode": trigger_mode,
+            "show_api": show_api,
         }
         self.dependencies.append(dependency)
         return dependency, len(self.dependencies) - 1
