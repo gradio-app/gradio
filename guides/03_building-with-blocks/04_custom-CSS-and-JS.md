@@ -2,8 +2,6 @@
 
 Gradio allows you to customize your demo in several ways. You can customize the layout of your demo, add custom HTML, and add custom theming as well. This tutorial will go beyond that and walk you through how to add custom CSS and JavaScript code to your demo in order to add custom styling, animations, custom UI functionality, analytics, and more.
 
-**Warning**: The use of query selectors in custom JS and CSS is _not_ guaranteed to work across Gradio versions as the Gradio HTML DOM may change. We recommend using query selectors sparingly.
-
 ## Adding custom CSS to your demo
 
 Gradio themes are the easiest way to customize the look and feel of your app. You can choose from a variety of themes, or create your own. To do so, pass the `theme=` kwarg to the `Blocks` constructor. For example:
@@ -16,6 +14,8 @@ with gr.Blocks(theme=gr.themes.Glass()):
 Gradio comes with a set of prebuilt themes which you can load from `gr.themes.*`. You can extend these themes or create your own themes from scratch - see the [Theming guide](/guides/theming-guide) for more details.
 
 For additional styling ability, you can pass any CSS to your app using the `css=` kwarg. You can either the filepath to a CSS file, or a string of CSS code.
+
+**Warning**: The use of query selectors in custom JS and CSS is _not_ guaranteed to work across Gradio versions as the Gradio HTML DOM may change. We recommend using query selectors sparingly.
 
 The base class for the Gradio app is `gradio-container`, so here's an example that changes the background color of the Gradio app:
 
@@ -69,7 +69,7 @@ Note: You can also supply your custom js code as a file path. For example, if yo
 $code_blocks_js_methods
 $demo_blocks_js_methods
 
-3. Lastly, you can add javascript code to the `head` param of the `Blocks` initializer. This will add the code to the head of the HTML document. For example, you can add Google Analytics to your demo like so:
+1. Lastly, you can add JavaScript code to the `head` param of the `Blocks` initializer. This will add the code to the head of the HTML document. For example, you can add Google Analytics to your demo like so:
 
 
 ```python
@@ -86,3 +86,5 @@ head = f"""
 with gr.Blocks(head=head) as demo:
     ...demo code...
 ```
+
+Note: The `head` parameter accepts any HTML tags you would normally insert into the `<head>` of a page. For example, you can also include `<meta>` tags to `head`.
