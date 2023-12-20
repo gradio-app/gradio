@@ -1,5 +1,12 @@
 # @gradio/tootils
 
+## 0.1.7
+
+### Patch Changes
+
+- Updated dependencies [[`828fb9e`](https://github.com/gradio-app/gradio/commit/828fb9e6ce15b6ea08318675a2361117596a1b5d)]:
+  - @gradio/statustracker@0.4.3
+
 ## 0.1.6
 
 ### Patch Changes
