@@ -1,6 +1,6 @@
 # More on Examples
 
-In the [previous Guide](/guides/the-interface-class), we discussed how to provide example inputs for your demo to make it easier for users to try it out. Here, we dive into more details.
+In the [previous Guide](/main/guides/the-interface-class), we discussed how to provide example inputs for your demo to make it easier for users to try it out. Here, we dive into more details.
 
 ## Providing Examples
 
