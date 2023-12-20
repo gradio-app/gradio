@@ -9,13 +9,13 @@ description = "Python library for easily interacting with trained machine learni
 license = "Apache-2.0"
 requires-python = ">=3.8"
 authors = [
-  { name = "Abubakar Abid", email = "team@gradio.app" },
-  { name = "Ali Abid", email = "team@gradio.app" },
-  { name = "Ali Abdalla", email = "team@gradio.app" },
-  { name = "Dawood Khan", email = "team@gradio.app" },
-  { name = "Ahsen Khaliq", email = "team@gradio.app" },
-  { name = "Pete Allen", email = "team@gradio.app" },
-  { name = "Freddy Boulton", email = "team@gradio.app" },
+  { name = "Abubakar Abid", email = "gradio-team@huggingface.co" },
+  { name = "Ali Abid", email = "gradio-team@huggingface.co" },
+  { name = "Ali Abdalla", email = "gradio-team@huggingface.co" },
+  { name = "Dawood Khan", email = "gradio-team@huggingface.co" },
+  { name = "Ahsen Khaliq", email = "gradio-team@huggingface.co" },
+  { name = "Pete Allen", email = "gradio-team@huggingface.co" },
+  { name = "Freddy Boulton", email = "gradio-team@huggingface.co" },
 ]
 keywords = ["machine learning", "client", "API"]
 
