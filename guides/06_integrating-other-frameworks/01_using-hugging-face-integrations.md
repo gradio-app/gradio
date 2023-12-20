@@ -126,9 +126,9 @@ The previous code produces the following interface, which you can try right here
 
 That's it! Let's recap the various ways Gradio and Hugging Face work together:
 
-1. You can build a demo around the Inference API without having to load the model easily using `gr.load()`
+1. You can build a demo around the Inference API without having to load the model easily using `gr.load()`.
 2. You host your Gradio demo on Hugging Face Spaces, either using the GUI or entirely in Python.
-3. You can load demos from Hugging Face Spaces to remix and create new Gradio demos using `gr.load()
+3. You can load demos from Hugging Face Spaces to remix and create new Gradio demos using `gr.load()`.
 4. You can convert a `transformers` pipeline into a Gradio demo using `from_pipeline()`.
 
 🤗
