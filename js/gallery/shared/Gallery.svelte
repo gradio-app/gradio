@@ -3,6 +3,10 @@
 	import { ModifyUpload } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
 	import { Image } from "@gradio/image/shared";
+	import {
+		getWorkerProxyContext,
+		wasm_proxied_fetch
+	} from "@gradio/wasm/svelte";
 	import { dequal } from "dequal";
 	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
@@ -167,10 +171,14 @@
 	// and their remote URLs are directly passed to the client as `value[].image.url`.
 	// The `download` attribute of the <a> tag doesn't work for remote URLs (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#download),
 	// so we need to download the image via JS as below.
+	const maybeWorkerProxy = getWorkerProxyContext();
+	const wasmable_fetch: typeof fetch = maybeWorkerProxy
+		? wasm_proxied_fetch.bind(null, maybeWorkerProxy)
+		: fetch;
 	async function download(file_url: string, name: string): Promise<void> {
 		let response;
 		try {
-			response = await fetch(file_url);
+			response = await wasmable_fetch(file_url);
 		} catch (error) {
 			if (error instanceof TypeError) {
 				// If CORS is not allowed (https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#checking_that_the_fetch_was_successful),
