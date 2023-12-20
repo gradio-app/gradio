@@ -37,7 +37,7 @@ def set_cancel_events(
             outputs=None,
             queue=False,
             preprocess=False,
-            api_name=False,
+            show_api=False,
             cancels=fn_indices_to_cancel,
         )
 
@@ -320,6 +320,7 @@ class EventListener(str):
                 trigger_after=_trigger_after,
                 trigger_only_on_success=_trigger_only_on_success,
                 trigger_mode=trigger_mode,
+                show_api=show_api,
             )
             set_cancel_events(
                 [EventListenerMethod(block if _has_trigger else None, _event_name)],

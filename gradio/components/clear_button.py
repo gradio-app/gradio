@@ -42,6 +42,7 @@ class ClearButton(Button):
         render: bool = True,
         scale: int | None = None,
         min_width: int | None = None,
+        show_api: bool = False,
     ):
         super().__init__(
             value,
@@ -58,6 +59,7 @@ class ClearButton(Button):
             scale=scale,
             min_width=min_width,
         )
+        self.show_api = show_api
         self.add(components)
 
     def add(self, components: None | Component | list[Component]) -> ClearButton:
@@ -93,6 +95,7 @@ class ClearButton(Button):
                 None,
                 state_components,
                 api_name="reset_state",
+                show_api=self.show_api,
             )
         return self
 

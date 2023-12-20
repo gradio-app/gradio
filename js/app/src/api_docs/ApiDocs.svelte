@@ -74,12 +74,15 @@
 
 	let info: {
 		named_endpoints: any;
-		unnamed_endpoints: any;
+		unnamed_endpoints?: any;
 	};
 
 	let js_info: Record<string, any>;
 
-	get_info().then((data) => (info = data));
+	get_info().then((data) => {
+		info = data;
+		console.log(info);
+	});
 
 	get_js_info().then((js_api_info) => (js_info = js_api_info));
 

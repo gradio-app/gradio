@@ -397,7 +397,8 @@ class Examples:
             show_progress="hidden",
             postprocess=False,
             queue=False,
-            api_name=self.api_name,  # type: ignore
+            api_name=self.api_name,
+            show_api=False,
         )
 
     def load_from_cache(self, example_id: int) -> list[Any]:

@@ -600,6 +600,7 @@ class Interface(Blocks):
                     inputs=None,
                     outputs=[submit_btn, stop_btn],
                     queue=False,
+                    show_api=False,
                 ).then(
                     self.fn,
                     self.input_components,
@@ -618,6 +619,7 @@ class Interface(Blocks):
                     inputs=None,
                     outputs=extra_output,  # type: ignore
                     queue=False,
+                    show_api=False,
                 )
 
                 stop_btn.click(
