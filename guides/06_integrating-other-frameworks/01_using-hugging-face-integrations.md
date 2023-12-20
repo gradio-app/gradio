@@ -119,7 +119,7 @@ demo.launch()
 
 The previous code produces the following interface, which you can try right here in your browser:
 
-<gradio-app space="Helsinki-NLP/opus-mt-en-es"></gradio-app>
+<gradio-app space="gradio/en2es"></gradio-app>
 
 
 ## Recap
