@@ -5,8 +5,8 @@ def greet(name, intensity):
 
 demo = gr.Interface(
     fn=greet,
-    inputs=["text", gr.Slider(value=2, minimum=1, maximum=10)],
-    outputs=[gr.Textbox(label="greeting", lines=3)],
+    inputs=["text", "slider"],
+    outputs=["text"],
 )
 
 if __name__ == "__main__":
