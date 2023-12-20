@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 0.9.3
+
+### Features
+
+- [#6814](https://github.com/gradio-app/gradio/pull/6814) [`828fb9e`](https://github.com/gradio-app/gradio/commit/828fb9e6ce15b6ea08318675a2361117596a1b5d) - Refactor queue so that there are separate queues for each concurrency id.  Thanks [@aliabid94](https://github.com/aliabid94)!
+
 ## 0.9.2
 
 ### Features
