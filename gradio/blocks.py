@@ -2254,10 +2254,9 @@ Received outputs:
         Gets the information needed to generate the API docs from a Blocks.
         """
         config = self.config
-        api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
-        mode = config.get("mode", None)
+        api_info = {"named_endpoints": {}}
 
-        for d, dependency in enumerate(config["dependencies"]):
+        for dependency in config["dependencies"]:
             dependency_info = {"parameters": [], "returns": []}
             skip_endpoint = False
 
@@ -2319,25 +2318,14 @@ Received outputs:
                     }
                 )
 
-            if not dependency["backend_fn"]:
+            if not dependency["backend_fn"] or not dependency["show_api"] or dependency["api_name"] is not False:
                 skip_endpoint = True
 
             if skip_endpoint:
                 continue
-            if (
-                dependency["api_name"] is not None
-                and dependency["api_name"] is not False
-            ):
-                api_info["named_endpoints"][
-                    f"/{dependency['api_name']}"
-                ] = dependency_info
-            elif (
-                dependency["api_name"] is False
-                or mode == "interface"
-                or mode == "tabbed_interface"
-            ):
-                pass  # Skip unnamed endpoints in interface mode
-            else:
-                api_info["unnamed_endpoints"][str(d)] = dependency_info
+            
+            api_info["named_endpoints"][
+                f"/{dependency['api_name']}"
+            ] = dependency_info
 
         return api_info

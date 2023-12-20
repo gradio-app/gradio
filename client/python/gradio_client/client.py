@@ -491,7 +491,7 @@ class Client:
         Prints the usage info for the API. If the Gradio app has multiple API endpoints, the usage info for each endpoint will be printed separately. If return_format="dict" the info is returned in dictionary format, as shown in the example below.
 
         Parameters:
-            all_endpoints: If True, prints information for both named and unnamed endpoints in the Gradio app. If False, will only print info about named endpoints. If None (default), will print info about named endpoints, unless there aren't any -- in which it will print info about unnamed endpoints.
+            all_endpoints: This parameter has no effect with apps running Gradio 4.0 or higher. For apps running Gradio 3.x, this parameter, if True, prints information for both named and unnamed endpoints in the Gradio app. If False, will only print info about named endpoints. If None (default), will print info about named endpoints, unless there aren't any -- in which it will print info about unnamed endpoints.
             print_info: If True, prints the usage info to the console. If False, does not print the usage info.
             return_format: If None, nothing is returned. If "str", returns the same string that would be printed to the console. If "dict", returns the usage info as a dictionary that can be programmatically parsed, and *all endpoints are returned in the dictionary* regardless of the value of `all_endpoints`. The format of the dictionary is in the docstring of this method.
         Example:
@@ -556,15 +556,18 @@ class Client:
             }
 
         """
-        num_named_endpoints = len(self._info["named_endpoints"])
-        num_unnamed_endpoints = len(self._info["unnamed_endpoints"])
+        named_endpoints = self._info["named_endpoints"]
+        unnamed_endpoints = self._info.get("unnamed_endpoints", {})  # For backwards compatibility
+        num_named_endpoints = len(named_endpoints)
+        num_unnamed_endpoints = len(unnamed_endpoints)
+
         if num_named_endpoints == 0 and all_endpoints is None:
             all_endpoints = True
 
         human_info = "Client.predict() Usage Info\n---------------------------\n"
         human_info += f"Named API endpoints: {num_named_endpoints}\n"
 
-        for api_name, endpoint_info in self._info["named_endpoints"].items():
+        for api_name, endpoint_info in named_endpoints.items():
             human_info += self._render_endpoints_info(api_name, endpoint_info)
 
         if all_endpoints:
