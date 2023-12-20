@@ -1,6 +1,6 @@
 # Key Features
 
-Let's go through some of the key features of Gradio. This Guide is intended to be a high-level overview of various things that you should be aware of as you build your demo. Where appropriate, we link to more detailed Guides on specific topics.
+Let's go through some of the key features of Gradio. This guide is intended to be a high-level overview of various things that you should be aware of as you build your demo. Where appropriate, we link to more detailed guides on specific topics.
 
 1. [Components](#components)
 2. [Queuing](#queuing)
