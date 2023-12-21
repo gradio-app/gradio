@@ -84,3 +84,18 @@
 		interactive: true
 	}}
 />
+
+<Story
+	name="interactive webcam with streaming"
+	args={{
+		sources: ["webcam"],
+		show_download_button: true,
+		interactive: true,
+		value: {
+			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			orig_name: "cheetah.jpg"
+		},
+		streaming: true
+	}}
+/>
