@@ -120,12 +120,12 @@ Likewise, if you learn something new about playwright, please share with the tea
 
 Playwright tests are written imperitavely - first type into this textbox, then click this button, then check this textbox has this output.
 This is nice because it matches how users interact with Gradio applications.
-However, playwright carries out this actions much faster than any human can!
+However, playwright carries out these steps much faster than any human can!
 This can cause you to check whether a textbox has the correct output before the server is finished processing the request.
 
 For this reason, playright ships with some [retrying assertions](https://playwright.dev/docs/test-assertions#auto-retrying-assertions).
 These assertions will retry until they pass or a timeout is reached, by default 5 seconds.
-So even if playwright checks that a value is expected before the server is done, it gives the server a chance to finish by retrying.
+So even if playwright checks a DOM element before the server is done, it gives the server a chance to finish by retrying.
 
 
 You can increase the timeout manually as well:
@@ -135,7 +135,7 @@ You can increase the timeout manually as well:
 await expect(page.getByText('Hidden text')).toBeAttached({timeout?: 5000});
 ```
 
-Sometimes there may not be a retrying exception for what you need to check.
+Sometimes there may not be a retrying assertion for what you need to check.
 In that case, you can retry any custom async function until it passes using `toPass` ([docs](https://playwright.dev/docs/test-assertions#expecttopass)).
 
 ```js
@@ -150,7 +150,6 @@ Internal network calls are not visible to the user, so they can be refactored wh
 If we have tests that rely on a request to a given route finishing before moving on, for example, they will fail if we ever change the route name or some other implementation detail.
 
 It's much better to use a retrying assertion that targets a visible DOM element with a larger timeout to check if some work is done.
-
 
 ### Tip 3 - Use the playwright trace viewer
 Whenever a test fails locally, playwright will write out some details about the test to the `test-results` directory at the top level of the repo.
