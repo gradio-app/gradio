@@ -291,9 +291,10 @@ class EventListener(str):
                             if s not in set(string.punctuation) - {"-", "_"}
                         ]
                     )
+                elif js is not None:
+                    api_name = "js_fn"
                 else:
-                    # Don't document _js only events
-                    api_name = False
+                    api_name = "unnamed"
 
             if Context.root_block is None:
                 raise AttributeError(
