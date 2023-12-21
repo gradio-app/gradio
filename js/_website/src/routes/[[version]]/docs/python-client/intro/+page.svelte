@@ -32,10 +32,12 @@
 <main class="container mx-auto px-4 flex gap-4">
 	<div class="flex w-full">
 		<DocsNavCustom
-			current_nav_link={"python-client"}
+			current_nav_link={"Intro"}
 			items={{
-				Client: "python-client/client",
-				Job: "python-client/job"
+				"Intro": "intro",
+				"Client": "client",
+				"Job": "job",
+                "Getting Started With The Python Client": "getting-started"
 			}}
 			title={"Python Client"}
 		/>
@@ -78,7 +80,7 @@
 			<div class="lg:ml-10 flex justify-between mt-4">
 				<div />
 				<a
-					href="python-client/client"
+					href="client"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
