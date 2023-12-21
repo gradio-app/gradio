@@ -416,7 +416,6 @@
 			show_footer={!is_embed}
 			{app_mode}
 			{version}
-			{api_url}
 		/>
 	{/if}
 </Embed>
