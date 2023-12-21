@@ -90,7 +90,14 @@ class ClearButton(Button):
                 none = none.model_dump()
             none_values.append(none)
         clear_values = json.dumps(none_values)
-        self.click(None, [], components, js=f"() => {clear_values}", api_name=self.api_name, show_api=self.show_api)
+        self.click(
+            None,
+            [],
+            components,
+            js=f"() => {clear_values}",
+            api_name=self.api_name,
+            show_api=self.show_api,
+        )
         if state_components:
             self.click(
                 lambda: resolve_singleton(initial_states),
