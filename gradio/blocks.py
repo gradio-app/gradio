@@ -2257,7 +2257,11 @@ Received outputs:
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
         for dependency in config["dependencies"]:
-            if not dependency["backend_fn"] or not dependency["show_api"] or dependency["api_name"] is False:
+            if (
+                not dependency["backend_fn"]
+                or not dependency["show_api"]
+                or dependency["api_name"] is False
+            ):
                 continue
 
             dependency_info = {"parameters": [], "returns": []}

@@ -858,7 +858,9 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
     elif type_ == "const":
         return f"Literal[{schema['const']}]"
     elif type_ == "enum":
-        return "Literal[" + ", ".join(["'" + str(v) + "'" for v in schema['enum']]) + "]"
+        return (
+            "Literal[" + ", ".join(["'" + str(v) + "'" for v in schema["enum"]]) + "]"
+        )
     elif type_ == "integer":
         return "int"
     elif type_ == "string":
