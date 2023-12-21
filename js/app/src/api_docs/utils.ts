@@ -22,7 +22,8 @@ export function represent_value(
 	} else if (type === "List[str]") {
 		value = JSON.stringify(value);
 		return value;
-	} else if (type.startsWith("Literal['")) { // a literal of strings
+	} else if (type.startsWith("Literal['")) {
+		// a literal of strings
 		return '"' + value + '"';
 	}
 	// assume object type
