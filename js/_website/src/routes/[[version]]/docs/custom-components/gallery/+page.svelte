@@ -74,7 +74,6 @@
 	}
 
 	$: guide_names = data.guide_names;
-
 </script>
 
 <MetaTags
@@ -86,82 +85,83 @@
 
 <div class="container mx-auto px-4 flex relative w-full">
 	<div
-	class="side-navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto overflow-x-hidden hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50 lg:w-3/12"
->
-	{#each guide_names as guides, i}
-		<div
-			class="category-link my-2 font-semibold px-4 pt-2 text-ellipsis block"
-			style="max-width: 12rem"
-		>
-			{guides.category}
-		</div>
+		class="side-navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto overflow-x-hidden hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50 lg:w-3/12"
+	>
+		{#each guide_names as guides, i}
+			<div
+				class="category-link my-2 font-semibold px-4 pt-2 text-ellipsis block"
+				style="max-width: 12rem"
+			>
+				{guides.category}
+			</div>
 			<p
 				class="mx-4 block bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-500 px-4 py-0.5 mr-2 rounded-full text-orange-800 mb-5 w-fit hover:shadow-lg"
 			>
 				<a class="inline-block" href="./gallery"> Gallery &rarr;</a>
 			</p>
 
-		{#each guides.guides as guide, j}
+			{#each guides.guides as guide, j}
 				<a
 					class="guide-link -indent-2 ml-2 thin-link px-4 block overflow-hidden"
 					style="max-width: 12rem"
-					href="/main/docs/custom-components/{guide.name}">{guide.pretty_name}</a
+					href="/main/docs/custom-components/{guide.name}"
+					>{guide.pretty_name}</a
 				>
+			{/each}
 		{/each}
-	{/each}
-</div>
+	</div>
 
-<div class="flex flex-col relative h-full w-full ml-5">
-	<input
-		type="text"
-		class="m-8 border border-gray-200 p-1 rounded-md outline-none text-center text-lg mb-1 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
-		placeholder="Search component names, keywords and descriptions. Separate multiple keywords with commas and press Enter."
-		autocomplete="off"
-		on:keypress={handle_keypress}
-		bind:value={selection}
-	/>
-	<div class="grid relative">
-		{#each components as component (component.id)}
-			<div
-				on:click={() => handle_box_click(component)}
-				class="box h-36 group font:thin relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {component.background_color}"
-			>
-				<div class="absolute opacity-30 text-6xl mb-1">
-					{classToEmojiMapping[component.template] || "❓"}
+	<div class="flex flex-col relative h-full w-full ml-5">
+		<input
+			type="text"
+			class="m-8 border border-gray-200 p-1 rounded-md outline-none text-center text-lg mb-1 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
+			placeholder="Search component names, keywords and descriptions. Separate multiple keywords with commas and press Enter."
+			autocomplete="off"
+			on:keypress={handle_keypress}
+			bind:value={selection}
+		/>
+		<div class="grid relative">
+			{#each components as component (component.id)}
+				<div
+					on:click={() => handle_box_click(component)}
+					class="box h-36 group font:thin relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {component.background_color}"
+				>
+					<div class="absolute opacity-30 text-6xl mb-1">
+						{classToEmojiMapping[component.template] || "❓"}
+					</div>
+					<h2
+						class="group-hover:underline font-md text-black font-bold max-w-full truncate text-center"
+					>
+						{component.name}
+					</h2>
+					<span
+						class="font-sm text-gray-600 text-end max-w-full truncate"
+						style="position:absolute; bottom:0;"
+					>
+						Tags: {component.tags.split(",").join(", ")}</span
+					>
 				</div>
-				<h2
-					class="group-hover:underline font-md text-black font-bold max-w-full truncate text-center"
-				>
-					{component.name}
-				</h2>
-				<span
-					class="font-sm text-gray-600 text-end max-w-full truncate"
-					style="position:absolute; bottom:0;"
-				>
-					Tags: {component.tags.split(",").join(", ")}</span
-				>
-			</div>
-		{/each}
-	</div>
-</div>
-{#if selected_component}
-	<div class="details-panel open">
-		<button
-			class="absolute right-3 top-3 w-4"
-			on:click={() => (selected_component = null)}
-		>
-			<Close />
-		</button>
-		<div>
-			<p class="text-4xl text-black text-center font-bold">
-				{selected_component.name}
-			</p>
+			{/each}
 		</div>
-		<Card data={selected_component}></Card>
 	</div>
-{/if}
-
+	{#if selected_component}
+		<div class="details-panel open">
+			<button
+				class="absolute right-3 top-3 w-4"
+				on:click={() => (selected_component = null)}
+			>
+				<Close />
+			</button>
+			<div>
+				<p class="text-4xl text-black text-center font-bold">
+					{selected_component.name}
+				</p>
+			</div>
+			<Card data={selected_component}></Card>
+		</div>
+	{/if}
 </div>
+
 <style>
 	.grid {
 		display: grid;

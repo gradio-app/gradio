@@ -34,10 +34,10 @@
 		<DocsNavCustom
 			current_nav_link={"Intro"}
 			items={{
-				"Intro": "intro",
-				"Client": "client",
-				"Job": "job",
-                "Getting Started With The Python Client": "getting-started"
+				Intro: "intro",
+				Client: "client",
+				Job: "job",
+				"Getting Started With The Python Client": "getting-started"
 			}}
 			title={"Python Client"}
 		/>

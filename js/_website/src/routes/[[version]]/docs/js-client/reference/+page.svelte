@@ -33,12 +33,11 @@
 		<DocsNavCustom
 			current_nav_link={"Reference"}
 			items={{
-				"Reference": "reference",
-                "Getting Started With The JS Client": "getting-started"
+				Reference: "reference",
+				"Getting Started With The JS Client": "getting-started"
 			}}
 			title={"JavaScript Client"}
 		/>
-
 
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
 			<div>

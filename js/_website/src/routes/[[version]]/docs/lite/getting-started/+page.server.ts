@@ -60,9 +60,7 @@ async function load_release_guides(
 }
 
 async function load_main_guides(guide: string) {
-	return await import(
-		`../../../../../lib/json/guides/gradio-lite.json`
-	);
+	return await import(`../../../../../lib/json/guides/gradio-lite.json`);
 }
 
 export async function load({ params, url }) {
