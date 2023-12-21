@@ -557,7 +557,9 @@ class Client:
 
         """
         named_endpoints = self._info["named_endpoints"]
-        unnamed_endpoints = self._info.get("unnamed_endpoints", {})  # For backwards compatibility
+        unnamed_endpoints = self._info.get(
+            "unnamed_endpoints", {}
+        )  # For backwards compatibility
         num_named_endpoints = len(named_endpoints)
         num_unnamed_endpoints = len(unnamed_endpoints)
 

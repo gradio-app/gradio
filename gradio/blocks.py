@@ -964,7 +964,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             "trigger_after": trigger_after,
             "trigger_only_on_success": trigger_only_on_success,
             "trigger_mode": trigger_mode,
-            "show_api": show_api
+            "show_api": show_api,
         }
         self.dependencies.append(dependency)
         return dependency, len(self.dependencies) - 1
@@ -2320,7 +2320,7 @@ Received outputs:
                         "component": type.capitalize(),
                     }
                 )
-            
+
             if not skip_endpoint:
                 api_info["named_endpoints"][
                     f"/{dependency['api_name']}"

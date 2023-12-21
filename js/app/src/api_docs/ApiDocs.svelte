@@ -150,12 +150,14 @@
 </script>
 
 {#if info}
-	{#if dependencies.filter(dependency => dependency.api_name && dependency.show_api).length}
+	{#if dependencies.filter((dependency) => dependency.api_name && dependency.show_api).length}
 		<div class="banner-wrap">
 			<ApiBanner
 				on:close
 				{root}
-				api_count={dependencies.filter(dependency => dependency.api_name && dependency.show_api).length}
+				api_count={dependencies.filter(
+					(dependency) => dependency.api_name && dependency.show_api
+				).length}
 			/>
 		</div>
 		<div class="docs-wrap">

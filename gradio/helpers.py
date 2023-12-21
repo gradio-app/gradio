@@ -285,7 +285,7 @@ class Examples:
                     self.fn,
                     inputs=self.inputs,  # type: ignore
                     outputs=self.outputs,  # type: ignore
-                    show_api=False
+                    show_api=False,
                 )
 
         if self.cache_examples:
