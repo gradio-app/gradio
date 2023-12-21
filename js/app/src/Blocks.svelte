@@ -38,7 +38,6 @@
 	export let app: Awaited<ReturnType<typeof client>>;
 	export let space_id: string | null;
 	export let version: string;
-	export let api_url: string;
 	export let js: string | null;
 
 	let loading_status = create_loading_status_store();
