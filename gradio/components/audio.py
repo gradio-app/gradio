@@ -160,13 +160,10 @@ class Audio(
             else show_share_button
         )
         self.editable = editable
-        if waveform_options is None:
-            self.waveform_options = WaveformOptions()
-        self.waveform_options = (
-            WaveformOptions(**waveform_options)
-            if isinstance(waveform_options, dict)
-            else waveform_options
-        )
+        if waveform_options is None or isinstance(waveform_options, dict):
+            self.waveform_options = self.merge_with_default_waveform_options(waveform_options)
+        else:
+            self.waveform_options = waveform_options
         self.min_length = min_length
         self.max_length = max_length
         super().__init__(
@@ -305,3 +302,16 @@ class Audio(
             raise ValueError(
                 "Audio streaming only available if source includes 'microphone'."
             )
+            
+    def merge_with_default_waveform_options(self, provided_options: dict | None) -> WaveformOptions:
+        default_options = WaveformOptions()
+        if provided_options is None:
+            return default_options
+        return WaveformOptions(
+            waveform_color=provided_options.get("waveform_color", default_options.waveform_color),
+            waveform_progress_color=provided_options.get("waveform_progress_color", default_options.waveform_progress_color),
+            show_recording_waveform=provided_options.get("show_recording_waveform", default_options.show_recording_waveform),
+            show_controls=provided_options.get("show_controls", default_options.show_controls),
+            skip_length=provided_options.get("skip_length", default_options.skip_length),
+            sample_rate=provided_options.get("sample_rate", default_options.sample_rate)
+        )
