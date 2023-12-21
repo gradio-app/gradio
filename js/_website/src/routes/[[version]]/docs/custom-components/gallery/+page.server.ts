@@ -16,7 +16,6 @@ async function load_release_guide_names(
 	return await guide_names_json.json();
 }
 
-
 async function load_main_guide_names() {
 	return await import(`../../../../../lib/json/guides/cc_guide_names.json`);
 }
@@ -30,7 +29,7 @@ export async function load({ params, url }) {
 			? await load_main_guide_names()
 			: await load_release_guide_names(params.version || VERSION);
 
-    return {
-        guide_names: guide_names_json.guide_names
-    };
+	return {
+		guide_names: guide_names_json.guide_names
+	};
 }

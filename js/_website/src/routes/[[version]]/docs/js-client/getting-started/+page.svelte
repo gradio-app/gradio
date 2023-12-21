@@ -9,7 +9,7 @@
 	let guide_slug = data.guide_slug;
 
 	$: guide_page = data.guide;
-    $: guide_slug = data.guide_slug;
+	$: guide_slug = data.guide_slug;
 </script>
 
 <MetaTags
@@ -24,17 +24,16 @@
 		<DocsNavCustom
 			current_nav_link={"Getting Started With The JS Client"}
 			items={{
-				"Reference": "reference",
-                "Getting Started With The JS Client": "getting-started"
+				Reference: "reference",
+				"Getting Started With The JS Client": "getting-started"
 			}}
 			title={"JavaScript Client"}
 		/>
 
-        <div class="w-full lg:w-8/12 mx-auto">
-
-        <div class="prose text-lg max-w-full">
-			{@html guide_page.new_html}
+		<div class="w-full lg:w-8/12 mx-auto">
+			<div class="prose text-lg max-w-full">
+				{@html guide_page.new_html}
+			</div>
 		</div>
-        </div>
-    </div>
+	</div>
 </main>

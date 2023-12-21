@@ -9,7 +9,7 @@
 	let guide_slug = data.guide_slug;
 
 	$: guide_page = data.guide;
-    $: guide_slug = data.guide_slug;
+	$: guide_slug = data.guide_slug;
 </script>
 
 <MetaTags
@@ -24,18 +24,17 @@
 		<DocsNavCustom
 			current_nav_link={"Getting Started With The Python Client"}
 			items={{
-				"Intro": "intro",
-				"Client": "client",
-				"Job": "job",
-                "Getting Started With The Python Client": "getting-started"
+				Intro: "intro",
+				Client: "client",
+				Job: "job",
+				"Getting Started With The Python Client": "getting-started"
 			}}
 			title={"Python Client"}
 		/>
-        <div class="w-full lg:w-8/12 mx-auto">
-
-        <div class="prose text-lg max-w-full">
-			{@html guide_page.new_html}
+		<div class="w-full lg:w-8/12 mx-auto">
+			<div class="prose text-lg max-w-full">
+				{@html guide_page.new_html}
+			</div>
 		</div>
-        </div>
-    </div>
+	</div>
 </main>
