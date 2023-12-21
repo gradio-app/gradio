@@ -267,7 +267,7 @@
 					const matching_component = components.find((c) => c.type === name);
 					if (matching_component) {
 						_c = load_component({
-							api_url,
+							api_url: root,
 							name,
 							id: matching_component.component_class_id,
 							variant: "example"
@@ -282,7 +282,7 @@
 			// maybe load custom
 
 			const _c = load_component({
-				api_url,
+				api_url: root,
 				name: c.type,
 				id: c.component_class_id,
 				variant: "component"

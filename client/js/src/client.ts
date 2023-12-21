@@ -462,7 +462,7 @@ export function api_factory(
 				}
 
 				handle_blob(
-					`${http_protocol}//${resolve_root(host, config.path, true)}`,
+					`${config.root}`,
 					data,
 					api_info,
 					hf_token
@@ -479,7 +479,7 @@ export function api_factory(
 						});
 
 						post_data(
-							`${http_protocol}//${resolve_root(host, config.path, true)}/run${
+							`${config.root}/run${
 								_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
 							}${url_params ? "?" + url_params : ""}`,
 							{
@@ -672,11 +672,7 @@ export function api_factory(
 							session_hash: session_hash
 						}).toString();
 						let url = new URL(
-							`${http_protocol}//${resolve_root(
-								host,
-								config.path,
-								true
-							)}/queue/join?${url_params ? url_params + "&" : ""}${params}`
+							`${config.root}/queue/join?${url_params ? url_params + "&" : ""}${params}`
 						);
 
 						eventSource = EventSource_factory(url);
@@ -703,11 +699,7 @@ export function api_factory(
 							} else if (type === "data") {
 								event_id = _data.event_id as string;
 								let [_, status] = await post_data(
-									`${http_protocol}//${resolve_root(
-										host,
-										config.path,
-										true
-									)}/queue/data`,
+									`${config.root}/queue/data`,
 									{
 										...payload,
 										session_hash,
@@ -789,11 +781,7 @@ export function api_factory(
 						});
 
 						post_data(
-							`${http_protocol}//${resolve_root(
-								host,
-								config.path,
-								true
-							)}/queue/join?${url_params}`,
+							`${config.root}/queue/join?${url_params}`,
 							{
 								...payload,
 								session_hash
@@ -1009,11 +997,7 @@ export function api_factory(
 
 					try {
 						await fetch_implementation(
-							`${http_protocol}//${resolve_root(
-								host,
-								config.path,
-								true
-							)}/reset`,
+							`${config.root}/reset`,
 							{
 								headers: { "Content-Type": "application/json" },
 								method: "POST",
@@ -1049,11 +1033,7 @@ export function api_factory(
 					session_hash: session_hash
 				}).toString();
 				let url = new URL(
-					`${http_protocol}//${resolve_root(
-						host,
-						config.path,
-						true
-					)}/queue/data?${params}`
+					`${config.root}/queue/data?${params}`
 				);
 				event_stream = new EventSource(url);
 				event_stream.onmessage = async function (event) {
@@ -1100,14 +1080,10 @@ export function api_factory(
 				if (component?.props?.root_url) {
 					root_url = component.props.root_url;
 				} else {
-					root_url = `${http_protocol}//${resolve_root(
-						host,
-						config.path,
-						true
-					)}/`;
+					root_url = config.root;
 				}
 				const response = await fetch_implementation(
-					`${root_url}component_server/`,
+					`${root_url}/component_server/`,
 					{
 						method: "POST",
 						body: JSON.stringify({
