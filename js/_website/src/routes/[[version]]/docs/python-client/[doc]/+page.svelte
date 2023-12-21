@@ -72,14 +72,16 @@
 
 <main class="container mx-auto px-4 flex gap-4">
 	<div class="flex w-full">
-		<!-- <DocsNavCustom
+		<DocsNavCustom
 			current_nav_link={obj.name}
 			items={{
-				Client: "client",
-				Job: "job"
+				"Intro": "intro",
+				"Client": "client",
+				"Job": "job",
+                "Getting Started With The Python Client": "getting-started"
 			}}
 			title={"Python Client"}
-		/> -->
+		/>
 
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
 			<div>
@@ -117,7 +119,7 @@
 			{/if}
 
 			<div class="flex justify-between mt-4 lg:ml-10">
-				<!-- {#if obj.prev_obj}
+				{#if obj.prev_obj}
 					<a
 						href="./{obj.prev_obj.toLowerCase()}"
 						class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
@@ -142,7 +144,7 @@
 					</a>
 				{:else}
 					<div />
-				{/if} -->
+				{/if}
 			</div>
 
 			<div class="flex flex-row">
@@ -484,7 +486,7 @@
 			</div>
 
 			<div class="lg:ml-10 flex justify-between my-4">
-				<!-- {#if obj.prev_obj}
+				{#if obj.prev_obj}
 					<a
 						href="./{obj.prev_obj.toLowerCase()}"
 						class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
@@ -509,7 +511,7 @@
 					</a>
 				{:else}
 					<div />
-				{/if} -->
+				{/if}
 			</div>
 		</div>
 
