@@ -157,7 +157,7 @@ Whenever a test fails locally, playwright will write out some details about the 
 You can view the trace using the following command:
 
 ```bash
-npx playwright show-trace test-results/j<directory-name>/trace.zip
+npx playwright show-trace test-results/<directory-name>/trace.zip
 ```
 
 You can see a "video" of the failing test, a screenshot of when it failed, as well as all the network calls and console messages.
