@@ -4,7 +4,21 @@
 	import { getRandomIntInclusive, classToEmojiMapping } from "./utils";
 	import Card from "./Card.svelte";
 	import Close from "$lib/icons/Close.svelte";
+	import MetaTags from "$lib/components/MetaTags.svelte";
+	import { page } from "$app/stores";
 
+	export let data: {
+		guide_names: {
+			category: string;
+			guides: {
+				name: string;
+				pretty_name: string;
+				url: string;
+			}[];
+		}[];
+	};
+
+	let guide_names = data.guide_names;
 	const API = "https://gradio-custom-component-gallery-backend.hf.space/";
 	const OFFSET = 0;
 	const LIMIT = 50;
@@ -58,9 +72,46 @@
 			fetch_components(selection.split(","));
 		}
 	}
+
+	$: guide_names = data.guide_names;
+
 </script>
 
-<div class="flex flex-col relative h-full">
+<MetaTags
+	title="Custom Components Gallery"
+	url={$page.url.pathname}
+	canonical={$page.url.pathname}
+	description="Browse through Gradio Custom Components."
+/>
+
+<div class="container mx-auto px-4 flex relative w-full">
+	<div
+	class="side-navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto overflow-x-hidden hidden lg:block rounded-t-xl bg-gradient-to-r from-white to-gray-50 lg:w-3/12"
+>
+	{#each guide_names as guides, i}
+		<div
+			class="category-link my-2 font-semibold px-4 pt-2 text-ellipsis block"
+			style="max-width: 12rem"
+		>
+			{guides.category}
+		</div>
+			<p
+				class="mx-4 block bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-500 px-4 py-0.5 mr-2 rounded-full text-orange-800 mb-5 w-fit hover:shadow-lg"
+			>
+				<a class="inline-block" href="./gallery"> Gallery &rarr;</a>
+			</p>
+
+		{#each guides.guides as guide, j}
+				<a
+					class="guide-link -indent-2 ml-2 thin-link px-4 block overflow-hidden"
+					style="max-width: 12rem"
+					href="/main/docs/custom-components/{guide.name}">{guide.pretty_name}</a
+				>
+		{/each}
+	{/each}
+</div>
+
+<div class="flex flex-col relative h-full w-full ml-5">
 	<input
 		type="text"
 		class="m-8 border border-gray-200 p-1 rounded-md outline-none text-center text-lg mb-1 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
@@ -110,6 +161,7 @@
 	</div>
 {/if}
 
+</div>
 <style>
 	.grid {
 		display: grid;
@@ -141,10 +193,10 @@
 	.details-panel {
 		overflow-y: scroll;
 		position: fixed;
-		top: 0;
-		right: 0;
-		height: 100%;
-		width: 80%;
+		top: 14%;
+		right: 10%;
+		height: 85%;
+		width: 63%;
 		background-color: white;
 		box-shadow: -4px 0 4px rgba(0, 0, 0, 0.1);
 		z-index: 1000;
