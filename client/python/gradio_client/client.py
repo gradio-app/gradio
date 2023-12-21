@@ -683,7 +683,7 @@ class Client:
                 raise ValueError(f"Invalid function index: {fn_index}.")
         else:
             valid_endpoints = [
-                e for e in self.endpoints if e.is_valid and e.api_name is not None
+                e for e in self.endpoints if e.is_valid and e.api_name is not None and e.backend_fn is not None
             ]
             if len(valid_endpoints) == 1:
                 inferred_fn_index = valid_endpoints[0].fn_index
@@ -1218,6 +1218,7 @@ class EndpointV3Compatibility:
             self.is_valid = self.dependency["backend_fn"] and self.api_name is not False
         except SerializationSetupError:
             self.is_valid = False
+        self.backend_fn = dependency.get("backend_fn")
 
     def __repr__(self):
         return f"Endpoint src: {self.client.src}, api_name: {self.api_name}, fn_index: {self.fn_index}"

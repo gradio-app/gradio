@@ -893,7 +893,7 @@ class TestAPIInfo:
                             "type": "string",
                         },
                         "python_type": {
-                            "type": "Literal[add, subtract, multiply, divide]",
+                            "type": "Literal['add', 'subtract', 'multiply', 'divide']",
                             "description": "",
                         },
                         "component": "Radio",
