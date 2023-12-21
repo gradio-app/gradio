@@ -194,6 +194,7 @@
 
 				{#each dependencies as dependency, dependency_index}
 					{#if dependency.api_name && dependency.show_api}
+						{console.log("dependency", dependency)}
 						<div class="endpoint-container">
 							<CodeSnippets
 								named={true}
