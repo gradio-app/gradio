@@ -1,5 +1,7 @@
 <script lang="ts">
 	import DocsNav from "$lib/components/DocsNav.svelte";
+	import DocsNavCustom from "$lib/components/DocsNavCustom.svelte";
+
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
 
@@ -28,14 +30,15 @@
 
 <main class="container mx-auto px-4 flex gap-4">
 	<div class="flex w-full">
-		<!-- <DocsNav
-			current_nav_link={"js-client"}
-			{components}
-			{helpers}
-			{modals}
-			{routes}
-			{py_client}
-		/> -->
+		<DocsNavCustom
+			current_nav_link={"Reference"}
+			items={{
+				"Reference": "reference",
+                "Getting Started With The JS Client": "getting-started"
+			}}
+			title={"JavaScript Client"}
+		/>
+
 
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
 			<div>
@@ -63,7 +66,7 @@
 					</div>
 				</a>
 			</div> -->
-			<div class="flex flex-row">
+			<div class="flex flex-row mt-10">
 				<div class="lg:w-3/4 lg:ml-10 lg:mr-24">
 					<div class="prose text-lg max-w-full">
 						{@html readme_html}

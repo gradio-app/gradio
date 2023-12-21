@@ -71,7 +71,7 @@
 		</a>
 
 		<a
-			href="/guides/gradio-lite"
+			href="/main/docs/lite"
 			target="_self"
 			class="group group relative flex flex-col overflow-hidden border md:first:row-span-2 border-violet-50 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-violet-500/5 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 			><div
