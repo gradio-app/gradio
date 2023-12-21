@@ -113,7 +113,7 @@ To enable the example view, you must have the following two files in the top of 
 In the backend, you typically don't need to do anything unless you would like to modify the user-provided `value` of the examples to something else before it is sent to the frontend.
 You can do this in the `as_example` method of the component. 
 
-The `Example.svelte` and `as_example` methods will be covered in greater depth in the dedicated [frontend](./frontend) and [backend](./backend) guides.
+The `Example.svelte` and `as_example` methods will be covered in greater depth in the dedicated [frontend](/main/guides/frontend) and [backend](/main/gudies/backend) guides.
 
 ### What you need to remember
 

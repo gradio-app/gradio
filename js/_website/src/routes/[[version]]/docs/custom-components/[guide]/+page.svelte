@@ -94,7 +94,7 @@
 						class:current-nav-link={guide.name == guide_page.name}
 						class="guide-link -indent-2 ml-2 thin-link px-4 block overflow-hidden"
 						style="max-width: 12rem"
-						href="..{guide.url}">{guide.pretty_name}</a
+						href="/main/docs/custom-components/{guide.name}">{guide.pretty_name}</a
 					>
 
 					<div
@@ -112,7 +112,7 @@
 						class:current-nav-link={guide.name == guide_page.name}
 						class="guide-link -indent-2 ml-2 thin-link px-4 block overflow-hidden"
 						style="max-width: 12rem"
-						href="..{guide.url}">{guide.pretty_name}</a
+						href="/main/docs/custom-components/{guide.name}">{guide.pretty_name}</a
 					>
 				{/if}
 			{/each}
@@ -122,7 +122,7 @@
 		<div class="w-full flex justify-between my-4">
 			{#if prev_guide}
 				<a
-					href="..{prev_guide.url}"
+					href="/main/docs/custom-components/{prev_guide.url.replace('/guides/','')}"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
 				>
 					<div class="flex text-lg">
@@ -137,7 +137,7 @@
 			{/if}
 			{#if next_guide}
 				<a
-					href="..{next_guide.url}"
+					href="/main/docs/custom-components/{next_guide.url.replace('/guides/','')}"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full max-w-1/2 hover:underline max-w-[48%]"
 				>
 					<div class="flex text-lg">
@@ -179,7 +179,7 @@
 		<div class="w-full flex justify-between my-4">
 			{#if prev_guide}
 				<a
-					href="..{prev_guide.url}"
+					href="/main/docs/custom-components/{prev_guide.url.replace('/guides/','')}"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline max-w-[48%]"
 				>
 					<div class="flex text-lg">
@@ -194,7 +194,7 @@
 			{/if}
 			{#if next_guide}
 				<a
-					href="..{next_guide.url}"
+					href="/main/docs/custom-components/{next_guide.url.replace('/guides/','')}"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full max-w-1/2 hover:underline max-w-[48%]"
 				>
 					<div class="flex text-lg">

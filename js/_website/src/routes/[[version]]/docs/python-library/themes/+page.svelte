@@ -117,14 +117,14 @@
 						<span class="text-orange-500">&#8592;</span> Flagging
 					</div>
 				</a>
-				<a
+				<!-- <a
 					href="./python-client"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
 						Python Client <span class="text-orange-500">&#8594;</span>
 					</div>
-				</a>
+				</a> -->
 			</div>
 
 			<div class="flex flex-row">
@@ -394,7 +394,7 @@
 											class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {data
 												.COLOR_SETS[i][0]} {data.COLOR_SETS[i][1]}"
 											target="_blank"
-											href="..{guide.url}"
+											href="{guide.url}"
 										>
 											<div class="flex flex-col p-4 h-min">
 												<p class="group-hover:underline text-l">
@@ -468,14 +468,14 @@
 						<span class="text-orange-500">&#8592;</span> Flagging
 					</div>
 				</a>
-				<a
+				<!-- <a
 					href="./python-client"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
 						Python Client <span class="text-orange-500">&#8594;</span>
 					</div>
-				</a>
+				</a> -->
 			</div>
 		</div>
 		<div

@@ -32,7 +32,7 @@ Open up the `multimodalchatbot.py` file in your favorite code editor and let's g
 
 The first thing we will do is create the `data_model` of our component.
 The `data_model` is the data format that your python component will receive and send to the javascript client running the UI.
-You can read more about the `data_model` in the [backend guide](./backend).
+You can read more about the `data_model` in the [backend guide](/main/guides/backend).
 
 For our component, each chatbot message will consist of two keys: a `text` key that displays the text message and an optional list of media files that can be displayed underneath the text.
 
@@ -81,7 +81,7 @@ def preprocess(
 ```
 
 
-Tip: Learn about the reasoning behind the `preprocess` and `postprocess` methods in the [key concepts guide](./key-component-concepts)
+Tip: Learn about the reasoning behind the `preprocess` and `postprocess` methods in the [key concepts guide](/main/guides/key-component-concepts)
 
 In the `postprocess` method we will coerce each message returned by the python function to be a `MultimodalMessage` class. 
 We will also clean up any indentation in the `text` field so that it can be properly displayed as markdown in the frontend.
