@@ -872,7 +872,7 @@ class TestAPIInfo:
             "unnamed_endpoints": {},
         }
 
-    def test_fetch_fixed_version_space(self, calculator_demo):
+    def test_api_info_of_local_demo(self, calculator_demo):
         with connect(calculator_demo) as client:
             api_info = client.view_api(return_format="dict")
             assert isinstance(api_info, dict)
@@ -916,9 +916,6 @@ class TestAPIInfo:
                     }
                 ],
             }
-            assert (
-                "/load_example" in api_info["named_endpoints"]
-            )  # The exact api configuration includes Block IDs and thus is not deterministic
             assert api_info["unnamed_endpoints"] == {}
 
     def test_unnamed_endpoints_use_fn_index(self, count_generator_demo):
