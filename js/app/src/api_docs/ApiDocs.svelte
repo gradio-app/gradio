@@ -74,7 +74,7 @@
 
 	let info: {
 		named_endpoints: any;
-		unnamed_endpoints?: any;
+		unnamed_endpoints: any;
 	};
 
 	let js_info: Record<string, any>;

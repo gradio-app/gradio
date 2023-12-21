@@ -694,6 +694,7 @@ class Interface(Blocks):
                 outputs=None,
                 preprocess=False,
                 queue=False,
+                show_api=False,
             )
             return
 

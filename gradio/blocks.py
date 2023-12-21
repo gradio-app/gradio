@@ -964,7 +964,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             "trigger_after": trigger_after,
             "trigger_only_on_success": trigger_only_on_success,
             "trigger_mode": trigger_mode,
-            "show_api": show_api,
+            "show_api": show_api
         }
         self.dependencies.append(dependency)
         return dependency, len(self.dependencies) - 1
@@ -2255,14 +2255,12 @@ Received outputs:
         """
         config = self.config
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
+        mode = config.get("mode", None)
 
-        for dependency in config["dependencies"]:
-            if not dependency["backend_fn"] or not dependency["show_api"] or dependency["api_name"] is False:
-                continue
-            
-            skip_endpoint = False
+        for d, dependency in enumerate(config["dependencies"]):
             dependency_info = {"parameters": [], "returns": []}
-            
+            skip_endpoint = False
+
             inputs = dependency["inputs"]
             for i in inputs:
                 for component in config["components"]:
@@ -2320,10 +2318,25 @@ Received outputs:
                         "component": type.capitalize(),
                     }
                 )
+            if not dependency["backend_fn"]:
+                skip_endpoint = True
 
-            if not skip_endpoint:
+            if skip_endpoint:
+                continue
+            if (
+                dependency["api_name"] is not None
+                and dependency["api_name"] is not False
+            ):
                 api_info["named_endpoints"][
                     f"/{dependency['api_name']}"
                 ] = dependency_info
+            elif (
+                dependency["api_name"] is False
+                or mode == "interface"
+                or mode == "tabbed_interface"
+            ):
+                pass  # Skip unnamed endpoints in interface mode
+            else:
+                api_info["unnamed_endpoints"][str(d)] = dependency_info
 
         return api_info
