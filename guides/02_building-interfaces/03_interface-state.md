@@ -1,10 +1,10 @@
 # Interface State
 
-This guide covers how State is handled in Gradio. Learn the difference between Global and Session states, and how to use both.
+So far, we've assumed that your demos are *stateless*: that they do not persist information beyond a single function call. What if you want to modify the behavior of your demo based on previous interactions with the demo? There are two approaches in Gradio: *global state* and *session state*.
 
 ## Global State
 
-Your function may use data that persists beyond a single function call. If the data is something accessible to all function calls and all users, you can create a variable outside the function call and access it inside the function. For example, you may load a large model outside the function and use it inside the function so that every function call does not need to reload the model.
+If the state is something that should be accessible to all function calls and all users, you can create a variable outside the function call and access it inside the function. For example, you may load a large model outside the function and use it inside the function so that every function call does not need to reload the model.
 
 $code_score_tracker
 
@@ -12,7 +12,7 @@ In the code above, the `scores` array is shared between all users. If multiple u
 
 ## Session State
 
-Another type of data persistence Gradio supports is session **state**, where data persists across multiple submits within a page session. However, data is _not_ shared between different users of your model. To store data in a session state, you need to do three things:
+Another type of data persistence Gradio supports is session state, where data persists across multiple submits within a page session. However, data is _not_ shared between different users of your model. To store data in a session state, you need to do three things:
 
 1. Pass in an extra parameter into your function, which represents the state of the interface.
 2. At the end of the function, return the updated value of the state as an extra return value.

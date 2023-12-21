@@ -1,6 +1,6 @@
 # More on Examples
 
-This guide covers what more you can do with Examples: Loading examples from a directory, providing partial examples, and caching. If Examples is new to you, check out the intro in the [Key Features](/guides/key-features/#example-inputs) guide.
+In the [previous Guide](/main/guides/the-interface-class), we discussed how to provide example inputs for your demo to make it easier for users to try it out. Here, we dive into more details.
 
 ## Providing Examples
 

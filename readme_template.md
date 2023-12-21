@@ -1,7 +1,6 @@
 <div align="center">
 
 [<img src="readme_files/gradio.svg" alt="gradio" width=400>](https://gradio.app)<br>
-<em>Build & share delightful machine learning apps easily</em>
 
 [![gradio-backend](https://github.com/gradio-app/gradio/actions/workflows/backend.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/backend.yml)
 [![gradio-ui](https://github.com/gradio-app/gradio/actions/workflows/ui.yml/badge.svg)](https://github.com/gradio-app/gradio/actions/workflows/ui.yml)  
@@ -21,26 +20,17 @@
 
 # Gradio: Build Machine Learning Web Apps — in Python
 
-Gradio is an open-source Python library that is used to build machine learning and data science demos and web applications.
-
-With Gradio, you can quickly create a beautiful user interface around your machine learning models or data science workflow and let people "try it out" by dragging-and-dropping in their own images,
-pasting text, recording their own voice, and interacting with your demo, all through the browser.
-
-![Interface montage](readme_files/header-image.jpg)
-
-Gradio is useful for:
-
-- **Demoing** your machine learning models for clients/collaborators/users/students.
-
-- **Deploying** your models quickly with automatic shareable links and getting feedback on model performance.
-
-- **Debugging** your model interactively during development using built-in input manipulation tools.
-
 $getting_started
+
+## Questions?
+
+If you'd like to report a bug or have a feature request, please create an [issue on GitHub](https://github.com/gradio-app/gradio/issues/new/choose). For general questions about usage, we are available on [our Discord server](https://discord.com/invite/feTf9x3ZSB) and happy to help.
+
+If you like Gradio, please leave us a ⭐ on GitHub!
 
 ## Open Source Stack
 
-Gradio is built with many wonderful open-source libraries, please support them as well!
+Gradio is built on top of many wonderful open-source libraries!
 
 [<img src="readme_files/huggingface_mini.svg" alt="huggingface" height=40>](https://huggingface.co)
 [<img src="readme_files/python.svg" alt="python" height=40>](https://www.python.org)
