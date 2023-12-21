@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Add sample rate config option to `gr.Audio`
+fix:Add sample rate config option to `gr.Audio()`
