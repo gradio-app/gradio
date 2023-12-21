@@ -104,7 +104,7 @@
 			autocomplete="off"
 		/>
 		<!-- <DropDown></DropDown> -->
-		<select
+		<!-- <select
 			bind:value={docs_type}
 			on:change={() => {
 				if (docs_type == "js") {
@@ -115,7 +115,7 @@
 		>
 			<option value="js">js</option>
 			<option value="python">python</option>
-		</select>
+		</select> -->
 	</div>
 
 	<p class="font-semibold px-4 my-2 block">Building Demos</p>

@@ -13,24 +13,23 @@
 </script>
 
 <MetaTags
-	title={"Gradio Python Client Docs"}
+	title={"Gradio JS Client Docs"}
 	url={$page.url.pathname}
 	canonical={$page.url.pathname}
-	description={"The lightweight Gradio client library that makes it easy to use any Gradio app as an API"}
+	description={"Use Gradio's Javascript components in cusome components or outside the context of Gradio."}
 />
 
 <main class="container mx-auto px-4 flex gap-4">
 	<div class="flex w-full">
 		<DocsNavCustom
-			current_nav_link={"Getting Started With The Python Client"}
+			current_nav_link={"Getting Started With The JS Client"}
 			items={{
-				"Intro": "intro",
-				"Client": "client",
-				"Job": "job",
-                "Getting Started With The Python Client": "getting-started"
+				"Reference": "reference",
+                "Getting Started With The JS Client": "getting-started"
 			}}
-			title={"Python Client"}
+			title={"JavaScript Client"}
 		/>
+
         <div class="w-full lg:w-8/12 mx-auto">
 
         <div class="prose text-lg max-w-full">

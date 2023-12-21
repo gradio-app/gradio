@@ -104,7 +104,7 @@
 		{#if version_dropdown}
 			<DropDown docs_type="js"></DropDown>
 		{/if}
-		<select
+		<!-- <select
 			bind:value={docs_type}
 			on:change={() => {
 				if (docs_type == "python") {
@@ -115,7 +115,7 @@
 		>
 			<option value="js">js</option>
 			<option value="python">python</option>
-		</select>
+		</select> -->
 	</div>
 
 	<p
