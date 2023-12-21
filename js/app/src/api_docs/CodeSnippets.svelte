@@ -70,11 +70,9 @@ result = client.predict(<!--
 							><!--
 		-->{/each}<!--
 
-		-->{#if named}
-							api_name="/{dependency.api_name}"<!--
-		-->{:else}
-							fn_index={dependency_index}
-						{/if}
+		-->
+		api_name="/{dependency.api_name}"<!--
+		-->
 )
 print(result)</pre>
 				</div>

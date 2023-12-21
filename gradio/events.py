@@ -273,7 +273,7 @@ class EventListener(str):
             if isinstance(show_progress, bool):
                 show_progress = "full" if show_progress else "hidden"
 
-            if api_name is None:
+            if api_name is None or isinstance(api_name, str) and api_name.strip() == "":
                 if fn is not None:
                     if not hasattr(fn, "__name__"):
                         if hasattr(fn, "__class__") and hasattr(
