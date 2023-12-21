@@ -76,7 +76,7 @@
 						class:hidden={guide.hidden}
 						class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {data
 							.COLOR_SETS[i][0]} {data.COLOR_SETS[i][1]}"
-						href=".{guide.url.startsWith("/guides") ? guide.url : "/guides/" + guide.name}"
+						href=".{guide.url}"
 					>
 						<div class="flex flex-col p-4 h-min">
 							<h2 class="group-hover:underline text-lg">

@@ -9,7 +9,7 @@ This is a sneak preview of what our finished component will look like:
 ## Step 0: Prerequisites
 Make sure you have gradio 4.0 installed as well as node 18+.
 As of the time of publication, the latest release is 4.1.1.
-Also, please read the [Five Minute Tour](./custom-components-in-five-minutes) of custom components and the [Key Concepts](./key-component-concepts) guide before starting.
+Also, please read the [Five Minute Tour](/main/guides/custom-components-in-five-minutes) of custom components and the [Key Concepts](/main/guides/key-component-concepts) guide before starting.
 
 
 ## Step 1: Creating the custom component

@@ -34,7 +34,7 @@
 
 	<nav class="grid grid-cols-1 gap-4 md:grid-cols-3 mt-8">
 		<a
-			href="/docs/python-library"
+			href="/main/docs/python-library"
 			target="_self"
 			class="group group relative flex flex-col overflow-hidden border md:first:row-span-3 border-yellow-50 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-yellow-500/5 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 			><div
@@ -53,7 +53,7 @@
 		</a>
 
 		<a
-			href="/docs/python-client"
+			href="/main/docs/python-client"
 			target="_self"
 			class="group group relative flex flex-col overflow-hidden border md:first:row-span-2 border-orange-50 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-orange-500/5 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 			><div
@@ -89,7 +89,7 @@
 		</a>
 
 		<a
-			href="/docs/js-client"
+			href="/main/docs/js-client"
 			target="_self"
 			class="group group relative flex flex-col overflow-hidden border md:first:row-span-2 border-red-50 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-red-500/5 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 			><div

@@ -36,7 +36,7 @@ Otherwise the Python interpreter will raise an error when you instantiate your c
 
 ### `preprocess` and `postprocess`
 
-Explained in the [Key Concepts](./key-component-concepts#the-value-and-how-it-is-preprocessed-postprocessed) guide. 
+Explained in the [Key Concepts](/main/guides/key-component-concepts#the-value-and-how-it-is-preprocessed-postprocessed) guide. 
 They handle the conversion from the data sent by the frontend to the format expected by the python function.
 
 ```python

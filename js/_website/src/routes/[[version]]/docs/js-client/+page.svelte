@@ -28,14 +28,14 @@
 
 <main class="container mx-auto px-4 flex gap-4">
 	<div class="flex w-full">
-		<DocsNav
+		<!-- <DocsNav
 			current_nav_link={"js-client"}
 			{components}
 			{helpers}
 			{modals}
 			{routes}
 			{py_client}
-		/>
+		/> -->
 
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
 			<div>
@@ -53,7 +53,7 @@
 				</p>
 			</div>
 
-			<div class="lg:ml-10 flex justify-between mt-4">
+			<!-- <div class="lg:ml-10 flex justify-between mt-4">
 				<a
 					href="./job"
 					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
@@ -62,7 +62,7 @@
 						<span class="text-orange-500">&#8592;</span> Job
 					</div>
 				</a>
-			</div>
+			</div> -->
 			<div class="flex flex-row">
 				<div class="lg:w-3/4 lg:ml-10 lg:mr-24">
 					<div class="prose text-lg max-w-full">

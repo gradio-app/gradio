@@ -72,14 +72,14 @@
 
 <main class="container mx-auto px-4 flex gap-4">
 	<div class="flex w-full">
-		<DocsNavCustom
+		<!-- <DocsNavCustom
 			current_nav_link={obj.name}
 			items={{
 				Client: "client",
 				Job: "job"
 			}}
 			title={"Python Client"}
-		/>
+		/> -->
 
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
 			<div>
@@ -117,7 +117,7 @@
 			{/if}
 
 			<div class="flex justify-between mt-4 lg:ml-10">
-				{#if obj.prev_obj}
+				<!-- {#if obj.prev_obj}
 					<a
 						href="./{obj.prev_obj.toLowerCase()}"
 						class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
@@ -142,7 +142,7 @@
 					</a>
 				{:else}
 					<div />
-				{/if}
+				{/if} -->
 			</div>
 
 			<div class="flex flex-row">
@@ -467,7 +467,7 @@
 											class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {data
 												.COLOR_SETS[i][0]} {data.COLOR_SETS[i][1]}"
 											target="_blank"
-											href="..{guide.url}"
+											href="{guide.url}"
 										>
 											<div class="flex flex-col p-4 h-min">
 												<p class="group-hover:underline text-l">
@@ -484,7 +484,7 @@
 			</div>
 
 			<div class="lg:ml-10 flex justify-between my-4">
-				{#if obj.prev_obj}
+				<!-- {#if obj.prev_obj}
 					<a
 						href="./{obj.prev_obj.toLowerCase()}"
 						class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
@@ -509,7 +509,7 @@
 					</a>
 				{:else}
 					<div />
-				{/if}
+				{/if} -->
 			</div>
 		</div>
 

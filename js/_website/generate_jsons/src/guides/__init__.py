@@ -78,7 +78,7 @@ for guide_folder in guide_folders:
 
         url = f"/guides/{guide_name}/"
         if guide_category == "custom-components":
-            url = f"/{guide_name}/"
+            url = f"/guides/{guide_name}/"
         
         guide_content = re.sub(
             r"\$code_([a-z _\-0-9]+)",
@@ -176,7 +176,7 @@ def generate(json_path):
     with open(json_path + "cc_guide_names.json", 'w+') as f:
         json.dump({
             "guide_names": cc_guide_names,
-            "guide_urls": [url.replace("/guide", "") for url in cc_guide_urls]
+            "guide_urls": cc_guide_urls
             }, f)
     
 
