@@ -446,6 +446,7 @@ def on(
         batch=batch,
         max_batch_size=max_batch_size,
         every=every,
+        show_api=show_api,
     )
     set_cancel_events(triggers, cancels)
     return Dependency(None, dep, dep_index, fn)

@@ -2255,9 +2255,11 @@ Received outputs:
         """
         config = self.config
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
-        mode = config.get("mode", None)
 
-        for d, dependency in enumerate(config["dependencies"]):
+        for dependency in config["dependencies"]:
+            if not dependency["backend_fn"] or not dependency["show_api"]:
+                continue
+
             dependency_info = {"parameters": [], "returns": []}
             skip_endpoint = False
 
@@ -2318,25 +2320,10 @@ Received outputs:
                         "component": type.capitalize(),
                     }
                 )
-            if not dependency["backend_fn"]:
-                skip_endpoint = True
-
-            if skip_endpoint:
-                continue
-            if (
-                dependency["api_name"] is not None
-                and dependency["api_name"] is not False
-            ):
+            
+            if not skip_endpoint:
                 api_info["named_endpoints"][
                     f"/{dependency['api_name']}"
                 ] = dependency_info
-            elif (
-                dependency["api_name"] is False
-                or mode == "interface"
-                or mode == "tabbed_interface"
-            ):
-                pass  # Skip unnamed endpoints in interface mode
-            else:
-                api_info["unnamed_endpoints"][str(d)] = dependency_info
 
         return api_info
