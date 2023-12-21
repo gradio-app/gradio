@@ -921,6 +921,7 @@ class Endpoint:
         )
         # Disallow hitting endpoints that the Gradio app has disabled
         self.is_valid = self.api_name is not False
+        self.backend_fn = dependency.get("backend_fn")
 
     def _get_component_type(self, component_id: int):
         component = next(
