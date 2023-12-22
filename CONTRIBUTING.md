@@ -107,6 +107,7 @@ If you're making frontend changes, start the frontend server:
 ```
 pnpm dev
 ```
+
 This will open a separate browser tab. By default, Gradio will launch this on port 9876. Any changes to the frontend will also reload automatically in the browser. For more information about developing in the frontend, you can refer to [js/README.md](js/README.md).
 
 We also have demos of all our components in the `/gradio/demo` directory. To get our simple gradio Chatbot running locally:
@@ -150,7 +151,11 @@ You can also run browser tests in the UI mode by adding the `--ui` flag:
 pnpm test:browser --ui
 ```
 
-If you have made any significant visual changes to a component, we encourage you to add a new Storybook story or amend an existing one to reflect them. You can create a new story with a `*.stories.svelte` file. 
+If you have made any significant visual changes to a component, we encourage you to add a new Storybook story or amend an existing one to reflect them. You can create a new story with a `*.stories.svelte` file. You can run the storybook locally:
+
+```
+pnpm storybook
+```
 
 ## 🕸️ Gradio Website
 
@@ -176,12 +181,22 @@ to
 ```
 
 You should now be able to view a local version of the website at `http://localhost:4321`. 
-## 📚 Component Storybook
 
-If you would like to fix an issue or contribute to our Storybook, you can get it running locally with:
+## 🌎 Gradio-Lite
+
+Gradio-Lite is a Pyodide-based library that lets you run Gradio serverless (in other words, directly in your browser). The files specific to Gradio-Lite are located in the `js/lite` folder. 
+
+You can build Gradio-lite locally by running:
+
 
 ```
-pnpm storybook
+bash scripts/build_lite.sh
+```
+
+and launch a test app by doing:
+
+```
+bash scripts/launch_lite.sh
 ```
 
 
@@ -191,7 +206,7 @@ All PRs should be against `main`, and ideally should address an open issue, unle
 
 - An initial review has been requested
 - A clear, descriptive title has been assigned to the PR
-- A maintainer (@abidlabs, @aliabid94, @aliabd, @AK391, @dawoodkhan82, @pngwn, @freddyaboulton, @hannahblair) is tagged in the PR comments and asked to complete a review
+- A maintainer (@abidlabs, @aliabid94, @aliabd, @AK391, @dawoodkhan82, @pngwn, @freddyaboulton, @hannahblair, @hysts, @whitphx) is tagged in the PR comments and asked to complete a review
 
  🧹 We ask that you make sure initial CI checks are passing before requesting a review. One of the Gradio maintainers will merge the PR when all the checks are passing.  You can safely ignore the Vercel and Spaces checks, which only run under maintainers' pull requests.  
 
@@ -201,11 +216,15 @@ Don't forget the format your code before pushing:
 bash scripts/format_backend.sh
 ```
 
+And if you made changes to the frontend: 
+
 ```
 bash scripts/format_frontend.sh
 ```
 
-Thank you for taking the time to contribute to our project! 
+Thank you for taking the time to contribute to Gradio! 
+
+
 ## ❓ Need help getting started?
 
 - Browse [issues](https://github.com/gradio-app/gradio/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) with the "good first issue" label. These are issues we think are good for newcomers.
