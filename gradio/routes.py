@@ -38,6 +38,7 @@ from fastapi.responses import (
     JSONResponse,
     PlainTextResponse,
 )
+from typing import Optional
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from gradio_client import utils as client_utils
@@ -760,6 +761,7 @@ class App(FastAPI):
             request: fastapi.Request,
             bg_tasks: BackgroundTasks,
             upload_id: Optional[str] = None,
+            max_file_size: Optional[int] = None,
         ):
             content_type_header = request.headers.get("Content-Type")
             content_type: bytes
@@ -775,6 +777,7 @@ class App(FastAPI):
                     request.stream(),
                     max_files=1000,
                     max_fields=1000,
+                    max_file_size=max_file_size,
                     upload_id=upload_id if upload_id else None,
                     upload_progress=file_upload_statuses if upload_id else None,
                 )
