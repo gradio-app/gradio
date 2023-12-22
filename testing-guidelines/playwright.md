@@ -12,7 +12,7 @@ This is nice because it matches how users interact with Gradio applications.
 However, playwright carries out these steps much faster than any human can!
 This can cause you to check whether a textbox has the correct output before the server is finished processing the request.
 
-For this reason, playright ships with some [retrying assertions](https://playwright.dev/docs/test-assertions#auto-retrying-assertions).
+For this reason, playwright ships with some [retrying assertions](https://playwright.dev/docs/test-assertions#auto-retrying-assertions).
 These assertions will retry until they pass or a timeout is reached, by default 5 seconds.
 So even if playwright checks a DOM element before the server is done, it gives the server a chance to finish by retrying.
 
