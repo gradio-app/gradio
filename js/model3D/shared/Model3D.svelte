@@ -16,6 +16,8 @@
 	export let zoom_speed = 1;
 	export let pan_speed = 1;
 
+	let previous_scene: BABYLON.Scene | null = null; // To track the previous scene
+
 	// alpha, beta, radius
 	export let camera_position: [number | null, number | null, number | null] = [
 		null,
@@ -80,8 +82,12 @@
 		reset_camera_position(scene, camera_position, zoom_speed, pan_speed);
 	}
 
-	$: if (scene)
-		reset_camera_position(scene, camera_position, zoom_speed, pan_speed);
+	$: {
+		if (scene && scene !== previous_scene) {
+			reset_camera_position(scene, camera_position, zoom_speed, pan_speed);
+			previous_scene = scene;
+		}
+	}
 </script>
 
 <BlockLabel
