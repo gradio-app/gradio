@@ -26,7 +26,9 @@ test("chatinterface works with streaming functions and all buttons behave as exp
 	await expect(page.locator(".bot").nth(1)).toContainText("You typed: hi");
 
 	await undo_button.click();
-	await expect.poll(async () => page.locator(".message.bot").count()).toBe(1);
+	await expect
+		.poll(async () => page.locator(".message.bot").count(), { timeout: 5000 })
+		.toBe(1);
 	await expect(textbox).toHaveValue("hi");
 
 	await textbox.fill("salaam");
@@ -35,5 +37,7 @@ test("chatinterface works with streaming functions and all buttons behave as exp
 	await expect(page.locator(".bot").nth(1)).toContainText("You typed: salaam");
 
 	await clear_button.click();
-	await expect.poll(async () => page.locator(".bot.message").count()).toBe(0);
+	await expect
+		.poll(async () => page.locator(".bot.message").count(), { timeout: 5000 })
+		.toBe(0);
 });
