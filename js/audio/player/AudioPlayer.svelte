@@ -112,13 +112,16 @@
 		mode = "";
 		const decodedData = waveform?.getDecodedData();
 		if (decodedData)
-			await process_audio(decodedData, start, end).then(
-				async (trimmedBlob: Uint8Array) => {
-					await dispatch_blob([trimmedBlob], "change");
-					waveform?.destroy();
-					create_waveform();
-				}
-			);
+			await process_audio(
+				decodedData,
+				start,
+				end,
+				waveform_settings.sample_rate
+			).then(async (trimmedBlob: Uint8Array) => {
+				await dispatch_blob([trimmedBlob], "change");
+				waveform?.destroy();
+				create_waveform();
+			});
 		dispatch("edit");
 	};
 

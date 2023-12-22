@@ -30,7 +30,7 @@ class WaveformOptions:
         show_recording_waveform: Whether to show the waveform when recording audio. Defaults to True.
         show_controls: Whether to show the standard HTML audio player below the waveform when recording audio or playing recorded audio. Defaults to False.
         skip_length: The percentage (between 0 and 100) of the audio to skip when clicking on the skip forward / skip backward buttons. Defaults to 5.
-        sample_rate: The sample rate of the audio. Defaults to 44100.
+        sample_rate: The output sample rate (in Hz) of the audio after editing. Defaults to the original sample rate of the audio (or 44100 if the sample rate is unknown).
     """
 
     waveform_color: str = "#9ca3af"
@@ -38,8 +38,7 @@ class WaveformOptions:
     show_recording_waveform: bool = True
     show_controls: bool = False
     skip_length: int | float = 5
-    sample_rate: int = 44100
-
+    sample_rate: int = None
 
 @document()
 class Audio(
@@ -202,6 +201,9 @@ class Audio(
         )
 
         sample_rate, data = processing_utils.audio_from_file(temp_file_path)
+
+        if self.waveform_options.sample_rate is None:
+            self.waveform_options.sample_rate = sample_rate
 
         duration = len(data) / sample_rate
         if self.min_length is not None and duration < self.min_length:
