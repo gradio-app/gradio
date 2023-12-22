@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:change `reset_camera_position` reactivity logic
+fix:Ensure camera settings only update when necessary in Model3D
