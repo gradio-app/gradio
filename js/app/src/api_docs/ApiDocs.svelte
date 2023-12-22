@@ -81,12 +81,10 @@
 
 	get_info().then((data) => {
 		info = data;
-		console.log("info", info);
 	});
 
 	get_js_info().then((js_api_info) => {
 		js_info = js_api_info;
-		console.log("js_info", js_info);
 	});
 
 	async function run(index: number): Promise<void> {
