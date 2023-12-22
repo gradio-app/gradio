@@ -952,11 +952,15 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 api_name = "unnamed"
                 show_api = False
 
-        # Append a unique suffix to the api_name if necessary
         if api_name is not False:
             api_name = utils.append_unique_suffix(
                 api_name, [dep["api_name"] for dep in self.dependencies]
             )
+        else:
+            show_api = False
+
+        # The `show_api` parameter is False if: (1) the user explicitly sets it (2) the user sets `api_name` to False
+        # or (3) the user sets `fn` to None (there's no backend function)
 
         if collects_event_data is None:
             collects_event_data = event_data_index is not None

@@ -148,14 +148,13 @@
 </script>
 
 {#if info}
-	{#if dependencies.filter((dependency) => dependency.api_name && dependency.show_api).length}
+	{#if dependencies.filter((dependency) => dependency.show_api).length}
 		<div class="banner-wrap">
 			<ApiBanner
 				on:close
 				{root}
-				api_count={dependencies.filter(
-					(dependency) => dependency.api_name && dependency.show_api
-				).length}
+				api_count={dependencies.filter((dependency) => dependency.show_api)
+					.length}
 			/>
 		</div>
 		<div class="docs-wrap">
@@ -191,7 +190,7 @@
 				{/if}
 
 				{#each dependencies as dependency, dependency_index}
-					{#if dependency.api_name && dependency.show_api}
+					{#if dependency.show_api}
 						<div class="endpoint-container">
 							<CodeSnippets
 								named={true}
