@@ -1,10 +1,18 @@
 # @gradio/upload
 
+## 0.5.7
+
+### Patch Changes
+
+- Updated dependencies [[`d406855`](https://github.com/gradio-app/gradio/commit/d4068557953746662235d595ec435c42ceb24414)]:
+  - @gradio/client@0.9.4
+  - @gradio/upload@0.5.7
+
 ## 0.5.6
 
 ### Fixes
 
-- [#6766](https://github.com/gradio-app/gradio/pull/6766) [`73268ee`](https://github.com/gradio-app/gradio/commit/73268ee2e39f23ebdd1e927cb49b8d79c4b9a144) - Improve source selection UX.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6766](https://github.com/gradio-app/gradio/pull/6766) [`73268ee`](https://github.com/gradio-app/gradio/commit/73268ee2e39f23ebdd1e927cb49b8d79c4b9a144) - Improve source selection UX. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ## 0.5.5
 
