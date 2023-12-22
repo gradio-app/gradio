@@ -1152,6 +1152,9 @@ importers:
       babylonjs-loaders:
         specifier: ^4.2.1
         version: 4.2.1
+      dequal:
+        specifier: ^2.0.2
+        version: 2.0.3
 
   js/number:
     dependencies:
