@@ -1,5 +1,11 @@
 # @gradio/video
 
+## 0.2.4
+
+### Features
+
+- [#6854](https://github.com/gradio-app/gradio/pull/6854) [`e528f98`](https://github.com/gradio-app/gradio/commit/e528f98b88f4322f61d315e1770fce0448ca5e26) - chore(deps): update dependency mrmime to v2.  Thanks [@renovate](https://github.com/apps/renovate)!
+
 ## 0.2.3
 
 ### Fixes
