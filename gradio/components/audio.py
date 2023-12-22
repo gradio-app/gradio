@@ -161,10 +161,10 @@ class Audio(
             else show_share_button
         )
         self.editable = editable
-        if waveform_options is None or isinstance(waveform_options, dict):
-            self.waveform_options = self.merge_with_default_waveform_options(
-                waveform_options
-            )
+        if waveform_options is None:
+            self.waveform_options = WaveformOptions()
+        elif isinstance(waveform_options, dict):
+            self.waveform_options = WaveformOptions(**waveform_options)
         else:
             self.waveform_options = waveform_options
         self.min_length = min_length
