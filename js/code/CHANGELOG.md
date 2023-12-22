@@ -1,5 +1,12 @@
 # @gradio/code
 
+## 0.3.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/upload@0.5.7
+
 ## 0.3.3
 
 ### Patch Changes
