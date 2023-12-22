@@ -79,9 +79,13 @@
 
 	let js_info: Record<string, any>;
 
-	get_info().then((data) => (info = data));
+	get_info().then((data) => {
+		info = data;
+	});
 
-	get_js_info().then((js_api_info) => (js_info = js_api_info));
+	get_js_info().then((js_api_info) => {
+		js_info = js_api_info;
+	});
 
 	async function run(index: number): Promise<void> {
 		is_running = true;
@@ -144,13 +148,13 @@
 </script>
 
 {#if info}
-	{#if Object.keys(info.named_endpoints).length + Object.keys(info.unnamed_endpoints).length}
+	{#if dependencies.filter((dependency) => dependency.show_api).length}
 		<div class="banner-wrap">
 			<ApiBanner
 				on:close
 				{root}
-				api_count={Object.keys(info.named_endpoints).length +
-					Object.keys(info.unnamed_endpoints).length}
+				api_count={dependencies.filter((dependency) => dependency.show_api)
+					.length}
 			/>
 		</div>
 		<div class="docs-wrap">
@@ -182,11 +186,11 @@
 				<InstallSnippet {current_language} />
 
 				{#if Object.keys(info.named_endpoints).length}
-					<h2 class="header">Named Endpoints</h2>
+					<h2 class="header">Endpoints</h2>
 				{/if}
 
 				{#each dependencies as dependency, dependency_index}
-					{#if dependency.api_name}
+					{#if dependency.show_api}
 						<div class="endpoint-container">
 							<CodeSnippets
 								named={true}
@@ -215,37 +219,6 @@
 								].returns}
 								js_returns={js_info.named_endpoints["/" + dependency.api_name]
 									.returns}
-								{is_running}
-								{current_language}
-							/>
-						</div>
-					{/if}
-				{/each}
-
-				{#if Object.keys(info.unnamed_endpoints).length}
-					<h2 class="header">Unnamed Endpoints</h2>
-				{/if}
-
-				{#each dependencies as dependency, dependency_index}
-					{#if info.unnamed_endpoints[dependency_index]}
-						<div class="endpoint-container">
-							<CodeSnippets
-								named={false}
-								endpoint_parameters={info.unnamed_endpoints[dependency_index]
-									.parameters}
-								js_parameters={js_info.unnamed_endpoints[dependency_index]
-									.parameters}
-								{dependency}
-								{dependency_index}
-								{current_language}
-								{root}
-								{dependency_failures}
-							/>
-
-							<ResponseObject
-								endpoint_returns={info.unnamed_endpoints[dependency_index]
-									.returns}
-								js_returns={js_info.unnamed_endpoints[dependency_index].returns}
 								{is_running}
 								{current_language}
 							/>

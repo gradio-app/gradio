@@ -683,7 +683,12 @@ class Client:
                 raise ValueError(f"Invalid function index: {fn_index}.")
         else:
             valid_endpoints = [
-                e for e in self.endpoints if e.is_valid and e.api_name is not None
+                e
+                for e in self.endpoints
+                if e.is_valid
+                and e.api_name is not None
+                and e.backend_fn is not None
+                and e.show_api
             ]
             if len(valid_endpoints) == 1:
                 inferred_fn_index = valid_endpoints[0].fn_index
@@ -919,9 +924,10 @@ class Endpoint:
             hf_token=self.client.hf_token,
             root_url=self.root_url,
         )
-        # Only a real API endpoint if backend_fn is True (so not just a frontend function), serializers are valid,
-        # and api_name is not False (meaning that the developer has explicitly disabled the API endpoint)
-        self.is_valid = self.dependency["backend_fn"] and self.api_name is not False
+        # Disallow hitting endpoints that the Gradio app has disabled
+        self.is_valid = self.api_name is not False
+        self.backend_fn = dependency.get("backend_fn")
+        self.show_api = dependency.get("show_api")
 
     def _get_component_type(self, component_id: int):
         component = next(
@@ -1218,6 +1224,8 @@ class EndpointV3Compatibility:
             self.is_valid = self.dependency["backend_fn"] and self.api_name is not False
         except SerializationSetupError:
             self.is_valid = False
+        self.backend_fn = dependency.get("backend_fn")
+        self.show_api = True
 
     def __repr__(self):
         return f"Endpoint src: {self.client.src}, api_name: {self.api_name}, fn_index: {self.fn_index}"
