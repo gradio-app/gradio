@@ -1,3 +1,4 @@
+// eslint-disable-next-line complexity
 export function represent_value(
 	value: string,
 	type: string | undefined,
@@ -6,7 +7,7 @@ export function represent_value(
 	if (type === undefined) {
 		return lang === "py" ? "None" : null;
 	}
-	if (type === "string" || type === "str") {
+	if (type === "string" || type === "str" || type == "filepath") {
 		return lang === null ? value : '"' + value + '"';
 	} else if (type === "number") {
 		return lang === null ? parseFloat(value) : value;
@@ -21,6 +22,9 @@ export function represent_value(
 	} else if (type === "List[str]") {
 		value = JSON.stringify(value);
 		return value;
+	} else if (type.startsWith("Literal['")) {
+		// a literal of strings
+		return '"' + value + '"';
 	}
 	// assume object type
 	if (lang === null) {
