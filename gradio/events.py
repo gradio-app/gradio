@@ -4,7 +4,6 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 from __future__ import annotations
 
 import dataclasses
-import string
 from functools import partial, wraps
 from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
@@ -272,31 +271,6 @@ class EventListener(str):
                 block.check_streamable()  # type: ignore
             if isinstance(show_progress, bool):
                 show_progress = "full" if show_progress else "hidden"
-
-            if api_name is None or isinstance(api_name, str) and api_name.strip() == "":
-                if fn is not None:
-                    if not hasattr(fn, "__name__"):
-                        if hasattr(fn, "__class__") and hasattr(
-                            fn.__class__, "__name__"
-                        ):
-                            name = fn.__class__.__name__
-                        else:
-                            name = "unnamed"
-                    else:
-                        name = fn.__name__
-                    api_name = "".join(
-                        [
-                            s
-                            for s in name
-                            if s not in set(string.punctuation) - {"-", "_"}
-                        ]
-                    )
-                elif js is not None:
-                    api_name = "js_fn"
-                    show_api = False
-                else:
-                    api_name = "unnamed"
-                    show_api = False
 
             if Context.root_block is None:
                 raise AttributeError(

@@ -7,6 +7,7 @@ import json
 import os
 import random
 import secrets
+import string
 import sys
 import tempfile
 import threading
@@ -930,12 +931,32 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 tracks_progress=progress_index is not None,
             )
         )
-        if api_name is not None and api_name is not False:
-            api_name_ = utils.append_unique_suffix(
+
+        # If api_name is None or empty string, use the function name
+        if api_name is None or isinstance(api_name, str) and api_name.strip() == "":
+            if fn is not None:
+                if not hasattr(fn, "__name__"):
+                    if hasattr(fn, "__class__") and hasattr(fn.__class__, "__name__"):
+                        name = fn.__class__.__name__
+                    else:
+                        name = "unnamed"
+                else:
+                    name = fn.__name__
+                api_name = "".join(
+                    [s for s in name if s not in set(string.punctuation) - {"-", "_"}]
+                )
+            elif js is not None:
+                api_name = "js_fn"
+                show_api = False
+            else:
+                api_name = "unnamed"
+                show_api = False
+
+        # Append a unique suffix to the api_name if necessary
+        if api_name is not False:
+            api_name = utils.append_unique_suffix(
                 api_name, [dep["api_name"] for dep in self.dependencies]
             )
-            if api_name != api_name_:
-                api_name = api_name_
 
         if collects_event_data is None:
             collects_event_data = event_data_index is not None
