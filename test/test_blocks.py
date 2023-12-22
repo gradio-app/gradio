@@ -1591,3 +1591,15 @@ def test_async_iterator_update_with_new_component(connect):
         job = client.submit(api_name="/predict")
         job.result()
         assert [r["value"] for r in job.outputs()] == list(range(10))
+
+
+def test_emptry_string_api_name_gets_set_as_fn_name():
+    def test_fn(x):
+        return x
+
+    with gr.Blocks() as demo:
+        t1 = gr.Textbox()
+        t2 = gr.Textbox()
+        t1.change(test_fn, t1, t2, api_name="")
+
+    assert demo.dependencies[0]["api_name"] == "test_fn"
