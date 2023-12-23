@@ -79,7 +79,7 @@ class File(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
         """
         self.file_count = file_count
-        if self.file_count == "multiple":
+        if self.file_count in ["multiple", "directory"]:
             self.data_model = ListFiles
         else:
             self.data_model = FileData
