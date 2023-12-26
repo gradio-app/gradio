@@ -95,7 +95,9 @@
 				if (e.target) {
 					let _video_blob = new File([video_blob], "video.mp4");
 					const val = await prepare_files([_video_blob]);
-					let value = ((await upload(val, root))?.filter(Boolean) as FileData[])[0];
+					let value = (
+						(await upload(val, root))?.filter(Boolean) as FileData[]
+					)[0];
 					dispatch("capture", value);
 					dispatch("stop_recording");
 				}
