@@ -188,7 +188,7 @@ Gradio-Lite is a Pyodide-based library that lets you run Gradio serverless (in o
 
 You can start the development server by running:
 ```
-bash scripts/launch_lite.sh
+bash scripts/run_lite.sh
 ```
 
 To generate the release build, run:
