@@ -600,6 +600,7 @@ class Interface(Blocks):
                     inputs=None,
                     outputs=[submit_btn, stop_btn],
                     queue=False,
+                    show_api=False,
                 ).then(
                     self.fn,
                     self.input_components,
@@ -618,6 +619,7 @@ class Interface(Blocks):
                     inputs=None,
                     outputs=extra_output,  # type: ignore
                     queue=False,
+                    show_api=False,
                 )
 
                 stop_btn.click(
@@ -626,7 +628,7 @@ class Interface(Blocks):
                     outputs=[submit_btn, stop_btn],
                     cancels=predict_event,
                     queue=False,
-                    api_name=False,
+                    show_api=False,
                 )
             else:
                 on(
@@ -692,6 +694,7 @@ class Interface(Blocks):
                 outputs=None,
                 preprocess=False,
                 queue=False,
+                show_api=False,
             )
             return
 
@@ -708,7 +711,7 @@ class Interface(Blocks):
                 None,
                 flag_btn,
                 queue=False,
-                api_name=False,
+                show_api=False,
             )
             flag_btn.click(
                 flag_method,
@@ -716,10 +719,10 @@ class Interface(Blocks):
                 outputs=flag_btn,
                 preprocess=False,
                 queue=False,
-                api_name=False,
+                show_api=False,
             )
             clear_btn.click(
-                flag_method.reset, None, flag_btn, queue=False, api_name=False
+                flag_method.reset, None, flag_btn, queue=False, show_api=False
             )
 
     def render_examples(self):

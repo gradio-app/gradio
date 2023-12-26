@@ -1,5 +1,11 @@
 # @gradio/image
 
+## 0.5.4
+
+### Fixes
+
+- [#6865](https://github.com/gradio-app/gradio/pull/6865) [`15c97c6`](https://github.com/gradio-app/gradio/commit/15c97c6d346c475141d20615b5a865e9c44bdc76) - Fix webcam when `streaming=True`.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.5.3
 
 ### Fixes
