@@ -5,26 +5,16 @@ from __future__ import annotations
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Any, Callable, List, Literal
+from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component
-from gradio.data_classes import FileData, GradioRootModel
+from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
 from gradio.utils import NamedString
 
 set_documentation_group("component")
-
-
-class ListFiles(GradioRootModel):
-    root: List[FileData]
-
-    def __getitem__(self, index):
-        return self.root[index]
-
-    def __iter__(self):
-        return iter(self.root)
 
 
 @document()
