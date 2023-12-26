@@ -184,21 +184,23 @@ You should now be able to view a local version of the website at `http://localho
 
 ## 🌎 Gradio-Lite
 
-Gradio-Lite is a Pyodide-based library that lets you run Gradio serverless (in other words, directly in your browser). The files specific to Gradio-Lite are located in the `js/lite` folder. 
+Gradio-Lite is a Pyodide-based library that lets you run Gradio serverless (in other words, directly in your browser).
 
-You can build Gradio-lite locally by running:
-
-
-```
-bash scripts/build_lite.sh
-```
-
-and launch a test app by doing:
-
+You can start the development server by running:
 ```
 bash scripts/launch_lite.sh
 ```
 
+To generate the release build, run:
+```
+bash scripts/build_lite.sh
+```
+The release build will be located in the `dist` directory in the `js/lite` project.
+To test it, you can run a local server in the `js/lite` directory:
+```
+python -m http.server --directory js/lite
+```
+and navigate to `http://localhost:8000` in your browser. The demo page `index.html` located in the `js/lite` directory will be loaded.
 
 ## 📮 Submitting PRs
 
