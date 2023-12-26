@@ -204,3 +204,13 @@ class FileData(GradioModel):
             except (TypeError, ValidationError):
                 return False
         return False
+
+
+class ListFiles(GradioRootModel):
+    root: List[FileData]
+
+    def __getitem__(self, index):
+        return self.root[index]
+
+    def __iter__(self):
+        return iter(self.root)
