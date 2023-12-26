@@ -72,3 +72,14 @@ function aws_required() {
 function git_required() {
   program_required "git" "https://git-scm.com/downloads"
 }
+
+#######################################
+# Check for the jq program.
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+function jq_required() {
+  program_required "jq" "https://jqlang.github.io/jq/"
+}
