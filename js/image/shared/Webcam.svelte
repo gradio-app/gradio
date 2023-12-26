@@ -1,12 +1,15 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount, tick } from "svelte";
+	import { createEventDispatcher, onMount } from "svelte";
 	import { Camera, Circle, Square, DropdownArrow } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
+	import type { FileData } from "@gradio/client";
+	import { prepare_files, upload } from "@gradio/client";
 
 	let video_source: HTMLVideoElement;
 	let canvas: HTMLCanvasElement;
 	export let streaming = false;
 	export let pending = false;
+	export let root = "";
 
 	export let mode: "image" | "video" = "image";
 	export let mirror_webcam: boolean;
@@ -15,7 +18,7 @@
 
 	const dispatch = createEventDispatcher<{
 		stream: undefined;
-		capture: Blob;
+		capture: FileData;
 		error: string;
 		start_recording: undefined;
 		stop_recording: undefined;
@@ -88,15 +91,12 @@
 			media_recorder.stop();
 			let video_blob = new Blob(recorded_blobs, { type: mimeType });
 			let ReaderObj = new FileReader();
-			ReaderObj.onload = function (e): void {
+			ReaderObj.onload = async function (e): Promise<void> {
 				if (e.target) {
-					dispatch("capture", {
-						//@ts-ignore
-						data: e.target.result,
-						name: "sample." + mimeType.substring(6),
-						is_example: false,
-						is_file: false
-					});
+					let _video_blob = new File([video_blob], "video.mp4");
+					const val = await prepare_files([_video_blob]);
+					let value = ((await upload(val, root))?.filter(Boolean) as FileData[])[0];
+					dispatch("capture", value);
 					dispatch("stop_recording");
 				}
 			};
