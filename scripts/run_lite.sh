@@ -24,4 +24,6 @@ else
   pnpm --filter @gradio/app pybuild
 fi
 
+pnpm --filter @gradio/client build
+
 pnpm --filter @gradio/app dev:lite
