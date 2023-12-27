@@ -1,7 +1,9 @@
 import { test as base, type Page } from "@playwright/test";
-import { basename } from "path";
+import url from "url";
+import path from "path";
 import { spy } from "tinyspy";
 import { readFileSync } from "fs";
+import fsPromises from "fs/promises";
 
 import type { SvelteComponent } from "svelte";
 import type { SpyFn } from "tinyspy";
@@ -14,17 +16,79 @@ export function wait(n: number): Promise<void> {
 	return new Promise((r) => setTimeout(r, n));
 }
 
+const ROOT_DIR = path.resolve(
+	url.fileURLToPath(import.meta.url),
+	"../../../.."
+);
+
 export const test = base.extend<{ setup: void }>({
 	setup: [
-		async ({ page }, use, testInfo): Promise<void> => {
-			const port = process.env.GRADIO_E2E_TEST_PORT;
-			const { file } = testInfo;
-			const test_name = basename(file, ".spec.ts");
+		!!process.env.GRADIO_E2E_TEST_LITE
+			? async ({ page }, use, testInfo) => {
+					const { file } = testInfo;
+					const test_name = path.basename(file, ".spec.ts");
+					const demo_dir = path.resolve(ROOT_DIR, `./demo/${test_name}`);
+					const demo_filenames = await fsPromises
+						.readdir(demo_dir, { withFileTypes: true, recursive: true })
+						.then((dirents) =>
+							dirents
+								.filter(
+									(dirent) =>
+										dirent.isFile() &&
+										!dirent.name.endsWith(".ipynb") &&
+										!dirent.name.endsWith(".pyc")
+								)
+								.map((dirent) => dirent.name)
+						);
+					const demo_files = await Promise.all(
+						demo_filenames.map(
+							(filename) =>
+								fsPromises
+									.readFile(path.join(demo_dir, filename))
+									.then((buffer) => [filename, buffer.toString("base64")]) // To pass to the browser, we need to convert the buffer to base64.
+						)
+					);
 
-			await page.goto(`localhost:${port}/${test_name}`);
+					await page.goto("http://localhost:9876/lite.html");
 
-			await use();
-		},
+					const controllerHandle = await page.waitForFunction(
+						// @ts-ignore
+						() => window.controller // This controller object is set in the dev app.
+					);
+					await controllerHandle.evaluate(
+						async (controller: any, files: [string, string][]) => {
+							function base64ToUint8Array(base64: string): Uint8Array {
+								// Ref: https://stackoverflow.com/a/21797381/13103190
+								const binaryString = atob(base64);
+								const bytes = new Uint8Array(binaryString.length);
+								for (var i = 0; i < binaryString.length; i++) {
+									bytes[i] = binaryString.charCodeAt(i);
+								}
+								return bytes;
+							}
+
+							files.forEach(([filepath, data_b64]) => {
+								controller.write(filepath, base64ToUint8Array(data_b64), {});
+							});
+
+							await controller.run_file("run.py");
+						},
+						demo_files
+					);
+
+					await use();
+
+					controllerHandle.dispose();
+			  }
+			: async ({ page }, use, testInfo): Promise<void> => {
+					const port = process.env.GRADIO_E2E_TEST_PORT;
+					const { file } = testInfo;
+					const test_name = path.basename(file, ".spec.ts");
+
+					await page.goto(`localhost:${port}/${test_name}`);
+
+					await use();
+			  },
 		{ auto: true }
 	]
 });
