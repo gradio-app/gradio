@@ -20,6 +20,8 @@
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { normalise_file } from "@gradio/client";
 
+	type sources = "upload" | "webcam" | "clipboard" | null;
+
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -66,7 +68,7 @@
 	$: url && gradio.dispatch("change");
 
 	let dragging: boolean;
-	let active_tool: null | "webcam" = null;
+	let active_source: sources = null;
 </script>
 
 {#if !interactive}
@@ -124,7 +126,7 @@
 		/>
 
 		<ImageUploader
-			bind:active_tool
+			bind:active_source
 			bind:value
 			selectable={_selectable}
 			{root}
@@ -144,8 +146,6 @@
 				loading_status.status = "error";
 				gradio.dispatch("error", detail);
 			}}
-			on:click={() => gradio.dispatch("error", "bad thing happened")}
-			on:error
 			{label}
 			{show_label}
 			{pending}
@@ -153,8 +153,10 @@
 			{mirror_webcam}
 			i18n={gradio.i18n}
 		>
-			{#if sources.includes("upload")}
-				<UploadText i18n={gradio.i18n} type="image" mode="short" />
+			{#if active_source === "upload" || !active_source}
+				<UploadText i18n={gradio.i18n} type="image" />
+			{:else if active_source === "clipboard"}
+				<UploadText i18n={gradio.i18n} type="clipboard" mode="short" />
 			{:else}
 				<Empty unpadded_box={true} size="large"><Image /></Empty>
 			{/if}

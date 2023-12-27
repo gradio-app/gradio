@@ -4,13 +4,16 @@ import asyncio
 import copy
 import json
 import os
+import random
 import time
 import traceback
 import uuid
+from collections import defaultdict
 from queue import Queue as ThreadQueue
 from typing import TYPE_CHECKING
 
 import fastapi
+from gradio_client.utils import ServerMessage
 from typing_extensions import Literal
 
 from gradio import route_utils, routes
@@ -36,16 +39,39 @@ class Event:
         fn_index: int,
         request: fastapi.Request,
         username: str | None,
+        concurrency_id: str,
     ):
         self.session_hash = session_hash
         self.fn_index = fn_index
         self.request = request
         self.username = username
+        self.concurrency_id = concurrency_id
         self._id = uuid.uuid4().hex
         self.data: PredictBody | None = None
         self.progress: Progress | None = None
         self.progress_pending: bool = False
         self.alive = True
+
+
+class EventQueue:
+    def __init__(self, concurrency_id: str, concurrency_limit: int | None):
+        self.queue: list[Event] = []
+        self.concurrency_id = concurrency_id
+        self.concurrency_limit = concurrency_limit
+        self.current_concurrency = 0
+        self.start_times_per_fn_index: defaultdict[int, set[float]] = defaultdict(set)
+
+
+class ProcessTime:
+    def __init__(self):
+        self.process_time = 0
+        self.count = 0
+        self.avg_time = 0
+
+    def add(self, time: float):
+        self.process_time += time
+        self.count += 1
+        self.avg_time = self.process_time / self.count
 
 
 class Queue:
@@ -61,19 +87,16 @@ class Queue:
         self.pending_messages_per_session: LRUCache[str, ThreadQueue] = LRUCache(2000)
         self.pending_event_ids_session: dict[str, set[str]] = {}
         self.pending_message_lock = safe_get_lock()
-        self.event_queue: list[Event] = []
-        self.awaiting_data_events: dict[str, Event] = {}
+        self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
         self.stopped = False
         self.max_thread_count = concurrency_count
         self.update_intervals = update_intervals
         self.active_jobs: list[None | list[Event]] = []
         self.delete_lock = safe_get_lock()
         self.server_app = None
-        self.duration_history_total = 0
-        self.duration_history_count = 0
-        self.avg_process_time = 0
-        self.avg_concurrent_process_time = None
-        self.queue_duration = 1
+        self.process_time_per_fn_index: defaultdict[int, ProcessTime] = defaultdict(
+            ProcessTime
+        )
         self.live_updates = live_updates
         self.sleep_when_free = 0.05
         self.progress_update_sleep_when_free = 0.1
@@ -84,25 +107,31 @@ class Queue:
         self.default_concurrency_limit = self._resolve_concurrency_limit(
             default_concurrency_limit
         )
-        self.concurrency_limit_per_concurrency_id = {}
 
     def start(self):
         self.active_jobs = [None] * self.max_thread_count
         for block_fn in self.block_fns:
-            concurrency_limit = (
-                self.default_concurrency_limit
-                if block_fn.concurrency_limit == "default"
-                else block_fn.concurrency_limit
-            )
-            if concurrency_limit is not None:
-                self.concurrency_limit_per_concurrency_id[
-                    block_fn.concurrency_id
-                ] = min(
-                    self.concurrency_limit_per_concurrency_id.get(
-                        block_fn.concurrency_id, concurrency_limit
-                    ),
-                    concurrency_limit,
+            concurrency_id = block_fn.concurrency_id
+            concurrency_limit: int | None
+            if block_fn.concurrency_limit == "default":
+                concurrency_limit = self.default_concurrency_limit
+            else:
+                concurrency_limit = block_fn.concurrency_limit
+            if concurrency_id not in self.event_queue_per_concurrency_id:
+                self.event_queue_per_concurrency_id[concurrency_id] = EventQueue(
+                    concurrency_id, concurrency_limit
                 )
+            elif (
+                concurrency_limit is not None
+            ):  # Update concurrency limit if it is lower than existing limit
+                existing_event_queue = self.event_queue_per_concurrency_id[
+                    concurrency_id
+                ]
+                if (
+                    existing_event_queue.concurrency_limit is None
+                    or concurrency_limit < existing_event_queue.concurrency_limit
+                ):
+                    existing_event_queue.concurrency_limit = concurrency_limit
 
         run_coro_in_background(self.start_processing)
         run_coro_in_background(self.start_progress_updates)
@@ -118,11 +147,15 @@ class Queue:
         message_type: str,
         data: dict | None = None,
     ):
+        if not event.alive:
+            return
         data = {} if data is None else data
         messages = self.pending_messages_per_session[event.session_hash]
         messages.put_nowait({"msg": message_type, "event_id": event._id, **data})
 
-    def _resolve_concurrency_limit(self, default_concurrency_limit):
+    def _resolve_concurrency_limit(
+        self, default_concurrency_limit: int | None | Literal["not_set"]
+    ) -> int | None:
         """
         Handles the logic of resolving the default_concurrency_limit as this can be specified via a combination
         of the `default_concurrency_limit` parameter of the `Blocks.queue()` or the `GRADIO_DEFAULT_CONCURRENCY_LIMIT`
@@ -142,20 +175,32 @@ class Queue:
         else:
             return 1
 
+    def __len__(self):
+        total_len = 0
+        for event_queue in self.event_queue_per_concurrency_id.values():
+            total_len += len(event_queue.queue)
+        return total_len
+
     async def push(
         self, body: PredictBody, request: fastapi.Request, username: str | None
-    ):
+    ) -> tuple[bool, str]:
         if body.session_hash is None:
-            raise ValueError("No session hash provided.")
+            return False, "No session hash provided."
         if body.fn_index is None:
-            raise ValueError("No function index provided.")
-        queue_len = len(self.event_queue)
-        if self.max_size is not None and queue_len >= self.max_size:
-            raise ValueError(
-                f"Queue is full. Max size is {self.max_size} and current size is {queue_len}."
+            return False, "No function index provided."
+        if self.max_size is not None and len(self) >= self.max_size:
+            return (
+                False,
+                f"Queue is full. Max size is {self.max_size} and size is {len(self)}.",
             )
 
-        event = Event(body.session_hash, body.fn_index, request, username)
+        event = Event(
+            body.session_hash,
+            body.fn_index,
+            request,
+            username,
+            self.block_fns[body.fn_index].concurrency_id,
+        )
         event.data = body
         async with self.pending_message_lock:
             if body.session_hash not in self.pending_messages_per_session:
@@ -163,12 +208,12 @@ class Queue:
             if body.session_hash not in self.pending_event_ids_session:
                 self.pending_event_ids_session[body.session_hash] = set()
         self.pending_event_ids_session[body.session_hash].add(event._id)
-        self.event_queue.append(event)
+        event_queue = self.event_queue_per_concurrency_id[event.concurrency_id]
+        event_queue.queue.append(event)
 
-        estimation = self.get_estimation()
-        await self.send_estimation(event, estimation, queue_len)
+        self.broadcast_estimations(event.concurrency_id, len(event_queue.queue) - 1)
 
-        return event._id
+        return True, event._id
 
     def _cancel_asyncio_tasks(self):
         for task in self._asyncio_tasks:
@@ -185,88 +230,73 @@ class Queue:
                 count += 1
         return count
 
-    def get_events_in_batch(self) -> tuple[list[Event] | None, bool]:
-        if not self.event_queue:
-            return None, False
-
-        worker_count_per_concurrency_id = {}
-        for job in self.active_jobs:
-            if job is not None:
-                for event in job:
-                    concurrency_id = self.block_fns[event.fn_index].concurrency_id
-                    worker_count_per_concurrency_id[concurrency_id] = (
-                        worker_count_per_concurrency_id.get(concurrency_id, 0) + 1
-                    )
-
-        events = []
-        batch = False
-        for index, event in enumerate(self.event_queue):
-            block_fn = self.block_fns[event.fn_index]
-            concurrency_id = block_fn.concurrency_id
-            concurrency_limit = self.concurrency_limit_per_concurrency_id.get(
-                concurrency_id, None
-            )
-            existing_worker_count = worker_count_per_concurrency_id.get(
-                concurrency_id, 0
-            )
-            if concurrency_limit is None or existing_worker_count < concurrency_limit:
+    def get_events(self) -> tuple[list[Event], bool, str] | None:
+        concurrency_ids = list(self.event_queue_per_concurrency_id.keys())
+        random.shuffle(concurrency_ids)
+        for concurrency_id in concurrency_ids:
+            event_queue = self.event_queue_per_concurrency_id[concurrency_id]
+            if len(event_queue.queue) and (
+                event_queue.concurrency_limit is None
+                or event_queue.current_concurrency < event_queue.concurrency_limit
+            ):
+                first_event = event_queue.queue[0]
+                block_fn = self.block_fns[first_event.fn_index]
+                events = [first_event]
                 batch = block_fn.batch
                 if batch:
-                    batch_size = block_fn.max_batch_size
-                    if concurrency_limit is None:
-                        remaining_worker_count = batch_size - 1
-                    else:
-                        remaining_worker_count = (
-                            concurrency_limit - existing_worker_count
-                        )
-                    rest_of_batch = [
+                    events += [
                         event
-                        for event in self.event_queue[index:]
-                        if event.fn_index == event.fn_index
-                    ][: min(batch_size - 1, remaining_worker_count)]
-                    events = [event] + rest_of_batch
-                else:
-                    events = [event]
-                break
+                        for event in event_queue.queue[1:]
+                        if event.fn_index == first_event.fn_index
+                    ][: block_fn.max_batch_size - 1]
 
-        for event in events:
-            self.event_queue.remove(event)
+                for event in events:
+                    event_queue.queue.remove(event)
 
-        return events, batch
+                return events, batch, concurrency_id
 
     async def start_processing(self) -> None:
-        while not self.stopped:
-            if not self.event_queue:
-                await asyncio.sleep(self.sleep_when_free)
-                continue
+        try:
+            while not self.stopped:
+                if len(self) == 0:
+                    await asyncio.sleep(self.sleep_when_free)
+                    continue
 
-            if None not in self.active_jobs:
-                await asyncio.sleep(self.sleep_when_free)
-                continue
-            # Using mutex to avoid editing a list in use
-            async with self.delete_lock:
-                events, batch = self.get_events_in_batch()
+                if None not in self.active_jobs:
+                    await asyncio.sleep(self.sleep_when_free)
+                    continue
 
-            if events:
-                self.active_jobs[self.active_jobs.index(None)] = events
-                process_event_task = run_coro_in_background(
-                    self.process_events, events, batch
-                )
-                set_task_name(
-                    process_event_task,
-                    events[0].session_hash,
-                    events[0].fn_index,
-                    batch,
-                )
+                # Using mutex to avoid editing a list in use
+                async with self.delete_lock:
+                    event_batch = self.get_events()
 
-                self._asyncio_tasks.append(process_event_task)
-                if self.live_updates:
-                    broadcast_live_estimations_task = run_coro_in_background(
-                        self.broadcast_estimations
+                if event_batch:
+                    events, batch, concurrency_id = event_batch
+                    self.active_jobs[self.active_jobs.index(None)] = events
+                    event_queue = self.event_queue_per_concurrency_id[concurrency_id]
+                    event_queue.current_concurrency += 1
+                    start_time = time.time()
+                    event_queue.start_times_per_fn_index[events[0].fn_index].add(
+                        start_time
                     )
-                    self._asyncio_tasks.append(broadcast_live_estimations_task)
-            else:
-                await asyncio.sleep(self.sleep_when_free)
+                    process_event_task = run_coro_in_background(
+                        self.process_events, events, batch, start_time
+                    )
+                    set_task_name(
+                        process_event_task,
+                        events[0].session_hash,
+                        events[0].fn_index,
+                        batch,
+                    )
+
+                    self._asyncio_tasks.append(process_event_task)
+                    if self.live_updates:
+                        self.broadcast_estimations(concurrency_id)
+                else:
+                    await asyncio.sleep(self.sleep_when_free)
+        finally:
+            self.stopped = True
+            self._cancel_asyncio_tasks()
 
     async def start_progress_updates(self) -> None:
         """
@@ -286,7 +316,9 @@ class Queue:
             for event in events:
                 if event.progress_pending and event.progress:
                     event.progress_pending = False
-                    self.send_message(event, "progress", event.progress.model_dump())
+                    self.send_message(
+                        event, ServerMessage.progress, event.progress.model_dump()
+                    )
 
             await asyncio.sleep(self.progress_update_sleep_when_free)
 
@@ -330,7 +362,7 @@ class Queue:
                     log=log,
                     level=level,
                 )
-                self.send_message(event, "log", log_message.model_dump())
+                self.send_message(event, ServerMessage.log, log_message.model_dump())
 
     async def clean_events(
         self, *, session_hash: str | None = None, event_id: str | None = None
@@ -341,14 +373,17 @@ class Queue:
                     if job.session_hash == session_hash or job._id == event_id:
                         job.alive = False
 
-        events_to_remove = []
-        for event in self.event_queue:
-            if event.session_hash == session_hash or event._id == event_id:
-                events_to_remove.append(event)
+        async with self.delete_lock:
+            events_to_remove: list[Event] = []
+            for event_queue in self.event_queue_per_concurrency_id.values():
+                for event in event_queue.queue:
+                    if event.session_hash == session_hash or event._id == event_id:
+                        events_to_remove.append(event)
 
-        for event in events_to_remove:
-            async with self.delete_lock:
-                self.event_queue.remove(event)
+            for event in events_to_remove:
+                self.event_queue_per_concurrency_id[event.concurrency_id].queue.remove(
+                    event
+                )
 
     async def notify_clients(self) -> None:
         """
@@ -356,66 +391,65 @@ class Queue:
         """
         while not self.stopped:
             await asyncio.sleep(self.update_intervals)
-            if self.event_queue:
-                await self.broadcast_estimations()
+            if len(self) > 0:
+                for concurrency_id in self.event_queue_per_concurrency_id:
+                    self.broadcast_estimations(concurrency_id)
 
-    async def broadcast_estimations(self) -> None:
-        estimation = self.get_estimation()
-        # Send all messages concurrently
-        await asyncio.gather(
-            *[
-                self.send_estimation(event, estimation, rank)
-                for rank, event in enumerate(self.event_queue)
-            ]
-        )
+    def broadcast_estimations(
+        self, concurrency_id: str, after: int | None = None
+    ) -> None:
+        wait_so_far = 0
+        event_queue = self.event_queue_per_concurrency_id[concurrency_id]
+        time_till_available_worker: int | None = 0
 
-    async def send_estimation(
-        self, event: Event, estimation: Estimation, rank: int
-    ) -> Estimation:
-        """
-        Send estimation about ETA to the client.
+        if event_queue.current_concurrency == event_queue.concurrency_limit:
+            expected_end_times = []
+            for fn_index, start_times in event_queue.start_times_per_fn_index.items():
+                if fn_index not in self.process_time_per_fn_index:
+                    time_till_available_worker = None
+                    break
+                process_time = self.process_time_per_fn_index[fn_index].avg_time
+                expected_end_times += [
+                    start_time + process_time for start_time in start_times
+                ]
+            if time_till_available_worker is not None and len(expected_end_times) > 0:
+                time_of_first_completion = min(expected_end_times)
+                time_till_available_worker = max(
+                    time_of_first_completion - time.time(), 0
+                )
 
-        Parameters:
-            event:
-            estimation:
-            rank:
-        """
-        estimation.rank = rank
-
-        if self.avg_concurrent_process_time is not None:
-            estimation.rank_eta = (
-                estimation.rank * self.avg_concurrent_process_time
-                + self.avg_process_time
+        for rank, event in enumerate(event_queue.queue):
+            process_time_for_fn = (
+                self.process_time_per_fn_index[event.fn_index].avg_time
+                if event.fn_index in self.process_time_per_fn_index
+                else None
             )
-            if None not in self.active_jobs:
-                # Add estimated amount of time for a thread to get empty
-                estimation.rank_eta += self.avg_concurrent_process_time
-        self.send_message(event, "estimation", estimation.model_dump())
-        return estimation
+            rank_eta = (
+                process_time_for_fn + wait_so_far + time_till_available_worker
+                if process_time_for_fn is not None
+                and wait_so_far is not None
+                and time_till_available_worker is not None
+                else None
+            )
 
-    def update_estimation(self, duration: float) -> None:
-        """
-        Update estimation by last x element's average duration.
+            if after is None or rank >= after:
+                self.send_message(
+                    event,
+                    ServerMessage.estimation,
+                    Estimation(
+                        rank=rank, rank_eta=rank_eta, queue_size=len(event_queue.queue)
+                    ).model_dump(),
+                )
+            if event_queue.concurrency_limit is None:
+                wait_so_far = 0
+            elif wait_so_far is not None and process_time_for_fn is not None:
+                wait_so_far += process_time_for_fn / event_queue.concurrency_limit
+            else:
+                wait_so_far = None
 
-        Parameters:
-            duration:
-        """
-        self.duration_history_total += duration
-        self.duration_history_count += 1
-        self.avg_process_time = (
-            self.duration_history_total / self.duration_history_count
-        )
-        self.avg_concurrent_process_time = self.avg_process_time / min(
-            self.max_thread_count, self.duration_history_count
-        )
-        self.queue_duration = self.avg_concurrent_process_time * len(self.event_queue)
-
-    def get_estimation(self) -> Estimation:
+    def get_status(self) -> Estimation:
         return Estimation(
-            queue_size=len(self.event_queue),
-            avg_event_process_time=self.avg_process_time,
-            avg_event_concurrent_process_time=self.avg_concurrent_process_time,
-            queue_eta=self.queue_duration,
+            queue_size=len(self),
         )
 
     async def call_prediction(self, events: list[Event], batch: bool):
@@ -480,26 +514,36 @@ class Queue:
 
         return response_json
 
-    async def process_events(self, events: list[Event], batch: bool) -> None:
+    async def process_events(
+        self, events: list[Event], batch: bool, begin_time: float
+    ) -> None:
         awake_events: list[Event] = []
+        fn_index = events[0].fn_index
         try:
             for event in events:
-                self.send_message(event, "process_starts")
-                awake_events.append(event)
+                if event.alive:
+                    self.send_message(
+                        event,
+                        ServerMessage.process_starts,
+                        {
+                            "eta": self.process_time_per_fn_index[fn_index].avg_time
+                            if fn_index in self.process_time_per_fn_index
+                            else None
+                        },
+                    )
+                    awake_events.append(event)
             if not awake_events:
                 return
-            begin_time = time.time()
             try:
                 response = await self.call_prediction(awake_events, batch)
                 err = None
             except Exception as e:
-                traceback.print_exc()
                 response = None
                 err = e
                 for event in awake_events:
                     self.send_message(
                         event,
-                        "process_completed",
+                        ServerMessage.process_completed,
                         {
                             "output": {
                                 "error": None
@@ -518,7 +562,7 @@ class Queue:
                     for event in awake_events:
                         self.send_message(
                             event,
-                            "process_generating",
+                            ServerMessage.process_generating,
                             {
                                 "output": old_response,
                                 "success": old_response is not None,
@@ -540,7 +584,7 @@ class Queue:
                         relevant_response = old_response or old_err
                     self.send_message(
                         event,
-                        "process_completed",
+                        ServerMessage.process_completed,
                         {
                             "output": {"error": str(relevant_response)}
                             if isinstance(relevant_response, Exception)
@@ -556,7 +600,7 @@ class Queue:
                         output["data"] = list(zip(*response.get("data")))[e]
                     self.send_message(
                         event,
-                        "process_completed",
+                        ServerMessage.process_completed,
                         {
                             "output": output,
                             "success": response is not None,
@@ -564,10 +608,17 @@ class Queue:
                     )
             end_time = time.time()
             if response is not None:
-                self.update_estimation(end_time - begin_time)
+                self.process_time_per_fn_index[events[0].fn_index].add(
+                    end_time - begin_time
+                )
         except Exception as e:
             traceback.print_exc()
         finally:
+            event_queue = self.event_queue_per_concurrency_id[events[0].concurrency_id]
+            event_queue.current_concurrency -= 1
+            start_times = event_queue.start_times_per_fn_index[fn_index]
+            if begin_time in start_times:
+                start_times.remove(begin_time)
             try:
                 self.active_jobs[self.active_jobs.index(events)] = None
             except ValueError:

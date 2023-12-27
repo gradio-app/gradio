@@ -5,7 +5,7 @@
 	import { _ } from "svelte-i18n";
 	import UploadProgress from "./UploadProgress.svelte";
 
-	export let filetype: string | null = null;
+	export let filetype: string | string[] | null = null;
 	export let dragging = false;
 	export let boundedheight = true;
 	export let center = true;
@@ -15,11 +15,11 @@
 	export let root: string;
 	export let hidden = false;
 	export let format: "blob" | "file" = "file";
-	export let include_sources = false;
 	export let uploading = false;
 
 	let upload_id: string;
 	let file_data: FileData[];
+	let accept_file_types: string | null;
 
 	// Needed for wasm support
 	const upload_fn = getContext<typeof upload_files>("upload_files");
@@ -28,8 +28,39 @@
 
 	const dispatch = createEventDispatcher();
 
+	$: if (filetype == null || typeof filetype === "string") {
+		accept_file_types = filetype;
+	} else {
+		filetype = filetype.map((x) => {
+			if (x.startsWith(".")) {
+				return x;
+			}
+			return x + "/*";
+		});
+		accept_file_types = filetype.join(", ");
+	}
 	function updateDragging(): void {
 		dragging = !dragging;
+	}
+
+	export function paste_clipboard(): void {
+		navigator.clipboard.read().then(async (items) => {
+			for (let i = 0; i < items.length; i++) {
+				const type = items[i].types.find((t) => t.startsWith("image/"));
+				if (type) {
+					dispatch("load", null);
+					items[i].getType(type).then(async (blob) => {
+						const file = new File(
+							[blob],
+							`clipboard.${type.replace("image/", "")}`
+						);
+						const f = await load_files([file]);
+						dispatch("load", f?.[0]);
+					});
+					break;
+				}
+			}
+		});
 	}
 
 	export function open_file_upload(): void {
@@ -76,17 +107,23 @@
 	}
 
 	function is_valid_mimetype(
-		file_accept: string | null,
+		file_accept: string | string[] | null,
 		mime_type: string
 	): boolean {
-		if (!file_accept) {
+		if (!file_accept || file_accept === "*" || file_accept === "file/*") {
 			return true;
 		}
-		if (file_accept === "*") {
-			return true;
+		if (typeof file_accept === "string" && file_accept.endsWith("/*")) {
+			file_accept = file_accept.split(",");
 		}
-		if (file_accept.endsWith("/*")) {
-			return mime_type.startsWith(file_accept.slice(0, -1));
+		if (Array.isArray(file_accept)) {
+			return (
+				file_accept.includes(mime_type) ||
+				file_accept.some((type) => {
+					const [category] = type.split("/");
+					return type.endsWith("/*") && mime_type.startsWith(category + "/");
+				})
+			);
 		}
 		return file_accept === mime_type;
 	}
@@ -96,18 +133,31 @@
 		if (!e.dataTransfer?.files) return;
 
 		const files_to_load = Array.from(e.dataTransfer.files).filter((f) => {
-			if (filetype?.split(",").some((m) => is_valid_mimetype(m, f.type))) {
+			const file_extension =
+				f.type !== "" ? f.type : "." + f.name.split(".").pop();
+			if (file_extension && is_valid_mimetype(filetype, file_extension)) {
 				return true;
 			}
 			dispatch("error", `Invalid file type only ${filetype} allowed.`);
 			return false;
 		});
-
 		await load_files(files_to_load);
 	}
 </script>
 
-{#if uploading}
+{#if filetype === "clipboard"}
+	<button
+		class:hidden
+		class:center
+		class:boundedheight
+		class:flex
+		style:height="100%"
+		tabindex={hidden ? -1 : 0}
+		on:click={paste_clipboard}
+	>
+		<slot />
+	</button>
+{:else if uploading}
 	{#if !hidden}
 		<UploadProgress {root} {upload_id} files={file_data} />
 	{/if}
@@ -117,7 +167,7 @@
 		class:center
 		class:boundedheight
 		class:flex
-		style:height={include_sources ? "calc(100% - 40px" : "100%"}
+		style:height="100%"
 		tabindex={hidden ? -1 : 0}
 		on:drag|preventDefault|stopPropagation
 		on:dragstart|preventDefault|stopPropagation
@@ -137,7 +187,7 @@
 			type="file"
 			bind:this={hidden_upload}
 			on:change={load_files_from_upload}
-			accept={filetype}
+			accept={accept_file_types}
 			multiple={file_count === "multiple" || undefined}
 			webkitdirectory={file_count === "directory" || undefined}
 			mozdirectory={file_count === "directory" || undefined}

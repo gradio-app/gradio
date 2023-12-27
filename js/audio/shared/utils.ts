@@ -61,17 +61,17 @@ export function loaded(
 	}
 }
 
-export const skipAudio = (waveform: WaveSurfer, amount: number): void => {
+export const skip_audio = (waveform: WaveSurfer, amount: number): void => {
 	if (!waveform) return;
 	waveform.skip(amount);
 };
 
-export const getSkipRewindAmount = (
-	audioDuration: number,
+export const get_skip_rewind_amount = (
+	audio_duration: number,
 	skip_length?: number | null
 ): number => {
 	if (!skip_length) {
 		skip_length = 5;
 	}
-	return (audioDuration / 100) * skip_length || 5;
+	return (audio_duration / 100) * skip_length || 5;
 };

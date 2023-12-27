@@ -7,6 +7,7 @@ import json
 import os
 import random
 import secrets
+import string
 import sys
 import tempfile
 import threading
@@ -376,7 +377,7 @@ class BlockFunction:
         self.preprocess = preprocess
         self.postprocess = postprocess
         self.tracks_progress = tracks_progress
-        self.concurrency_limit = concurrency_limit
+        self.concurrency_limit: int | None | Literal["default"] = concurrency_limit
         self.concurrency_id = concurrency_id or str(id(fn))
         self.batch = batch
         self.max_batch_size = max_batch_size
@@ -825,6 +826,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         trigger_mode: Literal["once", "multiple", "always_last"] | None = "once",
         concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
+        show_api: bool = True,
     ) -> tuple[dict[str, Any], int]:
         """
         Adds an event to the component's dependencies.
@@ -851,6 +853,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
             concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `queue()`, which itself is 1 by default).
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
+            show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps to use this event. If fn is None, show_api will automatically be set to False.
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
@@ -928,12 +931,36 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 tracks_progress=progress_index is not None,
             )
         )
-        if api_name is not None and api_name is not False:
-            api_name_ = utils.append_unique_suffix(
+
+        # If api_name is None or empty string, use the function name
+        if api_name is None or isinstance(api_name, str) and api_name.strip() == "":
+            if fn is not None:
+                if not hasattr(fn, "__name__"):
+                    if hasattr(fn, "__class__") and hasattr(fn.__class__, "__name__"):
+                        name = fn.__class__.__name__
+                    else:
+                        name = "unnamed"
+                else:
+                    name = fn.__name__
+                api_name = "".join(
+                    [s for s in name if s not in set(string.punctuation) - {"-", "_"}]
+                )
+            elif js is not None:
+                api_name = "js_fn"
+                show_api = False
+            else:
+                api_name = "unnamed"
+                show_api = False
+
+        if api_name is not False:
+            api_name = utils.append_unique_suffix(
                 api_name, [dep["api_name"] for dep in self.dependencies]
             )
-            if api_name != api_name_:
-                api_name = api_name_
+        else:
+            show_api = False
+
+        # The `show_api` parameter is False if: (1) the user explicitly sets it (2) the user sets `api_name` to False
+        # or (3) the user sets `fn` to None (there's no backend function)
 
         if collects_event_data is None:
             collects_event_data = event_data_index is not None
@@ -962,6 +989,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             "trigger_after": trigger_after,
             "trigger_only_on_success": trigger_only_on_success,
             "trigger_mode": trigger_mode,
+            "show_api": show_api,
         }
         self.dependencies.append(dependency)
         return dependency, len(self.dependencies) - 1
@@ -2252,9 +2280,15 @@ Received outputs:
         """
         config = self.config
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
-        mode = config.get("mode", None)
 
-        for d, dependency in enumerate(config["dependencies"]):
+        for dependency in config["dependencies"]:
+            if (
+                not dependency["backend_fn"]
+                or not dependency["show_api"]
+                or dependency["api_name"] is False
+            ):
+                continue
+
             dependency_info = {"parameters": [], "returns": []}
             skip_endpoint = False
 
@@ -2316,25 +2350,9 @@ Received outputs:
                     }
                 )
 
-            if not dependency["backend_fn"]:
-                skip_endpoint = True
-
-            if skip_endpoint:
-                continue
-            if (
-                dependency["api_name"] is not None
-                and dependency["api_name"] is not False
-            ):
+            if not skip_endpoint:
                 api_info["named_endpoints"][
                     f"/{dependency['api_name']}"
                 ] = dependency_info
-            elif (
-                dependency["api_name"] is False
-                or mode == "interface"
-                or mode == "tabbed_interface"
-            ):
-                pass  # Skip unnamed endpoints in interface mode
-            else:
-                api_info["unnamed_endpoints"][str(d)] = dependency_info
 
         return api_info

@@ -33,7 +33,6 @@ from gradio.flagging import CSVLogger
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.components import Component
 
-CACHED_FOLDER = "gradio_cached_examples"
 LOG_FILE = "log.csv"
 
 set_documentation_group("helpers")
@@ -203,7 +202,7 @@ class Examples:
         self._api_mode = _api_mode
         self.preprocess = preprocess
         self.postprocess = postprocess
-        self.api_name = api_name
+        self.api_name: str | Literal[False] = api_name
         self.batch = batch
 
         with utils.set_directory(working_directory):
@@ -248,7 +247,7 @@ class Examples:
                 elem_id=elem_id,
             )
 
-        self.cached_folder = Path(CACHED_FOLDER) / str(self.dataset._id)
+        self.cached_folder = utils.get_cache_folder() / str(self.dataset._id)
         self.cached_file = Path(self.cached_folder) / "log.csv"
         self.cache_examples = cache_examples
         self.run_on_click = run_on_click
@@ -276,7 +275,8 @@ class Examples:
                 show_progress="hidden",
                 postprocess=False,
                 queue=False,
-                api_name=self.api_name,  # type: ignore
+                api_name=self.api_name,
+                show_api=False,
             )
             if self.run_on_click and not self.cache_examples:
                 if self.fn is None:
@@ -285,6 +285,7 @@ class Examples:
                     self.fn,
                     inputs=self.inputs,  # type: ignore
                     outputs=self.outputs,  # type: ignore
+                    show_api=False,
                 )
 
         if self.cache_examples:
@@ -396,7 +397,8 @@ class Examples:
             show_progress="hidden",
             postprocess=False,
             queue=False,
-            api_name=self.api_name,  # type: ignore
+            api_name=self.api_name,
+            show_api=False,
         )
 
     def load_from_cache(self, example_id: int) -> list[Any]:

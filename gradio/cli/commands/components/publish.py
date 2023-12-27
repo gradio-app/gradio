@@ -1,11 +1,9 @@
-from __future__ import annotations
-
 import random
 import re
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 import semantic_version
 from huggingface_hub import HfApi
@@ -65,13 +63,13 @@ def _ignore(s, names):
     return ignored
 
 
-def _get_version_from_file(dist_file: Path) -> str | None:
+def _get_version_from_file(dist_file: Path) -> Optional[str]:
     match = re.search(r"-(\d+\.\d+\.\d+[a-zA-Z]*\d*)-", dist_file.name)
     if match:
         return match.group(1)
 
 
-def _get_max_version(distribution_files: list[Path]) -> str | None:
+def _get_max_version(distribution_files: List[Path]) -> Optional[str]:
     versions = []
     for p in distribution_files:
         version = _get_version_from_file(p)

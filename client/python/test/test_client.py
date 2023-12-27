@@ -4,7 +4,7 @@ import pathlib
 import tempfile
 import time
 import uuid
-from concurrent.futures import CancelledError, TimeoutError
+from concurrent.futures import CancelledError, TimeoutError, wait
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -21,7 +21,13 @@ from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
 from gradio_client.client import DEFAULT_TEMP_DIR
-from gradio_client.utils import Communicator, ProgressUnit, Status, StatusUpdate
+from gradio_client.utils import (
+    Communicator,
+    ProgressUnit,
+    QueueError,
+    Status,
+    StatusUpdate,
+)
 
 HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
 
@@ -488,6 +494,40 @@ class TestClientPredictions:
             assert demo.predict(api_name="/close") == 4
             assert demo.predict("Ali", api_name="/greeting") == ("Hello Ali", 5)
 
+    def test_long_response_time_with_gr_info_and_big_payload(
+        self, long_response_with_info
+    ):
+        with connect(long_response_with_info) as demo:
+            assert demo.predict(api_name="/predict") == "\ta\nb" * 90000
+
+    def test_queue_full_raises_error(self):
+        demo = gr.Interface(lambda s: f"Hello {s}", "textbox", "textbox").queue(
+            max_size=1
+        )
+        with connect(demo) as client:
+            with pytest.raises(QueueError):
+                job1 = client.submit("Freddy", api_name="/predict")
+                job2 = client.submit("Abubakar", api_name="/predict")
+                job3 = client.submit("Pete", api_name="/predict")
+                wait([job1, job2, job3])
+                job1.result()
+                job2.result()
+                job3.result()
+
+    def test_json_parse_error(self):
+        data = (
+            "Bonjour Olivier, tu as l'air bien r\u00e9veill\u00e9 ce matin. Tu veux que je te pr\u00e9pare tes petits-d\u00e9j.\n",
+            None,
+        )
+
+        def return_bad():
+            return data
+
+        demo = gr.Interface(return_bad, None, ["text", "text"])
+        with connect(demo) as client:
+            pred = client.predict(api_name="/predict")
+            assert pred[0] == data[0]
+
 
 class TestStatusUpdates:
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
@@ -832,7 +872,7 @@ class TestAPIInfo:
             "unnamed_endpoints": {},
         }
 
-    def test_fetch_fixed_version_space(self, calculator_demo):
+    def test_api_info_of_local_demo(self, calculator_demo):
         with connect(calculator_demo) as client:
             api_info = client.view_api(return_format="dict")
             assert isinstance(api_info, dict)
@@ -853,7 +893,7 @@ class TestAPIInfo:
                             "type": "string",
                         },
                         "python_type": {
-                            "type": "Literal[add, subtract, multiply, divide]",
+                            "type": "Literal['add', 'subtract', 'multiply', 'divide']",
                             "description": "",
                         },
                         "component": "Radio",
@@ -876,9 +916,6 @@ class TestAPIInfo:
                     }
                 ],
             }
-            assert (
-                "/load_example" in api_info["named_endpoints"]
-            )  # The exact api configuration includes Block IDs and thus is not deterministic
             assert api_info["unnamed_endpoints"] == {}
 
     def test_unnamed_endpoints_use_fn_index(self, count_generator_demo):

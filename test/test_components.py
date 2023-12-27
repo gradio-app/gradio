@@ -32,8 +32,9 @@ import gradio as gr
 from gradio import processing_utils, utils
 from gradio.components.dataframe import DataframeData
 from gradio.components.file_explorer import FileExplorerData
+from gradio.components.image_editor import EditorData
 from gradio.components.video import VideoData
-from gradio.data_classes import FileData
+from gradio.data_classes import FileData, ListFiles
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -231,12 +232,32 @@ class TestNumber:
         assert numeric_input.postprocess(2.1421) == 2.14
         assert numeric_input.postprocess(None) is None
 
+    def test_precision_none_with_integer(self):
+        """
+        Preprocess, postprocess
+        """
+        numeric_input = gr.Number(precision=None)
+        assert numeric_input.preprocess(5) == 5
+        assert isinstance(numeric_input.preprocess(5), int)
+        assert numeric_input.postprocess(5) == 5
+        assert isinstance(numeric_input.postprocess(5), int)
+
+    def test_precision_none_with_float(self):
+        """
+        Preprocess, postprocess
+        """
+        numeric_input = gr.Number(value=5.5, precision=None)
+        assert numeric_input.preprocess(5.5) == 5.5
+        assert isinstance(numeric_input.preprocess(5.5), float)
+        assert numeric_input.postprocess(5.5) == 5.5
+        assert isinstance(numeric_input.postprocess(5.5), float)
+
     def test_in_interface_as_input(self):
         """
         Interface, process
         """
         iface = gr.Interface(lambda x: x**2, "number", "textbox")
-        assert iface(2) == "4.0"
+        assert iface(2) == "4"
 
     def test_precision_0_in_interface(self):
         """
@@ -552,6 +573,70 @@ class TestDropdown:
         iface = gr.Interface(lambda x: "|".join(x), dropdown_input, "textbox")
         assert iface(["a", "c"]) == "a|c"
         assert iface([]) == ""
+
+
+class TestImageEditor:
+    def test_component_functions(self):
+        test_image_path = "test/test_files/bus.png"
+        image_data = FileData(path=test_image_path)
+        image_editor_data = EditorData(
+            background=image_data, layers=[image_data, image_data], composite=image_data
+        )
+        payload = {
+            "background": test_image_path,
+            "layers": [test_image_path, test_image_path],
+            "composite": test_image_path,
+        }
+
+        image_editor_component = gr.ImageEditor()
+
+        assert isinstance(image_editor_component.preprocess(image_editor_data), dict)
+        assert image_editor_component.postprocess(payload) == image_editor_data
+
+        # Test that ImageEditor can accept just a filepath as well
+        simpler_data = EditorData(
+            background=image_data, layers=[], composite=image_data
+        )
+        assert image_editor_component.postprocess(test_image_path) == simpler_data
+
+        assert image_editor_component.get_config() == {
+            "value": None,
+            "height": None,
+            "width": None,
+            "image_mode": "RGBA",
+            "sources": ("upload", "webcam", "clipboard"),
+            "type": "numpy",
+            "label": None,
+            "show_label": True,
+            "show_download_button": True,
+            "container": True,
+            "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
+            "elem_id": None,
+            "elem_classes": [],
+            "mirror_webcam": True,
+            "show_share_button": False,
+            "_selectable": False,
+            "crop_size": None,
+            "transforms": ("crop",),
+            "eraser": {"default_size": "auto"},
+            "brush": {
+                "default_size": "auto",
+                "colors": [
+                    "rgb(204, 50, 50)",
+                    "rgb(173, 204, 50)",
+                    "rgb(50, 204, 112)",
+                    "rgb(50, 112, 204)",
+                    "rgb(173, 50, 204)",
+                ],
+                "default_color": "auto",
+                "color_mode": "defaults",
+            },
+            "proxy_url": None,
+            "name": "imageeditor",
+        }
 
 
 class TestImage:
@@ -906,6 +991,14 @@ class TestFile:
         output2 = file_input.postprocess("test/test_files/sample_file.pdf")
         assert output1 == output2
 
+    def test_preprocess_with_multiple_files(self):
+        file_data = FileData(path=media_data.BASE64_FILE["path"])
+        list_file_data = ListFiles(root=[file_data, file_data])
+        file_input = gr.File(file_count="directory")
+        output = file_input.preprocess(list_file_data)
+        assert isinstance(output, list)
+        assert isinstance(output[0], str)
+
     def test_file_type_must_be_list(self):
         with pytest.raises(
             ValueError, match="Parameter file_types must be a list. Received str"
@@ -958,6 +1051,14 @@ class TestUploadButton:
             ValueError, match="Parameter file_types must be a list. Received int"
         ):
             gr.UploadButton(file_types=2)
+
+    def test_preprocess_with_multiple_files(self):
+        file_data = FileData(path=media_data.BASE64_FILE["path"])
+        list_file_data = ListFiles(root=[file_data, file_data])
+        upload_input = gr.UploadButton(file_count="directory")
+        output = upload_input.preprocess(list_file_data)
+        assert isinstance(output, list)
+        assert isinstance(output[0], str)
 
 
 class TestDataframe:
@@ -2138,16 +2239,18 @@ class TestGallery:
 
         postprocessed_gallery = gallery.postprocess(
             [
-                ("test/test_files/foo.png", "foo_caption"),
+                (str(Path("test/test_files/foo.png")), "foo_caption"),
                 (Path("test/test_files/bar.png"), "bar_caption"),
-                "test/test_files/baz.png",
+                str(Path("test/test_files/baz.png")),
                 Path("test/test_files/qux.png"),
             ]
         ).model_dump()
+
+        # Using str(Path(...)) to ensure that the test passes on all platforms
         assert postprocessed_gallery == [
             {
                 "image": {
-                    "path": "test/test_files/foo.png",
+                    "path": str(Path("test") / "test_files" / "foo.png"),
                     "orig_name": "foo.png",
                     "mime_type": None,
                     "size": None,
@@ -2157,7 +2260,7 @@ class TestGallery:
             },
             {
                 "image": {
-                    "path": "test/test_files/bar.png",
+                    "path": str(Path("test") / "test_files" / "bar.png"),
                     "orig_name": "bar.png",
                     "mime_type": None,
                     "size": None,
@@ -2167,7 +2270,7 @@ class TestGallery:
             },
             {
                 "image": {
-                    "path": "test/test_files/baz.png",
+                    "path": str(Path("test") / "test_files" / "baz.png"),
                     "orig_name": "baz.png",
                     "mime_type": None,
                     "size": None,
@@ -2177,7 +2280,7 @@ class TestGallery:
             },
             {
                 "image": {
-                    "path": "test/test_files/qux.png",
+                    "path": str(Path("test") / "test_files" / "qux.png"),
                     "orig_name": "qux.png",
                     "mime_type": None,
                     "size": None,

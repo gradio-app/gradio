@@ -102,6 +102,20 @@ class SpaceDuplicationError(Exception):
     pass
 
 
+class ServerMessage(str, Enum):
+    send_hash = "send_hash"
+    queue_full = "queue_full"
+    estimation = "estimation"
+    send_data = "send_data"
+    process_starts = "process_starts"
+    process_generating = "process_generating"
+    process_completed = "process_completed"
+    log = "log"
+    progress = "progress"
+    heartbeat = "heartbeat"
+    server_stopped = "server_stopped"
+
+
 class Status(Enum):
     """Status codes presented to client users."""
 
@@ -141,16 +155,17 @@ class Status(Enum):
     def msg_to_status(msg: str) -> Status:
         """Map the raw message from the backend to the status code presented to users."""
         return {
-            "send_hash": Status.JOINING_QUEUE,
-            "queue_full": Status.QUEUE_FULL,
-            "estimation": Status.IN_QUEUE,
-            "send_data": Status.SENDING_DATA,
-            "process_starts": Status.PROCESSING,
-            "process_generating": Status.ITERATING,
-            "process_completed": Status.FINISHED,
-            "progress": Status.PROGRESS,
-            "log": Status.LOG,
-        }[msg]
+            ServerMessage.send_hash: Status.JOINING_QUEUE,
+            ServerMessage.queue_full: Status.QUEUE_FULL,
+            ServerMessage.estimation: Status.IN_QUEUE,
+            ServerMessage.send_data: Status.SENDING_DATA,
+            ServerMessage.process_starts: Status.PROCESSING,
+            ServerMessage.process_generating: Status.ITERATING,
+            ServerMessage.process_completed: Status.FINISHED,
+            ServerMessage.progress: Status.PROGRESS,
+            ServerMessage.log: Status.LOG,
+            ServerMessage.server_stopped: Status.FINISHED,
+        }[msg]  # type: ignore
 
 
 @dataclass
@@ -240,7 +255,7 @@ def probe_url(possible_url: str) -> bool:
     """
     Probe the given URL to see if it responds with a 200 status code (to HEAD, then to GET).
     """
-    headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
+    headers = {"User-Agent": "gradio (https://gradio.app/; gradio-team@huggingface.co)"}
     try:
         with httpx.Client() as client:
             head_request = client.head(possible_url, headers=headers)
@@ -436,9 +451,14 @@ async def stream_sse_v0(
             headers=headers,
             cookies=cookies,
         ) as response:
-            async for line in response.aiter_text():
+            async for line in response.aiter_lines():
+                line = line.rstrip("\n")
+                if len(line) == 0:
+                    continue
                 if line.startswith("data:"):
                     resp = json.loads(line[5:])
+                    if resp["msg"] in [ServerMessage.log, ServerMessage.heartbeat]:
+                        continue
                     with helper.lock:
                         has_progress = "progress_data" in resp
                         status_update = StatusUpdate(
@@ -502,7 +522,7 @@ async def stream_sse_v1(
 
             with helper.lock:
                 log_message = None
-                if msg["msg"] == "log":
+                if msg["msg"] == ServerMessage.log:
                     log = msg.get("log")
                     level = msg.get("level")
                     if log and level:
@@ -527,13 +547,10 @@ async def stream_sse_v1(
                         result = [e]
                     helper.job.outputs.append(result)
                 helper.job.latest_status = status_update
-
-            if msg["msg"] == "queue_full":
-                raise QueueError("Queue is full! Please try again.")
-            elif msg["msg"] == "process_completed":
+            if msg["msg"] == ServerMessage.process_completed:
                 del pending_messages_per_event[event_id]
                 return msg["output"]
-            elif msg["msg"] == "server_stopped":
+            elif msg["msg"] == ServerMessage.server_stopped:
                 raise ValueError("Server stopped.")
 
     except asyncio.CancelledError:
@@ -839,9 +856,11 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
     elif type_ == "null":
         return "None"
     elif type_ == "const":
-        return f"Litetal[{schema['const']}]"
+        return f"Literal[{schema['const']}]"
     elif type_ == "enum":
-        return f"Literal[{', '.join([str(v) for v in schema['enum']])}]"
+        return (
+            "Literal[" + ", ".join(["'" + str(v) + "'" for v in schema["enum"]]) + "]"
+        )
     elif type_ == "integer":
         return "int"
     elif type_ == "string":
