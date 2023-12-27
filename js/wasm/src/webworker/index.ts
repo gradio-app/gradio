@@ -187,6 +187,13 @@ async function initializeApp(
 	options: InMessageInitApp["data"],
 	updateProgress: (log: string) => void
 ): Promise<void> {
+	const appHomeDir = getAppHomeDir(appId);
+	console.debug("Creating a home directory for the app.", {
+		appId,
+		appHomeDir
+	});
+	pyodide.FS.mkdir(appHomeDir);
+
 	console.debug("Mounting files.", options.files);
 	updateProgress("Mounting files");
 	await Promise.all(
@@ -248,6 +255,8 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 	// One app also has one Gradio server app which is managed by the `gradio.wasm_utils` module.`
 	// This multi-app mechanism was introduced for a SharedWorker, but the same mechanism is used for a DedicatedWorker as well.
 	const appId = generateRandomString(8);
+
+	console.debug("Set up a new app.", { appId });
 
 	const updateProgress = (log: string): void => {
 		const message: OutMessage = {
