@@ -191,6 +191,11 @@ You can start the development server by running:
 bash scripts/run_lite.sh
 ```
 
+If you make changes to the Python code during development, you will need to rebuild the Python packages loaded to Graio-Lite. To do this, run:
+```
+pnpm --filter @gradio/app pybuild
+```
+
 To generate the release build, run:
 ```
 bash scripts/build_lite.sh
