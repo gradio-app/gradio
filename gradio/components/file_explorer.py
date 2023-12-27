@@ -139,7 +139,7 @@ class FileExplorer(Component):
         return FileExplorerData(root=root)
 
     @server
-    def ls(self, _) -> list[dict[str, str]] | None:
+    def ls(self, _=None) -> list[dict[str, str]] | None:
         """
         Returns:
             tuple of list of files in directory, then list of folders in directory
