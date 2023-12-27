@@ -836,7 +836,7 @@ class TestShowAPI:
 def test_component_server_endpoints(connect):
     here = os.path.dirname(os.path.abspath(__file__))
     with gr.Blocks() as demo:
-        gr.FileExplorer(root=here)
+        file_explorer = gr.FileExplorer(root=here)
 
     with closing(demo) as io:
         app, _, _ = io.launch(prevent_thread_lock=True)
@@ -845,7 +845,7 @@ def test_component_server_endpoints(connect):
             "/component_server/",
             json={
                 "session_hash": "123",
-                "component_id": 1,
+                "component_id": file_explorer._id,
                 "fn_name": "ls",
                 "data": None,
             },
@@ -856,7 +856,7 @@ def test_component_server_endpoints(connect):
             "/component_server/",
             json={
                 "session_hash": "123",
-                "component_id": 1,
+                "component_id": file_explorer._id,
                 "fn_name": "preprocess",
                 "data": None,
             },
