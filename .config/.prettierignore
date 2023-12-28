@@ -19,7 +19,7 @@
 ../js/app/src/lite/theme.css
 ../js/storybook/theme.css
 **/gradio_cached_examples/**
-**/storybook-static/**  
+**/storybook-static/**
 **/.vscode/**
 sweep.yaml
 **/.vercel/**
@@ -28,3 +28,4 @@ sweep.yaml
 **/src/lib/json/**/*
 **/playwright/.cache/**/*
 **/theme/src/pollen.css
+../test-results/**/*
