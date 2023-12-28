@@ -289,10 +289,6 @@
 		margin-top: var(--spacing-xxl);
 	}
 
-	.message-wrap :global(audio) {
-		width: 100%;
-	}
-
 	.message {
 		position: relative;
 		display: flex;
