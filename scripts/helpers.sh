@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -eu
 
 #######################################
 # Tell the user what programs to install for a specific task.
