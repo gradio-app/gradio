@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { tick, createEventDispatcher } from "svelte";
+	import { tick, createEventDispatcher, getContext } from "svelte";
 	import { BaseButton } from "@gradio/button";
 	import {
 		upload,
 		prepare_files,
 		type FileData,
-		get_fetchable_url_or_file
+		get_fetchable_url_or_file,
+		type upload_files
 	} from "@gradio/client";
 
 	export let elem_id = "";
@@ -26,6 +27,9 @@
 	$: icon_path = get_fetchable_url_or_file(icon, root, proxy_url);
 
 	const dispatch = createEventDispatcher();
+
+	// Needed for wasm support
+	const upload_fn = getContext<typeof upload_files>("upload_files");
 
 	let hidden_upload: HTMLInputElement;
 	let accept_file_types: string | null;
@@ -58,9 +62,9 @@
 		let all_file_data = await prepare_files(_files);
 		await tick();
 
-		all_file_data = (await upload(all_file_data, root))?.filter(
-			(x) => x !== null
-		) as FileData[];
+		all_file_data = (
+			await upload(all_file_data, root, undefined, upload_fn)
+		)?.filter((x) => x !== null) as FileData[];
 		value = file_count === "single" ? all_file_data?.[0] : all_file_data;
 		dispatch("change", value);
 		dispatch("upload", value);
