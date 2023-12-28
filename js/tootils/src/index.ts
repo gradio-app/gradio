@@ -99,9 +99,21 @@ const test_lite = base.extend<{ setup: void }>({
 						return bytes;
 					}
 
-					files.forEach(([filepath, data_b64]) => {
-						controller.write(filepath, base64ToUint8Array(data_b64), {});
-					});
+					for (const [filepath, data_b64] of files) {
+						const data = base64ToUint8Array(data_b64);
+						if (filepath === "requirements.txt") {
+							const text = new TextDecoder().decode(data);
+							const requirements = text
+								.split("\n")
+								.map((line) => line.trim())
+								.filter((line) => line);
+							console.debug("Installing requirements", requirements);
+							await controller.install(requirements);
+						} else {
+							console.debug("Writing a file", filepath);
+							await controller.write(filepath, data, {});
+						}
+					}
 
 					await controller.run_file("run.py");
 				},
