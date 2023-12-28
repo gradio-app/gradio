@@ -83,3 +83,7 @@ function git_required() {
 function jq_required() {
   program_required "jq" "https://jqlang.github.io/jq/"
 }
+
+function foo_required() {
+  program_required "foo" "https://jqlang.github.io/jq/"
+}
