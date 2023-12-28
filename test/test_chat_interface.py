@@ -1,10 +1,11 @@
 import tempfile
 from concurrent.futures import wait
+from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
 import gradio as gr
-from gradio import helpers
 
 
 def invalid_fn(message):
@@ -79,44 +80,52 @@ class TestInit:
             )
 
     def test_example_caching(self, monkeypatch):
-        monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
-        chatbot = gr.ChatInterface(
-            double, examples=["hello", "hi"], cache_examples=True
-        )
-        prediction_hello = chatbot.examples_handler.load_from_cache(0)
-        prediction_hi = chatbot.examples_handler.load_from_cache(1)
-        assert prediction_hello[0].root[0] == ("hello", "hello hello")
-        assert prediction_hi[0].root[0] == ("hi", "hi hi")
+        with patch(
+            "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
+        ):
+            chatbot = gr.ChatInterface(
+                double, examples=["hello", "hi"], cache_examples=True
+            )
+            prediction_hello = chatbot.examples_handler.load_from_cache(0)
+            prediction_hi = chatbot.examples_handler.load_from_cache(1)
+            assert prediction_hello[0].root[0] == ("hello", "hello hello")
+            assert prediction_hi[0].root[0] == ("hi", "hi hi")
 
     def test_example_caching_async(self, monkeypatch):
-        monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
-        chatbot = gr.ChatInterface(
-            async_greet, examples=["abubakar", "tom"], cache_examples=True
-        )
-        prediction_hello = chatbot.examples_handler.load_from_cache(0)
-        prediction_hi = chatbot.examples_handler.load_from_cache(1)
-        assert prediction_hello[0].root[0] == ("abubakar", "hi, abubakar")
-        assert prediction_hi[0].root[0] == ("tom", "hi, tom")
+        with patch(
+            "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
+        ):
+            chatbot = gr.ChatInterface(
+                async_greet, examples=["abubakar", "tom"], cache_examples=True
+            )
+            prediction_hello = chatbot.examples_handler.load_from_cache(0)
+            prediction_hi = chatbot.examples_handler.load_from_cache(1)
+            assert prediction_hello[0].root[0] == ("abubakar", "hi, abubakar")
+            assert prediction_hi[0].root[0] == ("tom", "hi, tom")
 
     def test_example_caching_with_streaming(self, monkeypatch):
-        monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
-        chatbot = gr.ChatInterface(
-            stream, examples=["hello", "hi"], cache_examples=True
-        )
-        prediction_hello = chatbot.examples_handler.load_from_cache(0)
-        prediction_hi = chatbot.examples_handler.load_from_cache(1)
-        assert prediction_hello[0].root[0] == ("hello", "hello")
-        assert prediction_hi[0].root[0] == ("hi", "hi")
+        with patch(
+            "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
+        ):
+            chatbot = gr.ChatInterface(
+                stream, examples=["hello", "hi"], cache_examples=True
+            )
+            prediction_hello = chatbot.examples_handler.load_from_cache(0)
+            prediction_hi = chatbot.examples_handler.load_from_cache(1)
+            assert prediction_hello[0].root[0] == ("hello", "hello")
+            assert prediction_hi[0].root[0] == ("hi", "hi")
 
     def test_example_caching_with_streaming_async(self, monkeypatch):
-        monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
-        chatbot = gr.ChatInterface(
-            async_stream, examples=["hello", "hi"], cache_examples=True
-        )
-        prediction_hello = chatbot.examples_handler.load_from_cache(0)
-        prediction_hi = chatbot.examples_handler.load_from_cache(1)
-        assert prediction_hello[0].root[0] == ("hello", "hello")
-        assert prediction_hi[0].root[0] == ("hi", "hi")
+        with patch(
+            "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
+        ):
+            chatbot = gr.ChatInterface(
+                async_stream, examples=["hello", "hi"], cache_examples=True
+            )
+            prediction_hello = chatbot.examples_handler.load_from_cache(0)
+            prediction_hi = chatbot.examples_handler.load_from_cache(1)
+            assert prediction_hello[0].root[0] == ("hello", "hello")
+            assert prediction_hi[0].root[0] == ("hi", "hi")
 
     def test_default_accordion_params(self):
         chatbot = gr.ChatInterface(
@@ -146,34 +155,38 @@ class TestInit:
         assert accordion.get_config().get("label") == "MOAR"
 
     def test_example_caching_with_additional_inputs(self, monkeypatch):
-        monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
-        chatbot = gr.ChatInterface(
-            echo_system_prompt_plus_message,
-            additional_inputs=["textbox", "slider"],
-            examples=[["hello", "robot", 100], ["hi", "robot", 2]],
-            cache_examples=True,
-        )
-        prediction_hello = chatbot.examples_handler.load_from_cache(0)
-        prediction_hi = chatbot.examples_handler.load_from_cache(1)
-        assert prediction_hello[0].root[0] == ("hello", "robot hello")
-        assert prediction_hi[0].root[0] == ("hi", "ro")
+        with patch(
+            "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
+        ):
+            chatbot = gr.ChatInterface(
+                echo_system_prompt_plus_message,
+                additional_inputs=["textbox", "slider"],
+                examples=[["hello", "robot", 100], ["hi", "robot", 2]],
+                cache_examples=True,
+            )
+            prediction_hello = chatbot.examples_handler.load_from_cache(0)
+            prediction_hi = chatbot.examples_handler.load_from_cache(1)
+            assert prediction_hello[0].root[0] == ("hello", "robot hello")
+            assert prediction_hi[0].root[0] == ("hi", "ro")
 
     def test_example_caching_with_additional_inputs_already_rendered(self, monkeypatch):
-        monkeypatch.setattr(helpers, "CACHED_FOLDER", tempfile.mkdtemp())
-        with gr.Blocks():
-            with gr.Accordion("Inputs"):
-                text = gr.Textbox()
-                slider = gr.Slider()
-                chatbot = gr.ChatInterface(
-                    echo_system_prompt_plus_message,
-                    additional_inputs=[text, slider],
-                    examples=[["hello", "robot", 100], ["hi", "robot", 2]],
-                    cache_examples=True,
-                )
-        prediction_hello = chatbot.examples_handler.load_from_cache(0)
-        prediction_hi = chatbot.examples_handler.load_from_cache(1)
-        assert prediction_hello[0].root[0] == ("hello", "robot hello")
-        assert prediction_hi[0].root[0] == ("hi", "ro")
+        with patch(
+            "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
+        ):
+            with gr.Blocks():
+                with gr.Accordion("Inputs"):
+                    text = gr.Textbox()
+                    slider = gr.Slider()
+                    chatbot = gr.ChatInterface(
+                        echo_system_prompt_plus_message,
+                        additional_inputs=[text, slider],
+                        examples=[["hello", "robot", 100], ["hi", "robot", 2]],
+                        cache_examples=True,
+                    )
+            prediction_hello = chatbot.examples_handler.load_from_cache(0)
+            prediction_hi = chatbot.examples_handler.load_from_cache(1)
+            assert prediction_hello[0].root[0] == ("hello", "robot hello")
+            assert prediction_hi[0].root[0] == ("hi", "ro")
 
 
 class TestAPI:

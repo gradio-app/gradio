@@ -34,7 +34,7 @@ from gradio.components.dataframe import DataframeData
 from gradio.components.file_explorer import FileExplorerData
 from gradio.components.image_editor import EditorData
 from gradio.components.video import VideoData
-from gradio.data_classes import FileData
+from gradio.data_classes import FileData, ListFiles
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -232,12 +232,32 @@ class TestNumber:
         assert numeric_input.postprocess(2.1421) == 2.14
         assert numeric_input.postprocess(None) is None
 
+    def test_precision_none_with_integer(self):
+        """
+        Preprocess, postprocess
+        """
+        numeric_input = gr.Number(precision=None)
+        assert numeric_input.preprocess(5) == 5
+        assert isinstance(numeric_input.preprocess(5), int)
+        assert numeric_input.postprocess(5) == 5
+        assert isinstance(numeric_input.postprocess(5), int)
+
+    def test_precision_none_with_float(self):
+        """
+        Preprocess, postprocess
+        """
+        numeric_input = gr.Number(value=5.5, precision=None)
+        assert numeric_input.preprocess(5.5) == 5.5
+        assert isinstance(numeric_input.preprocess(5.5), float)
+        assert numeric_input.postprocess(5.5) == 5.5
+        assert isinstance(numeric_input.postprocess(5.5), float)
+
     def test_in_interface_as_input(self):
         """
         Interface, process
         """
         iface = gr.Interface(lambda x: x**2, "number", "textbox")
-        assert iface(2) == "4.0"
+        assert iface(2) == "4"
 
     def test_precision_0_in_interface(self):
         """
@@ -971,6 +991,14 @@ class TestFile:
         output2 = file_input.postprocess("test/test_files/sample_file.pdf")
         assert output1 == output2
 
+    def test_preprocess_with_multiple_files(self):
+        file_data = FileData(path=media_data.BASE64_FILE["path"])
+        list_file_data = ListFiles(root=[file_data, file_data])
+        file_input = gr.File(file_count="directory")
+        output = file_input.preprocess(list_file_data)
+        assert isinstance(output, list)
+        assert isinstance(output[0], str)
+
     def test_file_type_must_be_list(self):
         with pytest.raises(
             ValueError, match="Parameter file_types must be a list. Received str"
@@ -1023,6 +1051,14 @@ class TestUploadButton:
             ValueError, match="Parameter file_types must be a list. Received int"
         ):
             gr.UploadButton(file_types=2)
+
+    def test_preprocess_with_multiple_files(self):
+        file_data = FileData(path=media_data.BASE64_FILE["path"])
+        list_file_data = ListFiles(root=[file_data, file_data])
+        upload_input = gr.UploadButton(file_count="directory")
+        output = upload_input.preprocess(list_file_data)
+        assert isinstance(output, list)
+        assert isinstance(output[0], str)
 
 
 class TestDataframe:

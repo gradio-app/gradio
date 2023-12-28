@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/video",
-	"version": "0.2.2",
+	"version": "0.2.4",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -19,7 +19,7 @@
 		"@ffmpeg/util": "^0.12.1"
 	},
 	"devDependencies": {
-		"mrmime": "^1.0.1"
+		"mrmime": "^2.0.0"
 	},
 	"exports": {
 		".": "./index.ts",

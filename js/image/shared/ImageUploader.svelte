@@ -4,28 +4,21 @@
 	import { Image as ImageIcon } from "@gradio/icons";
 	import type { SelectData, I18nFormatter } from "@gradio/utils";
 	import { get_coordinates_of_clicked_image } from "./utils";
-	import {
-		Webcam as WebcamIcon,
-		ImagePaste,
-		Upload as UploadIcon
-	} from "@gradio/icons";
 	import Webcam from "./Webcam.svelte";
-	import { Toolbar, IconButton } from "@gradio/atoms";
 
 	import { Upload } from "@gradio/upload";
 	import { type FileData, normalise_file } from "@gradio/client";
 	import ClearImage from "./ClearImage.svelte";
+	import { SelectSource } from "@gradio/atoms";
 	import Image from "./Image.svelte";
 
 	export let value: null | FileData;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 
-	export let sources: ("clipboard" | "webcam" | "upload")[] = [
-		"upload",
-		"clipboard",
-		"webcam"
-	];
+	type source_type = "upload" | "webcam" | "clipboard" | "microphone" | null;
+
+	export let sources: source_type[] = ["upload", "clipboard", "webcam"];
 	export let streaming = false;
 	export let pending = false;
 	export let mirror_webcam: boolean;
@@ -35,11 +28,17 @@
 
 	let upload: Upload;
 	let uploading = false;
-	export let active_tool: "webcam" | null = null;
+	export let active_source: source_type = null;
 
 	function handle_upload({ detail }: CustomEvent<FileData>): void {
 		value = normalise_file(detail, root, null);
 		dispatch("upload");
+	}
+
+	function handle_clear(): void {
+		value = null;
+		dispatch("clear");
+		dispatch("change", null);
 	}
 
 	async function handle_save(img_blob: Blob | any): Promise<void> {
@@ -47,7 +46,6 @@
 		const f = await upload.load_files([new File([img_blob], `webcam.png`)]);
 
 		value = f?.[0] || null;
-		if (!streaming) active_tool = null;
 
 		await tick();
 
@@ -55,7 +53,7 @@
 		pending = false;
 	}
 
-	$: active_streaming = streaming && active_tool === "webcam";
+	$: active_streaming = streaming && active_source === "webcam";
 	$: if (uploading && !active_streaming) value = null;
 
 	$: value && !value.url && (value = normalise_file(value, root, null));
@@ -80,61 +78,16 @@
 		}
 	}
 
-	const sources_meta = {
-		upload: {
-			icon: UploadIcon,
-			label: i18n("Upload"),
-			order: 0
-		},
-		webcam: {
-			icon: WebcamIcon,
-			label: i18n("Webcam"),
-			order: 1
-		},
-		clipboard: {
-			icon: ImagePaste,
-			label: i18n("Paste"),
-			order: 2
-		}
-	};
-
-	$: sources_list = sources.sort(
-		(a, b) => sources_meta[a].order - sources_meta[b].order
-	);
-
-	$: {
-		if (sources.length === 1 && sources[0] === "webcam") {
-			active_tool = "webcam";
-		}
+	$: if (!active_source && sources) {
+		active_source = sources[0];
 	}
 
-	async function handle_toolbar(
+	async function handle_select_source(
 		source: (typeof sources)[number]
 	): Promise<void> {
 		switch (source) {
 			case "clipboard":
-				navigator.clipboard.read().then(async (items) => {
-					for (let i = 0; i < items.length; i++) {
-						const type = items[i].types.find((t) => t.startsWith("image/"));
-						if (type) {
-							value = null;
-							items[i].getType(type).then(async (blob) => {
-								const f = await upload.load_files([
-									new File([blob], `clipboard.${type.replace("image/", "")}`)
-								]);
-								f;
-								value = f?.[0] || null;
-							});
-							break;
-						}
-					}
-				});
-				break;
-			case "webcam":
-				active_tool = "webcam";
-				break;
-			case "upload":
-				upload.open_file_upload();
+				upload.paste_clipboard();
 				break;
 			default:
 				break;
@@ -155,21 +108,21 @@
 	{/if}
 	<div class="upload-container">
 		<Upload
-			hidden={value !== null || active_tool === "webcam"}
+			hidden={value !== null || active_source === "webcam"}
 			bind:this={upload}
 			bind:uploading
 			bind:dragging
-			filetype="image/*"
+			filetype={active_source === "clipboard" ? "clipboard" : "image/*"}
 			on:load={handle_upload}
 			on:error
 			{root}
 			disable_click={!sources.includes("upload")}
 		>
-			{#if value === null && !active_tool}
+			{#if value === null}
 				<slot />
 			{/if}
 		</Upload>
-		{#if active_tool === "webcam"}
+		{#if active_source === "webcam" && (streaming || (!streaming && !value))}
 			<Webcam
 				on:capture={(e) => handle_save(e.detail)}
 				on:stream={(e) => handle_save(e.detail)}
@@ -191,17 +144,12 @@
 		{/if}
 	</div>
 	{#if sources.length > 1 || sources.includes("clipboard")}
-		<Toolbar show_border={!value?.url}>
-			{#each sources_list as source}
-				<IconButton
-					on:click={() => handle_toolbar(source)}
-					Icon={sources_meta[source].icon}
-					size="large"
-					label="{source}-image-toolbar-btn"
-					padded={false}
-				/>
-			{/each}
-		</Toolbar>
+		<SelectSource
+			{sources}
+			bind:active_source
+			{handle_clear}
+			handle_select={handle_select_source}
+		/>
 	{/if}
 </div>
 
@@ -209,6 +157,13 @@
 	.image-frame :global(img) {
 		width: var(--size-full);
 		height: var(--size-full);
+		object-fit: cover;
+	}
+
+	.image-frame {
+		object-fit: cover;
+		width: 100%;
+		height: 100%;
 	}
 
 	.upload-container {

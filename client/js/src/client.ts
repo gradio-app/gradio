@@ -287,6 +287,7 @@ export function api_factory(
 			const session_hash = Math.random().toString(36).substring(2);
 			const last_status: Record<string, Status["stage"]> = {};
 			let stream_open = false;
+			let pending_stream_messages: Record<string, any[]> = {}; // Event messages may be received by the SSE stream before the initial data POST request is complete. To resolve this race condition, we store the messages in a dictionary and process them when the POST request is complete.
 			let event_stream: EventSource | null = null;
 			const event_callbacks: Record<string, () => Promise<void>> = {};
 			let config: Config;
@@ -460,261 +461,347 @@ export function api_factory(
 					url_params = new URLSearchParams(window.location.search).toString();
 				}
 
-				handle_blob(
-					`${http_protocol}//${resolve_root(host, config.path, true)}`,
-					data,
-					api_info,
-					hf_token
-				).then((_payload) => {
-					payload = { data: _payload || [], event_data, fn_index, trigger_id };
-					if (skip_queue(fn_index, config)) {
-						fire_event({
-							type: "status",
-							endpoint: _endpoint,
-							stage: "pending",
-							queue: false,
+				handle_blob(`${config.root}`, data, api_info, hf_token).then(
+					(_payload) => {
+						payload = {
+							data: _payload || [],
+							event_data,
 							fn_index,
-							time: new Date()
-						});
-
-						post_data(
-							`${http_protocol}//${resolve_root(host, config.path, true)}/run${
-								_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
-							}${url_params ? "?" + url_params : ""}`,
-							{
-								...payload,
-								session_hash
-							},
-							hf_token
-						)
-							.then(([output, status_code]) => {
-								const data = transform_files
-									? transform_output(
-											output.data,
-											api_info,
-											config.root,
-											config.root_url
-									  )
-									: output.data;
-								if (status_code == 200) {
-									fire_event({
-										type: "data",
-										endpoint: _endpoint,
-										fn_index,
-										data: data,
-										time: new Date()
-									});
-
-									fire_event({
-										type: "status",
-										endpoint: _endpoint,
-										fn_index,
-										stage: "complete",
-										eta: output.average_duration,
-										queue: false,
-										time: new Date()
-									});
-								} else {
-									fire_event({
-										type: "status",
-										stage: "error",
-										endpoint: _endpoint,
-										fn_index,
-										message: output.error,
-										queue: false,
-										time: new Date()
-									});
-								}
-							})
-							.catch((e) => {
-								fire_event({
-									type: "status",
-									stage: "error",
-									message: e.message,
-									endpoint: _endpoint,
-									fn_index,
-									queue: false,
-									time: new Date()
-								});
-							});
-					} else if (protocol == "ws") {
-						fire_event({
-							type: "status",
-							stage: "pending",
-							queue: true,
-							endpoint: _endpoint,
-							fn_index,
-							time: new Date()
-						});
-						let url = new URL(`${ws_protocol}://${resolve_root(
-							host,
-							config.path,
-							true
-						)}
-							/queue/join${url_params ? "?" + url_params : ""}`);
-
-						if (jwt) {
-							url.searchParams.set("__sign", jwt);
-						}
-
-						websocket = new WebSocket(url);
-
-						websocket.onclose = (evt) => {
-							if (!evt.wasClean) {
-								fire_event({
-									type: "status",
-									stage: "error",
-									broken: true,
-									message: BROKEN_CONNECTION_MSG,
-									queue: true,
-									endpoint: _endpoint,
-									fn_index,
-									time: new Date()
-								});
-							}
+							trigger_id
 						};
+						if (skip_queue(fn_index, config)) {
+							fire_event({
+								type: "status",
+								endpoint: _endpoint,
+								stage: "pending",
+								queue: false,
+								fn_index,
+								time: new Date()
+							});
 
-						websocket.onmessage = function (event) {
-							const _data = JSON.parse(event.data);
-							const { type, status, data } = handle_message(
-								_data,
-								last_status[fn_index]
-							);
-
-							if (type === "update" && status && !complete) {
-								// call 'status' listeners
-								fire_event({
-									type: "status",
-									endpoint: _endpoint,
-									fn_index,
-									time: new Date(),
-									...status
-								});
-								if (status.stage === "error") {
-									websocket.close();
-								}
-							} else if (type === "hash") {
-								websocket.send(JSON.stringify({ fn_index, session_hash }));
-								return;
-							} else if (type === "data") {
-								websocket.send(JSON.stringify({ ...payload, session_hash }));
-							} else if (type === "complete") {
-								complete = status;
-							} else if (type === "log") {
-								fire_event({
-									type: "log",
-									log: data.log,
-									level: data.level,
-									endpoint: _endpoint,
-									fn_index
-								});
-							} else if (type === "generating") {
-								fire_event({
-									type: "status",
-									time: new Date(),
-									...status,
-									stage: status?.stage!,
-									queue: true,
-									endpoint: _endpoint,
-									fn_index
-								});
-							}
-							if (data) {
-								fire_event({
-									type: "data",
-									time: new Date(),
-									data: transform_files
+							post_data(
+								`${config.root}/run${
+									_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
+								}${url_params ? "?" + url_params : ""}`,
+								{
+									...payload,
+									session_hash
+								},
+								hf_token
+							)
+								.then(([output, status_code]) => {
+									const data = transform_files
 										? transform_output(
-												data.data,
+												output.data,
 												api_info,
 												config.root,
 												config.root_url
 										  )
-										: data.data,
-									endpoint: _endpoint,
-									fn_index
-								});
+										: output.data;
+									if (status_code == 200) {
+										fire_event({
+											type: "data",
+											endpoint: _endpoint,
+											fn_index,
+											data: data,
+											time: new Date()
+										});
 
-								if (complete) {
+										fire_event({
+											type: "status",
+											endpoint: _endpoint,
+											fn_index,
+											stage: "complete",
+											eta: output.average_duration,
+											queue: false,
+											time: new Date()
+										});
+									} else {
+										fire_event({
+											type: "status",
+											stage: "error",
+											endpoint: _endpoint,
+											fn_index,
+											message: output.error,
+											queue: false,
+											time: new Date()
+										});
+									}
+								})
+								.catch((e) => {
+									fire_event({
+										type: "status",
+										stage: "error",
+										message: e.message,
+										endpoint: _endpoint,
+										fn_index,
+										queue: false,
+										time: new Date()
+									});
+								});
+						} else if (protocol == "ws") {
+							fire_event({
+								type: "status",
+								stage: "pending",
+								queue: true,
+								endpoint: _endpoint,
+								fn_index,
+								time: new Date()
+							});
+							let url = new URL(`${ws_protocol}://${resolve_root(
+								host,
+								config.path,
+								true
+							)}
+							/queue/join${url_params ? "?" + url_params : ""}`);
+
+							if (jwt) {
+								url.searchParams.set("__sign", jwt);
+							}
+
+							websocket = new WebSocket(url);
+
+							websocket.onclose = (evt) => {
+								if (!evt.wasClean) {
+									fire_event({
+										type: "status",
+										stage: "error",
+										broken: true,
+										message: BROKEN_CONNECTION_MSG,
+										queue: true,
+										endpoint: _endpoint,
+										fn_index,
+										time: new Date()
+									});
+								}
+							};
+
+							websocket.onmessage = function (event) {
+								const _data = JSON.parse(event.data);
+								const { type, status, data } = handle_message(
+									_data,
+									last_status[fn_index]
+								);
+
+								if (type === "update" && status && !complete) {
+									// call 'status' listeners
+									fire_event({
+										type: "status",
+										endpoint: _endpoint,
+										fn_index,
+										time: new Date(),
+										...status
+									});
+									if (status.stage === "error") {
+										websocket.close();
+									}
+								} else if (type === "hash") {
+									websocket.send(JSON.stringify({ fn_index, session_hash }));
+									return;
+								} else if (type === "data") {
+									websocket.send(JSON.stringify({ ...payload, session_hash }));
+								} else if (type === "complete") {
+									complete = status;
+								} else if (type === "log") {
+									fire_event({
+										type: "log",
+										log: data.log,
+										level: data.level,
+										endpoint: _endpoint,
+										fn_index
+									});
+								} else if (type === "generating") {
 									fire_event({
 										type: "status",
 										time: new Date(),
-										...complete,
+										...status,
 										stage: status?.stage!,
 										queue: true,
 										endpoint: _endpoint,
 										fn_index
 									});
-									websocket.close();
 								}
-							}
-						};
+								if (data) {
+									fire_event({
+										type: "data",
+										time: new Date(),
+										data: transform_files
+											? transform_output(
+													data.data,
+													api_info,
+													config.root,
+													config.root_url
+											  )
+											: data.data,
+										endpoint: _endpoint,
+										fn_index
+									});
 
-						// different ws contract for gradio versions older than 3.6.0
-						//@ts-ignore
-						if (semiver(config.version || "2.0.0", "3.6") < 0) {
-							addEventListener("open", () =>
-								websocket.send(JSON.stringify({ hash: session_hash }))
-							);
-						}
-					} else if (protocol == "sse") {
-						fire_event({
-							type: "status",
-							stage: "pending",
-							queue: true,
-							endpoint: _endpoint,
-							fn_index,
-							time: new Date()
-						});
-						var params = new URLSearchParams({
-							fn_index: fn_index.toString(),
-							session_hash: session_hash
-						}).toString();
-						let url = new URL(
-							`${http_protocol}//${resolve_root(
-								host,
-								config.path,
-								true
-							)}/queue/join?${url_params ? url_params + "&" : ""}${params}`
-						);
-
-						eventSource = EventSource_factory(url);
-
-						eventSource.onmessage = async function (event) {
-							const _data = JSON.parse(event.data);
-							const { type, status, data } = handle_message(
-								_data,
-								last_status[fn_index]
-							);
-
-							if (type === "update" && status && !complete) {
-								// call 'status' listeners
-								fire_event({
-									type: "status",
-									endpoint: _endpoint,
-									fn_index,
-									time: new Date(),
-									...status
-								});
-								if (status.stage === "error") {
-									eventSource.close();
+									if (complete) {
+										fire_event({
+											type: "status",
+											time: new Date(),
+											...complete,
+											stage: status?.stage!,
+											queue: true,
+											endpoint: _endpoint,
+											fn_index
+										});
+										websocket.close();
+									}
 								}
-							} else if (type === "data") {
-								event_id = _data.event_id as string;
-								let [_, status] = await post_data(
-									`${http_protocol}//${resolve_root(
-										host,
-										config.path,
-										true
-									)}/queue/data`,
-									{
-										...payload,
-										session_hash,
-										event_id
-									},
-									hf_token
+							};
+
+							// different ws contract for gradio versions older than 3.6.0
+							//@ts-ignore
+							if (semiver(config.version || "2.0.0", "3.6") < 0) {
+								addEventListener("open", () =>
+									websocket.send(JSON.stringify({ hash: session_hash }))
 								);
-								if (status !== 200) {
+							}
+						} else if (protocol == "sse") {
+							fire_event({
+								type: "status",
+								stage: "pending",
+								queue: true,
+								endpoint: _endpoint,
+								fn_index,
+								time: new Date()
+							});
+							var params = new URLSearchParams({
+								fn_index: fn_index.toString(),
+								session_hash: session_hash
+							}).toString();
+							let url = new URL(
+								`${config.root}/queue/join?${
+									url_params ? url_params + "&" : ""
+								}${params}`
+							);
+
+							eventSource = EventSource_factory(url);
+
+							eventSource.onmessage = async function (event) {
+								const _data = JSON.parse(event.data);
+								const { type, status, data } = handle_message(
+									_data,
+									last_status[fn_index]
+								);
+
+								if (type === "update" && status && !complete) {
+									// call 'status' listeners
+									fire_event({
+										type: "status",
+										endpoint: _endpoint,
+										fn_index,
+										time: new Date(),
+										...status
+									});
+									if (status.stage === "error") {
+										eventSource.close();
+									}
+								} else if (type === "data") {
+									event_id = _data.event_id as string;
+									let [_, status] = await post_data(
+										`${config.root}/queue/data`,
+										{
+											...payload,
+											session_hash,
+											event_id
+										},
+										hf_token
+									);
+									if (status !== 200) {
+										fire_event({
+											type: "status",
+											stage: "error",
+											message: BROKEN_CONNECTION_MSG,
+											queue: true,
+											endpoint: _endpoint,
+											fn_index,
+											time: new Date()
+										});
+										eventSource.close();
+									}
+								} else if (type === "complete") {
+									complete = status;
+								} else if (type === "log") {
+									fire_event({
+										type: "log",
+										log: data.log,
+										level: data.level,
+										endpoint: _endpoint,
+										fn_index
+									});
+								} else if (type === "generating") {
+									fire_event({
+										type: "status",
+										time: new Date(),
+										...status,
+										stage: status?.stage!,
+										queue: true,
+										endpoint: _endpoint,
+										fn_index
+									});
+								}
+								if (data) {
+									fire_event({
+										type: "data",
+										time: new Date(),
+										data: transform_files
+											? transform_output(
+													data.data,
+													api_info,
+													config.root,
+													config.root_url
+											  )
+											: data.data,
+										endpoint: _endpoint,
+										fn_index
+									});
+
+									if (complete) {
+										fire_event({
+											type: "status",
+											time: new Date(),
+											...complete,
+											stage: status?.stage!,
+											queue: true,
+											endpoint: _endpoint,
+											fn_index
+										});
+										eventSource.close();
+									}
+								}
+							};
+						} else if (protocol == "sse_v1") {
+							fire_event({
+								type: "status",
+								stage: "pending",
+								queue: true,
+								endpoint: _endpoint,
+								fn_index,
+								time: new Date()
+							});
+
+							post_data(
+								`${config.root}/queue/join?${url_params}`,
+								{
+									...payload,
+									session_hash
+								},
+								hf_token
+							).then(([response, status]) => {
+								if (status === 503) {
+									fire_event({
+										type: "status",
+										stage: "error",
+										message: QUEUE_FULL_MSG,
+										queue: true,
+										endpoint: _endpoint,
+										fn_index,
+										time: new Date()
+									});
+								} else if (status !== 200) {
 									fire_event({
 										type: "status",
 										stage: "error",
@@ -724,131 +811,107 @@ export function api_factory(
 										fn_index,
 										time: new Date()
 									});
-									eventSource.close();
-								}
-							} else if (type === "complete") {
-								complete = status;
-							} else if (type === "log") {
-								fire_event({
-									type: "log",
-									log: data.log,
-									level: data.level,
-									endpoint: _endpoint,
-									fn_index
-								});
-							} else if (type === "generating") {
-								fire_event({
-									type: "status",
-									time: new Date(),
-									...status,
-									stage: status?.stage!,
-									queue: true,
-									endpoint: _endpoint,
-									fn_index
-								});
-							}
-							if (data) {
-								fire_event({
-									type: "data",
-									time: new Date(),
-									data: transform_files
-										? transform_output(
-												data.data,
-												api_info,
-												config.root,
-												config.root_url
-										  )
-										: data.data,
-									endpoint: _endpoint,
-									fn_index
-								});
+								} else {
+									event_id = response.event_id as string;
+									let callback = async function (_data: object): void {
+										try {
+											const { type, status, data } = handle_message(
+												_data,
+												last_status[fn_index]
+											);
 
-								if (complete) {
-									fire_event({
-										type: "status",
-										time: new Date(),
-										...complete,
-										stage: status?.stage!,
-										queue: true,
-										endpoint: _endpoint,
-										fn_index
-									});
-									eventSource.close();
-								}
-							}
-						};
-					} else if (protocol == "sse_v1") {
-						fire_event({
-							type: "status",
-							stage: "pending",
-							queue: true,
-							endpoint: _endpoint,
-							fn_index,
-							time: new Date()
-						});
+											// TODO: Find out how to print this information
+											// only during testing
+											// console.info("data", type, status, data);
 
-						post_data(
-							`${http_protocol}//${resolve_root(
-								host,
-								config.path,
-								true
-							)}/queue/join?${url_params}`,
-							{
-								...payload,
-								session_hash
-							},
-							hf_token
-						).then(([response, status]) => {
-							if (status === 503) {
-								fire_event({
-									type: "status",
-									stage: "error",
-									message: QUEUE_FULL_MSG,
-									queue: true,
-									endpoint: _endpoint,
-									fn_index,
-									time: new Date()
-								});
-							} else if (status !== 200) {
-								fire_event({
-									type: "status",
-									stage: "error",
-									message: BROKEN_CONNECTION_MSG,
-									queue: true,
-									endpoint: _endpoint,
-									fn_index,
-									time: new Date()
-								});
-							} else {
-								event_id = response.event_id as string;
-								let callback = async function (_data: object): void {
-									try {
-										const { type, status, data } = handle_message(
-											_data,
-											last_status[fn_index]
-										);
+											if (type == "heartbeat") {
+												return;
+											}
 
-										// TODO: Find out how to print this information
-										// only during testing
-										// console.info("data", type, status, data);
+											if (type === "update" && status && !complete) {
+												// call 'status' listeners
+												fire_event({
+													type: "status",
+													endpoint: _endpoint,
+													fn_index,
+													time: new Date(),
+													...status
+												});
+											} else if (type === "complete") {
+												complete = status;
+											} else if (type == "unexpected_error") {
+												console.error("Unexpected error", status?.message);
+												fire_event({
+													type: "status",
+													stage: "error",
+													message: "An Unexpected Error Occurred!",
+													queue: true,
+													endpoint: _endpoint,
+													fn_index,
+													time: new Date()
+												});
+											} else if (type === "log") {
+												fire_event({
+													type: "log",
+													log: data.log,
+													level: data.level,
+													endpoint: _endpoint,
+													fn_index
+												});
+												return;
+											} else if (type === "generating") {
+												fire_event({
+													type: "status",
+													time: new Date(),
+													...status,
+													stage: status?.stage!,
+													queue: true,
+													endpoint: _endpoint,
+													fn_index
+												});
+											}
+											if (data) {
+												fire_event({
+													type: "data",
+													time: new Date(),
+													data: transform_files
+														? transform_output(
+																data.data,
+																api_info,
+																config.root,
+																config.root_url
+														  )
+														: data.data,
+													endpoint: _endpoint,
+													fn_index
+												});
 
-										if (type == "heartbeat") {
-											return;
-										}
+												if (complete) {
+													fire_event({
+														type: "status",
+														time: new Date(),
+														...complete,
+														stage: status?.stage!,
+														queue: true,
+														endpoint: _endpoint,
+														fn_index
+													});
+												}
+											}
 
-										if (type === "update" && status && !complete) {
-											// call 'status' listeners
-											fire_event({
-												type: "status",
-												endpoint: _endpoint,
-												fn_index,
-												time: new Date(),
-												...status
-											});
-										} else if (type === "complete") {
-											complete = status;
-										} else if (type == "unexpected_error") {
-											console.error("Unexpected error", status?.message);
+											if (
+												status?.stage === "complete" ||
+												status?.stage === "error"
+											) {
+												if (event_callbacks[event_id]) {
+													delete event_callbacks[event_id];
+													if (Object.keys(event_callbacks).length === 0) {
+														close_stream();
+													}
+												}
+											}
+										} catch (e) {
+											console.error("Unexpected client exception", e);
 											fire_event({
 												type: "status",
 												stage: "error",
@@ -858,88 +921,24 @@ export function api_factory(
 												fn_index,
 												time: new Date()
 											});
-										} else if (type === "log") {
-											fire_event({
-												type: "log",
-												log: data.log,
-												level: data.level,
-												endpoint: _endpoint,
-												fn_index
-											});
-											return;
-										} else if (type === "generating") {
-											fire_event({
-												type: "status",
-												time: new Date(),
-												...status,
-												stage: status?.stage!,
-												queue: true,
-												endpoint: _endpoint,
-												fn_index
-											});
+											close_stream();
 										}
-										if (data) {
-											fire_event({
-												type: "data",
-												time: new Date(),
-												data: transform_files
-													? transform_output(
-															data.data,
-															api_info,
-															config.root,
-															config.root_url
-													  )
-													: data.data,
-												endpoint: _endpoint,
-												fn_index
-											});
-
-											if (complete) {
-												fire_event({
-													type: "status",
-													time: new Date(),
-													...complete,
-													stage: status?.stage!,
-													queue: true,
-													endpoint: _endpoint,
-													fn_index
-												});
-											}
-										}
-
-										if (
-											status.stage === "complete" ||
-											status.stage === "error"
-										) {
-											if (event_callbacks[event_id]) {
-												delete event_callbacks[event_id];
-												if (Object.keys(event_callbacks).length === 0) {
-													close_stream();
-												}
-											}
-										}
-									} catch (e) {
-										console.error("Unexpected client exception", e);
-										fire_event({
-											type: "status",
-											stage: "error",
-											message: "An Unexpected Error Occurred!",
-											queue: true,
-											endpoint: _endpoint,
-											fn_index,
-											time: new Date()
-										});
-										close_stream();
+									};
+									if (event_id in pending_stream_messages) {
+										pending_stream_messages[event_id].forEach((msg) =>
+											callback(msg)
+										);
+										delete pending_stream_messages[event_id];
 									}
-								};
-								event_callbacks[event_id] = callback;
-								if (!stream_open) {
-									open_stream();
+									event_callbacks[event_id] = callback;
+									if (!stream_open) {
+										open_stream();
+									}
 								}
-							}
-						});
+							});
+						}
 					}
-				});
+				);
 
 				function fire_event<K extends EventType>(event: Event<K>): void {
 					const narrowed_listener_map: ListenerMap<K> = listener_map;
@@ -1001,18 +1000,11 @@ export function api_factory(
 					}
 
 					try {
-						await fetch_implementation(
-							`${http_protocol}//${resolve_root(
-								host,
-								config.path,
-								true
-							)}/reset`,
-							{
-								headers: { "Content-Type": "application/json" },
-								method: "POST",
-								body: JSON.stringify(cancel_request)
-							}
-						);
+						await fetch_implementation(`${config.root}/reset`, {
+							headers: { "Content-Type": "application/json" },
+							method: "POST",
+							body: JSON.stringify(cancel_request)
+						});
 					} catch (e) {
 						console.warn(
 							"The `/reset` endpoint could not be called. Subsequent endpoint results may be unreliable."
@@ -1041,25 +1033,25 @@ export function api_factory(
 				let params = new URLSearchParams({
 					session_hash: session_hash
 				}).toString();
-				let url = new URL(
-					`${http_protocol}//${resolve_root(
-						host,
-						config.path,
-						true
-					)}/queue/data?${params}`
-				);
+				let url = new URL(`${config.root}/queue/data?${params}`);
 				event_stream = new EventSource(url);
 				event_stream.onmessage = async function (event) {
 					let _data = JSON.parse(event.data);
-					if (!("event_id" in _data)) {
+					const event_id = _data.event_id;
+					if (!event_id) {
 						await Promise.all(
 							Object.keys(event_callbacks).map((event_id) =>
 								event_callbacks[event_id](_data)
 							)
 						);
-						return;
+					} else if (event_callbacks[event_id]) {
+						await event_callbacks[event_id](_data);
+					} else {
+						if (!pending_stream_messages[event_id]) {
+							pending_stream_messages[event_id] = [];
+						}
+						pending_stream_messages[event_id].push(_data);
 					}
-					await event_callbacks[_data.event_id](_data);
 				};
 			}
 
@@ -1087,14 +1079,10 @@ export function api_factory(
 				if (component?.props?.root_url) {
 					root_url = component.props.root_url;
 				} else {
-					root_url = `${http_protocol}//${resolve_root(
-						host,
-						config.path,
-						true
-					)}/`;
+					root_url = config.root;
 				}
 				const response = await fetch_implementation(
-					`${root_url}component_server/`,
+					`${root_url}/component_server/`,
 					{
 						method: "POST",
 						body: JSON.stringify({
@@ -1701,8 +1689,7 @@ function handle_message(
 					message: !data.success ? data.output.error : undefined,
 					stage: data.success ? "complete" : "error",
 					code: data.code,
-					progress_data: data.progress_data,
-					eta: data.output.average_duration
+					progress_data: data.progress_data
 				},
 				data: data.success ? data.output : null
 			};
@@ -1716,7 +1703,8 @@ function handle_message(
 					code: data.code,
 					size: data.rank,
 					position: 0,
-					success: data.success
+					success: data.success,
+					eta: data.eta
 				}
 			};
 	}

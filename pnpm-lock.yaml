@@ -279,7 +279,7 @@ importers:
   js/_website:
     dependencies:
       '@gradio/code':
-        specifier: 0.3.2
+        specifier: 0.3.4
         version: link:../code
       '@sindresorhus/slugify':
         specifier: ^2.2.0
@@ -1107,12 +1107,18 @@ importers:
       dompurify:
         specifier: ^3.0.3
         version: 3.0.3
+      github-slugger:
+        specifier: ^2.0.0
+        version: 2.0.0
       katex:
         specifier: ^0.16.7
         version: 0.16.7
       marked:
         specifier: ^11.0.0
         version: 11.0.0
+      marked-gfm-heading-id:
+        specifier: ^3.1.2
+        version: 3.1.2(marked@11.0.0)
       marked-highlight:
         specifier: ^2.0.1
         version: 2.0.1(marked@11.0.0)
@@ -1268,10 +1274,10 @@ importers:
   js/preview/test/test/frontend:
     dependencies:
       '@gradio/atoms':
-        specifier: 0.4.0
+        specifier: 0.4.1
         version: link:../../../../atoms
       '@gradio/statustracker':
-        specifier: 0.4.2
+        specifier: 0.4.3
         version: link:../../../../statustracker
       '@gradio/utils':
         specifier: 0.2.0
@@ -1477,8 +1483,8 @@ importers:
         version: link:../wasm
     devDependencies:
       mrmime:
-        specifier: ^1.0.1
-        version: 1.0.1
+        specifier: ^2.0.0
+        version: 2.0.0
 
   js/wasm:
     dependencies:
@@ -10678,6 +10684,10 @@ packages:
     resolution: {integrity: sha512-wIh+gKBI9Nshz2o46B0B3f5k/W+WI9ZAv6y5Dn5WJ5SK1t0TnDimB4WE5rmTD05ZAIn8HALCZVmCsvj0w0v0lw==}
     dev: true
 
+  /github-slugger@2.0.0:
+    resolution: {integrity: sha512-IaOQ9puYtjrkq7Y0Ygl9KDZnrf/aiUJYUpVf89y8kyaxbRG7Y1SrX/jaumrv81vc61+kiMempujsM3Yw7w5qcw==}
+    dev: false
+
   /glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
     engines: {node: '>= 6'}
@@ -12081,6 +12091,15 @@ packages:
       react: 18.2.0
     dev: true
 
+  /marked-gfm-heading-id@3.1.2(marked@11.0.0):
+    resolution: {integrity: sha512-SdIZvhNxDgndFkDa2WRcFP4ahYm6k6hoHdTCN+fD7HRiI/R3Eimcw/Yl7ikQ+0KUuDpi75NnYQiThZnZsNr9Dg==}
+    peerDependencies:
+      marked: '>=4 <12'
+    dependencies:
+      github-slugger: 2.0.0
+      marked: 11.0.0
+    dev: false
+
   /marked-highlight@2.0.1(marked@11.0.0):
     resolution: {integrity: sha512-LDUfR/zDvD+dJ+lQOWHkxvBLNxiXcaN8pBtwJ/i4pI0bkDC/Ef6Mz1qUrAuHXfnpdr2rabdMpVFhqFuU+5Mskg==}
     peerDependencies:
@@ -12352,6 +12371,11 @@ packages:
   /mrmime@1.0.1:
     resolution: {integrity: sha512-hzzEagAgDyoU1Q6yg5uI+AorQgdvMCur3FcKf7NhMKWsaYg+RnbTyHRa/9IlLF9rf455MOCtcqqrQQ83pPP7Uw==}
     engines: {node: '>=10'}
+
+  /mrmime@2.0.0:
+    resolution: {integrity: sha512-eu38+hdgojoyq63s+yTpN4XMBdt5l8HhMhc4VKLO9KM5caLIBvUm4thi7fFaxyTmCKeNnXZ5pAlBwCUnhA09uw==}
+    engines: {node: '>=10'}
+    dev: true
 
   /ms@2.0.0:
     resolution: {integrity: sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==}

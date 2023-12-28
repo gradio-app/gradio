@@ -54,7 +54,6 @@ from gradio import route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
 from gradio.exceptions import Error
-from gradio.helpers import CACHED_FOLDER
 from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation
 from gradio.route_utils import (  # noqa: F401
@@ -455,7 +454,7 @@ class App(FastAPI):
             )
             was_uploaded = utils.is_in_or_equal(abs_path, app.uploaded_file_dir)
             is_cached_example = utils.is_in_or_equal(
-                abs_path, utils.abspath(CACHED_FOLDER)
+                abs_path, utils.abspath(utils.get_cache_folder())
             )
 
             if not (
@@ -674,6 +673,12 @@ class App(FastAPI):
             if blocks._queue.server_app is None:
                 blocks._queue.set_server_app(app)
 
+            if blocks._queue.stopped:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Queue is stopped.",
+                )
+
             success, event_id = await blocks._queue.push(body, request, username)
             if not success:
                 status_code = (
@@ -694,7 +699,12 @@ class App(FastAPI):
                 block = state[component_id]
             else:
                 block = app.get_blocks().blocks[component_id]
-            fn = getattr(block, body.fn_name)
+            fn = getattr(block, body.fn_name, None)
+            if fn is None or not getattr(fn, "_is_server_fn", False):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Function not found.",
+                )
             return fn(body.data)
 
         @app.get(
@@ -703,7 +713,7 @@ class App(FastAPI):
             response_model=Estimation,
         )
         async def get_queue_status():
-            return app.get_blocks()._queue.get_estimation()
+            return app.get_blocks()._queue.get_status()
 
         @app.get("/upload_progress")
         def get_upload_progress(upload_id: str, request: fastapi.Request):
