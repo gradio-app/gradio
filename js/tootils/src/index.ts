@@ -1,8 +1,7 @@
 import { test as base, type Page } from "@playwright/test";
+import { spy } from "tinyspy";
 import url from "url";
 import path from "path";
-import { spy } from "tinyspy";
-import { readFileSync } from "fs";
 import fsPromises from "fs/promises";
 
 import type { SvelteComponent } from "svelte";
@@ -83,6 +82,7 @@ const test_lite = base.extend<{ setup: void }>({
 				})
 			);
 
+			// Mount the demo files and run the app in the mounted Gradio-lite app via its controller.
 			const controllerHandle = await page.waitForFunction(
 				// @ts-ignore
 				() => window.controller // This controller object is set in the dev app.
@@ -167,7 +167,7 @@ export const drag_and_drop_file = async (
 	fileName: string,
 	fileType = ""
 ): Promise<void> => {
-	const buffer = readFileSync(filePath).toString("base64");
+	const buffer = (await fsPromises.readFile(filePath)).toString("base64");
 
 	const dataTransfer = await page.evaluateHandle(
 		async ({ bufferData, localFileName, localFileType }) => {
