@@ -55,7 +55,7 @@ const test_lite = base.extend<{ setup: void }>({
 		async ({ page }, use, testInfo) => {
 			const { file } = testInfo;
 
-			console.log("Setting up a test in the Lite mode", file);
+			console.debug("Setting up a test in the Lite mode", file);
 			const test_name = path.basename(file, ".spec.ts");
 			const demo_dir = path.resolve(ROOT_DIR, `./demo/${test_name}`);
 			const demo_file_paths = await fsPromises
@@ -71,7 +71,7 @@ const test_lite = base.extend<{ setup: void }>({
 				.then((dirents) =>
 					dirents.map((dirent) => path.join(dirent.path, dirent.name))
 				);
-			console.log("Reading demo files", demo_file_paths);
+			console.debug("Reading demo files", demo_file_paths);
 			const demo_files = await Promise.all(
 				demo_file_paths.map(async (filepath) => {
 					const relpath = path.relative(demo_dir, filepath);
