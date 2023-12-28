@@ -54,27 +54,33 @@ const test_lite = base.extend<{ setup: void }>({
 	setup: [
 		async ({ page }, use, testInfo) => {
 			const { file } = testInfo;
+
+			console.log("Setting up a test in the Lite mode", file);
 			const test_name = path.basename(file, ".spec.ts");
 			const demo_dir = path.resolve(ROOT_DIR, `./demo/${test_name}`);
-			const demo_filenames = await fsPromises
+			const demo_file_paths = await fsPromises
 				.readdir(demo_dir, { withFileTypes: true, recursive: true })
 				.then((dirents) =>
-					dirents
-						.filter(
-							(dirent) =>
-								dirent.isFile() &&
-								!dirent.name.endsWith(".ipynb") &&
-								!dirent.name.endsWith(".pyc")
-						)
-						.map((dirent) => dirent.name)
-				);
-			const demo_files = await Promise.all(
-				demo_filenames.map(
-					(filename) =>
-						fsPromises
-							.readFile(path.join(demo_dir, filename))
-							.then((buffer) => [filename, buffer.toString("base64")]) // To pass to the browser, we need to convert the buffer to base64.
+					dirents.filter(
+						(dirent) =>
+							dirent.isFile() &&
+							!dirent.name.endsWith(".ipynb") &&
+							!dirent.name.endsWith(".pyc")
+					)
 				)
+				.then((dirents) =>
+					dirents.map((dirent) => path.join(dirent.path, dirent.name))
+				);
+			console.log("Reading demo files", demo_file_paths);
+			const demo_files = await Promise.all(
+				demo_file_paths.map(async (filepath) => {
+					const relpath = path.relative(demo_dir, filepath);
+					const buffer = await fsPromises.readFile(filepath);
+					return [
+						relpath,
+						buffer.toString("base64") // To pass to the browser, we need to convert the buffer to base64.
+					];
+				})
 			);
 
 			const controllerHandle = await page.waitForFunction(
