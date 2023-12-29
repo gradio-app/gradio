@@ -41,12 +41,13 @@ const lite_url = "http://localhost:9876/lite.html";
 // LIte taks a long time to initialize, so we share the page across tests, sacrificing the test isolation.
 let shared_page_for_lite: Page;
 const test_lite = base.extend<{ setup: void }>({
-	page: async ({ browser }, use) => {
+	page: async ({ browser }, use, testInfo) => {
 		if (shared_page_for_lite == null) {
 			shared_page_for_lite = await browser.newPage();
 		}
 		if (shared_page_for_lite.url() !== lite_url) {
 			await shared_page_for_lite.goto(lite_url);
+			testInfo.slow(); // Lite takes a long time to initialize.
 		}
 		await use(shared_page_for_lite);
 	},
