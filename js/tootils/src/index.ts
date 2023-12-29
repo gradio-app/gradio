@@ -88,6 +88,7 @@ const test_lite = base.extend<{ setup: void }>({
 				// @ts-ignore
 				() => window.controller // This controller object is set in the dev app.
 			);
+			console.debug("Controller obtained. Setting up the app.");
 			await controllerHandle.evaluate(
 				async (controller: any, files: [string, string][]) => {
 					function base64ToUint8Array(base64: string): Uint8Array {
@@ -121,6 +122,7 @@ const test_lite = base.extend<{ setup: void }>({
 				demo_files
 			);
 
+			console.debug("App setup done. Starting the test,", test_name);
 			await use();
 
 			controllerHandle.dispose();
