@@ -47,7 +47,7 @@ const test_lite = base.extend<{ setup: void }>({
 		}
 		if (shared_page_for_lite.url() !== lite_url) {
 			await shared_page_for_lite.goto(lite_url);
-			testInfo.slow(); // Lite takes a long time to initialize.
+			testInfo.setTimeout(600000); // Lite takes a long time to initialize.
 		}
 		await use(shared_page_for_lite);
 	},
