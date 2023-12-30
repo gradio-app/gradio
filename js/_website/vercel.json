@@ -69,10 +69,6 @@
 			"destination": "/guides/running-background-tasks"
 		},
 		{
-			"source": "/custom-interpretations-with-blocks",
-			"destination": "/guides/custom-interpretations-with-blocks"
-		},
-		{
 			"source": "/reactive-interfaces",
 			"destination": "/guides/reactive-interfaces"
 		},
@@ -255,10 +251,6 @@
 		{
 			"source": "/running_background_tasks",
 			"destination": "/guides/running-background-tasks"
-		},
-		{
-			"source": "/custom_interpretations_with_blocks",
-			"destination": "/guides/custom-interpretations-with-blocks"
 		},
 		{
 			"source": "/reactive_interfaces",

@@ -21,8 +21,6 @@ export const redirects = {
 	"/how-to-use-3D-model-component": "/guides/how-to-use-3D-model-component",
 	"/creating-a-new-component": "/guides/creating-a-new-component",
 	"/running-background-tasks": "/guides/running-background-tasks",
-	"/custom-interpretations-with-blocks":
-		"/guides/custom-interpretations-with-blocks",
 	"/reactive-interfaces": "/guides/reactive-interfaces",
 	"/four-kinds-of-interfaces": "/guides/four-kinds-of-interfaces",
 	"/interface-state": "/guides/interface-state",
@@ -79,8 +77,6 @@ export const redirects = {
 	"/how_to_use_3D_model_component": "/guides/how-to-use-3D-model-component",
 	"/creating_a_new_component": "/guides/creating-a-new-component",
 	"/running_background_tasks": "/guides/running-background-tasks",
-	"/custom_interpretations_with_blocks":
-		"/guides/custom-interpretations-with-blocks",
 	"/reactive_interfaces": "/guides/reactive-interfaces",
 	"/more_on_examples_and_flagging": "/guides/more-on-examples",
 	"/interface_state": "/guides/interface-state",
