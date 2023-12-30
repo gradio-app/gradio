@@ -26,7 +26,8 @@ export const redirects = {
 	"/interface-state": "/guides/interface-state",
 	"/more-on-examples": "/guides/more-on-examples",
 	"/advanced-interface-features": "/3.50.2/guides/advanced-interface-features",
-	"/guides/advanced-interface-features": "/3.50.2/guides/advanced-interface-features",
+	"/guides/advanced-interface-features":
+		"/3.50.2/guides/advanced-interface-features",
 	"/key-features": "/guides/key-features",
 	"/quickstart": "/guides/quickstart",
 	"/sharing-your-app": "/guides/sharing-your-app",
