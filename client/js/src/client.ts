@@ -1034,7 +1034,7 @@ export function api_factory(
 					session_hash: session_hash
 				}).toString();
 				let url = new URL(`${config.root}/queue/data?${params}`);
-				event_stream = new EventSource(url);
+				event_stream = EventSource_factory(url);
 				event_stream.onmessage = async function (event) {
 					let _data = JSON.parse(event.data);
 					const event_id = _data.event_id;
