@@ -51,7 +51,7 @@ Learn more about Columns in the [docs](https://gradio.app/docs/#column).
 
 # Dimensions
 
-You can control the height and width of various components, where the parameters are available. These parameters accept either a number (interpreted as pixels) or a string. Using a string allows the direct application of any CSS unit to the encapsulating Block element, catering to more specifc design requirements. When omitted, Gradio uses default dimensions suited for most use cases.
+You can control the height and width of various components, where the parameters are available. These parameters accept either a number (interpreted as pixels) or a string. Using a string allows the direct application of any CSS unit to the encapsulating Block element, catering to more specific design requirements. When omitted, Gradio uses default dimensions suited for most use cases.
 
 Below is an example illustrating the use of viewport width (vw):
 
