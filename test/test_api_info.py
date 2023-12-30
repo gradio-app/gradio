@@ -63,7 +63,7 @@ class ColorEnum(Enum):
 class EnumRootModel(GradioModel):
     color: ColorEnum
 
-    answer: ClassVar = "Dict(color: Literal[red, green, blue])"
+    answer: ClassVar = "Dict(color: Literal['red', 'green', 'blue'])"
 
 
 class EmailModel(GradioModel):
@@ -77,7 +77,7 @@ class RootWithNestedModel(GradioModel):
     nested_enum: EnumRootModel
     nested_dict: DictModel2
 
-    answer: ClassVar = "Dict(nested_int: int, nested_enum: Dict(color: Literal[red, green, blue]), nested_dict: Dict(data_dict: Dict(str, List[float])))"
+    answer: ClassVar = "Dict(nested_int: int, nested_enum: Dict(color: Literal['red', 'green', 'blue']), nested_dict: Dict(data_dict: Dict(str, List[float])))"
 
 
 class LessNestedModel(GradioModel):
@@ -85,13 +85,13 @@ class LessNestedModel(GradioModel):
     nested_enum: ColorEnum
     nested_dict: Dict[str, List[Union[int, float]]]
 
-    answer: ClassVar = "Dict(nested_int: int, nested_enum: Literal[red, green, blue], nested_dict: Dict(str, List[int | float]))"
+    answer: ClassVar = "Dict(nested_int: int, nested_enum: Literal['red', 'green', 'blue'], nested_dict: Dict(str, List[int | float]))"
 
 
 class StatusModel(GradioModel):
     status: Literal["active", "inactive"]
 
-    answer: ClassVar = "Dict(status: Literal[active, inactive])"
+    answer: ClassVar = "Dict(status: Literal['active', 'inactive'])"
 
 
 class PointModel(GradioRootModel):
@@ -166,7 +166,7 @@ class TemperatureConversionModel(GradioModel):
     from_unit: TemperatureUnitEnum
     to_unit: TemperatureUnitEnum = Field(..., title="Target temperature unit")
 
-    answer: ClassVar = "Dict(temperature: float, from_unit: Literal[Celsius, Fahrenheit, Kelvin], to_unit: All[Literal[Celsius, Fahrenheit, Kelvin]])"
+    answer: ClassVar = "Dict(temperature: float, from_unit: Literal['Celsius', 'Fahrenheit', 'Kelvin'], to_unit: All[Literal['Celsius', 'Fahrenheit', 'Kelvin']])"
 
 
 class CartItemModel(GradioModel):

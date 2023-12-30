@@ -158,12 +158,12 @@
 
 			if (parsed_head_html) {
 				for (let head_element of parsed_head_html) {
-					let newScriptTag = document.createElement("script");
+					let newElement = document.createElement(head_element.tagName);
 					Array.from(head_element.attributes).forEach((attr) => {
-						newScriptTag.setAttribute(attr.name, attr.value);
+						newElement.setAttribute(attr.name, attr.value);
 					});
-					newScriptTag.textContent = head_element.textContent;
-					document.head.appendChild(newScriptTag);
+					newElement.textContent = head_element.textContent;
+					document.head.appendChild(newElement);
 				}
 			}
 		}
@@ -416,7 +416,6 @@
 			show_footer={!is_embed}
 			{app_mode}
 			{version}
-			{api_url}
 		/>
 	{/if}
 </Embed>
