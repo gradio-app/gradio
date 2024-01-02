@@ -6,6 +6,7 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { type FileData, normalise_file } from "@gradio/client";
+	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 
 	type Annotation = {
 		image: FileData;
@@ -40,6 +41,10 @@
 	let active: string | null = null;
 	export let loading_status: LoadingStatus;
 
+	// `value` can be updated before the Promises from `resolve_wasm_src` are resolved.
+	// In such a case, the resolved values for the old `value` have to be discarded,
+	// This variable `latest_promise` is used to pick up only the values resolved for the latest `value`.
+	let latest_promise: Promise<unknown> | null = null;
 	$: {
 		if (value !== old_value) {
 			old_value = value;
@@ -53,6 +58,43 @@
 					label: ann.label
 				}))
 			};
+			_value = normalized_value;
+
+			// In normal (non-Wasm) Gradio, the `<img>` element should be rendered with the passed values immediately
+			// without waiting for `resolve_wasm_src()` to resolve.
+			// If it waits, a blank image is displayed until the async task finishes
+			// and it leads to undesirable flickering.
+			// So set `_value` immediately above, and update it with the resolved values below later.
+			const image_url_promise = resolve_wasm_src(normalized_value.image.url);
+			const annotation_urls_promise = Promise.all(
+				normalized_value.annotations.map((ann) =>
+					resolve_wasm_src(ann.image.url)
+				)
+			);
+			const current_promise = Promise.all([
+				image_url_promise,
+				annotation_urls_promise
+			]);
+			latest_promise = current_promise;
+			current_promise.then(([image_url, annotation_urls]) => {
+				if (latest_promise !== current_promise) {
+					return;
+				}
+				const async_resolved_value: typeof _value = {
+					image: {
+						...normalized_value.image,
+						url: image_url ?? undefined
+					},
+					annotations: normalized_value.annotations.map((ann, i) => ({
+						...ann,
+						image: {
+							...ann.image,
+							url: annotation_urls[i] ?? undefined
+						}
+					}))
+				};
+				_value = async_resolved_value;
+			});
 		} else {
 			normalized_value = null;
 		}
