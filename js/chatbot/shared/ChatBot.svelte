@@ -173,8 +173,14 @@
 									}}
 									dir={rtl ? "rtl" : "ltr"}
 									aria-label={(j == 0 ? "user" : "bot") +
-										"'s message:' " +
-										message}
+										"'s message: " +
+										(typeof message === "string"
+											? message
+											: `a file of type ${message.file?.mime_type}, ${
+													message.file?.alt_text ??
+													message.file?.orig_name ??
+													""
+											  }`)}
 								>
 									{#if typeof message === "string"}
 										<Markdown
