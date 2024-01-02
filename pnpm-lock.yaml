@@ -357,6 +357,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
 
   js/app:
     dependencies:
