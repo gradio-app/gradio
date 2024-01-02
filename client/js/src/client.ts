@@ -840,7 +840,8 @@ export function api_factory(
 												fire_event({
 													type: "status",
 													stage: "error",
-													message: status?.message || "An Unexpected Error Occurred!",
+													message:
+														status?.message || "An Unexpected Error Occurred!",
 													queue: true,
 													endpoint: _endpoint,
 													fn_index,
@@ -1053,13 +1054,13 @@ export function api_factory(
 					await Promise.all(
 						Object.keys(event_callbacks).map((event_id) =>
 							event_callbacks[event_id]({
-								"msg": "unexpected_error",
-								"message": BROKEN_CONNECTION_MSG
+								msg: "unexpected_error",
+								message: BROKEN_CONNECTION_MSG
 							})
 						)
-					);				
+					);
 					close_stream();
-				}
+				};
 			}
 
 			function close_stream(): void {

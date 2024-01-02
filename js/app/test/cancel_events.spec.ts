@@ -26,7 +26,6 @@ test("when using an iterative function it should be possible to cancel the funct
 	});
 	const textbox = await page.getByLabel("Iterative Output");
 
-
 	await start_button.click();
 	await expect(textbox).toHaveValue("0");
 	await stop_button.click();
