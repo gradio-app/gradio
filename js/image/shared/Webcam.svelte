@@ -18,7 +18,7 @@
 
 	const dispatch = createEventDispatcher<{
 		stream: undefined;
-		capture: FileData;
+		capture: FileData | Blob;
 		error: string;
 		start_recording: undefined;
 		stop_recording: undefined;
@@ -93,7 +93,7 @@
 			let ReaderObj = new FileReader();
 			ReaderObj.onload = async function (e): Promise<void> {
 				if (e.target) {
-					let _video_blob = new File([video_blob], "video.mp4");
+					let _video_blob = new File([video_blob], "sample." + mimeType.substring(6));
 					const val = await prepare_files([_video_blob]);
 					let value = (
 						(await upload(val, root))?.filter(Boolean) as FileData[]
