@@ -1,6 +1,9 @@
 <script lang="ts">
 	import type { HTMLImgAttributes } from "svelte/elements";
-	type $$Props = HTMLImgAttributes;
+	interface Props extends HTMLImgAttributes {
+		"data-testid"?: string;
+	}
+	type $$Props = Props;
 
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 
