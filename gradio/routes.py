@@ -699,7 +699,12 @@ class App(FastAPI):
                 block = state[component_id]
             else:
                 block = app.get_blocks().blocks[component_id]
-            fn = getattr(block, body.fn_name)
+            fn = getattr(block, body.fn_name, None)
+            if fn is None or not getattr(fn, "_is_server_fn", False):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Function not found.",
+                )
             return fn(body.data)
 
         @app.get(
