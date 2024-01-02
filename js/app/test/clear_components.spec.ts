@@ -20,3 +20,11 @@ test("gr.ClearButton clears every component's value", async ({ page }) => {
 	await page.click("text=Get Values");
 	await expect(page.getByLabel("Are all cleared?")).toHaveValue("True");
 });
+
+test("gr.ClearButton can be made hidden and visible", async ({ page }) => {
+	await page.click("text=Hide");
+	const button = await page.locator('button', { hasText: 'Clear' });
+    await expect(button).toBeHidden();
+	await page.click("text=Reveal");
+    await expect(button).not.toBeHidden();
+});
