@@ -357,6 +357,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
 
   js/app:
     dependencies:
@@ -600,12 +603,18 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
+      '@gradio/audio':
+        specifier: workspace:^
+        version: link:../audio
       '@gradio/client':
         specifier: workspace:^
         version: link:../../client/js
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
+      '@gradio/image':
+        specifier: workspace:^
+        version: link:../image
       '@gradio/markdown':
         specifier: workspace:^
         version: link:../markdown
@@ -621,6 +630,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@gradio/video':
+        specifier: workspace:^
+        version: link:../video
       '@types/dompurify':
         specifier: ^3.0.2
         version: 3.0.2

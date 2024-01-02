@@ -1,13 +1,14 @@
 <script lang="ts">
-	import type { HTMLImgAttributes } from "svelte/elements";
-	interface Props extends HTMLImgAttributes {
+	import type { HTMLAudioAttributes } from "svelte/elements";
+	import { createEventDispatcher } from "svelte";
+	interface Props extends HTMLAudioAttributes {
 		"data-testid"?: string;
 	}
 	type $$Props = Props;
 
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 
-	export let src: HTMLImgAttributes["src"] = undefined;
+	export let src: HTMLAudioAttributes["src"] = undefined;
 
 	let resolved_src: typeof src;
 
@@ -16,9 +17,9 @@
 	// This variable `latest_src` is used to pick up only the value resolved for the latest `src` prop.
 	let latest_src: typeof src;
 	$: {
-		// In normal (non-Wasm) Gradio, the `<img>` element should be rendered with the passed `src` props immediately
+		// In normal (non-Wasm) Gradio, the `<audio>` element should be rendered with the passed `src` props immediately
 		// without waiting for `resolve_wasm_src()` to resolve.
-		// If it waits, a blank image is displayed until the async task finishes
+		// If it waits, a black image is displayed until the async task finishes
 		// and it leads to undesirable flickering.
 		// So set `src` to `resolved_src` here.
 		resolved_src = src;
@@ -31,7 +32,14 @@
 			}
 		});
 	}
+
+	const dispatch = createEventDispatcher();
 </script>
 
-<!-- svelte-ignore a11y-missing-attribute -->
-<img src={resolved_src} {...$$restProps} />
+<audio
+	src={resolved_src}
+	{...$$restProps}
+	on:play={dispatch.bind(null, "play")}
+	on:pause={dispatch.bind(null, "pause")}
+	on:ended={dispatch.bind(null, "ended")}
+/>
