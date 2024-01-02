@@ -23,6 +23,7 @@
 	"exports": {
 		".": "./Index.svelte",
 		"./example": "./Example.svelte",
+		"./shared": "./shared/index.ts",
 		"./package.json": "./package.json"
 	}
 }

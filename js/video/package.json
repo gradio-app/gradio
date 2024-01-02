@@ -24,6 +24,7 @@
 	"exports": {
 		".": "./index.ts",
 		"./example": "./Example.svelte",
+		"./shared": "./shared/index.ts",
 		"./package.json": "./package.json"
 	},
 	"main": "index.ts",

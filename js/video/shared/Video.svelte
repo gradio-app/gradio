@@ -21,8 +21,6 @@
 
 	export let processingVideo = false;
 
-	const dispatch = createEventDispatcher();
-
 	let resolved_src: typeof src;
 
 	// The `src` prop can be updated before the Promise from `resolve_wasm_src` is resolved.
@@ -45,6 +43,8 @@
 			}
 		});
 	}
+
+	const dispatch = createEventDispatcher();
 </script>
 
 <!--

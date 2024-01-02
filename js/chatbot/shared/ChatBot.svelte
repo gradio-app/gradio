@@ -5,6 +5,9 @@
 	import { dequal } from "dequal/lite";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
+	import { Audio } from "@gradio/audio/shared";
+	import { Image } from "@gradio/image/shared";
+	import { Video } from "@gradio/video/shared";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import { get_fetchable_url_or_file, type FileData } from "@gradio/client";
@@ -135,7 +138,7 @@
 						<div class="message-row {layout} {j == 0 ? 'user-row' : 'bot-row'}">
 							{#if avatar_images[j] !== null}
 								<div class="avatar-container">
-									<img
+									<Image
 										class="avatar-image"
 										src={get_fetchable_url_or_file(
 											avatar_images[j],
@@ -183,7 +186,7 @@
 											on:load={scroll}
 										/>
 									{:else if message !== null && message.file?.mime_type?.includes("audio")}
-										<audio
+										<Audio
 											data-testid="chatbot-audio"
 											controls
 											preload="metadata"
@@ -194,7 +197,7 @@
 											on:ended
 										/>
 									{:else if message !== null && message.file?.mime_type?.includes("video")}
-										<video
+										<Video
 											data-testid="chatbot-video"
 											controls
 											src={message.file?.url}
@@ -205,9 +208,9 @@
 											on:ended
 										>
 											<track kind="captions" />
-										</video>
+										</Video>
 									{:else if message !== null && message.file?.mime_type?.includes("image")}
-										<img
+										<Image
 											data-testid="chatbot-image"
 											src={message.file?.url}
 											alt={message.alt_text}
@@ -407,7 +410,8 @@
 		margin-left: 25px;
 		align-self: center;
 	}
-	img.avatar-image {
+
+	.avatar-container :global(img) {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
