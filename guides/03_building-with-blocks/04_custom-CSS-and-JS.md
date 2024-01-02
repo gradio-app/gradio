@@ -69,7 +69,7 @@ Note: You can also supply your custom js code as a file path. For example, if yo
 $code_blocks_js_methods
 $demo_blocks_js_methods
 
-1. Lastly, you can add JavaScript code to the `head` param of the `Blocks` initializer. This will add the code to the head of the HTML document. For example, you can add Google Analytics to your demo like so:
+3. Lastly, you can add JavaScript code to the `head` param of the `Blocks` initializer. This will add the code to the head of the HTML document. For example, you can add Google Analytics to your demo like so:
 
 
 ```python
