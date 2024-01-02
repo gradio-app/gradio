@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -eu
 
 #######################################
 # Tell the user what programs to install for a specific task.
@@ -82,4 +82,8 @@ function git_required() {
 #######################################
 function jq_required() {
   program_required "jq" "https://jqlang.github.io/jq/"
+}
+
+function foo_required() {
+  program_required "foo" "https://jqlang.github.io/jq/"
 }
