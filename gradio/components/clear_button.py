@@ -63,7 +63,7 @@ class ClearButton(Button):
         )
         self.api_name = api_name
         self.show_api = show_api
-        
+
         if Context.root_block:
             self.add(components)
 
