@@ -7,7 +7,7 @@ import os
 import threading
 import urllib.parse
 import warnings
-from distutils.version import StrictVersion
+from packaging.version import Version
 from typing import Any
 
 import httpx
@@ -88,7 +88,7 @@ def version_check():
     try:
         current_pkg_version = get_package_version()
         latest_pkg_version = httpx.get(url=PKG_VERSION_URL, timeout=3).json()["version"]
-        if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
+        if Version(latest_pkg_version) > Version(current_pkg_version):
             print(
                 f"IMPORTANT: You are using gradio version {current_pkg_version}, "
                 f"however version {latest_pkg_version} is available, please upgrade."
