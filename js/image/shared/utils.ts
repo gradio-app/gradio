@@ -3,9 +3,9 @@ export const get_coordinates_of_clicked_image = (
 ): [number, number] | null => {
 	let image;
 	if (evt.currentTarget instanceof Element) {
-		image = evt.currentTarget.querySelector('img') as HTMLImageElement;
+		image = evt.currentTarget.querySelector("img") as HTMLImageElement;
 	} else {
-		return [NaN, NaN]
+		return [NaN, NaN];
 	}
 
 	const imageRect = image.getBoundingClientRect();
