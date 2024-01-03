@@ -1,4 +1,5 @@
 ---
+"@gradio/checkboxgroup": minor
 "@gradio/image": minor
 "gradio": minor
 ---
