@@ -1,7 +1,7 @@
 ---
-"@gradio/checkboxgroup": minor
-"@gradio/image": minor
-"gradio": minor
+"@gradio/checkboxgroup": patch
+"@gradio/image": patch
+"gradio": patch
 ---
 
-feat:Fix `.select` for `gr.Image`, `gr.CheckboxGroup`
+fix:Fix `.select` for `gr.Image`, `gr.CheckboxGroup`
