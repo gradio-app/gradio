@@ -158,7 +158,7 @@ class Dropdown(FormComponent):
             )
 
     def _warn_if_invalid_choice(self, value):
-        if self.allow_custom_value or value in [value for _, value in self.choices]:
+        if self.allow_custom_value or value in [v for pair in self.choices for v in pair]:
             return
         warnings.warn(
             f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {value} or set allow_custom_value=True."
