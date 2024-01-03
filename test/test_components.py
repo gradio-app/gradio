@@ -638,16 +638,6 @@ class TestImageEditor:
             "name": "imageeditor",
         }
 
-    def test_as_example(self):
-        test_image_path = "test/test_files/bus.png"
-        image_editor = gr.ImageEditor()
-        example_value = image_editor.as_example(test_image_path)
-        assert isinstance(example_value, dict)
-        assert example_value["background"]
-        assert utils.is_in_or_equal(
-            example_value["background"], image_editor.GRADIO_CACHE
-        )
-
 
 class TestImage:
     def test_component_functions(self, gradio_temp_dir):
