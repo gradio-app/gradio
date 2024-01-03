@@ -1,4 +1,5 @@
 ---
+"@gradio/wasm": patch
 "gradio": patch
 ---
 
