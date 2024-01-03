@@ -320,7 +320,7 @@ class ImageEditor(Component):
             # If an externally hosted image or a URL, don't convert to absolute path
             if self.proxy_url or client_utils.is_http_url_like(input_data):
                 return input_data
-            return str(utils.abspath(input_data))
+            return self.move_resource_to_block_cache(input_data)
 
         if input_data is None:
             return None
