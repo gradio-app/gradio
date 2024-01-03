@@ -1603,3 +1603,24 @@ def test_emptry_string_api_name_gets_set_as_fn_name():
         t1.change(test_fn, t1, t2, api_name="")
 
     assert demo.dependencies[0]["api_name"] == "test_fn"
+
+
+def test_blocks_postprocessing_with_copies_of_component_instance():
+    # Test for: https://github.com/gradio-app/gradio/issues/6608
+    with gr.Blocks() as demo:
+        chatbot = gr.Chatbot()
+        chatbot2 = gr.Chatbot()
+        chatbot3 = gr.Chatbot()
+        clear = gr.Button("Clear")
+
+        def clear_func():
+            return tuple([gr.Chatbot(value=[])] * 3)
+
+        clear.click(
+            fn=clear_func, outputs=[chatbot, chatbot2, chatbot3], api_name="clear"
+        )
+
+        assert (
+            demo.postprocess_data(0, [gr.Chatbot(value=[])] * 3, None)
+            == [{"value": [], "__type__": "update"}] * 3
+        )

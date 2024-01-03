@@ -1429,7 +1429,7 @@ Received outputs:
                     )
 
                 if isinstance(prediction_value, Block):
-                    prediction_value = prediction_value.constructor_args
+                    prediction_value = prediction_value.constructor_args.copy()
                     prediction_value["__type__"] = "update"
                 if utils.is_update(prediction_value):
                     if output_id in state:
