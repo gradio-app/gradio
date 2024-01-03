@@ -5,6 +5,4 @@ source scripts/helpers.sh
 
 pnpm_required
 
-echo "Running the frontend..."
-pnpm i
-pnpm dev
+pnpm --filter @gradio/app build:lite
