@@ -23,7 +23,7 @@ test("when using an iterative function the UI should update over time as iterati
 	clearInterval(interval);
 	for (let i = 1; i < 8; i++) {
 		expect(output_values).toContain(i.toString());
-    }	
+	}
 });
 
 test("when using an iterative function it should be possible to cancel the function, after which the UI should stop updating", async ({

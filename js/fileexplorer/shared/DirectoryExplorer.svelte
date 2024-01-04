@@ -26,7 +26,7 @@
 		});
 	};
 	render_tree();
-	
+
 	$: glob, ignore_glob, root, render_tree();
 
 	$: value.length && $tree && set_checked_from_paths();
