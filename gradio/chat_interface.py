@@ -76,6 +76,7 @@ class ChatInterface(Blocks):
         clear_btn: str | None | Button = "🗑️  Clear",
         autofocus: bool = True,
         concurrency_limit: int | None | Literal["default"] = "default",
+        examples_label:str | None = None,
     ):
         """
         Parameters:
@@ -99,6 +100,7 @@ class ChatInterface(Blocks):
             clear_btn: Text to display on the clear button. If None, no button will be displayed. If a Button object, that button will be used.
             autofocus: If True, autofocuses to the textbox when the page loads.
             concurrency_limit: If set, this this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
+            examples_label: a label for the examples block. If not provided, defaults to "Examples".
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -252,11 +254,16 @@ class ChatInterface(Blocks):
                 else:
                     examples_fn = self._examples_fn
 
+                if examples_label is None:
+                    # if examples_label is not provided, use the default label for examples block
+                    examples_label = "Examples"
+
                 self.examples_handler = Examples(
                     examples=examples,
                     inputs=[self.textbox] + self.additional_inputs,
                     outputs=self.chatbot,
                     fn=examples_fn,
+                    label=examples_label # add a custom label for examples block!
                 )
 
             any_unrendered_inputs = any(
