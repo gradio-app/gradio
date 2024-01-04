@@ -117,7 +117,7 @@ class Block:
         self.share_token = secrets.token_urlsafe(32)
         self.parent: BlockContext | None = None
         self.is_rendered: bool = False
-        self._constructor_args: dict
+        self._constructor_args: list[dict]
         self.state_session_capacity = 10000
         self.temp_files: set[str] = set()
         self.GRADIO_CACHE = str(
@@ -429,8 +429,6 @@ def postprocess_update_dict(
         else:
             update_dict["value"] = value
     update_dict["__type__"] = "update"
-    if "root" in update_dict:  # reserved keyword
-        update_dict["_root"] = update_dict["root"]
     return update_dict
 
 

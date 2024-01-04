@@ -8,7 +8,7 @@
 
 	export let glob: string;
 	export let ignore_glob: string;
-	export let _root: string;
+	export let root_dir: string;
 	export let interactive: boolean;
 	export let server: any;
 	export let file_count: "single" | "multiple" = "multiple";
@@ -26,7 +26,7 @@
 		});
 	};
 
-	$: glob, ignore_glob, _root, render_tree();
+	$: glob, ignore_glob, root_dir, render_tree();
 
 	$: value.length && $tree && set_checked_from_paths();
 
