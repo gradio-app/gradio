@@ -89,7 +89,8 @@ with gr.Blocks(head=head) as demo:
 
 The `head` parameter accepts any HTML tags you would normally insert into the `<head>` of a page. For example, you can also include `<meta>` tags to `head`.
 
-The `head` parameter opens many possibilities, often at the cost of browser compatibility. For example supporting keyboard shortcuts (i.e. keybindings) can interfere with some browser's behavior. Regardless, here's an example where where pressing `shift+s` triggers the event `click` of a specific `Button` component only if the browser focus is not on an input component (e.g. `Textbox` component):
+Note that injecting custom HTML can affect browser behavior and compatibility (e.g. keyboard shortcuts). You should test your interface across different browsers and be mindful of how scripts may interact with browser defaults.
+Here's an example where pressing `Shift + s` triggers the `click` event of a specific `Button` component if the browser focus is _not_ on an input component (e.g. `Textbox` component):
 
 ```python
 shortcut_js = """
