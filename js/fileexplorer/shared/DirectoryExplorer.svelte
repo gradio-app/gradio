@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import type { Node } from "./utils";
 	import { dequal } from "dequal";
 	import FileTree from "./FileTree.svelte";
 	import { make_fs_store } from "./utils";
@@ -21,12 +20,14 @@
 	}>();
 	const tree = make_fs_store();
 
-	$: glob,
-		ignore_glob,
-		root,
+	const render_tree = (): void => {
 		server.ls().then((v: any) => {
 			tree.create_fs_graph(v);
 		});
+	};
+	render_tree();
+	
+	$: glob, ignore_glob, root, render_tree();
 
 	$: value.length && $tree && set_checked_from_paths();
 
