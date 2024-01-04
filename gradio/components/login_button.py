@@ -62,7 +62,7 @@ class LoginButton(Button):
             scale=scale,
             min_width=min_width,
         )
-        if Context.root_block is not None:
+        if Context.root_block:
             self.activate()
         else:
             warnings.warn(
