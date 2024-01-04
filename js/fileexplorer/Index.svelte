@@ -23,7 +23,7 @@
 
 	export let glob: string;
 	export let ignore_glob: string;
-	export let root: string;
+	export let _root: string; // 'root' is reserved so component property gets mapped to '_root'
 
 	export let loading_status: LoadingStatus;
 	export let container = true;
@@ -67,7 +67,7 @@
 		{file_count}
 		{server}
 		{interactive}
-		{root}
+		{_root}
 		{glob}
 		{ignore_glob}
 		on:change={() => gradio.dispatch("change")}

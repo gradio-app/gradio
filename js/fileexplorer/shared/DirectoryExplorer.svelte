@@ -8,7 +8,7 @@
 
 	export let glob: string;
 	export let ignore_glob: string;
-	export let root: string;
+	export let _root: string;
 	export let interactive: boolean;
 	export let server: any;
 	export let file_count: "single" | "multiple" = "multiple";
@@ -25,9 +25,8 @@
 			tree.create_fs_graph(v);
 		});
 	};
-	render_tree();
 
-	$: glob, ignore_glob, root, render_tree();
+	$: glob, ignore_glob, _root, render_tree();
 
 	$: value.length && $tree && set_checked_from_paths();
 
