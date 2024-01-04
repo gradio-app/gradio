@@ -87,4 +87,30 @@ with gr.Blocks(head=head) as demo:
     ...demo code...
 ```
 
-Note: The `head` parameter accepts any HTML tags you would normally insert into the `<head>` of a page. For example, you can also include `<meta>` tags to `head`.
+The `head` parameter accepts any HTML tags you would normally insert into the `<head>` of a page. For example, you can also include `<meta>` tags to `head`.
+
+The `head` parameter opens many possibilities, often at the cost of browser compatibility. For example supporting keyboard shortcuts (i.e. keybindings) can interfere with some browser's behavior. Regardless, here's an example where where pressing `shift+s` triggers the event `click` of a specific `Button` component only if the browser focus is not on an input component (e.g. `Textbox` component):
+
+```python
+shortcut_js = """
+<script>
+function shortcuts(e) {
+    var event = document.all ? window.event : e;
+    switch (e.target.tagName.toLowerCase()) {
+        case "input":
+        case "textarea":
+        break;
+
+        default:
+        if (e.key == "s" && e.shiftKey) {
+            document.getElementById("my_btn").click();
+        }
+    }
+}
+document.addEventListener('keypress', shortcuts, false);
+</script>
+"""
+
+with gr.Blocks(head=shortcut_js):
+    action_button = gr.Button(value="Name", elem_id="my_btn")
+```
