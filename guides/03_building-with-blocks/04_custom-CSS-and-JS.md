@@ -87,4 +87,36 @@ with gr.Blocks(head=head) as demo:
     ...demo code...
 ```
 
-Note: The `head` parameter accepts any HTML tags you would normally insert into the `<head>` of a page. For example, you can also include `<meta>` tags to `head`.
+The `head` parameter accepts any HTML tags you would normally insert into the `<head>` of a page. For example, you can also include `<meta>` tags to `head`.
+
+Note that injecting custom HTML can affect browser behavior and compatibility (e.g. keyboard shortcuts). You should test your interface across different browsers and be mindful of how scripts may interact with browser defaults.
+Here's an example where pressing `Shift + s` triggers the `click` event of a specific `Button` component if the browser focus is _not_ on an input component (e.g. `Textbox` component):
+
+```python
+import gradio as gr
+
+shortcut_js = """
+<script>
+function shortcuts(e) {
+    var event = document.all ? window.event : e;
+    switch (e.target.tagName.toLowerCase()) {
+        case "input":
+        case "textarea":
+        break;
+        default:
+        if (e.key.toLowerCase() == "s" && e.shiftKey) {
+            document.getElementById("my_btn").click();
+        }
+    }
+}
+document.addEventListener('keypress', shortcuts, false);
+</script>
+"""
+
+with gr.Blocks(head=shortcut_js) as demo:
+    action_button = gr.Button(value="Name", elem_id="my_btn")
+    textbox = gr.Textbox()
+    action_button.click(lambda : "button pressed", None, textbox)
+    
+demo.launch()
+```
