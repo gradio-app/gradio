@@ -95,3 +95,19 @@ test("Image paste to clipboard via the Upload component works", async ({
 	await page.getByText("Paste from clipboard").click();
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 });
+
+test("Image select and change events work as expected.", async ({ page }) => {
+	await page.getByRole("button", { name: "Drop Image Here" }).click();
+	const uploader = await page.locator("input[type=file]");
+	const change_output_counter = await page.getByLabel("# Change Events Output");
+	const select_event_counter = await page.getByLabel("# Select Events");
+
+	await uploader.setInputFiles("./test/files/cheetah1.jpg");
+	await expect(change_output_counter).toHaveValue("1");
+	await expect(select_event_counter).toHaveValue("0");
+
+	const output_image = await page.locator(".selectable");
+	await output_image.click();
+	await expect(change_output_counter).toHaveValue("1");
+	await expect(select_event_counter).toHaveValue("1");
+});
