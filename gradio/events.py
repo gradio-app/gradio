@@ -116,7 +116,7 @@ class SelectData(EventData):
         """
         The value of the selected item.
         """
-        self.selected: bool = data.get("_selected", True)
+        self.selected: bool = data.get("selected", True)
         """
         True if the item was selected, False if deselected.
         """
