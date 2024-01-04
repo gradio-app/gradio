@@ -48,14 +48,12 @@
 			for (let i = 0; i < items.length; i++) {
 				const type = items[i].types.find((t) => t.startsWith("image/"));
 				if (type) {
-					dispatch("load", null);
 					items[i].getType(type).then(async (blob) => {
 						const file = new File(
 							[blob],
 							`clipboard.${type.replace("image/", "")}`
 						);
-						const f = await load_files([file]);
-						dispatch("load", f?.[0]);
+						await load_files([file]);
 					});
 					break;
 				}

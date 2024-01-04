@@ -117,7 +117,7 @@ class Block:
         self.share_token = secrets.token_urlsafe(32)
         self.parent: BlockContext | None = None
         self.is_rendered: bool = False
-        self._constructor_args: dict
+        self._constructor_args: list[dict]
         self.state_session_capacity = 10000
         self.temp_files: set[str] = set()
         self.GRADIO_CACHE = str(

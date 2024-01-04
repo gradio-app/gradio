@@ -23,7 +23,7 @@
 
 	export let glob: string;
 	export let ignore_glob: string;
-	export let root: string;
+	export let root_dir: string;
 
 	export let loading_status: LoadingStatus;
 	export let container = true;
@@ -67,7 +67,7 @@
 		{file_count}
 		{server}
 		{interactive}
-		{root}
+		{root_dir}
 		{glob}
 		{ignore_glob}
 		on:change={() => gradio.dispatch("change")}

@@ -5,6 +5,7 @@ from __future__ import annotations
 import itertools
 import os
 import re
+import warnings
 from pathlib import Path
 from typing import Any, Callable, List, Literal
 
@@ -39,7 +40,7 @@ class FileExplorer(Component):
         *,
         value: str | list[str] | Callable | None = None,
         file_count: Literal["single", "multiple"] = "multiple",
-        root: str | Path = ".",
+        root_dir: str | Path = ".",
         ignore_glob: str | None = None,
         label: str | None = None,
         every: float | None = None,
@@ -53,13 +54,14 @@ class FileExplorer(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        root: None = None,
     ):
         """
         Parameters:
             glob: The glob-style pattern used to select which files to display, e.g. "*" to match all files, "*.png" to match all .png files, "**/*.txt" to match any .txt file in any subdirectory, etc. The default value matches all files and folders recursively. See the Python glob documentation at https://docs.python.org/3/library/glob.html for more information.
             value: The file (or list of files, depending on the `file_count` parameter) to show as "selected" when the component is first loaded. If a callable is provided, it will be called when the app loads to set the initial value of the component. If not provided, no files are shown as selected.
             file_count: Whether to allow single or multiple files to be selected. If "single", the component will return a single absolute file path as a string. If "multiple", the component will return a list of absolute file paths as a list of strings.
-            root: Path to root directory to select files from. If not provided, defaults to current working directory.
+            root_dir: Path to root directory to select files from. If not provided, defaults to current working directory.
             ignore_glob: The glob-tyle pattern that will be used to exclude files from the list. For example, "*.py" will exclude all .py files from the list. See the Python glob documentation at https://docs.python.org/3/library/glob.html for more information.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
@@ -74,7 +76,13 @@ class FileExplorer(Component):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
         """
-        self.root = os.path.abspath(root)
+        if root is not None:
+            warnings.warn(
+                "The `root` parameter has been deprecated. Please use `root_dir` instead."
+            )
+            root_dir = root
+            self._constructor_args[0]["root_dir"] = root
+        self.root_dir = os.path.abspath(root_dir)
         self.glob = glob
         self.ignore_glob = ignore_glob
         valid_file_count = ["single", "multiple", "directory"]
@@ -123,8 +131,8 @@ class FileExplorer(Component):
         return files
 
     def _strip_root(self, path):
-        if path.startswith(self.root):
-            return path[len(self.root) + 1 :]
+        if path.startswith(self.root_dir):
+            return path[len(self.root_dir) + 1 :]
         return path
 
     def postprocess(self, value: str | list[str] | None) -> FileExplorerData | None:
@@ -194,19 +202,19 @@ class FileExplorer(Component):
 
         files: list[Path] = []
         for result in expand_braces(self.glob):
-            files += list(Path(self.root).resolve().glob(result))
+            files += list(Path(self.root_dir).resolve().glob(result))
 
-        files = [f for f in files if f != Path(self.root).resolve()]
+        files = [f for f in files if f != Path(self.root_dir).resolve()]
 
         ignore_files = []
         if self.ignore_glob:
             for result in expand_braces(self.ignore_glob):
-                ignore_files += list(Path(self.root).resolve().glob(result))
+                ignore_files += list(Path(self.root_dir).resolve().glob(result))
             files = list(set(files) - set(ignore_files))
 
         files_with_sep = []
         for f in files:
-            file = str(f.relative_to(self.root))
+            file = str(f.relative_to(self.root_dir))
             if f.is_dir():
                 file += os.path.sep
             files_with_sep.append(file)
@@ -215,10 +223,10 @@ class FileExplorer(Component):
         return tree
 
     def _safe_join(self, folders):
-        combined_path = os.path.join(self.root, *folders)
+        combined_path = os.path.join(self.root_dir, *folders)
         absolute_path = os.path.abspath(combined_path)
-        if os.path.commonprefix([self.root, absolute_path]) != os.path.abspath(
-            self.root
+        if os.path.commonprefix([self.root_dir, absolute_path]) != os.path.abspath(
+            self.root_dir
         ):
             raise ValueError("Attempted to navigate outside of root directory")
         return absolute_path

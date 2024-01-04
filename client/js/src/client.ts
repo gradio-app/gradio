@@ -820,10 +820,6 @@ export function api_factory(
 												last_status[fn_index]
 											);
 
-											// TODO: Find out how to print this information
-											// only during testing
-											// console.info("data", type, status, data);
-
 											if (type == "heartbeat") {
 												return;
 											}
@@ -844,7 +840,8 @@ export function api_factory(
 												fire_event({
 													type: "status",
 													stage: "error",
-													message: "An Unexpected Error Occurred!",
+													message:
+														status?.message || "An Unexpected Error Occurred!",
 													queue: true,
 													endpoint: _endpoint,
 													fn_index,
@@ -1052,6 +1049,17 @@ export function api_factory(
 						}
 						pending_stream_messages[event_id].push(_data);
 					}
+				};
+				event_stream.onerror = async function (event) {
+					await Promise.all(
+						Object.keys(event_callbacks).map((event_id) =>
+							event_callbacks[event_id]({
+								msg: "unexpected_error",
+								message: BROKEN_CONNECTION_MSG
+							})
+						)
+					);
+					close_stream();
 				};
 			}
 

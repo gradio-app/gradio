@@ -65,7 +65,7 @@
 	}>;
 
 	$: url = _value?.url;
-	$: url && gradio.dispatch("change");
+	$: url, gradio.dispatch("change");
 
 	let dragging: boolean;
 	let active_source: sources = null;
@@ -134,7 +134,6 @@
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => {
 				gradio.dispatch("clear");
-				gradio.dispatch("change");
 			}}
 			on:stream={() => gradio.dispatch("stream")}
 			on:drag={({ detail }) => (dragging = detail)}

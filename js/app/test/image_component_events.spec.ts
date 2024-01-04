@@ -53,9 +53,7 @@ test("Image drag-to-upload uploads image successfuly.", async ({ page }) => {
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
 });
 
-test.skip("Image copy from clipboard dispatches upload event", async ({
-	page
-}) => {
+test("Image copy from clipboard dispatches upload event.", async ({ page }) => {
 	// Need to make request from inside browser for blob to be formatted correctly
 	// tried lots of different things
 	await page.evaluate(async () => {
