@@ -19,6 +19,7 @@ python-multipart  # required for fastapi forms
 pydub
 pyyaml>=5.0,<7.0
 semantic_version~=2.0
+starlette>=0.34.0
 typing_extensions~=4.0
 uvicorn>=0.14.0
 typer[all]>=0.9,<1.0
