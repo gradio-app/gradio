@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Fixed (this this)
+fix:Fixed (this this)
