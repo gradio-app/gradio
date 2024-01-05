@@ -1,5 +1,11 @@
 # website
 
+## 0.21.0
+
+### Features
+
+- [#6913](https://github.com/gradio-app/gradio/pull/6913) [`a5f3d2b`](https://github.com/gradio-app/gradio/commit/a5f3d2bef2d53b367ebf78d86e61f227cda5effa) - Fix broken redirects and guides in website.  Thanks [@aliabd](https://github.com/aliabd)!
+
 ## 0.20.4
 
 ### Fixes

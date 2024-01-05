@@ -1,5 +1,11 @@
 # @gradio/annotatedimage
 
+## 0.4.0
+
+### Features
+
+- [#6133](https://github.com/gradio-app/gradio/pull/6133) [`f742d0e`](https://github.com/gradio-app/gradio/commit/f742d0e861c8e25c5d77d9102c9d50f94b0d3383) - Lite: Support AnnotatedImage on Wasm.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 0.3.14
 
 ### Patch Changes

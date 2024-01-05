@@ -1,5 +1,11 @@
 # @gradio/model3d
 
+## 0.4.13
+
+### Fixes
+
+- [#6871](https://github.com/gradio-app/gradio/pull/6871) [`d361a0f`](https://github.com/gradio-app/gradio/commit/d361a0f179752d9e849ec420fc67c8b4060fc154) - Ensure camera settings only update when necessary in Model3D.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.4.12
 
 ### Patch Changes
