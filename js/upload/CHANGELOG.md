@@ -1,5 +1,11 @@
 # @gradio/upload
 
+## 0.5.8
+
+### Features
+
+- [#6931](https://github.com/gradio-app/gradio/pull/6931) [`6c863af`](https://github.com/gradio-app/gradio/commit/6c863af92fa9ceb5c638857eb22cc5ddb718d549) - Fix functional tests.  Thanks [@aliabid94](https://github.com/aliabid94)!
+
 ## 0.5.7
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @gradio/app
 
+## 1.19.0
+
+### Features
+
+- [#6778](https://github.com/gradio-app/gradio/pull/6778) [`8a093e2`](https://github.com/gradio-app/gradio/commit/8a093e23d7993a044e5e0ff73f93a74cb75dad56) - Add a dev instruction for lite in SharedWorker mode.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 1.18.0
 
 ### Features

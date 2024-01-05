@@ -1,5 +1,11 @@
 # @gradio/checkboxgroup
 
+## 0.3.8
+
+### Fixes
+
+- [#6942](https://github.com/gradio-app/gradio/pull/6942) [`b1b78c2`](https://github.com/gradio-app/gradio/commit/b1b78c2168e24fb65251a9b9b6cbc9382179a8ca) - Fix `.select` for `gr.Image`, `gr.CheckboxGroup`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.3.7
 
 ### Patch Changes
