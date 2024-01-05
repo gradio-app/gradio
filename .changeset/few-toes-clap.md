@@ -1,5 +1,6 @@
 ---
 "@gradio/image": patch
+"@gradio/imageeditor": patch
 "@gradio/video": patch
 "gradio": patch
 ---
