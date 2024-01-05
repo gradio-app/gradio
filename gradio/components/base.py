@@ -241,17 +241,17 @@ class Component(ComponentBase, Block):
         """Add a load event that runs `callable`, optionally every `every` seconds."""
         self.load_event_to_attach = (callable, every)
 
-    def process_example(self, input_data):
+    def process_example(self, value):
         """
         Process the input data in a way that can be displayed by the examples dataset component in the front-end.
 
         For example, only return the name of a file as opposed to a full path. Or get the head of a dataframe.
         The return value must be able to be json-serializable to put in the config."""
-        return input_data
+        return value
 
-    def as_example(self, input_data):
+    def as_example(self, value):
         """Deprecated and replaced by `process_example()`."""
-        return self.process_example(input_data)
+        return self.process_example(value)
 
     def api_info(self) -> dict[str, Any]:
         """

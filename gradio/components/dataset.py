@@ -92,7 +92,7 @@ class Dataset(Component):
                 if self.proxy_url is None:
                     # If proxy_url is set, that means it is being loaded from an external Gradio app
                     # which means that the example has already been processed.
-                    example[i] = component.as_example(ex)
+                    example[i] = component.process_example(ex)
         self.type = type
         self.label = label
         if headers is not None:

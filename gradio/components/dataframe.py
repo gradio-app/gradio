@@ -187,11 +187,11 @@ class Dataframe(Component):
         | dict
         | str
         | None,
-    ) -> DataframeData | dict:
+    ) -> DataframeData:
         if value is None:
             return self.postprocess(self.empty_input)
         if isinstance(value, dict):
-            return value
+            return DataframeData(headers=value.get("headers", []), data=value.get("data", [[]]))
         if isinstance(value, (str, pd.DataFrame)):
             if isinstance(value, str):
                 value = pd.read_csv(value)  # type: ignore
@@ -289,14 +289,20 @@ class Dataframe(Component):
                 f"Check the values passed to `col_count` and `headers`."
             )
 
-    def as_example(self, input_data: pd.DataFrame | np.ndarray | str | None):
-        if input_data is None:
+    def process_example(self, value: pd.DataFrame
+        | Styler
+        | np.ndarray
+        | list
+        | list[list]
+        | dict
+        | str
+        | None,
+    ):
+        if value is None:
             return ""
-        elif isinstance(input_data, pd.DataFrame):
-            return input_data.head(n=5).to_dict(orient="split")["data"]  # type: ignore
-        elif isinstance(input_data, np.ndarray):
-            return input_data.tolist()
-        return input_data
+        value_df_data = self.postprocess(value)
+        value_df = pd.DataFrame(value_df_data.data, columns=value_df_data.headers)
+        return value_df.head(n=5).to_dict(orient="split")["data"]
 
     def example_inputs(self) -> Any:
         return {"headers": ["a", "b"], "data": [["foo", "bar"]]}
