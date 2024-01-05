@@ -180,6 +180,7 @@
 			>
 				<div class="modal-inner">
 					<Webcam
+						{root}
 						on:capture={handle_upload}
 						on:error
 						on:drag

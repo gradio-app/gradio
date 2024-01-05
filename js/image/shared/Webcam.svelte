@@ -18,7 +18,7 @@
 
 	const dispatch = createEventDispatcher<{
 		stream: undefined;
-		capture: FileData | Blob;
+		capture: FileData | Blob | null;
 		error: string;
 		start_recording: undefined;
 		stop_recording: undefined;

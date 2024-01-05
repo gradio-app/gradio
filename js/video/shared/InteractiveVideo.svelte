@@ -57,7 +57,9 @@
 		dispatch("change", video);
 	}
 
-	function handle_capture({ detail }: CustomEvent<FileData | null>): void {
+	function handle_capture({
+		detail
+	}: CustomEvent<FileData | any | null>): void {
 		dispatch("change", detail);
 	}
 
