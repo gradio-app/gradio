@@ -306,7 +306,7 @@
 		background: var(--background-fill-secondary);
 		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
-		font-size: var(--text-lg);
+		font-size: var(--body-text-size);
 		line-height: var(--line-lg);
 		overflow-wrap: break-word;
 		overflow-x: hidden;
@@ -511,7 +511,7 @@
 
 	/* KaTeX */
 	.message-wrap :global(span.katex) {
-		font-size: var(--text-lg);
+		/* font-size: var(--text-lg); */
 		direction: ltr;
 	}
 
