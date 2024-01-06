@@ -80,7 +80,7 @@
 		}
 	}
 
-	function handle_upload(e: CustomEvent<Blob>): void {
+	function handle_upload(e: CustomEvent<Blob | any>): void {
 		const file_data = e.detail;
 		background = file_data;
 		active_mode = null;
@@ -180,6 +180,7 @@
 			>
 				<div class="modal-inner">
 					<Webcam
+						{root}
 						on:capture={handle_upload}
 						on:error
 						on:drag
