@@ -124,6 +124,7 @@
 		</Upload>
 		{#if active_source === "webcam" && (streaming || (!streaming && !value))}
 			<Webcam
+				{root}
 				on:capture={(e) => handle_save(e.detail)}
 				on:stream={(e) => handle_save(e.detail)}
 				on:error
