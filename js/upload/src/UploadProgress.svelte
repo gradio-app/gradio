@@ -76,19 +76,22 @@
 		{files_with_progress.length > 1 ? "files" : "file"}...</span
 	>
 
-	{#if current_file_upload}
+	{#if current_file_upload || files_with_progress.length > 0}
 		<div class="file">
 			<span>
 				<div class="progress-bar">
 					<progress
 						style="visibility:hidden;height:0;width:0;"
-						value={getProgress(current_file_upload)}
-						max="100">{getProgress(current_file_upload)}</progress
+						value={getProgress(current_file_upload || files_with_progress[0])}
+						max="100"
+						>{getProgress(
+							current_file_upload || files_with_progress[0]
+						)}</progress
 					>
 				</div>
 			</span>
 			<span class="file-name">
-				{current_file_upload.orig_name}
+				{current_file_upload?.orig_name || files_with_progress[0].orig_name}
 			</span>
 		</div>
 	{/if}
