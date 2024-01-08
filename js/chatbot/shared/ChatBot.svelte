@@ -307,7 +307,6 @@
 		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
 		font-size: var(--body-text-size);
-		line-height: var(--line-lg);
 		overflow-wrap: break-word;
 		overflow-x: hidden;
 		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
