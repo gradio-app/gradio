@@ -1,4 +1,5 @@
 ---
+"@gradio/checkboxgroup": patch
 "gradio": patch
 ---
 
