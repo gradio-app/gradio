@@ -68,6 +68,7 @@ export default [
 			"**/*.test.ts",
 			"**/*.node-test.ts",
 			"js/app/test/**/*",
+			"js/wasm/src/webworker.js",
 			"**/*vite.config.ts",
 			"**/_website/**/*",
 			"**/_spaces-test/**/*",

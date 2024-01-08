@@ -17,9 +17,10 @@
 !test-strategy.md
 **/js/_space-test/**
 ../js/app/src/lite/theme.css
+../js/wasm/src/webworker.js
 ../js/storybook/theme.css
 **/gradio_cached_examples/**
-**/storybook-static/**  
+**/storybook-static/**
 **/.vscode/**
 sweep.yaml
 **/.vercel/**

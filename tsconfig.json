@@ -50,6 +50,7 @@
 		"**/node_modules/**/*",
 		"**/venv/**/*",
 		"client/js/**",
+		"js/wasm/src/webworker.js",
 		"**/vite.config*",
 		".changeset/*.cjs",
 		"**/storybook-static/**/*"
