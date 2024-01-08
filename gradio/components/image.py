@@ -188,11 +188,11 @@ class Image(StreamingInput, Component):
     ) -> FileData | None:
         if value is None:
             return None
-
         if isinstance(value, str) and value.lower().endswith(".svg"):
             return FileData(path=value, orig_name=Path(value).name)
         saved = image_utils.save_image(value, self.GRADIO_CACHE)
         orig_name = Path(saved).name if Path(saved).exists() else None
+        print(">>>>fd", FileData(path=saved, orig_name=orig_name))
         return FileData(path=saved, orig_name=orig_name)
 
     def check_streamable(self):
@@ -200,11 +200,6 @@ class Image(StreamingInput, Component):
             raise ValueError(
                 "Image streaming only available if sources is ['webcam']. Streaming not supported with multiple sources."
             )
-
-    def as_example(self, input_data: str | Path | None) -> str | None:
-        if input_data is None:
-            return None
-        return self.move_resource_to_block_cache(input_data)
 
     def example_inputs(self) -> Any:
         return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"

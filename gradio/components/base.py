@@ -244,10 +244,16 @@ class Component(ComponentBase, Block):
     def process_example(self, value):
         """
         Process the input data in a way that can be displayed by the examples dataset component in the front-end.
-
-        For example, only return the name of a file as opposed to a full path. Or get the head of a dataframe.
-        The return value must be able to be json-serializable to put in the config."""
-        return value
+        By default, this calls the `.postprocess()` method of the component. However, if the `.postprocess()` method is 
+        computationally intensive, or returns a large payload, a custom implementation may be appropriate. 
+        
+        For example,  the `process_example()` method of the `gr.Audio()` component only returns the name of the file, not
+        the processed audio file. The `.process_example()` method of the `gr.Dataframe()` returns the head of a dataframe
+        instead of the full dataframe.
+        
+        The return value of this method must be json-serializable to put in the config.
+        """
+        return self.postprocess(value)
 
     def as_example(self, value):
         """Deprecated and replaced by `process_example()`."""

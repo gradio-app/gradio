@@ -6,6 +6,7 @@ from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
+from gradio import processing_utils
 from gradio.components.base import (
     Component,
     get_component_instance,
@@ -96,6 +97,11 @@ class Dataset(Component):
                     # use the previous name to be backwards-compatible with previously-created
                     # custom components
                     example[i] = component.as_example(ex)
+                    print("before", component, example[i])
+                    example[i] = processing_utils.move_files_to_cache(
+                        example[i], component
+                    )
+                    print("after", example[i])
         self.type = type
         self.label = label
         if headers is not None:
