@@ -89,10 +89,13 @@ class Dataset(Component):
         self.samples = [[]] if samples is None else samples
         for example in self.samples:
             for i, (component, ex) in enumerate(zip(self._components, example)):
+                # If proxy_url is set, that means it is being loaded from an external Gradio app
+                # which means that the example has already been processed.
                 if self.proxy_url is None:
-                    # If proxy_url is set, that means it is being loaded from an external Gradio app
-                    # which means that the example has already been processed.
-                    example[i] = component.process_example(ex)
+                    # The `as_example()` method has been renamed to `process_example()` but we 
+                    # use the previous name to be backwards-compatible with previously-created
+                    # custom components   
+                    example[i] = component.as_example(ex)
         self.type = type
         self.label = label
         if headers is not None:
