@@ -124,16 +124,3 @@ class CheckboxGroup(FormComponent):
         if not isinstance(value, list):
             value = [value]
         return value
-
-    def process_example(self, value):
-        if value is None:
-            return []
-        elif not isinstance(value, list):
-            value = [value]
-        for index, data in enumerate(value):
-            if data not in [c[1] for c in self.choices]:
-                raise ValueError(f"Example {index} includes an invalid value: {data}")
-        return [
-            next((c[0] for c in self.choices if c[1] == data), None)
-            for data in value
-        ]
