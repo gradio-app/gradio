@@ -1,4 +1,4 @@
-import type { WorkerProxy } from "../dist";
+import type { WorkerProxy } from "../src";
 import { is_self_host } from "../network";
 
 /**

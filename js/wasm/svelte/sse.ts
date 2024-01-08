@@ -1,4 +1,4 @@
-import { type WorkerProxy, WasmWorkerEventSource } from "../dist";
+import { type WorkerProxy, WasmWorkerEventSource } from "../src";
 import { is_self_host } from "../network";
 
 /**

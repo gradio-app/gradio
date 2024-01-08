@@ -3,9 +3,9 @@
 	"version": "0.4.0",
 	"description": "Gradio Wasm package",
 	"type": "module",
-	"main": "./dist/index.js",
+	"main": "./src/index.js",
 	"exports": {
-		".": "./dist/index.js",
+		".": "./src/index.js",
 		"./package.json": "./package.json",
 		"./svelte": "./svelte/index.ts",
 		"./network": "./network/index.ts"
@@ -15,12 +15,8 @@
 	"license": "ISC",
 	"main_changeset": true,
 	"scripts": {
-		"dev:client": "tsc -w --incremental",
-		"dev:worker": "vite build --config vite.worker.config.js --watch --emptyOutDir=false",
-		"dev": "run-p dev:*",
-		"build:client": "tsc",
-		"build:worker": "vite build --config vite.worker.config.js",
-		"build": "run-s build:worker build:client"
+		"dev": "vite build --config vite.worker.config.js --watch",
+		"build": "vite build --config vite.worker.config.js"
 	},
 	"devDependencies": {
 		"pyodide": "^0.24.0"

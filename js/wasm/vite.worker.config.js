@@ -2,7 +2,7 @@ import path from "path";
 import { defineConfig } from "vite";
 
 /**
- * We bundle the worker file before packaging, while other files are only TS-transpiled.
+ * We bundle the worker file `src/webworker.js` beforehand, while other files are just exported as TS files without any transpilation.
  * The consumer of this package, `@gradio/app`, will be bundled with Vite,
  * and Vite only supports module-type WebWorkers (`new Worker("...", { type: "module" })`) to handle `import` in the worker file,
  * because in the dev mode it doesn't bundle the worker file and just relies on the browser's native support for module-type workers to resolve the imports.
@@ -12,7 +12,7 @@ import { defineConfig } from "vite";
  * and load the bundled worker file on `@gradio/app` as a classic WebWorker.
  *
  * Note: We tried the following approaches, but they failed:
- * 1. Just TS-transpile the worker file like other files into `worker.js`, and use it like `new Worker("worker.js")`.
+ * 1. Just TS-transpile the worker file into `worker.js`, and use it like `new Worker("worker.js")`.
  * 	  It failed because `tsc` reserves `importScripts()` and also appends `export {};` to the end of the file to specify it as a module (`https://github.com/microsoft/TypeScript/issues/41513`),
  *    however, `importScripts()` is only supported by classic WebWorkers, and `export {};` is not supported by classic WebWorkers.
  * 2. Use ESM import instead of `importScripts()`, which is (experimentally?) supported by Pyodide since v0.20.0 (https://pyodide.org/en/stable/project/changelog.html#javascript-package),
@@ -22,13 +22,14 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
 	build: {
-		outDir: "dist",
+		outDir: "src",
 		rollupOptions: {
 			input: path.join(__dirname, "src/webworker/index.ts"),
 			// Ref: https://github.com/rollup/rollup/issues/2616#issuecomment-1431551704
 			output: {
 				entryFileNames: "webworker.js"
 			}
-		}
+		},
+		emptyOutDir: false
 	}
 });
