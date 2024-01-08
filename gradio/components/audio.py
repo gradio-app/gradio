@@ -292,7 +292,9 @@ class Audio(
                     binary_data = binary_data[44:]
         return binary_data, output_file
 
-    def process_example(self, value: tuple[int, np.ndarray] | str | Path | bytes | None) -> str:
+    def process_example(
+        self, value: tuple[int, np.ndarray] | str | Path | bytes | None
+    ) -> str:
         if value is None:
             return ""
         elif isinstance(value, (str, Path)):

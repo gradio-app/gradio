@@ -191,7 +191,9 @@ class Dataframe(Component):
         if value is None:
             return self.postprocess(self.empty_input)
         if isinstance(value, dict):
-            return DataframeData(headers=value.get("headers", []), data=value.get("data", [[]]))
+            return DataframeData(
+                headers=value.get("headers", []), data=value.get("data", [[]])
+            )
         if isinstance(value, (str, pd.DataFrame)):
             if isinstance(value, str):
                 value = pd.read_csv(value)  # type: ignore
@@ -289,7 +291,9 @@ class Dataframe(Component):
                 f"Check the values passed to `col_count` and `headers`."
             )
 
-    def process_example(self, value: pd.DataFrame
+    def process_example(
+        self,
+        value: pd.DataFrame
         | Styler
         | np.ndarray
         | list
