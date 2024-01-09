@@ -129,14 +129,12 @@
 	async function loadFilesFromDrop(e: DragEvent): Promise<void> {
 		dragging = false;
 		if (!e.dataTransfer?.files) return;
-		const files_to_load = Array.from(e.dataTransfer.files).filter((f) => {
-			const f_type =
-				f.type !== "" ? f.type : "";
-			const f_extension = f.name !== "" ? "." + f.name.split(".").pop() : "";
-			if (f_type && is_valid_mimetype(filetype, f_type)) {
+		const files_to_load = Array.from(e.dataTransfer.files).filter((file) => {
+			const file_extension = "." + file.name.split(".").pop();
+			if (file.type && is_valid_mimetype(filetype, file.type)) {
 				return true;
 			}
-			if (f_extension && Array.isArray(filetype) ? filetype.includes(f_extension) : f_extension === filetype) {
+			if (file_extension && Array.isArray(filetype) ? filetype.includes(file_extension) : file_extension === filetype) {
 				return true;
 			}
 			dispatch("error", `Invalid file type only ${filetype} allowed.`);
