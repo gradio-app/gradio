@@ -430,8 +430,7 @@ class TestCheckboxGroup:
         cbox = gr.CheckboxGroup(choices=["a", "b"], value="c")
         assert cbox.get_config()["value"] == ["c"]
         assert cbox.postprocess("a") == ["a"]
-        with pytest.raises(ValueError):
-            gr.CheckboxGroup().process_example("a")
+        assert cbox.process_example("a") == ["a"]
 
     def test_in_interface(self):
         """
@@ -642,11 +641,8 @@ class TestImageEditor:
         test_image_path = "test/test_files/bus.png"
         image_editor = gr.ImageEditor()
         example_value = image_editor.process_example(test_image_path)
-        assert isinstance(example_value, dict)
-        assert example_value["background"]
-        assert utils.is_in_or_equal(
-            example_value["background"], image_editor.GRADIO_CACHE
-        )
+        assert isinstance(example_value, EditorData)
+        assert example_value.background and example_value.background.path
 
 
 class TestImage:
@@ -1396,7 +1392,7 @@ class TestDataset:
         row = dataset.preprocess(1)
         assert row[0] == 15
         assert row[1] == "hi"
-        assert row[2].endswith("bus.png")
+        assert row[2]["path"].endswith("bus.png")
         assert row[3] == "<i>Italics</i>"
         assert row[4] == "*Italics*"
 
@@ -1413,7 +1409,7 @@ class TestDataset:
 
         radio = gr.Radio(choices=[("name 1", "value 1"), ("name 2", "value 2")])
         dataset = gr.Dataset(samples=[["value 1"], ["value 2"]], components=[radio])
-        assert dataset.samples == [["name 1"], ["name 2"]]
+        assert dataset.samples == [["value 1"], ["value 2"]]
 
     def test_postprocessing(self):
         test_file_dir = Path(Path(__file__).parent, "test_files")
