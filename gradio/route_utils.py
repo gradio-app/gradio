@@ -309,12 +309,29 @@ class FileUploadProgress:
         if upload_id not in self._statuses:
             self._statuses[upload_id] = deque()
 
-    def update(self, upload_id: str, filename: str, message_bytes: bytes):
+    def append(self, upload_id: str, filename: str, message_bytes: bytes):
         if upload_id not in self._statuses:
             self._statuses[upload_id] = deque()
-        self._statuses[upload_id].append(
-            FileUploadProgressUnit(filename, len(message_bytes), is_done=False)
-        )
+        queue = self._statuses[upload_id]
+
+        if len(queue) == 0:
+            queue.append(
+                FileUploadProgressUnit(filename, len(message_bytes), is_done=False)
+            )
+        else:
+            last_unit = queue.popleft()
+            if last_unit.is_done or last_unit.filename != filename:
+                queue.append(
+                    FileUploadProgressUnit(filename, len(message_bytes), is_done=False)
+                )
+            else:
+                queue.append(
+                    FileUploadProgressUnit(
+                        filename,
+                        last_unit.chunk_size + len(message_bytes),
+                        is_done=False,
+                    )
+                )
 
     def set_done(self, upload_id: str):
         self._statuses[upload_id].append(FileUploadProgressUnit("", 0, is_done=True))
@@ -382,7 +399,7 @@ class GradioMultiPartParser:
     def on_part_data(self, data: bytes, start: int, end: int) -> None:
         message_bytes = data[start:end]
         if self.upload_progress is not None:
-            self.upload_progress.update(
+            self.upload_progress.append(
                 self.upload_id,  # type: ignore
                 self._current_part.file.filename,  # type: ignore
                 message_bytes,
