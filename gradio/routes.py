@@ -730,29 +730,27 @@ class App(FastAPI):
 
                     heartbeat_rate = 15
                     check_rate = 0.05
-                    message = None
                     try:
-                        if update := file_upload_statuses.status(upload_id).popleft():
-                            if update.is_done:
-                                message = {"msg": "done"}
-                                is_done = True
-                            else:
-                                message = {
-                                    "msg": "update",
-                                    "orig_name": update.filename,
-                                    "chunk_size": update.chunk_size,
-                                }
+                        update = file_upload_statuses.status(upload_id).popleft()
+                        if update.is_done:
+                            message = {"msg": "done"}
+                            is_done = True
                         else:
-                            await asyncio.sleep(check_rate)
-                            if time.perf_counter() - last_heartbeat > heartbeat_rate:
-                                message = {"msg": "heartbeat"}
-                                last_heartbeat = time.perf_counter()
-                        if message:
-                            yield f"data: {json.dumps(message)}\n\n"
+                            message = {
+                                "msg": "update",
+                                "orig_name": update.filename,
+                                "chunk_size": update.chunk_size,
+                            }
+                        yield f"data: {json.dumps(message)}\n\n"
                     except IndexError:
+                        # pop from empty queue
                         if not file_upload_statuses.is_tracked(upload_id):
                             return
-                        # pop from empty queue
+                        await asyncio.sleep(check_rate)
+                        if time.perf_counter() - last_heartbeat > heartbeat_rate:
+                            message = {"msg": "heartbeat"}
+                            yield f"data: {json.dumps(message)}\n\n"
+                            last_heartbeat = time.perf_counter()
                         continue
 
             return StreamingResponse(
