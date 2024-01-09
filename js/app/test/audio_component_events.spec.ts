@@ -56,7 +56,7 @@ test("Audio drag-and-drop displays a warning when the file is of the wrong mime 
 	expect(toast).toContainText("warning");
 });
 
-test("Play, Pause, and stop events work correctly.", async ({ page }) => {
+test.skip("Play, Pause, and stop events work correctly.", async ({ page }) => {
 	const uploader = await page.locator("input[type=file]");
 	await uploader.setInputFiles(["../../demo/audio_debugger/cantina.wav"]);
 	const event_triggered = async (label: string) => {

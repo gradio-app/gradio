@@ -110,6 +110,14 @@ class Queue:
 
     def start(self):
         self.active_jobs = [None] * self.max_thread_count
+        self.set_event_queue_per_concurrency_id()
+
+        run_coro_in_background(self.start_processing)
+        run_coro_in_background(self.start_progress_updates)
+        if not self.live_updates:
+            run_coro_in_background(self.notify_clients)
+
+    def set_event_queue_per_concurrency_id(self):
         for block_fn in self.block_fns:
             concurrency_id = block_fn.concurrency_id
             concurrency_limit: int | None
@@ -133,10 +141,8 @@ class Queue:
                 ):
                     existing_event_queue.concurrency_limit = concurrency_limit
 
-        run_coro_in_background(self.start_processing)
-        run_coro_in_background(self.start_progress_updates)
-        if not self.live_updates:
-            run_coro_in_background(self.notify_clients)
+    def reload(self):
+        self.set_event_queue_per_concurrency_id()
 
     def close(self):
         self.stopped = True

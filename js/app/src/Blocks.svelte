@@ -638,6 +638,7 @@
 			}
 		});
 
+		if (render_complete) return;
 		target.addEventListener("gradio", (e: Event) => {
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
 
