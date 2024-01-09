@@ -46,7 +46,7 @@ export async function wasm_proxied_fetch(
 
 	const response = await workerProxy.httpRequest({
 		path: url.pathname,
-		query_string: url.search,
+		query_string: url.searchParams.toString(), // The `query_string` field in the ASGI spec must not contain the leading `?`.
 		method,
 		headers,
 		body: request.body
