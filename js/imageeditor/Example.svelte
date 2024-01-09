@@ -6,6 +6,7 @@
 	export let samples_dir: string;
 	export let type: "gallery" | "table";
 	export let selected = false;
+	console.log(value);
 </script>
 
 <div
@@ -14,7 +15,10 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	<Image src={samples_dir + (value.composite || value.background)} alt="" />
+	<Image
+		src={samples_dir + (value.composite?.path || value.background?.path)}
+		alt=""
+	/>
 </div>
 
 <style>
