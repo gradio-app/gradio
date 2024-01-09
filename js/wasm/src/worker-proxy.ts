@@ -245,11 +245,37 @@ export class WorkerProxy extends EventTarget {
 
 			asgiMessagePort.start();
 
-			asgiMessagePort.postMessage({
-				type: "http.request",
-				more_body: false,
-				body: request.body
-			} satisfies ReceiveEvent);
+			if (request.body instanceof ReadableStream) {
+				// The following code reading the stream is based on the example in https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream/getReader#examples
+				const reader = request.body.getReader();
+				reader.read().then(function process({
+					done,
+					value
+				}): Promise<void> | void {
+					if (done) {
+						asgiMessagePort.postMessage({
+							type: "http.request",
+							more_body: false,
+							body: undefined
+						} satisfies ReceiveEvent);
+						return;
+					}
+
+					asgiMessagePort.postMessage({
+						type: "http.request",
+						more_body: !done,
+						body: value
+					} satisfies ReceiveEvent);
+
+					return reader.read().then(process);
+				});
+			} else {
+				asgiMessagePort.postMessage({
+					type: "http.request",
+					more_body: false,
+					body: request.body ?? undefined
+				} satisfies ReceiveEvent);
+			}
 		});
 	}
 

@@ -3,7 +3,7 @@ export interface HttpRequest {
 	path: string;
 	query_string: string;
 	headers: Record<string, string>;
-	body?: Uint8Array;
+	body?: Uint8Array | ReadableStream<Uint8Array> | null;
 }
 export interface HttpResponse {
 	status: number;
