@@ -1,5 +1,30 @@
 # gradio
 
+## 4.13.0
+
+### Features
+
+- [#6133](https://github.com/gradio-app/gradio/pull/6133) [`f742d0e`](https://github.com/gradio-app/gradio/commit/f742d0e861c8e25c5d77d9102c9d50f94b0d3383) - Lite: Support AnnotatedImage on Wasm.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6778](https://github.com/gradio-app/gradio/pull/6778) [`8a093e2`](https://github.com/gradio-app/gradio/commit/8a093e23d7993a044e5e0ff73f93a74cb75dad56) - Add a dev instruction for lite in SharedWorker mode.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6931](https://github.com/gradio-app/gradio/pull/6931) [`6c863af`](https://github.com/gradio-app/gradio/commit/6c863af92fa9ceb5c638857eb22cc5ddb718d549) - Fix functional tests.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#6897](https://github.com/gradio-app/gradio/pull/6897) [`fb9c6ca`](https://github.com/gradio-app/gradio/commit/fb9c6cacd7ca4598c000f1f97d7d39a8c4463519) - Lite: Chatbot.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6900](https://github.com/gradio-app/gradio/pull/6900) [`4511d57`](https://github.com/gradio-app/gradio/commit/4511d57c46bf82c48e8e575040ff7dab528b8d51) - Fix the aria-label attrs in `gr.Chatbot()`.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6820](https://github.com/gradio-app/gradio/pull/6820) [`649cd4d`](https://github.com/gradio-app/gradio/commit/649cd4d68041d11fcbe31f8efa455345ac49fc74) - Use `EventSource_factory` in `open_stream()` for Wasm.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6916](https://github.com/gradio-app/gradio/pull/6916) [`02c2442`](https://github.com/gradio-app/gradio/commit/02c24422174065b79bfccb258cdfefc6b2b69dc6) - Fix docstring of deprecated parameter concurrency_count.  Thanks [@ronensc](https://github.com/ronensc)!
+- [#6884](https://github.com/gradio-app/gradio/pull/6884) [`24a5836`](https://github.com/gradio-app/gradio/commit/24a583688046867ca8b8b02959c441818bdb34a2) - Component Server fix.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#6887](https://github.com/gradio-app/gradio/pull/6887) [`8333db8`](https://github.com/gradio-app/gradio/commit/8333db83ac6e2c8511c104534c48137576d0bcd7) - Fix the Wasm worker to initialize the app directories.  Thanks [@whitphx](https://github.com/whitphx)!
+
+### Fixes
+
+- [#6932](https://github.com/gradio-app/gradio/pull/6932) [`e671e54`](https://github.com/gradio-app/gradio/commit/e671e5415fecae52328e426ee2e9f3c09f410606) - Allow `gr.ClearButton` and `gr.DuplicateButton` to be made hidden (and otherwise updated).  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6942](https://github.com/gradio-app/gradio/pull/6942) [`b1b78c2`](https://github.com/gradio-app/gradio/commit/b1b78c2168e24fb65251a9b9b6cbc9382179a8ca) - Fix `.select` for `gr.Image`, `gr.CheckboxGroup`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6899](https://github.com/gradio-app/gradio/pull/6899) [`bd11d6e`](https://github.com/gradio-app/gradio/commit/bd11d6e570755405eac637f1ef71b8d7be09ff67) - Remove the styles on the audio elements in the Chatbot component.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6871](https://github.com/gradio-app/gradio/pull/6871) [`d361a0f`](https://github.com/gradio-app/gradio/commit/d361a0f179752d9e849ec420fc67c8b4060fc154) - Ensure camera settings only update when necessary in Model3D.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6938](https://github.com/gradio-app/gradio/pull/6938) [`459c5dc`](https://github.com/gradio-app/gradio/commit/459c5dc989849b1f0134467d260710fe891045d6) - replacing distutils.StrictVersion dependency for Python 3.12.  Thanks [@velaia](https://github.com/velaia)!
+- [#6956](https://github.com/gradio-app/gradio/pull/6956) [`7bab755`](https://github.com/gradio-app/gradio/commit/7bab755f7c4cf38102c87d825066ff49b518222e) - Fixed (this this).  Thanks [@Cassini-chris](https://github.com/Cassini-chris)!
+- [#6874](https://github.com/gradio-app/gradio/pull/6874) [`31c2316`](https://github.com/gradio-app/gradio/commit/31c23166f0113ab6506575f345c31c952e57e137) - fix issue 6873: File with file_count='directory' bug.  Thanks [@joshwilson-dev](https://github.com/joshwilson-dev)!
+- [#6940](https://github.com/gradio-app/gradio/pull/6940) [`c00da89`](https://github.com/gradio-app/gradio/commit/c00da89c3ec6aa9ce43b25f12fde575d681d6870) - Fix returning copies of a component instance from a prediction function.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 4.12.0
 
 ### Features
