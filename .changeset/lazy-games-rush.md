@@ -1,6 +1,6 @@
 ---
-"@gradio/app": minor
-"gradio": minor
+"@gradio/app": patch
+"gradio": patch
 ---
 
-feat:Fix the reloader
+fix:Fix the reloader
