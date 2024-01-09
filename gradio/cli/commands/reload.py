@@ -7,7 +7,6 @@ $ gradio app.py my_demo, to use variable names other than "demo"
 """
 from __future__ import annotations
 
-import inspect
 import os
 import re
 import subprocess
@@ -19,7 +18,6 @@ from typing import List, Optional
 import typer
 from rich import print
 
-import gradio
 from gradio import utils
 
 reload_thread = threading.local()
@@ -56,16 +54,10 @@ def _setup_config(
         relpath = original_path
     module_name = str(relpath.parent / relpath.stem).replace(os.path.sep, ".")
 
-    gradio_folder = Path(inspect.getfile(gradio)).parent
-
     message = "Watching:"
     message_change_count = 0
 
     watching_dirs = []
-    if str(gradio_folder).strip():
-        watching_dirs.append(gradio_folder)
-        message += f" '{gradio_folder}'"
-        message_change_count += 1
 
     abs_parent = abs_original_path.parent
     if str(abs_parent).strip():
@@ -75,7 +67,7 @@ def _setup_config(
         message += f" '{abs_parent}'"
 
     abs_current = Path.cwd().absolute()
-    if str(abs_current).strip():
+    if str(abs_current).strip() and abs_current != abs_parent:
         watching_dirs.append(abs_current)
         if message_change_count == 1:
             message += ","
