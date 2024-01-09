@@ -731,11 +731,11 @@ class App(FastAPI):
                     heartbeat_rate = 15
                     check_rate = 0.05
                     try:
-                        update = file_upload_statuses.status(upload_id).popleft()
-                        if update.is_done:
+                        if file_upload_statuses.is_done(upload_id):
                             message = {"msg": "done"}
                             is_done = True
                         else:
+                            update = file_upload_statuses.status(upload_id).pop()
                             message = {
                                 "msg": "update",
                                 "orig_name": update.filename,

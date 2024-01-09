@@ -298,43 +298,50 @@ class GradioUploadFile(UploadFile):
 class FileUploadProgressUnit:
     filename: str
     chunk_size: int
+
+
+@python_dataclass
+class FileUploadProgressTracker:
+    deque: deque[FileUploadProgressUnit]
     is_done: bool
 
 
 class FileUploadProgress:
     def __init__(self) -> None:
-        self._statuses: dict[str, deque[FileUploadProgressUnit]] = {}
+        self._statuses: dict[str, FileUploadProgressTracker] = {}
 
     def track(self, upload_id: str):
         if upload_id not in self._statuses:
-            self._statuses[upload_id] = deque()
+            self._statuses[upload_id] = FileUploadProgressTracker(deque(), False)
 
     def append(self, upload_id: str, filename: str, message_bytes: bytes):
         if upload_id not in self._statuses:
-            self._statuses[upload_id] = deque()
-        queue = self._statuses[upload_id]
+            self.track(upload_id)
+        queue = self._statuses[upload_id].deque
 
         if len(queue) == 0:
-            queue.append(
-                FileUploadProgressUnit(filename, len(message_bytes), is_done=False)
-            )
+            queue.append(FileUploadProgressUnit(filename, len(message_bytes)))
         else:
             last_unit = queue.popleft()
-            if last_unit.is_done or last_unit.filename != filename:
-                queue.append(
-                    FileUploadProgressUnit(filename, len(message_bytes), is_done=False)
-                )
+            if last_unit.filename != filename:
+                queue.append(FileUploadProgressUnit(filename, len(message_bytes)))
             else:
                 queue.append(
                     FileUploadProgressUnit(
                         filename,
                         last_unit.chunk_size + len(message_bytes),
-                        is_done=False,
                     )
                 )
 
     def set_done(self, upload_id: str):
-        self._statuses[upload_id].append(FileUploadProgressUnit("", 0, is_done=True))
+        if upload_id not in self._statuses:
+            self.track(upload_id)
+        self._statuses[upload_id].is_done = True
+
+    def is_done(self, upload_id: str):
+        if upload_id not in self._statuses:
+            self.track(upload_id)
+        return self._statuses[upload_id].is_done
 
     def stop_tracking(self, upload_id: str):
         if upload_id in self._statuses:
@@ -343,7 +350,7 @@ class FileUploadProgress:
     def status(self, upload_id: str) -> deque[FileUploadProgressUnit]:
         if upload_id not in self._statuses:
             return deque()
-        return self._statuses[upload_id]
+        return self._statuses[upload_id].deque
 
     def is_tracked(self, upload_id: str):
         return upload_id in self._statuses
