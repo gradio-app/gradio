@@ -6,7 +6,6 @@
 	export let samples_dir: string;
 	export let type: "gallery" | "table";
 	export let selected = false;
-	console.log(value);
 </script>
 
 <div
