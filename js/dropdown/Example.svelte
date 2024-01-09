@@ -4,8 +4,18 @@
 	export let selected = false;
 	export let choices: [string, string | number][];
 
-	let name = choices.find((pair) => pair[1] === value);
-	let name_string = name ? name[0] : "";
+	let value_array = Array.isArray(value) ? value : [value];
+	let names = value_array
+		.map(
+			(val) =>
+				(
+					choices.find((pair) => pair[1] === val) as
+						| [string, string | number]
+						| undefined
+				)?.[0]
+		)
+		.filter((name) => name !== undefined);
+	let names_string = names.join(", ");
 </script>
 
 <div
@@ -13,7 +23,7 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	{name_string}
+	{names_string}
 </div>
 
 <style>
