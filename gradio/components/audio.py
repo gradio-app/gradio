@@ -40,6 +40,7 @@ class WaveformOptions:
     skip_length: int | float = 5
     sample_rate: int = None
 
+
 @document()
 class Audio(
     StreamingInput,
