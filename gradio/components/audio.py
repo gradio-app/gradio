@@ -30,7 +30,7 @@ class WaveformOptions:
         show_recording_waveform: Whether to show the waveform when recording audio. Defaults to True.
         show_controls: Whether to show the standard HTML audio player below the waveform when recording audio or playing recorded audio. Defaults to False.
         skip_length: The percentage (between 0 and 100) of the audio to skip when clicking on the skip forward / skip backward buttons. Defaults to 5.
-        sample_rate: The output sample rate (in Hz) of the audio after editing. Defaults to the original sample rate of the audio (or 44100 if the sample rate is unknown).
+        sample_rate: The output sample rate (in Hz) of the audio after editing. Defaults to 44100.
     """
 
     waveform_color: str = "#9ca3af"
