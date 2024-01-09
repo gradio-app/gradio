@@ -1077,11 +1077,12 @@ class TestDataframe:
             "headers": ["Name", "Age", "Member"],
             "metadata": None,
         }
+        x_payload = DataframeData(**x_data)
         dataframe_input = gr.Dataframe(headers=["Name", "Age", "Member"])
-        output = dataframe_input.preprocess(DataframeData(**x_data))
+        output = dataframe_input.preprocess(x_payload)
         assert output["Age"][1] == 24
         assert not output["Member"][0]
-        assert dataframe_input.postprocess(x_data) == x_data
+        assert dataframe_input.postprocess(output) == x_payload
 
         dataframe_input = gr.Dataframe(
             headers=["Name", "Age", "Member"], label="Dataframe Input"
