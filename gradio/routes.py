@@ -671,7 +671,7 @@ class App(FastAPI):
             username: str = Depends(get_current_user),
         ):
             blocks = app.get_blocks()
-            
+
             if blocks._queue.server_app is None:
                 blocks._queue.set_server_app(app)
 
