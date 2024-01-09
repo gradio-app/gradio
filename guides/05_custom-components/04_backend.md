@@ -69,7 +69,7 @@ Since `self.choices` is a list of tuples corresponding to (`display_name`, `valu
 
 ```python
 @abstractmethod
-def as_example(self, y):
+def process_example(self, y):
     pass
 ```
 

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Image from "./shared/Image.svelte";
-	import { normalise_file } from "@gradio/client";
 	import type { FileData } from "@gradio/client";
 
 	export let value: null | FileData;

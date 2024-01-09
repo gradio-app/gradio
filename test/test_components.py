@@ -2338,24 +2338,32 @@ class TestState:
 
 def test_dataframe_process_example_converts_dataframes():
     df_comp = gr.Dataframe()
-    assert df_comp.process_example(pd.DataFrame({"a": [1, 2, 3, 4], "b": [5, 6, 7, 8]})) == [
+    assert df_comp.process_example(
+        pd.DataFrame({"a": [1, 2, 3, 4], "b": [5, 6, 7, 8]})
+    ) == [
         [1, 5],
         [2, 6],
         [3, 7],
         [4, 8],
     ]
-    assert df_comp.process_example(np.array([[1, 2], [3, 4.0]])) == [[1.0, 2.0], [3.0, 4.0]]
+    assert df_comp.process_example(np.array([[1, 2], [3, 4.0]])) == [
+        [1.0, 2.0],
+        [3.0, 4.0],
+    ]
 
 
 @pytest.mark.parametrize("component", [gr.Model3D, gr.File, gr.Audio])
 def test_process_example_returns_file_basename(component):
     component = component()
-    assert component.process_example("/home/freddy/sources/example.ext") == "example.ext"
+    assert (
+        component.process_example("/home/freddy/sources/example.ext") == "example.ext"
+    )
     assert component.process_example(None) == ""
 
 
 @patch(
-    "gradio.components.Component.process_example", spec=gr.components.Component.process_example
+    "gradio.components.Component.process_example",
+    spec=gr.components.Component.process_example,
 )
 @patch("gradio.components.Image.process_example", spec=gr.Image.process_example)
 @patch("gradio.components.File.process_example", spec=gr.File.process_example)

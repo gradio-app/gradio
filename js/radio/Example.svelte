@@ -2,8 +2,7 @@
 	export let value: string;
 	export let type: "gallery" | "table";
 	export let selected = false;
-	export let choices:  [string, string | number][];
-	
+	export let choices: [string, string | number][];
 </script>
 
 <div
