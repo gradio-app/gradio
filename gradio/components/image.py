@@ -192,7 +192,6 @@ class Image(StreamingInput, Component):
             return FileData(path=value, orig_name=Path(value).name)
         saved = image_utils.save_image(value, self.GRADIO_CACHE)
         orig_name = Path(saved).name if Path(saved).exists() else None
-        print(">>>>fd", FileData(path=saved, orig_name=orig_name))
         return FileData(path=saved, orig_name=orig_name)
 
     def check_streamable(self):
