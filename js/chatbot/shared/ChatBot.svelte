@@ -52,6 +52,34 @@
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
 
+	$: adjust_text_size = () => {
+		let style = getComputedStyle(document.body);
+		let body_text_size = style.getPropertyValue("--body-text-size");
+		let updated_text_size;
+
+		switch (body_text_size) {
+			case "13px":
+				updated_text_size = 14;
+				break;
+			case "14px":
+				updated_text_size = 16;
+				break;
+			case "16px":
+				updated_text_size = 20;
+				break;
+			default:
+				updated_text_size = 14;
+				break;
+		}
+
+		document.body.style.setProperty(
+			"--chatbot-body-text-size",
+			updated_text_size + "px"
+		);
+	};
+
+	$: adjust_text_size();
+
 	const dispatch = createEventDispatcher<{
 		change: undefined;
 		select: SelectData;
@@ -306,7 +334,7 @@
 		background: var(--background-fill-secondary);
 		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
-		font-size: var(--body-text-size);
+		font-size: var(--chatbot-body-text-size);
 		overflow-wrap: break-word;
 		overflow-x: hidden;
 		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
