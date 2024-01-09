@@ -2,6 +2,7 @@
 "@gradio/checkboxgroup": patch
 "@gradio/dropdown": patch
 "@gradio/image": patch
+"@gradio/imageeditor": patch
 "@gradio/radio": patch
 "gradio": patch
 ---
