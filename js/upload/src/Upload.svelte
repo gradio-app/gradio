@@ -5,6 +5,7 @@
 	import { _ } from "svelte-i18n";
 	import UploadProgress from "./UploadProgress.svelte";
 
+	export let label: string;
 	export let filetype: string | string[] | null = null;
 	export let dragging = false;
 	export let boundedheight = true;
@@ -134,7 +135,11 @@
 			if (file.type && is_valid_mimetype(filetype, file.type)) {
 				return true;
 			}
-			if (file_extension && Array.isArray(filetype) ? filetype.includes(file_extension) : file_extension === filetype) {
+			if (
+				file_extension && Array.isArray(filetype)
+					? filetype.includes(file_extension)
+					: file_extension === filetype
+			) {
 				return true;
 			}
 			dispatch("error", `Invalid file type only ${filetype} allowed.`);
@@ -183,6 +188,7 @@
 		<slot />
 		<input
 			aria-label="file upload"
+			data-testid="{label}-file-upload"
 			type="file"
 			bind:this={hidden_upload}
 			on:change={load_files_from_upload}
