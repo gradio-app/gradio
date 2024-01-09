@@ -58,6 +58,8 @@ from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation
 from gradio.route_utils import (  # noqa: F401
     FileUploadProgress,
+    FileUploadProgressNotQueuedError,
+    FileUploadProgressNotTrackedError,
     GradioMultiPartParser,
     GradioUploadFile,
     MultiPartException,
@@ -735,23 +737,21 @@ class App(FastAPI):
                             message = {"msg": "done"}
                             is_done = True
                         else:
-                            update = file_upload_statuses.status(upload_id).pop()
+                            update = file_upload_statuses.pop(upload_id)
                             message = {
                                 "msg": "update",
                                 "orig_name": update.filename,
                                 "chunk_size": update.chunk_size,
                             }
                         yield f"data: {json.dumps(message)}\n\n"
-                    except IndexError:
-                        # pop from empty queue
-                        if not file_upload_statuses.is_tracked(upload_id):
-                            return
+                    except FileUploadProgressNotTrackedError:
+                        return
+                    except FileUploadProgressNotQueuedError:
                         await asyncio.sleep(check_rate)
                         if time.perf_counter() - last_heartbeat > heartbeat_rate:
                             message = {"msg": "heartbeat"}
                             yield f"data: {json.dumps(message)}\n\n"
                             last_heartbeat = time.perf_counter()
-                        continue
 
             return StreamingResponse(
                 sse_stream(request),

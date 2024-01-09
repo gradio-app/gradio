@@ -306,6 +306,14 @@ class FileUploadProgressTracker:
     is_done: bool
 
 
+class FileUploadProgressNotTrackedError(Exception):
+    pass
+
+
+class FileUploadProgressNotQueuedError(Exception):
+    pass
+
+
 class FileUploadProgress:
     def __init__(self) -> None:
         self._statuses: dict[str, FileUploadProgressTracker] = {}
@@ -340,20 +348,20 @@ class FileUploadProgress:
 
     def is_done(self, upload_id: str):
         if upload_id not in self._statuses:
-            self.track(upload_id)
+            raise FileUploadProgressNotTrackedError()
         return self._statuses[upload_id].is_done
 
     def stop_tracking(self, upload_id: str):
         if upload_id in self._statuses:
             del self._statuses[upload_id]
 
-    def status(self, upload_id: str) -> deque[FileUploadProgressUnit]:
+    def pop(self, upload_id: str) -> FileUploadProgressUnit:
         if upload_id not in self._statuses:
-            return deque()
-        return self._statuses[upload_id].deque
-
-    def is_tracked(self, upload_id: str):
-        return upload_id in self._statuses
+            raise FileUploadProgressNotTrackedError()
+        try:
+            return self._statuses[upload_id].deque.pop()
+        except IndexError as e:
+            raise FileUploadProgressNotQueuedError() from e
 
 
 class GradioMultiPartParser:
