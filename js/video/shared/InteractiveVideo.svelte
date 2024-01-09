@@ -57,6 +57,12 @@
 		dispatch("change", video);
 	}
 
+	function handle_capture({
+		detail
+	}: CustomEvent<FileData | any | null>): void {
+		dispatch("change", detail);
+	}
+
 	let dragging = false;
 	$: dispatch("drag", dragging);
 </script>
@@ -77,11 +83,12 @@
 				</Upload>
 			{:else if active_source === "webcam"}
 				<Webcam
+					{root}
 					{mirror_webcam}
 					{include_audio}
 					mode="video"
 					on:error
-					on:capture={() => dispatch("change")}
+					on:capture={handle_capture}
 					on:start_recording
 					on:stop_recording
 					{i18n}

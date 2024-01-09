@@ -97,6 +97,8 @@
 			loading_text = (event as CustomEvent).detail + "...";
 		});
 	}
+	export let fetch_implementation: typeof fetch = fetch;
+	setContext("fetch_implementation", fetch_implementation);
 
 	export let space: string | null;
 	export let host: string | null;
