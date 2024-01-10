@@ -1,5 +1,13 @@
 # @gradio/lite
 
+## 4.14.1
+
+### Features
+
+- [#6999](https://github.com/gradio-app/gradio/pull/6999) [`576b7ce`](https://github.com/gradio-app/gradio/commit/576b7ce827f36b579384391e581e73760b7bfc53) - lite build fix: install build package.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7000](https://github.com/gradio-app/gradio/pull/7000) [`a7db8c1`](https://github.com/gradio-app/gradio/commit/a7db8c1b8a68c78f57088da1b1890e15dd0c5afe) - Add env to lite build.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6997](https://github.com/gradio-app/gradio/pull/6997) [`523c08f`](https://github.com/gradio-app/gradio/commit/523c08fe3036f9d72416f7599fe0c64c1a4af823) - Design changes to Playground.  Thanks [@aliabd](https://github.com/aliabd)!
+
 ## 4.14.0
 
 ### Features
