@@ -5,7 +5,7 @@
 	import Fullscreen from "./icons/Fullscreen.svelte";
 	import Close from "./icons/Close.svelte";
 	import { page } from "$app/stores";
-	import share from "$lib/assets/img/share_gray.svg";
+	import share from "$lib/assets/img/anchor_gray.svg";
 	import { svgCheck } from "$lib/assets/copy.js";
 	import { browser } from "$app/environment";
 
@@ -134,7 +134,7 @@
 				class="!w-5 align-text-top inline-block self-center mr-1"
 				src={share}
 			/>
-			<p class="inline-block">Share With Edits</p>
+			<p class="inline-block">Share Your App</p>
 		{:else}
 			<div class="inline-block align-text-top !w-5 self-center">
 				{@html svgCheck}
