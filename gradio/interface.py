@@ -244,7 +244,9 @@ class Interface(Blocks):
             raise ValueError(
                 f"The `additional_inputs_accordion` parameter must be a string or gr.Accordion, not {type(additional_inputs_accordion)}"
             )
-        self.input_components = self.main_input_components + self.additional_input_components
+        self.input_components = (
+            self.main_input_components + self.additional_input_components
+        )
         self.output_components = [
             get_component_instance(o, unrender=True)
             for o in outputs  # type: ignore
@@ -478,7 +480,7 @@ class Interface(Blocks):
             with input_component_column:
                 for component in self.main_input_components:
                     component.render()
-                with Accordion(**self.additional_inputs_accordion_params):
+                with Accordion(**self.additional_inputs_accordion_params):  # type: ignore
                     for component in self.additional_input_components:
                         component.render()
             with Row():
