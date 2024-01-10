@@ -198,6 +198,7 @@
 <style>
 	.component-wrapper {
 		padding: var(--size-3);
+		width: 100%;
 	}
 
 	:global(::part(wrapper)) {

@@ -297,11 +297,17 @@
 	}
 
 	.controls {
-		display: grid;
-		grid-template-columns: 1fr 1fr 1fr;
+		align-items: center;
+		position: relative;
+		display: flex;
 		margin-top: 5px;
 		align-items: center;
 		position: relative;
+		flex-wrap: wrap;
+		justify-content: space-between;
+	}
+	.controls div {
+		margin: var(--size-1) 0;
 	}
 
 	.hidden {
@@ -313,21 +319,6 @@
 		justify-self: self-start;
 		align-items: center;
 		justify-content: space-between;
-	}
-
-	@media (max-width: 375px) {
-		.controls {
-			display: flex;
-			flex-wrap: wrap;
-		}
-
-		.controls * {
-			margin: var(--spacing-sm);
-		}
-
-		.controls .text-button {
-			margin-left: 0;
-		}
 	}
 
 	.action {

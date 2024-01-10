@@ -129,6 +129,7 @@
 		variant={"solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
+		allow_overflow={false}
 		{elem_id}
 		{elem_classes}
 		{visible}
@@ -163,6 +164,7 @@
 		variant={value === null && active_source === "upload" ? "dashed" : "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
+		allow_overflow={false}
 		{elem_id}
 		{elem_classes}
 		{visible}
