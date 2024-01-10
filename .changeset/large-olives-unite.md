@@ -4,6 +4,7 @@
 "@gradio/image": minor
 "@gradio/imageeditor": minor
 "@gradio/radio": minor
+"@gradio/video": minor
 "gradio": minor
 ---
 
