@@ -24,7 +24,7 @@
 				>
 			</p>
 			<a
-				href="https://www.gradio.app/guides/five-minute-guide"
+				href="/custom-components/gallery"
 				target="_blank"
 				class="flex-none rounded-full px-3.5 py-1 text-sm font-semibold text-white bg-gradient-to-br from-orange-300 via-orange-500 to-orange-300 hover:drop-shadow-md"
 				>Explore <span aria-hidden="true">&rarr;</span></a

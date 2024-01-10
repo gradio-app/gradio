@@ -15,6 +15,7 @@
 	let selection: string = "";
 
 	let selected_component: ComponentData | null = null;
+	let components_length: number = 0;
 
 	const COLOR_SETS = [
 		"from-red-50 via-red-100 to-red-50",
@@ -54,6 +55,17 @@
 			.then((response) => response.json())
 			.catch((error) => `Error: ${error}`);
 		define_colors(components);
+		if (!components_length) {
+			components_length = components.length;
+		}
+		for (const component of components) {
+			let info;
+			info = await fetch(`https://hf.co/api/spaces/${component.id}`)
+				.then((response) => response.json())
+				.catch((error) => `Error: ${error}`);
+			component.likes = info.likes;
+		}
+		components = components.sort((a, b) => b["likes"] - a["likes"]);
 	}
 
 	onMount(fetch_components);
@@ -63,9 +75,6 @@
 		e.preventDefault();
 		fetch_components(selection.split(","));
 	}
-
-	let placeholder: string;
-	$: placeholder = "Search through Custom Components";
 </script>
 
 <MetaTags
@@ -79,13 +88,13 @@
 	<input
 		type="text"
 		class="w-full border border-gray-200 p-1 rounded-md outline-none text-center text-lg mb-1 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0"
-		{placeholder}
+		placeholder="What are you looking for?"
 		autocomplete="off"
 		on:keyup={handle_keypress}
 		bind:value={selection}
 	/>
 	<div class="text-gray-600 mb-0 mx-auto w-fit text-sm">
-		Search by component name, keyword or description.
+		Search through {components_length} components by name, keyword or description.
 		<a
 			class="link text-gray-600"
 			href="https://www.gradio.app/guides/five-minute-guide"
@@ -99,39 +108,76 @@
 					handle_box_click(component);
 					event.stopPropagation();
 				}}
-				class=" cursor-pointer px-3 pt-3 h-40 group font:thin relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-tr {component.background_color}"
+				class=" cursor-pointer px-3 pt-3 h-40 group font:thin relative rounded-xl shadow-sm transform hover:scale-[1.02] hover:shadow-alternate transition bg-gradient-to-tr {component.background_color}"
 			>
 				<h2
 					class="text-md font-semibold text-gray-700 max-w-full truncate py-1"
 				>
-					{component.name}
+					{component.name.startsWith("gradio_")
+						? component.name.slice(7)
+						: component.name}
 				</h2>
-				<p class="description text-md font-light py-1">
+				<p
+					class="text-sm font-light py-1"
+					style="position: absolute; top: 5%; right: 5%"
+				>
+					<span
+						class="bg-white p-1 rounded-md text-gray-700 inline-flex align-middle"
+					>
+						<svg
+							class="mr-1 self-center"
+							xmlns="http://www.w3.org/2000/svg"
+							xmlns:xlink="http://www.w3.org/1999/xlink"
+							aria-hidden="true"
+							focusable="false"
+							role="img"
+							width="1em"
+							height="1em"
+							preserveAspectRatio="xMidYMid meet"
+							viewBox="0 0 32 32"
+							fill="currentColor"
+							><path
+								d="M22.45,6a5.47,5.47,0,0,1,3.91,1.64,5.7,5.7,0,0,1,0,8L16,26.13,5.64,15.64a5.7,5.7,0,0,1,0-8,5.48,5.48,0,0,1,7.82,0L16,10.24l2.53-2.58A5.44,5.44,0,0,1,22.45,6m0-2a7.47,7.47,0,0,0-5.34,2.24L16,7.36,14.89,6.24a7.49,7.49,0,0,0-10.68,0,7.72,7.72,0,0,0,0,10.82L16,29,27.79,17.06a7.72,7.72,0,0,0,0-10.82A7.49,7.49,0,0,0,22.45,4Z"
+							></path></svg
+						>
+						<p class="">{component.likes ? component.likes : ""}</p>
+					</span>
+				</p>
+				<p class="description text-lg font-light py-1">
 					{component.description}
 				</p>
-				<span
-					class="text-md text-gray-500 text-end max-w-full font-light overflow-hidden py-1"
+				<p
+					class="text-sm font-light py-1"
+					style="position: absolute; bottom: 5%; left: 5%"
 				>
-					{component.tags.split(",").join(" · ")}</span
+					<span class="bg-white p-1 rounded-md text-gray-700">
+						@{component.author}
+					</span>
+				</p>
+				<p
+					class="text-sm font-light py-1"
+					style="position: absolute; bottom: 5%; right: 5%"
 				>
+					<span class="bg-white p-1 rounded-md text-gray-700">
+						{component.template}
+					</span>
+				</p>
 			</div>
 		{/each}
 	</div>
 </div>
 {#if selected_component}
 	<div
-		class="details-panel open"
+		class="details-panel open border border-gray-200 shadow-xl rounded-xl bg-white p-5"
 		use:clickOutside={() => {
 			selected_component = null;
 		}}
 	>
-		<button
-			class="absolute right-6 top-6 w-4"
-			on:click={() => (selected_component = null)}
-		>
-			<Close />
-		</button>
-		<Card data={selected_component}></Card>
+		<iframe
+			src={`https://${selected_component.subdomain}.hf.space?__theme=light`}
+			height="100%"
+			width="100%"
+		></iframe>
 	</div>
 {/if}
 

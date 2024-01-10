@@ -8,6 +8,7 @@ export type ComponentData = {
 	version: string;
 	subdomain: string;
 	background_color: string;
+	likes: number;
 };
 
 export const classToEmojiMapping: { [key: string]: string } = {
