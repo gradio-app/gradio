@@ -111,7 +111,7 @@ class Video(Component):
             min_length: The minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
         """
-        valid_sources: list[Literal["upload", "webcam"]] = ["webcam", "upload"]
+        valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
         if sources is None:
             self.sources = valid_sources
         elif isinstance(sources, str) and sources in valid_sources:
