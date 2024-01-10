@@ -1,16 +1,23 @@
 # website
 
+## 0.21.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/code@0.3.6
+
 ## 0.21.0
 
 ### Features
 
-- [#6913](https://github.com/gradio-app/gradio/pull/6913) [`a5f3d2b`](https://github.com/gradio-app/gradio/commit/a5f3d2bef2d53b367ebf78d86e61f227cda5effa) - Fix broken redirects and guides in website.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6913](https://github.com/gradio-app/gradio/pull/6913) [`a5f3d2b`](https://github.com/gradio-app/gradio/commit/a5f3d2bef2d53b367ebf78d86e61f227cda5effa) - Fix broken redirects and guides in website. Thanks [@aliabd](https://github.com/aliabd)!
 
 ## 0.20.4
 
 ### Fixes
 
-- [#6767](https://github.com/gradio-app/gradio/pull/6767) [`7bb561a`](https://github.com/gradio-app/gradio/commit/7bb561a294ca41d1044927cb34d8645c4175cae0) - Rewriting parts of the README and getting started guides for 4.0.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6767](https://github.com/gradio-app/gradio/pull/6767) [`7bb561a`](https://github.com/gradio-app/gradio/commit/7bb561a294ca41d1044927cb34d8645c4175cae0) - Rewriting parts of the README and getting started guides for 4.0. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.20.3
 
