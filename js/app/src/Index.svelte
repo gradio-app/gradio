@@ -99,6 +99,9 @@
 	}
 	export let fetch_implementation: typeof fetch = fetch;
 	setContext("fetch_implementation", fetch_implementation);
+	export let EventSource_factory: (url: URL) => EventSource = (url) =>
+		new EventSource(url);
+	setContext("EventSource_factory", EventSource_factory);
 
 	export let space: string | null;
 	export let host: string | null;

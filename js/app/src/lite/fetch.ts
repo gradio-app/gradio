@@ -44,16 +44,12 @@ export async function wasm_proxied_fetch(
 		headers[key] = value;
 	});
 
-	const bodyArrayBuffer = await new Response(request.body).arrayBuffer();
-	const body: Parameters<WorkerProxy["httpRequest"]>[0]["body"] =
-		new Uint8Array(bodyArrayBuffer);
-
 	const response = await workerProxy.httpRequest({
 		path: url.pathname,
-		query_string: url.search,
+		query_string: url.searchParams.toString(), // The `query_string` field in the ASGI spec must not contain the leading `?`.
 		method,
 		headers,
-		body
+		body: request.body
 	});
 	return new Response(response.body, {
 		status: response.status,

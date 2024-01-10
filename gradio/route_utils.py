@@ -298,38 +298,70 @@ class GradioUploadFile(UploadFile):
 class FileUploadProgressUnit:
     filename: str
     chunk_size: int
+
+
+@python_dataclass
+class FileUploadProgressTracker:
+    deque: deque[FileUploadProgressUnit]
     is_done: bool
+
+
+class FileUploadProgressNotTrackedError(Exception):
+    pass
+
+
+class FileUploadProgressNotQueuedError(Exception):
+    pass
 
 
 class FileUploadProgress:
     def __init__(self) -> None:
-        self._statuses: dict[str, deque[FileUploadProgressUnit]] = {}
+        self._statuses: dict[str, FileUploadProgressTracker] = {}
 
     def track(self, upload_id: str):
         if upload_id not in self._statuses:
-            self._statuses[upload_id] = deque()
+            self._statuses[upload_id] = FileUploadProgressTracker(deque(), False)
 
-    def update(self, upload_id: str, filename: str, message_bytes: bytes):
+    def append(self, upload_id: str, filename: str, message_bytes: bytes):
         if upload_id not in self._statuses:
-            self._statuses[upload_id] = deque()
-        self._statuses[upload_id].append(
-            FileUploadProgressUnit(filename, len(message_bytes), is_done=False)
-        )
+            self.track(upload_id)
+        queue = self._statuses[upload_id].deque
+
+        if len(queue) == 0:
+            queue.append(FileUploadProgressUnit(filename, len(message_bytes)))
+        else:
+            last_unit = queue.popleft()
+            if last_unit.filename != filename:
+                queue.append(FileUploadProgressUnit(filename, len(message_bytes)))
+            else:
+                queue.append(
+                    FileUploadProgressUnit(
+                        filename,
+                        last_unit.chunk_size + len(message_bytes),
+                    )
+                )
 
     def set_done(self, upload_id: str):
-        self._statuses[upload_id].append(FileUploadProgressUnit("", 0, is_done=True))
+        if upload_id not in self._statuses:
+            self.track(upload_id)
+        self._statuses[upload_id].is_done = True
+
+    def is_done(self, upload_id: str):
+        if upload_id not in self._statuses:
+            raise FileUploadProgressNotTrackedError()
+        return self._statuses[upload_id].is_done
 
     def stop_tracking(self, upload_id: str):
         if upload_id in self._statuses:
             del self._statuses[upload_id]
 
-    def status(self, upload_id: str) -> deque[FileUploadProgressUnit]:
+    def pop(self, upload_id: str) -> FileUploadProgressUnit:
         if upload_id not in self._statuses:
-            return deque()
-        return self._statuses[upload_id]
-
-    def is_tracked(self, upload_id: str):
-        return upload_id in self._statuses
+            raise FileUploadProgressNotTrackedError()
+        try:
+            return self._statuses[upload_id].deque.pop()
+        except IndexError as e:
+            raise FileUploadProgressNotQueuedError() from e
 
 
 class GradioMultiPartParser:
@@ -382,7 +414,7 @@ class GradioMultiPartParser:
     def on_part_data(self, data: bytes, start: int, end: int) -> None:
         message_bytes = data[start:end]
         if self.upload_progress is not None:
-            self.upload_progress.update(
+            self.upload_progress.append(
                 self.upload_id,  # type: ignore
                 self._current_part.file.filename,  # type: ignore
                 message_bytes,
