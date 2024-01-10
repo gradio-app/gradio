@@ -399,7 +399,7 @@ def on(
         triggers = (
             [EventListenerMethod(input, "change") for input in inputs]
             if inputs is not None
-            else []
+            else [EventListenerMethod(Context.root_block, "change")]
         )  # type: ignore
     else:
         triggers = [
