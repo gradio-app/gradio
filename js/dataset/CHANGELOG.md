@@ -1,5 +1,12 @@
 # @gradio/dataset
 
+## 0.1.16
+
+### Patch Changes
+
+- Updated dependencies [[`793bf8f`](https://github.com/gradio-app/gradio/commit/793bf8f7b1943f265c5d016c1a0c682ee549232a), [`5d00dd3`](https://github.com/gradio-app/gradio/commit/5d00dd37ca14bbfef2ceac550b29dbe05ba8cab0)]:
+  - @gradio/upload@0.6.0
+
 ## 0.1.15
 
 ### Patch Changes

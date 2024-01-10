@@ -1,5 +1,22 @@
 # gradio
 
+## 4.14.0
+
+### Features
+
+- [#6994](https://github.com/gradio-app/gradio/pull/6994) [`623bc1a`](https://github.com/gradio-app/gradio/commit/623bc1aeb19945c1f3c68ea66fa669d1169483a3) - Switch default order for sources for `gr.Video` so that upload is the default.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6965](https://github.com/gradio-app/gradio/pull/6965) [`5d00dd3`](https://github.com/gradio-app/gradio/commit/5d00dd37ca14bbfef2ceac550b29dbe05ba8cab0) - Make <UploadProgress /> Wasm-compatible.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6945](https://github.com/gradio-app/gradio/pull/6945) [`ccf317f`](https://github.com/gradio-app/gradio/commit/ccf317fc9797675a748b50118aa59a7e4b129d9d) - Add `additional_inputs`, `additional_inputs_accordion` parameters to `gr.Interface`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6963](https://github.com/gradio-app/gradio/pull/6963) [`8dfabee`](https://github.com/gradio-app/gradio/commit/8dfabee00495ccbbd6743da07fa06c75cac3fb5f) - fixed typo.  Thanks [@Cassini-chris](https://github.com/Cassini-chris)!
+
+### Fixes
+
+- [#6969](https://github.com/gradio-app/gradio/pull/6969) [`793bf8f`](https://github.com/gradio-app/gradio/commit/793bf8f7b1943f265c5d016c1a0c682ee549232a) - Display pending file in `<Upload />` while waiting for upload request.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6885](https://github.com/gradio-app/gradio/pull/6885) [`640b7fe`](https://github.com/gradio-app/gradio/commit/640b7fe05276e11720b4341cadf088491395e53d) - Fix issue with Webcam Recording.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#6967](https://github.com/gradio-app/gradio/pull/6967) [`5e00162`](https://github.com/gradio-app/gradio/commit/5e0016267f1d683e2daab82ee4a33d2f09513a34) - Make <Gallery /> Wasm-compatible.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6983](https://github.com/gradio-app/gradio/pull/6983) [`6e285be`](https://github.com/gradio-app/gradio/commit/6e285be8edeacf8730bac10b7ecd3fd5e309a950) - Fix the reloader.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#6958](https://github.com/gradio-app/gradio/pull/6958) [`0f0498b`](https://github.com/gradio-app/gradio/commit/0f0498bf97a036efe47d01b47c4b26000d8d1df3) - Ensure Chatbot theme text size is set correctly.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 4.13.0
 
 ### Features

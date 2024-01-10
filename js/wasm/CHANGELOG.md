@@ -1,5 +1,11 @@
 # @gradio/wasm
 
+## 0.5.0
+
+### Features
+
+- [#6965](https://github.com/gradio-app/gradio/pull/6965) [`5d00dd3`](https://github.com/gradio-app/gradio/commit/5d00dd37ca14bbfef2ceac550b29dbe05ba8cab0) - Make <UploadProgress /> Wasm-compatible.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 0.4.1
 
 ### Features
