@@ -1,5 +1,11 @@
 # @gradio/imageeditor
 
+## 0.2.3
+
+### Fixes
+
+- [#6885](https://github.com/gradio-app/gradio/pull/6885) [`640b7fe`](https://github.com/gradio-app/gradio/commit/640b7fe05276e11720b4341cadf088491395e53d) - Fix issue with Webcam Recording.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.2.2
 
 ### Patch Changes

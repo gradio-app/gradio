@@ -1,5 +1,12 @@
 # @gradio/lite
 
+## 4.14.0
+
+### Features
+
+- [#6989](https://github.com/gradio-app/gradio/pull/6989) [`71aab1c`](https://github.com/gradio-app/gradio/commit/71aab1c6173665a7886399614dbb2dd864adbd6b) - Add README to @gradio/lite.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6996](https://github.com/gradio-app/gradio/pull/6996) [`0b1f68d`](https://github.com/gradio-app/gradio/commit/0b1f68d2dbdaea3588fea6366a0da991a6e07f77) - bump lite to match gradio.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.4.4
 
 ## 0.4.4-beta.0
