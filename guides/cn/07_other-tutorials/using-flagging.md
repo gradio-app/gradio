@@ -13,7 +13,7 @@ Gradio 通过在每个“界面”中包含一个**标记**按钮来简化这些
 
 使用 Gradio 的 `Interface` 进行标记特别简单。默认情况下，在输出组件下方有一个标记为**标记**的按钮。当用户测试您的模型时，如果看到有趣的输出，他们可以点击标记按钮将输入和输出数据发送回运行演示的机器。样本会保存在一个 CSV 日志文件中（默认情况下）。如果演示涉及图像、音频、视频或其他类型的文件，则这些文件会单独保存在一个并行目录中，并且这些文件的路径会保存在 CSV 文件中。
 
-在 `gradio.Interface` 中有[四个参数](https://gradio.app/docs/#interface-header)控制标记的工作方式。我们将详细介绍它们。
+在 `gradio.Interface` 中有[四个参数](https://gradio.app/docs/interface#initialization)控制标记的工作方式。我们将详细介绍它们。
 
 - `allow_flagging`：此参数可以设置为 `"manual"`（默认值），`"auto"` 或 `"never"`。
   - `manual`：用户将看到一个标记按钮，只有在点击按钮时样本才会被标记。
