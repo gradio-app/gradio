@@ -27,4 +27,4 @@ Let's see how we do each of the 3 steps listed above in this game:
 
 With more complex apps, you will likely have many State variables storing session state in a single Blocks app.
 
-Learn more about `State` in the [docs](https://gradio.app/docs#state).
+Learn more about `State` in the [docs](https://gradio.app/docs/state).
