@@ -12,7 +12,7 @@
 </script>
 
 <!-- 4.0 Launch BANNER  -->
-<div class="flex-row">
+<div class="main-header flex-row">
 	<div
 		class="relative isolate flex items-center gap-x-6 overflow-hidden bg-gradient-to-r from-white via-yellow-200 to-white px-6 py-2 sm:px-3.5 sm:before:flex-1"
 	>
