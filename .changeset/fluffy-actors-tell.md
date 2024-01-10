@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Add `additional_inputs`, `submit_btn`, `clear_btn` parameters to `gr.Interface`
+feat:Add `additional_inputs`, `additional_inputs_accordion` parameters to `gr.Interface`
