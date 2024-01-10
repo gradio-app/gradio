@@ -77,7 +77,9 @@
 {:else}
 	<a
 		{href}
-		target={window.__is_colab__ ? "_blank" : null}
+		target={typeof window !== "undefined" && window.__is_colab__
+			? "_blank"
+			: null}
 		rel="noopener noreferrer"
 		{download}
 		{...$$restProps}
