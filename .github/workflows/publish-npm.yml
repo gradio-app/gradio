@@ -26,7 +26,8 @@ jobs:
           skip_build: 'true'
       - name: Build packages
         run: | 
-          python -m pip install build
+          . venv/bin/activate
+          pip install build
           pnpm --filter @gradio/client --filter @gradio/lite build
       - name: create and publish versions
         id: changesets
