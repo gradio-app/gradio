@@ -143,7 +143,7 @@
 						<p class="">{component.likes ? component.likes : ""}</p>
 					</span>
 				</p>
-				<p class="description text-lg font-light py-1">
+				<p class="description text-md font-light py-1">
 					{component.description}
 				</p>
 				<p
@@ -154,14 +154,16 @@
 						@{component.author}
 					</span>
 				</p>
-				<p
-					class="text-sm font-light py-1"
-					style="position: absolute; bottom: 5%; right: 5%"
-				>
-					<span class="bg-white p-1 rounded-md text-gray-700">
-						{component.template}
-					</span>
-				</p>
+				{#if component.template != "Fallback"}
+					<p
+						class="text-sm font-light py-1"
+						style="position: absolute; bottom: 5%; right: 5%"
+					>
+						<span class="bg-white p-1 rounded-md text-gray-700">
+							{component.template}
+						</span>
+					</p>
+				{/if}
 			</div>
 		{/each}
 	</div>
