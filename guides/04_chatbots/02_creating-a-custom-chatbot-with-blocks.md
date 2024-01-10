@@ -12,7 +12,7 @@ This tutorial will show how to make chatbot UIs from scratch with Gradio's low-l
 $demo_chatbot_streaming
 
 **Prerequisite**: We'll be using the `gradio.Blocks` class to build our Chatbot demo.
-You can [read the Guide to Blocks first](https://gradio.app/quickstart/#blocks-more-flexibility-and-control) if you are not already familiar with it. Also please make sure you are using the **latest version** version of Gradio: `pip install --upgrade gradio`.
+You can [read the Guide to Blocks first](https://gradio.app/blocks-and-event-listeners) if you are not already familiar with it. Also please make sure you are using the **latest version** version of Gradio: `pip install --upgrade gradio`.
 
 ## A Simple Chatbot Demo
 

@@ -508,13 +508,13 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     ):
         """
         Parameters:
-            theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the HF Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
-            analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
-            mode: a human-friendly name for the kind of Blocks or Interface being created.
+            theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the HF Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
+            analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
+            mode: A human-friendly name for the kind of Blocks or Interface being created. Used internally for analytics.
             title: The tab title to display when this is opened in a browser window.
-            css: custom css or path to custom css file to apply to entire Blocks.
-            js: custom js or path to custom js file to run when demo is first loaded.
-            head: custom html to insert into the head of the page.
+            css: Custom css or path to custom css file to apply to entire Blocks.
+            js: Custom js or path to custom js file to run when demo is first loaded.
+            head: Custom html to insert into the head of the page. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
         """
         self.limiter = None
         if theme is None:

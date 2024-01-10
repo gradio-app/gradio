@@ -98,10 +98,10 @@ class BaseReloader(ABC):
         assert self.running_app.blocks
         # Copy over the blocks to get new components and events but
         # not a new queue
-        if self.running_app.blocks._queue:
-            self.running_app.blocks._queue.block_fns = demo.fns
-            demo._queue = self.running_app.blocks._queue
+        self.running_app.blocks._queue.block_fns = demo.fns
+        demo._queue = self.running_app.blocks._queue
         self.running_app.blocks = demo
+        demo._queue.reload()
 
 
 class SourceFileReloader(BaseReloader):
@@ -206,11 +206,11 @@ def watchfn(reloader: SourceFileReloader):
             try:
                 module = importlib.import_module(reloader.watch_module_name)
                 module = importlib.reload(module)
-            except Exception as e:
+            except Exception:
                 print(
                     f"Reloading {reloader.watch_module_name} failed with the following exception: "
                 )
-                traceback.print_exception(None, value=e, tb=None)
+                traceback.print_exc()
                 mtimes = {}
                 continue
 
