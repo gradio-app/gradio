@@ -2,7 +2,7 @@
 
 Tags: TRANSLATION, HUB, SPACES
 
-**先决条件**: 本指南是在块介绍的基础上构建的。请确保[先阅读该指南](https://gradio.app/quickstart/#blocks-more-flexibility-and-control)。
+**先决条件**: 本指南是在块介绍的基础上构建的。请确保[先阅读该指南](https://gradio.app/blocks-and-event-listeners)。
 
 ## 介绍
 
