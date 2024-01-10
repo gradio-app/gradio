@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { FileData } from "@gradio/client";
-	import { onMount, createEventDispatcher } from "svelte";
+	import { onMount, createEventDispatcher, getContext } from "svelte";
 
 	type FileDataWithProgress = FileData & { progress: number };
 
@@ -36,9 +36,12 @@
 		return (file.progress * 100) / (file.size || 0) || 0;
 	}
 
+	const EventSource_factory = getContext<(url: URL) => EventSource>(
+		"EventSource_factory"
+	);
 	onMount(() => {
-		event_source = new EventSource(
-			`${root}/upload_progress?upload_id=${upload_id}`
+		event_source = EventSource_factory(
+			new URL(`${root}/upload_progress?upload_id=${upload_id}`)
 		);
 		// Event listener for progress updates
 		event_source.onmessage = async function (event) {
