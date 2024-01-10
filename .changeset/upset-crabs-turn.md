@@ -1,4 +1,5 @@
 ---
+"@gradio/lite": minor
 "website": minor
 ---
 
