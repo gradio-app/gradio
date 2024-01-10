@@ -16,7 +16,7 @@ Let's build a "Hello World" Gradio app in `@gradio/lite`
 
 ### 1. Import JS and CSS 
 
-Start by creating a new HTML file, if you don't have one already. Importing the JavaScript and CSS corresponding to the `@gradio/lite` package by using the following code:
+Start by creating a new HTML file, if you don't have one already. The best way to use @gradio/lite currently is via the CDN. Import the JavaScript and CSS corresponding to the `@gradio/lite` package by using the following code:
 
 
 ```html
