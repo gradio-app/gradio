@@ -124,18 +124,19 @@
 	/>
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
 </svelte:head>
-<div
-class="flex flex-row"
-style="position: absolute; top: -6%; right: 0.4%">
+<div class="flex flex-row" style="position: absolute; top: -6%; right: 0.4%">
 	<button
 		class="border border-gray-300 rounded-md mx-2 px-2 py-.5 my-[3px] text-md text-gray-600 hover:bg-gray-50 flex"
 		on:click={() => copy_link(current_selection)}
 	>
 		{#if !copied_link}
-			<img class="!w-5 align-text-top inline-block self-center mr-1" src={share} />
+			<img
+				class="!w-5 align-text-top inline-block self-center mr-1"
+				src={share}
+			/>
 			<p class="inline-block">Share With Edits</p>
 		{:else}
-			<div class="inline-block align-text-top !w-5 self-center ">
+			<div class="inline-block align-text-top !w-5 self-center">
 				{@html svgCheck}
 			</div>
 			<p class="inline-block">Copied Link!</p>
@@ -146,7 +147,6 @@ style="position: absolute; top: -6%; right: 0.4%">
 	class=" absolute top-0 bottom-0 right-0"
 	style="left:{show_nav ? 200 : 37}px"
 >
-
 	<Slider bind:position bind:show_nav>
 		<div class="flex-row min-w-0 h-full" class:flex={!fullscreen}>
 			{#each demos as demo, i}
@@ -157,8 +157,7 @@ style="position: absolute; top: -6%; right: 0.4%">
 				>
 					<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
 						<h3 class="pt-1">Code</h3>
-						<div class="flex float-right">
-						</div>
+						<div class="flex float-right"></div>
 					</div>
 
 					<Code
