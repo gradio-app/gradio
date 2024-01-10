@@ -14,7 +14,7 @@ Related spaces: https://huggingface.co/spaces/gradio/chatbot_streaming, https://
 $ 演示 _ 聊天机器人 _ 流式
 
 **先决条件**：我们将使用 `gradio.Blocks` 类来构建我们的聊天机器人演示。
-如果您对此还不熟悉，可以[先阅读 Blocks 指南](https://gradio.app/quickstart/#blocks-more-flexibility-and-control)。同时，请确保您使用的是**最新版本**的 Gradio：`pip install --upgrade gradio`。
+如果您对此还不熟悉，可以[先阅读 Blocks 指南](https://gradio.app/blocks-and-event-listeners)。同时，请确保您使用的是**最新版本**的 Gradio：`pip install --upgrade gradio`。
 
 ## 简单聊天机器人演示
 
