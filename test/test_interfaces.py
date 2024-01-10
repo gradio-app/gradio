@@ -177,6 +177,12 @@ class TestInterface:
         Interface(fn=str, inputs=t, outputs=Textbox())
         assert t.label == "input 0"
 
+    def test_interface_additional_components_are_included_as_inputs(self):
+        t = Textbox()
+        s = gradio.Slider(0, 100)
+        io = Interface(fn=str, inputs=t, outputs=Textbox(), additional_inputs=s)
+        assert io.input_components == [t, s]
+
 
 class TestTabbedInterface:
     def test_tabbed_interface_config_matches_manual_tab(self):
