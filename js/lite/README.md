@@ -1,6 +1,5 @@
 # Gradio-Lite: Serverless Gradio Running Entirely in Your Browser
 
-Tags: SERVERLESS, BROWSER, PYODIDE
 
 Gradio is a popular Python library for creating interactive machine learning apps. Traditionally, Gradio applications have relied on server-side infrastructure to run, which can be a hurdle for developers who need to host their applications. 
 
