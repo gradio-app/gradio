@@ -58,6 +58,8 @@ from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation
 from gradio.route_utils import (  # noqa: F401
     FileUploadProgress,
+    FileUploadProgressNotQueuedError,
+    FileUploadProgressNotTrackedError,
     GradioMultiPartParser,
     GradioUploadFile,
     MultiPartException,
@@ -670,6 +672,8 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
+            blocks = app.get_blocks()
+
             if blocks._queue.server_app is None:
                 blocks._queue.set_server_app(app)
 
@@ -730,30 +734,26 @@ class App(FastAPI):
 
                     heartbeat_rate = 15
                     check_rate = 0.05
-                    message = None
                     try:
-                        if update := file_upload_statuses.status(upload_id).popleft():
-                            if update.is_done:
-                                message = {"msg": "done"}
-                                is_done = True
-                            else:
-                                message = {
-                                    "msg": "update",
-                                    "orig_name": update.filename,
-                                    "chunk_size": update.chunk_size,
-                                }
+                        if file_upload_statuses.is_done(upload_id):
+                            message = {"msg": "done"}
+                            is_done = True
                         else:
-                            await asyncio.sleep(check_rate)
-                            if time.perf_counter() - last_heartbeat > heartbeat_rate:
-                                message = {"msg": "heartbeat"}
-                                last_heartbeat = time.perf_counter()
-                        if message:
+                            update = file_upload_statuses.pop(upload_id)
+                            message = {
+                                "msg": "update",
+                                "orig_name": update.filename,
+                                "chunk_size": update.chunk_size,
+                            }
+                        yield f"data: {json.dumps(message)}\n\n"
+                    except FileUploadProgressNotTrackedError:
+                        return
+                    except FileUploadProgressNotQueuedError:
+                        await asyncio.sleep(check_rate)
+                        if time.perf_counter() - last_heartbeat > heartbeat_rate:
+                            message = {"msg": "heartbeat"}
                             yield f"data: {json.dumps(message)}\n\n"
-                    except IndexError:
-                        if not file_upload_statuses.is_tracked(upload_id):
-                            return
-                        # pop from empty queue
-                        continue
+                            last_heartbeat = time.perf_counter()
 
             return StreamingResponse(
                 sse_stream(request),
