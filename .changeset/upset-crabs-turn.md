@@ -1,6 +1,6 @@
 ---
-"@gradio/lite": minor
-"website": minor
+"@gradio/lite": patch
+"website": patch
 ---
 
 feat:Design changes to Playground
