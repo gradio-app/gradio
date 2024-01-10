@@ -83,6 +83,11 @@ Another useful keyword argument is `label=`, which is present in every `Componen
 gr.Number(label='Age', info='In years, must be greater than 0')
 ```
 
+## Additional Inputs within an Accordion
+
+If your prediction function takes lots of inputs, 
+
+
 ## Flagging
 
 By default, an `Interface` will have "Flag" button. When a user testing your `Interface` sees input with interesting output, such as erroneous or unexpected model behaviour, they can flag the input for you to review. Within the directory provided by the `flagging_dir=` argument to the `Interface` constructor, a CSV file will log the flagged inputs. If the interface involves file data, such as for Image and Audio components, folders will be created to store those flagged data as well.
