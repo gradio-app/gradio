@@ -36,7 +36,7 @@ with gr.Blocks() as demo:
 
 - `min_width` 将设置元素的最小宽度。如果没有足够的空间满足所有的 `min_width` 值，行将换行。
 
-在[文档](https://gradio.app/docs/#row)中了解有关行的更多信息。
+在[文档](https://gradio.app/docs/row)中了解有关行的更多信息。
 
 ## 列和嵌套 (Columns and Nesting)
 
@@ -47,7 +47,7 @@ $demo_rows_and_columns
 
 查看第一列如何垂直排列两个文本框。第二列垂直排列图像和按钮。注意两列的相对宽度由 `scale` 参数设置。具有两倍 `scale` 值的列占据两倍的宽度。
 
-在[文档](https://gradio.app/docs/#column)中了解有关列的更多信息。
+在[文档](https://gradio.app/docs/column)中了解有关列的更多信息。
 
 ## 选项卡和手风琴 (Tabs and Accordions)
 
@@ -60,7 +60,7 @@ $demo_blocks_flipper
 
 还请注意本示例中的 `gr.Accordion('label')`。手风琴是一种可以切换打开或关闭的布局。与 `Tabs` 一样，它是可以选择性隐藏或显示内容的布局元素。在 `with gr.Accordion('label'):` 内定义的任何组件在单击手风琴的切换图标时都会被隐藏或显示。
 
-在文档中了解有关[Tabs](https://gradio.app/docs/#tab)和[Accordions](https://gradio.app/docs/#accordion)的更多信息。
+在文档中了解有关[Tabs](https://gradio.app/docs/tab)和[Accordions](https://gradio.app/docs/accordion)的更多信息。
 
 ## 可见性 (Visibility)
 
