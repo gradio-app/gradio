@@ -171,6 +171,8 @@ class Interface(Blocks):
         elif inputs is None or inputs == []:
             inputs = []
             self.interface_type = InterfaceTypes.OUTPUT_ONLY
+        if additional_inputs is None:
+            additional_inputs = []
 
         assert isinstance(inputs, (str, list, Component))
         assert isinstance(outputs, (str, list, Component))
@@ -179,6 +181,8 @@ class Interface(Blocks):
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
+        if not isinstance(additional_inputs, list):
+            additional_inputs = [additional_inputs]
 
         if self.space_id and cache_examples is None:
             self.cache_examples = True
@@ -480,9 +484,10 @@ class Interface(Blocks):
             with input_component_column:
                 for component in self.main_input_components:
                     component.render()
-                with Accordion(**self.additional_inputs_accordion_params):  # type: ignore
-                    for component in self.additional_input_components:
-                        component.render()
+                if self.additional_input_components:
+                    with Accordion(**self.additional_inputs_accordion_params):  # type: ignore
+                        for component in self.additional_input_components:
+                            component.render()
             with Row():
                 if self.interface_type in [
                     InterfaceTypes.STANDARD,
