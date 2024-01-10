@@ -203,9 +203,6 @@ class Audio(
 
         sample_rate, data = processing_utils.audio_from_file(temp_file_path)
 
-        if self.waveform_options.sample_rate is None:
-            self.waveform_options.sample_rate = sample_rate
-
         duration = len(data) / sample_rate
         if self.min_length is not None and duration < self.min_length:
             raise Error(
