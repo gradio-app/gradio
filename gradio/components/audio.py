@@ -38,7 +38,7 @@ class WaveformOptions:
     show_recording_waveform: bool = True
     show_controls: bool = False
     skip_length: int | float = 5
-    sample_rate: int = None
+    sample_rate: int = 44100
 
 
 @document()
