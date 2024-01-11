@@ -55,13 +55,13 @@ They handle the conversion from the data sent by the frontend to the format expe
         return y
 ```
 
-### `as_example`
+### `process_example`
 
 Takes in the original Python value and returns the modified value that should be displayed in the examples preview in the app. 
-Let's look at the following example from the `Radio` component.
+If not provided, the `.postprocess()` method is used instead. Let's look at the following example from the `SimpleDropdown` component.
 
 ```python
-def as_example(self, input_data):
+def process_example(self, input_data):
     return next((c[0] for c in self.choices if c[1] == input_data), None)
 ```
 
@@ -69,7 +69,7 @@ Since `self.choices` is a list of tuples corresponding to (`display_name`, `valu
 
 ```python
 @abstractmethod
-def as_example(self, y):
+def process_example(self, y):
     pass
 ```
 

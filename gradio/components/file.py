@@ -160,7 +160,7 @@ class File(Component):
                 size=Path(value).stat().st_size,
             )
 
-    def as_example(self, input_data: str | list | None) -> str:
+    def process_example(self, input_data: str | list | None) -> str:
         if input_data is None:
             return ""
         elif isinstance(input_data, list):

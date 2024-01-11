@@ -73,7 +73,7 @@ class TestExamples:
             [media_data.BASE64_IMAGE, "hi"],
         ]
         for sample in examples.dataset.samples:
-            assert os.path.isabs(sample[0])
+            assert os.path.isabs(sample[0]["path"])
 
     def test_examples_per_page(self, patched_cache_folder):
         examples = gr.Examples(["hello", "hi"], gr.Textbox(), examples_per_page=2)

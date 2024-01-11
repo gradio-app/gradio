@@ -237,7 +237,7 @@ def move_resource_to_block_cache(
 def move_files_to_cache(data: Any, block: Component, postprocess: bool = False):
     """Move files to cache and replace the file path with the cache path.
 
-    Runs after postprocess and before preprocess.
+    Runs after .postprocess(), after .process_example(), and before .preprocess().
 
     Args:
         data: The input or output data for a component. Can be a dictionary or a dataclass

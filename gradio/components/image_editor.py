@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any, Iterable, List, Literal, Optional, TypedDict, Union, cast
 
 import numpy as np
-from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 from PIL import Image as _Image  # using _ to minimize namespace pollution
 
@@ -309,37 +308,6 @@ class ImageEditor(Component):
             if value["composite"] is not None
             else None,
         )
-
-    def as_example(
-        self, input_data: EditorExampleValue | str | None
-    ) -> EditorExampleValue | None:
-        def resolve_path(file_or_url: str | None) -> str | None:
-            if file_or_url is None:
-                return None
-            input_data = str(file_or_url)
-            # If an externally hosted image or a URL, don't convert to absolute path
-            if self.proxy_url or client_utils.is_http_url_like(input_data):
-                return input_data
-            return self.move_resource_to_block_cache(input_data)
-
-        if input_data is None:
-            return None
-        elif isinstance(input_data, str):
-            input_data = {
-                "background": input_data,
-                "layers": [],
-                "composite": input_data,
-            }
-
-        input_data["background"] = resolve_path(input_data["background"])
-        input_data["layers"] = (
-            [resolve_path(f) for f in input_data["layers"]]
-            if input_data["layers"]
-            else []
-        )
-        input_data["composite"] = resolve_path(input_data["composite"])
-
-        return input_data
 
     def example_inputs(self) -> Any:
         return {

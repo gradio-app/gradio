@@ -1,7 +1,21 @@
 <script lang="ts">
-	export let value: string;
+	export let value: string | string[];
 	export let type: "gallery" | "table";
 	export let selected = false;
+	export let choices: [string, string | number][];
+
+	let value_array = Array.isArray(value) ? value : [value];
+	let names = value_array
+		.map(
+			(val) =>
+				(
+					choices.find((pair) => pair[1] === val) as
+						| [string, string | number]
+						| undefined
+				)?.[0]
+		)
+		.filter((name) => name !== undefined);
+	let names_string = names.join(", ");
 </script>
 
 <div
@@ -9,7 +23,7 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	{value}
+	{names_string}
 </div>
 
 <style>
