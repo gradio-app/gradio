@@ -430,8 +430,7 @@ class TestCheckboxGroup:
         cbox = gr.CheckboxGroup(choices=["a", "b"], value="c")
         assert cbox.get_config()["value"] == ["c"]
         assert cbox.postprocess("a") == ["a"]
-        with pytest.raises(ValueError):
-            gr.CheckboxGroup().as_example("a")
+        assert cbox.process_example("a") == ["a"]
 
     def test_in_interface(self):
         """
@@ -638,15 +637,12 @@ class TestImageEditor:
             "name": "imageeditor",
         }
 
-    def test_as_example(self):
+    def test_process_example(self):
         test_image_path = "test/test_files/bus.png"
         image_editor = gr.ImageEditor()
-        example_value = image_editor.as_example(test_image_path)
-        assert isinstance(example_value, dict)
-        assert example_value["background"]
-        assert utils.is_in_or_equal(
-            example_value["background"], image_editor.GRADIO_CACHE
-        )
+        example_value = image_editor.process_example(test_image_path)
+        assert isinstance(example_value, EditorData)
+        assert example_value.background and example_value.background.path
 
 
 class TestImage:
@@ -1081,11 +1077,12 @@ class TestDataframe:
             "headers": ["Name", "Age", "Member"],
             "metadata": None,
         }
+        x_payload = DataframeData(**x_data)
         dataframe_input = gr.Dataframe(headers=["Name", "Age", "Member"])
-        output = dataframe_input.preprocess(DataframeData(**x_data))
+        output = dataframe_input.preprocess(x_payload)
         assert output["Age"][1] == 24
         assert not output["Member"][0]
-        assert dataframe_input.postprocess(x_data) == x_data
+        assert dataframe_input.postprocess(output) == x_payload
 
         dataframe_input = gr.Dataframe(
             headers=["Name", "Age", "Member"], label="Dataframe Input"
@@ -1396,7 +1393,7 @@ class TestDataset:
         row = dataset.preprocess(1)
         assert row[0] == 15
         assert row[1] == "hi"
-        assert row[2].endswith("bus.png")
+        assert row[2]["path"].endswith("bus.png")
         assert row[3] == "<i>Italics</i>"
         assert row[4] == "*Italics*"
 
@@ -1413,7 +1410,7 @@ class TestDataset:
 
         radio = gr.Radio(choices=[("name 1", "value 1"), ("name 2", "value 2")])
         dataset = gr.Dataset(samples=[["value 1"], ["value 2"]], components=[radio])
-        assert dataset.samples == [["name 1"], ["name 2"]]
+        assert dataset.samples == [["value 1"], ["value 2"]]
 
     def test_postprocessing(self):
         test_file_dir = Path(Path(__file__).parent, "test_files")
@@ -2336,32 +2333,40 @@ class TestState:
         assert result["prediction"] == 2
 
 
-def test_dataframe_as_example_converts_dataframes():
+def test_dataframe_process_example_converts_dataframes():
     df_comp = gr.Dataframe()
-    assert df_comp.as_example(pd.DataFrame({"a": [1, 2, 3, 4], "b": [5, 6, 7, 8]})) == [
+    assert df_comp.process_example(
+        pd.DataFrame({"a": [1, 2, 3, 4], "b": [5, 6, 7, 8]})
+    ) == [
         [1, 5],
         [2, 6],
         [3, 7],
         [4, 8],
     ]
-    assert df_comp.as_example(np.array([[1, 2], [3, 4.0]])) == [[1.0, 2.0], [3.0, 4.0]]
+    assert df_comp.process_example(np.array([[1, 2], [3, 4.0]])) == [
+        [1.0, 2.0],
+        [3.0, 4.0],
+    ]
 
 
 @pytest.mark.parametrize("component", [gr.Model3D, gr.File, gr.Audio])
-def test_as_example_returns_file_basename(component):
+def test_process_example_returns_file_basename(component):
     component = component()
-    assert component.as_example("/home/freddy/sources/example.ext") == "example.ext"
-    assert component.as_example(None) == ""
+    assert (
+        component.process_example("/home/freddy/sources/example.ext") == "example.ext"
+    )
+    assert component.process_example(None) == ""
 
 
 @patch(
-    "gradio.components.Component.as_example", spec=gr.components.Component.as_example
+    "gradio.components.Component.process_example",
+    spec=gr.components.Component.process_example,
 )
-@patch("gradio.components.Image.as_example", spec=gr.Image.as_example)
-@patch("gradio.components.File.as_example", spec=gr.File.as_example)
-@patch("gradio.components.Dataframe.as_example", spec=gr.DataFrame.as_example)
-@patch("gradio.components.Model3D.as_example", spec=gr.Model3D.as_example)
-def test_dataset_calls_as_example(*mocks):
+@patch("gradio.components.Image.process_example", spec=gr.Image.process_example)
+@patch("gradio.components.File.process_example", spec=gr.File.process_example)
+@patch("gradio.components.Dataframe.process_example", spec=gr.DataFrame.process_example)
+@patch("gradio.components.Model3D.process_example", spec=gr.Model3D.process_example)
+def test_dataset_calls_process_example(*mocks):
     gr.Dataset(
         components=[gr.Dataframe(), gr.File(), gr.Image(), gr.Model3D(), gr.Textbox()],
         samples=[

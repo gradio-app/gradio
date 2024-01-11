@@ -2,6 +2,10 @@
 	export let value: string;
 	export let type: "gallery" | "table";
 	export let selected = false;
+	export let choices: [string, string | number][];
+
+	let name = choices.find((pair) => pair[1] === value);
+	let name_string = name ? name[0] : "";
 </script>
 
 <div
@@ -9,7 +13,7 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	{value}
+	{name_string}
 </div>
 
 <style>

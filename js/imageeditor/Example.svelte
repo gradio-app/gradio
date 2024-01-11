@@ -14,7 +14,10 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	<Image src={samples_dir + (value.composite || value.background)} alt="" />
+	<Image
+		src={samples_dir + (value.composite?.path || value.background?.path)}
+		alt=""
+	/>
 </div>
 
 <style>
