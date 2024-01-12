@@ -161,7 +161,8 @@ export function create(options: Options): GradioAppController {
 				client,
 				upload_files,
 				mount_css: overridden_mount_css,
-				fetch_implementation: overridden_fetch
+				fetch_implementation: overridden_fetch,
+				EventSource_factory
 			}
 		});
 	}

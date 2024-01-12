@@ -1,5 +1,11 @@
 # @gradio/chatbot
 
+## 0.6.1
+
+### Fixes
+
+- [#6958](https://github.com/gradio-app/gradio/pull/6958) [`0f0498b`](https://github.com/gradio-app/gradio/commit/0f0498bf97a036efe47d01b47c4b26000d8d1df3) - Ensure Chatbot theme text size is set correctly.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.6.0
 
 ### Features
