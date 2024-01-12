@@ -11,6 +11,8 @@
 		name: string;
 		id: object;
 		elem_id: string | undefined;
+		visible: boolean;
+		interactive: boolean;
 	}
 
 	export let visible = true;
@@ -29,8 +31,21 @@
 
 	setContext(TABS, {
 		register_tab: (tab: Tab) => {
-			tabs.push({ name: tab.name, id: tab.id, elem_id: tab.elem_id });
-			selected_tab.update((current) => current ?? tab.id);
+			tabs.push({
+				name: tab.name,
+				id: tab.id,
+				elem_id: tab.elem_id,
+				visible: tab.visible,
+				interactive: tab.interactive
+			});
+			selected_tab.update((current) => {
+				if (current === false && tab.visible && tab.interactive) {
+					return tab.id;
+				}
+
+				let nextTab = tabs.find((t) => t.visible && t.interactive);
+				return nextTab ? nextTab.id : current;
+			});
 			tabs = tabs;
 			return tabs.length - 1;
 		},
@@ -58,20 +73,25 @@
 <div class="tabs {elem_classes.join(' ')}" class:hide={!visible} id={elem_id}>
 	<div class="tab-nav scroll-hide">
 		{#each tabs as t, i (t.id)}
-			{#if t.id === $selected_tab}
-				<button class="selected" id={t.elem_id ? t.elem_id + "-button" : null}>
-					{t.name}
-				</button>
-			{:else}
-				<button
-					id={t.elem_id ? t.elem_id + "-button" : null}
-					on:click={() => {
-						change_tab(t.id);
-						dispatch("select", { value: t.name, index: i });
-					}}
-				>
-					{t.name}
-				</button>
+			{#if t.visible}
+				{#if t.id === $selected_tab}
+					<button
+						class="selected"
+						id={t.elem_id ? t.elem_id + "-button" : null}
+					>
+						{t.name}
+					</button>
+				{:else}
+					<button
+						id={t.elem_id ? t.elem_id + "-button" : null}
+						on:click={() => {
+							change_tab(t.id);
+							dispatch("select", { value: t.name, index: i });
+						}}
+					>
+						{t.name}
+					</button>
+				{/if}
 			{/if}
 		{/each}
 	</div>
