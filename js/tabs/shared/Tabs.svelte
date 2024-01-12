@@ -71,18 +71,24 @@
 </script>
 
 <div class="tabs {elem_classes.join(' ')}" class:hide={!visible} id={elem_id}>
-	<div class="tab-nav scroll-hide">
+	<div class="tab-nav scroll-hide" role="tablist">
 		{#each tabs as t, i (t.id)}
 			{#if t.visible}
 				{#if t.id === $selected_tab}
 					<button
+						role="tab"
 						class="selected"
+						aria-selected={true}
+						aria-controls={t.elem_id}
 						id={t.elem_id ? t.elem_id + "-button" : null}
 					>
 						{t.name}
 					</button>
 				{:else}
 					<button
+						role="tab"
+						aria-selected={false}
+						aria-controls={t.elem_id}
 						disabled={!t.interactive}
 						id={t.elem_id ? t.elem_id + "-button" : null}
 						on:click={() => {
