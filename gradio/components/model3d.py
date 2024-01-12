@@ -106,7 +106,7 @@ class Model3D(Component):
             return value
         return FileData(path=str(value), orig_name=Path(value).name)
 
-    def as_example(self, input_data: str | None) -> str:
+    def process_example(self, input_data: str | Path | None) -> str:
         return Path(input_data).name if input_data else ""
 
     def example_inputs(self):
