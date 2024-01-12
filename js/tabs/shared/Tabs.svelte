@@ -90,6 +90,7 @@
 						aria-selected={false}
 						aria-controls={t.elem_id}
 						disabled={!t.interactive}
+						aria-disabled={!t.interactive}
 						id={t.elem_id ? t.elem_id + "-button" : null}
 						on:click={() => {
 							change_tab(t.id);
