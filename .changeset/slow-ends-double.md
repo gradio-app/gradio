@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Add `visible` and `interactive` params to gr.Tab()
+feat:Add `visible` and `interactive` params to `gr.Tab()`
