@@ -83,6 +83,7 @@
 					</button>
 				{:else}
 					<button
+						disabled={!t.interactive}
 						id={t.elem_id ? t.elem_id + "-button" : null}
 						on:click={() => {
 							change_tab(t.id);
@@ -125,6 +126,12 @@
 		color: var(--body-text-color-subdued);
 		font-weight: var(--section-header-text-weight);
 		font-size: var(--section-header-text-size);
+	}
+
+	button:disabled {
+		color: var(--body-text-color-subdued);
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 
 	button:hover {
