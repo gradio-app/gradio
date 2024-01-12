@@ -116,11 +116,11 @@
 				decodedData,
 				start,
 				end,
-				waveform_settings.sample_rate
+				waveform_settings.sampleRate
 			).then(async (trimmedBlob: Uint8Array) => {
 				await dispatch_blob([trimmedBlob], "change");
 				waveform?.destroy();
-				create_waveform();
+				container.innerHTML = "";
 			});
 		dispatch("edit");
 	};
