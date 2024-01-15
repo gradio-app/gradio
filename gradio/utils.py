@@ -639,8 +639,8 @@ def function_wrapper(
                 before_fn(*before_args)
             async for response in f(*args, **kwargs):
                 yield response
-            if after_fn:
-                after_fn(*after_args)
+                if after_fn:
+                    after_fn(*after_args)
 
         return asyncgen_wrapper
 
