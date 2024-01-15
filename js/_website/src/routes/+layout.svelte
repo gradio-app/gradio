@@ -78,3 +78,12 @@
 <slot />
 
 <Footer />
+
+<style>
+	:global(
+			body:has(.playground) .main-header,
+			body:has(.playground) .main-footer
+		) {
+		display: none;
+	}
+</style>
