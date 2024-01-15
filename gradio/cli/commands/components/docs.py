@@ -1,12 +1,10 @@
 import importlib
-import re
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import requests
-import semantic_version
 import toml
-from typer import Option, Argument
+from typer import Argument, Option
 from typing_extensions import Annotated
 
 from ._docs_utils import (
@@ -14,73 +12,6 @@ from ._docs_utils import (
     get_deep,
     make_space,
 )
-
-colors = ["red", "yellow", "green", "blue", "indigo", "purple", "pink", "gray"]
-
-PYPI_REGISTER_URL = "https://pypi.org/account/register/"
-
-README_CONTENTS = """
----
-tags: [gradio-custom-component{template}]
-title: {package_name} V{version}
-colorFrom: {color_from}
-colorTo: {color_to}
-sdk: docker
-pinned: false
-license: apache-2.0
----
-"""
-
-DOCKERFILE = """
-FROM python:3.9
-
-WORKDIR /code
-
-COPY --link --chown=1000 . .
-
-RUN mkdir -p /tmp/cache/
-RUN chmod a+rwx -R /tmp/cache/
-ENV TRANSFORMERS_CACHE=/tmp/cache/ 
-
-RUN pip install --no-cache-dir -r requirements.txt
-
-ENV PYTHONUNBUFFERED=1 \
-	GRADIO_ALLOW_FLAGGING=never \
-	GRADIO_NUM_PORTS=1 \
-	GRADIO_SERVER_NAME=0.0.0.0 \
-    GRADIO_SERVER_PORT=7860 \
-	SYSTEM=spaces
-
-CMD ["python", "app.py"]
-"""
-
-
-def _ignore(s, names):
-    ignored = []
-    for n in names:
-        if "__pycache__" in n or n.startswith("dist") or n.startswith("node_modules"):
-            ignored.append(n)
-    return ignored
-
-
-def _get_version_from_file(dist_file: Path) -> Optional[str]:
-    match = re.search(r"-(\d+\.\d+\.\d+[a-zA-Z]*\d*)-", dist_file.name)
-    if match:
-        return match.group(1)
-
-
-def _get_max_version(distribution_files: List[Path]) -> Optional[str]:
-    versions = []
-    for p in distribution_files:
-        version = _get_version_from_file(p)
-        # If anything goes wrong, just return None so we upload all files
-        # better safe than sorry
-        if version:
-            try:
-                versions.append(semantic_version.Version(version))
-            except ValueError:
-                return None
-    return str(max(versions)) if versions else None
 
 
 def _docs(
