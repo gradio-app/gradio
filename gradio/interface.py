@@ -819,8 +819,6 @@ class TabbedInterface(Blocks):
         theme: Theme | None = None,
         analytics_enabled: bool | None = None,
         css: str | None = None,
-        visible_tabs: list[int] | None = None,
-        interactive_tabs: list[int] | None = None,
     ):
         """
         Parameters:
@@ -829,8 +827,6 @@ class TabbedInterface(Blocks):
             title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
             analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             css: custom css or path to custom css file to apply to entire Blocks
-            visible_tabs: a list of indices of tabs that should be visible. If None, all tabs are visible.
-            interactive_tabs: a list of indices of tabs that should be interactive. If None, all tabs are interactive.
         Returns:
             a Gradio Tabbed Interface for the given interfaces
         """
@@ -844,11 +840,6 @@ class TabbedInterface(Blocks):
         if tab_names is None:
             tab_names = [f"Tab {i}" for i in range(len(interface_list))]
 
-        if visible_tabs is None:
-            visible_tabs = list(range(len(interface_list)))
-
-        if interactive_tabs is None:
-            interactive_tabs = list(range(len(interface_list)))
         with self:
             if title:
                 Markdown(
