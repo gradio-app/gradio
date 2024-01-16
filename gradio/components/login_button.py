@@ -96,10 +96,11 @@ class LoginButton(Button):
 _js_open_if_not_logged_in = """
 (buttonValue) => {
     if (!buttonValue.includes("Signed in")) {
+        url = '/login/huggingface' + window.location.search
         if ( window !== window.parent ) {
-            window.open('/login/huggingface', '_blank');
+            window.open(url, '_blank');
         } else {
-            window.location.assign('/login/huggingface');
+            window.location.assign(url);
         }
     }
 }
