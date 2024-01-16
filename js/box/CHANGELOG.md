@@ -1,5 +1,12 @@
 # @gradio/box
 
+## 0.1.6
+
+### Patch Changes
+
+- Updated dependencies [[`73268ee`](https://github.com/gradio-app/gradio/commit/73268ee2e39f23ebdd1e927cb49b8d79c4b9a144)]:
+  - @gradio/atoms@0.4.1
+
 ## 0.1.5
 
 ### Patch Changes

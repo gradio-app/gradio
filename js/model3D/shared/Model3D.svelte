@@ -7,6 +7,7 @@
 	import * as BABYLON from "babylonjs";
 	import * as BABYLON_LOADERS from "babylonjs-loaders";
 	import type { I18nFormatter } from "@gradio/utils";
+	import { dequal } from "dequal";
 
 	export let value: FileData | null;
 	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
@@ -15,13 +16,14 @@
 	export let i18n: I18nFormatter;
 	export let zoom_speed = 1;
 	export let pan_speed = 1;
-
 	// alpha, beta, radius
 	export let camera_position: [number | null, number | null, number | null] = [
 		null,
 		null,
 		null
 	];
+
+	let current_settings = { camera_position, zoom_speed, pan_speed };
 
 	$: {
 		if (
@@ -80,8 +82,17 @@
 		reset_camera_position(scene, camera_position, zoom_speed, pan_speed);
 	}
 
-	$: if (scene)
-		reset_camera_position(scene, camera_position, zoom_speed, pan_speed);
+	$: {
+		if (
+			scene &&
+			(!dequal(current_settings.camera_position, camera_position) ||
+				current_settings.zoom_speed !== zoom_speed ||
+				current_settings.pan_speed !== pan_speed)
+		) {
+			reset_camera_position(scene, camera_position, zoom_speed, pan_speed);
+			current_settings = { camera_position, zoom_speed, pan_speed };
+		}
+	}
 </script>
 
 <BlockLabel

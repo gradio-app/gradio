@@ -831,3 +831,34 @@ class TestShowAPI:
         assert (
             interface.show_api is True
         ), "show_api should be True when IS_WASM is False"
+
+
+def test_component_server_endpoints(connect):
+    here = os.path.dirname(os.path.abspath(__file__))
+    with gr.Blocks() as demo:
+        file_explorer = gr.FileExplorer(root=here)
+
+    with closing(demo) as io:
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        success_req = client.post(
+            "/component_server/",
+            json={
+                "session_hash": "123",
+                "component_id": file_explorer._id,
+                "fn_name": "ls",
+                "data": None,
+            },
+        )
+        assert success_req.status_code == 200
+        assert len(success_req.json()) > 0
+        fail_req = client.post(
+            "/component_server/",
+            json={
+                "session_hash": "123",
+                "component_id": file_explorer._id,
+                "fn_name": "preprocess",
+                "data": None,
+            },
+        )
+        assert fail_req.status_code == 404

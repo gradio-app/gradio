@@ -22,7 +22,7 @@ If you would like to share your component with the gradio community, it is recom
 
 ## What methods are mandatory for implementing a custom component in Gradio?
 
-You must implement the `preprocess`, `postprocess`, `as_example`, `api_info`, `example_inputs`, `flag`, and `read_from_flag` methods. Read more in the [backend guide](./backend).
+You must implement the `preprocess`, `postprocess`, `api_info`, `example_inputs`, `flag`, and `read_from_flag` methods. Read more in the [backend guide](./backend).
 
 ## What is the purpose of a `data_model` in Gradio custom components?
 

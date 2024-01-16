@@ -28,7 +28,7 @@ from gradio.data_classes import InterfaceTypes
 from gradio.events import Events, on
 from gradio.exceptions import RenderError
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
-from gradio.layouts import Column, Row, Tab, Tabs
+from gradio.layouts import Accordion, Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
 from gradio.themes import ThemeClass as Theme
 
@@ -115,6 +115,10 @@ class Interface(Blocks):
         _api_mode: bool = False,
         allow_duplication: bool = False,
         concurrency_limit: int | None | Literal["default"] = "default",
+        js: str | None = None,
+        head: str | None = None,
+        additional_inputs: str | Component | list[str | Component] | None = None,
+        additional_inputs_accordion: str | Accordion | None = None,
         **kwargs,
     ):
         """
@@ -141,7 +145,11 @@ class Interface(Blocks):
             max_batch_size: Maximum number of inputs to batch together if this is called from the queue (only relevant if batch=True)
             api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None, the name of the prediction function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
             allow_duplication: If True, then will show a 'Duplicate Spaces' button on Hugging Face Spaces.
-            concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which itself is 1 by default).
+            concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which itself is 1 by default).
+            js: Custom js or path to custom js file to run when demo is first loaded.
+            head: Custom html to insert into the head of the page. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
+            additional_inputs: A single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. These components will be rendered in an accordion below the main input components. By default, no additional input components will be displayed.
+            additional_inputs_accordion: If a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -149,6 +157,8 @@ class Interface(Blocks):
             css=css,
             title=title or "Gradio",
             theme=theme,
+            js=js,
+            head=head,
             **kwargs,
         )
         self.api_name: str | Literal[False] | None = api_name
@@ -161,6 +171,8 @@ class Interface(Blocks):
         elif inputs is None or inputs == []:
             inputs = []
             self.interface_type = InterfaceTypes.OUTPUT_ONLY
+        if additional_inputs is None:
+            additional_inputs = []
 
         assert isinstance(inputs, (str, list, Component))
         assert isinstance(outputs, (str, list, Component))
@@ -169,6 +181,8 @@ class Interface(Blocks):
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
+        if not isinstance(additional_inputs, list):
+            additional_inputs = [additional_inputs]
 
         if self.space_id and cache_examples is None:
             self.cache_examples = True
@@ -207,10 +221,36 @@ class Interface(Blocks):
                 )
             self.cache_examples = False
 
-        self.input_components = [
+        self.main_input_components = [
             get_component_instance(i, unrender=True)
             for i in inputs  # type: ignore
         ]
+        self.additional_input_components = [
+            get_component_instance(i, unrender=True)
+            for i in additional_inputs  # type: ignore
+        ]
+        if additional_inputs_accordion is None:
+            self.additional_inputs_accordion_params = {
+                "label": "Additional Inputs",
+                "open": False,
+            }
+        elif isinstance(additional_inputs_accordion, str):
+            self.additional_inputs_accordion_params = {
+                "label": additional_inputs_accordion
+            }
+        elif isinstance(additional_inputs_accordion, Accordion):
+            self.additional_inputs_accordion_params = (
+                additional_inputs_accordion.recover_kwargs(
+                    additional_inputs_accordion.get_config()
+                )
+            )
+        else:
+            raise ValueError(
+                f"The `additional_inputs_accordion` parameter must be a string or gr.Accordion, not {type(additional_inputs_accordion)}"
+            )
+        self.input_components = (
+            self.main_input_components + self.additional_input_components
+        )
         self.output_components = [
             get_component_instance(o, unrender=True)
             for o in outputs  # type: ignore
@@ -442,8 +482,12 @@ class Interface(Blocks):
         with Column(variant="panel"):
             input_component_column = Column()
             with input_component_column:
-                for component in self.input_components:
+                for component in self.main_input_components:
                     component.render()
+                if self.additional_input_components:
+                    with Accordion(**self.additional_inputs_accordion_params):  # type: ignore
+                        for component in self.additional_input_components:
+                            component.render()
             with Row():
                 if self.interface_type in [
                     InterfaceTypes.STANDARD,
@@ -600,6 +644,7 @@ class Interface(Blocks):
                     inputs=None,
                     outputs=[submit_btn, stop_btn],
                     queue=False,
+                    show_api=False,
                 ).then(
                     self.fn,
                     self.input_components,
@@ -618,6 +663,7 @@ class Interface(Blocks):
                     inputs=None,
                     outputs=extra_output,  # type: ignore
                     queue=False,
+                    show_api=False,
                 )
 
                 stop_btn.click(
@@ -626,7 +672,7 @@ class Interface(Blocks):
                     outputs=[submit_btn, stop_btn],
                     cancels=predict_event,
                     queue=False,
-                    api_name=False,
+                    show_api=False,
                 )
             else:
                 on(
@@ -692,6 +738,7 @@ class Interface(Blocks):
                 outputs=None,
                 preprocess=False,
                 queue=False,
+                show_api=False,
             )
             return
 
@@ -708,7 +755,7 @@ class Interface(Blocks):
                 None,
                 flag_btn,
                 queue=False,
-                api_name=False,
+                show_api=False,
             )
             flag_btn.click(
                 flag_method,
@@ -716,10 +763,10 @@ class Interface(Blocks):
                 outputs=flag_btn,
                 preprocess=False,
                 queue=False,
-                api_name=False,
+                show_api=False,
             )
             clear_btn.click(
-                flag_method.reset, None, flag_btn, queue=False, api_name=False
+                flag_method.reset, None, flag_btn, queue=False, show_api=False
             )
 
     def render_examples(self):

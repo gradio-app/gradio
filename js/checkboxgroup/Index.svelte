@@ -32,7 +32,6 @@
 		} else {
 			value = [...value, choice];
 		}
-
 		gradio.dispatch("input");
 	}
 

@@ -45,7 +45,7 @@ runs:
         python -m pip install -e client/python
         python -m pip install -e .
     - name: Install ffmpeg
-      uses: FedericoCarboni/setup-ffmpeg@v2
+      uses: FedericoCarboni/setup-ffmpeg@v3
     - name: install-frontend
       uses: "./.github/actions/install-frontend-deps"
       with:

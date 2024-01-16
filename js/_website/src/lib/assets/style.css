@@ -198,6 +198,10 @@ code.language-bash {
 	@apply bg-gradient-to-br from-orange-50 to-white border-orange-50 border-l-2 border-l-orange-300 text-orange-700 p-4 px-6;
 }
 
+.tip strong {
+	@apply text-orange-700;
+}
+
 .tip code {
 	@apply text-orange-700;
 }

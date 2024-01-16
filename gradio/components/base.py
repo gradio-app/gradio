@@ -60,12 +60,12 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
         return value
 
     @abstractmethod
-    def as_example(self, value):
+    def process_example(self, value):
         """
-        Return the input data in a way that can be displayed by the examples dataset component in the front-end.
+        Process the input data in a way that can be displayed by the examples dataset component in the front-end.
 
         For example, only return the name of a file as opposed to a full path. Or get the head of a dataframe.
-        Must be able to be converted to a string to put in the config.
+        The return value must be able to be json-serializable to put in the config.
         """
         pass
 
@@ -241,9 +241,23 @@ class Component(ComponentBase, Block):
         """Add a load event that runs `callable`, optionally every `every` seconds."""
         self.load_event_to_attach = (callable, every)
 
-    def as_example(self, input_data):
-        """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
-        return input_data
+    def process_example(self, value):
+        """
+        Process the input data in a way that can be displayed by the examples dataset component in the front-end.
+        By default, this calls the `.postprocess()` method of the component. However, if the `.postprocess()` method is
+        computationally intensive, or returns a large payload, a custom implementation may be appropriate.
+
+        For example,  the `process_example()` method of the `gr.Audio()` component only returns the name of the file, not
+        the processed audio file. The `.process_example()` method of the `gr.Dataframe()` returns the head of a dataframe
+        instead of the full dataframe.
+
+        The return value of this method must be json-serializable to put in the config.
+        """
+        return self.postprocess(value)
+
+    def as_example(self, value):
+        """Deprecated and replaced by `process_example()`."""
+        return self.process_example(value)
 
     def api_info(self) -> dict[str, Any]:
         """

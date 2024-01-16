@@ -1,22 +1,34 @@
 <script lang="ts">
-	import { Microphone, Upload, Video } from "@gradio/icons";
+	import { Microphone, Upload, Webcam, ImagePaste } from "@gradio/icons";
 
-	export let sources: string[];
-	export let active_source: string;
+	type source_types = "upload" | "microphone" | "webcam" | "clipboard" | null;
+
+	export let sources: Partial<source_types>[];
+	export let active_source: Partial<source_types>;
 	export let handle_clear: () => void = () => {};
+	export let handle_select: (
+		source_type: Partial<source_types>
+	) => void = () => {};
+
+	$: unique_sources = [...new Set(sources)];
+
+	async function handle_select_source(
+		source: Partial<source_types>
+	): Promise<void> {
+		handle_clear();
+		active_source = source;
+		handle_select(source);
+	}
 </script>
 
-{#if sources.length > 1}
+{#if unique_sources.length > 1}
 	<span class="source-selection" data-testid="source-select">
 		{#if sources.includes("upload")}
 			<button
 				class="icon"
-				class:selected={active_source === "upload"}
+				class:selected={active_source === "upload" || !active_source}
 				aria-label="Upload file"
-				on:click={() => {
-					handle_clear();
-					active_source = "upload";
-				}}><Upload /></button
+				on:click={() => handle_select_source("upload")}><Upload /></button
 			>
 		{/if}
 
@@ -25,10 +37,8 @@
 				class="icon"
 				class:selected={active_source === "microphone"}
 				aria-label="Record audio"
-				on:click={() => {
-					handle_clear();
-					active_source = "microphone";
-				}}><Microphone /></button
+				on:click={() => handle_select_source("microphone")}
+				><Microphone /></button
 			>
 		{/if}
 
@@ -36,11 +46,17 @@
 			<button
 				class="icon"
 				class:selected={active_source === "webcam"}
-				aria-label="Record video"
-				on:click={() => {
-					handle_clear();
-					active_source = "webcam";
-				}}><Video /></button
+				aria-label="Capture from camera"
+				on:click={() => handle_select_source("webcam")}><Webcam /></button
+			>
+		{/if}
+		{#if sources.includes("clipboard")}
+			<button
+				class="icon"
+				class:selected={active_source === "clipboard"}
+				aria-label="Paste from clipboard"
+				on:click={() => handle_select_source("clipboard")}
+				><ImagePaste /></button
 			>
 		{/if}
 	</span>
@@ -58,7 +74,6 @@
 		right: 0;
 		margin-left: auto;
 		margin-right: auto;
-		align-self: flex-end;
 	}
 
 	.icon {

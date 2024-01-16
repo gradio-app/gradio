@@ -84,7 +84,7 @@ def slow_echo(message, history):
         time.sleep(0.3)
         yield "You typed: " + message[: i+1]
 
-gr.ChatInterface(slow_echo).queue().launch()
+gr.ChatInterface(slow_echo).launch()
 ```
 
 Notice that we've [enabled queuing](/guides/key-features#queuing), which is required to use generator functions. While the response is streaming, the "Submit" button turns into a "Stop" button that can be used to stop the generator function. You can customize the appearance and behavior of the "Stop" button using the `stop_btn` parameter.
@@ -154,7 +154,7 @@ with gr.Blocks() as demo:
         echo, additional_inputs=[system_prompt, slider]
     )
 
-demo.queue().launch()
+demo.launch()
 ```
 
 If you need to create something even more custom, then its best to construct the chatbot UI using the low-level `gr.Blocks()` API. We have [a dedicated guide for that here](/guides/creating-a-custom-chatbot-with-blocks).
@@ -223,7 +223,7 @@ def predict(message, history):
             partial_message = partial_message + chunk['choices'][0]['delta']['content']
             yield partial_message
 
-gr.ChatInterface(predict).queue().launch()
+gr.ChatInterface(predict).launch()
 ```
 
 ## Example using a local, open-source LLM with Hugging Face
@@ -279,7 +279,7 @@ def predict(message, history):
             yield partial_message
 
 
-gr.ChatInterface(predict).queue().launch()
+gr.ChatInterface(predict).launch()
 ```
 
 With those examples, you should be all set to create your own Gradio Chatbot demos soon! For building even more custom Chatbot applications, check out [a dedicated guide](/guides/creating-a-custom-chatbot-with-blocks) using the low-level `gr.Blocks()` API.

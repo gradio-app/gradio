@@ -119,6 +119,12 @@ def hi(name):
 
 <div class="container">
 	<div class="panel">
+		When the SharedWorker mode is enabled, access the URL below (for Chrome) and
+		click the "inspect" link of the worker to show the console log emitted from
+		the worker.
+		<pre><code>chrome://inspect/#workers</code></pre>
+	</div>
+	<div class="panel">
 		<h2>Files</h2>
 
 		{#each editorFiles as file (file.name)}

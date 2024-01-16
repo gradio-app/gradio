@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -eu
 
 cd "$(dirname ${0})/.."
 python -c "import gradio"

@@ -98,10 +98,10 @@ class BaseReloader(ABC):
         assert self.running_app.blocks
         # Copy over the blocks to get new components and events but
         # not a new queue
-        if self.running_app.blocks._queue:
-            self.running_app.blocks._queue.block_fns = demo.fns
-            demo._queue = self.running_app.blocks._queue
+        self.running_app.blocks._queue.block_fns = demo.fns
+        demo._queue = self.running_app.blocks._queue
         self.running_app.blocks = demo
+        demo._queue.reload()
 
 
 class SourceFileReloader(BaseReloader):
@@ -206,11 +206,11 @@ def watchfn(reloader: SourceFileReloader):
             try:
                 module = importlib.import_module(reloader.watch_module_name)
                 module = importlib.reload(module)
-            except Exception as e:
+            except Exception:
                 print(
                     f"Reloading {reloader.watch_module_name} failed with the following exception: "
                 )
-                traceback.print_exception(None, value=e, tb=None)
+                traceback.print_exc()
                 mtimes = {}
                 continue
 
@@ -586,7 +586,7 @@ def append_unique_suffix(name: str, list_of_names: list[str]):
 
 
 def validate_url(possible_url: str) -> bool:
-    headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
+    headers = {"User-Agent": "gradio (https://gradio.app/; gradio-team@huggingface.co)"}
     try:
         head_request = httpx.head(possible_url, headers=headers, follow_redirects=True)
         # some URLs, such as AWS S3 presigned URLs, return a 405 or a 403 for HEAD requests
@@ -932,7 +932,7 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path):
     """
     path_1, path_2 = abspath(path_1), abspath(path_2)
     try:
-        if str(path_1.relative_to(path_2)).startswith(".."):  # prevent path traversal
+        if ".." in str(path_1.relative_to(path_2)):  # prevent path traversal
             return False
     except ValueError:
         return False
@@ -1016,3 +1016,7 @@ class LRUCache(OrderedDict, Generic[K, V]):
         elif len(self) >= self.max_size:
             self.popitem(last=False)
         super().__setitem__(key, value)
+
+
+def get_cache_folder() -> Path:
+    return Path(os.environ.get("GRADIO_EXAMPLES_CACHE", "gradio_cached_examples"))

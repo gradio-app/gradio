@@ -37,7 +37,7 @@ class FlaggingCallback(ABC):
         This method gets called once at the beginning of the Interface.launch() method.
         Parameters:
         components: Set of components that will provide flagged data.
-        flagging_dir: A string, typically containing the path to the directory where the flagging file should be storied (provided as an argument to Interface.__init__()).
+        flagging_dir: A string, typically containing the path to the directory where the flagging file should be stored (provided as an argument to Interface.__init__()).
         """
         pass
 

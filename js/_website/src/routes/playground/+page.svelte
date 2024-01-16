@@ -3,6 +3,7 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
 	import { browser } from "$app/environment";
+	import { gradio_logo } from "$lib/assets";
 
 	export let data: {
 		demos_by_category: {
@@ -40,36 +41,37 @@
 	description="Play Around with Gradio Demos"
 />
 
-<main class="px-6 flex flex-col justify-between">
-	<div class="container mx-auto px-4 gap-4">
-		<h2
-			class="text-4xl font-light mb-2 pt-2 text-orange-500 group container mx-auto gap-4"
-		>
-			Playground
-		</h2>
-		<p class="mt-4 mb-8 text-lg text-gray-600">
-			All the demos on this page are interactive - meaning you can change the
-			code and the embedded demo will update automatically. Use this as a space
-			to explore and play around with Gradio. This is made possible thanks to
-			the
-			<a
-				class="link text-black"
-				target="_blank"
-				href="https://gradio.app/guides/gradio-lite"
-			>
-				Gradio Lite
+<!-- 4.0 Launch BANNER  -->
+<div class="flex-row">
+	<div class="flex flex-row relative items-center px-1 py-1 pr-6 text-lg gap-8">
+		<div class="flex">
+			<a href="/">
+				<img src={gradio_logo} alt="Gradio logo" />
 			</a>
-			package.
-		</p>
+			<p class="self-center text-xl font-light -m-1">Playground</p>
+		</div>
 
+		<nav class="flex w-auto flex-row gap-6">
+			<a class="thin-link flex items-center gap-3" href="/docs" target="_blank"
+				><span>✍️</span> <span>Docs</span></a
+			>
+			<a
+				class="thin-link flex items-center gap-3"
+				href="/guides/gradio-lite"
+				target="_blank"><span>💡</span> <span>Gradio Lite</span></a
+			>
+		</nav>
+	</div>
+</div>
+
+<main class="playground flex flex-col justify-between">
+	<div class="container mx-auto px-4 gap-4">
 		<p class="mt-4 mb-8 text-lg text-gray-600 md:hidden">
 			Playground renders best on desktop.
 		</p>
 	</div>
 
-	<div
-		class="w-full border border-gray-200 shadow-xl rounded-xl mb-3 h-full relative"
-	>
+	<div class="w-full border border-gray-200 shadow-xl h-full relative">
 		<div
 			class="w-[200px] h-full rounded-tr-none rounded-bl-xl overflow-y-scroll mb-0 p-0 pb-4 text-md block rounded-t-xl bg-gradient-to-r from-white to-gray-50 overflow-x-clip"
 			style="word-break: normal; overflow-wrap: break-word; white-space:nowrap; width: {show_nav

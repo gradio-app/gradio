@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/annotatedimage",
-	"version": "0.3.12",
+	"version": "0.4.1",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -17,6 +17,7 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/client": "workspace:^"
+		"@gradio/client": "workspace:^",
+		"@gradio/wasm": "workspace:^"
 	}
 }

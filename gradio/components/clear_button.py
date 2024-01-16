@@ -9,6 +9,7 @@ from typing import Any, Literal
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components import Button, Component
+from gradio.context import Context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.utils import resolve_singleton
 
@@ -42,6 +43,8 @@ class ClearButton(Button):
         render: bool = True,
         scale: int | None = None,
         min_width: int | None = None,
+        api_name: str | None | Literal["False"] = None,
+        show_api: bool = False,
     ):
         super().__init__(
             value,
@@ -58,7 +61,11 @@ class ClearButton(Button):
             scale=scale,
             min_width=min_width,
         )
-        self.add(components)
+        self.api_name = api_name
+        self.show_api = show_api
+
+        if Context.root_block:
+            self.add(components)
 
     def add(self, components: None | Component | list[Component]) -> ClearButton:
         """
@@ -86,13 +93,21 @@ class ClearButton(Button):
                 none = none.model_dump()
             none_values.append(none)
         clear_values = json.dumps(none_values)
-        self.click(None, [], components, js=f"() => {clear_values}")
+        self.click(
+            None,
+            [],
+            components,
+            js=f"() => {clear_values}",
+            api_name=self.api_name,
+            show_api=self.show_api,
+        )
         if state_components:
             self.click(
                 lambda: resolve_singleton(initial_states),
                 None,
                 state_components,
-                api_name="reset_state",
+                api_name=self.api_name,
+                show_api=self.show_api,
             )
         return self
 

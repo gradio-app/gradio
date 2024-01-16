@@ -75,7 +75,7 @@ async function initializeEnvironment(
 	updateProgress("Loading Gradio wheels");
 	await micropip.add_mock_package("ffmpy", "0.3.0");
 	await micropip.add_mock_package("aiohttp", "3.8.4");
-	await pyodide.loadPackage(["ssl", "distutils", "setuptools"]);
+	await pyodide.loadPackage(["ssl", "setuptools"]);
 	await micropip.install(["typing-extensions>=4.8.0"]); // Typing extensions needs to be installed first otherwise the versions from the pyodide lockfile is used which is incompatible with the latest fastapi.
 	await micropip.install(["markdown-it-py[linkify]~=2.2.0"]); // On 3rd June 2023, markdown-it-py 3.0.0 has been released. The `gradio` package depends on its `>=2.0.0` version so its 3.x will be resolved. However, it conflicts with `mdit-py-plugins`'s dependency `markdown-it-py >=1.0.0,<3.0.0` and micropip currently can't resolve it. So we explicitly install the compatible version of the library here.
 	await micropip.install(["anyio==3.*"]); // `fastapi` depends on `anyio>=3.4.0,<5` so its 4.* can be installed, but it conflicts with the anyio version `httpx` depends on, `==3.*`. Seems like micropip can't resolve it for now, so we explicitly install the compatible version of the library here.
@@ -187,6 +187,13 @@ async function initializeApp(
 	options: InMessageInitApp["data"],
 	updateProgress: (log: string) => void
 ): Promise<void> {
+	const appHomeDir = getAppHomeDir(appId);
+	console.debug("Creating a home directory for the app.", {
+		appId,
+		appHomeDir
+	});
+	pyodide.FS.mkdir(appHomeDir);
+
 	console.debug("Mounting files.", options.files);
 	updateProgress("Mounting files");
 	await Promise.all(
@@ -248,6 +255,8 @@ function setupMessageHandler(receiver: MessageTransceiver): void {
 	// One app also has one Gradio server app which is managed by the `gradio.wasm_utils` module.`
 	// This multi-app mechanism was introduced for a SharedWorker, but the same mechanism is used for a DedicatedWorker as well.
 	const appId = generateRandomString(8);
+
+	console.debug("Set up a new app.", { appId });
 
 	const updateProgress = (log: string): void => {
 		const message: OutMessage = {

@@ -7,6 +7,7 @@ import json
 import os
 import random
 import secrets
+import string
 import sys
 import tempfile
 import threading
@@ -116,7 +117,7 @@ class Block:
         self.share_token = secrets.token_urlsafe(32)
         self.parent: BlockContext | None = None
         self.is_rendered: bool = False
-        self._constructor_args: dict
+        self._constructor_args: list[dict]
         self.state_session_capacity = 10000
         self.temp_files: set[str] = set()
         self.GRADIO_CACHE = str(
@@ -376,7 +377,7 @@ class BlockFunction:
         self.preprocess = preprocess
         self.postprocess = postprocess
         self.tracks_progress = tracks_progress
-        self.concurrency_limit = concurrency_limit
+        self.concurrency_limit: int | None | Literal["default"] = concurrency_limit
         self.concurrency_id = concurrency_id or str(id(fn))
         self.batch = batch
         self.max_batch_size = max_batch_size
@@ -507,13 +508,13 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     ):
         """
         Parameters:
-            theme: a Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the HF Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
-            analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
-            mode: a human-friendly name for the kind of Blocks or Interface being created.
+            theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the HF Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
+            analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
+            mode: A human-friendly name for the kind of Blocks or Interface being created. Used internally for analytics.
             title: The tab title to display when this is opened in a browser window.
-            css: custom css or path to custom css file to apply to entire Blocks.
-            js: custom js or path to custom js file to run when demo is first loaded.
-            head: custom html to insert into the head of the page.
+            css: Custom css or path to custom css file to apply to entire Blocks.
+            js: Custom js or path to custom js file to run when demo is first loaded.
+            head: Custom html to insert into the head of the page. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
         """
         self.limiter = None
         if theme is None:
@@ -825,6 +826,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         trigger_mode: Literal["once", "multiple", "always_last"] | None = "once",
         concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
+        show_api: bool = True,
     ) -> tuple[dict[str, Any], int]:
         """
         Adds an event to the component's dependencies.
@@ -849,8 +851,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             trigger_after: if set, this event will be triggered after 'trigger_after' function index
             trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
             trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
-            concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `queue()`, which itself is 1 by default).
+            concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `queue()`, which itself is 1 by default).
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
+            show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps to use this event. If fn is None, show_api will automatically be set to False.
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
@@ -928,12 +931,36 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 tracks_progress=progress_index is not None,
             )
         )
-        if api_name is not None and api_name is not False:
-            api_name_ = utils.append_unique_suffix(
+
+        # If api_name is None or empty string, use the function name
+        if api_name is None or isinstance(api_name, str) and api_name.strip() == "":
+            if fn is not None:
+                if not hasattr(fn, "__name__"):
+                    if hasattr(fn, "__class__") and hasattr(fn.__class__, "__name__"):
+                        name = fn.__class__.__name__
+                    else:
+                        name = "unnamed"
+                else:
+                    name = fn.__name__
+                api_name = "".join(
+                    [s for s in name if s not in set(string.punctuation) - {"-", "_"}]
+                )
+            elif js is not None:
+                api_name = "js_fn"
+                show_api = False
+            else:
+                api_name = "unnamed"
+                show_api = False
+
+        if api_name is not False:
+            api_name = utils.append_unique_suffix(
                 api_name, [dep["api_name"] for dep in self.dependencies]
             )
-            if api_name != api_name_:
-                api_name = api_name_
+        else:
+            show_api = False
+
+        # The `show_api` parameter is False if: (1) the user explicitly sets it (2) the user sets `api_name` to False
+        # or (3) the user sets `fn` to None (there's no backend function)
 
         if collects_event_data is None:
             collects_event_data = event_data_index is not None
@@ -962,6 +989,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             "trigger_after": trigger_after,
             "trigger_only_on_success": trigger_only_on_success,
             "trigger_mode": trigger_mode,
+            "show_api": show_api,
         }
         self.dependencies.append(dependency)
         return dependency, len(self.dependencies) - 1
@@ -1401,7 +1429,7 @@ Received outputs:
                     )
 
                 if isinstance(prediction_value, Block):
-                    prediction_value = prediction_value.constructor_args
+                    prediction_value = prediction_value.constructor_args.copy()
                     prediction_value["__type__"] = "update"
                 if utils.is_update(prediction_value):
                     if output_id in state:
@@ -1670,7 +1698,7 @@ Received outputs:
             status_update_rate: If "auto", Queue will send status estimations to all clients whenever a job is finished. Otherwise Queue will send status at regular intervals set by this parameter as the number of seconds.
             api_open: If True, the REST routes of the backend will be open, allowing requests made directly to those endpoints to skip the queue.
             max_size: The maximum number of events the queue will store at any given moment. If the queue is full, new events will not be added and a user will receive a message saying that the queue is full. If None, the queue size will be unlimited.
-            concurrency_count: Deprecated and has no effect. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch().
+            concurrency_count: Deprecated. Set the concurrency_limit directly on event listeners e.g. btn.click(fn, ..., concurrency_limit=10) or gr.Interface(concurrency_limit=10). If necessary, the total number of workers can be configured via `max_threads` in launch().
             default_concurrency_limit: The default value of `concurrency_limit` to use for event listeners that don't specify a value. Can be set by environment variable GRADIO_DEFAULT_CONCURRENCY_LIMIT. Defaults to 1 if not set otherwise.
         Example: (Blocks)
             with gr.Blocks() as demo:
@@ -2252,9 +2280,15 @@ Received outputs:
         """
         config = self.config
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
-        mode = config.get("mode", None)
 
-        for d, dependency in enumerate(config["dependencies"]):
+        for dependency in config["dependencies"]:
+            if (
+                not dependency["backend_fn"]
+                or not dependency["show_api"]
+                or dependency["api_name"] is False
+            ):
+                continue
+
             dependency_info = {"parameters": [], "returns": []}
             skip_endpoint = False
 
@@ -2316,25 +2350,9 @@ Received outputs:
                     }
                 )
 
-            if not dependency["backend_fn"]:
-                skip_endpoint = True
-
-            if skip_endpoint:
-                continue
-            if (
-                dependency["api_name"] is not None
-                and dependency["api_name"] is not False
-            ):
+            if not skip_endpoint:
                 api_info["named_endpoints"][
                     f"/{dependency['api_name']}"
                 ] = dependency_info
-            elif (
-                dependency["api_name"] is False
-                or mode == "interface"
-                or mode == "tabbed_interface"
-            ):
-                pass  # Skip unnamed endpoints in interface mode
-            else:
-                api_info["unnamed_endpoints"][str(d)] = dependency_info
 
         return api_info

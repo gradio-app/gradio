@@ -5,6 +5,9 @@
 	import { dequal } from "dequal/lite";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
+	import { Audio } from "@gradio/audio/shared";
+	import { Image } from "@gradio/image/shared";
+	import { Video } from "@gradio/video/shared";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import { get_fetchable_url_or_file, type FileData } from "@gradio/client";
@@ -48,6 +51,34 @@
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
+
+	$: adjust_text_size = () => {
+		let style = getComputedStyle(document.body);
+		let body_text_size = style.getPropertyValue("--body-text-size");
+		let updated_text_size;
+
+		switch (body_text_size) {
+			case "13px":
+				updated_text_size = 14;
+				break;
+			case "14px":
+				updated_text_size = 16;
+				break;
+			case "16px":
+				updated_text_size = 20;
+				break;
+			default:
+				updated_text_size = 14;
+				break;
+		}
+
+		document.body.style.setProperty(
+			"--chatbot-body-text-size",
+			updated_text_size + "px"
+		);
+	};
+
+	$: adjust_text_size();
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -135,7 +166,7 @@
 						<div class="message-row {layout} {j == 0 ? 'user-row' : 'bot-row'}">
 							{#if avatar_images[j] !== null}
 								<div class="avatar-container">
-									<img
+									<Image
 										class="avatar-image"
 										src={get_fetchable_url_or_file(
 											avatar_images[j],
@@ -170,8 +201,14 @@
 									}}
 									dir={rtl ? "rtl" : "ltr"}
 									aria-label={(j == 0 ? "user" : "bot") +
-										"'s message:' " +
-										message}
+										"'s message: " +
+										(typeof message === "string"
+											? message
+											: `a file of type ${message.file?.mime_type}, ${
+													message.file?.alt_text ??
+													message.file?.orig_name ??
+													""
+											  }`)}
 								>
 									{#if typeof message === "string"}
 										<Markdown
@@ -183,7 +220,7 @@
 											on:load={scroll}
 										/>
 									{:else if message !== null && message.file?.mime_type?.includes("audio")}
-										<audio
+										<Audio
 											data-testid="chatbot-audio"
 											controls
 											preload="metadata"
@@ -194,7 +231,7 @@
 											on:ended
 										/>
 									{:else if message !== null && message.file?.mime_type?.includes("video")}
-										<video
+										<Video
 											data-testid="chatbot-video"
 											controls
 											src={message.file?.url}
@@ -205,9 +242,9 @@
 											on:ended
 										>
 											<track kind="captions" />
-										</video>
+										</Video>
 									{:else if message !== null && message.file?.mime_type?.includes("image")}
-										<img
+										<Image
 											data-testid="chatbot-image"
 											src={message.file?.url}
 											alt={message.alt_text}
@@ -289,10 +326,6 @@
 		margin-top: var(--spacing-xxl);
 	}
 
-	.message-wrap :global(audio) {
-		width: 100%;
-	}
-
 	.message {
 		position: relative;
 		display: flex;
@@ -301,8 +334,7 @@
 		background: var(--background-fill-secondary);
 		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
-		font-size: var(--text-lg);
-		line-height: var(--line-lg);
+		font-size: var(--chatbot-body-text-size);
 		overflow-wrap: break-word;
 		overflow-x: hidden;
 		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
@@ -407,7 +439,8 @@
 		margin-left: 25px;
 		align-self: center;
 	}
-	img.avatar-image {
+
+	.avatar-container :global(img) {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;

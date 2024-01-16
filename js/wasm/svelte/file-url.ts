@@ -4,18 +4,26 @@ import { getHeaderValue } from "../src/http";
 
 type MediaSrc = string | undefined | null;
 
-export async function resolve_wasm_src(src: MediaSrc): Promise<MediaSrc> {
+export function should_proxy_wasm_src(src: MediaSrc): boolean {
 	if (src == null) {
-		return src;
+		return false;
 	}
 
 	const url = new URL(src);
 	if (!is_self_host(url)) {
 		// `src` is not accessing a local server resource, so we don't need to proxy this request to the Wasm worker.
-		return src;
+		return false;
 	}
 	if (url.protocol !== "http:" && url.protocol !== "https:") {
 		// `src` can be a data URL.
+		return false;
+	}
+
+	return true;
+}
+
+export async function resolve_wasm_src(src: MediaSrc): Promise<MediaSrc> {
+	if (src == null || !should_proxy_wasm_src(src)) {
 		return src;
 	}
 
@@ -25,6 +33,7 @@ export async function resolve_wasm_src(src: MediaSrc): Promise<MediaSrc> {
 		return src;
 	}
 
+	const url = new URL(src);
 	const path = url.pathname;
 	return maybeWorkerProxy
 		.httpRequest({

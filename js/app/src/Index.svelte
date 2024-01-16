@@ -97,6 +97,11 @@
 			loading_text = (event as CustomEvent).detail + "...";
 		});
 	}
+	export let fetch_implementation: typeof fetch = fetch;
+	setContext("fetch_implementation", fetch_implementation);
+	export let EventSource_factory: (url: URL) => EventSource = (url) =>
+		new EventSource(url);
+	setContext("EventSource_factory", EventSource_factory);
 
 	export let space: string | null;
 	export let host: string | null;
@@ -158,12 +163,12 @@
 
 			if (parsed_head_html) {
 				for (let head_element of parsed_head_html) {
-					let newScriptTag = document.createElement("script");
+					let newElement = document.createElement(head_element.tagName);
 					Array.from(head_element.attributes).forEach((attr) => {
-						newScriptTag.setAttribute(attr.name, attr.value);
+						newElement.setAttribute(attr.name, attr.value);
 					});
-					newScriptTag.textContent = head_element.textContent;
-					document.head.appendChild(newScriptTag);
+					newElement.textContent = head_element.textContent;
+					document.head.appendChild(newElement);
 				}
 			}
 		}
@@ -416,7 +421,6 @@
 			show_footer={!is_embed}
 			{app_mode}
 			{version}
-			{api_url}
 		/>
 	{/if}
 </Embed>

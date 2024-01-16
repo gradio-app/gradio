@@ -4,7 +4,6 @@ of the on-page-load event, which is defined in gr.Blocks().load()."""
 from __future__ import annotations
 
 import dataclasses
-import string
 from functools import partial, wraps
 from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
@@ -37,7 +36,7 @@ def set_cancel_events(
             outputs=None,
             queue=False,
             preprocess=False,
-            api_name=False,
+            show_api=False,
             cancels=fn_indices_to_cancel,
         )
 
@@ -117,7 +116,7 @@ class SelectData(EventData):
         """
         The value of the selected item.
         """
-        self.selected: bool = data.get("_selected", True)
+        self.selected: bool = data.get("selected", True)
         """
         True if the item was selected, False if deselected.
         """
@@ -209,6 +208,7 @@ class EventListener(str):
             js: str | None = None,
             concurrency_limit: int | None | Literal["default"] = "default",
             concurrency_id: str | None = None,
+            show_api: bool = True,
         ) -> Dependency:
             """
             Parameters:
@@ -227,32 +227,34 @@ class EventListener(str):
                 every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
                 trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
                 js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-                concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
+                concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
                 concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
+                show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps to use this event. If fn is None, show_api will automatically be set to False.
             """
 
             if fn == "decorator":
 
                 def wrapper(func):
                     event_trigger(
-                        block,
-                        func,
-                        inputs,
-                        outputs,
-                        api_name,
-                        scroll_to_output,
-                        show_progress,
-                        queue,
-                        batch,
-                        max_batch_size,
-                        preprocess,
-                        postprocess,
-                        cancels,
-                        every,
-                        trigger_mode,
-                        js,
-                        concurrency_limit,
-                        concurrency_id,
+                        block=block,
+                        fn=func,
+                        inputs=inputs,
+                        outputs=outputs,
+                        api_name=api_name,
+                        scroll_to_output=scroll_to_output,
+                        show_progress=show_progress,
+                        queue=queue,
+                        batch=batch,
+                        max_batch_size=max_batch_size,
+                        preprocess=preprocess,
+                        postprocess=postprocess,
+                        cancels=cancels,
+                        every=every,
+                        trigger_mode=trigger_mode,
+                        js=js,
+                        concurrency_limit=concurrency_limit,
+                        concurrency_id=concurrency_id,
+                        show_api=show_api,
                     )
 
                     @wraps(func)
@@ -269,28 +271,6 @@ class EventListener(str):
                 block.check_streamable()  # type: ignore
             if isinstance(show_progress, bool):
                 show_progress = "full" if show_progress else "hidden"
-
-            if api_name is None:
-                if fn is not None:
-                    if not hasattr(fn, "__name__"):
-                        if hasattr(fn, "__class__") and hasattr(
-                            fn.__class__, "__name__"
-                        ):
-                            name = fn.__class__.__name__
-                        else:
-                            name = "unnamed"
-                    else:
-                        name = fn.__name__
-                    api_name = "".join(
-                        [
-                            s
-                            for s in name
-                            if s not in set(string.punctuation) - {"-", "_"}
-                        ]
-                    )
-                else:
-                    # Don't document _js only events
-                    api_name = False
 
             if Context.root_block is None:
                 raise AttributeError(
@@ -317,6 +297,7 @@ class EventListener(str):
                 trigger_after=_trigger_after,
                 trigger_only_on_success=_trigger_only_on_success,
                 trigger_mode=trigger_mode,
+                show_api=show_api,
             )
             set_cancel_events(
                 [EventListenerMethod(block if _has_trigger else None, _event_name)],
@@ -331,7 +312,6 @@ class EventListener(str):
         return event_trigger
 
 
-# TODO: Fix type
 def on(
     triggers: Sequence[Any] | Any | None = None,
     fn: Callable | None | Literal["decorator"] = "decorator",
@@ -351,6 +331,7 @@ def on(
     js: str | None = None,
     concurrency_limit: int | None | Literal["default"] = "default",
     concurrency_id: str | None = None,
+    show_api: bool = True,
 ) -> Dependency:
     """
     Parameters:
@@ -369,8 +350,9 @@ def on(
         cancels: A list of other events to cancel when this listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
         every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
         js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs', return should be a list of values for output components.
-        concurrency_limit: If set, this this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
+        concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
         concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
+        show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps to use this event. If fn is None, show_api will automatically be set to False.
     """
     from gradio.components.base import Component
 
@@ -400,6 +382,7 @@ def on(
                 js=js,
                 concurrency_limit=concurrency_limit,
                 concurrency_id=concurrency_id,
+                show_api=show_api,
             )
 
             @wraps(func)
@@ -440,6 +423,7 @@ def on(
         batch=batch,
         max_batch_size=max_batch_size,
         every=every,
+        show_api=show_api,
     )
     set_cancel_events(triggers, cancels)
     return Dependency(None, dep, dep_index, fn)

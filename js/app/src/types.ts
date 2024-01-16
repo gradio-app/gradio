@@ -52,6 +52,7 @@ export interface Dependency {
 	trigger_only_on_success?: boolean;
 	trigger_mode: "once" | "multiple" | "always_last";
 	final_event: Payload | null;
+	show_api: boolean;
 }
 
 interface TypeDescription {
