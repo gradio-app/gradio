@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { FileData } from "@gradio/client";
-	import { onMount, createEventDispatcher } from "svelte";
+	import { onMount, createEventDispatcher, getContext } from "svelte";
 
 	type FileDataWithProgress = FileData & { progress: number };
 
@@ -11,6 +11,7 @@
 	let event_source: EventSource;
 	let progress = false;
 	let current_file_upload: FileDataWithProgress;
+	let file_to_display: FileDataWithProgress;
 
 	let files_with_progress: FileDataWithProgress[] = files.map((file) => {
 		return {
@@ -35,9 +36,12 @@
 		return (file.progress * 100) / (file.size || 0) || 0;
 	}
 
+	const EventSource_factory = getContext<(url: URL) => EventSource>(
+		"EventSource_factory"
+	);
 	onMount(() => {
-		event_source = new EventSource(
-			`${root}/upload_progress?upload_id=${upload_id}`
+		event_source = EventSource_factory(
+			new URL(`${root}/upload_progress?upload_id=${upload_id}`)
 		);
 		// Event listener for progress updates
 		event_source.onmessage = async function (event) {
@@ -68,6 +72,8 @@
 	}
 
 	$: calculateTotalProgress(files_with_progress);
+
+	$: file_to_display = current_file_upload || files_with_progress[0];
 </script>
 
 <div class="wrap" class:progress>
@@ -76,19 +82,19 @@
 		{files_with_progress.length > 1 ? "files" : "file"}...</span
 	>
 
-	{#if current_file_upload}
+	{#if file_to_display}
 		<div class="file">
 			<span>
 				<div class="progress-bar">
 					<progress
 						style="visibility:hidden;height:0;width:0;"
-						value={getProgress(current_file_upload)}
-						max="100">{getProgress(current_file_upload)}</progress
+						value={getProgress(file_to_display)}
+						max="100">{getProgress(file_to_display)}</progress
 					>
 				</div>
 			</span>
 			<span class="file-name">
-				{current_file_upload.orig_name}
+				{file_to_display.orig_name}
 			</span>
 		</div>
 	{/if}

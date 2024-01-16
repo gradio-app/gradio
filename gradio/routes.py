@@ -54,11 +54,12 @@ from gradio import route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
 from gradio.exceptions import Error
-from gradio.helpers import CACHED_FOLDER
 from gradio.oauth import attach_oauth
 from gradio.queueing import Estimation
 from gradio.route_utils import (  # noqa: F401
     FileUploadProgress,
+    FileUploadProgressNotQueuedError,
+    FileUploadProgressNotTrackedError,
     GradioMultiPartParser,
     GradioUploadFile,
     MultiPartException,
@@ -455,7 +456,7 @@ class App(FastAPI):
             )
             was_uploaded = utils.is_in_or_equal(abs_path, app.uploaded_file_dir)
             is_cached_example = utils.is_in_or_equal(
-                abs_path, utils.abspath(CACHED_FOLDER)
+                abs_path, utils.abspath(utils.get_cache_folder())
             )
 
             if not (
@@ -671,8 +672,16 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
+            blocks = app.get_blocks()
+
             if blocks._queue.server_app is None:
                 blocks._queue.set_server_app(app)
+
+            if blocks._queue.stopped:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Queue is stopped.",
+                )
 
             success, event_id = await blocks._queue.push(body, request, username)
             if not success:
@@ -694,7 +703,12 @@ class App(FastAPI):
                 block = state[component_id]
             else:
                 block = app.get_blocks().blocks[component_id]
-            fn = getattr(block, body.fn_name)
+            fn = getattr(block, body.fn_name, None)
+            if fn is None or not getattr(fn, "_is_server_fn", False):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Function not found.",
+                )
             return fn(body.data)
 
         @app.get(
@@ -703,7 +717,7 @@ class App(FastAPI):
             response_model=Estimation,
         )
         async def get_queue_status():
-            return app.get_blocks()._queue.get_estimation()
+            return app.get_blocks()._queue.get_status()
 
         @app.get("/upload_progress")
         def get_upload_progress(upload_id: str, request: fastapi.Request):
@@ -720,30 +734,26 @@ class App(FastAPI):
 
                     heartbeat_rate = 15
                     check_rate = 0.05
-                    message = None
                     try:
-                        if update := file_upload_statuses.status(upload_id).popleft():
-                            if update.is_done:
-                                message = {"msg": "done"}
-                                is_done = True
-                            else:
-                                message = {
-                                    "msg": "update",
-                                    "orig_name": update.filename,
-                                    "chunk_size": update.chunk_size,
-                                }
+                        if file_upload_statuses.is_done(upload_id):
+                            message = {"msg": "done"}
+                            is_done = True
                         else:
-                            await asyncio.sleep(check_rate)
-                            if time.perf_counter() - last_heartbeat > heartbeat_rate:
-                                message = {"msg": "heartbeat"}
-                                last_heartbeat = time.perf_counter()
-                        if message:
+                            update = file_upload_statuses.pop(upload_id)
+                            message = {
+                                "msg": "update",
+                                "orig_name": update.filename,
+                                "chunk_size": update.chunk_size,
+                            }
+                        yield f"data: {json.dumps(message)}\n\n"
+                    except FileUploadProgressNotTrackedError:
+                        return
+                    except FileUploadProgressNotQueuedError:
+                        await asyncio.sleep(check_rate)
+                        if time.perf_counter() - last_heartbeat > heartbeat_rate:
+                            message = {"msg": "heartbeat"}
                             yield f"data: {json.dumps(message)}\n\n"
-                    except IndexError:
-                        if not file_upload_statuses.is_tracked(upload_id):
-                            return
-                        # pop from empty queue
-                        continue
+                            last_heartbeat = time.perf_counter()
 
             return StreamingResponse(
                 sse_stream(request),

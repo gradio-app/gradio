@@ -101,10 +101,7 @@ class InterfaceTypes(Enum):
 class Estimation(BaseModel):
     rank: Optional[int] = None
     queue_size: int
-    avg_event_process_time: Optional[float] = None
-    avg_event_concurrent_process_time: Optional[float] = None
     rank_eta: Optional[float] = None
-    queue_eta: float
 
 
 class ProgressUnit(BaseModel):
@@ -207,3 +204,13 @@ class FileData(GradioModel):
             except (TypeError, ValidationError):
                 return False
         return False
+
+
+class ListFiles(GradioRootModel):
+    root: List[FileData]
+
+    def __getitem__(self, index):
+        return self.root[index]
+
+    def __iter__(self):
+        return iter(self.root)

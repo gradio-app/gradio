@@ -36,7 +36,7 @@ with gr.Blocks() as demo:
 
 - `min_width` will set the minimum width the element will take. The Row will wrap if there isn't sufficient space to satisfy all `min_width` values.
 
-Learn more about Rows in the [docs](https://gradio.app/docs/#row).
+Learn more about Rows in the [docs](https://gradio.app/docs/row).
 
 ## Columns and Nesting
 
@@ -47,11 +47,11 @@ $demo_rows_and_columns
 
 See how the first column has two Textboxes arranged vertically. The second column has an Image and Button arranged vertically. Notice how the relative widths of the two columns is set by the `scale` parameter. The column with twice the `scale` value takes up twice the width.
 
-Learn more about Columns in the [docs](https://gradio.app/docs/#column).
+Learn more about Columns in the [docs](https://gradio.app/docs/column).
 
 # Dimensions
 
-You can control the height and width of various components, where the parameters are available. These parameters accept either a number (interpreted as pixels) or a string. Using a string allows the direct application of any CSS unit to the encapsulating Block element, catering to more specifc design requirements. When omitted, Gradio uses default dimensions suited for most use cases.
+You can control the height and width of various components, where the parameters are available. These parameters accept either a number (interpreted as pixels) or a string. Using a string allows the direct application of any CSS unit to the encapsulating Block element, catering to more specific design requirements. When omitted, Gradio uses default dimensions suited for most use cases.
 
 Below is an example illustrating the use of viewport width (vw):
 
@@ -102,7 +102,7 @@ $demo_blocks_flipper
 
 Also note the `gr.Accordion('label')` in this example. The Accordion is a layout that can be toggled open or closed. Like `Tabs`, it is a layout element that can selectively hide or show content. Any components that are defined inside of a `with gr.Accordion('label'):` will be hidden or shown when the accordion's toggle icon is clicked.
 
-Learn more about [Tabs](https://gradio.app/docs/#tab) and [Accordions](https://gradio.app/docs/#accordion) in the docs.
+Learn more about [Tabs](https://gradio.app/docs/tab) and [Accordions](https://gradio.app/docs/accordion) in the docs.
 
 ## Visibility
 

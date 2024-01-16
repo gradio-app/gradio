@@ -110,10 +110,9 @@ To enable the example view, you must have the following two files in the top of 
 * `Example.svelte`: this corresponds to the "example version" of your component
 * `Index.svelte`: this corresponds to the "regular version"
 
-In the backend, you typically don't need to do anything unless you would like to modify the user-provided `value` of the examples to something else before it is sent to the frontend.
-You can do this in the `as_example` method of the component. 
+In the backend, you typically don't need to do anything. The user-provided example `value` is processed using the same `.postprocess()` method described earlier. If you'd like to do process the data differently (for example, if the `.postprocess()` method is computationally expensive), then you can write your own `.process_example()` method for your custom component, which will be used instead. 
 
-The `Example.svelte` and `as_example` methods will be covered in greater depth in the dedicated [frontend](./frontend) and [backend](./backend) guides.
+The `Example.svelte` file and `process_example()` method will be covered in greater depth in the dedicated [frontend](./frontend) and [backend](./backend) guides respectively.
 
 ### What you need to remember
 

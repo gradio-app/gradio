@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/audio",
-	"version": "0.6.2",
+	"version": "0.7.1",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -27,6 +27,7 @@
 	"exports": {
 		".": "./index.ts",
 		"./example": "./Example.svelte",
+		"./shared": "./shared/index.ts",
 		"./package.json": "./package.json"
 	}
 }

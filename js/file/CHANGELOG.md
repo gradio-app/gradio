@@ -1,5 +1,40 @@
 # @gradio/file
 
+## 0.4.6
+
+### Patch Changes
+
+- Updated dependencies [[`793bf8f`](https://github.com/gradio-app/gradio/commit/793bf8f7b1943f265c5d016c1a0c682ee549232a), [`5d00dd3`](https://github.com/gradio-app/gradio/commit/5d00dd37ca14bbfef2ceac550b29dbe05ba8cab0)]:
+  - @gradio/upload@0.6.0
+  - @gradio/wasm@0.5.0
+
+## 0.4.5
+
+### Patch Changes
+
+- Updated dependencies [[`6c863af`](https://github.com/gradio-app/gradio/commit/6c863af92fa9ceb5c638857eb22cc5ddb718d549), [`459c5dc`](https://github.com/gradio-app/gradio/commit/459c5dc989849b1f0134467d260710fe891045d6), [`649cd4d`](https://github.com/gradio-app/gradio/commit/649cd4d68041d11fcbe31f8efa455345ac49fc74), [`8333db8`](https://github.com/gradio-app/gradio/commit/8333db83ac6e2c8511c104534c48137576d0bcd7)]:
+  - @gradio/client@0.10.0
+  - @gradio/upload@0.5.8
+  - @gradio/wasm@0.4.1
+
+## 0.4.4
+
+### Patch Changes
+
+- Updated dependencies [[`d406855`](https://github.com/gradio-app/gradio/commit/d4068557953746662235d595ec435c42ceb24414)]:
+  - @gradio/client@0.9.4
+  - @gradio/upload@0.5.7
+
+## 0.4.3
+
+### Patch Changes
+
+- Updated dependencies [[`828fb9e`](https://github.com/gradio-app/gradio/commit/828fb9e6ce15b6ea08318675a2361117596a1b5d), [`73268ee`](https://github.com/gradio-app/gradio/commit/73268ee2e39f23ebdd1e927cb49b8d79c4b9a144)]:
+  - @gradio/client@0.9.3
+  - @gradio/statustracker@0.4.3
+  - @gradio/atoms@0.4.1
+  - @gradio/upload@0.5.6
+
 ## 0.4.2
 
 ### Patch Changes

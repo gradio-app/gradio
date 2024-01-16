@@ -38,7 +38,6 @@
 	export let app: Awaited<ReturnType<typeof client>>;
 	export let space_id: string | null;
 	export let version: string;
-	export let api_url: string;
 	export let js: string | null;
 
 	let loading_status = create_loading_status_store();
@@ -267,7 +266,7 @@
 					const matching_component = components.find((c) => c.type === name);
 					if (matching_component) {
 						_c = load_component({
-							api_url,
+							api_url: root,
 							name,
 							id: matching_component.component_class_id,
 							variant: "example"
@@ -282,7 +281,7 @@
 			// maybe load custom
 
 			const _c = load_component({
-				api_url,
+				api_url: root,
 				name: c.type,
 				id: c.component_class_id,
 				variant: "component"
@@ -639,6 +638,7 @@
 			}
 		});
 
+		if (render_complete) return;
 		target.addEventListener("gradio", (e: Event) => {
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
 

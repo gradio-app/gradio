@@ -10,17 +10,19 @@ from unittest.mock import patch
 
 import gradio_client as grc
 import pytest
-from gradio_client import media_data, utils
+from gradio_client import media_data
+from gradio_client import utils as client_utils
 from pydub import AudioSegment
 from starlette.testclient import TestClient
 from tqdm import tqdm
 
 import gradio as gr
+from gradio import utils
 
 
-@patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
+@patch("gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp()))
 class TestExamples:
-    def test_handle_single_input(self):
+    def test_handle_single_input(self, patched_cache_folder):
         examples = gr.Examples(["hello", "hi"], gr.Textbox())
         assert examples.processed_examples == [["hello"], ["hi"]]
 
@@ -29,37 +31,41 @@ class TestExamples:
 
         examples = gr.Examples(["test/test_files/bus.png"], gr.Image())
         assert (
-            utils.encode_file_to_base64(examples.processed_examples[0][0]["path"])
+            client_utils.encode_file_to_base64(
+                examples.processed_examples[0][0]["path"]
+            )
             == media_data.BASE64_IMAGE
         )
 
-    def test_handle_multiple_inputs(self):
+    def test_handle_multiple_inputs(self, patched_cache_folder):
         examples = gr.Examples(
             [["hello", "test/test_files/bus.png"]], [gr.Textbox(), gr.Image()]
         )
         assert examples.processed_examples[0][0] == "hello"
         assert (
-            utils.encode_file_to_base64(examples.processed_examples[0][1]["path"])
+            client_utils.encode_file_to_base64(
+                examples.processed_examples[0][1]["path"]
+            )
             == media_data.BASE64_IMAGE
         )
 
-    def test_handle_directory(self):
+    def test_handle_directory(self, patched_cache_folder):
         examples = gr.Examples("test/test_files/images", gr.Image())
         assert len(examples.processed_examples) == 2
         for row in examples.processed_examples:
             for output in row:
                 assert (
-                    utils.encode_file_to_base64(output["path"])
+                    client_utils.encode_file_to_base64(output["path"])
                     == media_data.BASE64_IMAGE
                 )
 
-    def test_handle_directory_with_log_file(self):
+    def test_handle_directory_with_log_file(self, patched_cache_folder):
         examples = gr.Examples(
             "test/test_files/images_log", [gr.Image(label="im"), gr.Text()]
         )
-        ex = utils.traverse(
+        ex = client_utils.traverse(
             examples.processed_examples,
-            lambda s: utils.encode_file_to_base64(s["path"]),
+            lambda s: client_utils.encode_file_to_base64(s["path"]),
             lambda x: isinstance(x, dict) and Path(x["path"]).exists(),
         )
         assert ex == [
@@ -67,13 +73,13 @@ class TestExamples:
             [media_data.BASE64_IMAGE, "hi"],
         ]
         for sample in examples.dataset.samples:
-            assert os.path.isabs(sample[0])
+            assert os.path.isabs(sample[0]["path"])
 
-    def test_examples_per_page(self):
+    def test_examples_per_page(self, patched_cache_folder):
         examples = gr.Examples(["hello", "hi"], gr.Textbox(), examples_per_page=2)
         assert examples.dataset.get_config()["samples_per_page"] == 2
 
-    def test_no_preprocessing(self):
+    def test_no_preprocessing(self, patched_cache_folder):
         with gr.Blocks():
             image = gr.Image()
             textbox = gr.Textbox()
@@ -88,9 +94,11 @@ class TestExamples:
             )
 
         prediction = examples.load_from_cache(0)
-        assert utils.encode_file_to_base64(prediction[0]) == media_data.BASE64_IMAGE
+        assert (
+            client_utils.encode_file_to_base64(prediction[0]) == media_data.BASE64_IMAGE
+        )
 
-    def test_no_postprocessing(self):
+    def test_no_postprocessing(self, patched_cache_folder):
         def im(x):
             return [
                 {
@@ -116,25 +124,45 @@ class TestExamples:
 
         prediction = examples.load_from_cache(0)
         file = prediction[0].root[0].image.path
-        assert utils.encode_url_or_file_to_base64(
+        assert client_utils.encode_url_or_file_to_base64(
             file
-        ) == utils.encode_url_or_file_to_base64("test/test_files/bus.png")
+        ) == client_utils.encode_url_or_file_to_base64("test/test_files/bus.png")
 
 
-@patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
+def test_setting_cache_dir_env_variable(monkeypatch):
+    temp_dir = tempfile.mkdtemp()
+    monkeypatch.setenv("GRADIO_EXAMPLES_CACHE", temp_dir)
+    with gr.Blocks():
+        image = gr.Image()
+        image2 = gr.Image()
+
+        examples = gr.Examples(
+            examples=["test/test_files/bus.png"],
+            inputs=image,
+            outputs=image2,
+            fn=lambda x: x,
+            cache_examples=True,
+        )
+    prediction = examples.load_from_cache(0)
+    path_to_cached_file = Path(prediction[0].path)
+    assert utils.is_in_or_equal(path_to_cached_file, temp_dir)
+    monkeypatch.delenv("GRADIO_EXAMPLES_CACHE", raising=False)
+
+
+@patch("gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp()))
 class TestExamplesDataset:
-    def test_no_headers(self):
+    def test_no_headers(self, patched_cache_folder):
         examples = gr.Examples("test/test_files/images_log", [gr.Image(), gr.Text()])
         assert examples.dataset.headers == []
 
-    def test_all_headers(self):
+    def test_all_headers(self, patched_cache_folder):
         examples = gr.Examples(
             "test/test_files/images_log",
             [gr.Image(label="im"), gr.Text(label="your text")],
         )
         assert examples.dataset.headers == ["im", "your text"]
 
-    def test_some_headers(self):
+    def test_some_headers(self, patched_cache_folder):
         examples = gr.Examples(
             "test/test_files/images_log", [gr.Image(label="im"), gr.Text()]
         )
@@ -178,9 +206,9 @@ def test_example_caching_relaunch(connect):
         )
 
 
-@patch("gradio.helpers.CACHED_FOLDER", tempfile.mkdtemp())
+@patch("gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp()))
 class TestProcessExamples:
-    def test_caching(self):
+    def test_caching(self, patched_cache_folder):
         io = gr.Interface(
             lambda x: f"Hello {x}",
             "text",
@@ -191,7 +219,7 @@ class TestProcessExamples:
         prediction = io.examples_handler.load_from_cache(1)
         assert prediction[0] == "Hello Dunya"
 
-    def test_example_caching_relaunch(self, connect):
+    def test_example_caching_relaunch(self, patched_cache_folder, connect):
         def combine(a, b):
             return a + " " + b
 
@@ -224,7 +252,7 @@ class TestProcessExamples:
                 "hello Eve",
             )
 
-    def test_caching_image(self):
+    def test_caching_image(self, patched_cache_folder):
         io = gr.Interface(
             lambda x: x,
             "image",
@@ -233,11 +261,11 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = io.examples_handler.load_from_cache(0)
-        assert utils.encode_url_or_file_to_base64(prediction[0].path).startswith(
+        assert client_utils.encode_url_or_file_to_base64(prediction[0].path).startswith(
             "data:image/png;base64,iVBORw0KGgoAAA"
         )
 
-    def test_caching_audio(self):
+    def test_caching_audio(self, patched_cache_folder):
         io = gr.Interface(
             lambda x: x,
             "audio",
@@ -247,11 +275,11 @@ class TestProcessExamples:
         )
         prediction = io.examples_handler.load_from_cache(0)
         file = prediction[0].path
-        assert utils.encode_url_or_file_to_base64(file).startswith(
+        assert client_utils.encode_url_or_file_to_base64(file).startswith(
             "data:audio/wav;base64,UklGRgA/"
         )
 
-    def test_caching_with_update(self):
+    def test_caching_with_update(self, patched_cache_folder):
         io = gr.Interface(
             lambda x: gr.update(visible=False),
             "text",
@@ -265,7 +293,7 @@ class TestProcessExamples:
             "__type__": "update",
         }
 
-    def test_caching_with_mix_update(self):
+    def test_caching_with_mix_update(self, patched_cache_folder):
         io = gr.Interface(
             lambda x: [gr.update(lines=4, value="hello"), "test/test_files/bus.png"],
             "text",
@@ -280,7 +308,7 @@ class TestProcessExamples:
             "__type__": "update",
         }
 
-    def test_caching_with_dict(self):
+    def test_caching_with_dict(self, patched_cache_folder):
         text = gr.Textbox()
         out = gr.Label()
 
@@ -297,7 +325,7 @@ class TestProcessExamples:
             gr.Label.data_model(**{"label": "lion", "confidences": None}),
         ]
 
-    def test_caching_with_generators(self):
+    def test_caching_with_generators(self, patched_cache_folder):
         def test_generator(x):
             for y in range(len(x)):
                 yield "Your output: " + x[: y + 1]
@@ -312,7 +340,7 @@ class TestProcessExamples:
         prediction = io.examples_handler.load_from_cache(0)
         assert prediction[0] == "Your output: abcdef"
 
-    def test_caching_with_generators_and_streamed_output(self):
+    def test_caching_with_generators_and_streamed_output(self, patched_cache_folder):
         file_dir = Path(Path(__file__).parent, "test_files")
         audio = str(file_dir / "audio_sample.wav")
 
@@ -334,7 +362,7 @@ class TestProcessExamples:
         assert round(length_ratio, 1) == 3.0  # might not be exactly 3x
         assert float(prediction[1]) == 10.0
 
-    def test_caching_with_async_generators(self):
+    def test_caching_with_async_generators(self, patched_cache_folder):
         async def test_generator(x):
             for y in range(len(x)):
                 yield "Your output: " + x[: y + 1]
@@ -349,7 +377,9 @@ class TestProcessExamples:
         prediction = io.examples_handler.load_from_cache(0)
         assert prediction[0] == "Your output: abcdef"
 
-    def test_raise_helpful_error_message_if_providing_partial_examples(self, tmp_path):
+    def test_raise_helpful_error_message_if_providing_partial_examples(
+        self, patched_cache_folder, tmp_path
+    ):
         def foo(a, b):
             return a + b
 
@@ -406,7 +436,7 @@ class TestProcessExamples:
                     cache_examples=True,
                 )
 
-    def test_caching_with_batch(self):
+    def test_caching_with_batch(self, patched_cache_folder):
         def trim_words(words, lens):
             trimmed_words = [word[:length] for word, length in zip(words, lens)]
             return [trimmed_words]
@@ -423,7 +453,7 @@ class TestProcessExamples:
         prediction = io.examples_handler.load_from_cache(0)
         assert prediction == ["hel"]
 
-    def test_caching_with_batch_multiple_outputs(self):
+    def test_caching_with_batch_multiple_outputs(self, patched_cache_folder):
         def trim_words(words, lens):
             trimmed_words = [word[:length] for word, length in zip(words, lens)]
             return trimmed_words, lens
@@ -440,7 +470,7 @@ class TestProcessExamples:
         prediction = io.examples_handler.load_from_cache(0)
         assert prediction == ["hel", "3"]
 
-    def test_caching_with_non_io_component(self):
+    def test_caching_with_non_io_component(self, patched_cache_folder):
         def predict(name):
             return name, gr.update(visible=True)
 
@@ -460,7 +490,7 @@ class TestProcessExamples:
         prediction = examples.load_from_cache(0)
         assert prediction == ["John", {"visible": True, "__type__": "update"}]
 
-    def test_end_to_end(self):
+    def test_end_to_end(self, patched_cache_folder):
         def concatenate(str1, str2):
             return str1 + str2
 
@@ -518,7 +548,7 @@ class TestProcessExamples:
             }
         ]
 
-    def test_end_to_end_cache_examples(self):
+    def test_end_to_end_cache_examples(self, patched_cache_folder):
         def concatenate(str1, str2):
             return f"{str1} {str2}"
 
@@ -547,7 +577,7 @@ class TestProcessExamples:
 
 
 def test_multiple_file_flagging(tmp_path):
-    with patch("gradio.helpers.CACHED_FOLDER", str(tmp_path)):
+    with patch("gradio.utils.get_cache_folder", return_value=tmp_path):
         io = gr.Interface(
             fn=lambda *x: list(x),
             inputs=[
@@ -565,7 +595,7 @@ def test_multiple_file_flagging(tmp_path):
 
 
 def test_examples_keep_all_suffixes(tmp_path):
-    with patch("gradio.helpers.CACHED_FOLDER", str(tmp_path)):
+    with patch("gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())):
         file_1 = tmp_path / "foo.bar.txt"
         file_1.write_text("file 1")
         file_2 = tmp_path / "file_2"

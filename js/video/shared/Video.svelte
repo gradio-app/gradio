@@ -21,8 +21,6 @@
 
 	export let processingVideo = false;
 
-	const dispatch = createEventDispatcher();
-
 	let resolved_src: typeof src;
 
 	// The `src` prop can be updated before the Promise from `resolve_wasm_src` is resolved.
@@ -32,7 +30,7 @@
 	$: {
 		// In normal (non-Wasm) Gradio, the `<img>` element should be rendered with the passed `src` props immediately
 		// without waiting for `resolve_wasm_src()` to resolve.
-		// If it waits, a black image is displayed until the async task finishes
+		// If it waits, a blank element is displayed until the async task finishes
 		// and it leads to undesirable flickering.
 		// So set `src` to `resolved_src` here.
 		resolved_src = src;
@@ -45,6 +43,8 @@
 			}
 		});
 	}
+
+	const dispatch = createEventDispatcher();
 </script>
 
 <!--

@@ -65,7 +65,49 @@ test.skip("Image copy from clipboard dispatches upload event.", async ({ page })
 		navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
 	});
 
-	await page.getByLabel("clipboard-image-toolbar-btn").click();
+	await page.getByLabel("Paste from clipboard").click();
+	await Promise.all([
+		page.waitForResponse(
+			(resp) => resp.url().includes("/clipboard.png") && resp.status() === 200
+		)
+	]);
 	await expect(page.getByLabel("# Change Events").first()).toHaveValue("1");
 	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
+});
+
+test("Image paste to clipboard via the Upload component works", async ({
+	page
+}) => {
+	await page.evaluate(async () => {
+		navigator.clipboard.writeText("123");
+	});
+
+	await page.getByLabel("Paste from clipboard").click();
+	await page.evaluate(async () => {
+		const blob = await (
+			await fetch(
+				`https://gradio-builds.s3.amazonaws.com/assets/PDFDisplay.png`
+			)
+		).blob();
+		navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+	});
+
+	await page.getByText("Paste from clipboard").click();
+	await expect(page.getByLabel("# Upload Events")).toHaveValue("1");
+});
+
+test("Image select and change events work as expected.", async ({ page }) => {
+	await page.getByRole("button", { name: "Drop Image Here" }).click();
+	const uploader = await page.locator("input[type=file]");
+	const change_output_counter = await page.getByLabel("# Change Events Output");
+	const select_event_counter = await page.getByLabel("# Select Events");
+
+	await uploader.setInputFiles("./test/files/cheetah1.jpg");
+	await expect(change_output_counter).toHaveValue("1");
+	await expect(select_event_counter).toHaveValue("0");
+
+	const output_image = await page.locator(".selectable");
+	await output_image.click();
+	await expect(change_output_counter).toHaveValue("1");
+	await expect(select_event_counter).toHaveValue("1");
 });

@@ -1,5 +1,35 @@
 # @gradio/upload
 
+## 0.6.0
+
+### Features
+
+- [#6965](https://github.com/gradio-app/gradio/pull/6965) [`5d00dd3`](https://github.com/gradio-app/gradio/commit/5d00dd37ca14bbfef2ceac550b29dbe05ba8cab0) - Make <UploadProgress /> Wasm-compatible.  Thanks [@whitphx](https://github.com/whitphx)!
+
+### Fixes
+
+- [#6969](https://github.com/gradio-app/gradio/pull/6969) [`793bf8f`](https://github.com/gradio-app/gradio/commit/793bf8f7b1943f265c5d016c1a0c682ee549232a) - Display pending file in `<Upload />` while waiting for upload request.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
+## 0.5.8
+
+### Features
+
+- [#6931](https://github.com/gradio-app/gradio/pull/6931) [`6c863af`](https://github.com/gradio-app/gradio/commit/6c863af92fa9ceb5c638857eb22cc5ddb718d549) - Fix functional tests.  Thanks [@aliabid94](https://github.com/aliabid94)!
+
+## 0.5.7
+
+### Patch Changes
+
+- Updated dependencies [[`d406855`](https://github.com/gradio-app/gradio/commit/d4068557953746662235d595ec435c42ceb24414)]:
+  - @gradio/client@0.9.4
+  - @gradio/upload@0.5.7
+
+## 0.5.6
+
+### Fixes
+
+- [#6766](https://github.com/gradio-app/gradio/pull/6766) [`73268ee`](https://github.com/gradio-app/gradio/commit/73268ee2e39f23ebdd1e927cb49b8d79c4b9a144) - Improve source selection UX. Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.5.5
 
 ### Patch Changes

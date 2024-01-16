@@ -34,7 +34,7 @@ from gradio.components.dataframe import DataframeData
 from gradio.components.file_explorer import FileExplorerData
 from gradio.components.image_editor import EditorData
 from gradio.components.video import VideoData
-from gradio.data_classes import FileData
+from gradio.data_classes import FileData, ListFiles
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -232,12 +232,32 @@ class TestNumber:
         assert numeric_input.postprocess(2.1421) == 2.14
         assert numeric_input.postprocess(None) is None
 
+    def test_precision_none_with_integer(self):
+        """
+        Preprocess, postprocess
+        """
+        numeric_input = gr.Number(precision=None)
+        assert numeric_input.preprocess(5) == 5
+        assert isinstance(numeric_input.preprocess(5), int)
+        assert numeric_input.postprocess(5) == 5
+        assert isinstance(numeric_input.postprocess(5), int)
+
+    def test_precision_none_with_float(self):
+        """
+        Preprocess, postprocess
+        """
+        numeric_input = gr.Number(value=5.5, precision=None)
+        assert numeric_input.preprocess(5.5) == 5.5
+        assert isinstance(numeric_input.preprocess(5.5), float)
+        assert numeric_input.postprocess(5.5) == 5.5
+        assert isinstance(numeric_input.postprocess(5.5), float)
+
     def test_in_interface_as_input(self):
         """
         Interface, process
         """
         iface = gr.Interface(lambda x: x**2, "number", "textbox")
-        assert iface(2) == "4.0"
+        assert iface(2) == "4"
 
     def test_precision_0_in_interface(self):
         """
@@ -410,8 +430,7 @@ class TestCheckboxGroup:
         cbox = gr.CheckboxGroup(choices=["a", "b"], value="c")
         assert cbox.get_config()["value"] == ["c"]
         assert cbox.postprocess("a") == ["a"]
-        with pytest.raises(ValueError):
-            gr.CheckboxGroup().as_example("a")
+        assert cbox.process_example("a") == ["a"]
 
     def test_in_interface(self):
         """
@@ -617,6 +636,13 @@ class TestImageEditor:
             "proxy_url": None,
             "name": "imageeditor",
         }
+
+    def test_process_example(self):
+        test_image_path = "test/test_files/bus.png"
+        image_editor = gr.ImageEditor()
+        example_value = image_editor.process_example(test_image_path)
+        assert isinstance(example_value, EditorData)
+        assert example_value.background and example_value.background.path
 
 
 class TestImage:
@@ -971,6 +997,14 @@ class TestFile:
         output2 = file_input.postprocess("test/test_files/sample_file.pdf")
         assert output1 == output2
 
+    def test_preprocess_with_multiple_files(self):
+        file_data = FileData(path=media_data.BASE64_FILE["path"])
+        list_file_data = ListFiles(root=[file_data, file_data])
+        file_input = gr.File(file_count="directory")
+        output = file_input.preprocess(list_file_data)
+        assert isinstance(output, list)
+        assert isinstance(output[0], str)
+
     def test_file_type_must_be_list(self):
         with pytest.raises(
             ValueError, match="Parameter file_types must be a list. Received str"
@@ -1024,6 +1058,14 @@ class TestUploadButton:
         ):
             gr.UploadButton(file_types=2)
 
+    def test_preprocess_with_multiple_files(self):
+        file_data = FileData(path=media_data.BASE64_FILE["path"])
+        list_file_data = ListFiles(root=[file_data, file_data])
+        upload_input = gr.UploadButton(file_count="directory")
+        output = upload_input.preprocess(list_file_data)
+        assert isinstance(output, list)
+        assert isinstance(output[0], str)
+
 
 class TestDataframe:
     def test_component_functions(self):
@@ -1035,11 +1077,12 @@ class TestDataframe:
             "headers": ["Name", "Age", "Member"],
             "metadata": None,
         }
+        x_payload = DataframeData(**x_data)
         dataframe_input = gr.Dataframe(headers=["Name", "Age", "Member"])
-        output = dataframe_input.preprocess(DataframeData(**x_data))
+        output = dataframe_input.preprocess(x_payload)
         assert output["Age"][1] == 24
         assert not output["Member"][0]
-        assert dataframe_input.postprocess(x_data) == x_data
+        assert dataframe_input.postprocess(output) == x_payload
 
         dataframe_input = gr.Dataframe(
             headers=["Name", "Age", "Member"], label="Dataframe Input"
@@ -1350,7 +1393,7 @@ class TestDataset:
         row = dataset.preprocess(1)
         assert row[0] == 15
         assert row[1] == "hi"
-        assert row[2].endswith("bus.png")
+        assert row[2]["path"].endswith("bus.png")
         assert row[3] == "<i>Italics</i>"
         assert row[4] == "*Italics*"
 
@@ -1367,7 +1410,7 @@ class TestDataset:
 
         radio = gr.Radio(choices=[("name 1", "value 1"), ("name 2", "value 2")])
         dataset = gr.Dataset(samples=[["value 1"], ["value 2"]], components=[radio])
-        assert dataset.samples == [["name 1"], ["name 2"]]
+        assert dataset.samples == [["value 1"], ["value 2"]]
 
     def test_postprocessing(self):
         test_file_dir = Path(Path(__file__).parent, "test_files")
@@ -1418,7 +1461,7 @@ class TestVideo:
         video_input = gr.Video(label="Upload Your Video")
         assert video_input.get_config() == {
             "autoplay": False,
-            "sources": ["webcam", "upload"],
+            "sources": ["upload", "webcam"],
             "name": "video",
             "show_share_button": False,
             "show_label": True,
@@ -2290,32 +2333,40 @@ class TestState:
         assert result["prediction"] == 2
 
 
-def test_dataframe_as_example_converts_dataframes():
+def test_dataframe_process_example_converts_dataframes():
     df_comp = gr.Dataframe()
-    assert df_comp.as_example(pd.DataFrame({"a": [1, 2, 3, 4], "b": [5, 6, 7, 8]})) == [
+    assert df_comp.process_example(
+        pd.DataFrame({"a": [1, 2, 3, 4], "b": [5, 6, 7, 8]})
+    ) == [
         [1, 5],
         [2, 6],
         [3, 7],
         [4, 8],
     ]
-    assert df_comp.as_example(np.array([[1, 2], [3, 4.0]])) == [[1.0, 2.0], [3.0, 4.0]]
+    assert df_comp.process_example(np.array([[1, 2], [3, 4.0]])) == [
+        [1.0, 2.0],
+        [3.0, 4.0],
+    ]
 
 
 @pytest.mark.parametrize("component", [gr.Model3D, gr.File, gr.Audio])
-def test_as_example_returns_file_basename(component):
+def test_process_example_returns_file_basename(component):
     component = component()
-    assert component.as_example("/home/freddy/sources/example.ext") == "example.ext"
-    assert component.as_example(None) == ""
+    assert (
+        component.process_example("/home/freddy/sources/example.ext") == "example.ext"
+    )
+    assert component.process_example(None) == ""
 
 
 @patch(
-    "gradio.components.Component.as_example", spec=gr.components.Component.as_example
+    "gradio.components.Component.process_example",
+    spec=gr.components.Component.process_example,
 )
-@patch("gradio.components.Image.as_example", spec=gr.Image.as_example)
-@patch("gradio.components.File.as_example", spec=gr.File.as_example)
-@patch("gradio.components.Dataframe.as_example", spec=gr.DataFrame.as_example)
-@patch("gradio.components.Model3D.as_example", spec=gr.Model3D.as_example)
-def test_dataset_calls_as_example(*mocks):
+@patch("gradio.components.Image.process_example", spec=gr.Image.process_example)
+@patch("gradio.components.File.process_example", spec=gr.File.process_example)
+@patch("gradio.components.Dataframe.process_example", spec=gr.DataFrame.process_example)
+@patch("gradio.components.Model3D.process_example", spec=gr.Model3D.process_example)
+def test_dataset_calls_process_example(*mocks):
     gr.Dataset(
         components=[gr.Dataframe(), gr.File(), gr.Image(), gr.Model3D(), gr.Textbox()],
         samples=[

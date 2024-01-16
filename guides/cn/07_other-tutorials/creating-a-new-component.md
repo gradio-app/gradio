@@ -2,7 +2,7 @@
 
 ## 简介
 
-本指南旨在说明如何添加一个新组件，你可以在 Gradio 应用程序中使用该组件。该指南将通过代码片段逐步展示如何添加[ColorPicker](https://gradio.app/docs/#colorpicker)组件。
+本指南旨在说明如何添加一个新组件，你可以在 Gradio 应用程序中使用该组件。该指南将通过代码片段逐步展示如何添加[ColorPicker](https://gradio.app/docs/colorpicker)组件。
 
 ## 先决条件
 

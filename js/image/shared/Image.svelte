@@ -1,6 +1,9 @@
 <script lang="ts">
 	import type { HTMLImgAttributes } from "svelte/elements";
-	type $$Props = HTMLImgAttributes;
+	interface Props extends HTMLImgAttributes {
+		"data-testid"?: string;
+	}
+	type $$Props = Props;
 
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 
@@ -15,7 +18,7 @@
 	$: {
 		// In normal (non-Wasm) Gradio, the `<img>` element should be rendered with the passed `src` props immediately
 		// without waiting for `resolve_wasm_src()` to resolve.
-		// If it waits, a black image is displayed until the async task finishes
+		// If it waits, a blank image is displayed until the async task finishes
 		// and it leads to undesirable flickering.
 		// So set `src` to `resolved_src` here.
 		resolved_src = src;

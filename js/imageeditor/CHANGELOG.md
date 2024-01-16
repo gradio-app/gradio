@@ -1,10 +1,41 @@
 # @gradio/imageeditor
 
+## 0.2.3
+
+### Fixes
+
+- [#6885](https://github.com/gradio-app/gradio/pull/6885) [`640b7fe`](https://github.com/gradio-app/gradio/commit/640b7fe05276e11720b4341cadf088491395e53d) - Fix issue with Webcam Recording.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
+## 0.2.2
+
+### Patch Changes
+
+- Updated dependencies [[`b1b78c2`](https://github.com/gradio-app/gradio/commit/b1b78c2168e24fb65251a9b9b6cbc9382179a8ca), [`f742d0e`](https://github.com/gradio-app/gradio/commit/f742d0e861c8e25c5d77d9102c9d50f94b0d3383), [`6c863af`](https://github.com/gradio-app/gradio/commit/6c863af92fa9ceb5c638857eb22cc5ddb718d549), [`fb9c6ca`](https://github.com/gradio-app/gradio/commit/fb9c6cacd7ca4598c000f1f97d7d39a8c4463519), [`459c5dc`](https://github.com/gradio-app/gradio/commit/459c5dc989849b1f0134467d260710fe891045d6), [`649cd4d`](https://github.com/gradio-app/gradio/commit/649cd4d68041d11fcbe31f8efa455345ac49fc74), [`8333db8`](https://github.com/gradio-app/gradio/commit/8333db83ac6e2c8511c104534c48137576d0bcd7)]:
+  - @gradio/image@0.6.0
+  - @gradio/client@0.10.0
+  - @gradio/upload@0.5.8
+  - @gradio/wasm@0.4.1
+
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [[`d406855`](https://github.com/gradio-app/gradio/commit/d4068557953746662235d595ec435c42ceb24414), [`15c97c6`](https://github.com/gradio-app/gradio/commit/15c97c6d346c475141d20615b5a865e9c44bdc76)]:
+  - @gradio/client@0.9.4
+  - @gradio/image@0.5.4
+  - @gradio/upload@0.5.7
+
+## 0.2.0
+
+### Features
+
+- [#6809](https://github.com/gradio-app/gradio/pull/6809) [`1401d99`](https://github.com/gradio-app/gradio/commit/1401d99ade46d87da75b5f5808a3354c49f1d1ea) - Fix `ImageEditor` interaction story. Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.1.5
 
 ### Fixes
 
-- [#6799](https://github.com/gradio-app/gradio/pull/6799) [`c352811`](https://github.com/gradio-app/gradio/commit/c352811f76d4126613ece0a584f8c552fdd8d1f6) - Adds docstrings for `gr.WaveformOptions`, `gr.Brush`, and `gr.Eraser`, fixes examples for `ImageEditor`, and allows individual images to be used as the initial `value` for `ImageEditor`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6799](https://github.com/gradio-app/gradio/pull/6799) [`c352811`](https://github.com/gradio-app/gradio/commit/c352811f76d4126613ece0a584f8c552fdd8d1f6) - Adds docstrings for `gr.WaveformOptions`, `gr.Brush`, and `gr.Eraser`, fixes examples for `ImageEditor`, and allows individual images to be used as the initial `value` for `ImageEditor`. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.1.4
 

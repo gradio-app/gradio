@@ -98,7 +98,7 @@ class ChatInterface(Blocks):
             undo_btn: Text to display on the delete last button. If None, no button will be displayed. If a Button object, that button will be used.
             clear_btn: Text to display on the clear button. If None, no button will be displayed. If a Button object, that button will be used.
             autofocus: If True, autofocuses to the textbox when the page loads.
-            concurrency_limit: If set, this this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
+            concurrency_limit: If set, this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -293,21 +293,21 @@ class ChatInterface(Blocks):
                 self._clear_and_save_textbox,
                 [self.textbox],
                 [self.textbox, self.saved_input],
-                api_name=False,
+                show_api=False,
                 queue=False,
             )
             .then(
                 self._display_input,
                 [self.saved_input, self.chatbot_state],
                 [self.chatbot, self.chatbot_state],
-                api_name=False,
+                show_api=False,
                 queue=False,
             )
             .then(
                 submit_fn,
                 [self.saved_input, self.chatbot_state] + self.additional_inputs,
                 [self.chatbot, self.chatbot_state],
-                api_name=False,
+                show_api=False,
                 concurrency_limit=cast(
                     Union[int, Literal["default"], None], self.concurrency_limit
                 ),
@@ -321,21 +321,21 @@ class ChatInterface(Blocks):
                     self._delete_prev_fn,
                     [self.chatbot_state],
                     [self.chatbot, self.saved_input, self.chatbot_state],
-                    api_name=False,
+                    show_api=False,
                     queue=False,
                 )
                 .then(
                     self._display_input,
                     [self.saved_input, self.chatbot_state],
                     [self.chatbot, self.chatbot_state],
-                    api_name=False,
+                    show_api=False,
                     queue=False,
                 )
                 .then(
                     submit_fn,
                     [self.saved_input, self.chatbot_state] + self.additional_inputs,
                     [self.chatbot, self.chatbot_state],
-                    api_name=False,
+                    show_api=False,
                     concurrency_limit=cast(
                         Union[int, Literal["default"], None], self.concurrency_limit
                     ),
@@ -348,13 +348,13 @@ class ChatInterface(Blocks):
                 self._delete_prev_fn,
                 [self.chatbot_state],
                 [self.chatbot, self.saved_input, self.chatbot_state],
-                api_name=False,
+                show_api=False,
                 queue=False,
             ).then(
                 lambda x: x,
                 [self.saved_input],
                 [self.textbox],
-                api_name=False,
+                show_api=False,
                 queue=False,
             )
 
@@ -364,7 +364,7 @@ class ChatInterface(Blocks):
                 None,
                 [self.chatbot, self.chatbot_state, self.saved_input],
                 queue=False,
-                api_name=False,
+                show_api=False,
             )
 
     def _setup_stop_events(
@@ -380,14 +380,14 @@ class ChatInterface(Blocks):
                         ),
                         None,
                         [self.submit_btn, self.stop_btn],
-                        api_name=False,
+                        show_api=False,
                         queue=False,
                     )
                 event_to_cancel.then(
                     lambda: (Button(visible=True), Button(visible=False)),
                     None,
                     [self.submit_btn, self.stop_btn],
-                    api_name=False,
+                    show_api=False,
                     queue=False,
                 )
             else:
@@ -396,14 +396,14 @@ class ChatInterface(Blocks):
                         lambda: Button(visible=True),
                         None,
                         [self.stop_btn],
-                        api_name=False,
+                        show_api=False,
                         queue=False,
                     )
                 event_to_cancel.then(
                     lambda: Button(visible=False),
                     None,
                     [self.stop_btn],
-                    api_name=False,
+                    show_api=False,
                     queue=False,
                 )
             self.stop_btn.click(
@@ -411,7 +411,7 @@ class ChatInterface(Blocks):
                 None,
                 None,
                 cancels=event_to_cancel,
-                api_name=False,
+                show_api=False,
             )
 
     def _setup_api(self) -> None:
