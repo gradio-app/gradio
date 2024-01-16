@@ -797,10 +797,9 @@ def render_class_docs_markdown(exports, docs):
 def make_space(docs, name, description, local_version, demo, space, repo, pypi_exists):
     filtered_keys = [key for key in docs if key != "__meta__"]
 
-    source = f"""
+    source = """
 import gradio as gr
 from app import demo as app
-from {name} import {",".join(filtered_keys)}
 import os
 """
 
