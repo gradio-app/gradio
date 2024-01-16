@@ -856,10 +856,7 @@ class TabbedInterface(Blocks):
                 )
             with Tabs():
                 for interface, tab_name in zip(interface_list, tab_names):
-                    interactive = interface_list.index(interface) in interactive_tabs
-                    visible = interface_list.index(interface) in visible_tabs
-
-                    with Tab(label=tab_name, visible=visible, interactive=interactive):
+                    with Tab(label=tab_name):
                         interface.render()
 
 
