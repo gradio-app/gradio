@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import inspect
 import json
 import re
@@ -29,7 +31,7 @@ def format(code: str, type: str):
         universal_newlines=True,
     )
     formatted_code, err = process.communicate(input=code)
-
+    print(err)
     if type == "value":
         formatted_code = re.sub(
             r"^\s*value =\s*", "", formatted_code, flags=re.MULTILINE
@@ -117,14 +119,14 @@ def set_deep(dictionary, keys, value):
     dictionary[keys[-1]] = value
 
 
-def get_deep(dictionary, keys):
+def get_deep(dictionary, keys, default=None):
     """Gets a value from a nested dictionary without erroring if the key doesn't exist."""
     try:
         for key in keys:
             dictionary = dictionary[key]
         return dictionary
     except KeyError:
-        return None
+        return default
 
 
 def get_type_arguments(type_hint) -> tuple:
@@ -163,6 +165,7 @@ def get_container_name(arg):
 
 def format_type(_type: list[typing.Any], current=None):
     """Pretty formats a possibly nested type hint."""
+
     s = []
     _current = None
     for t in _type:
@@ -199,12 +202,18 @@ def get_type_hints(param, module, ignore=None):
         arg_names = []
         args = get_type_arguments(arg)
 
+        print(f"ARGS: {arg} == {args} == {arg_of} == Append: {append}")
+
         # These are local classes that are used in types
         if inspect.isclass(arg) and arg.__module__.startswith(module_name_prefix):
             # get sourcecode for the class
 
             source_code = inspect.getsource(arg)
+            source_code = format(
+                re.sub(r"(\"\"\".*?\"\"\")", "", source_code, flags=re.DOTALL), "other"
+            )
 
+            # re.sub(r"(/"/"/".*?/"/"/")", "", s, flags=re.DOTALL)
             if arg_of is not None:
                 refs = get_deep(additional_interfaces, [arg_of, "refs"])
 
@@ -245,7 +254,7 @@ def get_type_hints(param, module, ignore=None):
                     module_name_prefix,
                     additional_interfaces,
                     user_fn_refs,
-                    True,
+                    append,
                 )
 
                 if len(new_args) > 0:
@@ -264,6 +273,7 @@ def get_type_hints(param, module, ignore=None):
         module_name_prefix,
         additional_interfaces,
         user_fn_refs,
+        True,
     )
 
     formatted_type = format_type(args)
@@ -303,7 +313,13 @@ def extract_docstrings(module):
                     docs[name]["members"][member_name] = {}
 
                     member_docstring = inspect.getdoc(member) or ""
-                    hints = typing.get_type_hints(member)
+                    type_mode = "complex"
+                    try:
+                        hints = typing.get_type_hints(member)
+                    except Exception:
+                        type_mode = "simple"
+                        hints = member.__annotations__
+
                     signature = inspect.signature(member)
 
                     #  we iterate over the parameters and get the type information
@@ -312,8 +328,21 @@ def extract_docstrings(module):
                             param_name == "return" and member_name == "postprocess"
                         ) or (param_name != "return" and member_name == "preprocess"):
                             continue
-                        _hints = get_type_hints(param, module)
-                        arg_names, additional_interfaces, user_fn_refs = _hints
+
+                        if type_mode == "simple":
+                            arg_names = hints.get(param_name, "")
+                            additional_interfaces = {}
+                            user_fn_refs = []
+                        else:
+                            (
+                                arg_names,
+                                additional_interfaces,
+                                user_fn_refs,
+                            ) = get_type_hints(param, module)
+
+                        print(
+                            f"{member_name}.{param_name}: {arg_names} mode: {type_mode}"
+                        )
 
                         #  These interfaces belong to the whole module, so we add them 'globally' for later
                         docs["__meta__"]["additional_interfaces"].update(
@@ -337,6 +366,7 @@ def extract_docstrings(module):
 
                         if signature.parameters.get(param_name, None) is not None:
                             default_value = signature.parameters[param_name].default
+                            print(f"DEFAULT {param_name} {default_value}\n")
 
                             add_value(
                                 docs[name]["members"][member_name][param_name],
@@ -397,14 +427,15 @@ class AdditionalInterface(typing.TypedDict):
 
 
 def make_js(
-    interfaces: dict[str, AdditionalInterface],
+    interfaces: dict[str, AdditionalInterface] | None = None,
     user_fn_refs: dict[str, list[str]] | None = None,
 ):
     """Makes the javascript code for the additional interfaces."""
     js_obj_interfaces = "{"
-    for interface_name, interface in interfaces.items():
-        js_obj_interfaces += f"""
-        {interface_name}: {interface.get("refs", None) or "[]"}, """
+    if interfaces is not None:
+        for interface_name, interface in interfaces.items():
+            js_obj_interfaces += f"""
+            {interface_name}: {interface.get("refs", None) or "[]"}, """
     js_obj_interfaces += "}"
 
     js_obj_user_fn_refs = "{"
@@ -489,23 +520,26 @@ def render_version_badge(pypi_exists, local_version, name):
 
 def render_github_badge(repo):
     """Renders a github badge for the package if a repo is specified."""
-    if repo:
-        return f"""<a href="{repo}/issues" target="_blank"><img alt="Static Badge" src="https://img.shields.io/badge/Issues-white?logo=github&logoColor=black"></a>"""
+    if repo is None:
+        return ""
     else:
-        """"""
+        return f"""<a href="{repo}/issues" target="_blank"><img alt="Static Badge" src="https://img.shields.io/badge/Issues-white?logo=github&logoColor=black"></a>"""
 
 
 def render_discuss_badge(space):
     """Renders a discuss badge for the package if a space is specified."""
-    if space:
-        return f"""<a href="{space}/discussions" target="_blank"><img alt="Static Badge" src="https://img.shields.io/badge/%F0%9F%A4%97%20Discuss-%23097EFF?style=flat&logoColor=black"></a>"""
+    if space is None:
+        return ""
     else:
-        """"""
+        return f"""<a href="{space}/discussions" target="_blank"><img alt="Static Badge" src="https://img.shields.io/badge/%F0%9F%A4%97%20Discuss-%23097EFF?style=flat&logoColor=black"></a>"""
 
 
-def render_class_events(events, name):
+def render_class_events(events: dict, name):
     """Renders the events for a class."""
-    if events is not None:
+    if len(events) == 0:
+        return ""
+
+    else:
         return f"""
     gr.Markdown("### Events")
     gr.ParamViewer(value=_docs["{name}"]["events"], linkify={["Event"]})
@@ -513,9 +547,110 @@ def render_class_events(events, name):
 """
 
 
+def make_user_fn(
+    class_name,
+    user_fn_input_type,
+    user_fn_input_description,
+    user_fn_output_type,
+    user_fn_output_description,
+):
+    """Makes the user function for the class."""
+    if (
+        user_fn_input_type is None
+        and user_fn_output_type is None
+        and user_fn_input_description is None
+        and user_fn_output_description is None
+    ):
+        return ""
+
+    md = """
+    gr.Markdown(\"\"\"
+
+### User function
+
+"""
+
+    md += (
+        f"- **As output:** Is passed, {format_description(user_fn_input_description)}\n"
+        if user_fn_input_description
+        else ""
+    )
+
+    md += (
+        f"- **As input:** Should return, {format_description(user_fn_output_description)}"
+        if user_fn_output_description
+        else ""
+    )
+
+    if user_fn_input_type is not None or user_fn_output_type is not None:
+        md += f"""
+
+ ```python
+def predict(
+    value: {user_fn_input_type or "Unknown"}
+) -> {user_fn_output_type or "Unknown"}:
+    return value
+```"""
+    return f"""{md}
+\"\"\", elem_classes=["md-custom", "{class_name}-user-fn"], header_links=True)
+"""
+
+
+def format_description(description):
+    description = description[0].lower() + description[1:]
+    description = description.rstrip(".") + "."
+    return description
+
+
+def make_user_fn_markdown(
+    user_fn_input_type,
+    user_fn_input_description,
+    user_fn_output_type,
+    user_fn_output_description,
+):
+    """Makes the user function for the class."""
+    if (
+        user_fn_input_type is None
+        and user_fn_output_type is None
+        and user_fn_input_description is None
+        and user_fn_output_description is None
+    ):
+        return ""
+
+    md = """
+### User function
+
+"""
+
+    md += (
+        f"- **As output:** Is passed, {format_description(user_fn_input_description)}\n"
+        if user_fn_input_description
+        else ""
+    )
+
+    md += (
+        f"- **As input:** Should return, {format_description(user_fn_output_description)}"
+        if user_fn_output_description
+        else ""
+    )
+
+    if user_fn_input_type is not None or user_fn_output_type is not None:
+        md += f"""
+
+ ```python
+ def predict(
+     value: {user_fn_input_type or "Unknown"}
+ ) -> {user_fn_output_type or "Unknown"}:
+     return value
+ ```
+ """
+    return md
+
+
 def render_class_events_markdown(events):
     """Renders the events for a class."""
-    if events is None:
+    print(f"EVENTS {events} len {len(events)}")
+    if len(events) == 0:
         return ""
 
     event_table = """
@@ -535,6 +670,19 @@ def render_class_docs(exports, docs):
     """Renders the class documentation for the package."""
     docs_classes = ""
     for class_name in exports:
+        user_fn_input_type = get_deep(
+            docs, [class_name, "members", "preprocess", "return", "type"]
+        )
+        user_fn_input_description = get_deep(
+            docs, [class_name, "members", "preprocess", "return", "description"]
+        )
+        user_fn_output_type = get_deep(
+            docs, [class_name, "members", "postprocess", "value", "type"]
+        )
+        user_fn_output_description = get_deep(
+            docs, [class_name, "members", "postprocess", "value", "description"]
+        )
+
         docs_classes += f"""
     gr.Markdown(\"\"\"
 ## `{class_name}`
@@ -542,27 +690,18 @@ def render_class_docs(exports, docs):
 ### Initialization
 \"\"\", elem_classes=["md-custom"], header_links=True)
 
-    gr.ParamViewer(value=_docs["{class_name}"]["members"]["__init__"], linkify={["Parameter"]})
+    gr.ParamViewer(value=_docs["{class_name}"]["members"]["__init__"], linkify={list(get_deep(docs, ["__meta__", "additional_interfaces"], {}).keys())})
 
 {render_class_events(docs[class_name].get("events", None), class_name)}
 
-    gr.Markdown(\"\"\"
-
-### User function
-
-- **As output:** Is passed, {docs[class_name]["members"]["preprocess"]["return"]["description"]}.
-- **As input:** Should return, {docs[class_name]["members"]["postprocess"]["value"]["description"]}.
-
-```python
-def predict(
-    value: {docs[class_name]["members"]["preprocess"]["return"]["type"]}
-) -> {docs[class_name]["members"]["postprocess"]["value"]["type"]}:
-    return value 
-```
-\"\"\", elem_classes=["md-custom", "{class_name}-user-fn"], header_links=True)
-
-
-    """
+{make_user_fn(
+    class_name,
+    user_fn_input_type,
+    user_fn_input_description,
+    user_fn_output_type,
+    user_fn_output_description,
+)}
+"""
     return docs_classes
 
 
@@ -624,6 +763,18 @@ def render_class_docs_markdown(exports, docs):
     """Renders the class documentation for the package."""
     docs_classes = ""
     for class_name in exports:
+        user_fn_input_type = get_deep(
+            docs, [class_name, "members", "preprocess", "return", "type"]
+        )
+        user_fn_input_description = get_deep(
+            docs, [class_name, "members", "preprocess", "return", "description"]
+        )
+        user_fn_output_type = get_deep(
+            docs, [class_name, "members", "postprocess", "value", "type"]
+        )
+        user_fn_output_description = get_deep(
+            docs, [class_name, "members", "postprocess", "value", "description"]
+        )
         docs_classes += f"""
 ## `{class_name}`
 
@@ -633,17 +784,12 @@ def render_class_docs_markdown(exports, docs):
 
 {render_class_events_markdown(docs[class_name].get("events", None))}
 
-### User function
-
-- **As output:** Is passed, {docs[class_name]["members"]["preprocess"]["return"]["description"]}.
-- **As input:** Should return, {docs[class_name]["members"]["postprocess"]["value"]["description"]}.
-
-```python
-def predict(
-    value: {docs[class_name]["members"]["preprocess"]["return"]["type"]}
-) -> {docs[class_name]["members"]["postprocess"]["value"]["type"]}:
-    return value 
-```
+{make_user_fn_markdown(
+    user_fn_input_type,
+    user_fn_input_description,
+    user_fn_output_type,
+    user_fn_output_description,
+)}
 """
     return docs_classes
 
@@ -679,7 +825,7 @@ with gr.Blocks(
 # `{name}`
 
 <div style="display: flex; gap: 7px;">
-{render_version_badge(pypi_exists, local_version, name)}{render_github_badge(repo)}{render_discuss_badge(space)}
+{render_version_badge(pypi_exists, local_version, name)} {render_github_badge(repo)} {render_discuss_badge(space)}
 </div>
 
 {description}
@@ -703,7 +849,7 @@ pip install {name}
 {docs_classes}
 
 {render_additional_interfaces(docs["__meta__"]["additional_interfaces"])}
-    demo.load(None, js=r\"\"\"{make_js(docs["__meta__"]["additional_interfaces"], docs["__meta__"]["user_fn_refs"])}
+    demo.load(None, js=r\"\"\"{make_js(get_deep(docs, ["__meta__", "additional_interfaces"]),get_deep( docs, ["__meta__", "user_fn_refs"]))}
 \"\"\")
 
 demo.launch()
@@ -719,7 +865,7 @@ def make_markdown(
 
     source = f"""
 # `{name}`
-{render_version_badge(pypi_exists, local_version, name)}{render_github_badge(repo)}{render_discuss_badge(space)}
+{render_version_badge(pypi_exists, local_version, name)} {render_github_badge(repo)} {render_discuss_badge(space)}
 
 {description}
 

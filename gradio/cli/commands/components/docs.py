@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import importlib
 from pathlib import Path
 from typing import Optional
@@ -8,6 +10,7 @@ from typer import Argument, Option
 from typing_extensions import Annotated
 
 from ._docs_utils import extract_docstrings, get_deep, make_markdown, make_space
+from ._docs_assets import css
 
 
 def _docs(
@@ -89,6 +92,8 @@ def _docs(
         with open(_demo_dir / "space.py", "w") as f:
             f.write(source)
             print(f"  - Space created in {_demo_dir}/space.py\n")
+        with open(_demo_dir / "css.css", "w") as f:
+            f.write(css)
 
     if generate_readme:
         print("Generating README.")

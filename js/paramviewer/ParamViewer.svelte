@@ -74,12 +74,14 @@
 				</div>
 				{#if show_desc[i]}
 					{#if _default}
-						<div class="default">
+						<div class="default" class:last={!description}>
 							<span style:padding-right={"4px"}>default</span>
 							<code>= {@html _default}</code>
 						</div>
 					{/if}
-					<div class="description"><p>{description}</p></div>
+					{#if description}
+						<div class="description"><p>{description}</p></div>
+					{/if}
 				{/if}
 			</div>
 		{/each}
@@ -168,8 +170,11 @@
 
 	.default {
 		padding: 0.2rem 1rem 0.3rem 1rem;
-		border-bottom: 1px solid var(--neutral-700);
 		border-bottom: 1px solid var(--neutral-200);
+	}
+
+	.default.last {
+		border-bottom: none;
 	}
 
 	.description {
