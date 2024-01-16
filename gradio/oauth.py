@@ -87,7 +87,19 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
     @app.get("/login/huggingface")
     async def oauth_login(request: fastapi.Request):
         """Endpoint that redirects to HF OAuth page."""
-        redirect_uri = str(request.url_for("oauth_redirect_callback"))
+        # Define target (where to redirect after login)
+        if "_target" in request.query_params:
+            # if `_target` already in query params => respect it
+            target = request.query_params["_target"]
+        else:
+            # otherwise => keep query params
+            target = request.url_for("/").include_query_params(**request.query_params)
+
+        redirect_uri = str(
+            request.url_for("oauth_redirect_callback").include_query_params(
+                _target=str(target)
+            )
+        )
         if ".hf.space" in redirect_uri:
             # In Space, FastAPI redirect as http but we want https
             redirect_uri = redirect_uri.replace("http://", "https://")
@@ -98,13 +110,13 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
         """Endpoint that handles the OAuth callback."""
         oauth_info = await oauth.huggingface.authorize_access_token(request)  # type: ignore
         request.session["oauth_info"] = oauth_info
-        return RedirectResponse("/")
+        return _redirect_to_target(request)
 
     @app.get("/logout")
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
         request.session.pop("oauth_info", None)
-        return RedirectResponse("/")
+        return _redirect_to_target(request)
 
 
 def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
@@ -130,13 +142,22 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
     async def oauth_redirect_callback(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that handles the OAuth callback."""
         request.session["oauth_info"] = mocked_oauth_info
-        return RedirectResponse("/")
+        return _redirect_to_target(request)
 
     @app.get("/logout")
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
         request.session.pop("oauth_info", None)
-        return RedirectResponse("/")
+        return _redirect_to_target(request)
+
+
+def _redirect_to_target(
+    request: fastapi.Request, default_target: str = "/"
+) -> RedirectResponse:
+    target = request.query_params.get("_target")
+    if target is not None:
+        return RedirectResponse(target)
+    return RedirectResponse(default_target)
 
 
 @dataclass
