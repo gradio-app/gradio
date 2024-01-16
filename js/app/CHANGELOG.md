@@ -1,5 +1,16 @@
 # @gradio/app
 
+## 1.20.0
+
+### Features
+
+- [#6965](https://github.com/gradio-app/gradio/pull/6965) [`5d00dd3`](https://github.com/gradio-app/gradio/commit/5d00dd37ca14bbfef2ceac550b29dbe05ba8cab0) - Make <UploadProgress /> Wasm-compatible.  Thanks [@whitphx](https://github.com/whitphx)!
+
+### Fixes
+
+- [#6967](https://github.com/gradio-app/gradio/pull/6967) [`5e00162`](https://github.com/gradio-app/gradio/commit/5e0016267f1d683e2daab82ee4a33d2f09513a34) - Make <Gallery /> Wasm-compatible.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6983](https://github.com/gradio-app/gradio/pull/6983) [`6e285be`](https://github.com/gradio-app/gradio/commit/6e285be8edeacf8730bac10b7ecd3fd5e309a950) - Fix the reloader.  Thanks [@aliabid94](https://github.com/aliabid94)!
+
 ## 1.19.0
 
 ### Features
