@@ -75,7 +75,6 @@
 	description="Search through a gallery of custom components."
 />
 
-
 <div class="container mx-auto px-4 relative pt-8 mb-0">
 	<input
 		type="text"
@@ -111,32 +110,32 @@
 				</h2>
 
 				{#if component.likes}
-				<p
-					class="text-sm font-light py-1"
-					style="position: absolute; top: 5%; right: 5%"
-				>
-					<span
-						class="bg-white p-1 rounded-md text-gray-700 inline-flex align-middle"
+					<p
+						class="text-sm font-light py-1"
+						style="position: absolute; top: 5%; right: 5%"
 					>
-						<svg
-							class="mr-1 self-center"
-							xmlns="http://www.w3.org/2000/svg"
-							xmlns:xlink="http://www.w3.org/1999/xlink"
-							aria-hidden="true"
-							focusable="false"
-							role="img"
-							width="1em"
-							height="1em"
-							preserveAspectRatio="xMidYMid meet"
-							viewBox="0 0 32 32"
-							fill="currentColor"
-							><path
-								d="M22.45,6a5.47,5.47,0,0,1,3.91,1.64,5.7,5.7,0,0,1,0,8L16,26.13,5.64,15.64a5.7,5.7,0,0,1,0-8,5.48,5.48,0,0,1,7.82,0L16,10.24l2.53-2.58A5.44,5.44,0,0,1,22.45,6m0-2a7.47,7.47,0,0,0-5.34,2.24L16,7.36,14.89,6.24a7.49,7.49,0,0,0-10.68,0,7.72,7.72,0,0,0,0,10.82L16,29,27.79,17.06a7.72,7.72,0,0,0,0-10.82A7.49,7.49,0,0,0,22.45,4Z"
-							></path></svg
+						<span
+							class="bg-white p-1 rounded-md text-gray-700 inline-flex align-middle"
 						>
-						<p class="">{component.likes ? component.likes : ""}</p>
-					</span>
-				</p>
+							<svg
+								class="mr-1 self-center"
+								xmlns="http://www.w3.org/2000/svg"
+								xmlns:xlink="http://www.w3.org/1999/xlink"
+								aria-hidden="true"
+								focusable="false"
+								role="img"
+								width="1em"
+								height="1em"
+								preserveAspectRatio="xMidYMid meet"
+								viewBox="0 0 32 32"
+								fill="currentColor"
+								><path
+									d="M22.45,6a5.47,5.47,0,0,1,3.91,1.64,5.7,5.7,0,0,1,0,8L16,26.13,5.64,15.64a5.7,5.7,0,0,1,0-8,5.48,5.48,0,0,1,7.82,0L16,10.24l2.53-2.58A5.44,5.44,0,0,1,22.45,6m0-2a7.47,7.47,0,0,0-5.34,2.24L16,7.36,14.89,6.24a7.49,7.49,0,0,0-10.68,0,7.72,7.72,0,0,0,0,10.82L16,29,27.79,17.06a7.72,7.72,0,0,0,0-10.82A7.49,7.49,0,0,0,22.45,4Z"
+								></path></svg
+							>
+							<p class="">{component.likes ? component.likes : ""}</p>
+						</span>
+					</p>
 				{/if}
 				<p class="description text-md font-light py-1">
 					{component.description}
@@ -173,15 +172,19 @@
 			selected_component = null;
 		}}
 	>
-	<a href={`https://huggingface.co/spaces/${component.id}`} target="_blank" 
-	class="flex-none self-end mr-8 rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white bg-orange-300 hover:drop-shadow-sm">
-	Go to Space <span aria-hidden="true">→</span></a>	
-		
-	<iframe
-		src={`https://${component.subdomain}.hf.space?__theme=light`}
-		height="100%"
-		width="100%"
-	></iframe>
+		<a
+			href={`https://huggingface.co/spaces/${component.id}`}
+			target="_blank"
+			class="flex-none self-end mr-8 rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white bg-orange-300 hover:drop-shadow-sm"
+		>
+			Go to Space <span aria-hidden="true">→</span></a
+		>
+
+		<iframe
+			src={`https://${component.subdomain}.hf.space?__theme=light`}
+			height="100%"
+			width="100%"
+		></iframe>
 	</div>
 {/each}
 
