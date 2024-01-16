@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import os
 import typing
+import urllib.parse
 import warnings
 from dataclasses import dataclass, field
 
@@ -93,7 +94,7 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
             target = request.query_params["_target"]
         else:
             # otherwise => keep query params
-            target = request.url_for("/").include_query_params(**request.query_params)
+            target = "/?" + urllib.parse.urlencode(request.query_params)
 
         redirect_uri = str(
             request.url_for("oauth_redirect_callback").include_query_params(
