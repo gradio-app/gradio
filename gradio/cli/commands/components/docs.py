@@ -7,11 +7,7 @@ import toml
 from typer import Argument, Option
 from typing_extensions import Annotated
 
-from ._docs_utils import (
-    extract_docstrings,
-    get_deep,
-    make_space,
-)
+from ._docs_utils import extract_docstrings, get_deep, make_markdown, make_space
 
 
 def _docs(
@@ -22,9 +18,22 @@ def _docs(
         Optional[Path], Option(help="Path to the demo directory.")
     ] = None,
     demo_name: Annotated[Optional[str], Option(help="Name of the demo file.")] = None,
+    readme_path: Annotated[
+        Optional[Path], Option(help="Path to the README.md file.")
+    ] = None,
     space_url: Annotated[
         Optional[str], Option(help="URL of the Space to use for the demo.")
     ] = None,
+    generate_space: Annotated[
+        bool,
+        Option(
+            help="Create a documentation space for the custom compone.", is_flag=True
+        ),
+    ] = True,
+    generate_readme: Annotated[
+        bool,
+        Option(help="Create a README.md file for the custom component.", is_flag=True),
+    ] = True,
 ):
     """Runs the documentation generator."""
 
@@ -32,6 +41,14 @@ def _docs(
     _demo_dir = Path(demo_dir).resolve() if demo_dir else Path("demo").resolve()
     _demo_name = demo_name if demo_name else "app.py"
     _demo_path = _demo_dir / _demo_name
+    _readme_path = (
+        Path(readme_path).resolve() if readme_path else _component_dir / "README.md"
+    )
+
+    if not generate_space and not generate_readme:
+        raise ValueError("Must generate at least one of space or readme")
+
+    print(f"Reading project metadata from {_component_dir}/pyproject.toml\n")
 
     if not (_component_dir / "pyproject.toml").exists():
         raise ValueError(f"Cannot find pyproject.toml file in {_component_dir}")
@@ -41,9 +58,6 @@ def _docs(
     with open(_demo_path) as f:
         demo = f.read()
 
-    print("Generating documentation...")
-
-    print(f"  - Reading pyproject.toml from {_component_dir}")
     name = data["project"]["name"]
 
     pypi_exists = requests.get(f"https://pypi.org/pypi/{name}/json").status_code
@@ -58,18 +72,30 @@ def _docs(
     module = importlib.import_module(name)
     docs = extract_docstrings(module)
 
-    source = make_space(
-        docs,
-        name,
-        description,
-        local_version,
-        demo,
-        space,
-        repo,
-        pypi_exists,
-    )
+    if generate_space:
+        print("Generating space.")
 
-    print(f"  - Writing demo to {_demo_path}")
+        source = make_space(
+            docs,
+            name,
+            description,
+            local_version,
+            demo,
+            space,
+            repo,
+            pypi_exists,
+        )
 
-    with open(_demo_dir / "space.py", "w") as f:
-        f.write(source)
+        with open(_demo_dir / "space.py", "w") as f:
+            f.write(source)
+            print(f"  - Space created in {_demo_dir}/space.py\n")
+
+    if generate_readme:
+        print("Generating README.")
+        readme = make_markdown(
+            docs, name, description, local_version, demo, space, repo, pypi_exists
+        )
+
+        with open(_readme_path, "w") as f:
+            f.write(readme)
+            print(f"  - README generated in {_readme_path}")

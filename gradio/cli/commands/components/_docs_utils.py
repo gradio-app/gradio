@@ -28,7 +28,7 @@ def format(code: str, type: str):
         stderr=PIPE,
         universal_newlines=True,
     )
-    formatted_code, _ = process.communicate(input=code)
+    formatted_code, err = process.communicate(input=code)
 
     if type == "value":
         formatted_code = re.sub(
@@ -36,6 +36,7 @@ def format(code: str, type: str):
         )
 
     stripped_source = re.search(r"^\s*\((.*)\)\s*$", formatted_code, re.DOTALL)
+
     return (
         stripped_source.group(1).strip() if stripped_source else formatted_code.strip()
     )
@@ -251,7 +252,6 @@ def get_type_hints(param, module, ignore=None):
                     arg_names.append(new_args)
         else:
             if append:
-                print(arg)
                 arg_names.append(get_param_name(arg))
         return arg_names
 
@@ -465,6 +465,20 @@ def render_additional_interfaces(interfaces):
     return source
 
 
+def render_additional_interfaces_markdown(interfaces):
+    """Renders additional helper classes or types that were extracted earlier."""
+
+    source = ""
+    for interface_name, interface in interfaces.items():
+        source += f"""
+## `{interface_name}`
+```python
+{interface["source"]}
+```
+"""
+    return source
+
+
 def render_version_badge(pypi_exists, local_version, name):
     """Renders a version badge for the package. PyPi badge if it exists, otherwise a static badge."""
     if pypi_exists:
@@ -494,9 +508,27 @@ def render_class_events(events, name):
     if events is not None:
         return f"""
     gr.Markdown("### Events")
-    ParamViewer(value=_docs["{name}"]["events"], linkify={["Event"]})
+    gr.ParamViewer(value=_docs["{name}"]["events"], linkify={["Event"]})
 
 """
+
+
+def render_class_events_markdown(events):
+    """Renders the events for a class."""
+    if events is None:
+        return ""
+
+    event_table = """
+### Events
+
+| name | description |
+|:-----|:------------|
+"""
+
+    for event_name, event in events.items():
+        event_table += f"| `{event_name}` | {event['description']} |\n"
+
+    return event_table
 
 
 def render_class_docs(exports, docs):
@@ -510,15 +542,13 @@ def render_class_docs(exports, docs):
 ### Initialization
 \"\"\", elem_classes=["md-custom"], header_links=True)
 
-    ParamViewer(value=_docs["{class_name}"]["members"]["__init__"], linkify={["Parameter"]})
+    gr.ParamViewer(value=_docs["{class_name}"]["members"]["__init__"], linkify={["Parameter"]})
 
 {render_class_events(docs[class_name].get("events", None), class_name)}
 
     gr.Markdown(\"\"\"
 
 ### User function
-
-
 
 - **As output:** Is passed, {docs[class_name]["members"]["preprocess"]["return"]["description"]}.
 - **As input:** Should return, {docs[class_name]["members"]["postprocess"]["value"]["description"]}.
@@ -536,6 +566,88 @@ def predict(
     return docs_classes
 
 
+html = """
+<table>
+<thead>
+<tr>
+<th align="left">name</th>
+<th align="left">type</th>
+<th align="left">default</th>
+<th align="left">description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>value</code></td>
+<td align="left"><code>list[Parameter] | None</code></td>
+<td align="left"><code>None</code></td>
+<td align="left">A list of dictionaries with keys "type", "description", and "default" for each parameter.</td>
+</tr>
+</tbody></table>
+"""
+
+
+def render_param_table(params):
+    """Renders the parameter table for the package."""
+    table = """<table>
+<thead>
+<tr>
+<th align="left">name</th>
+<th align="left" style="width: 25%;">type</th>
+<th align="left">default</th>
+<th align="left">description</th>
+</tr>
+</thead>
+<tbody>"""
+
+    # for class_name in exports:
+    #     docs_classes += f"""
+    #     """
+    for param_name, param in params.items():
+        table += f"""
+<tr>
+<td align="left"><code>{param_name}</code></td>
+<td align="left" style="width: 25%;">
+
+```python
+{param["type"]}
+```
+
+</td>
+<td align="left"><code>{param["default"]}</code></td>
+<td align="left">{param['description']}</td>
+</tr>
+"""
+    return table + "</tbody></table>"
+
+
+def render_class_docs_markdown(exports, docs):
+    """Renders the class documentation for the package."""
+    docs_classes = ""
+    for class_name in exports:
+        docs_classes += f"""
+## `{class_name}`
+
+### Initialization
+
+{render_param_table(docs[class_name]["members"]["__init__"])}
+
+{render_class_events_markdown(docs[class_name].get("events", None))}
+
+### User function
+
+- **As output:** Is passed, {docs[class_name]["members"]["preprocess"]["return"]["description"]}.
+- **As input:** Should return, {docs[class_name]["members"]["postprocess"]["value"]["description"]}.
+
+```python
+def predict(
+    value: {docs[class_name]["members"]["preprocess"]["return"]["type"]}
+) -> {docs[class_name]["members"]["postprocess"]["value"]["type"]}:
+    return value 
+```
+"""
+    return docs_classes
+
+
 def make_space(docs, name, description, local_version, demo, space, repo, pypi_exists):
     filtered_keys = [key for key in docs if key != "__meta__"]
 
@@ -543,7 +655,6 @@ def make_space(docs, name, description, local_version, demo, space, repo, pypi_e
 import gradio as gr
 from app import demo as app
 from {name} import {",".join(filtered_keys)}
-from gradio_paramviewer import ParamViewer
 import os
 """
 
@@ -597,5 +708,40 @@ pip install {name}
 
 demo.launch()
 """
+
+    return source
+
+
+def make_markdown(
+    docs, name, description, local_version, demo, space, repo, pypi_exists
+):
+    filtered_keys = [key for key in docs if key != "__meta__"]
+
+    source = f"""
+# `{name}`
+{render_version_badge(pypi_exists, local_version, name)}{render_github_badge(repo)}{render_discuss_badge(space)}
+
+{description}
+
+## Installation
+    
+```bash 
+pip install {name}
+```
+
+## Usage
+
+```python
+{demo}
+```
+"""
+
+    docs_classes = render_class_docs_markdown(filtered_keys, docs)
+
+    source += docs_classes
+
+    source += render_additional_interfaces_markdown(
+        docs["__meta__"]["additional_interfaces"]
+    )
 
     return source
