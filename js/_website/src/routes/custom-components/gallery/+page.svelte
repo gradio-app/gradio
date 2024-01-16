@@ -4,8 +4,6 @@
 	import { onMount, tick } from "svelte";
 	import type { ComponentData } from "./utils";
 	import { clickOutside } from "./utils";
-	import Card from "./Card.svelte";
-	import Close from "$lib/icons/Close.svelte";
 
 	const API = "https://gradio-custom-component-gallery-backend.hf.space/";
 	const OFFSET = 0;
@@ -58,13 +56,6 @@
 		if (!components_length) {
 			components_length = components.length;
 		}
-		for (const component of components) {
-			let info;
-			info = await fetch(`https://hf.co/api/spaces/${component.id}`)
-				.then((response) => response.json())
-				.catch((error) => `Error: ${error}`);
-			component.likes = info.likes;
-		}
 		components = components.sort((a, b) => b["likes"] - a["likes"]);
 	}
 
@@ -83,6 +74,7 @@
 	canonical={$page.url.pathname}
 	description="Search through a gallery of custom components."
 />
+
 
 <div class="container mx-auto px-4 relative pt-8 mb-0">
 	<input
@@ -117,6 +109,8 @@
 						? component.name.slice(7)
 						: component.name}
 				</h2>
+
+				{#if component.likes}
 				<p
 					class="text-sm font-light py-1"
 					style="position: absolute; top: 5%; right: 5%"
@@ -143,6 +137,7 @@
 						<p class="">{component.likes ? component.likes : ""}</p>
 					</span>
 				</p>
+				{/if}
 				<p class="description text-md font-light py-1">
 					{component.description}
 				</p>
@@ -168,20 +163,27 @@
 		{/each}
 	</div>
 </div>
-{#if selected_component}
+
+{#each components as component (component.id)}
 	<div
 		class="details-panel open border border-gray-200 shadow-xl rounded-xl bg-white p-5"
+		class:hidden={!(selected_component == component)}
+		class:flex={selected_component == component}
 		use:clickOutside={() => {
 			selected_component = null;
 		}}
 	>
-		<iframe
-			src={`https://${selected_component.subdomain}.hf.space?__theme=light`}
-			height="100%"
-			width="100%"
-		></iframe>
+	<a href={`https://huggingface.co/spaces/${component.id}`} target="_blank" 
+	class="flex-none self-end mr-8 rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white bg-orange-300 hover:drop-shadow-sm">
+	Go to Space <span aria-hidden="true">→</span></a>	
+		
+	<iframe
+		src={`https://${component.subdomain}.hf.space?__theme=light`}
+		height="100%"
+		width="100%"
+	></iframe>
 	</div>
-{/if}
+{/each}
 
 <style>
 	.close-button {
@@ -199,7 +201,6 @@
 		height: 90%;
 		width: 90%;
 		z-index: 1000;
-		display: flex;
 		flex-direction: column;
 	}
 
