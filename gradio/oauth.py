@@ -89,21 +89,7 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
     async def oauth_login(request: fastapi.Request):
         """Endpoint that redirects to HF OAuth page."""
         # Define target (where to redirect after login)
-        if "_target" in request.query_params:
-            # if `_target` already in query params => respect it
-            target = request.query_params["_target"]
-        else:
-            # otherwise => keep query params
-            target = "/?" + urllib.parse.urlencode(request.query_params)
-
-        redirect_uri = str(
-            request.url_for("oauth_redirect_callback").include_query_params(
-                _target=str(target)
-            )
-        )
-        if ".hf.space" in redirect_uri:
-            # In Space, FastAPI redirect as http but we want https
-            redirect_uri = redirect_uri.replace("http://", "https://")
+        redirect_uri = _generate_redirect_uri(request)
         return await oauth.huggingface.authorize_redirect(request, redirect_uri)  # type: ignore
 
     @app.get("/login/callback")
@@ -137,7 +123,11 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
     @app.get("/login/huggingface")
     async def oauth_login(request: fastapi.Request):
         """Fake endpoint that redirects to HF OAuth page."""
-        return RedirectResponse("/login/callback")
+        # Define target (where to redirect after login)
+        redirect_uri = _generate_redirect_uri(request)
+        return RedirectResponse(
+            "/login/callback?" + urllib.parse.urlencode({"_target_url": redirect_uri})
+        )
 
     @app.get("/login/callback")
     async def oauth_redirect_callback(request: fastapi.Request) -> RedirectResponse:
@@ -152,10 +142,28 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
         return _redirect_to_target(request)
 
 
+def _generate_redirect_uri(request: fastapi.Request) -> str:
+    if "_target" in request.query_params:
+        # if `_target` already in query params => respect it
+        target = request.query_params["_target_url"]
+    else:
+        # otherwise => keep query params
+        target = "/?" + urllib.parse.urlencode(request.query_params)
+
+    redirect_uri = request.url_for("oauth_redirect_callback").include_query_params(
+        _target_url=target
+    )
+    redirect_uri = str(redirect_uri)
+    if ".hf.space" in redirect_uri:
+        # In Space, FastAPI redirect as http but we want https
+        redirect_uri = redirect_uri.replace("http://", "https://")
+    return redirect_uri
+
+
 def _redirect_to_target(
     request: fastapi.Request, default_target: str = "/"
 ) -> RedirectResponse:
-    target = request.query_params.get("_target")
+    target = request.query_params.get("_target_url")
     if target is not None:
         return RedirectResponse(target)
     return RedirectResponse(default_target)
