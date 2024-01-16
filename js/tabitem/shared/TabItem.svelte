@@ -16,7 +16,9 @@
 	const { register_tab, unregister_tab, selected_tab, selected_tab_index } =
 		getContext(TABS) as any;
 
-	let tab_index = register_tab({ name, id, elem_id, visible, interactive });
+	let tab_index: number;
+
+	$: tab_index = register_tab({ name, id, elem_id, visible, interactive });
 
 	onMount(() => {
 		return (): void => unregister_tab({ name, id, elem_id });

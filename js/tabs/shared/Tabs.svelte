@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-	import { setContext, createEventDispatcher, tick } from "svelte";
+	import { setContext, createEventDispatcher } from "svelte";
 	import { writable } from "svelte/store";
 	import type { SelectData } from "@gradio/utils";
 
@@ -31,13 +31,20 @@
 
 	setContext(TABS, {
 		register_tab: (tab: Tab) => {
-			tabs.push({
-				name: tab.name,
-				id: tab.id,
-				elem_id: tab.elem_id,
-				visible: tab.visible,
-				interactive: tab.interactive
-			});
+			let existingTab = tabs.find((t) => t.id === tab.id);
+			if (existingTab) {
+				// update existing tab with newer values
+				let i = tabs.findIndex((t) => t.id === tab.id);
+				tabs[i] = { ...tabs[i], ...tab };
+			} else {
+				tabs.push({
+					name: tab.name,
+					id: tab.id,
+					elem_id: tab.elem_id,
+					visible: tab.visible,
+					interactive: tab.interactive
+				});
+			}
 			selected_tab.update((current) => {
 				if (current === false && tab.visible && tab.interactive) {
 					return tab.id;
