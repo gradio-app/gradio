@@ -839,7 +839,6 @@ class TabbedInterface(Blocks):
         )
         if tab_names is None:
             tab_names = [f"Tab {i}" for i in range(len(interface_list))]
-
         with self:
             if title:
                 Markdown(
