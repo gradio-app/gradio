@@ -357,12 +357,16 @@
 		width: 100%;
 		display: flex;
 	}
-	.preview :global(img) {
+	.image-button :global(img) {
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: contain;
 	}
-
+	.thumbnails :global(img) {
+		object-fit: cover;
+		width: var(--size-full);
+		height: var(--size-full);
+	}
 	.preview :global(img.with-caption) {
 		height: var(--size-full);
 	}
