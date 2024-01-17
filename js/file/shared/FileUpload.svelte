@@ -74,7 +74,6 @@
 	<Upload
 		on:load={handle_upload}
 		filetype={accept_file_types}
-		{label}
 		{file_count}
 		{root}
 		bind:dragging
