@@ -1308,6 +1308,54 @@ importers:
         specifier: ^0.15.3
         version: 0.15.3(svelte@4.2.3)
 
+  js/preview/test/mychatbot/frontend:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../../../../atoms
+      '@gradio/audio':
+        specifier: workspace:^
+        version: link:../../../../audio
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../../../../client/js
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../../../../icons
+      '@gradio/image':
+        specifier: workspace:^
+        version: link:../../../../image
+      '@gradio/markdown':
+        specifier: workspace:^
+        version: link:../../../../markdown
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../../../../statustracker
+      '@gradio/theme':
+        specifier: workspace:^
+        version: link:../../../../theme
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../../../../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../../../../utils
+      '@gradio/video':
+        specifier: workspace:^
+        version: link:../../../../video
+      '@types/dompurify':
+        specifier: ^3.0.2
+        version: 3.0.2
+      '@types/katex':
+        specifier: ^0.16.0
+        version: 0.16.0
+      '@types/prismjs':
+        specifier: 1.26.3
+        version: 1.26.3
+      dequal:
+        specifier: ^2.0.2
+        version: 2.0.2
+
   js/preview/test/test/frontend:
     dependencies:
       '@gradio/atoms':
@@ -1518,7 +1566,6 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
-    devDependencies:
       mrmime:
         specifier: ^2.0.0
         version: 2.0.0
@@ -12452,7 +12499,7 @@ packages:
   /mrmime@2.0.0:
     resolution: {integrity: sha512-eu38+hdgojoyq63s+yTpN4XMBdt5l8HhMhc4VKLO9KM5caLIBvUm4thi7fFaxyTmCKeNnXZ5pAlBwCUnhA09uw==}
     engines: {node: '>=10'}
-    dev: true
+    dev: false
 
   /ms@2.0.0:
     resolution: {integrity: sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==}
