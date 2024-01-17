@@ -30,7 +30,8 @@ def format(code: str, type: str):
         stderr=PIPE,
         universal_newlines=True,
     )
-    formatted_code, err = process.communicate(input=code)
+
+    formatted_code, err = process.communicate(input=str(code))
 
     if type == "value":
         formatted_code = re.sub(
@@ -107,22 +108,23 @@ def get_return_docstring(docstring: str):
     return None
 
 
-def add_value(obj, key, value):
+def add_value(obj: dict, key: str, value: typing.Any):
     """Adds a value to a dictionary."""
     type = "value" if key == "default" else "type"
+
     obj[key] = format(value, type)
 
     return obj
 
 
-def set_deep(dictionary, keys, value):
+def set_deep(dictionary: dict, keys: list[str], value: typing.Any):
     """Sets a value in a nested dictionary for a key path that may not exist"""
     for key in keys[:-1]:
         dictionary = dictionary.setdefault(key, {})
     dictionary[keys[-1]] = value
 
 
-def get_deep(dictionary, keys, default=None):
+def get_deep(dictionary: dict, keys: list[str], default=None):
     """Gets a value from a nested dictionary without erroring if the key doesn't exist."""
     try:
         for key in keys:
@@ -197,15 +199,13 @@ def get_type_hints(param, module, ignore=None):
         arg,
         module_name_prefix,
         additional_interfaces,
-        user_fn_refs,
+        user_fn_refs: list[str],
         append=True,
         arg_of=None,
     ):
         """Recursively extracts the arguments from a type hint."""
         arg_names = []
         args = get_type_arguments(arg)
-
-        print(f"ARGS: {arg} == {args} == {arg_of} == Append: {append}")
 
         # These are local classes that are used in types
         if inspect.isclass(arg) and arg.__module__.startswith(module_name_prefix):
@@ -222,7 +222,7 @@ def get_type_hints(param, module, ignore=None):
 
                 if refs is None:
                     refs = [arg.__name__]
-                elif arg.__name__ not in refs:
+                elif isinstance(refs, list) and arg.__name__ not in refs:
                     refs.append(arg.__name__)
 
                 set_deep(additional_interfaces, [arg_of, "refs"], refs)
@@ -286,6 +286,7 @@ def get_type_hints(param, module, ignore=None):
 
 def extract_docstrings(module):
     docs = {}
+    type_mode = "complex"
     for name, obj in inspect.getmembers(module):
         # filter out the builtins etc
         if name.startswith("_"):
@@ -316,7 +317,7 @@ def extract_docstrings(module):
                     docs[name]["members"][member_name] = {}
 
                     member_docstring = inspect.getdoc(member) or ""
-                    type_mode = "complex"
+
                     try:
                         hints = typing.get_type_hints(member)
                     except Exception:
@@ -343,10 +344,6 @@ def extract_docstrings(module):
                                 user_fn_refs,
                             ) = get_type_hints(param, module)
 
-                        print(
-                            f"{member_name}.{param_name}: {arg_names} mode: {type_mode}"
-                        )
-
                         #  These interfaces belong to the whole module, so we add them 'globally' for later
                         docs["__meta__"]["additional_interfaces"].update(
                             additional_interfaces
@@ -369,13 +366,12 @@ def extract_docstrings(module):
 
                         if signature.parameters.get(param_name, None) is not None:
                             default_value = signature.parameters[param_name].default
-                            print(f"DEFAULT {param_name} {default_value}\n")
-
-                            add_value(
-                                docs[name]["members"][member_name][param_name],
-                                "default",
-                                format_value(default_value),
-                            )
+                            if default_value is not inspect._empty:
+                                add_value(
+                                    docs[name]["members"][member_name][param_name],
+                                    "default",
+                                    format_value(default_value),
+                                )
 
                         docs[name]["members"][member_name][param_name][
                             "description"
@@ -421,7 +417,7 @@ def extract_docstrings(module):
             set_deep(docs, ["__meta__", "user_fn_refs", name], list(final_user_fn_refs))
     with open("docs.json", "w") as f:
         f.write(json.dumps(docs, indent=4))
-    return docs
+    return (docs, type_mode)
 
 
 class AdditionalInterface(typing.TypedDict):
@@ -652,7 +648,6 @@ def make_user_fn_markdown(
 
 def render_class_events_markdown(events):
     """Renders the events for a class."""
-    print(f"EVENTS {events} len {len(events)}")
     if len(events) == 0:
         return ""
 
@@ -686,6 +681,8 @@ def render_class_docs(exports, docs):
             docs, [class_name, "members", "postprocess", "value", "description"]
         )
 
+        linkify = get_deep(docs, ["__meta__", "additional_interfaces"], {}) or {}
+
         docs_classes += f"""
     gr.Markdown(\"\"\"
 ## `{class_name}`
@@ -693,7 +690,7 @@ def render_class_docs(exports, docs):
 ### Initialization
 \"\"\", elem_classes=["md-custom"], header_links=True)
 
-    gr.ParamViewer(value=_docs["{class_name}"]["members"]["__init__"], linkify={list(get_deep(docs, ["__meta__", "additional_interfaces"], {}).keys())})
+    gr.ParamViewer(value=_docs["{class_name}"]["members"]["__init__"], linkify={list(linkify.keys())})
 
 {render_class_events(docs[class_name].get("events", None), class_name)}
 
@@ -797,8 +794,33 @@ def render_class_docs_markdown(exports, docs):
     return docs_classes
 
 
-def make_space(docs, name, description, local_version, demo, space, repo, pypi_exists):
+def make_space(
+    docs: dict,
+    name: str,
+    description: str,
+    local_version: str,
+    demo: str,
+    space: str | None,
+    repo: str | None,
+    pypi_exists: bool,
+    suppress_demo_check: bool = False,
+):
     filtered_keys = [key for key in docs if key != "__meta__"]
+
+    if not suppress_demo_check and (
+        demo.find("if __name__ == '__main__'") == -1
+        and demo.find('if __name__ == "__main__"') == -1
+    ):
+        raise ValueError(
+            """The demo must be launched using `if __name__ == '__main__'`, otherwise the docs page will not function correctly.
+
+To fix this error, launch the demo inside of an if statement like this:
+    
+if __name__ == '__main__':
+    demo.launch()
+
+To ignore this error pass `--suppress-demo-check` to the docs command."""
+        )
 
     source = """
 import gradio as gr

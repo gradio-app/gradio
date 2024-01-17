@@ -6,8 +6,11 @@ from typing import Optional
 
 import requests
 import tomlkit as toml
+from rich import print
 from typer import Argument, Option
 from typing_extensions import Annotated
+
+from gradio.cli.commands.display import LivePanelDisplay
 
 from ._docs_assets import css
 from ._docs_utils import extract_docstrings, get_deep, make_markdown, make_space
@@ -37,6 +40,13 @@ def _docs(
         bool,
         Option(help="Create a README.md file for the custom component.", is_flag=True),
     ] = True,
+    suppress_demo_check: Annotated[
+        bool,
+        Option(
+            help="Suppress demo warnings and errors.",
+            is_flag=True,
+        ),
+    ] = False,
 ):
     """Runs the documentation generator."""
 
@@ -51,59 +61,80 @@ def _docs(
     if not generate_space and not generate_readme:
         raise ValueError("Must generate at least one of space or readme")
 
-    print(f"Reading project metadata from {_component_dir}/pyproject.toml\n")
-
-    if not (_component_dir / "pyproject.toml").exists():
-        raise ValueError(f"Cannot find pyproject.toml file in {_component_dir}")
-
-    with open(_component_dir / "pyproject.toml") as f:
-        data = toml.loads(f.read())
-    with open(_demo_path) as f:
-        demo = f.read()
-
-    name = get_deep(data, ["project", "name"])
-
-    if not isinstance(name, str):
-        raise ValueError("Name not found in pyproject.toml")
-
-    pypi_exists = requests.get(f"https://pypi.org/pypi/{name}/json").status_code
-
-    pypi_exists = pypi_exists == 200 or False
-
-    local_version = get_deep(data, ["project", "version"])
-    description = get_deep(data, ["project", "description"])
-    repo = get_deep(data, ["project", "urls", "repository"])
-    space = space_url if space_url else get_deep(data, ["project", "urls", "space"])
-
-    module = importlib.import_module(name)
-    docs = extract_docstrings(module)
-
-    if generate_space:
-        print("Generating space.")
-
-        source = make_space(
-            docs,
-            name,
-            description,
-            local_version,
-            demo,
-            space,
-            repo,
-            pypi_exists,
+    with LivePanelDisplay() as live:
+        live.update(
+            f":page_facing_up: Generating documentation for [orange3]{str(_component_dir.name)}[/]",
+            add_sleep=0.2,
+        )
+        live.update(
+            f":eyes: Reading project metadata from [orange3]{_component_dir}/pyproject.toml[/]\n"
         )
 
-        with open(_demo_dir / "space.py", "w") as f:
-            f.write(source)
-            print(f"  - Space created in {_demo_dir}/space.py\n")
-        with open(_demo_dir / "css.css", "w") as f:
-            f.write(css)
+        if not (_component_dir / "pyproject.toml").exists():
+            raise ValueError(
+                f"Cannot find pyproject.toml file in [orange3]{_component_dir}[/]"
+            )
 
-    if generate_readme:
-        print("Generating README.")
-        readme = make_markdown(
-            docs, name, description, local_version, demo, space, repo, pypi_exists
+        with open(_component_dir / "pyproject.toml") as f:
+            data = toml.loads(f.read())
+        with open(_demo_path) as f:
+            demo = f.read()
+
+        name = get_deep(data, ["project", "name"])
+
+        if not isinstance(name, str):
+            raise ValueError("Name not found in pyproject.toml")
+
+        pypi_exists = requests.get(f"https://pypi.org/pypi/{name}/json").status_code
+
+        pypi_exists = pypi_exists == 200 or False
+
+        local_version = str(get_deep(data, ["project", "version"]) or "0.0.0")
+        description = str(get_deep(data, ["project", "description"]) or "")
+        repo = get_deep(data, ["project", "urls", "repository"])
+        space = space_url if space_url else get_deep(data, ["project", "urls", "space"])
+
+        module = importlib.import_module(name)
+        (docs, type_mode) = extract_docstrings(module)
+
+        if generate_space:
+            live.update(":computer: [blue]Generating space.[/]")
+
+            source = make_space(
+                docs=docs,
+                name=name,
+                description=description,
+                local_version=local_version,
+                demo=demo,
+                space=space if space is None else str(space),
+                repo=repo if repo is None else str(repo),
+                pypi_exists=pypi_exists,
+                suppress_demo_check=suppress_demo_check,
+            )
+
+            # shuffle_tracks_button repeat pencil
+
+            with open(_demo_dir / "space.py", "w") as f:
+                f.write(source)
+                live.update(
+                    f":white_check_mark: Space created in [orange3]{_demo_dir}/space.py[/]\n"
+                )
+            with open(_demo_dir / "css.css", "w") as f:
+                f.write(css)
+
+        if generate_readme:
+            live.update(":pencil: [blue]Generating README.[/]")
+            readme = make_markdown(
+                docs, name, description, local_version, demo, space, repo, pypi_exists
+            )
+
+            with open(_readme_path, "w") as f:
+                f.write(readme)
+                live.update(
+                    f":white_check_mark: README generated in [orange3]{_readme_path}[/]"
+                )
+
+    if type_mode == "simple":
+        print(
+            "\n:orange_circle: [red]The docs were generated in simple mode. Updating python to a version greater than 3.9 will result in richer documentation.[/]"
         )
-
-        with open(_readme_path, "w") as f:
-            f.write(readme)
-            print(f"  - README generated in {_readme_path}")
