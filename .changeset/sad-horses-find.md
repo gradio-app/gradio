@@ -1,5 +1,4 @@
 ---
-"@gradio/file": patch
 "@gradio/upload": patch
 "gradio": patch
 ---
