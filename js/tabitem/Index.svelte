@@ -9,12 +9,16 @@
 	export let gradio: Gradio<{
 		select: SelectData;
 	}>;
+	export let visible = true;
+	export let interactive = true;
 </script>
 
 <TabItem
 	{elem_id}
 	{elem_classes}
 	name={label}
+	{visible}
+	{interactive}
 	{id}
 	on:select={({ detail }) => gradio.dispatch("select", detail)}
 >
