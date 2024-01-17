@@ -63,6 +63,8 @@ class Tab(BlockContext, metaclass=ComponentMeta):
     def __init__(
         self,
         label: str | None = None,
+        visible: bool = True,
+        interactive: bool = True,
         *,
         id: int | str | None = None,
         elem_id: str | None = None,
@@ -75,6 +77,9 @@ class Tab(BlockContext, metaclass=ComponentMeta):
             id: An optional identifier for the tab, required if you wish to control the selected tab from a predict function.
             elem_id: An optional string that is assigned as the id of the <div> containing the contents of the Tab layout. The same string followed by "-button" is attached to the Tab button. Can be used for targeting CSS styles.
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
+            render: If False, this layout will not be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            visible: If False, Tab will be hidden.
+            interactive: If False, Tab will not be clickable.
         """
         BlockContext.__init__(
             self,
@@ -84,6 +89,8 @@ class Tab(BlockContext, metaclass=ComponentMeta):
         )
         self.label = label
         self.id = id
+        self.visible = visible
+        self.interactive = interactive
 
     def get_expected_parent(self) -> type[Tabs]:
         return Tabs

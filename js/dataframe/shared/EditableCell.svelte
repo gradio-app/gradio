@@ -54,6 +54,7 @@
 
 {#if edit}
 	<input
+		role="textbox"
 		bind:this={el}
 		bind:value={_value}
 		class:header

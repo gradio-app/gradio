@@ -1,11 +1,17 @@
-import { test } from "@gradio/tootils";
+import { test, expect } from "@gradio/tootils";
 
 // we cannot currently test the waveform canvas with playwright (https://github.com/microsoft/playwright/issues/23964)
 // so this test covers the interactive elements around the waveform canvas
 
 test("audio waveform", async ({ page }) => {
-	await page.getByRole("button", { name: "Interface" }).click();
+	await expect(page.getByRole("tab", { name: "Audio" })).toHaveAttribute(
+		"aria-selected",
+		"true"
+	);
+	await page.getByRole("tab", { name: "Interface" }).click();
+	await page.getByRole("tab", { name: "Interface" }).click();
 	await page.getByRole("button", { name: "cantina.wav" }).click();
+
 	await page
 		.getByTestId("waveform-x")
 		.getByLabel("Adjust playback speed to 1.5x")

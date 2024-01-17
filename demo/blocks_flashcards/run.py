@@ -25,7 +25,7 @@ with demo:
                     correct_btn = gr.Button("Correct")
                     incorrect_btn = gr.Button("Incorrect")
 
-    with gr.Tab("Results"):
+    with gr.Tab("Results", visible=False) as results_tab:
         results = gr.State(value={})
         correct_field = gr.Markdown("# Correct: 0")
         incorrect_field = gr.Markdown("# Incorrect: 0")
@@ -64,7 +64,8 @@ with demo:
 
     def mark_incorrect(card, results):
         if card[0] not in results:
-            results[card[0]] = [0, 0]
+            results[card[0]] = [
+                0, 0]
         results[card[0]][1] += 1
         incorrect_count = sum(result[1] for result in results.values())
         return (
@@ -73,17 +74,20 @@ with demo:
             [[front, scores[0], scores[1]] for front, scores in results.items()],
         )
 
+    def toggle_results_tab():
+        return gr.Tab("Results", visible=True)
+
     correct_btn.click(
         mark_correct,
         [selected_card, results],
         [results, correct_field, results_table],
     )
 
-    incorrect_btn.click(
-        mark_incorrect,
-        [selected_card, results],
-        [results, incorrect_field, results_table],
-    )
+    incorrect_btn.click(mark_incorrect, [selected_card, results], [results, incorrect_field, results_table])
+
+    # set results tab to visible when correct or incorrect button is clicked
+    correct_btn.click(fn=toggle_results_tab, outputs=[results_tab])
+    incorrect_btn.click(fn=toggle_results_tab, outputs=[results_tab])
 
 if __name__ == "__main__":
     demo.launch()
