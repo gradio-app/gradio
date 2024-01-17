@@ -31,7 +31,7 @@ def format(code: str, type: str):
         universal_newlines=True,
     )
     formatted_code, err = process.communicate(input=code)
-    print(err)
+
     if type == "value":
         formatted_code = re.sub(
             r"^\s*value =\s*", "", formatted_code, flags=re.MULTILINE
@@ -39,9 +39,12 @@ def format(code: str, type: str):
 
     stripped_source = re.search(r"^\s*\((.*)\)\s*$", formatted_code, re.DOTALL)
 
-    return (
-        stripped_source.group(1).strip() if stripped_source else formatted_code.strip()
-    )
+    if stripped_source:
+        return stripped_source.group(1).strip()
+    elif formatted_code.strip() == "":
+        return code
+    else:
+        return formatted_code.strip()
 
 
 def get_param_name(param):
