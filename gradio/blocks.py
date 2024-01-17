@@ -618,9 +618,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         self.queue()
 
-    def get_component(self, id: int) -> Component:
+    def get_component(self, id: int) -> Component | BlockContext:
         comp = self.blocks[id]
-        assert isinstance(comp, components.Component), f"{comp}"
+        assert isinstance(comp, (components.Component, BlockContext)), f"{comp}"
         return comp
 
     @property
