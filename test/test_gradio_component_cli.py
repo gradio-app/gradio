@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from gradio.cli.commands.components._create_utils import OVERRIDES
+from gradio.cli.commands.components.build import _build
 from gradio.cli.commands.components.create import _create
 from gradio.cli.commands.components.publish import _get_version_from_file
 from gradio.cli.commands.components.show import _show
@@ -144,6 +145,22 @@ def test_build(template, virtualenv):
     finally:
         shutil.move(str(pnpm_copy), str(pnpm_lock))
         shutil.rmtree(str(dir_), ignore_errors=True)
+
+
+def test_build_fails_if_component_not_installed(tmp_path):
+    _create(
+        "MyComponent",
+        tmp_path,
+        template="SimpleTextbox",
+        overwrite=True,
+        install=False,
+        configure_metadata=False,
+    )
+    with pytest.raises(
+        ValueError,
+        match=r"Your custom component package \(gradio_mycomponent\) is not installed!",
+    ):
+        _build(tmp_path)
 
 
 def test_fallback_template_app(tmp_path):
