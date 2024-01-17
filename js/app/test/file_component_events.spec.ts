@@ -1,13 +1,13 @@
 import { test, expect, drag_and_drop_file } from "@gradio/tootils";
 
-test("File component properly dispatches load event and click event for the single file case.", async ({
+test("File component properly dispatches load event for the single file case.", async ({
 	page
 }) => {
 	await page
 		.getByRole("button", { name: "Drop File Here - or - Click to Upload" })
 		.first()
 		.click();
-	const uploader = await page.getByTestId("Upload Single File-file-upload");
+	const uploader = await page.getByTestId("file-upload").first();
 	await uploader.setInputFiles(["./test/files/cheetah1.jpg"]);
 
 	await expect(page.getByLabel("# Load Upload Single File")).toHaveValue("1");
@@ -18,14 +18,14 @@ test("File component properly dispatches load event and click event for the sing
 	await expect(download.suggestedFilename()).toBe("cheetah1.jpg");
 });
 
-test("File component properly dispatches load event and click event for the multiple file case.", async ({
+test("File component properly dispatches load event for the multiple file case.", async ({
 	page
 }) => {
 	await page
 		.getByRole("button", { name: "Drop File Here - or - Click to Upload" })
 		.last()
 		.click();
-	const uploader = await page.getByTestId("Upload Multiple Files-file-upload");
+	const uploader = await page.getByTestId("file-upload").last();
 	await uploader.setInputFiles([
 		"./test/files/face.obj",
 		"./test/files/cheetah1.jpg"
