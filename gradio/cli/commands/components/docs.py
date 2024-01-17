@@ -5,12 +5,12 @@ from pathlib import Path
 from typing import Optional
 
 import requests
-import toml
+import tomlkit as toml
 from typer import Argument, Option
 from typing_extensions import Annotated
 
-from ._docs_utils import extract_docstrings, get_deep, make_markdown, make_space
 from ._docs_assets import css
+from ._docs_utils import extract_docstrings, get_deep, make_markdown, make_space
 
 
 def _docs(
@@ -61,7 +61,10 @@ def _docs(
     with open(_demo_path) as f:
         demo = f.read()
 
-    name = data["project"]["name"]
+    name = get_deep(data, ["project", "name"])
+
+    if not isinstance(name, str):
+        raise ValueError("Name not found in pyproject.toml")
 
     pypi_exists = requests.get(f"https://pypi.org/pypi/{name}/json").status_code
 
