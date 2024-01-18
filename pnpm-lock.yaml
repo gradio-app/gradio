@@ -1189,11 +1189,11 @@ importers:
   js/paramviewer:
     dependencies:
       '@gradio/atoms':
-        specifier: 0.3.0
-        version: 0.3.0(svelte@3.59.2)
+        specifier: 0.4.1
+        version: link:../atoms
       '@gradio/statustracker':
-        specifier: 0.4.0
-        version: 0.4.0(svelte@3.59.2)
+        specifier: 0.4.3
+        version: link:../statustracker
       '@gradio/utils':
         specifier: 0.2.0
         version: link:../utils
@@ -1307,54 +1307,6 @@ importers:
       svelte-hmr:
         specifier: ^0.15.3
         version: 0.15.3(svelte@4.2.3)
-
-  js/preview/test/mychatbot/frontend:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../../../../atoms
-      '@gradio/audio':
-        specifier: workspace:^
-        version: link:../../../../audio
-      '@gradio/client':
-        specifier: workspace:^
-        version: link:../../../../../client/js
-      '@gradio/icons':
-        specifier: workspace:^
-        version: link:../../../../icons
-      '@gradio/image':
-        specifier: workspace:^
-        version: link:../../../../image
-      '@gradio/markdown':
-        specifier: workspace:^
-        version: link:../../../../markdown
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../../../../statustracker
-      '@gradio/theme':
-        specifier: workspace:^
-        version: link:../../../../theme
-      '@gradio/upload':
-        specifier: workspace:^
-        version: link:../../../../upload
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../../../../utils
-      '@gradio/video':
-        specifier: workspace:^
-        version: link:../../../../video
-      '@types/dompurify':
-        specifier: ^3.0.2
-        version: 3.0.2
-      '@types/katex':
-        specifier: ^0.16.0
-        version: 0.16.0
-      '@types/prismjs':
-        specifier: 1.26.3
-        version: 1.26.3
-      dequal:
-        specifier: ^2.0.2
-        version: 2.0.2
 
   js/preview/test/test/frontend:
     dependencies:
@@ -4231,47 +4183,6 @@ packages:
     resolution: {integrity: sha512-K1Xpg/8oyfCMxisJQa/fILoeoeyndcM0wcN8QiNG/uM5OAe1BcO1+2yd0gIboDI2tRJEsUi/sSBEYPbgkIdq4A==}
     dependencies:
       tslib: 2.6.2
-    dev: false
-
-  /@gradio/atoms@0.3.0(svelte@3.59.2):
-    resolution: {integrity: sha512-7WQktAb+d8wEjTIYGzyQ8OdWsFSr0NA8adp8G/jAKoMZILJEoAAZSTnahCTSSQcbYIomVdfYA0ZmM342RCd8gg==}
-    dependencies:
-      '@gradio/icons': 0.3.2
-      '@gradio/utils': 0.2.0(svelte@3.59.2)
-    transitivePeerDependencies:
-      - svelte
-    dev: false
-
-  /@gradio/column@0.1.0:
-    resolution: {integrity: sha512-P24nqqVnMXBaDA1f/zSN5HZRho4PxP8Dq+7VltPHlmxIEiZYik2AJ4J0LeuIha34FDO0guu/16evdrpvGIUAfw==}
-    dev: false
-
-  /@gradio/icons@0.3.2:
-    resolution: {integrity: sha512-l0jGfSRFiZ/doAXz6L+JEp6MN/a1BTZm88kqVoSnYrKSytP6bnBLRWeF4UvOi2T2fbVrNKenAEt/lwxJE5vK4w==}
-    dev: false
-
-  /@gradio/statustracker@0.4.0(svelte@3.59.2):
-    resolution: {integrity: sha512-Kgk4R2edFX4IK2UBit4UwmRfSrmvkYjKbiMfupj3qxHFwiDHT4YH4rAOqBlvdEWbCYMmLN6EyqqFaYb2+0GwXA==}
-    dependencies:
-      '@gradio/atoms': 0.3.0(svelte@3.59.2)
-      '@gradio/column': 0.1.0
-      '@gradio/icons': 0.3.2
-      '@gradio/utils': 0.2.0(svelte@3.59.2)
-    transitivePeerDependencies:
-      - svelte
-    dev: false
-
-  /@gradio/theme@0.2.0:
-    resolution: {integrity: sha512-33c68Nk7oRXLn08OxPfjcPm7S4tXGOUV1I1bVgzdM2YV5o1QBOS1GEnXPZPu/CEYPePLMB6bsDwffrLEyLGWVQ==}
-    dev: false
-
-  /@gradio/utils@0.2.0(svelte@3.59.2):
-    resolution: {integrity: sha512-YkwzXufi6IxQrlMW+1sFo8Yn6F9NLL69ZoBsbo7QEhms0v5L7pmOTw+dfd7M3dwbRP2lgjrb52i1kAIN3n6aqQ==}
-    dependencies:
-      '@gradio/theme': 0.2.0
-      svelte-i18n: 3.6.0(svelte@3.59.2)
-    transitivePeerDependencies:
-      - svelte
     dev: false
 
   /@humanwhocodes/config-array@0.11.13:
