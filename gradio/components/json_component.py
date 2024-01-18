@@ -96,7 +96,7 @@ class JSON(Component):
     def flag(self, payload: Any, flag_dir: str | Path = "") -> str:
         return json.dumps(payload)
 
-    def read_from_flag(self, payload: Any, flag_dir: str | Path | None = None):
+    def read_from_flag(self, payload: Any):
         return json.loads(payload)
 
     def api_info(self) -> dict[str, Any]:

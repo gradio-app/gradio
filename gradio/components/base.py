@@ -101,11 +101,7 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
         pass
 
     @abstractmethod
-    def read_from_flag(
-        self,
-        payload: Any,
-        flag_dir: str | Path | None = None,
-    ) -> GradioDataModel | Any:
+    def read_from_flag(self, payload: Any) -> GradioDataModel | Any:
         """
         Convert the data from the csv or jsonl file into the component state.
         """
@@ -288,11 +284,7 @@ class Component(ComponentBase, Block):
             return payload.copy_to_dir(flag_dir).model_dump_json()
         return payload
 
-    def read_from_flag(
-        self,
-        payload: Any,
-        flag_dir: str | Path | None = None,
-    ):
+    def read_from_flag(self, payload: Any):
         """
         Convert the data from the csv or jsonl file into the component state.
         """
