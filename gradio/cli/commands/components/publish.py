@@ -173,21 +173,11 @@ def _publish(
         try:
             # do our best to only upload the latest versions
             max_version = _get_max_version(distribution_files)
-
-            if not max_version:
-                # Have to write it in this awkward way cause ruff doesn't like lambdas
-                # and black doesn't like two functions with the same name
-                def predicate_(p):
-                    return True
-
-                twine_files = [str(p) for p in distribution_files if predicate_(p)]
-            else:
-
-                def predicate(p):
-                    return max_version in p.name
-
-                twine_files = [str(p) for p in distribution_files if predicate(p)]
-
+            twine_files = [
+                str(p)
+                for p in distribution_files
+                if (not max_version or max_version in p.name)
+            ]
             print(f"Uploading files: {','.join(twine_files)}")
             twine_upload(twine_settings, twine_files)
         except Exception:
