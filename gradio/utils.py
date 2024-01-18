@@ -635,8 +635,12 @@ def function_wrapper(
 
         @functools.wraps(f)
         async def asyncgen_wrapper(*args, **kwargs):
+            if before_fn:
+                before_fn(*before_args)
             async for response in f(*args, **kwargs):
                 yield response
+            if after_fn:
+                after_fn(*after_args)
 
         return asyncgen_wrapper
 
@@ -657,7 +661,11 @@ def function_wrapper(
 
         @functools.wraps(f)
         def gen_wrapper(*args, **kwargs):
+            if before_fn:
+                before_fn(*before_args)
             yield from f(*args, **kwargs)
+            if after_fn:
+                after_fn(*after_args)
 
         return gen_wrapper
 
