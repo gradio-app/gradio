@@ -55,6 +55,7 @@ jobs:
         python-version: ["3.8"]
         exclude:
           - os: ${{ github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'windows-tests') && 'dummy' || 'windows-latest' }}
+          - test-type: ${{ github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'flaky-tests') && 'dummy' || 'flaky' }}
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
@@ -149,6 +150,7 @@ jobs:
         python-version: ["3.8"]
         exclude:
           - os: ${{ github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'windows-tests') && 'dummy' || 'windows-latest' }}
+          - test-type: ${{ github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'flaky-tests') && 'dummy' || 'flaky' }}
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:

@@ -47,6 +47,12 @@ jobs:
         env:
           PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}
           GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }} 
+      - name: add label to run flaky tests
+        if: ${{ steps.changesets.outputs.pullRequestNumber != '' && steps.changesets.outputs.pullRequestNumber != 'undefined' }}
+        run: gh pr edit "$PR_NUMBER" --add-label "flaky-tests" 
+        env:
+          PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}
+          GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }} 
       - name: add label to run backend tests on Windows
         if: ${{ steps.changesets.outputs.pullRequestNumber != '' && steps.changesets.outputs.pullRequestNumber != 'undefined' }}
         run: gh pr edit "$PR_NUMBER" --add-label "windows-tests" 
