@@ -468,7 +468,7 @@ def make_js(
                 }})
             }}
         }})
-        
+
         Object.entries(refs).forEach(([key, refs]) => {{
             if (refs.length > 0) {{
                 const el = document.querySelector(`.${{key}}`);
@@ -575,8 +575,8 @@ def make_user_fn(
 
 The impact on the users predict function varies depending on whether the component is used as an input or output for an event (or both).
 
-- When used as an Input, the component only impacts the input signature of the user function. 
-- When used as an output, the component only impacts the return signature of the user function. 
+- When used as an Input, the component only impacts the input signature of the user function.
+- When used as an output, the component only impacts the return signature of the user function.
 
 The code snippet below is accurate in cases where the component is used as both an input and an output.
 
@@ -634,8 +634,8 @@ def make_user_fn_markdown(
 
 The impact on the users predict function varies depending on whether the component is used as an input or output for an event (or both).
 
-- When used as an Input, the component only impacts the input signature of the user function. 
-- When used as an output, the component only impacts the return signature of the user function. 
+- When used as an Input, the component only impacts the input signature of the user function.
+- When used as an output, the component only impacts the return signature of the user function.
 
 The code snippet below is accurate in cases where the component is used as both an input and an output.
 
@@ -835,7 +835,7 @@ def make_space(
             """The demo must be launched using `if __name__ == '__main__'`, otherwise the docs page will not function correctly.
 
 To fix this error, launch the demo inside of an if statement like this:
-    
+
 if __name__ == '__main__':
     demo.launch()
 
@@ -852,7 +852,7 @@ import os
 
     source += f"""
 _docs = {docs}
-    
+
 abs_path = os.path.join(os.path.dirname(__file__), "css.css")
 
 with gr.Blocks(
@@ -914,8 +914,8 @@ def make_markdown(
 {description}
 
 ## Installation
-    
-```bash 
+
+```bash
 pip install {name}
 ```
 

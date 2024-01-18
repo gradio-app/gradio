@@ -43,7 +43,7 @@ COPY --link --chown=1000 . .
 
 RUN mkdir -p /tmp/cache/
 RUN chmod a+rwx -R /tmp/cache/
-ENV TRANSFORMERS_CACHE=/tmp/cache/ 
+ENV TRANSFORMERS_CACHE=/tmp/cache/
 
 RUN pip install --no-cache-dir -r requirements.txt
 
