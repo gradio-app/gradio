@@ -5,31 +5,11 @@ from typing import Literal, TypedDict
 from gradio.components.base import Component
 from gradio.events import Events
 
-lang_type = Literal["python", "typescript"]
-
-
-class ParameterThree(TypedDict):
-    type: str
-    description: str
-    default: str
-
-
-class ParameterTwo(TypedDict):
-    type: str
-    description: str
-    default: ParameterThree
-
-
-class ParameterOne(TypedDict):
-    type: str
-    description: str
-    default: ParameterTwo
-
 
 class Parameter(TypedDict):
     type: str
-    description: ParameterOne
-    default: ParameterTwo
+    description: str
+    default: str
 
 
 class ParamViewer(Component):
@@ -45,7 +25,7 @@ class ParamViewer(Component):
     def __init__(
         self,
         value: list[Parameter] | None = None,
-        language: lang_type = "python",
+        language: Literal["python", "typescript"] = "python",
         linkify: list[str] | None = None,
     ):
         """

@@ -223,6 +223,9 @@ def get_type_hints(param, module, ignore=None):
                 re.sub(r"(\"\"\".*?\"\"\")", "", source_code, flags=re.DOTALL), "other"
             )
 
+            print(arg.__name__)
+            print(arg_of)
+
             # re.sub(r"(/"/"/".*?/"/"/")", "", s, flags=re.DOTALL)
             if arg_of is not None:
                 refs = get_deep(additional_interfaces, [arg_of, "refs"])
@@ -265,6 +268,7 @@ def get_type_hints(param, module, ignore=None):
                     additional_interfaces,
                     user_fn_refs,
                     append,
+                    arg_of,
                 )
 
                 if len(new_args) > 0:
