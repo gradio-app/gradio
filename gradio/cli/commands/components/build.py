@@ -1,3 +1,4 @@
+import importlib
 import shutil
 import subprocess
 from pathlib import Path
@@ -34,6 +35,14 @@ def _build(
             f":package: Building package in [orange3]{str(name.name)}[/]", add_sleep=0.2
         )
         pyproject_toml = parse((path / "pyproject.toml").read_text())
+        package_name = pyproject_toml["project"]["name"]  # type: ignore
+        try:
+            importlib.import_module(package_name)  # type: ignore
+        except ModuleNotFoundError as e:
+            raise ValueError(
+                f"Your custom component package ({package_name}) is not installed! "
+                "Please install it with the gradio cc install command before buillding it."
+            ) from e
         if bump_version:
             pyproject_toml = parse((path / "pyproject.toml").read_text())
             version = semantic_version.Version(
