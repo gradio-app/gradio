@@ -18,7 +18,7 @@ from typing import (
 import numpy as np
 import pandas as pd
 import semantic_version
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 from pandas.io.formats.style import Styler
 
 from gradio.components import Component
@@ -46,9 +46,6 @@ class DataframeData(GradioModel):
     headers: List[str]
     data: Union[List[List[Any]], List[Tuple[Any, ...]]]
     metadata: Optional[Dict[str, Optional[List[Any]]]] = None
-
-
-set_documentation_group("component")
 
 
 @document()

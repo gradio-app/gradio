@@ -15,7 +15,7 @@ import httpx
 from gradio_client import Client
 from gradio_client import utils as client_utils
 from gradio_client.client import Endpoint
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 from packaging import version
 
 import gradio
@@ -40,9 +40,6 @@ from gradio.processing_utils import extract_base64_data, save_base64_to_cache, t
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
     from gradio.interface import Interface
-
-
-set_documentation_group("helpers")
 
 
 @document()

@@ -4,13 +4,11 @@ from __future__ import annotations
 
 from typing import Any, Callable, List, Union
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import Events
-
-set_documentation_group("component")
 
 
 class HighlightedToken(GradioModel):

@@ -5,12 +5,10 @@ from __future__ import annotations
 import warnings
 from typing import Any, Callable, Literal
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components.base import FormComponent
 from gradio.events import Events
-
-set_documentation_group("component")
 
 
 @document()
