@@ -841,7 +841,7 @@ class Client:
                 metadata={"tags": ["gradio-discord-bot"]},
             )
 
-        with open(str(Path(__file__).parent / "templates" / "discord_chat.py")) as f:
+        with open(str(Path(__file__).parent / "templates" / "discord_chat.py"),encoding="utf-8") as f:
             app = f.read()
         app = app.replace("<<app-src>>", self.src)
         app = app.replace("<<api-name>>", api_names[0][0])
