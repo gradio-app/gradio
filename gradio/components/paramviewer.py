@@ -27,17 +27,21 @@ class ParamViewer(Component):
         value: list[Parameter] | None = None,
         language: Literal["python", "typescript"] = "python",
         linkify: list[str] | None = None,
+        every: float | None = None,
     ):
         """
         Parameters:
             value: A list of dictionaries with keys "type", "description", and "default" for each parameter.
             language: The language to display the code in. One of "python" or "typescript".
             linkify: A list of strings to linkify. If a string is found in the description, it will be linked to the corresponding url.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+
         """
         self.value = value
         self.language = language
         self.linkify = linkify
         super().__init__(
+            every=every,
             value=value,
         )
 
