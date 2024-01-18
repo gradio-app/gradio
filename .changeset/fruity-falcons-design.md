@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:fix versoin
+feat:fix versions
