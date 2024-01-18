@@ -128,7 +128,6 @@
 		}
 		show_options = false;
 		active_index = null;
-		filter_input.blur();
 	}
 
 	function handle_focus(e: FocusEvent): void {
@@ -188,6 +187,9 @@
 		<div class="wrap-inner" class:show_options>
 			<div class="secondary-wrap">
 				<input
+					role="listbox"
+					aria-controls="dropdown-options"
+					aria-expanded={show_options}
 					class="border-none"
 					class:subdued={!choices_names.includes(input_text) &&
 						!allow_custom_value}
