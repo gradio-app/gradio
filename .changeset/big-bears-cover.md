@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Run after_fn for async generators
+fix:Run before_fn and after_fn for each generator iteration
