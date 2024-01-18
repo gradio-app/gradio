@@ -223,10 +223,6 @@ def get_type_hints(param, module, ignore=None):
                 re.sub(r"(\"\"\".*?\"\"\")", "", source_code, flags=re.DOTALL), "other"
             )
 
-            print(arg.__name__)
-            print(arg_of)
-
-            # re.sub(r"(/"/"/".*?/"/"/")", "", s, flags=re.DOTALL)
             if arg_of is not None:
                 refs = get_deep(additional_interfaces, [arg_of, "refs"])
 
@@ -636,6 +632,13 @@ def make_user_fn_markdown(
 
     md = """
 ### User function
+
+The impact on the users predict function varies depending on whether the component is used as an input or output for an event (or both).
+
+- When used as an Input, the component only impacts the input signature of the user function. 
+- When used as an output, the component only impacts the return signature of the user function. 
+
+The code snippet below is accurate in cases where the component is used as both an input and an output.
 
 """
 
