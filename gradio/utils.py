@@ -635,12 +635,8 @@ def function_wrapper(
 
         @functools.wraps(f)
         async def asyncgen_wrapper(*args, **kwargs):
-            if before_fn:
-                before_fn(*before_args)
             async for response in f(*args, **kwargs):
                 yield response
-                if after_fn:
-                    after_fn(*after_args)
 
         return asyncgen_wrapper
 
@@ -661,11 +657,7 @@ def function_wrapper(
 
         @functools.wraps(f)
         def gen_wrapper(*args, **kwargs):
-            if before_fn:
-                before_fn(*before_args)
             yield from f(*args, **kwargs)
-            if after_fn:
-                after_fn(*after_args)
 
         return gen_wrapper
 
@@ -683,6 +675,22 @@ def function_wrapper(
         return wrapper
 
 
+def before_fn(blocks, event_id, in_event_listener, request):
+    from gradio.context import LocalContext
+
+    LocalContext.blocks.set(blocks)
+    LocalContext.in_event_listener.set(in_event_listener)
+    LocalContext.event_id.set(event_id)
+    LocalContext.request.set(request)
+
+
+def after_fn():
+    from gradio.context import LocalContext
+
+    LocalContext.in_event_listener.set(False)
+    LocalContext.request.set(None)
+
+
 def get_function_with_locals(
     fn: Callable,
     blocks: Blocks,
@@ -690,22 +698,11 @@ def get_function_with_locals(
     in_event_listener: bool,
     request: Request | None,
 ):
-    def before_fn(blocks, event_id):
-        from gradio.context import LocalContext
-
-        LocalContext.blocks.set(blocks)
-        LocalContext.in_event_listener.set(in_event_listener)
-        LocalContext.event_id.set(event_id)
-        LocalContext.request.set(request)
-
-    def after_fn():
-        from gradio.context import LocalContext
-
-        LocalContext.in_event_listener.set(False)
-        LocalContext.request.set(None)
-
     return function_wrapper(
-        fn, before_fn=before_fn, before_args=(blocks, event_id), after_fn=after_fn
+        fn,
+        before_fn=before_fn,
+        before_args=(blocks, event_id, in_event_listener, request),
+        after_fn=after_fn,
     )
 
 

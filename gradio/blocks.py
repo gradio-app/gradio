@@ -1188,7 +1188,18 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     iterator = cast(AsyncIterator[Any], prediction)
                 if inspect.isgenerator(iterator):
                     iterator = utils.SyncToAsyncIterator(iterator, self.limiter)
-                prediction = await utils.async_iteration(iterator)
+
+                # Need to wrap the iteration with the before_fn and after_fn
+                # see function_wrapper in in utils.py so that
+                # in_event_listener is set to False after every iteration
+                iteration_fn = utils.get_function_with_locals(
+                    fn=utils.async_iteration,
+                    blocks=self,
+                    event_id=event_id,
+                    in_event_listener=in_event_listener,
+                    request=request,
+                )
+                prediction = await iteration_fn(iterator)  # type: ignore
                 is_generating = True
             except StopAsyncIteration:
                 n_outputs = len(self.dependencies[fn_index].get("outputs"))
