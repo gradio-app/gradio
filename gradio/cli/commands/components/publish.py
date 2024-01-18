@@ -58,7 +58,7 @@ CMD ["python", "{demo}"]
 """
 
 
-def _ignore(s, names):
+def _ignore(_src, names):
     ignored = []
     for n in names:
         if "__pycache__" in n or n.startswith("dist") or n.startswith("node_modules"):
@@ -91,9 +91,6 @@ def _publish(
         Path,
         Argument(help=f"Path to the wheel directory. Default is {Path('.') / 'dist'}"),
     ] = Path(".") / "dist",
-    bump_version: Annotated[
-        bool, Option(help="Whether to bump the version number.")
-    ] = True,
     upload_pypi: Annotated[bool, Option(help="Whether to upload to PyPI.")] = True,
     pypi_username: Annotated[str, Option(help="The username for PyPI.")] = "",
     pypi_password: Annotated[str, Option(help="The password for PyPI.")] = "",

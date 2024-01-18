@@ -1220,7 +1220,7 @@ class Endpoint:
 class EndpointV3Compatibility:
     """Endpoint class for connecting to v3 endpoints. Backwards compatibility."""
 
-    def __init__(self, client: Client, fn_index: int, dependency: dict, *args):
+    def __init__(self, client: Client, fn_index: int, dependency: dict, *_args):
         self.client: Client = client
         self.fn_index = fn_index
         self.dependency = dependency

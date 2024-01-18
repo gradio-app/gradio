@@ -129,7 +129,7 @@ class EventListenerMethod:
 
 
 class EventListener(str):
-    def __new__(cls, event_name, *args, **kwargs):
+    def __new__(cls, event_name, *_args, **_kwargs):
         return super().__new__(cls, event_name)
 
     def __init__(

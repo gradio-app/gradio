@@ -891,7 +891,7 @@ class MatplotlibBackendMananger:
         matplotlib.use(self._original_backend)
 
 
-def tex2svg(formula, *args):
+def tex2svg(formula, *_args):
     with MatplotlibBackendMananger():
         import matplotlib.pyplot as plt
 

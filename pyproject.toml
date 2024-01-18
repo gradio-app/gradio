@@ -106,6 +106,7 @@ exclude = [
 
 [tool.ruff]
 extend-select = [
+  "ARG",
   "B",
   "C",
   "E",
@@ -145,6 +146,12 @@ exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py"]
   "UP006", # Pydantic on Python 3.7 requires old-style type annotations (TODO: drop when Python 3.7 is dropped)
 ]
 "gradio/cli/commands/files/NoTemplateComponent.py" = ["ALL"]
+"client/python/gradio_client/serializing.py" = [
+  "ARG",  # contains backward compatibility code, so args need to be named as such
+]
+"client/python/test/*" = [
+  "ARG",
+]
 "test/*" = [
   "ARG",
 ]

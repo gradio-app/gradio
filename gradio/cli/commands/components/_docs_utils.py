@@ -174,7 +174,7 @@ def get_container_name(arg):
         return str(arg)
 
 
-def format_type(_type: list[typing.Any], current=None):
+def format_type(_type: list[typing.Any]):
     """Pretty formats a possibly nested type hint."""
 
     s = []
@@ -187,7 +187,7 @@ def format_type(_type: list[typing.Any], current=None):
         elif isinstance(t, list):
             if len(t) == 0:
                 continue
-            s.append(f"{format_type(t, _current)}")
+            s.append(f"{format_type(t)}")
         else:
             s.append(t)
     if len(s) == 0:
@@ -198,7 +198,7 @@ def format_type(_type: list[typing.Any], current=None):
         return f"{_current}[{','.join(s)}]"
 
 
-def get_type_hints(param, module, ignore=None):
+def get_type_hints(param, module):
     """Gets the type hints for a parameter."""
 
     def extract_args(
