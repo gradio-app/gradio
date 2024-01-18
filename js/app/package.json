@@ -53,6 +53,7 @@
 		"@gradio/markdown": "workspace:^",
 		"@gradio/model3d": "workspace:^",
 		"@gradio/number": "workspace:^",
+		"@gradio/paramviewer": "workspace:^",
 		"@gradio/plot": "workspace:^",
 		"@gradio/radio": "workspace:^",
 		"@gradio/row": "workspace:^",
