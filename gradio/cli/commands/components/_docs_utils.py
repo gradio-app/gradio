@@ -286,7 +286,7 @@ def get_type_hints(param, module, ignore=None):
 
 def extract_docstrings(module):
     docs = {}
-    type_mode = "complex"
+    global_type_mode = "complex"
     for name, obj in inspect.getmembers(module):
         # filter out the builtins etc
         if name.startswith("_"):
@@ -317,12 +317,13 @@ def extract_docstrings(module):
                     docs[name]["members"][member_name] = {}
 
                     member_docstring = inspect.getdoc(member) or ""
-
+                    type_mode = "complex"
                     try:
                         hints = typing.get_type_hints(member)
                     except Exception:
                         type_mode = "simple"
                         hints = member.__annotations__
+                        global_type_mode = "simple"
 
                     signature = inspect.signature(member)
 
@@ -415,9 +416,8 @@ def extract_docstrings(module):
         final_user_fn_refs = get_deep(docs, ["__meta__", "user_fn_refs", name])
         if final_user_fn_refs is not None:
             set_deep(docs, ["__meta__", "user_fn_refs", name], list(final_user_fn_refs))
-    with open("docs.json", "w") as f:
-        f.write(json.dumps(docs, indent=4))
-    return (docs, type_mode)
+
+    return (docs, global_type_mode)
 
 
 class AdditionalInterface(typing.TypedDict):
@@ -577,13 +577,13 @@ The code snippet below is accurate in cases where the component is used as both 
 """
 
     md += (
-        f"- **As output:** Is passed, {format_description(user_fn_input_description)}\n"
+        f"- **As input:** Is passed, {format_description(user_fn_input_description)}\n"
         if user_fn_input_description
         else ""
     )
 
     md += (
-        f"- **As input:** Should return, {format_description(user_fn_output_description)}"
+        f"- **As output:** Should return, {format_description(user_fn_output_description)}"
         if user_fn_output_description
         else ""
     )
