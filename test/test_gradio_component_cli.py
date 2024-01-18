@@ -52,7 +52,8 @@ from gradio_mycomponent import MyComponent
 
 {OVERRIDES[template].demo_code.format(name="MyComponent")}
 
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()
 """
     )
     assert app.strip() == answer.strip()
@@ -184,8 +185,9 @@ with gr.Blocks() as demo:
     SimpleComponent2(value={"message": "Hello from Gradio!"}, label="Static")
 
 
-demo.launch()
-
+if __name__ == "__main__":
+    demo.launch()
+    
 """
     )
     assert app.strip() == answer.strip()

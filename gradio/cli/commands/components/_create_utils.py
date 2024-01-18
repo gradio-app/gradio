@@ -341,7 +341,8 @@ from {package_name} import {name}
 
 {component.demo_code.format(name=name)}
 
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()
 """
     )
     (demo_dir / "__init__.py").touch()

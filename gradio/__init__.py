@@ -46,6 +46,7 @@ from gradio.components import (
     Markdown,
     Model3D,
     Number,
+    ParamViewer,
     Plot,
     Radio,
     ScatterPlot,

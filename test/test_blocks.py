@@ -493,6 +493,7 @@ class TestBlocksPostprocessing:
                 gr.BarPlot,
                 gr.components.Fallback,
                 gr.FileExplorer,
+                gr.ParamViewer,
             ]
         ]
         with gr.Blocks() as demo:
