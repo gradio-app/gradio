@@ -290,6 +290,7 @@ export function api_factory(
 			let pending_stream_messages: Record<string, any[]> = {}; // Event messages may be received by the SSE stream before the initial data POST request is complete. To resolve this race condition, we store the messages in a dictionary and process them when the POST request is complete.
 			let event_stream: EventSource | null = null;
 			const event_callbacks: Record<string, () => Promise<void>> = {};
+			const unclosed_events: Set<string> = new Set();
 			let config: Config;
 			let api_map: Record<string, number> = {};
 
@@ -902,9 +903,6 @@ export function api_factory(
 											) {
 												if (event_callbacks[event_id]) {
 													delete event_callbacks[event_id];
-													if (Object.keys(event_callbacks).length === 0) {
-														close_stream();
-													}
 												}
 											}
 										} catch (e) {
@@ -928,6 +926,7 @@ export function api_factory(
 										delete pending_stream_messages[event_id];
 									}
 									event_callbacks[event_id] = callback;
+									unclosed_events.add(event_id);
 									if (!stream_open) {
 										open_stream();
 									}
@@ -1042,7 +1041,14 @@ export function api_factory(
 							)
 						);
 					} else if (event_callbacks[event_id]) {
-						await event_callbacks[event_id](_data);
+						if (_data.msg === "process_completed") {
+							unclosed_events.delete(event_id);
+							if (unclosed_events.size === 0) {
+								close_stream();
+							}
+						}
+						let fn = event_callbacks[event_id];
+						window.setTimeout(fn, 0, _data);
 					} else {
 						if (!pending_stream_messages[event_id]) {
 							pending_stream_messages[event_id] = [];
