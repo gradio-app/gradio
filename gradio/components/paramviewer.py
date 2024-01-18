@@ -28,6 +28,7 @@ class ParamViewer(Component):
         language: Literal["python", "typescript"] = "python",
         linkify: list[str] | None = None,
         every: float | None = None,
+        render: bool = True,
     ):
         """
         Parameters:
@@ -35,6 +36,7 @@ class ParamViewer(Component):
             language: The language to display the code in. One of "python" or "typescript".
             linkify: A list of strings to linkify. If a string is found in the description, it will be linked to the corresponding url.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
 
         """
         self.value = value
@@ -43,6 +45,7 @@ class ParamViewer(Component):
         super().__init__(
             every=every,
             value=value,
+            render=render,
         )
 
     def preprocess(self, payload: list[Parameter]) -> list[Parameter]:
