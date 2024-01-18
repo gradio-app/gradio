@@ -76,7 +76,8 @@ class LoginButton(Button):
         # Taken from https://cmgdo.com/external-link-in-gradio-button/
         # Taking `self` as input to check if user is logged in
         # ('self' value will be either "Sign in with Hugging Face" or "Signed in as ...")
-        self.click(fn=None, inputs=[self], outputs=None, js=_js_open_if_not_logged_in)
+        _js = _js_handle_redirect(self.value)
+        self.click(fn=None, inputs=[self], outputs=None, js=_js)
 
         self.attach_load_event(self._check_login_status, None)
 
@@ -93,19 +94,25 @@ class LoginButton(Button):
             return LoginButton(logout_text, interactive=True)
 
 
-# JS code to redirects to /login/huggingface if user is not logged in.
-# If the app is opened in an iframe, open the login page in a new tab.
-# Otherwise, redirects locally. Taken from https://stackoverflow.com/a/61596084.
-_js_open_if_not_logged_in = """
-(buttonValue) => {
-    if (buttonValue.includes("Sign in with Hugging Face")) {
-        if ( window !== window.parent ) {
-            window.open('/login/huggingface', '_blank');
-        } else {
-            window.location.assign('/login/huggingface');
+def _js_handle_redirect(button_value: str) -> str:
+    # JS code to redirects to /login/huggingface if user is not logged in.
+    # If the app is opened in an iframe, open the login page in a new tab.
+    # Otherwise, redirects locally. Taken from https://stackoverflow.com/a/61596084.
+    # If user is logged in, redirect to logout page (always in-place).
+    return (
+        """
+        (buttonValue) => {
+            if (buttonValue.includes('"""
+        + button_value
+        + """')) {
+                if ( window !== window.parent ) {
+                    window.open('/login/huggingface', '_blank');
+                } else {
+                    window.location.assign('/login/huggingface');
+                }
+            } else {
+                window.location.assign('/logout');
+            }
         }
-    } else if (buttonValue.includes("Logout")) {
-        window.location.assign('/logout');
-    }
-}
-"""
+    """
+    )
