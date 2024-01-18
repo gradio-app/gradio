@@ -89,10 +89,15 @@ def _docs(
 
         pypi_exists = pypi_exists == 200 or False
 
-        local_version = str(get_deep(data, ["project", "version"]) or "0.0.0")
+        local_version = get_deep(data, ["project", "version"])
         description = str(get_deep(data, ["project", "description"]) or "")
         repo = get_deep(data, ["project", "urls", "repository"])
         space = space_url if space_url else get_deep(data, ["project", "urls", "space"])
+
+        if not local_version and not pypi_exists:
+            raise ValueError(
+                f"Cannot find version in pyproject.toml or on PyPI for [orange3]{name}[/].\nIf you have just published to PyPI, please wait a few minutes and try again."
+            )
 
         module = importlib.import_module(name)
         (docs, type_mode) = extract_docstrings(module)
@@ -104,15 +109,15 @@ def _docs(
                 docs=docs,
                 name=name,
                 description=description,
-                local_version=local_version,
+                local_version=local_version
+                if local_version is None
+                else str(local_version),
                 demo=demo,
                 space=space if space is None else str(space),
                 repo=repo if repo is None else str(repo),
                 pypi_exists=pypi_exists,
                 suppress_demo_check=suppress_demo_check,
             )
-
-            # shuffle_tracks_button repeat pencil
 
             with open(_demo_dir / "space.py", "w") as f:
                 f.write(source)

@@ -819,7 +819,7 @@ def make_space(
     docs: dict,
     name: str,
     description: str,
-    local_version: str,
+    local_version: str | None,
     demo: str,
     space: str | None,
     repo: str | None,
