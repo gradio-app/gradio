@@ -49,8 +49,7 @@ from starlette.background import BackgroundTask
 from starlette.responses import RedirectResponse, StreamingResponse
 
 import gradio
-import gradio.ranged_response as ranged_response
-from gradio import route_utils, utils, wasm_utils
+from gradio import ranged_response, route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
 from gradio.exceptions import Error

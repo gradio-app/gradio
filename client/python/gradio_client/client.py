@@ -580,9 +580,8 @@ class Client:
                 # When loading from json, the fn_indices are read as strings
                 # because json keys can only be strings
                 human_info += self._render_endpoints_info(int(fn_index), endpoint_info)
-        else:
-            if num_unnamed_endpoints > 0:
-                human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}, to view, run Client.view_api(all_endpoints=True)\n"
+        elif num_unnamed_endpoints > 0:
+            human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}, to view, run Client.view_api(all_endpoints=True)\n"
 
         if print_info:
             print(human_info)
@@ -1003,7 +1002,7 @@ class Endpoint:
                 result = utils.synchronize_async(
                     self._sse_fn_v0, data, hash_data, helper
                 )
-            elif self.protocol == "sse_v1" or self.protocol == "sse_v2":
+            elif self.protocol in ("sse_v1", "sse_v2"):
                 event_id = utils.synchronize_async(
                     self.client.send_data, data, hash_data
                 )
@@ -1673,26 +1672,25 @@ class Job(Future):
                     eta=None,
                     progress_data=None,
                 )
+        elif not self.communicator:
+            return StatusUpdate(
+                code=Status.PROCESSING,
+                rank=0,
+                queue_size=None,
+                success=None,
+                time=time,
+                eta=None,
+                progress_data=None,
+            )
         else:
-            if not self.communicator:
-                return StatusUpdate(
-                    code=Status.PROCESSING,
-                    rank=0,
-                    queue_size=None,
-                    success=None,
-                    time=time,
-                    eta=None,
-                    progress_data=None,
-                )
-            else:
-                with self.communicator.lock:
-                    eta = self.communicator.job.latest_status.eta
-                    if self.verbose and self.space_id and eta and eta > 30:
-                        print(
-                            f"Due to heavy traffic on this app, the prediction will take approximately {int(eta)} seconds."
-                            f"For faster predictions without waiting in queue, you may duplicate the space using: Client.duplicate({self.space_id})"
-                        )
-                    return self.communicator.job.latest_status
+            with self.communicator.lock:
+                eta = self.communicator.job.latest_status.eta
+                if self.verbose and self.space_id and eta and eta > 30:
+                    print(
+                        f"Due to heavy traffic on this app, the prediction will take approximately {int(eta)} seconds."
+                        f"For faster predictions without waiting in queue, you may duplicate the space using: Client.duplicate({self.space_id})"
+                    )
+                return self.communicator.job.latest_status
 
     def __getattr__(self, name):
         """Forwards any properties to the Future class."""

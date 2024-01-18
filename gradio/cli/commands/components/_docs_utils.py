@@ -192,7 +192,7 @@ def format_type(_type: list[typing.Any]):
             s.append(t)
     if len(s) == 0:
         return _current
-    elif _current == "Literal" or _current == "Union":
+    elif _current in ("Literal", "Union"):
         return "| ".join(s)
     else:
         return f"{_current}[{','.join(s)}]"
@@ -268,7 +268,7 @@ def get_type_hints(param, module):
 
                 if len(new_args) > 0:
                     arg_names.append(new_args)
-        else:
+        else:  # noqa: PLR5501
             if append:
                 arg_names.append(get_param_name(arg))
         return arg_names
@@ -313,11 +313,7 @@ def extract_docstrings(module):
             for member_name, member in inspect.getmembers(obj):
                 if inspect.ismethod(member) or inspect.isfunction(member):
                     # we are are only interested in these methods
-                    if (
-                        member_name != "__init__"
-                        and member_name != "preprocess"
-                        and member_name != "postprocess"
-                    ):
+                    if member_name not in ("__init__", "preprocess", "postprocess"):
                         continue
 
                     docs[name]["members"][member_name] = {}
@@ -385,7 +381,7 @@ def extract_docstrings(module):
                         ] = docstring
 
                         # We just want to normalise the arg name to 'value' for the preprocess and postprocess methods
-                        if member_name == "postprocess" or member_name == "preprocess":
+                        if member_name in ("postprocess", "preprocess"):
                             docs[name]["members"][member_name][
                                 "value"
                             ] = find_first_non_return_key(

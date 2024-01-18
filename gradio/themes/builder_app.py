@@ -372,7 +372,6 @@ with gr.Blocks(  # noqa: SIM117
 
                         def clear():
                             time.sleep(0.2)
-                            return None
 
                         clear_btn.click(clear, None, img)
 

@@ -79,7 +79,6 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
 
                 def clear():
                     time.sleep(0.2)
-                    return None
 
                 clear_btn.click(clear, None, img)
 
