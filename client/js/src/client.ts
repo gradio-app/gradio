@@ -1048,7 +1048,7 @@ export function api_factory(
 							}
 						}
 						let fn = event_callbacks[event_id];
-						window.setTimeout(fn, 0, _data);
+						window.setTimeout(fn, 0, _data); // need to do this to put the event on the end of the event loop, so the browser can refresh between callbacks and not freeze in case of quick generations. See https://github.com/gradio-app/gradio/pull/7055
 					} else {
 						if (!pending_stream_messages[event_id]) {
 							pending_stream_messages[event_id] = [];
