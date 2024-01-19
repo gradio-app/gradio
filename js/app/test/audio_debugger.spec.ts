@@ -3,7 +3,6 @@ import { chromium } from "playwright";
 // we cannot currently test the waveform canvas with playwright (https://github.com/microsoft/playwright/issues/23964)
 // so this test covers the interactive elements around the waveform canvas
 
-
 test("audio waveform", async ({ page }) => {
 	await expect(page.getByRole("tab", { name: "Audio" })).toHaveAttribute(
 		"aria-selected",
@@ -56,12 +55,13 @@ test("audio streaming tab", async ({ page }) => {
 
 	await page.getByRole("tab", { name: "Streaming" }).click();
 
-	await expect(page.getByLabel("Select input device")).toContainText("No microphone found");
+	await expect(page.getByLabel("Select input device")).toContainText(
+		"No microphone found"
+	);
 
 	context.grantPermissions(["microphone"]);
 
 	await expect(page.getByText("Fake Default Audio Input")).toBeAttached();
-
 });
 
 test("recording audio", async ({ page }) => {
