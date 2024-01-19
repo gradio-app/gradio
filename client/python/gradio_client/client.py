@@ -841,13 +841,18 @@ class Client:
                 metadata={"tags": ["gradio-discord-bot"]},
             )
 
-        with open(str(Path(__file__).parent / "templates" / "discord_chat.py"),encoding="utf-8") as f:
+        with open(
+            str(Path(__file__).parent / "templates" / "discord_chat.py"),
+            encoding="utf-8",
+        ) as f:
             app = f.read()
         app = app.replace("<<app-src>>", self.src)
         app = app.replace("<<api-name>>", api_names[0][0])
         app = app.replace("<<command-name>>", api_names[0][1])
 
-        with tempfile.NamedTemporaryFile(mode="w", delete=False,encoding="utf-8") as app_file:
+        with tempfile.NamedTemporaryFile(
+            mode="w", delete=False, encoding="utf-8"
+        ) as app_file:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as requirements:
                 app_file.write(app)
                 requirements.write("\n".join(["discord.py==2.3.1"]))
