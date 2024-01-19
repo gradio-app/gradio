@@ -7,3 +7,7 @@ https://github.com/KhronosGroup/glTF-Sample-Models
 
 Face:
 https://github.com/mikedh/trimesh/tree/main/models
+
+NASA SOFIA:
+https://nasa3d.arc.nasa.gov/detail/sofia
+https://github.com/nasa/NASA-3D-Resources/blob/master/3D%20Models/SOFIA/Fuselage_top.stl
