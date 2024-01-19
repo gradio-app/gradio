@@ -18,24 +18,16 @@
 	>
 		<div class="flex flex-wrap items-center gap-x-4 gap-y-2">
 			<p class="text-md leading-6 text-gray-700">
-				<strong class="font-semibold">What's New in Gradio 4.0?</strong>
-			</p>
-			<a
-				href="https://www.youtube.com/watch?v=5MgmKBCOpvU"
-				target="_blank"
-				class="flex-none rounded-full px-3.5 py-1 text-sm font-semibold text-white bg-gradient-to-br from-orange-300 via-orange-500 to-orange-300 hover:drop-shadow-md"
-				>Watch <span aria-hidden="true">&rarr;</span></a
-			>
-			<p class="text-md leading-6 text-gray-700">
 				<strong class="font-semibold"
-					>Custom Components<sup class="text-orange-500">NEW</sup></strong
+					>Custom Components Gallery<sup class="text-orange-500">NEW</sup
+					></strong
 				>
 			</p>
 			<a
-				href="https://www.gradio.app/guides/five-minute-guide"
+				href="/custom-components/gallery"
 				target="_blank"
 				class="flex-none rounded-full px-3.5 py-1 text-sm font-semibold text-white bg-gradient-to-br from-orange-300 via-orange-500 to-orange-300 hover:drop-shadow-md"
-				>Guides <span aria-hidden="true">&rarr;</span></a
+				>Explore <span aria-hidden="true">&rarr;</span></a
 			>
 		</div>
 		<div class="flex flex-1 justify-end"></div>
@@ -71,7 +63,13 @@
 			>
 			<a class="thin-link flex items-center gap-3" href="/playground"
 				><span>🎢</span>
-				<span>Playground<sup class="text-orange-500">NEW</sup></span></a
+				<span>Playground</span></a
+			>
+			<a
+				class="thin-link flex items-center gap-3"
+				href="/custom-components/gallery"
+				><span>🖼️</span>
+				<span>Custom Components<sup class="text-orange-500">NEW</sup></span></a
 			>
 			<div
 				on:mouseenter={() => (show_help_menu = true)}

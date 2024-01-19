@@ -8,13 +8,8 @@ export type ComponentData = {
 	version: string;
 	subdomain: string;
 	background_color: string;
+	likes: number;
 };
-
-export function getRandomIntInclusive(min: number, max: number): number {
-	min = Math.ceil(min);
-	max = Math.floor(max);
-	return Math.floor(Math.random() * (max - min + 1) + min); // The maximum is inclusive and the minimum is inclusive
-}
 
 export const classToEmojiMapping: { [key: string]: string } = {
 	AnnotatedImage: "🖼️",
@@ -41,3 +36,22 @@ export const classToEmojiMapping: { [key: string]: string } = {
 	UploadButton: "📤",
 	Video: "🎥"
 };
+
+export function clickOutside(element: any, callbackFunction: any) {
+	function onClick(event: any) {
+		if (!element.contains(event.target)) {
+			callbackFunction();
+		}
+	}
+
+	document.body.addEventListener("click", onClick);
+
+	return {
+		update(newCallbackFunction: any) {
+			callbackFunction = newCallbackFunction;
+		},
+		destroy() {
+			document.body.removeEventListener("click", onClick);
+		}
+	};
+}
