@@ -2,7 +2,7 @@
 	import { Pause } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
-	import { createEventDispatcher } from "svelte";
+	import DeviceSelect from "./DeviceSelect.svelte";
 
 	export let record: RecordPlugin;
 	export let i18n: I18nFormatter;
@@ -17,30 +17,6 @@
 	export let record_time: string;
 	export let show_recording_waveform: boolean | undefined;
 	export let timing = false;
-
-	const dispatch = createEventDispatcher<{
-		error: string;
-	}>();
-
-	$: try {
-		let tempDevices: MediaDeviceInfo[] = [];
-		RecordPlugin.getAvailableAudioDevices().then(
-			(devices: MediaDeviceInfo[]) => {
-				micDevices = devices;
-				devices.forEach((device) => {
-					if (device.deviceId) {
-						tempDevices.push(device);
-					}
-				});
-				micDevices = tempDevices;
-			}
-		);
-	} catch (err) {
-		if (err instanceof DOMException && err.name == "NotAllowedError") {
-			dispatch("error", i18n("audio.allow_recording_access"));
-		}
-		throw err;
-	}
 
 	$: record.on("record-start", () => {
 		record.startMic();
@@ -128,49 +104,16 @@
 			<time class="duration-button duration">{record_time}</time>
 		{/if}
 	</div>
-
-	<select
-		class="mic-select"
-		aria-label="Select input device"
-		disabled={micDevices.length === 0}
-	>
-		{#if micDevices.length === 0}
-			<option value="">{i18n("audio.no_microphone")}</option>
-		{:else}
-			{#each micDevices as micDevice}
-				<option value={micDevice.deviceId}>{micDevice.label}</option>
-			{/each}
-		{/if}
-	</select>
+	<DeviceSelect bind:micDevices {i18n} />
 </div>
 
 <style>
-	.mic-select {
-		height: var(--size-8);
-		background: var(--block-background-fill);
-		padding: 0px var(--spacing-xxl);
-		border-radius: var(--radius-full);
-		font-size: var(--text-md);
-		border: 1px solid var(--neutral-400);
-		margin: var(--size-1) var(--size-1) 0 0;
-	}
 	.controls {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		flex-wrap: wrap;
 		overflow: hidden;
-	}
-
-	.controls select {
-		text-overflow: ellipsis;
-		max-width: var(--size-40);
-	}
-
-	@media (max-width: 375px) {
-		.controls select {
-			width: 100%;
-		}
 	}
 
 	.wrapper {

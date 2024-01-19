@@ -4,6 +4,7 @@
 	import WaveSurfer from "wavesurfer.js";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 	import type { WaveformOptions } from "../shared/types";
+	import DeviceSelect from "../shared/DeviceSelect.svelte";
 
 	export let recording = false;
 	export let paused_recording = false;
@@ -19,6 +20,8 @@
 	let waveformRecord: RecordPlugin;
 
 	let microphoneContainer: HTMLDivElement;
+
+	let micDevices: MediaDeviceInfo[] = [];
 
 	onMount(() => {
 		create_mic_waveform();
@@ -44,37 +47,49 @@
 			style:display={recording ? "block" : "none"}
 		/>
 	{/if}
-	{#if recording}
-		<button
-			class={paused_recording ? "stop-button-paused" : "stop-button"}
-			on:click={() => {
-				waveformRecord?.stopMic();
-				stop();
-			}}
-		>
-			<span class="record-icon">
-				<span class="pinger" />
-				<span class="dot" />
-			</span>
-			{paused_recording ? i18n("audio.pause") : i18n("audio.stop")}
-		</button>
-	{:else}
-		<button
-			class="record-button"
-			on:click={() => {
-				waveformRecord?.startMic();
-				record();
-			}}
-		>
-			<span class="record-icon">
-				<span class="dot" />
-			</span>
-			{i18n("audio.record")}
-		</button>
-	{/if}
+	<div class="controls">
+		{#if recording}
+			<button
+				class={paused_recording ? "stop-button-paused" : "stop-button"}
+				on:click={() => {
+					waveformRecord?.stopMic();
+					stop();
+				}}
+			>
+				<span class="record-icon">
+					<span class="pinger" />
+					<span class="dot" />
+				</span>
+				{paused_recording ? i18n("audio.pause") : i18n("audio.stop")}
+			</button>
+		{:else}
+			<button
+				class="record-button"
+				on:click={() => {
+					waveformRecord?.startMic();
+					record();
+				}}
+			>
+				<span class="record-icon">
+					<span class="dot" />
+				</span>
+				{i18n("audio.record")}
+			</button>
+		{/if}
+
+		<DeviceSelect bind:micDevices {i18n} />
+	</div>
 </div>
 
 <style>
+	.controls {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		overflow: hidden;
+	}
+
 	.mic-wrap {
 		display: block;
 		align-items: center;
