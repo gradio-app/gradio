@@ -8,13 +8,17 @@
 	export let elem_classes: string[] = [];
 	export let name: string;
 	export let id: string | number | object = {};
+	export let visible: boolean;
+	export let interactive: boolean;
 
 	const dispatch = createEventDispatcher<{ select: SelectData }>();
 
 	const { register_tab, unregister_tab, selected_tab, selected_tab_index } =
 		getContext(TABS) as any;
 
-	let tab_index = register_tab({ name, id, elem_id });
+	let tab_index: number;
+
+	$: tab_index = register_tab({ name, id, elem_id, visible, interactive });
 
 	onMount(() => {
 		return (): void => unregister_tab({ name, id, elem_id });
@@ -28,6 +32,7 @@
 	id={elem_id}
 	class="tabitem {elem_classes.join(' ')}"
 	style:display={$selected_tab === id ? "block" : "none"}
+	role="tabpanel"
 >
 	<Column>
 		<slot />

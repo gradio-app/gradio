@@ -1,10 +1,17 @@
 # website
 
+## 0.21.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/code@0.3.7
+
 ## 0.21.2
 
 ### Features
 
-- [#6997](https://github.com/gradio-app/gradio/pull/6997) [`523c08f`](https://github.com/gradio-app/gradio/commit/523c08fe3036f9d72416f7599fe0c64c1a4af823) - Design changes to Playground.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6997](https://github.com/gradio-app/gradio/pull/6997) [`523c08f`](https://github.com/gradio-app/gradio/commit/523c08fe3036f9d72416f7599fe0c64c1a4af823) - Design changes to Playground. Thanks [@aliabd](https://github.com/aliabd)!
 
 ## 0.21.1
 
