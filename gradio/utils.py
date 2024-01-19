@@ -698,22 +698,6 @@ def function_wrapper(
         return wrapper
 
 
-def before_fn(blocks, event_id, in_event_listener, request):
-    from gradio.context import LocalContext
-
-    LocalContext.blocks.set(blocks)
-    LocalContext.in_event_listener.set(in_event_listener)
-    LocalContext.event_id.set(event_id)
-    LocalContext.request.set(request)
-
-
-def after_fn():
-    from gradio.context import LocalContext
-
-    LocalContext.in_event_listener.set(False)
-    LocalContext.request.set(None)
-
-
 def get_function_with_locals(
     fn: Callable,
     blocks: Blocks,
@@ -721,10 +705,24 @@ def get_function_with_locals(
     in_event_listener: bool,
     request: Request | None,
 ):
+    def before_fn(blocks, event_id):
+        from gradio.context import LocalContext
+
+        LocalContext.blocks.set(blocks)
+        LocalContext.in_event_listener.set(in_event_listener)
+        LocalContext.event_id.set(event_id)
+        LocalContext.request.set(request)
+
+    def after_fn():
+        from gradio.context import LocalContext
+
+        LocalContext.in_event_listener.set(False)
+        LocalContext.request.set(None)
+
     return function_wrapper(
         fn,
         before_fn=before_fn,
-        before_args=(blocks, event_id, in_event_listener, request),
+        before_args=(blocks, event_id),
         after_fn=after_fn,
     )
 
