@@ -4,6 +4,8 @@
 	import { page } from "$app/stores";
 	import DropDown from "$lib/components/VersionDropdown.svelte";
 	import { goto } from "$app/navigation";
+	import { onMount } from "svelte";
+	import Details from "$lib/components/Details.svelte";
 
 	export let data: {
 		guide: any;
@@ -63,6 +65,36 @@
 			flattened_guides.findIndex((guide) => guide.url === guide_page.url) + 1
 		];
 	$: guide_names = data.guide_names;
+
+	onMount(() => {
+		const details = document.querySelectorAll("details");
+		console.log(details);
+		if (details.length === 0) return;
+
+		Array.from(details).map((detail) => {
+			const summary_text = document.querySelector("summary")?.innerHTML;
+			const detail_children = document.querySelectorAll(
+				"details > *:not(summary)"
+			);
+
+			let detail_text = "";
+			detail_children.forEach((child, i) => {
+				detail_text += `<p>${child.innerHTML}</p>`;
+			});
+
+			if (!summary_text || !detail_text) return;
+
+			const new_el = document.createElement("div");
+			new Details({
+				target: new_el,
+				props: {
+					summary: summary_text,
+					content: detail_text
+				}
+			});
+			detail.replaceWith(new_el);
+		});
+	});
 </script>
 
 <MetaTags
