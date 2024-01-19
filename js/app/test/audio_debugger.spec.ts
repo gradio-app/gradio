@@ -76,9 +76,11 @@ test("recording audio", async ({ page }) => {
 
 	context.grantPermissions(["microphone"]);
 
-	await expect(page.getByRole('combobox')).toContainText("Fake Default Audio InputFake Audio Input 1Fake Audio Input 2");
+	await expect(page.getByRole("combobox")).toContainText(
+		"Fake Default Audio InputFake Audio Input 1Fake Audio Input 2"
+	);
 
-	await page.getByRole('button', { name: 'Record', exact: true }).click();
+	await page.getByRole("button", { name: "Record", exact: true }).click();
 
 	await page.waitForTimeout(1000);
 
