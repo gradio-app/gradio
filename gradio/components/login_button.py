@@ -46,7 +46,7 @@ class LoginButton(Button):
         Parameters:
             logout_value: The text to display when the user is signed in. The string should contain a placeholder for the username with a call-to-action to logout, e.g. "Logout ({})".
         """
-        if signed_in_value is not None and signed_in_value != "Signed in as {}":
+        if signed_in_value != "Signed in as {}":
             warnings.warn(
                 "The `signed_in_value` parameter is deprecated. Please use `logout_value` instead."
             )
