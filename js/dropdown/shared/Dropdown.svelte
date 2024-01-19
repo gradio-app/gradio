@@ -191,7 +191,7 @@
 					role="listbox"
 					aria-controls="dropdown-options"
 					aria-expanded={show_options}
-					aria-labelledby={label}
+					aria-label={label}
 					class="border-none"
 					class:subdued={!choices_names.includes(input_text) &&
 						!allow_custom_value}
