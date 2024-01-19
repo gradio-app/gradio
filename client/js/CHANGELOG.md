@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 0.10.1
+
+### Fixes
+
+- [#7055](https://github.com/gradio-app/gradio/pull/7055) [`3c3cf86`](https://github.com/gradio-app/gradio/commit/3c3cf8618a8cad1ef66a7f96664923d2c9f5e0e2) - Fix UI freeze on rapid generators.  Thanks [@aliabid94](https://github.com/aliabid94)!
+
 ## 0.10.0
 
 ### Features

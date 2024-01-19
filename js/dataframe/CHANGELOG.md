@@ -1,5 +1,11 @@
 # @gradio/dataframe
 
+## 0.5.0
+
+### Features
+
+- [#7018](https://github.com/gradio-app/gradio/pull/7018) [`ec28b4e`](https://github.com/gradio-app/gradio/commit/ec28b4e7c47a9233d9e3a725cc9fe8f9044dfa94) - Add `visible` and `interactive` params to `gr.Tab()`.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.4.6
 
 ### Patch Changes

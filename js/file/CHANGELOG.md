@@ -1,5 +1,11 @@
 # @gradio/file
 
+## 0.4.7
+
+### Fixes
+
+- [#6980](https://github.com/gradio-app/gradio/pull/6980) [`523b6bc`](https://github.com/gradio-app/gradio/commit/523b6bc534e221b028a3ea3f274c7466fe242d5a) - `gr.update(value=[])` for `gr.File()` clears it.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.4.6
 
 ### Patch Changes

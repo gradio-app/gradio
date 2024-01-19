@@ -1,5 +1,11 @@
 # @gradio/checkboxgroup
 
+## 0.4.0
+
+### Fixes
+
+- [#6933](https://github.com/gradio-app/gradio/pull/6933) [`9cefd2e`](https://github.com/gradio-app/gradio/commit/9cefd2e90a1d0cc4d3e4e953fc5b9b1a7afb68dd) - Refactor examples so they accept data in the same format as is returned by function, rename `.as_example()` to `.process_example()`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.3.8
 
 ### Fixes
