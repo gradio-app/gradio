@@ -1,5 +1,5 @@
 import { test, expect } from "@gradio/tootils";
-
+import { chromium } from "playwright";
 // we cannot currently test the waveform canvas with playwright (https://github.com/microsoft/playwright/issues/23964)
 // so this test covers the interactive elements around the waveform canvas
 
@@ -42,4 +42,23 @@ test("audio waveform", async ({ page }) => {
 		.getByTestId("waveform-output")
 		.getByLabel("Skip forward by 0.15 seconds")
 		.click();
+});
+
+test("audio streaming tab", async ({ page }) => {
+	const browser = await chromium.launch({
+		args: ["--use-fake-ui-for-media-stream"]
+	});
+
+	const context = await browser.newContext({
+		permissions: ["microphone"]
+	});
+
+	await page.getByRole("tab", { name: "Streaming" }).click();
+	
+	await expect(page.getByLabel("Select input device")).toContainText("No microphone found");
+
+	context.grantPermissions(["microphone"]);
+
+	await expect(page.getByText("Fake Default Audio Input")).toBeAttached();
+
 });
