@@ -53,15 +53,13 @@ test("audio streaming tab", async ({ page }) => {
 		permissions: ["microphone"]
 	});
 
+	context.grantPermissions(["microphone"]);
+
 	await page.getByRole("tab", { name: "Streaming" }).click();
 
 	await expect(page.getByLabel("Select input device")).toContainText(
-		"No microphone found"
+		"Fake Default Audio InputFake Audio Input 1Fake Audio Input 2"
 	);
-
-	context.grantPermissions(["microphone"]);
-
-	await expect(page.getByText("Fake Default Audio Input")).toBeAttached();
 });
 
 test("recording audio", async ({ page }) => {
@@ -78,9 +76,9 @@ test("recording audio", async ({ page }) => {
 
 	context.grantPermissions(["microphone"]);
 
-	await expect(page.getByText("Fake Default Audio Input")).toBeAttached();
+	await expect(page.getByRole('combobox')).toContainText("Fake Default Audio InputFake Audio Input 1Fake Audio Input 2");
 
-	await page.getByText("Record", { exact: true }).click();
+	await page.getByRole('button', { name: 'Record', exact: true }).click();
 
 	await page.waitForTimeout(1000);
 
