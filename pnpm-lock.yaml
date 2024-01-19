@@ -459,6 +459,9 @@ importers:
       '@gradio/number':
         specifier: workspace:^
         version: link:../number
+      '@gradio/paramviewer':
+        specifier: workspace:^
+        version: link:../paramviewer
       '@gradio/plot':
         specifier: workspace:^
         version: link:../plot
@@ -1183,6 +1186,25 @@ importers:
         specifier: workspace:^
         version: link:../utils
 
+  js/paramviewer:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      prismjs:
+        specifier: ^1.29.0
+        version: 1.29.0
+    devDependencies:
+      '@types/prismjs':
+        specifier: ^1.26.3
+        version: 1.26.3
+
   js/plot:
     dependencies:
       '@gradio/atoms':
@@ -1285,54 +1307,6 @@ importers:
       svelte-hmr:
         specifier: ^0.15.3
         version: 0.15.3(svelte@4.2.3)
-
-  js/preview/test/mychatbot/frontend:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../../../../atoms
-      '@gradio/audio':
-        specifier: workspace:^
-        version: link:../../../../audio
-      '@gradio/client':
-        specifier: workspace:^
-        version: link:../../../../../client/js
-      '@gradio/icons':
-        specifier: workspace:^
-        version: link:../../../../icons
-      '@gradio/image':
-        specifier: workspace:^
-        version: link:../../../../image
-      '@gradio/markdown':
-        specifier: workspace:^
-        version: link:../../../../markdown
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../../../../statustracker
-      '@gradio/theme':
-        specifier: workspace:^
-        version: link:../../../../theme
-      '@gradio/upload':
-        specifier: workspace:^
-        version: link:../../../../upload
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../../../../utils
-      '@gradio/video':
-        specifier: workspace:^
-        version: link:../../../../video
-      '@types/dompurify':
-        specifier: ^3.0.2
-        version: 3.0.2
-      '@types/katex':
-        specifier: ^0.16.0
-        version: 0.16.0
-      '@types/prismjs':
-        specifier: 1.26.3
-        version: 1.26.3
-      dequal:
-        specifier: ^2.0.2
-        version: 2.0.2
 
   js/preview/test/test/frontend:
     dependencies:
@@ -7320,7 +7294,6 @@ packages:
 
   /@types/prismjs@1.26.3:
     resolution: {integrity: sha512-A0D0aTXvjlqJ5ZILMz3rNfDBOx9hHxLZYv2by47Sm/pqW35zzjusrZTryatjN/Rf8Us2gZrJD+KeHbUSTux1Cw==}
-    dev: false
 
   /@types/prop-types@15.7.10:
     resolution: {integrity: sha512-mxSnDQxPqsZxmeShFH+uwQ4kO4gcJcGahjjMFeLbKE95IAZiiZyiEepGZjtXJ7hN/yfu0bu9xN2ajcU0JcxX6A==}

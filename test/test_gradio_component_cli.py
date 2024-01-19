@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from gradio.cli.commands.components._create_utils import OVERRIDES
+from gradio.cli.commands.components.build import _build
 from gradio.cli.commands.components.create import _create
 from gradio.cli.commands.components.publish import _get_version_from_file
 from gradio.cli.commands.components.show import _show
@@ -51,7 +52,8 @@ from gradio_mycomponent import MyComponent
 
 {OVERRIDES[template].demo_code.format(name="MyComponent")}
 
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()
 """
     )
     assert app.strip() == answer.strip()
@@ -146,6 +148,22 @@ def test_build(template, virtualenv):
         shutil.rmtree(str(dir_), ignore_errors=True)
 
 
+def test_build_fails_if_component_not_installed(tmp_path):
+    _create(
+        "MyComponent",
+        tmp_path,
+        template="SimpleTextbox",
+        overwrite=True,
+        install=False,
+        configure_metadata=False,
+    )
+    with pytest.raises(
+        ValueError,
+        match=r"Your custom component package \(gradio_mycomponent\) is not installed!",
+    ):
+        _build(tmp_path)
+
+
 def test_fallback_template_app(tmp_path):
     _create(
         "SimpleComponent2",
@@ -167,8 +185,9 @@ with gr.Blocks() as demo:
     SimpleComponent2(value={"message": "Hello from Gradio!"}, label="Static")
 
 
-demo.launch()
-
+if __name__ == "__main__":
+    demo.launch()
+    
 """
     )
     assert app.strip() == answer.strip()
