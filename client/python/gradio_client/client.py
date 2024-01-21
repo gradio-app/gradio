@@ -1559,6 +1559,7 @@ class Job(Future):
                     return o
                 if self.communicator.job.latest_status.code == Status.FINISHED:
                     raise StopIteration()
+                time.sleep(0.001)
 
     def result(self, timeout: float | None = None) -> Any:
         """
