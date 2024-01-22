@@ -38,6 +38,7 @@
 		},
 		label: "world video",
 		show_label: true,
+		show_download_button: true,
 		interactive: false,
 		height: 200,
 		width: 400
@@ -55,6 +56,7 @@
 		},
 		label: "world video",
 		show_label: true,
+		show_download_button: false,
 		interactive: false,
 		height: 200,
 		width: 400
