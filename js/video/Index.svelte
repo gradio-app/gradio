@@ -35,7 +35,7 @@
 	export let min_width: number | undefined = undefined;
 	export let autoplay = false;
 	export let show_share_button = true;
-	export let show_download_button = false;
+	export let show_download_button: boolean;
 	export let gradio: Gradio<{
 		change: never;
 		clear: never;
