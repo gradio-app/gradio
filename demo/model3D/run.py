@@ -16,6 +16,7 @@ demo = gr.Interface(
         [os.path.join(os.path.dirname(__file__), "files/Duck.glb")],
         [os.path.join(os.path.dirname(__file__), "files/Fox.gltf")],
         [os.path.join(os.path.dirname(__file__), "files/face.obj")],
+        [os.path.join(os.path.dirname(__file__), "files/sofia.stl")],
     ],
     cache_examples=True
 )

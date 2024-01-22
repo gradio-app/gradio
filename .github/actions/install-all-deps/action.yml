@@ -32,7 +32,7 @@ runs:
       run: |
         python -m pip install --upgrade virtualenv
         python -m virtualenv venv
-    - uses: actions/cache@v3
+    - uses: actions/cache@v4
       id: cache
       with:
         path: |
@@ -45,7 +45,7 @@ runs:
         python -m pip install -e client/python
         python -m pip install -e .
     - name: Install ffmpeg
-      uses: FedericoCarboni/setup-ffmpeg@v3
+      uses: FedericoCarboni/setup-ffmpeg@v2
     - name: install-frontend
       uses: "./.github/actions/install-frontend-deps"
       with:
