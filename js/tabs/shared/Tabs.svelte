@@ -83,7 +83,7 @@
 		}
 	}
 
-	$: selected !== null && change_tab(selected);
+	$: tabs, selected !== null && change_tab(selected);
 </script>
 
 <div class="tabs {elem_classes.join(' ')}" class:hide={!visible} id={elem_id}>
