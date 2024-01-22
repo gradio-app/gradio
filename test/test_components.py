@@ -1469,6 +1469,7 @@ class TestVideo:
             "container": True,
             "min_width": 160,
             "scale": None,
+            "show_download_button": None,
             "height": None,
             "width": None,
             "elem_id": None,
