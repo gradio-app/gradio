@@ -14,6 +14,7 @@ import os
 import pkgutil
 import re
 import threading
+import time
 import traceback
 import typing
 import urllib.parse
@@ -223,6 +224,7 @@ def watchfn(reloader: SourceFileReloader):
             else:
                 reloader.swap_blocks(demo)
             mtimes = {}
+        time.sleep(0.05)
 
 
 def colab_check() -> bool:
