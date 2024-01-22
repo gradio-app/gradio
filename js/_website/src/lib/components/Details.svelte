@@ -4,18 +4,15 @@
 	export let content: string;
 
 	let open = false;
-	$: console.log($$props);
 </script>
 
 <div class="container">
-	<!-- <div class="mb-4"> -->
 	<button class="summary" class:open on:click={() => (open = !open)}
 		><span><Lightbulb /></span>{summary}</button
 	>
 	{#if open}
 		<div class="detail">{@html content}</div>
 	{/if}
-	<!-- </div> -->
 </div>
 
 <style>

@@ -3,9 +3,8 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
 	import DropDown from "$lib/components/VersionDropdown.svelte";
-	import { goto } from "$app/navigation";
-	import { onMount } from "svelte";
-	import Details from "$lib/components/Details.svelte";
+	import { tick } from "svelte";
+	import FancyDetails from "$lib/components/Details.svelte";
 
 	export let data: {
 		guide: any;
@@ -44,6 +43,7 @@
 	let flattened_guides = guide_names.map((category) => category.guides).flat();
 	let prev_guide: any;
 	let next_guide: any;
+	let content_el: HTMLDivElement;
 
 	$: if (sidebar) {
 		if (
@@ -66,14 +66,17 @@
 		];
 	$: guide_names = data.guide_names;
 
-	onMount(() => {
+	let _details: (FancyDetails | void)[] = [];
+
+	async function make_details() {
+		_details.forEach((c) => c?.$destroy());
+		await tick();
 		const details = document.querySelectorAll("details");
-		console.log(details);
 		if (details.length === 0) return;
 
-		Array.from(details).map((detail) => {
-			const summary_text = document.querySelector("summary")?.innerHTML;
-			const detail_children = document.querySelectorAll(
+		_details = Array.from(details).map((detail) => {
+			const summary_text = detail.querySelector("summary")?.innerHTML;
+			const detail_children = detail.querySelectorAll(
 				"details > *:not(summary)"
 			);
 
@@ -85,7 +88,7 @@
 			if (!summary_text || !detail_text) return;
 
 			const new_el = document.createElement("div");
-			new Details({
+			const comp = new FancyDetails({
 				target: new_el,
 				props: {
 					summary: summary_text,
@@ -93,8 +96,12 @@
 				}
 			});
 			detail.replaceWith(new_el);
+
+			return comp;
 		});
-	});
+	}
+
+	$: content_el && data.guide.new_html && make_details();
 </script>
 
 <MetaTags
@@ -219,7 +226,7 @@
 				{/each}
 			</div>
 		{/if}
-		<div class="prose text-lg max-w-full">
+		<div class="prose text-lg max-w-full" bind:this={content_el}>
 			{@html guide_page.new_html}
 		</div>
 		<div class="w-full flex justify-between my-4">
