@@ -22,6 +22,7 @@
 	export let label: string;
 	export let root: string;
 	export let show_label = true;
+	export let show_download_button = false;
 	export let sources:
 		| ["microphone"]
 		| ["upload"]
@@ -258,6 +259,7 @@
 		{i18n}
 		on:clear={clear}
 		on:edit={() => (mode = "edit")}
+		download={show_download_button ? value.url : null}
 		absolute={true}
 	/>
 

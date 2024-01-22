@@ -32,6 +32,21 @@
 />
 
 <Story
+	name="Audio Recorder with download button"
+	args={{
+		value: {
+			path: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+			url: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+			orig_name: "sample-0.mp3"
+		},
+		interactive: true,
+		show_download_button: true,
+		sources: ["microphone"],
+		label: "Audio Recorder"
+	}}
+/>
+
+<Story
 	name="Upload Audio"
 	args={{
 		value: null,

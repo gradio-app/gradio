@@ -178,6 +178,7 @@
 		<InteractiveAudio
 			{label}
 			{show_label}
+			{show_download_button}
 			value={_value}
 			on:change={({ detail }) => (value = detail)}
 			on:stream={({ detail }) => {
