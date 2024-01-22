@@ -539,6 +539,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.enable_queue = True
         self.max_threads = 40
         self.pending_streams = defaultdict(dict)
+        self.pending_diff_streams = defaultdict(dict)
         self.show_error = True
         self.head = head
         if css is not None and os.path.exists(css):
@@ -1488,6 +1489,34 @@ Received outputs:
                 data[i] = output_data
         return data
 
+    def handle_streaming_diffs(
+        self,
+        fn_index: int,
+        data: list,
+        session_hash: str | None,
+        run: int | None,
+    ) -> tuple[list, list[int]]:
+        if session_hash is None or run is None:
+            return data
+        if run not in self.pending_diff_streams[session_hash]:
+            self.pending_diff_streams[session_hash][run] = {}
+        last_diffs = self.pending_diff_streams[session_hash][run]
+
+        diff_ids = []
+        for i, output_id in enumerate(self.dependencies[fn_index]["outputs"]):
+            block = self.blocks[output_id]
+            if isinstance(block, components.StreamingDiff):
+                diff_ids.append(i)
+                first_chunk = output_id not in last_diffs
+                if first_chunk:
+                    last_diffs[output_id] = data[i]
+                else:
+                    prev_chunk = last_diffs[output_id]
+                    last_diffs[output_id] = data[i]
+                    data[i] = block._diff(prev_chunk, data[i])
+
+        return data, diff_ids
+
     async def process_api(
         self,
         fn_index: int,
@@ -1515,6 +1544,7 @@ Received outputs:
         """
         block_fn = self.fns[fn_index]
         batch = self.dependencies[fn_index]["batch"]
+        diff_ids = None
 
         if batch:
             max_batch_size = self.dependencies[fn_index]["max_batch_size"]
@@ -1570,11 +1600,18 @@ Received outputs:
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
+                run = id(old_iterator) if was_generating else id(iterator)
                 data = self.handle_streaming_outputs(
                     fn_index,
                     data,
                     session_hash=session_hash,
-                    run=id(old_iterator) if was_generating else id(iterator),
+                    run=run,
+                )
+                data, diff_ids = self.handle_streaming_diffs(
+                    fn_index,
+                    data,
+                    session_hash=session_hash,
+                    run=run,
                 )
 
         block_fn.total_runtime += result["duration"]
@@ -1583,6 +1620,7 @@ Received outputs:
             "data": data,
             "is_generating": is_generating,
             "iterator": iterator,
+            "diff_ids": diff_ids,
             "duration": result["duration"],
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }

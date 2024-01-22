@@ -6,6 +6,7 @@ from gradio.components.base import (
     FormComponent,
     StreamingInput,
     StreamingOutput,
+    StreamingDiff,
     _Keywords,
     component,
     get_component_instance,
@@ -110,6 +111,7 @@ __all__ = [
     "Video",
     "StreamingInput",
     "StreamingOutput",
+    "StreamingDiff",
     "ImageEditor",
     "ParamViewer",
 ]
