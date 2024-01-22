@@ -1,4 +1,5 @@
 ---
+"@gradio/paramviewer": minor
 "gradio": minor
 ---
 
