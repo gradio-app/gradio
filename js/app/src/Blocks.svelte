@@ -305,6 +305,43 @@
 		});
 	}
 
+	function throttle<T extends (...args: any[]) => any>(
+		func: T,
+		limit: number
+	): (...funcArgs: Parameters<T>) => void {
+		let lastFunc: ReturnType<typeof setTimeout>;
+		let lastRan: number;
+		let lastThis: any;
+		let lastArgs: IArguments | null;
+
+		return function (this: any, ...args: Parameters<T>) {
+			if (!lastRan) {
+				func.apply(this, args);
+				lastRan = Date.now();
+			} else {
+				clearTimeout(lastFunc);
+				lastThis = this;
+				lastArgs = arguments;
+
+				lastFunc = setTimeout(
+					() => {
+						if (Date.now() - lastRan >= limit) {
+							if (lastArgs) {
+								func.apply(lastThis, Array.prototype.slice.call(lastArgs));
+							}
+							lastRan = Date.now();
+						}
+					},
+					Math.max(limit - (Date.now() - lastRan), 0)
+				);
+			}
+		};
+	}
+
+	const refresh = throttle(() => {
+		rootNode = rootNode;
+	}, 50);
+
 	async function handle_update(
 		data: any,
 		fn_index: number,
@@ -317,7 +354,7 @@
 			output.props.value_is_output = true;
 		});
 
-		rootNode = rootNode;
+		refresh();
 		await tick();
 		data?.forEach((value: any, i: number) => {
 			const output = instance_map[outputs[i]];
@@ -340,7 +377,7 @@
 				output.props.value = value;
 			}
 		});
-		rootNode = rootNode;
+		refresh();
 	}
 
 	let submit_map: Map<number, ReturnType<typeof app.submit>> = new Map();
@@ -355,7 +392,7 @@
 			obj.props = {};
 		}
 		obj.props[prop] = val;
-		rootNode = rootNode;
+		refresh();
 	}
 	let handled_dependencies: number[][] = [];
 
