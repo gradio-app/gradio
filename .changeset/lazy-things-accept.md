@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:add docs command to build
+feat:generate docs when running `graido cc build`
