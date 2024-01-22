@@ -21,6 +21,7 @@
 		show_recording_waveform: true
 	};
 	export let handle_reset_value: () => void;
+	export let editable = true;
 
 	let micWaveform: WaveSurfer;
 	let recordingWaveform: WaveSurfer;
@@ -236,6 +237,7 @@
 			{playing}
 			{audio_duration}
 			{i18n}
+			{editable}
 			interactive={true}
 			{handle_trim_audio}
 			bind:trimDuration

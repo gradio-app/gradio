@@ -236,6 +236,7 @@
 			<AudioRecorder
 				bind:mode
 				{i18n}
+				{editable}
 				{dispatch_blob}
 				{waveform_settings}
 				{waveform_options}
