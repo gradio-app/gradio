@@ -4,7 +4,7 @@ In 4.15, we added a  new `gradio cc docs` command to the Gradio CLI to generate 
 
 ## How do I use it?
 
-The documentation will be generated when running `gradio cc build`. You can pass the `-no-generate-docs` argument to turn off this behaviour.
+The documentation will be generated when running `gradio cc build`. You can pass the `--no-generate-docs` argument to turn off this behaviour.
 
 There is also a standalone `docs` command that allows for greater customisation. If you are running this command manually it should be run _after_ the `version` in your `pyproject.toml` has been bumped but before building the component.
 
