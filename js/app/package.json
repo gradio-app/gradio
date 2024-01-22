@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/app",
-	"version": "1.20.0",
+	"version": "1.21.0",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -53,6 +53,7 @@
 		"@gradio/markdown": "workspace:^",
 		"@gradio/model3d": "workspace:^",
 		"@gradio/number": "workspace:^",
+		"@gradio/paramviewer": "workspace:^",
 		"@gradio/plot": "workspace:^",
 		"@gradio/radio": "workspace:^",
 		"@gradio/row": "workspace:^",
