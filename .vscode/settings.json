@@ -19,5 +19,12 @@
 	"eslint.options": {
 		"overrideConfigFile": "./.config/eslint.config.js"
 	},
-	"typescript.tsdk": "node_modules/typescript/lib"
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"grammarly.selectors": [
+		{
+			"language": "markdown",
+			"scheme": "file",
+			"pattern": "guides/05_custom-components/09_documenting-custom-components.md"
+		}
+	]
 }
