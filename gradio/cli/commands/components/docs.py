@@ -83,20 +83,20 @@ def _docs(
         if not isinstance(name, str):
             raise ValueError("Name not found in pyproject.toml")
 
-    run_command(
-        live=live,
-        name=name,
-        suppress_demo_check=suppress_demo_check,
-        pyproject_toml=data,
-        generate_space=generate_space,
-        generate_readme=generate_readme,
-        type_mode="simple",
-        _demo_path=_demo_path,
-        _demo_dir=_demo_dir,
-        _readme_path=_readme_path,
-        space_url=space_url,
-        _component_dir=_component_dir,
-    )
+        run_command(
+            live=live,
+            name=name,
+            suppress_demo_check=suppress_demo_check,
+            pyproject_toml=data,
+            generate_space=generate_space,
+            generate_readme=generate_readme,
+            type_mode="simple",
+            _demo_path=_demo_path,
+            _demo_dir=_demo_dir,
+            _readme_path=_readme_path,
+            space_url=space_url,
+            _component_dir=_component_dir,
+        )
 
 
 def run_command(
@@ -179,7 +179,7 @@ def run_command(
                 )
     if simple:
         short_readme_path = Path(_readme_path).relative_to(_component_dir)
-        short_demo_path = Path(_demo_path).relative_to(_component_dir)
+        short_demo_path = Path(_demo_dir / "space.py").relative_to(_component_dir)
         live.update(
             f":white_check_mark: Documention generated in [orange3]{short_demo_path}[/] and [orange3]{short_readme_path}[/]. Pass --no-generate-docs to disable auto documentation."
         )
