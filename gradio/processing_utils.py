@@ -343,7 +343,7 @@ def convert_to_16_bit_wav(data):
         data = data.astype(np.int16)
     elif data.dtype == np.int32:
         warnings.warn(warning.format(data.dtype))
-        data = data / 65538
+        data = data / 65536
         data = data.astype(np.int16)
     elif data.dtype == np.int16:
         pass
@@ -357,7 +357,7 @@ def convert_to_16_bit_wav(data):
         data = data.astype(np.int16)
     elif data.dtype == np.int8:
         warnings.warn(warning.format(data.dtype))
-        data = data * 257 - 32768
+        data = data * 256
         data = data.astype(np.int16)    
     else:
         raise ValueError(
