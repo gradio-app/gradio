@@ -114,12 +114,6 @@ def run_command(
     _component_dir: Path,
     simple: bool = False,
 ):
-    if simple:
-        live.update(
-            f":page_facing_up: Generating documentation for [orange3]{_component_dir.name}[/]",
-            add_sleep=0.2,
-        )
-
     with open(_demo_path) as f:
         demo = f.read()
 
@@ -187,10 +181,10 @@ def run_command(
         short_readme_path = Path(_readme_path).relative_to(_component_dir)
         short_demo_path = Path(_demo_path).relative_to(_component_dir)
         live.update(
-            f":white_check_mark: Documention generated in [orange3]{short_demo_path}[/] and [orange3]{short_readme_path}[/]."
+            f":white_check_mark: Documention generated in [orange3]{short_demo_path}[/] and [orange3]{short_readme_path}[/]. Pass `--no-generate-docs` to disable auto documentation."
         )
 
     if type_mode == "simple":
-        print(
+        live.update(
             "\n:orange_circle: [red]The docs were generated in simple mode. Updating python to a version greater than 3.9 will result in richer documentation.[/]"
         )
