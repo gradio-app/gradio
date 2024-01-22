@@ -129,11 +129,16 @@
 	async function loadFilesFromDrop(e: DragEvent): Promise<void> {
 		dragging = false;
 		if (!e.dataTransfer?.files) return;
-
-		const files_to_load = Array.from(e.dataTransfer.files).filter((f) => {
-			const file_extension =
-				f.type !== "" ? f.type : "." + f.name.split(".").pop();
-			if (file_extension && is_valid_mimetype(filetype, file_extension)) {
+		const files_to_load = Array.from(e.dataTransfer.files).filter((file) => {
+			const file_extension = "." + file.name.split(".").pop();
+			if (file.type && is_valid_mimetype(filetype, file.type)) {
+				return true;
+			}
+			if (
+				file_extension && Array.isArray(filetype)
+					? filetype.includes(file_extension)
+					: file_extension === filetype
+			) {
 				return true;
 			}
 			dispatch("error", `Invalid file type only ${filetype} allowed.`);
@@ -182,6 +187,7 @@
 		<slot />
 		<input
 			aria-label="file upload"
+			data-testid="file-upload"
 			type="file"
 			bind:this={hidden_upload}
 			on:change={load_files_from_upload}

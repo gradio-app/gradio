@@ -84,10 +84,6 @@ class Markdown(Component):
         unindented_y = inspect.cleandoc(value)
         return unindented_y
 
-    def as_example(self, input_data: str | None) -> str:
-        postprocessed = self.postprocess(input_data)
-        return postprocessed if postprocessed else ""
-
     def preprocess(self, payload: str | None) -> str | None:
         return payload
 

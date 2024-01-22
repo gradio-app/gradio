@@ -181,13 +181,17 @@
 	});
 </script>
 
-<label class:container>
+<div class:container>
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 
 	<div class="wrap">
 		<div class="wrap-inner" class:show_options>
 			<div class="secondary-wrap">
 				<input
+					role="listbox"
+					aria-controls="dropdown-options"
+					aria-expanded={show_options}
+					aria-label={label}
 					class="border-none"
 					class:subdued={!choices_names.includes(input_text) &&
 						!allow_custom_value}
@@ -217,7 +221,7 @@
 			on:change={handle_option_selected}
 		/>
 	</div>
-</label>
+</div>
 
 <style>
 	.icon-wrap {
@@ -225,11 +229,7 @@
 		margin-right: var(--size-2);
 		width: var(--size-5);
 	}
-	label:not(.container),
-	label:not(.container) .wrap,
-	label:not(.container) .wrap-inner,
-	label:not(.container) .secondary-wrap,
-	label:not(.container) input {
+	.container {
 		height: 100%;
 	}
 	.container .wrap {
@@ -255,6 +255,7 @@
 		align-items: center;
 		gap: var(--checkbox-label-gap);
 		padding: var(--checkbox-label-padding);
+		height: 100%;
 	}
 	.secondary-wrap {
 		display: flex;
@@ -262,6 +263,7 @@
 		align-items: center;
 		border: none;
 		min-width: min-content;
+		height: 100%;
 	}
 
 	input {
@@ -272,6 +274,7 @@
 		width: var(--size-full);
 		color: var(--body-text-color);
 		font-size: var(--input-text-size);
+		height: 100%;
 	}
 
 	input:disabled {
