@@ -47,6 +47,20 @@
 />
 
 <Story
+	name="output with hidden download button"
+	args={{
+		value: {
+			path: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+			url: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+			orig_name: "sample-0.mp3"
+		},
+		interactive: false,
+		show_download_button: false,
+		label: "Audio Recorder"
+	}}
+/>
+
+<Story
 	name="Upload Audio"
 	args={{
 		value: null,
@@ -72,7 +86,7 @@
 />
 
 <Story
-	name="with disabled editing"
+	name="upload with disabled editing"
 	args={{
 		value: {
 			path: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
