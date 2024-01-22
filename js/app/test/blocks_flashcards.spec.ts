@@ -1,9 +1,11 @@
-import { test, expect} from "@gradio/tootils";
+import { test, expect } from "@gradio/tootils";
 
 test("shows the results tab when results > 0", async ({ page }) => {
-	await page.getByRole('button', { name: 'Start Practice' }).click();
-	await expect(page.getByText('Please enter word prompts into the table.')).toBeAttached();
-	await page.getByLabel('Close').click();
+	await page.getByRole("button", { name: "Start Practice" }).click();
+	await expect(
+		page.getByText("Please enter word prompts into the table.")
+	).toBeAttached();
+	await page.getByLabel("Close").click();
 
 	await page
 		.getByRole("button", { name: "front back" })
@@ -49,6 +51,4 @@ test("shows the results tab when results > 0", async ({ page }) => {
 	// await page.getByRole("button", { name: "Flip Card" }).click();
 	// await page.getByRole("button", { name: "Correct", exact: true }).click();
 	// await page.getByRole("tab", { name: "Results" }).click();
-
-
 });
