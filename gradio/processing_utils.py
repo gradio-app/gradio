@@ -358,7 +358,7 @@ def convert_to_16_bit_wav(data):
     elif data.dtype == np.int8:
         warnings.warn(warning.format(data.dtype))
         data = data * 256
-        data = data.astype(np.int16)    
+        data = data.astype(np.int16)
     else:
         raise ValueError(
             "Audio data cannot be converted automatically from "
