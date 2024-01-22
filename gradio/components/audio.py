@@ -90,7 +90,7 @@ class Audio(
         render: bool = True,
         format: Literal["wav", "mp3"] = "wav",
         autoplay: bool = False,
-        show_download_button=True,
+        show_download_button: bool | None = None,
         show_share_button: bool | None = None,
         editable: bool = True,
         min_length: int | None = None,
