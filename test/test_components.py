@@ -860,7 +860,7 @@ class TestAudio:
         assert audio_output.get_config() == {
             "autoplay": False,
             "name": "audio",
-            "show_download_button": False,
+            "show_download_button": None,
             "show_share_button": False,
             "streaming": False,
             "show_label": True,
