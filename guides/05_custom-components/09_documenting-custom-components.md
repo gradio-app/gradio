@@ -56,6 +56,7 @@ The documentation generator uses existing standards to extract the necessary inf
 If you already use type hints and docstrings in your component source code, you don't need to do much to benefit from this feature, but there are some details that you should be aware of.
 
 ### Python version
+
 To get the best documentation experience, you need to use Python `3.10` or greater when generating documentation. This is because some introspection features used to generate the documentation were only added in `3.10`.
 
 ### Type hints
@@ -90,11 +91,9 @@ Here, you only need to type the parameters. If you have cloned a template with `
 ```py
 def __init__(
   self,
-  value: str | Path | tuple[int, np.ndarray] | Callable | None = None,
+  value: str | None = None,
   *,
-  sources: list[Literal["upload", "microphone"]] | None = None,
-  type: Literal["numpy", "filepath"] = "numpy",
-  label: str | None = None,
+  sources: Literal["upload", "microphone"] = "upload,
   every: float | None = None,
   ...
 ):
@@ -115,13 +114,13 @@ In this case, we specifically care about:
 ```py
 def preprocess(
   self, payload: FileData | None # input is optional
-) -> tuple[int, np.ndarray] | str | None:
+) -> tuple[int, str] | str | None:
 
 # user function input  is the preprocess return ▲
 # user function output is the postprocess input ▼
 
 def postprocess(
-  self, value: tuple[int, np.ndarray] | str | Path | bytes | None
+  self, value: tuple[int, str] | None
 ) -> FileData | bytes | None: # return is optional
   ...
 ```
