@@ -29,6 +29,9 @@ def _build(
     bump_version: Annotated[
         bool, typer.Option(help="Whether to bump the version number automatically.")
     ] = False,
+    generate_docs: Annotated[
+        bool, typer.Option(help="Whether to generate the documentation as well.")
+    ] = True,
 ):
     name = Path(path).resolve()
     if not (name / "pyproject.toml").exists():
@@ -71,26 +74,27 @@ def _build(
                 "Set [bold][magenta]--bump-version[/][/] to automatically bump the version number."
             )
 
-        _demo_dir = Path("demo").resolve()
-        _demo_name = "app.py"
-        _demo_path = _demo_dir / _demo_name
-        _readme_path = name / "README.md"
+        if generate_docs:
+            _demo_dir = Path("demo").resolve()
+            _demo_name = "app.py"
+            _demo_path = _demo_dir / _demo_name
+            _readme_path = name / "README.md"
 
-        run_command(
-            live=live,
-            name=package_name,
-            suppress_demo_check=False,
-            pyproject_toml=pyproject_toml,
-            generate_space=True,
-            generate_readme=True,
-            type_mode="simple",
-            _demo_path=_demo_path,
-            _demo_dir=_demo_dir,
-            _readme_path=_readme_path,
-            space_url=None,
-            _component_dir=name,
-            simple=True,
-        )
+            run_command(
+                live=live,
+                name=package_name,
+                suppress_demo_check=False,
+                pyproject_toml=pyproject_toml,
+                generate_space=True,
+                generate_readme=True,
+                type_mode="simple",
+                _demo_path=_demo_path,
+                _demo_dir=_demo_dir,
+                _readme_path=_readme_path,
+                space_url=None,
+                _component_dir=name,
+                simple=True,
+            )
 
         if build_frontend:
             live.update(":art: Building frontend")
