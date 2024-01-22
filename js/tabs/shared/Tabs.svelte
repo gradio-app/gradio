@@ -68,10 +68,19 @@
 	});
 
 	function change_tab(id: object | string | number): void {
-		selected = id;
-		$selected_tab = id;
-		$selected_tab_index = tabs.findIndex((t) => t.id === id);
-		dispatch("change");
+		const tab_to_activate = tabs.find((t) => t.id === id);
+		if (
+			tab_to_activate &&
+			tab_to_activate.interactive &&
+			tab_to_activate.visible
+		) {
+			selected = id;
+			$selected_tab = id;
+			$selected_tab_index = tabs.findIndex((t) => t.id === id);
+			dispatch("change");
+		} else {
+			console.warn("Attempted to select a non-interactive or hidden tab.");
+		}
 	}
 
 	$: selected !== null && change_tab(selected);
