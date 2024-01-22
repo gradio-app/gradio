@@ -37,6 +37,7 @@ from gradio.components.logout_button import LogoutButton
 from gradio.components.markdown import Markdown
 from gradio.components.model3d import Model3D
 from gradio.components.number import Number
+from gradio.components.paramviewer import ParamViewer
 from gradio.components.plot import Plot
 from gradio.components.radio import Radio
 from gradio.components.scatter_plot import ScatterPlot
@@ -110,4 +111,5 @@ __all__ = [
     "StreamingInput",
     "StreamingOutput",
     "ImageEditor",
+    "ParamViewer",
 ]
