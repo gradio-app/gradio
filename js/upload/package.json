@@ -11,7 +11,8 @@
 		"@gradio/icons": "workspace:^",
 		"@gradio/client": "workspace:^",
 		"@gradio/upload": "workspace:^",
-		"@gradio/utils": "workspace:^"
+		"@gradio/utils": "workspace:^",
+		"@gradio/wasm": "workspace:^"
 	},
 	"main_changeset": true,
 	"exports": {
