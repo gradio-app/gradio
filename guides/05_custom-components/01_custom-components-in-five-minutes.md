@@ -38,7 +38,7 @@ gradio cc create MyComponent --template SimpleTextbox
 Instead of `MyComponent`, give your component any name.
 
 Instead of `SimpleTextbox`, you can use any Gradio component as a template. `SimpleTextbox` is actually a special component that a stripped-down version of the `Textbox` component that makes it particularly useful when creating your first custom component.
-Some other components that are good if you are starting out: `SimpleDropdown` or `File`.
+Some other components that are good if you are starting out: `SimpleDropdown`, `SimpleImage`, or `File`.
 
 Tip: Run `gradio cc show` to get a list of available component templates.
 
