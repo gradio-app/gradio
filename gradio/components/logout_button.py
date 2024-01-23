@@ -15,6 +15,9 @@ set_documentation_group("component")
 class LogoutButton(Button):
     """
     Button to log out a user from a Space.
+
+    Note: `LogoutButton` component is deprecated. Please use `gr.LoginButton` instead
+          which handles both the login and logout processes.
     """
 
     is_template = True
