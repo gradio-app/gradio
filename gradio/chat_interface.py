@@ -68,6 +68,8 @@ class ChatInterface(Blocks):
         description: str | None = None,
         theme: Theme | str | None = None,
         css: str | None = None,
+        js: str | None = None,
+        head: str | None = None,
         analytics_enabled: bool | None = None,
         submit_btn: str | None | Button = "Submit",
         stop_btn: str | None | Button = "Stop",
@@ -91,6 +93,8 @@ class ChatInterface(Blocks):
             description: a description for the interface; if provided, appears above the chatbot and beneath the title in regular font. Accepts Markdown and HTML content.
             theme: Theme to use, loaded from gradio.themes.
             css: custom css or path to custom css file to use with interface.
+            js: Custom js or path to custom js file to run when demo is first loaded.
+            head: Custom html to insert into the head of the page. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             submit_btn: Text to display on the submit button. If None, no button will be displayed. If a Button object, that button will be used.
             stop_btn: Text to display on the stop button, which replaces the submit_btn when the submit_btn or retry_btn is clicked and response is streaming. Clicking on the stop_btn will halt the chatbot response. If set to None, stop button functionality does not appear in the chatbot. If a Button object, that button will be used as the stop button.
@@ -106,6 +110,8 @@ class ChatInterface(Blocks):
             css=css,
             title=title or "Gradio",
             theme=theme,
+            js=js,
+            head=head,
         )
         self.concurrency_limit = concurrency_limit
         self.fn = fn
