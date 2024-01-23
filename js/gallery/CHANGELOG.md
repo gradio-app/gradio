@@ -1,5 +1,11 @@
 # @gradio/gallery
 
+## 0.5.0
+
+### Features
+
+- [#7024](https://github.com/gradio-app/gradio/pull/7024) [`f2d69fc`](https://github.com/gradio-app/gradio/commit/f2d69fc7d0c1c3457112e702b53e38a0255fc1b7) - Fix gallery thumbnail design regression.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.4.17
 
 ### Fixes

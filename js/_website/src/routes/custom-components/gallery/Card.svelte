@@ -19,7 +19,7 @@
 	});
 </script>
 
-<div class="card space-y-2 bg-gradient-to-r {data.background_color}">
+<div class="card space-y-2 bg-gradient-to-tr {data.background_color} shadow-xl">
 	<h1 class="text-xl font-black">{data.description}</h1>
 	<div class="flex flex-row">
 		<div class="ml-2">
@@ -104,7 +104,6 @@
 
 <style>
 	.card {
-		border: 1px solid #ccc;
 		border-radius: 8px;
 		padding: 16px;
 		margin: 16px;

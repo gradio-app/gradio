@@ -73,7 +73,7 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
 
                 def go(*args):
                     time.sleep(3)
-                    return "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpgjpg"
+                    return "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg"
 
                 go_btn.click(go, [radio, drop, drop_2, check, name], img, api_name="go")
 
