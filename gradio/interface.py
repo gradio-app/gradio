@@ -308,11 +308,7 @@ class Interface(Blocks):
         if isinstance(submit_btn, Button):
             self.submit_btn = submit_btn.unrender()
         elif isinstance(submit_btn, str):
-            self.submit_btn = Button(
-                submit_btn,
-                variant="primary",
-                render=False
-            )
+            self.submit_btn = Button(submit_btn, variant="primary", render=False)
         else:
             raise ValueError(
                 f"The submit_btn parameter must be a gr.Button or string, not {type(submit_btn)}"
@@ -322,10 +318,7 @@ class Interface(Blocks):
             self.stop_btn = stop_btn.unrender()
         elif isinstance(stop_btn, str):
             self.stop_btn = Button(
-                stop_btn,
-                variant="stop",
-                visible=False,
-                render=False
+                stop_btn, variant="stop", visible=False, render=False
             )
         else:
             raise ValueError(
@@ -333,20 +326,17 @@ class Interface(Blocks):
             )
 
         if isinstance(clear_btn, Button):
-            self.clear_btn_params = clear_btn.recover_kwargs(
-                    clear_btn.get_config()
-                )
+            self.clear_btn_params = clear_btn.recover_kwargs(clear_btn.get_config())
         elif isinstance(clear_btn, str):
             self.clear_btn_params = {
                 "value": clear_btn,
                 "variant": "secondary",
-                "render": False
+                "render": False,
             }
         else:
             raise ValueError(
                 f"The clear_btn parameter must be a gr.Button or string, not {type(clear_btn)}"
             )
-
 
         self.simple_server = None
 
