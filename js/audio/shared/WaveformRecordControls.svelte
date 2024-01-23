@@ -18,29 +18,45 @@
 	export let show_recording_waveform: boolean | undefined;
 	export let timing = false;
 
+	let device_access_denied = false;
+
 	const dispatch = createEventDispatcher<{
 		error: string;
 	}>();
 
-	$: try {
-		let tempDevices: MediaDeviceInfo[] = [];
+	$: micDevices, update_devices();
+
+	const update_devices = (): void => {
+		let temp_devices: MediaDeviceInfo[] = [];
 		RecordPlugin.getAvailableAudioDevices().then(
 			(devices: MediaDeviceInfo[]) => {
 				micDevices = devices;
 				devices.forEach((device) => {
 					if (device.deviceId) {
-						tempDevices.push(device);
+						temp_devices.push(device);
 					}
 				});
-				micDevices = tempDevices;
+				micDevices = temp_devices;
 			}
 		);
+	};
+
+	$: try {
+		update_devices();
 	} catch (err) {
 		if (err instanceof DOMException && err.name == "NotAllowedError") {
 			dispatch("error", i18n("audio.allow_recording_access"));
 		}
 		throw err;
 	}
+
+	let permissionName = "microphone" as PermissionName;
+
+	navigator.permissions.query({ name: permissionName }).then(function (result) {
+		if (result.state == "denied") {
+			device_access_denied = true;
+		}
+	});
 
 	$: record.on("record-start", () => {
 		record.startMic();
@@ -134,7 +150,9 @@
 		aria-label="Select input device"
 		disabled={micDevices.length === 0}
 	>
-		{#if micDevices.length === 0}
+		{#if device_access_denied}
+			<option value="">{i18n("audio.allow_recording_access")}</option>
+		{:else if micDevices.length === 0 || !micDevices}
 			<option value="">{i18n("audio.no_microphone")}</option>
 		{:else}
 			{#each micDevices as micDevice}
