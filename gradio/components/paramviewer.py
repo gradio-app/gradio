@@ -23,7 +23,7 @@ class ParamViewer(Component):
     Displays an interactive table of parameters and their descriptions and default values with syntax highlighting. For each parameter,
     the user should provide a type (e.g. a `str`), a human-readable description, and a default value. Internally, this component
     is used to display the parameters of custom components in the Custom Component Gallery (https://www.gradio.app/custom-components/gallery).
-    
+
     Preprocessing: passes value as a `dict[str, dict]`. The key in the outer dictionary is the parameter name, while the inner dictionary has keys "type", "description", and (optionally) "default" for each parameter.
     Postprocessing: expects a `dict[str, dict]` with the same format as the preprocessed value.
     Examples-format: a `dict[str, dict]` with the same format as the preprocessed value.
@@ -66,7 +66,13 @@ class ParamViewer(Component):
         return value
 
     def example_inputs(self):
-        return {"array": {"type": "numpy", "description": "any valid json", "default": "None"}}
+        return {
+            "array": {
+                "type": "numpy",
+                "description": "any valid json",
+                "default": "None",
+            }
+        }
 
     def api_info(self):
         return {"type": {}, "description": "any valid json"}
