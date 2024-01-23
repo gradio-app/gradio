@@ -154,6 +154,9 @@ class Interface(Blocks):
             head: Custom html to insert into the head of the page. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
             additional_inputs: A single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. These components will be rendered in an accordion below the main input components. By default, no additional input components will be displayed.
             additional_inputs_accordion: If a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
+            submit_btn: The button to use for submitting inputs. Defaults to a `gr.Button("Submit", variant="primary")`. This parameter does not apply if the Interface is output-only, in which case the submit button always displays "Generate". Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization).
+            stop_btn: The button to use for stopping the interface. Defaults to a `gr.Button("Stop", variant="stop", visible=False)`. Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization).
+            clear_btn: The button to use for clearing the inputs. Defaults to a `gr.Button("Clear", variant="secondary")`. Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization).
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -330,13 +333,15 @@ class Interface(Blocks):
             )
 
         if isinstance(clear_btn, Button):
-            self.clear_btn = clear_btn.unrender()
+            self.clear_btn_params = clear_btn.recover_kwargs(
+                    clear_btn.get_config()
+                )
         elif isinstance(clear_btn, str):
-            self.clear_btn = Button(
-                clear_btn,
-                variant="secondary",
-                render=False
-            )
+            self.clear_btn_params = {
+                "value": clear_btn,
+                "variant": "secondary",
+                "render": False
+            }
         else:
             raise ValueError(
                 f"The clear_btn parameter must be a gr.Button or string, not {type(clear_btn)}"
@@ -538,7 +543,7 @@ class Interface(Blocks):
                     InterfaceTypes.STANDARD,
                     InterfaceTypes.INPUT_ONLY,
                 ]:
-                    clear_btn = ClearButton()
+                    clear_btn = ClearButton(**self.clear_btn_params)
                     if not self.live:
                         submit_btn = self.submit_btn.render()
                         # Stopping jobs only works if the queue is enabled
@@ -551,7 +556,7 @@ class Interface(Blocks):
                         ) or inspect.isasyncgenfunction(self.fn):
                             stop_btn = self.stop_btn.render()
                 elif self.interface_type == InterfaceTypes.UNIFIED:
-                    clear_btn = ClearButton()
+                    clear_btn = ClearButton(**self.clear_btn_params)
                     submit_btn = self.submit_btn.render()
                     if (
                         inspect.isgeneratorfunction(self.fn)
@@ -594,7 +599,7 @@ class Interface(Blocks):
                     component.render()
             with Row():
                 if self.interface_type == InterfaceTypes.OUTPUT_ONLY:
-                    clear_btn = ClearButton()
+                    clear_btn = ClearButton(**self.clear_btn_params)
                     submit_btn = Button("Generate", variant="primary")
                     if (
                         inspect.isgeneratorfunction(self.fn)
@@ -605,7 +610,7 @@ class Interface(Blocks):
                         # is created. We use whether a generator function is provided
                         # as a proxy of whether the queue will be enabled.
                         # Using a generator function without the queue will raise an error.
-                        stop_btn = Button("Stop", variant="stop", visible=False)
+                        stop_btn = self.stop_btn.render()
                 if self.allow_flagging == "manual":
                     flag_btns = self.render_flag_btns()
                 elif self.allow_flagging == "auto":
