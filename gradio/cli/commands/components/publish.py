@@ -125,9 +125,17 @@ def _publish(
     if not dist_dir.is_dir():
         raise ValueError(f"{dist_dir} is not a directory")
     distribution_files = [
-        p.resolve() for p in Path(dist_dir).glob("*") if p.suffix in {".whl", ".gz"}
+        (p.resolve(), semantic_version.Version(str(p).split("-")[1]))
+        for p in Path(dist_dir).glob("*")
+        if p.suffix
+        in {
+            ".whl",
+        }
     ]
-    wheel_file = next((p for p in distribution_files if p.suffix == ".whl"), None)
+    wheel_file = max(
+        (p for p in distribution_files if p[0].suffix == ".whl"), key=lambda s: s[1]
+    )[0]
+    breakpoint()
     if not wheel_file:
         raise ValueError(
             "A wheel file was not found in the distribution directory. "
