@@ -135,7 +135,6 @@ def _publish(
     wheel_file = max(
         (p for p in distribution_files if p[0].suffix == ".whl"), key=lambda s: s[1]
     )[0]
-    breakpoint()
     if not wheel_file:
         raise ValueError(
             "A wheel file was not found in the distribution directory. "
