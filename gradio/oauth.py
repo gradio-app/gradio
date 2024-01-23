@@ -163,10 +163,8 @@ def _generate_redirect_uri(request: fastapi.Request) -> str:
 def _redirect_to_target(
     request: fastapi.Request, default_target: str = "/"
 ) -> RedirectResponse:
-    target = request.query_params.get("_target_url")
-    if target is not None:
-        return RedirectResponse(target)
-    return RedirectResponse(default_target)
+    target = request.query_params.get("_target_url", default_target)
+    return RedirectResponse(target)
 
 
 @dataclass
