@@ -73,7 +73,23 @@
 		>
 		</gradio-app>
 		<script>
+			const prefersDarkMode =
+				window.matchMedia &&
+				window.matchMedia("(prefers-color-scheme: dark)").matches;
+			const bodyElement = document.body;
 			const ce = document.getElementsByTagName("gradio-app");
+
+			const updateStylesForMode = () => {
+				if (prefersDarkMode) {
+					bodyElement.style.background = "#374151";
+					bodyElement.style.color = "white";
+				} else {
+					bodyElement.style.background = "white";
+					bodyElement.style.color = "black";
+				}
+			};
+			updateStylesForMode();
+
 			if (ce[0]) {
 				ce[0].addEventListener("domchange", () => {
 					document.body.style.padding = "0";
