@@ -143,8 +143,8 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
 
 
 def _generate_redirect_uri(request: fastapi.Request) -> str:
-    if "_target" in request.query_params:
-        # if `_target` already in query params => respect it
+    if "_target_url" in request.query_params:
+        # if `_target_url` already in query params => respect it
         target = request.query_params["_target_url"]
     else:
         # otherwise => keep query params
