@@ -24,3 +24,4 @@ uvicorn>=0.14.0
 typer[all]>=0.9,<1.0
 tomlkit==0.12.0
 ruff >= 0.1.7
+polars

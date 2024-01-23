@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, List, Literal, Optional
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import semantic_version
 from gradio_client.documentation import document, set_documentation_group
 from pandas.io.formats.style import Styler
@@ -29,9 +30,9 @@ set_documentation_group("component")
 class Dataframe(Component):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
-    Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, or {List[List]} depending on `type`
-    Postprocessing: expects a {pandas.DataFrame}, {pandas.Styler}, {numpy.array}, {List[List]}, {List}, a {Dict} with keys `data` (and optionally `headers`), or {str} path to a csv, which is rendered in the spreadsheet.
-    Examples-format: a {str} filepath to a csv with data, a pandas dataframe, or a list of lists (excluding headers) where each sublist is a row of data.
+    Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {polars.DataFrame}, or {List[List]} depending on `type`
+    Postprocessing: expects a {pandas.DataFrame}, {pandas.Styler}, {numpy.array}, {polars.DataFrame}, {List[List]}, {List}, a {Dict} with keys `data` (and optionally `headers`), or {str} path to a csv, which is rendered in the spreadsheet.
+    Examples-format: a {str} filepath to a csv with data, a pandas dataframe, a polars dataframe, or a list of lists (excluding headers) where each sublist is a row of data.
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
@@ -44,6 +45,7 @@ class Dataframe(Component):
         value: pd.DataFrame
         | Styler
         | np.ndarray
+        | pl.DataFrame
         | list
         | list[list]
         | dict
@@ -55,7 +57,7 @@ class Dataframe(Component):
         row_count: int | tuple[int, str] = (1, "dynamic"),
         col_count: int | tuple[int, str] | None = None,
         datatype: str | list[str] = "str",
-        type: Literal["pandas", "numpy", "array"] = "pandas",
+        type: Literal["pandas", "numpy", "array", "polars"] = "pandas",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
         show_label: bool | None = None,
@@ -79,7 +81,7 @@ class Dataframe(Component):
             row_count: Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
             col_count: Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
             datatype: Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", "date", and "markdown".
-            type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python list of lists.
+            type: Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, "polars" for polars dataframe, or "array" for a Python list of lists.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html). Only applies to columns whose datatype is "markdown".
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
@@ -113,7 +115,7 @@ class Dataframe(Component):
         self.datatype = (
             datatype if isinstance(datatype, list) else [datatype] * self.col_count[0]
         )
-        valid_types = ["pandas", "numpy", "array"]
+        valid_types = ["pandas", "numpy", "array", "polars"]
         if type not in valid_types:
             raise ValueError(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
@@ -160,12 +162,17 @@ class Dataframe(Component):
             value=value,
         )
 
-    def preprocess(self, payload: DataframeData) -> pd.DataFrame | np.ndarray | list:
+    def preprocess(self, payload: DataframeData) -> pd.DataFrame | np.ndarray | pl.DataFrame | list:
         if self.type == "pandas":
             if payload.headers is not None:
                 return pd.DataFrame(payload.data, columns=payload.headers)
             else:
                 return pd.DataFrame(payload.data)
+        if self.type == "polars":
+            if payload.headers is not None:
+                return pl.DataFrame(payload.data, schema=payload.headers)
+            else:
+                return pl.DataFrame(payload.data)
         if self.type == "numpy":
             return np.array(payload.data)
         elif self.type == "array":
@@ -174,7 +181,7 @@ class Dataframe(Component):
             raise ValueError(
                 "Unknown type: "
                 + str(self.type)
-                + ". Please choose from: 'pandas', 'numpy', 'array'."
+                + ". Please choose from: 'pandas', 'numpy', 'array', 'polars'."
             )
 
     def postprocess(
@@ -182,6 +189,7 @@ class Dataframe(Component):
         value: pd.DataFrame
         | Styler
         | np.ndarray
+        | pl.DataFrame
         | list
         | list[list]
         | dict
@@ -224,6 +232,12 @@ class Dataframe(Component):
                 headers=list(df.columns),
                 data=df.to_dict(orient="split")["data"],  # type: ignore
             )
+        elif isinstance(value, (str, pl.DataFrame)):
+            df = pl.read_csv(value) if isinstance(value, str) else value  # type: ignore
+            df_dict = df.to_dict()
+            headers = list(df_dict.keys())
+            data = list(zip(*df_dict.values()))
+            return DataframeData(headers=headers, data=data)
         elif isinstance(value, (np.ndarray, list)):
             if len(value) == 0:
                 return self.postprocess([[]])
@@ -296,6 +310,7 @@ class Dataframe(Component):
         value: pd.DataFrame
         | Styler
         | np.ndarray
+        | pl.DataFrame
         | list
         | list[list]
         | dict
