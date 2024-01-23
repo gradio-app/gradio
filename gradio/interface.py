@@ -119,6 +119,10 @@ class Interface(Blocks):
         head: str | None = None,
         additional_inputs: str | Component | list[str | Component] | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
+        *,
+        submit_btn: str | Button = "Submit",
+        stop_btn: str | Button = "Stop",
+        clear_btn: str | Button = "Clear",
         **kwargs,
     ):
         """
@@ -297,6 +301,47 @@ class Interface(Blocks):
 
         self.examples = examples
         self.examples_per_page = examples_per_page
+
+        if isinstance(submit_btn, Button):
+            self.submit_btn = submit_btn.unrender()
+        elif isinstance(submit_btn, str):
+            self.submit_btn = Button(
+                submit_btn,
+                variant="primary",
+                render=False
+            )
+        else:
+            raise ValueError(
+                f"The submit_btn parameter must be a gr.Button or string, not {type(submit_btn)}"
+            )
+
+        if isinstance(stop_btn, Button):
+            self.stop_btn = stop_btn.unrender()
+        elif isinstance(stop_btn, str):
+            self.stop_btn = Button(
+                stop_btn,
+                variant="stop",
+                visible=False,
+                render=False
+            )
+        else:
+            raise ValueError(
+                f"The stop_btn parameter must be a gr.Button or string, not {type(stop_btn)}"
+            )
+
+        if isinstance(clear_btn, Button):
+            self.clear_btn = clear_btn.unrender()
+        elif isinstance(clear_btn, str):
+            self.clear_btn = Button(
+                clear_btn,
+                variant="secondary",
+                render=False
+            )
+        else:
+            raise ValueError(
+                f"The clear_btn parameter must be a gr.Button or string, not {type(clear_btn)}"
+            )
+
 
         self.simple_server = None
 
@@ -495,7 +540,7 @@ class Interface(Blocks):
                 ]:
                     clear_btn = ClearButton()
                     if not self.live:
-                        submit_btn = Button("Submit", variant="primary")
+                        submit_btn = self.submit_btn.render()
                         # Stopping jobs only works if the queue is enabled
                         # We don't know if the queue is enabled when the interface
                         # is created. We use whether a generator function is provided
@@ -504,15 +549,15 @@ class Interface(Blocks):
                         if inspect.isgeneratorfunction(
                             self.fn
                         ) or inspect.isasyncgenfunction(self.fn):
-                            stop_btn = Button("Stop", variant="stop", visible=False)
+                            stop_btn = self.stop_btn.render()
                 elif self.interface_type == InterfaceTypes.UNIFIED:
                     clear_btn = ClearButton()
-                    submit_btn = Button("Submit", variant="primary")
+                    submit_btn = self.submit_btn.render()
                     if (
                         inspect.isgeneratorfunction(self.fn)
                         or inspect.isasyncgenfunction(self.fn)
                     ) and not self.live:
-                        stop_btn = Button("Stop", variant="stop")
+                        stop_btn = self.stop_btn.render()
                     if self.allow_flagging == "manual":
                         flag_btns = self.render_flag_btns()
                     elif self.allow_flagging == "auto":

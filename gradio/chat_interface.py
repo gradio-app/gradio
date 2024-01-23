@@ -189,7 +189,7 @@ class ChatInterface(Blocks):
                                 scale=7,
                                 autofocus=autofocus,
                             )
-                        if submit_btn:
+                        if submit_btn is not None:
                             if isinstance(submit_btn, Button):
                                 submit_btn.render()
                             elif isinstance(submit_btn, str):
@@ -203,7 +203,7 @@ class ChatInterface(Blocks):
                                 raise ValueError(
                                     f"The submit_btn parameter must be a gr.Button, string, or None, not {type(submit_btn)}"
                                 )
-                        if stop_btn:
+                        if stop_btn is not None:
                             if isinstance(stop_btn, Button):
                                 stop_btn.visible = False
                                 stop_btn.render()
@@ -223,7 +223,7 @@ class ChatInterface(Blocks):
 
                 with Row():
                     for btn in [retry_btn, undo_btn, clear_btn]:
-                        if btn:
+                        if btn is not None:
                             if isinstance(btn, Button):
                                 btn.render()
                             elif isinstance(btn, str):
