@@ -53,7 +53,7 @@
 		border-radius: var(--radius-full);
 		font-size: var(--text-md);
 		border: 1px solid var(--neutral-400);
-		margin: var(--size-1) var(--size-1) 0 0;
+		gap: var(--size-1);
 	}
 
 	select {
