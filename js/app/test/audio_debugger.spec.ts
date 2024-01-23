@@ -1,6 +1,5 @@
 import { test, expect } from "@gradio/tootils";
 import { chromium } from "playwright";
-
 // we cannot currently test the waveform canvas with playwright (https://github.com/microsoft/playwright/issues/23964)
 // so this test covers the interactive elements around the waveform canvas
 
@@ -45,6 +44,24 @@ test("audio waveform", async ({ page }) => {
 		.click();
 });
 
+test("audio streaming tab", async ({ page }) => {
+	const browser = await chromium.launch({
+		args: ["--use-fake-ui-for-media-stream"]
+	});
+
+	const context = await browser.newContext({
+		permissions: ["microphone"]
+	});
+
+	context.grantPermissions(["microphone"]);
+
+	await page.getByRole("tab", { name: "Streaming" }).click();
+
+	await expect(page.getByLabel("Select input device")).toContainText(
+		"Fake Default Audio InputFake Audio Input 1Fake Audio Input 2"
+	);
+});
+
 test("recording audio", async ({ page }) => {
 	const browser = await chromium.launch({
 		args: ["--use-fake-ui-for-media-stream"]
@@ -59,9 +76,11 @@ test("recording audio", async ({ page }) => {
 
 	context.grantPermissions(["microphone"]);
 
-	await expect(page.getByText("Fake Default Audio Input")).toBeAttached();
+	await expect(page.getByRole("combobox")).toContainText(
+		"Fake Default Audio InputFake Audio Input 1Fake Audio Input 2"
+	);
 
-	await page.getByText("Record", { exact: true }).click();
+	await page.getByRole("button", { name: "Record", exact: true }).click();
 
 	await page.waitForTimeout(1000);
 
