@@ -331,7 +331,6 @@ class Interface(Blocks):
             self.clear_btn_params = {
                 "value": clear_btn,
                 "variant": "secondary",
-                "render": False,
             }
         else:
             raise ValueError(
@@ -525,7 +524,7 @@ class Interface(Blocks):
                     InterfaceTypes.STANDARD,
                     InterfaceTypes.INPUT_ONLY,
                 ]:
-                    clear_btn = ClearButton(**self.clear_btn_params).render()
+                    clear_btn = ClearButton(**self.clear_btn_params)
                     if not self.live:
                         self.submit_btn.render()
                         # Stopping jobs only works if the queue is enabled
@@ -538,7 +537,7 @@ class Interface(Blocks):
                         ) or inspect.isasyncgenfunction(self.fn):
                             self.stop_btn.render()
                 elif self.interface_type == InterfaceTypes.UNIFIED:
-                    clear_btn = ClearButton(**self.clear_btn_params).render()
+                    clear_btn = ClearButton(**self.clear_btn_params)
                     self.submit_btn.render()
                     if (
                         inspect.isgeneratorfunction(self.fn)
