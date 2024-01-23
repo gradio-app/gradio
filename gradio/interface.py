@@ -471,7 +471,7 @@ class Interface(Blocks):
                         clear_btn_2_out,
                         duplicate_btn,
                         flag_btns_out,
-                    ) = self.render_output_column(submit_btn)
+                    ) = self.render_output_column()
                     clear_btn = clear_btn or clear_btn_2_out
                     flag_btns = flag_btns or flag_btns_out
 
