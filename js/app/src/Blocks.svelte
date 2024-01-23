@@ -533,7 +533,7 @@
 								pending_outputs.push(id);
 								instance_map[id].props.interactive = false;
 							} else if (
-								status.stage === "complete" &&
+								["complete", "error"].includes(status.stage) &&
 								pending_outputs.includes(id) &&
 								!outputs_set_to_non_interactive.includes(id)
 							) {
