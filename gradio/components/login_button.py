@@ -103,7 +103,7 @@ class LoginButton(Button):
 # If user is logged in, redirect to logout page (always in-place).
 _js_handle_redirect = """
 (buttonValue) => {
-    if (buttonValue.includes(BUTTON_DEFAULT_VALUE)) {
+    if (buttonValue === BUTTON_DEFAULT_VALUE) {
         if ( window !== window.parent ) {
             window.open('/login/huggingface', '_blank');
         } else {
