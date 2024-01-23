@@ -2,7 +2,7 @@
 	import { Pause } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
-	import { createEventDispatcher } from "svelte";
+	import DeviceSelect from "./DeviceSelect.svelte";
 
 	export let record: RecordPlugin;
 	export let i18n: I18nFormatter;
@@ -17,46 +17,6 @@
 	export let record_time: string;
 	export let show_recording_waveform: boolean | undefined;
 	export let timing = false;
-
-	let device_access_denied = false;
-
-	const dispatch = createEventDispatcher<{
-		error: string;
-	}>();
-
-	$: micDevices, update_devices();
-
-	const update_devices = (): void => {
-		let temp_devices: MediaDeviceInfo[] = [];
-		RecordPlugin.getAvailableAudioDevices().then(
-			(devices: MediaDeviceInfo[]) => {
-				micDevices = devices;
-				devices.forEach((device) => {
-					if (device.deviceId) {
-						temp_devices.push(device);
-					}
-				});
-				micDevices = temp_devices;
-			}
-		);
-	};
-
-	$: try {
-		update_devices();
-	} catch (err) {
-		if (err instanceof DOMException && err.name == "NotAllowedError") {
-			dispatch("error", i18n("audio.allow_recording_access"));
-		}
-		throw err;
-	}
-
-	let permissionName = "microphone" as PermissionName;
-
-	navigator.permissions.query({ name: permissionName }).then(function (result) {
-		if (result.state == "denied") {
-			device_access_denied = true;
-		}
-	});
 
 	$: record.on("record-start", () => {
 		record.startMic();
@@ -144,51 +104,15 @@
 			<time class="duration-button duration">{record_time}</time>
 		{/if}
 	</div>
-
-	<select
-		class="mic-select"
-		aria-label="Select input device"
-		disabled={micDevices.length === 0}
-	>
-		{#if device_access_denied}
-			<option value="">{i18n("audio.allow_recording_access")}</option>
-		{:else if micDevices.length === 0 || !micDevices}
-			<option value="">{i18n("audio.no_microphone")}</option>
-		{:else}
-			{#each micDevices as micDevice}
-				<option value={micDevice.deviceId}>{micDevice.label}</option>
-			{/each}
-		{/if}
-	</select>
+	<DeviceSelect bind:micDevices {i18n} />
 </div>
 
 <style>
-	.mic-select {
-		height: var(--size-8);
-		background: var(--block-background-fill);
-		padding: 0px var(--spacing-xxl);
-		border-radius: var(--radius-full);
-		font-size: var(--text-md);
-		border: 1px solid var(--neutral-400);
-		margin: var(--size-1) var(--size-1) 0 0;
-	}
 	.controls {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		flex-wrap: wrap;
-		overflow: hidden;
-	}
-
-	.controls select {
-		text-overflow: ellipsis;
-		max-width: 100%;
-	}
-
-	@media (max-width: 375px) {
-		.controls select {
-			width: 100%;
-		}
 	}
 
 	.wrapper {
