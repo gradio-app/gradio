@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:re-enable output components after exception is raised
+fix:un-disable output components after exception is raised
