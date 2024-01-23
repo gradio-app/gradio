@@ -533,7 +533,7 @@ class Interface(Blocks):
                     InterfaceTypes.STANDARD,
                     InterfaceTypes.INPUT_ONLY,
                 ]:
-                    clear_btn = ClearButton(**self.clear_btn_params)
+                    clear_btn = ClearButton(**self.clear_btn_params).render()
                     if not self.live:
                         submit_btn = self.submit_btn.render()
                         # Stopping jobs only works if the queue is enabled
