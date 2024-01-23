@@ -331,6 +331,7 @@ class Interface(Blocks):
             self.clear_btn_params = {
                 "value": clear_btn,
                 "variant": "secondary",
+                "render": False,
             }
         else:
             raise ValueError(
@@ -444,7 +445,9 @@ class Interface(Blocks):
         with self:
             self.render_title_description()
 
-            clear_btn, flag_btns, duplicate_btn = (
+            submit_btn, clear_btn, stop_btn, flag_btns, duplicate_btn = (
+                None,
+                None,
                 None,
                 None,
                 None,
@@ -458,7 +461,9 @@ class Interface(Blocks):
                     InterfaceTypes.UNIFIED,
                 ]:
                     (
+                        submit_btn,
                         clear_btn,
+                        stop_btn,
                         flag_btns,
                         input_component_column,
                     ) = self.render_input_column()
@@ -467,17 +472,21 @@ class Interface(Blocks):
                     InterfaceTypes.OUTPUT_ONLY,
                 ]:
                     (
+                        submit_btn_out,
                         clear_btn_2_out,
                         duplicate_btn,
+                        stop_btn_2_out,
                         flag_btns_out,
-                    ) = self.render_output_column()
+                    ) = self.render_output_column(submit_btn)
+                    submit_btn = submit_btn or submit_btn_out
                     clear_btn = clear_btn or clear_btn_2_out
+                    stop_btn = stop_btn or stop_btn_2_out
                     flag_btns = flag_btns or flag_btns_out
 
             if clear_btn is None:
                 raise RenderError("Clear button not rendered")
 
-            self.attach_submit_events()
+            self.attach_submit_events(submit_btn, stop_btn)
             self.attach_clear_events(clear_btn, input_component_column)
             if duplicate_btn is not None:
                 duplicate_btn.activate()
@@ -508,7 +517,7 @@ class Interface(Blocks):
         list[Button] | None,
         Column,
     ]:
-        clear_btn, flag_btns = None, None
+        submit_btn, clear_btn, stop_btn, flag_btns = None, None, None, None
 
         with Column(variant="panel"):
             input_component_column = Column()
@@ -526,7 +535,7 @@ class Interface(Blocks):
                 ]:
                     clear_btn = ClearButton(**self.clear_btn_params)
                     if not self.live:
-                        self.submit_btn.render()
+                        submit_btn = self.submit_btn.render()
                         # Stopping jobs only works if the queue is enabled
                         # We don't know if the queue is enabled when the interface
                         # is created. We use whether a generator function is provided
@@ -535,33 +544,40 @@ class Interface(Blocks):
                         if inspect.isgeneratorfunction(
                             self.fn
                         ) or inspect.isasyncgenfunction(self.fn):
-                            self.stop_btn.render()
+                            stop_btn = self.stop_btn.render()
                 elif self.interface_type == InterfaceTypes.UNIFIED:
                     clear_btn = ClearButton(**self.clear_btn_params)
-                    self.submit_btn.render()
+                    submit_btn = self.submit_btn.render()
                     if (
                         inspect.isgeneratorfunction(self.fn)
                         or inspect.isasyncgenfunction(self.fn)
                     ) and not self.live:
-                        self.stop_btn.render()
+                        stop_btn = self.stop_btn.render()
                     if self.allow_flagging == "manual":
                         flag_btns = self.render_flag_btns()
                     elif self.allow_flagging == "auto":
-                        flag_btns = [self.submit_btn]
+                        flag_btns = [submit_btn]
         return (
+            submit_btn,
             clear_btn,
+            stop_btn,
             flag_btns,
             input_component_column,
         )
 
     def render_output_column(
         self,
+        submit_btn_in: Button | None,
     ) -> tuple[
+        Button | None,
         ClearButton | None,
         DuplicateButton | None,
+        Button | None,
         list | None,
     ]:
-        clear_btn, duplicate_btn, flag_btns = (
+        submit_btn = submit_btn_in
+        clear_btn, duplicate_btn, flag_btns, stop_btn = (
+            None,
             None,
             None,
             None,
@@ -574,7 +590,7 @@ class Interface(Blocks):
             with Row():
                 if self.interface_type == InterfaceTypes.OUTPUT_ONLY:
                     clear_btn = ClearButton(**self.clear_btn_params)
-                    self.submit_btn = Button("Generate", variant="primary")
+                    submit_btn = Button("Generate", variant="primary")
                     if (
                         inspect.isgeneratorfunction(self.fn)
                         or inspect.isasyncgenfunction(self.fn)
@@ -584,18 +600,22 @@ class Interface(Blocks):
                         # is created. We use whether a generator function is provided
                         # as a proxy of whether the queue will be enabled.
                         # Using a generator function without the queue will raise an error.
-                        self.stop_btn.render()
+                        stop_btn = self.stop_btn.render()
                 if self.allow_flagging == "manual":
                     flag_btns = self.render_flag_btns()
                 elif self.allow_flagging == "auto":
-                    flag_btns = [self.submit_btn]
+                    if submit_btn is None:
+                        raise RenderError("Submit button not rendered")
+                    flag_btns = [submit_btn]
 
                 if self.allow_duplication:
                     duplicate_btn = DuplicateButton(scale=1, size="lg", _activate=False)
 
         return (
+            submit_btn,
             clear_btn,
             duplicate_btn,
+            stop_btn,
             flag_btns,
         )
 
@@ -603,15 +623,15 @@ class Interface(Blocks):
         if self.article:
             Markdown(self.article)
 
-    def attach_submit_events(self):
+    def attach_submit_events(self, submit_btn: Button | None, stop_btn: Button | None):
         if self.live:
             if self.interface_type == InterfaceTypes.OUTPUT_ONLY:
-                if self.submit_btn is None:
+                if submit_btn is None:
                     raise RenderError("Submit button not rendered")
                 super().load(self.fn, None, self.output_components)
                 # For output-only interfaces, the user probably still want a "generate"
                 # button even if the Interface is live
-                self.submit_btn.click(
+                submit_btn.click(
                     self.fn,
                     None,
                     self.output_components,
@@ -638,19 +658,19 @@ class Interface(Blocks):
                     postprocess=not (self.api_mode),
                 )
         else:
-            if self.submit_btn is None:
+            if submit_btn is None:
                 raise RenderError("Submit button not rendered")
             fn = self.fn
             extra_output = []
 
-            triggers = [self.submit_btn.click] + [
+            triggers = [submit_btn.click] + [
                 component.submit  # type: ignore
                 for component in self.input_components
                 if component.has_event(Events.submit)
             ]
 
-            if self.stop_btn:
-                extra_output = [self.submit_btn, self.stop_btn]
+            if stop_btn:
+                extra_output = [submit_btn, stop_btn]
 
                 def cleanup():
                     return [Button(visible=True), Button(visible=False)]
@@ -662,7 +682,7 @@ class Interface(Blocks):
                         Button(visible=True),
                     ),
                     inputs=None,
-                    outputs=[self.submit_btn, self.stop_btn],
+                    outputs=[submit_btn, stop_btn],
                     queue=False,
                     show_api=False,
                 ).then(
@@ -686,10 +706,10 @@ class Interface(Blocks):
                     show_api=False,
                 )
 
-                self.stop_btn.click(
+                stop_btn.click(
                     cleanup,
                     inputs=None,
-                    outputs=[self.submit_btn, self.stop_btn],
+                    outputs=[submit_btn, stop_btn],
                     cancels=predict_event,
                     queue=False,
                     show_api=False,
