@@ -1,5 +1,4 @@
 import type WaveSurfer from "wavesurfer.js";
-import Regions from "wavesurfer.js/dist/plugins/regions.js";
 import { audioBufferToWav } from "./audioBufferToWav";
 
 export interface LoadedParams {
@@ -18,11 +17,14 @@ export function blob_to_data_url(blob: Blob): Promise<string> {
 export const process_audio = async (
 	audioBuffer: AudioBuffer,
 	start?: number,
-	end?: number
+	end?: number,
+	waveform_sample_rate?: number
 ): Promise<Uint8Array> => {
-	const audioContext = new AudioContext();
+	const audioContext = new AudioContext({
+		sampleRate: waveform_sample_rate || audioBuffer.sampleRate
+	});
 	const numberOfChannels = audioBuffer.numberOfChannels;
-	const sampleRate = audioBuffer.sampleRate;
+	const sampleRate = waveform_sample_rate || audioBuffer.sampleRate;
 
 	let trimmedLength = audioBuffer.length;
 	let startOffset = 0;

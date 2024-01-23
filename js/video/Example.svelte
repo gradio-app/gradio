@@ -1,10 +1,11 @@
 <script lang="ts">
 	import Video from "./shared/Video.svelte";
 	import { playable } from "./shared/utils";
+	import { type FileData } from "@gradio/client";
 
 	export let type: "gallery" | "table";
 	export let selected = false;
-	export let value: string;
+	export let value: { video: FileData; subtitles: FileData | null } | null;
 	export let samples_dir: string;
 	let video: HTMLVideoElement;
 
@@ -33,7 +34,7 @@
 			on:loadeddata={init}
 			on:mouseover={video.play.bind(video)}
 			on:mouseout={video.pause.bind(video)}
-			src={samples_dir + value}
+			src={samples_dir + value?.video.path}
 		/>
 	</div>
 {:else}

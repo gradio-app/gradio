@@ -1,5 +1,18 @@
 # @gradio/video
 
+## 0.4.0
+
+### Fixes
+
+- [#6933](https://github.com/gradio-app/gradio/pull/6933) [`9cefd2e`](https://github.com/gradio-app/gradio/commit/9cefd2e90a1d0cc4d3e4e953fc5b9b1a7afb68dd) - Refactor examples so they accept data in the same format as is returned by function, rename `.as_example()` to `.process_example()`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7038](https://github.com/gradio-app/gradio/pull/7038) [`6be3c2c`](https://github.com/gradio-app/gradio/commit/6be3c2c47a616c904c8497d1fbef7a851c54d488) - Fix Chatbot custom component template.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
+## 0.3.1
+
+### Fixes
+
+- [#6885](https://github.com/gradio-app/gradio/pull/6885) [`640b7fe`](https://github.com/gradio-app/gradio/commit/640b7fe05276e11720b4341cadf088491395e53d) - Fix issue with Webcam Recording.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.3.0
 
 ### Features

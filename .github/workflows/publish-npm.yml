@@ -25,7 +25,10 @@ jobs:
           npm_token: ${{ secrets.NPM_TOKEN }}
           skip_build: 'true'
       - name: Build packages
-        run: pnpm --filter @gradio/client  build
+        run: | 
+          . venv/bin/activate
+          pip install build
+          pnpm --filter @gradio/client --filter @gradio/lite build
       - name: create and publish versions
         id: changesets
         uses: changesets/action@v1
@@ -41,6 +44,12 @@ jobs:
       - name: add label to skip chromatic build
         if: ${{ steps.changesets.outputs.pullRequestNumber != '' && steps.changesets.outputs.pullRequestNumber != 'undefined' }}
         run: gh pr edit "$PR_NUMBER" --add-label "no-visual-update" 
+        env:
+          PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}
+          GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }} 
+      - name: add label to run flaky tests
+        if: ${{ steps.changesets.outputs.pullRequestNumber != '' && steps.changesets.outputs.pullRequestNumber != 'undefined' }}
+        run: gh pr edit "$PR_NUMBER" --add-label "flaky-tests" 
         env:
           PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}
           GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }} 

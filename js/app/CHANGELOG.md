@@ -1,5 +1,41 @@
 # @gradio/app
 
+## 1.21.0
+
+### Highlights
+
+#### Custom component documentation generator ([#7030](https://github.com/gradio-app/gradio/pull/7030) [`3a944ed`](https://github.com/gradio-app/gradio/commit/3a944ed9f162a224d26959a9c556346a9d205311))
+
+If your custom component has type hints and docstrings for both parameters and return values, you can now automatically generate a documentation page and README.md with no additional effort. Simply run the following command:
+
+```sh
+gradio cc docs
+```
+
+This will generate a Gradio app that you can upload to spaces providing rich documentation for potential users. The documentation page includes:
+
+- Installation instructions.
+- A live embedded demo and working code snippet, pulled from your demo app.
+- An API reference for initialising the component, with types, default values and descriptions.
+- An explanation of how the component affects the user's predict function inputs and outputs.
+- Any additional interfaces or classes that are necessary to understand the API reference.
+- Optional links to GitHub, PyPi, and Hugging Face Spaces.
+
+A README will also be generated detailing the same information but in a format that is optimised for viewing on GitHub or PyPi!
+
+ Thanks [@pngwn](https://github.com/pngwn)!
+
+## 1.20.0
+
+### Features
+
+- [#6965](https://github.com/gradio-app/gradio/pull/6965) [`5d00dd3`](https://github.com/gradio-app/gradio/commit/5d00dd37ca14bbfef2ceac550b29dbe05ba8cab0) - Make <UploadProgress /> Wasm-compatible.  Thanks [@whitphx](https://github.com/whitphx)!
+
+### Fixes
+
+- [#6967](https://github.com/gradio-app/gradio/pull/6967) [`5e00162`](https://github.com/gradio-app/gradio/commit/5e0016267f1d683e2daab82ee4a33d2f09513a34) - Make <Gallery /> Wasm-compatible.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6983](https://github.com/gradio-app/gradio/pull/6983) [`6e285be`](https://github.com/gradio-app/gradio/commit/6e285be8edeacf8730bac10b7ecd3fd5e309a950) - Fix the reloader.  Thanks [@aliabid94](https://github.com/aliabid94)!
+
 ## 1.19.0
 
 ### Features

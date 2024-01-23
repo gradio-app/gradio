@@ -1,10 +1,27 @@
 # @gradio/uploadbutton
 
+## 0.4.2
+
+### Patch Changes
+
+- Updated dependencies [[`3c3cf86`](https://github.com/gradio-app/gradio/commit/3c3cf8618a8cad1ef66a7f96664923d2c9f5e0e2), [`3f139c7`](https://github.com/gradio-app/gradio/commit/3f139c7c995f749562bb007d2a567bb167669de9)]:
+  - @gradio/client@0.10.1
+  - @gradio/upload@0.6.1
+  - @gradio/button@0.2.17
+
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [[`793bf8f`](https://github.com/gradio-app/gradio/commit/793bf8f7b1943f265c5d016c1a0c682ee549232a), [`5d00dd3`](https://github.com/gradio-app/gradio/commit/5d00dd37ca14bbfef2ceac550b29dbe05ba8cab0)]:
+  - @gradio/upload@0.6.0
+  - @gradio/button@0.2.16
+
 ## 0.4.0
 
 ### Features
 
-- [#6897](https://github.com/gradio-app/gradio/pull/6897) [`fb9c6ca`](https://github.com/gradio-app/gradio/commit/fb9c6cacd7ca4598c000f1f97d7d39a8c4463519) - Lite: Chatbot.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6897](https://github.com/gradio-app/gradio/pull/6897) [`fb9c6ca`](https://github.com/gradio-app/gradio/commit/fb9c6cacd7ca4598c000f1f97d7d39a8c4463519) - Lite: Chatbot. Thanks [@whitphx](https://github.com/whitphx)!
 
 ## 0.3.5
 

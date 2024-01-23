@@ -30,6 +30,7 @@ class WaveformOptions:
         show_recording_waveform: Whether to show the waveform when recording audio. Defaults to True.
         show_controls: Whether to show the standard HTML audio player below the waveform when recording audio or playing recorded audio. Defaults to False.
         skip_length: The percentage (between 0 and 100) of the audio to skip when clicking on the skip forward / skip backward buttons. Defaults to 5.
+        sample_rate: The output sample rate (in Hz) of the audio after editing. Defaults to 44100.
     """
 
     waveform_color: str = "#9ca3af"
@@ -37,6 +38,7 @@ class WaveformOptions:
     show_recording_waveform: bool = True
     show_controls: bool = False
     skip_length: int | float = 5
+    sample_rate: int = 44100
 
 
 @document()
@@ -161,11 +163,10 @@ class Audio(
         self.editable = editable
         if waveform_options is None:
             self.waveform_options = WaveformOptions()
-        self.waveform_options = (
-            WaveformOptions(**waveform_options)
-            if isinstance(waveform_options, dict)
-            else waveform_options
-        )
+        elif isinstance(waveform_options, dict):
+            self.waveform_options = WaveformOptions(**waveform_options)
+        else:
+            self.waveform_options = waveform_options
         self.min_length = min_length
         self.max_length = max_length
         super().__init__(
@@ -292,8 +293,14 @@ class Audio(
                     binary_data = binary_data[44:]
         return binary_data, output_file
 
-    def as_example(self, input_data: str | None) -> str:
-        return Path(input_data).name if input_data else ""
+    def process_example(
+        self, value: tuple[int, np.ndarray] | str | Path | bytes | None
+    ) -> str:
+        if value is None:
+            return ""
+        elif isinstance(value, (str, Path)):
+            return Path(value).name
+        return "(audio)"
 
     def check_streamable(self):
         if (

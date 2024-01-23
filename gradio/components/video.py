@@ -111,7 +111,7 @@ class Video(Component):
             min_length: The minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
         """
-        valid_sources: list[Literal["upload", "webcam"]] = ["webcam", "upload"]
+        valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
         if sources is None:
             self.sources = valid_sources
         elif isinstance(sources, str) and sources in valid_sources:
@@ -338,8 +338,3 @@ class Video(Component):
 
     def example_inputs(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
-
-    def as_example(self, input_data: str | Path | None) -> str | None:
-        if input_data is None:
-            return None
-        return self.move_resource_to_block_cache(input_data)
