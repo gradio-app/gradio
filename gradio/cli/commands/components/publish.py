@@ -131,7 +131,6 @@ def _publish(
         (p for p in distribution_files if p.suffix == ".whl"),
         key=lambda s: semantic_version.Version(str(s).split("-")[1]),
     )
-    breakpoint()
     if not wheel_file:
         raise ValueError(
             "A wheel file was not found in the distribution directory. "
