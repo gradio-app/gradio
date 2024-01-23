@@ -1,5 +1,12 @@
 # @gradio/code
 
+## 0.3.7
+
+### Patch Changes
+
+- Updated dependencies [[`3f139c7`](https://github.com/gradio-app/gradio/commit/3f139c7c995f749562bb007d2a567bb167669de9)]:
+  - @gradio/upload@0.6.1
+
 ## 0.3.6
 
 ### Patch Changes

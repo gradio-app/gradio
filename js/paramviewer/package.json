@@ -1,0 +1,24 @@
+{
+	"name": "@gradio/paramviewer",
+	"version": "0.3.0",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"author": "",
+	"license": "ISC",
+	"private": false,
+	"main_changeset": true,
+	"exports": {
+		".": "./Index.svelte",
+		"./example": "./Example.svelte",
+		"./package.json": "./package.json"
+	},
+	"dependencies": {
+		"@gradio/atoms": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/utils": "workspace:^",
+		"prismjs": "^1.29.0"
+	},
+	"devDependencies": {
+		"@types/prismjs": "^1.26.3"
+	}
+}

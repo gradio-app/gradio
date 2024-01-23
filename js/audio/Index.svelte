@@ -32,7 +32,7 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let autoplay = false;
-	export let show_download_button = true;
+	export let show_download_button: boolean;
 	export let show_share_button = false;
 	export let editable = true;
 	export let waveform_options: WaveformOptions = {};
@@ -104,7 +104,8 @@
 		dragToSeek: true,
 		normalize: true,
 		minPxPerSec: 20,
-		mediaControls: waveform_options.show_controls
+		mediaControls: waveform_options.show_controls,
+		sampleRate: waveform_options.sample_rate || 44100
 	};
 
 	const trim_region_settings = {
@@ -151,6 +152,7 @@
 			{label}
 			{waveform_settings}
 			{waveform_options}
+			{editable}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			on:play={() => gradio.dispatch("play")}
@@ -178,6 +180,7 @@
 		<InteractiveAudio
 			{label}
 			{show_label}
+			{show_download_button}
 			value={_value}
 			on:change={({ detail }) => (value = detail)}
 			on:stream={({ detail }) => {

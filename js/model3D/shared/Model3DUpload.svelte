@@ -109,7 +109,7 @@
 	<Upload
 		on:load={handle_upload}
 		{root}
-		filetype={[".obj", ".gltf", ".glb", "model/obj"]}
+		filetype={[".stl", ".obj", ".gltf", ".glb", "model/obj"]}
 		bind:dragging
 	>
 		<slot />
