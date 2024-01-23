@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Literal, TypedDict
 
+from gradio_client.documentation import document, set_documentation_group
+
 from gradio.components.base import Component
 from gradio.events import Events
 
@@ -12,9 +14,19 @@ class Parameter(TypedDict):
     default: str
 
 
+set_documentation_group("component")
+
+
+@document()
 class ParamViewer(Component):
     """
-    Displays an interactive table of parameters and their descriptions and default values width syntax highlighting
+    Displays an interactive table of parameters and their descriptions and default values with syntax highlighting. For each parameter,
+    the user should provide a type (e.g. a `str`), a human-readable description, and a default value. Internally, this component
+    is used to display the parameters of custom components in the Custom Component Gallery (https://www.gradio.app/custom-components/gallery).
+    
+    Preprocessing: passes `value` as a list of dictionaries with keys "type", "description", and "default" for each parameter.
+    Postprocessing: expects a list of dictionaries with keys "type", "description", and "default" for each parameter.
+    Examples-format: a list of dictionaries with keys "type", "description", and "default" for each parameter.
     """
 
     EVENTS = [
@@ -34,10 +46,9 @@ class ParamViewer(Component):
         Parameters:
             value: A list of dictionaries with keys "type", "description", and "default" for each parameter.
             language: The language to display the code in. One of "python" or "typescript".
-            linkify: A list of strings to linkify. If a string is found in the description, it will be linked to the corresponding url.
+            linkify: A list of strings to linkify. If any of these strings is found in the description, it will be rendered as a link.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-
         """
         self.value = value
         self.language = language
