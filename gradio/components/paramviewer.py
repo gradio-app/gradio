@@ -11,7 +11,7 @@ from gradio.events import Events
 class Parameter(TypedDict):
     type: str
     description: str
-    default: str
+    default: str | None
 
 
 set_documentation_group("component")
@@ -24,9 +24,9 @@ class ParamViewer(Component):
     the user should provide a type (e.g. a `str`), a human-readable description, and a default value. Internally, this component
     is used to display the parameters of custom components in the Custom Component Gallery (https://www.gradio.app/custom-components/gallery).
     
-    Preprocessing: passes `value` as a list of dictionaries with keys "type", "description", and "default" for each parameter.
-    Postprocessing: expects a list of dictionaries with keys "type", "description", and "default" for each parameter.
-    Examples-format: a list of dictionaries with keys "type", "description", and "default" for each parameter.
+    Preprocessing: passes value as a `dict[str, dict]`. The key in the outer dictionary is the parameter name, while the inner dictionary has keys "type", "description", and (optionally) "default" for each parameter.
+    Postprocessing: expects a `dict[str, dict]` with the same format as the preprocessed value.
+    Examples-format: a `dict[str, dict]` with the same format as the preprocessed value.
     """
 
     EVENTS = [
@@ -36,7 +36,7 @@ class ParamViewer(Component):
 
     def __init__(
         self,
-        value: list[Parameter] | None = None,
+        value: dict[str, Parameter] | None = None,
         language: Literal["python", "typescript"] = "python",
         linkify: list[str] | None = None,
         every: float | None = None,
@@ -50,7 +50,7 @@ class ParamViewer(Component):
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
         """
-        self.value = value
+        self.value = value or {}
         self.language = language
         self.linkify = linkify
         super().__init__(
@@ -59,26 +59,14 @@ class ParamViewer(Component):
             render=render,
         )
 
-    def preprocess(self, payload: list[Parameter]) -> list[Parameter]:
-        """
-        Parameters:
-            payload: A list of dictionaries with keys "type", "description", and "default" for each parameter.
-        Returns:
-            A list of dictionaries with keys "type", "description", and "default" for each parameter.
-        """
+    def preprocess(self, payload: dict[str, Parameter]) -> dict[str, Parameter]:
         return payload
 
-    def postprocess(self, value: list[Parameter]) -> list[Parameter]:
-        """
-        Parameters:
-            value: A list of dictionaries with keys "type", "description", and "default" for each parameter.
-        Returns:
-            A list of dictionaries with keys "type", "description", and "default" for each parameter.
-        """
+    def postprocess(self, value: dict[str, Parameter]) -> dict[str, Parameter]:
         return value
 
     def example_inputs(self):
-        return [{"type": "numpy", "description": "any valid json", "default": "None"}]
+        return {"array": {"type": "numpy", "description": "any valid json", "default": "None"}}
 
     def api_info(self):
         return {"type": {}, "description": "any valid json"}
