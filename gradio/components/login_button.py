@@ -104,13 +104,15 @@ class LoginButton(Button):
 _js_handle_redirect = """
 (buttonValue) => {
     if (buttonValue === BUTTON_DEFAULT_VALUE) {
+        url = '/login/huggingface' + window.location.search;
         if ( window !== window.parent ) {
-            window.open('/login/huggingface', '_blank');
+            window.open(url, '_blank');
         } else {
-            window.location.assign('/login/huggingface');
+            window.location.assign(url);
         }
     } else {
-        window.location.assign('/logout');
+        url = '/logout' + window.location.search
+        window.location.assign(url);
     }
 }
 """
