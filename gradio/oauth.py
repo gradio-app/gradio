@@ -139,7 +139,8 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
         request.session.pop("oauth_info", None)
-        return _redirect_to_target(request)
+        logout_url = str(request.url).replace("/logout", "/")  # preserve query params
+        return RedirectResponse(url=logout_url)
 
 
 def _generate_redirect_uri(request: fastapi.Request) -> str:
@@ -153,11 +154,11 @@ def _generate_redirect_uri(request: fastapi.Request) -> str:
     redirect_uri = request.url_for("oauth_redirect_callback").include_query_params(
         _target_url=target
     )
-    redirect_uri = str(redirect_uri)
-    if ".hf.space" in redirect_uri:
+    redirect_uri_as_str = str(redirect_uri)
+    if redirect_uri.netloc.endswith(".hf.space"):
         # In Space, FastAPI redirect as http but we want https
-        redirect_uri = redirect_uri.replace("http://", "https://")
-    return redirect_uri
+        redirect_uri_as_str = redirect_uri_as_str.replace("http://", "https://")
+    return redirect_uri_as_str
 
 
 def _redirect_to_target(

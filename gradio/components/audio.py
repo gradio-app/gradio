@@ -30,6 +30,7 @@ class WaveformOptions:
         show_recording_waveform: Whether to show the waveform when recording audio. Defaults to True.
         show_controls: Whether to show the standard HTML audio player below the waveform when recording audio or playing recorded audio. Defaults to False.
         skip_length: The percentage (between 0 and 100) of the audio to skip when clicking on the skip forward / skip backward buttons. Defaults to 5.
+        sample_rate: The output sample rate (in Hz) of the audio after editing. Defaults to 44100.
     """
 
     waveform_color: str = "#9ca3af"
@@ -37,6 +38,7 @@ class WaveformOptions:
     show_recording_waveform: bool = True
     show_controls: bool = False
     skip_length: int | float = 5
+    sample_rate: int = 44100
 
 
 @document()
@@ -90,7 +92,7 @@ class Audio(
         render: bool = True,
         format: Literal["wav", "mp3"] = "wav",
         autoplay: bool = False,
-        show_download_button=True,
+        show_download_button: bool | None = None,
         show_share_button: bool | None = None,
         editable: bool = True,
         min_length: int | None = None,
@@ -116,9 +118,9 @@ class Audio(
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             format: The file format to save audio files. Either 'wav' or 'mp3'. wav files are lossless but will tend to be larger files. mp3 files tend to be smaller. Default is wav. Applies both when this component is used as an input (when `type` is "format") and when this component is used as an output.
             autoplay: Whether to automatically play the audio when the component is used as an output. Note: browsers will not autoplay audio files if the user has not interacted with the page yet.
-            show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear.
+            show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear. By default, it will be True for output components and False for input components.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
-            editable: If True, allows users to manipulate the audio file (if the component is interactive).
+            editable: If True, allows users to manipulate the audio file if the component is interactive. Defaults to True.
             min_length: The minimum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int). Default is None, which uses the default values for these options.
@@ -161,11 +163,10 @@ class Audio(
         self.editable = editable
         if waveform_options is None:
             self.waveform_options = WaveformOptions()
-        self.waveform_options = (
-            WaveformOptions(**waveform_options)
-            if isinstance(waveform_options, dict)
-            else waveform_options
-        )
+        elif isinstance(waveform_options, dict):
+            self.waveform_options = WaveformOptions(**waveform_options)
+        else:
+            self.waveform_options = waveform_options
         self.min_length = min_length
         self.max_length = max_length
         super().__init__(

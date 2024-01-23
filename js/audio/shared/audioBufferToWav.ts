@@ -47,7 +47,9 @@ export function audioBufferToWav(audioBuffer: AudioBuffer): Uint8Array {
 	for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
 		const channel = audioBuffer.getChannelData(i);
 		for (let j = 0; j < channel.length; j++) {
-			view.setInt16(offset, channel[j] * 0xffff, true);
+			// Scaling Float32 to Int16
+			const sample = Math.max(-1, Math.min(1, channel[j]));
+			view.setInt16(offset, sample * 0x7fff, true);
 			offset += 2;
 		}
 	}
