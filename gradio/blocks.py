@@ -512,9 +512,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: A human-friendly name for the kind of Blocks or Interface being created. Used internally for analytics.
             title: The tab title to display when this is opened in a browser window.
-            css: Custom css or path to custom css file to apply to entire Blocks.
-            js: Custom js or path to custom js file to run when demo is first loaded.
-            head: Custom html to insert into the head of the page. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
+            css: Custom css as a string or path to a css file. This css will be included in the demo webpage.
+            js: Custom js or path to js file to run when demo is first loaded. This javascript will be included in the demo webpage.
+            head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
         """
         self.limiter = None
         if theme is None:
