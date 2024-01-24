@@ -327,11 +327,13 @@ class StreamingInput(metaclass=abc.ABCMeta):
         """Used to check if streaming is supported given the input."""
         pass
 
+
 class StreamingDiff:
     """
     When any Component that inherits from this class generates iterative outputs via a yield, the data will be sent to client as a series of calculated 'diffs' between outputs.
     This is useful for Components that when yielding, generate outputs that are minor edits to previous yields, e.g. Chatbots.
     """
+
     def __init__(self, *args, **kwargs) -> None:
         self._last_output = None
         super().__init__(*args, **kwargs)
@@ -346,15 +348,15 @@ class StreamingDiff:
                 return edits
 
             if type(obj1) != type(obj2):
-                edits.append(('replace', path, obj2))
+                edits.append(("replace", path, obj2))
                 return edits
-            
+
             if isinstance(obj1, str) and obj2.startswith(obj1):
-                edits.append(('append', path, obj2[len(obj1):]))
+                edits.append(("append", path, obj2[len(obj1) :]))
                 return edits
 
             if isinstance(obj1, (bool, int, float, str)):
-                edits.append(('replace', path, obj2))
+                edits.append(("replace", path, obj2))
                 return edits
 
             if isinstance(obj1, list):
@@ -362,24 +364,27 @@ class StreamingDiff:
                 for i in range(common_length):
                     edits.extend(compare_objects(obj1[i], obj2[i], path + [i]))
                 for i in range(common_length, len(obj1)):
-                    edits.append(('delete', path + [i], None))
+                    edits.append(("delete", path + [i], None))
                 for i in range(common_length, len(obj2)):
-                    edits.append(('add', path + [i], obj2[i]))
+                    edits.append(("add", path + [i], obj2[i]))
                 return edits
 
             if isinstance(obj1, dict):
                 for key in obj1:
                     if key in obj2:
-                        edits.extend(compare_objects(obj1[key], obj2[key], path + [key]))
+                        edits.extend(
+                            compare_objects(obj1[key], obj2[key], path + [key])
+                        )
                     else:
-                        edits.append(('delete', path + [key], None))
+                        edits.append(("delete", path + [key], None))
                 for key in obj2:
                     if key not in obj1:
-                        edits.append(('add', path + [key], obj2[key]))
+                        edits.append(("add", path + [key], obj2[key]))
                 return edits
             raise ValueError(f"Unknown type encountered: {obj1}")
-        
-        return compare_objects(old, new) 
+
+        return compare_objects(old, new)
+
 
 def component(cls_name: str, render: bool) -> Component:
     obj = utils.component_or_layout_class(cls_name)(render=render)

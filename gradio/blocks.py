@@ -1511,7 +1511,6 @@ Received outputs:
                     data[i] = last_diffs[output_id]
                     continue
 
-
                 diff_ids.append(i)
                 first_chunk = output_id not in last_diffs
                 if first_chunk:
