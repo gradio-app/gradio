@@ -327,13 +327,15 @@ class StreamingInput(metaclass=abc.ABCMeta):
         """Used to check if streaming is supported given the input."""
         pass
 
-class StreamingDiff(metaclass=abc.ABCMeta):
+class StreamingDiff:
     def __init__(self, *args, **kwargs) -> None:
         self._last_output = None
         super().__init__(*args, **kwargs)
 
     def _diff(self, old, new):
-        def compare_objects(obj1, obj2, path=[]):
+        def compare_objects(obj1, obj2, path=None):
+            if path is None:
+                path = []
             edits = []
 
             if obj1 == obj2:

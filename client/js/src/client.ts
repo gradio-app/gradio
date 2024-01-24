@@ -872,33 +872,23 @@ export function api_factory(
 											}
 											if (data) {
 												if (diff_ids && diff_ids.length > 0) {
-													let is_first_generation = !pending_diff_streams[event_id];
+													let is_first_generation =
+														!pending_diff_streams[event_id];
 													if (is_first_generation) {
 														pending_diff_streams[event_id] = {};
 														diff_ids.forEach((diff_id) => {
 															pending_diff_streams[event_id][diff_id] =
 																data.data[diff_id];
 														});
-													} else if (type === "generating") {
+													} else {
 														diff_ids.forEach((diff_id) => {
 															let new_data = apply_diff(
 																pending_diff_streams[event_id][diff_id],
 																data.data[diff_id]
 															);
-															pending_diff_streams[event_id][
-																diff_id
-															] = new_data;
+															pending_diff_streams[event_id][diff_id] =
+																new_data;
 															data.data[diff_id] = new_data;
-														});
-													} else if (type === "complete") {
-														console.log("done")
-														diff_ids.forEach((diff_id) => {
-															data.data[diff_id] = pending_diff_streams[event_id][
-																diff_id
-															];
-															delete pending_diff_streams[event_id][
-																diff_id
-															];
 														});
 													}
 												}
@@ -936,6 +926,9 @@ export function api_factory(
 											) {
 												if (event_callbacks[event_id]) {
 													delete event_callbacks[event_id];
+												}
+												if (event_id in pending_diff_streams) {
+													delete pending_diff_streams[event_id];
 												}
 											}
 										} catch (e) {
@@ -1713,10 +1706,10 @@ function handle_message(
 					stage: data.success ? "generating" : "error",
 					code: data.code,
 					progress_data: data.progress_data,
-					eta: data.average_duration,
+					eta: data.average_duration
 				},
 				data: data.success ? data.output : null,
-				diff_ids: data.output.diff_ids,
+				diff_ids: data.output.diff_ids
 			};
 		case "process_completed":
 			if ("error" in data.output) {
@@ -1738,10 +1731,9 @@ function handle_message(
 					message: !data.success ? data.output.error : undefined,
 					stage: data.success ? "complete" : "error",
 					code: data.code,
-					progress_data: data.progress_data,
+					progress_data: data.progress_data
 				},
-				data: data.success ? data.output : null,
-				diff_ids: data.output.diff_ids,
+				data: data.success ? data.output : null
 			};
 
 		case "process_starts":

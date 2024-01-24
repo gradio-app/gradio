@@ -1495,6 +1495,7 @@ Received outputs:
         data: list,
         session_hash: str | None,
         run: int | None,
+        final: bool,
     ) -> tuple[list, list[int]]:
         if session_hash is None or run is None:
             return data
@@ -1506,6 +1507,11 @@ Received outputs:
         for i, output_id in enumerate(self.dependencies[fn_index]["outputs"]):
             block = self.blocks[output_id]
             if isinstance(block, components.StreamingDiff):
+                if final:
+                    data[i] = last_diffs[output_id]
+                    continue
+
+
                 diff_ids.append(i)
                 first_chunk = output_id not in last_diffs
                 if first_chunk:
@@ -1514,6 +1520,9 @@ Received outputs:
                     prev_chunk = last_diffs[output_id]
                     last_diffs[output_id] = data[i]
                     data[i] = block._diff(prev_chunk, data[i])
+
+        if final:
+            del self.pending_diff_streams[session_hash][run]
 
         return data, diff_ids
 
@@ -1612,6 +1621,7 @@ Received outputs:
                     data,
                     session_hash=session_hash,
                     run=run,
+                    final=not is_generating,
                 )
 
         block_fn.total_runtime += result["duration"]

@@ -586,8 +586,18 @@ class Queue:
                 for event in awake_events:
                     if response is None:
                         relevant_response = err
+                    elif old_response and response:
+                        relevant_response = dict(old_response)
+                        if old_response.get("diff_ids"):
+                            relevant_response["data"] = list(old_response["data"]) # need to copy the list because if previous response hasn't been sent yet, we don't want to accidentally modify it 
+                            diff_ids = old_response["diff_ids"]
+                            for diff_id in diff_ids:
+                                relevant_response["data"][diff_id] = response["data"][
+                                    diff_id
+                                ]
+                            del relevant_response["diff_ids"]
                     else:
-                        relevant_response = old_response or old_err
+                        relevant_response = old_err
                     self.send_message(
                         event,
                         ServerMessage.process_completed,

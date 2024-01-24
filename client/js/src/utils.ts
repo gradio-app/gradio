@@ -240,8 +240,16 @@ export const hardware_types = [
 	"a100-large"
 ] as const;
 
-export function apply_diff(obj: any, diff: Array<[string, Array<number | string>, any]>): any {
-	const apply_edit = (target: any, path: Array<number | string>, action: string, value: any) => {
+export function apply_diff(
+	obj: any,
+	diff: Array<[string, Array<number | string>, any]>
+): any {
+	const apply_edit = (
+		target: any,
+		path: Array<number | string>,
+		action: string,
+		value: any
+	) => {
 		let current = target;
 		for (let i = 0; i < path.length - 1; i++) {
 			current = current[path[i]];
@@ -249,20 +257,20 @@ export function apply_diff(obj: any, diff: Array<[string, Array<number | string>
 
 		const lastPath = path[path.length - 1];
 		switch (action) {
-			case 'replace':
+			case "replace":
 				current[lastPath] = value;
 				break;
-			case 'append':
+			case "append":
 				current[lastPath] += value;
 				break;
-			case 'add':
+			case "add":
 				if (Array.isArray(current)) {
 					current.splice(Number(lastPath), 0, value);
 				} else {
 					current[lastPath] = value;
 				}
 				break;
-			case 'delete':
+			case "delete":
 				if (Array.isArray(current)) {
 					current.splice(Number(lastPath), 1);
 				} else {
