@@ -163,10 +163,7 @@ The `.then()` method of an event listener executes the subsequent event regardle
 
 ## Running Events Continuously
 
-You can run events on a fixed schedule using the `every` parameter of the event listener. This will run the event
-`every` number of seconds while the client connection is open. If the connection is closed, the event will stop running after the following iteration.
-Note that this does not take into account the runtime of the event itself. So a function
-with a 1 second runtime running with `every=5`, would actually run every 6 seconds.
+You can run events on a fixed schedule using the `every` parameter of the event listener. This will run the event `every` number of seconds while the client connection is open. If the connection is closed, the event will stop running after the following iteration. Note that this does not take into account the runtime of the event itself. So a function with a 1 second runtime running with `every=5`, would actually run every 6 seconds. Also note that this parameter does not apply to the `js` function, only the Python function associated with the event listener.
 
 Here is an example of a sine curve that updates every second!
 
