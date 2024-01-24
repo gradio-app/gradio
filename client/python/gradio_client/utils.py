@@ -542,7 +542,8 @@ async def stream_sse_v1(
                     log=log_message,
                 )
                 output = msg.get("output", {}).get("data", [])
-                diff_ids = msg.get("output", {}).get("diff_ids", [])
+                diff_ids = msg.get("output", {}).get("diff_ids")
+                diff_ids = diff_ids or []
                 for diff_id in diff_ids:
                     if diff_id in pending_responses_for_diffs:
                         prev_output = pending_responses_for_diffs[diff_id]
