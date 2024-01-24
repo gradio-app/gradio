@@ -151,11 +151,6 @@ async function copy_to_clipboard(value: string): Promise<boolean> {
 	return copied;
 }
 
-// import { format } from "svelte-i18n";
-import { get } from "svelte/store";
-
-// const x = get(format);
-
 export type I18nFormatter = any;
 export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	#id: number;
