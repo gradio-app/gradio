@@ -7,7 +7,6 @@ from typing import Any, Callable, Dict, List, Literal, Optional
 
 import numpy as np
 import pandas as pd
-import polars as pl
 import semantic_version
 from gradio_client.documentation import document, set_documentation_group
 from pandas.io.formats.style import Styler
@@ -120,6 +119,16 @@ class Dataframe(Component):
             raise ValueError(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
+        if type == "polars":
+            try:
+                import polars
+
+                global pl
+                pl = polars
+            except ImportError:
+                raise ImportError(
+                    "Polars is not installed. Please install using `pip install polars`."
+                )
         self.type = type
         values = {
             "str": "",
@@ -234,7 +243,10 @@ class Dataframe(Component):
                 headers=list(df.columns),
                 data=df.to_dict(orient="split")["data"],  # type: ignore
             )
-        elif isinstance(value, (str, pl.DataFrame)):
+        elif isinstance(value, str) or (
+            globals().get("pl", None) is not None
+            and isinstance(value, globals()["pl"].DataFrame)
+        ):
             df = pl.read_csv(value) if isinstance(value, str) else value  # type: ignore
             df_dict = df.to_dict()
             headers = list(df_dict.keys())
