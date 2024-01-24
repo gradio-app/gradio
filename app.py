@@ -1,39 +1,26 @@
 import gradio as gr
 
-def tax_calculator(income, marital_status, assets):
-    tax_brackets = [(10, 0), (25, 8), (60, 12), (120, 20), (250, 30)]
-    total_deductible = sum(assets["Cost"])
-    taxable_income = income - total_deductible
+import polars as pl
 
-    total_tax = 0
-    for bracket, rate in tax_brackets:
-        if taxable_income > bracket:
-            total_tax += (taxable_income - bracket) * rate / 100
-
-    if marital_status == "Married":
-        total_tax *= 0.75
-    elif marital_status == "Divorced":
-        total_tax *= 0.8
-
-    return round(total_tax)
+def filter_records(records, gender):
+    return records.filter(records["gender"] == gender)
 
 demo = gr.Interface(
-    tax_calculator,
+    filter_records,
     [
-        "number",
-        gr.Radio(["Single", "Married", "Divorced"]),
         gr.Dataframe(
-            headers=["Item", "Cost"],
-            datatype=["str", "number"],
-            label="Assets Purchased this Year",
+            headers=["name", "age", "gender"],
+            datatype=["str", "number", "str"],
+            row_count=5,
+            col_count=(3, "fixed"),
             type="polars"
         ),
+        gr.Dropdown(["M", "F", "O"]),
     ],
-    "number",
-    examples=[
-        [10000, "Married", [["Suit", 5000], ["Laptop", 800], ["Car", 1800]]],
-        [80000, "Single", [["Suit", 800], ["Watch", 1800], ["Car", 800]]],
-    ],
+    "dataframe",
+    description="Enter gender as 'M', 'F', or 'O' for other.",
 )
 
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()
+
