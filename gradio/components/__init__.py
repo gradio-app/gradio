@@ -109,6 +109,7 @@ __all__ = [
     "State",
     "UploadButton",
     "Video",
+    "StreamingDiff",
     "StreamingInput",
     "StreamingOutput",
     "StreamingDiff",
