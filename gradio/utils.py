@@ -14,6 +14,7 @@ import os
 import pkgutil
 import re
 import threading
+import time
 import traceback
 import typing
 import urllib.parse
@@ -223,6 +224,7 @@ def watchfn(reloader: SourceFileReloader):
             else:
                 reloader.swap_blocks(demo)
             mtimes = {}
+        time.sleep(0.05)
 
 
 def colab_check() -> bool:
@@ -635,12 +637,19 @@ def function_wrapper(
 
         @functools.wraps(f)
         async def asyncgen_wrapper(*args, **kwargs):
-            if before_fn:
-                before_fn(*before_args)
-            async for response in f(*args, **kwargs):
+            iterator = f(*args, **kwargs)
+            while True:
+                if before_fn:
+                    before_fn(*before_args)
+                try:
+                    response = await iterator.__anext__()
+                except StopAsyncIteration:
+                    if after_fn:
+                        after_fn(*after_args)
+                    break
+                if after_fn:
+                    after_fn(*after_args)
                 yield response
-            if after_fn:
-                after_fn(*after_args)
 
         return asyncgen_wrapper
 
@@ -661,11 +670,19 @@ def function_wrapper(
 
         @functools.wraps(f)
         def gen_wrapper(*args, **kwargs):
-            if before_fn:
-                before_fn(*before_args)
-            yield from f(*args, **kwargs)
-            if after_fn:
-                after_fn(*after_args)
+            iterator = f(*args, **kwargs)
+            while True:
+                if before_fn:
+                    before_fn(*before_args)
+                try:
+                    response = next(iterator)
+                except StopIteration:
+                    if after_fn:
+                        after_fn(*after_args)
+                    break
+                if after_fn:
+                    after_fn(*after_args)
+                yield response
 
         return gen_wrapper
 
@@ -705,7 +722,10 @@ def get_function_with_locals(
         LocalContext.request.set(None)
 
     return function_wrapper(
-        fn, before_fn=before_fn, before_args=(blocks, event_id), after_fn=after_fn
+        fn,
+        before_fn=before_fn,
+        before_args=(blocks, event_id),
+        after_fn=after_fn,
     )
 
 

@@ -4,10 +4,14 @@ export default defineConfig({
 	use: {
 		screenshot: "only-on-failure",
 		trace: "retain-on-failure",
-		permissions: ["clipboard-read", "clipboard-write"],
+		permissions: ["clipboard-read", "clipboard-write", "microphone"],
 		bypassCSP: true,
 		launchOptions: {
-			args: ["--disable-web-security"]
+			args: [
+				"--disable-web-security",
+				"--use-fake-device-for-media-stream",
+				"--use-fake-ui-for-media-stream"
+			]
 		}
 	},
 	expect: { timeout: 60000 },

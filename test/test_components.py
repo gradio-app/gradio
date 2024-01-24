@@ -816,7 +816,7 @@ class TestAudio:
             "autoplay": False,
             "sources": ["upload", "microphone"],
             "name": "audio",
-            "show_download_button": True,
+            "show_download_button": None,
             "show_share_button": False,
             "streaming": False,
             "show_label": True,
@@ -836,7 +836,14 @@ class TestAudio:
             "streamable": False,
             "max_length": None,
             "min_length": None,
-            "waveform_options": None,
+            "waveform_options": {
+                "sample_rate": 44100,
+                "show_controls": False,
+                "show_recording_waveform": True,
+                "skip_length": 5,
+                "waveform_color": "#9ca3af",
+                "waveform_progress_color": "#f97316",
+            },
             "_selectable": False,
         }
         assert audio_input.preprocess(None) is None
@@ -860,7 +867,7 @@ class TestAudio:
         assert audio_output.get_config() == {
             "autoplay": False,
             "name": "audio",
-            "show_download_button": True,
+            "show_download_button": None,
             "show_share_button": False,
             "streaming": False,
             "show_label": True,
@@ -881,7 +888,14 @@ class TestAudio:
             "format": "wav",
             "streamable": False,
             "sources": ["upload", "microphone"],
-            "waveform_options": None,
+            "waveform_options": {
+                "sample_rate": 44100,
+                "show_controls": False,
+                "show_recording_waveform": True,
+                "skip_length": 5,
+                "waveform_color": "#9ca3af",
+                "waveform_progress_color": "#f97316",
+            },
             "_selectable": False,
         }
 
@@ -1469,6 +1483,7 @@ class TestVideo:
             "container": True,
             "min_width": 160,
             "scale": None,
+            "show_download_button": None,
             "height": None,
             "width": None,
             "elem_id": None,
