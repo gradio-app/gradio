@@ -107,7 +107,7 @@ jobs:
         . venv/bin/activate
         python -m pip install -r client/python/test/requirements.txt
     - name: Install ffmpeg
-      uses: FedericoCarboni/setup-ffmpeg@v2
+      uses: FedericoCarboni/setup-ffmpeg@v3
     - name: Install Gradio and Client Libraries Locally (Linux)
       if: runner.os == 'Linux'
       run: |
@@ -209,7 +209,7 @@ jobs:
         . venv/bin/activate
         bash scripts/install_test_requirements.sh
     - name: Install ffmpeg
-      uses: FedericoCarboni/setup-ffmpeg@v2
+      uses: FedericoCarboni/setup-ffmpeg@v3
     - name: Lint (Linux)
       if: runner.os == 'Linux'
       run: |
