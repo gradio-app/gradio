@@ -33,7 +33,7 @@ class Dataframe(Component):
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {polars.DataFrame}, or {List[List]} depending on `type`
     Postprocessing: expects a {pandas.DataFrame}, {pandas.Styler}, {numpy.array}, {polars.DataFrame}, {List[List]}, {List}, a {Dict} with keys `data` (and optionally `headers`), or {str} path to a csv, which is rendered in the spreadsheet.
     Examples-format: a {str} filepath to a csv with data, a pandas dataframe, a polars dataframe, or a list of lists (excluding headers) where each sublist is a row of data.
-    Demos: filter_records, matrix_transpose, tax_calculator
+    Demos: filter_records, matrix_transpose, tax_calculator, sort_records
     """
 
     EVENTS = [Events.change, Events.input, Events.select]
@@ -162,7 +162,9 @@ class Dataframe(Component):
             value=value,
         )
 
-    def preprocess(self, payload: DataframeData) -> pd.DataFrame | np.ndarray | pl.DataFrame | list:
+    def preprocess(
+        self, payload: DataframeData
+    ) -> pd.DataFrame | np.ndarray | pl.DataFrame | list:
         if self.type == "pandas":
             if payload.headers is not None:
                 return pd.DataFrame(payload.data, columns=payload.headers)
@@ -196,7 +198,6 @@ class Dataframe(Component):
         | str
         | None,
     ) -> DataframeData:
-    
         if value is None:
             return self.postprocess(self.empty_input)
         if isinstance(value, dict):
