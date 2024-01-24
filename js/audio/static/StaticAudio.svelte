@@ -18,6 +18,7 @@
 	export let i18n: I18nFormatter;
 	export let waveform_settings: Record<string, any>;
 	export let waveform_options: WaveformOptions;
+	export let editable = true;
 
 	const dispatch = createEventDispatcher<{
 		change: FileData;
@@ -65,6 +66,7 @@
 		{i18n}
 		{waveform_settings}
 		{waveform_options}
+		{editable}
 		on:pause
 		on:play
 		on:stop
