@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import importlib
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import requests
 import tomlkit as toml
@@ -77,69 +77,114 @@ def _docs(
 
         with open(_component_dir / "pyproject.toml") as f:
             data = toml.loads(f.read())
-        with open(_demo_path) as f:
-            demo = f.read()
 
         name = get_deep(data, ["project", "name"])
 
         if not isinstance(name, str):
             raise ValueError("Name not found in pyproject.toml")
 
-        pypi_exists = requests.get(f"https://pypi.org/pypi/{name}/json").status_code
+        run_command(
+            live=live,
+            name=name,
+            suppress_demo_check=suppress_demo_check,
+            pyproject_toml=data,
+            generate_space=generate_space,
+            generate_readme=generate_readme,
+            type_mode="simple",
+            _demo_path=_demo_path,
+            _demo_dir=_demo_dir,
+            _readme_path=_readme_path,
+            space_url=space_url,
+            _component_dir=_component_dir,
+        )
 
-        pypi_exists = pypi_exists == 200 or False
 
-        local_version = get_deep(data, ["project", "version"])
-        description = str(get_deep(data, ["project", "description"]) or "")
-        repo = get_deep(data, ["project", "urls", "repository"])
-        space = space_url if space_url else get_deep(data, ["project", "urls", "space"])
+def run_command(
+    live: LivePanelDisplay,
+    name: str,
+    pyproject_toml: dict[str, Any],
+    suppress_demo_check: bool,
+    generate_space: bool,
+    generate_readme: bool,
+    type_mode: str,
+    _demo_path: Path,
+    _demo_dir: Path,
+    _readme_path: Path,
+    space_url: str | None,
+    _component_dir: Path,
+    simple: bool = False,
+):
+    with open(_demo_path) as f:
+        demo = f.read()
 
-        if not local_version and not pypi_exists:
-            raise ValueError(
-                f"Cannot find version in pyproject.toml or on PyPI for [orange3]{name}[/].\nIf you have just published to PyPI, please wait a few minutes and try again."
-            )
+    pypi_exists = requests.get(f"https://pypi.org/pypi/{name}/json").status_code
 
-        module = importlib.import_module(name)
-        (docs, type_mode) = extract_docstrings(module)
+    pypi_exists = pypi_exists == 200 or False
 
-        if generate_space:
+    local_version = get_deep(pyproject_toml, ["project", "version"])
+    description = str(get_deep(pyproject_toml, ["project", "description"]) or "")
+    repo = get_deep(pyproject_toml, ["project", "urls", "repository"])
+    space = (
+        space_url
+        if space_url
+        else get_deep(pyproject_toml, ["project", "urls", "space"])
+    )
+
+    if not local_version and not pypi_exists:
+        raise ValueError(
+            f"Cannot find version in pyproject.toml or on PyPI for [orange3]{name}[/].\nIf you have just published to PyPI, please wait a few minutes and try again."
+        )
+    module = importlib.import_module(name)
+    (docs, type_mode) = extract_docstrings(module)
+
+    if generate_space:
+        if not simple:
             live.update(":computer: [blue]Generating space.[/]")
 
-            source = make_space(
-                docs=docs,
-                name=name,
-                description=description,
-                local_version=local_version
-                if local_version is None
-                else str(local_version),
-                demo=demo,
-                space=space if space is None else str(space),
-                repo=repo if repo is None else str(repo),
-                pypi_exists=pypi_exists,
-                suppress_demo_check=suppress_demo_check,
-            )
+        source = make_space(
+            docs=docs,
+            name=name,
+            description=description,
+            local_version=local_version
+            if local_version is None
+            else str(local_version),
+            demo=demo,
+            space=space if space is None else str(space),
+            repo=repo if repo is None else str(repo),
+            pypi_exists=pypi_exists,
+            suppress_demo_check=suppress_demo_check,
+        )
 
-            with open(_demo_dir / "space.py", "w") as f:
-                f.write(source)
+        with open(_demo_dir / "space.py", "w") as f:
+            f.write(source)
+            if not simple:
                 live.update(
                     f":white_check_mark: Space created in [orange3]{_demo_dir}/space.py[/]\n"
                 )
-            with open(_demo_dir / "css.css", "w") as f:
-                f.write(css)
+        with open(_demo_dir / "css.css", "w") as f:
+            f.write(css)
 
-        if generate_readme:
+    if generate_readme:
+        if not simple:
             live.update(":pencil: [blue]Generating README.[/]")
-            readme = make_markdown(
-                docs, name, description, local_version, demo, space, repo, pypi_exists
-            )
+        readme = make_markdown(
+            docs, name, description, local_version, demo, space, repo, pypi_exists
+        )
 
-            with open(_readme_path, "w") as f:
-                f.write(readme)
+        with open(_readme_path, "w") as f:
+            f.write(readme)
+            if not simple:
                 live.update(
                     f":white_check_mark: README generated in [orange3]{_readme_path}[/]"
                 )
+    if simple:
+        short_readme_path = Path(_readme_path).relative_to(_component_dir)
+        short_demo_path = Path(_demo_dir / "space.py").relative_to(_component_dir)
+        live.update(
+            f":white_check_mark: Documention generated in [orange3]{short_demo_path}[/] and [orange3]{short_readme_path}[/]. Pass --no-generate-docs to disable auto documentation."
+        )
 
     if type_mode == "simple":
-        print(
+        live.update(
             "\n:orange_circle: [red]The docs were generated in simple mode. Updating python to a version greater than 3.9 will result in richer documentation.[/]"
         )

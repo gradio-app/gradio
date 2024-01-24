@@ -9,6 +9,10 @@ from tomlkit import dump, parse
 from typing_extensions import Annotated
 
 import gradio
+from gradio.cli.commands.components._docs_utils import (
+    get_deep,
+)
+from gradio.cli.commands.components.docs import run_command
 from gradio.cli.commands.display import LivePanelDisplay
 
 gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"
@@ -25,6 +29,9 @@ def _build(
     bump_version: Annotated[
         bool, typer.Option(help="Whether to bump the version number automatically.")
     ] = False,
+    generate_docs: Annotated[
+        bool, typer.Option(help="Whether to generate the documentation as well.")
+    ] = True,
 ):
     name = Path(path).resolve()
     if not (name / "pyproject.toml").exists():
@@ -35,7 +42,12 @@ def _build(
             f":package: Building package in [orange3]{str(name.name)}[/]", add_sleep=0.2
         )
         pyproject_toml = parse((path / "pyproject.toml").read_text())
-        package_name = pyproject_toml["project"]["name"]  # type: ignore
+        package_name = get_deep(pyproject_toml, ["project", "name"])
+
+        if not isinstance(package_name, str):
+            raise ValueError(
+                "Your pyproject.toml file does not have a [project] name field!"
+            )
         try:
             importlib.import_module(package_name)  # type: ignore
         except ModuleNotFoundError as e:
@@ -60,6 +72,28 @@ def _build(
             live.update(
                 f":1234: Package will use version [bold][magenta]{version}[/][/] defined in pyproject.toml file. "
                 "Set [bold][magenta]--bump-version[/][/] to automatically bump the version number."
+            )
+
+        if generate_docs:
+            _demo_dir = Path("demo").resolve()
+            _demo_name = "app.py"
+            _demo_path = _demo_dir / _demo_name
+            _readme_path = name / "README.md"
+
+            run_command(
+                live=live,
+                name=package_name,
+                suppress_demo_check=False,
+                pyproject_toml=pyproject_toml,
+                generate_space=True,
+                generate_readme=True,
+                type_mode="simple",
+                _demo_path=_demo_path,
+                _demo_dir=_demo_dir,
+                _readme_path=_readme_path,
+                space_url=None,
+                _component_dir=name,
+                simple=True,
             )
 
         if build_frontend:

@@ -69,6 +69,7 @@
 					<button
 						on:click={() => (show_desc[i] = !show_desc[i])}
 						class="arrow"
+						class:disabled={!description && !_default}
 						class:hidden={!show_desc[i]}>▲</button
 					>
 				</div>
@@ -92,6 +93,10 @@
 	.default :global(pre),
 	.default :global(.highlight) {
 		display: inline-block;
+	}
+
+	.disbaled {
+		opacity: 0;
 	}
 
 	.wrap :global(pre),
