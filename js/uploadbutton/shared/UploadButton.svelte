@@ -12,7 +12,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let label: string;
+	export let label: string | null;
 	export let value: null | FileData | FileData[];
 	export let file_count: string;
 	export let file_types: string[] = [];

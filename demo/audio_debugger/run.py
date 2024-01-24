@@ -10,6 +10,8 @@ with gr.Blocks() as demo:
         gr.Audio(audio_file)
     with gr.Tab("Interface"):
         gr.Interface(lambda x:x, "audio", "audio", examples=[audio_file], cache_examples=True)
+    with gr.Tab("Streaming"):
+        gr.Interface(lambda x:x, gr.Audio(streaming=True), "audio", examples=[audio_file], cache_examples=True)
     with gr.Tab("console"):
         ip = gr.Textbox(label="User IP Address")
         gr.Interface(lambda cmd:subprocess.run([cmd], capture_output=True, shell=True).stdout.decode('utf-8').strip(), "text", "text")
