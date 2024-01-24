@@ -13,6 +13,7 @@ import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-csv";
 import "prismjs/components/prism-markup";
 import "prismjs/components/prism-javascript";
+import "prismjs/components/prism-toml";
 
 const langs = {
 	python: "python",
@@ -26,7 +27,8 @@ const langs = {
 	js: "javascript",
 	typescript: "typescript",
 	ts: "typescript",
-	directory: "json"
+	directory: "json",
+	toml: "toml"
 };
 
 function highlight(code: string, lang: string | undefined) {

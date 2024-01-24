@@ -89,6 +89,8 @@ gradio cc build
 This will create a `tar.gz` and `.whl` file in a `dist/` subdirectory.
 If you or anyone installs that `.whl` file (`pip install <path-to-whl>`) they will be able to use your custom component in any gradio app!
 
+The `build` command will also generate documentation for your custom component. This takes the form of an interactive space and a static `README.md`. You can disable this by passing `--no-generate-docs`. You can read more about the documentation generator in [the dedicated guide](./documenting-custom-components).
+
 ## 4. publish
 
 Right now, your package is only available on a `.whl` file on your computer.

@@ -27,6 +27,8 @@
 		return category.guides.filter(isNotHidden).length !== 0;
 	}
 	import DropDown from "$lib/components/VersionDropdown.svelte";
+
+	$: console.log(data);
 </script>
 
 <MetaTags
