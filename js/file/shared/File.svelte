@@ -20,7 +20,7 @@
 	label={label || "File"}
 />
 
-{#if value && (Array.isArray(value) ? value.length > 0 : true)}
+{#if (Array.isArray(value) && value.length > 0) || value !== null}
 	<FilePreview {i18n} {selectable} on:select {value} {height} />
 {:else}
 	<Empty unpadded_box={true} size="large"><File /></Empty>

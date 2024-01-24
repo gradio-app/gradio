@@ -27,7 +27,6 @@
 	let hidden_upload: HTMLInputElement;
 
 	const dispatch = createEventDispatcher();
-
 	$: if (filetype == null || typeof filetype === "string") {
 		accept_file_types = filetype;
 	} else {
@@ -111,19 +110,21 @@
 		if (!file_accept || file_accept === "*" || file_accept === "file/*") {
 			return true;
 		}
-		if (typeof file_accept === "string" && file_accept.endsWith("/*")) {
-			file_accept = file_accept.split(",");
+		let acceptArray: string[];
+		if (typeof file_accept === "string") {
+			acceptArray = file_accept.split(",");
+		} else if (Array.isArray(file_accept)) {
+			acceptArray = file_accept;
+		} else {
+			return false;
 		}
-		if (Array.isArray(file_accept)) {
-			return (
-				file_accept.includes(mime_type) ||
-				file_accept.some((type) => {
-					const [category] = type.split("/");
-					return type.endsWith("/*") && mime_type.startsWith(category + "/");
-				})
-			);
-		}
-		return file_accept === mime_type;
+		return (
+			acceptArray.includes(mime_type) ||
+			acceptArray.some((type) => {
+				const [category] = type.split("/").map((s) => s.trim());
+				return type.endsWith("/*") && mime_type.startsWith(category + "/");
+			})
+		);
 	}
 
 	async function loadFilesFromDrop(e: DragEvent): Promise<void> {
