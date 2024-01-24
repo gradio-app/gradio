@@ -21,7 +21,7 @@ class State(Component):
 
     Preprocessing: No preprocessing is performed
     Postprocessing: No postprocessing is performed
-    Demos: blocks_simple_squares
+    Demos: interface_state, blocks_simple_squares
     Guides: real-time-speech-recognition
     """
 

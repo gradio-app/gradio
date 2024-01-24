@@ -49,7 +49,7 @@ class Audio(
 ):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
-    Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a 16-bit int array whose values range from -32768 to 32767), or as a {str} filepath, depending on `type`.
+    Preprocessing: depending on `type`, passes the uploaded audio as {str} filepath or a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data). If the latter, the audio data is a 16-bit int array whose values range from -32768 to 32767 and shape of the audio data array is (samples,) for mono audio or (samples, channels) for multi-channel audio.
     Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} or {pathlib.Path} filepath or URL to an audio file, or bytes for binary content (recommended for streaming). Note: When converting audio data from float format to WAV, the audio is normalized by its peak value to avoid distortion or clipping in the resulting audio.
     Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
