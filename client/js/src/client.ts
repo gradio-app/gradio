@@ -871,27 +871,7 @@ export function api_factory(
 												});
 											}
 											if (data) {
-												if (diff_ids && diff_ids.length > 0) {
-													let is_first_generation =
-														!pending_diff_streams[event_id];
-													if (is_first_generation) {
-														pending_diff_streams[event_id] = {};
-														diff_ids.forEach((diff_id) => {
-															pending_diff_streams[event_id][diff_id] =
-																data.data[diff_id];
-														});
-													} else {
-														diff_ids.forEach((diff_id) => {
-															let new_data = apply_diff(
-																pending_diff_streams[event_id][diff_id],
-																data.data[diff_id]
-															);
-															pending_diff_streams[event_id][diff_id] =
-																new_data;
-															data.data[diff_id] = new_data;
-														});
-													}
-												}
+												apply_diff_stream(diff_ids, event_id!, data);
 												fire_event({
 													type: "data",
 													time: new Date(),
@@ -961,6 +941,31 @@ export function api_factory(
 						}
 					}
 				);
+
+				function apply_diff_stream(
+					diff_ids: number[],
+					event_id: string,
+					data: any
+				): void {
+					if (diff_ids && diff_ids.length > 0) {
+						let is_first_generation = !pending_diff_streams[event_id];
+						if (is_first_generation) {
+							pending_diff_streams[event_id] = {};
+							diff_ids.forEach((diff_id) => {
+								pending_diff_streams[event_id][diff_id] = data.data[diff_id];
+							});
+						} else {
+							diff_ids.forEach((diff_id) => {
+								let new_data = apply_diff(
+									pending_diff_streams[event_id][diff_id],
+									data.data[diff_id]
+								);
+								pending_diff_streams[event_id][diff_id] = new_data;
+								data.data[diff_id] = new_data;
+							});
+						}
+					}
+				}
 
 				function fire_event<K extends EventType>(event: Event<K>): void {
 					const narrowed_listener_map: ListenerMap<K> = listener_map;

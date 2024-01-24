@@ -242,16 +242,21 @@ export const hardware_types = [
 
 export function apply_diff(
 	obj: any,
-	diff: Array<[string, Array<number | string>, any]>
+	diff: [string, (number | string)[], any][]
 ): any {
 	const apply_edit = (
 		target: any,
-		path: Array<number | string>,
+		path: (number | string)[],
 		action: string,
 		value: any
-	) => {
+	): any => {
 		if (path.length === 0) {
-			return value;
+			if (action === "replace") {
+				return value;
+			} else if (action === "append") {
+				return target + value;
+			}
+			throw new Error(`Unsupported action: ${action}`);
 		}
 
 		let current = target;

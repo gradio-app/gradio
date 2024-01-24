@@ -574,7 +574,12 @@ def apply_diff(obj, diff):
     obj = copy.deepcopy(obj)
     def apply_edit(target, path, action, value):
         if len(path) == 0:
-            return value
+            if action == 'replace':
+                return value
+            elif action == "append":
+                return target + value
+            else:
+                raise ValueError(f"Unsupported action: {action}")
         
         current = target
         for i in range(len(path) - 1):
