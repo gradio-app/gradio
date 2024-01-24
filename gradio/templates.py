@@ -294,7 +294,7 @@ class PlayableVideo(components.Video):
         | Callable
         | None = None,
         *,
-        format: str | None = "mp4",
+        format: Literal["mp4"] = "mp4",
         sources: list[Literal["upload", "webcam"]] | None = None,
         height: int | str | None = None,
         width: int | str | None = None,
@@ -356,7 +356,7 @@ class Microphone(components.Audio):
         self,
         value: str | Path | tuple[int, np.ndarray] | Callable | None = None,
         *,
-        sources: list[Literal["microphone"]] | None = None,
+        sources: list[Literal["upload", "microphone"]] | None = None,
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
         every: float | None = None,
@@ -382,7 +382,7 @@ class Microphone(components.Audio):
         sources = ["microphone"]
         super().__init__(
             value,
-            sources=sources,  # type: ignore
+            sources=sources,
             type=type,
             label=label,
             every=every,
@@ -418,7 +418,7 @@ class Files(components.File):
         self,
         value: str | list[str] | Callable | None = None,
         *,
-        file_count: Literal["single", "multiple"] = "multiple",
+        file_count: Literal["multiple"] = "multiple",
         file_types: list[str] | None = None,
         type: Literal["filepath", "binary"] = "filepath",
         label: str | None = None,
@@ -581,7 +581,7 @@ class List(components.Dataframe):
         *,
         headers: list[str] | None = None,
         row_count: int | tuple[int, str] = (1, "dynamic"),
-        col_count: int | tuple[int, str] | None = 1,
+        col_count: Literal[1] = 1,
         datatype: str | list[str] = "str",
         type: Literal["array"] = "array",
         latex_delimiters: list[dict[str, str | bool]] | None = None,
