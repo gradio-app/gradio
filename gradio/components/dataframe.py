@@ -196,6 +196,7 @@ class Dataframe(Component):
         | str
         | None,
     ) -> DataframeData:
+    
         if value is None:
             return self.postprocess(self.empty_input)
         if isinstance(value, dict):
