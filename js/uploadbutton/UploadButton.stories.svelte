@@ -81,6 +81,6 @@
 <Story
 	name="Button with null label (should be collapsed)"
 	args={{
-		label: null,
+		label: null
 	}}
 />
