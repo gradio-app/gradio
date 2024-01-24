@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Miscellaneous doc fixes
+fix:Miscellaneous doc fixes
