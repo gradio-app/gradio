@@ -6,16 +6,14 @@ from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.components.base import (
-    FormComponent,
-)
+from gradio.components.base import FormComponent, StreamingDiff
 from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class Textbox(FormComponent):
+class Textbox(FormComponent, StreamingDiff):
     """
     Creates a textarea for user to enter string input or display string output.
     Preprocessing: passes textarea value as a {str} into the function.

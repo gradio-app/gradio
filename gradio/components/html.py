@@ -6,14 +6,14 @@ from typing import Any, Callable
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.components.base import Component
+from gradio.components.base import Component, StreamingDiff
 from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document()
-class HTML(Component):
+class HTML(Component, StreamingDiff):
     """
     Used to display arbitrary HTML output.
     Preprocessing: this component does *not* accept input.

@@ -328,6 +328,10 @@ class StreamingInput(metaclass=abc.ABCMeta):
         pass
 
 class StreamingDiff:
+    """
+    When any Component that inherits from this class generates iterative outputs via a yield, the data will be sent to client as a series of calculated 'diffs' between outputs.
+    This is useful for Components that when yielding, generate outputs that are minor edits to previous yields, e.g. Chatbots.
+    """
     def __init__(self, *args, **kwargs) -> None:
         self._last_output = None
         super().__init__(*args, **kwargs)

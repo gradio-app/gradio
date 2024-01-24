@@ -573,6 +573,9 @@ async def stream_sse_v1(
 def apply_diff(obj, diff):
     obj = copy.deepcopy(obj)
     def apply_edit(target, path, action, value):
+        if len(path) == 0:
+            return value
+        
         current = target
         for i in range(len(path) - 1):
             current = current[path[i]]
@@ -594,9 +597,11 @@ def apply_diff(obj, diff):
                 del current[last_path]
         else:
             raise ValueError(f"Unknown action: {action}")
+        
+        return target
 
     for action, path, value in diff:
-        apply_edit(obj, path, action, value)
+        obj = apply_edit(obj, path, action, value)
 
     return obj
 

@@ -250,6 +250,10 @@ export function apply_diff(
 		action: string,
 		value: any
 	) => {
+		if (path.length === 0) {
+			return value;
+		}
+
 		let current = target;
 		for (let i = 0; i < path.length - 1; i++) {
 			current = current[path[i]];
@@ -280,10 +284,11 @@ export function apply_diff(
 			default:
 				throw new Error(`Unknown action: ${action}`);
 		}
+		return target;
 	};
 
 	diff.forEach(([action, path, value]) => {
-		apply_edit(obj, path, action, value);
+		obj = apply_edit(obj, path, action, value);
 	});
 
 	return obj;
