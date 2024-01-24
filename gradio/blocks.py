@@ -1498,7 +1498,7 @@ Received outputs:
         final: bool,
     ) -> tuple[list, list[int]]:
         if session_hash is None or run is None:
-            return data
+            return data, []
         if run not in self.pending_diff_streams[session_hash]:
             self.pending_diff_streams[session_hash][run] = {}
         last_diffs = self.pending_diff_streams[session_hash][run]
