@@ -38,6 +38,7 @@
 		},
 		label: "world video",
 		show_label: true,
+		show_download_button: true,
 		interactive: false,
 		height: 200,
 		width: 400
@@ -55,6 +56,7 @@
 		},
 		label: "world video",
 		show_label: true,
+		show_download_button: false,
 		interactive: false,
 		height: 200,
 		width: 400
@@ -71,6 +73,26 @@
 		width: 400,
 		height: 400,
 		value: null
+	}}
+/>
+
+<Story
+	name="Upload video with download button"
+	args={{
+		label: "world video",
+		show_label: true,
+		interactive: true,
+		sources: ["upload", "webcam"],
+		show_download_button: true,
+		width: 400,
+		height: 400,
+		value: {
+			video: {
+				path: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
+				url: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
+				orig_name: "world.mp4"
+			}
+		}
 	}}
 />
 

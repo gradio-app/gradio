@@ -19,6 +19,7 @@
 		| ["webcam", "upload"]
 		| ["upload", "webcam"] = ["webcam", "upload"];
 	export let label: string | undefined = undefined;
+	export let show_download_button = false;
 	export let show_label = true;
 	export let mirror_webcam = false;
 	export let include_audio: boolean;
@@ -96,7 +97,11 @@
 			{/if}
 		</div>
 	{:else}
-		<ModifyUpload {i18n} on:clear={handle_clear} />
+		<ModifyUpload
+			{i18n}
+			on:clear={handle_clear}
+			download={show_download_button ? value.url : null}
+		/>
 		{#if playable()}
 			{#key value?.url}
 				<Player
