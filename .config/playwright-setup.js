@@ -62,7 +62,8 @@ function spawn_gradio_app(app, port, verbose) {
 			env: {
 				...process.env,
 				GRADIO_SERVER_PORT: `7879`,
-				PYTHONUNBUFFERED: "true"
+				PYTHONUNBUFFERED: "true",
+				GRADIO_ANALYTICS_ENABLED: "False"
 			}
 		});
 		_process.stdout.setEncoding("utf8");
