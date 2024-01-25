@@ -16,6 +16,21 @@
 			content="width=device-width, initial-scale=1, shrink-to-fit=no"
 		/>
 
+		<style>
+			body {
+				background: white;
+				color: black;
+				font-family: Arial, Helvetica, sans-serif;
+			}
+		
+			@media (prefers-color-scheme: dark) {
+				body {
+					background: #0b0f19;
+					color: white;
+				}
+			}
+		</style>
+
 		<script type="module" src="./src/main.ts"></script>
 		<meta property="og:url" content="https://gradio.app/" />
 		<meta property="og:type" content="website" />
@@ -73,22 +88,7 @@
 		>
 		</gradio-app>
 		<script>
-			const prefersDarkMode =
-				window.matchMedia &&
-				window.matchMedia("(prefers-color-scheme: dark)").matches;
-			const bodyElement = document.body;
 			const ce = document.getElementsByTagName("gradio-app");
-
-			const updateStylesForMode = () => {
-				if (prefersDarkMode) {
-					bodyElement.style.background = "#374151";
-					bodyElement.style.color = "white";
-				} else {
-					bodyElement.style.background = "white";
-					bodyElement.style.color = "black";
-				}
-			};
-			updateStylesForMode();
 
 			if (ce[0]) {
 				ce[0].addEventListener("domchange", () => {
