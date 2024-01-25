@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Document the `gr.ParamViewer` component
+feat:Document the `gr.ParamViewer` component, and fix component preprocessing/postprocessing docstrings
