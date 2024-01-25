@@ -2329,7 +2329,9 @@ class TestGallery:
         ).all()
 
         gallery = gr.Gallery(type="pil")
-        assert gallery.preprocess(data)[0][0] == PIL.Image.open("test/test_files/bus.png")
+        assert gallery.preprocess(data)[0][0] == PIL.Image.open(
+            "test/test_files/bus.png"
+        )
 
         img_captions = GalleryImage(
             image=FileData(path="test/test_files/bus.png"), caption="bus"
