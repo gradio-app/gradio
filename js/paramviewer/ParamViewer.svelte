@@ -152,7 +152,7 @@
 		position: relative;
 		padding: 0.7rem 1rem;
 		background: var(--table-odd-background-fill);
-		border-bottom: 1px solid var(--table-border-color);
+		border-bottom: 0px solid var(--table-border-color);
 	}
 
 	.arrow {
