@@ -2320,22 +2320,22 @@ class TestGallery:
         data = GalleryData(root=[img])
 
         preprocess = gallery.preprocess(data)
-        assert preprocess[0] == "test/test_files/bus.png"
+        assert preprocess[0][0] == "test/test_files/bus.png"
 
         gallery = gr.Gallery(type="numpy")
         assert (
-            gallery.preprocess(data)[0]
+            gallery.preprocess(data)[0][0]
             == np.array(PIL.Image.open("test/test_files/bus.png"))
         ).all()
 
         gallery = gr.Gallery(type="pil")
-        assert gallery.preprocess(data)[0] == PIL.Image.open("test/test_files/bus.png")
+        assert gallery.preprocess(data)[0][0] == PIL.Image.open("test/test_files/bus.png")
 
         img_captions = GalleryImage(
             image=FileData(path="test/test_files/bus.png"), caption="bus"
         )
         data = GalleryData(root=[img_captions])
-        preprocess = gr.Gallery(keep_captions=True).preprocess(data)
+        preprocess = gr.Gallery().preprocess(data)
         assert preprocess[0] == ("test/test_files/bus.png", "bus")
 
 
