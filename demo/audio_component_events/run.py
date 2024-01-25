@@ -31,6 +31,10 @@ with gr.Blocks() as demo:
             input_video.pause(lambda n: n + 1, input_num_pause, input_num_pause)
             input_video.change(lambda n: n + 1, input_num_change, input_num_change)
 
+            input_video.start_recording(lambda n: n + 1, input_record, input_record)
+            input_video.pause_recording(lambda n: n + 1, input_pause, input_pause)
+            input_video.stop_recording(lambda n: n + 1, input_stop, input_stop)
+
             output_video.play(lambda n: n + 1, output_num_play, output_num_play)
             output_video.pause(lambda n: n + 1, output_num_pause, output_num_pause)
             output_video.stop(lambda n: n + 1, output_num_stop, output_num_stop)
