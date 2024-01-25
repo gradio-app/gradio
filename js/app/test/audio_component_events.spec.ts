@@ -89,19 +89,21 @@ test("Record, pause, and stop events work correctly.", async ({ page }) => {
 	const context = await browser.newContext({
 		permissions: ["microphone"]
 	});
+	await page.getByLabel("Record audio").click();
 
 	context.grantPermissions(["microphone"]);
 
-	await page.getByLabel('Record audio').click();
+	await page.getByRole("button", { name: "Record", exact: true }).click();
 
-	await page.getByRole('button', { name: 'Record', exact: true }).click();
-	expect(await page.getByLabel('# Output Record Events').inputValue()).toBe('1');
+	expect(await page.getByLabel("# Input Start Recording Events").inputValue()).toBe("1");
 
-	await page.getByText('Pause').click();
-	expect(await page.getByLabel('# Output Pause Events').inputValue()).toBe('1');
+	await page.getByLabel("pause", { exact: true }).click();
+	await page.getByRole("button", { name: "Resume" }).click();
 
-	await page.getByRole('button', { name: 'Resume' }).click();
-	await page.getByRole('button', { name: 'Stop' }).click();
+	expect(await page.getByLabel("# Input Pause Recording Events").inputValue()).toBe("1");
 
-	expect(await page.getByLabel('# Output Stop Events').inputValue()).toBe('1');
+	await page.getByRole("button", { name: "Stop" }).click();
+	await page.waitForTimeout(1000);
+
+	expect(await page.getByLabel("# Input Stop Recording Events").inputValue()).toBe("1");
 });

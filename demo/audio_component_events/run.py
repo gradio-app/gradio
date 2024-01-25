@@ -15,9 +15,9 @@ with gr.Blocks() as demo:
             input_num_pause = gr.Number(label="# Input Pause Events", value=0)
 
         with gr.Column():
-            input_record = gr.Number(label="# Input Record Events", value=0)
-            input_pause = gr.Number(label="# Input Pause Events", value=0)
-            input_stop = gr.Number(label="# Input Stop Events", value=0)
+            input_record = gr.Number(label="# Input Start Recording Events", value=0)
+            input_pause = gr.Number(label="# Input Pause Recording Events", value=0)
+            input_stop = gr.Number(label="# Input Stop Recording Events", value=0)
 
 
         with gr.Column():
