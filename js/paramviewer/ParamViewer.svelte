@@ -185,6 +185,7 @@
 		padding: 0.7rem 1rem;
 		font-size: var(--scale-00);
 		font-family: var(--font-sans);
+		background: var(--block-background-fill);
 	}
 
 	.param {
