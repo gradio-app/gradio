@@ -195,7 +195,12 @@ class Gallery(Component):
 
     def preprocess(
         self, payload: GalleryData | None
-    ) -> List[tuple[str | _Image.Image | np.ndarray, str | None]] | None:
+    ) -> (
+        List[tuple[str, str | None]]
+        | List[tuple[_Image.Image, str | None]]
+        | List[tuple[np.ndarray, str | None]]
+        | None
+    ):
         if payload is None or not payload.root:
             return None
         data = []
