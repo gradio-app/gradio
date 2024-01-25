@@ -30,7 +30,7 @@ test("Gallery select event returns the right value and the download button works
 	expect(download.suggestedFilename()).toBe("lite-logo.png");
 });
 
-test("Gallery allows click-to-upload and upload and change events work correctly", async ({
+test("Gallery click-to-upload, upload and change events work correctly", async ({
 	page
 }) => {
 	await page
