@@ -428,7 +428,12 @@ class Client:
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
 
         helper = None
-        if self.endpoints[inferred_fn_index].protocol in ("ws", "sse", "sse_v1", "sse_v2"):
+        if self.endpoints[inferred_fn_index].protocol in (
+            "ws",
+            "sse",
+            "sse_v1",
+            "sse_v2",
+        ):
             helper = self.new_helper(inferred_fn_index)
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
@@ -1195,7 +1200,9 @@ class Endpoint:
                 self.client.cookies,
             )
 
-    async def _sse_fn_v1_v2(self, helper: Communicator, event_id: str, protocol: Literal["sse_v1", "sse_v2"]):
+    async def _sse_fn_v1_v2(
+        self, helper: Communicator, event_id: str, protocol: Literal["sse_v1", "sse_v2"]
+    ):
         return await utils.get_pred_from_sse_v1_v2(
             helper,
             self.client.headers,

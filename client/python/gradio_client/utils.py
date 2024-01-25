@@ -394,12 +394,7 @@ async def get_pred_from_sse_v1_v2(
         [
             asyncio.create_task(check_for_cancel(helper, headers, cookies)),
             asyncio.create_task(
-                stream_sse_v1_v2(
-                    helper,
-                    pending_messages_per_event,
-                    event_id,
-                    protocol
-                )
+                stream_sse_v1_v2(helper, pending_messages_per_event, event_id, protocol)
             ),
         ],
         return_when=asyncio.FIRST_COMPLETED,
