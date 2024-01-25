@@ -95,15 +95,21 @@ test("Record, pause, and stop events work correctly.", async ({ page }) => {
 
 	await page.getByRole("button", { name: "Record", exact: true }).click();
 
-	expect(await page.getByLabel("# Input Start Recording Events").inputValue()).toBe("1");
+	expect(
+		await page.getByLabel("# Input Start Recording Events").inputValue()
+	).toBe("1");
 
 	await page.getByLabel("pause", { exact: true }).click();
 	await page.getByRole("button", { name: "Resume" }).click();
 
-	expect(await page.getByLabel("# Input Pause Recording Events").inputValue()).toBe("1");
+	expect(
+		await page.getByLabel("# Input Pause Recording Events").inputValue()
+	).toBe("1");
 
 	await page.getByRole("button", { name: "Stop" }).click();
 	await page.waitForTimeout(1000);
 
-	expect(await page.getByLabel("# Input Stop Recording Events").inputValue()).toBe("1");
+	expect(
+		await page.getByLabel("# Input Stop Recording Events").inputValue()
+	).toBe("1");
 });
