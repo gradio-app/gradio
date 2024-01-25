@@ -29,3 +29,21 @@ test("Gallery select event returns the right value and the download button works
 	const download = await downloadPromise;
 	expect(download.suggestedFilename()).toBe("lite-logo.png");
 });
+
+test("Gallery allows click-to-upload and upload and change events work correctly", async ({
+	page
+}) => {
+	await page
+		.getByRole("button", { name: "Drop Image(s) Here - or - Click to Upload" })
+		.first()
+		.click();
+	const uploader = await page.locator("input[type=file]").first();
+	await uploader.setInputFiles([
+		"./test/files/cheetah1.jpg",
+		"./test/files/cheetah1.jpg"
+	]);
+
+	await expect(page.getByLabel("Num Upload")).toHaveValue("1");
+	await page.getByLabel("Clear").first().click();
+	await expect(page.getByLabel("Num Change")).toHaveValue("1");
+});
