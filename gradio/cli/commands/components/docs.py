@@ -6,7 +6,6 @@ from typing import Any, Optional
 
 import requests
 import tomlkit as toml
-from rich import print
 from typer import Argument, Option
 from typing_extensions import Annotated
 

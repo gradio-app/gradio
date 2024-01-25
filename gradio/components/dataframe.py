@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Callable, Dict, List, Literal, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Literal, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -15,26 +15,26 @@ from gradio.components import Component
 from gradio.data_classes import GradioModel
 from gradio.events import Events
 
-
 if TYPE_CHECKING:
-    import polars as pl# type: ignore
+    import polars as pl  # type: ignore
+
 
 def _is_polars_available():
-    try:
-        import polars # type: ignore
-    except ImportError:
-        return False
-    return True
+    import importlib.util
+
+    spec = importlib.util.find_spec("polars")
+    return bool(spec)
 
 
 def _import_polars():
-    import polars as pl # type: ignore
+    import polars as pl  # type: ignore
+
     return pl
 
 
 class DataframeData(GradioModel):
     headers: List[str]
-    data: List[List[Any]]
+    data: Union[List[List[Any]], List[tuple[Any, ...]]]
     metadata: Optional[Dict[str, Optional[List[Any]]]] = None
 
 
@@ -135,11 +135,10 @@ class Dataframe(Component):
             raise ValueError(
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
-        if type == "polars":
-            if not _is_polars_available():
-                raise ImportError(
-                    "Polars is not installed. Please install using `pip install polars`."
-                )
+        if type == "polars" and not _is_polars_available():
+            raise ImportError(
+                "Polars is not installed. Please install using `pip install polars`."
+            )
         self.type = type
         values = {
             "str": "",
