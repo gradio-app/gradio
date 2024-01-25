@@ -18,7 +18,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Optional, TypedDict
+from typing import Any, Callable, Optional, TypedDict, Literal
 
 import fsspec.asyn
 import httpx
@@ -382,21 +382,23 @@ async def get_pred_from_sse_v0(
         return task.result()
 
 
-async def get_pred_from_sse_v1(
+async def get_pred_from_sse_v1_v2(
     helper: Communicator,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
     pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
+    protocol: Literal["sse_v1", "sse_v2"],
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
             asyncio.create_task(check_for_cancel(helper, headers, cookies)),
             asyncio.create_task(
-                stream_sse_v1(
+                stream_sse_v1_v2(
                     helper,
                     pending_messages_per_event,
                     event_id,
+                    protocol
                 )
             ),
         ],
@@ -503,10 +505,11 @@ async def stream_sse_v0(
         raise
 
 
-async def stream_sse_v1(
+async def stream_sse_v1_v2(
     helper: Communicator,
     pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
+    protocol: Literal["sse_v1", "sse_v2"],
 ) -> dict[str, Any]:
     try:
         pending_messages = pending_messages_per_event[event_id]
@@ -542,14 +545,15 @@ async def stream_sse_v1(
                     log=log_message,
                 )
                 output = msg.get("output", {}).get("data", [])
-                if pending_responses_for_diffs is None:
-                    pending_responses_for_diffs = list(output)
-                else:
-                    for i, value in enumerate(output):
-                        prev_output = pending_responses_for_diffs[i]
-                        new_output = apply_diff(prev_output, value)
-                        pending_responses_for_diffs[i] = new_output
-                        output[i] = new_output
+                if protocol == "sse_v2":
+                    if pending_responses_for_diffs is None:
+                        pending_responses_for_diffs = list(output)
+                    else:
+                        for i, value in enumerate(output):
+                            prev_output = pending_responses_for_diffs[i]
+                            new_output = apply_diff(prev_output, value)
+                            pending_responses_for_diffs[i] = new_output
+                            output[i] = new_output
 
                 if output and status_update.code != Status.FINISHED:
                     try:

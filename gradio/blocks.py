@@ -1657,7 +1657,7 @@ Received outputs:
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
-            "protocol": "sse_v1",
+            "protocol": "sse_v2",
         }
 
         def get_layout(block):

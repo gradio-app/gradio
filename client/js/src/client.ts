@@ -776,7 +776,7 @@ export function api_factory(
 									}
 								}
 							};
-						} else if (protocol == "sse_v1") {
+						} else if (protocol == "sse_v1" || protocol == "sse_v2") {
 							fire_event({
 								type: "status",
 								stage: "pending",
@@ -869,7 +869,7 @@ export function api_factory(
 													endpoint: _endpoint,
 													fn_index
 												});
-												if (data) {
+												if (data && protocol === "sse_v2") {
 													apply_diff_stream(event_id!, data);
 												}
 											}
