@@ -1498,7 +1498,7 @@ Received outputs:
         final: bool,
     ) -> list:
         if session_hash is None or run is None:
-            return data, []
+            return data
         first_run = run not in self.pending_diff_streams[session_hash]
         if first_run:
             self.pending_diff_streams[session_hash][run] = [None] * len(data)
