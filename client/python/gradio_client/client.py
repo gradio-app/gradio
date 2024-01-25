@@ -1007,7 +1007,7 @@ class Endpoint:
                 )
                 self.client.pending_event_ids.add(event_id)
                 self.client.pending_messages_per_event[event_id] = []
-                result = utils.synchronize_async(self._sse_fn_v1_v2, helper, event_id)
+                result = utils.synchronize_async(self._sse_fn_v1_v2, helper, event_id, self.protocol)
             else:
                 raise ValueError(f"Unsupported protocol: {self.protocol}")
 
