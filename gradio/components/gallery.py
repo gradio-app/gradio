@@ -36,7 +36,7 @@ class GalleryData(GradioRootModel):
 class Gallery(Component):
     """
     Used to display a list of images as a gallery that can be scrolled through.
-    Preprocessing: A list of image filepaths, numpy arrays or PIL.images, {List[str | PIL.Image | numpy.array ]}. If include_captions is True, then each element of the list is a tuple of an image (numpy, PIL, or filepath) and a optional caption.
+    Preprocessing: A list of image filepaths, numpy arrays or PIL.images, {List[str | PIL.Image | numpy.array ]}. If keep_captions is True, then each element of the list is a tuple of an image (numpy, PIL, or filepath) and a optional caption.
     Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str | pathlib.Path]}, or a {List} of (image, {str} caption) tuples and displays them.
 
     Demos: fake_gan
