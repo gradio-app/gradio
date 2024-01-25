@@ -31,7 +31,7 @@ class AnnotatedImageData(GradioModel):
 @document()
 class AnnotatedImage(Component):
     """
-    Displays a base image and colored subsections on top of that image. Subsections can take the from of rectangles (e.g. object detection) or masks (e.g. image segmentation).
+    Displays a base image and colored annotations on top of that image. Annotations can take the from of rectangles (e.g. object detection) or masks (e.g. image segmentation).
 
     Demos: image_segmentation
     """
@@ -65,8 +65,8 @@ class AnnotatedImage(Component):
     ):
         """
         Parameters:
-            value: Tuple of base image and list of (subsection, label) pairs.
-            show_legend: If True, will show a legend of the subsections.
+            value: Tuple of base image and list of (annotation, label) pairs.
+            show_legend: If True, will show a legend of the annotations.
             height: The height of the image, specified in pixels if a number is passed, or in CSS units if a string is passed.
             width: The width of the image, specified in pixels if a number is passed, or in CSS units if a string is passed.
             color_map: A dictionary mapping labels to colors. The colors must be specified as hex codes.
@@ -101,14 +101,15 @@ class AnnotatedImage(Component):
 
     def preprocess(
         self, payload: AnnotatedImageData | None
-    ) -> AnnotatedImageData | None:
+    ) -> tuple[str, list[tuple[str, str]]] | None:
         """
-        This component does not accept user input, but its value can be set programmatically. If it is used as an input in an event listener, it will pass 
-        that value in the same format described below: a tuple of a base image and list of subsections.
+        This component does not accept user input, but its value can be set programmatically. Although not commonly used as an input, if it is used as an input to an event listener, 
+        it will pass its value as a {tuple} of a base image (as a {str} filepath) and {list} of annotations. Each annotation is {tuple} of a mask (as a {str} filepath 
+        to image) and a {str} label. This {tuple[str, list[tuple[str, str]]]} will be passed into the function in the event listener.
         Parameters;
-            payload: Tuple of base image and list of subsections.
+            payload: Tuple of base image and list of annotations.
         Returns:
-            Tuple of base image file and list of subsections.
+            Tuple of base image file and list of annotations.
         """
         return payload
 
@@ -121,13 +122,13 @@ class AnnotatedImage(Component):
         | None,
     ) -> AnnotatedImageData | None:
         """
-        This component expects a tuple of a base image and list of subsections: a {tuple[Image, list[Subsection]]}. The {Image} itself can be {str} filepath, {numpy.ndarray}, or {PIL.Image}. 
-        Each {Subsection} is a {tuple[Mask, str]}. The {Mask} can be either a {tuple} of 4 {int}'s representing the bounding box coordinates (x1, y1, x2, y2), or 0-1 confidence mask in the 
-        form of a {numpy.ndarray} of the same shape as the image, while the second element of the {Subsection} tuple is a {str} label.
+        This component expects from the function: a tuple of a base image and list of annotations (a {tuple[Image, list[Annotation]]}). The {Image} itself can be {str} filepath, {numpy.ndarray}, or {PIL.Image}. 
+        Each {Annotation} is a {tuple[Mask, str]}. The {Mask} can be either a {tuple} of 4 {int}'s representing the bounding box coordinates (x1, y1, x2, y2), or 0-1 confidence mask in the 
+        form of a {numpy.ndarray} of the same shape as the image, while the second element of the {Annotation} tuple is a {str} label.
         Parameters:
-            value: Tuple of base image and list of subsections, with each subsection a two-part tuple where the first element is a 4 element bounding box or a 0-1 confidence mask, and the second element is the label.
+            value: Tuple of base image and list of annotations, with each annotation a two-part tuple where the first element is a 4 element bounding box or a 0-1 confidence mask, and the second element is the label.
         Returns:
-            Tuple of base image file and list of subsections, with each subsection a two-part tuple where the first element image path of the mask, and the second element is the label.
+            Tuple of base image file and list of annotations, with each annotation a two-part tuple where the first element image path of the mask, and the second element is the label.
         """
         if value is None:
             return None
