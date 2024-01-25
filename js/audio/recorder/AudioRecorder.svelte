@@ -9,6 +9,7 @@
 	import WaveformRecordControls from "../shared/WaveformRecordControls.svelte";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 	import type { WaveformOptions } from "../shared/types";
+	import type { FileData } from "@gradio/client";
 
 	export let mode: string;
 	export let i18n: I18nFormatter;
@@ -53,7 +54,7 @@
 	const dispatch = createEventDispatcher<{
 		start_recording: undefined;
 		pause_recording: undefined;
-		stop_recording: undefined;
+		stop_recording: FileData | null;
 		stop: undefined;
 		play: undefined;
 		pause: undefined;

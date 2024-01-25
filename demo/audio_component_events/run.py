@@ -15,6 +15,12 @@ with gr.Blocks() as demo:
             input_num_pause = gr.Number(label="# Input Pause Events", value=0)
 
         with gr.Column():
+            input_record = gr.Number(label="# Input Record Events", value=0)
+            input_pause = gr.Number(label="# Input Pause Events", value=0)
+            input_stop = gr.Number(label="# Input Stop Events", value=0)
+
+
+        with gr.Column():
             output_num_play = gr.Number(label="# Output Play Events", value=0)
             output_num_pause = gr.Number(label="# Output Pause Events", value=0)
             output_num_stop = gr.Number(label="# Output Stop Events", value=0)

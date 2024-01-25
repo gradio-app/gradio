@@ -87,7 +87,7 @@
 		clear: undefined;
 		start_recording: undefined;
 		pause_recording: undefined;
-		stop_recording: undefined;
+		stop_recording: FileData | null;
 	}>();
 
 	const dispatch_blob = async (
@@ -202,7 +202,7 @@
 		recording = false;
 
 		if (streaming) {
-			dispatch("stop_recording");
+			dispatch("stop_recording", value);
 			recorder.stop();
 			if (pending) {
 				submit_pending_stream_on_pending_end = true;
@@ -241,6 +241,9 @@
 				{waveform_settings}
 				{waveform_options}
 				{handle_reset_value}
+				on:start_recording
+				on:pause_recording
+				on:stop_recording
 			/>
 		{/if}
 	{:else if active_source === "upload"}

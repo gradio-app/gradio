@@ -50,7 +50,7 @@
 		end: never;
 		start_recording: never;
 		pause_recording: never;
-		stop_recording: never;
+		stop_recording: FileData | null;
 		upload: never;
 		clear: never;
 		share: ShareData;
