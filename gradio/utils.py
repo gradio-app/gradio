@@ -1041,6 +1041,7 @@ class LRUCache(OrderedDict, Generic[K, V]):
 def get_cache_folder() -> Path:
     return Path(os.environ.get("GRADIO_EXAMPLES_CACHE", "gradio_cached_examples"))
 
+
 def diff(old, new):
     def compare_objects(obj1, obj2, path=None):
         if path is None:
@@ -1075,9 +1076,7 @@ def diff(old, new):
         if isinstance(obj1, dict):
             for key in obj1:
                 if key in obj2:
-                    edits.extend(
-                        compare_objects(obj1[key], obj2[key], path + [key])
-                    )
+                    edits.extend(compare_objects(obj1[key], obj2[key], path + [key]))
                 else:
                     edits.append(("delete", path + [key], None))
             for key in obj2:
