@@ -36,7 +36,7 @@ class GalleryData(GradioRootModel):
 class Gallery(Component):
     """
     Used to display a list of images as a gallery that can be scrolled through.
-    Preprocessing: A list of image filepaths or urls, {List[str]}
+    Preprocessing: A list of image filepaths, numpy arrays or PIL.images, {List[str | PIL.Image | numpy.array ]}. If include_captions is True, then each element of the list is a tuple of an image (numpy, PIL, or filepath) and a optional caption.
     Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str | pathlib.Path]}, or a {List} of (image, {str} caption) tuples and displays them.
 
     Demos: fake_gan
@@ -74,6 +74,7 @@ class Gallery(Component):
         show_download_button: bool | None = True,
         interactive: bool | None = None,
         type: Literal["numpy", "pil", "filepath"] = "filepath",
+        keep_captions: bool | None = None,
     ):
         """
         Parameters:
@@ -97,8 +98,9 @@ class Gallery(Component):
             object_fit: CSS object-fit property for the thumbnail images in the gallery. Can be "contain", "cover", "fill", "none", or "scale-down".
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
             show_download_button: If True, will show a download button in the corner of the selected image. If False, the icon does not appear. Default is True.
-            type: The format the image is converted before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. If the image is SVG, the `type` is ignored and the filepath of the SVG is returned.
             interactive: If True, the gallery will be interactive, allowing the user upload images. If False, the gallery will be static. Default is True.
+            type: The format the image is converted before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. If the image is SVG, the `type` is ignored and the filepath of the SVG is returned.
+            keep_captions: If True, captions will be kept when the gallery is passed to the prediction function. This means the input type changes to a list of (image, caption) tuples. If False or None, captions will be removed. Default is None.
         """
         self.columns = columns
         self.rows = rows
@@ -113,6 +115,7 @@ class Gallery(Component):
         )
         self.selected_index = selected_index
         self.type = type
+        self.keep_captions = keep_captions
 
         self.show_share_button = (
             (utils.get_space() is not None)
@@ -198,7 +201,14 @@ class Gallery(Component):
     ) -> List[str | _Image.Image | np.ndarray] | None:
         if payload is None or not payload.root:
             return None
-        return [self.convert_to_type(r.image.path, self.type) for r in payload.root]  # type: ignore
+        data = []
+        for gallery_element in payload.root:
+            image = self.convert_to_type(gallery_element.image.path, self.type)  # type: ignore
+            if self.keep_captions:
+                data.append((image, gallery_element.caption))
+            else:
+                data.append(image)
+        return data
 
     def example_inputs(self) -> Any:
         return [
