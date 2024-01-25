@@ -27,8 +27,13 @@
 		line_breaks
 	});
 
-	const is_external_url = (link: string | null): boolean =>
-		!!(link && new URL(link, location.href).origin !== location.origin);
+	const is_external_url = (link: string | null): boolean => {
+		try {
+			return !!link && new URL(link, location.href).origin !== location.origin;
+		} catch (e) {
+			return false;
+		}
+	};
 
 	DOMPurify.addHook("afterSanitizeAttributes", function (node) {
 		if ("target" in node) {
