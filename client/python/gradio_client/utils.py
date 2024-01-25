@@ -540,7 +540,7 @@ async def stream_sse_v1_v2(
                     log=log_message,
                 )
                 output = msg.get("output", {}).get("data", [])
-                if protocol == "sse_v2":
+                if msg["msg"] == ServerMessage.process_generating and protocol == "sse_v2":
                     if pending_responses_for_diffs is None:
                         pending_responses_for_diffs = list(output)
                     else:
