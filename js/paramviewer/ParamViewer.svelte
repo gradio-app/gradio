@@ -101,11 +101,11 @@
 
 	.wrap :global(pre),
 	.wrap :global(.highlight) {
-		margin: 0;
+		margin: 0 !important;
 		background: transparent !important;
 		font-family: var(--font-mono);
 		font-weight: 400;
-		padding: 0;
+		padding: 0 !important;
 	}
 
 	.wrap :global(pre a) {
@@ -192,7 +192,7 @@
 		border-bottom: 1px solid var(--table-border-color);
 	}
 
-	param:last-child {
+	.param:last-child {
 		border-bottom: none;
 	}
 
