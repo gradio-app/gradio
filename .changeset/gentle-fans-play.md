@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Added polars dataframe support with demo
+feat:NO-MERGE: Check the CI of polars df PR
