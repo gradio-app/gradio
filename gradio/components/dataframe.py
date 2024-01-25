@@ -3,7 +3,17 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Literal, Optional, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import numpy as np
 import pandas as pd
@@ -34,7 +44,7 @@ def _import_polars():
 
 class DataframeData(GradioModel):
     headers: List[str]
-    data: Union[List[List[Any]], List[tuple[Any, ...]]]
+    data: Union[List[List[Any]], List[Tuple[Any, ...]]]
     metadata: Optional[Dict[str, Optional[List[Any]]]] = None
 
 
