@@ -130,6 +130,8 @@ prompt-toolkit==3.0.30
     # via ipython
 ptyprocess==0.7.0
     # via pexpect
+polars==0.20.5
+    # via -r requirements.in
 py==1.11.0
     # via pytest
 pyparsing==3.0.9

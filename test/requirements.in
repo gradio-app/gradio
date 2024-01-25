@@ -8,6 +8,7 @@ fastapi>=0.101.0
 gradio_pdf==0.0.3
 httpx
 huggingface_hub
+polars==0.20.5
 pydantic
 pytest
 pytest-asyncio
