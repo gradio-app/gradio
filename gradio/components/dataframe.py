@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Callable, Dict, List, Literal, Optional
+from typing import Any, Callable, Dict, List, Literal, Optional, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -14,6 +14,22 @@ from pandas.io.formats.style import Styler
 from gradio.components import Component
 from gradio.data_classes import GradioModel
 from gradio.events import Events
+
+
+if TYPE_CHECKING:
+    import polars as pl# type: ignore
+
+def _is_polars_available():
+    try:
+        import polars # type: ignore
+    except ImportError:
+        return False
+    return True
+
+
+def _import_polars():
+    import polars as pl # type: ignore
+    return pl
 
 
 class DataframeData(GradioModel):
@@ -120,12 +136,7 @@ class Dataframe(Component):
                 f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_types}"
             )
         if type == "polars":
-            try:
-                import polars
-
-                global pl
-                pl = polars
-            except ImportError:
+            if not _is_polars_available():
                 raise ImportError(
                     "Polars is not installed. Please install using `pip install polars`."
                 )
@@ -180,10 +191,11 @@ class Dataframe(Component):
             else:
                 return pd.DataFrame(payload.data)
         if self.type == "polars":
+            polars = _import_polars()
             if payload.headers is not None:
-                return pl.DataFrame(payload.data, schema=payload.headers)
+                return polars.DataFrame(payload.data, schema=payload.headers)
             else:
-                return pl.DataFrame(payload.data)
+                return polars.DataFrame(payload.data)
         if self.type == "numpy":
             return np.array(payload.data)
         elif self.type == "array":
@@ -243,12 +255,8 @@ class Dataframe(Component):
                 headers=list(df.columns),
                 data=df.to_dict(orient="split")["data"],  # type: ignore
             )
-        elif isinstance(value, str) or (
-            globals().get("pl", None) is not None
-            and isinstance(value, globals()["pl"].DataFrame)
-        ):
-            df = pl.read_csv(value) if isinstance(value, str) else value  # type: ignore
-            df_dict = df.to_dict()
+        elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
+            df_dict = value.to_dict()
             headers = list(df_dict.keys())
             data = list(zip(*df_dict.values()))
             return DataframeData(headers=headers, data=data)
