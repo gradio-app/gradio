@@ -192,6 +192,10 @@
 		border-bottom: 1px solid var(--table-border-color);
 	}
 
+	param:last-child {
+		border-bottom: none;
+	}
+
 	.param:last-child .description {
 		border-bottom: none;
 	}
