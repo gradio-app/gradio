@@ -32,8 +32,6 @@ class AnnotatedImageData(GradioModel):
 class AnnotatedImage(Component):
     """
     Displays a base image and colored subsections on top of that image. Subsections can take the from of rectangles (e.g. object detection) or masks (e.g. image segmentation).
-    Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {Tuple[numpy.ndarray | PIL.Image | str, List[Tuple[numpy.ndarray | Tuple[int, int, int, int], str]]]} consisting of a base image and a list of subsections, that are either (x1, y1, x2, y2) tuples identifying object boundaries, or 0-1 confidence masks of the same shape as the image. A label is provided for each subsection.
 
     Demos: image_segmentation
     """
@@ -76,8 +74,8 @@ class AnnotatedImage(Component):
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
-            min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
+            scale: Relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
+            min_width: Minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -105,10 +103,12 @@ class AnnotatedImage(Component):
         self, payload: AnnotatedImageData | None
     ) -> AnnotatedImageData | None:
         """
+        This component is not typically used as an input. If it is used as an input, it will return the same value that was passed in, which
+        is typically a tuple of the base image and list of subsections, as described below.
         Parameters;
-            payload: Tuple of base image and list of subsections, with each subsection a two-part tuple where the first element is a 4 element bounding box or a 0-1 confidence mask, and the second element is the label.
+            payload: Tuple of base image and list of subsections.
         Returns:
-            Tuple of base image file and list of subsections, with each subsection a two-part tuple where the first element image path of the mask, and the second element is the label.
+            Tuple of base image file and list of subsections.
         """
         return payload
 
@@ -121,6 +121,9 @@ class AnnotatedImage(Component):
         | None,
     ) -> AnnotatedImageData | None:
         """
+        This component expects a {tuple[Image, list[Subsection]]}: a tuple of a base image and list of subsections. The {Image} itself can be {str} filepath, {numpy.ndarray}, or {PIL.Image}. 
+        Each {Subsection} is a {tuple[Mask, Label]}. The {Mask} can be either a {tuple} of 4 {int}s representing the bounding box coordinates (x1, y1, x2, y2), or 0-1 confidence mask in the 
+        form of a {numpy.ndarray} of the same shape as the image. The {Label} for each subsection is a {str}.
         Parameters:
             value: Tuple of base image and list of subsections, with each subsection a two-part tuple where the first element is a 4 element bounding box or a 0-1 confidence mask, and the second element is the label.
         Returns:
