@@ -289,7 +289,7 @@ export function api_factory(
 			const last_status: Record<string, Status["stage"]> = {};
 			let stream_open = false;
 			let pending_stream_messages: Record<string, any[]> = {}; // Event messages may be received by the SSE stream before the initial data POST request is complete. To resolve this race condition, we store the messages in a dictionary and process them when the POST request is complete.
-			let pending_diff_streams: Record<string, Record<string, any[]>> = {};
+			let pending_diff_streams: Record<string, any[][]> = {};
 			let event_stream: EventSource | null = null;
 			const event_callbacks: Record<string, () => Promise<void>> = {};
 			const unclosed_events: Set<string> = new Set();
@@ -818,7 +818,7 @@ export function api_factory(
 									event_id = response.event_id as string;
 									let callback = async function (_data: object): void {
 										try {
-											const { type, status, data, diff_ids } = handle_message(
+											const { type, status, data } = handle_message(
 												_data,
 												last_status[fn_index]
 											);
@@ -869,9 +869,11 @@ export function api_factory(
 													endpoint: _endpoint,
 													fn_index
 												});
+												if (data) {
+													apply_diff_stream(event_id!, data);
+												}
 											}
 											if (data) {
-												apply_diff_stream(diff_ids, event_id!, data);
 												fire_event({
 													type: "data",
 													time: new Date(),
@@ -942,28 +944,22 @@ export function api_factory(
 					}
 				);
 
-				function apply_diff_stream(
-					diff_ids: number[],
-					event_id: string,
-					data: any
-				): void {
-					if (diff_ids && diff_ids.length > 0) {
-						let is_first_generation = !pending_diff_streams[event_id];
-						if (is_first_generation) {
-							pending_diff_streams[event_id] = {};
-							diff_ids.forEach((diff_id) => {
-								pending_diff_streams[event_id][diff_id] = data.data[diff_id];
-							});
-						} else {
-							diff_ids.forEach((diff_id) => {
-								let new_data = apply_diff(
-									pending_diff_streams[event_id][diff_id],
-									data.data[diff_id]
-								);
-								pending_diff_streams[event_id][diff_id] = new_data;
-								data.data[diff_id] = new_data;
-							});
-						}
+				function apply_diff_stream(event_id: string, data: any): void {
+					let is_first_generation = !pending_diff_streams[event_id];
+					if (is_first_generation) {
+						pending_diff_streams[event_id] = [];
+						data.data.forEach((value: any, i: number) => {
+							pending_diff_streams[event_id][i] = value;
+						});
+					} else {
+						data.data.forEach((value: any, i: number) => {
+							let new_data = apply_diff(
+								pending_diff_streams[event_id][i],
+								value
+							);
+							pending_diff_streams[event_id][i] = new_data;
+							data.data[i] = new_data;
+						});
 					}
 				}
 
@@ -1643,7 +1639,6 @@ function handle_message(
 	type: "hash" | "data" | "update" | "complete" | "generating" | "log" | "none";
 	data?: any;
 	status?: Status;
-	diff_ids?: number[];
 } {
 	const queue = true;
 	switch (data.msg) {
@@ -1713,8 +1708,7 @@ function handle_message(
 					progress_data: data.progress_data,
 					eta: data.average_duration
 				},
-				data: data.success ? data.output : null,
-				diff_ids: data.output.diff_ids
+				data: data.success ? data.output : null
 			};
 		case "process_completed":
 			if ("error" in data.output) {

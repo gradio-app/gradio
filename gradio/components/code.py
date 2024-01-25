@@ -7,14 +7,14 @@ from typing import Any, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.components.base import Component, StreamingDiff
+from gradio.components.base import Component
 from gradio.events import Events
 
 set_documentation_group("component")
 
 
 @document("languages")
-class Code(Component, StreamingDiff):
+class Code(Component):
     """
     Creates a Code editor for entering, editing or viewing code.
     Preprocessing: passes a {str} of code into the function.

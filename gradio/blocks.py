@@ -1496,34 +1496,30 @@ Received outputs:
         session_hash: str | None,
         run: int | None,
         final: bool,
-    ) -> tuple[list, list[int]]:
+    ) -> list:
         if session_hash is None or run is None:
             return data, []
-        if run not in self.pending_diff_streams[session_hash]:
-            self.pending_diff_streams[session_hash][run] = {}
+        first_run = run not in self.pending_diff_streams[session_hash]
+        if first_run:
+            self.pending_diff_streams[session_hash][run] = [None] * len(data)
         last_diffs = self.pending_diff_streams[session_hash][run]
 
-        diff_ids = []
-        for i, output_id in enumerate(self.dependencies[fn_index]["outputs"]):
-            block = self.blocks[output_id]
-            if isinstance(block, components.StreamingDiff):
-                if final:
-                    data[i] = last_diffs[output_id]
-                    continue
+        for i in range(len(self.dependencies[fn_index]["outputs"])):
+            if final:
+                data[i] = last_diffs[i]
+                continue
 
-                diff_ids.append(i)
-                first_chunk = output_id not in last_diffs
-                if first_chunk:
-                    last_diffs[output_id] = data[i]
-                else:
-                    prev_chunk = last_diffs[output_id]
-                    last_diffs[output_id] = data[i]
-                    data[i] = block._diff(prev_chunk, data[i])
+            if first_run:
+                last_diffs[i] = data[i]
+            else:
+                prev_chunk = last_diffs[i]
+                last_diffs[i] = data[i]
+                data[i] = utils.diff(prev_chunk, data[i])
 
         if final:
             del self.pending_diff_streams[session_hash][run]
 
-        return data, diff_ids
+        return data
 
     async def process_api(
         self,
@@ -1552,7 +1548,6 @@ Received outputs:
         """
         block_fn = self.fns[fn_index]
         batch = self.dependencies[fn_index]["batch"]
-        diff_ids = None
 
         if batch:
             max_batch_size = self.dependencies[fn_index]["max_batch_size"]
@@ -1615,7 +1610,7 @@ Received outputs:
                     session_hash=session_hash,
                     run=run,
                 )
-                data, diff_ids = self.handle_streaming_diffs(
+                data = self.handle_streaming_diffs(
                     fn_index,
                     data,
                     session_hash=session_hash,
@@ -1629,7 +1624,6 @@ Received outputs:
             "data": data,
             "is_generating": is_generating,
             "iterator": iterator,
-            "diff_ids": diff_ids,
             "duration": result["duration"],
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }

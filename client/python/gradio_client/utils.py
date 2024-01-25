@@ -510,7 +510,7 @@ async def stream_sse_v1(
 ) -> dict[str, Any]:
     try:
         pending_messages = pending_messages_per_event[event_id]
-        pending_responses_for_diffs = {}
+        pending_responses_for_diffs = None
 
         while True:
             if len(pending_messages) > 0:
@@ -542,16 +542,14 @@ async def stream_sse_v1(
                     log=log_message,
                 )
                 output = msg.get("output", {}).get("data", [])
-                diff_ids = msg.get("output", {}).get("diff_ids")
-                diff_ids = diff_ids or []
-                for diff_id in diff_ids:
-                    if diff_id in pending_responses_for_diffs:
-                        prev_output = pending_responses_for_diffs[diff_id]
-                        new_output = apply_diff(prev_output, output[diff_id])
-                        pending_responses_for_diffs[diff_id] = new_output
-                        output[diff_id] = new_output
-                    else:
-                        pending_responses_for_diffs[diff_id] = output[diff_id]
+                if pending_responses_for_diffs is None:
+                    pending_responses_for_diffs = list(output)
+                else:
+                    for i, value in enumerate(output):
+                        prev_output = pending_responses_for_diffs[i]
+                        new_output = apply_diff(prev_output, value)
+                        pending_responses_for_diffs[i] = new_output
+                        output[i] = new_output
 
                 if output and status_update.code != Status.FINISHED:
                     try:

@@ -4,7 +4,6 @@ from gradio.components.bar_plot import BarPlot
 from gradio.components.base import (
     Component,
     FormComponent,
-    StreamingDiff,
     StreamingInput,
     StreamingOutput,
     _Keywords,
@@ -109,10 +108,8 @@ __all__ = [
     "State",
     "UploadButton",
     "Video",
-    "StreamingDiff",
     "StreamingInput",
     "StreamingOutput",
-    "StreamingDiff",
     "ImageEditor",
     "ParamViewer",
 ]

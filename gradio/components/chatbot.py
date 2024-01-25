@@ -10,7 +10,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio import processing_utils, utils
-from gradio.components.base import Component, StreamingDiff
+from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
 
@@ -27,7 +27,7 @@ class ChatbotData(GradioRootModel):
 
 
 @document()
-class Chatbot(Component, StreamingDiff):
+class Chatbot(Component):
     """
     Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, tables. Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links.
     Preprocessing: passes the messages in the Chatbot as a {List[List[str | None | Tuple]]}, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. See `Postprocessing` for the format of these messages.
