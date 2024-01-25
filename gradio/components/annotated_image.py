@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import Any, List
 
 import numpy as np
+import PIL.Image
 from gradio_client.documentation import document, set_documentation_group
-from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
 from gradio.components.base import Component
@@ -15,7 +15,7 @@ from gradio.events import Events
 
 set_documentation_group("component")
 
-_Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
+PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
 class Annotation(GradioModel):
@@ -45,7 +45,7 @@ class AnnotatedImage(Component):
     def __init__(
         self,
         value: tuple[
-            np.ndarray | _Image.Image | str,
+            np.ndarray | PIL.Image.Image | str,
             list[tuple[np.ndarray | tuple[int, int, int, int], str]],
         ]
         | None = None,
@@ -101,10 +101,21 @@ class AnnotatedImage(Component):
             value=value,
         )
 
+    def preprocess(
+        self, payload: AnnotatedImageData | None
+    ) -> AnnotatedImageData | None:
+        """
+        Parameters;
+            payload: Tuple of base image and list of subsections, with each subsection a two-part tuple where the first element is a 4 element bounding box or a 0-1 confidence mask, and the second element is the label.
+        Returns:
+            Tuple of base image file and list of subsections, with each subsection a two-part tuple where the first element image path of the mask, and the second element is the label.
+        """
+        return payload
+
     def postprocess(
         self,
         value: tuple[
-            np.ndarray | _Image.Image | str,
+            np.ndarray | PIL.Image.Image | str,
             list[tuple[np.ndarray | tuple[int, int, int, int], str]],
         ]
         | None,
@@ -120,13 +131,13 @@ class AnnotatedImage(Component):
         base_img = value[0]
         if isinstance(base_img, str):
             base_img_path = base_img
-            base_img = np.array(_Image.open(base_img))
+            base_img = np.array(PIL.Image.open(base_img))
         elif isinstance(base_img, np.ndarray):
             base_file = processing_utils.save_img_array_to_cache(
                 base_img, cache_dir=self.GRADIO_CACHE
             )
             base_img_path = str(utils.abspath(base_file))
-        elif isinstance(base_img, _Image.Image):
+        elif isinstance(base_img, PIL.Image.Image):
             base_file = processing_utils.save_pil_to_cache(
                 base_img, cache_dir=self.GRADIO_CACHE
             )
@@ -171,7 +182,7 @@ class AnnotatedImage(Component):
             colored_mask[:, :, 2] = rgb_color[2] * solid_mask
             colored_mask[:, :, 3] = mask_array * 255
 
-            colored_mask_img = _Image.fromarray((colored_mask).astype(np.uint8))
+            colored_mask_img = PIL.Image.fromarray((colored_mask).astype(np.uint8))
 
             mask_file = processing_utils.save_pil_to_cache(
                 colored_mask_img, cache_dir=self.GRADIO_CACHE
@@ -189,7 +200,3 @@ class AnnotatedImage(Component):
     def example_inputs(self) -> Any:
         return {}
 
-    def preprocess(
-        self, payload: AnnotatedImageData | None
-    ) -> AnnotatedImageData | None:
-        return payload
