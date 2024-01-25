@@ -103,8 +103,8 @@ class AnnotatedImage(Component):
         self, payload: AnnotatedImageData | None
     ) -> AnnotatedImageData | None:
         """
-        This component is not typically used as an input. If it is used as an input, it will return the same value that was passed in, which
-        is typically a tuple of the base image and list of subsections, as described below.
+        This component does not accept user input, but its value can be set programmatically. If it is used as an input in an event listener, it will pass 
+        that value in the same format described below: a tuple of a base image and list of subsections.
         Parameters;
             payload: Tuple of base image and list of subsections.
         Returns:
@@ -121,9 +121,9 @@ class AnnotatedImage(Component):
         | None,
     ) -> AnnotatedImageData | None:
         """
-        This component expects a {tuple[Image, list[Subsection]]}: a tuple of a base image and list of subsections. The {Image} itself can be {str} filepath, {numpy.ndarray}, or {PIL.Image}. 
-        Each {Subsection} is a {tuple[Mask, Label]}. The {Mask} can be either a {tuple} of 4 {int}s representing the bounding box coordinates (x1, y1, x2, y2), or 0-1 confidence mask in the 
-        form of a {numpy.ndarray} of the same shape as the image. The {Label} for each subsection is a {str}.
+        This component expects a tuple of a base image and list of subsections: a {tuple[Image, list[Subsection]]}. The {Image} itself can be {str} filepath, {numpy.ndarray}, or {PIL.Image}. 
+        Each {Subsection} is a {tuple[Mask, str]}. The {Mask} can be either a {tuple} of 4 {int}'s representing the bounding box coordinates (x1, y1, x2, y2), or 0-1 confidence mask in the 
+        form of a {numpy.ndarray} of the same shape as the image, while the second element of the {Subsection} tuple is a {str} label.
         Parameters:
             value: Tuple of base image and list of subsections, with each subsection a two-part tuple where the first element is a 4 element bounding box or a 0-1 confidence mask, and the second element is the label.
         Returns:

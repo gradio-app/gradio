@@ -16,10 +16,7 @@ set_documentation_group("component")
 @document()
 class BarPlot(Plot):
     """
-    Create a bar plot.
-
-    Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a pandas dataframe with the data to plot.
+    Create a bar plot from a pandas dataframe.
 
     Demos: bar_plot, chicago-bikeshare-dashboard
     """
@@ -75,7 +72,7 @@ class BarPlot(Plot):
     ):
         """
         Parameters:
-            value: The pandas dataframe containing the data to display in a scatter plot.
+            value: The pandas dataframe containing the data to display in a scatter plot. If a callable is provided, the function will be called whenever the app loads to set the initial value of the plot.
             x: Column corresponding to the x axis.
             y: Column corresponding to the y axis.
             color: The column to determine the bar color. Must be categorical (discrete values).
@@ -172,8 +169,8 @@ class BarPlot(Plot):
             "none",
         ]
         | None = None,
-        height: int | None = None,
-        width: int | None = None,
+        height: int | str | None = None,
+        width: int | str | None = None,
         y_lim: list[int] | None = None,
         interactive: bool | None = True,
         sort: Literal["x", "y", "-x", "-y"] | None = None,
@@ -244,7 +241,7 @@ class BarPlot(Plot):
             }
 
         if tooltip:
-            encodings["tooltip"] = tooltip
+            encodings["tooltip"] = tooltip  # type: ignore
 
         chart = (
             alt.Chart(value)  # type: ignore
@@ -257,11 +254,21 @@ class BarPlot(Plot):
 
         return chart
 
+    def preprocess(self, payload: AltairPlotData) -> AltairPlotData:
+        """
+        This component is not typically used as an input. If it is used as an input, it will return the same value in the format described below.
+        Parameters:
+            payload: The data to display in a bar plot.
+        Returns:
+            The data to display in a bar plot.
+        """
+        return payload
+
     def postprocess(
-        self, value: pd.DataFrame | dict | None
-    ) -> AltairPlotData | dict | None:
+        self, value: pd.DataFrame | None
+    ) -> AltairPlotData | None:
         # if None or update
-        if value is None or isinstance(value, dict):
+        if value is None:
             return value
         if self.x is None or self.y is None:
             raise ValueError("No value provided for required parameters `x` and `y`.")
@@ -293,5 +300,3 @@ class BarPlot(Plot):
     def example_inputs(self) -> dict[str, Any]:
         return {}
 
-    def preprocess(self, payload: AltairPlotData) -> AltairPlotData:
-        return payload
