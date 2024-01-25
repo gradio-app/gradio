@@ -90,8 +90,7 @@ def _publish(
     dist_dir: Annotated[
         Path,
         Argument(help=f"Path to the wheel directory. Default is {Path('.') / 'dist'}"),
-    ] = Path(".")
-    / "dist",
+    ] = Path(".") / "dist",
     bump_version: Annotated[
         bool, Option(help="Whether to bump the version number.")
     ] = True,
