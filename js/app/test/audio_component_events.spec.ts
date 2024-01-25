@@ -81,35 +81,34 @@ test.skip("Play, Pause, and stop events work correctly.", async ({ page }) => {
 	await expect(async () => event_triggered("# Output Stop Events")).toPass();
 });
 
-test("Record, pause, and stop events work correctly.", async ({ page }) => {
-	const browser = await chromium.launch({
-		args: ["--use-fake-ui-for-media-stream"]
-	});
+test.only("Record, pause, and stop events work correctly.", async ({ page }) => {
+	const browser = await chromium.launch();
 
 	const context = await browser.newContext({
 		permissions: ["microphone"]
 	});
-	await page.getByLabel("Record audio").click();
 
-	context.grantPermissions(["microphone"]);
+	context.grantPermissions(["microphone"])
+
+	await page.getByLabel("Record audio").click();
 
 	await page.getByRole("button", { name: "Record", exact: true }).click();
 
+	await page.waitForTimeout(2000);
 	expect(
-		await page.getByLabel("# Input Start Recording Events").inputValue()
-	).toBe("1");
+		await page.getByLabel("# Input Start Recording Events")).toHaveValue("1");
+
 
 	await page.getByLabel("pause", { exact: true }).click();
 	await page.getByRole("button", { name: "Resume" }).click();
 
 	expect(
-		await page.getByLabel("# Input Pause Recording Events").inputValue()
-	).toBe("1");
+		await page.getByLabel("# Input Pause Recording Events")).toHaveValue("1");
 
 	await page.getByRole("button", { name: "Stop" }).click();
-	await page.waitForTimeout(1000);
+	
+	await page.waitForTimeout(3000);
 
 	expect(
-		await page.getByLabel("# Input Stop Recording Events").inputValue()
-	).toBe("1");
+		await page.getByLabel("# Input Stop Recording Events")).toHaveValue("1");
 });
