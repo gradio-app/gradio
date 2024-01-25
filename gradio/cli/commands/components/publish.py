@@ -5,7 +5,7 @@ import tempfile
 from pathlib import Path
 from typing import List, Optional
 
-import requests
+import httpx
 import semantic_version
 from huggingface_hub import HfApi
 from rich import print
@@ -105,9 +105,7 @@ def _publish(
     ] = None,
     source_dir: Annotated[
         Optional[Path],
-        Option(
-            help="Path to the source directory of the custom component. To share with community."
-        ),
+        Option(help="Path to the source directory of the custom component."),
     ] = None,
     hf_token: Annotated[
         Optional[str],
@@ -115,8 +113,18 @@ def _publish(
             help="HuggingFace token for uploading demo. Can be omitted if already logged in via huggingface cli."
         ),
     ] = None,
-    prefer_local: Annotated[bool, Option(help="Install")] = False,
-    upload_source: Annotated[bool, Option(help="Upload source code")] = True,
+    prefer_local: Annotated[
+        bool,
+        Option(
+            help="Install the package from the local wheel in the demo space, even if it exists on PyPi."
+        ),
+    ] = False,
+    upload_source: Annotated[
+        bool,
+        Option(
+            help="Whether to upload the source code of the custom component, to share with the community."
+        ),
+    ] = True,
 ):
     console = Console()
     dist_dir = dist_dir.resolve()
@@ -223,10 +231,20 @@ def _publish(
             source_dir_ = source_dir_ or str(Path("."))
             source_dir = Path(source_dir_).resolve()
     if upload_demo:
-        package_name, version = wheel_file.name.split("-")[:2]
+        pyproject_toml_path = (
+            (source_dir / "pyproject.toml")
+            if source_dir
+            else Path(".") / "pyproject.toml"
+        )
 
         try:
-            latest_release = requests.get(
+            pyproject_toml = parse(pyproject_toml_path.read_text())
+            package_name = pyproject_toml["project"]["name"]  # type: ignore
+        except Exception:
+            (package_name, version) = wheel_file.name.split("-")[:2]
+
+        try:
+            latest_release = httpx.get(
                 f"https://pypi.org/pypi/{package_name}/json"
             ).json()["info"]["version"]
         except Exception:
