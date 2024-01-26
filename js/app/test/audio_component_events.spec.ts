@@ -104,7 +104,7 @@ test("Record, pause, and stop events work correctly.", async ({ page }) => {
 
 	await page.getByRole("button", { name: "Stop" }).click();
 
-    await page.waitForLoadState('load');
+	await page.waitForLoadState("load");
 	await page.waitForTimeout(1000);
 
 	expect(await page.getByLabel("# Input Stop Recording Events")).toHaveValue(
