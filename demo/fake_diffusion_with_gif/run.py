@@ -30,17 +30,17 @@ def fake_diffusion(steps):
         image = np.random.random((600, 600, 3))
         images.append(image)
         yield image, gr.Image(visible=False)
-    
+
     time.sleep(1)
-    image = "https://gradio-builds.s3.amazonaws.com/diffusion_image/cute_dog.jpg" 
+    image = "https://gradio-builds.s3.amazonaws.com/diffusion_image/cute_dog.jpg"
     images.append(image)
     gif_path = create_gif(images)
-    
+
     yield image, gr.Image(value=gif_path, visible=True)
 
 
-demo = gr.Interface(fake_diffusion, 
-                    inputs=gr.Slider(1, 10, 3), 
+demo = gr.Interface(fake_diffusion,
+                    inputs=gr.Slider(1, 10, 3, step=1),
                     outputs=["image", gr.Image(label="All Images", visible=False)])
 demo.queue()
 
