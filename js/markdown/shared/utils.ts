@@ -218,3 +218,9 @@ async function copy_to_clipboard(value: string): Promise<boolean> {
 
 	return copied;
 }
+
+export const clean_latex_newline = (str: string): string => {
+	return str.replace(/\$\$([\s\S]*?)\$\$/g, (match, group) => {
+		return "$$" + group.replace(/\n/g, "") + "$$";
+	});
+};
