@@ -188,7 +188,10 @@ class Audio(
         self, payload: FileData | None
     ) -> tuple[int, np.ndarray] | str | None:
         """
-        Depending on `type`, preprocesses the audio uploaded by the user as {str} filepath or a {tuple[int, numpy.ndarray]} corresponding to (sample rate in Hz, audio data). If the latter, the audio data is a 16-bit int array whose values range from -32768 to 32767 and shape of the audio data array is (samples,) for mono audio or (samples, channels) for multi-channel audio.
+        Depending on `type`, this component preprocesses the audio uploaded by the user as {str} filepath or a 
+        {tuple[int, numpy.ndarray]} corresponding to (sample rate in Hz, audio data). If the latter, the
+        audio data is a 16-bit int array whose values range from -32768 to 32767 and shape of the audio data array 
+        is (samples,) for mono audio or (samples, channels) for multi-channel audio.
         Parameters:
             payload: audio data as a FileData object, or None.
         Returns:
@@ -236,9 +239,13 @@ class Audio(
         self, value: tuple[int, np.ndarray] | str | Path | bytes | None
     ) -> FileData | bytes | None:
         """
-        Expects audio data in one of these formats: (1) a {tuple[int, numpy.ndarray]} corresponding to (sample rate in Hz, audio data as a float or int numpy array), (2) as a {str} or {pathlib.Path} filepath or URL to an audio file, or (3) {bytes} for binary content (recommended for streaming). Note: if audio is supplied as a numpy array, the audio will be normalized by its peak value to avoid distortion or clipping in the resulting audio.
+        This component expects audio data in one of these formats: (1) a {tuple[int, numpy.ndarray]} corresponding to 
+        (sample rate in Hz, audio data as a float or int numpy array), (2) as a {str} or {pathlib.Path} filepath or URL 
+        to an audio file, or (3) {bytes} for binary content (recommended for streaming). Note: if audio is supplied as a numpy 
+        array, the audio will be normalized by its peak value to avoid distortion or clipping in the resulting audio.
         Parameters:
-            value: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, bytes, or None.
+            value: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath 
+            or URL to an audio file, bytes, or None.
         Returns:
             FileData object, bytes, or None.
         """
