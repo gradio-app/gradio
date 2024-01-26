@@ -1557,7 +1557,10 @@ class Job(Future):
                     o = self.communicator.job.outputs[self._counter]
                     self._counter += 1
                     return o
-                if self.communicator.job.latest_status.code == Status.FINISHED:
+                if (
+                    self.communicator.job.latest_status.code == Status.FINISHED
+                    and self._counter >= len(self.communicator.job.outputs)
+                ):
                     raise StopIteration()
                 time.sleep(0.001)
 
