@@ -1,10 +1,19 @@
 # @gradio/radio
 
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [[`5727b92`](https://github.com/gradio-app/gradio/commit/5727b92abc8a00a675bfc0a921b38de771af947b), [`c60ad4d`](https://github.com/gradio-app/gradio/commit/c60ad4d34ab5b56a89bf6796822977e51e7a4a32)]:
+  - @gradio/utils@0.2.1
+  - @gradio/atoms@0.5.0
+  - @gradio/statustracker@0.4.4
+
 ## 0.4.0
 
 ### Fixes
 
-- [#6933](https://github.com/gradio-app/gradio/pull/6933) [`9cefd2e`](https://github.com/gradio-app/gradio/commit/9cefd2e90a1d0cc4d3e4e953fc5b9b1a7afb68dd) - Refactor examples so they accept data in the same format as is returned by function, rename `.as_example()` to `.process_example()`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6933](https://github.com/gradio-app/gradio/pull/6933) [`9cefd2e`](https://github.com/gradio-app/gradio/commit/9cefd2e90a1d0cc4d3e4e953fc5b9b1a7afb68dd) - Refactor examples so they accept data in the same format as is returned by function, rename `.as_example()` to `.process_example()`. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.3.7
 

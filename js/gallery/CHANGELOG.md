@@ -1,5 +1,11 @@
 # @gradio/gallery
 
+## 0.6.0
+
+### Features
+
+- [#7148](https://github.com/gradio-app/gradio/pull/7148) [`c60ad4d`](https://github.com/gradio-app/gradio/commit/c60ad4d34ab5b56a89bf6796822977e51e7a4a32) - Use Gallery as input component.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.5.0
 
 ### Features

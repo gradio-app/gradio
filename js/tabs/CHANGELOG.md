@@ -1,5 +1,11 @@
 # @gradio/tabs
 
+## 0.2.1
+
+### Fixes
+
+- [#7107](https://github.com/gradio-app/gradio/pull/7107) [`80f8fbf`](https://github.com/gradio-app/gradio/commit/80f8fbf0e8900627b9c2575bbd7c68fad8108544) - Add logic to handle non-interactive or hidden tabs.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.2.0
 
 ### Features

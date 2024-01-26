@@ -1,5 +1,14 @@
 # @gradio/dataset
 
+## 0.1.18
+
+### Patch Changes
+
+- Updated dependencies [[`5727b92`](https://github.com/gradio-app/gradio/commit/5727b92abc8a00a675bfc0a921b38de771af947b), [`bc2cdc1`](https://github.com/gradio-app/gradio/commit/bc2cdc1df95b38025486cf76df4a494b66d98585), [`c60ad4d`](https://github.com/gradio-app/gradio/commit/c60ad4d34ab5b56a89bf6796822977e51e7a4a32)]:
+  - @gradio/utils@0.2.1
+  - @gradio/upload@0.7.0
+  - @gradio/atoms@0.5.0
+
 ## 0.1.17
 
 ### Patch Changes

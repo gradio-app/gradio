@@ -1,5 +1,11 @@
 # @gradio/model3d
 
+## 0.5.0
+
+### Features
+
+- [#7049](https://github.com/gradio-app/gradio/pull/7049) [`1718c4a`](https://github.com/gradio-app/gradio/commit/1718c4aeb23a88ef02b17b30a1d1cb72e413e04a) - add STL 3D model support.  Thanks [@Mon-ius](https://github.com/Mon-ius)!
+
 ## 0.4.15
 
 ### Patch Changes

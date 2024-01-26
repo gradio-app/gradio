@@ -1,16 +1,28 @@
 # @gradio/imageeditor
 
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [[`5727b92`](https://github.com/gradio-app/gradio/commit/5727b92abc8a00a675bfc0a921b38de771af947b), [`bc2cdc1`](https://github.com/gradio-app/gradio/commit/bc2cdc1df95b38025486cf76df4a494b66d98585), [`c60ad4d`](https://github.com/gradio-app/gradio/commit/c60ad4d34ab5b56a89bf6796822977e51e7a4a32), [`be56c76`](https://github.com/gradio-app/gradio/commit/be56c76c7b5d2814ea8239c7dbeddc4b1d3701c4), [`8c355a4`](https://github.com/gradio-app/gradio/commit/8c355a47844296e3aab250fe61e2ecc706122e78)]:
+  - @gradio/utils@0.2.1
+  - @gradio/upload@0.7.0
+  - @gradio/atoms@0.5.0
+  - @gradio/wasm@0.5.1
+  - @gradio/image@0.7.1
+  - @gradio/statustracker@0.4.4
+
 ## 0.3.0
 
 ### Fixes
 
-- [#6933](https://github.com/gradio-app/gradio/pull/6933) [`9cefd2e`](https://github.com/gradio-app/gradio/commit/9cefd2e90a1d0cc4d3e4e953fc5b9b1a7afb68dd) - Refactor examples so they accept data in the same format as is returned by function, rename `.as_example()` to `.process_example()`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6933](https://github.com/gradio-app/gradio/pull/6933) [`9cefd2e`](https://github.com/gradio-app/gradio/commit/9cefd2e90a1d0cc4d3e4e953fc5b9b1a7afb68dd) - Refactor examples so they accept data in the same format as is returned by function, rename `.as_example()` to `.process_example()`. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.2.3
 
 ### Fixes
 
-- [#6885](https://github.com/gradio-app/gradio/pull/6885) [`640b7fe`](https://github.com/gradio-app/gradio/commit/640b7fe05276e11720b4341cadf088491395e53d) - Fix issue with Webcam Recording.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#6885](https://github.com/gradio-app/gradio/pull/6885) [`640b7fe`](https://github.com/gradio-app/gradio/commit/640b7fe05276e11720b4341cadf088491395e53d) - Fix issue with Webcam Recording. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
 
 ## 0.2.2
 

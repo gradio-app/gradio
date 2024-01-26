@@ -1,5 +1,11 @@
 # @gradio/dropdown
 
+## 0.5.1
+
+### Fixes
+
+- [#7081](https://github.com/gradio-app/gradio/pull/7081) [`44c53d9`](https://github.com/gradio-app/gradio/commit/44c53d9bde7cab605b7dbd16331683d13cae029e) - Fix dropdown refocusing due to `<label />` element.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.5.0
 
 ### Fixes
