@@ -1,34 +1,46 @@
+"""gr.Image() component."""
+
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
+
+from gradio_client.documentation import document, set_documentation_group
 
 from gradio.components.base import Component
 from gradio.data_classes import FileData
 from gradio.events import Events
 
+set_documentation_group("component")
 
+
+@document()
 class SimpleImage(Component):
     """
-    Creates a very simple image for user to drag-and-drop or upload their image and get a preview, or display a static image.
-    Preprocessing: passes the uploaded image as a {str} filepath.
-    Postprocessing: expects a {str} or {pathlib.Path} filepath or URL to an image.
-    Examples-format: expects a {str} or {pathlib.Path} filepath or URL to an image.
+    Creates an image component that can be used to upload images (as an input) or display images (as an output).
+    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type`. For SVGs, the `type` parameter is ignored and the filepath of the SVG is returned.
+    Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
+    Examples-format: a {str} local filepath or URL to an image.
+    Demos: image_mod, image_mod_default_image
+    Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, create-your-own-friends-with-a-gan
     """
 
     EVENTS = [
+        Events.clear,
         Events.change,
-        Events.input,
         Events.upload,
     ]
 
+    data_model = FileData
+
     def __init__(
         self,
-        value: str | Callable | None = None,
+        value: str | None = None,
         *,
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
+        show_download_button: bool = True,
         container: bool = True,
         scale: int | None = None,
         min_width: int = 160,
@@ -40,10 +52,11 @@ class SimpleImage(Component):
     ):
         """
         Parameters:
-            value: A path or URL for the default value that Image component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: A PIL SimpleImage, numpy array, path or URL for the default value that SimpleImage component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
+            show_download_button: If True, will display button to download image.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
@@ -53,6 +66,7 @@ class SimpleImage(Component):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
         """
+        self.show_download_button = show_download_button
         super().__init__(
             label=label,
             every=every,
@@ -69,28 +83,14 @@ class SimpleImage(Component):
         )
 
     def preprocess(self, payload: FileData | None) -> str | None:
-        """
-        Preprocesses image by converting it to a str before passing it to the function.
-        Parameters:
-            payload: an object containing the image data of type {FileData}.
-        Returns:
-            str path to a temporary file containing the image.
-        """
         if payload is None:
             return None
         return payload.path
 
     def postprocess(self, value: str | Path | None) -> FileData | None:
-        """
-        Postprocesses image by converting it to a FileData object that can be displayed by the frontend.
-        Parameters:
-            value: a {str} or {pathlib.Path} to the image.
-        Returns:
-            a {FileData} object containing the image data.
-        """
         if value is None:
             return None
-        return FileData(path=str(value))
+        return FileData(path=str(value), orig_name=Path(value).name)
 
     def example_inputs(self) -> Any:
         return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
