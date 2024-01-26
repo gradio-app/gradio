@@ -15,13 +15,11 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Optional
 
-import matplotlib.pyplot as plt
 import numpy as np
 import PIL
 import PIL.Image
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document, set_documentation_group
-from matplotlib import animation
 
 from gradio import components, oauth, processing_utils, routes, utils, wasm_utils
 from gradio.context import Context, LocalContext
@@ -903,6 +901,9 @@ def make_waveform(
     Returns:
         A filepath to the output video in mp4 format.
     """
+    import matplotlib.pyplot as plt
+    from matplotlib.animation import FuncAnimation
+
     if isinstance(audio, str):
         audio_file = audio
         audio = processing_utils.audio_from_file(audio)
@@ -1024,7 +1025,7 @@ def make_waveform(
                     b.set_y((-rand_height * samples)[idx])
 
             frames = int(duration * 10)
-            anim = animation.FuncAnimation(
+            anim = FuncAnimation(
                 fig,  # type: ignore
                 _animate,
                 repeat=False,
