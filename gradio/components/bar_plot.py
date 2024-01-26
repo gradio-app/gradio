@@ -256,7 +256,8 @@ class BarPlot(Plot):
 
     def preprocess(self, payload: AltairPlotData) -> AltairPlotData:
         """
-        This component is not typically used as an input. If it is used as an input, it will return the same value in the format described below.
+        This component does not accept user input, but its value can be set programmatically. In the rare case that it is used as an input component,
+        it will pass its value 
         Parameters:
             payload: The data to display in a bar plot.
         Returns:
