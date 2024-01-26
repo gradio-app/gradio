@@ -311,8 +311,7 @@ def _create_backend(
     if not correct_cased_template:
         raise ValueError(
             f"Cannot find {component.template} in gradio.components, gradio.layouts, or gradio._simple_templates. "
-            "Please pass in a valid component name via the --template option. "
-            "It must match the name of the python class."
+            "Please pass in a valid component name via the --template option. It must match the name of the python class."
         )
 
     readme_contents = textwrap.dedent(

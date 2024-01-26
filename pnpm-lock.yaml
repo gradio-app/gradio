@@ -1358,26 +1358,35 @@ importers:
   js/simpleimage:
     dependencies:
       '@gradio/atoms':
-        specifier: workspace:^
+        specifier: 0.4.1
         version: link:../atoms
       '@gradio/client':
-        specifier: workspace:^
+        specifier: 0.10.1
         version: link:../../client/js
       '@gradio/icons':
-        specifier: workspace:^
+        specifier: 0.3.2
         version: link:../icons
       '@gradio/statustracker':
-        specifier: workspace:^
+        specifier: 0.4.3
         version: link:../statustracker
       '@gradio/upload':
-        specifier: workspace:^
+        specifier: 0.6.1
         version: link:../upload
       '@gradio/utils':
-        specifier: workspace:^
+        specifier: 0.2.0
         version: link:../utils
       '@gradio/wasm':
-        specifier: workspace:^
+        specifier: 0.5.0
         version: link:../wasm
+      cropperjs:
+        specifier: ^1.5.12
+        version: 1.5.12
+      lazy-brush:
+        specifier: ^1.0.1
+        version: 1.0.1
+      resize-observer-polyfill:
+        specifier: ^1.5.1
+        version: 1.5.1
 
   js/simpletextbox:
     dependencies:
