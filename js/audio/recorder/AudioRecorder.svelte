@@ -54,7 +54,7 @@
 	const dispatch = createEventDispatcher<{
 		start_recording: undefined;
 		pause_recording: undefined;
-		stop_recording: FileData | null;
+		stop_recording: undefined;
 		stop: undefined;
 		play: undefined;
 		pause: undefined;

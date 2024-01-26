@@ -81,19 +81,16 @@ test.skip("Play, Pause, and stop events work correctly.", async ({ page }) => {
 	await expect(async () => event_triggered("# Output Stop Events")).toPass();
 });
 
-test.only("Record, pause, and stop events work correctly.", async ({
+test("Record, pause, and stop events work correctly.", async ({
 	page
 }) => {
 	const browser = await chromium.launch();
-
 	const context = await browser.newContext({
 		permissions: ["microphone"]
 	});
-
 	context.grantPermissions(["microphone"]);
 
 	await page.getByLabel("Record audio").click();
-
 	await page.getByRole("button", { name: "Record", exact: true }).click();
 
 	await page.waitForTimeout(2000);
