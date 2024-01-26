@@ -1,5 +1,4 @@
 <script lang="ts">
-	import Image from "./shared/Image.svelte";
 	import type { FileData } from "@gradio/client";
 
 	export let value: null | FileData;
@@ -14,7 +13,7 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	<Image src={samples_dir + value?.path} alt="" />
+	<img src={samples_dir + value?.path} alt="" />
 </div>
 
 <style>
