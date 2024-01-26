@@ -91,7 +91,6 @@ test("Record, pause, and stop events work correctly.", async ({ page }) => {
 	await page.getByLabel("Record audio").click();
 	await page.getByRole("button", { name: "Record", exact: true }).click();
 
-	await page.waitForTimeout(2000);
 	expect(await page.getByLabel("# Input Start Recording Events")).toHaveValue(
 		"1"
 	);
@@ -105,7 +104,8 @@ test("Record, pause, and stop events work correctly.", async ({ page }) => {
 
 	await page.getByRole("button", { name: "Stop" }).click();
 
-	await page.waitForTimeout(3000);
+    await page.waitForLoadState('load');
+	await page.waitForTimeout(1000);
 
 	expect(await page.getByLabel("# Input Stop Recording Events")).toHaveValue(
 		"1"
