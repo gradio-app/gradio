@@ -11,6 +11,7 @@
 		"drop_csv": "Coloque el CSV aquí",
 		"drop_file": "Coloque el archivo aquí",
 		"drop_image": "Coloque la imagen aquí",
-		"drop_video": "Coloque el video aquí"
+		"drop_video": "Coloque el video aquí",
+		"drop_gallery": "Coloque las imagenes aquí"
 	}
 }

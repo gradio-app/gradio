@@ -1,5 +1,11 @@
 # @gradio/markdown
 
+## 0.6.1
+
+### Fixes
+
+- [#7138](https://github.com/gradio-app/gradio/pull/7138) [`ca8753b`](https://github.com/gradio-app/gradio/commit/ca8753bb3d829d0077f758ba8d0ddc866ff74d3d) - Fixes: Chatbot crashes when given empty url following http:// or https://.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.6.0
 
 ### Features
