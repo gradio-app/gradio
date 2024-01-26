@@ -2304,12 +2304,9 @@ Received outputs:
                 if self.blocks[component["id"]].skip_api:
                     continue
                 label = component["props"].get("label", f"parameter_{i}")
-                # The config has the most specific API info (taking into account the parameters
-                # of the component), so we use that if it exists. Otherwise, we fallback to the
-                # Serializer's API info.
                 comp = self.get_component(component["id"])
                 assert isinstance(comp, components.Component)
-                info = comp.api_info()
+                info = component["api_info"]
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
                 dependency_info["parameters"].append(
@@ -2339,7 +2336,7 @@ Received outputs:
                 label = component["props"].get("label", f"value_{o}")
                 comp = self.get_component(component["id"])
                 assert isinstance(comp, components.Component)
-                info = comp.api_info()
+                info = component["api_info"]
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
                 dependency_info["returns"].append(
