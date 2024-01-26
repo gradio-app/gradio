@@ -32,6 +32,7 @@
 	export let show_download_button = false;
 	export let i18n: I18nFormatter;
 	export let selected_index: number | null = null;
+	export let interactive: boolean;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -290,6 +291,15 @@
 			style="--grid-cols:{columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
 			class:pt-6={show_label}
 		>
+			{#if interactive}
+				<div class="icon-button">
+					<ModifyUpload
+						{i18n}
+						absolute={false}
+						on:clear={() => (value = null)}
+					/>
+				</div>
+			{/if}
 			{#if show_share_button}
 				<div class="icon-button">
 					<ShareButton
