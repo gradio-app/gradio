@@ -60,8 +60,6 @@
 			{/if}
 		</Upload>
 		{#if value !== null}
-			<!-- svelte-ignore a11y-click-events-have-key-events-->
-			<!-- svelte-ignore a11y-no-static-element-interactions-->
 			<div class="image-frame">
 				<img src={value.url} alt={value.alt_text} />
 			</div>
