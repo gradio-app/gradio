@@ -10,7 +10,8 @@ export default defineConfig({
 			args: [
 				"--disable-web-security",
 				"--use-fake-device-for-media-stream",
-				"--use-fake-ui-for-media-stream"
+				"--use-fake-ui-for-media-stream",
+				"--use-file-for-fake-audio-capture=../gradio/test_data/test_audio.wav"
 			]
 		}
 	},

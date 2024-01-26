@@ -220,67 +220,81 @@
 	float={active_source === "upload" && value === null}
 	label={label || i18n("audio.audio")}
 />
-{#if value === null || streaming}
-	{#if active_source === "microphone"}
-		<ModifyUpload {i18n} on:clear={clear} absolute={true} />
-		{#if streaming}
-			<StreamAudio
-				{record}
-				{recording}
-				{stop}
-				{i18n}
-				{waveform_settings}
-				{waveform_options}
-			/>
-		{:else}
-			<AudioRecorder
-				bind:mode
-				{i18n}
-				{editable}
-				{dispatch_blob}
-				{waveform_settings}
-				{waveform_options}
-				{handle_reset_value}
-			/>
+<div class="audio-container">
+	{#if value === null || streaming}
+		{#if active_source === "microphone"}
+			<ModifyUpload {i18n} on:clear={clear} absolute={true} />
+			{#if streaming}
+				<StreamAudio
+					{record}
+					{recording}
+					{stop}
+					{i18n}
+					{waveform_settings}
+					{waveform_options}
+				/>
+			{:else}
+				<AudioRecorder
+					bind:mode
+					{i18n}
+					{editable}
+					{dispatch_blob}
+					{waveform_settings}
+					{waveform_options}
+					{handle_reset_value}
+					on:start_recording
+					on:pause_recording
+					on:stop_recording
+				/>
+			{/if}
+		{:else if active_source === "upload"}
+			<!-- explicitly listed out audio mimetypes due to iOS bug not recognizing audio/* -->
+			<Upload
+				filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
+				on:load={handle_load}
+				bind:dragging
+				on:error={({ detail }) => dispatch("error", detail)}
+				{root}
+			>
+				<slot />
+			</Upload>
 		{/if}
-	{:else if active_source === "upload"}
-		<!-- explicitly listed out audio mimetypes due to iOS bug not recognizing audio/* -->
-		<Upload
-			filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
-			on:load={handle_load}
-			bind:dragging
-			on:error={({ detail }) => dispatch("error", detail)}
-			{root}
-		>
-			<slot />
-		</Upload>
+	{:else}
+		<ModifyUpload
+			{i18n}
+			on:clear={clear}
+			on:edit={() => (mode = "edit")}
+			download={show_download_button ? value.url : null}
+			absolute={true}
+		/>
+
+		<AudioPlayer
+			bind:mode
+			{value}
+			{label}
+			{i18n}
+			{dispatch_blob}
+			{waveform_settings}
+			{waveform_options}
+			{trim_region_settings}
+			{handle_reset_value}
+			{editable}
+			interactive
+			on:stop
+			on:play
+			on:pause
+			on:edit
+		/>
 	{/if}
-{:else}
-	<ModifyUpload
-		{i18n}
-		on:clear={clear}
-		on:edit={() => (mode = "edit")}
-		download={show_download_button ? value.url : null}
-		absolute={true}
-	/>
 
-	<AudioPlayer
-		bind:mode
-		{value}
-		{label}
-		{i18n}
-		{dispatch_blob}
-		{waveform_settings}
-		{waveform_options}
-		{trim_region_settings}
-		{handle_reset_value}
-		{editable}
-		interactive
-		on:stop
-		on:play
-		on:pause
-		on:edit
-	/>
-{/if}
+	<SelectSource {sources} bind:active_source handle_clear={clear} />
+</div>
 
-<SelectSource {sources} bind:active_source handle_clear={clear} />
+<style>
+	.audio-container {
+		height: calc(var(--size-full) - var(--size-6));
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+	}
+</style>

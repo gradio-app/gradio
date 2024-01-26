@@ -43,12 +43,4 @@ test("shows the results tab when results > 0", async ({ page }) => {
 
 	await page.waitForTimeout(1000);
 	await page.getByText("Start Practice").dblclick();
-
-	await page.waitForTimeout(5000);
-
-	// await page.getByRole("button", { name: "New Card" }).click();
-	// await page.waitForTimeout(1000);
-	// await page.getByRole("button", { name: "Flip Card" }).click();
-	// await page.getByRole("button", { name: "Correct", exact: true }).click();
-	// await page.getByRole("tab", { name: "Results" }).click();
 });

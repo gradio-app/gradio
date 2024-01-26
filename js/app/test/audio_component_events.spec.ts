@@ -1,4 +1,5 @@
 import { test, expect, drag_and_drop_file } from "@gradio/tootils";
+import { chromium } from "playwright";
 
 test("Audio click-to-upload uploads audio successfuly. File downloading works and file has correct name.", async ({
 	page
@@ -78,4 +79,37 @@ test.skip("Play, Pause, and stop events work correctly.", async ({ page }) => {
 		.getByLabel("Play", { exact: true })
 		.click();
 	await expect(async () => event_triggered("# Output Stop Events")).toPass();
+});
+
+test.skip("Record, pause, and stop recording events work correctly.", async ({
+	page
+}) => {
+	const browser = await chromium.launch();
+	const context = await browser.newContext({
+		permissions: ["microphone"]
+	});
+	context.grantPermissions(["microphone"]);
+
+	await page.getByLabel("Record audio").click();
+	await page.getByRole("button", { name: "Record", exact: true }).click();
+
+	expect(await page.getByLabel("# Input Start Recording Events")).toHaveValue(
+		"1"
+	);
+
+	await page.waitForTimeout(2000);
+	await page.getByLabel("pause", { exact: true }).click();
+	await page.getByRole("button", { name: "Resume" }).click();
+
+	expect(await page.getByLabel("# Input Pause Recording Events")).toHaveValue(
+		"1"
+	);
+
+	await page.getByRole("button", { name: "Stop" }).click();
+
+	expect(await page.getByLabel("# Input Stop Recording Events")).toHaveValue(
+		"1"
+	);
+
+	expect(await page.getByLabel("# Input Change Events")).toHaveValue("1");
 });
