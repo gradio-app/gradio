@@ -1,5 +1,12 @@
 # website
 
+## 0.22.0
+
+### Features
+
+- [#6970](https://github.com/gradio-app/gradio/pull/6970) [`dfe1f08`](https://github.com/gradio-app/gradio/commit/dfe1f08ae216dca8bac8e2d992ebde1f8746c795) - Style changes to custom components gallery.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#7080](https://github.com/gradio-app/gradio/pull/7080) [`6654a32`](https://github.com/gradio-app/gradio/commit/6654a32ebad3c5b9f762d8e9e531f29152625819) - start cc docs guide.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.21.3
 
 ### Patch Changes
