@@ -68,7 +68,7 @@ class SimpleImage(Component):
             value=value,
         )
 
-    def preprocess(self, payload: FileData | None) ->  str | None:
+    def preprocess(self, payload: FileData | None) -> str | None:
         """
         Preprocesses image by converting it to a str before passing it to the function.
         Parameters:

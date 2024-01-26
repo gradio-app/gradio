@@ -296,7 +296,7 @@ def _create_backend(
     lists_to_search = [
         (gradio.components.__all__, "components"),
         (gradio.layouts.__all__, "layouts"),
-        (gradio._simple_templates.__all__, "_simple_templates")  # type: ignore
+        (gradio._simple_templates.__all__, "_simple_templates"),  # type: ignore
     ]
 
     correct_cased_template = None
@@ -386,7 +386,9 @@ __all__ = ['{name}']
         shutil.copy(str(source_pyi_file), str(pyi_file))
 
     content = python_file.read_text()
-    python_file.write_text(_replace_old_class_name(correct_cased_template, name, content))
+    python_file.write_text(
+        _replace_old_class_name(correct_cased_template, name, content)
+    )
     if pyi_file.exists():
         pyi_content = pyi_file.read_text()
         pyi_file.write_text(
