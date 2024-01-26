@@ -31,8 +31,7 @@
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let interactive: boolean;
-	export let pending: boolean;
-	
+
 	$: _value = normalise_file(value, root, proxy_url);
 
 	export let gradio: Gradio<{
@@ -100,7 +99,6 @@
 			on:upload={() => gradio.dispatch("upload")}
 			{label}
 			{show_label}
-			{pending}
 		>
 			<UploadText i18n={gradio.i18n} type="image" />
 		</ImageUploader>
