@@ -202,7 +202,7 @@
 			on:stop={() => gradio.dispatch("stop")}
 			on:start_recording={() => gradio.dispatch("start_recording")}
 			on:pause_recording={() => gradio.dispatch("pause_recording")}
-			on:stop_recording={(e) => gradio.dispatch("stop_recording", e.detail)}
+			on:stop_recording={(e) => gradio.dispatch("stop_recording")}
 			on:upload={() => gradio.dispatch("upload")}
 			on:clear={() => gradio.dispatch("clear")}
 			on:error={handle_error}

@@ -82,17 +82,21 @@
 		seconds = 0;
 		timing = false;
 		clearInterval(interval);
-		const array_buffer = await blob.arrayBuffer();
-		const context = new AudioContext({
-			sampleRate: waveform_settings.sampleRate
-		});
-		const audio_buffer = await context.decodeAudioData(array_buffer);
-
-		if (audio_buffer)
-			await process_audio(audio_buffer).then(async (audio: Uint8Array) => {
-				await dispatch_blob([audio], "change");
-				await dispatch_blob([audio], "stop_recording");
+		try {
+			const array_buffer = await blob.arrayBuffer();
+			const context = new AudioContext({
+				sampleRate: waveform_settings.sampleRate
 			});
+			const audio_buffer = await context.decodeAudioData(array_buffer);
+
+			if (audio_buffer)
+				await process_audio(audio_buffer).then(async (audio: Uint8Array) => {
+					await dispatch_blob([audio], "change");
+					await dispatch_blob([audio], "stop_recording");
+				});
+		} catch (e) {
+			console.error(e);
+		}
 	});
 
 	$: record?.on("record-pause", () => {
@@ -259,6 +263,7 @@
 
 	.component-wrapper {
 		padding: var(--size-3);
+		width: 100%;
 	}
 
 	.timestamps {
