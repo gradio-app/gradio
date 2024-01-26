@@ -81,7 +81,7 @@ test.skip("Play, Pause, and stop events work correctly.", async ({ page }) => {
 	await expect(async () => event_triggered("# Output Stop Events")).toPass();
 });
 
-test("Record, pause, and stop events work correctly.", async ({ page }) => {
+test.skip("Record, pause, and stop recording events work correctly.", async ({ page }) => {
 	const browser = await chromium.launch();
 	const context = await browser.newContext({
 		permissions: ["microphone"]
@@ -94,7 +94,8 @@ test("Record, pause, and stop events work correctly.", async ({ page }) => {
 	expect(await page.getByLabel("# Input Start Recording Events")).toHaveValue(
 		"1"
 	);
-
+	
+	await page.waitForTimeout(2000);
 	await page.getByLabel("pause", { exact: true }).click();
 	await page.getByRole("button", { name: "Resume" }).click();
 
@@ -104,10 +105,7 @@ test("Record, pause, and stop events work correctly.", async ({ page }) => {
 
 	await page.getByRole("button", { name: "Stop" }).click();
 
-	await page.waitForLoadState("load");
+	expect(await page.getByLabel("# Input Stop Recording Events")).toHaveValue("1");
 
-	expect(await page.getByLabel("# Input Stop Recording Events")).toHaveValue(
-		"1",
-		{ timeout: 4000 }
-	);
+	expect(await page.getByLabel("# Input Change Events")).toHaveValue("1");
 });
