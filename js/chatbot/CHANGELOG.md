@@ -1,5 +1,19 @@
 # @gradio/chatbot
 
+## 0.6.3
+
+### Patch Changes
+
+- Updated dependencies [[`5727b92`](https://github.com/gradio-app/gradio/commit/5727b92abc8a00a675bfc0a921b38de771af947b), [`ca8753b`](https://github.com/gradio-app/gradio/commit/ca8753bb3d829d0077f758ba8d0ddc866ff74d3d), [`bc2cdc1`](https://github.com/gradio-app/gradio/commit/bc2cdc1df95b38025486cf76df4a494b66d98585), [`c35fac0`](https://github.com/gradio-app/gradio/commit/c35fac049a44b14719509443c68690e7f23ce70d), [`c60ad4d`](https://github.com/gradio-app/gradio/commit/c60ad4d34ab5b56a89bf6796822977e51e7a4a32), [`13cb6af`](https://github.com/gradio-app/gradio/commit/13cb6af8b23be063d85b2c632f36afa37d874e5d), [`e8b2d8b`](https://github.com/gradio-app/gradio/commit/e8b2d8b2f81b7c4b2d107765f06eaf09a030f1df)]:
+  - @gradio/utils@0.2.1
+  - @gradio/markdown@0.6.1
+  - @gradio/audio@0.8.0
+  - @gradio/upload@0.7.0
+  - @gradio/video@0.5.0
+  - @gradio/atoms@0.5.0
+  - @gradio/image@0.7.1
+  - @gradio/statustracker@0.4.4
+
 ## 0.6.2
 
 ### Patch Changes
