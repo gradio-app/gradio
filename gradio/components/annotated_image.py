@@ -103,15 +103,20 @@ class AnnotatedImage(Component):
         self, payload: AnnotatedImageData | None
     ) -> tuple[str, list[tuple[str, str]]] | None:
         """
-        This component does not accept user input, but its value can be set programmatically. Although not commonly used as an input, if it is used as an input to an event listener, 
-        it will pass its value as a {tuple} of a base image (as a {str} filepath) and {list} of annotations. Each annotation is {tuple} of a mask (as a {str} filepath 
-        to image) and a {str} label. This {tuple[str, list[tuple[str, str]]]} will be passed into the function in the event listener.
+        This component does not accept user input, but its value can be set programmatically. In the rare case that it is used as an input component, 
+        it will pass its value as a {tuple} consisting of a {str} filepath to a base image and {list} of annotations. Each annotation itself is 
+        {tuple} of a mask (as a {str} filepath to image) and a {str} label. This {tuple[str, list[tuple[str, str]]]} will be passed into the function 
+        in the event listener.
         Parameters;
             payload: Tuple of base image and list of annotations.
         Returns:
             Tuple of base image file and list of annotations.
         """
-        return payload
+        if payload is None:
+            return None
+        base_img = payload.image.path
+        annotations = [(a.image.path, a.label) for a in payload.annotations]
+        return (base_img, annotations)
 
     def postprocess(
         self,
@@ -122,7 +127,7 @@ class AnnotatedImage(Component):
         | None,
     ) -> AnnotatedImageData | None:
         """
-        This component expects from the function: a tuple of a base image and list of annotations (a {tuple[Image, list[Annotation]]}). The {Image} itself can be {str} filepath, {numpy.ndarray}, or {PIL.Image}. 
+        This component expects a tuple of a base image and list of annotations: a {tuple[Image, list[Annotation]]}. The {Image} itself can be {str} filepath, {numpy.ndarray}, or {PIL.Image}. 
         Each {Annotation} is a {tuple[Mask, str]}. The {Mask} can be either a {tuple} of 4 {int}'s representing the bounding box coordinates (x1, y1, x2, y2), or 0-1 confidence mask in the 
         form of a {numpy.ndarray} of the same shape as the image, while the second element of the {Annotation} tuple is a {str} label.
         Parameters:
