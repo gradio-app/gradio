@@ -4,7 +4,6 @@
 	export let selected = false;
 </script>
 
-
 <div
 	style="background-color: {value ? value : 'black'}"
 	class:table={type === "table"}

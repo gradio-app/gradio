@@ -4,8 +4,8 @@
 	export let selected = false;
 	export let choices: [string, string | number][];
 
-	let name_string: string
-	
+	let name_string: string;
+
 	if (value === null) {
 		name_string = "";
 	} else {

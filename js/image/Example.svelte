@@ -16,7 +16,7 @@
 	class:border={value}
 >
 	{#if value}
-	<Image src={samples_dir + value.path} alt="" />
+		<Image src={samples_dir + value.path} alt="" />
 	{/if}
 </div>
 
@@ -29,7 +29,7 @@
 	.container.selected {
 		border-color: var(--border-color-accent);
 	}
-	.border.table{
+	.border.table {
 		border: 2px solid var(--border-color-primary);
 	}
 
