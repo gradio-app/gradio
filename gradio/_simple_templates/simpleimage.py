@@ -1,4 +1,4 @@
-"""gr.Image() component."""
+"""gr.SimpleImage() component."""
 
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ class SimpleImage(Component):
     ):
         """
         Parameters:
-            value: A PIL SimpleImage, numpy array, path or URL for the default value that SimpleImage component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: A path or URL for the default value that SimpleImage component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
