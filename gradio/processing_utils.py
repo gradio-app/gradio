@@ -234,17 +234,22 @@ def move_resource_to_block_cache(
     return block.move_resource_to_block_cache(url_or_file_path)
 
 
-def move_files_to_cache(data: Any, block: Component, postprocess: bool = False):
-    """Move files to cache and replace the file path with the cache path.
+def move_files_to_cache_and_replace_with_urls(
+        data: Any, 
+        block: Component, 
+        postprocess: bool = False, 
+    ):
+    """Move any files in `data` to cache and replace filepaths with the local URL (/file=...) to the cached file.
+    Also handles the case where the file is on an external Gradio app (/proxy=...).
 
-    Runs after .postprocess(), after .process_example(), and before .preprocess().
+    Runs after .postprocess() and before .preprocess().
 
     Args:
         data: The input or output data for a component. Can be a dictionary or a dataclass
-        block: The component
+        block: The component whose data is being processed
         postprocess: Whether its running from postprocessing
+        root_url: The root URL of the local server, if applicable
     """
-
     def _move_to_cache(d: dict):
         payload = FileData(**d)
         # If the gradio app developer is returning a URL from
