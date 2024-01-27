@@ -35,3 +35,9 @@
 
 <!-- svelte-ignore a11y-missing-attribute -->
 <img src={resolved_src} {...$$restProps} />
+
+<style>
+	img {
+		object-fit: cover;
+	}
+</style>

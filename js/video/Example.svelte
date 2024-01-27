@@ -38,7 +38,7 @@
 		/>
 	</div>
 {:else}
-	<div>{value}</div>
+	<div>{value ? value : ""}</div>
 {/if}
 
 <style>
