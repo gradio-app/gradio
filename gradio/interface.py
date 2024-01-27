@@ -890,7 +890,7 @@ class TabbedInterface(Blocks):
             mode="tabbed_interface",
             css=css,
             js=js,
-            head=head
+            head=head,
         )
         if tab_names is None:
             tab_names = [f"Tab {i}" for i in range(len(interface_list))]
