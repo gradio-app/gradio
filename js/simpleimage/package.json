@@ -7,13 +7,13 @@
 	"license": "ISC",
 	"private": false,
 	"dependencies": {
-		"@gradio/atoms": "0.4.1",
+		"@gradio/atoms": "0.5.0",
 		"@gradio/client": "0.10.1",
 		"@gradio/icons": "0.3.2",
-		"@gradio/statustracker": "0.4.3",
-		"@gradio/upload": "0.6.1",
-		"@gradio/utils": "0.2.0",
-		"@gradio/wasm": "0.5.0",
+		"@gradio/statustracker": "0.4.4",
+		"@gradio/upload": "0.7.0",
+		"@gradio/utils": "0.2.1",
+		"@gradio/wasm": "0.5.1",
 		"cropperjs": "^1.5.12",
 		"lazy-brush": "^1.0.1",
 		"resize-observer-polyfill": "^1.5.1"
