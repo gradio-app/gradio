@@ -11,7 +11,7 @@ from typing import Any, List, Optional, Union
 
 from fastapi import Request
 from gradio_client.utils import traverse
-from typing_extensions import Literal
+from typing_extensions import Literal, NotRequired
 
 from . import wasm_utils
 
@@ -169,6 +169,7 @@ class FileData(GradioModel):
     size: Optional[int] = None  # size in bytes
     orig_name: Optional[str] = None  # original filename
     mime_type: Optional[str] = None
+    # is_stream: NotRequired[bool]
 
     @property
     def is_none(self):

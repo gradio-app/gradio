@@ -262,6 +262,14 @@ def move_files_to_cache_and_replace_with_urls(
             temp_file_path = move_resource_to_block_cache(payload.path, block)
         assert temp_file_path is not None
         payload.path = temp_file_path
+        
+        url_prefix = "stream/" if getattr(payload, "is_stream", None) else "file="
+        if block.proxy_url:
+            url = f"/proxy={block.proxy_url}/{url_prefix}{temp_file_path}"
+        else:
+            url = f"/{url_prefix}{temp_file_path}"            
+        payload.url = url
+        
         return payload.model_dump()
 
     if isinstance(data, (GradioRootModel, GradioModel)):
