@@ -24,7 +24,7 @@ with gr.Blocks() as demo:
 
 The widths of elements in a Row can be controlled via a combination of `scale` and `min_width` arguments that are present in every Component.
 
-- `scale` is an integer that defines how an element will take up space in a Row. If scale is set to `0`, and element will not expand to take up space. If scale is set to `1` or greater, the element well expand. Multiple elements in a row will expand proportional to their scale. Below, `btn1` will expand twice as much as `btn2`, while `btn0` will not expand at all:
+- `scale` is an integer that defines how an element will take up space in a Row. If scale is set to `0`, the element will not expand to take up space. If scale is set to `1` or greater, the element will expand. Multiple elements in a row will expand proportional to their scale. Below, `btn1` will expand twice as much as `btn2`, while `btn0` will not expand at all:
 
 ```python
 with gr.Blocks() as demo:
