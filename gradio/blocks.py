@@ -508,7 +508,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     ):
         """
         Parameters:
-            theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the HF Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
+            theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: A human-friendly name for the kind of Blocks or Interface being created. Used internally for analytics.
             title: The tab title to display when this is opened in a browser window.
@@ -647,11 +647,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         """
         config = copy.deepcopy(config)
         components_config = config["components"]
-        for component_config in components_config:
-            # for backwards compatibility, extract style into props
-            if "style" in component_config["props"]:
-                component_config["props"].update(component_config["props"]["style"])
-                del component_config["props"]["style"]
         theme = config.get("theme", "default")
         original_mapping: dict[int, Block] = {}
         proxy_urls = {proxy_url}
