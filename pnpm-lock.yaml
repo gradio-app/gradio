@@ -474,6 +474,9 @@ importers:
       '@gradio/simpledropdown':
         specifier: workspace:^
         version: link:../simpledropdown
+      '@gradio/simpleimage':
+        specifier: workspace:^
+        version: link:../simpleimage
       '@gradio/simpletextbox':
         specifier: workspace:^
         version: link:../simpletextbox
@@ -1354,6 +1357,39 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+
+  js/simpleimage:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
+      cropperjs:
+        specifier: ^1.5.12
+        version: 1.5.12
+      lazy-brush:
+        specifier: ^1.0.1
+        version: 1.0.1
+      resize-observer-polyfill:
+        specifier: ^1.5.1
+        version: 1.5.1
 
   js/simpletextbox:
     dependencies:

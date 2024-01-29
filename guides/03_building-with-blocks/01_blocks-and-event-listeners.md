@@ -192,7 +192,7 @@ You can use decorator syntax as well:
 
 $code_on_listener_decorator
 
-You can use `gr.on` to create "live" events by binding to the change event of all components. If you do not specify any triggers, the function will automatically bind to the change event of all input components. 
+You can use `gr.on` to create "live" events by binding to the `change` event of components that implement it. If you do not specify any triggers, the function will automatically bind to all `change` event of all input components that include a `change` event (for example `gr.Textbox` has a `change` event whereas `gr.Button` does not).
 
 $code_on_listener_live
 $demo_on_listener_live
