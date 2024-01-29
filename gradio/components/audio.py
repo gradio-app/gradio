@@ -33,8 +33,8 @@ class WaveformOptions:
         sample_rate: The output sample rate (in Hz) of the audio after editing. Defaults to 44100.
     """
 
-    waveform_color: str = "#9ca3af"
-    waveform_progress_color: str = "#f97316"
+    waveform_color: str | None = None
+    waveform_progress_color: str | None = None
     show_recording_waveform: bool = True
     show_controls: bool = False
     skip_length: int | float = 5
