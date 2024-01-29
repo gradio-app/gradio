@@ -1,5 +1,15 @@
 # @gradio/paramviewer
 
+## 0.4.0
+
+### Features
+
+- [#7109](https://github.com/gradio-app/gradio/pull/7109) [`125a832`](https://github.com/gradio-app/gradio/commit/125a832ab7ee2b5affa574e8b32c88f430cc6663) - generate docs when running `gradio cc build`.  Thanks [@pngwn](https://github.com/pngwn)!
+
+### Fixes
+
+- [#7130](https://github.com/gradio-app/gradio/pull/7130) [`e7ab406`](https://github.com/gradio-app/gradio/commit/e7ab4063eb2624820b9f1076960e9596791d9427) - Fix ParamViewer css.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.3.0
 
 ### Highlights

@@ -4,12 +4,13 @@
 
 <script lang="ts">
 	import type { Gradio, ShareData, SelectData } from "@gradio/utils";
-	import { Block } from "@gradio/atoms";
+	import { Block, UploadText } from "@gradio/atoms";
 	import Gallery from "./shared/Gallery.svelte";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { FileData } from "@gradio/client";
 	import { createEventDispatcher } from "svelte";
+	import { BaseFileUpload } from "@gradio/file";
 
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
@@ -19,10 +20,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value:
-		| { image: FileData; caption: string | null }[]
-		| null
-		| null = null;
+	export let value: { image: FileData; caption: string | null }[] | null = null;
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -35,9 +33,11 @@
 	export let object_fit: "contain" | "cover" | "fill" | "none" | "scale-down" =
 		"cover";
 	export let show_share_button = false;
+	export let interactive: boolean;
 	export let show_download_button = false;
 	export let gradio: Gradio<{
 		change: typeof value;
+		upload: typeof value;
 		select: SelectData;
 		share: ShareData;
 		error: string;
@@ -46,6 +46,7 @@
 
 	const dispatch = createEventDispatcher();
 
+	$: no_value = Array.isArray(value) ? value.length === 0 : !value;
 	$: selected_index, dispatch("prop_change", { selected_index });
 </script>
 
@@ -66,25 +67,44 @@
 		i18n={gradio.i18n}
 		{...loading_status}
 	/>
-	<Gallery
-		on:change={() => gradio.dispatch("change", value)}
-		on:select={(e) => gradio.dispatch("select", e.detail)}
-		on:share={(e) => gradio.dispatch("share", e.detail)}
-		on:error={(e) => gradio.dispatch("error", e.detail)}
-		{label}
-		{value}
-		{show_label}
-		{root}
-		{proxy_url}
-		{columns}
-		{rows}
-		{height}
-		{preview}
-		{object_fit}
-		{allow_preview}
-		bind:selected_index
-		{show_share_button}
-		{show_download_button}
-		i18n={gradio.i18n}
-	/>
+	{#if interactive && no_value}
+		<BaseFileUpload
+			value={null}
+			{root}
+			{label}
+			file_count={"multiple"}
+			file_types={["image"]}
+			i18n={gradio.i18n}
+			on:upload={(e) => {
+				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
+				value = files.map((x) => ({ image: x, caption: null }));
+				gradio.dispatch("upload", value);
+			}}
+		>
+			<UploadText i18n={gradio.i18n} type="gallery" />
+		</BaseFileUpload>
+	{:else}
+		<Gallery
+			on:change={() => gradio.dispatch("change", value)}
+			on:select={(e) => gradio.dispatch("select", e.detail)}
+			on:share={(e) => gradio.dispatch("share", e.detail)}
+			on:error={(e) => gradio.dispatch("error", e.detail)}
+			{label}
+			{show_label}
+			{root}
+			{proxy_url}
+			{columns}
+			{rows}
+			{height}
+			{preview}
+			{object_fit}
+			{interactive}
+			{allow_preview}
+			bind:selected_index
+			bind:value
+			{show_share_button}
+			{show_download_button}
+			i18n={gradio.i18n}
+		/>
+	{/if}
 </Block>

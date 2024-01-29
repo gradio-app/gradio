@@ -5,6 +5,7 @@ Tests for all of the components defined in components.py. Tests are divided into
 """
 
 import filecmp
+import inspect
 import json
 import os
 import shutil
@@ -841,8 +842,8 @@ class TestAudio:
                 "show_controls": False,
                 "show_recording_waveform": True,
                 "skip_length": 5,
-                "waveform_color": "#9ca3af",
-                "waveform_progress_color": "#f97316",
+                "waveform_color": None,
+                "waveform_progress_color": None,
             },
             "_selectable": False,
         }
@@ -893,8 +894,8 @@ class TestAudio:
                 "show_controls": False,
                 "show_recording_waveform": True,
                 "skip_length": 5,
-                "waveform_color": "#9ca3af",
-                "waveform_progress_color": "#f97316",
+                "waveform_color": None,
+                "waveform_progress_color": None,
             },
             "_selectable": False,
         }
@@ -2312,6 +2313,34 @@ class TestGallery:
             },
         ]
 
+    def test_gallery_preprocess(self):
+        from gradio.components.gallery import GalleryData, GalleryImage
+
+        gallery = gr.Gallery()
+        img = GalleryImage(image=FileData(path="test/test_files/bus.png"))
+        data = GalleryData(root=[img])
+
+        preprocess = gallery.preprocess(data)
+        assert preprocess[0][0] == "test/test_files/bus.png"
+
+        gallery = gr.Gallery(type="numpy")
+        assert (
+            gallery.preprocess(data)[0][0]
+            == np.array(PIL.Image.open("test/test_files/bus.png"))
+        ).all()
+
+        gallery = gr.Gallery(type="pil")
+        assert gallery.preprocess(data)[0][0] == PIL.Image.open(
+            "test/test_files/bus.png"
+        )
+
+        img_captions = GalleryImage(
+            image=FileData(path="test/test_files/bus.png"), caption="bus"
+        )
+        data = GalleryData(root=[img_captions])
+        preprocess = gr.Gallery().preprocess(data)
+        assert preprocess[0] == ("test/test_files/bus.png", "bus")
+
 
 class TestState:
     def test_as_component(self):
@@ -2955,3 +2984,12 @@ def test_constructor_args():
         "visible": False,
         "value": "Log in please",
     }
+
+
+def test_template_component_configs(io_components):
+    template_components = [c for c in io_components if getattr(c, "is_template", False)]
+    for component in template_components:
+        component_parent_class = inspect.getmro(component)[1]
+        template_config = component().get_config()
+        parent_config = component_parent_class().get_config()
+        assert set(parent_config.keys()).issubset(set(template_config.keys()))
