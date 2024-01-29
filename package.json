@@ -105,5 +105,9 @@
 		"react-dom": "^18.2.0",
 		"storybook": "^7.5.1",
 		"wikidata-lang": "^4.1.2"
+	},
+	"engines": {
+		"node": ">=18.0.0",
+		"pnpm": "~8.15.0"
 	}
 }

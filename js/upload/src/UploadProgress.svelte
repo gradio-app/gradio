@@ -111,6 +111,7 @@
 		align-items: center;
 		justify-content: center;
 		min-height: var(--size-40);
+		width: var(--size-full);
 	}
 
 	.wrap::after {
