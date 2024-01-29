@@ -91,10 +91,14 @@
 
 	let waveform_settings: Record<string, any>;
 
+	let color_accent = getComputedStyle(
+		document.documentElement
+	).getPropertyValue("--color-accent");
+
 	$: waveform_settings = {
 		height: 50,
 		waveColor: waveform_options.waveform_color || "#9ca3af",
-		progressColor: waveform_options.waveform_progress_color || "#f97316",
+		progressColor: waveform_options.waveform_progress_color || color_accent,
 		barWidth: 2,
 		barGap: 3,
 		cursorWidth: 2,
@@ -109,7 +113,7 @@
 	};
 
 	const trim_region_settings = {
-		color: waveform_options.trim_region_color || "hsla(15, 85%, 40%, 0.4)",
+		color: waveform_options.trim_region_color,
 		drag: true,
 		resize: true
 	};
