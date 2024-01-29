@@ -3,6 +3,7 @@
 "@gradio/checkbox": patch
 "@gradio/code": patch
 "@gradio/colorpicker": patch
+"@gradio/dataset": patch
 "@gradio/dropdown": patch
 "@gradio/file": patch
 "@gradio/fileexplorer": patch
