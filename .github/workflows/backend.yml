@@ -89,7 +89,7 @@ jobs:
       if: steps.frontend-cache.outputs.cache-hit != 'true'
       uses: pnpm/action-setup@v2
       with:
-        version: 8
+        version: 8.15
     - uses: actions/setup-node@v4
       if: steps.frontend-cache.outputs.cache-hit != 'true'
       with:
@@ -185,7 +185,7 @@ jobs:
       if: steps.frontend-cache.outputs.cache-hit != 'true'
       uses: pnpm/action-setup@v2
       with:
-        version: 8
+        version: 8.15
     - uses: actions/setup-node@v4
       if: steps.frontend-cache.outputs.cache-hit != 'true'
       with:
