@@ -1361,13 +1361,8 @@ importers:
   js/simpleimage:
     dependencies:
       '@gradio/atoms':
-<<<<<<< HEAD
-        specifier: 0.4.1
-        version: 0.4.1(svelte@3.59.2)
-=======
         specifier: workspace:^
         version: link:../atoms
->>>>>>> main
       '@gradio/client':
         specifier: workspace:^
         version: link:../../client/js
@@ -1375,19 +1370,6 @@ importers:
         specifier: workspace:^
         version: link:../icons
       '@gradio/statustracker':
-<<<<<<< HEAD
-        specifier: 0.4.3
-        version: 0.4.3(svelte@3.59.2)
-      '@gradio/upload':
-        specifier: 0.6.1
-        version: 0.6.1(svelte@3.59.2)
-      '@gradio/utils':
-        specifier: 0.2.0
-        version: 0.2.0(svelte@3.59.2)
-      '@gradio/wasm':
-        specifier: 0.5.0
-        version: 0.5.0
-=======
         specifier: workspace:^
         version: link:../statustracker
       '@gradio/upload':
@@ -1399,7 +1381,6 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
->>>>>>> main
       cropperjs:
         specifier: ^1.5.12
         version: 1.5.12
