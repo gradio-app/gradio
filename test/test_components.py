@@ -894,8 +894,8 @@ class TestAudio:
                 "show_controls": False,
                 "show_recording_waveform": True,
                 "skip_length": 5,
-                "waveform_color": "#9ca3af",
-                "waveform_progress_color": "#f97316",
+                "waveform_color": None,
+                "waveform_progress_color": None,
             },
             "_selectable": False,
         }
