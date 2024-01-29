@@ -6,6 +6,7 @@ import tempfile
 import textwrap
 from pathlib import Path
 from typing import Iterable
+import warnings
 
 import huggingface_hub
 import semantic_version as semver
@@ -93,23 +94,21 @@ class ThemeClass:
 
         return f"{css_code}\n{dark_css_code}"
 
-    def _get_computed_value(self, property: str, depth=0):
+    def _get_computed_value(self, property: str, depth=0) -> str:
+        MAX_DEPTH = 100
+        if depth > MAX_DEPTH:
+            warnings.warn(f"Cannot resolve '{property}' - circular reference detected.")
+            return ""
         is_dark = property.endswith("_dark")
         if is_dark:
             set_value = getattr(
-                self, property, getattr(self, property[:-5], None)
+                self, property, getattr(self, property[:-5], "")
             )  # if dark mode value is unavailable, use light mode value
         else:
-            set_value = getattr(self, property, None)
-        if set_value is None:
-            return None
+            set_value = getattr(self, property, "")
         pattern = r"(\*)([\w_]+)(\b)"
 
         def repl_func(match, depth):
-            MAX_DEPTH = 100
-            if depth > MAX_DEPTH:
-                print(f"Cannot resolve '{property}' - circular reference detected.")
-                return None
             word = match.group(2)
             dark_suffix = "_dark" if property.endswith("_dark") else ""
             return self._get_computed_value(word + dark_suffix, depth + 1)

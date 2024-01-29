@@ -18,10 +18,10 @@
 
 		<style>
 			:root {
-				--bg: {{ config['body_css']['body_background_fill'] }};
-				--col:   {{ config['body_css']['body_text_color'] }};
-				--bg-dark: {{ config['body_css']['body_background_fill_dark'] }};
-				--col-dark: {{ config['body_css']['body_text_color_dark'] }};
+				--bg: {{ config.get('body_css', {}).get('body_background_fill', 'white') }};
+				--col:   {{ config.get('body_css', {}).get('body_text_color', '#1f2937') }};
+				--bg-dark: {{ config.get('body_css', {}).get('body_background_fill_dark', '#0b0f19') }};
+				--col-dark: {{ config.get('body_css', {}).get('body_text_color_dark', '#f3f4f6') }};
 			}
 
 
