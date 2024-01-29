@@ -1,6 +1,5 @@
 import gradio as gr
-#from foo import BAR
-#
+
 def calculator(num1, operation, num2):
     if operation == "add":
         return num1 + num2
