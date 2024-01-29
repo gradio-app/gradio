@@ -91,14 +91,14 @@
 
 	let waveform_settings: Record<string, any>;
 
-	let colorAccent = getComputedStyle(document.documentElement).getPropertyValue(
-		"--color-accent"
-	);
+	let color_accent = getComputedStyle(
+		document.documentElement
+	).getPropertyValue("--color-accent");
 
 	$: waveform_settings = {
 		height: 50,
 		waveColor: waveform_options.waveform_color || "#9ca3af",
-		progressColor: waveform_options.waveform_progress_color || colorAccent,
+		progressColor: waveform_options.waveform_progress_color || color_accent,
 		barWidth: 2,
 		barGap: 3,
 		cursorWidth: 2,
