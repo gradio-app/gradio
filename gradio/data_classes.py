@@ -84,6 +84,11 @@ class ResetBody(BaseModel):
     event_id: str
 
 
+class WebRTCOfferBody(BaseModel):
+    sdp: str
+    type: str
+
+
 class ComponentServerBody(BaseModel):
     session_hash: str
     component_id: int
