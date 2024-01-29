@@ -508,13 +508,13 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     ):
         """
         Parameters:
-            theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the HF Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
+            theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: A human-friendly name for the kind of Blocks or Interface being created. Used internally for analytics.
             title: The tab title to display when this is opened in a browser window.
-            css: Custom css or path to custom css file to apply to entire Blocks.
-            js: Custom js or path to custom js file to run when demo is first loaded.
-            head: Custom html to insert into the head of the page. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
+            css: Custom css as a string or path to a css file. This css will be included in the demo webpage.
+            js: Custom js or path to js file to run when demo is first loaded. This javascript will be included in the demo webpage.
+            head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
         """
         self.limiter = None
         if theme is None:
@@ -647,11 +647,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         """
         config = copy.deepcopy(config)
         components_config = config["components"]
-        for component_config in components_config:
-            # for backwards compatibility, extract style into props
-            if "style" in component_config["props"]:
-                component_config["props"].update(component_config["props"]["style"])
-                del component_config["props"]["style"]
         theme = config.get("theme", "default")
         original_mapping: dict[int, Block] = {}
         proxy_urls = {proxy_url}
@@ -2304,12 +2299,9 @@ Received outputs:
                 if self.blocks[component["id"]].skip_api:
                     continue
                 label = component["props"].get("label", f"parameter_{i}")
-                # The config has the most specific API info (taking into account the parameters
-                # of the component), so we use that if it exists. Otherwise, we fallback to the
-                # Serializer's API info.
                 comp = self.get_component(component["id"])
                 assert isinstance(comp, components.Component)
-                info = comp.api_info()
+                info = component["api_info"]
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
                 dependency_info["parameters"].append(
@@ -2339,7 +2331,7 @@ Received outputs:
                 label = component["props"].get("label", f"value_{o}")
                 comp = self.get_component(component["id"])
                 assert isinstance(comp, components.Component)
-                info = comp.api_info()
+                info = component["api_info"]
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
                 dependency_info["returns"].append(

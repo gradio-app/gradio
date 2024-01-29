@@ -14,6 +14,7 @@ import os
 import pkgutil
 import re
 import threading
+import time
 import traceback
 import typing
 import urllib.parse
@@ -38,7 +39,6 @@ from typing import (
 
 import anyio
 import httpx
-import matplotlib
 from typing_extensions import ParamSpec
 
 import gradio
@@ -223,6 +223,7 @@ def watchfn(reloader: SourceFileReloader):
             else:
                 reloader.swap_blocks(demo)
             mtimes = {}
+        time.sleep(0.05)
 
 
 def colab_check() -> bool:
@@ -879,10 +880,14 @@ class TupleNoPrint(tuple):
 
 class MatplotlibBackendMananger:
     def __enter__(self):
+        import matplotlib
+
         self._original_backend = matplotlib.get_backend()
         matplotlib.use("agg")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        import matplotlib
+
         matplotlib.use(self._original_backend)
 
 

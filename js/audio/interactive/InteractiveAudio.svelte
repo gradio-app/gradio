@@ -237,10 +237,14 @@
 				<AudioRecorder
 					bind:mode
 					{i18n}
+					{editable}
 					{dispatch_blob}
 					{waveform_settings}
 					{waveform_options}
 					{handle_reset_value}
+					on:start_recording
+					on:pause_recording
+					on:stop_recording
 				/>
 			{/if}
 		{:else if active_source === "upload"}
