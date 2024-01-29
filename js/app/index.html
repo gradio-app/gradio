@@ -17,16 +17,24 @@
 		/>
 
 		<style>
+			:root {
+				--bg: {{ config['body_css']['body_background_fill'] }};
+				--col:   {{ config['body_css']['body_text_color'] }};
+				--bg-dark: {{ config['body_css']['body_background_fill_dark'] }};
+				--col-dark: {{ config['body_css']['body_text_color_dark'] }};
+			}
+
+
 			body {
-				background: white;
-				color: black;
+				background: var(--bg);
+				color: var(--col);
 				font-family: Arial, Helvetica, sans-serif;
 			}
 
 			@media (prefers-color-scheme: dark) {
 				body {
-					background: #0b0f19;
-					color: white;
+					background: var(--bg-dark);
+					color: var(--col-dark);
 				}
 			}
 		</style>

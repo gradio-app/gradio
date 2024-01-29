@@ -93,6 +93,32 @@ class ThemeClass:
 
         return f"{css_code}\n{dark_css_code}"
 
+    def _get_computed_value(self, property: str, depth=0):
+        is_dark = property.endswith("_dark")
+        if is_dark:
+            set_value = getattr(
+                self, property, getattr(self, property[:-5], None)
+            )  # if dark mode value is unavailable, use light mode value
+        else:
+            set_value = getattr(self, property, None)
+        if set_value is None:
+            return None
+        pattern = r"(\*)([\w_]+)(\b)"
+
+        def repl_func(match, depth):
+            MAX_DEPTH = 100
+            if depth > MAX_DEPTH:
+                print(f"Cannot resolve '{property}' - circular reference detected.")
+                return None
+            word = match.group(2)
+            dark_suffix = "_dark" if property.endswith("_dark") else ""
+            return self._get_computed_value(word + dark_suffix, depth + 1)
+
+        computed_value = re.sub(
+            pattern, lambda match: repl_func(match, depth), set_value
+        )
+        return computed_value
+
     def to_dict(self):
         """Convert the theme into a python dictionary."""
         schema = {"theme": {}}
