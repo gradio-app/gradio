@@ -235,11 +235,11 @@ def move_resource_to_block_cache(
 
 
 def move_files_to_cache(
-        data: Any, 
-        block: Component, 
-        postprocess: bool = False, 
-        add_urls = False,
-    ):
+    data: Any,
+    block: Component,
+    postprocess: bool = False,
+    add_urls=False,
+):
     """Move any files in `data` to cache and (optionally), adds URL prefixes (/file=...) needed to access the cached file.
     Also handles the case where the file is on an external Gradio app (/proxy=...).
 
@@ -251,6 +251,7 @@ def move_files_to_cache(
         postprocess: Whether its running from postprocessing
         root_url: The root URL of the local server, if applicable
     """
+
     def _move_to_cache(d: dict):
         payload = FileData(**d)
         # If the gradio app developer is returning a URL from
@@ -263,15 +264,15 @@ def move_files_to_cache(
             temp_file_path = move_resource_to_block_cache(payload.path, block)
         assert temp_file_path is not None
         payload.path = temp_file_path
-    
+
         if add_urls:
             url_prefix = "stream/" if getattr(payload, "is_stream", None) else "file="
             if block.proxy_url:
                 url = f"/proxy={block.proxy_url}/{url_prefix}{temp_file_path}"
             else:
-                url = f"/{url_prefix}{temp_file_path}"            
+                url = f"/{url_prefix}{temp_file_path}"
             payload.url = url
-            
+
         return payload.model_dump()
 
     if isinstance(data, (GradioRootModel, GradioModel)):

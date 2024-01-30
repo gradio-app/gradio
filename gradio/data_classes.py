@@ -11,7 +11,7 @@ from typing import Any, List, Optional, Union
 
 from fastapi import Request
 from gradio_client.utils import traverse
-from typing_extensions import Literal, NotRequired
+from typing_extensions import Literal
 
 from . import wasm_utils
 
