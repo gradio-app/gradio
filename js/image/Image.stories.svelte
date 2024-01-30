@@ -1,10 +1,23 @@
-<script lang="ts">
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+<script context="module">
+	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import StaticImage from "./Index.svelte";
 	import { userEvent, within } from "@storybook/testing-library";
-</script>
+	import { allModes } from "../storybook/modes";
 
-<Meta title="Components/Image" component={Image} />
+	export const meta = {
+		title: "Components/Image",
+		component: StaticImage,
+		parameters: {
+			chromatic: {
+				modes: {
+					desktop: allModes["desktop"],
+					tablet: allModes["tablet"],
+					mobile: allModes["mobile"]
+				}
+			}
+		}
+	};
+</script>
 
 <Template let:args>
 	<div
