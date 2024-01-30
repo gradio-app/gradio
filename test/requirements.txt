@@ -184,7 +184,7 @@ threadpoolctl==3.1.0
     # via scikit-learn
 tifffile==2021.11.2
     # via scikit-image
-tokenizers==0.12.1
+tokenizers==0.15.1
     # via transformers
 tomli==2.0.1
     # via
@@ -202,7 +202,7 @@ traitlets==5.3.0
     # via
     #   ipython
     #   matplotlib-inline
-transformers==4.20.1
+transformers==4.37.2
     # via -r requirements.in
 urllib3==1.26.10
     # via
