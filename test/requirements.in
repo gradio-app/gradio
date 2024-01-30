@@ -16,7 +16,6 @@ pytest-cov
 ruff>=0.1.7
 respx
 scikit-image
-shap
 torch
 tqdm
 transformers
