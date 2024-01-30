@@ -1,50 +1,32 @@
-<script>
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+<script context="module">
+	import { Template, Story } from "@storybook/addon-svelte-csf";
+	import { format } from "svelte-i18n";
 	import FileUpload from "./shared/FileUpload.svelte";
+	import { get } from "svelte/store";
 
-	//     export const meta = {
-	//         title: "Components/FileUpload",
-	//         component: FileUpload,
-	//         argTypes: {
-	//             value: {
-	//                 control: "text",
-	//                 description: "The URL or filepath (or list of URLs or filepaths)",
-	//                 name: "value",
-	//                 value: []
-	//             },
-	//             file_count: {
-	//                 control: "radio",
-	//                 options: ["single", "multiple"],
-	//                 description: "Whether to allow single or multiple files to be uploaded",
-	//                 name: "file_count",
-	//                 value: "single"
-	//             },
-	//         }
-	//   }
+	export const meta = {
+		title: "Components/FileUpload",
+		component: FileUpload,
+		argTypes: {
+			value: {
+				control: "text",
+				description: "The URL or filepath (or list of URLs or filepaths)",
+				name: "value",
+				value: []
+			},
+			file_count: {
+				control: "radio",
+				options: ["single", "multiple"],
+				description: "Whether to allow single or multiple files to be uploaded",
+				name: "file_count",
+				value: "single"
+			}
+		}
+	};
 </script>
 
-<Meta
-	title="Components/FileUpload"
-	component={FileUpload}
-	argTypes={{
-		value: {
-			control: "text",
-			description: "The URL or filepath (or list of URLs or filepaths)",
-			name: "value",
-			value: []
-		},
-		file_count: {
-			control: "radio",
-			options: ["single", "multiple"],
-			description: "Whether to allow single or multiple files to be uploaded",
-			name: "file_count",
-			value: "single"
-		}
-	}}
-/>
-
 <Template let:args>
-	<FileUpload {...args} i18n={{ "file.uploading": "Uploading" }} />
+	<FileUpload {...args} i18n={get(format)} />
 </Template>
 
 <Story
