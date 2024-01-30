@@ -67,7 +67,7 @@
 	label={label || "File"}
 />
 
-{#if value && (Array.isArray(value) ? value.length > 0 : false)}
+{#if value && (Array.isArray(value) ? value.length > 0 : true)}
 	<ModifyUpload {i18n} on:clear={handle_clear} absolute />
 	<FilePreview {i18n} on:select {selectable} {value} {height} />
 {:else}
