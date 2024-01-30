@@ -18,7 +18,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Optional, TypedDict, Literal
+from typing import Any, Callable, Literal, Optional, TypedDict
 
 import fsspec.asyn
 import httpx
@@ -409,6 +409,8 @@ async def get_pred_from_sse_v1_v2(
 
     assert len(done) == 1
     for task in done:
+        if task.exception():
+            raise task.exception()
         return task.result()
 
 

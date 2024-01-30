@@ -777,6 +777,7 @@ export function api_factory(
 								}
 							};
 						} else if (protocol == "sse_v1" || protocol == "sse_v2") {
+							// latest API format. v2 introduces sending diffs for intermediate outputs in generative functions, which makes payloads lighter.
 							fire_event({
 								type: "status",
 								stage: "pending",

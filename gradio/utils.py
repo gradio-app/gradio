@@ -1059,10 +1059,6 @@ def diff(old, new):
             edits.append(("append", path, obj2[len(obj1) :]))
             return edits
 
-        if isinstance(obj1, (bool, int, float, str)):
-            edits.append(("replace", path, obj2))
-            return edits
-
         if isinstance(obj1, list):
             common_length = min(len(obj1), len(obj2))
             for i in range(common_length):
@@ -1083,6 +1079,8 @@ def diff(old, new):
                 if key not in obj1:
                     edits.append(("add", path + [key], obj2[key]))
             return edits
-        raise ValueError(f"Unknown type encountered: {obj1}")
+
+        edits.append(("replace", path, obj2))
+        return edits
 
     return compare_objects(old, new)
