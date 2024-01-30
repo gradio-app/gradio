@@ -278,6 +278,7 @@ class TestBlocksMethods:
             None,
             1.2,
         ]
+
         def generator():
             yield from generations
 
