@@ -218,43 +218,46 @@
 						</div>
 
 						{#if mode === "components"}
-						{#if "preprocess" in obj}
-							<div id="behavior">
-								<h4 class="mt-4 text-xl text-orange-500 font-light group">
-									Behavior
-									<a href="#behavior" class="invisible group-hover-visible"
-										><img class="anchor-img-small" src={anchor} /></a
-									>
-								</h4>
-								<p class="text-lg text-gray-500 mb-2">
-									<span class="text-gray-700">As input component: </span>
-									returns value as {obj.preprocess.return_doc.doc}
-								</p>
-								<p class="text-md text-gray-500 -mb-1">
-									Your predict function
-								</p>
-								<div class="codeblock">
-									<pre><code class="code language-python">{@html obj.preprocess_code_snippet}</code></pre>
-								</div>
-								
-								
-								<p class="text-lg text-gray-500 my-2">
-									<span class="text-gray-700">As output component:</span>
-									expects value as {obj.postprocess.parameter_doc[0].doc}
-								</p>
-								<p class="text-md text-gray-500 -mb-1">
-									Your predict function
-								</p>
-								<div class="codeblock">
-									<pre><code class="code language-python">{@html obj.postprocess_code_snippet}</code></pre>
-								</div>
-								{#if obj.tags.events && obj.tags.events.length > 0}
-									<p class="text-lg text-gray-500">
-										<span class="text-gray-700">Supported events:</span>
-										<em>{@html obj.tags.events}</em>
+							{#if "preprocess" in obj}
+								<div id="behavior">
+									<h4 class="mt-4 text-xl text-orange-500 font-light group">
+										Behavior
+										<a href="#behavior" class="invisible group-hover-visible"
+											><img class="anchor-img-small" src={anchor} /></a
+										>
+									</h4>
+									<p class="text-lg text-gray-500 mb-2">
+										<span class="text-gray-700">As input component: </span>
+										returns value as {obj.preprocess.return_doc.doc}
 									</p>
-								{/if}
-							</div>
+									<p class="text-md text-gray-500 -mb-1">
+										Your predict function
+									</p>
+									<div class="codeblock">
+										<pre><code class="code language-python"
+												>{@html obj.preprocess_code_snippet}</code
+											></pre>
+									</div>
+
+									<p class="text-lg text-gray-500 my-2">
+										<span class="text-gray-700">As output component:</span>
+										expects value as {obj.postprocess.parameter_doc[0].doc}
+									</p>
+									<p class="text-md text-gray-500 -mb-1">
+										Your predict function
+									</p>
+									<div class="codeblock">
+										<pre><code class="code language-python"
+												>{@html obj.postprocess_code_snippet}</code
+											></pre>
+									</div>
+									{#if obj.tags.events && obj.tags.events.length > 0}
+										<p class="text-lg text-gray-500">
+											<span class="text-gray-700">Supported events:</span>
+											<em>{@html obj.tags.events}</em>
+										</p>
+									{/if}
+								</div>
 							{/if}
 						{/if}
 

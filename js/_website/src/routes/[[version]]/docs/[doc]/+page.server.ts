@@ -81,17 +81,23 @@ export async function load({ params, parent }) {
 					});
 				}
 
-				if (("preprocess" in obj) && ("postprocess" in obj)) {
-let preprocess_code_snippet = Prism.highlight(
-`def predict(
+				if ("preprocess" in obj && "postprocess" in obj) {
+					let preprocess_code_snippet = Prism.highlight(
+						`def predict(
 	value: ${obj.preprocess.return_doc.annotation}
 )
-	...`, Prism.languages[language], "python");
+	...`,
+						Prism.languages[language],
+						"python"
+					);
 
-let postprocess_code_snippet = Prism.highlight(
-`def predict(···) -> ${obj.postprocess.parameter_doc[0].annotation}
+					let postprocess_code_snippet = Prism.highlight(
+						`def predict(···) -> ${obj.postprocess.parameter_doc[0].annotation}
 	...	
-	return value`, Prism.languages[language], "python");
+	return value`,
+						Prism.languages[language],
+						"python"
+					);
 					obj.preprocess_code_snippet = preprocess_code_snippet;
 					obj.postprocess_code_snippet = postprocess_code_snippet;
 				}
