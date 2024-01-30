@@ -49,8 +49,4 @@
 		border-bottom-left-radius: var(--container-radius);
 		padding: var(--block-padding);
 	}
-
-	.hide {
-		display: none;
-	}
 </style>
