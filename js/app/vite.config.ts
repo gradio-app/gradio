@@ -115,6 +115,7 @@ export default defineConfig(({ mode }) => {
 							} else if (
 								selector.indexOf(":root") > -1 ||
 								selector.indexOf("dark") > -1 ||
+								selector.indexOf("body") > -1 ||
 								fileName.indexOf(".svelte") > -1
 							) {
 								return selector;
