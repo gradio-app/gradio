@@ -1,5 +1,11 @@
 # @gradio/video
 
+## 0.5.0
+
+### Features
+
+- [#7104](https://github.com/gradio-app/gradio/pull/7104) [`bc2cdc1`](https://github.com/gradio-app/gradio/commit/bc2cdc1df95b38025486cf76df4a494b66d98585) - Allow download button for interactive Audio and Video components.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.4.0
 
 ### Fixes

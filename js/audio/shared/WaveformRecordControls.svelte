@@ -91,6 +91,7 @@
 		>
 
 		<button
+			aria-label="pause"
 			bind:this={pauseButton}
 			class="pause-button"
 			on:click={() => record.pauseRecording()}><Pause /></button

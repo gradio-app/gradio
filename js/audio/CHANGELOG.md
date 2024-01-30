@@ -1,5 +1,17 @@
 # @gradio/audio
 
+## 0.8.0
+
+### Features
+
+- [#7104](https://github.com/gradio-app/gradio/pull/7104) [`bc2cdc1`](https://github.com/gradio-app/gradio/commit/bc2cdc1df95b38025486cf76df4a494b66d98585) - Allow download button for interactive Audio and Video components.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
+### Fixes
+
+- [#7082](https://github.com/gradio-app/gradio/pull/7082) [`c35fac0`](https://github.com/gradio-app/gradio/commit/c35fac049a44b14719509443c68690e7f23ce70d) - Ensure device selection works in Audio when streaming.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#7045](https://github.com/gradio-app/gradio/pull/7045) [`13cb6af`](https://github.com/gradio-app/gradio/commit/13cb6af8b23be063d85b2c632f36afa37d874e5d) - Ensure microphone devices list updates.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6826](https://github.com/gradio-app/gradio/pull/6826) [`e8b2d8b`](https://github.com/gradio-app/gradio/commit/e8b2d8b2f81b7c4b2d107765f06eaf09a030f1df) - Add sample rate config option to `gr.Audio()`.  Thanks [@tsukumijima](https://github.com/tsukumijima)!
+
 ## 0.7.2
 
 ### Patch Changes

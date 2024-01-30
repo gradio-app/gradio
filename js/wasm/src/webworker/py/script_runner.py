@@ -140,7 +140,7 @@ async def _run_code(
     # Add special variables to the module's globals dict.
     module.__dict__["__file__"] = script_path
 
-    with modified_sys_path(script_path), app_id_context(app_id):
+    with modified_sys_path(script_path), modified_sys_path(home_dir), app_id_context(app_id):
         # Allow top-level await. Ref: https://github.com/whitphx/streamlit/commit/277dc580efb315a3e9296c9a0078c602a0904384
         if bytecode.co_flags & CO_COROUTINE:
             # The source code includes top-level awaits, so the compiled code object is a coroutine.

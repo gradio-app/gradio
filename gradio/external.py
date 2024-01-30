@@ -54,9 +54,9 @@ def load(
     **kwargs,
 ) -> Blocks:
     """
-    Method that constructs a Blocks from a Hugging Face repo. Can accept
-    model repos (if src is "models") or Space repos (if src is "spaces"). The input
-    and output components are automatically loaded from the repo.
+    Constructs a demo from a Hugging Face repo. Can accept model repos (if src is "models") or Space repos (if src is "spaces"). The input
+    and output components are automatically loaded from the repo. Note that if a Space is loaded, certain high-level attributes of the Blocks (e.g.
+    custom `css`, `js`, and `head` attributes) will not be loaded.
     Parameters:
         name: the name of the model (e.g. "gpt2" or "facebook/bart-base") or space (e.g. "flax-community/spanish-gpt2"), can include the `src` as prefix (e.g. "models/facebook/bart-base")
         src: the source of the model: `models` or `spaces` (or leave empty if source is provided as a prefix in `name`)
