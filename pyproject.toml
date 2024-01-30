@@ -75,7 +75,7 @@ artifacts = [
   "/gradio/_frontend_code",
   "*.pyi",
   "/gradio/node",
-  "py.typed"
+  "py.typed",
 ]
 
 [tool.hatch.build.targets.wheel.hooks.custom]
@@ -100,7 +100,7 @@ exclude = [
   "gradio/_frontend_code/",
   "gradio/components/*_plot.py",
   "gradio/ipython_ext.py",
-  "gradio/node"
+  "gradio/node",
 ]
 
 [tool.ruff]
@@ -118,7 +118,7 @@ ignore = [
   "UP007",  # use X | Y for type annotations (TODO: can be enabled once Pydantic plays nice with them)
   "UP006",  # use `list` instead of `List` for type annotations (fails for 3.8)
 ]
-exclude = ["gradio/node/*.py"]
+exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py"]
 
 [tool.ruff.per-file-ignores]
 "demo/*" = [

@@ -14,6 +14,12 @@ inputs:
   skip_build:
     description: 'Skip build'
     default: 'false'
+  python_version:
+    description: 'Python version'
+    default: '3.10'
+  os:
+    description: 'OS'
+    default: 'ubuntu-latest'
 
 runs:
   using: "composite"
@@ -37,7 +43,7 @@ runs:
       with:
         path: |
           venv/*
-        key: gradio-lib-ubuntu-latest-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
+        key: gradio-lib-ubuntu-latest-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}
     - name: Install Gradio and Client Libraries Locally (Linux)
       shell: bash
       run: |
