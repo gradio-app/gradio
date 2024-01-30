@@ -9,7 +9,7 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	{value ? value.toLocaleString() : ""}
+	{value && value.toLocaleString()}
 </div>
 
 <style>
