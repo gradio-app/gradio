@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/client";
 
-	export let value: FileData;
+	export let value: FileData | null;
 	export let type: "gallery" | "table";
 	export let selected = false;
 </script>
@@ -11,7 +11,7 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	{Array.isArray(value) ? value.join(", ") : value}
+	{value ? (Array.isArray(value) ? value.join(", ") : value) : ""}
 </div>
 
 <style>

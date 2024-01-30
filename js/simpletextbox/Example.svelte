@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 
-	export let value: string;
+	export let value: string | null;
 	export let type: "gallery" | "table";
 	export let selected = false;
 
@@ -29,7 +29,7 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	{value}
+	{value ? value : ""}
 </div>
 
 <style>

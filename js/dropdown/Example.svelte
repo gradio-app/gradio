@@ -1,10 +1,10 @@
 <script lang="ts">
-	export let value: string | string[];
+	export let value: string | string[] | null;
 	export let type: "gallery" | "table";
 	export let selected = false;
 	export let choices: [string, string | number][];
 
-	let value_array = Array.isArray(value) ? value : [value];
+	let value_array = value ? (Array.isArray(value) ? value : [value]) : [];
 	let names = value_array
 		.map(
 			(val) =>

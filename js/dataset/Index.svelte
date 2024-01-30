@@ -129,28 +129,30 @@
 	{#if gallery}
 		<div class="gallery">
 			{#each selected_samples as sample_row, i}
-				<button
-					class="gallery-item"
-					on:click={() => {
-						value = i + page * samples_per_page;
-						gradio.dispatch("click", value);
-						gradio.dispatch("select", { index: value, value: sample_row });
-					}}
-					on:mouseenter={() => handle_mouseenter(i)}
-					on:mouseleave={() => handle_mouseleave()}
-				>
-					{#if component_meta.length && component_map.get(components[0])}
-						<svelte:component
-							this={component_meta[0][0].component}
-							{...component_props[0]}
-							value={sample_row[0]}
-							{samples_dir}
-							type="gallery"
-							selected={current_hover === i}
-							index={i}
-						/>
-					{/if}
-				</button>
+				{#if sample_row[0]}
+					<button
+						class="gallery-item"
+						on:click={() => {
+							value = i + page * samples_per_page;
+							gradio.dispatch("click", value);
+							gradio.dispatch("select", { index: value, value: sample_row });
+						}}
+						on:mouseenter={() => handle_mouseenter(i)}
+						on:mouseleave={() => handle_mouseleave()}
+					>
+						{#if component_meta.length && component_map.get(components[0])}
+							<svelte:component
+								this={component_meta[0][0].component}
+								{...component_props[0]}
+								value={sample_row[0]}
+								{samples_dir}
+								type="gallery"
+								selected={current_hover === i}
+								index={i}
+							/>
+						{/if}
+					</button>
+				{/if}
 			{/each}
 		</div>
 	{:else}

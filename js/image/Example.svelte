@@ -13,8 +13,11 @@
 	class:table={type === "table"}
 	class:gallery={type === "gallery"}
 	class:selected
+	class:border={value}
 >
-	<Image src={samples_dir + value?.path} alt="" />
+	{#if value}
+		<Image src={samples_dir + value.path} alt="" />
+	{/if}
 </div>
 
 <style>
@@ -26,10 +29,12 @@
 	.container.selected {
 		border-color: var(--border-color-accent);
 	}
+	.border.table {
+		border: 2px solid var(--border-color-primary);
+	}
 
 	.container.table {
 		margin: 0 auto;
-		border: 2px solid var(--border-color-primary);
 		border-radius: var(--radius-lg);
 		overflow: hidden;
 		width: var(--size-20);
