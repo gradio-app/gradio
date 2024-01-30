@@ -23,6 +23,8 @@
 		sources: ["webcam", "upload"],
 		type: "pil",
 		interactive: "true",
+		label: "Image Editor",
+		show_label: true,
 		brush: {
 			default_size: "auto",
 			colors: ["#ff0000", "#00ff00", "#0000ff"],
