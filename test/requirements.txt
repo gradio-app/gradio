@@ -167,7 +167,7 @@ s3transfer==0.6.0
     # via boto3
 scikit-image==0.19.3
     # via -r requirements.in
-scipy==1.7.3
+scipy==1.10.0
     # via
     #   scikit-image
     #   scikit-learn
@@ -191,7 +191,7 @@ tomli==2.0.1
     #   pytest
 toolz==0.12.0
     # via altair
-torch==1.12.0
+torch==2.1.2
     # via -r requirements.in
 tqdm==4.64.0
     # via
@@ -212,6 +212,3 @@ vega-datasets==0.9.0
     # via -r requirements.in
 wcwidth==0.2.5
     # via prompt-toolkit
-pydantic[email]
-# The following packages are considered to be unsafe in a requirements file:
-# setuptools
