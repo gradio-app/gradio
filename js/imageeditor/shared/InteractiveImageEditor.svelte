@@ -29,12 +29,16 @@
 	export let brush: IBrush | null;
 	export let eraser: Eraser | null;
 	import { Tools, Crop, Brush, Sources } from "./tools";
+	import { BlockLabel } from "@gradio/atoms";
+	import { Image as ImageIcon } from "@gradio/icons";
 
 	export let sources: ("clipboard" | "webcam" | "upload")[];
 	export let crop_size: [number, number] | `${string}:${string}` | null = null;
 	export let i18n: I18nFormatter;
 	export let root: string;
 	export let proxy_url: string;
+	export let label: string | undefined = undefined;
+	export let show_label: boolean;
 	export let changeable = false;
 	export let value: EditorData | null = {
 		background: null,
@@ -111,6 +115,11 @@
 			: editor.set_tool("draw"));
 </script>
 
+<BlockLabel
+	{show_label}
+	Icon={ImageIcon}
+	label={label || i18n("image.image")}
+/>
 <ImageEditor
 	bind:this={editor}
 	{changeable}
