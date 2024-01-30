@@ -1,11 +1,11 @@
 export const allModes = {
 	mobile: {
-		viewport: "small"
-	},
-	desktop: {
-		viewport: "large"
+		viewport: "mobile"
 	},
 	tablet: {
-		viewport: "medium"
+		viewport: "tablet"
+	},
+	desktop: {
+		viewport: "desktop"
 	}
 };
