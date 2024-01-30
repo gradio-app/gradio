@@ -4,9 +4,9 @@ import json
 import re
 import tempfile
 import textwrap
+import warnings
 from pathlib import Path
 from typing import Iterable
-import warnings
 
 import huggingface_hub
 import semantic_version as semver
@@ -95,8 +95,8 @@ class ThemeClass:
         return f"{css_code}\n{dark_css_code}"
 
     def _get_computed_value(self, property: str, depth=0) -> str:
-        MAX_DEPTH = 100
-        if depth > MAX_DEPTH:
+        max_depth = 100
+        if depth > max_depth:
             warnings.warn(f"Cannot resolve '{property}' - circular reference detected.")
             return ""
         is_dark = property.endswith("_dark")
