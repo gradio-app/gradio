@@ -1,5 +1,11 @@
 # @gradio/uploadbutton
 
+## 0.4.3
+
+### Fixes
+
+- [#7126](https://github.com/gradio-app/gradio/pull/7126) [`5727b92`](https://github.com/gradio-app/gradio/commit/5727b92abc8a00a675bfc0a921b38de771af947b) - Allow buttons to take null value.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.4.2
 
 ### Patch Changes

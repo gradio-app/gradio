@@ -20,25 +20,27 @@
 	}
 </script>
 
-{#if playable()}
-	<div
-		class="container"
-		class:table={type === "table"}
-		class:gallery={type === "gallery"}
-		class:selected
-	>
-		<Video
-			muted
-			playsinline
-			bind:node={video}
-			on:loadeddata={init}
-			on:mouseover={video.play.bind(video)}
-			on:mouseout={video.pause.bind(video)}
-			src={samples_dir + value?.video.path}
-		/>
-	</div>
-{:else}
-	<div>{value}</div>
+{#if value}
+	{#if playable()}
+		<div
+			class="container"
+			class:table={type === "table"}
+			class:gallery={type === "gallery"}
+			class:selected
+		>
+			<Video
+				muted
+				playsinline
+				bind:node={video}
+				on:loadeddata={init}
+				on:mouseover={video.play.bind(video)}
+				on:mouseout={video.pause.bind(video)}
+				src={samples_dir + value?.video.path}
+			/>
+		</div>
+	{:else}
+		<div>{value}</div>
+	{/if}
 {/if}
 
 <style>

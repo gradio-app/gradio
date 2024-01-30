@@ -4,6 +4,7 @@ import json
 import re
 import tempfile
 import textwrap
+import warnings
 from pathlib import Path
 from typing import Iterable
 
@@ -92,6 +93,30 @@ class ThemeClass:
         )
 
         return f"{css_code}\n{dark_css_code}"
+
+    def _get_computed_value(self, property: str, depth=0) -> str:
+        max_depth = 100
+        if depth > max_depth:
+            warnings.warn(f"Cannot resolve '{property}' - circular reference detected.")
+            return ""
+        is_dark = property.endswith("_dark")
+        if is_dark:
+            set_value = getattr(
+                self, property, getattr(self, property[:-5], "")
+            )  # if dark mode value is unavailable, use light mode value
+        else:
+            set_value = getattr(self, property, "")
+        pattern = r"(\*)([\w_]+)(\b)"
+
+        def repl_func(match, depth):
+            word = match.group(2)
+            dark_suffix = "_dark" if property.endswith("_dark") else ""
+            return self._get_computed_value(word + dark_suffix, depth + 1)
+
+        computed_value = re.sub(
+            pattern, lambda match: repl_func(match, depth), set_value
+        )
+        return computed_value
 
     def to_dict(self):
         """Convert the theme into a python dictionary."""
