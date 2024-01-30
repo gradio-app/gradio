@@ -100,7 +100,7 @@ exclude = [
   "gradio/_frontend_code/",
   "gradio/components/*_plot.py",
   "gradio/ipython_ext.py",
-  "gradio/node/*.py"
+  "gradio/node/*.py",
   "gradio/_frontend_code/*.py"
 ]
 
