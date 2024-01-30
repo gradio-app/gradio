@@ -289,6 +289,13 @@ class LinePlot(Plot):
     def postprocess(
         self, value: pd.DataFrame | dict | None
     ) -> AltairPlotData | dict | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         # if None or update
         if value is None or isinstance(value, dict):
             return value
@@ -324,4 +331,11 @@ class LinePlot(Plot):
         return None
 
     def preprocess(self, value: AltairPlotData | None) -> AltairPlotData | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return value

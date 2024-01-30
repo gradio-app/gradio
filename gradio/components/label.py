@@ -93,6 +93,13 @@ class Label(Component):
     def postprocess(
         self, value: dict[str, float] | str | float | None
     ) -> LabelData | dict | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if value is None or value == {}:
             return {}
         if isinstance(value, str) and value.endswith(".json") and Path(value).exists():
@@ -124,6 +131,13 @@ class Label(Component):
     def preprocess(
         self, payload: LabelData | None
     ) -> dict[str, float] | str | float | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if payload is None:
             return None
         if payload.confidences is None:

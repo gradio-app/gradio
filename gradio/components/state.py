@@ -47,9 +47,23 @@ class State(Component):
         super().__init__(value=self.value)
 
     def preprocess(self, payload: Any) -> Any:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return payload
 
     def postprocess(self, value: Any) -> Any:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return value
 
     def api_info(self) -> dict[str, Any]:

@@ -109,6 +109,13 @@ class Number(FormComponent):
             return round(num, precision)
 
     def preprocess(self, payload: float | None) -> float | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if payload is None:
             return None
         elif self.minimum is not None and payload < self.minimum:
@@ -120,6 +127,13 @@ class Number(FormComponent):
         return self._round_to_precision(payload, self.precision)
 
     def postprocess(self, value: float | None) -> float | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if value is None:
             return None
         return self._round_to_precision(value, self.precision)

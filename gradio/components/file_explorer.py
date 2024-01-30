@@ -112,6 +112,13 @@ class FileExplorer(Component):
         return ["Users", "gradio", "app.py"]
 
     def preprocess(self, payload: FileExplorerData | None) -> list[str] | str | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if payload is None:
             return None
 
@@ -136,6 +143,13 @@ class FileExplorer(Component):
         return path
 
     def postprocess(self, value: str | list[str] | None) -> FileExplorerData | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if value is None:
             return None
 

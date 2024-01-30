@@ -146,6 +146,13 @@ class Image(StreamingInput, Component):
     def preprocess(
         self, payload: FileData | None
     ) -> np.ndarray | _Image.Image | str | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if payload is None:
             return payload
         file_path = Path(payload.path)
@@ -186,6 +193,13 @@ class Image(StreamingInput, Component):
     def postprocess(
         self, value: np.ndarray | _Image.Image | str | Path | None
     ) -> FileData | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if value is None:
             return None
         if isinstance(value, str) and value.lower().endswith(".svg"):

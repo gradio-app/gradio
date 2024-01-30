@@ -167,6 +167,13 @@ class HighlightedText(Component):
             )
 
     def preprocess(self, payload: HighlightedTextData | None) -> dict | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if payload is None:
             return None
         return payload.model_dump()

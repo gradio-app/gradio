@@ -97,11 +97,25 @@ class Model3D(Component):
         )
 
     def preprocess(self, payload: FileData | None) -> str | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if payload is None:
             return payload
         return payload.path
 
     def postprocess(self, value: str | Path | None) -> FileData | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if value is None:
             return value
         return FileData(path=str(value), orig_name=Path(value).name)

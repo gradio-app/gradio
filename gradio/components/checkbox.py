@@ -81,7 +81,21 @@ class Checkbox(FormComponent):
         return True
 
     def preprocess(self, payload: bool | None) -> bool | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return payload
 
     def postprocess(self, value: bool | None) -> bool | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return value

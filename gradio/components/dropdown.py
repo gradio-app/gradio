@@ -136,6 +136,13 @@ class Dropdown(FormComponent):
     def preprocess(
         self, payload: str | int | float | list[str | int | float] | None
     ) -> str | int | float | list[str | int | float] | list[int | None] | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if self.type == "value":
             return payload
         elif self.type == "index":
@@ -167,6 +174,13 @@ class Dropdown(FormComponent):
     def postprocess(
         self, value: str | int | float | list[str | int | float] | None
     ) -> str | int | float | list[str | int | float] | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if value is None:
             return None
         if self.multiselect:

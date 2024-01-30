@@ -126,6 +126,13 @@ class File(Component):
     def preprocess(
         self, payload: ListFiles | FileData | None
     ) -> bytes | NamedString | list[bytes | NamedString] | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if payload is None:
             return None
         if self.file_count == "single":
@@ -140,6 +147,13 @@ class File(Component):
                 return [self._process_single_file(payload)]
 
     def postprocess(self, value: str | list[str] | None) -> ListFiles | FileData | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if value is None:
             return None
         if isinstance(value, list):

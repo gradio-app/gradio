@@ -312,6 +312,13 @@ class ScatterPlot(Plot):
     def postprocess(
         self, value: pd.DataFrame | dict | None
     ) -> AltairPlotData | dict | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         # if None or update
         if value is None or isinstance(value, dict):
             return value
@@ -349,4 +356,11 @@ class ScatterPlot(Plot):
         return None
 
     def preprocess(self, payload: AltairPlotData | None) -> AltairPlotData | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return payload

@@ -128,12 +128,26 @@ class Dataset(Component):
         return config
 
     def preprocess(self, payload: int) -> int | list[list] | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if self.type == "index":
             return payload
         elif self.type == "values":
             return self.samples[payload]
 
     def postprocess(self, samples: list[list]) -> dict:
+        """
+        ADD DOCSTRING
+        Parameters:
+            samples: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return {
             "samples": samples,
             "__type__": "update",

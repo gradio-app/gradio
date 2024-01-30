@@ -153,6 +153,13 @@ class Chatbot(Component):
         self,
         payload: ChatbotData,
     ) -> list[list[str | tuple[str] | tuple[str, str] | None]]:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if payload is None:
             return payload
         processed_messages = []
@@ -196,6 +203,13 @@ class Chatbot(Component):
         self,
         value: list[list[str | tuple[str] | tuple[str, str] | None] | tuple],
     ) -> ChatbotData:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if value is None:
             return ChatbotData(root=[])
         processed_messages = []

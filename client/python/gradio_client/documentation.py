@@ -221,9 +221,8 @@ def generate_documentation():
                 "fns": [],
             }
             if hasattr(cls, 'preprocess') and callable(cls.preprocess) and hasattr(cls, 'postprocess') and callable(cls.postprocess):
-                if cls.__name__ == "Audio":
-                    cls_documentation["preprocess"] = preprocess_doc
-                    cls_documentation["postprocess"] = postprocess_doc
+                cls_documentation["preprocess"] = preprocess_doc
+                cls_documentation["postprocess"] = postprocess_doc
             for fn_name in fns:
                 instance_attribute_fn = fn_name.startswith("*")
                 if instance_attribute_fn:

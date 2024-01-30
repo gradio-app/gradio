@@ -268,6 +268,13 @@ class BarPlot(Plot):
     def postprocess(
         self, value: pd.DataFrame | None
     ) -> AltairPlotData | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         # if None or update
         if value is None:
             return value

@@ -78,9 +78,23 @@ class Button(Component):
         return True
 
     def preprocess(self, payload: str) -> str:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return payload
 
     def postprocess(self, value: str) -> str:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return value
 
     def example_inputs(self) -> Any:

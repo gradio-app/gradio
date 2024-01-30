@@ -103,6 +103,13 @@ class CheckboxGroup(FormComponent):
     def preprocess(
         self, payload: list[str | int | float]
     ) -> list[str | int | float] | list[int | None]:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if self.type == "value":
             return payload
         elif self.type == "index":
@@ -119,6 +126,13 @@ class CheckboxGroup(FormComponent):
     def postprocess(
         self, value: list[str | int | float] | str | int | float | None
     ) -> list[str | int | float]:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if value is None:
             return []
         if not isinstance(value, list):

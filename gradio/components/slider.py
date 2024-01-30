@@ -115,7 +115,21 @@ class Slider(FormComponent):
         return value
 
     def postprocess(self, value: float | None) -> float:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return self.minimum if value is None else value
 
     def preprocess(self, payload: float) -> float:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return payload

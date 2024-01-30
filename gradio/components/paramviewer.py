@@ -60,9 +60,23 @@ class ParamViewer(Component):
         )
 
     def preprocess(self, payload: dict[str, Parameter]) -> dict[str, Parameter]:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return payload
 
     def postprocess(self, value: dict[str, Parameter]) -> dict[str, Parameter]:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return value
 
     def example_inputs(self):

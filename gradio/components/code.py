@@ -111,9 +111,23 @@ class Code(Component):
         )
 
     def preprocess(self, payload: Any) -> Any:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return payload
 
     def postprocess(self, value: tuple | str | None) -> None | str:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if value is None:
             return None
         elif isinstance(value, tuple):

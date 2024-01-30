@@ -250,6 +250,13 @@ class ImageEditor(Component):
         )
 
     def preprocess(self, payload: EditorData | None) -> EditorValue | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if payload is None:
             return payload
 
@@ -267,6 +274,13 @@ class ImageEditor(Component):
         }
 
     def postprocess(self, value: EditorValue | ImageType | None) -> EditorData | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if value is None:
             return None
         elif isinstance(value, dict):

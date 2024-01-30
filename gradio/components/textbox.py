@@ -118,9 +118,23 @@ class Textbox(FormComponent):
         self.text_align = text_align
 
     def preprocess(self, payload: str | None) -> str | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return None if payload is None else str(payload)
 
     def postprocess(self, value: str | None) -> str | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return None if value is None else str(value)
 
     def api_info(self) -> dict[str, Any]:

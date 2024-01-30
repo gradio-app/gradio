@@ -79,12 +79,26 @@ class Markdown(Component):
         )
 
     def postprocess(self, value: str | None) -> str | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if value is None:
             return None
         unindented_y = inspect.cleandoc(value)
         return unindented_y
 
     def preprocess(self, payload: str | None) -> str | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return payload
 
     def example_inputs(self) -> Any:

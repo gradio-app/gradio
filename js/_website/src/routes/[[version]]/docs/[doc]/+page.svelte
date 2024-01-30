@@ -218,6 +218,7 @@
 						</div>
 
 						{#if mode === "components"}
+						{#if "preprocess" in obj}
 							<div id="behavior">
 								<h4 class="mt-4 text-xl text-orange-500 font-light group">
 									Behavior
@@ -254,6 +255,7 @@
 									</p>
 								{/if}
 							</div>
+							{/if}
 						{/if}
 
 						{#if obj.example}

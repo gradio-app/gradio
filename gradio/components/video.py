@@ -161,6 +161,13 @@ class Video(Component):
         )
 
     def preprocess(self, payload: VideoData | None) -> str | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if payload is None:
             return None
         assert payload.video.path
@@ -223,6 +230,13 @@ class Video(Component):
     def postprocess(
         self, y: str | Path | tuple[str | Path, str | Path | None] | None
     ) -> VideoData | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            y: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if y is None or y == [None, None] or y == (None, None):
             return None
         if isinstance(y, (str, Path)):

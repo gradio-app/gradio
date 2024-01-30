@@ -201,6 +201,13 @@ class Gallery(Component):
         | List[tuple[np.ndarray, str | None]]
         | None
     ):
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if payload is None or not payload.root:
             return None
         data = []

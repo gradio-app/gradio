@@ -107,7 +107,7 @@ class AnnotatedImage(Component):
         it will pass its value as a {tuple} consisting of a {str} filepath to a base image and {list} of annotations. Each annotation itself is 
         {tuple} of a mask (as a {str} filepath to image) and a {str} label. This {tuple[str, list[tuple[str, str]]]} will be passed into the function 
         in the event listener.
-        Parameters;
+        Parameters:
             payload: Tuple of base image and list of annotations.
         Returns:
             Tuple of base image file and list of annotations.

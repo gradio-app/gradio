@@ -63,9 +63,23 @@ class HTML(Component):
         return "<p>Hello</p>"
 
     def preprocess(self, payload: str | None) -> str | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return payload
 
     def postprocess(self, value: str | None) -> str | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return value
 
     def api_info(self) -> dict[str, Any]:

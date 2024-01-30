@@ -70,6 +70,13 @@ class JSON(Component):
         )
 
     def postprocess(self, value: dict | list | str | None) -> dict | list | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if value is None:
             return None
         if isinstance(value, str):
@@ -78,6 +85,13 @@ class JSON(Component):
             return value
 
     def preprocess(self, payload: dict | list | str | None) -> dict | list | str | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return payload
 
     def example_inputs(self) -> Any:

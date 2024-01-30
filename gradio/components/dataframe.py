@@ -194,6 +194,13 @@ class Dataframe(Component):
     def preprocess(
         self, payload: DataframeData
     ) -> pd.DataFrame | np.ndarray | pl.DataFrame | list:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if self.type == "pandas":
             if payload.headers is not None:
                 return pd.DataFrame(payload.data, columns=payload.headers)
@@ -228,6 +235,13 @@ class Dataframe(Component):
         | str
         | None,
     ) -> DataframeData:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         if value is None:
             return self.postprocess(self.empty_input)
         if isinstance(value, dict):

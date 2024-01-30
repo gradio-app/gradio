@@ -49,6 +49,10 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     def preprocess(self, payload: Any) -> Any:
         """
         Any preprocessing needed to be performed on function input.
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
         """
         return payload
 
@@ -56,6 +60,10 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     def postprocess(self, value):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
         """
         return value
 

@@ -117,6 +117,13 @@ class Radio(FormComponent):
             )
 
     def postprocess(self, value: str | int | float | None) -> str | int | float | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return value
 
     def api_info(self) -> dict[str, Any]:

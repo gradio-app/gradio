@@ -98,12 +98,26 @@ class Plot(Component):
         return config
 
     def preprocess(self, payload: PlotData | None) -> PlotData | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            payload: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         return payload
 
     def example_inputs(self) -> Any:
         return None
 
-    def postprocess(self, value) -> PlotData | None:
+    def postprocess(self, value: Any) -> PlotData | None:
+        """
+        ADD DOCSTRING
+        Parameters:
+            value: ADD DOCSTRING
+        Returns:
+            ADD DOCSTRING
+        """
         import matplotlib.figure
 
         if value is None:
