@@ -9,6 +9,7 @@ gradio_pdf==0.0.3
 httpx
 huggingface_hub
 polars==0.20.5
+pydantic[email]
 pytest
 pytest-asyncio
 pytest-cov

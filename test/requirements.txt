@@ -124,6 +124,8 @@ polars==0.20.5
     # via -r requirements.in
 py==1.11.0
     # via pytest
+pydantic[email]
+    # via requirements.in
 pyparsing==3.0.9
     # via packaging
 pyrsistent==0.18.1
