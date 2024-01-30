@@ -234,12 +234,13 @@ def move_resource_to_block_cache(
     return block.move_resource_to_block_cache(url_or_file_path)
 
 
-def move_files_to_cache_and_replace_with_urls(
+def move_files_to_cache(
         data: Any, 
         block: Component, 
         postprocess: bool = False, 
+        add_urls = False,
     ):
-    """Move any files in `data` to cache and replace filepaths with the local URL (/file=...) to the cached file.
+    """Move any files in `data` to cache and (optionally), adds URL prefixes (/file=...) needed to access the cached file.
     Also handles the case where the file is on an external Gradio app (/proxy=...).
 
     Runs after .postprocess() and before .preprocess().
@@ -262,14 +263,15 @@ def move_files_to_cache_and_replace_with_urls(
             temp_file_path = move_resource_to_block_cache(payload.path, block)
         assert temp_file_path is not None
         payload.path = temp_file_path
-        
-        url_prefix = "stream/" if getattr(payload, "is_stream", None) else "file="
-        if block.proxy_url:
-            url = f"/proxy={block.proxy_url}/{url_prefix}{temp_file_path}"
-        else:
-            url = f"/{url_prefix}{temp_file_path}"            
-        payload.url = url
-        
+    
+        if add_urls:
+            url_prefix = "stream/" if getattr(payload, "is_stream", None) else "file="
+            if block.proxy_url:
+                url = f"/proxy={block.proxy_url}/{url_prefix}{temp_file_path}"
+            else:
+                url = f"/{url_prefix}{temp_file_path}"            
+            payload.url = url
+            
         return payload.model_dump()
 
     if isinstance(data, (GradioRootModel, GradioModel)):

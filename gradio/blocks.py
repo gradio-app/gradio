@@ -1323,7 +1323,7 @@ Received inputs:
                     if input_id in state:
                         block = state[input_id]
                     inputs_cached = processing_utils.move_files_to_cache(
-                        inputs[i], block
+                        inputs[i], block, add_urls=True
                     )
                     if getattr(block, "data_model", None) and inputs_cached is not None:
                         if issubclass(block.data_model, GradioModel):  # type: ignore
@@ -1452,6 +1452,7 @@ Received outputs:
                     prediction_value,
                     block,  # type: ignore
                     postprocess=True,
+                    add_urls=True,
                 )
                 output.append(outputs_cached)
 
