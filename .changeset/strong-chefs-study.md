@@ -1,6 +1,6 @@
 ---
-"@gradio/client": minor
-"gradio": minor
+"@gradio/client": patch
+"gradio": patch
 ---
 
-feat:Refactor file normalization to be in the backend and remove it from the frontend of each component
+fix:Refactor file normalization to be in the backend and remove it from the frontend of each component
