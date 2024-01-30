@@ -842,8 +842,8 @@ class TestAudio:
                 "show_controls": False,
                 "show_recording_waveform": True,
                 "skip_length": 5,
-                "waveform_color": "#9ca3af",
-                "waveform_progress_color": "#f97316",
+                "waveform_color": None,
+                "waveform_progress_color": None,
             },
             "_selectable": False,
         }
@@ -894,8 +894,8 @@ class TestAudio:
                 "show_controls": False,
                 "show_recording_waveform": True,
                 "skip_length": 5,
-                "waveform_color": "#9ca3af",
-                "waveform_progress_color": "#f97316",
+                "waveform_color": None,
+                "waveform_progress_color": None,
             },
             "_selectable": False,
         }
@@ -2312,6 +2312,34 @@ class TestGallery:
                 "caption": None,
             },
         ]
+
+    def test_gallery_preprocess(self):
+        from gradio.components.gallery import GalleryData, GalleryImage
+
+        gallery = gr.Gallery()
+        img = GalleryImage(image=FileData(path="test/test_files/bus.png"))
+        data = GalleryData(root=[img])
+
+        preprocess = gallery.preprocess(data)
+        assert preprocess[0][0] == "test/test_files/bus.png"
+
+        gallery = gr.Gallery(type="numpy")
+        assert (
+            gallery.preprocess(data)[0][0]
+            == np.array(PIL.Image.open("test/test_files/bus.png"))
+        ).all()
+
+        gallery = gr.Gallery(type="pil")
+        assert gallery.preprocess(data)[0][0] == PIL.Image.open(
+            "test/test_files/bus.png"
+        )
+
+        img_captions = GalleryImage(
+            image=FileData(path="test/test_files/bus.png"), caption="bus"
+        )
+        data = GalleryData(root=[img_captions])
+        preprocess = gr.Gallery().preprocess(data)
+        assert preprocess[0] == ("test/test_files/bus.png", "bus")
 
 
 class TestState:

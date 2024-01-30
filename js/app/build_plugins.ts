@@ -199,6 +199,7 @@ const ignore_list = [
 	"lite",
 	"preview",
 	"simpledropdown",
+	"simpleimage",
 	"simpletextbox",
 	"storybook",
 	"theme",
