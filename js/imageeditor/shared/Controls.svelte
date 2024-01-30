@@ -97,8 +97,4 @@
 		gap: var(--spacing-sm);
 		z-index: var(--layer-5);
 	}
-
-	.save :global(svg) {
-		transform: translateY(1px);
-	}
 </style>
