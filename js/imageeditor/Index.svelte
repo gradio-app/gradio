@@ -156,6 +156,8 @@
 			bind:this={editor_instance}
 			{root}
 			{sources}
+			{label}
+			{show_label}
 			on:save={(e) => handle_save()}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => gradio.dispatch("clear")}
