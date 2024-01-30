@@ -31,7 +31,7 @@
 <div
 	id={elem_id}
 	class="tabitem {elem_classes.join(' ')}"
-	style:display={$selected_tab === id ? "block" : "none"}
+	style:display={$selected_tab === id && visible ? "block" : "none"}
 	role="tabpanel"
 >
 	<Column>
