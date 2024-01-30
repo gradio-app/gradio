@@ -244,8 +244,7 @@ class Audio(
         to an audio file, or (3) {bytes} for binary content (recommended for streaming). Note: if audio is supplied as a numpy 
         array, the audio will be normalized by its peak value to avoid distortion or clipping in the resulting audio.
         Parameters:
-            value: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath 
-            or URL to an audio file, bytes, or None.
+            value: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, bytes, or None.
         Returns:
             FileData object, bytes, or None.
         """
