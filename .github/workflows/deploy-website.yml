@@ -67,12 +67,14 @@ jobs:
           export AWS_DEFAULT_REGION=us-west-2
           version=$(jq -r .version js/_website/src/lib/json/version.json)
           aws s3 cp ./js/_website/src/lib/json/ s3://gradio-docs-json/$version/ --recursive
-      - name: echo artifact path
-        shell: bash
-        run: ls ./js/_website/src/lib/json
       - name: Install Vercel CLI
-        shell: bash
         run: pnpm install --global vercel@latest
+      - name: echo outputs
+        run: |
+          echo "source_repo=${{ needs.changes.outputs.source_repo }}"
+          echo "source_branch=${{ needs.changes.outputs.source_branch }}"
+          echo "found_pr=${{ needs.changes.outputs.found_pr }}"
+          echo "pr_number=${{ needs.changes.outputs.pr_number }}"
       # preview
       - name: Pull Vercel Environment Information
         shell: bash
