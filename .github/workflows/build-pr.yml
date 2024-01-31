@@ -80,12 +80,12 @@ jobs:
       run: |
         python scripts/copy_demos.py https://gradio-builds.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/gradio-${{ steps.get_gradio_version.outputs.GRADIO_VERSION }}-py3-none-any.whl \
         "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=client/python"
-        - name: Upload wheel
-        run: |
-          export AWS_ACCESS_KEY_ID=${{ secrets.PR_DEPLOY_KEY }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.PR_DEPLOY_SECRET }}
-          export AWS_DEFAULT_REGION=us-east-1
-          aws s3 cp dist/gradio-${{ steps.get_gradio_version.outputs.GRADIO_VERSION }}-py3-none-any.whl s3://gradio-builds/${{ needs.changes.outputs.sha  }}/
+    - name: Upload wheel
+      run: |
+        export AWS_ACCESS_KEY_ID=${{ secrets.PR_DEPLOY_KEY }}
+        export AWS_SECRET_ACCESS_KEY=${{ secrets.PR_DEPLOY_SECRET }}
+        export AWS_DEFAULT_REGION=us-east-1
+        aws s3 cp dist/gradio-${{ steps.get_gradio_version.outputs.GRADIO_VERSION }}-py3-none-any.whl s3://gradio-builds/${{ needs.changes.outputs.sha  }}/
     - name: Install Hub Client Library
       run: pip install huggingface-hub
     - name: Upload demo to spaces
