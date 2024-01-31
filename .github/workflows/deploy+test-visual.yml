@@ -1,5 +1,6 @@
 name: "test / visual"
 on:
+  pull_request:
   workflow_run:
     workflows: [trigger]
     types:
