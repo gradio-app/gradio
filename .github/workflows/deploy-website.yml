@@ -28,7 +28,7 @@ jobs:
       found_pr: ${{ steps.changes.outputs.found_pr }}
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/changes
+      - uses: pngwn/api-check-test/.github/actions/changes@main
         id: changes
         with:
           type: "website"
