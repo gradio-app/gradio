@@ -75,8 +75,9 @@ jobs:
         python -m pytest -m "${{ matrix.test-type }}"
     - name: do check
       if: always()
-      uses: "./.github/actions/do-check"
+      uses: "gradio-app/github/actions/commit-status@main"
       with:
+        type: "gradio"
         token: ${{ secrets.GITHUB_TOKEN }}
         pr: ${{ needs.changes.outputs.pr_number }}
         sha: ${{ needs.changes.outputs.sha }}
