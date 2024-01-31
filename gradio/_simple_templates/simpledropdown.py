@@ -10,10 +10,6 @@ from gradio.events import Events
 class SimpleDropdown(FormComponent):
     """
     Creates a very simple dropdown listing choices from which entries can be selected.
-    Preprocessing: Preprocessing: passes the value of the selected dropdown entry as a {str}.
-    Postprocessing: expects a {str} corresponding to the value of the dropdown entry to be selected.
-    Examples-format: a {str} representing the drop down value to select.
-    Demos: sentence_builder, titanic_survival
     """
 
     EVENTS = [Events.change, Events.input, Events.select]
@@ -49,11 +45,9 @@ class SimpleDropdown(FormComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-                    render: bool = True,
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
         """
         self.choices = (
-            # Although we expect choices to be a list of lists, it can be a list of tuples if the Gradio app
-            # is loaded with gr.load() since Python tuples are converted to lists in JSON.
             [tuple(c) if isinstance(c, (tuple, list)) else (str(c), c) for c in choices]
             if choices
             else []
@@ -85,9 +79,9 @@ class SimpleDropdown(FormComponent):
     def preprocess(self, x: str | int | float | None) -> str | int | float | None:
         """
         Parameters:
-            x: selected choice
+            payload: the value of the selected dropdown choice
         Returns:
-            selected choice
+            Passes the value of the selected dropdown choice as a `str | int | float`.
         """
         return x
 
@@ -98,6 +92,12 @@ class SimpleDropdown(FormComponent):
             )
 
     def postprocess(self, y):
+        """
+        Parameters:
+            value: Expects a `str | int | float` corresponding to the value of the dropdown entry to be selected.
+        Returns:
+            Returns the value of the selected dropdown entry.
+        """
         if y is None:
             return None
         self._warn_if_invalid_choice(y)
