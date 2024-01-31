@@ -90,10 +90,9 @@ class Brush(Eraser):
 @document()
 class ImageEditor(Component):
     """
-    Creates an image component that can be used to upload and edit images (as an input) or display images (as an output).
-    Preprocessing: passes the uploaded images as a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` are images, while `layers` is a list of images. The images are of type PIL.Image, np.array, or str filepath, depending on the `type` parameter.
-    Postprocessing: expects a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` should be images or None, while `layers` should be a list of images. Images can be of type PIL.Image, np.array, or str filepath/URL. Or, the value can be simply a single image, in which case it will be used as the background.
-    Examples-format: a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` should be strings or None, while `layers` should be a list of strings. The image corresponding to `composite`, if not None, is used as the example image. Otherwise, the image corresonding to `background` is used. The strings should be filepaths or URLs. Or, the value can be simply a single string filepath/URL to an image, which is used directly as the example image.
+    Creates an image component that, as an input, can be used to upload and edit images using simple editing tools such 
+    as brushes, strokes, cropping, and layers. Or, as an output, this component can be used to display images.
+    
     Demos: image_editor
     """
 
@@ -253,9 +252,9 @@ class ImageEditor(Component):
         """
         ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: An instance of `EditorData` consisting of the background image, layers, and composite image.
         Returns:
-            ADD DOCSTRING
+            Passes the uploaded images as an instance of EditorValue, which is just a `dict` with keys: 'background', 'layers', and 'composite'. The values corresponding to 'background' and 'composite' are images, while 'layers' is a `list` of images. The images are of type `PIL.Image`, `np.array`, or `str` filepath, depending on the `type` parameter.
         """
         if payload is None:
             return payload
@@ -275,11 +274,10 @@ class ImageEditor(Component):
 
     def postprocess(self, value: EditorValue | ImageType | None) -> EditorData | None:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects a EditorValue, which is just a dictionary with keys: 'background', 'layers', and 'composite'. The values corresponding to 'background' and 'composite' should be images or None, while `layers` should be a list of images. Images can be of type `PIL.Image`, `np.array`, or `str` filepath/URL. Or, the value can be simply a single image (`ImageType`), in which case it will be used as the background.
         Returns:
-            ADD DOCSTRING
+            An instance of `EditorData` consisting of the background image, layers, and composite image.
         """
         if value is None:
             return None

@@ -25,6 +25,7 @@ _Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 class Image(StreamingInput, Component):
     """
     Creates an image component that can be used to upload images (as an input) or display images (as an output).
+    
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type`. For SVGs, the `type` parameter is ignored and the filepath of the SVG is returned.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
     Examples-format: a {str} local filepath or URL to an image.
