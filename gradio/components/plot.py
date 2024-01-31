@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import json
 from types import ModuleType
-from typing import Any, Callable, Literal
+from typing import Any, Literal
 
 import altair as alt
-import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio import processing_utils
@@ -16,7 +15,6 @@ from gradio.data_classes import GradioModel
 from gradio.events import Events
 
 set_documentation_group("component")
-
 
 class PlotData(GradioModel):
     type: Literal["altair", "bokeh", "plotly", "matplotlib"]
@@ -31,9 +29,8 @@ class AltairPlotData(PlotData):
 @document()
 class Plot(Component):
     """
-    Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported).
-    Preprocessing: this component does *not* accept input.
-    Postprocessing: expects either a {matplotlib.figure.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
+    Creates a plot component to display various kinds of plots (matplotlib, plotly, altair, or bokeh plots are supported). As this component does 
+    not accept user input, it is rarely used as an input component.
 
     Demos: altair_plot, outbreak_forecast, blocks_kinematics, stock_forecast, map_airbnb
     Guides: plot-component-for-maps
@@ -44,7 +41,7 @@ class Plot(Component):
 
     def __init__(
         self,
-        value: Callable | None | pd.DataFrame = None,
+        value: Any | None = None,
         *,
         label: str | None = None,
         every: float | None = None,
@@ -99,11 +96,10 @@ class Plot(Component):
 
     def preprocess(self, payload: PlotData | None) -> PlotData | None:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: The data to display in the plot.
         Returns:
-            ADD DOCSTRING
+            (Rarely used) passes the data displayed in the plot as an PlotData dataclass, which includes the plot information as a JSON string, as well as the type of chart and the plotting library.
         """
         return payload
 
@@ -112,11 +108,10 @@ class Plot(Component):
 
     def postprocess(self, value: Any) -> PlotData | None:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects plot data in one of these formats: a matplotlib.Figure, bokeh.Model, plotly.Figure, or altair.Chart object.
         Returns:
-            ADD DOCSTRING
+            PlotData: A dataclass containing the plot data as a JSON string, as well as the type of chart and the plotting library.
         """
         import matplotlib.figure
 

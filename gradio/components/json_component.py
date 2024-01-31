@@ -17,9 +17,7 @@ set_documentation_group("component")
 @document()
 class JSON(Component):
     """
-    Used to display arbitrary JSON output prettily.
-    Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {str} filepath to a file containing valid JSON -- or a {list} or {dict} that is valid JSON
+    Used to display arbitrary JSON output prettily. As this component does not accept user input, it is rarely used as an input component.
 
     Demos: zip_to_json, blocks_xray
     """
@@ -69,13 +67,21 @@ class JSON(Component):
             value=value,
         )
 
+    def preprocess(self, payload: dict | list | None) -> dict | list | None:
+        """
+        Parameters:
+            payload: JSON value as a `dict` or `list`
+        Returns:
+            Passes the JSON value as a `dict` or `list` depending on the value.
+        """
+        return payload
+
     def postprocess(self, value: dict | list | str | None) -> dict | list | None:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects a `str` filepath to a file containing valid JSON -- or a `list` or `dict` that is valid JSON
         Returns:
-            ADD DOCSTRING
+            Returns the JSON as a `list` or `dict`.
         """
         if value is None:
             return None
@@ -83,16 +89,6 @@ class JSON(Component):
             return json.loads(value)
         else:
             return value
-
-    def preprocess(self, payload: dict | list | str | None) -> dict | list | str | None:
-        """
-        ADD DOCSTRING
-        Parameters:
-            payload: ADD DOCSTRING
-        Returns:
-            ADD DOCSTRING
-        """
-        return payload
 
     def example_inputs(self) -> Any:
         return {"foo": "bar"}

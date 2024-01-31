@@ -16,10 +16,8 @@ set_documentation_group("component")
 @document()
 class LinePlot(Plot):
     """
-    Create a line plot.
-
-    Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a pandas dataframe with the data to plot.
+    Creates a line plot component to display data from a pandas DataFrame (as output). As this component does 
+    not accept user input, it is rarely used as an input component.
 
     Demos: line_plot, live_dashboard
     """
@@ -286,15 +284,23 @@ class LinePlot(Plot):
 
         return chart
 
+    def preprocess(self, value: AltairPlotData | None) -> AltairPlotData | None:
+        """
+        Parameters:
+            payload: The data to display in a line plot.
+        Returns:
+            (Rarely used) passes the data displayed in the line plot as an AltairPlotData dataclass, which includes the plot information as a JSON string, as well as the type of plot (in this case, "line").
+        """
+        return value
+
     def postprocess(
         self, value: pd.DataFrame | dict | None
     ) -> AltairPlotData | dict | None:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects a pandas DataFrame containing the data to display in the line plot. The DataFrame should contain at least two columns, one for the x-axis (corresponding to this component's `x` argument) and one for the y-axis (corresponding to `y`).
         Returns:
-            ADD DOCSTRING
+            The data to display in a line plot, in the form of an AltairPlotData dataclass, which includes the plot information as a JSON string, as well as the type of plot (in this case, "line").
         """
         # if None or update
         if value is None or isinstance(value, dict):
@@ -330,12 +336,3 @@ class LinePlot(Plot):
     def example_inputs(self) -> Any:
         return None
 
-    def preprocess(self, value: AltairPlotData | None) -> AltairPlotData | None:
-        """
-        ADD DOCSTRING
-        Parameters:
-            value: ADD DOCSTRING
-        Returns:
-            ADD DOCSTRING
-        """
-        return value
