@@ -18,16 +18,14 @@ set_documentation_group("component")
 
 
 class FileExplorerData(GradioRootModel):
-    root: List[List[str]]
+    root: List[str]
 
 
 @document()
 class FileExplorer(Component):
     """
-    Creates a file explorer component that allows users to browse and select files on the machine hosting the Gradio app.
-    Preprocessing: passes the selected file or directory as a {str} path (relative to root) or {list[str}} depending on `file_count`
-    Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
-    Examples-format: a {str} path to a local file that populates the component.
+    Creates a file explorer component that allows users to browse files on the machine hosting the Gradio app. As an input component,
+    it also allows users to select files to be used as input to a function, while as an output component, it displays selected files.
     Demos: zip_to_json, zip_files
     """
 
@@ -113,11 +111,10 @@ class FileExplorer(Component):
 
     def preprocess(self, payload: FileExplorerData | None) -> list[str] | str | None:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: List of selected files as a FileExplorerData object.
         Returns:
-            ADD DOCSTRING
+            Passes the selected file or directory as a `str` path (relative to `root`) or `list[str}` depending on `file_count`
         """
         if payload is None:
             return None
@@ -144,11 +141,10 @@ class FileExplorer(Component):
 
     def postprocess(self, value: str | list[str] | None) -> FileExplorerData | None:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects function to return a `str` path to a file, or `list[str]` consisting of paths to files.
         Returns:
-            ADD DOCSTRING
+            A FileExplorerData object containing the selected files as a list of strings.
         """
         if value is None:
             return None
