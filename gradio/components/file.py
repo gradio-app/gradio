@@ -20,11 +20,9 @@ set_documentation_group("component")
 @document()
 class File(Component):
     """
-    Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
-    Preprocessing: passes the uploaded file as a {tempfile._TemporaryFileWrapper} or {List[tempfile._TemporaryFileWrapper]} depending on `file_count` (or a {bytes}/{List[bytes]} depending on `type`)
-    Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
-    Examples-format: a {str} path to a local file that populates the component.
-    Demos: zip_to_json, zip_files
+    Creates a file component that allows uploading one or more generic files (when used as an input) or displaying generic files (as output).
+
+    Demo: zip_files, zip_to_json
     """
 
     EVENTS = [Events.change, Events.select, Events.clear, Events.upload]
@@ -125,13 +123,12 @@ class File(Component):
 
     def preprocess(
         self, payload: ListFiles | FileData | None
-    ) -> bytes | NamedString | list[bytes | NamedString] | None:
+    ) -> bytes | str | list[bytes] | list[str] | None:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: File information as a FileData object, or a list of FileData objects.
         Returns:
-            ADD DOCSTRING
+            Passes the file as a `str` or `bytes` object, or a list of `str` or list of `bytes` objects, depending on `type` and `file_count`.
         """
         if payload is None:
             return None
@@ -142,17 +139,17 @@ class File(Component):
                 return self._process_single_file(payload)
         else:
             if isinstance(payload, ListFiles):
-                return [self._process_single_file(f) for f in payload]
+                return [self._process_single_file(f) for f in payload]  # type: ignore
             else:
-                return [self._process_single_file(payload)]
+                return [self._process_single_file(payload)]  # type: ignore
 
     def postprocess(self, value: str | list[str] | None) -> ListFiles | FileData | None:
         """
         ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects a `str` filepath, or a `list[str]` of filepaths.
         Returns:
-            ADD DOCSTRING
+            File information as a FileData object, or a list of FileData objects.
         """
         if value is None:
             return None

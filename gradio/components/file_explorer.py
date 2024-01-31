@@ -26,7 +26,8 @@ class FileExplorer(Component):
     """
     Creates a file explorer component that allows users to browse files on the machine hosting the Gradio app. As an input component,
     it also allows users to select files to be used as input to a function, while as an output component, it displays selected files.
-    Demos: zip_to_json, zip_files
+    
+    Demos: file_explorer
     """
 
     EVENTS = ["change"]

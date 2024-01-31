@@ -26,8 +26,6 @@ class HighlightedTextData(GradioRootModel):
 class HighlightedText(Component):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
-    Preprocessing: passes a list of tuples as a {List[Tuple[str, float | str | None]]]} into the function. If no labels are provided, the text will be displayed as a single span.
-    Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and (2) "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label, can alternatively be called "entity_group"), "start" (the character index where the label starts), and "end" (the character index where the label ends). Entities should not overlap.
 
     Demos: diff_texts, text_analysis
     Guides: named-entity-recognition
@@ -168,11 +166,10 @@ class HighlightedText(Component):
 
     def preprocess(self, payload: HighlightedTextData | None) -> dict | None:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: An instance of HighlightedTextData
         Returns:
-            ADD DOCSTRING
+            Passes value as a list of tuples as a `list[tuple[str, float | str | None]]]` into the function. If no labels are provided, the text will be displayed as a single span.
         """
         if payload is None:
             return None

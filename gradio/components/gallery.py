@@ -35,9 +35,8 @@ class GalleryData(GradioRootModel):
 @document()
 class Gallery(Component):
     """
-    Used to display a list of images as a gallery that can be scrolled through.
-    Preprocessing: A list of (image, caption) tuples. Each image is a filepath, numpy array or PIL.image depending on the `type` parameter. {List[tuple[str | PIL.Image | numpy.array, str | None]]}.
-    Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str | pathlib.Path]}, or a {List} of (image, {str} caption) tuples and displays them.
+    Creates a gallery component that allows displaying a grid of images, and optionally captions. If used as an input, the user can upload images to the gallery. 
+    If used as an output, the user can click on individual images to view them at a higher resolution.
 
     Demos: fake_gan
     """
@@ -134,15 +133,37 @@ class Gallery(Component):
             interactive=interactive,
         )
 
+    def preprocess(
+        self, payload: GalleryData | None
+    ) -> (
+        List[tuple[str, str | None]]
+        | List[tuple[_Image.Image, str | None]]
+        | List[tuple[np.ndarray, str | None]]
+        | None
+    ):
+        """
+        Parameters:
+            payload: a list of images, or list of (image, caption) tuples
+        Returns:
+            Passes the list of images as a list of (image, caption) tuples, or a list of (image, None) tuples if no captions are provided (which is usually the case). The image can be a `str` file path, a `numpy` array, or a `PIL.Image` object depending on `type`.
+        """
+        if payload is None or not payload.root:
+            return None
+        data = []
+        for gallery_element in payload.root:
+            image = self.convert_to_type(gallery_element.image.path, self.type)  # type: ignore
+            data.append((image, gallery_element.caption))
+        return data
+
     def postprocess(
         self,
         value: list[GalleryImageType | CaptionedGalleryImageType] | None,
     ) -> GalleryData:
         """
         Parameters:
-            value: list of images, or list of (image, caption) tuples
+            value: Expects the function to return a `list` of images, or `list` of (image, `str` caption) tuples. Each image can be a `str` file path, a `numpy` array, or a `PIL.Image` object.
         Returns:
-            list of string file paths to images in temp directory
+            a list of images, or list of (image, caption) tuples
         """
         if value is None:
             return GalleryData(root=[])
@@ -192,29 +213,6 @@ class Gallery(Component):
             if type == "numpy":
                 converted_image = np.array(converted_image)
             return converted_image
-
-    def preprocess(
-        self, payload: GalleryData | None
-    ) -> (
-        List[tuple[str, str | None]]
-        | List[tuple[_Image.Image, str | None]]
-        | List[tuple[np.ndarray, str | None]]
-        | None
-    ):
-        """
-        ADD DOCSTRING
-        Parameters:
-            payload: ADD DOCSTRING
-        Returns:
-            ADD DOCSTRING
-        """
-        if payload is None or not payload.root:
-            return None
-        data = []
-        for gallery_element in payload.root:
-            image = self.convert_to_type(gallery_element.image.path, self.type)  # type: ignore
-            data.append((image, gallery_element.caption))
-        return data
 
     def example_inputs(self) -> Any:
         return [
