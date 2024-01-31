@@ -63,7 +63,7 @@ if __name__ == "__main__":
 def test_raise_error_component_template_does_not_exist(tmp_path):
     with pytest.raises(
         ValueError,
-        match="Cannot find NonExistentComponent in gradio.components or gradio.layouts",
+        match="Cannot find NonExistentComponent in gradio.components, gradio.layouts, or gradio._simple_templates",
     ):
         _create(
             "MyComponent",

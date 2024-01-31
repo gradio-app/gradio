@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Ensure microphone devices list updates
+fix:Amend audio waveform colour

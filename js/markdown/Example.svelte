@@ -1,7 +1,7 @@
 <script lang="ts">
 	import MarkdownCode from "./shared/MarkdownCode.svelte";
 
-	export let value: string;
+	export let value: string | null;
 	export let type: "gallery" | "table";
 	export let selected = false;
 	export let sanitize_html: boolean;
@@ -20,7 +20,7 @@
 	class="prose"
 >
 	<MarkdownCode
-		message={value}
+		message={value ? value : ""}
 		{latex_delimiters}
 		{sanitize_html}
 		{line_breaks}

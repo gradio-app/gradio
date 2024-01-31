@@ -39,7 +39,6 @@ from typing import (
 
 import anyio
 import httpx
-import matplotlib
 from typing_extensions import ParamSpec
 
 import gradio
@@ -881,10 +880,14 @@ class TupleNoPrint(tuple):
 
 class MatplotlibBackendMananger:
     def __enter__(self):
+        import matplotlib
+
         self._original_backend = matplotlib.get_backend()
         matplotlib.use("agg")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        import matplotlib
+
         matplotlib.use(self._original_backend)
 
 

@@ -15,6 +15,12 @@ with gr.Blocks() as demo:
             input_num_pause = gr.Number(label="# Input Pause Events", value=0)
 
         with gr.Column():
+            input_record = gr.Number(label="# Input Start Recording Events", value=0)
+            input_pause = gr.Number(label="# Input Pause Recording Events", value=0)
+            input_stop = gr.Number(label="# Input Stop Recording Events", value=0)
+
+
+        with gr.Column():
             output_num_play = gr.Number(label="# Output Play Events", value=0)
             output_num_pause = gr.Number(label="# Output Pause Events", value=0)
             output_num_stop = gr.Number(label="# Output Stop Events", value=0)
@@ -24,6 +30,10 @@ with gr.Blocks() as demo:
             input_video.play(lambda n: n + 1, input_num_play, input_num_play)
             input_video.pause(lambda n: n + 1, input_num_pause, input_num_pause)
             input_video.change(lambda n: n + 1, input_num_change, input_num_change)
+
+            input_video.start_recording(lambda n: n + 1, input_record, input_record)
+            input_video.pause_recording(lambda n: n + 1, input_pause, input_pause)
+            input_video.stop_recording(lambda n: n + 1, input_stop, input_stop)
 
             output_video.play(lambda n: n + 1, output_num_play, output_num_play)
             output_video.pause(lambda n: n + 1, output_num_pause, output_num_pause)

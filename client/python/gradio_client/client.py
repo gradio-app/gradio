@@ -146,7 +146,7 @@ class Client:
         self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
         self.reset_url = urllib.parse.urljoin(self.src, utils.RESET_URL)
         self.app_version = version.parse(self.config.get("version", "2.0"))
-        self._info = self._get_api_info()
+        self._info = None
         self.session_hash = str(uuid.uuid4())
 
         endpoint_class = (
@@ -556,6 +556,8 @@ class Client:
             }
 
         """
+        if not self._info:
+            self._info = self._get_api_info()
         num_named_endpoints = len(self._info["named_endpoints"])
         num_unnamed_endpoints = len(self._info["unnamed_endpoints"])
         if num_named_endpoints == 0 and all_endpoints is None:
@@ -1557,7 +1559,10 @@ class Job(Future):
                     o = self.communicator.job.outputs[self._counter]
                     self._counter += 1
                     return o
-                if self.communicator.job.latest_status.code == Status.FINISHED:
+                if (
+                    self.communicator.job.latest_status.code == Status.FINISHED
+                    and self._counter >= len(self.communicator.job.outputs)
+                ):
                     raise StopIteration()
                 time.sleep(0.001)
 
