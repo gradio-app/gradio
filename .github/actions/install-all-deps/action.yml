@@ -93,6 +93,7 @@ runs:
         skip_build: ${{ inputs.skip_build }}
     - name: generate json
       shell: bash
+      if: inputs.os == 'ubuntu-latest'
       run: |
         . ${{ env.VENV_ACTIVATE }}
         python js/_website/generate_jsons/generate.py
