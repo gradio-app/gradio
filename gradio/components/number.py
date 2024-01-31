@@ -17,9 +17,6 @@ set_documentation_group("component")
 class Number(FormComponent):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
-    Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
-    Postprocessing: expects an {int} or {float} returned from the function and sets field value to it.
-    Examples-format: a {float} or {int} representing the number's value.
 
     Demos: tax_calculator, titanic_survival, blocks_simple_squares
     """
@@ -108,13 +105,12 @@ class Number(FormComponent):
         else:
             return round(num, precision)
 
-    def preprocess(self, payload: float | None) -> float | None:
+    def preprocess(self, payload: float | None) -> float | int | None:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: the field value.
         Returns:
-            ADD DOCSTRING
+            Passes field value as a `float` or `int` into the function, depending on `precision`.
         """
         if payload is None:
             return None
@@ -126,13 +122,12 @@ class Number(FormComponent):
             )
         return self._round_to_precision(payload, self.precision)
 
-    def postprocess(self, value: float | None) -> float | None:
+    def postprocess(self, value: float | int | None) -> float | int | None:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects an `int` or `float` returned from the function and sets field value to it.
         Returns:
-            ADD DOCSTRING
+            The (optionally rounded) field value as a `float` or `int` depending on `precision`.
         """
         if value is None:
             return None
