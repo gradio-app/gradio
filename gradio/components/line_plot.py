@@ -284,14 +284,14 @@ class LinePlot(Plot):
 
         return chart
 
-    def preprocess(self, value: AltairPlotData | None) -> AltairPlotData | None:
+    def preprocess(self, payload: AltairPlotData | None) -> AltairPlotData | None:
         """
         Parameters:
             payload: The data to display in a line plot.
         Returns:
             (Rarely used) passes the data displayed in the line plot as an AltairPlotData dataclass, which includes the plot information as a JSON string, as well as the type of plot (in this case, "line").
         """
-        return value
+        return payload
 
     def postprocess(
         self, value: pd.DataFrame | dict | None

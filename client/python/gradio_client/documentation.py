@@ -149,7 +149,7 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
         parameter_docs.append(parameter_doc)
     assert (
         len(parameters) == 0
-    ), f"Documentation format for {fn.__name__} documents nonexistent parameters: {''.join(parameters.keys())}"
+    ), f"Documentation format for {fn.__name__} documents nonexistent parameters: {', '.join(parameters.keys())}. Valid parameters: {', '.join(signature.parameters.keys())}"
     if len(returns) == 0:
         return_docs = {}
     elif len(returns) == 1:
