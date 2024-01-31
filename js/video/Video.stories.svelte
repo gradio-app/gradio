@@ -13,7 +13,6 @@
 			chromatic: {
 				modes: {
 					desktop: allModes["desktop"],
-					tablet: allModes["tablet"],
 					mobile: allModes["mobile"]
 				}
 			}
