@@ -547,3 +547,48 @@ class GradioMultiPartParser:
         if self.upload_progress is not None:
             self.upload_progress.set_done(self.upload_id)  # type: ignore
         return FormData(self.items)
+
+class WebRTCContext:
+    app: App
+    body: PredictBody
+    request: Request
+    fn_index: int
+    output: dict
+
+
+
+from aiortc import MediaStreamTrack
+class GradioTransformTrack(MediaStreamTrack):
+    """
+    
+    """
+
+    kind = "media"
+
+    def __init__(self, track, context: WebRTCContext):
+        super().__init__()  # don't forget this!
+        self.track = track
+        self.context = context
+    
+    def add_frame_to_payload(self, body: dict) -> dict:
+        pass
+
+    def extract_frame_array_from_output(self, output: dict) -> tuple[np.ndarray, dict]:
+        pass
+
+    async def recv(self):
+
+        frame = await self.track.recv()
+        frame = frame.to_ndarray()
+
+        output = self.add_frame_to_payload(frame)
+
+        output = await call_process_api(
+                    app=self.context.app,
+                    body=self.context.body,
+                    gr_request=self.context.request,
+                    fn_index_inferred=self.context.fn_index,
+                )
+        array, output = self.extract_frame_array_from_output(output)
+        self.context.output = output
+        return array

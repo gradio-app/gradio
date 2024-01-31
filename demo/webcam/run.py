@@ -8,7 +8,7 @@ def snap(image, video):
 
 demo = gr.Interface(
     snap,
-    [gr.Image(sources=["webcam"]), gr.Video(sources=["webcam"])],
+    [gr.Image(sources=["clipboard", "upload", "webcam",]), gr.Video(sources=["webcam"])],
     ["image", "video"],
 )
 

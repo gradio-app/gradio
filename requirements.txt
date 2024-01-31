@@ -1,5 +1,5 @@
 aiofiles>=22.0,<24.0
-aiortc==1.7.0
+aiortc>=1.7.0,<2.0
 altair>=4.2.0,<6.0
 fastapi
 ffmpy

@@ -14,13 +14,17 @@ def add_to_stream(audio, instream):
 
 
 with gr.Blocks() as demo:
-    inp = gr.Audio(sources=["microphone"])
-    out = gr.Audio()
-    stream = gr.State()
-    clear = gr.Button("Clear")
+    with gr.Tabs():
+        with gr.Tab("About"):
+            gr.Markdown("Hello")
+        with gr.Tab("Audio"):
+            inp = gr.Audio(sources=["microphone"])
+            out = gr.Audio()
+            stream = gr.State()
+            clear = gr.Button("Clear")
 
-    inp.stream(add_to_stream, [inp, stream], [out, stream])
-    clear.click(lambda: [None, None, None], None, [inp, out, stream])
+            inp.stream(add_to_stream, [inp, stream], [out, stream])
+            clear.click(lambda: [None, None, None], None, [inp, out, stream])
 
 
 if __name__ == "__main__":

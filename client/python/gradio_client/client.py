@@ -457,7 +457,6 @@ class Client:
 
             for callback in result_callbacks:
                 job.add_done_callback(create_fn(callback))
-
         return job
 
     def _get_api_info(self):
