@@ -207,6 +207,8 @@
 </script>
 
 <div class="wrap">
+	<!-- svelte-ignore a11y-media-has-caption -->
+	<!-- need to suppress for video streaming https://github.com/sveltejs/svelte/issues/5967 -->
 	<video
 		bind:this={video_source}
 		class:flip={mirror_webcam}
@@ -215,8 +217,6 @@
 	{#if !webcam_accessed}
 		<WebcamPermissions on:click={async () => access_webcam()} />
 	{:else}
-		<!-- svelte-ignore a11y-media-has-caption -->
-		<!-- need to suppress for video streaming https://github.com/sveltejs/svelte/issues/5967 -->
 		<div class="button-wrap">
 			<button
 				on:click={record_video_or_photo}
@@ -385,23 +385,6 @@
 		width: var(--size-10);
 		height: var(--size-5);
 		opacity: 0.8;
-	}
-
-	.wrap-webcam-access {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		min-height: var(--size-60);
-		color: var(--block-label-text-color);
-		line-height: var(--line-md);
-		height: 100%;
-		padding-top: var(--size-3);
-	}
-
-	.icon-wrap {
-		width: 30px;
-		margin-bottom: var(--spacing-lg);
 	}
 
 	@media (--screen-md) {
