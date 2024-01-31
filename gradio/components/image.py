@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Any, Literal, cast
 
 import numpy as np
+import PIL.Image
 from gradio_client.documentation import document, set_documentation_group
-from PIL import Image as _Image  # using _ to minimize namespace pollution
 from PIL import ImageOps
 
 import gradio.image_utils as image_utils
@@ -18,17 +18,14 @@ from gradio.data_classes import FileData
 from gradio.events import Events
 
 set_documentation_group("component")
-_Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
+PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
 @document()
 class Image(StreamingInput, Component):
     """
     Creates an image component that can be used to upload images (as an input) or display images (as an output).
-    
-    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type`. For SVGs, the `type` parameter is ignored and the filepath of the SVG is returned.
-    Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} or {pathlib.Path} filepath to an image and displays the image.
-    Examples-format: a {str} local filepath or URL to an image.
+
     Demos: image_mod, image_mod_default_image
     Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, create-your-own-friends-with-a-gan
     """
@@ -45,7 +42,7 @@ class Image(StreamingInput, Component):
 
     def __init__(
         self,
-        value: str | _Image.Image | np.ndarray | None = None,
+        value: str | PIL.Image.Image | np.ndarray | None = None,
         *,
         height: int | str | None = None,
         width: int | str | None = None,
@@ -146,13 +143,12 @@ class Image(StreamingInput, Component):
 
     def preprocess(
         self, payload: FileData | None
-    ) -> np.ndarray | _Image.Image | str | None:
+    ) -> np.ndarray | PIL.Image.Image | str | None:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: image data in the form of a FileData object
         Returns:
-            ADD DOCSTRING
+            Passes the uploaded image as a `numpy.array`, `PIL.Image` or `str` filepath depending on `type`. For SVGs, the `type` parameter is ignored and the filepath of the SVG is returned.
         """
         if payload is None:
             return payload
@@ -170,7 +166,7 @@ class Image(StreamingInput, Component):
         if suffix.lower() == "svg":
             return str(file_path)
 
-        im = _Image.open(file_path)
+        im = PIL.Image.open(file_path)
         exif = im.getexif()
         # 274 is the code for image rotation and 1 means "correct orientation"
         if exif.get(274, 1) != 1 and hasattr(ImageOps, "exif_transpose"):
@@ -192,14 +188,13 @@ class Image(StreamingInput, Component):
         )
 
     def postprocess(
-        self, value: np.ndarray | _Image.Image | str | Path | None
+        self, value: np.ndarray | PIL.Image.Image | str | Path | None
     ) -> FileData | None:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects a `numpy.array`, `PIL.Image`, or `str` or `pathlib.Path` filepath to an image which is displayed.
         Returns:
-            ADD DOCSTRING
+            Returns the image as a `FileData` object.
         """
         if value is None:
             return None
