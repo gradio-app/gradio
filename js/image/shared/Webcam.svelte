@@ -10,6 +10,7 @@
 	import type { I18nFormatter } from "@gradio/utils";
 	import type { FileData } from "@gradio/client";
 	import { prepare_files, upload } from "@gradio/client";
+	import WebcamPermissions from "./WebcamPermissions.svelte";
 
 	let video_source: HTMLVideoElement;
 	let canvas: HTMLCanvasElement;
@@ -203,8 +204,6 @@
 		event.stopPropagation();
 		options_open = false;
 	}
-
-	$: console.log("webcam_accessed", webcam_accessed);
 </script>
 
 <div class="wrap">
@@ -214,14 +213,7 @@
 		class:invisible={!webcam_accessed}
 	/>
 	{#if !webcam_accessed}
-		<div class="wrap-webcam-access">
-			<span class="icon-wrap">
-				<WebcamIcon />
-			</span>
-			<button on:click={async () => await access_webcam()}
-				>{"Click to access webcam"}</button
-			>
-		</div>
+		<WebcamPermissions on:click={async () => access_webcam()} />
 	{:else}
 		<!-- svelte-ignore a11y-media-has-caption -->
 		<!-- need to suppress for video streaming https://github.com/sveltejs/svelte/issues/5967 -->
