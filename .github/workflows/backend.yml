@@ -25,6 +25,7 @@ jobs:
       pr_number: ${{ steps.changes.outputs.pr_number }}
       source_branch: ${{ steps.changes.outputs.source_branch }}
       source_repo: ${{ steps.changes.outputs.source_repo }}
+      merge_sha: ${{ steps.changes.outputs.merge_sha }}
     steps:
       - uses: actions/checkout@v3
       - uses: pngwn/api-check-test/.github/actions/changes@main
@@ -35,6 +36,7 @@ jobs:
   test:
     needs: [changes]
     if: needs.changes.outputs.should_run == 'true'
+    name: "test-python-${{ matrix.os }}-${{ matrix.test-type == 'flaky' && 'flaky' || 'not-flaky'}}"
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
@@ -46,6 +48,9 @@ jobs:
     continue-on-error: true
     steps:
     - uses: actions/checkout@v3
+      with:
+        ref: ${{ needs.changes.outputs.merge_sha }}
+        repository: ${{ needs.changes.outputs.source_repo }}
     - name: install dependencies
       id: install_deps
       uses: "./.github/actions/install-all-deps"
@@ -67,3 +72,14 @@ jobs:
       run: |
         . ${{steps.install_deps.outputs.venv_activate}}
         python -m pytest -m "${{ matrix.test-type }}"
+    - name: do check
+      if: always()
+      uses: "./.github/actions/do-check"
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        pr: ${{ needs.changes.outputs.pr_number }}
+        sha: ${{ needs.changes.outputs.sha }}
+        name: "test / python / ${{ matrix.os == 'ubuntu-latest' && 'linux' || 'windows'}}"
+        result: ${{ job.status }}
+        job_id: "test-python-${{ matrix.os }}-${{ matrix.test-type == 'flaky' && 'flaky' || 'not-flaky'}}"
+
