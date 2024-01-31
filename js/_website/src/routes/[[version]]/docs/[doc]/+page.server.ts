@@ -82,8 +82,12 @@ export async function load({ params, parent }) {
 				}
 
 				if ("preprocess" in obj && "postprocess" in obj) {
-					obj.preprocess.return_doc.doc = style_formatted_text(obj.preprocess.return_doc.doc);
-					obj.postprocess.parameter_doc[0].doc = style_formatted_text(obj.postprocess.parameter_doc[0].doc);
+					obj.preprocess.return_doc.doc = style_formatted_text(
+						obj.preprocess.return_doc.doc
+					);
+					obj.postprocess.parameter_doc[0].doc = style_formatted_text(
+						obj.postprocess.parameter_doc[0].doc
+					);
 
 					let preprocess_code_snippet = Prism.highlight(
 						`def predict(
