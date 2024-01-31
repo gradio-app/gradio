@@ -16,9 +16,8 @@ set_documentation_group("component")
 @document()
 class Markdown(Component):
     """
-    Used to render arbitrary Markdown output. Can also render latex enclosed by dollar signs.
-    Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a valid {str} that can be rendered as Markdown.
+    Used to render arbitrary Markdown output. Can also render latex enclosed by dollar signs. As this component does not accept user input, 
+    it is rarely used as an input component.
 
     Demos: blocks_hello, blocks_kinematics
     Guides: key-features
@@ -78,28 +77,26 @@ class Markdown(Component):
             value=value,
         )
 
+    def preprocess(self, payload: str | None) -> str | None:
+        """
+        Parameters:
+            payload: the `str` of Markdown corresponding to the displayed value.
+        Returns:
+            Passes the `str` of Markdown corresponding to the displayed value.
+        """
+        return payload
+
     def postprocess(self, value: str | None) -> str | None:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects a valid `str` that can be rendered as Markdown.
         Returns:
-            ADD DOCSTRING
+            The same `str` as the input, but with leading and trailing whitespace removed.
         """
         if value is None:
             return None
         unindented_y = inspect.cleandoc(value)
         return unindented_y
-
-    def preprocess(self, payload: str | None) -> str | None:
-        """
-        ADD DOCSTRING
-        Parameters:
-            payload: ADD DOCSTRING
-        Returns:
-            ADD DOCSTRING
-        """
-        return payload
 
     def example_inputs(self) -> Any:
         return "# Hello!"
