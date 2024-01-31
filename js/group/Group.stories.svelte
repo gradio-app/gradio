@@ -1,10 +1,22 @@
 <script>
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import Group from "./Index.svelte";
 	import Button from "../button/shared/Button.svelte";
-</script>
+	import { allModes } from "../storybook/modes";
 
-<Meta title="Layout Elements/Group" component={Group} />
+	export const meta = {
+		title: "Layout Elements/Group",
+		component: Group,
+		parameters: {
+			chromatic: {
+				modes: {
+					desktop: allModes["desktop"],
+					mobile: allModes["mobile"]
+				}
+			}
+		}
+	};
+</script>
 
 <Template let:args>
 	<Group {...args}>
