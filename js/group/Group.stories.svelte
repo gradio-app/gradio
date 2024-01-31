@@ -25,4 +25,4 @@
 	</Group>
 </Template>
 
-<Story name="Row Layout" />
+<Story name="Group Layout" />
