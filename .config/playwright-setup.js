@@ -112,9 +112,6 @@ import uvicorn
 import sys
 from fastapi import FastAPI
 import gradio as gr
-
-sys.path.append("${ROOT}")
-
 ${demos.map((d) => `from demo.${d}.run import demo as ${d}`).join("\n")}
 
 app = FastAPI()
