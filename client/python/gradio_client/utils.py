@@ -409,8 +409,9 @@ async def get_pred_from_sse_v1_v2(
 
     assert len(done) == 1
     for task in done:
-        if task.exception():
-            raise task.exception()
+        exception = task.exception()
+        if exception:
+            raise exception
         return task.result()
 
 
