@@ -53,6 +53,7 @@ jobs:
       with:
         python_version: ${{ matrix.python-version }}
         os: ${{ matrix.os }}
+        test: true
     - name: Lint
       if: runner.os == 'Linux'
       run: |
