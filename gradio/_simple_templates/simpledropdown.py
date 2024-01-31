@@ -76,14 +76,14 @@ class SimpleDropdown(FormComponent):
     def example_inputs(self) -> Any:
         return self.choices[0][1] if self.choices else None
 
-    def preprocess(self, x: str | int | float | None) -> str | int | float | None:
+    def preprocess(self, payload: str | int | float | None) -> str | int | float | None:
         """
         Parameters:
             payload: the value of the selected dropdown choice
         Returns:
             Passes the value of the selected dropdown choice as a `str | int | float`.
         """
-        return x
+        return payload
 
     def _warn_if_invalid_choice(self, y):
         if y not in [value for _, value in self.choices]:
@@ -91,17 +91,17 @@ class SimpleDropdown(FormComponent):
                 f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {y}."
             )
 
-    def postprocess(self, y):
+    def postprocess(self, value):
         """
         Parameters:
             value: Expects a `str | int | float` corresponding to the value of the dropdown entry to be selected.
         Returns:
             Returns the value of the selected dropdown entry.
         """
-        if y is None:
+        if value is None:
             return None
-        self._warn_if_invalid_choice(y)
-        return y
+        self._warn_if_invalid_choice(value)
+        return value
 
     def process_example(self, input_data):
         return next((c[0] for c in self.choices if c[1] == input_data), None)

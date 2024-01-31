@@ -66,23 +66,23 @@ class SimpleTextbox(FormComponent):
             render=render,
         )
 
-    def preprocess(self, x: str | None) -> str | None:
+    def preprocess(self, payload: str | None) -> str | None:
         """
         Parameters:
             payload: the text entered in the textarea.
         Returns:
             Passes text value as a {str} into the function.
         """
-        return None if x is None else str(x)
+        return None if payload is None else str(payload)
 
-    def postprocess(self, y: str | None) -> str | None:
+    def postprocess(self, value: str | None) -> str | None:
         """
         Parameters:
             value: Expects a {str} returned from function and sets textarea value to it.
         Returns:
             The value to display in the textarea.
         """
-        return None if y is None else str(y)
+        return None if value is None else str(value)
 
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
