@@ -29,7 +29,7 @@ class LabelData(GradioModel):
 @document()
 class Label(Component):
     """
-    Displays a classification label, along with confidence scores of top categories, if provided. As this component does not 
+    Displays a classification label, along with confidence scores of top categories, if provided. As this component does not
     accept user input, it is rarely used as an input component.
 
     Demos: main_note, titanic_survival

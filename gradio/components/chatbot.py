@@ -29,8 +29,8 @@ class ChatbotData(GradioRootModel):
 @document()
 class Chatbot(Component):
     """
-    Creates a chatbot that displays user-submitted messages and responses. Supports a subset of Markdown including bold, italics, code, tables. 
-    Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links. This 
+    Creates a chatbot that displays user-submitted messages and responses. Supports a subset of Markdown including bold, italics, code, tables.
+    Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links. This
     component is usually used as an output component.
 
     Demos: chatbot_simple, chatbot_multimodal

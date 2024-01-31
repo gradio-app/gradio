@@ -16,7 +16,7 @@ set_documentation_group("component")
 @document()
 class BarPlot(Plot):
     """
-    Creates a bar plot component to display data from a pandas DataFrame (as output). As this component does 
+    Creates a bar plot component to display data from a pandas DataFrame (as output). As this component does
     not accept user input, it is rarely used as an input component.
 
     Demos: bar_plot, chicago-bikeshare-dashboard
@@ -264,9 +264,7 @@ class BarPlot(Plot):
         """
         return payload
 
-    def postprocess(
-        self, value: pd.DataFrame | None
-    ) -> AltairPlotData | None:
+    def postprocess(self, value: pd.DataFrame | None) -> AltairPlotData | None:
         """
         Parameters:
             value: Expects a pandas DataFrame containing the data to display in the bar plot. The DataFrame should contain at least two columns, one for the x-axis (corresponding to this component's `x` argument) and one for the y-axis (corresponding to `y`).
@@ -305,4 +303,3 @@ class BarPlot(Plot):
 
     def example_inputs(self) -> dict[str, Any]:
         return {}
-

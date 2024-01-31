@@ -21,8 +21,8 @@ set_documentation_group("component")
 class ParamViewer(Component):
     """
     Displays an interactive table of parameters and their descriptions and default values with syntax highlighting. For each parameter,
-    the user should provide a type (e.g. a `str`), a human-readable description, and a default value. As this component does not accept user input, 
-    it is rarely used as an input component.Internally, this component is used to display the parameters of components in the Custom 
+    the user should provide a type (e.g. a `str`), a human-readable description, and a default value. As this component does not accept user input,
+    it is rarely used as an input component.Internally, this component is used to display the parameters of components in the Custom
     Component Gallery (https://www.gradio.app/custom-components/gallery).
     """
 

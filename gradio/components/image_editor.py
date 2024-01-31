@@ -90,9 +90,9 @@ class Brush(Eraser):
 @document()
 class ImageEditor(Component):
     """
-    Creates an image component that, as an input, can be used to upload and edit images using simple editing tools such 
+    Creates an image component that, as an input, can be used to upload and edit images using simple editing tools such
     as brushes, strokes, cropping, and layers. Or, as an output, this component can be used to display images.
-    
+
     Demos: image_editor
     """
 

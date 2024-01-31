@@ -35,7 +35,7 @@ class GalleryData(GradioRootModel):
 @document()
 class Gallery(Component):
     """
-    Creates a gallery component that allows displaying a grid of images, and optionally captions. If used as an input, the user can upload images to the gallery. 
+    Creates a gallery component that allows displaying a grid of images, and optionally captions. If used as an input, the user can upload images to the gallery.
     If used as an output, the user can click on individual images to view them at a higher resolution.
 
     Demos: fake_gan

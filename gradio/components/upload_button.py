@@ -21,7 +21,7 @@ set_documentation_group("component")
 class UploadButton(Component):
     """
     Used to create an upload button, when clicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
-    
+
     Demos: upload_button
     """
 

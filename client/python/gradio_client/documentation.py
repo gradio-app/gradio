@@ -205,10 +205,24 @@ def generate_documentation():
         for cls, fns in class_list:
             fn_to_document = cls if inspect.isfunction(cls) else cls.__init__
             _, parameter_doc, return_doc, _ = document_fn(fn_to_document, cls)
-            if hasattr(cls, 'preprocess') and callable(cls.preprocess) and hasattr(cls, 'postprocess') and callable(cls.postprocess):
+            if (
+                hasattr(cls, "preprocess")
+                and callable(cls.preprocess)
+                and hasattr(cls, "postprocess")
+                and callable(cls.postprocess)
+            ):
                 preprocess_doc = document_fn(cls.preprocess, cls)
                 postprocess_doc = document_fn(cls.postprocess, cls)
-                preprocess_doc, postprocess_doc = {"parameter_doc": preprocess_doc[1], "return_doc": preprocess_doc[2]}, {"parameter_doc": postprocess_doc[1], "return_doc": postprocess_doc[2]}
+                preprocess_doc, postprocess_doc = (
+                    {
+                        "parameter_doc": preprocess_doc[1],
+                        "return_doc": preprocess_doc[2],
+                    },
+                    {
+                        "parameter_doc": postprocess_doc[1],
+                        "return_doc": postprocess_doc[2],
+                    },
+                )
             cls_description, cls_tags, cls_example = document_cls(cls)
             cls_documentation = {
                 "class": cls,
@@ -220,7 +234,12 @@ def generate_documentation():
                 "example": cls_example,
                 "fns": [],
             }
-            if hasattr(cls, 'preprocess') and callable(cls.preprocess) and hasattr(cls, 'postprocess') and callable(cls.postprocess):
+            if (
+                hasattr(cls, "preprocess")
+                and callable(cls.preprocess)
+                and hasattr(cls, "postprocess")
+                and callable(cls.postprocess)
+            ):
                 cls_documentation["preprocess"] = preprocess_doc
                 cls_documentation["postprocess"] = postprocess_doc
             for fn_name in fns:

@@ -16,7 +16,7 @@ set_documentation_group("component")
 @document()
 class Markdown(Component):
     """
-    Used to render arbitrary Markdown output. Can also render latex enclosed by dollar signs. As this component does not accept user input, 
+    Used to render arbitrary Markdown output. Can also render latex enclosed by dollar signs. As this component does not accept user input,
     it is rarely used as an input component.
 
     Demos: blocks_hello, blocks_kinematics

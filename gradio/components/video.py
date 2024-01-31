@@ -244,7 +244,9 @@ class Video(Component):
                     f"Expected lists of length 2 or tuples of length 2. Received: {value}"
                 )
 
-            if not (isinstance(value[0], (str, Path)) and isinstance(value[1], (str, Path))):
+            if not (
+                isinstance(value[0], (str, Path)) and isinstance(value[1], (str, Path))
+            ):
                 raise TypeError(
                     f"If a tuple is provided, both elements must be strings or Path objects. Received: {value}"
                 )

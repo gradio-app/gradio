@@ -211,7 +211,7 @@ class Dataframe(Component):
         if self.type == "numpy":
             return np.array(payload.data)
         elif self.type == "array":
-            return payload.data
+            return payload.data  # type: ignore
         else:
             raise ValueError(
                 "Unknown type: "

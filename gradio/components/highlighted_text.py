@@ -96,12 +96,14 @@ class HighlightedText(Component):
     def example_inputs(self) -> Any:
         return {"value": [{"token": "Hello", "class_or_confidence": "1"}]}
 
-    def preprocess(self, payload: HighlightedTextData | None) -> list[tuple[str, str | float | None]] | None:
+    def preprocess(
+        self, payload: HighlightedTextData | None
+    ) -> list[tuple[str, str | float | None]] | None:
         """
         Parameters:
             payload: An instance of HighlightedTextData
         Returns:
-            Passes the value as a list of tuples as a `list[tuple]` into the function. Each `tuple` consists of a `str` substring of the text (so the entire text is included) and `str | float | None` label, which is the category or confidence of that substring. 
+            Passes the value as a list of tuples as a `list[tuple]` into the function. Each `tuple` consists of a `str` substring of the text (so the entire text is included) and `str | float | None` label, which is the category or confidence of that substring.
         """
         if payload is None:
             return None

@@ -202,4 +202,3 @@ class AnnotatedImage(Component):
 
     def example_inputs(self) -> Any:
         return {}
-
