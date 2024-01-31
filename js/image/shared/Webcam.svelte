@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from "svelte";
-	import { Camera, Circle, Square, DropdownArrow } from "@gradio/icons";
+	import {
+		Camera,
+		Circle,
+		Square,
+		DropdownArrow,
+		Webcam as WebcamIcon
+	} from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import type { FileData } from "@gradio/client";
 	import { prepare_files, upload } from "@gradio/client";
@@ -42,6 +48,7 @@
 			video_source.srcObject = stream;
 			video_source.muted = true;
 			video_source.play();
+			webcam_accessed = true;
 		} catch (err) {
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
 				dispatch("error", i18n("image.allow_webcam_access"));
@@ -53,8 +60,11 @@
 
 	function take_picture(): void {
 		var context = canvas.getContext("2d")!;
-
-		if (video_source.videoWidth && video_source.videoHeight) {
+		if (
+			(!streaming || (streaming && recording)) &&
+			video_source.videoWidth &&
+			video_source.videoHeight
+		) {
 			canvas.width = video_source.videoWidth;
 			canvas.height = video_source.videoHeight;
 			context.drawImage(
@@ -131,7 +141,20 @@
 		recording = !recording;
 	}
 
-	access_webcam();
+	let webcam_accessed = false;
+
+	function record_video_or_photo(): void {
+		if (mode === "image" && streaming) {
+			recording = !recording;
+		}
+		const func = mode === "image" ? take_picture : take_recording;
+		func();
+		if (!recording && stream) {
+			stream.getTracks().forEach((track) => track.stop());
+			video_source.srcObject = null;
+			webcam_accessed = false;
+		}
+	}
 
 	if (streaming && mode === "image") {
 		window.setInterval(() => {
@@ -180,19 +203,34 @@
 		event.stopPropagation();
 		options_open = false;
 	}
+
+	$: console.log("webcam_accessed", webcam_accessed);
 </script>
 
 <div class="wrap">
-	<!-- svelte-ignore a11y-media-has-caption -->
-	<!-- need to suppress for video streaming https://github.com/sveltejs/svelte/issues/5967 -->
-	<video bind:this={video_source} class:flip={mirror_webcam} />
-	{#if !streaming}
+	<video
+		bind:this={video_source}
+		class:flip={mirror_webcam}
+		class:invisible={!webcam_accessed}
+	/>
+	{#if !webcam_accessed}
+		<div class="wrap-webcam-access">
+			<span class="icon-wrap">
+				<WebcamIcon />
+			</span>
+			<button on:click={async () => await access_webcam()}
+				>{"Click to access webcam"}</button
+			>
+		</div>
+	{:else}
+		<!-- svelte-ignore a11y-media-has-caption -->
+		<!-- need to suppress for video streaming https://github.com/sveltejs/svelte/issues/5967 -->
 		<div class="button-wrap">
 			<button
-				on:click={mode === "image" ? take_picture : take_recording}
+				on:click={record_video_or_photo}
 				aria-label={mode === "image" ? "capture photo" : "start recording"}
 			>
-				{#if mode === "video"}
+				{#if mode === "video" || streaming}
 					{#if recording}
 						<div class="icon red" title="stop recording">
 							<Square />
@@ -208,7 +246,6 @@
 					</div>
 				{/if}
 			</button>
-
 			{#if !recording}
 				<button
 					on:click={select_source}
@@ -251,6 +288,10 @@
 		position: relative;
 		width: var(--size-full);
 		height: var(--size-full);
+	}
+
+	.invisible {
+		display: none;
 	}
 
 	video {
@@ -352,5 +393,28 @@
 		width: var(--size-10);
 		height: var(--size-5);
 		opacity: 0.8;
+	}
+
+	.wrap-webcam-access {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		min-height: var(--size-60);
+		color: var(--block-label-text-color);
+		line-height: var(--line-md);
+		height: 100%;
+		padding-top: var(--size-3);
+	}
+
+	.icon-wrap {
+		width: 30px;
+		margin-bottom: var(--spacing-lg);
+	}
+
+	@media (--screen-md) {
+		.wrap {
+			font-size: var(--text-lg);
+		}
 	}
 </style>
