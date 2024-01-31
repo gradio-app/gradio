@@ -228,7 +228,7 @@
 									</h4>
 									<p class="text-lg mb-2">
 										<span class="font-semibold">As input component:</span>
-										{obj.preprocess.return_doc.doc}
+										{@html obj.preprocess.return_doc.doc}
 									</p>
 									<p class="text-md text-gray-500 -mb-1">
 										Your function should accept one of these types:
@@ -241,7 +241,7 @@
 
 									<p class="text-lg my-2">
 										<span class="font-semibold">As output component:</span>
-										{obj.postprocess.parameter_doc[0].doc}
+										{@html obj.postprocess.parameter_doc[0].doc}
 									</p>
 									<p class="text-md text-gray-500 -mb-1">
 										Your function should return one of these types:
