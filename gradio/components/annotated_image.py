@@ -31,7 +31,8 @@ class AnnotatedImageData(GradioModel):
 @document()
 class AnnotatedImage(Component):
     """
-    Displays a base image and colored annotations on top of that image. Annotations can take the from of rectangles (e.g. object detection) or masks (e.g. image segmentation).
+    Creates a component to displays a base image and colored annotations on top of that image. Annotations can take the from of rectangles (e.g. object detection) or masks (e.g. image segmentation).
+    As this component does not accept user input, it is rarely used as an input component.
 
     Demos: image_segmentation
     """
@@ -103,14 +104,10 @@ class AnnotatedImage(Component):
         self, payload: AnnotatedImageData | None
     ) -> tuple[str, list[tuple[str, str]]] | None:
         """
-        This component does not accept user input, but its value can be set programmatically. In the rare case that it is used as an input component, 
-        it will pass its value as a {tuple} consisting of a {str} filepath to a base image and {list} of annotations. Each annotation itself is 
-        {tuple} of a mask (as a {str} filepath to image) and a {str} label. This {tuple[str, list[tuple[str, str]]]} will be passed into the function 
-        in the event listener.
         Parameters:
             payload: Tuple of base image and list of annotations.
         Returns:
-            Tuple of base image file and list of annotations.
+            Passes its value as a `tuple` consisting of a `str` filepath to a base image and `list` of annotations. Each annotation itself is `tuple` of a mask (as a `str` filepath to image) and a `str` label.
         """
         if payload is None:
             return None
@@ -127,11 +124,8 @@ class AnnotatedImage(Component):
         | None,
     ) -> AnnotatedImageData | None:
         """
-        This component expects a tuple of a base image and list of annotations: a {tuple[Image, list[Annotation]]}. The {Image} itself can be {str} filepath, {numpy.ndarray}, or {PIL.Image}. 
-        Each {Annotation} is a {tuple[Mask, str]}. The {Mask} can be either a {tuple} of 4 {int}'s representing the bounding box coordinates (x1, y1, x2, y2), or 0-1 confidence mask in the 
-        form of a {numpy.ndarray} of the same shape as the image, while the second element of the {Annotation} tuple is a {str} label.
         Parameters:
-            value: Tuple of base image and list of annotations, with each annotation a two-part tuple where the first element is a 4 element bounding box or a 0-1 confidence mask, and the second element is the label.
+            value: Expects a a tuple of a base image and list of annotations: a `tuple[Image, list[Annotation]]`. The `Image` itself can be `str` filepath, `numpy.ndarray`, or `PIL.Image`. Each `Annotation` is a `tuple[Mask, str]`. The `Mask` can be either a `tuple` of 4 `int`'s representing the bounding box coordinates (x1, y1, x2, y2), or 0-1 confidence mask in the form of a `numpy.ndarray` of the same shape as the image, while the second element of the `Annotation` tuple is a `str` label.
         Returns:
             Tuple of base image file and list of annotations, with each annotation a two-part tuple where the first element image path of the mask, and the second element is the label.
         """

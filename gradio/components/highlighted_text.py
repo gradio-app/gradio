@@ -96,14 +96,25 @@ class HighlightedText(Component):
     def example_inputs(self) -> Any:
         return {"value": [{"token": "Hello", "class_or_confidence": "1"}]}
 
+    def preprocess(self, payload: HighlightedTextData | None) -> list[tuple[str, str | float | None]] | None:
+        """
+        Parameters:
+            payload: An instance of HighlightedTextData
+        Returns:
+            Passes the value as a list of tuples as a `list[tuple]` into the function. Each `tuple` consists of a `str` substring of the text (so the entire text is included) and `str | float | None` label, which is the category or confidence of that substring. 
+        """
+        if payload is None:
+            return None
+        return payload.model_dump()  # type: ignore
+
     def postprocess(
         self, value: list[tuple[str, str | float | None]] | dict | None
     ) -> HighlightedTextData | None:
         """
         Parameters:
-            value: List of (word, category) tuples, or a dictionary of two keys: "text", and "entities", which itself is a list of dictionaries, each of which have the keys: "entity" (or "entity_group"), "start", and "end"
+            value: Expects a list of (word, category) tuples, or a dictionary of two keys: "text", and "entities", which itself is a list of dictionaries, each of which have the keys: "entity" (or "entity_group"), "start", and "end"
         Returns:
-            List of (word, category) tuples
+            An instance of HighlightedTextData
         """
         if value is None:
             return None
@@ -163,14 +174,3 @@ class HighlightedText(Component):
                     for o in value
                 ]
             )
-
-    def preprocess(self, payload: HighlightedTextData | None) -> dict | None:
-        """
-        Parameters:
-            payload: An instance of HighlightedTextData
-        Returns:
-            Passes value as a list of tuples as a `list[tuple[str, float | str | None]]]` into the function. If no labels are provided, the text will be displayed as a single span.
-        """
-        if payload is None:
-            return None
-        return payload.model_dump()

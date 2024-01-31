@@ -15,9 +15,7 @@ set_documentation_group("component")
 @document()
 class HTML(Component):
     """
-    Used to display arbitrary HTML output.
-    Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a valid HTML {str}.
+    Creates a component to display arbitrary HTML output. As this component does not accept user input, it is rarely used as an input component.
 
     Demos: text_analysis
     Guides: key-features
@@ -64,21 +62,19 @@ class HTML(Component):
 
     def preprocess(self, payload: str | None) -> str | None:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: string corresponding to the HTML
         Returns:
-            ADD DOCSTRING
+            (Rarely used) passes the HTML as a `str`.
         """
         return payload
 
     def postprocess(self, value: str | None) -> str | None:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects a `str` consisting of valid HTML.
         Returns:
-            ADD DOCSTRING
+            Returns the HTML string.
         """
         return value
 

@@ -257,7 +257,6 @@ class BarPlot(Plot):
 
     def preprocess(self, payload: AltairPlotData) -> AltairPlotData:
         """
-
         Parameters:
             payload: The data to display in a bar plot.
         Returns:
