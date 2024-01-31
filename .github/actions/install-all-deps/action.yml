@@ -40,7 +40,7 @@ runs:
       if: ${{ inputs.os == 'windows-latest' }}
       shell: bash
       run: |
-        echo "VENV_ACTIVATE=venv\Scripts\activate" >> $GITHUB_ENV
+        echo "VENV_ACTIVATE=venv\\Scripts\\activate" >> $GITHUB_ENV
     - name: log venv binary path
       id: venv
       shell: bash
