@@ -78,7 +78,7 @@ runs:
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
     - name: Install test dependencies
-      if: inputs.test == 'true' && steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
+      if: inputs.test == 'true' && steps.cache.outputs.cache-hit != 'true'
       shell: bash
       run: |
         . ${{ env.VENV_ACTIVATE }}
