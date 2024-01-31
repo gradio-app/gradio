@@ -31,7 +31,7 @@ runs:
       if: steps.frontend-cache.outputs.cache-hit != 'true' || inputs.always_install_pnpm == 'true'
       uses: pnpm/action-setup@v2
       with:
-        version: 8.9
+        version: 8.15
     - uses: actions/setup-node@v4
       with:
         node-version: 18
