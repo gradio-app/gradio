@@ -8,7 +8,7 @@ from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils
 
-_Image.init()
+_Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843 (remove when requiring Pillow 9.4+)
 
 
 def format_image(
