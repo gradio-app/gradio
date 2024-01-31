@@ -207,12 +207,12 @@ def generate_documentation():
             _, parameter_doc, return_doc, _ = document_fn(fn_to_document, cls)
             if (
                 hasattr(cls, "preprocess")
-                and callable(cls.preprocess)
+                and callable(cls.preprocess)  # type: ignore
                 and hasattr(cls, "postprocess")
-                and callable(cls.postprocess)
+                and callable(cls.postprocess)  # type: ignore
             ):
-                preprocess_doc = document_fn(cls.preprocess, cls)
-                postprocess_doc = document_fn(cls.postprocess, cls)
+                preprocess_doc = document_fn(cls.preprocess, cls)  # type: ignore
+                postprocess_doc = document_fn(cls.postprocess, cls)  # type: ignore
                 preprocess_doc, postprocess_doc = (
                     {
                         "parameter_doc": preprocess_doc[1],
@@ -236,12 +236,12 @@ def generate_documentation():
             }
             if (
                 hasattr(cls, "preprocess")
-                and callable(cls.preprocess)
+                and callable(cls.preprocess)  # type: ignore
                 and hasattr(cls, "postprocess")
-                and callable(cls.postprocess)
+                and callable(cls.postprocess)  # type: ignore
             ):
-                cls_documentation["preprocess"] = preprocess_doc
-                cls_documentation["postprocess"] = postprocess_doc
+                cls_documentation["preprocess"] = preprocess_doc  # type: ignore
+                cls_documentation["postprocess"] = postprocess_doc  # type: ignore
             for fn_name in fns:
                 instance_attribute_fn = fn_name.startswith("*")
                 if instance_attribute_fn:

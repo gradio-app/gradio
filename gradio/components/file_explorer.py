@@ -18,7 +18,7 @@ set_documentation_group("component")
 
 
 class FileExplorerData(GradioRootModel):
-    root: List[str]
+    root: List[List[str]]
 
 
 @document()
