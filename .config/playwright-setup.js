@@ -11,6 +11,8 @@ const TEST_APP_PATH = join(__dirname, "./test.py");
 const TEST_FILES_PATH = join(__dirname, "..", "js", "app", "test");
 const ROOT = join(__dirname, "..");
 
+console.log(ROOT);
+
 const test_files = readdirSync(TEST_FILES_PATH)
 	.filter(
 		(f) =>
@@ -107,8 +109,12 @@ function kill_process(process) {
 function make_app(demos, port) {
 	return `import gradio as gr
 import uvicorn
+import sys
 from fastapi import FastAPI
 import gradio as gr
+
+sys.path.append("${ROOT}")
+
 ${demos.map((d) => `from demo.${d}.run import demo as ${d}`).join("\n")}
 
 app = FastAPI()
