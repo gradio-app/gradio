@@ -208,6 +208,8 @@
 		event.stopPropagation();
 		options_open = false;
 	}
+
+	$: console.log("webcam_accessed", webcam_accessed);
 </script>
 
 <div class="wrap">
