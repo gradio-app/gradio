@@ -73,8 +73,8 @@ runs:
       shell: bash
       run: |
         . ${{ env.VENV_ACTIVATE }}
-        python -m pip install client/python  
-        python -m pip install ".[oauth]"
+        python -m pip install -e client/python  
+        python -m pip install -e ".[oauth]"
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
     - name: Install test dependencies
