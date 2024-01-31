@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import copy
 import hashlib
 import json
 import mimetypes
@@ -17,7 +18,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Optional, TypedDict
+from typing import Any, Callable, Literal, Optional, TypedDict
 
 import fsspec.asyn
 import httpx
@@ -381,22 +382,19 @@ async def get_pred_from_sse_v0(
         return task.result()
 
 
-async def get_pred_from_sse_v1(
+async def get_pred_from_sse_v1_v2(
     helper: Communicator,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
     pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
+    protocol: Literal["sse_v1", "sse_v2"],
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
             asyncio.create_task(check_for_cancel(helper, headers, cookies)),
             asyncio.create_task(
-                stream_sse_v1(
-                    helper,
-                    pending_messages_per_event,
-                    event_id,
-                )
+                stream_sse_v1_v2(helper, pending_messages_per_event, event_id, protocol)
             ),
         ],
         return_when=asyncio.FIRST_COMPLETED,
@@ -411,6 +409,9 @@ async def get_pred_from_sse_v1(
 
     assert len(done) == 1
     for task in done:
+        exception = task.exception()
+        if exception:
+            raise exception
         return task.result()
 
 
@@ -502,13 +503,15 @@ async def stream_sse_v0(
         raise
 
 
-async def stream_sse_v1(
+async def stream_sse_v1_v2(
     helper: Communicator,
     pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
+    protocol: Literal["sse_v1", "sse_v2"],
 ) -> dict[str, Any]:
     try:
         pending_messages = pending_messages_per_event[event_id]
+        pending_responses_for_diffs = None
 
         while True:
             if len(pending_messages) > 0:
@@ -540,6 +543,19 @@ async def stream_sse_v1(
                     log=log_message,
                 )
                 output = msg.get("output", {}).get("data", [])
+                if (
+                    msg["msg"] == ServerMessage.process_generating
+                    and protocol == "sse_v2"
+                ):
+                    if pending_responses_for_diffs is None:
+                        pending_responses_for_diffs = list(output)
+                    else:
+                        for i, value in enumerate(output):
+                            prev_output = pending_responses_for_diffs[i]
+                            new_output = apply_diff(prev_output, value)
+                            pending_responses_for_diffs[i] = new_output
+                            output[i] = new_output
+
                 if output and status_update.code != Status.FINISHED:
                     try:
                         result = helper.prediction_processor(*output)
@@ -555,6 +571,48 @@ async def stream_sse_v1(
 
     except asyncio.CancelledError:
         raise
+
+
+def apply_diff(obj, diff):
+    obj = copy.deepcopy(obj)
+
+    def apply_edit(target, path, action, value):
+        if len(path) == 0:
+            if action == "replace":
+                return value
+            elif action == "append":
+                return target + value
+            else:
+                raise ValueError(f"Unsupported action: {action}")
+
+        current = target
+        for i in range(len(path) - 1):
+            current = current[path[i]]
+
+        last_path = path[-1]
+        if action == "replace":
+            current[last_path] = value
+        elif action == "append":
+            current[last_path] += value
+        elif action == "add":
+            if isinstance(current, list):
+                current.insert(int(last_path), value)
+            else:
+                current[last_path] = value
+        elif action == "delete":
+            if isinstance(current, list):
+                del current[int(last_path)]
+            else:
+                del current[last_path]
+        else:
+            raise ValueError(f"Unknown action: {action}")
+
+        return target
+
+    for action, path, value in diff:
+        obj = apply_edit(obj, path, action, value)
+
+    return obj
 
 
 ########################

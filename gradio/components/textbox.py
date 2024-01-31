@@ -6,9 +6,7 @@ from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
-from gradio.components.base import (
-    FormComponent,
-)
+from gradio.components.base import FormComponent
 from gradio.events import Events
 
 set_documentation_group("component")

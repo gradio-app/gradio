@@ -11,7 +11,8 @@ import {
 	set_space_hardware,
 	set_space_timeout,
 	hardware_types,
-	resolve_root
+	resolve_root,
+	apply_diff
 } from "./utils.js";
 
 import type {
@@ -288,6 +289,7 @@ export function api_factory(
 			const last_status: Record<string, Status["stage"]> = {};
 			let stream_open = false;
 			let pending_stream_messages: Record<string, any[]> = {}; // Event messages may be received by the SSE stream before the initial data POST request is complete. To resolve this race condition, we store the messages in a dictionary and process them when the POST request is complete.
+			let pending_diff_streams: Record<string, any[][]> = {};
 			let event_stream: EventSource | null = null;
 			const event_callbacks: Record<string, () => Promise<void>> = {};
 			const unclosed_events: Set<string> = new Set();
@@ -774,7 +776,8 @@ export function api_factory(
 									}
 								}
 							};
-						} else if (protocol == "sse_v1") {
+						} else if (protocol == "sse_v1" || protocol == "sse_v2") {
+							// latest API format. v2 introduces sending diffs for intermediate outputs in generative functions, which makes payloads lighter.
 							fire_event({
 								type: "status",
 								stage: "pending",
@@ -867,6 +870,9 @@ export function api_factory(
 													endpoint: _endpoint,
 													fn_index
 												});
+												if (data && protocol === "sse_v2") {
+													apply_diff_stream(event_id!, data);
+												}
 											}
 											if (data) {
 												fire_event({
@@ -904,6 +910,9 @@ export function api_factory(
 												if (event_callbacks[event_id]) {
 													delete event_callbacks[event_id];
 												}
+												if (event_id in pending_diff_streams) {
+													delete pending_diff_streams[event_id];
+												}
 											}
 										} catch (e) {
 											console.error("Unexpected client exception", e);
@@ -935,6 +944,25 @@ export function api_factory(
 						}
 					}
 				);
+
+				function apply_diff_stream(event_id: string, data: any): void {
+					let is_first_generation = !pending_diff_streams[event_id];
+					if (is_first_generation) {
+						pending_diff_streams[event_id] = [];
+						data.data.forEach((value: any, i: number) => {
+							pending_diff_streams[event_id][i] = value;
+						});
+					} else {
+						data.data.forEach((value: any, i: number) => {
+							let new_data = apply_diff(
+								pending_diff_streams[event_id][i],
+								value
+							);
+							pending_diff_streams[event_id][i] = new_data;
+							data.data[i] = new_data;
+						});
+					}
+				}
 
 				function fire_event<K extends EventType>(event: Event<K>): void {
 					const narrowed_listener_map: ListenerMap<K> = listener_map;

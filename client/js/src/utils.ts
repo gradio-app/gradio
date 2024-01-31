@@ -239,3 +239,62 @@ export const hardware_types = [
 	"a10g-large",
 	"a100-large"
 ] as const;
+
+function apply_edit(
+	target: any,
+	path: (number | string)[],
+	action: string,
+	value: any
+): any {
+	if (path.length === 0) {
+		if (action === "replace") {
+			return value;
+		} else if (action === "append") {
+			return target + value;
+		}
+		throw new Error(`Unsupported action: ${action}`);
+	}
+
+	let current = target;
+	for (let i = 0; i < path.length - 1; i++) {
+		current = current[path[i]];
+	}
+
+	const last_path = path[path.length - 1];
+	switch (action) {
+		case "replace":
+			current[last_path] = value;
+			break;
+		case "append":
+			current[last_path] += value;
+			break;
+		case "add":
+			if (Array.isArray(current)) {
+				current.splice(Number(last_path), 0, value);
+			} else {
+				current[last_path] = value;
+			}
+			break;
+		case "delete":
+			if (Array.isArray(current)) {
+				current.splice(Number(last_path), 1);
+			} else {
+				delete current[last_path];
+			}
+			break;
+		default:
+			throw new Error(`Unknown action: ${action}`);
+	}
+	return target;
+}
+
+export function apply_diff(
+	obj: any,
+	diff: [string, (number | string)[], any][]
+): any {
+	diff.forEach(([action, path, value]) => {
+		obj = apply_edit(obj, path, action, value);
+	});
+
+	return obj;
+}

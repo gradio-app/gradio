@@ -584,10 +584,7 @@ class Queue:
                         response = None
                         err = e
                 for event in awake_events:
-                    if response is None:
-                        relevant_response = err
-                    else:
-                        relevant_response = old_response or old_err
+                    relevant_response = response or err or old_err
                     self.send_message(
                         event,
                         ServerMessage.process_completed,

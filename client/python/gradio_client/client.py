@@ -428,7 +428,12 @@ class Client:
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
 
         helper = None
-        if self.endpoints[inferred_fn_index].protocol in ("ws", "sse", "sse_v1"):
+        if self.endpoints[inferred_fn_index].protocol in (
+            "ws",
+            "sse",
+            "sse_v1",
+            "sse_v2",
+        ):
             helper = self.new_helper(inferred_fn_index)
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
@@ -998,13 +1003,15 @@ class Endpoint:
                 result = utils.synchronize_async(
                     self._sse_fn_v0, data, hash_data, helper
                 )
-            elif self.protocol == "sse_v1":
+            elif self.protocol == "sse_v1" or self.protocol == "sse_v2":
                 event_id = utils.synchronize_async(
                     self.client.send_data, data, hash_data
                 )
                 self.client.pending_event_ids.add(event_id)
                 self.client.pending_messages_per_event[event_id] = []
-                result = utils.synchronize_async(self._sse_fn_v1, helper, event_id)
+                result = utils.synchronize_async(
+                    self._sse_fn_v1_v2, helper, event_id, self.protocol
+                )
             else:
                 raise ValueError(f"Unsupported protocol: {self.protocol}")
 
@@ -1197,13 +1204,16 @@ class Endpoint:
                 self.client.cookies,
             )
 
-    async def _sse_fn_v1(self, helper: Communicator, event_id: str):
-        return await utils.get_pred_from_sse_v1(
+    async def _sse_fn_v1_v2(
+        self, helper: Communicator, event_id: str, protocol: Literal["sse_v1", "sse_v2"]
+    ):
+        return await utils.get_pred_from_sse_v1_v2(
             helper,
             self.client.headers,
             self.client.cookies,
             self.client.pending_messages_per_event,
             event_id,
+            protocol,
         )
 
 
