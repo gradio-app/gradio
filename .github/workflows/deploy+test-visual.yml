@@ -83,9 +83,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           pr: ${{ needs.changes.outputs.pr_number }}
           sha: ${{ needs.changes.outputs.sha }}
-          name: "test / js"
+          name: "test / visual"
           result: ${{ job.status }}
-          job_id: "test-js"  
+          job_id: "test-visual"  
           url: ${{ steps.publish-chromatic.outputs.buildUrl }}
    
   comment-chromatic-end:
