@@ -66,7 +66,9 @@ runs:
         path: |
           venv/*
           client/python/venv
-        key: gradio-lib-ubuntu-latest-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}
+        restore-keys: |
+          gradio-lib-${{inputs.os}}-latest-pip-
+        key: gradio-lib-${{inputs.os}}-latest-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}
     - name: Install Gradio and Client Libraries Locally (Linux)
       shell: bash
       run: |
@@ -76,7 +78,7 @@ runs:
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
     - name: Install test dependencies
-      if: inputs.test == 'true'
+      if: inputs.test == 'true' && steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
       shell: bash
       run: |
         . ${{ env.VENV_ACTIVATE }}
