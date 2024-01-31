@@ -15,11 +15,7 @@ set_documentation_group("component")
 @document()
 class Button(Component):
     """
-    Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
-
-    Preprocessing: passes the button value as a {str} into the function
-    Postprocessing: expects a {str} to be returned from a function, which is set as the label of the button
-    Demos: blocks_inputs, blocks_kinematics
+    Creates a button that can be assigned arbitrary .click() events. The value (label) of the button can be used as an input to the function (rarely used) or set via the output of a function.
     """
 
     EVENTS = [Events.click]
@@ -44,7 +40,7 @@ class Button(Component):
         """
         Parameters:
             value: Default text for the button to display. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             size: Size of the button. Can be "sm" or "lg".
             icon: URL or path to the icon file to display within the button. If None, no icon will be displayed. Must be within the working directory of the Gradio app or an external URL.
@@ -77,10 +73,22 @@ class Button(Component):
     def skip_api(self):
         return True
 
-    def preprocess(self, payload: str) -> str:
+    def preprocess(self, payload: str | None) -> str | None:
+        """
+        Parameters:
+            payload: string corresponding to the button label
+        Returns:
+            (Rarely used) the `str` corresponding to the button label when the button is clicked
+        """
         return payload
 
-    def postprocess(self, value: str) -> str:
+    def postprocess(self, value: str | None) -> str | None:
+        """
+        Parameters:
+            value: string corresponding to the button label
+        Returns:
+            Expects a `str` value that is set as the button label
+        """
         return value
 
     def example_inputs(self) -> Any:

@@ -18,9 +18,6 @@ set_documentation_group("component")
 class Slider(FormComponent):
     """
     Creates a slider that ranges from {minimum} to {maximum} with a step size of {step}.
-    Preprocessing: passes slider value as a {float} into the function.
-    Postprocessing: expects an {int} or {float} returned from function and sets slider value to it as long as it is within range.
-    Examples-format: A {float} or {int} representing the slider's value.
 
     Demos: sentence_builder, slider_release, interface_random_slider, blocks_random_slider
     Guides: create-your-own-friends-with-a-gan
@@ -57,7 +54,7 @@ class Slider(FormComponent):
             step: increment between slider values.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             info: additional component description.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
@@ -115,7 +112,19 @@ class Slider(FormComponent):
         return value
 
     def postprocess(self, value: float | None) -> float:
+        """
+        Parameters:
+            value: Expects an {int} or {float} returned from function and sets slider value to it as long as it is within range (otherwise, sets to minimum value).
+        Returns:
+            The value of the slider within the range.
+        """
         return self.minimum if value is None else value
 
     def preprocess(self, payload: float) -> float:
+        """
+        Parameters:
+            payload: slider value
+        Returns:
+            Passes slider value as a {float} into the function.
+        """
         return payload
