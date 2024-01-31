@@ -123,6 +123,8 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
     for param_name, param in signature.parameters.items():
         if param_name.startswith("_"):
             continue
+        if param_name == "self":
+            continue
         if param_name in ["kwargs", "args"] and param_name not in parameters:
             continue
         parameter_doc = {
@@ -147,7 +149,7 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
         parameter_docs.append(parameter_doc)
     assert (
         len(parameters) == 0
-    ), f"Documentation format for {fn.__name__} documents nonexistent parameters: {''.join(parameters.keys())}"
+    ), f"Documentation format for {fn.__name__} documents nonexistent parameters: {', '.join(parameters.keys())}. Valid parameters: {', '.join(signature.parameters.keys())}"
     if len(returns) == 0:
         return_docs = {}
     elif len(returns) == 1:
@@ -203,6 +205,24 @@ def generate_documentation():
         for cls, fns in class_list:
             fn_to_document = cls if inspect.isfunction(cls) else cls.__init__
             _, parameter_doc, return_doc, _ = document_fn(fn_to_document, cls)
+            if (
+                hasattr(cls, "preprocess")
+                and callable(cls.preprocess)  # type: ignore
+                and hasattr(cls, "postprocess")
+                and callable(cls.postprocess)  # type: ignore
+            ):
+                preprocess_doc = document_fn(cls.preprocess, cls)  # type: ignore
+                postprocess_doc = document_fn(cls.postprocess, cls)  # type: ignore
+                preprocess_doc, postprocess_doc = (
+                    {
+                        "parameter_doc": preprocess_doc[1],
+                        "return_doc": preprocess_doc[2],
+                    },
+                    {
+                        "parameter_doc": postprocess_doc[1],
+                        "return_doc": postprocess_doc[2],
+                    },
+                )
             cls_description, cls_tags, cls_example = document_cls(cls)
             cls_documentation = {
                 "class": cls,
@@ -214,6 +234,14 @@ def generate_documentation():
                 "example": cls_example,
                 "fns": [],
             }
+            if (
+                hasattr(cls, "preprocess")
+                and callable(cls.preprocess)  # type: ignore
+                and hasattr(cls, "postprocess")
+                and callable(cls.postprocess)  # type: ignore
+            ):
+                cls_documentation["preprocess"] = preprocess_doc  # type: ignore
+                cls_documentation["postprocess"] = postprocess_doc  # type: ignore
             for fn_name in fns:
                 instance_attribute_fn = fn_name.startswith("*")
                 if instance_attribute_fn:

@@ -54,10 +54,7 @@ set_documentation_group("component")
 @document()
 class Dataframe(Component):
     """
-    Accepts or displays 2D input through a spreadsheet-like component for dataframes.
-    Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {polars.DataFrame}, or {List[List]} depending on `type`
-    Postprocessing: expects a {pandas.DataFrame}, {pandas.Styler}, {numpy.array}, {polars.DataFrame}, {List[List]}, {List}, a {Dict} with keys `data` (and optionally `headers`), or {str} path to a csv, which is rendered in the spreadsheet.
-    Examples-format: a {str} filepath to a csv with data, a pandas dataframe, a polars dataframe, or a list of lists (excluding headers) where each sublist is a row of data.
+    This component displays a table of value spreadsheet-like component. Can be used to display data as an output component, or as an input to collect data from the user.
     Demos: filter_records, matrix_transpose, tax_calculator, sort_records
     """
 
@@ -111,7 +108,7 @@ class Dataframe(Component):
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html). Only applies to columns whose datatype is "markdown".
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             show_label: if True, will display label.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             height: The maximum height of the dataframe, specified in pixels if a number is passed, or in CSS units if a string is passed. If more rows are created than can fit in the height, a scrollbar will appear.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
@@ -193,7 +190,13 @@ class Dataframe(Component):
 
     def preprocess(
         self, payload: DataframeData
-    ) -> pd.DataFrame | np.ndarray | pl.DataFrame | list:
+    ) -> pd.DataFrame | np.ndarray | pl.DataFrame | list[list]:
+        """
+        Parameters:
+            payload: the uploaded spreadsheet data as an object with `headers` and `data` attributes
+        Returns:
+            Passes the uploaded spreadsheet data as a `pandas.DataFrame`, `numpy.array`, `polars.DataFrame`, or native 2D Python `list[list]` depending on `type`
+        """
         if self.type == "pandas":
             if payload.headers is not None:
                 return pd.DataFrame(payload.data, columns=payload.headers)
@@ -208,7 +211,7 @@ class Dataframe(Component):
         if self.type == "numpy":
             return np.array(payload.data)
         elif self.type == "array":
-            return payload.data
+            return payload.data  # type: ignore
         else:
             raise ValueError(
                 "Unknown type: "
@@ -228,6 +231,12 @@ class Dataframe(Component):
         | str
         | None,
     ) -> DataframeData:
+        """
+        Parameters:
+            value: Expects data any of these formats: `pandas.DataFrame`, `pandas.Styler`, `numpy.array`, `polars.DataFrame`, `list[list]`, `list`, or a `dict` with keys 'data' (and optionally 'headers'), or `str` path to a csv, which is rendered as the spreadsheet.
+        Returns:
+            the uploaded spreadsheet data as an object with `headers` and `data` attributes
+        """
         if value is None:
             return self.postprocess(self.empty_input)
         if isinstance(value, dict):

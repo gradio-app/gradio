@@ -15,9 +15,7 @@ set_documentation_group("component")
 @document()
 class HTML(Component):
     """
-    Used to display arbitrary HTML output.
-    Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a valid HTML {str}.
+    Creates a component to display arbitrary HTML output. As this component does not accept user input, it is rarely used as an input component.
 
     Demos: text_analysis
     Guides: key-features
@@ -41,7 +39,7 @@ class HTML(Component):
         Parameters:
             value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: The label for this component. Is used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: This parameter has no effect.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -63,9 +61,21 @@ class HTML(Component):
         return "<p>Hello</p>"
 
     def preprocess(self, payload: str | None) -> str | None:
+        """
+        Parameters:
+            payload: string corresponding to the HTML
+        Returns:
+            (Rarely used) passes the HTML as a `str`.
+        """
         return payload
 
     def postprocess(self, value: str | None) -> str | None:
+        """
+        Parameters:
+            value: Expects a `str` consisting of valid HTML.
+        Returns:
+            Returns the HTML string.
+        """
         return value
 
     def api_info(self) -> dict[str, Any]:

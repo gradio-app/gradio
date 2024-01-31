@@ -36,9 +36,7 @@ class Video(Component):
     combinations are .mp4 with h264 codec, .ogg with theora codec, and .webm with vp9 codec. If the component detects
     that the output video would not be playable in the browser it will attempt to convert it to a playable mp4 video.
     If the conversion fails, the original video is returned.
-    Preprocessing: passes the uploaded video as a {str} filepath or URL whose extension can be modified by `format`.
-    Postprocessing: expects a {str} or {pathlib.Path} filepath to a video which is displayed, or a {Tuple[str | pathlib.Path, str | pathlib.Path | None]} where the first element is a filepath to a video and the second element is an optional filepath to a subtitle file.
-    Examples-format: a {str} filepath to a local file that contains the video, or a {Tuple[str, str]} where the first element is a filepath to a video file and the second element is a filepath to a subtitle file.
+
     Demos: video_identity, video_subtitle
     """
 
@@ -95,7 +93,7 @@ class Video(Component):
             height: The height of the displayed video, specified in pixels if a number is passed, or in CSS units if a string is passed.
             width: The width of the displayed video, specified in pixels if a number is passed, or in CSS units if a string is passed.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
@@ -161,6 +159,12 @@ class Video(Component):
         )
 
     def preprocess(self, payload: VideoData | None) -> str | None:
+        """
+        Parameters:
+            payload: An instance of VideoData containing the video and subtitle files.
+        Returns:
+            Passes the uploaded video as a `str` filepath or URL whose extension can be modified by `format`.
+        """
         if payload is None:
             return None
         assert payload.video.path
@@ -221,32 +225,40 @@ class Video(Component):
             return str(file_name)
 
     def postprocess(
-        self, y: str | Path | tuple[str | Path, str | Path | None] | None
+        self, value: str | Path | tuple[str | Path, str | Path | None] | None
     ) -> VideoData | None:
-        if y is None or y == [None, None] or y == (None, None):
+        """
+        Parameters:
+            value: Expects a {str} or {pathlib.Path} filepath to a video which is displayed, or a {Tuple[str | pathlib.Path, str | pathlib.Path | None]} where the first element is a filepath to a video and the second element is an optional filepath to a subtitle file.
+        Returns:
+            VideoData object containing the video and subtitle files.
+        """
+        if value is None or value == [None, None] or value == (None, None):
             return None
-        if isinstance(y, (str, Path)):
-            processed_files = (self._format_video(y), None)
+        if isinstance(value, (str, Path)):
+            processed_files = (self._format_video(value), None)
 
-        elif isinstance(y, (tuple, list)):
-            if len(y) != 2:
+        elif isinstance(value, (tuple, list)):
+            if len(value) != 2:
                 raise ValueError(
-                    f"Expected lists of length 2 or tuples of length 2. Received: {y}"
+                    f"Expected lists of length 2 or tuples of length 2. Received: {value}"
                 )
 
-            if not (isinstance(y[0], (str, Path)) and isinstance(y[1], (str, Path))):
+            if not (
+                isinstance(value[0], (str, Path)) and isinstance(value[1], (str, Path))
+            ):
                 raise TypeError(
-                    f"If a tuple is provided, both elements must be strings or Path objects. Received: {y}"
+                    f"If a tuple is provided, both elements must be strings or Path objects. Received: {value}"
                 )
-            video = y[0]
-            subtitle = y[1]
+            video = value[0]
+            subtitle = value[1]
             processed_files = (
                 self._format_video(video),
                 self._format_subtitle(subtitle),
             )
 
         else:
-            raise Exception(f"Cannot process type as video: {type(y)}")
+            raise Exception(f"Cannot process type as video: {type(value)}")
         assert processed_files[0]
         return VideoData(video=processed_files[0], subtitles=processed_files[1])
 

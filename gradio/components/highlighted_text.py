@@ -26,8 +26,6 @@ class HighlightedTextData(GradioRootModel):
 class HighlightedText(Component):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
-    Preprocessing: passes a list of tuples as a {List[Tuple[str, float | str | None]]]} into the function. If no labels are provided, the text will be displayed as a single span.
-    Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels, or a {Dict} with two keys: (1) "text" whose value is the complete text, and (2) "entities", which is a list of dictionaries, each of which have the keys: "entity" (consisting of the entity label, can alternatively be called "entity_group"), "start" (the character index where the label starts), and "end" (the character index where the label ends). Entities should not overlap.
 
     Demos: diff_texts, text_analysis
     Guides: named-entity-recognition
@@ -65,7 +63,7 @@ class HighlightedText(Component):
             combine_adjacent: If True, will merge the labels of adjacent tokens belonging to the same category.
             adjacent_separator: Specifies the separator to be used between tokens if combine_adjacent is True.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
@@ -98,14 +96,27 @@ class HighlightedText(Component):
     def example_inputs(self) -> Any:
         return {"value": [{"token": "Hello", "class_or_confidence": "1"}]}
 
+    def preprocess(
+        self, payload: HighlightedTextData | None
+    ) -> list[tuple[str, str | float | None]] | None:
+        """
+        Parameters:
+            payload: An instance of HighlightedTextData
+        Returns:
+            Passes the value as a list of tuples as a `list[tuple]` into the function. Each `tuple` consists of a `str` substring of the text (so the entire text is included) and `str | float | None` label, which is the category or confidence of that substring.
+        """
+        if payload is None:
+            return None
+        return payload.model_dump()  # type: ignore
+
     def postprocess(
         self, value: list[tuple[str, str | float | None]] | dict | None
     ) -> HighlightedTextData | None:
         """
         Parameters:
-            value: List of (word, category) tuples, or a dictionary of two keys: "text", and "entities", which itself is a list of dictionaries, each of which have the keys: "entity" (or "entity_group"), "start", and "end"
+            value: Expects a list of (word, category) tuples, or a dictionary of two keys: "text", and "entities", which itself is a list of dictionaries, each of which have the keys: "entity" (or "entity_group"), "start", and "end"
         Returns:
-            List of (word, category) tuples
+            An instance of HighlightedTextData
         """
         if value is None:
             return None
@@ -165,8 +176,3 @@ class HighlightedText(Component):
                     for o in value
                 ]
             )
-
-    def preprocess(self, payload: HighlightedTextData | None) -> dict | None:
-        if payload is None:
-            return None
-        return payload.model_dump()

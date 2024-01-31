@@ -16,10 +16,8 @@ set_documentation_group("component")
 @document()
 class BarPlot(Plot):
     """
-    Create a bar plot.
-
-    Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a pandas dataframe with the data to plot.
+    Creates a bar plot component to display data from a pandas DataFrame (as output). As this component does
+    not accept user input, it is rarely used as an input component.
 
     Demos: bar_plot, chicago-bikeshare-dashboard
     """
@@ -75,7 +73,7 @@ class BarPlot(Plot):
     ):
         """
         Parameters:
-            value: The pandas dataframe containing the data to display in a scatter plot.
+            value: The pandas dataframe containing the data to display in a scatter plot. If a callable is provided, the function will be called whenever the app loads to set the initial value of the plot.
             x: Column corresponding to the x axis.
             y: Column corresponding to the y axis.
             color: The column to determine the bar color. Must be categorical (discrete values).
@@ -97,7 +95,7 @@ class BarPlot(Plot):
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
             label: The (optional) label to display on the top left corner of the plot.
             show_label: Whether the label should be displayed.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             visible: Whether the plot should be visible.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -172,8 +170,8 @@ class BarPlot(Plot):
             "none",
         ]
         | None = None,
-        height: int | None = None,
-        width: int | None = None,
+        height: int | str | None = None,
+        width: int | str | None = None,
         y_lim: list[int] | None = None,
         interactive: bool | None = True,
         sort: Literal["x", "y", "-x", "-y"] | None = None,
@@ -244,7 +242,7 @@ class BarPlot(Plot):
             }
 
         if tooltip:
-            encodings["tooltip"] = tooltip
+            encodings["tooltip"] = tooltip  # type: ignore
 
         chart = (
             alt.Chart(value)  # type: ignore
@@ -257,11 +255,24 @@ class BarPlot(Plot):
 
         return chart
 
-    def postprocess(
-        self, value: pd.DataFrame | dict | None
-    ) -> AltairPlotData | dict | None:
+    def preprocess(self, payload: AltairPlotData) -> AltairPlotData:
+        """
+        Parameters:
+            payload: The data to display in a bar plot.
+        Returns:
+            (Rarely used) passes the data displayed in the bar plot as an AltairPlotData dataclass, which includes the plot information as a JSON string, as well as the type of plot (in this case, "bar").
+        """
+        return payload
+
+    def postprocess(self, value: pd.DataFrame | None) -> AltairPlotData | None:
+        """
+        Parameters:
+            value: Expects a pandas DataFrame containing the data to display in the bar plot. The DataFrame should contain at least two columns, one for the x-axis (corresponding to this component's `x` argument) and one for the y-axis (corresponding to `y`).
+        Returns:
+            The data to display in a bar plot, in the form of an AltairPlotData dataclass, which includes the plot information as a JSON string, as well as the type of plot (in this case, "bar").
+        """
         # if None or update
-        if value is None or isinstance(value, dict):
+        if value is None:
             return value
         if self.x is None or self.y is None:
             raise ValueError("No value provided for required parameters `x` and `y`.")
@@ -292,6 +303,3 @@ class BarPlot(Plot):
 
     def example_inputs(self) -> dict[str, Any]:
         return {}
-
-    def preprocess(self, payload: AltairPlotData) -> AltairPlotData:
-        return payload

@@ -15,11 +15,9 @@ set_documentation_group("component")
 @document()
 class Checkbox(FormComponent):
     """
-    Creates a checkbox that can be set to `True` or `False`.
+    Creates a checkbox that can be set to `True` or `False`. Can be used as an input to pass a boolean value to a function or as an output
+    to display a boolean value.
 
-    Preprocessing: passes the status of the checkbox as a {bool} into the function.
-    Postprocessing: expects a {bool} returned from the function and, if it is True, checks the checkbox.
-    Examples-format: a {bool} representing whether the box is checked.
     Demos: sentence_builder, titanic_survival
     """
 
@@ -47,7 +45,7 @@ class Checkbox(FormComponent):
             value: if True, checked by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             info: additional component description.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
@@ -81,7 +79,19 @@ class Checkbox(FormComponent):
         return True
 
     def preprocess(self, payload: bool | None) -> bool | None:
+        """
+        Parameters:
+            payload: the status of the checkbox
+        Returns:
+            Passes the status of the checkbox as a `bool`.
+        """
         return payload
 
     def postprocess(self, value: bool | None) -> bool | None:
+        """
+        Parameters:
+            value: Expects a `bool` value that is set as the status of the checkbox
+        Returns:
+            The same `bool` value that is set as the status of the checkbox
+        """
         return value

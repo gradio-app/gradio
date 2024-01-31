@@ -10,10 +10,6 @@ from gradio.events import Events
 class SimpleDropdown(FormComponent):
     """
     Creates a very simple dropdown listing choices from which entries can be selected.
-    Preprocessing: Preprocessing: passes the value of the selected dropdown entry as a {str}.
-    Postprocessing: expects a {str} corresponding to the value of the dropdown entry to be selected.
-    Examples-format: a {str} representing the drop down value to select.
-    Demos: sentence_builder, titanic_survival
     """
 
     EVENTS = [Events.change, Events.input, Events.select]
@@ -41,7 +37,7 @@ class SimpleDropdown(FormComponent):
             value: default value selected in dropdown. If None, no value is selected by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: component name in interface.
             info: additional component description.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
@@ -49,11 +45,9 @@ class SimpleDropdown(FormComponent):
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-                    render: bool = True,
+            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
         """
         self.choices = (
-            # Although we expect choices to be a list of lists, it can be a list of tuples if the Gradio app
-            # is loaded with gr.load() since Python tuples are converted to lists in JSON.
             [tuple(c) if isinstance(c, (tuple, list)) else (str(c), c) for c in choices]
             if choices
             else []
@@ -82,14 +76,14 @@ class SimpleDropdown(FormComponent):
     def example_inputs(self) -> Any:
         return self.choices[0][1] if self.choices else None
 
-    def preprocess(self, x: str | int | float | None) -> str | int | float | None:
+    def preprocess(self, payload: str | int | float | None) -> str | int | float | None:
         """
         Parameters:
-            x: selected choice
+            payload: the value of the selected dropdown choice
         Returns:
-            selected choice
+            Passes the value of the selected dropdown choice as a `str | int | float`.
         """
-        return x
+        return payload
 
     def _warn_if_invalid_choice(self, y):
         if y not in [value for _, value in self.choices]:
@@ -97,11 +91,17 @@ class SimpleDropdown(FormComponent):
                 f"The value passed into gr.Dropdown() is not in the list of choices. Please update the list of choices to include: {y}."
             )
 
-    def postprocess(self, y):
-        if y is None:
+    def postprocess(self, value):
+        """
+        Parameters:
+            value: Expects a `str | int | float` corresponding to the value of the dropdown entry to be selected.
+        Returns:
+            Returns the value of the selected dropdown entry.
+        """
+        if value is None:
             return None
-        self._warn_if_invalid_choice(y)
-        return y
+        self._warn_if_invalid_choice(value)
+        return value
 
     def process_example(self, input_data):
         return next((c[0] for c in self.choices if c[1] == input_data), None)

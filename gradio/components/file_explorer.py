@@ -24,11 +24,10 @@ class FileExplorerData(GradioRootModel):
 @document()
 class FileExplorer(Component):
     """
-    Creates a file explorer component that allows users to browse and select files on the machine hosting the Gradio app.
-    Preprocessing: passes the selected file or directory as a {str} path (relative to root) or {list[str}} depending on `file_count`
-    Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
-    Examples-format: a {str} path to a local file that populates the component.
-    Demos: zip_to_json, zip_files
+    Creates a file explorer component that allows users to browse files on the machine hosting the Gradio app. As an input component,
+    it also allows users to select files to be used as input to a function, while as an output component, it displays selected files.
+
+    Demos: file_explorer
     """
 
     EVENTS = ["change"]
@@ -64,7 +63,7 @@ class FileExplorer(Component):
             root_dir: Path to root directory to select files from. If not provided, defaults to current working directory.
             ignore_glob: The glob-tyle pattern that will be used to exclude files from the list. For example, "*.py" will exclude all .py files from the list. See the Python glob documentation at https://docs.python.org/3/library/glob.html for more information.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise.sed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
@@ -112,6 +111,12 @@ class FileExplorer(Component):
         return ["Users", "gradio", "app.py"]
 
     def preprocess(self, payload: FileExplorerData | None) -> list[str] | str | None:
+        """
+        Parameters:
+            payload: List of selected files as a FileExplorerData object.
+        Returns:
+            Passes the selected file or directory as a `str` path (relative to `root`) or `list[str}` depending on `file_count`
+        """
         if payload is None:
             return None
 
@@ -136,6 +141,12 @@ class FileExplorer(Component):
         return path
 
     def postprocess(self, value: str | list[str] | None) -> FileExplorerData | None:
+        """
+        Parameters:
+            value: Expects function to return a `str` path to a file, or `list[str]` consisting of paths to files.
+        Returns:
+            A FileExplorerData object containing the selected files as a list of strings.
+        """
         if value is None:
             return None
 

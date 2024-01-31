@@ -841,7 +841,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
             cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
+            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds.
             collects_event_data: whether to collect event data for this event
             trigger_after: if set, this event will be triggered after 'trigger_after' function index
             trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)

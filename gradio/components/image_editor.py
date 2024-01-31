@@ -90,10 +90,9 @@ class Brush(Eraser):
 @document()
 class ImageEditor(Component):
     """
-    Creates an image component that can be used to upload and edit images (as an input) or display images (as an output).
-    Preprocessing: passes the uploaded images as a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` are images, while `layers` is a list of images. The images are of type PIL.Image, np.array, or str filepath, depending on the `type` parameter.
-    Postprocessing: expects a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` should be images or None, while `layers` should be a list of images. Images can be of type PIL.Image, np.array, or str filepath/URL. Or, the value can be simply a single image, in which case it will be used as the background.
-    Examples-format: a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` should be strings or None, while `layers` should be a list of strings. The image corresponding to `composite`, if not None, is used as the example image. Otherwise, the image corresonding to `background` is used. The strings should be filepaths or URLs. Or, the value can be simply a single string filepath/URL to an image, which is used directly as the example image.
+    Creates an image component that, as an input, can be used to upload and edit images using simple editing tools such
+    as brushes, strokes, cropping, and layers. Or, as an output, this component can be used to display images.
+
     Demos: image_editor
     """
 
@@ -149,7 +148,7 @@ class ImageEditor(Component):
             sources: List of sources that can be used to set the background image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard.
             type: The format the images are converted to before being passed into the prediction function. "numpy" converts the images to numpy arrays with shape (height, width, 3) and values from 0 to 255, "pil" converts the images to PIL image objects, "filepath" passes images as str filepaths to temporary copies of the images.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             show_download_button: If True, will display button to download image.
             container: If True, will place the component in a container - providing some extra padding around the border.
@@ -250,6 +249,12 @@ class ImageEditor(Component):
         )
 
     def preprocess(self, payload: EditorData | None) -> EditorValue | None:
+        """
+        Parameters:
+            payload: An instance of `EditorData` consisting of the background image, layers, and composite image.
+        Returns:
+            Passes the uploaded images as an instance of EditorValue, which is just a `dict` with keys: 'background', 'layers', and 'composite'. The values corresponding to 'background' and 'composite' are images, while 'layers' is a `list` of images. The images are of type `PIL.Image`, `np.array`, or `str` filepath, depending on the `type` parameter.
+        """
         if payload is None:
             return payload
 
@@ -267,6 +272,12 @@ class ImageEditor(Component):
         }
 
     def postprocess(self, value: EditorValue | ImageType | None) -> EditorData | None:
+        """
+        Parameters:
+            value: Expects a EditorValue, which is just a dictionary with keys: 'background', 'layers', and 'composite'. The values corresponding to 'background' and 'composite' should be images or None, while `layers` should be a list of images. Images can be of type `PIL.Image`, `np.array`, or `str` filepath/URL. Or, the value can be simply a single image (`ImageType`), in which case it will be used as the background.
+        Returns:
+            An instance of `EditorData` consisting of the background image, layers, and composite image.
+        """
         if value is None:
             return None
         elif isinstance(value, dict):
