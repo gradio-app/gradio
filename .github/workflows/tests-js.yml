@@ -1,4 +1,4 @@
-name: gradio-ui
+name: "test / js"
 
 on:
   push:

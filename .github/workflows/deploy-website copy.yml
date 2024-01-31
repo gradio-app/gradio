@@ -1,0 +1,50 @@
+name: "deploy / website"
+on:
+  workflow_run:
+    workflows: [trigger]
+    types:
+      - requested
+
+permissions:
+  statuses: write
+
+jobs:
+  changes:
+    name: "changes"
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.changes.outputs.should_run }}
+      sha: ${{ steps.changes.outputs.sha }}
+      pr_number: ${{ steps.changes.outputs.pr_number }}
+      source_branch: ${{ steps.changes.outputs.source_branch }}
+      source_repo: ${{ steps.changes.outputs.source_repo }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/changes
+        id: changes
+        with:
+          type: "website"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-website:
+    name: "deploy-website"
+    runs-on: ubuntu-latest
+    needs: changes
+
+    if: needs.changes.outputs.should_run == 'true'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.changes.outputs.source_branch }}
+          repository: ${{ needs.changes.outputs.source_repo }}
+
+      - name: do check
+        if: always()
+        uses: "./.github/actions/do-check"
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pr: ${{ needs.changes.outputs.pr_number }}
+          sha: ${{ needs.changes.outputs.sha }}
+          name: "deploy / website"
+          result: ${{ job.status }}
+          job_id: "deploy-website"
