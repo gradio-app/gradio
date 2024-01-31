@@ -26,7 +26,7 @@ inputs:
 outputs:
   venv_activate:
     description: 'Venv activate'
-    value: ${{ env.VENV_ACTIVATE }}
+    value: ${{ steps.venv.outputs.venv_activate }}
 
 runs:
   using: "composite"
@@ -42,9 +42,10 @@ runs:
       run: |
         echo "VENV_ACTIVATE=venv\Scripts\activate" >> $GITHUB_ENV
     - name: log venv binary path
+      id: venv
       shell: bash
       run: |
-        echo $VENV_ACTIVATE
+        echo "venv_activate=$VENV_ACTIVATE" >> $GITHUB_OUTPUT
     - name: Install Python
       uses: actions/setup-python@v5
       with:
