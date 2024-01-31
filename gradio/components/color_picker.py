@@ -15,10 +15,7 @@ set_documentation_group("component")
 @document()
 class ColorPicker(Component):
     """
-    Creates a color picker for user to select a color as string input.
-    Preprocessing: passes selected color value as a {str} into the function.
-    Postprocessing: expects a {str} returned from function and sets color picker value to it.
-    Examples-format: a {str} with a hexadecimal representation of a color, e.g. "#ff0000" for red.
+    Creates a color picker for user to select a color as string input. Can be used as an input to pass a color value to a function or as an output to display a color value.
     Demos: color_picker, color_generator
     """
 
@@ -81,11 +78,10 @@ class ColorPicker(Component):
 
     def preprocess(self, payload: str | None) -> str | None:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: Color as hex string
         Returns:
-            ADD DOCSTRING
+            Passes selected color value as a hex `str` into the function.
         """
         if payload is None:
             return None
@@ -94,11 +90,10 @@ class ColorPicker(Component):
 
     def postprocess(self, value: str | None) -> str | None:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects a hex `str` returned from function and sets color picker value to it.
         Returns:
-            ADD DOCSTRING
+            A `str` value that is set as the color picker value.
         """
         if value is None:
             return None

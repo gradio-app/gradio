@@ -16,7 +16,8 @@ set_documentation_group("component")
 @document()
 class BarPlot(Plot):
     """
-    Create a bar plot from a pandas dataframe.
+    Creates a bar plot component to display data from a pandas DataFrame (as output). As this component does 
+    not accept user input, it is rarely used as an input component.
 
     Demos: bar_plot, chicago-bikeshare-dashboard
     """
@@ -256,12 +257,11 @@ class BarPlot(Plot):
 
     def preprocess(self, payload: AltairPlotData) -> AltairPlotData:
         """
-        This component does not accept user input, but its value can be set programmatically. In the rare case that it is used as an input component,
-        it will pass its value 
+
         Parameters:
             payload: The data to display in a bar plot.
         Returns:
-            The data to display in a bar plot.
+            (Rarely used) passes the data displayed in the bar plot as an AltairPlotData dataclass, which includes the plot information as a JSON string, as well as the type of plot (in this case, "bar").
         """
         return payload
 
@@ -269,11 +269,10 @@ class BarPlot(Plot):
         self, value: pd.DataFrame | None
     ) -> AltairPlotData | None:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects a pandas DataFrame containing the data to display in the bar plot. The DataFrame should contain at least two columns, one for the x-axis (corresponding to this component's `x` argument) and one for the y-axis (corresponding to `y`).
         Returns:
-            ADD DOCSTRING
+            The data to display in a bar plot, in the form of an AltairPlotData dataclass, which includes the plot information as a JSON string, as well as the type of plot (in this case, "bar").
         """
         # if None or update
         if value is None:

@@ -15,11 +15,9 @@ set_documentation_group("component")
 @document()
 class Checkbox(FormComponent):
     """
-    Creates a checkbox that can be set to `True` or `False`.
+    Creates a checkbox that can be set to `True` or `False`. Can be used as an input to pass a boolean value to a function or as an output
+    to display a boolean value.
 
-    Preprocessing: passes the status of the checkbox as a {bool} into the function.
-    Postprocessing: expects a {bool} returned from the function and, if it is True, checks the checkbox.
-    Examples-format: a {bool} representing whether the box is checked.
     Demos: sentence_builder, titanic_survival
     """
 
@@ -82,20 +80,18 @@ class Checkbox(FormComponent):
 
     def preprocess(self, payload: bool | None) -> bool | None:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: the status of the checkbox
         Returns:
-            ADD DOCSTRING
+            Passes the status of the checkbox as a `bool`.
         """
         return payload
 
     def postprocess(self, value: bool | None) -> bool | None:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects a `bool` value that is set as the status of the checkbox
         Returns:
-            ADD DOCSTRING
+            The same `bool` value that is set as the status of the checkbox
         """
         return value

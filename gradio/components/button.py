@@ -15,11 +15,7 @@ set_documentation_group("component")
 @document()
 class Button(Component):
     """
-    Used to create a button, that can be assigned arbitrary click() events. The label (value) of the button can be used as an input or set via the output of a function.
-
-    Preprocessing: passes the button value as a {str} into the function
-    Postprocessing: expects a {str} to be returned from a function, which is set as the label of the button
-    Demos: blocks_inputs, blocks_kinematics
+    Creates a button that can be assigned arbitrary .click() events. The value (label) of the button can be used as an input to the function (rarely used) or set via the output of a function.
     """
 
     EVENTS = [Events.click]
@@ -77,23 +73,21 @@ class Button(Component):
     def skip_api(self):
         return True
 
-    def preprocess(self, payload: str) -> str:
+    def preprocess(self, payload: str | None) -> str | None:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: string corresponding to the button label
         Returns:
-            ADD DOCSTRING
+            (Rarely used) the `str` corresponding to the button label when the button is clicked
         """
         return payload
 
-    def postprocess(self, value: str) -> str:
+    def postprocess(self, value: str | None) -> str | None:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: string corresponding to the button label
         Returns:
-            ADD DOCSTRING
+            Expects a `str` value that is set as the button label
         """
         return value
 

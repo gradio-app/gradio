@@ -29,9 +29,9 @@ class ChatbotData(GradioRootModel):
 @document()
 class Chatbot(Component):
     """
-    Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, tables. Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links.
-    Preprocessing: passes the messages in the Chatbot as a {List[List[str | None | Tuple]]}, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. See `Postprocessing` for the format of these messages.
-    Postprocessing: expects function to return a {List[List[str | None | Tuple]]}, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message. The individual messages can be (1) strings in valid Markdown, (2) tuples if sending files: (a filepath or URL to a file, [optional string alt text]) -- if the file is image/video/audio, it is displayed in the Chatbot, or (3) None, in which case the message is not displayed.
+    Creates a chatbot that displays user-submitted messages and responses. Supports a subset of Markdown including bold, italics, code, tables. 
+    Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links. This 
+    component is usually used as an output component.
 
     Demos: chatbot_simple, chatbot_multimodal
     Guides: creating-a-chatbot
@@ -151,14 +151,13 @@ class Chatbot(Component):
 
     def preprocess(
         self,
-        payload: ChatbotData,
-    ) -> list[list[str | tuple[str] | tuple[str, str] | None]]:
+        payload: ChatbotData | None,
+    ) -> list[list[str | tuple[str] | tuple[str, str] | None]] | None:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: data as a ChatbotData object
         Returns:
-            ADD DOCSTRING
+            Passes the messages in the chatbot as a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. Each message can be (1) a string in valid Markdown, (2) a tuple if there are displayed files: (a filepath or URL to a file, [optional string alt text]), or (3) None, if there is no message displayed.
         """
         if payload is None:
             return payload
@@ -201,14 +200,13 @@ class Chatbot(Component):
 
     def postprocess(
         self,
-        value: list[list[str | tuple[str] | tuple[str, str] | None] | tuple],
+        value: list[list[str | tuple[str] | tuple[str, str] | None] | tuple] | None,
     ) -> ChatbotData:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message. The individual messages can be (1) strings in valid Markdown, (2) tuples if sending files: (a filepath or URL to a file, [optional string alt text]) -- if the file is image/video/audio, it is displayed in the Chatbot, or (3) None, in which case the message is not displayed.
         Returns:
-            ADD DOCSTRING
+            an object of type ChatbotData
         """
         if value is None:
             return ChatbotData(root=[])

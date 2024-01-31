@@ -16,10 +16,8 @@ set_documentation_group("component")
 @document()
 class Dropdown(FormComponent):
     """
-    Creates a dropdown of choices from which entries can be selected.
-    Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
-    Postprocessing: expects a {str} corresponding to the value of the dropdown entry to be selected.
-    Examples-format: a {str} representing the drop down value to select.
+    Creates a dropdown of choices from which a single entry or multiple entries can be selected (as an input component) or displayed (as an output component).
+
     Demos: sentence_builder, titanic_survival
     """
 
@@ -137,11 +135,10 @@ class Dropdown(FormComponent):
         self, payload: str | int | float | list[str | int | float] | None
     ) -> str | int | float | list[str | int | float] | list[int | None] | None:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: the value of the selected dropdown choice(s)
         Returns:
-            ADD DOCSTRING
+            Passes the value of the selected dropdown choice as a `str | int | float` or its index as an `int` into the function, depending on `type`. Or, if `multiselect` is True, passes the values of the selected dropdown choices as a list of correspoding values/indices instead.
         """
         if self.type == "value":
             return payload
@@ -175,11 +172,10 @@ class Dropdown(FormComponent):
         self, value: str | int | float | list[str | int | float] | None
     ) -> str | int | float | list[str | int | float] | None:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects a `str | int | float` corresponding to the value of the dropdown entry to be selected. Or, if `multiselect` is True, expects a `list` of values corresponding to the selected dropdown entries.
         Returns:
-            ADD DOCSTRING
+            Returns the values of the selected dropdown entry or entries.
         """
         if value is None:
             return None

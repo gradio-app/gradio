@@ -186,16 +186,12 @@ class Audio(
 
     def preprocess(
         self, payload: FileData | None
-    ) -> tuple[int, np.ndarray] | str | None:
+    ) -> str | tuple[int, np.ndarray] | None:
         """
-        Depending on `type`, this component preprocesses the audio uploaded by the user as {str} filepath or a 
-        {tuple[int, numpy.ndarray]} corresponding to (sample rate in Hz, audio data). If the latter, the
-        audio data is a 16-bit int array whose values range from -32768 to 32767 and shape of the audio data array 
-        is (samples,) for mono audio or (samples, channels) for multi-channel audio.
         Parameters:
             payload: audio data as a FileData object, or None.
         Returns:
-            tuple of (sample_rate, data), or a string filepath, or None.
+            passes audio as one of these formats (depending on `type`): a `str` filepath, or `tuple` of (sample rate in Hz, audio data as numpy array). If the latter, the audio data is a 16-bit `int` array whose values range from -32768 to 32767 and shape of the audio data array is (samples,) for mono audio or (samples, channels) for multi-channel audio.
         """
         if payload is None:
             return payload
@@ -236,15 +232,11 @@ class Audio(
             )
 
     def postprocess(
-        self, value: tuple[int, np.ndarray] | str | Path | bytes | None
+        self, value: str | Path | bytes | tuple[int, np.ndarray] | None
     ) -> FileData | bytes | None:
         """
-        This component expects audio data in one of these formats: (1) a {tuple[int, numpy.ndarray]} corresponding to 
-        (sample rate in Hz, audio data as a float or int numpy array), (2) as a {str} or {pathlib.Path} filepath or URL 
-        to an audio file, or (3) {bytes} for binary content (recommended for streaming). Note: if audio is supplied as a numpy 
-        array, the audio will be normalized by its peak value to avoid distortion or clipping in the resulting audio.
         Parameters:
-            value: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, bytes, or None.
+            value: expects audio data in any of these formats: a `str` or `pathlib.Path` filepath or URL to an audio file, or a `bytes` object (recommended for streaming), or a `tuple` of (sample rate in Hz, audio data as numpy array). Note: if audio is supplied as a numpy array, the audio will be normalized by its peak value to avoid distortion or clipping in the resulting audio.
         Returns:
             FileData object, bytes, or None.
         """

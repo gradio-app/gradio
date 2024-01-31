@@ -16,9 +16,7 @@ set_documentation_group("component")
 @document("languages")
 class Code(Component):
     """
-    Creates a Code editor for entering, editing or viewing code.
-    Preprocessing: passes a {str} of code into the function.
-    Postprocessing: expects the function to return a {str} of code or a single-element {tuple}: {(string_filepath,)}
+    Creates a code editor for viewing code (as an ouptut component), or for entering and editing code (as an input component).
     """
 
     languages = [
@@ -110,23 +108,21 @@ class Code(Component):
             value=value,
         )
 
-    def preprocess(self, payload: Any) -> Any:
+    def preprocess(self, payload: str | None) -> str | None:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: string corresponding to the code
         Returns:
-            ADD DOCSTRING
+            Passes the code entered as a `str`.
         """
         return payload
 
-    def postprocess(self, value: tuple | str | None) -> None | str:
+    def postprocess(self, value: tuple[str] | str | None) -> None | str:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects a `str` of code or a single-element `tuple`: (filepath,) with the `str` path to a file containing the code.
         Returns:
-            ADD DOCSTRING
+            Returns the code as a `str`.
         """
         if value is None:
             return None

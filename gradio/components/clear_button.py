@@ -111,25 +111,23 @@ class ClearButton(Button):
             )
         return self
 
-    def postprocess(self, value: str | None) -> str | None:
-        """
-        ADD DOCSTRING
-        Parameters:
-            value: ADD DOCSTRING
-        Returns:
-            ADD DOCSTRING
-        """
-        return value
-
     def preprocess(self, payload: str | None) -> str | None:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: string corresponding to the button label
         Returns:
-            ADD DOCSTRING
+            (Rarely used) the `str` corresponding to the button label when the button is clicked
         """
         return payload
+
+    def postprocess(self, value: str | None) -> str | None:
+        """
+        Parameters:
+            value: string corresponding to the button label
+        Returns:
+            Expects a `str` value that is set as the button label
+        """
+        return value
 
     def example_inputs(self) -> Any:
         return None

@@ -15,10 +15,7 @@ set_documentation_group("component")
 @document()
 class CheckboxGroup(FormComponent):
     """
-    Creates a set of checkboxes of which a subset can be checked.
-    Preprocessing: passes the list of checked checkboxes as a {List[str | int | float]} or their indices as a {List[int]} into the function, depending on `type`.
-    Postprocessing: expects a {List[str | int | float]}, each element of which becomes a checked checkbox.
-    Examples-format: a {List[str | int | float]} representing the values to be checked.
+    Creates a set of checkboxes. Can be used as an input to pass a set of values to a function or as an output to display values, a subset of which are selected.
     Demos: sentence_builder, titanic_survival
     """
 
@@ -104,11 +101,10 @@ class CheckboxGroup(FormComponent):
         self, payload: list[str | int | float]
     ) -> list[str | int | float] | list[int | None]:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: the list of checked checkboxes' values
         Returns:
-            ADD DOCSTRING
+            Passes the list of checked checkboxes as a `list[str | int | float]` or their indices as a `list[int]` into the function, depending on `type`.
         """
         if self.type == "value":
             return payload
@@ -127,11 +123,10 @@ class CheckboxGroup(FormComponent):
         self, value: list[str | int | float] | str | int | float | None
     ) -> list[str | int | float]:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects a `list[str | int | float]` of values or a single `str | int | float` value, the checkboxes with these values are checked.
         Returns:
-            ADD DOCSTRING
+            the list of checked checkboxes' values
         """
         if value is None:
             return []

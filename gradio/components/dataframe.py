@@ -54,10 +54,7 @@ set_documentation_group("component")
 @document()
 class Dataframe(Component):
     """
-    Accepts or displays 2D input through a spreadsheet-like component for dataframes.
-    Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {polars.DataFrame}, or {List[List]} depending on `type`
-    Postprocessing: expects a {pandas.DataFrame}, {pandas.Styler}, {numpy.array}, {polars.DataFrame}, {List[List]}, {List}, a {Dict} with keys `data` (and optionally `headers`), or {str} path to a csv, which is rendered in the spreadsheet.
-    Examples-format: a {str} filepath to a csv with data, a pandas dataframe, a polars dataframe, or a list of lists (excluding headers) where each sublist is a row of data.
+    This component displays a table of value spreadsheet-like component. Can be used to display data as an output component, or as an input to collect data from the user.
     Demos: filter_records, matrix_transpose, tax_calculator, sort_records
     """
 
@@ -193,13 +190,12 @@ class Dataframe(Component):
 
     def preprocess(
         self, payload: DataframeData
-    ) -> pd.DataFrame | np.ndarray | pl.DataFrame | list:
+    ) -> pd.DataFrame | np.ndarray | pl.DataFrame | list[list]:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: the uploaded spreadsheet data as an object with `headers` and `data` attributes
         Returns:
-            ADD DOCSTRING
+            Passes the uploaded spreadsheet data as a `pandas.DataFrame`, `numpy.array`, `polars.DataFrame`, or native 2D Python `list[list]` depending on `type`
         """
         if self.type == "pandas":
             if payload.headers is not None:
@@ -236,11 +232,10 @@ class Dataframe(Component):
         | None,
     ) -> DataframeData:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects data any of these formats: `pandas.DataFrame`, `pandas.Styler`, `numpy.array`, `polars.DataFrame`, `list[list]`, `list`, or a `dict` with keys 'data' (and optionally 'headers'), or `str` path to a csv, which is rendered as the spreadsheet.
         Returns:
-            ADD DOCSTRING
+            the uploaded spreadsheet data as an object with `headers` and `data` attributes
         """
         if value is None:
             return self.postprocess(self.empty_input)

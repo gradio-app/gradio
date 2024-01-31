@@ -214,7 +214,7 @@
 									><img class="anchor-img-small" src={anchor} /></a
 								>
 							</h4>
-							<p class="mb-2 text-lg text-gray-600">{@html obj.description}</p>
+							<p class="mb-2 text-lg">{@html obj.description}</p>
 						</div>
 
 						{#if mode === "components"}
@@ -226,12 +226,11 @@
 											><img class="anchor-img-small" src={anchor} /></a
 										>
 									</h4>
-									<p class="text-lg text-gray-500 mb-2">
-										<span class="text-gray-700">As input component: </span>
-										returns value as {obj.preprocess.return_doc.doc}
+									<p class="text-lg mb-2">
+										<span class="font-semibold">As input component:</span> {obj.preprocess.return_doc.doc}
 									</p>
 									<p class="text-md text-gray-500 -mb-1">
-										Your predict function
+										Your function should accept one of these types:
 									</p>
 									<div class="codeblock">
 										<pre><code class="code language-python"
@@ -239,12 +238,11 @@
 											></pre>
 									</div>
 
-									<p class="text-lg text-gray-500 my-2">
-										<span class="text-gray-700">As output component:</span>
-										expects value as {obj.postprocess.parameter_doc[0].doc}
+									<p class="text-lg my-2">
+										<span class="font-semibold">As output component:</span> {obj.postprocess.parameter_doc[0].doc}
 									</p>
 									<p class="text-md text-gray-500 -mb-1">
-										Your predict function
+										Your function should return one of these types:
 									</p>
 									<div class="codeblock">
 										<pre><code class="code language-python"
