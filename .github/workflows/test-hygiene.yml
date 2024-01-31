@@ -4,6 +4,7 @@ on:
     workflows: [trigger]
     types:
       - requested
+  pull_request:
 permissions:
   statuses: write
 
