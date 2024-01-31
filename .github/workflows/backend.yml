@@ -16,30 +16,29 @@ env:
   HF_TOKEN: ${{ secrets.HF_TOKEN }}
 
 jobs:
-  # changes:
-  #   name: "changes"
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     should_run: ${{ steps.changes.outputs.should_run }}
-  #     sha: ${{ steps.changes.outputs.sha }}
-  #     pr_number: ${{ steps.changes.outputs.pr_number }}
-  #     source_branch: ${{ steps.changes.outputs.source_branch }}
-  #     source_repo: ${{ steps.changes.outputs.source_repo }}
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: pngwn/api-check-test/.github/actions/changes@main
-  #       id: changes
-  #       with:
-  #         type: "gradio"
-  #         token: ${{ secrets.GITHUB_TOKEN }}
+  changes:
+    name: "changes"
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.changes.outputs.should_run }}
+      sha: ${{ steps.changes.outputs.sha }}
+      pr_number: ${{ steps.changes.outputs.pr_number }}
+      source_branch: ${{ steps.changes.outputs.source_branch }}
+      source_repo: ${{ steps.changes.outputs.source_repo }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pngwn/api-check-test/.github/actions/changes@main
+        id: changes
+        with:
+          type: "gradio"
+          token: ${{ secrets.GITHUB_TOKEN }}
   test:
-    # needs: [changes]
-    # if: needs.changes.outputs.should_run == 'true'
+    needs: [changes]
+    if: needs.changes.outputs.should_run == 'true'
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
         test-type: ["not flaky", "flaky"]
-        python-version: ["3.8"]
         exclude:
           - os: ${{ github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'windows-tests') && 'dummy' || 'windows-latest' }}
           - test-type: ${{ github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'flaky-tests') && 'dummy' || 'flaky' }}
@@ -51,7 +50,7 @@ jobs:
       id: install_deps
       uses: "./.github/actions/install-all-deps"
       with:
-        python_version: ${{ matrix.python-version }}
+        python_version: "3.8"
         os: ${{ matrix.os }}
         test: true
     - name: log venv activate
