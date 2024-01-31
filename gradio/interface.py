@@ -649,9 +649,11 @@ class Interface(Blocks):
                 )
             else:
                 events: list[Callable] = []
+                streaming_event = False
                 for component in self.input_components:
                     if component.has_event("stream") and component.streaming:  # type: ignore
                         events.append(component.stream)  # type: ignore
+                        streaming_event = True
                     elif component.has_event("change"):
                         events.append(component.change)  # type: ignore
                 on(
@@ -662,6 +664,7 @@ class Interface(Blocks):
                     api_name=self.api_name,
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
+                    show_progress="hidden" if streaming_event else "full",
                 )
         else:
             if _submit_btn is None:
