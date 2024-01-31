@@ -34,7 +34,7 @@ jobs:
           type: "gradio"
           name: "test / python / linux"
           token: ${{ secrets.GITHUB_TOKEN }}
-  test:
+  test-python:
     needs: [changes]
     if: needs.changes.outputs.should_run == 'true'
     name: "test-python-${{ matrix.os }}-${{ matrix.test-type == 'flaky' && 'flaky' || 'not-flaky'}}"

@@ -1,12 +1,12 @@
 name: 'deploy to chromatic'
 
-on: 
-  push:
-    paths:
-      - 'js/**'
-      - 'gradio/themes/**'
-      - '.github/workflows/deploy-chromatic.yml'
-      - '!js/_website/**'
+on: release
+  # push:
+  #   paths:
+  #     - 'js/**'
+  #     - 'gradio/themes/**'
+  #     - '.github/workflows/deploy-chromatic.yml'
+  #     - '!js/_website/**'
 
 
 jobs:

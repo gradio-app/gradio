@@ -46,6 +46,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+      with:
+        ref: ${{ needs.changes.outputs.merge_sha }}
+        repository: ${{ needs.changes.outputs.source_repo }}
     - name: Install Python
       uses: actions/setup-python@v5
       with:

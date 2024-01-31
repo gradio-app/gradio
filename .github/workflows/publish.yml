@@ -1,4 +1,4 @@
-name: Changesets
+name: publish
 on:
   push:
     branches:
