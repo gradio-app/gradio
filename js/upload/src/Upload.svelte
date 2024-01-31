@@ -27,7 +27,6 @@
 	let hidden_upload: HTMLInputElement;
 
 	const dispatch = createEventDispatcher();
-
 	$: if (filetype == null || typeof filetype === "string") {
 		accept_file_types = filetype;
 	} else {
@@ -106,24 +105,29 @@
 
 	function is_valid_mimetype(
 		file_accept: string | string[] | null,
-		mime_type: string
+		uploaded_file_extension: string,
+		uploaded_file_type: string
 	): boolean {
 		if (!file_accept || file_accept === "*" || file_accept === "file/*") {
 			return true;
 		}
-		if (typeof file_accept === "string" && file_accept.endsWith("/*")) {
-			file_accept = file_accept.split(",");
+		let acceptArray: string[];
+		if (typeof file_accept === "string") {
+			acceptArray = file_accept.split(",").map((s) => s.trim());
+		} else if (Array.isArray(file_accept)) {
+			acceptArray = file_accept;
+		} else {
+			return false;
 		}
-		if (Array.isArray(file_accept)) {
-			return (
-				file_accept.includes(mime_type) ||
-				file_accept.some((type) => {
-					const [category] = type.split("/");
-					return type.endsWith("/*") && mime_type.startsWith(category + "/");
-				})
-			);
-		}
-		return file_accept === mime_type;
+		return (
+			acceptArray.includes(uploaded_file_extension) ||
+			acceptArray.some((type) => {
+				const [category] = type.split("/").map((s) => s.trim());
+				return (
+					type.endsWith("/*") && uploaded_file_type.startsWith(category + "/")
+				);
+			})
+		);
 	}
 
 	async function loadFilesFromDrop(e: DragEvent): Promise<void> {
@@ -131,7 +135,10 @@
 		if (!e.dataTransfer?.files) return;
 		const files_to_load = Array.from(e.dataTransfer.files).filter((file) => {
 			const file_extension = "." + file.name.split(".").pop();
-			if (file.type && is_valid_mimetype(filetype, file.type)) {
+			if (
+				file_extension &&
+				is_valid_mimetype(filetype, file_extension, file.type)
+			) {
 				return true;
 			}
 			if (
