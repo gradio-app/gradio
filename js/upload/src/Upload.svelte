@@ -111,8 +111,8 @@
 			return true;
 		}
 		let acceptArray: string[];
-		if (typeof file_accept === "string") {
-			acceptArray = file_accept.split(",");
+		if (typeof file_accept === "string") {	
+			acceptArray = file_accept.split(",").map((s) => s.trim());
 		} else if (Array.isArray(file_accept)) {
 			acceptArray = file_accept;
 		} else {
@@ -132,7 +132,7 @@
 		if (!e.dataTransfer?.files) return;
 		const files_to_load = Array.from(e.dataTransfer.files).filter((file) => {
 			const file_extension = "." + file.name.split(".").pop();
-			if (file.type && is_valid_mimetype(filetype, file.type)) {
+			if (file_extension && is_valid_mimetype(filetype, file_extension)) {
 				return true;
 			}
 			if (
