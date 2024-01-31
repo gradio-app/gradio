@@ -227,7 +227,8 @@
 										>
 									</h4>
 									<p class="text-lg mb-2">
-										<span class="font-semibold">As input component:</span> {obj.preprocess.return_doc.doc}
+										<span class="font-semibold">As input component:</span>
+										{obj.preprocess.return_doc.doc}
 									</p>
 									<p class="text-md text-gray-500 -mb-1">
 										Your function should accept one of these types:
@@ -239,7 +240,8 @@
 									</div>
 
 									<p class="text-lg my-2">
-										<span class="font-semibold">As output component:</span> {obj.postprocess.parameter_doc[0].doc}
+										<span class="font-semibold">As output component:</span>
+										{obj.postprocess.parameter_doc[0].doc}
 									</p>
 									<p class="text-md text-gray-500 -mb-1">
 										Your function should return one of these types:
@@ -257,36 +259,36 @@
 									{/if}
 								</div>
 							{:else}
-							<div id="behavior">
-								<h4 class="mt-4 text-xl text-orange-500 font-light group">
-									Behavior
-									<a href="#behavior" class="invisible group-hover-visible"
-										><img class="anchor-img-small" src={anchor} /></a
-									>
-								</h4>
-								<p class="text-lg text-gray-500">
-									<span class="text-gray-700">As input: </span>
-									{@html obj.tags.preprocessing}
-								</p>
-								<p class="text-lg text-gray-500">
-									<span class="text-gray-700">As output:</span>
-									{@html obj.tags.postprocessing}
-								</p>
-								{#if obj.tags.examples_format}
-									<p class="text-lg text-gray-500">
-										<span class="text-gray-700"
-											>Format expected for examples:</span
+								<div id="behavior">
+									<h4 class="mt-4 text-xl text-orange-500 font-light group">
+										Behavior
+										<a href="#behavior" class="invisible group-hover-visible"
+											><img class="anchor-img-small" src={anchor} /></a
 										>
-										{@html obj.tags.examples_format}
-									</p>
-								{/if}
-								{#if obj.tags.events && obj.tags.events.length > 0}
+									</h4>
 									<p class="text-lg text-gray-500">
-										<span class="text-gray-700">Supported events:</span>
-										<em>{@html obj.tags.events}</em>
+										<span class="text-gray-700">As input: </span>
+										{@html obj.tags.preprocessing}
 									</p>
-								{/if}
-							</div>
+									<p class="text-lg text-gray-500">
+										<span class="text-gray-700">As output:</span>
+										{@html obj.tags.postprocessing}
+									</p>
+									{#if obj.tags.examples_format}
+										<p class="text-lg text-gray-500">
+											<span class="text-gray-700"
+												>Format expected for examples:</span
+											>
+											{@html obj.tags.examples_format}
+										</p>
+									{/if}
+									{#if obj.tags.events && obj.tags.events.length > 0}
+										<p class="text-lg text-gray-500">
+											<span class="text-gray-700">Supported events:</span>
+											<em>{@html obj.tags.events}</em>
+										</p>
+									{/if}
+								</div>
 							{/if}
 						{/if}
 
