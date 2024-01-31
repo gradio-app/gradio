@@ -239,7 +239,7 @@ def move_files_to_cache(
     block: Component,
     postprocess: bool = False,
     add_urls=False,
-):
+) -> dict:
     """Move any files in `data` to cache and (optionally), adds URL prefixes (/file=...) needed to access the cached file.
     Also handles the case where the file is on an external Gradio app (/proxy=...).
 
@@ -266,7 +266,7 @@ def move_files_to_cache(
         payload.path = temp_file_path
 
         if add_urls:
-            url_prefix = "stream/" if getattr(payload, "is_stream", None) else "file="
+            url_prefix = "stream/" if payload.is_stream else "file="
             if block.proxy_url:
                 url = f"/proxy={block.proxy_url}/{url_prefix}{temp_file_path}"
             else:
@@ -280,6 +280,15 @@ def move_files_to_cache(
 
     return client_utils.traverse(data, _move_to_cache, client_utils.is_file_obj)
 
+
+def add_root_url(data, root_url) -> dict:
+    def _add_root_url(file_dict: dict):
+        if file_dict["url"].startswith("/proxy="):
+            pass
+        else:
+            file_dict["url"] = root_url + file_dict["url"]
+
+    return client_utils.traverse(data, _add_root_url, client_utils.is_file_obj_with_url)
 
 def resize_and_crop(img, size, crop_type="center"):
     """

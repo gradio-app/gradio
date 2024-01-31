@@ -169,7 +169,7 @@ class FileData(GradioModel):
     size: Optional[int] = None  # size in bytes
     orig_name: Optional[str] = None  # original filename
     mime_type: Optional[str] = None
-    # is_stream: NotRequired[bool]
+    is_stream: bool = False
 
     @property
     def is_none(self):

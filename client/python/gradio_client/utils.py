@@ -948,6 +948,10 @@ def is_file_obj(d):
     return isinstance(d, dict) and "path" in d
 
 
+def is_file_obj_with_url(d):
+    return isinstance(d, dict) and "path" in d and "url" in d
+
+
 SKIP_COMPONENTS = {
     "state",
     "row",

@@ -55,6 +55,7 @@ from gradio.context import Context
 from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
+from gradio.processing_utils import add_root_url
 from gradio.queueing import Estimation
 from gradio.route_utils import (  # noqa: F401
     FileUploadProgress,
@@ -324,6 +325,7 @@ class App(FastAPI):
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
                 config["root"] = route_utils.strip_url(root_path)
+                config = add_root_url(config, root_path)
             else:
                 config = {
                     "auth_required": True,
@@ -355,7 +357,6 @@ class App(FastAPI):
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
         def api_info(serialize: bool = True):
-            # config = app.get_blocks().get_api_info()
             return app.get_blocks().get_api_info()  # type: ignore
 
         @app.get("/config/", dependencies=[Depends(login_check)])
@@ -368,6 +369,7 @@ class App(FastAPI):
             )
             config = app.get_blocks().config
             config["root"] = route_utils.strip_url(root_path)
+            config = add_root_url(config, root_path)
             return config
 
         @app.get("/static/{path:path}")
