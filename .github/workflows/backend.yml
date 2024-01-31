@@ -53,8 +53,6 @@ jobs:
         python_version: "3.8"
         os: ${{ matrix.os }}
         test: true
-    - name: log venv activate
-      run: echo "venv_activate=${{ steps.install_deps.outputs.venv_activate }}"
     - name: Lint
       if: runner.os == 'Linux'
       run: |
