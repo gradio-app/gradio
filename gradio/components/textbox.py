@@ -18,9 +18,6 @@ set_documentation_group("component")
 class Textbox(FormComponent):
     """
     Creates a textarea for user to enter string input or display string output.
-    Preprocessing: passes textarea value as a {str} into the function.
-    Postprocessing: expects a {str} returned from function and sets textarea value to it.
-    Examples-format: a {str} representing the textbox input.
 
     Demos: hello_world, diff_texts, sentence_builder
     Guides: creating-a-chatbot, real-time-speech-recognition
@@ -119,21 +116,19 @@ class Textbox(FormComponent):
 
     def preprocess(self, payload: str | None) -> str | None:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: the text entered in the textarea.
         Returns:
-            ADD DOCSTRING
+            Passes text value as a {str} into the function.
         """
         return None if payload is None else str(payload)
 
     def postprocess(self, value: str | None) -> str | None:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects a {str} returned from function and sets textarea value to it.
         Returns:
-            ADD DOCSTRING
+            The value to display in the textarea.
         """
         return None if value is None else str(value)
 

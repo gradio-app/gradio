@@ -21,12 +21,9 @@ set_documentation_group("component")
 class ParamViewer(Component):
     """
     Displays an interactive table of parameters and their descriptions and default values with syntax highlighting. For each parameter,
-    the user should provide a type (e.g. a `str`), a human-readable description, and a default value. Internally, this component
-    is used to display the parameters of custom components in the Custom Component Gallery (https://www.gradio.app/custom-components/gallery).
-
-    Preprocessing: passes value as a `dict[str, dict]`. The key in the outer dictionary is the parameter name, while the inner dictionary has keys "type", "description", and (optionally) "default" for each parameter.
-    Postprocessing: expects a `dict[str, dict]` with the same format as the preprocessed value.
-    Examples-format: a `dict[str, dict]` with the same format as the preprocessed value.
+    the user should provide a type (e.g. a `str`), a human-readable description, and a default value. As this component does not accept user input, 
+    it is rarely used as an input component.Internally, this component is used to display the parameters of components in the Custom 
+    Component Gallery (https://www.gradio.app/custom-components/gallery).
     """
 
     EVENTS = [
@@ -61,11 +58,10 @@ class ParamViewer(Component):
 
     def preprocess(self, payload: dict[str, Parameter]) -> dict[str, Parameter]:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: A `dict[str, dict]`. The key in the outer dictionary is the parameter name, while the inner dictionary has keys "type", "description", and (optionally) "default" for each parameter.
         Returns:
-            ADD DOCSTRING
+            (Rarely used) passes value as a `dict[str, dict]`. The key in the outer dictionary is the parameter name, while the inner dictionary has keys "type", "description", and (optionally) "default" for each parameter.
         """
         return payload
 
@@ -73,9 +69,9 @@ class ParamViewer(Component):
         """
         ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects value as a `dict[str, dict]`. The key in the outer dictionary is the parameter name, while the inner dictionary has keys "type", "description", and (optionally) "default" for each parameter.
         Returns:
-            ADD DOCSTRING
+            The same value.
         """
         return value
 

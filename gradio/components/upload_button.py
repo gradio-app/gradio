@@ -21,9 +21,6 @@ set_documentation_group("component")
 class UploadButton(Component):
     """
     Used to create an upload button, when clicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
-    Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List[bytes]} depending on `type`)
-    Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
-    Examples-format: a {str} path to a local file that populates the component.
     Demos: upload_button
     """
 
@@ -139,13 +136,12 @@ class UploadButton(Component):
 
     def preprocess(
         self, payload: ListFiles | FileData | None
-    ) -> bytes | NamedString | list[bytes | NamedString] | None:
+    ) -> bytes | str | list[bytes] | list[str] | None:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: File information as a FileData object, or a list of FileData objects.
         Returns:
-            ADD DOCSTRING
+            Passes the file as a `str` or `bytes` object, or a list of `str` or list of `bytes` objects, depending on `type` and `file_count`.
         """
         if payload is None:
             return None
@@ -157,17 +153,16 @@ class UploadButton(Component):
                 return self._process_single_file(payload)
         else:
             if isinstance(payload, ListFiles):
-                return [self._process_single_file(f) for f in payload]
+                return [self._process_single_file(f) for f in payload]  # type: ignore
             else:
-                return [self._process_single_file(payload)]
+                return [self._process_single_file(payload)]  # type: ignore
 
     def postprocess(self, value: str | list[str] | None) -> ListFiles | FileData | None:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects a `str` filepath, or a `list[str]` of filepaths.
         Returns:
-            ADD DOCSTRING
+            File information as a FileData object, or a list of FileData objects.
         """
         if value is None:
             return None

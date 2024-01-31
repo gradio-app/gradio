@@ -19,8 +19,6 @@ class State(Component):
     Special hidden component that stores session state across runs of the demo by the
     same user. The value of the State variable is cleared when the user refreshes the page.
 
-    Preprocessing: No preprocessing is performed
-    Postprocessing: No postprocessing is performed
     Demos: interface_state, blocks_simple_squares
     Guides: real-time-speech-recognition
     """
@@ -44,25 +42,23 @@ class State(Component):
             raise TypeError(
                 f"The initial value of `gr.State` must be able to be deepcopied. The initial value of type {type(value)} cannot be deepcopied."
             ) from err
-        super().__init__(value=self.value)
+        super().__init__(value=self.value, render=render)
 
     def preprocess(self, payload: Any) -> Any:
         """
-        ADD DOCSTRING
         Parameters:
-            payload: ADD DOCSTRING
+            payload: Value
         Returns:
-            ADD DOCSTRING
+            Passes a value of arbitrary type through.
         """
         return payload
 
     def postprocess(self, value: Any) -> Any:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects a value of arbitrary type, as long as it can be deepcopied.
         Returns:
-            ADD DOCSTRING
+            Passes a value of arbitrary type through.
         """
         return value
 

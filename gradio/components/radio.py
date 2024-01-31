@@ -16,9 +16,6 @@ set_documentation_group("component")
 class Radio(FormComponent):
     """
     Creates a set of (string or numeric type) radio buttons of which only one can be selected.
-    Preprocessing: passes the value of the selected radio button as a {str} or {int} or {float} or its index as an {int} into the function, depending on `type`.
-    Postprocessing: expects a {str} or {int} or {float} corresponding to the value of the radio button to be selected.
-    Examples-format: a {str} representing the radio option to select.
 
     Demos: sentence_builder, titanic_survival, blocks_essay
     """
@@ -97,9 +94,9 @@ class Radio(FormComponent):
     def preprocess(self, payload: str | int | float | None) -> str | int | float | None:
         """
         Parameters:
-            payload: selected choice
+            payload: Selected choice in the radio group
         Returns:
-            value of the selected choice as string or index within choice list
+            Passes the value of the selected radio button as a `str | int | float`, or its index as an `int` into the function, depending on `type`.
         """
         if self.type == "value":
             return payload
@@ -118,11 +115,10 @@ class Radio(FormComponent):
 
     def postprocess(self, value: str | int | float | None) -> str | int | float | None:
         """
-        ADD DOCSTRING
         Parameters:
-            value: ADD DOCSTRING
+            value: Expects a `str | int | float` corresponding to the value of the radio button to be selected
         Returns:
-            ADD DOCSTRING
+            The same value
         """
         return value
 

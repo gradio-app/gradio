@@ -145,7 +145,6 @@ class File(Component):
 
     def postprocess(self, value: str | list[str] | None) -> ListFiles | FileData | None:
         """
-        ADD DOCSTRING
         Parameters:
             value: Expects a `str` filepath, or a `list[str]` of filepaths.
         Returns:
