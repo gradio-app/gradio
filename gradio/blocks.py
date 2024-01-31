@@ -1612,6 +1612,18 @@ Received outputs:
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
             "protocol": "sse_v1",
+            "body_css": {
+                "body_background_fill": self.theme._get_computed_value(
+                    "body_background_fill"
+                ),
+                "body_text_color": self.theme._get_computed_value("body_text_color"),
+                "body_background_fill_dark": self.theme._get_computed_value(
+                    "body_background_fill_dark"
+                ),
+                "body_text_color_dark": self.theme._get_computed_value(
+                    "body_text_color_dark"
+                ),
+            },
         }
 
         def get_layout(block):
