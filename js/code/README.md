@@ -8,17 +8,14 @@
 
 BaseCode
 ```javascript
-	export let classNames = "";
+	export let class_names = "";
 	export let value = "";
 	export let dark_mode: boolean;
-
 	export let basic = true;
 	export let language: string;
 	export let lines = 5;
 	export let extensions: Extension[] = [];
-
-	export let useTab = true;
-
+	export let use_tab = true;
 	export let readonly = false;
 	export let placeholder: string | HTMLElement | null | undefined = undefined;
 ```
