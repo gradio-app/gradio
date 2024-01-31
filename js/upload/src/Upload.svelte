@@ -105,7 +105,8 @@
 
 	function is_valid_mimetype(
 		file_accept: string | string[] | null,
-		mime_type: string
+		uploaded_file_extension: string,
+		uploaded_file_type: string
 	): boolean {
 		if (!file_accept || file_accept === "*" || file_accept === "file/*") {
 			return true;
@@ -119,10 +120,12 @@
 			return false;
 		}
 		return (
-			acceptArray.includes(mime_type) ||
+			acceptArray.includes(uploaded_file_extension) ||
 			acceptArray.some((type) => {
 				const [category] = type.split("/").map((s) => s.trim());
-				return type.endsWith("/*") && mime_type.startsWith(category + "/");
+				return (
+					type.endsWith("/*") && uploaded_file_type.startsWith(category + "/")
+				);
 			})
 		);
 	}
@@ -132,7 +135,10 @@
 		if (!e.dataTransfer?.files) return;
 		const files_to_load = Array.from(e.dataTransfer.files).filter((file) => {
 			const file_extension = "." + file.name.split(".").pop();
-			if (file_extension && is_valid_mimetype(filetype, file_extension)) {
+			if (
+				file_extension &&
+				is_valid_mimetype(filetype, file_extension, file.type)
+			) {
 				return true;
 			}
 			if (
