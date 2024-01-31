@@ -44,7 +44,7 @@ jobs:
       - name: install dependencies
         uses: "./.github/actions/install-frontend-deps"
         with:
-          always-install-pnpm: true
+          always_install_pnpm: true
           skip_build: true
       - name: download artifacts
         uses: actions/download-artifact@v4
