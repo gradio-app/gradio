@@ -250,7 +250,6 @@ class ImageEditor(Component):
 
     def preprocess(self, payload: EditorData | None) -> EditorValue | None:
         """
-        ADD DOCSTRING
         Parameters:
             payload: An instance of `EditorData` consisting of the background image, layers, and composite image.
         Returns:

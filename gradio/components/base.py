@@ -50,9 +50,9 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
         """
         Any preprocessing needed to be performed on function input.
         Parameters:
-            payload: ADD DOCSTRING
+            payload: The input data received by the component from the frontend.
         Returns:
-            ADD DOCSTRING
+            The preprocessed input data sent to the user's function in the backend.
         """
         return payload
 
@@ -61,9 +61,9 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
         """
         Any postprocessing needed to be performed on function output.
         Parameters:
-            value: ADD DOCSTRING
+            value: The output data received by the component from the user's function in the backend.
         Returns:
-            ADD DOCSTRING
+            The postprocessed output data sent to the frontend.
         """
         return value
 
