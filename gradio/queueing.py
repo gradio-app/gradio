@@ -86,6 +86,7 @@ class Queue:
     ):
         self.pending_messages_per_session: LRUCache[str, ThreadQueue] = LRUCache(2000)
         self.pending_event_ids_session: dict[str, set[str]] = {}
+        self.webrtc_context: dict[str, route_utils.WebRTCContext] = {}
         self.pending_message_lock = safe_get_lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
         self.stopped = False
@@ -492,6 +493,7 @@ class Queue:
         )
 
         try:
+            if 
             output = await route_utils.call_process_api(
                 app=app,
                 body=body,

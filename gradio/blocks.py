@@ -2320,6 +2320,15 @@ Received outputs:
 
     def queue_enabled_for_fn(self, fn_index: int):
         return self.dependencies[fn_index]["queue"] is not False
+    
+    def is_fn_streaming(self, fn_index: int):
+        inputs = self.dependencies[fn_index]["inputs"]
+        outputs = self.dependencies[fn_index]["outputs"]
+        for id_ in inputs + outputs:
+            component = self.blocks[id_]
+            if getattr(component, "streaming", False):
+                return True
+        return False
 
     def get_api_info(self):
         """
