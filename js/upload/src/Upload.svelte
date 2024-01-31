@@ -111,7 +111,7 @@
 			return true;
 		}
 		let acceptArray: string[];
-		if (typeof file_accept === "string") {	
+		if (typeof file_accept === "string") {
 			acceptArray = file_accept.split(",").map((s) => s.trim());
 		} else if (Array.isArray(file_accept)) {
 			acceptArray = file_accept;
