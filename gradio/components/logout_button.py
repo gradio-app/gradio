@@ -14,7 +14,7 @@ set_documentation_group("component")
 @document()
 class LogoutButton(Button):
     """
-    Button to log out a user from a Space.
+    Creates a Button to log out a user from a Space using OAuth.
 
     Note: `LogoutButton` component is deprecated. Please use `gr.LoginButton` instead
           which handles both the login and logout processes.
