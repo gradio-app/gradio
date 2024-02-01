@@ -23,6 +23,7 @@ jobs:
       source_branch: ${{ steps.changes.outputs.source_branch }}
       source_repo: ${{ steps.changes.outputs.source_repo }}
       merge_sha: ${{ steps.changes.outputs.merge_sha }}
+      mergeable: ${{ steps.changes.outputs.mergeable }}
     steps:
       - uses: actions/checkout@v3
       - uses: "gradio-app/gradio/.github/actions/changes@main"
@@ -55,7 +56,7 @@ jobs:
     - uses: actions/checkout@v3
       with:
         ref: ${{ needs.changes.outputs.merge_sha }}
-        repository: ${{ needs.changes.outputs.source_repo }}
+        repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
     - name: Install Python
       uses: actions/setup-python@v5
       with:

@@ -44,7 +44,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           ref: ${{ needs.changes.outputs.merge_sha }}
-          repository: ${{ needs.changes.outputs.source_repo }}
+          repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
       - name: Generate Notebooks
         run: |
           pip install nbformat && cd demo && python generate_notebooks.py
