@@ -9,6 +9,7 @@
 	import WaveformRecordControls from "../shared/WaveformRecordControls.svelte";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 	import type { WaveformOptions } from "../shared/types";
+	import { format_time } from "@gradio/utils";
 
 	export let mode: string;
 	export let i18n: I18nFormatter;
@@ -60,13 +61,6 @@
 		end: undefined;
 		edit: undefined;
 	}>();
-
-	const format_time = (seconds: number): string => {
-		const minutes = Math.floor(seconds / 60);
-		const secondsRemainder = Math.round(seconds) % 60;
-		const paddedSeconds = `0${secondsRemainder}`.slice(-2);
-		return `${minutes}:${paddedSeconds}`;
-	};
 
 	$: record?.on("record-start", () => {
 		start_interval();

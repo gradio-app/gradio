@@ -87,8 +87,8 @@ class SimpleCSVLogger(FlaggingCallback):
     def flag(
         self,
         flag_data: list[Any],
-        flag_option: str = "",
-        username: str | None = None,
+        flag_option: str = "",  # noqa: ARG002
+        username: str | None = None,  # noqa: ARG002
     ) -> int:
         flagging_dir = self.flagging_dir
         log_filepath = Path(flagging_dir) / "log.csv"

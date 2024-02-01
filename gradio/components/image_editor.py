@@ -8,20 +8,18 @@ from pathlib import Path
 from typing import Any, Iterable, List, Literal, Optional, TypedDict, Union, cast
 
 import numpy as np
+import PIL.Image
 from gradio_client.documentation import document, set_documentation_group
-from PIL import Image as _Image  # using _ to minimize namespace pollution
 
-import gradio.image_utils as image_utils
-from gradio import utils
+from gradio import image_utils, utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
 
 set_documentation_group("component")
-_Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
-ImageType = Union[np.ndarray, _Image.Image, str]
+ImageType = Union[np.ndarray, PIL.Image.Image, str]
 
 
 class EditorValue(TypedDict):
@@ -218,11 +216,11 @@ class ImageEditor(Component):
     def convert_and_format_image(
         self,
         file: FileData | None,
-    ) -> np.ndarray | _Image.Image | str | None:
+    ) -> np.ndarray | PIL.Image.Image | str | None:
         if file is None:
             return None
 
-        im = _Image.open(file.path)
+        im = PIL.Image.open(file.path)
 
         if file.orig_name:
             p = Path(file.orig_name)
@@ -282,7 +280,7 @@ class ImageEditor(Component):
             return None
         elif isinstance(value, dict):
             pass
-        elif isinstance(value, (np.ndarray, _Image.Image, str)):
+        elif isinstance(value, (np.ndarray, PIL.Image.Image, str)):
             value = {"background": value, "layers": [], "composite": value}
         else:
             raise ValueError(
@@ -293,7 +291,7 @@ class ImageEditor(Component):
             [
                 FileData(
                     path=image_utils.save_image(
-                        cast(Union[np.ndarray, _Image.Image, str], layer),
+                        cast(Union[np.ndarray, PIL.Image.Image, str], layer),
                         self.GRADIO_CACHE,
                     )
                 )
@@ -312,7 +310,7 @@ class ImageEditor(Component):
             layers=layers,
             composite=FileData(
                 path=image_utils.save_image(
-                    cast(Union[np.ndarray, _Image.Image, str], value["composite"]),
+                    cast(Union[np.ndarray, PIL.Image.Image, str], value["composite"]),
                     self.GRADIO_CACHE,
                 )
             )

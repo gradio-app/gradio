@@ -126,7 +126,6 @@ The `data_model` in the following section.
 def read_from_flag(
     self,
     x: Any,
-    flag_dir: str | Path | None = None,
 ) -> GradioDataModel | Any:
     """
     Convert the data from the csv or jsonl file into the component state.

@@ -582,7 +582,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.space_id = utils.get_space()
         self.favicon_path = None
         self.auth = None
-        self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", False))
+        self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", ""))
         self.app_id = random.getrandbits(64)
         self.temp_file_sets = []
         self.title = title
@@ -872,11 +872,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         if isinstance(outputs, set):
             outputs = sorted(outputs, key=lambda x: x._id)
-        else:
-            if outputs is None:
-                outputs = []
-            elif not isinstance(outputs, list):
-                outputs = [outputs]
+        elif outputs is None:
+            outputs = []
+        elif not isinstance(outputs, list):
+            outputs = [outputs]
 
         if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
@@ -2174,7 +2173,7 @@ Received outputs:
             analytics.launched_analytics(self, data)
 
         # Block main thread if debug==True
-        if debug or int(os.getenv("GRADIO_DEBUG", 0)) == 1 and not wasm_utils.IS_WASM:
+        if debug or int(os.getenv("GRADIO_DEBUG", "0")) == 1 and not wasm_utils.IS_WASM:
             self.block_thread()
         # Block main thread if running in a script to stop script from exiting
         is_in_interactive_mode = bool(getattr(sys, "ps1", sys.flags.interactive))

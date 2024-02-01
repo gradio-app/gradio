@@ -11,14 +11,12 @@ import PIL.Image
 from gradio_client.documentation import document, set_documentation_group
 from PIL import ImageOps
 
-import gradio.image_utils as image_utils
-from gradio import utils
+from gradio import image_utils, utils
 from gradio.components.base import Component, StreamingInput
 from gradio.data_classes import FileData
 from gradio.events import Events
 
 set_documentation_group("component")
-PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
 @document()

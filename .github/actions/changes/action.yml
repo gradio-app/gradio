@@ -51,17 +51,17 @@ runs:
       uses: "gradio-app/github/actions/find-pr@main"
       with:
         github_token: ${{ inputs.token }}
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
-        repository: ${{ steps.pr.outputs.source_repo }}
-        ref: ${{ steps.pr.outputs.source_branch }}
+        repository: ${{ github.repository }}
+        ref: ${{ steps.pr.outputs.sha }}
         fetch-depth: 0
         token: ${{ inputs.token }}
-
     - uses: dorny/paths-filter@v2
       id: changes
       with:
-        ref: ${{ steps.pr.outputs.source_branch }}
+        base: main
+        ref: ${{ steps.pr.outputs.sha }}
         filters: |
           gradio:
             - 'client/python/**'
@@ -148,4 +148,4 @@ runs:
         type: ${{ inputs.type }}
         init: true
         mergeable: ${{ steps.pr.outputs.source_branch == 'main' || steps.pr.outputs.mergeable }}
-        commit_status: ${{ inputs.commit_status }}
+        commit_status: ${{ inputs.type == 'visual' && steps.should_run.outputs.should_run == 'false' || inputs.commit_status }}

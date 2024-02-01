@@ -54,7 +54,7 @@ else:
             return super().dict(**kwargs)["root"]
 
         @classmethod
-        def schema(cls, **kwargs):
+        def schema(cls, **_kwargs):
             # XXX: kwargs are ignored.
             return schema_of(cls.__fields__["root"].type_)  # type: ignore
 
