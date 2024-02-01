@@ -10,7 +10,7 @@ permissions:
   statuses: write
 
 concurrency:
-  group: "${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
   cancel-in-progress: true
 
 jobs:
@@ -26,11 +26,14 @@ jobs:
       source_repo: ${{ steps.changes.outputs.source_repo }}
     steps:
       - uses: actions/checkout@v3
-      - uses: "./.github/actions/changes"
+      - uses: "@gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
           type: "functional"
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: echo github context
+        if: always()
+        run: echo "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
 
   test-functional:
     name: "test-functional"
@@ -45,7 +48,7 @@ jobs:
           repository: ${{ needs.changes.outputs.source_repo }}
       - name: install dependencies
         id: install_deps
-        uses: "./.github/actions/install-all-deps"
+        uses: "@gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           always_install_pnpm: true
       - name: install outbreak_forecast dependencies
