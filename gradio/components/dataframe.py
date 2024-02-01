@@ -198,13 +198,18 @@ class Dataframe(Component):
         """
         if self.type == "pandas":
             if payload.headers is not None:
-                return pd.DataFrame(payload.data, columns=payload.headers)
+                return pd.DataFrame(
+                    [] if payload.data == [[]] else payload.data,
+                    columns=payload.headers,
+                )
             else:
                 return pd.DataFrame(payload.data)
         if self.type == "polars":
             polars = _import_polars()
             if payload.headers is not None:
-                return polars.DataFrame(payload.data, schema=payload.headers)
+                return polars.DataFrame(
+                    [] if payload.data == [[]] else payload.data, schema=payload.headers
+                )
             else:
                 return polars.DataFrame(payload.data)
         if self.type == "numpy":
@@ -242,16 +247,16 @@ class Dataframe(Component):
             if len(value) == 0:
                 return DataframeData(headers=self.headers, data=[])
             return DataframeData(
-                headers=value.get("headers", []), data=value.get("data", [[]])
+                headers=value.get("headers", []), data=value.get("data", [])
             )
         if isinstance(value, (str, pd.DataFrame)):
+            if isinstance(value, str):
+                value = pd.read_csv(value)  # type: ignore
             if len(value) == 0:
                 return DataframeData(
                     headers=list(value.columns),  # type: ignore
-                    data=[[]],  # type: ignore
+                    data=[],  # type: ignore
                 )
-            if isinstance(value, str):
-                value = pd.read_csv(value)  # type: ignore
             return DataframeData(
                 headers=list(value.columns),  # type: ignore
                 data=value.to_dict(orient="split")["data"],  # type: ignore
@@ -271,7 +276,7 @@ class Dataframe(Component):
             if len(df) == 0:
                 return DataframeData(
                     headers=list(df.columns),
-                    data=[[]],
+                    data=[],
                     metadata=self.__extract_metadata(value),  # type: ignore
                 )
             return DataframeData(
@@ -281,10 +286,7 @@ class Dataframe(Component):
             )
         elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
             if len(value) == 0:
-                df_dict = value.to_dict()
-                headers = list(df_dict.keys())
-                data = [[]]
-                return DataframeData(headers=headers, data=data)
+                return DataframeData(headers=list(value.to_dict().keys()), data=[])
             df_dict = value.to_dict()
             headers = list(df_dict.keys())
             data = list(zip(*df_dict.values()))
