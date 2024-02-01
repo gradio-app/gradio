@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { Music } from "@gradio/icons";
-	import type { I18nFormatter } from "@gradio/utils";
+	import { formatTime, type I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
 	import { skip_audio, process_audio } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
@@ -46,13 +46,6 @@
 		edit: undefined;
 		end: undefined;
 	}>();
-
-	const formatTime = (seconds: number): string => {
-		const minutes = Math.floor(seconds / 60);
-		const secondsRemainder = Math.round(seconds) % 60;
-		const paddedSeconds = `0${secondsRemainder}`.slice(-2);
-		return `${minutes}:${paddedSeconds}`;
-	};
 
 	const create_waveform = (): void => {
 		waveform = WaveSurfer.create({

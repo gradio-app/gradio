@@ -151,6 +151,24 @@ async function copy_to_clipboard(value: string): Promise<boolean> {
 	return copied;
 }
 
+export const formatTime = (seconds: number): string => {
+	const hours = Math.floor(seconds / 3600);
+	const minutes = Math.floor((seconds % 3600) / 60);
+	const secondsRemainder = Math.round(seconds) % 60;
+	const paddedMinutes = `${minutes < 10 ? "0" : ""}${minutes}`;
+	const paddedSeconds = `${
+		secondsRemainder < 10 ? "0" : ""
+	}${secondsRemainder}`;
+
+	// eslint-disable-next-line no-console
+	console.log("DEBUGGING", hours);
+
+	if (hours > 0) {
+		return `${hours}:${paddedMinutes}:${paddedSeconds}`;
+	}
+	return `${minutes}:${paddedSeconds}`;
+};
+
 export type I18nFormatter = any;
 export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	#id: number;

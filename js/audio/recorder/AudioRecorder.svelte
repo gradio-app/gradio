@@ -9,6 +9,7 @@
 	import WaveformRecordControls from "../shared/WaveformRecordControls.svelte";
 	import RecordPlugin from "wavesurfer.js/dist/plugins/record.js";
 	import type { WaveformOptions } from "../shared/types";
+	import { formatTime } from "@gradio/utils";
 
 	export let mode: string;
 	export let i18n: I18nFormatter;
@@ -61,13 +62,6 @@
 		edit: undefined;
 	}>();
 
-	const format_time = (seconds: number): string => {
-		const minutes = Math.floor(seconds / 60);
-		const secondsRemainder = Math.round(seconds) % 60;
-		const paddedSeconds = `0${secondsRemainder}`.slice(-2);
-		return `${minutes}:${paddedSeconds}`;
-	};
-
 	$: record?.on("record-start", () => {
 		start_interval();
 		timing = true;
@@ -110,13 +104,13 @@
 
 	$: recordingWaveform?.on("decode", (duration: any) => {
 		audio_duration = duration;
-		durationRef && (durationRef.textContent = format_time(duration));
+		durationRef && (durationRef.textContent = formatTime(duration));
 	});
 
 	$: recordingWaveform?.on(
 		"timeupdate",
 		(currentTime: any) =>
-			timeRef && (timeRef.textContent = format_time(currentTime))
+			timeRef && (timeRef.textContent = formatTime(currentTime))
 	);
 
 	$: recordingWaveform?.on("pause", () => {
@@ -215,10 +209,10 @@
 			<time bind:this={timeRef} class="time">0:00</time>
 			<div>
 				{#if mode === "edit" && trimDuration > 0}
-					<time class="trim-duration">{format_time(trimDuration)}</time>
+					<time class="trim-duration">{formatTime(trimDuration)}</time>
 				{/if}
 				{#if timing}
-					<time class="duration">{format_time(seconds)}</time>
+					<time class="duration">{formatTime(seconds)}</time>
 				{:else}
 					<time bind:this={durationRef} class="duration">0:00</time>
 				{/if}
@@ -232,7 +226,7 @@
 			{i18n}
 			{timing}
 			show_recording_waveform={waveform_options.show_recording_waveform}
-			record_time={format_time(seconds)}
+			record_time={formatTime(seconds)}
 		/>
 	{/if}
 

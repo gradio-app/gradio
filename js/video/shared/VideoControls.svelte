@@ -25,15 +25,27 @@
 		trimmedDuration = videoElement.duration;
 
 	const formatTime = (seconds: number): string => {
-		const minutes = Math.floor(seconds / 60);
+		const hours = Math.floor(seconds / 3600);
+		const minutes = Math.floor((seconds % 3600) / 60);
 		const secondsRemainder = Math.round(seconds) % 60;
+		const paddedHours = `0${hours}`.slice(-2);
+		const paddedMinutes = `0${minutes}`.slice(-2);
 		const paddedSeconds = `0${secondsRemainder}`.slice(-2);
 
-		if (Number.isNaN(minutes) || Number.isNaN(secondsRemainder)) {
+		if (
+			Number.isNaN(hours) ||
+			Number.isNaN(minutes) ||
+			Number.isNaN(secondsRemainder)
+		) {
 			return "00:00";
 		}
+		// eslint-disable-next-line no-console
+		console.log("VIDEO DEBUGGING", hours, minutes, secondsRemainder);
 
-		return `${minutes}:${paddedSeconds}`;
+		if (hours > 0) {
+			return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`;
+		}
+		return `${paddedMinutes}:${paddedSeconds}`;
 	};
 
 	let trimmedDuration: number | null = null;
