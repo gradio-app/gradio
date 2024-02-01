@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Fixes issues 6756 and 5641
+fix:Fixes issues related to `gr.Dataframe` receiving an empty dataframe
