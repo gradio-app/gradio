@@ -3,7 +3,11 @@ name: "test / js"
 on:
   workflow_run:
     workflows: ["trigger"]
-  pull_request:
+    types: 
+      - requested
+
+permissions:
+  statuses: write
 
 env:
   CI: true
@@ -13,7 +17,7 @@ env:
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 concurrency:
-  group: deploy-${{ github.ref }}-${{ github.event_name == 'push' || github.event.inputs.fire != null }}
+  group: ${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: true
 
 jobs:
@@ -29,7 +33,7 @@ jobs:
       source_repo: ${{ steps.changes.outputs.source_repo }}
     steps:
       - uses: actions/checkout@v3
-      - uses: pngwn/api-check-test/.github/actions/changes@main
+      - uses: "./.github/actions/changes"
         id: changes
         with:
           type: "js"

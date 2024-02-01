@@ -8,6 +8,12 @@ inputs:
   token:
     description: "Github token"
     required: true
+  name:
+    description: "Check name"
+    default: "false"
+  commit_status:
+    description: "Whether to create a commit status"
+    default: "true"
 outputs:
   should_run:
     description: "Whether to run the workflow"
@@ -30,6 +36,12 @@ outputs:
   mergeable:
     description: "Whether the PR is mergeable"
     value: ${{ steps.merge.outputs.mergeable }}
+  labels:
+    description: "Labels on the PR"
+    value: ${{ steps.pr.outputs.labels }}
+  found_pr:
+    description: "Whether a PR was found"
+    value: ${{ steps.pr.outputs.found_pr }}
 
 runs:
   using: "composite"
@@ -45,20 +57,6 @@ runs:
         ref: ${{ steps.pr.outputs.source_branch }}
         fetch-depth: 0
         token: ${{ inputs.token }}
-    - run: echo "FOUND_PR? ${{ steps.pr.outputs.found_pr }}"
-      shell: bash
-    - run: echo "SOURCE_BRANCH? ${{ steps.pr.outputs.source_branch }}"
-      shell: bash
-    - run: echo "HEAD_SHA? ${{ steps.pr.outputs.sha }}"
-      shell: bash
-    - run: echo "PR_NUMBER? ${{ steps.pr.outputs.pr_number }}"
-      shell: bash
-    - run: echo "$SOURCE_REPO? {{ steps.pr.outputs.source_repo }}"
-      shell: bash
-    - run: echo "MERGE_SHA? ${{ steps.pr.outputs.merge_sha }}"
-      shell: bash
-    - run: echo "MERGEABLE? ${{ steps.pr.outputs.mergeable }}"
-      shell: bash
 
     - uses: dorny/paths-filter@v2
       id: changes
@@ -133,7 +131,7 @@ runs:
       if: ${{ inputs.type == 'website' }}
       shell: bash
       run: echo "SHOULD_RUN=${{ steps.changes.outputs.website == 'true' }}" >> $GITHUB_ENV
-    - if: ${{ steps.pr.outputs.mergeable == 'false' }}
+    - if: ${{ steps.pr.outputs.mergeable == 'false' && steps.pr.outputs.source_branch != 'main' }}
       run: echo "SHOULD_RUN=false" >> $GITHUB_ENV
       shell: bash
     - name: set output
@@ -150,3 +148,4 @@ runs:
         type: ${{ inputs.type }}
         init: true
         mergeable: ${{ steps.pr.outputs.source_branch == 'main' || steps.pr.outputs.mergeable }}
+        commit_status: ${{ inputs.commit_status }}

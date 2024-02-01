@@ -1,12 +1,17 @@
 name: "test / functional"
+
 on:
-  pull_request:
   workflow_run:
-    workflows: [trigger]
-    types:
+    workflows: ["trigger"]
+    types: 
       - requested
+
 permissions:
   statuses: write
+
+concurrency:
+  group: ${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
 
 jobs:
   changes:
@@ -21,7 +26,7 @@ jobs:
       source_repo: ${{ steps.changes.outputs.source_repo }}
     steps:
       - uses: actions/checkout@v3
-      - uses: pngwn/api-check-test/.github/actions/changes@main
+      - uses: "./.github/actions/changes"
         id: changes
         with:
           type: "functional"

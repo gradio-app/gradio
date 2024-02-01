@@ -1,14 +1,16 @@
 name: "test / python"
 
 on:
-  push:
-    branches:
-      - "main"
-  pull_request: 
-    types: [opened, synchronize, reopened, labeled, unlabeled]
+  workflow_run:
+    workflows: ["trigger"]
+    types: 
+      - requested
+
+permissions:
+  statuses: write
 
 concurrency:
-  group: backend-${{ github.ref }}-${{ github.event_name == 'push' || github.event.inputs.fire != null }}
+  group: ${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: true
 
 env:
@@ -28,7 +30,7 @@ jobs:
       merge_sha: ${{ steps.changes.outputs.merge_sha }}
     steps:
       - uses: actions/checkout@v3
-      - uses: pngwn/api-check-test/.github/actions/changes@main
+      - uses: "./.github/actions/changes"
         id: changes
         with:
           type: "gradio"

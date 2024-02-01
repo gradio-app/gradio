@@ -1,15 +1,19 @@
 name: "deploy / website"
+
 on:
-  pull_request:
   workflow_run:
-    workflows: [trigger]
-    types:
+    workflows: ["trigger"]
+    types: 
       - requested
-
-
 
 permissions:
   statuses: write
+
+concurrency:
+  group: ${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+  
+
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -28,7 +32,7 @@ jobs:
       found_pr: ${{ steps.changes.outputs.found_pr }}
     steps:
       - uses: actions/checkout@v3
-      - uses: pngwn/api-check-test/.github/actions/changes@main
+      - uses: "./.github/actions/changes"
         id: changes
         with:
           type: "website"
@@ -42,7 +46,7 @@ jobs:
     with:
       pr_number: ${{ needs.changes.outputs.pr_number }}
       message: website~pending~null
-  deploy:
+  deploy-website:
     name: "deploy-website"
     runs-on: ubuntu-latest
     needs: changes
@@ -106,17 +110,17 @@ jobs:
 
   comment-deploy-success:
     uses: "./.github/workflows/comment-queue.yml"
-    needs: [deploy, changes]
-    if: needs.deploy.result == 'success' && needs.changes.outputs.found_pr == 'true'
+    needs: [deploy-website, changes]
+    if: needs.deploy-website.result == 'success' && needs.changes.outputs.found_pr == 'true'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
       pr_number: ${{ needs.changes.outputs.pr_number }}
-      message: website~success~${{needs.deploy.outputs.vercel_url}}
+      message: website~success~${{needs.deploy-website.outputs.vercel_url}}
   comment-deploy-failure:
     uses: "./.github/workflows/comment-queue.yml"
-    needs: [deploy, changes]
-    if: always() && needs.deploy.result == 'failure' && needs.changes.outputs.found_pr == 'true'
+    needs: [deploy-website, changes]
+    if: always() && needs.deploy-website.result == 'failure' && needs.changes.outputs.found_pr == 'true'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
