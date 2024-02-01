@@ -289,7 +289,7 @@ class Component(ComponentBase, Block):
     def read_from_flag(
         self,
         payload: Any,
-        flag_dir: str | Path | None = None,
+        flag_dir: str | Path | None = None,  # noqa: ARG002
     ):
         """
         Convert the data from the csv or jsonl file into the component state.
