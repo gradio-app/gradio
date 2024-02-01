@@ -283,9 +283,6 @@ class Component(ComponentBase, Block):
         return payload
 
     def read_from_flag(self, payload: Any):
-        self,
-        payload: Any,
-    ):
         """
         Convert the data from the csv or jsonl file into the component state.
         """
