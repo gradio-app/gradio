@@ -11,7 +11,7 @@ documentation_group = None
 
 
 def set_documentation_group(m):
-    global documentation_group
+    global documentation_group  # noqa: PLW0603
     documentation_group = m
     if m not in classes_to_document:
         classes_to_document[m] = []
@@ -57,7 +57,6 @@ def document(*fns, inherit=False):
         functions = list(fns)
         if hasattr(cls, "EVENTS"):
             functions += cls.EVENTS
-        global documentation_group
         if inherit:
             classes_inherit_documentation[cls] = None
         classes_to_document[documentation_group].append((cls, functions))
@@ -177,15 +176,14 @@ def document_cls(cls):
             tag = line[: line.index(":")].lower()
             value = line[line.index(":") + 2 :]
             tags[tag] = value
+        elif mode == "description":
+            description_lines.append(line if line.strip() else "<br>")
         else:
-            if mode == "description":
-                description_lines.append(line if line.strip() else "<br>")
-            else:
-                if not (line.startswith("    ") or not line.strip()):
-                    raise SyntaxError(
-                        f"Documentation format for {cls.__name__} has format error in line: {line}"
-                    )
-                tags[mode].append(line[4:])
+            if not (line.startswith("    ") or not line.strip()):
+                raise SyntaxError(
+                    f"Documentation format for {cls.__name__} has format error in line: {line}"
+                )
+            tags[mode].append(line[4:])
     if "example" in tags:
         example = "\n".join(tags["example"])
         del tags["example"]

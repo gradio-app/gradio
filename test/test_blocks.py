@@ -6,7 +6,6 @@ import pathlib
 import random
 import sys
 import time
-import unittest.mock as mock
 import uuid
 from concurrent.futures import wait
 from contextlib import contextmanager
@@ -142,14 +141,14 @@ class TestBlocksMethods:
             assert difference >= 0.01
             assert result
 
-    @mock.patch("gradio.analytics._do_analytics_request")
+    @patch("gradio.analytics._do_analytics_request")
     def test_initiated_analytics(self, mock_anlaytics, monkeypatch):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         with gr.Blocks():
             pass
         mock_anlaytics.assert_called_once()
 
-    @mock.patch("gradio.analytics._do_analytics_request")
+    @patch("gradio.analytics._do_analytics_request")
     def test_launch_analytics_does_not_error_with_invalid_blocks(
         self, mock_anlaytics, monkeypatch
     ):

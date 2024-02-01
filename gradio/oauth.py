@@ -121,7 +121,7 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
 
     # Define OAuth routes
     @app.get("/login/huggingface")
-    async def oauth_login(request: fastapi.Request):
+    async def oauth_login(request: fastapi.Request):  # noqa: ARG001
         """Fake endpoint that redirects to HF OAuth page."""
         # Define target (where to redirect after login)
         redirect_uri = _generate_redirect_uri(request)

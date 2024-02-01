@@ -163,7 +163,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
                 sources=["upload"], type="filepath", label="Input", render=False
             ),
             "outputs": components.Label(label="Class", render=False),
-            "preprocess": lambda i: to_binary,
+            "preprocess": lambda _: to_binary,
             "postprocess": lambda r: postprocess_label(
                 {i["label"].split(", ")[0]: i["score"] for i in r.json()}
             ),

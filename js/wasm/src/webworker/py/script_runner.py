@@ -43,7 +43,7 @@ from gradio.wasm_utils import app_id_context
 
 # Code modified from IPython (BSD license)
 # Source: https://github.com/ipython/ipython/blob/master/IPython/utils/syspathcontext.py#L42
-class modified_sys_path:
+class modified_sys_path:  # noqa: N801
     """A context for prepending a directory to sys.path for a second."""
 
     def __init__(self, script_path: str):

@@ -1,9 +1,9 @@
 import io
 import sys
-import unittest.mock as mock
 from contextlib import contextmanager
 from functools import partial
 from string import capwords
+from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
@@ -39,7 +39,7 @@ class TestInterface:
 
     def test_close_all(self):
         interface = Interface(lambda input: None, "textbox", "label")
-        interface.close = mock.MagicMock()
+        interface.close = MagicMock()
         close_all()
         interface.close.assert_called()
 
@@ -90,7 +90,7 @@ class TestInterface:
         )
         assert dataset_check
 
-    @mock.patch("time.sleep")
+    @patch("time.sleep")
     def test_block_thread(self, mock_sleep):
         with pytest.raises(KeyboardInterrupt):
             with captured_output() as (out, _):
@@ -102,8 +102,8 @@ class TestInterface:
                     "Keyboard interruption in main thread... closing server." in output
                 )
 
-    @mock.patch("gradio.utils.colab_check")
-    @mock.patch("gradio.networking.setup_tunnel")
+    @patch("gradio.utils.colab_check")
+    @patch("gradio.networking.setup_tunnel")
     def test_launch_colab_share_error(self, mock_setup_tunnel, mock_colab_check):
         mock_setup_tunnel.side_effect = RuntimeError()
         mock_colab_check.return_value = True
@@ -121,7 +121,7 @@ class TestInterface:
         assert prediction_fn.__name__ in repr[0]
         assert len(repr[0]) == len(repr[1])
 
-    @mock.patch("webbrowser.open")
+    @patch("webbrowser.open")
     def test_interface_browser(self, mock_browser):
         interface = Interface(lambda x: x, "textbox", "label")
         interface.launch(inbrowser=True, prevent_thread_lock=True)
@@ -139,7 +139,7 @@ class TestInterface:
         assert interface.examples_handler.dataset.get_config()["samples_per_page"] == 2
         interface.close()
 
-    @mock.patch("IPython.display.display")
+    @patch("IPython.display.display")
     def test_inline_display(self, mock_display):
         interface = Interface(lambda x: x, "textbox", "label")
         interface.launch(inline=True, prevent_thread_lock=True)

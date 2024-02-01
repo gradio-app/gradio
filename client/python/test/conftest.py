@@ -131,7 +131,7 @@ def cancel_from_client_demo():
 
 @pytest.fixture
 def sentiment_classification_demo():
-    def classifier(text):
+    def classifier(text):  # noqa: ARG001
         time.sleep(1)
         return {label: random.random() for label in ["POSITIVE", "NEGATIVE", "NEUTRAL"]}
 
@@ -234,7 +234,7 @@ def count_generator_demo_exception():
 @pytest.fixture
 def file_io_demo():
     demo = gr.Interface(
-        lambda x: print("foox"),
+        lambda _: print("foox"),
         [gr.File(file_count="multiple"), "file"],
         [gr.File(file_count="multiple"), "file"],
     )
@@ -385,7 +385,7 @@ def gradio_temp_dir(monkeypatch, tmp_path):
 
 @pytest.fixture
 def long_response_with_info():
-    def long_response(x):
+    def long_response(_):
         gr.Info("Beginning long response")
         time.sleep(17)
         gr.Info("Done!")

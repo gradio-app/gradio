@@ -591,7 +591,7 @@ def validate_url(possible_url: str) -> bool:
     try:
         head_request = httpx.head(possible_url, headers=headers, follow_redirects=True)
         # some URLs, such as AWS S3 presigned URLs, return a 405 or a 403 for HEAD requests
-        if head_request.status_code == 405 or head_request.status_code == 403:
+        if head_request.status_code in (403, 405):
             return httpx.get(possible_url, headers=headers).is_success
         return head_request.is_success
     except Exception:
@@ -891,7 +891,7 @@ class MatplotlibBackendMananger:
         matplotlib.use(self._original_backend)
 
 
-def tex2svg(formula, *args):
+def tex2svg(formula, *_args):
     with MatplotlibBackendMananger():
         import matplotlib.pyplot as plt
 

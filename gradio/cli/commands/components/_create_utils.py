@@ -246,14 +246,17 @@ def delete_contents(directory: str | Path) -> None:
 
 
 def _create_frontend(
-    name: str, component: ComponentFiles, directory: Path, package_name: str
+    name: str,  # noqa: ARG001
+    component: ComponentFiles,
+    directory: Path,
+    package_name: str,
 ):
     frontend = directory / "frontend"
     frontend.mkdir(exist_ok=True)
 
     p = Path(inspect.getfile(gradio)).parent
 
-    def ignore(s, names):
+    def ignore(_src, names):
         ignored = []
         for n in names:
             if (
