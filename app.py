@@ -1,8 +1,0 @@
-import gradio as gr
-
-with gr.Blocks() as demo:
-    gr.Audio()
-    gr.Video()
-    gr.Microphone()
-
-demo.launch()

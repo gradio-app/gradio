@@ -5,6 +5,7 @@
 	import { FFmpeg } from "@ffmpeg/ffmpeg";
 	import loadFfmpeg from "./utils";
 	import { onMount } from "svelte";
+	import { formatTime } from "@gradio/utils";
 
 	export let videoElement: HTMLVideoElement;
 
@@ -23,30 +24,6 @@
 
 	$: if (mode === "edit" && trimmedDuration === null && videoElement)
 		trimmedDuration = videoElement.duration;
-
-	const formatTime = (seconds: number): string => {
-		const hours = Math.floor(seconds / 3600);
-		const minutes = Math.floor((seconds % 3600) / 60);
-		const secondsRemainder = Math.round(seconds) % 60;
-		const paddedHours = `0${hours}`.slice(-2);
-		const paddedMinutes = `0${minutes}`.slice(-2);
-		const paddedSeconds = `0${secondsRemainder}`.slice(-2);
-
-		if (
-			Number.isNaN(hours) ||
-			Number.isNaN(minutes) ||
-			Number.isNaN(secondsRemainder)
-		) {
-			return "00:00";
-		}
-		// eslint-disable-next-line no-console
-		console.log("VIDEO DEBUGGING", hours, minutes, secondsRemainder);
-
-		if (hours > 0) {
-			return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`;
-		}
-		return `${paddedMinutes}:${paddedSeconds}`;
-	};
 
 	let trimmedDuration: number | null = null;
 	let dragStart = 0;

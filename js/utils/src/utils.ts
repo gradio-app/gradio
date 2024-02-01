@@ -160,9 +160,6 @@ export const formatTime = (seconds: number): string => {
 		secondsRemainder < 10 ? "0" : ""
 	}${secondsRemainder}`;
 
-	// eslint-disable-next-line no-console
-	console.log("DEBUGGING", hours);
-
 	if (hours > 0) {
 		return `${hours}:${paddedMinutes}:${paddedSeconds}`;
 	}
