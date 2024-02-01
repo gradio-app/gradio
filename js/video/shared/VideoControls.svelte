@@ -5,6 +5,7 @@
 	import { FFmpeg } from "@ffmpeg/ffmpeg";
 	import loadFfmpeg from "./utils";
 	import { onMount } from "svelte";
+	import { format_time } from "@gradio/utils";
 
 	export let videoElement: HTMLVideoElement;
 
@@ -23,18 +24,6 @@
 
 	$: if (mode === "edit" && trimmedDuration === null && videoElement)
 		trimmedDuration = videoElement.duration;
-
-	const formatTime = (seconds: number): string => {
-		const minutes = Math.floor(seconds / 60);
-		const secondsRemainder = Math.round(seconds) % 60;
-		const paddedSeconds = `0${secondsRemainder}`.slice(-2);
-
-		if (Number.isNaN(minutes) || Number.isNaN(secondsRemainder)) {
-			return "00:00";
-		}
-
-		return `${minutes}:${paddedSeconds}`;
-	};
 
 	let trimmedDuration: number | null = null;
 	let dragStart = 0;
@@ -69,7 +58,7 @@
 		{#if mode === "edit" && trimmedDuration !== null}
 			<time
 				aria-label="duration of selected region in seconds"
-				class:hidden={loadingTimeline}>{formatTime(trimmedDuration)}</time
+				class:hidden={loadingTimeline}>{format_time(trimmedDuration)}</time
 			>
 		{:else}
 			<div />
