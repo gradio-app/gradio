@@ -3,7 +3,7 @@
 	import DOMPurify from "dompurify";
 	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import "katex/dist/katex.min.css";
-	import { create_marked, clean_latex_newline } from "./utils";
+	import { create_marked } from "./utils";
 
 	import "./prism.css";
 
@@ -24,7 +24,7 @@
 
 	const marked = create_marked({
 		header_links,
-		line_breaks,
+		line_breaks
 	});
 
 	const is_external_url = (link: string | null): boolean => {
@@ -46,7 +46,6 @@
 
 	function process_message(value: string): string {
 		if (render_markdown) {
-			value = clean_latex_newline(value);
 			value = marked.parse(value) as string;
 		}
 		if (sanitize_html) {
@@ -64,7 +63,7 @@
 		if (latex_delimiters.length > 0 && value) {
 			render_math_in_element(el, {
 				delimiters: latex_delimiters,
-				throwOnError: false,
+				throwOnError: false
 			});
 		}
 	}
