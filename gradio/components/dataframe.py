@@ -305,7 +305,7 @@ class Dataframe(Component):
                 ]
             elif len(self.headers) > len(value[0]):
                 _headers = self.headers[: len(value[0])]
-            
+
             return DataframeData(headers=_headers, data=value)
         else:
             raise ValueError("Cannot process value as a Dataframe")
