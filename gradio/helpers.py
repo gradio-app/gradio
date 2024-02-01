@@ -1027,7 +1027,7 @@ def make_waveform(
             frames = int(duration * 10)
             anim = FuncAnimation(
                 fig,  # type: ignore
-                _animate,
+                _animate,  # type: ignore
                 repeat=False,
                 blit=False,
                 frames=frames,

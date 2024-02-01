@@ -539,6 +539,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.enable_queue = True
         self.max_threads = 40
         self.pending_streams = defaultdict(dict)
+        self.pending_diff_streams = defaultdict(dict)
         self.show_error = True
         self.head = head
         if css is not None and os.path.exists(css):
@@ -841,7 +842,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
             cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
+            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds.
             collects_event_data: whether to collect event data for this event
             trigger_after: if set, this event will be triggered after 'trigger_after' function index
             trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
@@ -1484,6 +1485,38 @@ Received outputs:
                 data[i] = output_data
         return data
 
+    def handle_streaming_diffs(
+        self,
+        fn_index: int,
+        data: list,
+        session_hash: str | None,
+        run: int | None,
+        final: bool,
+    ) -> list:
+        if session_hash is None or run is None:
+            return data
+        first_run = run not in self.pending_diff_streams[session_hash]
+        if first_run:
+            self.pending_diff_streams[session_hash][run] = [None] * len(data)
+        last_diffs = self.pending_diff_streams[session_hash][run]
+
+        for i in range(len(self.dependencies[fn_index]["outputs"])):
+            if final:
+                data[i] = last_diffs[i]
+                continue
+
+            if first_run:
+                last_diffs[i] = data[i]
+            else:
+                prev_chunk = last_diffs[i]
+                last_diffs[i] = data[i]
+                data[i] = utils.diff(prev_chunk, data[i])
+
+        if final:
+            del self.pending_diff_streams[session_hash][run]
+
+        return data
+
     async def process_api(
         self,
         fn_index: int,
@@ -1566,11 +1599,19 @@ Received outputs:
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
+                run = id(old_iterator) if was_generating else id(iterator)
                 data = self.handle_streaming_outputs(
                     fn_index,
                     data,
                     session_hash=session_hash,
-                    run=id(old_iterator) if was_generating else id(iterator),
+                    run=run,
+                )
+                data = self.handle_streaming_diffs(
+                    fn_index,
+                    data,
+                    session_hash=session_hash,
+                    run=run,
+                    final=not is_generating,
                 )
 
         block_fn.total_runtime += result["duration"]
@@ -1612,7 +1653,7 @@ Received outputs:
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
-            "protocol": "sse_v1",
+            "protocol": "sse_v2",
             "body_css": {
                 "body_background_fill": self.theme._get_computed_value(
                     "body_background_fill"

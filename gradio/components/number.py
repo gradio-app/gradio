@@ -17,9 +17,6 @@ set_documentation_group("component")
 class Number(FormComponent):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
-    Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
-    Postprocessing: expects an {int} or {float} returned from the function and sets field value to it.
-    Examples-format: a {float} or {int} representing the number's value.
 
     Demos: tax_calculator, titanic_survival, blocks_simple_squares
     """
@@ -52,7 +49,7 @@ class Number(FormComponent):
             value: default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             info: additional component description.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
@@ -108,7 +105,13 @@ class Number(FormComponent):
         else:
             return round(num, precision)
 
-    def preprocess(self, payload: float | None) -> float | None:
+    def preprocess(self, payload: float | None) -> float | int | None:
+        """
+        Parameters:
+            payload: the field value.
+        Returns:
+            Passes field value as a `float` or `int` into the function, depending on `precision`.
+        """
         if payload is None:
             return None
         elif self.minimum is not None and payload < self.minimum:
@@ -119,7 +122,13 @@ class Number(FormComponent):
             )
         return self._round_to_precision(payload, self.precision)
 
-    def postprocess(self, value: float | None) -> float | None:
+    def postprocess(self, value: float | int | None) -> float | int | None:
+        """
+        Parameters:
+            value: Expects an `int` or `float` returned from the function and sets field value to it.
+        Returns:
+            The (optionally rounded) field value as a `float` or `int` depending on `precision`.
+        """
         if value is None:
             return None
         return self._round_to_precision(value, self.precision)

@@ -229,13 +229,10 @@ li > ul {
 	padding-bottom: 0 !important;
 }
 
-code {
+pre > code {
 	font-weight: 500 !important;
-	border: 1px solid #e2e8f0;
 	border-radius: 0.25rem;
-	padding: 0.175rem 0.25rem;
 	font-size: 0.8em !important;
-	background: #f7fafc;
 }
 
 h1 > code,

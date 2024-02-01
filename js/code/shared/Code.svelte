@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { ViewUpdate } from "@codemirror/view";
 	import { createEventDispatcher, onMount } from "svelte";
 	import {
 		EditorView,
+		ViewUpdate,
 		keymap,
 		placeholder as placeholderExt
 	} from "@codemirror/view";
@@ -14,17 +14,14 @@
 	import { basicSetup } from "./extensions";
 	import { getLanguageExtension } from "./language";
 
-	export let classNames = "";
+	export let class_names = "";
 	export let value = "";
 	export let dark_mode: boolean;
-
 	export let basic = true;
 	export let language: string;
 	export let lines = 5;
 	export let extensions: Extension[] = [];
-
-	export let useTab = true;
-
+	export let use_tab = true;
 	export let readonly = false;
 	export let placeholder: string | HTMLElement | null | undefined = undefined;
 
@@ -45,42 +42,42 @@
 	}
 
 	$: reconfigure(), lang_extension;
-	$: setDoc(value);
-	$: updateLines();
+	$: set_doc(value);
+	$: update_lines();
 
-	function setDoc(newDoc: string): void {
-		if (view && newDoc !== view.state.doc.toString()) {
+	function set_doc(new_doc: string): void {
+		if (view && new_doc !== view.state.doc.toString()) {
 			view.dispatch({
 				changes: {
 					from: 0,
 					to: view.state.doc.length,
-					insert: newDoc
+					insert: new_doc
 				}
 			});
 		}
 	}
 
-	function updateLines(): void {
+	function update_lines(): void {
 		if (view) {
-			view.requestMeasure({ read: updateGutters });
+			view.requestMeasure({ read: update_gutters });
 		}
 	}
 
-	function createEditorView(): EditorView {
+	function create_editor_view(): EditorView {
 		const editorView = new EditorView({
 			parent: element,
-			state: createEditorState(value)
+			state: create_editor_state(value)
 		});
-		editorView.dom.addEventListener("focus", handleFocus, true);
-		editorView.dom.addEventListener("blur", handleBlur, true);
+		editorView.dom.addEventListener("focus", handle_focus, true);
+		editorView.dom.addEventListener("blur", handle_blur, true);
 		return editorView;
 	}
 
-	function handleFocus(): void {
+	function handle_focus(): void {
 		dispatch("focus");
 	}
 
-	function handleBlur(): void {
+	function handle_blur(): void {
 		dispatch("blur");
 	}
 
@@ -99,7 +96,7 @@
 		return null;
 	}
 
-	function updateGutters(_view: EditorView): any {
+	function update_gutters(_view: EditorView): any {
 		let gutters = _view.dom.querySelectorAll<HTMLElement>(".cm-gutter");
 		let _lines = lines + 1;
 		let lineHeight = getGutterLineHeight(_view);
@@ -113,27 +110,27 @@
 		return null;
 	}
 
-	function handleChange(vu: ViewUpdate): void {
+	function handle_change(vu: ViewUpdate): void {
 		if (vu.docChanged) {
 			const doc = vu.state.doc;
 			const text = doc.toString();
 			value = text;
 			dispatch("change", text);
 		}
-		view.requestMeasure({ read: updateGutters });
+		view.requestMeasure({ read: update_gutters });
 	}
 
-	function getExtensions(): Extension[] {
+	function get_extensions(): Extension[] {
 		const stateExtensions = [
-			...getBaseExtensions(
+			...get_base_extensions(
 				basic,
-				useTab,
+				use_tab,
 				placeholder,
 				readonly,
 				lang_extension
 			),
 			FontTheme,
-			...getTheme(),
+			...get_theme(),
 			...extensions
 		];
 		return stateExtensions;
@@ -168,16 +165,16 @@
 		}
 	});
 
-	function createEditorState(_value: string | null | undefined): EditorState {
+	function create_editor_state(_value: string | null | undefined): EditorState {
 		return EditorState.create({
 			doc: _value ?? undefined,
-			extensions: getExtensions()
+			extensions: get_extensions()
 		});
 	}
 
-	function getBaseExtensions(
+	function get_base_extensions(
 		basic: boolean,
-		useTab: boolean,
+		use_tab: boolean,
 		placeholder: string | HTMLElement | null | undefined,
 		readonly: boolean,
 		lang: Extension | null | undefined
@@ -191,7 +188,7 @@
 		if (basic) {
 			extensions.push(basicSetup);
 		}
-		if (useTab) {
+		if (use_tab) {
 			extensions.push(keymap.of([indentWithTab]));
 		}
 		if (placeholder) {
@@ -201,11 +198,11 @@
 			extensions.push(lang);
 		}
 
-		extensions.push(EditorView.updateListener.of(handleChange));
+		extensions.push(EditorView.updateListener.of(handle_change));
 		return extensions;
 	}
 
-	function getTheme(): Extension[] {
+	function get_theme(): Extension[] {
 		const extensions: Extension[] = [];
 
 		if (dark_mode) {
@@ -218,18 +215,18 @@
 
 	function reconfigure(): void {
 		view?.dispatch({
-			effects: StateEffect.reconfigure.of(getExtensions())
+			effects: StateEffect.reconfigure.of(get_extensions())
 		});
 	}
 
 	onMount(() => {
-		view = createEditorView();
+		view = create_editor_view();
 		return () => view?.destroy();
 	});
 </script>
 
 <div class="wrap">
-	<div class="codemirror-wrapper {classNames}" bind:this={element} />
+	<div class="codemirror-wrapper {class_names}" bind:this={element} />
 </div>
 
 <style>
