@@ -32,7 +32,7 @@ jobs:
       labels: ${{ steps.changes.outputs.labels }}
       mergeable: ${{ steps.changes.outputs.mergeable }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: "gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
@@ -58,7 +58,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         ref: ${{ needs.changes.outputs.merge_sha }}
         repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
