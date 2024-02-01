@@ -26,7 +26,7 @@ jobs:
       merge_sha: ${{ steps.changes.outputs.merge_sha }}
     steps:
       - uses: actions/checkout@v3
-      - uses: "@gradio-app/gradio/.github/actions/changes@main"
+      - uses: "gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
           type: "all"
