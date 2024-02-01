@@ -3,7 +3,7 @@ import ipaddress
 import json
 import os
 import warnings
-from unittest import mock as mock
+from unittest.mock import patch
 
 import httpx
 import pytest
@@ -15,7 +15,7 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestAnalytics:
-    @mock.patch("httpx.get")
+    @patch("httpx.get")
     def test_should_warn_with_unable_to_parse(self, mock_get, monkeypatch):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         mock_get.side_effect = json.decoder.JSONDecodeError("Expecting value", "", 0)
@@ -28,7 +28,7 @@ class TestAnalytics:
                 == "unable to parse version details from package URL."
             )
 
-    @mock.patch("httpx.post")
+    @patch("httpx.post")
     def test_error_analytics_doesnt_crash_on_connection_error(
         self, mock_post, monkeypatch
     ):
@@ -37,14 +37,14 @@ class TestAnalytics:
         analytics._do_normal_analytics_request("placeholder", {})
         mock_post.assert_called()
 
-    @mock.patch("httpx.post")
+    @patch("httpx.post")
     def test_error_analytics_successful(self, mock_post, monkeypatch):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         analytics.error_analytics("placeholder")
         mock_post.assert_called()
 
-    @mock.patch.object(wasm_utils, "IS_WASM", True)
-    @mock.patch("gradio.analytics.pyodide_pyfetch")
+    @patch.object(wasm_utils, "IS_WASM", True)
+    @patch("gradio.analytics.pyodide_pyfetch")
     @pytest.mark.asyncio
     async def test_error_analytics_successful_in_wasm_mode(
         self, pyodide_pyfetch, monkeypatch
@@ -69,11 +69,11 @@ class TestIPAddress:
     def test_get_ip(self):
         Context.ip_address = None
         ip = analytics.get_local_ip_address()
-        if ip == "No internet connection" or ip == "Analytics disabled":
+        if ip in ("No internet connection", "Analytics disabled"):
             return
         ipaddress.ip_address(ip)
 
-    @mock.patch("httpx.get")
+    @patch("httpx.get")
     def test_get_ip_without_internet(self, mock_get, monkeypatch):
         mock_get.side_effect = httpx.ConnectError("Connection error")
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")

@@ -22,7 +22,7 @@ try:
     from pyodide.http import pyfetch as pyodide_pyfetch  # type: ignore
 except ImportError:
 
-    async def pyodide_pyfetch(*args, **kwargs):
+    async def pyodide_pyfetch(*_args, **_kwargs):
         raise NotImplementedError(
             "pyodide.http.pyfetch is not available in this environment."
         )

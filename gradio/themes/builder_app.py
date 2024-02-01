@@ -359,7 +359,7 @@ with gr.Blocks(  # noqa: SIM117
                         go_btn = gr.Button("Go", variant="primary")
                         clear_btn = gr.Button("Clear", variant="secondary")
 
-                        def go(*args):
+                        def go(*_args):
                             time.sleep(3)
                             return "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg"
 
@@ -372,7 +372,6 @@ with gr.Blocks(  # noqa: SIM117
 
                         def clear():
                             time.sleep(0.2)
-                            return None
 
                         clear_btn.click(clear, None, img)
 
@@ -436,10 +435,6 @@ with gr.Blocks(  # noqa: SIM117
                 with gr.Column(scale=2):
                     chatbot = gr.Chatbot([("Hello", "Hi")], label="Chatbot")
                     chat_btn = gr.Button("Add messages")
-
-                    def chat(history):
-                        time.sleep(2)
-                        yield [["How are you?", "I am good."]]
 
                     chat_btn.click(
                         lambda history: history

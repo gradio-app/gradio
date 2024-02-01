@@ -1,6 +1,6 @@
 pytest-asyncio
 pytest==7.1.2
-ruff==0.1.7
+ruff==0.1.13
 pyright==1.1.327
 gradio
 pydub==0.25.1
