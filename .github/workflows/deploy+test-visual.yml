@@ -25,6 +25,7 @@ jobs:
       source_branch: ${{ steps.changes.outputs.source_branch }}
       source_repo: ${{ steps.changes.outputs.source_repo }}
       labels: ${{ steps.changes.outputs.labels }}
+      mergeable: ${{ steps.changes.outputs.mergeable }}
     steps:
       - uses: actions/checkout@v3
       - uses: "gradio-app/gradio/.github/actions/changes@main"
@@ -63,7 +64,7 @@ jobs:
         with:
             fetch-depth: 0
             ref: ${{ needs.changes.outputs.sha }}
-            repository: ${{ needs.changes.outputs.source_repo }}
+            repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
       - name: install dependencies
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
