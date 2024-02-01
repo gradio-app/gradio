@@ -245,17 +245,18 @@ class Dataframe(Component):
             return self.postprocess(self.empty_input)
         if isinstance(value, dict):
             if len(value) == 0:
-                return DataframeData(headers=self.headers, data=[])
+                return DataframeData(headers=self.headers, data=[[]])
             return DataframeData(
-                headers=value.get("headers", []), data=value.get("data", [])
+                headers=value.get("headers", []), data=value.get("data", [[]])
             )
         if isinstance(value, (str, pd.DataFrame)):
             if isinstance(value, str):
                 value = pd.read_csv(value)  # type: ignore
             if len(value) == 0:
+                print(value.columns)
                 return DataframeData(
                     headers=list(value.columns),  # type: ignore
-                    data=[],  # type: ignore
+                    data=[[]],  # type: ignore
                 )
             return DataframeData(
                 headers=list(value.columns),  # type: ignore
@@ -276,7 +277,7 @@ class Dataframe(Component):
             if len(df) == 0:
                 return DataframeData(
                     headers=list(df.columns),
-                    data=[],
+                    data=[[]],
                     metadata=self.__extract_metadata(value),  # type: ignore
                 )
             return DataframeData(
@@ -286,14 +287,14 @@ class Dataframe(Component):
             )
         elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
             if len(value) == 0:
-                return DataframeData(headers=list(value.to_dict().keys()), data=[])
+                return DataframeData(headers=list(value.to_dict().keys()), data=[[]])
             df_dict = value.to_dict()
             headers = list(df_dict.keys())
             data = list(zip(*df_dict.values()))
             return DataframeData(headers=headers, data=data)
         elif isinstance(value, (np.ndarray, list)):
             if len(value) == 0:
-                return DataframeData(headers=self.headers, data=[])
+                return DataframeData(headers=self.headers, data=[[]])
             if isinstance(value, np.ndarray):
                 value = value.tolist()
             if not isinstance(value, list):
