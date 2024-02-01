@@ -25,15 +25,16 @@
 		trimmedDuration = videoElement.duration;
 
 	const formatTime = (seconds: number): string => {
-		const minutes = Math.floor(seconds / 60);
+		const hours = Math.floor(seconds / 3600);
+		const minutes = Math.floor(seconds / 60) % 60;
 		const secondsRemainder = Math.round(seconds) % 60;
 		const paddedSeconds = `0${secondsRemainder}`.slice(-2);
 
 		if (Number.isNaN(minutes) || Number.isNaN(secondsRemainder)) {
-			return "00:00";
+			return "00:00:00";
 		}
 
-		return `${minutes}:${paddedSeconds}`;
+		return `${hours}:${minutes}:${paddedSeconds}`;
 	};
 
 	let trimmedDuration: number | null = null;
