@@ -141,7 +141,7 @@ def _publish(
     ]
     wheel_file = max(
         (p for p in distribution_files if p.suffix == ".whl"),
-        key=lambda s: semantic_version.Version(str(s).split("-")[1]),
+        key=lambda s: semantic_version.Version(str(s.name).split("-")[1]),
     )
     if not wheel_file:
         raise ValueError(

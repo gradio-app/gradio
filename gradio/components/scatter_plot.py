@@ -17,10 +17,8 @@ set_documentation_group("component")
 @document()
 class ScatterPlot(Plot):
     """
-    Create a scatter plot.
-
-    Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a pandas dataframe with the data to plot.
+    Creates a scatter plot component to display data from a pandas DataFrame (as output). As this component does
+    not accept user input, it is rarely used as an input component.
 
     Demos: scatter_plot
     Guides: creating-a-dashboard-from-bigquery-data
@@ -127,7 +125,7 @@ class ScatterPlot(Plot):
             caption: The (optional) caption to display below the plot.
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
             label: The (optional) label to display on the top left corner of the plot.
-            every:  If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every:  If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: Whether the label should be displayed.
             visible: Whether the plot should be visible.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -309,9 +307,24 @@ class ScatterPlot(Plot):
 
         return chart
 
+    def preprocess(self, payload: AltairPlotData | None) -> AltairPlotData | None:
+        """
+        Parameters:
+            payload: The data to display in a scatter plot.
+        Returns:
+            (Rarely used) passes the data displayed in the scatter plot as an AltairPlotData dataclass, which includes the plot information as a JSON string, as well as the type of plot (in this case, "scatter").
+        """
+        return payload
+
     def postprocess(
         self, value: pd.DataFrame | dict | None
     ) -> AltairPlotData | dict | None:
+        """
+        Parameters:
+            value: Expects a pandas DataFrame containing the data to display in the scatter plot. The DataFrame should contain at least two columns, one for the x-axis (corresponding to this component's `x` argument) and one for the y-axis (corresponding to `y`).
+        Returns:
+            The data to display in a scatter plot, in the form of an AltairPlotData dataclass, which includes the plot information as a JSON string, as well as the type of plot (in this case, "scatter").
+        """
         # if None or update
         if value is None or isinstance(value, dict):
             return value
@@ -347,6 +360,3 @@ class ScatterPlot(Plot):
 
     def example_inputs(self) -> Any:
         return None
-
-    def preprocess(self, payload: AltairPlotData | None) -> AltairPlotData | None:
-        return payload
