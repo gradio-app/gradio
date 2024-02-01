@@ -28,6 +28,7 @@ jobs:
       source_branch: ${{ steps.changes.outputs.source_branch }}
       source_repo: ${{ steps.changes.outputs.source_repo }}
       merge_sha: ${{ steps.changes.outputs.merge_sha }}
+      labels: ${{ steps.changes.outputs.labels }}
     steps:
       - uses: actions/checkout@v3
       - uses: "./.github/actions/changes"
@@ -45,8 +46,8 @@ jobs:
         os: ["ubuntu-latest", "windows-latest"]
         test-type: ["not flaky", "flaky"]
         exclude:
-          - os: ${{ github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'windows-tests') && 'dummy' || 'windows-latest' }}
-          - test-type: ${{ github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'flaky-tests') && 'dummy' || 'flaky' }}
+          - os: ${{ github.event.workflow_run.event == 'pull_request' && contains( needs.changes.outputs.labels, 'windows-tests') && 'dummy' || 'windows-latest' }}
+          - test-type: ${{ github.event.workflow_run.event == 'pull_request' && contains( needs.changes.outputs.labels, 'flaky-tests') && 'dummy' || 'flaky' }}
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
