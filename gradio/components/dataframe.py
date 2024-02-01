@@ -253,7 +253,6 @@ class Dataframe(Component):
             if isinstance(value, str):
                 value = pd.read_csv(value)  # type: ignore
             if len(value) == 0:
-                print(value.columns)
                 return DataframeData(
                     headers=list(value.columns),  # type: ignore
                     data=[[]],  # type: ignore
