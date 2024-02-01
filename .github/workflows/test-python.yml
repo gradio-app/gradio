@@ -44,7 +44,7 @@ jobs:
       - name: echo outputs
         if: always()
         run: echo "${{ toJson(steps.changes.outputs) }}"
-      - name: echo githun context as json
+      - name: echo github context as json
         if: always()
         run: echo "${{ toJson(github) }}"
   
