@@ -2,7 +2,7 @@ name: 'install all deps'
 description: 'Install all deps'
 
 inputs:
-  always-install-pnpm: 
+  always_install_pnpm: 
     description: 'Dictates whether or not we should install pnpm & dependencies, regardless of the cache'
     default: 'false'
   node_auth_token:
@@ -14,14 +14,42 @@ inputs:
   skip_build:
     description: 'Skip build'
     default: 'false'
+  test:
+    description: 'Test'
+    default: 'false'
+  python_version:
+    description: 'Python version'
+    default: '3.10'
+  os:
+    description: 'OS'
+    default: 'ubuntu-latest'
+outputs:
+  venv_activate:
+    description: 'Venv activate'
+    value: ${{ steps.venv.outputs.venv_activate }}
 
 runs:
   using: "composite"
   steps:
+    - name: Set venv binary path (linux)
+      if: ${{ inputs.os == 'ubuntu-latest' }}
+      shell: bash
+      run: |
+        echo "VENV_ACTIVATE=venv/bin/activate" >> $GITHUB_ENV
+    - name: Set venv binary path (windows)
+      if: ${{ inputs.os == 'windows-latest' }}
+      shell: bash
+      run: |
+        echo "VENV_ACTIVATE=venv\\\Scripts\\\activate" >> $GITHUB_ENV
+    - name: log venv binary path
+      id: venv
+      shell: bash
+      run: |
+        echo "venv_activate=$VENV_ACTIVATE" >> $GITHUB_OUTPUT
     - name: Install Python
       uses: actions/setup-python@v5
       with:
-        python-version: 3.8
+        python-version: ${{ inputs.python_version }}
         cache: pip
         cache-dependency-path: |
           client/python/requirements.txt
@@ -37,24 +65,35 @@ runs:
       with:
         path: |
           venv/*
-        key: gradio-lib-ubuntu-latest-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}
+          client/python/venv
+        restore-keys: |
+          gradio-lib-${{inputs.os}}-latest-pip-
+        key: "gradio-lib-${{inputs.os}}-latest-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}${{ inputs.test == 'true' && '-test' || ''}}"
     - name: Install Gradio and Client Libraries Locally (Linux)
       shell: bash
       run: |
-        . venv/bin/activate
-        python -m pip install -e client/python
-        python -m pip install -e .
+        . ${{ env.VENV_ACTIVATE }}
+        python -m pip install -e client/python  
+        python -m pip install -e ".[oauth]"
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
+    - name: Install test dependencies
+      if: inputs.test == 'true' && steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        . ${{ env.VENV_ACTIVATE }}
+        python -m pip install -r test/requirements.txt
+        python -m pip install -r client/python/test/requirements.txt
     - name: install-frontend
-      uses: "./.github/actions/install-frontend-deps"
+      uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
       with:
-        always-install-pnpm: ${{ inputs.always-install-pnpm }}
+        always_install_pnpm: ${{ inputs.always_install_pnpm }}
         node_auth_token: ${{ inputs.node_auth_token }}
         npm_token: ${{ inputs.npm_token }}
         skip_build: ${{ inputs.skip_build }}
     - name: generate json
       shell: bash
+      if: inputs.os == 'ubuntu-latest'
       run: |
-        . venv/bin/activate
+        . ${{ env.VENV_ACTIVATE }}
         python js/_website/generate_jsons/generate.py
