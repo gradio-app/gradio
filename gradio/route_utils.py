@@ -612,42 +612,23 @@ class GradioTransformTrack(VideoStreamTrack):
         return frame, output
 
     def array_to_frame(self, array: np.ndarray) -> VideoFrame | AudioFrame:
-        #TODO: fix this
+        #TODO: check format
         return VideoFrame.from_ndarray(array, format="bgr24",)
 
     async def recv(self):
         try:
-            # if not self.tracked_in_context:
-            #     print("Not tracked in context")
-            #     pts, time_base = await self.next_timestamp()
+            # TODO: don't think we need ut jiv
+            if not self.tracked_in_context:
+                print("Not tracked in context")
+                pts, time_base = await self.next_timestamp()
 
-            #     frame = VideoFrame(width=640, height=480)
-            #     for p in frame.planes:
-            #         p.update(bytes(p.buffer_size))
-            #     frame.pts = pts
-            #     frame.time_base = time_base
-            #     return frame
-        #     if self.tracked_in_context and not self.streaming_index:
-        #         self.set_session(self.context.get_session(self.webrtc_id))
-        #     session = self.context.get_session(self.webrtc_id)
+                frame = VideoFrame(width=640, height=480)
+                for p in frame.planes:
+                    p.update(bytes(p.buffer_size))
+                frame.pts = pts
+                frame.time_base = time_base
+                return frame
 
-        #     output = {
-        #         "data": [None],
-        #         "is_generating": False,
-        #         "iterator": None,
-        #         "duration": 2,
-        #         "average_duration": 0.02,
-        # }
-        #     session.output = output
-        #     pts, time_base = await self.next_timestamp()
-
-        #     frame = VideoFrame(width=640, height=480)
-        #     for p in frame.planes:
-        #         p.update(bytes(p.buffer_size))
-        #     frame.pts = pts
-        #     frame.time_base = time_base
-        #     print("frame", frame)
-        #     return frame
             if self.tracked_in_context and not self.streaming_index:
                 print("no streaming index")
                 self.set_session(self.context.get_session(self.webrtc_id))
