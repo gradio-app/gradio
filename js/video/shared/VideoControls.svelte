@@ -5,7 +5,7 @@
 	import { FFmpeg } from "@ffmpeg/ffmpeg";
 	import loadFfmpeg from "./utils";
 	import { onMount } from "svelte";
-	import { formatTime } from "@gradio/utils";
+	import { format_time } from "@gradio/utils";
 
 	export let videoElement: HTMLVideoElement;
 
@@ -58,7 +58,7 @@
 		{#if mode === "edit" && trimmedDuration !== null}
 			<time
 				aria-label="duration of selected region in seconds"
-				class:hidden={loadingTimeline}>{formatTime(trimmedDuration)}</time
+				class:hidden={loadingTimeline}>{format_time(trimmedDuration)}</time
 			>
 		{:else}
 			<div />

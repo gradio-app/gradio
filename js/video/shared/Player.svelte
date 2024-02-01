@@ -5,7 +5,7 @@
 	import VideoControls from "./VideoControls.svelte";
 	import type { FileData } from "@gradio/client";
 	import { prepare_files, upload } from "@gradio/client";
-	import { formatTime } from "@gradio/utils";
+	import { format_time } from "@gradio/utils";
 
 	export let root = "";
 	export let src: string;
@@ -129,7 +129,7 @@
 				{/if}
 			</span>
 
-			<span class="time">{formatTime(time)} / {formatTime(duration)}</span>
+			<span class="time">{format_time(time)} / {format_time(duration)}</span>
 
 			<!-- TODO: implement accessible video timeline for 4.0 -->
 			<!-- svelte-ignore a11y-click-events-have-key-events -->

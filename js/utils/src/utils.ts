@@ -151,19 +151,19 @@ async function copy_to_clipboard(value: string): Promise<boolean> {
 	return copied;
 }
 
-export const formatTime = (seconds: number): string => {
+export const format_time = (seconds: number): string => {
 	const hours = Math.floor(seconds / 3600);
 	const minutes = Math.floor((seconds % 3600) / 60);
-	const secondsRemainder = Math.round(seconds) % 60;
-	const paddedMinutes = `${minutes < 10 ? "0" : ""}${minutes}`;
-	const paddedSeconds = `${
-		secondsRemainder < 10 ? "0" : ""
-	}${secondsRemainder}`;
+	const seconds_remainder = Math.round(seconds) % 60;
+	const padded_minutes = `${minutes < 10 ? "0" : ""}${minutes}`;
+	const padded_seconds = `${
+		seconds_remainder < 10 ? "0" : ""
+	}${seconds_remainder}`;
 
 	if (hours > 0) {
-		return `${hours}:${paddedMinutes}:${paddedSeconds}`;
+		return `${hours}:${padded_minutes}:${padded_seconds}`;
 	}
-	return `${minutes}:${paddedSeconds}`;
+	return `${minutes}:${padded_seconds}`;
 };
 
 export type I18nFormatter = any;
