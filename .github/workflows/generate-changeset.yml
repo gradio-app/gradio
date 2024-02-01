@@ -10,7 +10,7 @@ env:
   NODE_OPTIONS: "--max-old-space-size=4096"
 
 concurrency:
-  group: ${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}
+  group: "${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
 
 jobs:
   get-pr:

@@ -17,7 +17,7 @@ env:
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 concurrency:
-  group: ${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}
+  group: "${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
   cancel-in-progress: true
 
 jobs:
@@ -40,8 +40,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: echo github context
         if: always()
-        run: echo "${{ toJson(github) }}"
-        
+        run: echo "${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
   test-js:
     needs: changes
     if: needs.changes.outputs.should_run == 'true'
