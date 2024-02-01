@@ -369,7 +369,7 @@ class App(FastAPI):
 
             try:
                 template = (
-                    "frontend/share.html" if blocks.share else "frontend/webrtc.html"
+                    "frontend/share.html" if blocks.share else "frontend/index.html"
                 )
                 return templates.TemplateResponse(
                     template,
@@ -519,29 +519,17 @@ class App(FastAPI):
             return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
         
         @app.post("/offer", dependencies=[Depends(login_check)])
-        async def offer(params: WebRTCOfferBody, request: fastapi.Request) -> JSONResponse:
+        async def offer(params: WebRTCOfferBody) -> JSONResponse:
 
             from aiortc import (
                 RTCPeerConnection,
                 RTCSessionDescription)
-            from aiortc.contrib.media import (
-                MediaPlayer)
-
 
             offer = RTCSessionDescription(sdp=params.sdp, type=params.type)
 
             pc = RTCPeerConnection()
             pc_id = f"PeerConnection({secrets.token_hex(4)}" 
             pcs.add(pc)
-
-            player = MediaPlayer("https://file-examples.com/storage/fed61549c865b2b5c9768b5/2017/11/file_example_MP3_2MG.mp3")
-
-            @pc.on("datachannel")
-            def on_datachannel(channel):
-                @channel.on("message")
-                def on_message(message):
-                    if isinstance(message, str) and message.startswith("ping"):
-                        channel.send("pong" + message[4:])
 
             @pc.on("iceconnectionstatechange")
             async def on_iceconnectionstatechange():
@@ -552,15 +540,12 @@ class App(FastAPI):
 
             @pc.on("track")
             def on_track(track):
-                if track.kind == "audio":
-                    pc.addTrack(player.audio)
-                elif track.kind == "video":
-                    pc.addTrack(
-                    VideoTransformTrack(
-                        relay.subscribe(track), transform="edges"
+                #TODO: Assumes video
+                pc.addTrack(
+                    route_utils.GradioTransformTrack(
+                        relay.subscribe(track), blocks._queue.webrtc_context, params.webrtc_id
                     )
                 )
-
 
             # handle offer
             await pc.setRemoteDescription(offer)

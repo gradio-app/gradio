@@ -79,6 +79,9 @@ class PredictBody(BaseModel):
         Request
     ] = None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
 
+    @property
+    def webrtc_id(self):
+        return f"{self.session_hash}-{self.fn_index}"
 
 class ResetBody(BaseModel):
     event_id: str
@@ -87,6 +90,16 @@ class ResetBody(BaseModel):
 class WebRTCOfferBody(BaseModel):
     sdp: str
     type: str
+    webrtc_id: str
+
+
+from typing import List, TypedDict
+
+class PredictOutput(TypedDict):
+    data: List[Any]
+    is_generating: bool
+    duration: float
+    average_duration: float
 
 
 class ComponentServerBody(BaseModel):

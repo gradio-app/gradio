@@ -27,6 +27,7 @@ demo = gr.Interface(
         [0, "subtract", 1.2],
     ],
     title="Toy Calculator",
+    cache_examples=True,
     description="Here's a sample toy calculator. Allows you to calculate things like $2+2=4$",
 )
 
