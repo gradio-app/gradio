@@ -75,8 +75,8 @@ class Code(Component):
         """
         Parameters:
             value: Default value to show in the code editor. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             language: The language to display the code as. Supported languages listed in `gr.Code.languages`.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             interactive: Whether user should be able to enter code or only view it.
             show_label: if True, will display label.
