@@ -7,9 +7,9 @@ from typing import Any, Callable, List, Literal, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import numpy as np
+import PIL.Image
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.utils import is_http_url_like
-from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
 from gradio.components.base import Component
@@ -19,7 +19,7 @@ from gradio.events import Events
 set_documentation_group("component")
 
 
-GalleryImageType = Union[np.ndarray, _Image.Image, Path, str]
+GalleryImageType = Union[np.ndarray, PIL.Image.Image, Path, str]
 CaptionedGalleryImageType = Tuple[GalleryImageType, str]
 
 
@@ -35,9 +35,8 @@ class GalleryData(GradioRootModel):
 @document()
 class Gallery(Component):
     """
-    Used to display a list of images as a gallery that can be scrolled through.
-    Preprocessing: A list of (image, caption) tuples. Each image is a filepath, numpy array or PIL.image depending on the `type` parameter. {List[tuple[str | PIL.Image | numpy.array, str | None]]}.
-    Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str | pathlib.Path]}, or a {List} of (image, {str} caption) tuples and displays them.
+    Creates a gallery component that allows displaying a grid of images, and optionally captions. If used as an input, the user can upload images to the gallery.
+    If used as an output, the user can click on individual images to view them at a higher resolution.
 
     Demos: fake_gan
     """
@@ -48,7 +47,7 @@ class Gallery(Component):
 
     def __init__(
         self,
-        value: list[np.ndarray | _Image.Image | str | Path | tuple]
+        value: list[np.ndarray | PIL.Image.Image | str | Path | tuple]
         | Callable
         | None = None,
         *,
@@ -79,7 +78,7 @@ class Gallery(Component):
         Parameters:
             value: List of images to display in the gallery by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
@@ -134,15 +133,37 @@ class Gallery(Component):
             interactive=interactive,
         )
 
+    def preprocess(
+        self, payload: GalleryData | None
+    ) -> (
+        List[tuple[str, str | None]]
+        | List[tuple[PIL.Image.Image, str | None]]
+        | List[tuple[np.ndarray, str | None]]
+        | None
+    ):
+        """
+        Parameters:
+            payload: a list of images, or list of (image, caption) tuples
+        Returns:
+            Passes the list of images as a list of (image, caption) tuples, or a list of (image, None) tuples if no captions are provided (which is usually the case). The image can be a `str` file path, a `numpy` array, or a `PIL.Image` object depending on `type`.
+        """
+        if payload is None or not payload.root:
+            return None
+        data = []
+        for gallery_element in payload.root:
+            image = self.convert_to_type(gallery_element.image.path, self.type)  # type: ignore
+            data.append((image, gallery_element.caption))
+        return data
+
     def postprocess(
         self,
         value: list[GalleryImageType | CaptionedGalleryImageType] | None,
     ) -> GalleryData:
         """
         Parameters:
-            value: list of images, or list of (image, caption) tuples
+            value: Expects the function to return a `list` of images, or `list` of (image, `str` caption) tuples. Each image can be a `str` file path, a `numpy` array, or a `PIL.Image` object.
         Returns:
-            list of string file paths to images in temp directory
+            a list of images, or list of (image, caption) tuples
         """
         if value is None:
             return GalleryData(root=[])
@@ -158,7 +179,7 @@ class Gallery(Component):
                     img, cache_dir=self.GRADIO_CACHE
                 )
                 file_path = str(utils.abspath(file))
-            elif isinstance(img, _Image.Image):
+            elif isinstance(img, PIL.Image.Image):
                 file = processing_utils.save_pil_to_cache(
                     img, cache_dir=self.GRADIO_CACHE
                 )
@@ -188,26 +209,10 @@ class Gallery(Component):
         if type == "filepath":
             return img
         else:
-            converted_image = _Image.open(img)
+            converted_image = PIL.Image.open(img)
             if type == "numpy":
                 converted_image = np.array(converted_image)
             return converted_image
-
-    def preprocess(
-        self, payload: GalleryData | None
-    ) -> (
-        List[tuple[str, str | None]]
-        | List[tuple[_Image.Image, str | None]]
-        | List[tuple[np.ndarray, str | None]]
-        | None
-    ):
-        if payload is None or not payload.root:
-            return None
-        data = []
-        for gallery_element in payload.root:
-            image = self.convert_to_type(gallery_element.image.path, self.type)  # type: ignore
-            data.append((image, gallery_element.caption))
-        return data
 
     def example_inputs(self) -> Any:
         return [

@@ -1,6 +1,9 @@
 ---
-"@gradio/markdown": patch
-"gradio": patch
+"@gradio/audio": minor
+"@gradio/markdown": minor
+"@gradio/utils": minor
+"@gradio/video": minor
+"gradio": minor
 ---
 
-fix:fix: remove new lines from latex delimiter
+feat:chore: Change time format

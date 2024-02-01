@@ -9,14 +9,13 @@ gradio_pdf==0.0.3
 httpx
 huggingface_hub
 polars==0.20.5
-pydantic
+pydantic[email]
 pytest
 pytest-asyncio
 pytest-cov
-ruff>=0.1.7
+ruff>=0.1.13
 respx
 scikit-image
-shap
 torch
 tqdm
 transformers

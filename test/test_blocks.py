@@ -6,7 +6,6 @@ import pathlib
 import random
 import sys
 import time
-import unittest.mock as mock
 import uuid
 from concurrent.futures import wait
 from contextlib import contextmanager
@@ -142,14 +141,14 @@ class TestBlocksMethods:
             assert difference >= 0.01
             assert result
 
-    @mock.patch("gradio.analytics._do_analytics_request")
+    @patch("gradio.analytics._do_analytics_request")
     def test_initiated_analytics(self, mock_anlaytics, monkeypatch):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         with gr.Blocks():
             pass
         mock_anlaytics.assert_called_once()
 
-    @mock.patch("gradio.analytics._do_analytics_request")
+    @patch("gradio.analytics._do_analytics_request")
     def test_launch_analytics_does_not_error_with_invalid_blocks(
         self, mock_anlaytics, monkeypatch
     ):
@@ -264,6 +263,49 @@ class TestBlocksMethods:
                 outputs.append(output)
         assert outputs == ["a", "b", "c"]
         demo.queue().launch(prevent_thread_lock=True)
+
+    def test_varying_output_forms_with_generators(self, connect):
+        generations = [
+            {"a": 1},
+            {"a": 1, "b": [1, 3]},
+            {"b": [1, 3, 2]},
+            1,
+            2,
+            3,
+            [1, 2, {"x": 4, "y": 6}],
+            {"data": [1, 2, {"x": 4, "y": 6}]},
+            None,
+            1.2,
+        ]
+
+        def generator():
+            yield from generations
+
+        def generator_random():
+            indices = list(range(len(generations)))
+            random.shuffle(indices)
+            for i in indices:
+                time.sleep(random.random() / 5)
+                yield generations[i]
+
+        with gr.Blocks() as demo:
+            btn1 = gr.Button()
+            btn2 = gr.Button()
+            output_json = gr.JSON()
+            btn1.click(generator, None, output_json, api_name="generator")
+            btn2.click(generator_random, None, output_json, api_name="generator_random")
+
+        with connect(demo) as client:
+            outputs = []
+            for output in client.submit(api_name="/generator"):
+                outputs.append(output)
+            assert outputs == generations
+
+            outputs = []
+            for output in client.submit(api_name="/generator_random"):
+                outputs.append(output)
+            for generation in generations:
+                assert generation in outputs
 
     def test_socket_reuse(self):
         try:

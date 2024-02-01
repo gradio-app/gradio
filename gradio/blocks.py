@@ -508,7 +508,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     ):
         """
         Parameters:
-            theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the HF Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
+            theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
             mode: A human-friendly name for the kind of Blocks or Interface being created. Used internally for analytics.
             title: The tab title to display when this is opened in a browser window.
@@ -539,6 +539,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.enable_queue = True
         self.max_threads = 40
         self.pending_streams = defaultdict(dict)
+        self.pending_diff_streams = defaultdict(dict)
         self.show_error = True
         self.head = head
         if css is not None and os.path.exists(css):
@@ -581,7 +582,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.space_id = utils.get_space()
         self.favicon_path = None
         self.auth = None
-        self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", False))
+        self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", ""))
         self.app_id = random.getrandbits(64)
         self.temp_file_sets = []
         self.title = title
@@ -647,11 +648,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         """
         config = copy.deepcopy(config)
         components_config = config["components"]
-        for component_config in components_config:
-            # for backwards compatibility, extract style into props
-            if "style" in component_config["props"]:
-                component_config["props"].update(component_config["props"]["style"])
-                del component_config["props"]["style"]
         theme = config.get("theme", "default")
         original_mapping: dict[int, Block] = {}
         proxy_urls = {proxy_url}
@@ -846,7 +842,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
             cancels: a list of other events to cancel when this event is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method.
-            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds. Queue must be enabled.
+            every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds.
             collects_event_data: whether to collect event data for this event
             trigger_after: if set, this event will be triggered after 'trigger_after' function index
             trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
@@ -876,11 +872,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         if isinstance(outputs, set):
             outputs = sorted(outputs, key=lambda x: x._id)
-        else:
-            if outputs is None:
-                outputs = []
-            elif not isinstance(outputs, list):
-                outputs = [outputs]
+        elif outputs is None:
+            outputs = []
+        elif not isinstance(outputs, list):
+            outputs = [outputs]
 
         if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
@@ -1488,6 +1483,38 @@ Received outputs:
                 data[i] = output_data
         return data
 
+    def handle_streaming_diffs(
+        self,
+        fn_index: int,
+        data: list,
+        session_hash: str | None,
+        run: int | None,
+        final: bool,
+    ) -> list:
+        if session_hash is None or run is None:
+            return data
+        first_run = run not in self.pending_diff_streams[session_hash]
+        if first_run:
+            self.pending_diff_streams[session_hash][run] = [None] * len(data)
+        last_diffs = self.pending_diff_streams[session_hash][run]
+
+        for i in range(len(self.dependencies[fn_index]["outputs"])):
+            if final:
+                data[i] = last_diffs[i]
+                continue
+
+            if first_run:
+                last_diffs[i] = data[i]
+            else:
+                prev_chunk = last_diffs[i]
+                last_diffs[i] = data[i]
+                data[i] = utils.diff(prev_chunk, data[i])
+
+        if final:
+            del self.pending_diff_streams[session_hash][run]
+
+        return data
+
     async def process_api(
         self,
         fn_index: int,
@@ -1570,11 +1597,19 @@ Received outputs:
             data = self.postprocess_data(fn_index, result["prediction"], state)
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
+                run = id(old_iterator) if was_generating else id(iterator)
                 data = self.handle_streaming_outputs(
                     fn_index,
                     data,
                     session_hash=session_hash,
-                    run=id(old_iterator) if was_generating else id(iterator),
+                    run=run,
+                )
+                data = self.handle_streaming_diffs(
+                    fn_index,
+                    data,
+                    session_hash=session_hash,
+                    run=run,
+                    final=not is_generating,
                 )
 
         block_fn.total_runtime += result["duration"]
@@ -1616,7 +1651,19 @@ Received outputs:
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
-            "protocol": "sse_v1",
+            "protocol": "sse_v2",
+            "body_css": {
+                "body_background_fill": self.theme._get_computed_value(
+                    "body_background_fill"
+                ),
+                "body_text_color": self.theme._get_computed_value("body_text_color"),
+                "body_background_fill_dark": self.theme._get_computed_value(
+                    "body_background_fill_dark"
+                ),
+                "body_text_color_dark": self.theme._get_computed_value(
+                    "body_text_color_dark"
+                ),
+            },
         }
 
         def get_layout(block):
@@ -2125,7 +2172,7 @@ Received outputs:
             analytics.launched_analytics(self, data)
 
         # Block main thread if debug==True
-        if debug or int(os.getenv("GRADIO_DEBUG", 0)) == 1 and not wasm_utils.IS_WASM:
+        if debug or int(os.getenv("GRADIO_DEBUG", "0")) == 1 and not wasm_utils.IS_WASM:
             self.block_thread()
         # Block main thread if running in a script to stop script from exiting
         is_in_interactive_mode = bool(getattr(sys, "ps1", sys.flags.interactive))

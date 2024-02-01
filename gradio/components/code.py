@@ -16,9 +16,7 @@ set_documentation_group("component")
 @document("languages")
 class Code(Component):
     """
-    Creates a Code editor for entering, editing or viewing code.
-    Preprocessing: passes a {str} of code into the function.
-    Postprocessing: expects the function to return a {str} of code or a single-element {tuple}: {(string_filepath,)}
+    Creates a code editor for viewing code (as an ouptut component), or for entering and editing code (as an input component).
     """
 
     languages = [
@@ -77,8 +75,8 @@ class Code(Component):
         """
         Parameters:
             value: Default value to show in the code editor. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             language: The language to display the code as. Supported languages listed in `gr.Code.languages`.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             interactive: Whether user should be able to enter code or only view it.
             show_label: if True, will display label.
@@ -110,10 +108,22 @@ class Code(Component):
             value=value,
         )
 
-    def preprocess(self, payload: Any) -> Any:
+    def preprocess(self, payload: str | None) -> str | None:
+        """
+        Parameters:
+            payload: string corresponding to the code
+        Returns:
+            Passes the code entered as a `str`.
+        """
         return payload
 
-    def postprocess(self, value: tuple | str | None) -> None | str:
+    def postprocess(self, value: tuple[str] | str | None) -> None | str:
+        """
+        Parameters:
+            value: Expects a `str` of code or a single-element `tuple`: (filepath,) with the `str` path to a file containing the code.
+        Returns:
+            Returns the code as a `str`.
+        """
         if value is None:
             return None
         elif isinstance(value, tuple):

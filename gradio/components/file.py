@@ -20,11 +20,9 @@ set_documentation_group("component")
 @document()
 class File(Component):
     """
-    Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
-    Preprocessing: passes the uploaded file as a {tempfile._TemporaryFileWrapper} or {List[tempfile._TemporaryFileWrapper]} depending on `file_count` (or a {bytes}/{List[bytes]} depending on `type`)
-    Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
-    Examples-format: a {str} path to a local file that populates the component.
-    Demos: zip_to_json, zip_files
+    Creates a file component that allows uploading one or more generic files (when used as an input) or displaying generic files (as output).
+
+    Demo: zip_files, zip_to_json
     """
 
     EVENTS = [Events.change, Events.select, Events.clear, Events.upload]
@@ -56,7 +54,7 @@ class File(Component):
             file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.json', '.mp4']). "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             type: Type of value to be returned by component. "file" returns a temporary file object with the same base name as the uploaded file, whose full path can be retrieved by file_obj.name, "binary" returns an bytes object.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise.sed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
@@ -125,21 +123,31 @@ class File(Component):
 
     def preprocess(
         self, payload: ListFiles | FileData | None
-    ) -> bytes | NamedString | list[bytes | NamedString] | None:
+    ) -> bytes | str | list[bytes] | list[str] | None:
+        """
+        Parameters:
+            payload: File information as a FileData object, or a list of FileData objects.
+        Returns:
+            Passes the file as a `str` or `bytes` object, or a list of `str` or list of `bytes` objects, depending on `type` and `file_count`.
+        """
         if payload is None:
             return None
+
         if self.file_count == "single":
             if isinstance(payload, ListFiles):
                 return self._process_single_file(payload[0])
-            else:
-                return self._process_single_file(payload)
-        else:
-            if isinstance(payload, ListFiles):
-                return [self._process_single_file(f) for f in payload]
-            else:
-                return [self._process_single_file(payload)]
+            return self._process_single_file(payload)
+        if isinstance(payload, ListFiles):
+            return [self._process_single_file(f) for f in payload]  # type: ignore
+        return [self._process_single_file(payload)]  # type: ignore
 
     def postprocess(self, value: str | list[str] | None) -> ListFiles | FileData | None:
+        """
+        Parameters:
+            value: Expects a `str` filepath, or a `list[str]` of filepaths.
+        Returns:
+            File information as a FileData object, or a list of FileData objects.
+        """
         if value is None:
             return None
         if isinstance(value, list):

@@ -63,7 +63,7 @@ if __name__ == "__main__":
 def test_raise_error_component_template_does_not_exist(tmp_path):
     with pytest.raises(
         ValueError,
-        match="Cannot find NonExistentComponent in gradio.components or gradio.layouts",
+        match="Cannot find NonExistentComponent in gradio.components, gradio.layouts, or gradio._simple_templates",
     ):
         _create(
             "MyComponent",
@@ -85,9 +85,9 @@ def test_do_not_replace_class_name_in_import_statement(tmp_path):
         configure_metadata=False,
     )
     code = (tmp_path / "backend" / "gradio_myimage" / "myimage.py").read_text()
-    assert "from PIL import Image as _Image" in code
+    assert "import PIL.Image" in code
     assert "class MyImage" in code
-    assert "_Image.Image" in code
+    assert "PIL.Image.Image" in code
 
 
 def test_raises_if_directory_exists(tmp_path):
@@ -187,7 +187,7 @@ with gr.Blocks() as demo:
 
 if __name__ == "__main__":
     demo.launch()
-    
+
 """
     )
     assert app.strip() == answer.strip()

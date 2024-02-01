@@ -1,4 +1,4 @@
-""" This file is the part of 'gradio/cli.py' for printing the environment info 
+""" This file is the part of 'gradio/cli.py' for printing the environment info
 for the cli command 'gradio environment'
 """
 import platform

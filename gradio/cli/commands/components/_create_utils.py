@@ -246,14 +246,17 @@ def delete_contents(directory: str | Path) -> None:
 
 
 def _create_frontend(
-    name: str, component: ComponentFiles, directory: Path, package_name: str
+    name: str,  # noqa: ARG001
+    component: ComponentFiles,
+    directory: Path,
+    package_name: str,
 ):
     frontend = directory / "frontend"
     frontend.mkdir(exist_ok=True)
 
     p = Path(inspect.getfile(gradio)).parent
 
-    def ignore(s, names):
+    def ignore(_src, names):
         ignored = []
         for n in names:
             if (
@@ -287,17 +290,31 @@ def _replace_old_class_name(old_class_name: str, new_class_name: str, content: s
 def _create_backend(
     name: str, component: ComponentFiles, directory: Path, package_name: str
 ):
-    if component.template in gradio.components.__all__:
-        module = "components"
-    elif component.template in gradio.layouts.__all__:
-        module = "layouts"
-    elif component.template in gradio._simple_templates.__all__:  # type: ignore
-        module = "_simple_templates"
-    else:
+    def find_template_in_list(template, list_to_search):
+        for item in list_to_search:
+            if template.lower() == item.lower():
+                return item
+        return None
+
+    lists_to_search = [
+        (gradio.components.__all__, "components"),
+        (gradio.layouts.__all__, "layouts"),
+        (gradio._simple_templates.__all__, "_simple_templates"),  # type: ignore
+    ]
+
+    correct_cased_template = None
+    module = None
+
+    for list_, module_name in lists_to_search:
+        correct_cased_template = find_template_in_list(component.template, list_)
+        if correct_cased_template:
+            module = module_name
+            break
+
+    if not correct_cased_template:
         raise ValueError(
-            f"Cannot find {component.template} in gradio.components or gradio.layouts. "
-            "Please pass in a valid component name via the --template option. "
-            "It must match the name of the python class exactly."
+            f"Cannot find {component.template} in gradio.components, gradio.layouts, or gradio._simple_templates. "
+            "Please pass in a valid component name via the --template option. It must match the name of the python class."
         )
 
     readme_contents = textwrap.dedent(
@@ -327,7 +344,7 @@ from {package_name} import {name}
     pyproject_contents = pyproject.read_text()
     pyproject_dest = directory / "pyproject.toml"
     pyproject_contents = pyproject_contents.replace("<<name>>", package_name).replace(
-        "<<template>>", PATTERN.format(template=component.template)
+        "<<template>>", PATTERN.format(template=correct_cased_template)
     )
     pyproject_dest.write_text(pyproject_contents)
 
@@ -358,6 +375,7 @@ __all__ = ['{name}']
 
     p = Path(inspect.getfile(gradio)).parent
     python_file = backend / f"{name.lower()}.py"
+    assert module is not None
 
     shutil.copy(
         str(p / module / component.python_file_name),
@@ -370,9 +388,11 @@ __all__ = ['{name}']
         shutil.copy(str(source_pyi_file), str(pyi_file))
 
     content = python_file.read_text()
-    python_file.write_text(_replace_old_class_name(component.template, name, content))
+    python_file.write_text(
+        _replace_old_class_name(correct_cased_template, name, content)
+    )
     if pyi_file.exists():
         pyi_content = pyi_file.read_text()
         pyi_file.write_text(
-            _replace_old_class_name(component.template, name, pyi_content)
+            _replace_old_class_name(correct_cased_template, name, pyi_content)
         )
