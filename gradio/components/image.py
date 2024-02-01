@@ -18,7 +18,6 @@ from gradio.data_classes import FileData
 from gradio.events import Events
 
 set_documentation_group("component")
-PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
 @document()
