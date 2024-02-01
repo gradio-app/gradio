@@ -32,7 +32,7 @@ jobs:
       found_pr: ${{ steps.changes.outputs.found_pr }}
     steps:
       - uses: actions/checkout@v3
-      - uses: "./.github/actions/changes"
+      - uses: "@gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
           type: "website"
@@ -63,7 +63,7 @@ jobs:
           ref: ${{ needs.changes.outputs.merge_sha }}
           repository: ${{ needs.changes.outputs.source_repo }}
       - name: install dependencies
-        uses: "./.github/actions/install-all-deps"
+        uses: "@gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           always_install_pnpm: true
           skip_build: true

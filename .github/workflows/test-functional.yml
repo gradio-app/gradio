@@ -26,7 +26,7 @@ jobs:
       source_repo: ${{ steps.changes.outputs.source_repo }}
     steps:
       - uses: actions/checkout@v3
-      - uses: "./.github/actions/changes"
+      - uses: "@gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
           type: "functional"
@@ -48,7 +48,7 @@ jobs:
           repository: ${{ needs.changes.outputs.source_repo }}
       - name: install dependencies
         id: install_deps
-        uses: "./.github/actions/install-all-deps"
+        uses: "@gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           always_install_pnpm: true
       - name: install outbreak_forecast dependencies

@@ -85,7 +85,7 @@ runs:
         python -m pip install -r test/requirements.txt
         python -m pip install -r client/python/test/requirements.txt
     - name: install-frontend
-      uses: "./.github/actions/install-frontend-deps"
+      uses: "@gradio-app/gradio/.github/actions/install-frontend-deps@main""
       with:
         always_install_pnpm: ${{ inputs.always_install_pnpm }}
         node_auth_token: ${{ inputs.node_auth_token }}
