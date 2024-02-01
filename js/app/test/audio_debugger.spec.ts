@@ -84,7 +84,7 @@ test("recording audio", async ({ page }) => {
 
 	await page.waitForTimeout(1000);
 
-	await expect(page.getByText("0:01", { exact: true })).toBeAttached();
+	await expect(page.getByText("0:00:01", { exact: true })).toBeAttached();
 
 	await page.getByText("Stop", { exact: true }).nth(0).click();
 });
