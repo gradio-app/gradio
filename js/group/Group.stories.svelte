@@ -1,4 +1,4 @@
-<script>
+<script context="module">
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import Group from "./Index.svelte";
 	import Button from "../button/shared/Button.svelte";
