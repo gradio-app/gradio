@@ -17,7 +17,7 @@ jobs:
       pr_number: ${{ steps.get-pr.outputs.number }}
       pr_labels: ${{ steps.get-pr.outputs.pr_labels }}
     steps:
-    - uses: 8BitJonny/gh-get-current-pr@2.2.0
+    - uses: 8BitJonny/gh-get-current-pr@3.0.0
       id: get-pr
       with:
         filterOutDraft: true

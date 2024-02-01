@@ -17,7 +17,7 @@ set_documentation_group("component")
 @document()
 class LoginButton(Button):
     """
-    Button that redirects the user to Sign with Hugging Face using OAuth.
+    Creates a button that redirects the user to Sign with Hugging Face using OAuth.
     """
 
     is_template = True

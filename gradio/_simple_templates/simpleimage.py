@@ -18,9 +18,6 @@ set_documentation_group("component")
 class SimpleImage(Component):
     """
     Creates an image component that can be used to upload images (as an input) or display images (as an output).
-    Preprocessing: passes the uploaded image as a {str} filepath.
-    Postprocessing: expects a {str} or {pathlib.Path} filepath to an image and displays the image.
-    Examples-format: a {str} local filepath or URL to an image.
     """
 
     EVENTS = [
@@ -85,7 +82,7 @@ class SimpleImage(Component):
         Parameters:
             payload: A FileData object containing the image data.
         Returns:
-            A string containing the path to the image.
+            A `str` containing the path to the image.
         """
         if payload is None:
             return None
@@ -94,7 +91,7 @@ class SimpleImage(Component):
     def postprocess(self, value: str | Path | None) -> FileData | None:
         """
         Parameters:
-            value: A string or pathlib.Path object containing the path to the image.
+            value: Expects a `str` or `pathlib.Path` object containing the path to the image.
         Returns:
             A FileData object containing the image data.
         """

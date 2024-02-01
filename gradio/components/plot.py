@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import json
 from types import ModuleType
-from typing import Any, Callable, Literal
+from typing import Any, Literal
 
 import altair as alt
-import pandas as pd
 from gradio_client.documentation import document, set_documentation_group
 
 from gradio import processing_utils
@@ -31,9 +30,8 @@ class AltairPlotData(PlotData):
 @document()
 class Plot(Component):
     """
-    Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported).
-    Preprocessing: this component does *not* accept input.
-    Postprocessing: expects either a {matplotlib.figure.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
+    Creates a plot component to display various kinds of plots (matplotlib, plotly, altair, or bokeh plots are supported). As this component does
+    not accept user input, it is rarely used as an input component.
 
     Demos: altair_plot, outbreak_forecast, blocks_kinematics, stock_forecast, map_airbnb
     Guides: plot-component-for-maps
@@ -44,7 +42,7 @@ class Plot(Component):
 
     def __init__(
         self,
-        value: Callable | None | pd.DataFrame = None,
+        value: Any | None = None,
         *,
         label: str | None = None,
         every: float | None = None,
@@ -61,7 +59,7 @@ class Plot(Component):
         Parameters:
             value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, altair, or bokeh figure, or a callable. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
@@ -98,12 +96,24 @@ class Plot(Component):
         return config
 
     def preprocess(self, payload: PlotData | None) -> PlotData | None:
+        """
+        Parameters:
+            payload: The data to display in the plot.
+        Returns:
+            (Rarely used) passes the data displayed in the plot as an PlotData dataclass, which includes the plot information as a JSON string, as well as the type of chart and the plotting library.
+        """
         return payload
 
     def example_inputs(self) -> Any:
         return None
 
-    def postprocess(self, value) -> PlotData | None:
+    def postprocess(self, value: Any) -> PlotData | None:
+        """
+        Parameters:
+            value: Expects plot data in one of these formats: a matplotlib.Figure, bokeh.Model, plotly.Figure, or altair.Chart object.
+        Returns:
+            PlotData: A dataclass containing the plot data as a JSON string, as well as the type of chart and the plotting library.
+        """
         import matplotlib.figure
 
         if value is None:
