@@ -1,6 +1,7 @@
 name: "deploy / spaces"
 
 on:
+  workflow_dispatch:
   workflow_run:
     workflows: ["trigger"]
     types: 
@@ -103,7 +104,7 @@ jobs:
     - name: Install Hub Client Library
       run: pip install huggingface-hub
     - name: Upload demo to spaces
-      if: github.event.workflow_run.event == 'pull_request' || github.event_name == 'pull_request'
+      if: github.event.workflow_run.event == 'pull_request'
       id: upload-demo
       run: |
         python scripts/upload_demo_to_space.py all_demos \
@@ -112,9 +113,7 @@ jobs:
         --gradio-version ${{ steps.get_gradio_version.outputs.GRADIO_VERSION }} > url.txt
         echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_OUTPUT
     - name: Upload Website Demos
-      if: >
-        github.event == 'workflow_dispatch' &&
-        github.event.workflow_run.conclusion == 'success'
+      if: github.event_name == 'workflow_dispatch'
       id: upload-website-demos
       run: |
         python scripts/upload_website_demos.py --AUTH_TOKEN ${{ secrets.WEBSITE_SPACES_DEPLOY_TOKEN }} \
