@@ -48,7 +48,6 @@ jobs:
       pr_number: ${{ needs.changes.outputs.pr_number }}
       message: |
         storybook~pending~null
-        visual~pending~0~0~null
   test-visual:
     name: "test / visual"
     needs: changes
