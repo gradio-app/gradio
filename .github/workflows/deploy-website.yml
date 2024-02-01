@@ -32,7 +32,7 @@ jobs:
       found_pr: ${{ steps.changes.outputs.found_pr }}
       mergeable: ${{ steps.changes.outputs.mergeable }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: "gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
@@ -59,7 +59,7 @@ jobs:
     outputs:
       vercel_url: ${{ steps.output_url.outputs.vercel_url }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.changes.outputs.merge_sha }}
           repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
