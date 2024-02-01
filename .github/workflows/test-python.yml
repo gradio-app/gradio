@@ -31,7 +31,7 @@ jobs:
       labels: ${{ steps.changes.outputs.labels }}
     steps:
       - uses: actions/checkout@v3
-      - uses: "@gradio-app/gradio/.github/actions/changes@main"
+      - uses: "gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
           type: "gradio"
@@ -61,7 +61,7 @@ jobs:
         repository: ${{ needs.changes.outputs.source_repo }}
     - name: install dependencies
       id: install_deps
-      uses: "@gradio-app/gradio/.github/actions/install-all-deps@main"
+      uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
       with:
         python_version: "3.8"
         os: ${{ matrix.os }}
