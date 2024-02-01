@@ -187,7 +187,7 @@ with gr.Blocks() as demo:
 
 if __name__ == "__main__":
     demo.launch()
-    
+
 """
     )
     assert app.strip() == answer.strip()

@@ -423,12 +423,7 @@ class Examples:
                 assert utils.is_update(value_as_dict)
                 output.append(value_as_dict)
             except (ValueError, TypeError, SyntaxError, AssertionError):
-                output.append(
-                    component.read_from_flag(
-                        value_to_use,
-                        self.cached_folder,
-                    )
-                )
+                output.append(component.read_from_flag(value_to_use))
         return output
 
 
@@ -755,15 +750,15 @@ def special_args(
         elif type_hint == routes.Request:
             if inputs is not None:
                 inputs.insert(i, request)
-        elif (
-            type_hint == Optional[oauth.OAuthProfile]
-            or type_hint == oauth.OAuthProfile
-            or type_hint == Optional[oauth.OAuthToken]
-            or type_hint == oauth.OAuthToken
+        elif type_hint in (
             # Note: "OAuthProfile | None" is equals to Optional[OAuthProfile] in Python
             #       => it is automatically handled as well by the above condition
             #       (adding explicit "OAuthProfile | None" would break in Python3.9)
             #       (same for "OAuthToken")
+            Optional[oauth.OAuthProfile],
+            Optional[oauth.OAuthToken],
+            oauth.OAuthProfile,
+            oauth.OAuthToken,
         ):
             if inputs is not None:
                 # Retrieve session from gr.Request, if it exists (i.e. if user is logged in)
@@ -776,10 +771,7 @@ def special_args(
                 )
 
                 # Inject user profile
-                if (
-                    type_hint == Optional[oauth.OAuthProfile]
-                    or type_hint == oauth.OAuthProfile
-                ):
+                if type_hint in (Optional[oauth.OAuthProfile], oauth.OAuthProfile):
                     oauth_profile = (
                         session["oauth_info"]["userinfo"]
                         if "oauth_info" in session
@@ -794,10 +786,7 @@ def special_args(
                     inputs.insert(i, oauth_profile)
 
                 # Inject user token
-                elif (
-                    type_hint == Optional[oauth.OAuthToken]
-                    or type_hint == oauth.OAuthToken
-                ):
+                elif type_hint in (Optional[oauth.OAuthToken], oauth.OAuthToken):
                     oauth_info = (
                         session["oauth_info"] if "oauth_info" in session else None
                     )

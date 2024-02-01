@@ -33,6 +33,7 @@ jobs:
         with:
           type: "visual"
           token: ${{ secrets.GITHUB_TOKEN }}
+          name: "UI Tests"
       - name: echo github context
         if: always()
         run: echo "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
@@ -49,7 +50,7 @@ jobs:
       message: |
         storybook~pending~null
   test-visual:
-    name: "test / visual"
+    name: "test-visual"
     needs: changes
     if: ${{ needs.changes.outputs.should_run == 'true' && github.repository == 'gradio-app/gradio' && !contains(needs.changes.outputs.labels, 'no-visual-update') }}
     runs-on: ubuntu-latest
@@ -85,18 +86,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           onlyChanged: true
           exitOnceUploaded: true
-      - name: do check
-        if: always()
-        uses: "gradio-app/github/actions/commit-status@main"
-        with:
-          type: "visual"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          pr: ${{ needs.changes.outputs.pr_number }}
-          sha: ${{ needs.changes.outputs.sha }}
-          name: "test / visual"
-          result: ${{ job.status }}
-          job_id: "test-visual"  
-          url: ${{ steps.publish-chromatic.outputs.buildUrl }}
    
   comment-chromatic-end:
     uses: "./.github/workflows/comment-queue.yml"
