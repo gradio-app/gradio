@@ -126,7 +126,6 @@ class Dataframe(Component):
         self.col_count = self.__process_counts(
             col_count, len(headers) if headers else 3
         )
-
         self.__validate_headers(headers, self.col_count[0])
 
         self.headers = (
@@ -240,10 +239,17 @@ class Dataframe(Component):
         if value is None:
             return self.postprocess(self.empty_input)
         if isinstance(value, dict):
+            if len(value) == 0:
+                return DataframeData(headers=self.headers, data=[])
             return DataframeData(
                 headers=value.get("headers", []), data=value.get("data", [[]])
             )
         if isinstance(value, (str, pd.DataFrame)):
+            if len(value) == 0:
+                return DataframeData(
+                    headers=list(value.columns),  # type: ignore
+                    data=[[]],  # type: ignore
+                )
             if isinstance(value, str):
                 value = pd.read_csv(value)  # type: ignore
             return DataframeData(
@@ -262,25 +268,30 @@ class Dataframe(Component):
                     "Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe instead."
                 )
             df: pd.DataFrame = value.data  # type: ignore
+            if len(df) == 0:
+                return DataframeData(
+                    headers=list(df.columns),
+                    data=[[]],
+                    metadata=self.__extract_metadata(value),  # type: ignore
+                )
             return DataframeData(
                 headers=list(df.columns),
                 data=df.to_dict(orient="split")["data"],  # type: ignore
                 metadata=self.__extract_metadata(value),  # type: ignore
             )
-        elif isinstance(value, (str, pd.DataFrame)):
-            df = pd.read_csv(value) if isinstance(value, str) else value  # type: ignore
-            return DataframeData(
-                headers=list(df.columns),
-                data=df.to_dict(orient="split")["data"],  # type: ignore
-            )
         elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
+            if len(value) == 0:
+                df_dict = value.to_dict()
+                headers = list(df_dict.keys())
+                data = [[]]
+                return DataframeData(headers=headers, data=data)
             df_dict = value.to_dict()
             headers = list(df_dict.keys())
             data = list(zip(*df_dict.values()))
             return DataframeData(headers=headers, data=data)
         elif isinstance(value, (np.ndarray, list)):
             if len(value) == 0:
-                return self.postprocess([[]])
+                return DataframeData(headers=self.headers, data=[])
             if isinstance(value, np.ndarray):
                 value = value.tolist()
             if not isinstance(value, list):
@@ -294,7 +305,7 @@ class Dataframe(Component):
                 ]
             elif len(self.headers) > len(value[0]):
                 _headers = self.headers[: len(value[0])]
-
+            
             return DataframeData(headers=_headers, data=value)
         else:
             raise ValueError("Cannot process value as a Dataframe")
