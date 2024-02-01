@@ -86,18 +86,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           onlyChanged: true
           exitOnceUploaded: true
-      - name: do check
-        if: always()
-        uses: "gradio-app/github/actions/commit-status@main"
-        with:
-          type: "visual"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          pr: ${{ needs.changes.outputs.pr_number }}
-          sha: ${{ needs.changes.outputs.sha }}
-          name: "test / visual"
-          result: ${{ job.status }}
-          job_id: "test-visual"  
-          url: ${{ steps.publish-chromatic.outputs.buildUrl }}
    
   comment-chromatic-end:
     uses: "./.github/workflows/comment-queue.yml"
