@@ -28,6 +28,8 @@ import type {
 	SpaceStatusCallback
 } from "./types.js";
 
+import {start, stop} from "./webrtc_utils.ts";
+
 import { FileData, normalise_file } from "./upload";
 
 import type { Config } from "./types.js";
@@ -295,6 +297,7 @@ export function api_factory(
 			const unclosed_events: Set<string> = new Set();
 			let config: Config;
 			let api_map: Record<string, number> = {};
+			let peer_connection_established = false;
 
 			let jwt: false | string = false;
 
@@ -429,7 +432,9 @@ export function api_factory(
 				endpoint: string | number,
 				data: unknown[],
 				event_data?: unknown,
-				trigger_id: number | null = null
+				trigger_id: number | null = null,
+				request_stream_callback: (stream: MediaStream) => void = () => {},
+				on_track_callback: (evt: RTCTrackEvent) => void = () => {}
 			): SubmitReturn {
 				let fn_index: number;
 				let api_info;
@@ -448,6 +453,11 @@ export function api_factory(
 					throw new Error(
 						"There is no endpoint matching that name of fn_index matching that number."
 					);
+				}
+				const webrtc_id = `${session_hash}-${fn_index}`;
+				if (true && !peer_connection_established) {
+					start(webrtc_id, request_stream_callback, on_track_callback);
+					peer_connection_established = true;
 				}
 
 				let websocket: WebSocket;

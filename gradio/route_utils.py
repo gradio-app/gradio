@@ -12,11 +12,12 @@ import httpx
 import multipart
 from gradio_client.documentation import document, set_documentation_group
 from multipart.multipart import parse_options_header
+import numpy as np
 from starlette.datastructures import FormData, Headers, UploadFile
 from starlette.formparsers import MultiPartException, MultipartPart
 
 from gradio import utils
-from gradio.data_classes import PredictBody
+from gradio.data_classes import PredictBody, PredictOutput
 from gradio.exceptions import Error
 from gradio.helpers import EventData
 from gradio.state_holder import SessionState
@@ -548,47 +549,106 @@ class GradioMultiPartParser:
             self.upload_progress.set_done(self.upload_id)  # type: ignore
         return FormData(self.items)
 
-class WebRTCContext:
-    app: App
+@python_dataclass
+class WebRTCSession:
     body: PredictBody
-    request: Request
-    fn_index: int
-    output: dict
+    request: fastapi.Request
+    output: dict | None
 
 
+@python_dataclass
+class WebRTCContext:
+    app: App | None
+    sessions: dict[str, WebRTCSession]
 
-from aiortc import MediaStreamTrack
-class GradioTransformTrack(MediaStreamTrack):
-    """
+    def add_session(self, session: WebRTCSession):
+        self.sessions[session.body.webrtc_id] = session
     
+    def get_session(self, session_id: str) -> WebRTCSession:
+        return self.sessions[session_id]
+
+from aiortc import MediaStreamTrack, VideoStreamTrack
+from aiortc.contrib.media import VideoFrame, AudioFrame
+class GradioTransformTrack(VideoStreamTrack):
+    """
+    This works for streaming input
     """
 
     kind = "media"
 
-    def __init__(self, track, context: WebRTCContext):
+    def __init__(self, track, context: WebRTCContext, webrtc_id: str):
         super().__init__()  # don't forget this!
         self.track = track
         self.context = context
+        self.webrtc_id = webrtc_id
+        self.streaming_index = 0
     
-    def add_frame_to_payload(self, body: dict) -> dict:
-        pass
+    @property
+    def tracked_in_context(self):
+        return self.webrtc_id in self.context.sessions
 
-    def extract_frame_array_from_output(self, output: dict) -> tuple[np.ndarray, dict]:
-        pass
+    #TODO: confusing that this also has set_session
+    def set_session(self, session: WebRTCSession):
+        assert session.body.fn_index is not None
+        blocks = self.context.app.get_blocks()
+        inputs = blocks.dependencies[session.body.fn_index]["inputs"]
+        for i, component_id in enumerate(inputs):
+            #TODO: right now we're assuming only one component is streaming
+            if getattr(blocks.blocks[component_id], "streaming", False):
+                self.streaming_index = i
+    
+    def add_frame_to_payload(self, frame: np.ndarray) -> PredictBody:
+        assert self.context
+        body = self.context.get_session(self.webrtc_id).body.model_copy(deep=True)
+        body.data[self.streaming_index] = frame
+        return body
+
+    def extract_frame_array_from_output(self, output: PredictOutput) -> tuple[np.ndarray, PredictOutput]:
+        assert self.context
+        assert self.context.get_session(self.webrtc_id).body.fn_index is not None
+        frame = output["data"][self.streaming_index]
+        output["data"][self.streaming_index] = None
+        return frame, output
+
+    def array_to_frame(self, array: np.ndarray) -> VideoFrame | AudioFrame:
+        #TODO: fix this
+        return VideoFrame.from_ndarray(array, format="bgr24")
 
     async def recv(self):
+        if not self.tracked_in_context:
+            pts, time_base = await self.next_timestamp()
 
+            frame = VideoFrame(width=640, height=480)
+            for p in frame.planes:
+                p.update(bytes(p.buffer_size))
+            frame.pts = pts
+            frame.time_base = time_base
+            return frame
+        elif self.tracked_in_context and not self.streaming_index:
+            self.set_session(self.context.get_session(self.webrtc_id))
+
+        session = self.context.get_session(self.webrtc_id)
         frame = await self.track.recv()
         frame = frame.to_ndarray()
 
-        output = self.add_frame_to_payload(frame)
+        body = self.add_frame_to_payload(frame)
 
-        output = await call_process_api(
-                    app=self.context.app,
-                    body=self.context.body,
-                    gr_request=self.context.request,
-                    fn_index_inferred=self.context.fn_index,
-                )
+        gr_request = compile_gr_request(
+            app=self.context.app, # type: ignore
+            body=body,
+            fn_index_inferred=body.fn_index, #type: ignore
+            #TODO: fix this
+            username="foo",
+            request=session.request,
+        )
+
+        output: PredictOutput = await call_process_api(
+            app=self.context.app, # type: ignore
+            body=body,
+            gr_request=gr_request,
+            fn_index_inferred=body.fn_index, #type: ignore
+            )
         array, output = self.extract_frame_array_from_output(output)
-        self.context.output = output
-        return array
+        new_frame = self.array_to_frame(array) 
+        session.output = output
+        return new_frame

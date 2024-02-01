@@ -86,7 +86,6 @@ class Queue:
     ):
         self.pending_messages_per_session: LRUCache[str, ThreadQueue] = LRUCache(2000)
         self.pending_event_ids_session: dict[str, set[str]] = {}
-        self.webrtc_context: dict[str, route_utils.WebRTCContext] = {}
         self.pending_message_lock = safe_get_lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
         self.stopped = False
@@ -95,6 +94,7 @@ class Queue:
         self.active_jobs: list[None | list[Event]] = []
         self.delete_lock = safe_get_lock()
         self.server_app = None
+        self.webrtc_context = route_utils.WebRTCContext(None, {})
         self.process_time_per_fn_index: defaultdict[int, ProcessTime] = defaultdict(
             ProcessTime
         )
@@ -208,6 +208,15 @@ class Queue:
             username,
             self.block_fns[body.fn_index].concurrency_id,
         )
+        assert self.server_app is not None
+        if self.server_app.is_fn_index_streaming(body.fn_index):
+            session = route_utils.WebRTCSession(
+                body=body,
+                request=request,
+                output=None,
+            )
+            self.webrtc_context.add_session(session)
+            
         event.data = body
         async with self.pending_message_lock:
             if body.session_hash not in self.pending_messages_per_session:
@@ -229,6 +238,7 @@ class Queue:
 
     def set_server_app(self, app: routes.App):
         self.server_app = app
+        self.webrtc_context.app = app
 
     def get_active_worker_count(self) -> int:
         count = 0
@@ -493,13 +503,18 @@ class Queue:
         )
 
         try:
-            if 
-            output = await route_utils.call_process_api(
-                app=app,
-                body=body,
-                gr_request=gr_request,
-                fn_index_inferred=fn_index_inferred,
-            )
+            if app.is_fn_index_streaming(fn_index_inferred):
+                if not self.webrtc_context.get_session(body.webrtc_id).output:
+                    print(f"waiting for {body.webrtc_id}")
+                    await asyncio.sleep(0.001)
+                output = self.webrtc_context.get_session(body.webrtc_id).output
+            else:
+                output = await route_utils.call_process_api(
+                    app=app,
+                    body=body,
+                    gr_request=gr_request,
+                    fn_index_inferred=fn_index_inferred,
+                )
         except Exception as error:
             show_error = app.get_blocks().show_error or isinstance(error, Error)
             traceback.print_exc()
