@@ -29,9 +29,9 @@ class ChatbotData(GradioRootModel):
 @document()
 class Chatbot(Component):
     """
-    Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, tables. Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links.
-    Preprocessing: passes the messages in the Chatbot as a {List[List[str | None | Tuple]]}, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. See `Postprocessing` for the format of these messages.
-    Postprocessing: expects function to return a {List[List[str | None | Tuple]]}, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message. The individual messages can be (1) strings in valid Markdown, (2) tuples if sending files: (a filepath or URL to a file, [optional string alt text]) -- if the file is image/video/audio, it is displayed in the Chatbot, or (3) None, in which case the message is not displayed.
+    Creates a chatbot that displays user-submitted messages and responses. Supports a subset of Markdown including bold, italics, code, tables.
+    Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links. This
+    component is usually used as an output component.
 
     Demos: chatbot_simple, chatbot_multimodal
     Guides: creating-a-chatbot
@@ -73,7 +73,7 @@ class Chatbot(Component):
         Parameters:
             value: Default value to show in chatbot. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
@@ -151,8 +151,14 @@ class Chatbot(Component):
 
     def preprocess(
         self,
-        payload: ChatbotData,
-    ) -> list[list[str | tuple[str] | tuple[str, str] | None]]:
+        payload: ChatbotData | None,
+    ) -> list[list[str | tuple[str] | tuple[str, str] | None]] | None:
+        """
+        Parameters:
+            payload: data as a ChatbotData object
+        Returns:
+            Passes the messages in the chatbot as a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. Each message can be (1) a string in valid Markdown, (2) a tuple if there are displayed files: (a filepath or URL to a file, [optional string alt text]), or (3) None, if there is no message displayed.
+        """
         if payload is None:
             return payload
         processed_messages = []
@@ -194,8 +200,14 @@ class Chatbot(Component):
 
     def postprocess(
         self,
-        value: list[list[str | tuple[str] | tuple[str, str] | None] | tuple],
+        value: list[list[str | tuple[str] | tuple[str, str] | None] | tuple] | None,
     ) -> ChatbotData:
+        """
+        Parameters:
+            value: expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message. The individual messages can be (1) strings in valid Markdown, (2) tuples if sending files: (a filepath or URL to a file, [optional string alt text]) -- if the file is image/video/audio, it is displayed in the Chatbot, or (3) None, in which case the message is not displayed.
+        Returns:
+            an object of type ChatbotData
+        """
         if value is None:
             return ChatbotData(root=[])
         processed_messages = []

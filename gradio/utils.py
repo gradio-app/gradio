@@ -591,7 +591,7 @@ def validate_url(possible_url: str) -> bool:
     try:
         head_request = httpx.head(possible_url, headers=headers, follow_redirects=True)
         # some URLs, such as AWS S3 presigned URLs, return a 405 or a 403 for HEAD requests
-        if head_request.status_code == 405 or head_request.status_code == 403:
+        if head_request.status_code in (403, 405):
             return httpx.get(possible_url, headers=headers).is_success
         return head_request.is_success
     except Exception:
@@ -891,7 +891,7 @@ class MatplotlibBackendMananger:
         matplotlib.use(self._original_backend)
 
 
-def tex2svg(formula, *args):
+def tex2svg(formula, *_args):
     with MatplotlibBackendMananger():
         import matplotlib.pyplot as plt
 
@@ -1043,3 +1043,47 @@ class LRUCache(OrderedDict, Generic[K, V]):
 
 def get_cache_folder() -> Path:
     return Path(os.environ.get("GRADIO_EXAMPLES_CACHE", "gradio_cached_examples"))
+
+
+def diff(old, new):
+    def compare_objects(obj1, obj2, path=None):
+        if path is None:
+            path = []
+        edits = []
+
+        if obj1 == obj2:
+            return edits
+
+        if type(obj1) != type(obj2):
+            edits.append(("replace", path, obj2))
+            return edits
+
+        if isinstance(obj1, str) and obj2.startswith(obj1):
+            edits.append(("append", path, obj2[len(obj1) :]))
+            return edits
+
+        if isinstance(obj1, list):
+            common_length = min(len(obj1), len(obj2))
+            for i in range(common_length):
+                edits.extend(compare_objects(obj1[i], obj2[i], path + [i]))
+            for i in range(common_length, len(obj1)):
+                edits.append(("delete", path + [i], None))
+            for i in range(common_length, len(obj2)):
+                edits.append(("add", path + [i], obj2[i]))
+            return edits
+
+        if isinstance(obj1, dict):
+            for key in obj1:
+                if key in obj2:
+                    edits.extend(compare_objects(obj1[key], obj2[key], path + [key]))
+                else:
+                    edits.append(("delete", path + [key], None))
+            for key in obj2:
+                if key not in obj1:
+                    edits.append(("add", path + [key], obj2[key]))
+            return edits
+
+        edits.append(("replace", path, obj2))
+        return edits
+
+    return compare_objects(old, new)

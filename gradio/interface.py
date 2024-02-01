@@ -138,7 +138,7 @@ class Interface(Blocks):
             description: A description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
             article: An expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content.
             thumbnail: String path or url to image to use as display image when the web demo is shared on social media.
-            theme: Theme to use, loaded from gradio.themes.
+            theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             css: Custom css as a string or path to a css file. This css will be included in the demo webpage.
             allow_flagging: One of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged (outputs are not flagged). If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
             flagging_options: If provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual". Can either be a list of tuples of the form (label, value), where label is the string that will be displayed on the button and value is the string that will be stored in the flagging CSV; or it can be a list of strings ["X", "Y"], in which case the values will be the list of strings and the labels will ["Flag as X", "Flag as Y"], etc.
@@ -746,7 +746,7 @@ class Interface(Blocks):
             [],
             ([input_component_column] if input_component_column else []),  # type: ignore
             js=f"""() => {json.dumps(
-                
+
                     [{'variant': None, 'visible': True, '__type__': 'update'}]
                     if self.interface_type
                        in [
@@ -755,7 +755,7 @@ class Interface(Blocks):
                            InterfaceTypes.UNIFIED,
                        ]
                     else []
-                
+
             )}
             """,
         )
@@ -852,8 +852,10 @@ class Interface(Blocks):
 @document()
 class TabbedInterface(Blocks):
     """
-    A TabbedInterface is created by providing a list of Interfaces, each of which gets
-    rendered in a separate tab.
+    A TabbedInterface is created by providing a list of Interfaces or Blocks, each of which gets
+    rendered in a separate tab. Only the components from the Interface/Blocks will be rendered in the tab.
+    Certain high-level attributes of the Blocks (e.g. custom `css`, `js`, and `head` attributes) will not be loaded.
+
     Demos: stt_or_tts
     """
 
@@ -862,17 +864,22 @@ class TabbedInterface(Blocks):
         interface_list: list[Interface],
         tab_names: list[str] | None = None,
         title: str | None = None,
-        theme: Theme | None = None,
+        theme: Theme | str | None = None,
         analytics_enabled: bool | None = None,
         css: str | None = None,
+        js: str | None = None,
+        head: str | None = None,
     ):
         """
         Parameters:
-            interface_list: a list of interfaces to be rendered in tabs.
-            tab_names: a list of tab names. If None, the tab names will be "Tab 1", "Tab 2", etc.
-            title: a title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
-            analytics_enabled: whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
-            css: custom css or path to custom css file to apply to entire Blocks
+            interface_list: A list of Interfaces (or Blocks) to be rendered in the tabs.
+            tab_names: A list of tab names. If None, the tab names will be "Tab 1", "Tab 2", etc.
+            title: The tab title to display when this demo is opened in a browser window.
+            theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
+            analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
+            css: Custom css as a string or path to a css file. This css will be included in the demo webpage.
+            js: Custom js or path to js file to run when demo is first loaded. This javascript will be included in the demo webpage.
+            head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
         Returns:
             a Gradio Tabbed Interface for the given interfaces
         """
@@ -882,6 +889,8 @@ class TabbedInterface(Blocks):
             analytics_enabled=analytics_enabled,
             mode="tabbed_interface",
             css=css,
+            js=js,
+            head=head,
         )
         if tab_names is None:
             tab_names = [f"Tab {i}" for i in range(len(interface_list))]

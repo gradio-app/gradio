@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import Any, List
 
 import numpy as np
+import PIL.Image
 from gradio_client.documentation import document, set_documentation_group
-from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
 from gradio.components.base import Component
@@ -14,8 +14,6 @@ from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
 
 set_documentation_group("component")
-
-_Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
 class Annotation(GradioModel):
@@ -31,9 +29,8 @@ class AnnotatedImageData(GradioModel):
 @document()
 class AnnotatedImage(Component):
     """
-    Displays a base image and colored subsections on top of that image. Subsections can take the from of rectangles (e.g. object detection) or masks (e.g. image segmentation).
-    Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {Tuple[numpy.ndarray | PIL.Image | str, List[Tuple[numpy.ndarray | Tuple[int, int, int, int], str]]]} consisting of a base image and a list of subsections, that are either (x1, y1, x2, y2) tuples identifying object boundaries, or 0-1 confidence masks of the same shape as the image. A label is provided for each subsection.
+    Creates a component to displays a base image and colored annotations on top of that image. Annotations can take the from of rectangles (e.g. object detection) or masks (e.g. image segmentation).
+    As this component does not accept user input, it is rarely used as an input component.
 
     Demos: image_segmentation
     """
@@ -45,7 +42,7 @@ class AnnotatedImage(Component):
     def __init__(
         self,
         value: tuple[
-            np.ndarray | _Image.Image | str,
+            np.ndarray | PIL.Image.Image | str,
             list[tuple[np.ndarray | tuple[int, int, int, int], str]],
         ]
         | None = None,
@@ -67,17 +64,17 @@ class AnnotatedImage(Component):
     ):
         """
         Parameters:
-            value: Tuple of base image and list of (subsection, label) pairs.
-            show_legend: If True, will show a legend of the subsections.
+            value: Tuple of base image and list of (annotation, label) pairs.
+            show_legend: If True, will show a legend of the annotations.
             height: The height of the image, specified in pixels if a number is passed, or in CSS units if a string is passed.
             width: The width of the image, specified in pixels if a number is passed, or in CSS units if a string is passed.
             color_map: A dictionary mapping labels to colors. The colors must be specified as hex codes.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
-            min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
+            scale: Relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
+            min_width: Minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -101,32 +98,47 @@ class AnnotatedImage(Component):
             value=value,
         )
 
+    def preprocess(
+        self, payload: AnnotatedImageData | None
+    ) -> tuple[str, list[tuple[str, str]]] | None:
+        """
+        Parameters:
+            payload: Tuple of base image and list of annotations.
+        Returns:
+            Passes its value as a `tuple` consisting of a `str` filepath to a base image and `list` of annotations. Each annotation itself is `tuple` of a mask (as a `str` filepath to image) and a `str` label.
+        """
+        if payload is None:
+            return None
+        base_img = payload.image.path
+        annotations = [(a.image.path, a.label) for a in payload.annotations]
+        return (base_img, annotations)
+
     def postprocess(
         self,
         value: tuple[
-            np.ndarray | _Image.Image | str,
+            np.ndarray | PIL.Image.Image | str,
             list[tuple[np.ndarray | tuple[int, int, int, int], str]],
         ]
         | None,
     ) -> AnnotatedImageData | None:
         """
         Parameters:
-            value: Tuple of base image and list of subsections, with each subsection a two-part tuple where the first element is a 4 element bounding box or a 0-1 confidence mask, and the second element is the label.
+            value: Expects a a tuple of a base image and list of annotations: a `tuple[Image, list[Annotation]]`. The `Image` itself can be `str` filepath, `numpy.ndarray`, or `PIL.Image`. Each `Annotation` is a `tuple[Mask, str]`. The `Mask` can be either a `tuple` of 4 `int`'s representing the bounding box coordinates (x1, y1, x2, y2), or 0-1 confidence mask in the form of a `numpy.ndarray` of the same shape as the image, while the second element of the `Annotation` tuple is a `str` label.
         Returns:
-            Tuple of base image file and list of subsections, with each subsection a two-part tuple where the first element image path of the mask, and the second element is the label.
+            Tuple of base image file and list of annotations, with each annotation a two-part tuple where the first element image path of the mask, and the second element is the label.
         """
         if value is None:
             return None
         base_img = value[0]
         if isinstance(base_img, str):
             base_img_path = base_img
-            base_img = np.array(_Image.open(base_img))
+            base_img = np.array(PIL.Image.open(base_img))
         elif isinstance(base_img, np.ndarray):
             base_file = processing_utils.save_img_array_to_cache(
                 base_img, cache_dir=self.GRADIO_CACHE
             )
             base_img_path = str(utils.abspath(base_file))
-        elif isinstance(base_img, _Image.Image):
+        elif isinstance(base_img, PIL.Image.Image):
             base_file = processing_utils.save_pil_to_cache(
                 base_img, cache_dir=self.GRADIO_CACHE
             )
@@ -171,7 +183,7 @@ class AnnotatedImage(Component):
             colored_mask[:, :, 2] = rgb_color[2] * solid_mask
             colored_mask[:, :, 3] = mask_array * 255
 
-            colored_mask_img = _Image.fromarray((colored_mask).astype(np.uint8))
+            colored_mask_img = PIL.Image.fromarray((colored_mask).astype(np.uint8))
 
             mask_file = processing_utils.save_pil_to_cache(
                 colored_mask_img, cache_dir=self.GRADIO_CACHE
@@ -188,8 +200,3 @@ class AnnotatedImage(Component):
 
     def example_inputs(self) -> Any:
         return {}
-
-    def preprocess(
-        self, payload: AnnotatedImageData | None
-    ) -> AnnotatedImageData | None:
-        return payload
