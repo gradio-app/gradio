@@ -150,13 +150,11 @@ class UploadButton(Component):
         if self.file_count == "single":
             if isinstance(payload, ListFiles):
                 return self._process_single_file(payload[0])
-            else:
-                return self._process_single_file(payload)
-        else:
-            if isinstance(payload, ListFiles):
-                return [self._process_single_file(f) for f in payload]  # type: ignore
-            else:
-                return [self._process_single_file(payload)]  # type: ignore
+            return self._process_single_file(payload)
+
+        if isinstance(payload, ListFiles):
+            return [self._process_single_file(f) for f in payload]  # type: ignore
+        return [self._process_single_file(payload)]  # type: ignore
 
     def postprocess(self, value: str | list[str] | None) -> ListFiles | FileData | None:
         """

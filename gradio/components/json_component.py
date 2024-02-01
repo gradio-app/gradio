@@ -93,10 +93,14 @@ class JSON(Component):
     def example_inputs(self) -> Any:
         return {"foo": "bar"}
 
-    def flag(self, payload: Any, flag_dir: str | Path = "") -> str:
+    def flag(
+        self,
+        payload: Any,
+        flag_dir: str | Path = "",  # noqa: ARG002
+    ) -> str:
         return json.dumps(payload)
 
-    def read_from_flag(self, payload: Any, flag_dir: str | Path | None = None):
+    def read_from_flag(self, payload: Any, flag_dir: str | Path | None = None):  # noqa: ARG002
         return json.loads(payload)
 
     def api_info(self) -> dict[str, Any]:

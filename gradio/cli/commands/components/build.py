@@ -116,7 +116,9 @@ def _build(
                 "--mode",
                 "build",
             ]
-            pipe = subprocess.run(node_cmds, capture_output=True, text=True)
+            pipe = subprocess.run(
+                node_cmds, capture_output=True, text=True, check=False
+            )
             if pipe.returncode != 0:
                 live.update(":red_square: Build failed!")
                 live.update(pipe.stderr)
@@ -127,7 +129,7 @@ def _build(
 
         cmds = [shutil.which("python"), "-m", "build", str(name)]
         live.update(f":construction_worker: Building... [grey37]({' '.join(cmds)})[/]")
-        pipe = subprocess.run(cmds, capture_output=True, text=True)
+        pipe = subprocess.run(cmds, capture_output=True, text=True, check=False)
         if pipe.returncode != 0:
             live.update(":red_square: Build failed!")
             live.update(pipe.stderr)

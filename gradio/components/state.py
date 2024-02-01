@@ -28,7 +28,7 @@ class State(Component):
     def __init__(
         self,
         value: Any = None,
-        render: bool = True,
+        render: bool = True,  # noqa: ARG002
     ):
         """
         Parameters:

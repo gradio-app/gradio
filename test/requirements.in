@@ -13,7 +13,7 @@ pydantic[email]
 pytest
 pytest-asyncio
 pytest-cov
-ruff>=0.1.7
+ruff>=0.1.13
 respx
 scikit-image
 torch
