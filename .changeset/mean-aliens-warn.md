@@ -1,9 +1,8 @@
 ---
-"@gradio/audio": minor
-"@gradio/markdown": minor
-"@gradio/utils": minor
-"@gradio/video": minor
-"gradio": minor
+"@gradio/audio": patch
+"@gradio/utils": patch
+"@gradio/video": patch
+"gradio": patch
 ---
 
 feat:chore: Change time format
