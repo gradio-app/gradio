@@ -11,6 +11,7 @@ env:
 
 concurrency:
   group: "${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  cancel-in-progress: true
 
 jobs:
   get-pr:
