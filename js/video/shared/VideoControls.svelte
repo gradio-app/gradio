@@ -27,6 +27,7 @@
 	const formatTime = (seconds: number): string => {
 		const hours = Math.floor(seconds / 3600);
 		const minutes = Math.floor(seconds / 60) % 60;
+		const paddedMinutes = `0${minutes}`.slice(-2);
 		const secondsRemainder = Math.round(seconds) % 60;
 		const paddedSeconds = `0${secondsRemainder}`.slice(-2);
 
@@ -34,7 +35,7 @@
 			return "00:00:00";
 		}
 
-		return `${hours}:${minutes}:${paddedSeconds}`;
+		return `${hours}:${paddedMinutes}:${paddedSeconds}`;
 	};
 
 	let trimmedDuration: number | null = null;

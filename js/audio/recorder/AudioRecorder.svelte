@@ -64,9 +64,15 @@
 	const format_time = (seconds: number): string => {
 		const hours = Math.floor(seconds / 3600);
 		const minutes = Math.floor(seconds / 60) % 60;
+		const paddedMinutes = `0${minutes}`.slice(-2);
 		const secondsRemainder = Math.round(seconds) % 60;
 		const paddedSeconds = `0${secondsRemainder}`.slice(-2);
-		return `${hours}:${minutes}:${paddedSeconds}`;
+
+		if (Number.isNaN(minutes) || Number.isNaN(secondsRemainder)) {
+			return "00:00:00";
+		}
+
+		return `${hours}:${paddedMinutes}:${paddedSeconds}`;
 	};
 
 	$: record?.on("record-start", () => {
