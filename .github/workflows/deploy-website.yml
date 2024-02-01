@@ -10,7 +10,7 @@ permissions:
   statuses: write
 
 concurrency:
-  group: "${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
   cancel-in-progress: true
   
 
@@ -38,6 +38,10 @@ jobs:
           type: "website"
           token: ${{ secrets.GITHUB_TOKEN }}
           commit_status: false
+      - name: echo github context
+        if: always()
+        run: echo "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+
   comment-deploy-start:
     needs: changes
     uses: "./.github/workflows/comment-queue.yml"

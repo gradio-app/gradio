@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
 
-  group: "${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
   cancel-in-progress: true
 
 jobs:
@@ -32,6 +32,10 @@ jobs:
         with:
           type: "visual"
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: echo github context
+        if: always()
+        run: echo "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  
 
   comment-chromatic-start:
     uses: "./.github/workflows/comment-queue.yml"
