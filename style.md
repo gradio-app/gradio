@@ -1,4 +1,4 @@
-# component-styles
+# component styles
 
 ## Textbox
 
