@@ -423,12 +423,7 @@ class Examples:
                 assert utils.is_update(value_as_dict)
                 output.append(value_as_dict)
             except (ValueError, TypeError, SyntaxError, AssertionError):
-                output.append(
-                    component.read_from_flag(
-                        value_to_use,
-                        self.cached_folder,
-                    )
-                )
+                output.append(component.read_from_flag(value_to_use))
         return output
 
 
