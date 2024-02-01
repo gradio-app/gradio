@@ -49,8 +49,7 @@ from starlette.background import BackgroundTask
 from starlette.responses import RedirectResponse, StreamingResponse
 
 import gradio
-import gradio.ranged_response as ranged_response
-from gradio import route_utils, utils, wasm_utils
+from gradio import ranged_response, route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
 from gradio.exceptions import Error
@@ -238,7 +237,7 @@ class App(FastAPI):
 
         @app.get("/app_id")
         @app.get("/app_id/")
-        def app_id(request: fastapi.Request) -> dict:
+        def app_id(request: fastapi.Request) -> dict:  # noqa: ARG001
             return {"app_id": app.get_blocks().app_id}
 
         @app.get("/dev/reload", dependencies=[Depends(login_check)])
@@ -354,8 +353,7 @@ class App(FastAPI):
 
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
-        def api_info(serialize: bool = True):
-            # config = app.get_blocks().get_api_info()
+        def api_info():
             return app.get_blocks().get_api_info()  # type: ignore
 
         @app.get("/config/", dependencies=[Depends(login_check)])
@@ -489,7 +487,10 @@ class App(FastAPI):
             dependencies=[Depends(login_check)],
         )
         async def stream(
-            session_hash: str, run: int, component_id: int, request: fastapi.Request
+            session_hash: str,
+            run: int,
+            component_id: int,
+            request: fastapi.Request,  # noqa: ARG001
         ):
             stream: list = (
                 app.get_blocks()

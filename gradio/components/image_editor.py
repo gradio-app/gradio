@@ -11,8 +11,7 @@ import numpy as np
 import PIL.Image
 from gradio_client.documentation import document, set_documentation_group
 
-import gradio.image_utils as image_utils
-from gradio import utils
+from gradio import image_utils, utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
