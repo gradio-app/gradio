@@ -38,6 +38,10 @@ jobs:
         with:
           type: "js"
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: echo github context
+        if: always()
+        run: echo "${{ toJson(github) }}"
+        
   test-js:
     needs: changes
     if: needs.changes.outputs.should_run == 'true'
