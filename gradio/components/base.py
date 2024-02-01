@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
 from gradio_client.documentation import set_documentation_group
-from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import utils
 from gradio.blocks import Block, BlockContext
@@ -34,7 +33,6 @@ if TYPE_CHECKING:
 
 
 set_documentation_group("component")
-_Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
 class _Keywords(Enum):
@@ -285,6 +283,9 @@ class Component(ComponentBase, Block):
         return payload
 
     def read_from_flag(self, payload: Any):
+        self,
+        payload: Any,
+    ):
         """
         Convert the data from the csv or jsonl file into the component state.
         """

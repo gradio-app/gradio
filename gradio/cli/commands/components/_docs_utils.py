@@ -174,7 +174,7 @@ def get_container_name(arg):
         return str(arg)
 
 
-def format_type(_type: list[typing.Any], current=None):
+def format_type(_type: list[typing.Any]):
     """Pretty formats a possibly nested type hint."""
 
     s = []
@@ -187,18 +187,18 @@ def format_type(_type: list[typing.Any], current=None):
         elif isinstance(t, list):
             if len(t) == 0:
                 continue
-            s.append(f"{format_type(t, _current)}")
+            s.append(f"{format_type(t)}")
         else:
             s.append(t)
     if len(s) == 0:
         return _current
-    elif _current == "Literal" or _current == "Union":
+    elif _current in ("Literal", "Union"):
         return "| ".join(s)
     else:
         return f"{_current}[{','.join(s)}]"
 
 
-def get_type_hints(param, module, ignore=None):
+def get_type_hints(param, module):
     """Gets the type hints for a parameter."""
 
     def extract_args(
@@ -268,7 +268,7 @@ def get_type_hints(param, module, ignore=None):
 
                 if len(new_args) > 0:
                     arg_names.append(new_args)
-        else:
+        else:  # noqa: PLR5501
             if append:
                 arg_names.append(get_param_name(arg))
         return arg_names
@@ -313,11 +313,7 @@ def extract_docstrings(module):
             for member_name, member in inspect.getmembers(obj):
                 if inspect.ismethod(member) or inspect.isfunction(member):
                     # we are are only interested in these methods
-                    if (
-                        member_name != "__init__"
-                        and member_name != "preprocess"
-                        and member_name != "postprocess"
-                    ):
+                    if member_name not in ("__init__", "preprocess", "postprocess"):
                         continue
 
                     docs[name]["members"][member_name] = {}
@@ -385,7 +381,7 @@ def extract_docstrings(module):
                         ] = docstring
 
                         # We just want to normalise the arg name to 'value' for the preprocess and postprocess methods
-                        if member_name == "postprocess" or member_name == "preprocess":
+                        if member_name in ("postprocess", "preprocess"):
                             docs[name]["members"][member_name][
                                 "value"
                             ] = find_first_non_return_key(
@@ -468,7 +464,7 @@ def make_js(
                 }})
             }}
         }})
-        
+
         Object.entries(refs).forEach(([key, refs]) => {{
             if (refs.length > 0) {{
                 const el = document.querySelector(`.${{key}}`);
@@ -575,8 +571,8 @@ def make_user_fn(
 
 The impact on the users predict function varies depending on whether the component is used as an input or output for an event (or both).
 
-- When used as an Input, the component only impacts the input signature of the user function. 
-- When used as an output, the component only impacts the return signature of the user function. 
+- When used as an Input, the component only impacts the input signature of the user function.
+- When used as an output, the component only impacts the return signature of the user function.
 
 The code snippet below is accurate in cases where the component is used as both an input and an output.
 
@@ -634,8 +630,8 @@ def make_user_fn_markdown(
 
 The impact on the users predict function varies depending on whether the component is used as an input or output for an event (or both).
 
-- When used as an Input, the component only impacts the input signature of the user function. 
-- When used as an output, the component only impacts the return signature of the user function. 
+- When used as an Input, the component only impacts the input signature of the user function.
+- When used as an output, the component only impacts the return signature of the user function.
 
 The code snippet below is accurate in cases where the component is used as both an input and an output.
 
@@ -835,7 +831,7 @@ def make_space(
             """The demo must be launched using `if __name__ == '__main__'`, otherwise the docs page will not function correctly.
 
 To fix this error, launch the demo inside of an if statement like this:
-    
+
 if __name__ == '__main__':
     demo.launch()
 
@@ -852,7 +848,7 @@ import os
 
     source += f"""
 _docs = {docs}
-    
+
 abs_path = os.path.join(os.path.dirname(__file__), "css.css")
 
 with gr.Blocks(
@@ -914,8 +910,8 @@ def make_markdown(
 {description}
 
 ## Installation
-    
-```bash 
+
+```bash
 pip install {name}
 ```
 
