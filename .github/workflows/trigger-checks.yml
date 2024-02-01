@@ -1,17 +1,17 @@
 name: trigger
 on:
   pull_request:
-    types: [opened, synchronize, reopened, edited, labeled, unlabeled]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
     branches:
       - main
-  issue_comment:
-    types: [edited]
-
+  push:
+    branches:
+      - main
 
 jobs:
-  changeset:
+  checks:
     permissions: write-all
     runs-on: ubuntu-22.04
     if: github.event.sender.login != 'gradio-pr-bot'
     steps:
-      - run: echo "Requesting changeset"
+      - run: echo "Requesting checks"
