@@ -21,6 +21,7 @@ jobs:
   changes:
     name: "changes"
     runs-on: ubuntu-latest
+    continue-on-error: true
     outputs:
       should_run: ${{ steps.changes.outputs.should_run }}
       sha: ${{ steps.changes.outputs.sha }}
@@ -42,7 +43,10 @@ jobs:
         run: echo "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
       - name: echo outputs
         if: always()
-        run: echo ${{ toJson(steps.changes.outputs) }}
+        run: echo "${{ toJson(steps.changes.outputs) }}"
+      - name: echo githun context as json
+        if: always()
+        run: echo "${{ toJson(github) }}"
   
   test-python:
     needs: [changes]
