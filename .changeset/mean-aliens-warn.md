@@ -5,4 +5,4 @@
 "gradio": patch
 ---
 
-feat:chore: Change time format
+feat:chore: Change time format (thanks @jjshoots for the independent contribution).
