@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
 
-  group: "${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
   cancel-in-progress: true
 
 jobs:
@@ -25,13 +25,18 @@ jobs:
       source_branch: ${{ steps.changes.outputs.source_branch }}
       source_repo: ${{ steps.changes.outputs.source_repo }}
       labels: ${{ steps.changes.outputs.labels }}
+      mergeable: ${{ steps.changes.outputs.mergeable }}
     steps:
       - uses: actions/checkout@v3
-      - uses: "./.github/actions/changes"
+      - uses: "gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
           type: "visual"
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: echo github context
+        if: always()
+        run: echo "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  
 
   comment-chromatic-start:
     uses: "./.github/workflows/comment-queue.yml"
@@ -59,9 +64,9 @@ jobs:
         with:
             fetch-depth: 0
             ref: ${{ needs.changes.outputs.sha }}
-            repository: ${{ needs.changes.outputs.source_repo }}
+            repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
       - name: install dependencies
-        uses: "./.github/actions/install-all-deps"
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           always_install_pnpm: true
           skip_build: 'true'

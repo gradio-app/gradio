@@ -28,3 +28,4 @@ sweep.yaml
 **/src/lib/json/**/*
 **/playwright/.cache/**/*
 **/theme/src/pollen.css
+**/venv/**

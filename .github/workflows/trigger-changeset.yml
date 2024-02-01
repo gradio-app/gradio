@@ -1,4 +1,4 @@
-name: trigger
+name: trigger-changeset
 on:
   pull_request:
     types: [opened, synchronize, reopened, edited, labeled, unlabeled]

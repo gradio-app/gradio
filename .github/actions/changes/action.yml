@@ -32,10 +32,10 @@ outputs:
     value: ${{ steps.pr.outputs.source_branch }}
   merge_sha:
     description: "SHA of the merged result preview branch"
-    value: ${{ steps.merge.outputs.merge_sha }}
+    value: ${{ steps.pr.outputs.merge_sha }}
   mergeable:
     description: "Whether the PR is mergeable"
-    value: ${{ steps.merge.outputs.mergeable }}
+    value: ${{ steps.pr.outputs.mergeable }}
   labels:
     description: "Labels on the PR"
     value: ${{ steps.pr.outputs.labels }}
