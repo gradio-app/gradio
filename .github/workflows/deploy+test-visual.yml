@@ -27,7 +27,7 @@ jobs:
       labels: ${{ steps.changes.outputs.labels }}
       mergeable: ${{ steps.changes.outputs.mergeable }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: "gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
@@ -60,7 +60,7 @@ jobs:
       storybook_url: ${{ steps.publish-chromatic.outputs.storybookUrl }}
       build_url: ${{ steps.publish-chromatic.outputs.buildUrl }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
             fetch-depth: 0
             ref: ${{ needs.changes.outputs.sha }}

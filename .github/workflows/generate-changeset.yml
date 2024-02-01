@@ -50,7 +50,7 @@ jobs:
       skipped: ${{ steps.version.outputs.skipped }}
       comment_url: ${{ steps.version.outputs.comment_url }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: ${{ needs.get-pr.outputs.source_repo }}
           ref: ${{ needs.get-pr.outputs.source_branch }}
