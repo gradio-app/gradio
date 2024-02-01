@@ -100,7 +100,7 @@ class JSON(Component):
     ) -> str:
         return json.dumps(payload)
 
-    def read_from_flag(self, payload: Any, flag_dir: str | Path | None = None):  # noqa: ARG002
+    def read_from_flag(self, payload: Any):
         return json.loads(payload)
 
     def api_info(self) -> dict[str, Any]:
