@@ -51,7 +51,7 @@ runs:
       uses: "gradio-app/github/actions/find-pr@main"
       with:
         github_token: ${{ inputs.token }}
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         repository: ${{ steps.pr.outputs.source_repo }}
         ref: ${{ steps.pr.outputs.source_branch }}
