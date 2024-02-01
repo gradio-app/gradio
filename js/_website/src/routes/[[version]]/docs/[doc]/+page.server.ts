@@ -81,6 +81,34 @@ export async function load({ params, parent }) {
 					});
 				}
 
+				if ("preprocess" in obj && "postprocess" in obj) {
+					obj.preprocess.return_doc.doc = style_formatted_text(
+						obj.preprocess.return_doc.doc
+					);
+					obj.postprocess.parameter_doc[0].doc = style_formatted_text(
+						obj.postprocess.parameter_doc[0].doc
+					);
+
+					let preprocess_code_snippet = Prism.highlight(
+						`def predict(
+	value: ${obj.preprocess.return_doc.annotation}
+)
+	...`,
+						Prism.languages[language],
+						"python"
+					);
+
+					let postprocess_code_snippet = Prism.highlight(
+						`def predict(···) -> ${obj.postprocess.parameter_doc[0].annotation}
+	...	
+	return value`,
+						Prism.languages[language],
+						"python"
+					);
+					obj.preprocess_code_snippet = preprocess_code_snippet;
+					obj.postprocess_code_snippet = postprocess_code_snippet;
+				}
+
 				if (obj.example) {
 					obj.highlighted_example = Prism.highlight(
 						obj.example,
@@ -136,21 +164,6 @@ export async function load({ params, parent }) {
 					}
 				}
 				if ("tags" in obj) {
-					if ("preprocessing" in obj.tags) {
-						obj.tags.preprocessing = style_formatted_text(
-							obj.tags.preprocessing
-						);
-					}
-					if ("postprocessing" in obj.tags) {
-						obj.tags.postprocessing = style_formatted_text(
-							obj.tags.postprocessing
-						);
-					}
-					if ("examples_format" in obj.tags) {
-						obj.tags.examples_format = style_formatted_text(
-							obj.tags.examples_format
-						);
-					}
 					if ("events" in obj.tags) {
 						obj.tags.events = style_formatted_text(obj.tags.events);
 					}

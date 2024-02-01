@@ -1,4 +1,4 @@
-name: trigger changeset generation
+name: trigger-changeset
 on:
   pull_request:
     types: [opened, synchronize, reopened, edited, labeled, unlabeled]
@@ -7,13 +7,11 @@ on:
   issue_comment:
     types: [edited]
 
+
 jobs:
-  version:
+  changeset:
     permissions: write-all
-    name: static checks
     runs-on: ubuntu-22.04
     if: github.event.sender.login != 'gradio-pr-bot'
     steps:
-      - run: echo ${{ github.event_name }}
-      - run: echo ${{ github.event.sender.login }}
-      - run: echo "Triggering changeset generation"
+      - run: echo "Requesting changeset"

@@ -16,9 +16,8 @@ set_documentation_group("component")
 @document()
 class Markdown(Component):
     """
-    Used to render arbitrary Markdown output. Can also render latex enclosed by dollar signs.
-    Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a valid {str} that can be rendered as Markdown.
+    Used to render arbitrary Markdown output. Can also render latex enclosed by dollar signs. As this component does not accept user input,
+    it is rarely used as an input component.
 
     Demos: blocks_hello, blocks_kinematics
     Guides: key-features
@@ -47,7 +46,7 @@ class Markdown(Component):
         Parameters:
             value: Value to show in Markdown component. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: The label for this component. Is used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: This parameter has no effect.
             rtl: If True, sets the direction of the rendered text to right-to-left. Default is False, which renders text left-to-right.
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
@@ -78,14 +77,26 @@ class Markdown(Component):
             value=value,
         )
 
+    def preprocess(self, payload: str | None) -> str | None:
+        """
+        Parameters:
+            payload: the `str` of Markdown corresponding to the displayed value.
+        Returns:
+            Passes the `str` of Markdown corresponding to the displayed value.
+        """
+        return payload
+
     def postprocess(self, value: str | None) -> str | None:
+        """
+        Parameters:
+            value: Expects a valid `str` that can be rendered as Markdown.
+        Returns:
+            The same `str` as the input, but with leading and trailing whitespace removed.
+        """
         if value is None:
             return None
         unindented_y = inspect.cleandoc(value)
         return unindented_y
-
-    def preprocess(self, payload: str | None) -> str | None:
-        return payload
 
     def example_inputs(self) -> Any:
         return "# Hello!"

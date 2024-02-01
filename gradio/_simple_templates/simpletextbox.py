@@ -9,9 +9,6 @@ from gradio.events import Events
 class SimpleTextbox(FormComponent):
     """
     Creates a very simple textbox for user to enter string input or display string output.
-    Preprocessing: passes textbox value as a {str} into the function.
-    Postprocessing: expects a {str} returned from function and sets textbox value to it.
-    Examples-format: a {str} representing the textbox input.
     """
 
     EVENTS = [
@@ -42,7 +39,7 @@ class SimpleTextbox(FormComponent):
             value: default text to provide in textbox. If callable, the function will be called whenever the app loads to set the initial value of the component.
             placeholder: placeholder hint to provide behind textbox.
             label: component name in interface.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
@@ -69,25 +66,23 @@ class SimpleTextbox(FormComponent):
             render=render,
         )
 
-    def preprocess(self, x: str | None) -> str | None:
+    def preprocess(self, payload: str | None) -> str | None:
         """
-        Preprocesses input (converts it to a string) before passing it to the function.
         Parameters:
-            x: text
+            payload: the text entered in the textarea.
         Returns:
-            text
+            Passes text value as a {str} into the function.
         """
-        return None if x is None else str(x)
+        return None if payload is None else str(payload)
 
-    def postprocess(self, y: str | None) -> str | None:
+    def postprocess(self, value: str | None) -> str | None:
         """
-        Postproccess the function output y by converting it to a str before passing it to the frontend.
         Parameters:
-            y: function output to postprocess.
+            value: Expects a {str} returned from function and sets textarea value to it.
         Returns:
-            text
+            The value to display in the textarea.
         """
-        return None if y is None else str(y)
+        return None if value is None else str(value)
 
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}

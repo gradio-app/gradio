@@ -16,9 +16,6 @@ set_documentation_group("component")
 class Radio(FormComponent):
     """
     Creates a set of (string or numeric type) radio buttons of which only one can be selected.
-    Preprocessing: passes the value of the selected radio button as a {str} or {int} or {float} or its index as an {int} into the function, depending on `type`.
-    Postprocessing: expects a {str} or {int} or {float} corresponding to the value of the radio button to be selected.
-    Examples-format: a {str} representing the radio option to select.
 
     Demos: sentence_builder, titanic_survival, blocks_essay
     """
@@ -51,7 +48,7 @@ class Radio(FormComponent):
             type: Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             info: Additional component description.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: Relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
@@ -97,9 +94,9 @@ class Radio(FormComponent):
     def preprocess(self, payload: str | int | float | None) -> str | int | float | None:
         """
         Parameters:
-            payload: selected choice
+            payload: Selected choice in the radio group
         Returns:
-            value of the selected choice as string or index within choice list
+            Passes the value of the selected radio button as a `str | int | float`, or its index as an `int` into the function, depending on `type`.
         """
         if self.type == "value":
             return payload
@@ -117,6 +114,12 @@ class Radio(FormComponent):
             )
 
     def postprocess(self, value: str | int | float | None) -> str | int | float | None:
+        """
+        Parameters:
+            value: Expects a `str | int | float` corresponding to the value of the radio button to be selected
+        Returns:
+            The same value
+        """
         return value
 
     def api_info(self) -> dict[str, Any]:
