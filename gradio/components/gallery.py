@@ -7,9 +7,9 @@ from typing import Any, Callable, List, Literal, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import numpy as np
+import PIL.Image
 from gradio_client.documentation import document, set_documentation_group
 from gradio_client.utils import is_http_url_like
-from PIL import Image as _Image  # using _ to minimize namespace pollution
 
 from gradio import processing_utils, utils
 from gradio.components.base import Component
@@ -19,7 +19,7 @@ from gradio.events import Events
 set_documentation_group("component")
 
 
-GalleryImageType = Union[np.ndarray, _Image.Image, Path, str]
+GalleryImageType = Union[np.ndarray, PIL.Image.Image, Path, str]
 CaptionedGalleryImageType = Tuple[GalleryImageType, str]
 
 
@@ -47,7 +47,7 @@ class Gallery(Component):
 
     def __init__(
         self,
-        value: list[np.ndarray | _Image.Image | str | Path | tuple]
+        value: list[np.ndarray | PIL.Image.Image | str | Path | tuple]
         | Callable
         | None = None,
         *,
@@ -137,7 +137,7 @@ class Gallery(Component):
         self, payload: GalleryData | None
     ) -> (
         List[tuple[str, str | None]]
-        | List[tuple[_Image.Image, str | None]]
+        | List[tuple[PIL.Image.Image, str | None]]
         | List[tuple[np.ndarray, str | None]]
         | None
     ):
@@ -179,7 +179,7 @@ class Gallery(Component):
                     img, cache_dir=self.GRADIO_CACHE
                 )
                 file_path = str(utils.abspath(file))
-            elif isinstance(img, _Image.Image):
+            elif isinstance(img, PIL.Image.Image):
                 file = processing_utils.save_pil_to_cache(
                     img, cache_dir=self.GRADIO_CACHE
                 )
@@ -209,7 +209,7 @@ class Gallery(Component):
         if type == "filepath":
             return img
         else:
-            converted_image = _Image.open(img)
+            converted_image = PIL.Image.open(img)
             if type == "numpy":
                 converted_image = np.array(converted_image)
             return converted_image

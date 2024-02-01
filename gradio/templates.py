@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Callable, Iterable, Literal
 
 import numpy as np
-from PIL import Image as _Image  # using _ to minimize namespace pollution
+import PIL.Image
 
 from gradio import components
 from gradio.components.audio import WaveformOptions
@@ -79,7 +79,7 @@ class Sketchpad(components.ImageEditor):
 
     def __init__(
         self,
-        value: str | _Image.Image | np.ndarray | None = None,
+        value: str | PIL.Image.Image | np.ndarray | None = None,
         *,
         height: int | str | None = None,
         width: int | str | None = None,
@@ -148,7 +148,7 @@ class Paint(components.ImageEditor):
 
     def __init__(
         self,
-        value: str | _Image.Image | np.ndarray | None = None,
+        value: str | PIL.Image.Image | np.ndarray | None = None,
         *,
         height: int | str | None = None,
         width: int | str | None = None,
@@ -215,7 +215,7 @@ class ImageMask(components.ImageEditor):
 
     def __init__(
         self,
-        value: str | _Image.Image | np.ndarray | None = None,
+        value: str | PIL.Image.Image | np.ndarray | None = None,
         *,
         height: int | None = None,
         width: int | str | None = None,
