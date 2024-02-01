@@ -40,6 +40,9 @@ jobs:
       - name: echo github context
         if: always()
         run: echo "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+      - name: echo outputs
+        if: always()
+        run: echo ${{ toJson(steps.changes.outputs) }}
   
   test-python:
     needs: [changes]
@@ -55,6 +58,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
+    - name: log needs changes
+      if: always()
+      run: echo ${{ toJson(needs.changes.outputs) }}
     - uses: actions/checkout@v3
       with:
         ref: ${{ needs.changes.outputs.merge_sha }}
