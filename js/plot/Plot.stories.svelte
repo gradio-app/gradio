@@ -1,12 +1,12 @@
 <script context="module">
 	import { Template, Story } from "@storybook/addon-svelte-csf";
-	import Row from "./Index.svelte";
-	import Button from "../button/shared/Button.svelte";
+	import PlotComponent from "./Index.svelte";
 	import { allModes } from "../storybook/modes";
+	import { test_plot } from "./testplot";
 
 	export const meta = {
-		title: "Layout Elements/Row",
-		component: Row,
+		title: "Components/Plot",
+		component: PlotComponent,
 		parameters: {
 			chromatic: {
 				modes: {
@@ -19,10 +19,20 @@
 </script>
 
 <Template let:args>
-	<Row {...args}>
-		<Button elem_id="btn" size="lg">test</Button>
-		<Button elem_id="btn" size="lg">test</Button>
-	</Row>
+	<PlotComponent value="Plot" {...args} />
 </Template>
 
-<Story name="Row Layout" />
+<Story
+	name="with value"
+	args={{
+		value: test_plot,
+		label: "Plot"
+	}}
+/>
+
+<Story
+	name="with no value"
+	args={{
+		label: "Plot"
+	}}
+/>
