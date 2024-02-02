@@ -189,13 +189,13 @@
 					{/each}
 				</div>
 
-				<p style="margin:15px 0px;">
+				<p class="padded">
 					1. Install the client if you don't already have it installed.
 				</p>
 
 				<InstallSnippet {current_language} />
 
-				<p style="margin:15px 0px;">
+				<p class="padded">
 					2. Find the API endpoint below corresponding to your desired function
 					in the app. Copy the code snippet, replacing the placeholder values
 					with your own input data.
@@ -358,5 +358,9 @@
 
 	a.underline {
 		text-decoration: underline;
+	}
+
+	p.padded {
+		padding: 15px 0px;
 	}
 </style>
