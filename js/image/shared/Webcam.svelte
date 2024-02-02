@@ -11,6 +11,7 @@
 	import type { FileData } from "@gradio/client";
 	import { prepare_files, upload } from "@gradio/client";
 	import WebcamPermissions from "./WebcamPermissions.svelte";
+	import { fade } from "svelte/transition";
 
 	let video_source: HTMLVideoElement;
 	let canvas: HTMLCanvasElement;
@@ -148,8 +149,11 @@
 		if (mode === "image" && streaming) {
 			recording = !recording;
 		}
-		const func = mode === "image" ? take_picture : take_recording;
-		func();
+		if (mode === "image") {
+			take_picture();
+		} else {
+			take_recording();
+		}
 		if (!recording && stream) {
 			stream.getTracks().forEach((track) => track.stop());
 			video_source.srcObject = null;
@@ -212,10 +216,12 @@
 	<video
 		bind:this={video_source}
 		class:flip={mirror_webcam}
-		class:invisible={!webcam_accessed}
+		class:hide={!webcam_accessed}
 	/>
 	{#if !webcam_accessed}
-		<WebcamPermissions on:click={async () => access_webcam()} />
+		<div in:fade={{ delay: 100, duration: 200 }}>
+			<WebcamPermissions on:click={async () => access_webcam()} />
+		</div>
 	{:else}
 		<div class="button-wrap">
 			<button
@@ -282,7 +288,7 @@
 		height: var(--size-full);
 	}
 
-	.invisible {
+	.hide {
 		display: none;
 	}
 
