@@ -23,7 +23,7 @@
 		"storybook": "storybook dev -p 6006 --config-dir js/storybook",
 		"build-storybook": "storybook build --config-dir js/storybook",
 		"ci:version": "changeset version && pnpm i --lockfile-only && node ./.changeset/fix_changelogs.cjs",
-		"ci:publish": "pnpm publish --no-git-checks --access public -r --filter=@gradio/*",
+		"ci:publish": "pnpm changeset tag && git push origin --tags && pnpm publish --no-git-checks --access public -r --filter=@gradio/*",
 		"chromatic": "chromatic",
 		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts",
 		"website": "pnpm --filter @gradio/website build"
