@@ -39,7 +39,6 @@
 	}}
 />
 
-
 <Story
 	name="Interactive dataframe with label"
 	args={{
