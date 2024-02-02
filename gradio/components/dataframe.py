@@ -133,9 +133,7 @@ class Dataframe(Component):
             if headers is not None
             else [str(i) for i in (range(1, self.col_count[0] + 1))]
         )
-        self.datatype = (
-            datatype if isinstance(datatype, list) else [datatype] * self.col_count[0]
-        )
+        self.datatype = datatype
         valid_types = ["pandas", "numpy", "array", "polars"]
         if type not in valid_types:
             raise ValueError(
