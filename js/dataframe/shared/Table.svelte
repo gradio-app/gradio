@@ -19,6 +19,7 @@
 
 	export let datatype: Datatype | Datatype[];
 	export let label: string | null = null;
+	export let show_label = true;
 	export let headers: Headers = [];
 	let values: (string | number)[][];
 	export let value: { data: Data; headers: Headers; metadata: Metadata } | null;
@@ -643,7 +644,7 @@
 />
 
 <div class:label={label && label.length !== 0} use:copy>
-	{#if label && label.length !== 0}
+	{#if label && label.length !== 0 && show_label}
 		<p>
 			{label}
 		</p>

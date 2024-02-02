@@ -40,6 +40,44 @@
 />
 
 <Story
+	name="Interactive dataframe with label"
+	args={{
+		value: {
+			data: [
+				["Cat", 5],
+				["Horse", 3],
+				["Snake", 1]
+			],
+			headers: ["Animal", "Votes"],
+			metadata: null
+		},
+		label: "Animals",
+		show_label: true,
+		col_count: [2, "dynamic"],
+		row_count: [3, "dynamic"]
+	}}
+/>
+
+<Story
+	name="Interactive dataframe no label"
+	args={{
+		value: {
+			data: [
+				["Cat", 5],
+				["Horse", 3],
+				["Snake", 1]
+			],
+			headers: ["Animal", "Votes"],
+			metadata: null
+		},
+		label: "Animals",
+		show_label: false,
+		col_count: [2, "dynamic"],
+		row_count: [3, "dynamic"]
+	}}
+/>
+
+<Story
 	name="Static dataframe"
 	args={{
 		value: {
