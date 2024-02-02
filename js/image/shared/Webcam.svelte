@@ -11,10 +11,7 @@
 	import type { FileData } from "@gradio/client";
 	import { prepare_files, upload } from "@gradio/client";
 	import WebcamPermissions from "./WebcamPermissions.svelte";
-<<<<<<< HEAD
 	import { fade } from "svelte/transition";
-=======
->>>>>>> 1395b216f (Make entire icon clickable)
 
 	let video_source: HTMLVideoElement;
 	let canvas: HTMLCanvasElement;
