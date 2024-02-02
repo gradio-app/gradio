@@ -1,12 +1,24 @@
-<script lang="ts">
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+<script context="module">
+	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import ImageEditor from "./Index.svelte";
 	import { format } from "svelte-i18n";
 	import { get } from "svelte/store";
 	import { userEvent, within } from "@storybook/testing-library";
-</script>
+	import { allModes } from "../storybook/modes";
 
-<Meta title="Components/Image Editor" component={ImageEditor} />
+	export const meta = {
+		title: "Components/Audio",
+		component: Audio,
+		parameters: {
+			chromatic: {
+				modes: {
+					desktop: allModes["desktop"],
+					mobile: allModes["mobile"]
+				}
+			}
+		}
+	};
+</script>
 
 <Template let:args>
 	<div

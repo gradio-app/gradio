@@ -126,7 +126,6 @@ class Dataframe(Component):
         self.col_count = self.__process_counts(
             col_count, len(headers) if headers else 3
         )
-
         self.__validate_headers(headers, self.col_count[0])
 
         self.headers = (
@@ -134,9 +133,7 @@ class Dataframe(Component):
             if headers is not None
             else [str(i) for i in (range(1, self.col_count[0] + 1))]
         )
-        self.datatype = (
-            datatype if isinstance(datatype, list) else [datatype] * self.col_count[0]
-        )
+        self.datatype = datatype
         valid_types = ["pandas", "numpy", "array", "polars"]
         if type not in valid_types:
             raise ValueError(
@@ -199,13 +196,18 @@ class Dataframe(Component):
         """
         if self.type == "pandas":
             if payload.headers is not None:
-                return pd.DataFrame(payload.data, columns=payload.headers)
+                return pd.DataFrame(
+                    [] if payload.data == [[]] else payload.data,
+                    columns=payload.headers,
+                )
             else:
                 return pd.DataFrame(payload.data)
         if self.type == "polars":
             polars = _import_polars()
             if payload.headers is not None:
-                return polars.DataFrame(payload.data, schema=payload.headers)
+                return polars.DataFrame(
+                    [] if payload.data == [[]] else payload.data, schema=payload.headers
+                )
             else:
                 return polars.DataFrame(payload.data)
         if self.type == "numpy":
@@ -240,12 +242,19 @@ class Dataframe(Component):
         if value is None:
             return self.postprocess(self.empty_input)
         if isinstance(value, dict):
+            if len(value) == 0:
+                return DataframeData(headers=self.headers, data=[[]])
             return DataframeData(
                 headers=value.get("headers", []), data=value.get("data", [[]])
             )
         if isinstance(value, (str, pd.DataFrame)):
             if isinstance(value, str):
                 value = pd.read_csv(value)  # type: ignore
+            if len(value) == 0:
+                return DataframeData(
+                    headers=list(value.columns),  # type: ignore
+                    data=[[]],  # type: ignore
+                )
             return DataframeData(
                 headers=list(value.columns),  # type: ignore
                 data=value.to_dict(orient="split")["data"],  # type: ignore
@@ -262,25 +271,27 @@ class Dataframe(Component):
                     "Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe instead."
                 )
             df: pd.DataFrame = value.data  # type: ignore
+            if len(df) == 0:
+                return DataframeData(
+                    headers=list(df.columns),
+                    data=[[]],
+                    metadata=self.__extract_metadata(value),  # type: ignore
+                )
             return DataframeData(
                 headers=list(df.columns),
                 data=df.to_dict(orient="split")["data"],  # type: ignore
                 metadata=self.__extract_metadata(value),  # type: ignore
             )
-        elif isinstance(value, (str, pd.DataFrame)):
-            df = pd.read_csv(value) if isinstance(value, str) else value  # type: ignore
-            return DataframeData(
-                headers=list(df.columns),
-                data=df.to_dict(orient="split")["data"],  # type: ignore
-            )
         elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
+            if len(value) == 0:
+                return DataframeData(headers=list(value.to_dict().keys()), data=[[]])
             df_dict = value.to_dict()
             headers = list(df_dict.keys())
             data = list(zip(*df_dict.values()))
             return DataframeData(headers=headers, data=data)
         elif isinstance(value, (np.ndarray, list)):
             if len(value) == 0:
-                return self.postprocess([[]])
+                return DataframeData(headers=self.headers, data=[[]])
             if isinstance(value, np.ndarray):
                 value = value.tolist()
             if not isinstance(value, list):

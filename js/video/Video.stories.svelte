@@ -1,12 +1,24 @@
-<script>
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+<script context="module">
+	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import Video from "./Index.svelte";
 	import { format } from "svelte-i18n";
 	import { get } from "svelte/store";
 	import { userEvent, within } from "@storybook/testing-library";
-</script>
+	import { allModes } from "../storybook/modes";
 
-<Meta title="Components/Video" component={Video} />
+	export const meta = {
+		title: "Components/Video",
+		component: Video,
+		parameters: {
+			chromatic: {
+				modes: {
+					desktop: allModes["desktop"],
+					mobile: allModes["mobile"]
+				}
+			}
+		}
+	};
+</script>
 
 <div>
 	<Template let:args>
