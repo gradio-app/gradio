@@ -1,6 +1,8 @@
 ---
+"@gradio/app": minor
+"@gradio/client": minor
 "@gradio/image": minor
 "gradio": minor
 ---
 
-feat:Allow start/pause of streaming image input. Only access the webcam while it's needed
+feat:Full height chatbot (and other visual improvements)
