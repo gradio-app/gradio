@@ -837,7 +837,6 @@ if __name__ == '__main__':
 
 To ignore this error pass `--suppress-demo-check` to the docs command."""
         )
-    demo = demo.replace('"""', '\\"\\"\\"')
 
     source = """
 import gradio as gr
