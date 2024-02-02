@@ -25,6 +25,7 @@
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let label: string | null = null;
+	export let show_label = true;
 	export let wrap: boolean;
 	export let datatype: Datatype | Datatype[];
 	export let scale: number | null = null;
@@ -95,6 +96,7 @@
 	<Table
 		{root}
 		{label}
+		{show_label}
 		{row_count}
 		{col_count}
 		{value}
