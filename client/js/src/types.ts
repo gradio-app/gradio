@@ -21,6 +21,7 @@ export interface Config {
 	stylesheets: string[];
 	path: string;
 	protocol?: "sse_v2" | "sse_v1" | "sse" | "ws";
+	fill_vertical_space: boolean;
 }
 
 export interface Payload {
