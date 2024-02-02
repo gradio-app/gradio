@@ -24,10 +24,11 @@
 	export let app: Awaited<ReturnType<typeof client>>;
 	export let space_id: string | null;
 
-	const js_spaces_docs =
-		"https://www.gradio.app/guides/getting-started-with-the-js-client#connecting-to-a-hugging-face-space";
-	const py_spaces_docs =
-		"https://www.gradio.app/guides/getting-started-with-the-python-client#connecting-to-a-hugging-face-space";
+	const js_docs =
+		"https://www.gradio.app/guides/getting-started-with-the-js-client";
+	const py_docs =
+		"https://www.gradio.app/guides/getting-started-with-the-python-client";
+	const spaces_docs_suffix = "#connecting-to-a-hugging-face-space";
 
 	let api_count = dependencies.filter(
 		(dependency) => dependency.show_api
@@ -165,14 +166,11 @@
 		<div class="docs-wrap">
 			<div class="client-doc">
 				<p>
-					Use the <a
-						href="https://gradio.app/docs/#python-client"
-						target="_blank"><code class="library">gradio_client</code></a
-					>
-					Python library or the
-					<a href="https://gradio.app/docs/#javascript-client" target="_blank"
-						><code class="library">@gradio/client</code></a
-					> Javascript package to query the app via API.
+					Use the <code class="library">gradio_client</code>
+					Python library (<a href={py_docs} target="_blank">docs</a>) or the
+					<code class="library">@gradio/client</code>
+					Javascript package (<a href={js_docs} target="_blank">docs</a>) to
+					query the app via API.
 				</p>
 			</div>
 			<div class="endpoint">
@@ -201,9 +199,8 @@
 					with your own input data.
 					{#if space_id}If this is a private Space, you may need to pass your
 						Hugging Face token as well (<a
-							href={current_language == "python"
-								? py_spaces_docs
-								: js_spaces_docs}
+							href={(current_language == "python" ? py_docs : js_docs) +
+								spaces_docs_suffix}
 							class="underline"
 							target="_blank">read more</a
 						>).{/if} Run the code, that's it!
@@ -356,7 +353,7 @@
 		padding-top: 0;
 	}
 
-	a.underline {
+	a {
 		text-decoration: underline;
 	}
 
