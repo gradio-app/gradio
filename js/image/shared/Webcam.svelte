@@ -1,9 +1,17 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from "svelte";
-	import { Camera, Circle, Square, DropdownArrow } from "@gradio/icons";
+	import {
+		Camera,
+		Circle,
+		Square,
+		DropdownArrow,
+		Webcam as WebcamIcon
+	} from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import type { FileData } from "@gradio/client";
 	import { prepare_files, upload } from "@gradio/client";
+	import WebcamPermissions from "./WebcamPermissions.svelte";
+	import { fade } from "svelte/transition";
 
 	let video_source: HTMLVideoElement;
 	let canvas: HTMLCanvasElement;
@@ -42,6 +50,7 @@
 			video_source.srcObject = stream;
 			video_source.muted = true;
 			video_source.play();
+			webcam_accessed = true;
 		} catch (err) {
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
 				dispatch("error", i18n("image.allow_webcam_access"));
@@ -53,8 +62,11 @@
 
 	function take_picture(): void {
 		var context = canvas.getContext("2d")!;
-
-		if (video_source.videoWidth && video_source.videoHeight) {
+		if (
+			(!streaming || (streaming && recording)) &&
+			video_source.videoWidth &&
+			video_source.videoHeight
+		) {
 			canvas.width = video_source.videoWidth;
 			canvas.height = video_source.videoHeight;
 			context.drawImage(
@@ -131,7 +143,23 @@
 		recording = !recording;
 	}
 
-	access_webcam();
+	let webcam_accessed = false;
+
+	function record_video_or_photo(): void {
+		if (mode === "image" && streaming) {
+			recording = !recording;
+		}
+		if (mode === "image") {
+			take_picture();
+		} else {
+			take_recording();
+		}
+		if (!recording && stream) {
+			stream.getTracks().forEach((track) => track.stop());
+			video_source.srcObject = null;
+			webcam_accessed = false;
+		}
+	}
 
 	if (streaming && mode === "image") {
 		window.setInterval(() => {
@@ -185,14 +213,22 @@
 <div class="wrap">
 	<!-- svelte-ignore a11y-media-has-caption -->
 	<!-- need to suppress for video streaming https://github.com/sveltejs/svelte/issues/5967 -->
-	<video bind:this={video_source} class:flip={mirror_webcam} />
-	{#if !streaming}
+	<video
+		bind:this={video_source}
+		class:flip={mirror_webcam}
+		class:hide={!webcam_accessed}
+	/>
+	{#if !webcam_accessed}
+		<div in:fade={{ delay: 100, duration: 200 }} title="grant webcam access">
+			<WebcamPermissions on:click={async () => access_webcam()} />
+		</div>
+	{:else}
 		<div class="button-wrap">
 			<button
-				on:click={mode === "image" ? take_picture : take_recording}
+				on:click={record_video_or_photo}
 				aria-label={mode === "image" ? "capture photo" : "start recording"}
 			>
-				{#if mode === "video"}
+				{#if mode === "video" || streaming}
 					{#if recording}
 						<div class="icon red" title="stop recording">
 							<Square />
@@ -208,7 +244,6 @@
 					</div>
 				{/if}
 			</button>
-
 			{#if !recording}
 				<button
 					on:click={select_source}
@@ -251,6 +286,10 @@
 		position: relative;
 		width: var(--size-full);
 		height: var(--size-full);
+	}
+
+	.hide {
+		display: none;
 	}
 
 	video {
@@ -352,5 +391,11 @@
 		width: var(--size-10);
 		height: var(--size-5);
 		opacity: 0.8;
+	}
+
+	@media (--screen-md) {
+		.wrap {
+			font-size: var(--text-lg);
+		}
 	}
 </style>
