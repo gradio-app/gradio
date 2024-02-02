@@ -73,8 +73,6 @@
 		userEvent.click(webcamButton);
 
 		userEvent.click(await canvas.findByTitle("grant webcam access"));
-		userEvent.click(await canvas.findByTitle("select video source"));
-		userEvent.click(await canvas.findByLabelText("select source"));
 		userEvent.click(await canvas.findByLabelText("Upload file"));
 		userEvent.click(await canvas.findByLabelText("Paste from clipboard"));
 	}}
