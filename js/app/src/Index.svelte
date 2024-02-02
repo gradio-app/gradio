@@ -27,6 +27,7 @@
 		stylesheets?: string[];
 		path: string;
 		app_id?: string;
+		fill_vertical_space: boolean;
 	}
 
 	let id = -1;
@@ -412,6 +413,7 @@
 		<Blocks
 			{app}
 			{...config}
+			fill_vertical_space={!is_embed && config.fill_vertical_space}
 			theme_mode={active_theme_mode}
 			{control_page_title}
 			target={wrapper}
