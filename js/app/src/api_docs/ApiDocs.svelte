@@ -22,6 +22,16 @@
 	export let dependencies: Dependency[];
 	export let root: string;
 	export let app: Awaited<ReturnType<typeof client>>;
+	export let space_id: string | null;
+
+	const js_spaces_docs =
+		"https://www.gradio.app/guides/getting-started-with-the-js-client#connecting-to-a-hugging-face-space";
+	const py_spaces_docs =
+		"https://www.gradio.app/guides/getting-started-with-the-python-client#connecting-to-a-hugging-face-space";
+
+	let api_count = dependencies.filter(
+		(dependency) => dependency.show_api
+	).length;
 
 	if (root === "") {
 		root = location.protocol + "//" + location.host + location.pathname;
@@ -148,14 +158,9 @@
 </script>
 
 {#if info}
-	{#if dependencies.filter((dependency) => dependency.show_api).length}
+	{#if api_count}
 		<div class="banner-wrap">
-			<ApiBanner
-				on:close
-				{root}
-				api_count={dependencies.filter((dependency) => dependency.show_api)
-					.length}
-			/>
+			<ApiBanner on:close root={space_id || root} {api_count} />
 		</div>
 		<div class="docs-wrap">
 			<div class="client-doc">
@@ -167,7 +172,7 @@
 					Python library or the
 					<a href="https://gradio.app/docs/#javascript-client" target="_blank"
 						><code class="library">@gradio/client</code></a
-					> Javascript package to query the demo via API.
+					> Javascript package to query the app via API.
 				</p>
 			</div>
 			<div class="endpoint">
@@ -183,11 +188,26 @@
 						</li>
 					{/each}
 				</div>
+
+				<p style="margin:15px 0px;">
+					1. Install the client if you don't already have it installed.
+				</p>
+
 				<InstallSnippet {current_language} />
 
-				{#if Object.keys(info.named_endpoints).length}
-					<h2 class="header">Endpoints</h2>
-				{/if}
+				<p style="margin:15px 0px;">
+					2. Find the API endpoint below corresponding to your desired function
+					in the app. Copy the code snippet, replacing the placeholder values
+					with your own input data.
+					{#if space_id}If this is a private Space, you may need to pass your
+						Hugging Face token as well (<a
+							href={current_language == "python"
+								? py_spaces_docs
+								: js_spaces_docs}
+							class="underline"
+							target="_blank">read more</a
+						>).{/if} Run the code, that's it!
+				</p>
 
 				{#each dependencies as dependency, dependency_index}
 					{#if dependency.show_api}
@@ -334,5 +354,9 @@
 		border-radius: var(--radius-xl);
 		padding: var(--size-3);
 		padding-top: 0;
+	}
+
+	a.underline {
+		text-decoration: underline;
 	}
 </style>
