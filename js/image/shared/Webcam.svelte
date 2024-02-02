@@ -21,6 +21,7 @@
 	export let streaming = false;
 	export let pending = false;
 	export let root = "";
+	export let value_is_outputs = false;
 
 	export let mode: "image" | "video" = "image";
 	export let mirror_webcam: boolean;

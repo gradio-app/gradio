@@ -433,7 +433,7 @@ export function api_factory(
 				data: unknown[],
 				event_data?: unknown,
 				trigger_id: number | null = null,
-				request_stream_callback: (stream: MediaStream) => void = () => {},
+				request_stream_callback: () => MediaStream = () => {},
 				on_track_callback: (evt: RTCTrackEvent) => void = () => {}
 			): SubmitReturn {
 				let fn_index: number;
