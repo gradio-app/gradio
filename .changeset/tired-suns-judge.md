@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Rename and refactor Inference api
+feat:[WIP] Refactor Inference API and rename it to Serverless Inference Endpoints
