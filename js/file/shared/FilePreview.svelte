@@ -4,6 +4,8 @@
 	import { createEventDispatcher } from "svelte";
 	import type { I18nFormatter, SelectData } from "@gradio/utils";
 	import { DownloadLink } from "@gradio/wasm/svelte";
+	import { Clear } from "@gradio/icons";
+	import { IconButton } from "@gradio/atoms";
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
@@ -29,6 +31,11 @@
 			filename_ext
 		};
 	});
+
+	function remove_file(index: number): void {
+		normalized_files.splice(index, 1);
+		normalized_files = [...normalized_files];
+	}
 </script>
 
 <div
@@ -66,6 +73,15 @@
 							{i18n("file.uploading")}
 						{/if}
 					</td>
+					{#if normalized_files.length > 1}
+						<td>
+							<IconButton
+								Icon={Clear}
+								label="Remove this file"
+								on:click={() => remove_file(i)}
+							/>
+						</td>
+					{/if}
 				</tr>
 			{/each}
 		</tbody>
