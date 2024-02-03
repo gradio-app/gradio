@@ -39,7 +39,7 @@ def get_tabular_examples(model_name: str) -> Dict[str, List[float]]:
             "See the README.md here: https://huggingface.co/scikit-learn/tabular-playground/blob/main/README.md "
             "for a reference on how to provide example data to your model."
         )
-    # replace nan with string NaN for inference API
+    # replace nan with string NaN for inference Endpoints
     for data in example_data.values():
         for i, val in enumerate(data):
             if isinstance(val, float) and math.isnan(val):
