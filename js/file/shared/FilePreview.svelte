@@ -28,7 +28,7 @@
 		return {
 			...file,
 			filename_stem,
-			filename_ext
+			filename_ext,
 		};
 	});
 
@@ -51,7 +51,7 @@
 					on:click={() =>
 						dispatch("select", {
 							value: file.orig_name,
-							index: i
+							index: i,
 						})}
 				>
 					<td class="filename" aria-label={file.orig_name}>
@@ -75,11 +75,17 @@
 					</td>
 					{#if normalized_files.length > 1}
 						<td>
-							<IconButton
-								Icon={Clear}
-								label="Remove this file"
+							<button
+								class="label-clear-button"
+								aria-label="Remove this file"
 								on:click={() => remove_file(i)}
-							/>
+								on:keydown={(event) => {
+									if (event.key === "Enter") {
+										remove_file(i);
+									}
+								}}
+								>×
+							</button>
 						</td>
 					{/if}
 				</tr>
@@ -89,6 +95,16 @@
 </div>
 
 <style>
+	.label-clear-button {
+		color: var(--body-text-color-subdued);
+		position: relative;
+		left: -3px;
+	}
+
+	.label-clear-button:hover {
+		color: var(--body-text-color);
+	}
+
 	.file-preview {
 		table-layout: fixed;
 		width: var(--size-full);
