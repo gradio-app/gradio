@@ -6,14 +6,14 @@ from typing import Any, List
 
 import numpy as np
 import PIL.Image
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio import processing_utils, utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
 
-set_documentation_group("component")
+PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
 class Annotation(GradioModel):

@@ -6,12 +6,10 @@ import math
 import random
 from typing import Any, Callable
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components.base import FormComponent
 from gradio.events import Events
-
-set_documentation_group("component")
 
 
 @document()

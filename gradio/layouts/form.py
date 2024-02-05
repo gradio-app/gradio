@@ -2,16 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from gradio_client.documentation import set_documentation_group
-
 from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
 from gradio.layouts.row import Row
 
 if TYPE_CHECKING:
     from gradio.blocks import Block
-
-set_documentation_group("layout")
 
 
 class Form(BlockContext, metaclass=ComponentMeta):
