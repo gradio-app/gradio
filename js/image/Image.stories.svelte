@@ -85,6 +85,14 @@
 		show_download_button: true,
 		interactive: true
 	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
+
+		userEvent.click(await canvas.findByText("Click to Access Webcam"));
+		userEvent.click(await canvas.findByLabelText("select input source"));
+		userEvent.click(await canvas.findByLabelText("select source"));
+		userEvent.click(await canvas.findByRole("option"));
+	}}
 />
 
 <Story
