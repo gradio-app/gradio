@@ -813,8 +813,8 @@ importers:
         specifier: ^0.16.7
         version: 0.16.7
       marked:
-        specifier: ^11.0.0
-        version: 11.0.0
+        specifier: ^12.0.0
+        version: 12.0.0
 
   js/dataset:
     dependencies:
@@ -1135,14 +1135,14 @@ importers:
         specifier: ^0.16.7
         version: 0.16.7
       marked:
-        specifier: ^11.0.0
-        version: 11.0.0
+        specifier: ^12.0.0
+        version: 12.0.0
       marked-gfm-heading-id:
         specifier: ^3.1.2
-        version: 3.1.2(marked@11.0.0)
+        version: 3.1.2(marked@12.0.0)
       marked-highlight:
         specifier: ^2.0.1
-        version: 2.0.1(marked@11.0.0)
+        version: 2.0.1(marked@12.0.0)
       prismjs:
         specifier: 1.29.0
         version: 1.29.0
@@ -12146,25 +12146,25 @@ packages:
       react: 18.2.0
     dev: true
 
-  /marked-gfm-heading-id@3.1.2(marked@11.0.0):
+  /marked-gfm-heading-id@3.1.2(marked@12.0.0):
     resolution: {integrity: sha512-SdIZvhNxDgndFkDa2WRcFP4ahYm6k6hoHdTCN+fD7HRiI/R3Eimcw/Yl7ikQ+0KUuDpi75NnYQiThZnZsNr9Dg==}
     peerDependencies:
       marked: '>=4 <12'
     dependencies:
       github-slugger: 2.0.0
-      marked: 11.0.0
+      marked: 12.0.0
     dev: false
 
-  /marked-highlight@2.0.1(marked@11.0.0):
+  /marked-highlight@2.0.1(marked@12.0.0):
     resolution: {integrity: sha512-LDUfR/zDvD+dJ+lQOWHkxvBLNxiXcaN8pBtwJ/i4pI0bkDC/Ef6Mz1qUrAuHXfnpdr2rabdMpVFhqFuU+5Mskg==}
     peerDependencies:
       marked: ^4 || ^5
     dependencies:
-      marked: 11.0.0
+      marked: 12.0.0
     dev: false
 
-  /marked@11.0.0:
-    resolution: {integrity: sha512-2GsW34uXaFEGTQ/+3rCnNC6vUYTAgFuDLGl70v/aWinA5mIJtTrrFAmfbLOfVvgPyxXuDVL9He/7reCK+6j3Sw==}
+  /marked@12.0.0:
+    resolution: {integrity: sha512-Vkwtq9rLqXryZnWaQc86+FHLC6tr/fycMfYAhiOIXkrNmeGAyhSxjqu0Rs1i0bBqw5u0S7+lV9fdH2ZSVaoa0w==}
     engines: {node: '>= 18'}
     hasBin: true
     dev: false
