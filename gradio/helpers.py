@@ -19,7 +19,7 @@ import numpy as np
 import PIL
 import PIL.Image
 from gradio_client import utils as client_utils
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio import components, oauth, processing_utils, routes, utils, wasm_utils
 from gradio.context import Context, LocalContext
@@ -32,8 +32,6 @@ if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.components import Component
 
 LOG_FILE = "log.csv"
-
-set_documentation_group("helpers")
 
 
 def create_examples(
@@ -1118,10 +1116,7 @@ def log_message(message: str, level: Literal["info", "warning"] = "info"):
     blocks._queue.log_message(event_id=event_id, log=message, level=level)
 
 
-set_documentation_group("modals")
-
-
-@document()
+@document(documentation_group="modals")
 def Warning(message: str = "Warning issued."):  # noqa: N802
     """
     This function allows you to pass custom warning messages to the user. You can do so simply by writing `gr.Warning('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is yellow by default and has the heading: "Warning." Queue must be enabled for this behavior; otherwise, the warning will be printed to the console using the `warnings` library.
@@ -1141,7 +1136,7 @@ def Warning(message: str = "Warning issued."):  # noqa: N802
     log_message(message, level="warning")
 
 
-@document()
+@document(documentation_group="modals")
 def Info(message: str = "Info issued."):  # noqa: N802
     """
     This function allows you to pass custom info messages to the user. You can do so simply by writing `gr.Info('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is gray by default and has the heading: "Info." Queue must be enabled for this behavior; otherwise, the message will be printed to the console.

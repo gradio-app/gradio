@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Callable, Literal, Optional
 
 from gradio_client import utils as client_utils
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 import gradio as gr
 from gradio import processing_utils, utils, wasm_utils
@@ -19,8 +19,6 @@ from gradio.events import Events
 if not wasm_utils.IS_WASM:
     # TODO: Support ffmpeg on Wasm
     from ffmpy import FFmpeg
-
-set_documentation_group("component")
 
 
 class VideoData(GradioModel):

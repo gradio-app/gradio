@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, AsyncGenerator, BinaryIO, List, Optional, Tupl
 import fastapi
 import httpx
 import multipart
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 from multipart.multipart import parse_options_header
 from starlette.datastructures import FormData, Headers, UploadFile
 from starlette.formparsers import MultiPartException, MultipartPart
@@ -24,8 +24,6 @@ from gradio.state_holder import SessionState
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
     from gradio.routes import App
-
-set_documentation_group("routes")
 
 
 class Obj:

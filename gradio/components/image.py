@@ -8,7 +8,7 @@ from typing import Any, Literal, cast
 
 import numpy as np
 import PIL.Image
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 from PIL import ImageOps
 
 from gradio import image_utils, utils
@@ -16,7 +16,7 @@ from gradio.components.base import Component, StreamingInput
 from gradio.data_classes import FileData
 from gradio.events import Events
 
-set_documentation_group("component")
+PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
 
 
 @document()

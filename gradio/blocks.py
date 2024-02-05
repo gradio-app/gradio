@@ -24,7 +24,7 @@ import anyio
 import httpx
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio import (
     analytics,
@@ -77,7 +77,6 @@ try:
 except Exception:
     spaces = None
 
-set_documentation_group("blocks")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI

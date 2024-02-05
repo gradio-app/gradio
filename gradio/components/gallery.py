@@ -8,16 +8,13 @@ from urllib.parse import urlparse
 
 import numpy as np
 import PIL.Image
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 from gradio_client.utils import is_http_url_like
 
 from gradio import processing_utils, utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
-
-set_documentation_group("component")
-
 
 GalleryImageType = Union[np.ndarray, PIL.Image.Image, Path, str]
 CaptionedGalleryImageType = Tuple[GalleryImageType, str]

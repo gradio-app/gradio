@@ -11,7 +11,7 @@ import warnings
 import weakref
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio import Examples, utils
 from gradio.blocks import Blocks
@@ -31,8 +31,6 @@ from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Accordion, Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
 from gradio.themes import ThemeClass as Theme
-
-set_documentation_group("interface")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from transformers.pipelines.base import Pipeline
