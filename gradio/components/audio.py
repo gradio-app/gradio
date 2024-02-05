@@ -9,15 +9,13 @@ from typing import Any, Callable, Literal
 import httpx
 import numpy as np
 from gradio_client import utils as client_utils
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingInput, StreamingOutput
 from gradio.data_classes import FileData
 from gradio.events import Events
 from gradio.exceptions import Error
-
-set_documentation_group("component")
 
 
 @dataclasses.dataclass

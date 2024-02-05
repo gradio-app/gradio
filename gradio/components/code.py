@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Callable, Literal
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.events import Events
-
-set_documentation_group("component")
 
 
 @document("languages")
@@ -43,7 +41,7 @@ class Code(Component):
 
     def __init__(
         self,
-        value: str | tuple[str] | None = None,
+        value: str | Callable | tuple[str] | None = None,
         language: Literal[
             "python",
             "markdown",

@@ -9,15 +9,12 @@ from typing import Any, Iterable, List, Literal, Optional, TypedDict, Union, cas
 
 import numpy as np
 import PIL.Image
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio import image_utils, utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
-
-set_documentation_group("component")
-
 
 ImageType = Union[np.ndarray, PIL.Image.Image, str]
 
