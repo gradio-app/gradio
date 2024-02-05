@@ -6,12 +6,10 @@ from typing import Any, Callable, Literal
 
 import altair as alt
 import pandas as pd
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 from pandas.api.types import is_numeric_dtype
 
 from gradio.components.plot import AltairPlot, AltairPlotData, Plot
-
-set_documentation_group("component")
 
 
 @document()

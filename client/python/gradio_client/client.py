@@ -31,7 +31,7 @@ from huggingface_hub.utils import (
 from packaging import version
 
 from gradio_client import serializing, utils
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 from gradio_client.exceptions import SerializationSetupError
 from gradio_client.utils import (
     Communicator,
@@ -42,9 +42,6 @@ from gradio_client.utils import (
     Status,
     StatusUpdate,
 )
-
-set_documentation_group("py-client")
-
 
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
     Path(tempfile.gettempdir()) / "gradio"
