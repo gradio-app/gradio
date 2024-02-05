@@ -813,6 +813,7 @@
 				{dependencies}
 				{root}
 				{app}
+				{space_id}
 			/>
 		</div>
 	</div>
