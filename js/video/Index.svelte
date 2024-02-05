@@ -13,8 +13,10 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: { video: FileData; subtitles: FileData | null } | null =
-		null;
+	export let value:
+		| { video: FileData; subtitles: FileData | null }
+		| HTMLVideoElement
+		| null = null;
 	let old_value: { video: FileData; subtitles: FileData | null } | null = null;
 
 	export let label: string;
@@ -29,6 +31,8 @@
 	export let loading_status: LoadingStatus;
 	export let height: number | undefined;
 	export let width: number | undefined;
+	export let streaming: boolean;
+	export let node: HTMLVideoElement;
 
 	export let container = false;
 	export let scale: number | null = null;
@@ -62,6 +66,9 @@
 	let initial_value: { video: FileData; subtitles: FileData | null } | null =
 		value;
 
+	let node_set = false;
+	// $: if(node && node.srcObject && !node_set) console.log("node.srcObject", node.srcObject);
+
 	$: if (value && initial_value === null) {
 		initial_value = value;
 	}
@@ -79,7 +86,14 @@
 	}
 
 	$: {
-		if (value != null) {
+		if (value != null && value instanceof MediaStream && !node_set) {
+			console.log("HERE stting the node");
+			console.log("value", value);
+			node_set = true;
+			node.srcObject = value;
+			node.play();
+			console.log("node.srcObject", node.srcObject);
+		} else if (value != null) {
 			_video = normalise_file(value.video, root, proxy_url);
 			_subtitle = normalise_file(value.subtitles, root, proxy_url);
 		} else {
@@ -139,8 +153,15 @@
 			i18n={gradio.i18n}
 			{...loading_status}
 		/>
-
-		<StaticVideo
+		<video
+			bind:this={node}
+			playsinline={true}
+			data-testid={$$props["data-testid"]}
+			crossorigin="anonymous"
+		>
+		</video>
+		<!-- <StaticVideo
+			bind:node
 			value={_video}
 			subtitle={_subtitle}
 			{label}
@@ -148,6 +169,7 @@
 			{autoplay}
 			{show_share_button}
 			{show_download_button}
+			{streaming}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}
 			on:stop={() => gradio.dispatch("stop")}
@@ -155,7 +177,7 @@
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => gradio.dispatch("error", detail)}
 			i18n={gradio.i18n}
-		/>
+		/> -->
 	</Block>
 {:else}
 	<Block

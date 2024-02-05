@@ -18,6 +18,9 @@
 	export let paused: boolean | undefined = undefined;
 
 	export let node: HTMLVideoElement | undefined = undefined;
+	export let streaming: boolean;
+
+	// $: if(node && node.srcObject) console.log("node.srcObject in Video.svelte", node.srcObject);
 
 	export let processingVideo = false;
 
@@ -60,7 +63,6 @@ Then, even when `controls` is false, the compiled DOM would be `<video controls=
 	</span>
 </div>
 <video
-	src={resolved_src}
 	{muted}
 	{playsinline}
 	{preload}

@@ -84,6 +84,7 @@ class Video(Component):
         show_download_button: bool | None = None,
         min_length: int | None = None,
         max_length: int | None = None,
+        streaming: bool = False,
     ):
         """
         Parameters:
@@ -127,6 +128,7 @@ class Video(Component):
                 raise ValueError(
                     f"`sources` must a list consisting of elements in {valid_sources}"
                 )
+        self.streaming = streaming
         self.format = format
         self.autoplay = autoplay
         self.height = height
@@ -233,6 +235,8 @@ class Video(Component):
         Returns:
             VideoData object containing the video and subtitle files.
         """
+        if self.streaming:
+            return value
         if value is None or value == [None, None] or value == (None, None):
             return None
         if isinstance(value, (str, Path)):

@@ -209,14 +209,17 @@ class Queue:
             self.block_fns[body.fn_index].concurrency_id,
         )
         assert self.server_app is not None
-        if self.server_app.is_fn_index_streaming(body.fn_index):
+        if self.server_app.is_fn_index_streaming(body.fn_index) and not self.webrtc_context.is_tracked(body.webrtc_id):
             session = route_utils.WebRTCSession(
                 body=body,
                 request=request,
                 output=None,
             )
             self.webrtc_context.add_session(session)
-            
+        elif self.server_app.is_fn_index_streaming(body.fn_index) and self.webrtc_context.is_tracked(body.webrtc_id):
+            self.webrtc_context.get_session(body.webrtc_id).body = body
+            self.webrtc_context.get_session(body.webrtc_id).request = request
+
         event.data = body
         async with self.pending_message_lock:
             if body.session_hash not in self.pending_messages_per_session:
@@ -504,9 +507,9 @@ class Queue:
 
         try:
             if app.is_fn_index_streaming(fn_index_inferred):
-                if not self.webrtc_context.get_session(body.webrtc_id).output:
+                while self.webrtc_context.get_session(body.webrtc_id).output is None:
                     print(f"waiting for {body.webrtc_id}")
-                    await asyncio.sleep(0.001)
+                    await asyncio.sleep(0.5)
                 output = self.webrtc_context.get_session(body.webrtc_id).output
             else:
                 output = await route_utils.call_process_api(

@@ -30,6 +30,8 @@ export interface Payload {
 	data: unknown[];
 	event_data: unknown | null;
 	trigger_id: number | null;
+	webrtc_callback: any;
+	node_element: any;
 }
 
 export interface Dependency {

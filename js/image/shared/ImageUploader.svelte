@@ -126,7 +126,7 @@
 			<Webcam
 				{root}
 				on:capture={(e) => handle_save(e.detail)}
-				on:stream={(e) => handle_save(e.detail)}
+				on:stream={(e) => dispatch("stream", e.detail)}
 				on:error
 				on:drag
 				on:upload={(e) => handle_save(e.detail)}

@@ -243,6 +243,14 @@ class App(FastAPI):
                 allow_headers=["*"],
             )
 
+        @app.on_event("shutdown")
+        async def shutdown():
+            print("SHUTTING DOWN")
+            coros = [pc.close() for pc in pcs]
+            await asyncio.gather(*coros)
+            pcs.clear()
+            print("SHUTDOWN")
+
         @app.get("/user")
         @app.get("/user/")
         def get_current_user(request: fastapi.Request) -> Optional[str]:
@@ -533,6 +541,7 @@ class App(FastAPI):
 
             @pc.on("iceconnectionstatechange")
             async def on_iceconnectionstatechange():
+                print(pc.iceConnectionState)
                 if pc.iceConnectionState == "failed":
                     print("ICE Connection failed.")
                     await pc.close()

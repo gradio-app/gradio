@@ -32,6 +32,7 @@
 	export let show_download_button: boolean;
 	export let root: string;
 	export let proxy_url: null | string;
+	export let webrtc_callback: () => MediaStream | null;
 
 	export let height: number | undefined;
 	export let width: number | undefined;
@@ -135,7 +136,10 @@
 			on:clear={() => {
 				gradio.dispatch("clear");
 			}}
-			on:stream={() => gradio.dispatch("stream")}
+			on:stream={(e) => {
+				webrtc_callback = e.detail;
+				gradio.dispatch("stream");
+			}}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload={() => gradio.dispatch("upload")}
 			on:select={({ detail }) => gradio.dispatch("select", detail)}

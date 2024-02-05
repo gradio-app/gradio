@@ -16,6 +16,7 @@
 	export let interactive = false;
 	export let handle_change: (video: FileData) => void = () => {};
 	export let handle_reset_value: () => void = () => {};
+	export let video: HTMLVideoElement;
 
 	const dispatch = createEventDispatcher<{
 		play: undefined;
@@ -27,7 +28,6 @@
 	let time = 0;
 	let duration: number;
 	let paused = true;
-	let video: HTMLVideoElement;
 	let processingVideo = false;
 
 	function handleMove(e: TouchEvent | MouseEvent): void {

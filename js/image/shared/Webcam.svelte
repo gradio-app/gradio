@@ -24,9 +24,12 @@
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
 	export let i18n: I18nFormatter;
+	export let get_stream_callback: () => MediaStream = () => null;
+
+	$: console.log("stream in webcam", get_stream_callback());
 
 	const dispatch = createEventDispatcher<{
-		stream: undefined;
+		stream: () => MediaStream;
 		capture: FileData | Blob | null;
 		error: string;
 		start_recording: undefined;
@@ -51,6 +54,7 @@
 			video_source.srcObject = stream;
 			video_source.muted = true;
 			video_source.play();
+			get_stream_callback = () => stream;
 			webcam_accessed = true;
 		} catch (err) {
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
@@ -164,12 +168,9 @@
 
 	if (streaming && mode === "image") {
 		window.setInterval(() => {
-			if (video_source && !pending) {
-				take_picture();
-			}
-		}, 500);
+			if (webcam_accessed) dispatch("stream", get_stream_callback);
+		}, 200);
 	}
-
 	async function select_source(): Promise<void> {
 		const devices = await navigator.mediaDevices.enumerateDevices();
 		video_sources = devices.filter((device) => device.kind === "videoinput");
@@ -218,6 +219,8 @@
 		bind:this={video_source}
 		class:flip={mirror_webcam}
 		class:hide={!webcam_accessed}
+		autoplay={true}
+		playsinline={true}
 	/>
 	{#if !webcam_accessed}
 		<div in:fade={{ delay: 100, duration: 200 }} title="grant webcam access">

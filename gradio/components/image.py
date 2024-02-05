@@ -150,6 +150,8 @@ class Image(StreamingInput, Component):
         """
         if payload is None:
             return payload
+        if self.streaming:
+            return payload
         file_path = Path(payload.path)
         if payload.orig_name:
             p = Path(payload.orig_name)

@@ -1325,7 +1325,7 @@ Received inputs:
                     inputs_cached = processing_utils.move_files_to_cache(
                         inputs[i], block
                     )
-                    if getattr(block, "data_model", None) and inputs_cached is not None:
+                    if getattr(block, "data_model", None) and inputs_cached is not None and not getattr(block, "streaming", False):
                         if issubclass(block.data_model, GradioModel):  # type: ignore
                             inputs_cached = block.data_model(**inputs_cached)  # type: ignore
                         elif issubclass(block.data_model, GradioRootModel):  # type: ignore

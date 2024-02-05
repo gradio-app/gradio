@@ -28,7 +28,7 @@ import type {
 	SpaceStatusCallback
 } from "./types.js";
 
-import {start, stop} from "./webrtc_utils.ts";
+import { start, stop } from "./webrtc_utils.ts";
 
 import { FileData, normalise_file } from "./upload";
 
@@ -51,7 +51,9 @@ type client_return = {
 		endpoint: string | number,
 		data?: unknown[],
 		event_data?: unknown,
-		trigger_id?: number | null
+		trigger_id?: number | null,
+		webrtc_callback?: any | null,
+		node?: any | null
 	) => SubmitReturn;
 	component_server: (
 		component_id: number,
@@ -433,8 +435,8 @@ export function api_factory(
 				data: unknown[],
 				event_data?: unknown,
 				trigger_id: number | null = null,
-				request_stream_callback: () => MediaStream = () => {},
-				on_track_callback: (evt: RTCTrackEvent) => void = () => {}
+				webrtc_callback?: () => MediaStream | null = null,
+				node?: any
 			): SubmitReturn {
 				let fn_index: number;
 				let api_info;
@@ -455,8 +457,10 @@ export function api_factory(
 					);
 				}
 				const webrtc_id = `${session_hash}-${fn_index}`;
-				if (true && !peer_connection_established) {
-					start(webrtc_id, request_stream_callback, on_track_callback);
+				const newNode = { srcObject: null };
+				if (webrtc_callback && !peer_connection_established) {
+					console.log("HERE before start");
+					start(webrtc_id, webrtc_callback, newNode, config.root);
 					peer_connection_established = true;
 				}
 
@@ -888,14 +892,7 @@ export function api_factory(
 												fire_event({
 													type: "data",
 													time: new Date(),
-													data: transform_files
-														? transform_output(
-																data.data,
-																api_info,
-																config.root,
-																config.root_url
-														  )
-														: data.data,
+													data: [newNode.srcObject],
 													endpoint: _endpoint,
 													fn_index
 												});
