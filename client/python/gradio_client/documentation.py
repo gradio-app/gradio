@@ -3,18 +3,13 @@
 from __future__ import annotations
 
 import inspect
+import warnings
+from collections import defaultdict
+from functools import lru_cache
 from typing import Callable
 
-classes_to_document = {}
+classes_to_document = defaultdict(list)
 classes_inherit_documentation = {}
-documentation_group = None
-
-
-def set_documentation_group(m):
-    global documentation_group  # noqa: PLW0603
-    documentation_group = m
-    if m not in classes_to_document:
-        classes_to_document[m] = []
 
 
 def extract_instance_attr_doc(cls, attr):
@@ -42,7 +37,33 @@ def extract_instance_attr_doc(cls, attr):
     return doc_string
 
 
-def document(*fns, inherit=False):
+_module_prefixes = [
+    ("gradio._simple_templates", "component"),
+    ("gradio.block", "block"),
+    ("gradio.chat", "chatinterface"),
+    ("gradio.component", "component"),
+    ("gradio.events", "helpers"),
+    ("gradio.exceptions", "helpers"),
+    ("gradio.external", "helpers"),
+    ("gradio.flag", "flagging"),
+    ("gradio.helpers", "helpers"),
+    ("gradio.interface", "interface"),
+    ("gradio.layout", "layout"),
+    ("gradio.route", "routes"),
+    ("gradio.theme", "themes"),
+    ("gradio_client", "py-client"),
+]
+
+
+@lru_cache(maxsize=10)
+def _get_module_documentation_group(modname) -> str:
+    for prefix, group in _module_prefixes:
+        if modname.startswith(prefix):
+            return group
+    raise ValueError(f"No known documentation group for module {modname!r}")
+
+
+def document(*fns, inherit=False, documentation_group=None):
     """
     Defines the @document decorator which adds classes or functions to the Gradio
     documentation at www.gradio.app/docs.
@@ -52,6 +73,7 @@ def document(*fns, inherit=False):
     - Put @document("fn1", "fn2") above a class to also document methods fn1 and fn2.
     - Put @document("*fn3") with an asterisk above a class to document the instance attribute methods f3.
     """
+    _documentation_group = documentation_group
 
     def inner_doc(cls):
         functions = list(fns)
@@ -59,6 +81,14 @@ def document(*fns, inherit=False):
             functions += cls.EVENTS
         if inherit:
             classes_inherit_documentation[cls] = None
+
+        documentation_group = _documentation_group  # avoid `nonlocal` reassignment
+        if _documentation_group is None:
+            try:
+                modname = inspect.getmodule(cls).__name__  # type: ignore
+                documentation_group = _get_module_documentation_group(modname)
+            except Exception as exc:
+                warnings.warn(f"Could not get documentation group for {cls}: {exc}")
         classes_to_document[documentation_group].append((cls, functions))
         return cls
 

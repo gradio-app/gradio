@@ -10,7 +10,7 @@ from typing import AsyncGenerator, Callable, Literal, Union, cast
 
 import anyio
 from gradio_client import utils as client_utils
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.blocks import Blocks
 from gradio.components import (
@@ -29,8 +29,6 @@ from gradio.layouts import Accordion, Column, Group, Row
 from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
 from gradio.utils import SyncToAsyncIterator, async_iteration
-
-set_documentation_group("chatinterface")
 
 
 @document()
