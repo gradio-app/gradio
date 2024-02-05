@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document, set_documentation_group
 
@@ -43,7 +43,7 @@ class Code(Component):
 
     def __init__(
         self,
-        value: str | tuple[str] | None = None,
+        value: str | Callable | tuple[str] | None = None,
         language: Literal[
             "python",
             "markdown",
