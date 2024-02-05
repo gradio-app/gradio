@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Add source selection interaction story for `gr.Image`
+feat:Add source selection interaction test for `gr.Image`
