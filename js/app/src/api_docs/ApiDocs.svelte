@@ -220,7 +220,7 @@
 								{dependency}
 								{dependency_index}
 								{current_language}
-								{root}
+								root={space_id || root}
 								{dependency_failures}
 							/>
 
@@ -288,10 +288,9 @@
 		border: 1px solid var(--border-color-accent);
 		border-radius: var(--radius-sm);
 		background: var(--color-accent-soft);
-		padding-right: var(--size-1);
-		padding-bottom: var(--size-1);
-		padding-left: var(--size-1);
+		padding: var(--size-1);
 		color: var(--color-accent);
+		font-size: var(--text-md);
 	}
 
 	.snippets {
@@ -359,5 +358,6 @@
 
 	p.padded {
 		padding: 15px 0px;
+		font-size: var(--text-lg);
 	}
 </style>
