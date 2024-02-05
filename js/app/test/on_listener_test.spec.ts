@@ -6,7 +6,7 @@ test("On listener works.", async ({ page }) => {
 	const trigger1_box = await page.locator("textarea").nth(2);
 	const trigger2_box = await page.locator("textarea").nth(3);
 
-	name_box.fill("Jimmy");
+	await name_box.fill("Jimmy");
 	await page.click("text=Greet");
 	await expect(output_box).toHaveValue("Hello Jimmy!");
 	await expect(trigger1_box).toHaveValue("Button");
