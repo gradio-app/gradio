@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio import processing_utils
 from gradio.components.base import (
@@ -12,8 +12,6 @@ from gradio.components.base import (
     get_component_instance,
 )
 from gradio.events import Events
-
-set_documentation_group("component")
 
 
 @document()

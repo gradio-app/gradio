@@ -22,6 +22,17 @@
 	export let dependencies: Dependency[];
 	export let root: string;
 	export let app: Awaited<ReturnType<typeof client>>;
+	export let space_id: string | null;
+
+	const js_docs =
+		"https://www.gradio.app/guides/getting-started-with-the-js-client";
+	const py_docs =
+		"https://www.gradio.app/guides/getting-started-with-the-python-client";
+	const spaces_docs_suffix = "#connecting-to-a-hugging-face-space";
+
+	let api_count = dependencies.filter(
+		(dependency) => dependency.show_api
+	).length;
 
 	if (root === "") {
 		root = location.protocol + "//" + location.host + location.pathname;
@@ -148,26 +159,18 @@
 </script>
 
 {#if info}
-	{#if dependencies.filter((dependency) => dependency.show_api).length}
+	{#if api_count}
 		<div class="banner-wrap">
-			<ApiBanner
-				on:close
-				{root}
-				api_count={dependencies.filter((dependency) => dependency.show_api)
-					.length}
-			/>
+			<ApiBanner on:close root={space_id || root} {api_count} />
 		</div>
 		<div class="docs-wrap">
 			<div class="client-doc">
 				<p>
-					Use the <a
-						href="https://gradio.app/docs/#python-client"
-						target="_blank"><code class="library">gradio_client</code></a
-					>
-					Python library or the
-					<a href="https://gradio.app/docs/#javascript-client" target="_blank"
-						><code class="library">@gradio/client</code></a
-					> Javascript package to query the demo via API.
+					Use the <code class="library">gradio_client</code>
+					Python library (<a href={py_docs} target="_blank">docs</a>) or the
+					<code class="library">@gradio/client</code>
+					Javascript package (<a href={js_docs} target="_blank">docs</a>) to
+					query the app via API.
 				</p>
 			</div>
 			<div class="endpoint">
@@ -183,11 +186,25 @@
 						</li>
 					{/each}
 				</div>
+
+				<p class="padded">
+					1. Install the client if you don't already have it installed.
+				</p>
+
 				<InstallSnippet {current_language} />
 
-				{#if Object.keys(info.named_endpoints).length}
-					<h2 class="header">Endpoints</h2>
-				{/if}
+				<p class="padded">
+					2. Find the API endpoint below corresponding to your desired function
+					in the app. Copy the code snippet, replacing the placeholder values
+					with your own input data.
+					{#if space_id}If this is a private Space, you may need to pass your
+						Hugging Face token as well (<a
+							href={(current_language == "python" ? py_docs : js_docs) +
+								spaces_docs_suffix}
+							class="underline"
+							target="_blank">read more</a
+						>).{/if} Run the code, that's it!
+				</p>
 
 				{#each dependencies as dependency, dependency_index}
 					{#if dependency.show_api}
@@ -203,7 +220,7 @@
 								{dependency}
 								{dependency_index}
 								{current_language}
-								{root}
+								root={space_id || root}
 								{dependency_failures}
 							/>
 
@@ -271,10 +288,9 @@
 		border: 1px solid var(--border-color-accent);
 		border-radius: var(--radius-sm);
 		background: var(--color-accent-soft);
-		padding-right: var(--size-1);
-		padding-bottom: var(--size-1);
-		padding-left: var(--size-1);
+		padding: var(--size-1);
 		color: var(--color-accent);
+		font-size: var(--text-md);
 	}
 
 	.snippets {
@@ -334,5 +350,14 @@
 		border-radius: var(--radius-xl);
 		padding: var(--size-3);
 		padding-top: 0;
+	}
+
+	a {
+		text-decoration: underline;
+	}
+
+	p.padded {
+		padding: 15px 0px;
+		font-size: var(--text-lg);
 	}
 </style>

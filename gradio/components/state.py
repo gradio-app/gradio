@@ -5,11 +5,9 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components.base import Component
-
-set_documentation_group("component")
 
 
 @document()
