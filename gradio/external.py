@@ -153,7 +153,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         Path(tempfile.gettempdir()) / "gradio"
     )
 
-    client = huggingface_hub.InferenceClient(model=model_name)
+    client = huggingface_hub.InferenceClient(model=model_name, headers={"X-Wait-For-Model": "true"})
 
     # For tasks that are not yet supported by the InferenceClient
     def custom_post_binary(data):
@@ -180,125 +180,93 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         inputs = components.Audio(sources=["upload"], type="filepath", label="Input")
         outputs = components.Textbox(label="Output")
         fn = client.automatic_speech_recognition
-    #     "automatic-speech-recognition": {
-    #         "inputs": components.Audio(
-    #             sources=["upload"], type="filepath", label="Input", render=False
-    #         ),
-    #         "outputs": components.Textbox(label="Output", render=False),
-    #         "preprocess": to_binary,
-    #         "postprocess": lambda r: r.json()["text"],
-    #     },
-    #     "conversational": {
-    #         "inputs": [
-    #             components.Textbox(render=False),
-    #             components.State(render=False),
-    #         ],  # type: ignore
-    #         "outputs": [
-    #             components.Chatbot(render=False),
-    #             components.State(render=False),
-    #         ],  # type: ignore
-    #         "preprocess": chatbot_preprocess,
-    #         "postprocess": chatbot_postprocess,
-    #     },
-    #     "feature-extraction": {
-    #         # example model: julien-c/distilbert-feature-extraction
-    #         "inputs": components.Textbox(label="Input", render=False),
-    #         "outputs": components.Dataframe(label="Output", render=False),
-    #         "preprocess": lambda x: {"inputs": x},
-    #         "postprocess": lambda r: r.json()[0],
-    #     },
-    #     "fill-mask": {
-    #         "inputs": components.Textbox(label="Input", render=False),
-    #         "outputs": components.Label(label="Classification", render=False),
-    #         "preprocess": lambda x: {"inputs": x},
-    #         "postprocess": lambda r: postprocess_label(
-    #             {i["token_str"]: i["score"] for i in r.json()}
-    #         ),
-    #     },
-    #     "image-classification": {
-    #         # Example: google/vit-base-patch16-224
-    #         "inputs": components.Image(
-    #             type="filepath", label="Input Image", render=False
-    #         ),
-    #         "outputs": components.Label(label="Classification", render=False),
-    #         "preprocess": to_binary,
-    #         "postprocess": lambda r: postprocess_label(
-    #             {i["label"].split(", ")[0]: i["score"] for i in r.json()}
-    #         ),
-    #     },
-    #     "question-answering": {
-    #         # Example: deepset/xlm-roberta-base-squad2
-    #         "inputs": [
-    #             components.Textbox(lines=7, label="Context", render=False),
-    #             components.Textbox(label="Question", render=False),
+    elif p == "automatic-speech-recognition":
+        inputs = components.Audio(
+            sources=["upload"], type="filepath", label="Input"
+            )
+        outputs = components.Textbox(label="Output")
+        fn = client.automatic_speech_recognition
+    elif p == "conversational":
+        inputs = [
+            components.Textbox(render=False),
+            components.State(render=False),
+        ]
+        outputs = [
+            components.Chatbot(render=False),
+            components.State(render=False),
+        ]
+        fn = client.conversational
+    # example model: julien-c/distilbert-feature-extraction
+    elif p == "feature-extraction":
+        inputs = components.Textbox(label="Input")
+        outputs = components.Dataframe(label="Output")
+        fn = client.feature_extraction
+    elif p == "fill-mask":
+        inputs = components.Textbox(label="Input")
+        outputs = components.Label(label="Classification")
+        client.fill_mask
+    # Example: google/vit-base-patch16-224
+    elif p == "image-classification":
+        inputs = components.Image(
+                type="filepath", label="Input Image"
+            )
+        outputs = components.Label(label="Classification")
+        fn = client.image_classification
+    # Example: deepset/xlm-roberta-base-squad2
+    elif p == "question-answering":
+        inputs = [
+    #             components.Textbox(lines=7, label="Context"),
+    #             components.Textbox(label="Question"),
     #         ],
-    #         "outputs": [
-    #             components.Textbox(label="Answer", render=False),
-    #             components.Label(label="Score", render=False),
+        outputs = [
+    #             components.Textbox(label="Answer"),
+    #             components.Label(label="Score"),
     #         ],
-    #         "preprocess": lambda c, q: {"inputs": {"context": c, "question": q}},
-    #         "postprocess": lambda r: (r.json()["answer"], {"label": r.json()["score"]}),
-    #     },
-    #     "summarization": {
-    #         # Example: facebook/bart-large-cnn
-    #         "inputs": components.Textbox(label="Input", render=False),
-    #         "outputs": components.Textbox(label="Summary", render=False),
-    #         "preprocess": lambda x: {"inputs": x},
-    #         "postprocess": lambda r: r.json()[0]["summary_text"],
-    #     },
-    #     "text-classification": {
-    #         # Example: distilbert-base-uncased-finetuned-sst-2-english
-    #         "inputs": components.Textbox(label="Input", render=False),
-    #         "outputs": components.Label(label="Classification", render=False),
-    #         "preprocess": lambda x: {"inputs": x},
-    #         "postprocess": lambda r: postprocess_label(
-    #             {i["label"].split(", ")[0]: i["score"] for i in r.json()[0]}
-    #         ),
-    #     },
-    #     "text-generation": {
-    #         # Example: gpt2
-    #         "inputs": components.Textbox(label="Input", render=False),
-    #         "outputs": components.Textbox(label="Output", render=False),
-    #         "preprocess": lambda x: {"inputs": x},
-    #         "postprocess": lambda r: r.json()[0]["generated_text"],
-    #     },
-    #     "text2text-generation": {
-    #         # Example: valhalla/t5-small-qa-qg-hl
-    #         "inputs": components.Textbox(label="Input", render=False),
-    #         "outputs": components.Textbox(label="Generated Text", render=False),
-    #         "preprocess": lambda x: {"inputs": x},
-    #         "postprocess": lambda r: r.json()[0]["generated_text"],
-    #     },
-    #     "translation": {
-    #         "inputs": components.Textbox(label="Input", render=False),
-    #         "outputs": components.Textbox(label="Translation", render=False),
-    #         "preprocess": lambda x: {"inputs": x},
-    #         "postprocess": lambda r: r.json()[0]["translation_text"],
-    #     },
-    #     "zero-shot-classification": {
-    #         # Example: facebook/bart-large-mnli
-    #         "inputs": [
-    #             components.Textbox(label="Input", render=False),
+    #         "preprocess": lambda c, q:"inputs":"context": c, "question": q}},
+    #         "postprocess": lambda r: (r.json()["answer"],"label": r.json()["score"]}),
+    # Example: facebook/bart-large-cnn
+    elif p == "summarization":
+        inputs = components.Textbox(label="Input")
+        outputs = components.Textbox(label="Summary")
+        fn = client.summarization
+    # Example: distilbert-base-uncased-finetuned-sst-2-english
+    elif p == "text-classification":
+        inputs = components.Textbox(label="Input")
+        outputs = components.Label(label="Classification")
+    # Example: gpt2
+    elif p == "text-generation":
+        inputs = components.Textbox(label="Input")
+        outputs = components.Textbox(label="Output")
+    # Example: valhalla/t5-small-qa-qg-hl
+    elif p == "text2text-generation":
+        inputs = components.Textbox(label="Input")
+        outputs = components.Textbox(label="Generated Text")
+    elif p == "translation":
+        inputs = components.Textbox(label="Input"),
+        outputs = components.Textbox(label="Translation"),
+    # Example: facebook/bart-large-mnli
+    elif p == "zero-shot-classification":
+        inputs = [
+    #             components.Textbox(label="Input"),
     #             components.Textbox(
-    #                 label="Possible class names (" "comma-separated)", render=False
+    #                 label="Possible class names (" "comma-separated)"
     #             ),
-    #             components.Checkbox(label="Allow multiple true classes", render=False),
+    #             components.Checkbox(label="Allow multiple true classes"),
     #         ],
-    #         "outputs": components.Label(label="Classification", render=False),
-    #         "preprocess": lambda i, c, m: {
+        outputs = components.Label(label="Classification"),
+    #         "preprocess": lambda i, c, m:
     #             "inputs": i,
-    #             "parameters": {"candidate_labels": c, "multi_class": m},
+    #             "parameters":"candidate_labels": c, "multi_class": m},
     #         },
     #         "postprocess": lambda r: postprocess_label(
-    #             {
+    #            
     #                 r.json()["labels"][i]: r.json()["scores"][i]
     #                 for i in range(len(r.json()["labels"]))
     #             }
     #         ),
-    #     },
-    #     "sentence-similarity": {
+    elif p == "sentence-similarity":
     #         # Example: sentence-transformers/distilbert-base-nli-stsb-mean-tokens
-    #         "inputs": [
+        inputs = [
     #             components.Textbox(
     #                 value="That is a happy person",
     #                 label="Source Sentence",
@@ -311,51 +279,47 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     #                 render=False,
     #             ),
     #         ],
-    #         "outputs": components.Label(label="Classification", render=False),
-    #         "preprocess": lambda src, sentences: {
-    #             "inputs": {
+        outputs = components.Label(label="Classification"),
+    #         "preprocess": lambda src, sentences:
+    #             "inputs":
     #                 "source_sentence": src,
     #                 "sentences": [s for s in sentences.splitlines() if s != ""],
     #             }
     #         },
     #         "postprocess": lambda r: postprocess_label(
-    #             {f"sentence {i}": v for i, v in enumerate(r.json())}
+    #            f"sentencei}": v for i, v in enumerate(r.json())}
     #         ),
-    #     },
-    #     "text-to-speech": {
+    elif p == "text-to-speech":
     #         # Example: julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train
-    #         "inputs": components.Textbox(label="Input", render=False),
-    #         "outputs": components.Audio(label="Audio", render=False),
-    #         "preprocess": lambda x: {"inputs": x},
+        inputs = components.Textbox(label="Input"),
+        outputs = components.Audio(label="Audio"),
+    #         "preprocess": lambda x:"inputs": x},
     #         "postprocess": lambda x: save_base64_to_cache(
     #             encode_to_base64(x), cache_dir=GRADIO_CACHE, file_name="output.wav"
     #         ),
-    #     },
-    #     "text-to-image": {
+    elif p == "text-to-image":
     #         # example model: osanseviero/BigGAN-deep-128
-    #         "inputs": components.Textbox(label="Input", render=False),
-    #         "outputs": components.Image(label="Output", render=False),
-    #         "preprocess": lambda x: {"inputs": x},
+        inputs = components.Textbox(label="Input"),
+        outputs = components.Image(label="Output"),
+    #         "preprocess": lambda x:"inputs": x},
     #         "postprocess": lambda x: save_base64_to_cache(
     #             encode_to_base64(x), cache_dir=GRADIO_CACHE, file_name="output.jpg"
     #         ),
-    #     },
-    #     "token-classification": {
+    elif p == "token-classification":
     #         # example model: huggingface-course/bert-finetuned-ner
-    #         "inputs": components.Textbox(label="Input", render=False),
-    #         "outputs": components.HighlightedText(label="Output", render=False),
-    #         "preprocess": lambda x: {"inputs": x},
+        inputs = components.Textbox(label="Input"),
+        outputs = components.HighlightedText(label="Output"),
+    #         "preprocess": lambda x:"inputs": x},
     #         "postprocess": lambda r: r,  # Handled as a special case in query_huggingface_api()
-    #     },
-    #     "document-question-answering": {
+    elif p == "document-question-answering":
     #         # example model: impira/layoutlm-document-qa
-    #         "inputs": [
-    #             components.Image(type="filepath", label="Input Document", render=False),
-    #             components.Textbox(label="Question", render=False),
+        inputs = [
+    #             components.Image(type="filepath", label="Input Document"),
+    #             components.Textbox(label="Question"),
     #         ],
-    #         "outputs": components.Label(label="Label", render=False),
-    #         "preprocess": lambda img, q: {
-    #             "inputs": {
+        outputs = components.Label(label="Label"),
+    #         "preprocess": lambda img, q:
+    #             "inputs":
     #                 "image": extract_base64_data(
     #                     client_utils.encode_url_or_file_to_base64(img["path"])
     #                 ),  # Extract base64 data
@@ -363,18 +327,17 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     #             }
     #         },
     #         "postprocess": lambda r: postprocess_label(
-    #             {i["answer"]: i["score"] for i in r.json()}
+    #            i["answer"]: i["score"] for i in r.json()}
     #         ),
-    #     },
-    #     "visual-question-answering": {
+    elif p == "visual-question-answering":
     #         # example model: dandelin/vilt-b32-finetuned-vqa
-    #         "inputs": [
-    #             components.Image(type="filepath", label="Input Image", render=False),
-    #             components.Textbox(label="Question", render=False),
+        inputs = [
+    #             components.Image(type="filepath", label="Input Image"),
+    #             components.Textbox(label="Question"),
     #         ],
-    #         "outputs": components.Label(label="Label", render=False),
-    #         "preprocess": lambda img, q: {
-    #             "inputs": {
+        outputs = components.Label(label="Label"),
+    #         "preprocess": lambda img, q:
+    #             "inputs":
     #                 "image": extract_base64_data(
     #                     client_utils.encode_url_or_file_to_base64(img["path"])
     #                 ),
@@ -382,20 +345,18 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     #             }
     #         },
     #         "postprocess": lambda r: postprocess_label(
-    #             {i["answer"]: i["score"] for i in r.json()}
+    #            i["answer"]: i["score"] for i in r.json()}
     #         ),
-    #     },
-    #     "image-to-text": {
+    elif p == "image-to-text":
     #         # example model: Salesforce/blip-image-captioning-base
-    #         "inputs": components.Image(
-    #             type="filepath", label="Input Image", render=False
+        inputs = components.Image(
+    #             type="filepath", label="Input Image"
     #         ),
-    #         "outputs": components.Textbox(label="Generated Text", render=False),
+        outputs = components.Textbox(label="Generated Text"),
     #         "preprocess": to_binary,
     #         "postprocess": lambda r: r.json()[0]["generated_text"],
-    #     },
     # }
-    # elif p in ["tabular-classification", "tabular-regression"]:
+    elif p in ["tabular-classification", "tabular-regression"]:
     #     example_data = get_tabular_examples(model_name)
     #     col_names, example_data = cols_to_rows(example_data)
     #     example_data = [[example_data]] if example_data else None
@@ -408,10 +369,10 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     #         render=False,
     #     )
     #     outputs = components.Dataframe(
-    #         label="Predictions", type="array", headers=["prediction"], render=False
+    #         label="Predictions", type="array", headers=["prediction"]
     #     )
         # preprocess = rows_to_cols
-        # postprocess = lambda r: {
+        # postprocess = lambda r:
         #         "headers": ["prediction"],
         #         "data": [[pred] for pred in json.loads(r.text)],
         # }
