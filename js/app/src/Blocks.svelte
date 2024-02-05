@@ -440,6 +440,19 @@
 		return comp.props.value;
 	}
 
+	function get_webrtc_callback(dep: Dependency): any {
+		const comp_id = dep.inputs.find((id) => instance_map[id].props.streaming);
+		const o = comp_id
+			? instance_map[comp_id].instance.webrtc_callback
+			: comp_id;
+		return o;
+	}
+
+	function get_node(dep: Dependency): any {
+		const comp_id = dep.outputs.find((id) => instance_map[id].props.streaming);
+		return comp_id ? instance_map[comp_id].instance.node : comp_id;
+	}
+
 	async function trigger_api_call(
 		dep_index: number,
 		trigger_id: number | null = null,
@@ -467,7 +480,9 @@
 				dep.inputs.map((id) => get_data(instance_map[id]))
 			),
 			event_data: dep.collects_event_data ? event_data : null,
-			trigger_id: trigger_id
+			trigger_id: trigger_id,
+			webrtc_callback: get_webrtc_callback(dep),
+			node_element: get_node(dep)
 		};
 
 		if (dep.frontend_fn) {
@@ -511,7 +526,9 @@
 					payload.fn_index,
 					payload.data as unknown[],
 					payload.event_data,
-					payload.trigger_id
+					payload.trigger_id,
+					payload.webrtc_callback,
+					payload.node_element
 				)
 				.on("data", ({ data, fn_index }) => {
 					if (dep.pending_request && dep.final_event) {
