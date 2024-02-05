@@ -4,13 +4,11 @@ from __future__ import annotations
 
 from typing import Literal
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components import Button
 from gradio.context import Context
 from gradio.utils import get_space
-
-set_documentation_group("component")
 
 
 @document()

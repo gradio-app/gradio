@@ -7,14 +7,12 @@ from types import ModuleType
 from typing import Any, Literal
 
 import altair as alt
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio import processing_utils
 from gradio.components.base import Component
 from gradio.data_classes import GradioModel
 from gradio.events import Events
-
-set_documentation_group("component")
 
 
 class PlotData(GradioModel):

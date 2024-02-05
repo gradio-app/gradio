@@ -21,7 +21,7 @@ Tip: If you inherit from `BlockContext`, you also need to set the metaclass to b
 from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
 
-set_documentation_group("layout")
+
 
 
 @document()

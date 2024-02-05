@@ -9,12 +9,10 @@ import warnings
 from pathlib import Path
 from typing import Any, Callable, List, Literal
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components.base import Component, server
 from gradio.data_classes import GradioRootModel
-
-set_documentation_group("component")
 
 
 class FileExplorerData(GradioRootModel):

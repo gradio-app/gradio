@@ -14,15 +14,13 @@ from typing import TYPE_CHECKING, Any
 import filelock
 import huggingface_hub
 from gradio_client import utils as client_utils
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 import gradio as gr
 from gradio import utils
 
 if TYPE_CHECKING:
     from gradio.components import Component
-
-set_documentation_group("flagging")
 
 
 class FlaggingCallback(ABC):
