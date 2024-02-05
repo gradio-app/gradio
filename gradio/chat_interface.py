@@ -176,7 +176,9 @@ class ChatInterface(Blocks):
             if chatbot:
                 self.chatbot = chatbot.render()
             else:
-                self.chatbot = Chatbot(label="Chatbot", scale=1, height=200)
+                self.chatbot = Chatbot(
+                    label="Chatbot", scale=1, height=200 if expand_to_height else None
+                )
 
             with Row():
                 for btn in [retry_btn, undo_btn, clear_btn]:
