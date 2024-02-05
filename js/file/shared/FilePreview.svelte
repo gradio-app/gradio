@@ -28,7 +28,7 @@
 		return {
 			...file,
 			filename_stem,
-			filename_ext,
+			filename_ext
 		};
 	});
 
@@ -51,7 +51,7 @@
 					on:click={() =>
 						dispatch("select", {
 							value: file.orig_name,
-							index: i,
+							index: i
 						})}
 				>
 					<td class="filename" aria-label={file.orig_name}>
