@@ -246,14 +246,11 @@
 			</button>
 			{#if !recording}
 				<button
+					class="icon"
 					on:click={select_source}
-					aria-label={mode === "image"
-						? "select input source"
-						: "start recording"}
+					aria-label={"selecxt input source"}
 				>
-					<button class="icon" title="select video source">
-						<DropdownArrow />
-					</button>
+					<DropdownArrow />
 				</button>
 			{/if}
 		</div>
