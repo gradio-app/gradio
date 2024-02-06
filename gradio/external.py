@@ -216,11 +216,11 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         postprocess = external_utils.postprocess_label
         examples = ["https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"]
         fn = client.image_classification
-    # Example: deepset/xlm-roberta-base-squad2
+    # Example: deepset/xlm-roberta-base-squad2!!
     elif p == "question-answering":
         inputs = [
-            components.Textbox(lines=7, label="Context"),
             components.Textbox(label="Question"),
+            components.Textbox(lines=7, label="Context"),
         ]
         outputs = [
             components.Textbox(label="Answer"),
@@ -228,10 +228,10 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         ]
         examples = [
             [
+                "What entity was responsible for the Apollo program?",
                 "The Apollo program, also known as Project Apollo, was the third United States human spaceflight"
                 " program carried out by the National Aeronautics and Space Administration (NASA), which accomplished"
                 " landing the first humans on the Moon from 1969 to 1972.",
-                "What entity was responsible for the Apollo program?",
             ]
         ]
         postprocess = external_utils.postprocess_question_answering
@@ -246,11 +246,12 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             ]
         ]
         fn = client.summarization
-    # Example: distilbert-base-uncased-finetuned-sst-2-english
+    # Example: distilbert-base-uncased-finetuned-sst-2-english!!
     elif p == "text-classification":
         inputs = components.Textbox(label="Input")
         outputs = components.Label(label="Classification")
         examples = ["I feel great"]
+        postprocess = external_utils.postprocess_label
         fn = client.text_classification
     # Example: gpt2
     elif p == "text-generation":
@@ -269,7 +270,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         outputs = components.Textbox(label="Translation")
         examples = ["Hello, how are you?"]
         fn = client.translation
-    # Example: facebook/bart-large-mnli
+    # Example: facebook/bart-large-mnli!!
     elif p == "zero-shot-classification":
         inputs = [
             components.Textbox(label="Input"),
@@ -277,8 +278,9 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             components.Checkbox(label="Allow multiple true classes"),
         ]
         outputs = components.Label(label="Classification")
+        postprocess = external_utils.postprocess_label
         examples = [["I feel great", "happy, sad", False]]
-        fn = client.zero_shot_classification
+        fn = external_utils.zero_shot_classification_wrapper(client)
     # Example: sentence-transformers/distilbert-base-nli-stsb-mean-tokens
     elif p == "sentence-similarity":
         inputs = [

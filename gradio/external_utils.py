@@ -7,6 +7,7 @@ import warnings
 
 import httpx
 import yaml
+from huggingface_hub import InferenceClient
 
 from gradio import components
 
@@ -85,6 +86,15 @@ def postprocess_mask_tokens(scores: list[dict[str, str | float]]) -> dict:
 
 def postprocess_question_answering(answer: dict) -> tuple[str, dict]:
     return answer["answer"], {answer["answer"]: answer["score"]}
+
+
+def zero_shot_classification_wrapper(client: InferenceClient):
+    def zero_shot_classification_inner(input: str, labels: str, multi_label: bool):
+        return client.zero_shot_classification(
+            input, labels.split(","), multi_label=multi_label
+        )
+
+    return zero_shot_classification_inner
 
 
 def encode_to_base64(r: httpx.Response) -> str:
