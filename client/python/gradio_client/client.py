@@ -76,7 +76,7 @@ class Client:
         verbose: bool = True,
         auth: tuple[str, str] | None = None,
         *,
-        headers = dict[str, str] | None = None,
+        headers: dict[str, str] | None = None,
     ):
         """
         Parameters:
