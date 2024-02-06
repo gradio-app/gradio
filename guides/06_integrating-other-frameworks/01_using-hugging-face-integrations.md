@@ -12,9 +12,9 @@ The Hugging Face Hub is a central platform that has hundreds of thousands of [mo
 Gradio has multiple features that make it extremely easy to leverage existing models and Spaces on the Hub. This guide walks through these features.
 
 
-## Demos with the Hugging Face Inference API
+## Demos with the Hugging Face Inference Endpoints
 
-Hugging Face has a free service called the [Inference API](https://huggingface.co/inference-api), which allows you to send HTTP requests to models in the Hub. For transformers or diffusers-based models, the API can be 2 to 10 times faster than running the inference yourself. The API is free (rate limited), and you can switch to dedicated [Inference Endpoints](https://huggingface.co/pricing) when you want to use it in production. Gradio integrates directly with the Hugging Face Inference API so that you can create a demo simply by specifying a model's name (e.g. `Helsinki-NLP/opus-mt-en-es`), like this:
+Hugging Face has a service called [Serverless Inference Endpoints](https://huggingface.co/docs/api-inference/index), which allows you to send HTTP requests to models on the Hub. The API includes a generous free tier, and you can switch to [dedicated Inference Endpoints](https://huggingface.co/inference-endpoints/dedicated) when you want to use it in production. Gradio integrates directly with Serverless Inference Endpoints so that you can create a demo simply by specifying a model's name (e.g. `Helsinki-NLP/opus-mt-en-es`), like this:
 
 ```python
 import gradio as gr
@@ -24,11 +24,11 @@ demo = gr.load("Helsinki-NLP/opus-mt-en-es", src="models")
 demo.launch()
 ```
 
-For any Hugging Face model supported in the Inference API, Gradio automatically infers the expected input and output and make the underlying server calls, so you don't have to worry about defining the prediction function. 
+For any Hugging Face model supported in Inference Endpoints, Gradio automatically infers the expected input and output and make the underlying server calls, so you don't have to worry about defining the prediction function. 
 
 Notice that we just put specify the model name and state that the `src` should be `models` (Hugging Face's Model Hub). There is no need to install any dependencies (except `gradio`) since you are not loading the model on your computer.
 
-You might notice that the first inference takes about 20 seconds. This happens since the Inference API is loading the model in the server. You get some benefits afterward:
+You might notice that the first inference takes a little bit longer. This happens since the Inference Endpoints is loading the model in the server. You get some benefits afterward:
 
 - The inference will be much faster.
 - The server caches your requests.
@@ -78,7 +78,7 @@ with gr.Blocks() as demo:
 demo.launch()
 ```
 
-Notice that we use `gr.load()`, the same method we used to load models using the Inference API. However, here we specify that the `src` is `spaces` (Hugging Face Spaces). 
+Notice that we use `gr.load()`, the same method we used to load models using Inference Endpoints. However, here we specify that the `src` is `spaces` (Hugging Face Spaces). 
 
 Note: loading a Space in this way may result in slight differences from the original Space. In particular, any attributes that apply to the entire Blocks, such as the theme or custom CSS/JS, will not be loaded. You can copy these properties from the Space you are loading into your own `Blocks` object. 
 
@@ -126,7 +126,7 @@ The previous code produces the following interface, which you can try right here
 
 That's it! Let's recap the various ways Gradio and Hugging Face work together:
 
-1. You can build a demo around the Inference API without having to load the model easily using `gr.load()`.
+1. You can build a demo around Inference Endpoints without having to load the model, by using `gr.load()`.
 2. You host your Gradio demo on Hugging Face Spaces, either using the GUI or entirely in Python.
 3. You can load demos from Hugging Face Spaces to remix and create new Gradio demos using `gr.load()`.
 4. You can convert a `transformers` pipeline into a Gradio demo using `from_pipeline()`.
