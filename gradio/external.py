@@ -31,11 +31,9 @@ from gradio.external_utils import (
     cols_to_rows,
     encode_to_base64,
     get_tabular_examples,
-    postprocess_label,
-    rows_to_cols,
     streamline_spaces_interface,
 )
-from gradio.processing_utils import extract_base64_data, save_base64_to_cache, to_binary
+from gradio.processing_utils import save_base64_to_cache, to_binary
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -153,7 +151,9 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         Path(tempfile.gettempdir()) / "gradio"
     )
 
-    client = huggingface_hub.InferenceClient(model=model_name, headers={"X-Wait-For-Model": "true"})
+    client = huggingface_hub.InferenceClient(
+        model=model_name, headers={"X-Wait-For-Model": "true"}
+    )
 
     # For tasks that are not yet supported by the InferenceClient
     def custom_post_binary(data):
@@ -198,24 +198,22 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     elif p == "fill-mask":
         inputs = components.Textbox(label="Input")
         outputs = components.Label(label="Classification")
-        client.fill_mask
+        fn = client.fill_mask
     # Example: google/vit-base-patch16-224
     elif p == "image-classification":
-        inputs = components.Image(
-                type="filepath", label="Input Image"
-            )
+        inputs = components.Image(type="filepath", label="Input Image")
         outputs = components.Label(label="Classification")
         fn = client.image_classification
     # Example: deepset/xlm-roberta-base-squad2
     elif p == "question-answering":
         inputs = [
-                components.Textbox(lines=7, label="Context"),
-                components.Textbox(label="Question"),
-            ]
+            components.Textbox(lines=7, label="Context"),
+            components.Textbox(label="Question"),
+        ]
         outputs = [
-                components.Textbox(label="Answer"),
-                components.Label(label="Score"),
-            ]
+            components.Textbox(label="Answer"),
+            components.Label(label="Score"),
+        ]
         fn = client.question_answering
     # Example: facebook/bart-large-cnn
     elif p == "summarization":
@@ -244,29 +242,27 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     # Example: facebook/bart-large-mnli
     elif p == "zero-shot-classification":
         inputs = [
-                components.Textbox(label="Input"),
-                components.Textbox(
-                    label="Possible class names (" "comma-separated)"
-                ),
-                components.Checkbox(label="Allow multiple true classes"),
-            ]
+            components.Textbox(label="Input"),
+            components.Textbox(label="Possible class names (" "comma-separated)"),
+            components.Checkbox(label="Allow multiple true classes"),
+        ]
         outputs = components.Label(label="Classification")
         fn = client.zero_shot_classification
     # Example: sentence-transformers/distilbert-base-nli-stsb-mean-tokens
     elif p == "sentence-similarity":
         inputs = [
-                components.Textbox(
-                    value="That is a happy person",
-                    label="Source Sentence",
-                    render=False,
-                ),
-                components.Textbox(
-                    lines=7,
-                    placeholder="Separate each sentence by a newline",
-                    label="Sentences to compare to",
-                    render=False,
-                )
-            ]
+            components.Textbox(
+                value="That is a happy person",
+                label="Source Sentence",
+                render=False,
+            ),
+            components.Textbox(
+                lines=7,
+                placeholder="Separate each sentence by a newline",
+                label="Sentences to compare to",
+                render=False,
+            ),
+        ]
         outputs = components.Label(label="Classification")
         fn = client.sentence_similarity
     # Example: julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train
@@ -287,24 +283,22 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     # example model: impira/layoutlm-document-qa
     elif p == "document-question-answering":
         inputs = [
-                components.Image(type="filepath", label="Input Document"),
-                components.Textbox(label="Question"),
-            ]
+            components.Image(type="filepath", label="Input Document"),
+            components.Textbox(label="Question"),
+        ]
         outputs = components.Label(label="Label")
         fn = client.document_question_answering
     # example model: dandelin/vilt-b32-finetuned-vqa
     elif p == "visual-question-answering":
         inputs = [
-                components.Image(type="filepath", label="Input Image"),
-                components.Textbox(label="Question"),
-            ]
+            components.Image(type="filepath", label="Input Image"),
+            components.Textbox(label="Question"),
+        ]
         outputs = components.Label(label="Label")
         fn = client.visual_question_answering
     # example model: Salesforce/blip-image-captioning-base
     elif p == "image-to-text":
-        inputs = components.Image(
-                type="filepath", label="Input Image"
-            ),
+        inputs = (components.Image(type="filepath", label="Input Image"),)
         outputs = components.Textbox(label="Generated Text")
         fn = client.image_to_text
     elif p in ["tabular-classification", "tabular-regression"]:
@@ -322,7 +316,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         outputs = components.Dataframe(
             label="Predictions", type="array", headers=["prediction"]
         )
-        examples =  example_data,
+        examples = (example_data,)
     else:
         raise ValueError(f"Unsupported pipeline type: {p}")
 
