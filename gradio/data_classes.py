@@ -63,8 +63,7 @@ else:
 
 
 class PredictBody(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = {"arbitrary_types_allowed": True}
 
     session_hash: Optional[str] = None
     event_id: Optional[str] = None

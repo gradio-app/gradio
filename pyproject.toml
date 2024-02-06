@@ -162,3 +162,4 @@ exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py"]
 
 [tool.pytest.ini_options]
 GRADIO_ANALYTICS_ENABLED = "False"
+filterwarnings = ["ignore::UserWarning:gradio.*:", "ignore::DeprecationWarning:gradio.*:"]
