@@ -19,10 +19,9 @@ from gradio_client.documentation import document
 from packaging import version
 
 import gradio
-from gradio import components, utils
+from gradio import components
 from gradio.context import Context
 from gradio.exceptions import (
-    Error,
     GradioVersionIncompatibleError,
     ModelNotFoundError,
     TooManyRequestsError,
@@ -327,32 +326,8 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         if postprocess is not None:
             data = postprocess(*data)
         return data
-        response = httpx.request("POST", api_url, headers=headers, data=data)  # type: ignore
-        if response.status_code != 200:
-            errors_json = response.json()
-            errors, warns = "", ""
-            if errors_json.get("error"):
-                errors = f", Error: {errors_json.get('error')}"
-            if errors_json.get("warnings"):
-                warns = f", Warnings: {errors_json.get('warnings')}"
-            raise Error(
-                f"Could not complete request to HuggingFace API, Status Code: {response.status_code}"
-                + errors
-                + warns
-            )
-        if (
-            p == "token-classification"
-        ):  # Handle as a special case since HF API only returns the named entities and we need the input as well
-            ner_groups = response.json()
-            input_string = params[0]
-            response = utils.format_ner_list(input_string, ner_groups)
-        output = pipeline["postprocess"](response)
-        return output
 
-    if alias is None:
-        query_huggingface_api.__name__ = model_name
-    else:
-        query_huggingface_api.__name__ = alias
+    query_huggingface_api.__name__ = alias or model_name
 
     interface_info = {
         "fn": query_huggingface_api,
