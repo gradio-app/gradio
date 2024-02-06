@@ -30,6 +30,18 @@ class Code(Component):
         "shell",
         "r",
         "sql",
+        "sql-msSQL",
+        "sql-mySQL",
+        "sql-mariaDB",
+        "sql-sqlite",
+        "sql-cassandra",
+        "sql-plSQL",
+        "sql-hive",
+        "sql-pgSQL",
+        "sql-gql",
+        "sql-gpSQL",
+        "sql-sparkSQL",
+        "sql-esper",
         None,
     ]
 
@@ -66,7 +78,7 @@ class Code(Component):
             "sql-pgSQL",
             "sql-gql",
             "sql-gpSQL",
-            "sql-parkSQL",
+            "sql-sparkSQL",
             "sql-esper",
         ]
         | None = None,
