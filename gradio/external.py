@@ -12,30 +12,21 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
 import httpx
+import huggingface_hub
 from gradio_client import Client
-from gradio_client import utils as client_utils
 from gradio_client.client import Endpoint
 from gradio_client.documentation import document
 from packaging import version
 
 import gradio
-from gradio import components, utils
+from gradio import components, external_utils, utils
 from gradio.context import Context
 from gradio.exceptions import (
-    Error,
     GradioVersionIncompatibleError,
     ModelNotFoundError,
     TooManyRequestsError,
 )
-from gradio.external_utils import (
-    cols_to_rows,
-    encode_to_base64,
-    get_tabular_examples,
-    postprocess_label,
-    rows_to_cols,
-    streamline_spaces_interface,
-)
-from gradio.processing_utils import extract_base64_data, save_base64_to_cache, to_binary
+from gradio.processing_utils import save_base64_to_cache, to_binary
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -109,369 +100,271 @@ def load_blocks_from_repo(
     return blocks
 
 
-def chatbot_preprocess(text, state):
-    payload = {
-        "inputs": {"generated_responses": None, "past_user_inputs": None, "text": text}
-    }
-    if state is not None:
-        payload["inputs"]["generated_responses"] = state["conversation"][
-            "generated_responses"
-        ]
-        payload["inputs"]["past_user_inputs"] = state["conversation"][
-            "past_user_inputs"
-        ]
-
-    return payload
-
-
-def chatbot_postprocess(response):
-    response_json = response.json()
-    chatbot_value = list(
-        zip(
-            response_json["conversation"]["past_user_inputs"],
-            response_json["conversation"]["generated_responses"],
-        )
-    )
-    return chatbot_value, response_json
-
-
 def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwargs):
     model_url = f"https://huggingface.co/{model_name}"
     api_url = f"https://api-inference.huggingface.co/models/{model_name}"
     print(f"Fetching model from: {model_url}")
 
     headers = {"Authorization": f"Bearer {hf_token}"} if hf_token is not None else {}
-
-    # Checking if model exists, and if so, it gets the pipeline
     response = httpx.request("GET", api_url, headers=headers)
     if response.status_code != 200:
         raise ModelNotFoundError(
             f"Could not find model: {model_name}. If it is a private or gated model, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `hf_token` parameter."
         )
     p = response.json().get("pipeline_tag")
+
+    headers["X-Wait-For-Model"] = "true"
+    client = huggingface_hub.InferenceClient(
+        model=model_name, headers=headers, token=hf_token
+    )
+
+    # For tasks that are not yet supported by the InferenceClient
     GRADIO_CACHE = os.environ.get("GRADIO_TEMP_DIR") or str(  # noqa: N806
         Path(tempfile.gettempdir()) / "gradio"
     )
 
-    pipelines = {
-        "audio-classification": {
-            # example model: ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
-            "inputs": components.Audio(
-                sources=["upload"], type="filepath", label="Input", render=False
-            ),
-            "outputs": components.Label(label="Class", render=False),
-            "preprocess": lambda _: to_binary,
-            "postprocess": lambda r: postprocess_label(
-                {i["label"].split(", ")[0]: i["score"] for i in r.json()}
-            ),
-        },
-        "audio-to-audio": {
-            # example model: facebook/xm_transformer_sm_all-en
-            "inputs": components.Audio(
-                sources=["upload"], type="filepath", label="Input", render=False
-            ),
-            "outputs": components.Audio(label="Output", render=False),
-            "preprocess": to_binary,
-            "postprocess": lambda x: save_base64_to_cache(
-                encode_to_base64(x), cache_dir=GRADIO_CACHE, file_name="output.wav"
-            ),
-        },
-        "automatic-speech-recognition": {
-            # example model: facebook/wav2vec2-base-960h
-            "inputs": components.Audio(
-                sources=["upload"], type="filepath", label="Input", render=False
-            ),
-            "outputs": components.Textbox(label="Output", render=False),
-            "preprocess": to_binary,
-            "postprocess": lambda r: r.json()["text"],
-        },
-        "conversational": {
-            "inputs": [
-                components.Textbox(render=False),
-                components.State(render=False),
-            ],  # type: ignore
-            "outputs": [
-                components.Chatbot(render=False),
-                components.State(render=False),
-            ],  # type: ignore
-            "preprocess": chatbot_preprocess,
-            "postprocess": chatbot_postprocess,
-        },
-        "feature-extraction": {
-            # example model: julien-c/distilbert-feature-extraction
-            "inputs": components.Textbox(label="Input", render=False),
-            "outputs": components.Dataframe(label="Output", render=False),
-            "preprocess": lambda x: {"inputs": x},
-            "postprocess": lambda r: r.json()[0],
-        },
-        "fill-mask": {
-            "inputs": components.Textbox(label="Input", render=False),
-            "outputs": components.Label(label="Classification", render=False),
-            "preprocess": lambda x: {"inputs": x},
-            "postprocess": lambda r: postprocess_label(
-                {i["token_str"]: i["score"] for i in r.json()}
-            ),
-        },
-        "image-classification": {
-            # Example: google/vit-base-patch16-224
-            "inputs": components.Image(
-                type="filepath", label="Input Image", render=False
-            ),
-            "outputs": components.Label(label="Classification", render=False),
-            "preprocess": to_binary,
-            "postprocess": lambda r: postprocess_label(
-                {i["label"].split(", ")[0]: i["score"] for i in r.json()}
-            ),
-        },
-        "question-answering": {
-            # Example: deepset/xlm-roberta-base-squad2
-            "inputs": [
-                components.Textbox(lines=7, label="Context", render=False),
-                components.Textbox(label="Question", render=False),
-            ],
-            "outputs": [
-                components.Textbox(label="Answer", render=False),
-                components.Label(label="Score", render=False),
-            ],
-            "preprocess": lambda c, q: {"inputs": {"context": c, "question": q}},
-            "postprocess": lambda r: (r.json()["answer"], {"label": r.json()["score"]}),
-        },
-        "summarization": {
-            # Example: facebook/bart-large-cnn
-            "inputs": components.Textbox(label="Input", render=False),
-            "outputs": components.Textbox(label="Summary", render=False),
-            "preprocess": lambda x: {"inputs": x},
-            "postprocess": lambda r: r.json()[0]["summary_text"],
-        },
-        "text-classification": {
-            # Example: distilbert-base-uncased-finetuned-sst-2-english
-            "inputs": components.Textbox(label="Input", render=False),
-            "outputs": components.Label(label="Classification", render=False),
-            "preprocess": lambda x: {"inputs": x},
-            "postprocess": lambda r: postprocess_label(
-                {i["label"].split(", ")[0]: i["score"] for i in r.json()[0]}
-            ),
-        },
-        "text-generation": {
-            # Example: gpt2
-            "inputs": components.Textbox(label="Input", render=False),
-            "outputs": components.Textbox(label="Output", render=False),
-            "preprocess": lambda x: {"inputs": x},
-            "postprocess": lambda r: r.json()[0]["generated_text"],
-        },
-        "text2text-generation": {
-            # Example: valhalla/t5-small-qa-qg-hl
-            "inputs": components.Textbox(label="Input", render=False),
-            "outputs": components.Textbox(label="Generated Text", render=False),
-            "preprocess": lambda x: {"inputs": x},
-            "postprocess": lambda r: r.json()[0]["generated_text"],
-        },
-        "translation": {
-            "inputs": components.Textbox(label="Input", render=False),
-            "outputs": components.Textbox(label="Translation", render=False),
-            "preprocess": lambda x: {"inputs": x},
-            "postprocess": lambda r: r.json()[0]["translation_text"],
-        },
-        "zero-shot-classification": {
-            # Example: facebook/bart-large-mnli
-            "inputs": [
-                components.Textbox(label="Input", render=False),
-                components.Textbox(
-                    label="Possible class names (" "comma-separated)", render=False
-                ),
-                components.Checkbox(label="Allow multiple true classes", render=False),
-            ],
-            "outputs": components.Label(label="Classification", render=False),
-            "preprocess": lambda i, c, m: {
-                "inputs": i,
-                "parameters": {"candidate_labels": c, "multi_class": m},
-            },
-            "postprocess": lambda r: postprocess_label(
-                {
-                    r.json()["labels"][i]: r.json()["scores"][i]
-                    for i in range(len(r.json()["labels"]))
-                }
-            ),
-        },
-        "sentence-similarity": {
-            # Example: sentence-transformers/distilbert-base-nli-stsb-mean-tokens
-            "inputs": [
-                components.Textbox(
-                    value="That is a happy person",
-                    label="Source Sentence",
-                    render=False,
-                ),
-                components.Textbox(
-                    lines=7,
-                    placeholder="Separate each sentence by a newline",
-                    label="Sentences to compare to",
-                    render=False,
-                ),
-            ],
-            "outputs": components.Label(label="Classification", render=False),
-            "preprocess": lambda src, sentences: {
-                "inputs": {
-                    "source_sentence": src,
-                    "sentences": [s for s in sentences.splitlines() if s != ""],
-                }
-            },
-            "postprocess": lambda r: postprocess_label(
-                {f"sentence {i}": v for i, v in enumerate(r.json())}
-            ),
-        },
-        "text-to-speech": {
-            # Example: julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train
-            "inputs": components.Textbox(label="Input", render=False),
-            "outputs": components.Audio(label="Audio", render=False),
-            "preprocess": lambda x: {"inputs": x},
-            "postprocess": lambda x: save_base64_to_cache(
-                encode_to_base64(x), cache_dir=GRADIO_CACHE, file_name="output.wav"
-            ),
-        },
-        "text-to-image": {
-            # example model: osanseviero/BigGAN-deep-128
-            "inputs": components.Textbox(label="Input", render=False),
-            "outputs": components.Image(label="Output", render=False),
-            "preprocess": lambda x: {"inputs": x},
-            "postprocess": lambda x: save_base64_to_cache(
-                encode_to_base64(x), cache_dir=GRADIO_CACHE, file_name="output.jpg"
-            ),
-        },
-        "token-classification": {
-            # example model: huggingface-course/bert-finetuned-ner
-            "inputs": components.Textbox(label="Input", render=False),
-            "outputs": components.HighlightedText(label="Output", render=False),
-            "preprocess": lambda x: {"inputs": x},
-            "postprocess": lambda r: r,  # Handled as a special case in query_huggingface_api()
-        },
-        "document-question-answering": {
-            # example model: impira/layoutlm-document-qa
-            "inputs": [
-                components.Image(type="filepath", label="Input Document", render=False),
-                components.Textbox(label="Question", render=False),
-            ],
-            "outputs": components.Label(label="Label", render=False),
-            "preprocess": lambda img, q: {
-                "inputs": {
-                    "image": extract_base64_data(
-                        client_utils.encode_url_or_file_to_base64(img["path"])
-                    ),  # Extract base64 data
-                    "question": q,
-                }
-            },
-            "postprocess": lambda r: postprocess_label(
-                {i["answer"]: i["score"] for i in r.json()}
-            ),
-        },
-        "visual-question-answering": {
-            # example model: dandelin/vilt-b32-finetuned-vqa
-            "inputs": [
-                components.Image(type="filepath", label="Input Image", render=False),
-                components.Textbox(label="Question", render=False),
-            ],
-            "outputs": components.Label(label="Label", render=False),
-            "preprocess": lambda img, q: {
-                "inputs": {
-                    "image": extract_base64_data(
-                        client_utils.encode_url_or_file_to_base64(img["path"])
-                    ),
-                    "question": q,
-                }
-            },
-            "postprocess": lambda r: postprocess_label(
-                {i["answer"]: i["score"] for i in r.json()}
-            ),
-        },
-        "image-to-text": {
-            # example model: Salesforce/blip-image-captioning-base
-            "inputs": components.Image(
-                type="filepath", label="Input Image", render=False
-            ),
-            "outputs": components.Textbox(label="Generated Text", render=False),
-            "preprocess": to_binary,
-            "postprocess": lambda r: r.json()[0]["generated_text"],
-        },
-    }
+    def custom_post_binary(data):
+        data = to_binary({"path": data})
+        response = httpx.request("POST", api_url, headers=headers, content=data)
+        return save_base64_to_cache(
+            external_utils.encode_to_base64(response), cache_dir=GRADIO_CACHE
+        )
 
-    if p in ["tabular-classification", "tabular-regression"]:
-        example_data = get_tabular_examples(model_name)
-        col_names, example_data = cols_to_rows(example_data)
-        example_data = [[example_data]] if example_data else None
+    preprocess = None
+    postprocess = None
+    examples = None
 
-        pipelines[p] = {
-            "inputs": components.Dataframe(
-                label="Input Rows",
-                type="pandas",
-                headers=col_names,
-                col_count=(len(col_names), "fixed"),
-                render=False,
+    # example model: ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
+    if p == "audio-classification":
+        inputs = components.Audio(type="filepath", label="Input")
+        outputs = components.Label(label="Class")
+        postprocess = external_utils.postprocess_label
+        examples = [
+            "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+        ]
+        fn = client.audio_classification
+    # example model: facebook/xm_transformer_sm_all-en
+    elif p == "audio-to-audio":
+        inputs = components.Audio(type="filepath", label="Input")
+        outputs = components.Audio(label="Output")
+        examples = [
+            "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+        ]
+        fn = custom_post_binary
+    # example model: facebook/wav2vec2-base-960h
+    elif p == "automatic-speech-recognition":
+        inputs = components.Audio(type="filepath", label="Input")
+        outputs = components.Textbox(label="Output")
+        examples = [
+            "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+        ]
+        fn = client.automatic_speech_recognition
+    # example model: microsoft/DialoGPT-medium
+    elif p == "conversational":
+        inputs = [
+            components.Textbox(render=False),
+            components.State(render=False),
+        ]
+        outputs = [
+            components.Chatbot(render=False),
+            components.State(render=False),
+        ]
+        examples = [["Hello World"]]
+        preprocess = external_utils.chatbot_preprocess
+        postprocess = external_utils.chatbot_postprocess
+        fn = client.conversational
+    # example model: julien-c/distilbert-feature-extraction
+    elif p == "feature-extraction":
+        inputs = components.Textbox(label="Input")
+        outputs = components.Dataframe(label="Output")
+        fn = client.feature_extraction
+        postprocess = utils.resolve_singleton
+    # example model: distilbert/distilbert-base-uncased
+    elif p == "fill-mask":
+        inputs = components.Textbox(label="Input")
+        outputs = components.Label(label="Classification")
+        examples = [
+            "Hugging Face is the AI community, working together, to [MASK] the future."
+        ]
+        postprocess = external_utils.postprocess_mask_tokens
+        fn = client.fill_mask
+    # Example: google/vit-base-patch16-224
+    elif p == "image-classification":
+        inputs = components.Image(type="filepath", label="Input Image")
+        outputs = components.Label(label="Classification")
+        postprocess = external_utils.postprocess_label
+        examples = ["https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"]
+        fn = client.image_classification
+    # Example: deepset/xlm-roberta-base-squad2
+    elif p == "question-answering":
+        inputs = [
+            components.Textbox(label="Question"),
+            components.Textbox(lines=7, label="Context"),
+        ]
+        outputs = [
+            components.Textbox(label="Answer"),
+            components.Label(label="Score"),
+        ]
+        examples = [
+            [
+                "What entity was responsible for the Apollo program?",
+                "The Apollo program, also known as Project Apollo, was the third United States human spaceflight"
+                " program carried out by the National Aeronautics and Space Administration (NASA), which accomplished"
+                " landing the first humans on the Moon from 1969 to 1972.",
+            ]
+        ]
+        postprocess = external_utils.postprocess_question_answering
+        fn = client.question_answering
+    # Example: facebook/bart-large-cnn
+    elif p == "summarization":
+        inputs = components.Textbox(label="Input")
+        outputs = components.Textbox(label="Summary")
+        examples = [
+            [
+                "The tower is 324 metres (1,063 ft) tall, about the same height as an 81-storey building, and the tallest structure in Paris. Its base is square, measuring 125 metres (410 ft) on each side. During its construction, the Eiffel Tower surpassed the Washington Monument to become the tallest man-made structure in the world, a title it held for 41 years until the Chrysler Building in New York City was finished in 1930. It was the first structure to reach a height of 300 metres. Due to the addition of a broadcasting aerial at the top of the tower in 1957, it is now taller than the Chrysler Building by 5.2 metres (17 ft). Excluding transmitters, the Eiffel Tower is the second tallest free-standing structure in France after the Millau Viaduct."
+            ]
+        ]
+        fn = client.summarization
+    # Example: distilbert-base-uncased-finetuned-sst-2-english
+    elif p == "text-classification":
+        inputs = components.Textbox(label="Input")
+        outputs = components.Label(label="Classification")
+        examples = ["I feel great"]
+        postprocess = external_utils.postprocess_label
+        fn = client.text_classification
+    # Example: gpt2
+    elif p == "text-generation":
+        inputs = components.Textbox(label="Text")
+        outputs = inputs
+        examples = ["Once upon a time"]
+        fn = external_utils.text_generation_wrapper(client)
+    # Example: valhalla/t5-small-qa-qg-hl
+    elif p == "text2text-generation":
+        inputs = components.Textbox(label="Input")
+        outputs = components.Textbox(label="Generated Text")
+        examples = ["Translate English to Arabic: How are you?"]
+        fn = client.text_generation
+    # Example: Helsinki-NLP/opus-mt-en-ar
+    elif p == "translation":
+        inputs = components.Textbox(label="Input")
+        outputs = components.Textbox(label="Translation")
+        examples = ["Hello, how are you?"]
+        fn = client.translation
+    # Example: facebook/bart-large-mnli
+    elif p == "zero-shot-classification":
+        inputs = [
+            components.Textbox(label="Input"),
+            components.Textbox(label="Possible class names (" "comma-separated)"),
+            components.Checkbox(label="Allow multiple true classes"),
+        ]
+        outputs = components.Label(label="Classification")
+        postprocess = external_utils.postprocess_label
+        examples = [["I feel great", "happy, sad", False]]
+        fn = external_utils.zero_shot_classification_wrapper(client)
+    # Example: sentence-transformers/distilbert-base-nli-stsb-mean-tokens
+    elif p == "sentence-similarity":
+        inputs = [
+            components.Textbox(
+                label="Source Sentence",
+                placeholder="Enter an original sentence",
             ),
-            "outputs": components.Dataframe(
-                label="Predictions", type="array", headers=["prediction"], render=False
+            components.Textbox(
+                lines=7,
+                placeholder="Sentences to compare to -- separate each sentence by a newline",
+                label="Sentences to compare to",
             ),
-            "preprocess": rows_to_cols,
-            "postprocess": lambda r: {
-                "headers": ["prediction"],
-                "data": [[pred] for pred in json.loads(r.text)],
-            },
-            "examples": example_data,
-        }
-
-    if p is None or p not in pipelines:
+        ]
+        outputs = components.JSON(label="Similarity scores")
+        examples = [["That is a happy person", "That person is very happy"]]
+        fn = external_utils.sentence_similarity_wrapper(client)
+    # Example: julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train
+    elif p == "text-to-speech":
+        inputs = components.Textbox(label="Input")
+        outputs = components.Audio(label="Audio")
+        examples = ["Hello, how are you?"]
+        fn = client.text_to_speech
+    # example model: osanseviero/BigGAN-deep-128
+    elif p == "text-to-image":
+        inputs = components.Textbox(label="Input")
+        outputs = components.Image(label="Output")
+        examples = ["A beautiful sunset"]
+        fn = client.text_to_image
+    # example model: huggingface-course/bert-finetuned-ner
+    elif p == "token-classification":
+        inputs = components.Textbox(label="Input")
+        outputs = components.HighlightedText(label="Output")
+        examples = [
+            "Hugging Face is a company based in Paris and New York City that acquired Gradio in 2021."
+        ]
+        fn = external_utils.token_classification_wrapper(client)
+    # example model: impira/layoutlm-document-qa
+    elif p == "document-question-answering":
+        inputs = [
+            components.Image(type="filepath", label="Input Document"),
+            components.Textbox(label="Question"),
+        ]
+        postprocess = external_utils.postprocess_label
+        outputs = components.Label(label="Label")
+        fn = client.document_question_answering
+    # example model: dandelin/vilt-b32-finetuned-vqa
+    elif p == "visual-question-answering":
+        inputs = [
+            components.Image(type="filepath", label="Input Image"),
+            components.Textbox(label="Question"),
+        ]
+        outputs = components.Label(label="Label")
+        postprocess = external_utils.postprocess_visual_question_answering
+        examples = [
+            [
+                "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+                "What animal is in the image?",
+            ]
+        ]
+        fn = client.visual_question_answering
+    # example model: Salesforce/blip-image-captioning-base
+    elif p == "image-to-text":
+        inputs = components.Image(type="filepath", label="Input Image")
+        outputs = components.Textbox(label="Generated Text")
+        examples = ["https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"]
+        fn = client.image_to_text
+    # example model: rajistics/autotrain-Adult-934630783
+    elif p in ["tabular-classification", "tabular-regression"]:
+        examples = external_utils.get_tabular_examples(model_name)
+        col_names, examples = external_utils.cols_to_rows(examples)
+        examples = [[examples]] if examples else None
+        inputs = components.Dataframe(
+            label="Input Rows",
+            type="pandas",
+            headers=col_names,
+            col_count=(len(col_names), "fixed"),
+            render=False,
+        )
+        outputs = components.Dataframe(
+            label="Predictions", type="array", headers=["prediction"]
+        )
+        fn = external_utils.tabular_wrapper
+    else:
         raise ValueError(f"Unsupported pipeline type: {p}")
 
-    pipeline = pipelines[p]
+    def query_huggingface_inference_endpoints(*data):
+        if preprocess is not None:
+            data = preprocess(*data)
+        data = fn(*data)  # type: ignore
+        if postprocess is not None:
+            data = postprocess(data)  # type: ignore
+        return data
 
-    def query_huggingface_api(*params):
-        # Convert to a list of input components
-        data = pipeline["preprocess"](*params)
-        if isinstance(
-            data, dict
-        ):  # HF doesn't allow additional parameters for binary files (e.g. images or audio files)
-            data.update({"options": {"wait_for_model": True}})
-            data = json.dumps(data)
-        response = httpx.request("POST", api_url, headers=headers, data=data)  # type: ignore
-        if response.status_code != 200:
-            errors_json = response.json()
-            errors, warns = "", ""
-            if errors_json.get("error"):
-                errors = f", Error: {errors_json.get('error')}"
-            if errors_json.get("warnings"):
-                warns = f", Warnings: {errors_json.get('warnings')}"
-            raise Error(
-                f"Could not complete request to HuggingFace API, Status Code: {response.status_code}"
-                + errors
-                + warns
-            )
-        if (
-            p == "token-classification"
-        ):  # Handle as a special case since HF API only returns the named entities and we need the input as well
-            ner_groups = response.json()
-            input_string = params[0]
-            response = utils.format_ner_list(input_string, ner_groups)
-        output = pipeline["postprocess"](response)
-        return output
-
-    if alias is None:
-        query_huggingface_api.__name__ = model_name
-    else:
-        query_huggingface_api.__name__ = alias
+    query_huggingface_inference_endpoints.__name__ = alias or model_name
 
     interface_info = {
-        "fn": query_huggingface_api,
-        "inputs": pipeline["inputs"],
-        "outputs": pipeline["outputs"],
+        "fn": query_huggingface_inference_endpoints,
+        "inputs": inputs,
+        "outputs": outputs,
         "title": model_name,
-        "examples": pipeline.get("examples"),
+        "examples": examples,
     }
 
     kwargs = dict(interface_info, **kwargs)
-
-    # So interface doesn't run pre/postprocess
-    # except for conversational interfaces which
-    # are stateful
-    kwargs["_api_mode"] = p != "conversational"
-
     interface = gradio.Interface(**kwargs)
     return interface
 
@@ -551,7 +444,7 @@ def from_spaces_interface(
     iframe_url: str,
     **kwargs,
 ) -> Interface:
-    config = streamline_spaces_interface(config)
+    config = external_utils.streamline_spaces_interface(config)
     api_url = f"{iframe_url}/api/predict/"
     headers = {"Content-Type": "application/json"}
     if hf_token is not None:
