@@ -41,7 +41,7 @@ test("test inputs", async ({ page }) => {
 
 	// Image Input w/ Webcam
 	await page.getByRole("button", { name: "Click to Access Webcam" }).click();
-	await page.getByRole("button", { name: "select video source" }).click();
+	await page.getByRole("button", { name: "select input source" }).click();
 	expect(await page.getByText("fake_device_0")).toBeTruthy();
 });
 

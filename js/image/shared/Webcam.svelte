@@ -248,7 +248,7 @@
 				<button
 					class="icon"
 					on:click={select_source}
-					aria-label={"selecxt input source"}
+					aria-label="select input source"
 				>
 					<DropdownArrow />
 				</button>
