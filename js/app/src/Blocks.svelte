@@ -39,13 +39,14 @@
 	export let space_id: string | null;
 	export let version: string;
 	export let js: string | null;
+	export let fill_height = false;
 
 	let loading_status = create_loading_status_store();
 
 	let rootNode: ComponentMeta = {
 		id: layout.id,
 		type: "column",
-		props: { interactive: false },
+		props: { interactive: false, scale: fill_height ? 1 : null },
 		has_modes: false,
 		instance: null as unknown as ComponentMeta["instance"],
 		component: null as unknown as ComponentMeta["component"],
@@ -199,7 +200,7 @@
 		const _rootNode: typeof rootNode = {
 			id: layout.id,
 			type: "column",
-			props: { interactive: false },
+			props: { interactive: false, scale: fill_height ? 1 : null },
 			has_modes: false,
 			instance: null as unknown as ComponentMeta["instance"],
 			component: null as unknown as ComponentMeta["component"],
@@ -831,6 +832,11 @@
 		width: var(--size-full);
 		font-weight: var(--body-text-weight);
 		font-size: var(--body-text-size);
+	}
+
+	.contain {
+		display: flex;
+		flex-direction: column;
 	}
 
 	footer {
