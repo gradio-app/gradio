@@ -633,7 +633,9 @@ def download_file(
     temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
     temp_dir.mkdir(exist_ok=True, parents=True)
 
-    with httpx.stream("GET", url_path, headers=headers) as response:
+    with httpx.stream(
+        "GET", url_path, headers=headers, follow_redirects=True
+    ) as response:
         response.raise_for_status()
         with open(temp_dir / Path(url_path).name, "wb") as f:
             for chunk in response.iter_bytes(chunk_size=128 * sha1.block_size):
@@ -666,7 +668,9 @@ def download_tmp_copy_of_file(
     directory.mkdir(exist_ok=True, parents=True)
     file_path = directory / Path(url_path).name
 
-    with httpx.stream("GET", url_path, headers=headers) as response:
+    with httpx.stream(
+        "GET", url_path, headers=headers, follow_redirects=True
+    ) as response:
         response.raise_for_status()
         with open(file_path, "wb") as f:
             for chunk in response.iter_raw():

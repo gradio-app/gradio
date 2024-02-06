@@ -198,6 +198,9 @@ class TestValidateURL:
         assert validate_url(
             "https://upload.wikimedia.org/wikipedia/commons/b/b0/Bengal_tiger_%28Panthera_tigris_tigris%29_female_3_crop.jpg"
         )
+        assert validate_url(
+            "https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/bread_small.png"
+        )
 
     def test_invalid_urls(self):
         assert not (validate_url("C:/Users/"))
