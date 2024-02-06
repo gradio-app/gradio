@@ -187,6 +187,21 @@ def chatbot_postprocess(response):
     return chatbot_history, response
 
 
+def tabular_wrapper(client: InferenceClient, pipeline: str):
+    # This wrapper is needed to handle an issue in the InfereneClient where the model name is not
+    # automatically loaded when using the tabular_classification and tabular_regression methods.
+    # See: https://github.com/huggingface/huggingface_hub/issues/2015
+    def tabular_inner(data):
+        assert pipeline in ["tabular_classification", "tabular_regression"]
+        assert client.model is not None
+        if pipeline == "tabular_classification":
+            return client.tabular_classification(data, model=client.model)
+        else:
+            return client.tabular_regression(data, model=client.model)
+
+    return tabular_inner
+
+
 ##################
 # Helper function for cleaning up an Interface loaded from HF Spaces
 ##################

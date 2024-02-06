@@ -329,10 +329,9 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         fn = client.image_to_text
     # example model: rajistics/autotrain-Adult-934630783
     elif p in ["tabular-classification", "tabular-regression"]:
-        example_data = external_utils.get_tabular_examples(model_name)
-        col_names, example_data = external_utils.cols_to_rows(example_data)
-        example_data = [[example_data]] if example_data else None
-
+        examples = external_utils.get_tabular_examples(model_name)
+        col_names, examples = external_utils.cols_to_rows(examples)
+        examples = [[examples]] if examples else None
         inputs = components.Dataframe(
             label="Input Rows",
             type="pandas",
@@ -343,7 +342,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         outputs = components.Dataframe(
             label="Predictions", type="array", headers=["prediction"]
         )
-        examples = (example_data,)
+        fn = external_utils.tabular_wrapper
     else:
         raise ValueError(f"Unsupported pipeline type: {p}")
 
