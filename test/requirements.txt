@@ -193,8 +193,6 @@ tomli==2.0.1
     #   pytest
 toolz==0.12.0
     # via altair
-torch==2.1.2
-    # via -r requirements.in
 tqdm==4.64.0
     # via
     #   -r requirements.in
