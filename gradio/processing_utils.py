@@ -190,7 +190,9 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
     full_temp_file_path = str(abspath(temp_dir / name))
 
     if not Path(full_temp_file_path).exists():
-        with httpx.stream("GET", url) as r, open(full_temp_file_path, "wb") as f:
+        with httpx.stream("GET", url, follow_redirects=True) as r, open(
+            full_temp_file_path, "wb"
+        ) as f:
             for chunk in r.iter_raw():
                 f.write(chunk)
 
