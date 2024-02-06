@@ -19,14 +19,14 @@ from gradio_client.documentation import document
 from packaging import version
 
 import gradio
-from gradio import components, external_utils
+from gradio import components, external_utils, utils
 from gradio.context import Context
 from gradio.exceptions import (
     GradioVersionIncompatibleError,
     ModelNotFoundError,
     TooManyRequestsError,
 )
-from gradio.processing_utils import save_base64_to_cache
+from gradio.processing_utils import save_base64_to_cache, to_binary
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -132,25 +132,25 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     print(f"Fetching model from: {model_url}")
 
     headers = {"Authorization": f"Bearer {hf_token}"} if hf_token is not None else {}
-
-    # Checking if model exists, and if so, it gets the pipeline
     response = httpx.request("GET", api_url, headers=headers)
     if response.status_code != 200:
         raise ModelNotFoundError(
             f"Could not find model: {model_name}. If it is a private or gated model, please provide your Hugging Face access token (https://huggingface.co/settings/tokens) as the argument for the `hf_token` parameter."
         )
     p = response.json().get("pipeline_tag")
-    GRADIO_CACHE = os.environ.get("GRADIO_TEMP_DIR") or str(  # noqa: N806
-        Path(tempfile.gettempdir()) / "gradio"
-    )
 
+    headers["X-Wait-For-Model"] = "true"
     client = huggingface_hub.InferenceClient(
-        model=model_name, headers={"X-Wait-For-Model": "true"}
+        model=model_name, headers=headers, token=hf_token
     )
 
     # For tasks that are not yet supported by the InferenceClient
+    GRADIO_CACHE = os.environ.get("GRADIO_TEMP_DIR") or str(  # noqa: N806
+        Path(tempfile.gettempdir()) / "gradio"
+    )
     def custom_post_binary(data):
-        response = httpx.request("POST", api_url, headers=headers, data=data)
+        data = to_binary({"path": data})
+        response = httpx.request("POST", api_url, headers=headers, content=data)
         return save_base64_to_cache(
             external_utils.encode_to_base64(response), cache_dir=GRADIO_CACHE
         )
@@ -159,7 +159,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     postprocess = None
     examples = None
 
-    # example model: ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition!!
+    # example model: ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
     if p == "audio-classification":
         inputs = components.Audio(type="filepath", label="Input")
         outputs = components.Label(label="Class")
@@ -200,7 +200,8 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         inputs = components.Textbox(label="Input")
         outputs = components.Dataframe(label="Output")
         fn = client.feature_extraction
-    # example model: distilbert/distilbert-base-uncased!!
+        postprocess = utils.resolve_singleton
+    # example model: distilbert/distilbert-base-uncased
     elif p == "fill-mask":
         inputs = components.Textbox(label="Input")
         outputs = components.Label(label="Classification")
@@ -209,14 +210,14 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         ]
         postprocess = external_utils.postprocess_mask_tokens
         fn = client.fill_mask
-    # Example: google/vit-base-patch16-224!!
+    # Example: google/vit-base-patch16-224
     elif p == "image-classification":
         inputs = components.Image(type="filepath", label="Input Image")
         outputs = components.Label(label="Classification")
         postprocess = external_utils.postprocess_label
         examples = ["https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"]
         fn = client.image_classification
-    # Example: deepset/xlm-roberta-base-squad2!!
+    # Example: deepset/xlm-roberta-base-squad2
     elif p == "question-answering":
         inputs = [
             components.Textbox(label="Question"),
@@ -242,11 +243,11 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         outputs = components.Textbox(label="Summary")
         examples = [
             [
-                "The Apollo program, also known as Project Apollo, was the third United States human spaceflight program carried out by the National Aeronautics and Space Administration (NASA), which accomplished landing the first humans on the Moon from 1969 to 1972."
+                "The tower is 324 metres (1,063 ft) tall, about the same height as an 81-storey building, and the tallest structure in Paris. Its base is square, measuring 125 metres (410 ft) on each side. During its construction, the Eiffel Tower surpassed the Washington Monument to become the tallest man-made structure in the world, a title it held for 41 years until the Chrysler Building in New York City was finished in 1930. It was the first structure to reach a height of 300 metres. Due to the addition of a broadcasting aerial at the top of the tower in 1957, it is now taller than the Chrysler Building by 5.2 metres (17 ft). Excluding transmitters, the Eiffel Tower is the second tallest free-standing structure in France after the Millau Viaduct."
             ]
         ]
         fn = client.summarization
-    # Example: distilbert-base-uncased-finetuned-sst-2-english!!
+    # Example: distilbert-base-uncased-finetuned-sst-2-english
     elif p == "text-classification":
         inputs = components.Textbox(label="Input")
         outputs = components.Label(label="Classification")
@@ -255,22 +256,23 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         fn = client.text_classification
     # Example: gpt2
     elif p == "text-generation":
-        inputs = components.Textbox(label="Input")
-        outputs = components.Textbox(label="Output")
+        inputs = components.Textbox(label="Text")
+        outputs = inputs
         examples = ["Once upon a time"]
-        fn = client.text_generation
+        fn = external_utils.text_generation_wrapper(client)
     # Example: valhalla/t5-small-qa-qg-hl
     elif p == "text2text-generation":
         inputs = components.Textbox(label="Input")
         outputs = components.Textbox(label="Generated Text")
         examples = ["Translate English to Arabic: How are you?"]
         fn = client.text_generation
+    # Example: Helsinki-NLP/opus-mt-en-ar
     elif p == "translation":
         inputs = components.Textbox(label="Input")
         outputs = components.Textbox(label="Translation")
         examples = ["Hello, how are you?"]
         fn = client.translation
-    # Example: facebook/bart-large-mnli!!
+    # Example: facebook/bart-large-mnli
     elif p == "zero-shot-classification":
         inputs = [
             components.Textbox(label="Input"),
@@ -285,20 +287,18 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     elif p == "sentence-similarity":
         inputs = [
             components.Textbox(
-                value="That is a happy person",
                 label="Source Sentence",
-                render=False,
+                placeholder="Enter an original sentence",
             ),
             components.Textbox(
                 lines=7,
-                placeholder="Separate each sentence by a newline",
+                placeholder="Sentences to compare to -- separate each sentence by a newline",
                 label="Sentences to compare to",
-                render=False,
             ),
         ]
-        outputs = components.Label(label="Classification")
+        outputs = components.JSON(label="Similarity scores")
         examples = [["That is a happy person", "That person is very happy"]]
-        fn = client.sentence_similarity
+        fn = external_utils.sentence_similarity_wrapper(client)
     # Example: julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train
     elif p == "text-to-speech":
         inputs = components.Textbox(label="Input")
@@ -318,13 +318,14 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         examples = [
             "Hugging Face is a company based in Paris and New York City that acquired Gradio in 2021."
         ]
-        fn = client.token_classification
+        fn = external_utils.token_classification_wrapper(client)
     # example model: impira/layoutlm-document-qa
     elif p == "document-question-answering":
         inputs = [
             components.Image(type="filepath", label="Input Document"),
             components.Textbox(label="Question"),
         ]
+        postprocess = external_utils.postprocess_label
         outputs = components.Label(label="Label")
         fn = client.document_question_answering
     # example model: dandelin/vilt-b32-finetuned-vqa
@@ -333,20 +334,22 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             components.Image(type="filepath", label="Input Image"),
             components.Textbox(label="Question"),
         ]
+        outputs = components.Label(label="Label")
+        postprocess = external_utils.postprocess_visual_question_answering
         examples = [
             [
                 "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
                 "What animal is in the image?",
             ]
         ]
-        outputs = components.Label(label="Label")
         fn = client.visual_question_answering
     # example model: Salesforce/blip-image-captioning-base
     elif p == "image-to-text":
-        inputs = (components.Image(type="filepath", label="Input Image"),)
+        inputs = components.Image(type="filepath", label="Input Image")
         outputs = components.Textbox(label="Generated Text")
         examples = ["https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"]
         fn = client.image_to_text
+    # example model: rajistics/autotrain-Adult-934630783
     elif p in ["tabular-classification", "tabular-regression"]:
         example_data = external_utils.get_tabular_examples(model_name)
         col_names, example_data = external_utils.cols_to_rows(example_data)
