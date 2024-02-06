@@ -87,6 +87,7 @@ def postprocess_mask_tokens(scores: list[dict[str, str | float]]) -> dict:
 def postprocess_question_answering(answer: dict) -> tuple[str, dict]:
     return answer["answer"], {answer["answer"]: answer["score"]}
 
+
 def postprocess_visual_question_answering(scores: list[dict[str, str | float]]) -> dict:
     return {c["answer"]: c["score"] for c in scores}
 
@@ -99,15 +100,18 @@ def zero_shot_classification_wrapper(client: InferenceClient):
 
     return zero_shot_classification_inner
 
+
 def sentence_similarity_wrapper(client: InferenceClient):
     def sentence_similarity_inner(input: str, sentences: str):
         return client.sentence_similarity(input, sentences.split("\n"))
+
     return sentence_similarity_inner
 
 
 def text_generation_wrapper(client: InferenceClient):
     def text_generation_inner(input: str):
         return input + client.text_generation(input)
+
     return text_generation_inner
 
 
@@ -136,6 +140,7 @@ def encode_to_base64(r: httpx.Response) -> str:
         new_base64 = f"data:{content_type};base64,{base64_repr}"
         return new_base64
 
+
 def format_ner_list(input_string: str, ner_groups: list[dict[str, str | int]]):
     if len(ner_groups) == 0:
         return [(input_string, None)]
@@ -153,11 +158,14 @@ def format_ner_list(input_string: str, ner_groups: list[dict[str, str | int]]):
     output.append((input_string[end:], None))
     return output
 
+
 def token_classification_wrapper(client: InferenceClient):
     def token_classification_inner(input: str):
         ner_list = client.token_classification(input)
         return format_ner_list(input, ner_list)  # type: ignore
+
     return token_classification_inner
+
 
 ##################
 # Helper function for cleaning up an Interface loaded from HF Spaces

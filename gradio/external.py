@@ -148,6 +148,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     GRADIO_CACHE = os.environ.get("GRADIO_TEMP_DIR") or str(  # noqa: N806
         Path(tempfile.gettempdir()) / "gradio"
     )
+
     def custom_post_binary(data):
         data = to_binary({"path": data})
         response = httpx.request("POST", api_url, headers=headers, content=data)
