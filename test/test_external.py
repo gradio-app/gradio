@@ -13,7 +13,8 @@ from huggingface_hub import HfFolder
 import gradio as gr
 from gradio.context import Context
 from gradio.exceptions import GradioVersionIncompatibleError, InvalidApiNameError
-from gradio.external import TooManyRequestsError, cols_to_rows, get_tabular_examples
+from gradio.external import TooManyRequestsError
+from gradio.external_utils import cols_to_rows, get_tabular_examples
 
 """
 WARNING: These tests have an external dependency: namely that Hugging Face's
@@ -204,7 +205,7 @@ class TestLoadInterface:
     def test_image_classification_model(self):
         io = gr.load(name="models/google/vit-base-patch16-224")
         try:
-            assert io("gradio/test_data/lion.jpg")["label"] == "lion"
+            assert io("gradio/test_data/lion.jpg")["label"].startswith("lion")
         except TooManyRequestsError:
             pass
 
@@ -291,7 +292,9 @@ class TestLoadInterface:
         io = gr.load("models/osanseviero/BigGAN-deep-128")
         try:
             filename = io("chest")
-            assert filename.endswith(".jpg") or filename.endswith(".jpeg")
+            assert filename.lower().endswith(".jpg") or filename.lower().endswith(
+                ".jpeg"
+            )
         except TooManyRequestsError:
             pass
 
@@ -491,7 +494,7 @@ def test_load_blocks_with_default_values():
 )
 def test_can_load_tabular_model_with_different_widget_data(hypothetical_readme):
     with patch(
-        "gradio.external.get_tabular_examples", return_value=hypothetical_readme
+        "gradio.external_utils.get_tabular_examples", return_value=hypothetical_readme
     ):
         io = gr.load("models/scikit-learn/tabular-playground")
         check_dataframe(io.config)

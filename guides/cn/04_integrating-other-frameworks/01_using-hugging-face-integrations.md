@@ -52,11 +52,11 @@ demo.launch()
 
 <gradio-app space="Helsinki-NLP/opus-mt-en-es"></gradio-app>
 
-## Using Hugging Face Inference API
+## Using Hugging Face Inference Endpoints
 
-Hugging Face 提供了一个名为[Inference API](https://huggingface.co/inference-api)的免费服务，允许您向 Hub 中的模型发送 HTTP 请求。对于基于 transformers 或 diffusers 的模型，API 的速度可以比自己运行推理快 2 到 10 倍。该 API 是免费的（受速率限制），您可以在想要在生产中使用时切换到专用的[推理端点](https://huggingface.co/pricing)。
+Hugging Face 提供了一个名为[Serverless Inference Endpoints](https://huggingface.co/inference-api)的免费服务，允许您向 Hub 中的模型发送 HTTP 请求。对于基于 transformers 或 diffusers 的模型，API 的速度可以比自己运行推理快 2 到 10 倍。该 API 是免费的（受速率限制），您可以在想要在生产中使用时切换到专用的[推理端点](https://huggingface.co/pricing)。
 
-让我们尝试使用推理 API 而不是自己加载模型的方式进行相同的演示。鉴于 Inference API 支持的 Hugging Face 模型，Gradio 可以自动推断出预期的输入和输出，并进行底层服务器调用，因此您不必担心定义预测函数。以下是代码示例！
+让我们尝试使用推理 API 而不是自己加载模型的方式进行相同的演示。鉴于 Inference Endpoints 支持的 Hugging Face 模型，Gradio 可以自动推断出预期的输入和输出，并进行底层服务器调用，因此您不必担心定义预测函数。以下是代码示例！
 
 ```python
 import gradio as gr
