@@ -1,6 +1,6 @@
 ---
-"@gradio/image": minor
-"gradio": minor
+"@gradio/image": patch
+"gradio": patch
 ---
 
-feat:Ensure examples Images displays as expected
+fix:Ensure examples Images displays as expected
