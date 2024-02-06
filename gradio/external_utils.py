@@ -1,11 +1,9 @@
-"""Utility function for gradio/external.py"""
+"""Utility function for gradio/external.py, designed for internal use."""
 
 import base64
 import math
-import operator
 import re
 import warnings
-from typing import Dict, List, Tuple
 
 import httpx
 import yaml
@@ -17,7 +15,7 @@ from gradio import components
 ##################
 
 
-def get_tabular_examples(model_name: str) -> Dict[str, List[float]]:
+def get_tabular_examples(model_name: str) -> dict[str, list[float]]:
     readme = httpx.get(f"https://huggingface.co/{model_name}/resolve/main/README.md")
     if readme.status_code != 200:
         warnings.warn(f"Cannot load examples from README for {model_name}", UserWarning)
@@ -48,8 +46,8 @@ def get_tabular_examples(model_name: str) -> Dict[str, List[float]]:
 
 
 def cols_to_rows(
-    example_data: Dict[str, List[float]],
-) -> Tuple[List[str], List[List[float]]]:
+    example_data: dict[str, list[float]],
+) -> tuple[list[str], list[list[float]]]:
     headers = list(example_data.keys())
     n_rows = max(len(example_data[header] or []) for header in headers)
     data = []
@@ -65,7 +63,7 @@ def cols_to_rows(
     return headers, data
 
 
-def rows_to_cols(incoming_data: Dict) -> Dict[str, Dict[str, Dict[str, List[str]]]]:
+def rows_to_cols(incoming_data: dict) -> dict[str, dict[str, dict[str, list[str]]]]:
     data_column_wise = {}
     for i, header in enumerate(incoming_data["headers"]):
         data_column_wise[header] = [str(row[i]) for row in incoming_data["data"]]
@@ -77,14 +75,8 @@ def rows_to_cols(incoming_data: Dict) -> Dict[str, Dict[str, Dict[str, List[str]
 ##################
 
 
-def postprocess_label(scores: Dict) -> Dict:
-    sorted_pred = sorted(scores.items(), key=operator.itemgetter(1), reverse=True)
-    return {
-        "label": sorted_pred[0][0],
-        "confidences": [
-            {"label": pred[0], "confidence": pred[1]} for pred in sorted_pred
-        ],
-    }
+def postprocess_label(scores: list[dict[str, str | float]]) -> dict:
+    return {c['label']: c['score'] for c in scores}
 
 
 def encode_to_base64(r: httpx.Response) -> str:
@@ -118,7 +110,7 @@ def encode_to_base64(r: httpx.Response) -> str:
 ##################
 
 
-def streamline_spaces_interface(config: Dict) -> Dict:
+def streamline_spaces_interface(config: dict) -> dict:
     """Streamlines the interface config dictionary to remove unnecessary keys."""
     config["inputs"] = [
         components.get_component_instance(component)

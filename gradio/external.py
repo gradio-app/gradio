@@ -30,6 +30,7 @@ from gradio.external_utils import (
     cols_to_rows,
     encode_to_base64,
     get_tabular_examples,
+    postprocess_label,
     streamline_spaces_interface,
 )
 from gradio.processing_utils import save_base64_to_cache
@@ -167,6 +168,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     if p == "audio-classification":
         inputs = components.Audio(type="filepath", label="Input")
         outputs = components.Label(label="Class")
+        postprocess = postprocess_label
         examples = [
             "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
         ]
@@ -362,10 +364,13 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
 
     def query_huggingface_inference_endpoints(*data):
         if preprocess is not None:
-            data = preprocess(*data)
+            data = preprocess(data)
+        print("Before", data)
         data = fn(*data)  # type: ignore
+        print("After", data)
         if postprocess is not None:
-            data = postprocess(*data)
+            data = postprocess(data)
+        print("Postprocessed", data)
         return data
 
     query_huggingface_inference_endpoints.__name__ = alias or model_name
@@ -379,12 +384,6 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     }
 
     kwargs = dict(interface_info, **kwargs)
-
-    # So interface doesn't run pre/postprocess
-    # except for conversational interfaces which
-    # are stateful
-    kwargs["_api_mode"] = p != "conversational"
-
     interface = gradio.Interface(**kwargs)
     return interface
 
