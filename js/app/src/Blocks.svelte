@@ -39,7 +39,7 @@
 	export let space_id: string | null;
 	export let version: string;
 	export let js: string | null;
-	export let fill_height: boolean = false;
+	export let fill_height = false;
 
 	let loading_status = create_loading_status_store();
 
