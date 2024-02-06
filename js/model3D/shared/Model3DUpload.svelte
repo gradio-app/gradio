@@ -5,6 +5,7 @@
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 	import { add_new_model, reset_camera_position } from "./utils";
+	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 
 	export let value: null | FileData;
 	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
@@ -22,6 +23,37 @@
 		null
 	];
 
+	let resolved_value: typeof value;
+
+	/* URL resolution for the Wasm mode. */
+	// The `value` prop can be updated before the Promise from `resolve_wasm_src` is resolved.
+	// In such a case, the resolved value for the old `value` has to be discarded,
+	// This variable `latest_value` is used to pick up only the value resolved for the latest `value` prop.
+	let latest_value: typeof value;
+	$: {
+		// In normal (non-Wasm) Gradio, the original `value` should be used immediately
+		// without waiting for `resolve_wasm_src()` to resolve.
+		// If it waits, a blank element is displayed until the async task finishes
+		// and it leads to undesirable flickering.
+		// So set `resolved_value` immediately above, and update it with the resolved values below later.
+		resolved_value = value;
+
+		if (value?.url) {
+			latest_value = value;
+			const resolving_value = value;
+			resolve_wasm_src(value.url).then((resolved_url) => {
+				if (latest_value === resolving_value) {
+					resolved_value = {
+						...resolving_value,
+						url: resolved_url ?? undefined
+					};
+				} else {
+					resolved_url && URL.revokeObjectURL(resolved_url);
+				}
+			});
+		}
+	}
+
 	let mounted = false;
 	let canvas: HTMLCanvasElement;
 	let scene: BABYLON.Scene;
@@ -32,7 +64,7 @@
 			canvas,
 			scene,
 			engine,
-			value,
+			resolved_value,
 			clear_color,
 			camera_position,
 			zoom_speed,
@@ -41,17 +73,17 @@
 	}
 
 	onMount(() => {
-		if (value != null) {
+		if (resolved_value != null) {
 			reset_scene();
 		}
 		mounted = true;
 	});
 
-	$: ({ path } = value || {
+	$: ({ path } = resolved_value || {
 		path: undefined
 	});
 
-	$: canvas && mounted && path != null && reset_scene();
+	$: canvas && mounted && path != null && resolved_value && reset_scene();
 
 	async function handle_upload({
 		detail
