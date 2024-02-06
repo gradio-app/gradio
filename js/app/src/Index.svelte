@@ -27,7 +27,7 @@
 		stylesheets?: string[];
 		path: string;
 		app_id?: string;
-		expand_to_height?: boolean;
+		fill_height?: boolean;
 	}
 
 	let id = -1;
@@ -413,7 +413,7 @@
 		<Blocks
 			{app}
 			{...config}
-			expand_to_height={!is_embed && config.expand_to_height}
+			fill_height={!is_embed && config.fill_height}
 			theme_mode={active_theme_mode}
 			{control_page_title}
 			target={wrapper}

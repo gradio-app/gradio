@@ -76,7 +76,7 @@ class ChatInterface(Blocks):
         clear_btn: str | None | Button = "🗑️  Clear",
         autofocus: bool = True,
         concurrency_limit: int | None | Literal["default"] = "default",
-        expand_to_height: bool = True,
+        fill_height: bool = True,
     ):
         """
         Parameters:
@@ -102,7 +102,7 @@ class ChatInterface(Blocks):
             clear_btn: Text to display on the clear button. If None, no button will be displayed. If a Button object, that button will be used.
             autofocus: If True, autofocuses to the textbox when the page loads.
             concurrency_limit: If set, this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
-            expand_to_height: If True, the chat interface will expand to the height of window.
+            fill_height: If True, the chat interface will expand to the height of window.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -112,7 +112,7 @@ class ChatInterface(Blocks):
             theme=theme,
             js=js,
             head=head,
-            expand_to_height=expand_to_height,
+            fill_height=fill_height,
         )
         self.concurrency_limit = concurrency_limit
         self.fn = fn
@@ -177,7 +177,7 @@ class ChatInterface(Blocks):
                 self.chatbot = chatbot.render()
             else:
                 self.chatbot = Chatbot(
-                    label="Chatbot", scale=1, height=200 if expand_to_height else None
+                    label="Chatbot", scale=1, height=200 if fill_height else None
                 )
 
             with Row():
