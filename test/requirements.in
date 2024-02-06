@@ -16,6 +16,7 @@ pytest-cov
 ruff>=0.1.13
 respx
 scikit-image
+torch
 tqdm
 transformers
 vega_datasets
