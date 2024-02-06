@@ -291,7 +291,7 @@ def readme_to_html(article: str) -> str:
         response = httpx.get(article, timeout=3)
         if response.status_code == httpx.codes.OK:  # pylint: disable=no-member
             article = response.text
-    except httpx.RequestError:
+    except (httpx.InvalidURL, httpx.RequestError):
         pass
     return article
 
