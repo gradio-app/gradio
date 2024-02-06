@@ -7,8 +7,8 @@
 	import { allModes } from "../storybook/modes";
 
 	export const meta = {
-		title: "Components/Audio",
-		component: Audio,
+		title: "Components/Image Editor",
+		component: ImageEditor,
 		parameters: {
 			chromatic: {
 				modes: {
