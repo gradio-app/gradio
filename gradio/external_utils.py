@@ -76,7 +76,15 @@ def rows_to_cols(incoming_data: dict) -> dict[str, dict[str, dict[str, list[str]
 
 
 def postprocess_label(scores: list[dict[str, str | float]]) -> dict:
-    return {c['label']: c['score'] for c in scores}
+    return {c["label"]: c["score"] for c in scores}
+
+
+def postprocess_mask_tokens(scores: list[dict[str, str | float]]) -> dict:
+    return {c["token_str"]: c["score"] for c in scores}
+
+
+def postprocess_question_answering(answer: dict) -> tuple[str, dict]:
+    return answer["answer"], {answer["answer"]: answer["score"]}
 
 
 def encode_to_base64(r: httpx.Response) -> str:

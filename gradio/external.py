@@ -19,19 +19,12 @@ from gradio_client.documentation import document
 from packaging import version
 
 import gradio
-from gradio import components
+from gradio import components, external_utils
 from gradio.context import Context
 from gradio.exceptions import (
     GradioVersionIncompatibleError,
     ModelNotFoundError,
     TooManyRequestsError,
-)
-from gradio.external_utils import (
-    cols_to_rows,
-    encode_to_base64,
-    get_tabular_examples,
-    postprocess_label,
-    streamline_spaces_interface,
 )
 from gradio.processing_utils import save_base64_to_cache
 
@@ -158,17 +151,19 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     # For tasks that are not yet supported by the InferenceClient
     def custom_post_binary(data):
         response = httpx.request("POST", api_url, headers=headers, data=data)
-        return save_base64_to_cache(encode_to_base64(response), cache_dir=GRADIO_CACHE)
+        return save_base64_to_cache(
+            external_utils.encode_to_base64(response), cache_dir=GRADIO_CACHE
+        )
 
     preprocess = None
     postprocess = None
     examples = None
 
-    # example model: ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
+    # example model: ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition!!
     if p == "audio-classification":
         inputs = components.Audio(type="filepath", label="Input")
         outputs = components.Label(label="Class")
-        postprocess = postprocess_label
+        postprocess = external_utils.postprocess_label
         examples = [
             "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
         ]
@@ -205,14 +200,20 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         inputs = components.Textbox(label="Input")
         outputs = components.Dataframe(label="Output")
         fn = client.feature_extraction
+    # example model: distilbert/distilbert-base-uncased!!
     elif p == "fill-mask":
         inputs = components.Textbox(label="Input")
         outputs = components.Label(label="Classification")
+        examples = [
+            "Hugging Face is the AI community, working together, to [MASK] the future."
+        ]
+        postprocess = external_utils.postprocess_mask_tokens
         fn = client.fill_mask
-    # Example: google/vit-base-patch16-224
+    # Example: google/vit-base-patch16-224!!
     elif p == "image-classification":
         inputs = components.Image(type="filepath", label="Input Image")
         outputs = components.Label(label="Classification")
+        postprocess = external_utils.postprocess_label
         examples = ["https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"]
         fn = client.image_classification
     # Example: deepset/xlm-roberta-base-squad2
@@ -233,6 +234,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
                 "What entity was responsible for the Apollo program?",
             ]
         ]
+        postprocess = external_utils.postprocess_question_answering
         fn = client.question_answering
     # Example: facebook/bart-large-cnn
     elif p == "summarization":
@@ -344,8 +346,8 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         examples = ["https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"]
         fn = client.image_to_text
     elif p in ["tabular-classification", "tabular-regression"]:
-        example_data = get_tabular_examples(model_name)
-        col_names, example_data = cols_to_rows(example_data)
+        example_data = external_utils.get_tabular_examples(model_name)
+        col_names, example_data = external_utils.cols_to_rows(example_data)
         example_data = [[example_data]] if example_data else None
 
         inputs = components.Dataframe(
@@ -369,7 +371,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         data = fn(*data)  # type: ignore
         print("After", data)
         if postprocess is not None:
-            data = postprocess(data)
+            data = postprocess(data)  # type: ignore
         print("Postprocessed", data)
         return data
 
@@ -463,7 +465,7 @@ def from_spaces_interface(
     iframe_url: str,
     **kwargs,
 ) -> Interface:
-    config = streamline_spaces_interface(config)
+    config = external_utils.streamline_spaces_interface(config)
     api_url = f"{iframe_url}/api/predict/"
     headers = {"Content-Type": "application/json"}
     if hf_token is not None:
