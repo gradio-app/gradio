@@ -1,5 +1,15 @@
 # @gradio/upload
 
+## 0.7.1
+
+### Features
+
+- [#7206](https://github.com/gradio-app/gradio/pull/7206) [`572e360`](https://github.com/gradio-app/gradio/commit/572e360fff4a03c335b86e1a7517a44cb6af2bcd) - Upload tweak.  Thanks [@pngwn](https://github.com/pngwn)!
+
+### Fixes
+
+- [#7141](https://github.com/gradio-app/gradio/pull/7141) [`c3e61e4`](https://github.com/gradio-app/gradio/commit/c3e61e4f70696a71aede67b65d28447eb67daf16) - Few File component drag and drop.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.7.0
 
 ### Features

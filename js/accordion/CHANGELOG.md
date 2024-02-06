@@ -1,5 +1,11 @@
 # @gradio/accordion
 
+## 0.3.0
+
+### Features
+
+- [#7208](https://github.com/gradio-app/gradio/pull/7208) [`efacc7d`](https://github.com/gradio-app/gradio/commit/efacc7d5cb0d1c6448cbec82abfc00ad6da05b3f) - Ensure `open` reactivity in Accordion.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.2.7
 
 ### Patch Changes

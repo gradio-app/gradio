@@ -1,5 +1,14 @@
 # @gradio/fallback
 
+## 0.2.8
+
+### Patch Changes
+
+- Updated dependencies [[`fdd1521`](https://github.com/gradio-app/gradio/commit/fdd15213c24b9cbc58bbc1b6beb4af7c18f48557)]:
+  - @gradio/utils@0.2.2
+  - @gradio/atoms@0.5.1
+  - @gradio/statustracker@0.4.5
+
 ## 0.2.7
 
 ### Patch Changes

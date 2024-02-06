@@ -1,5 +1,19 @@
 # gradio_client
 
+## 0.9.0
+
+### Features
+
+- [#7062](https://github.com/gradio-app/gradio/pull/7062) [`0fddd0f`](https://github.com/gradio-app/gradio/commit/0fddd0f971761bff3ef6ccc7ab9deb1891cd80d0) - Determine documentation group automatically.  Thanks [@akx](https://github.com/akx)!
+- [#7102](https://github.com/gradio-app/gradio/pull/7102) [`68a54a7`](https://github.com/gradio-app/gradio/commit/68a54a7a310d8d7072fdae930bf1cfdf12c45a7f) - Improve chatbot streaming performance with diffs.  Thanks [@aliabid94](https://github.com/aliabid94)!/n  Note that this PR changes the API format for generator functions, which would be a breaking change for any clients reading the EventStream directly
+- [#7116](https://github.com/gradio-app/gradio/pull/7116) [`3c8c4ac`](https://github.com/gradio-app/gradio/commit/3c8c4ac2db284e1cb503c397205a79a6dcc27e23) - Document the `gr.ParamViewer` component, and fix component preprocessing/postprocessing docstrings.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7061](https://github.com/gradio-app/gradio/pull/7061) [`05d8a3c`](https://github.com/gradio-app/gradio/commit/05d8a3c8030b733bd47250f5db6f89f230f9a707) - Update ruff to 0.1.13, enable more rules, fix issues.  Thanks [@akx](https://github.com/akx)!
+
+### Fixes
+
+- [#7178](https://github.com/gradio-app/gradio/pull/7178) [`9f23b0b`](https://github.com/gradio-app/gradio/commit/9f23b0bc54b4ef63c056b309370df52ec2c2a43c) - Optimize client view_api method.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#7322](https://github.com/gradio-app/gradio/pull/7322) [`b25e95e`](https://github.com/gradio-app/gradio/commit/b25e95e164e80d66203ef71ce6bdb67ceb6b24df) - Fix `processing_utils.save_url_to_cache()` to follow redirects when accessing the URL.  Thanks [@whitphx](https://github.com/whitphx)!
+
 ## 0.8.1
 
 ### Features
