@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Add source selection interaction test for `gr.Image`
+feat:Add `gr.Image` interaction test + `gr.ImageEditor` interaction test improvement
