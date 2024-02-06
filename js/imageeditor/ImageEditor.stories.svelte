@@ -7,8 +7,8 @@
 	import { allModes } from "../storybook/modes";
 
 	export const meta = {
-		title: "Components/Audio",
-		component: Audio,
+		title: "Components/Image Editor",
+		component: ImageEditor,
 		parameters: {
 			chromatic: {
 				modes: {
@@ -51,6 +51,9 @@
 
 <Story
 	name="Image Editor Interactions"
+	parameters={{
+		diffThreshold: 0.1
+	}}
 	args={{
 		value: {
 			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",

@@ -291,7 +291,7 @@ def readme_to_html(article: str) -> str:
         response = httpx.get(article, timeout=3)
         if response.status_code == httpx.codes.OK:  # pylint: disable=no-member
             article = response.text
-    except httpx.RequestError:
+    except (httpx.InvalidURL, httpx.RequestError):
         pass
     return article
 
@@ -384,24 +384,6 @@ def assert_configs_are_equivalent_besides_ids(
             raise ValueError(f"{d1} does not match {d2}")
 
     return True
-
-
-def format_ner_list(input_string: str, ner_groups: list[dict[str, str | int]]):
-    if len(ner_groups) == 0:
-        return [(input_string, None)]
-
-    output = []
-    end = 0
-    prev_end = 0
-
-    for group in ner_groups:
-        entity, start, end = group["entity_group"], group["start"], group["end"]
-        output.append((input_string[prev_end:start], None))
-        output.append((input_string[start:end], entity))
-        prev_end = end
-
-    output.append((input_string[end:], None))
-    return output
 
 
 def delete_none(_dict: dict, skip_value: bool = False) -> dict:
@@ -592,7 +574,9 @@ def validate_url(possible_url: str) -> bool:
         head_request = httpx.head(possible_url, headers=headers, follow_redirects=True)
         # some URLs, such as AWS S3 presigned URLs, return a 405 or a 403 for HEAD requests
         if head_request.status_code in (403, 405):
-            return httpx.get(possible_url, headers=headers).is_success
+            return httpx.get(
+                possible_url, headers=headers, follow_redirects=True
+            ).is_success
         return head_request.is_success
     except Exception:
         return False
