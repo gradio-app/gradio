@@ -1,5 +1,11 @@
 # @gradio/imageeditor
 
+## 0.3.2
+
+### Fixes
+
+- [#7219](https://github.com/gradio-app/gradio/pull/7219) [`faead14`](https://github.com/gradio-app/gradio/commit/faead1403cdba6415912a6ad512291ac63b04173) - Show label in interactive image editor.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.3.1
 
 ### Patch Changes

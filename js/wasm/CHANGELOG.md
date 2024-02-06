@@ -1,5 +1,11 @@
 # @gradio/wasm
 
+## 0.6.0
+
+### Features
+
+- [#7061](https://github.com/gradio-app/gradio/pull/7061) [`05d8a3c`](https://github.com/gradio-app/gradio/commit/05d8a3c8030b733bd47250f5db6f89f230f9a707) - Update ruff to 0.1.13, enable more rules, fix issues.  Thanks [@akx](https://github.com/akx)!
+
 ## 0.5.1
 
 ### Fixes
