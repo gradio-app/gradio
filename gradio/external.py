@@ -32,7 +32,7 @@ from gradio.external_utils import (
     get_tabular_examples,
     streamline_spaces_interface,
 )
-from gradio.processing_utils import save_base64_to_cache, to_binary
+from gradio.processing_utils import save_base64_to_cache
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -165,19 +165,27 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
 
     # example model: ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
     if p == "audio-classification":
-        inputs = components.Audio(sources=["upload"], type="filepath", label="Input")
+        inputs = components.Audio(type="filepath", label="Input")
         outputs = components.Label(label="Class")
+        examples = [
+            "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+        ]
         fn = client.audio_classification
     # example model: facebook/xm_transformer_sm_all-en
     elif p == "audio-to-audio":
-        inputs = components.Audio(sources=["upload"], type="filepath", label="Input")
+        inputs = components.Audio(type="filepath", label="Input")
         outputs = components.Audio(label="Output")
-        preprocess = to_binary
+        examples = [
+            "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+        ]
         fn = custom_post_binary
     # example model: facebook/wav2vec2-base-960h
     elif p == "automatic-speech-recognition":
         inputs = components.Audio(sources=["upload"], type="filepath", label="Input")
         outputs = components.Textbox(label="Output")
+        examples = [
+            "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+        ]
         fn = client.automatic_speech_recognition
     elif p == "conversational":
         inputs = [
@@ -188,6 +196,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             components.Chatbot(render=False),
             components.State(render=False),
         ]
+        examples = [["Hello World"]]
         fn = client.conversational
     # example model: julien-c/distilbert-feature-extraction
     elif p == "feature-extraction":
@@ -202,6 +211,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     elif p == "image-classification":
         inputs = components.Image(type="filepath", label="Input Image")
         outputs = components.Label(label="Classification")
+        examples = ["https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"]
         fn = client.image_classification
     # Example: deepset/xlm-roberta-base-squad2
     elif p == "question-answering":
@@ -213,30 +223,47 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             components.Textbox(label="Answer"),
             components.Label(label="Score"),
         ]
+        examples = [
+            [
+                "The Apollo program, also known as Project Apollo, was the third United States human spaceflight"
+                " program carried out by the National Aeronautics and Space Administration (NASA), which accomplished"
+                " landing the first humans on the Moon from 1969 to 1972.",
+                "What entity was responsible for the Apollo program?",
+            ]
+        ]
         fn = client.question_answering
     # Example: facebook/bart-large-cnn
     elif p == "summarization":
         inputs = components.Textbox(label="Input")
         outputs = components.Textbox(label="Summary")
+        examples = [
+            [
+                "The Apollo program, also known as Project Apollo, was the third United States human spaceflight program carried out by the National Aeronautics and Space Administration (NASA), which accomplished landing the first humans on the Moon from 1969 to 1972."
+            ]
+        ]
         fn = client.summarization
     # Example: distilbert-base-uncased-finetuned-sst-2-english
     elif p == "text-classification":
         inputs = components.Textbox(label="Input")
         outputs = components.Label(label="Classification")
+        examples = ["I feel great"]
         fn = client.text_classification
     # Example: gpt2
     elif p == "text-generation":
         inputs = components.Textbox(label="Input")
         outputs = components.Textbox(label="Output")
+        examples = ["Once upon a time"]
         fn = client.text_generation
     # Example: valhalla/t5-small-qa-qg-hl
     elif p == "text2text-generation":
         inputs = components.Textbox(label="Input")
         outputs = components.Textbox(label="Generated Text")
+        examples = ["Translate English to Arabic: How are you?"]
         fn = client.text_generation
     elif p == "translation":
         inputs = components.Textbox(label="Input")
         outputs = components.Textbox(label="Translation")
+        examples = ["Hello, how are you?"]
         fn = client.translation
     # Example: facebook/bart-large-mnli
     elif p == "zero-shot-classification":
@@ -246,6 +273,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             components.Checkbox(label="Allow multiple true classes"),
         ]
         outputs = components.Label(label="Classification")
+        examples = [["I feel great", "happy, sad", False]]
         fn = client.zero_shot_classification
     # Example: sentence-transformers/distilbert-base-nli-stsb-mean-tokens
     elif p == "sentence-similarity":
@@ -263,21 +291,27 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             ),
         ]
         outputs = components.Label(label="Classification")
+        examples = [["That is a happy person", "That person is very happy"]]
         fn = client.sentence_similarity
     # Example: julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train
     elif p == "text-to-speech":
         inputs = components.Textbox(label="Input")
         outputs = components.Audio(label="Audio")
+        examples = ["Hello, how are you?"]
         fn = client.text_to_speech
     # example model: osanseviero/BigGAN-deep-128
     elif p == "text-to-image":
         inputs = components.Textbox(label="Input")
         outputs = components.Image(label="Output")
+        examples = ["A beautiful sunset"]
         fn = client.text_to_image
     # example model: huggingface-course/bert-finetuned-ner
     elif p == "token-classification":
         inputs = components.Textbox(label="Input")
         outputs = components.HighlightedText(label="Output")
+        examples = [
+            "Hugging Face is a company based in Paris and New York City that acquired Gradio in 2021."
+        ]
         fn = client.token_classification
     # example model: impira/layoutlm-document-qa
     elif p == "document-question-answering":
@@ -293,12 +327,19 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             components.Image(type="filepath", label="Input Image"),
             components.Textbox(label="Question"),
         ]
+        examples = [
+            [
+                "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+                "What animal is in the image?",
+            ]
+        ]
         outputs = components.Label(label="Label")
         fn = client.visual_question_answering
     # example model: Salesforce/blip-image-captioning-base
     elif p == "image-to-text":
         inputs = (components.Image(type="filepath", label="Input Image"),)
         outputs = components.Textbox(label="Generated Text")
+        examples = ["https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg"]
         fn = client.image_to_text
     elif p in ["tabular-classification", "tabular-regression"]:
         example_data = get_tabular_examples(model_name)
@@ -319,7 +360,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
     else:
         raise ValueError(f"Unsupported pipeline type: {p}")
 
-    def query_huggingface_api(*data):
+    def query_huggingface_inference_endpoints(*data):
         if preprocess is not None:
             data = preprocess(*data)
         data = fn(*data)  # type: ignore
@@ -327,10 +368,10 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             data = postprocess(*data)
         return data
 
-    query_huggingface_api.__name__ = alias or model_name
+    query_huggingface_inference_endpoints.__name__ = alias or model_name
 
     interface_info = {
-        "fn": query_huggingface_api,
+        "fn": query_huggingface_inference_endpoints,
         "inputs": inputs,
         "outputs": outputs,
         "title": model_name,
