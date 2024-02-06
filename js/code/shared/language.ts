@@ -31,7 +31,7 @@ const sql_dialects = [
 	"gpSQL",
 	"sparkSQL",
 	"esper"
-] as const;	
+] as const;
 
 const lang_map: Record<string, (() => Promise<Extension>) | undefined> = {
 	python: () => import("@codemirror/lang-python").then((m) => m.python()),
@@ -71,9 +71,15 @@ const lang_map: Record<string, (() => Promise<Extension>) | undefined> = {
 		import("@codemirror/legacy-modes/mode/sql").then((m) =>
 			StreamLanguage.define(m.standardSQL)
 		),
-	...Object.fromEntries(sql_dialects.map((dialect) => ["sql-" + dialect, () =>import("@codemirror/legacy-modes/mode/sql").then((m) =>
-		StreamLanguage.define(m[dialect])
-	)]))
+	...Object.fromEntries(
+		sql_dialects.map((dialect) => [
+			"sql-" + dialect,
+			() =>
+				import("@codemirror/legacy-modes/mode/sql").then((m) =>
+					StreamLanguage.define(m[dialect])
+				)
+		])
+	)
 } as const;
 
 const alias_map: Record<string, string> = {
