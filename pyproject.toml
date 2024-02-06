@@ -20,7 +20,7 @@ authors = [
   { name = "Ahsen Khaliq", email = "gradio-team@huggingface.co" },
   { name = "Pete Allen", email = "gradio-team@huggingface.co" },
   { name = "Ömer Faruk Özdemir", email = "gradio-team@huggingface.co" },
-  { name = "Freddy A Boulton", email = "gradio-team@huggingface.co" },
+  { name = "Freddy A Boulton.", email = "gradio-team@huggingface.co" },
   { name = "Hannah Blair", email = "gradio-team@huggingface.co" },
 ]
 keywords = ["machine learning", "reproducibility", "visualization"]
