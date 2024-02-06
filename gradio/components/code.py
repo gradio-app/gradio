@@ -29,6 +29,7 @@ class Code(Component):
         "dockerfile",
         "shell",
         "r",
+        "sql",
         None,
     ]
 
@@ -54,6 +55,19 @@ class Code(Component):
             "dockerfile",
             "shell",
             "r",
+            "sql",
+            "sql-msSQL",
+            "sql-mySQL",
+            "sql-mariaDB",
+            "sql-sqlite",
+            "sql-cassandra",
+            "sql-plSQL",
+            "sql-hive",
+            "sql-pgSQL",
+            "sql-gql",
+            "sql-gpSQL",
+            "sql-parkSQL",
+            "sql-esper",
         ]
         | None = None,
         *,
