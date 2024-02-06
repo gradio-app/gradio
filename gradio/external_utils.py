@@ -1,5 +1,7 @@
 """Utility function for gradio/external.py, designed for internal use."""
 
+from __future__ import annotations
+
 import base64
 import math
 import re
