@@ -167,6 +167,26 @@ def token_classification_wrapper(client: InferenceClient):
     return token_classification_inner
 
 
+def chatbot_preprocess(text, state):
+    if not state:
+        return text, [], []
+    return (
+        text,
+        state["conversation"]["generated_responses"],
+        state["conversation"]["past_user_inputs"],
+    )
+
+
+def chatbot_postprocess(response):
+    chatbot_history = list(
+        zip(
+            response["conversation"]["past_user_inputs"],
+            response["conversation"]["generated_responses"],
+        )
+    )
+    return chatbot_history, response
+
+
 ##################
 # Helper function for cleaning up an Interface loaded from HF Spaces
 ##################

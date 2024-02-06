@@ -100,32 +100,6 @@ def load_blocks_from_repo(
     return blocks
 
 
-def chatbot_preprocess(text, state):
-    payload = {
-        "inputs": {"generated_responses": None, "past_user_inputs": None, "text": text}
-    }
-    if state is not None:
-        payload["inputs"]["generated_responses"] = state["conversation"][
-            "generated_responses"
-        ]
-        payload["inputs"]["past_user_inputs"] = state["conversation"][
-            "past_user_inputs"
-        ]
-
-    return payload
-
-
-def chatbot_postprocess(response):
-    response_json = response.json()
-    chatbot_value = list(
-        zip(
-            response_json["conversation"]["past_user_inputs"],
-            response_json["conversation"]["generated_responses"],
-        )
-    )
-    return chatbot_value, response_json
-
-
 def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwargs):
     model_url = f"https://huggingface.co/{model_name}"
     api_url = f"https://api-inference.huggingface.co/models/{model_name}"
@@ -185,6 +159,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
         ]
         fn = client.automatic_speech_recognition
+    # example model: microsoft/DialoGPT-medium
     elif p == "conversational":
         inputs = [
             components.Textbox(render=False),
@@ -195,6 +170,8 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             components.State(render=False),
         ]
         examples = [["Hello World"]]
+        preprocess = external_utils.chatbot_preprocess
+        postprocess = external_utils.chatbot_postprocess
         fn = client.conversational
     # example model: julien-c/distilbert-feature-extraction
     elif p == "feature-extraction":
@@ -372,13 +349,10 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
 
     def query_huggingface_inference_endpoints(*data):
         if preprocess is not None:
-            data = preprocess(data)
-        print("Before", data)
+            data = preprocess(*data)
         data = fn(*data)  # type: ignore
-        print("After", data)
         if postprocess is not None:
             data = postprocess(data)  # type: ignore
-        print("Postprocessed", data)
         return data
 
     query_huggingface_inference_endpoints.__name__ = alias or model_name

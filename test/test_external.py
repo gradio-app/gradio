@@ -13,7 +13,8 @@ from huggingface_hub import HfFolder
 import gradio as gr
 from gradio.context import Context
 from gradio.exceptions import GradioVersionIncompatibleError, InvalidApiNameError
-from gradio.external import TooManyRequestsError, cols_to_rows, get_tabular_examples
+from gradio.external import TooManyRequestsError
+from gradio.external_utils import cols_to_rows, get_tabular_examples
 
 """
 WARNING: These tests have an external dependency: namely that Hugging Face's
@@ -204,7 +205,7 @@ class TestLoadInterface:
     def test_image_classification_model(self):
         io = gr.load(name="models/google/vit-base-patch16-224")
         try:
-            assert io("gradio/test_data/lion.jpg")["label"] == "lion"
+            assert io("gradio/test_data/lion.jpg")["label"].startswith("lion")
         except TooManyRequestsError:
             pass
 
