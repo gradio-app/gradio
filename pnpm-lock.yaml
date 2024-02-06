@@ -1167,6 +1167,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
       '@types/babylon':
         specifier: ^6.16.6
         version: 6.16.6
