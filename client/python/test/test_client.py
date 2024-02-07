@@ -51,6 +51,27 @@ def connect(
         demo.server.thread.join(timeout=1)
 
 
+class TestClientInitialization:
+    def test_headers_constructed_correctly(self):
+        client = Client("gradio-tests/titanic-survival", hf_token=HF_TOKEN)
+        assert {"authorization": f"Bearer {HF_TOKEN}"}.items() <= client.headers.items()
+        client = Client(
+            "gradio-tests/titanic-survival",
+            hf_token=HF_TOKEN,
+            headers={"additional": "value"},
+        )
+        assert {
+            "authorization": f"Bearer {HF_TOKEN}",
+            "additional": "value",
+        }.items() <= client.headers.items()
+        client = Client(
+            "gradio-tests/titanic-survival",
+            hf_token=HF_TOKEN,
+            headers={"authorization": "Bearer abcde"},
+        )
+        assert {"authorization": "Bearer abcde"}.items() <= client.headers.items()
+
+
 class TestClientPredictions:
     @pytest.mark.flaky
     def test_raise_error_invalid_state(self):
