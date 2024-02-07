@@ -79,8 +79,12 @@ def hi(name):
 			controlPageTitle: false,
 			appMode: true
 		});
+		// @ts-ignore
+		window.controller = controller; // For Playwright
 	});
 	onDestroy(() => {
+		// @ts-ignore
+		window.controller = undefined;
 		controller.unmount();
 	});
 
