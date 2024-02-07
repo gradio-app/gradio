@@ -583,6 +583,12 @@ class App(FastAPI):
                     content={"error": str(error) if show_error else None},
                     status_code=500,
                 )
+            root_path = (
+                request.scope.get("root_path")
+                or request.headers.get("X-Direct-Url")
+                or ""
+            )
+            output = add_root_url(output, root_path)
             return output
 
         @app.get("/queue/data", dependencies=[Depends(login_check)])
