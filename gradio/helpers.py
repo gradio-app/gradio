@@ -291,10 +291,9 @@ class Examples:
                 # And `self.cache()` should be waited for to complete before this method returns,
                 # (otherwise, an error "Cannot cache examples if not in a Blocks context" will be raised anyway)
                 # so `eventloop.create_task(self.cache())` is also not an option.
-                raise wasm_utils.WasmUnsupportedError(
-                    "Caching examples is not supported in the Wasm mode."
-                )
-            client_utils.synchronize_async(self.cache)
+                warnings.warn("Caching examples is not supported in the Wasm mode.")
+            else:
+                client_utils.synchronize_async(self.cache)
 
     async def cache(self) -> None:
         """
