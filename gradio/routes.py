@@ -17,7 +17,6 @@ import mimetypes
 import os
 import posixpath
 import secrets
-import shutil
 import tempfile
 import threading
 import time
@@ -64,6 +63,7 @@ from gradio.route_utils import (  # noqa: F401
     GradioUploadFile,
     MultiPartException,
     Request,
+    move_uploaded_files_to_cache,
 )
 from gradio.state_holder import StateHolder
 from gradio.utils import (
@@ -115,12 +115,6 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
 
 client = httpx.AsyncClient()
-
-
-def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
-    for file, dest in zip(files, destinations):
-        shutil.move(file, dest)
-
 
 file_upload_statuses = FileUploadProgress()
 

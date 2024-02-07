@@ -76,8 +76,8 @@ export async function upload(
 					if (response.files) {
 						return response.files.map((f, i) => {
 							const file = new FileData({ ...file_data[i], path: f });
-
-							return normalise_file(file, root, null);
+							file.url = root + "/file=" + file.path;
+							return file;
 						});
 					}
 
