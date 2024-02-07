@@ -588,7 +588,9 @@ class App(FastAPI):
                 or request.headers.get("X-Direct-Url")
                 or ""
             )
+            print("output", output)
             output = add_root_url(output, root_path)
+            print("output", output)
             return output
 
         @app.get("/queue/data", dependencies=[Depends(login_check)])
