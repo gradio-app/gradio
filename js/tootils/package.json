@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/tootils",
-	"version": "0.1.8",
+	"version": "0.1.9",
 	"description": "Internal test utilities",
 	"type": "module",
 	"main": "src/index.ts",

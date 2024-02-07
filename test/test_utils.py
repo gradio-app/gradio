@@ -12,6 +12,7 @@ import pytest
 from typing_extensions import Literal
 
 from gradio import EventData, Request
+from gradio.external_utils import format_ner_list
 from gradio.utils import (
     abspath,
     append_unique_suffix,
@@ -19,7 +20,6 @@ from gradio.utils import (
     check_function_inputs_match,
     colab_check,
     delete_none,
-    format_ner_list,
     get_continuous_fn,
     get_extension_from_file_path_or_url,
     get_type_hints,
@@ -197,6 +197,9 @@ class TestValidateURL:
         assert validate_url("http://gradio.dev")
         assert validate_url(
             "https://upload.wikimedia.org/wikipedia/commons/b/b0/Bengal_tiger_%28Panthera_tigris_tigris%29_female_3_crop.jpg"
+        )
+        assert validate_url(
+            "https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/bread_small.png"
         )
 
     def test_invalid_urls(self):

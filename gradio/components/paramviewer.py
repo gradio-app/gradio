@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal, TypedDict
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.events import Events
@@ -12,9 +12,6 @@ class Parameter(TypedDict):
     type: str
     description: str
     default: str | None
-
-
-set_documentation_group("component")
 
 
 @document()

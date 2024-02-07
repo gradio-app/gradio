@@ -4,11 +4,9 @@ from __future__ import annotations
 import warnings
 from typing import Literal
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components import Button
-
-set_documentation_group("component")
 
 
 @document()

@@ -24,7 +24,7 @@ import anyio
 import httpx
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio import (
     analytics,
@@ -77,7 +77,6 @@ try:
 except Exception:
     spaces = None
 
-set_documentation_group("blocks")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
@@ -504,6 +503,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         css: str | None = None,
         js: str | None = None,
         head: str | None = None,
+        fill_height: bool = False,
         **kwargs,
     ):
         """
@@ -515,6 +515,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             css: Custom css as a string or path to a css file. This css will be included in the demo webpage.
             js: Custom js or path to js file to run when demo is first loaded. This javascript will be included in the demo webpage.
             head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
+            fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
         """
         self.limiter = None
         if theme is None:
@@ -542,6 +543,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.pending_diff_streams = defaultdict(dict)
         self.show_error = True
         self.head = head
+        self.fill_height = fill_height
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -1665,6 +1667,7 @@ Received outputs:
                     "body_text_color_dark"
                 ),
             },
+            "fill_height": self.fill_height,
         }
 
         def get_layout(block):

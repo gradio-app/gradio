@@ -14,8 +14,6 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
-from gradio_client.documentation import set_documentation_group
-
 from gradio import utils
 from gradio.blocks import Block, BlockContext
 from gradio.component_meta import ComponentMeta
@@ -30,9 +28,6 @@ if TYPE_CHECKING:
     class DataframeData(TypedDict):
         headers: list[str]
         data: list[list[str | int | bool]]
-
-
-set_documentation_group("component")
 
 
 class _Keywords(Enum):
