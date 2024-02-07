@@ -43,8 +43,8 @@
 	}
 
 	.container.gallery {
-		height: var(--size-20);
-		max-height: var(--size-20);
+		width: var(--size-20);
+		max-width: var(--size-20);
 		object-fit: cover;
 	}
 </style>

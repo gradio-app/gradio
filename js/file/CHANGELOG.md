@@ -1,5 +1,12 @@
 # @gradio/file
 
+## 0.4.9
+
+### Fixes
+
+- [#7192](https://github.com/gradio-app/gradio/pull/7192) [`8dd6f4b`](https://github.com/gradio-app/gradio/commit/8dd6f4bc1901792f05cd59e86df7b1dbab692739) - Handle the case where examples is `null` for all components.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7221](https://github.com/gradio-app/gradio/pull/7221) [`cae05c0`](https://github.com/gradio-app/gradio/commit/cae05c05ecde56c4d92c6b5ed8d13353505cbd14) - Fix single file upload display.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
 ## 0.4.8
 
 ### Patch Changes

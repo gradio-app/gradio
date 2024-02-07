@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/model3d",
-	"version": "0.5.0",
+	"version": "0.6.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -13,6 +13,7 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
+		"@gradio/wasm": "workspace:^",
 		"@types/babylon": "^6.16.6",
 		"babylonjs": "^4.2.1",
 		"babylonjs-loaders": "^4.2.1",

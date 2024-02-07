@@ -279,7 +279,7 @@ importers:
   js/_website:
     dependencies:
       '@gradio/code':
-        specifier: 0.3.8
+        specifier: 0.4.0
         version: link:../code
       '@sindresorhus/slugify':
         specifier: ^2.2.0
@@ -334,7 +334,7 @@ importers:
         specifier: workspace:^
         version: link:../statustracker
       '@gradio/utils':
-        specifier: workspace:0.2.1
+        specifier: workspace:0.2.2
         version: link:../utils
 
   js/annotatedimage:
@@ -1167,6 +1167,9 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+      '@gradio/wasm':
+        specifier: workspace:^
+        version: link:../wasm
       '@types/babylon':
         specifier: ^6.16.6
         version: 6.16.6
@@ -1317,13 +1320,13 @@ importers:
   js/preview/test/test/frontend:
     dependencies:
       '@gradio/atoms':
-        specifier: 0.5.0
+        specifier: 0.5.1
         version: link:../../../../atoms
       '@gradio/statustracker':
-        specifier: 0.4.4
+        specifier: 0.4.5
         version: link:../../../../statustracker
       '@gradio/utils':
-        specifier: 0.2.1
+        specifier: 0.2.2
         version: link:../../../../utils
       '@zerodevx/svelte-json-view':
         specifier: ^1.0.7
