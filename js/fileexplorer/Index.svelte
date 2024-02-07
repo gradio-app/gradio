@@ -3,6 +3,7 @@
 <script lang="ts">
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import { File } from "@gradio/icons";
+	import type { FileNode } from "./shared/types";
 
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import DirectoryExplorer from "./shared/DirectoryExplorer.svelte";
@@ -20,11 +21,7 @@
 	export let show_label: boolean;
 	export let height: number | undefined = undefined;
 	export let file_count: "single" | "multiple" = "multiple";
-
-	export let glob: string;
-	export let ignore_glob: string;
 	export let root_dir: string;
-
 	export let loading_status: LoadingStatus;
 	export let container = true;
 	export let scale: number | null = null;
@@ -33,7 +30,7 @@
 		change: never;
 	}>;
 	export let server: {
-		ls: (path: string[]) => Promise<[string[], string[]]>;
+		ls: (path: string[]) => Promise<FileNode[]>;
 	};
 	export let interactive: boolean;
 </script>
@@ -65,11 +62,9 @@
 	<DirectoryExplorer
 		bind:value
 		{file_count}
-		{server}
 		{interactive}
 		{root_dir}
-		{glob}
-		{ignore_glob}
+		ls_fn={server.ls}
 		on:change={() => gradio.dispatch("change")}
 	/>
 </Block>

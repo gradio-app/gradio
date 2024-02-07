@@ -1,72 +1,30 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	import { dequal } from "dequal";
 	import FileTree from "./FileTree.svelte";
-	import { make_fs_store } from "./utils";
-	import { File } from "@gradio/icons";
-	import { Empty } from "@gradio/atoms";
+	import type { FileNode } from "./types";
 
-	export let glob: string;
-	export let ignore_glob: string;
-	export let root_dir: string;
 	export let interactive: boolean;
-	export let server: any;
 	export let file_count: "single" | "multiple" = "multiple";
-
 	export let value: string[][] = [];
-
-	const dispatch = createEventDispatcher<{
-		change: typeof value;
-	}>();
-	const tree = make_fs_store();
-
-	const render_tree = (): void => {
-		server.ls().then((v: any) => {
-			tree.create_fs_graph(v);
-		});
-	};
-
-	$: glob, ignore_glob, root_dir, render_tree();
-
-	$: value.length && $tree && set_checked_from_paths();
-
-	function set_checked_from_paths(): void {
-		value = file_count === "single" ? [value[0] || []] : value;
-		value = tree.set_checked_from_paths(value);
-		if (!dequal(value, old_value)) {
-			old_value = value;
-			dispatch("change", value);
-		}
-	}
-
-	let old_value: typeof value = [];
-	function handle_select({
-		node_indices,
-		checked
-	}: {
-		node_indices: number[];
-		checked: boolean;
-	}): void {
-		value = tree.set_checked(node_indices, checked, value, file_count);
-		if (!dequal(value, old_value)) {
-			old_value = value;
-			dispatch("change", value);
-		}
-	}
+	export let ls_fn: (path: string[]) => Promise<FileNode[]>;
 </script>
 
-{#if $tree && $tree.length}
-	<div class="file-wrap">
-		<FileTree
-			tree={$tree}
-			{interactive}
-			on:check={({ detail }) => handle_select(detail)}
-			{file_count}
-		/>
-	</div>
-{:else}
-	<Empty size="large"><File /></Empty>
-{/if}
+<div class="file-wrap">
+	<FileTree
+		path={[]}
+		selected={value}
+		{interactive}
+		{ls_fn}
+		{file_count}
+		on:check={(e) => {
+			const { path, checked } = e.detail;
+			if (checked) {
+				value = [...value, path];
+			} else {
+				value = value.filter((x) => x.join("/") !== path.join("/"));
+			}
+		}}
+	/>
+</div>
 
 <style>
 	.file-wrap {
