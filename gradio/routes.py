@@ -588,6 +588,7 @@ class App(FastAPI):
                 or request.headers.get("X-Direct-Url")
                 or ""
             )
+            print("root_path", root_path)
             print("output", output)
             output = add_root_url(output, root_path)
             print("output", output)
