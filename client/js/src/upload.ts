@@ -1,37 +1,5 @@
 import { upload_files } from "./client";
 
-export function normalise_file(
-	file: FileData | null,
-	server_url: string,
-	proxy_url: string | null
-): FileData | null;
-
-export function normalise_file(
-	file: FileData[] | null,
-	server_url: string,
-	proxy_url: string | null
-): FileData[] | null;
-
-export function normalise_file(
-	file: FileData[] | FileData | null,
-	server_url: string, // root: string,
-	proxy_url: string | null // root_url: string | null
-): FileData[] | FileData | null;
-
-/*
-This function is now a no-op, but it used to be used to normalise the file paths.
-The file paths are now normalised on the server, so this function is no longer needed,
-but is kept for backwards compatibility with custom components created using older 
-versions of Gradio.
-*/
-export function normalise_file(
-	file: FileData[] | FileData | null,
-	server_url: string, // root: string,
-	proxy_url: string | null // root_url: string | null
-): FileData[] | FileData | null {
-	return file;
-}
-
 function is_url(str: string): boolean {
 	try {
 		const url = new URL(str);
