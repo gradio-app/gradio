@@ -195,7 +195,12 @@ class Component(ComponentBase, Block):
         self.load_event_to_attach: None | tuple[Callable, float | None] = None
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         initial_value = self.postprocess(initial_value)
-        self.value = move_files_to_cache(initial_value, self, postprocess=True)  # type: ignore
+        self.value = move_files_to_cache(
+            initial_value,
+            self,  # type: ignore
+            postprocess=True,
+            add_urls=True,
+        )
 
         if callable(load_fn):
             self.attach_load_event(load_fn, every)

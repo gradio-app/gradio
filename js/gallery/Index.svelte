@@ -16,7 +16,6 @@
 	export let show_label: boolean;
 	export let label: string;
 	export let root: string;
-	export let proxy_url: null | string;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -91,8 +90,6 @@
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			{label}
 			{show_label}
-			{root}
-			{proxy_url}
 			{columns}
 			{rows}
 			{height}

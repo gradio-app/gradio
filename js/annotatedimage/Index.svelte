@@ -5,7 +5,7 @@
 	import { Image } from "@gradio/icons";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { type FileData, normalise_file } from "@gradio/client";
+	import { type FileData } from "@gradio/client";
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 
 	export let elem_id = "";
@@ -36,8 +36,6 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let root: string;
-	export let proxy_url: string;
 	let active: string | null = null;
 	export let loading_status: LoadingStatus;
 
@@ -52,9 +50,9 @@
 		}
 		if (value) {
 			const normalized_value = {
-				image: normalise_file(value.image, root, proxy_url) as FileData,
+				image: value.image as FileData,
 				annotations: value.annotations.map((ann) => ({
-					image: normalise_file(ann.image, root, proxy_url) as FileData,
+					image: ann.image as FileData,
 					label: ann.label
 				}))
 			};

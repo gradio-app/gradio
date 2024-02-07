@@ -9,7 +9,7 @@
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { Chat } from "@gradio/icons";
-	import { normalise_file, type FileData } from "@gradio/client";
+	import type { FileData } from "@gradio/client";
 	import { StatusTracker } from "@gradio/statustracker";
 
 	export let elem_id = "";
@@ -64,7 +64,7 @@
 			return message;
 		}
 		return {
-			file: normalise_file(message?.file, root, proxy_url) as FileData,
+			file: message?.file as FileData,
 			alt_text: message?.alt_text
 		};
 	}

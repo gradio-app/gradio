@@ -4,7 +4,7 @@
 	import { Image as ImageIcon } from "@gradio/icons";
 
 	import { Upload } from "@gradio/upload";
-	import { type FileData, normalise_file } from "@gradio/client";
+	import type { FileData } from "@gradio/client";
 	import ClearImage from "./ClearImage.svelte";
 
 	export let value: null | FileData;
@@ -16,11 +16,10 @@
 	let uploading = false;
 
 	function handle_upload({ detail }: CustomEvent<FileData>): void {
-		value = normalise_file(detail, root, null);
+		value = detail;
 		dispatch("upload");
 	}
 	$: if (uploading) value = null;
-	$: value && !value.url && (value = normalise_file(value, root, null));
 
 	const dispatch = createEventDispatcher<{
 		change?: never;

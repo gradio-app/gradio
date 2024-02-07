@@ -41,8 +41,10 @@ describe("Video", () => {
 			loading_status,
 			value: {
 				video: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-				}
+					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+				},
+				subtitles: null
 			},
 			label: "Test Label",
 			root: "foo",
@@ -56,7 +58,7 @@ describe("Video", () => {
 		let vid = getByTestId("Test Label-player") as HTMLVideoElement;
 		assert.equal(
 			vid.src,
-			"https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+			"https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 		);
 		assert.equal(queryAllByText("Test Label").length, 1);
 	});
@@ -67,8 +69,10 @@ describe("Video", () => {
 			loading_status,
 			value: {
 				video: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-				}
+					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+				},
+				subtitles: null
 			},
 			label: "Video Component",
 			root: "foo",
@@ -88,8 +92,10 @@ describe("Video", () => {
 			loading_status,
 			value: {
 				video: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-				}
+					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+				},
+				subtitles: null
 			},
 			root: "foo",
 			proxy_url: null,
@@ -102,7 +108,7 @@ describe("Video", () => {
 		let vid = getByTestId("test-player") as HTMLVideoElement;
 		assert.equal(
 			vid.src,
-			"https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+			"https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 		);
 	});
 
@@ -113,8 +119,10 @@ describe("Video", () => {
 			interactive: false,
 			value: {
 				video: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-				}
+					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+				},
+				subtitles: null
 			},
 			root: "foo",
 			proxy_url: null,
@@ -135,8 +143,10 @@ describe("Video", () => {
 			loading_status,
 			value: {
 				video: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-				}
+					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+				},
+				subtitles: null
 			},
 			root: "foo",
 			proxy_url: null,
@@ -158,8 +168,10 @@ describe("Video", () => {
 			interactive: false,
 			value: {
 				video: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-				}
+					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+				},
+				subtitles: null
 			},
 			root: "foo",
 			proxy_url: null,
@@ -189,8 +201,10 @@ describe("Video", () => {
 			interactive: true,
 			value: {
 				video: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-				}
+					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+				},
+				subtitles: null
 			},
 			root: "foo",
 			proxy_url: null,
@@ -205,8 +219,10 @@ describe("Video", () => {
 		component.$set({
 			value: {
 				video: {
-					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
-				}
+					path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+					url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+				},
+				subtitles: null
 			}
 		});
 		startButton.dispatchEvent(new Event("loadeddata"));
@@ -215,10 +231,8 @@ describe("Video", () => {
 	test("renders video and download button", async () => {
 		const data = {
 			video: {
-				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-			},
-			subtitles: {
-				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+				path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+				url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
 			}
 		};
 		const results = await render(Video, {

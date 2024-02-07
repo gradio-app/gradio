@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 from collections import deque
 from dataclasses import dataclass as python_dataclass
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
@@ -545,3 +546,8 @@ class GradioMultiPartParser:
         if self.upload_progress is not None:
             self.upload_progress.set_done(self.upload_id)  # type: ignore
         return FormData(self.items)
+
+
+def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
+    for file, dest in zip(files, destinations):
+        shutil.move(file, dest)
