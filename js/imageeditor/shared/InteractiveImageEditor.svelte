@@ -14,11 +14,7 @@
 
 <script lang="ts">
 	import { type I18nFormatter } from "@gradio/utils";
-	import {
-		prepare_files,
-		upload,
-		type FileData
-	} from "@gradio/client";
+	import { prepare_files, upload, type FileData } from "@gradio/client";
 
 	import ImageEditor from "./ImageEditor.svelte";
 	import Layers from "./layers/Layers.svelte";
@@ -156,9 +152,7 @@
 		{/if}
 	</Tools>
 
-	<Layers
-		layer_files={value?.layers || null}
-	/>
+	<Layers layer_files={value?.layers || null} />
 
 	{#if !bg && !history}
 		<div class="empty wrap">
