@@ -129,7 +129,7 @@ export function create(options: Options): GradioAppController {
 			}
 		});
 	}
-	function launchNewApp(): void {
+	function launchNewApp(): Promise<void> {
 		if (app != null) {
 			app.$destroy();
 		}
@@ -164,6 +164,12 @@ export function create(options: Options): GradioAppController {
 				fetch_implementation: overridden_fetch,
 				EventSource_factory
 			}
+		});
+
+		return new Promise((resolve) => {
+			app.$on("loaded", () => {
+				resolve();
+			});
 		});
 	}
 
