@@ -1011,7 +1011,9 @@ def is_file_obj(d):
 
 
 def is_file_obj_with_url(d):
-    return isinstance(d, dict) and "path" in d and "url" in d
+    return (
+        isinstance(d, dict) and "path" in d and "url" in d and isinstance(d["url"], str)
+    )
 
 
 SKIP_COMPONENTS = {

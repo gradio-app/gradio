@@ -289,8 +289,10 @@ def add_root_url(data, root_url) -> dict:
             pass
         else:
             file_dict["url"] = root_url + file_dict["url"]
+        return file_dict
 
     return client_utils.traverse(data, _add_root_url, client_utils.is_file_obj_with_url)
+
 
 def resize_and_crop(img, size, crop_type="center"):
     """
