@@ -1,5 +1,6 @@
 ---
 "@gradio/annotatedimage": minor
+"@gradio/app": minor
 "@gradio/audio": minor
 "@gradio/chatbot": minor
 "@gradio/client": minor
