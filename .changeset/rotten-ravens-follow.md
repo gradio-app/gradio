@@ -1,8 +1,6 @@
 ---
 "@gradio/client": patch
 "@gradio/preview": patch
-"@gradio/simpleimage": patch
-"@gradio/wasm": patch
 "gradio": patch
 ---
 
