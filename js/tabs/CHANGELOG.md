@@ -1,22 +1,29 @@
 # @gradio/tabs
 
+## 0.2.2
+
+### Patch Changes
+
+- Updated dependencies [[`fdd1521`](https://github.com/gradio-app/gradio/commit/fdd15213c24b9cbc58bbc1b6beb4af7c18f48557)]:
+  - @gradio/utils@0.2.2
+
 ## 0.2.1
 
 ### Fixes
 
-- [#7107](https://github.com/gradio-app/gradio/pull/7107) [`80f8fbf`](https://github.com/gradio-app/gradio/commit/80f8fbf0e8900627b9c2575bbd7c68fad8108544) - Add logic to handle non-interactive or hidden tabs.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#7107](https://github.com/gradio-app/gradio/pull/7107) [`80f8fbf`](https://github.com/gradio-app/gradio/commit/80f8fbf0e8900627b9c2575bbd7c68fad8108544) - Add logic to handle non-interactive or hidden tabs. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ## 0.2.0
 
 ### Features
 
-- [#7018](https://github.com/gradio-app/gradio/pull/7018) [`ec28b4e`](https://github.com/gradio-app/gradio/commit/ec28b4e7c47a9233d9e3a725cc9fe8f9044dfa94) - Add `visible` and `interactive` params to `gr.Tab()`.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#7018](https://github.com/gradio-app/gradio/pull/7018) [`ec28b4e`](https://github.com/gradio-app/gradio/commit/ec28b4e7c47a9233d9e3a725cc9fe8f9044dfa94) - Add `visible` and `interactive` params to `gr.Tab()`. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ## 0.1.0
 
 ### Features
 
-- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`287fe6782`](https://github.com/gradio-app/gradio/commit/287fe6782825479513e79a5cf0ba0fbfe51443d7) - Publish all components to npm.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#5498](https://github.com/gradio-app/gradio/pull/5498) [`287fe6782`](https://github.com/gradio-app/gradio/commit/287fe6782825479513e79a5cf0ba0fbfe51443d7) - Publish all components to npm. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.1.0-beta.8
 

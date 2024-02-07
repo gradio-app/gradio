@@ -1,5 +1,11 @@
 # @gradio/label
 
+## 0.2.8
+
+### Fixes
+
+- [#7276](https://github.com/gradio-app/gradio/pull/7276) [`a3aa22f`](https://github.com/gradio-app/gradio/commit/a3aa22f6f0bc664646bb409844899bc8810e421e) - Adjust Value to Fix .Label Display.  Thanks [@codydh](https://github.com/codydh)!
+
 ## 0.2.7
 
 ### Patch Changes

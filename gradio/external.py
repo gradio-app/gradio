@@ -153,7 +153,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         fn = custom_post_binary
     # example model: facebook/wav2vec2-base-960h
     elif p == "automatic-speech-recognition":
-        inputs = components.Audio(sources=["upload"], type="filepath", label="Input")
+        inputs = components.Audio(type="filepath", label="Input")
         outputs = components.Textbox(label="Output")
         examples = [
             "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
