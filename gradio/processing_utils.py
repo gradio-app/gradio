@@ -266,14 +266,15 @@ def move_files_to_cache(
             temp_file_path = move_resource_to_block_cache(payload.path, block)
         assert temp_file_path is not None
         payload.path = temp_file_path
+
         if add_urls:
-            url_prefix = "stream/" if payload.is_stream else "file="
+            url_prefix = "/stream/" if payload.is_stream else "/file="
             if block.proxy_url:
-                url = f"/proxy={block.proxy_url}/{url_prefix}{temp_file_path}"
-            elif temp_file_path.startswith(f"/{url_prefix}"):
+                url = f"/proxy={block.proxy_url}{url_prefix}{temp_file_path}"
+            elif client_utils.is_http_url_like(temp_file_path) or temp_file_path.startswith(f"{url_prefix}"):
                 url = temp_file_path
             else:
-                url = f"/{url_prefix}{temp_file_path}"
+                url = f"{url_prefix}{temp_file_path}"
             payload.url = url
 
         return payload.model_dump()
@@ -286,7 +287,8 @@ def move_files_to_cache(
 
 def add_root_url(data, root_url) -> dict:
     def _add_root_url(file_dict: dict):
-        file_dict["url"] = root_url + file_dict["url"]
+        if not client_utils.is_http_url_like(file_dict["url"]):
+            file_dict["url"] = f'{root_url}{file_dict["url"]}'
         return file_dict
 
     return client_utils.traverse(data, _add_root_url, client_utils.is_file_obj_with_url)
