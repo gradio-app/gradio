@@ -17,7 +17,6 @@
 	import {
 		prepare_files,
 		upload,
-		normalise_file,
 		type FileData
 	} from "@gradio/client";
 
@@ -136,11 +135,7 @@
 				{root}
 				{sources}
 				bind:bg
-				background_file={normalise_file(
-					value?.background || null,
-					root,
-					proxy_url
-				)}
+				background_file={value?.background || null}
 			></Sources>
 		{/if}
 		{#if transforms.includes("crop")}
@@ -162,7 +157,7 @@
 	</Tools>
 
 	<Layers
-		layer_files={normalise_file(value?.layers || null, root, proxy_url)}
+		layer_files={value?.layers || null}
 	/>
 
 	{#if !bg && !history}
