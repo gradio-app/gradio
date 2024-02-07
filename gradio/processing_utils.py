@@ -271,7 +271,9 @@ def move_files_to_cache(
             url_prefix = "/stream/" if payload.is_stream else "/file="
             if block.proxy_url:
                 url = f"/proxy={block.proxy_url}{url_prefix}{temp_file_path}"
-            elif client_utils.is_http_url_like(temp_file_path) or temp_file_path.startswith(f"{url_prefix}"):
+            elif client_utils.is_http_url_like(
+                temp_file_path
+            ) or temp_file_path.startswith(f"{url_prefix}"):
                 url = temp_file_path
             else:
                 url = f"{url_prefix}{temp_file_path}"
