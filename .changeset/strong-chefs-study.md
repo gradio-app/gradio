@@ -14,4 +14,4 @@
 "gradio_client": patch
 ---
 
-fix:[WIP] Refactor file normalization to be in the backend and remove it from the frontend of each component
+feat:[WIP] Refactor file normalization to be in the backend and remove it from the frontend of each component
