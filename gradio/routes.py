@@ -316,15 +316,11 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
-            root_path = (
-                request.scope.get("root_path")
-                or request.headers.get("X-Direct-Url")
-                or ""
-            )
+            root_path = route_utils.strip_url(str(request.url))
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
                 if "root" not in config:
-                    config["root"] = route_utils.strip_url(root_path)
+                    config["root"] = root_path
                     config = add_root_url(config, root_path)
             else:
                 config = {
@@ -362,11 +358,7 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
-            root_path = (
-                request.scope.get("root_path")
-                or request.headers.get("X-Direct-Url")
-                or ""
-            )
+            root_path = route_utils.strip_url(str(request.url))[:-7]
             config = app.get_blocks().config
             if "root" not in config:
                 config["root"] = route_utils.strip_url(root_path)
@@ -585,11 +577,7 @@ class App(FastAPI):
                     content={"error": str(error) if show_error else None},
                     status_code=500,
                 )
-            root_path = (
-                request.scope.get("root_path")
-                or request.headers.get("X-Direct-Url")
-                or ""
-            )
+            root_path = app.get_blocks().config.get("root", "")
             output = add_root_url(output, route_utils.strip_url(root_path))
             return output
 
@@ -599,11 +587,7 @@ class App(FastAPI):
             session_hash: str,
         ):
             blocks = app.get_blocks()
-            root_path = (
-                request.scope.get("root_path")
-                or request.headers.get("X-Direct-Url")
-                or ""
-            )
+            root_path = app.get_blocks().config.get("root", "")
 
             async def sse_stream(request: fastapi.Request):
                 try:
