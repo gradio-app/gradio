@@ -54,7 +54,7 @@
 		share: ShareData;
 	}>;
 
-	let old_value: null | FileData | string = null;
+	let old_value: null | FileData = null;
 
 	let active_source: "microphone" | "upload";
 

@@ -25,6 +25,7 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: null | FileData = null;
+	let old_value: null | FileData = null;
 	export let label: string;
 	export let show_label: boolean;
 	export let show_download_button: boolean;
@@ -61,7 +62,12 @@
 		share: ShareData;
 	}>;
 
-	$: value, gradio.dispatch("change");
+	$: {
+		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
+			old_value = value;
+			gradio.dispatch("change");
+		}
+	}
 
 	let dragging: boolean;
 	let active_source: sources = null;

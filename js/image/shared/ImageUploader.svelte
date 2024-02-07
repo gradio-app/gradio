@@ -56,8 +56,6 @@
 	$: active_streaming = streaming && active_source === "webcam";
 	$: if (uploading && !active_streaming) value = null;
 
-	$: value && !value.url;
-
 	const dispatch = createEventDispatcher<{
 		change?: never;
 		stream?: never;
