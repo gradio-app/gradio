@@ -266,14 +266,16 @@ def move_files_to_cache(
             temp_file_path = move_resource_to_block_cache(payload.path, block)
         assert temp_file_path is not None
         payload.path = temp_file_path
-
         if add_urls:
             url_prefix = "stream/" if payload.is_stream else "file="
             if block.proxy_url:
                 url = f"/proxy={block.proxy_url}/{url_prefix}{temp_file_path}"
+            elif temp_file_path.startswith(f"/{url_prefix}"):
+                url = temp_file_path
             else:
                 url = f"/{url_prefix}{temp_file_path}"
             payload.url = url
+            print(add_urls, url_prefix, temp_file_path)
 
         return payload.model_dump()
 
