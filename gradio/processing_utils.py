@@ -285,8 +285,7 @@ def move_files_to_cache(
 
 def add_root_url(data, root_url) -> dict:
     def _add_root_url(file_dict: dict):
-        if not file_dict["url"].startswith("/proxy="):
-            file_dict["url"] = root_url + file_dict["url"]
+        file_dict["url"] = root_url + file_dict["url"]
         return file_dict
 
     return client_utils.traverse(data, _add_root_url, client_utils.is_file_obj_with_url)
