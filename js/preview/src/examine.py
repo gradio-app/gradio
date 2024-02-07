@@ -22,7 +22,7 @@ if __name__ == "__main__":
     custom_component = ("gradio-custom-component" in  keywords or
                            "gradio custom component" in keywords)
     if not custom_component:
-        exit(0)
+        sys.exit(0)
 
     module_name = pyproject_toml["project"]["name"]
     module = importlib.import_module(module_name)

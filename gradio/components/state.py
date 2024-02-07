@@ -5,11 +5,9 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components.base import Component
-
-set_documentation_group("component")
 
 
 @document()
@@ -19,8 +17,6 @@ class State(Component):
     Special hidden component that stores session state across runs of the demo by the
     same user. The value of the State variable is cleared when the user refreshes the page.
 
-    Preprocessing: No preprocessing is performed
-    Postprocessing: No postprocessing is performed
     Demos: interface_state, blocks_simple_squares
     Guides: real-time-speech-recognition
     """
@@ -44,12 +40,24 @@ class State(Component):
             raise TypeError(
                 f"The initial value of `gr.State` must be able to be deepcopied. The initial value of type {type(value)} cannot be deepcopied."
             ) from err
-        super().__init__(value=self.value)
+        super().__init__(value=self.value, render=render)
 
     def preprocess(self, payload: Any) -> Any:
+        """
+        Parameters:
+            payload: Value
+        Returns:
+            Passes a value of arbitrary type through.
+        """
         return payload
 
     def postprocess(self, value: Any) -> Any:
+        """
+        Parameters:
+            value: Expects a value of arbitrary type, as long as it can be deepcopied.
+        Returns:
+            Passes a value of arbitrary type through.
+        """
         return value
 
     def api_info(self) -> dict[str, Any]:

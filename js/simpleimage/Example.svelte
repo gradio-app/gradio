@@ -7,14 +7,16 @@
 	export let selected = false;
 </script>
 
-<div
-	class="container"
-	class:table={type === "table"}
-	class:gallery={type === "gallery"}
-	class:selected
->
-	<img src={samples_dir + value?.path} alt="" />
-</div>
+{#if value}
+	<div
+		class="container"
+		class:table={type === "table"}
+		class:gallery={type === "gallery"}
+		class:selected
+	>
+		<img src={samples_dir + value.path} alt="" />
+	</div>
+{/if}
 
 <style>
 	.container :global(img) {
@@ -39,6 +41,9 @@
 	.container.gallery {
 		height: var(--size-20);
 		max-height: var(--size-20);
+		object-fit: cover;
+	}
+	.container img {
 		object-fit: cover;
 	}
 </style>

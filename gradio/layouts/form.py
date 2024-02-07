@@ -2,16 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from gradio_client.documentation import set_documentation_group
-
-from gradio.blocks import BlockContext
+from gradio.blocks import BlockContext, Blocks
 from gradio.component_meta import ComponentMeta
 from gradio.layouts.row import Row
 
 if TYPE_CHECKING:
     from gradio.blocks import Block
-
-set_documentation_group("layout")
 
 
 class Form(BlockContext, metaclass=ComponentMeta):
@@ -42,4 +38,7 @@ class Form(BlockContext, metaclass=ComponentMeta):
             scale = getattr(child, "scale", None)
             self.scale += 1 if scale is None else scale
             self.min_width += getattr(child, "min_width", 0) or 0
+        elif isinstance(self.parent, Blocks) and self.parent.fill_height:
+            scale = getattr(child, "scale", None)
+            self.scale += 0 if scale is None else scale
         BlockContext.add_child(self, child)

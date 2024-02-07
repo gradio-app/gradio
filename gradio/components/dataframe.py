@@ -18,7 +18,7 @@ from typing import (
 import numpy as np
 import pandas as pd
 import semantic_version
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 from pandas.io.formats.style import Styler
 
 from gradio.components import Component
@@ -48,16 +48,10 @@ class DataframeData(GradioModel):
     metadata: Optional[Dict[str, Optional[List[Any]]]] = None
 
 
-set_documentation_group("component")
-
-
 @document()
 class Dataframe(Component):
     """
-    Accepts or displays 2D input through a spreadsheet-like component for dataframes.
-    Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {polars.DataFrame}, or {List[List]} depending on `type`
-    Postprocessing: expects a {pandas.DataFrame}, {pandas.Styler}, {numpy.array}, {polars.DataFrame}, {List[List]}, {List}, a {Dict} with keys `data` (and optionally `headers`), or {str} path to a csv, which is rendered in the spreadsheet.
-    Examples-format: a {str} filepath to a csv with data, a pandas dataframe, a polars dataframe, or a list of lists (excluding headers) where each sublist is a row of data.
+    This component displays a table of value spreadsheet-like component. Can be used to display data as an output component, or as an input to collect data from the user.
     Demos: filter_records, matrix_transpose, tax_calculator, sort_records
     """
 
@@ -111,9 +105,9 @@ class Dataframe(Component):
             latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html). Only applies to columns whose datatype is "markdown".
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             show_label: if True, will display label.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             height: The maximum height of the dataframe, specified in pixels if a number is passed, or in CSS units if a string is passed. If more rows are created than can fit in the height, a scrollbar will appear.
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
+            scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to edit the dataframe; if False, can only be used to display data. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
@@ -129,7 +123,6 @@ class Dataframe(Component):
         self.col_count = self.__process_counts(
             col_count, len(headers) if headers else 3
         )
-
         self.__validate_headers(headers, self.col_count[0])
 
         self.headers = (
@@ -137,9 +130,7 @@ class Dataframe(Component):
             if headers is not None
             else [str(i) for i in (range(1, self.col_count[0] + 1))]
         )
-        self.datatype = (
-            datatype if isinstance(datatype, list) else [datatype] * self.col_count[0]
-        )
+        self.datatype = datatype
         valid_types = ["pandas", "numpy", "array", "polars"]
         if type not in valid_types:
             raise ValueError(
@@ -193,22 +184,33 @@ class Dataframe(Component):
 
     def preprocess(
         self, payload: DataframeData
-    ) -> pd.DataFrame | np.ndarray | pl.DataFrame | list:
+    ) -> pd.DataFrame | np.ndarray | pl.DataFrame | list[list]:
+        """
+        Parameters:
+            payload: the uploaded spreadsheet data as an object with `headers` and `data` attributes
+        Returns:
+            Passes the uploaded spreadsheet data as a `pandas.DataFrame`, `numpy.array`, `polars.DataFrame`, or native 2D Python `list[list]` depending on `type`
+        """
         if self.type == "pandas":
             if payload.headers is not None:
-                return pd.DataFrame(payload.data, columns=payload.headers)
+                return pd.DataFrame(
+                    [] if payload.data == [[]] else payload.data,
+                    columns=payload.headers,
+                )
             else:
                 return pd.DataFrame(payload.data)
         if self.type == "polars":
             polars = _import_polars()
             if payload.headers is not None:
-                return polars.DataFrame(payload.data, schema=payload.headers)
+                return polars.DataFrame(
+                    [] if payload.data == [[]] else payload.data, schema=payload.headers
+                )
             else:
                 return polars.DataFrame(payload.data)
         if self.type == "numpy":
             return np.array(payload.data)
         elif self.type == "array":
-            return payload.data
+            return payload.data  # type: ignore
         else:
             raise ValueError(
                 "Unknown type: "
@@ -228,15 +230,28 @@ class Dataframe(Component):
         | str
         | None,
     ) -> DataframeData:
+        """
+        Parameters:
+            value: Expects data any of these formats: `pandas.DataFrame`, `pandas.Styler`, `numpy.array`, `polars.DataFrame`, `list[list]`, `list`, or a `dict` with keys 'data' (and optionally 'headers'), or `str` path to a csv, which is rendered as the spreadsheet.
+        Returns:
+            the uploaded spreadsheet data as an object with `headers` and `data` attributes
+        """
         if value is None:
             return self.postprocess(self.empty_input)
         if isinstance(value, dict):
+            if len(value) == 0:
+                return DataframeData(headers=self.headers, data=[[]])
             return DataframeData(
                 headers=value.get("headers", []), data=value.get("data", [[]])
             )
         if isinstance(value, (str, pd.DataFrame)):
             if isinstance(value, str):
                 value = pd.read_csv(value)  # type: ignore
+            if len(value) == 0:
+                return DataframeData(
+                    headers=list(value.columns),  # type: ignore
+                    data=[[]],  # type: ignore
+                )
             return DataframeData(
                 headers=list(value.columns),  # type: ignore
                 data=value.to_dict(orient="split")["data"],  # type: ignore
@@ -253,25 +268,27 @@ class Dataframe(Component):
                     "Cannot display Styler object in interactive mode. Will display as a regular pandas dataframe instead."
                 )
             df: pd.DataFrame = value.data  # type: ignore
+            if len(df) == 0:
+                return DataframeData(
+                    headers=list(df.columns),
+                    data=[[]],
+                    metadata=self.__extract_metadata(value),  # type: ignore
+                )
             return DataframeData(
                 headers=list(df.columns),
                 data=df.to_dict(orient="split")["data"],  # type: ignore
                 metadata=self.__extract_metadata(value),  # type: ignore
             )
-        elif isinstance(value, (str, pd.DataFrame)):
-            df = pd.read_csv(value) if isinstance(value, str) else value  # type: ignore
-            return DataframeData(
-                headers=list(df.columns),
-                data=df.to_dict(orient="split")["data"],  # type: ignore
-            )
         elif _is_polars_available() and isinstance(value, _import_polars().DataFrame):
+            if len(value) == 0:
+                return DataframeData(headers=list(value.to_dict().keys()), data=[[]])
             df_dict = value.to_dict()
             headers = list(df_dict.keys())
             data = list(zip(*df_dict.values()))
             return DataframeData(headers=headers, data=data)
         elif isinstance(value, (np.ndarray, list)):
             if len(value) == 0:
-                return self.postprocess([[]])
+                return DataframeData(headers=self.headers, data=[[]])
             if isinstance(value, np.ndarray):
                 value = value.tolist()
             if not isinstance(value, list):

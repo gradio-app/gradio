@@ -23,7 +23,7 @@
 		"storybook": "storybook dev -p 6006 --config-dir js/storybook",
 		"build-storybook": "storybook build --config-dir js/storybook",
 		"ci:version": "changeset version && pnpm i --lockfile-only && node ./.changeset/fix_changelogs.cjs",
-		"ci:publish": "pnpm publish --no-git-checks --access public -r --filter=@gradio/*",
+		"ci:publish": "pnpm changeset tag && git push origin --tags && pnpm publish --no-git-checks --access public -r --filter=@gradio/*",
 		"chromatic": "chromatic",
 		"test:ct": "playwright test -c ./.config/playwright-ct.config.ts",
 		"website": "pnpm --filter @gradio/website build"
@@ -61,7 +61,7 @@
 		"kleur": "^4.1.5",
 		"msw": "^2.0.0",
 		"node-html-parser": "^6.0.0",
-		"npm-run-all": "^4.1.5",
+		"npm-run-all2": "^6.0.0",
 		"playwright": "^1.39.0",
 		"plotly.js-dist-min": "^2.10.1",
 		"polka": "^1.0.0-next.22",
@@ -105,5 +105,9 @@
 		"react-dom": "^18.2.0",
 		"storybook": "^7.5.1",
 		"wikidata-lang": "^4.1.2"
+	},
+	"engines": {
+		"node": ">=18.0.0",
+		"pnpm": "~8.15.0"
 	}
 }

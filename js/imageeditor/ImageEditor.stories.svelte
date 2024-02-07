@@ -1,12 +1,24 @@
-<script lang="ts">
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+<script context="module">
+	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import ImageEditor from "./Index.svelte";
 	import { format } from "svelte-i18n";
 	import { get } from "svelte/store";
 	import { userEvent, within } from "@storybook/testing-library";
-</script>
+	import { allModes } from "../storybook/modes";
 
-<Meta title="Components/Image Editor" component={ImageEditor} />
+	export const meta = {
+		title: "Components/Image Editor",
+		component: ImageEditor,
+		parameters: {
+			chromatic: {
+				modes: {
+					desktop: allModes["desktop"],
+					mobile: allModes["mobile"]
+				}
+			}
+		}
+	};
+</script>
 
 <Template let:args>
 	<div
@@ -23,6 +35,8 @@
 		sources: ["webcam", "upload"],
 		type: "pil",
 		interactive: "true",
+		label: "Image Editor",
+		show_label: true,
 		brush: {
 			default_size: "auto",
 			colors: ["#ff0000", "#00ff00", "#0000ff"],
@@ -37,6 +51,9 @@
 
 <Story
 	name="Image Editor Interactions"
+	parameters={{
+		diffThreshold: 0.1
+	}}
 	args={{
 		value: {
 			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",

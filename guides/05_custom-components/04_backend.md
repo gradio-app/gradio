@@ -21,7 +21,7 @@ Tip: If you inherit from `BlockContext`, you also need to set the metaclass to b
 from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
 
-set_documentation_group("layout")
+
 
 
 @document()
@@ -126,7 +126,6 @@ The `data_model` in the following section.
 def read_from_flag(
     self,
     x: Any,
-    flag_dir: str | Path | None = None,
 ) -> GradioDataModel | Any:
     """
     Convert the data from the csv or jsonl file into the component state.

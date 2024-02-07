@@ -1,4 +1,4 @@
-name: Changesets
+name: publish
 on:
   push:
     branches:
@@ -13,14 +13,14 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
       - name: install dependencies
-        uses: "./.github/actions/install-all-deps"
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
-          always-install-pnpm: true
+          always_install_pnpm: true
           node_auth_token: ${{ secrets.NPM_TOKEN }}
           npm_token: ${{ secrets.NPM_TOKEN }}
           skip_build: 'true'
@@ -74,4 +74,4 @@ jobs:
       - name: trigger spaces deploy workflow
         env: 
           GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
-        run: gh workflow run build-pr.yml
+        run: gh workflow run deploy-spaces.yml

@@ -1,7 +1,7 @@
 name: Generate changeset
 on:
   workflow_run:
-    workflows: ["trigger changeset generation"]
+    workflows: ["trigger-changeset"]
     types:
       - completed
 
@@ -10,7 +10,8 @@ env:
   NODE_OPTIONS: "--max-old-space-size=4096"
 
 concurrency:
-  group: ${{ github.event.workflow_run.head_repository.full_name }}::${{ github.event.workflow_run.head_branch }}
+  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  cancel-in-progress: true
 
 jobs:
   get-pr:
@@ -27,6 +28,10 @@ jobs:
       uses: gradio-app/github/actions/find-pr@main
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: echo github context
+      if: always()
+      run: echo "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+
   comment-changes-start:
     uses: "./.github/workflows/comment-queue.yml"
     needs: get-pr
@@ -45,7 +50,7 @@ jobs:
       skipped: ${{ steps.version.outputs.skipped }}
       comment_url: ${{ steps.version.outputs.comment_url }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: ${{ needs.get-pr.outputs.source_repo }}
           ref: ${{ needs.get-pr.outputs.source_branch }}

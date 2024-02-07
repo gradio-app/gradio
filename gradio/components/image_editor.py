@@ -8,20 +8,15 @@ from pathlib import Path
 from typing import Any, Iterable, List, Literal, Optional, TypedDict, Union, cast
 
 import numpy as np
-from gradio_client.documentation import document, set_documentation_group
-from PIL import Image as _Image  # using _ to minimize namespace pollution
+import PIL.Image
+from gradio_client.documentation import document
 
-import gradio.image_utils as image_utils
-from gradio import utils
+from gradio import image_utils, utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
 
-set_documentation_group("component")
-_Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
-
-
-ImageType = Union[np.ndarray, _Image.Image, str]
+ImageType = Union[np.ndarray, PIL.Image.Image, str]
 
 
 class EditorValue(TypedDict):
@@ -90,10 +85,9 @@ class Brush(Eraser):
 @document()
 class ImageEditor(Component):
     """
-    Creates an image component that can be used to upload and edit images (as an input) or display images (as an output).
-    Preprocessing: passes the uploaded images as a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` are images, while `layers` is a list of images. The images are of type PIL.Image, np.array, or str filepath, depending on the `type` parameter.
-    Postprocessing: expects a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` should be images or None, while `layers` should be a list of images. Images can be of type PIL.Image, np.array, or str filepath/URL. Or, the value can be simply a single image, in which case it will be used as the background.
-    Examples-format: a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` should be strings or None, while `layers` should be a list of strings. The image corresponding to `composite`, if not None, is used as the example image. Otherwise, the image corresonding to `background` is used. The strings should be filepaths or URLs. Or, the value can be simply a single string filepath/URL to an image, which is used directly as the example image.
+    Creates an image component that, as an input, can be used to upload and edit images using simple editing tools such
+    as brushes, strokes, cropping, and layers. Or, as an output, this component can be used to display images.
+
     Demos: image_editor
     """
 
@@ -149,11 +143,11 @@ class ImageEditor(Component):
             sources: List of sources that can be used to set the background image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard.
             type: The format the images are converted to before being passed into the prediction function. "numpy" converts the images to numpy arrays with shape (height, width, 3) and values from 0 to 255, "pil" converts the images to PIL image objects, "filepath" passes images as str filepaths to temporary copies of the images.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             show_download_button: If True, will display button to download image.
             container: If True, will place the component in a container - providing some extra padding around the border.
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
+            scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to upload and edit an image; if False, can only be used to display images. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
@@ -219,11 +213,11 @@ class ImageEditor(Component):
     def convert_and_format_image(
         self,
         file: FileData | None,
-    ) -> np.ndarray | _Image.Image | str | None:
+    ) -> np.ndarray | PIL.Image.Image | str | None:
         if file is None:
             return None
 
-        im = _Image.open(file.path)
+        im = PIL.Image.open(file.path)
 
         if file.orig_name:
             p = Path(file.orig_name)
@@ -250,6 +244,12 @@ class ImageEditor(Component):
         )
 
     def preprocess(self, payload: EditorData | None) -> EditorValue | None:
+        """
+        Parameters:
+            payload: An instance of `EditorData` consisting of the background image, layers, and composite image.
+        Returns:
+            Passes the uploaded images as an instance of EditorValue, which is just a `dict` with keys: 'background', 'layers', and 'composite'. The values corresponding to 'background' and 'composite' are images, while 'layers' is a `list` of images. The images are of type `PIL.Image`, `np.array`, or `str` filepath, depending on the `type` parameter.
+        """
         if payload is None:
             return payload
 
@@ -267,11 +267,17 @@ class ImageEditor(Component):
         }
 
     def postprocess(self, value: EditorValue | ImageType | None) -> EditorData | None:
+        """
+        Parameters:
+            value: Expects a EditorValue, which is just a dictionary with keys: 'background', 'layers', and 'composite'. The values corresponding to 'background' and 'composite' should be images or None, while `layers` should be a list of images. Images can be of type `PIL.Image`, `np.array`, or `str` filepath/URL. Or, the value can be simply a single image (`ImageType`), in which case it will be used as the background.
+        Returns:
+            An instance of `EditorData` consisting of the background image, layers, and composite image.
+        """
         if value is None:
             return None
         elif isinstance(value, dict):
             pass
-        elif isinstance(value, (np.ndarray, _Image.Image, str)):
+        elif isinstance(value, (np.ndarray, PIL.Image.Image, str)):
             value = {"background": value, "layers": [], "composite": value}
         else:
             raise ValueError(
@@ -282,7 +288,7 @@ class ImageEditor(Component):
             [
                 FileData(
                     path=image_utils.save_image(
-                        cast(Union[np.ndarray, _Image.Image, str], layer),
+                        cast(Union[np.ndarray, PIL.Image.Image, str], layer),
                         self.GRADIO_CACHE,
                     )
                 )
@@ -301,7 +307,7 @@ class ImageEditor(Component):
             layers=layers,
             composite=FileData(
                 path=image_utils.save_image(
-                    cast(Union[np.ndarray, _Image.Image, str], value["composite"]),
+                    cast(Union[np.ndarray, PIL.Image.Image, str], value["composite"]),
                     self.GRADIO_CACHE,
                 )
             )

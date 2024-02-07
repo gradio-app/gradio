@@ -1,108 +1,134 @@
-name: "deploy website"
+name: "deploy / website"
 
 on:
-  workflow_call:
-    inputs:
-      branch_name:
-        description: "The branch name"
-        type: string
-      pr_number:
-        description: "The PR number"
-        type: string
-    secrets:
-      vercel_token:
-        description: "Vercel API token"
-      gh_token:
-        description: "Github token"
-        required: true
-      vercel_org_id:
-        description: "Vercel organization ID"
-        required: true
-      vercel_project_id:
-        description: "Vercel project ID"
-        required: true
+  workflow_run:
+    workflows: ["trigger"]
+    types: 
+      - requested
+
+permissions:
+  statuses: write
+
+concurrency:
+  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  cancel-in-progress: true
+  
 
 env:
-  VERCEL_ORG_ID: ${{ secrets.vercel_org_id }}
-  VERCEL_PROJECT_ID: ${{ secrets.vercel_project_id }}
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 jobs:
+  changes:
+    name: "changes"
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.changes.outputs.should_run }}
+      sha: ${{ steps.changes.outputs.sha }}
+      merge_sha: ${{ steps.changes.outputs.merge_sha }}
+      pr_number: ${{ steps.changes.outputs.pr_number }}
+      source_branch: ${{ steps.changes.outputs.source_branch }}
+      source_repo: ${{ steps.changes.outputs.source_repo }}
+      found_pr: ${{ steps.changes.outputs.found_pr }}
+      mergeable: ${{ steps.changes.outputs.mergeable }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: "gradio-app/gradio/.github/actions/changes@main"
+        id: changes
+        with:
+          type: "website"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit_status: false
+      - name: echo github context
+        if: always()
+        run: echo "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+
   comment-deploy-start:
+    needs: changes
     uses: "./.github/workflows/comment-queue.yml"
     secrets:
-      gh_token: ${{ secrets.gh_token }}
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
-      pr_number: ${{ inputs.pr_number }}
+      pr_number: ${{ needs.changes.outputs.pr_number }}
       message: website~pending~null
-  deploy:
-    name: "Deploy website"
+  deploy-website:
+    name: "deploy-website"
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.should_run == 'true'
     outputs:
       vercel_url: ${{ steps.output_url.outputs.vercel_url }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.changes.outputs.merge_sha }}
+          repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
       - name: install dependencies
-        uses: "./.github/actions/install-frontend-deps"
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
-          always-install-pnpm: true
+          always_install_pnpm: true
           skip_build: true
-      - name: download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: website-json-${{ inputs.pr_number }}
-          path: |
-            ./js/_website/src/lib/json
-      - name: echo artifact path
-        shell: bash
-        run: ls ./js/_website/src/lib/json
+      - name: deploy json to aws
+        if: needs.changes.outputs.source_branch == 'changeset-release/main' && needs.changes.outputs.source_repo == 'gradio-app/gradio'
+        run: |
+          export AWS_ACCESS_KEY_ID=${{ secrets.AWSACCESSKEYID }}
+          export AWS_SECRET_ACCESS_KEY=${{ secrets.AWSSECRETKEY }}
+          export AWS_DEFAULT_REGION=us-west-2
+          version=$(jq -r .version js/_website/src/lib/json/version.json)
+          aws s3 cp ./js/_website/src/lib/json/ s3://gradio-docs-json/$version/ --recursive
       - name: Install Vercel CLI
-        shell: bash
         run: pnpm install --global vercel@latest
+      - name: echo outputs
+        run: |
+          echo "source_repo=${{ needs.changes.outputs.source_repo }}"
+          echo "source_branch=${{ needs.changes.outputs.source_branch }}"
+          echo "found_pr=${{ needs.changes.outputs.found_pr }}"
+          echo "pr_number=${{ needs.changes.outputs.pr_number }}"
       # preview
       - name: Pull Vercel Environment Information
         shell: bash
-        if: github.event_name == 'pull_request'
-        run: vercel pull --yes --environment=preview --token=${{ secrets.vercel_token }}
+        if: needs.changes.outputs.found_pr == 'true'
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
       - name: Build Project Artifacts
-        if: github.event_name == 'pull_request'
+        if: needs.changes.outputs.found_pr == 'true'
         shell: bash
-        run: vercel build --token=${{ secrets.vercel_token }}
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
       - name: Deploy Project Artifacts to Vercel
-        if: github.event_name == 'pull_request'
+        if: needs.changes.outputs.found_pr == 'true'
         id: output_url
         shell: bash
-        run: echo "vercel_url=$(vercel deploy --prebuilt --token=${{ secrets.vercel_token }})" >> $GITHUB_OUTPUT
+        run: echo "vercel_url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})" >> $GITHUB_OUTPUT
       # production
       - name: Pull Vercel Environment Information
-        if: github.event_name == 'push' && inputs.branch_name == 'main'
+        if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'main'
         shell: bash
-        run: vercel pull --yes --environment=production --token=${{ secrets.vercel_token }}
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
       - name: Build Project Artifacts
-        if: github.event_name == 'push' && inputs.branch_name == 'main'
+        if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'main'
         shell: bash
-        run: vercel build --prod --token=${{ secrets.vercel_token }}
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
       - name: Deploy Project Artifacts to Vercel
-        if: github.event_name == 'push' && inputs.branch_name == 'main'
+        if: needs.changes.outputs.source_repo == 'gradio-app/gradio' && needs.changes.outputs.source_branch == 'main'
         shell: bash
-        run: echo "VERCEL_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.vercel_token }})" >> $GITHUB_ENV
-      - name: echo vercel url
-        shell: bash
-        run: echo $VERCEL_URL #add to comment
+        run: echo "VERCEL_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})" >> $GITHUB_ENV
+     
+
   comment-deploy-success:
     uses: "./.github/workflows/comment-queue.yml"
-    needs: deploy
-    if: needs.deploy.result == 'success'
+    needs: [deploy-website, changes]
+    if: needs.deploy-website.result == 'success' && needs.changes.outputs.found_pr == 'true'
     secrets:
-      gh_token: ${{ secrets.gh_token }}
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
-      pr_number: ${{ inputs.pr_number }}
-      message: website~success~${{needs.deploy.outputs.vercel_url}}
+      pr_number: ${{ needs.changes.outputs.pr_number }}
+      message: website~success~${{needs.deploy-website.outputs.vercel_url}}
   comment-deploy-failure:
     uses: "./.github/workflows/comment-queue.yml"
-    needs: deploy
-    if: always() && needs.deploy.result == 'failure'
+    needs: [deploy-website, changes]
+    if: always() && needs.deploy-website.result == 'failure' && needs.changes.outputs.found_pr == 'true'
     secrets:
-      gh_token: ${{ secrets.gh_token }}
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
-      pr_number: ${{ inputs.pr_number }}
+      pr_number: ${{ needs.changes.outputs.pr_number }}
       message: website~failure~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/
+    

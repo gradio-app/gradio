@@ -842,8 +842,8 @@ class TestAudio:
                 "show_controls": False,
                 "show_recording_waveform": True,
                 "skip_length": 5,
-                "waveform_color": "#9ca3af",
-                "waveform_progress_color": "#f97316",
+                "waveform_color": None,
+                "waveform_progress_color": None,
             },
             "_selectable": False,
         }
@@ -894,8 +894,8 @@ class TestAudio:
                 "show_controls": False,
                 "show_recording_waveform": True,
                 "skip_length": 5,
-                "waveform_color": "#9ca3af",
-                "waveform_progress_color": "#f97316",
+                "waveform_color": None,
+                "waveform_progress_color": None,
             },
             "_selectable": False,
         }
@@ -1112,7 +1112,7 @@ class TestDataframe:
             "headers": ["Name", "Age", "Member"],
             "row_count": (1, "dynamic"),
             "col_count": (3, "dynamic"),
-            "datatype": ["str", "str", "str"],
+            "datatype": "str",
             "type": "pandas",
             "label": "Dataframe Input",
             "show_label": True,
@@ -1155,7 +1155,7 @@ class TestDataframe:
             "headers": ["1", "2", "3"],
             "row_count": (1, "dynamic"),
             "col_count": (3, "dynamic"),
-            "datatype": ["str", "str", "str"],
+            "datatype": "str",
             "type": "pandas",
             "label": None,
             "show_label": True,
@@ -1187,7 +1187,7 @@ class TestDataframe:
         """
         dataframe_output = gr.Dataframe()
         output = dataframe_output.postprocess([]).model_dump()
-        assert output == {"data": [[]], "headers": [], "metadata": None}
+        assert output == {"data": [[]], "headers": ["1", "2", "3"], "metadata": None}
         output = dataframe_output.postprocess(np.zeros((2, 2))).model_dump()
         assert output == {
             "data": [[0, 0], [0, 0]],

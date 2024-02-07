@@ -3,22 +3,18 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Callable, Literal
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.events import Events
-
-set_documentation_group("component")
 
 
 @document("languages")
 class Code(Component):
     """
-    Creates a Code editor for entering, editing or viewing code.
-    Preprocessing: passes a {str} of code into the function.
-    Postprocessing: expects the function to return a {str} of code or a single-element {tuple}: {(string_filepath,)}
+    Creates a code editor for viewing code (as an ouptut component), or for entering and editing code (as an input component).
     """
 
     languages = [
@@ -45,7 +41,7 @@ class Code(Component):
 
     def __init__(
         self,
-        value: str | tuple[str] | None = None,
+        value: str | Callable | tuple[str] | None = None,
         language: Literal[
             "python",
             "markdown",
@@ -77,13 +73,13 @@ class Code(Component):
         """
         Parameters:
             value: Default value to show in the code editor. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             language: The language to display the code as. Supported languages listed in `gr.Code.languages`.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             interactive: Whether user should be able to enter code or only view it.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
+            scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -110,10 +106,22 @@ class Code(Component):
             value=value,
         )
 
-    def preprocess(self, payload: Any) -> Any:
+    def preprocess(self, payload: str | None) -> str | None:
+        """
+        Parameters:
+            payload: string corresponding to the code
+        Returns:
+            Passes the code entered as a `str`.
+        """
         return payload
 
-    def postprocess(self, value: tuple | str | None) -> None | str:
+    def postprocess(self, value: tuple[str] | str | None) -> None | str:
+        """
+        Parameters:
+            value: Expects a `str` of code or a single-element `tuple`: (filepath,) with the `str` path to a file containing the code.
+        Returns:
+            Returns the code as a `str`.
+        """
         if value is None:
             return None
         elif isinstance(value, tuple):

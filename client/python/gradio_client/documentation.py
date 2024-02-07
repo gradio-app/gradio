@@ -3,18 +3,13 @@
 from __future__ import annotations
 
 import inspect
+import warnings
+from collections import defaultdict
+from functools import lru_cache
 from typing import Callable
 
-classes_to_document = {}
+classes_to_document = defaultdict(list)
 classes_inherit_documentation = {}
-documentation_group = None
-
-
-def set_documentation_group(m):
-    global documentation_group
-    documentation_group = m
-    if m not in classes_to_document:
-        classes_to_document[m] = []
 
 
 def extract_instance_attr_doc(cls, attr):
@@ -42,7 +37,33 @@ def extract_instance_attr_doc(cls, attr):
     return doc_string
 
 
-def document(*fns, inherit=False):
+_module_prefixes = [
+    ("gradio._simple_templates", "component"),
+    ("gradio.block", "block"),
+    ("gradio.chat", "chatinterface"),
+    ("gradio.component", "component"),
+    ("gradio.events", "helpers"),
+    ("gradio.exceptions", "helpers"),
+    ("gradio.external", "helpers"),
+    ("gradio.flag", "flagging"),
+    ("gradio.helpers", "helpers"),
+    ("gradio.interface", "interface"),
+    ("gradio.layout", "layout"),
+    ("gradio.route", "routes"),
+    ("gradio.theme", "themes"),
+    ("gradio_client", "py-client"),
+]
+
+
+@lru_cache(maxsize=10)
+def _get_module_documentation_group(modname) -> str:
+    for prefix, group in _module_prefixes:
+        if modname.startswith(prefix):
+            return group
+    raise ValueError(f"No known documentation group for module {modname!r}")
+
+
+def document(*fns, inherit=False, documentation_group=None):
     """
     Defines the @document decorator which adds classes or functions to the Gradio
     documentation at www.gradio.app/docs.
@@ -52,14 +73,22 @@ def document(*fns, inherit=False):
     - Put @document("fn1", "fn2") above a class to also document methods fn1 and fn2.
     - Put @document("*fn3") with an asterisk above a class to document the instance attribute methods f3.
     """
+    _documentation_group = documentation_group
 
     def inner_doc(cls):
         functions = list(fns)
         if hasattr(cls, "EVENTS"):
             functions += cls.EVENTS
-        global documentation_group
         if inherit:
             classes_inherit_documentation[cls] = None
+
+        documentation_group = _documentation_group  # avoid `nonlocal` reassignment
+        if _documentation_group is None:
+            try:
+                modname = inspect.getmodule(cls).__name__  # type: ignore
+                documentation_group = _get_module_documentation_group(modname)
+            except Exception as exc:
+                warnings.warn(f"Could not get documentation group for {cls}: {exc}")
         classes_to_document[documentation_group].append((cls, functions))
         return cls
 
@@ -123,6 +152,8 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
     for param_name, param in signature.parameters.items():
         if param_name.startswith("_"):
             continue
+        if param_name == "self":
+            continue
         if param_name in ["kwargs", "args"] and param_name not in parameters:
             continue
         parameter_doc = {
@@ -147,7 +178,7 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
         parameter_docs.append(parameter_doc)
     assert (
         len(parameters) == 0
-    ), f"Documentation format for {fn.__name__} documents nonexistent parameters: {''.join(parameters.keys())}"
+    ), f"Documentation format for {fn.__name__} documents nonexistent parameters: {', '.join(parameters.keys())}. Valid parameters: {', '.join(signature.parameters.keys())}"
     if len(returns) == 0:
         return_docs = {}
     elif len(returns) == 1:
@@ -175,15 +206,14 @@ def document_cls(cls):
             tag = line[: line.index(":")].lower()
             value = line[line.index(":") + 2 :]
             tags[tag] = value
+        elif mode == "description":
+            description_lines.append(line if line.strip() else "<br>")
         else:
-            if mode == "description":
-                description_lines.append(line if line.strip() else "<br>")
-            else:
-                if not (line.startswith("    ") or not line.strip()):
-                    raise SyntaxError(
-                        f"Documentation format for {cls.__name__} has format error in line: {line}"
-                    )
-                tags[mode].append(line[4:])
+            if not (line.startswith("    ") or not line.strip()):
+                raise SyntaxError(
+                    f"Documentation format for {cls.__name__} has format error in line: {line}"
+                )
+            tags[mode].append(line[4:])
     if "example" in tags:
         example = "\n".join(tags["example"])
         del tags["example"]
@@ -203,6 +233,24 @@ def generate_documentation():
         for cls, fns in class_list:
             fn_to_document = cls if inspect.isfunction(cls) else cls.__init__
             _, parameter_doc, return_doc, _ = document_fn(fn_to_document, cls)
+            if (
+                hasattr(cls, "preprocess")
+                and callable(cls.preprocess)  # type: ignore
+                and hasattr(cls, "postprocess")
+                and callable(cls.postprocess)  # type: ignore
+            ):
+                preprocess_doc = document_fn(cls.preprocess, cls)  # type: ignore
+                postprocess_doc = document_fn(cls.postprocess, cls)  # type: ignore
+                preprocess_doc, postprocess_doc = (
+                    {
+                        "parameter_doc": preprocess_doc[1],
+                        "return_doc": preprocess_doc[2],
+                    },
+                    {
+                        "parameter_doc": postprocess_doc[1],
+                        "return_doc": postprocess_doc[2],
+                    },
+                )
             cls_description, cls_tags, cls_example = document_cls(cls)
             cls_documentation = {
                 "class": cls,
@@ -214,6 +262,14 @@ def generate_documentation():
                 "example": cls_example,
                 "fns": [],
             }
+            if (
+                hasattr(cls, "preprocess")
+                and callable(cls.preprocess)  # type: ignore
+                and hasattr(cls, "postprocess")
+                and callable(cls.postprocess)  # type: ignore
+            ):
+                cls_documentation["preprocess"] = preprocess_doc  # type: ignore
+                cls_documentation["postprocess"] = postprocess_doc  # type: ignore
             for fn_name in fns:
                 instance_attribute_fn = fn_name.startswith("*")
                 if instance_attribute_fn:

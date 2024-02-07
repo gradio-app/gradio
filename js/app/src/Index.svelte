@@ -27,6 +27,7 @@
 		stylesheets?: string[];
 		path: string;
 		app_id?: string;
+		fill_height?: boolean;
 	}
 
 	let id = -1;
@@ -61,7 +62,7 @@
 </script>
 
 <script lang="ts">
-	import { onMount, setContext } from "svelte";
+	import { onMount, setContext, createEventDispatcher } from "svelte";
 	import type { api_factory, SpaceStatus } from "@gradio/client";
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./types";
@@ -72,6 +73,8 @@
 	import { setWorkerProxyContext } from "@gradio/wasm/svelte";
 
 	setupi18n();
+
+	const dispatch = createEventDispatcher();
 
 	export let autoscroll: boolean;
 	export let version: string;
@@ -267,6 +270,8 @@
 		css_ready = true;
 		window.__is_colab__ = config.is_colab;
 
+		dispatch("loaded");
+
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(api_url);
@@ -412,6 +417,7 @@
 		<Blocks
 			{app}
 			{...config}
+			fill_height={!is_embed && config.fill_height}
 			theme_mode={active_theme_mode}
 			{control_page_title}
 			target={wrapper}

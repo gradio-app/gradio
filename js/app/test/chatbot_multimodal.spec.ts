@@ -35,9 +35,13 @@ test("images uploaded by a user should be shown in the chat", async ({
 		.first()
 		.getByRole("paragraph")
 		.textContent();
-	const image_data = await user_message.getAttribute("src");
-	await expect(image_data).toContain("cheetah1.jpg");
-	await expect(bot_message).toBeTruthy();
+	const image_src = await user_message.getAttribute("src");
+	if (process.env.GRADIO_E2E_TEST_LITE) {
+		expect(image_src).toContain(/^blob:.*$/);
+	} else {
+		expect(image_src).toContain("cheetah1.jpg");
+	}
+	expect(bot_message).toBeTruthy();
 });
 
 test("audio uploaded by a user should be shown in the chatbot", async ({

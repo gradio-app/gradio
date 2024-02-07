@@ -2,7 +2,7 @@ name: 'install frontend'
 description: 'Install frontend deps'
 
 inputs:
-  always-install-pnpm:
+  always_install_pnpm:
     description: 'Dictates whether or not we should install pnpm & dependencies, regardless of the cache'
     default: 'false'
   node_auth_token:
@@ -14,6 +14,9 @@ inputs:
   skip_build:
     description: 'Skip build'
     default: 'false'
+  os:
+    description: 'OS'
+    default: 'ubuntu-latest'
 
 runs:
   using: "composite"
@@ -25,24 +28,20 @@ runs:
           gradio/templates/*
         key: gradio-lib-front-end-${{ hashFiles('js/**', 'client/js/**')}}
     - name: Install pnpm
-      if: steps.frontend-cache.outputs.cache-hit != 'true' || inputs.always-install-pnpm == 'true'
       uses: pnpm/action-setup@v2
       with:
-        version: 8.9
+        version: 8.15
     - uses: actions/setup-node@v4
       with:
         node-version: 18
         cache: pnpm
         cache-dependency-path: pnpm-lock.yaml
-      env:
-          NODE_AUTH_TOKEN: ${{ inputs.always-install-pnpm }}
-          NPM_TOKEN: ${{ inputs.always-install-pnpm }}
     - name: Install deps
-      if: steps.frontend-cache.outputs.cache-hit != 'true' || inputs.always-install-pnpm == 'true'
+      if: steps.frontend-cache.outputs.cache-hit != 'true' || inputs.always_install_pnpm == 'true'
       shell: bash
       run: pnpm i --frozen-lockfile --ignore-scripts
     - name: Build Css
-      if: inputs.always-install-pnpm == 'true'
+      if: inputs.always_install_pnpm == 'true'
       shell: bash
       run: pnpm css
     - name: Build frontend

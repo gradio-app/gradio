@@ -4,17 +4,15 @@ from __future__ import annotations
 import warnings
 from typing import Literal
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components import Button
-
-set_documentation_group("component")
 
 
 @document()
 class LogoutButton(Button):
     """
-    Button to log out a user from a Space.
+    Creates a Button to log out a user from a Space using OAuth.
 
     Note: `LogoutButton` component is deprecated. Please use `gr.LoginButton` instead
           which handles both the login and logout processes.
