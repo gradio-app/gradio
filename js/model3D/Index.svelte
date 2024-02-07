@@ -20,7 +20,6 @@
 	export let visible = true;
 	export let value: null | FileData = null;
 	export let root: string;
-	export let proxy_url: null | string;
 	export let clear_color: [number, number, number, number];
 	export let loading_status: LoadingStatus;
 	export let label: string;

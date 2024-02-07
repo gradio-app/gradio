@@ -24,7 +24,6 @@
 		| ["webcam", "upload"]
 		| ["upload", "webcam"];
 	export let root: string;
-	export let proxy_url: null | string;
 	export let show_label: boolean;
 	export let loading_status: LoadingStatus;
 	export let height: number | undefined;
