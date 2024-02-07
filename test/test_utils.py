@@ -12,6 +12,7 @@ import pytest
 from typing_extensions import Literal
 
 from gradio import EventData, Request
+from gradio.external_utils import format_ner_list
 from gradio.utils import (
     abspath,
     append_unique_suffix,
@@ -19,7 +20,6 @@ from gradio.utils import (
     check_function_inputs_match,
     colab_check,
     delete_none,
-    format_ner_list,
     get_continuous_fn,
     get_extension_from_file_path_or_url,
     get_type_hints,

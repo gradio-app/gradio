@@ -1,5 +1,11 @@
 # @gradio/tabitem
 
+## 0.2.2
+
+### Fixes
+
+- [#7220](https://github.com/gradio-app/gradio/pull/7220) [`3b8dfc6`](https://github.com/gradio-app/gradio/commit/3b8dfc684dc0eb0544d06300fa546b23f587c63f) - Add `visible` check to Tab.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.2.1
 
 ### Patch Changes

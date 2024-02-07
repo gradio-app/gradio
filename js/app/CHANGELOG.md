@@ -1,5 +1,17 @@
 # @gradio/app
 
+## 1.23.0
+
+### Features
+
+- [#7129](https://github.com/gradio-app/gradio/pull/7129) [`ccdaec4`](https://github.com/gradio-app/gradio/commit/ccdaec45002d0a9d6016e8e2078b843a1ff9172b) - Add a `simpleimage` template for custom components.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7313](https://github.com/gradio-app/gradio/pull/7313) [`edfd05d`](https://github.com/gradio-app/gradio/commit/edfd05d18d20542d350d883d5e7f84d2774ad99e) - Expand chatinterface to full window height.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#7292](https://github.com/gradio-app/gradio/pull/7292) [`aa97a5e`](https://github.com/gradio-app/gradio/commit/aa97a5e33a04ef8a0309b6ec3b2df4caaa26173e) - Improvements to API Docs.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+### Fixes
+
+- [#7117](https://github.com/gradio-app/gradio/pull/7117) [`24157a3`](https://github.com/gradio-app/gradio/commit/24157a36028b3f606194bd9977634318650b2d46) - add background color based on the OS mode.  Thanks [@aileenvl](https://github.com/aileenvl)!
+
 ## 1.22.0
 
 ### Features
