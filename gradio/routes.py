@@ -590,10 +590,7 @@ class App(FastAPI):
                 or request.headers.get("X-Direct-Url")
                 or ""
             )
-            print("root_path", root_path, flush=True)
-            print("output", output, flush=True)
             output = add_root_url(output, route_utils.strip_url(root_path))
-            print("output", output, flush=True)
             return output
 
         @app.get("/queue/data", dependencies=[Depends(login_check)])
@@ -602,6 +599,11 @@ class App(FastAPI):
             session_hash: str,
         ):
             blocks = app.get_blocks()
+            root_path = (
+                request.scope.get("root_path")
+                or request.headers.get("X-Direct-Url")
+                or ""
+            )
 
             async def sse_stream(request: fastapi.Request):
                 try:
@@ -647,6 +649,7 @@ class App(FastAPI):
                                 "success": False,
                             }
                         if message:
+                            add_root_url(message, route_utils.strip_url(root_path))
                             yield f"data: {json.dumps(message)}\n\n"
                             if message["msg"] == ServerMessage.process_completed:
                                 blocks._queue.pending_event_ids_session[
