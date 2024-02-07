@@ -323,8 +323,9 @@ class App(FastAPI):
             )
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
-                config["root"] = route_utils.strip_url(root_path)
-                config = add_root_url(config, root_path)
+                if "root" not in config:
+                    config["root"] = route_utils.strip_url(root_path)
+                    config = add_root_url(config, root_path)
             else:
                 config = {
                     "auth_required": True,
@@ -367,8 +368,9 @@ class App(FastAPI):
                 or ""
             )
             config = app.get_blocks().config
-            config["root"] = route_utils.strip_url(root_path)
-            config = add_root_url(config, root_path)
+            if "root" not in config:
+                config["root"] = route_utils.strip_url(root_path)
+                config = add_root_url(config, root_path)
             return config
 
         @app.get("/static/{path:path}")
@@ -588,10 +590,10 @@ class App(FastAPI):
                 or request.headers.get("X-Direct-Url")
                 or ""
             )
-            print("root_path", root_path)
-            print("output", output)
-            output = add_root_url(output, root_path)
-            print("output", output)
+            print("root_path", root_path, flush=True)
+            print("output", output, flush=True)
+            output = add_root_url(output, route_utils.strip_url(root_path))
+            print("output", output, flush=True)
             return output
 
         @app.get("/queue/data", dependencies=[Depends(login_check)])
