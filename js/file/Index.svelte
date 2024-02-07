@@ -28,7 +28,6 @@
 	export let show_label: boolean;
 	export let height: number | undefined = undefined;
 
-	export let proxy_url: null | string;
 	export let _selectable = false;
 	export let loading_status: LoadingStatus;
 	export let container = true;
@@ -44,10 +43,10 @@
 	export let file_count: string;
 	export let file_types: string[] = ["file"];
 
-	let old_value = _value;
-	$: if (JSON.stringify(old_value) !== JSON.stringify(_value)) {
+	let old_value = value;
+	$: if (JSON.stringify(old_value) !== JSON.stringify(value)) {
 		gradio.dispatch("change");
-		old_value = _value;
+		old_value = value;
 	}
 
 	let dragging = false;

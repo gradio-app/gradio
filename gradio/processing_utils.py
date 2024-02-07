@@ -275,7 +275,6 @@ def move_files_to_cache(
             else:
                 url = f"/{url_prefix}{temp_file_path}"
             payload.url = url
-            print(add_urls, url_prefix, temp_file_path)
 
         return payload.model_dump()
 

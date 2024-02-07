@@ -31,7 +31,6 @@
 	export let crop_size: [number, number] | `${string}:${string}` | null = null;
 	export let i18n: I18nFormatter;
 	export let root: string;
-	export let proxy_url: string;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 	export let changeable = false;
