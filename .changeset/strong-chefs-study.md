@@ -1,17 +1,17 @@
 ---
-"@gradio/annotatedimage": patch
-"@gradio/audio": patch
-"@gradio/chatbot": patch
-"@gradio/client": patch
-"@gradio/file": patch
-"@gradio/gallery": patch
-"@gradio/image": patch
-"@gradio/imageeditor": patch
-"@gradio/model3d": patch
-"@gradio/simpleimage": patch
-"@gradio/video": patch
-"gradio": patch
-"gradio_client": patch
+"@gradio/annotatedimage": minor
+"@gradio/audio": minor
+"@gradio/chatbot": minor
+"@gradio/client": minor
+"@gradio/file": minor
+"@gradio/gallery": minor
+"@gradio/image": minor
+"@gradio/imageeditor": minor
+"@gradio/model3d": minor
+"@gradio/simpleimage": minor
+"@gradio/video": minor
+"gradio": minor
+"gradio_client": minor
 ---
 
-fix:[WIP] Refactor file normalization to be in the backend and remove it from the frontend of each component
+feat:[WIP] Refactor file normalization to be in the backend and remove it from the frontend of each component
