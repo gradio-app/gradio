@@ -1,0 +1,1 @@
+A simple dashboard showing pypi stats for python libraries and forecast using Darts timeseries forecasting lib. Updates on load, and has no buttons!

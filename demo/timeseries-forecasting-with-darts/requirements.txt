@@ -1,0 +1,5 @@
+pandas
+pypistats
+darts
+kaleido
+gradio
