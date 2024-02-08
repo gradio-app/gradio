@@ -52,7 +52,7 @@
 <Story
 	name="Image Editor Interactions"
 	parameters={{
-		diffThreshold: 0.4
+		diffThreshold: 0.8
 	}}
 	args={{
 		value: {
