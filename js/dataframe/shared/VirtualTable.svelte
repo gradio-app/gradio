@@ -255,10 +255,10 @@
 		return false;
 	}
 
-	function mutation_callback(
+	async function mutation_callback(
 		mutations_list: MutationRecord[],
 		observer: MutationObserver
-	): void {
+	): Promise<void> {
 		for (const mutation of mutations_list) {
 			if (
 				mutation.type === "attributes" &&
@@ -266,11 +266,14 @@
 			) {
 				const target_visible = is_effectively_visible(viewport);
 
-				if (target_visible) {
-					element_visible = true;
-				} else {
-					element_visible = false;
-				}
+				await tick();
+				requestAnimationFrame(() => {
+					if (target_visible) {
+						element_visible = true;
+					} else {
+						element_visible = false;
+					}
+				});
 			}
 		}
 	}
