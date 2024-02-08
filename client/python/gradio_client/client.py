@@ -975,6 +975,7 @@ class Endpoint:
             data = self.insert_state(*data)
             if self.client.serialize:
                 data = self.serialize(*data)
+            print("data", *data)
             predictions = _predict(*data)
             predictions = self.process_predictions(*predictions)
             # Append final output only if not already present
@@ -1005,6 +1006,7 @@ class Endpoint:
                     self._sse_fn_v0, data, hash_data, helper
                 )
             elif self.protocol in ("sse_v1", "sse_v2"):
+                print("send_data", data, hash_data)
                 event_id = utils.synchronize_async(
                     self.client.send_data, data, hash_data
                 )
@@ -1051,6 +1053,7 @@ class Endpoint:
     def _upload(
         self, file_paths: list[str | list[str]]
     ) -> list[str | list[str]] | list[dict[str, Any] | list[dict[str, Any]]]:
+        print("file_paths", file_paths)
         if not file_paths:
             return []
         # Put all the filepaths in one file
@@ -1059,6 +1062,7 @@ class Endpoint:
         # the original structure
         files = []
         indices = []
+        print("file_paths", file_paths)
         for i, fs in enumerate(file_paths):
             if not isinstance(fs, list):
                 fs = [fs]
@@ -1077,6 +1081,7 @@ class Endpoint:
                     res = [
                         {
                             "path": o,
+                            "url": self.client.config["root"] + "/file=" + o,
                             "orig_name": Path(f).name,
                         }
                         for f, o in zip(fs, output)
@@ -1085,6 +1090,7 @@ class Endpoint:
                     o = next(o for ix, o in enumerate(result) if indices[ix] == i)
                     res = {
                         "path": o,
+                        "url": self.client.config["root"] + "/file=" + o,
                         "orig_name": Path(fs).name,
                     }
                 uploaded.append(res)
@@ -1142,16 +1148,15 @@ class Endpoint:
         return new_data
 
     def serialize(self, *data) -> tuple:
+        print("data", data)
         files, new_data = self._gather_files(*data)
         uploaded_files = self._upload(files)
+        print("new_data", new_data)
+        print("uploaded_files", uploaded_files)
         data = list(new_data)
         data = self._add_uploaded_files_to_data(data, uploaded_files)
-        data = utils.traverse(
-            data,
-            lambda s: {"path": s},
-            utils.is_url,
-        )
         o = tuple(data)
+        print("o", o)
         return o
 
     @staticmethod
@@ -1182,7 +1187,6 @@ class Endpoint:
 
     def deserialize(self, *data) -> tuple:
         data_ = list(data)
-
         data_: list[Any] = utils.traverse(data_, self.download_file, utils.is_file_obj)
         return tuple(data_)
 

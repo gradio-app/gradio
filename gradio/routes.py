@@ -352,6 +352,7 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
+            print("request.url", request.url)
             root_path = route_utils.strip_url(str(request.url))[:-7]
             config = app.get_blocks().config
             if "root" not in config:
