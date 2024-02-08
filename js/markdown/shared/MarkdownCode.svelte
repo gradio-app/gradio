@@ -51,6 +51,7 @@
 		if (sanitize_html) {
 			value = DOMPurify.sanitize(value);
 		}
+		console.log("222222222", value);
 		return value;
 	}
 
@@ -159,15 +160,5 @@
 
 	span.md :global(.md-header-anchor > svg) {
 		color: var(--body-text-color-subdued);
-	}
-
-	span :global(h1),
-	span :global(h2),
-	span :global(h3),
-	span :global(h4),
-	span :global(h5),
-	span :global(h6) {
-		display: flex;
-		align-items: center;
 	}
 </style>
