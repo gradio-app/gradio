@@ -970,7 +970,7 @@ class Endpoint:
     def __str__(self):
         return self.__repr__()
 
-    def make_end_to_end_fn(self, helper: Communicator | None = None, return_as_file_data: bool = False):
+    def make_end_to_end_fn(self, helper: Communicator | None = None, _download_files: bool = True):
         _predict = self.make_predict(helper)
 
         def _inner(*data):
@@ -1194,8 +1194,8 @@ class Endpoint:
         return tuple(data_)
 
     def process_predictions(self, *predictions):
-        if self.client.serialize and False:
-            predictions = self.deserialize(*predictions)
+        if self.client.serialize:
+            self.deserialize(*predictions)
         predictions = self.remove_skipped_components(*predictions)
         predictions = self.reduce_singleton_output(*predictions)
         return predictions
