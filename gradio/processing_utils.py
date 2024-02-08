@@ -273,9 +273,9 @@ def move_files_to_cache(
             if block.proxy_url:
                 proxy_url = block.proxy_url.rstrip("/")
                 url = f"/proxy={proxy_url}{url_prefix}{payload.path}"
-            elif client_utils.is_http_url_like(
-                payload.path
-            ) or payload.path.startswith(f"{url_prefix}"):
+            elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
+                f"{url_prefix}"
+            ):
                 url = payload.path
             else:
                 url = f"{url_prefix}{payload.path}"
