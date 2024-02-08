@@ -202,6 +202,6 @@
 
 		await userEvent.click(canvas.getByLabelText("Redo"));
 
-		await userEvent.click(canvas.getByLabelText("Erase button"));
+		await userEvent.click(canvas.getByLabelText("Clear canvas"));
 	}}
 />
