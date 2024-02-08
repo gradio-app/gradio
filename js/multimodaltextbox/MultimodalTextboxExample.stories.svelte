@@ -1,0 +1,24 @@
+<script>
+	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+	import MultimodalTextbox from "./Example.svelte";
+</script>
+
+<Meta title="Components/MultimodalTextbox/Example" component={MultimodalTextbox} />
+
+<Template let:args>
+	<MultimodalTextbox {...args} />
+</Template>
+
+<Story
+	name="Text value"
+	args={{
+		value: "the quick brown fox"
+	}}
+/>
+
+<Story
+	name="Null"
+	args={{
+		value: null
+	}}
+/>

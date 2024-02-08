@@ -456,6 +456,9 @@ importers:
       '@gradio/model3d':
         specifier: workspace:^
         version: link:../model3D
+      '@gradio/multimodaltextbox':
+        specifier: workspace:^
+        version: link:../multimodaltextbox
       '@gradio/number':
         specifier: workspace:^
         version: link:../number
@@ -1182,6 +1185,24 @@ importers:
       dequal:
         specifier: ^2.0.2
         version: 2.0.3
+
+  js/multimodaltextbox:
+    dependencies:
+      '@gradio/atoms':
+        specifier: workspace:^
+        version: link:../atoms
+      '@gradio/icons':
+        specifier: workspace:^
+        version: link:../icons
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/upload':
+        specifier: workspace:^
+        version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/number:
     dependencies:
