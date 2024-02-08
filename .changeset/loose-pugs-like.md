@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Add vite config
+feat:recalculate virtual table if tab visibility changes
