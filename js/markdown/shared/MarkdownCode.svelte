@@ -51,7 +51,6 @@
 		if (sanitize_html) {
 			value = DOMPurify.sanitize(value);
 		}
-		console.log("222222222", value);
 		return value;
 	}
 
