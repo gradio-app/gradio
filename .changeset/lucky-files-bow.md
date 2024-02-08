@@ -1,6 +1,6 @@
 ---
-"@gradio/app": minor
-"gradio": minor
+"@gradio/app": patch
+"gradio": patch
 ---
 
-feat:Ensure CSS `.dark` rule selectors are applied
+fix:Ensure CSS `.dark` rule selectors are applied
