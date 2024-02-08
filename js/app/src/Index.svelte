@@ -252,8 +252,7 @@
 				: host || space || src || location.origin;
 
 		app = await client(api_url, {
-			status_callback: handle_status,
-			normalise_files: false
+			status_callback: handle_status
 		});
 		config = app.config;
 		window.__gradio_space__ = config.space_id;
@@ -280,8 +279,7 @@
 				eventSource.onmessage = async function (event) {
 					if (event.data === "CHANGE") {
 						app = await client(api_url, {
-							status_callback: handle_status,
-							normalise_files: false
+							status_callback: handle_status
 						});
 
 						config = app.config;

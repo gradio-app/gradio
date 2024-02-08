@@ -88,7 +88,7 @@ class LoginButton(Button):
             request.request, "session", None
         )
         if session is None or "oauth_info" not in session:
-            return LoginButton(value=self.value, interactive=True)
+            return LoginButton(value=self.value, interactive=True)  # type: ignore
         else:
             username = session["oauth_info"]["userinfo"]["preferred_username"]
             logout_text = self.logout_value.format(username)

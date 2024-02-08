@@ -1537,6 +1537,7 @@ class TestVideo:
                 "mime_type": None,
                 "size": None,
                 "url": None,
+                "is_stream": False,
             },
             "subtitles": None,
         }
@@ -1548,6 +1549,7 @@ class TestVideo:
                 "mime_type": None,
                 "size": None,
                 "url": None,
+                "is_stream": False,
             },
             "subtitles": {
                 "path": "s1.srt",
@@ -1555,6 +1557,7 @@ class TestVideo:
                 "orig_name": None,
                 "size": None,
                 "url": None,
+                "is_stream": False,
             },
         }
         postprocessed_video["video"]["path"] = os.path.basename(
@@ -2251,6 +2254,7 @@ class TestGallery:
                     "mime_type": None,
                     "size": None,
                     "url": url,
+                    "is_stream": False,
                 },
                 "caption": None,
             }
@@ -2278,6 +2282,7 @@ class TestGallery:
                     "mime_type": None,
                     "size": None,
                     "url": None,
+                    "is_stream": False,
                 },
                 "caption": "foo_caption",
             },
@@ -2288,6 +2293,7 @@ class TestGallery:
                     "mime_type": None,
                     "size": None,
                     "url": None,
+                    "is_stream": False,
                 },
                 "caption": "bar_caption",
             },
@@ -2298,6 +2304,7 @@ class TestGallery:
                     "mime_type": None,
                     "size": None,
                     "url": None,
+                    "is_stream": False,
                 },
                 "caption": None,
             },
@@ -2308,6 +2315,7 @@ class TestGallery:
                     "mime_type": None,
                     "size": None,
                     "url": None,
+                    "is_stream": False,
                 },
                 "caption": None,
             },

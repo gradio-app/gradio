@@ -3,7 +3,7 @@
 <script lang="ts">
 	import type { Gradio, ShareData } from "@gradio/utils";
 
-	import { normalise_file, type FileData } from "@gradio/client";
+	import type { FileData } from "@gradio/client";
 	import { Block, UploadText } from "@gradio/atoms";
 	import StaticVideo from "./shared/VideoPreview.svelte";
 	import Video from "./shared/InteractiveVideo.svelte";
@@ -24,7 +24,6 @@
 		| ["webcam", "upload"]
 		| ["upload", "webcam"];
 	export let root: string;
-	export let proxy_url: null | string;
 	export let show_label: boolean;
 	export let loading_status: LoadingStatus;
 	export let height: number | undefined;
@@ -80,8 +79,8 @@
 
 	$: {
 		if (value != null) {
-			_video = normalise_file(value.video, root, proxy_url);
-			_subtitle = normalise_file(value.subtitles, root, proxy_url);
+			_video = value.video;
+			_subtitle = value.subtitles;
 		} else {
 			_video = null;
 			_subtitle = null;
