@@ -895,7 +895,7 @@ def get_type(schema: dict):
         raise APIInfoParseError(f"Cannot parse type for {schema}")
 
 
-FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)"
+FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool)"
 
 
 def json_schema_to_python_type(schema: Any) -> str:
@@ -1008,6 +1008,12 @@ def is_url(s):
 
 def is_file_obj(d):
     return isinstance(d, dict) and "path" in d
+
+
+def is_file_obj_with_url(d):
+    return (
+        isinstance(d, dict) and "path" in d and "url" in d and isinstance(d["url"], str)
+    )
 
 
 SKIP_COMPONENTS = {

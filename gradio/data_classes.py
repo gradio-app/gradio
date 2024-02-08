@@ -63,8 +63,7 @@ else:
 
 
 class PredictBody(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = {"arbitrary_types_allowed": True}
 
     session_hash: Optional[str] = None
     event_id: Optional[str] = None
@@ -169,6 +168,7 @@ class FileData(GradioModel):
     size: Optional[int] = None  # size in bytes
     orig_name: Optional[str] = None  # original filename
     mime_type: Optional[str] = None
+    is_stream: bool = False
 
     @property
     def is_none(self):
