@@ -8,15 +8,15 @@
 	export let ls_fn: (path: string[]) => Promise<FileNode[]>;
 	let selected_folders: string[][] = [];
 
-	const paths_equal = (path: string[], path_2: string[]) => {
+	const paths_equal = (path: string[], path_2: string[]): boolean => {
 		return path.join("/") === path_2.join("/");
 	};
 
-	const path_in_set = (path: string[], set: string[][]) => {
+	const path_in_set = (path: string[], set: string[][]): boolean => {
 		return set.some((x) => paths_equal(x, path));
 	};
 
-	const path_inside = (path: string[], path_2: string[]) => {
+	const path_inside = (path: string[], path_2: string[]): boolean => {
 		return path.join("/").startsWith(path_2.join("/"));
 	};
 </script>
@@ -45,11 +45,11 @@
 				}
 			} else {
 				selected_folders = selected_folders.filter(
-					(folder) => !path_inside(path, folder)
+					(folder) => !path_inside(path, folder),
 				); // deselect all parent folders
 				if (type === "folder") {
 					selected_folders = selected_folders.filter(
-						(folder) => !path_inside(folder, path)
+						(folder) => !path_inside(folder, path),
 					); // deselect all children folders
 					value = value.filter((file) => !path_inside(file, path)); // deselect all children files
 				} else {

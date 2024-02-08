@@ -9,7 +9,7 @@
 	export let path: string[] = [];
 	export let selected_files: string[][] = [];
 	export let selected_folders: string[][] = [];
-	export let is_selected_entirely: boolean = false;
+	export let is_selected_entirely = false;
 	export let interactive: boolean;
 	export let ls_fn: (path: string[]) => Promise<FileNode[]>;
 	export let file_count: "single" | "multiple" = "multiple";
@@ -17,7 +17,7 @@
 	let content: FileNode[] = [];
 	let opened_folders: number[] = [];
 
-	const toggle_open_folder = (i: number) => {
+	const toggle_open_folder = (i: number): void => {
 		if (opened_folders.includes(i)) {
 			opened_folders = opened_folders.filter((x) => x !== i);
 		} else {
@@ -25,7 +25,7 @@
 		}
 	};
 
-	const open_folder = (i: number) => {
+	const open_folder = (i: number): void => {
 		if (!opened_folders.includes(i)) {
 			opened_folders = [...opened_folders, i];
 		}

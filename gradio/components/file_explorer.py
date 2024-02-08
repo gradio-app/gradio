@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import os
 import fnmatch
+import os
 import warnings
 from pathlib import Path
 from typing import Any, Callable, List, Literal
@@ -169,7 +169,7 @@ class FileExplorer(Component):
             subdir_items = os.listdir(full_subdir_path)
         except FileNotFoundError:
             return []
-        
+
         output = []
         for item in subdir_items:
             full_path = os.path.join(full_subdir_path, item)
@@ -178,13 +178,14 @@ class FileExplorer(Component):
                 continue
             if self.ignore_glob and fnmatch.fnmatch(full_path, self.ignore_glob):
                 continue
-            output.append({
-                "name": item,
-                "type": "file" if is_file else "folder",
-            })
+            output.append(
+                {
+                    "name": item,
+                    "type": "file" if is_file else "folder",
+                }
+            )
 
         return output
-
 
     def _safe_join(self, folders):
         combined_path = os.path.join(self.root_dir, *folders)
