@@ -142,11 +142,13 @@ class TestClientPredictions:
             {
                 "video": "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4",
                 "subtitle": None,
-            }
+            },
         )
         output = client.predict(*payload, api_name="/predict")
         assert output[0].endswith(".wav")  # Audio files are converted to wav
-        assert output[1]["video"].endswith("world.mp4")  # Video files are not converted by default
+        assert output[1]["video"].endswith(
+            "world.mp4"
+        )  # Video files are not converted by default
 
     def test_state(self, increment_demo):
         with connect(increment_demo) as client:
