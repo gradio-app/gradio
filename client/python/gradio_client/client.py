@@ -77,20 +77,23 @@ class Client:
         auth: tuple[str, str] | None = None,
         *,
         headers: dict[str, str] | None = None,
+        deserialize: bool = True,
     ):
         """
         Parameters:
             src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
             hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
-            serialize: Whether the client should download output files from the remote API and return them as string filepaths on the local machine. If False, the client will a FileData dataclass object with the filepath on the remote machine instead.
+            serialize: Whether the client should treat input string filepath as files and upload them to the remote server. If False, the client will treat input string filepaths as strings always and not modify them.
             output_dir: The directory to save files that are downloaded from the remote API. If None, reads from the GRADIO_TEMP_DIR environment variable. Defaults to a temporary directory on your machine.
             verbose: Whether the client should print statements to the console.
             headers: Additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. These headers will override the default headers if they have the same keys.
+            deserialize: Whether the client should download output files from the remote API and return them as string filepaths on the local machine. If False, the client will a FileData dataclass object with the filepath on the remote machine instead.
         """
         self.verbose = verbose
         self.hf_token = hf_token
         self.serialize = serialize
+        self.deserialize = deserialize
         self.headers = build_hf_headers(
             token=hf_token,
             library_name="gradio_client",
@@ -1151,6 +1154,7 @@ class Endpoint:
 
     def serialize(self, *data) -> tuple:
         files, new_data = self._gather_files(*data)
+        print("files", files)
         uploaded_files = self._upload(files)
         data = list(new_data)
         data = self._add_uploaded_files_to_data(data, uploaded_files)
@@ -1189,7 +1193,7 @@ class Endpoint:
         return tuple(data_)
 
     def process_predictions(self, *predictions):
-        if self.client.serialize:
+        if self.client.deserialize:
             predictions = self.deserialize(*predictions)
         predictions = self.remove_skipped_components(*predictions)
         predictions = self.reduce_singleton_output(*predictions)
