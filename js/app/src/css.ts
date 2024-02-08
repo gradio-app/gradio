@@ -46,7 +46,7 @@ export function prefix_css(
 					.map(
 						(s) =>
 							`${
-								is_dark_rule && ".dark"
+								is_dark_rule ? ".dark" : ""
 							} gradio-app .gradio-container.gradio-container-${version} .contain ${s.trim()} `
 					)
 					.join(",");
