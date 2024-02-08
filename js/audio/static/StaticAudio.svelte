@@ -28,7 +28,7 @@
 		stop: undefined;
 	}>();
 
-	$: value && console.log("value", value) && dispatch("change", value);
+	$: value && dispatch("change", value);
 </script>
 
 <BlockLabel
