@@ -45,11 +45,11 @@
 				}
 			} else {
 				selected_folders = selected_folders.filter(
-					(folder) => !path_inside(path, folder),
+					(folder) => !path_inside(path, folder)
 				); // deselect all parent folders
 				if (type === "folder") {
 					selected_folders = selected_folders.filter(
-						(folder) => !path_inside(folder, path),
+						(folder) => !path_inside(folder, path)
 					); // deselect all children folders
 					value = value.filter((file) => !path_inside(file, path)); // deselect all children files
 				} else {
