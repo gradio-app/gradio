@@ -1,6 +1,6 @@
 ---
-"@gradio/fileexplorer": minor
-"gradio": minor
+"@gradio/fileexplorer": patch
+"gradio": patch
 ---
 
-feat:Improve File Explorer performance
+fix:Improve File Explorer performance
