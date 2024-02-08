@@ -977,14 +977,10 @@ class Endpoint:
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
             data = self.insert_state(*data)
-            print("data", data)
             if self.client.serialize:
                 data = self.serialize(*data)
-            print("data2", data)
             predictions = _predict(*data)
-            print("predictions1", predictions)
             predictions = self.process_predictions(*predictions)
-            print("predictions2", predictions)
             # Append final output only if not already present
             # for consistency between generators and not generators
             if helper:
