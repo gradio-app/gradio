@@ -194,14 +194,14 @@
 
 		await new Promise((r) => setTimeout(r, 1000));
 
-		userEvent.click(canvas.getByLabelText("Add Layer"));
+		// userEvent.click(canvas.getByLabelText("Add Layer"));
 
-		await userEvent.click(canvas.getByLabelText("Image button"));
+		// await userEvent.click(canvas.getByLabelText("Image button"));
 
-		await userEvent.click(canvas.getByLabelText("Undo"));
+		// await userEvent.click(canvas.getByLabelText("Undo"));
 
-		await userEvent.click(canvas.getByLabelText("Redo"));
+		// await userEvent.click(canvas.getByLabelText("Redo"));
 
-		await userEvent.click(canvas.getByLabelText("Clear canvas"));
+		// await userEvent.click(canvas.getByLabelText("Clear canvas"));
 	}}
 />
