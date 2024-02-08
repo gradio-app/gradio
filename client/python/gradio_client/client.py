@@ -955,7 +955,11 @@ class Endpoint:
 
     @staticmethod
     def value_is_file(component: dict) -> bool:
-        # Hacky for now
+        # This is still hacky as it does not tell us which part of the payload is a file.
+        # If a component has a complex payload, part of which is a file, this will simply
+        # return True, which means that all parts of the payload will be uploaded as files
+        # if they are valid file paths. The better approach would be to traverse the
+        # component's api_info and figure out exactly which part of the payload is a file.
         if "api_info" not in component:
             return False
         return utils.value_is_file(component["api_info"])
@@ -975,7 +979,6 @@ class Endpoint:
             data = self.insert_state(*data)
             if self.client.serialize:
                 data = self.serialize(*data)
-            print("data", *data)
             predictions = _predict(*data)
             predictions = self.process_predictions(*predictions)
             # Append final output only if not already present
@@ -1006,7 +1009,6 @@ class Endpoint:
                     self._sse_fn_v0, data, hash_data, helper
                 )
             elif self.protocol in ("sse_v1", "sse_v2"):
-                print("send_data", data, hash_data)
                 event_id = utils.synchronize_async(
                     self.client.send_data, data, hash_data
                 )
@@ -1053,7 +1055,6 @@ class Endpoint:
     def _upload(
         self, file_paths: list[str | list[str]]
     ) -> list[str | list[str]] | list[dict[str, Any] | list[dict[str, Any]]]:
-        print("file_paths", file_paths)
         if not file_paths:
             return []
         # Put all the filepaths in one file
@@ -1062,7 +1063,6 @@ class Endpoint:
         # the original structure
         files = []
         indices = []
-        print("file_paths", file_paths)
         for i, fs in enumerate(file_paths):
             if not isinstance(fs, list):
                 fs = [fs]
@@ -1151,15 +1151,11 @@ class Endpoint:
         return new_data
 
     def serialize(self, *data) -> tuple:
-        print("data", data)
         files, new_data = self._gather_files(*data)
         uploaded_files = self._upload(files)
-        print("new_data", new_data)
-        print("uploaded_files", uploaded_files)
         data = list(new_data)
         data = self._add_uploaded_files_to_data(data, uploaded_files)
         o = tuple(data)
-        print("o", o)
         return o
 
     @staticmethod
