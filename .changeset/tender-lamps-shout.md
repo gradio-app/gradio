@@ -1,6 +1,6 @@
 ---
-"gradio": minor
-"gradio_client": minor
+"gradio": patch
+"gradio_client": patch
 ---
 
-feat:Fix `gr.load` for file-based Spaces
+fix:Fix `gr.load` for file-based Spaces
