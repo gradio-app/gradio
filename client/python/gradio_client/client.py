@@ -83,7 +83,7 @@ class Client:
             src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
             hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
-            serialize: Whether the client should serialize the inputs and deserialize the outputs of the remote API. If set to False, the client will pass the inputs and outputs as-is, without serializing/deserializing them. E.g. you if you set this to False, you'd submit an image in base64 format instead of a filepath, and you'd get back an image in base64 format from the remote API instead of a filepath.
+            serialize: Whether the client should download output files from the remote API and return them as string filepaths on the local machine. If False, the client will a FileData dataclass object with the filepath on the remote machine instead.
             output_dir: The directory to save files that are downloaded from the remote API. If None, reads from the GRADIO_TEMP_DIR environment variable. Defaults to a temporary directory on your machine.
             verbose: Whether the client should print statements to the console.
             headers: Additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. These headers will override the default headers if they have the same keys.
@@ -977,8 +977,7 @@ class Endpoint:
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
             data = self.insert_state(*data)
-            if self.client.serialize:
-                data = self.serialize(*data)
+            data = self.serialize(*data)
             predictions = _predict(*data)
             predictions = self.process_predictions(*predictions)
             # Append final output only if not already present
@@ -1191,7 +1190,7 @@ class Endpoint:
 
     def process_predictions(self, *predictions):
         if self.client.serialize:
-            self.deserialize(*predictions)
+            predictions = self.deserialize(*predictions)
         predictions = self.remove_skipped_components(*predictions)
         predictions = self.reduce_singleton_output(*predictions)
         return predictions

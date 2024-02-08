@@ -418,7 +418,7 @@ def from_spaces(
 
 
 def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
-    client = Client(space, hf_token=hf_token)
+    client = Client(space, hf_token=hf_token, serialize=False)
     if client.app_version < version.Version("4.0.0b14"):
         raise GradioVersionIncompatibleError(
             f"Gradio version 4.x cannot load spaces with versions less than 4.x ({client.app_version})."
