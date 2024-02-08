@@ -28,6 +28,8 @@
 
 	$: if (mounted) requestAnimationFrame(() => refresh_height_map(sortedItems));
 
+	$: element_visible && refresh_height_map(sortedItems);
+
 	let content_height = 0;
 	async function refresh_height_map(_items: typeof items): Promise<void> {
 		if (viewport_height === 0 || table_width === 0) {
@@ -233,10 +235,59 @@
 		return { index: i + start, data };
 	});
 
+	let element_visible = false;
+
+	function is_effectively_visible(element: HTMLElement): boolean {
+		if (element) {
+			const style = window.getComputedStyle(element);
+			if (
+				style.display === "none" ||
+				style.visibility === "hidden" ||
+				style.opacity === "0"
+			) {
+				return false;
+			}
+			if (element.parentElement) {
+				return is_effectively_visible(element.parentElement);
+			}
+			return true;
+		}
+		return false;
+	}
+
+	function mutation_callback(
+		mutations_list: MutationRecord[],
+		observer: MutationObserver
+	): void {
+		for (const mutation of mutations_list) {
+			if (
+				mutation.type === "attributes" &&
+				mutation.attributeName === "style"
+			) {
+				const target_visible = is_effectively_visible(viewport);
+
+				if (target_visible) {
+					element_visible = true;
+				} else {
+					element_visible = false;
+				}
+			}
+		}
+	}
+
 	onMount(() => {
 		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
 		mounted = true;
 		refresh_height_map(items);
+
+		const tabs = document.querySelectorAll(".tabitem");
+
+		const observer = new MutationObserver(mutation_callback);
+		const config = { attributes: true, childList: false, subtree: false };
+
+		tabs.forEach((tab) => {
+			observer.observe(tab, config);
+		});
 	});
 </script>
 
