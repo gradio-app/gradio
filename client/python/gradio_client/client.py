@@ -1081,7 +1081,6 @@ class Endpoint:
                     res = [
                         {
                             "path": o,
-                            "url": self.client.config["root"] + "/file=" + o,
                             "orig_name": Path(f).name,
                         }
                         for f, o in zip(fs, output)
@@ -1090,7 +1089,6 @@ class Endpoint:
                     o = next(o for ix, o in enumerate(result) if indices[ix] == i)
                     res = {
                         "path": o,
-                        "url": self.client.config["root"] + "/file=" + o,
                         "orig_name": Path(fs).name,
                     }
                 uploaded.append(res)
@@ -1123,6 +1121,9 @@ class Endpoint:
                 file_list.append(d)
             return ReplaceMe(len(file_list) - 1)
 
+        def handle_url(s):
+            return {"path": s, "orig_name": s.split("/")[-1]}
+
         new_data = []
         for i, d in enumerate(data):
             if self.input_component_types[i].value_is_file:
@@ -1132,6 +1133,8 @@ class Endpoint:
                 d = utils.traverse(
                     d, get_file, lambda s: utils.is_file_obj(s) or utils.is_filepath(s)
                 )
+                # Handle URLs here since we don't upload them
+                d = utils.traverse(d, handle_url, lambda s: utils.is_url(s))
             new_data.append(d)
         return file_list, new_data
 
