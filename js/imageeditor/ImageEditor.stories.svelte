@@ -50,7 +50,7 @@
 />
 
 <Story
-	name="Image Editor Interactions"
+	name="Image Editor Drawing Interactions"
 	args={{
 		value: {
 			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
@@ -194,14 +194,61 @@
 
 		await new Promise((r) => setTimeout(r, 1000));
 
-		// userEvent.click(canvas.getByLabelText("Add Layer"));
+		userEvent.click(canvas.getByLabelText("Add Layer"));
 
-		// await userEvent.click(canvas.getByLabelText("Image button"));
+		await userEvent.click(canvas.getByLabelText("Clear canvas"));
+	}}
+/>
 
-		// await userEvent.click(canvas.getByLabelText("Undo"));
+<Story
+	name="Image Editor Undo/Redo Interactions"
+	args={{
+		value: {
+			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+			orig_name: "cheetah.jpg"
+		},
+		type: "pil",
+		sources: ["upload", "webcam"],
+		interactive: "true",
+		brush: {
+			default_size: "auto",
+			colors: ["#ff0000", "#00ff00", "#0000ff"],
+			default_color: "#ff0000",
+			color_mode: "defaults"
+		},
+		eraser: {
+			default_size: "auto"
+		}
+	}}
+	play={async ({ canvasElement }) => {
+		const canvas = within(canvasElement);
 
-		// await userEvent.click(canvas.getByLabelText("Redo"));
+		const drawButton = canvas.getAllByLabelText("Draw button")[0];
 
-		// await userEvent.click(canvas.getByLabelText("Clear canvas"));
+		userEvent.click(drawButton);
+
+		const drawCanvas = document.getElementsByTagName("canvas")[0];
+		if (!drawCanvas) {
+			throw new Error("Could not find canvas");
+		}
+
+		await new Promise((r) => setTimeout(r, 1000));
+
+		await userEvent.pointer({
+			keys: "[MouseLeft][MouseRight]",
+			target: drawCanvas,
+			coords: { clientX: 300, clientY: 100 }
+		});
+
+		await userEvent.pointer({
+			keys: "[MouseLeft][MouseRight]",
+			target: drawCanvas,
+			coords: { clientX: 400, clientY: 200 }
+		});
+
+		await userEvent.click(canvas.getByLabelText("Undo"));
+
+		await userEvent.click(canvas.getByLabelText("Redo"));
 	}}
 />
