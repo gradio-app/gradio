@@ -1,5 +1,11 @@
 # @gradio/storybook
 
+## 0.3.0
+
+### Features
+
+- [#7222](https://github.com/gradio-app/gradio/pull/7222) [`5181957`](https://github.com/gradio-app/gradio/commit/51819577068addde8fab1f4d4cfe691f20396f3f) - Add mobile Chromatic tests.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.2.0
 
 ### Features
