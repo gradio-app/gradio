@@ -81,10 +81,10 @@ class FileExplorer(Component):
         self.root_dir = os.path.abspath(root_dir)
         self.glob = glob
         self.ignore_glob = ignore_glob
-        valid_file_count = ["single", "multiple", "directory"]
+        valid_file_count = ["single", "multiple"]
         if file_count not in valid_file_count:
             raise ValueError(
-                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_file_count}"
+                f"Invalid value for parameter `file_count`: {file_count}. Please choose from one of: {valid_file_count}"
             )
         self.file_count = file_count
         self.height = height
