@@ -1190,7 +1190,8 @@ class Endpoint:
         return tuple(data_)
 
     def process_predictions(self, *predictions):
-        predictions = self.deserialize(*predictions)
+        if self.client.serialize:
+            self.deserialize(*predictions)
         predictions = self.remove_skipped_components(*predictions)
         predictions = self.reduce_singleton_output(*predictions)
         return predictions
