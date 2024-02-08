@@ -430,7 +430,7 @@ def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
         assert isinstance(endpoint, Endpoint)
         helper = client.new_helper(fn_index)
         if endpoint.backend_fn:
-            predict_fns.append(endpoint.make_end_to_end_fn(helper))
+            predict_fns.append(endpoint.make_end_to_end_fn(helper, return_as_file_data=True))
         else:
             predict_fns.append(None)
     return gradio.Blocks.from_config(client.config, predict_fns, client.src)
