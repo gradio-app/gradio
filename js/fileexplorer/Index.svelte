@@ -59,12 +59,13 @@
 		label={label || "FileExplorer"}
 		float={false}
 	/>
-	<DirectoryExplorer
-		bind:value
-		{file_count}
-		{interactive}
-		{root_dir}
-		ls_fn={server.ls}
-		on:change={() => gradio.dispatch("change")}
-	/>
+	{#key root_dir}
+		<DirectoryExplorer
+			bind:value
+			{file_count}
+			{interactive}
+			ls_fn={server.ls}
+			on:change={() => gradio.dispatch("change")}
+		/>
+	{/key}
 </Block>

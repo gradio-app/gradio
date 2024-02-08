@@ -7,7 +7,9 @@
 	import FileIcon from "../icons/light-file.svg";
 
 	export let path: string[] = [];
-	export let selected: string[][] = [];
+	export let selected_files: string[][] = [];
+	export let selected_folders: string[][] = [];
+	export let is_selected_entirely: boolean = false;
 	export let interactive: boolean;
 	export let ls_fn: (path: string[]) => Promise<FileNode[]>;
 	export let file_count: "single" | "multiple" = "multiple";
@@ -23,17 +25,36 @@
 		}
 	};
 
+	const open_folder = (i: number) => {
+		if (!opened_folders.includes(i)) {
+			opened_folders = [...opened_folders, i];
+		}
+	};
+
 	(async () => {
 		content = await ls_fn(path);
 		opened_folders = content
 			.map((x, i) =>
-				x.type === "folder" && selected.some((y) => y[0] === x.name) ? i : null
+				x.type === "folder" &&
+				(is_selected_entirely || selected_files.some((y) => y[0] === x.name))
+					? i
+					: null
 			)
 			.filter((x): x is number => x !== null);
 	})();
 
+	$: if (is_selected_entirely) {
+		content.forEach((x) => {
+			dispatch("check", {
+				path: [...path, x.name],
+				checked: true,
+				type: x.type
+			});
+		});
+	}
+
 	const dispatch = createEventDispatcher<{
-		check: { path: string[]; checked: boolean };
+		check: { path: string[]; checked: boolean; type: "file" | "folder" };
 	}>();
 </script>
 
@@ -44,12 +65,19 @@
 				<Checkbox
 					disabled={!interactive ||
 						(type === "folder" && file_count === "single")}
-					value={selected.some((x) => x[0] === name)}
+					value={(type === "file" ? selected_files : selected_folders).some(
+						(x) => x[0] === name && x.length === 1
+					)}
 					on:change={(e) => {
+						let checked = e.detail;
 						dispatch("check", {
 							path: [...path, name],
-							checked: e.detail
+							checked,
+							type
 						});
+						if (type === "folder" && checked) {
+							open_folder(i);
+						}
 					}}
 				/>
 
@@ -77,9 +105,15 @@
 			{#if type === "folder" && opened_folders.includes(i)}
 				<svelte:self
 					path={[...path, name]}
-					selected={selected
+					selected_files={selected_files
 						.filter((x) => x[0] === name)
 						.map((x) => x.slice(1))}
+					selected_folders={selected_folders
+						.filter((x) => x[0] === name)
+						.map((x) => x.slice(1))}
+					is_selected_entirely={selected_folders.some(
+						(x) => x[0] === name && x.length === 1
+					)}
 					{interactive}
 					{ls_fn}
 					{file_count}
