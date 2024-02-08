@@ -51,9 +51,6 @@
 
 <Story
 	name="Image Editor Interactions"
-	parameters={{
-		diffThreshold: 0.1
-	}}
 	args={{
 		value: {
 			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
@@ -204,5 +201,7 @@
 		await userEvent.click(canvas.getByLabelText("Undo"));
 
 		await userEvent.click(canvas.getByLabelText("Redo"));
+
+		await userEvent.click(canvas.getByLabelText("Erase button"));
 	}}
 />
