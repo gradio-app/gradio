@@ -1155,7 +1155,6 @@ class Endpoint:
 
     def serialize(self, *data) -> tuple:
         files, new_data = self._gather_files(*data)
-        print("files", files)
         uploaded_files = self._upload(files)
         data = list(new_data)
         data = self._add_uploaded_files_to_data(data, uploaded_files)
