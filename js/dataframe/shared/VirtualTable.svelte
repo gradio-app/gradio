@@ -24,6 +24,13 @@
 	let viewport: HTMLTableElement;
 	let viewport_height = 0;
 	let visible: { index: number; data: any[] }[] = [];
+	let viewport_box: DOMRectReadOnly;
+	$: console.log(viewport_box);
+	$: {
+		if (viewport_box) {
+			viewport_height = viewport_box.height;
+		}
+	}
 
 	$: console.log("props: ", $$props);
 	$: console.log("local: ", {
@@ -269,6 +276,7 @@
 	<table
 		class="table"
 		bind:this={viewport}
+		bind:contentRect={viewport_box}
 		bind:offsetHeight={viewport_height}
 		on:scroll={handle_scroll}
 		style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px"
