@@ -39,11 +39,6 @@ jobs:
           type: "gradio"
           name: "test / python / linux"
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: echo github context
-        if: always()
-        run: echo "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
-
-  
   test-python:
     needs: [changes]
     if: needs.changes.outputs.should_run == 'true'
