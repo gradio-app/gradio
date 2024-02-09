@@ -35,6 +35,7 @@ else:
                 for key, value in dct["model_config"].items():
                     setattr(config_class, key, value)
                 dct["Config"] = config_class
+                del dct["model_config"]
 
             model_class = super().__new__(cls, name, bases, dct)
             return model_class
