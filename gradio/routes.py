@@ -311,7 +311,7 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
-            root_path = route_utils.strip_url(str(request.url))
+            root_path = route_utils.get_root_url(request)
             if app.auth is None or user is not None:
                 config = copy.deepcopy(app.get_blocks().config)
                 config["root"] = root_path
@@ -321,7 +321,7 @@ class App(FastAPI):
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
                     "space_id": app.get_blocks().space_id,
-                    "root": route_utils.strip_url(root_path),
+                    "root": root_path,
                 }
 
             try:
@@ -352,9 +352,9 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
-            root_path = route_utils.strip_url(str(request.url))[:-7]
             config = copy.deepcopy(app.get_blocks().config)
-            config["root"] = route_utils.strip_url(root_path)
+            root_path = route_utils.get_root_url(request)
+            config["root"] = root_path
             config = add_root_url(config, root_path)
             return config
 
@@ -571,7 +571,7 @@ class App(FastAPI):
                     status_code=500,
                 )
             root_path = app.get_blocks().config.get("root", "")
-            output = add_root_url(output, route_utils.strip_url(root_path))
+            output = add_root_url(output, root_path)
             return output
 
         @app.get("/queue/data", dependencies=[Depends(login_check)])
@@ -626,7 +626,7 @@ class App(FastAPI):
                                 "success": False,
                             }
                         if message:
-                            add_root_url(message, route_utils.strip_url(root_path))
+                            add_root_url(message, root_path)
                             yield f"data: {json.dumps(message)}\n\n"
                             if message["msg"] == ServerMessage.process_completed:
                                 blocks._queue.pending_event_ids_session[
