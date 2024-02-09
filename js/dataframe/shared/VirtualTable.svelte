@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { log } from "node:console";
 	import { onMount, tick } from "svelte";
 	import { _ } from "svelte-i18n";
 
@@ -26,12 +27,15 @@
 	let viewport_height = 0;
 	let visible: { index: number; data: any[] }[] = [];
 
+	$: console.log($$props);
+
 	$: if (mounted) requestAnimationFrame(() => refresh_height_map(sortedItems));
 
 	$: element_visible && refresh_height_map(sortedItems);
 
 	let content_height = 0;
 	async function refresh_height_map(_items: typeof items): Promise<void> {
+		console.log("refresh_height_map");
 		if (viewport_height === 0 || table_width === 0) {
 			return;
 		}
@@ -85,7 +89,9 @@
 	}
 
 	$: scroll_and_render(selected);
+
 	async function scroll_and_render(n: number | false): Promise<void> {
+		console.log("scroll_and_render");
 		requestAnimationFrame(async () => {
 			if (typeof n !== "number") return;
 			const direction = typeof n !== "number" ? false : is_in_view(n);
@@ -103,6 +109,7 @@
 	}
 
 	function is_in_view(n: number): "back" | "forwards" | true {
+		console.log("is_in_view");
 		const current = rows && rows[n - start];
 		if (!current && n < start) {
 			return "back";
@@ -136,6 +143,7 @@
 	}
 
 	async function handle_scroll(e: Event): Promise<void> {
+		console.log("handle_scroll");
 		const scroll_top = viewport.scrollTop;
 
 		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
@@ -206,6 +214,7 @@
 		opts: ScrollToOptions,
 		align_end = false
 	): Promise<void> {
+		console.log("scroll_to_index");
 		await tick();
 
 		const _itemHeight = average_height;
@@ -274,6 +283,14 @@
 						element_visible = false;
 					}
 				});
+
+				setTimeout(() => {
+					if (target_visible) {
+						element_visible = true;
+					} else {
+						element_visible = false;
+					}
+				}, 1000);
 			}
 		}
 	}
