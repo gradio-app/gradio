@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { log } from "node:console";
 	import { onMount, tick } from "svelte";
 	import { _ } from "svelte-i18n";
 

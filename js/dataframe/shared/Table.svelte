@@ -43,7 +43,11 @@
 	let selected: false | [number, number] = false;
 	let display_value: string[][] | null = value?.metadata?.display_value ?? null;
 	let styling: string[][] | null = value?.metadata?.styling ?? null;
+	let t_rect: DOMRectReadOnly;
 
+	$: t_width = t_rect?.width || 0;
+
+	$: console.log(t_rect, t_width);
 	$: {
 		if (value) {
 			headers = value.headers;
@@ -523,8 +527,6 @@
 
 	let dragging = false;
 
-	let t_width = 0;
-
 	function get_max(
 		_d: { value: any; id: string }[][]
 	): { value: any; id: string }[] {
@@ -680,14 +682,14 @@
 
 		observer.observe(parent);
 
-		const tabs = document.querySelectorAll(".tabitem");
+		// const tabs = document.querySelectorAll(".tabitem");
 
-		const observer_two = new MutationObserver(mutation_callback);
-		const config_two = { attributes: true, childList: false, subtree: false };
+		// const observer_two = new MutationObserver(mutation_callback);
+		// const config_two = { attributes: true, childList: false, subtree: false };
 
-		tabs.forEach((tab) => {
-			observer_two.observe(tab, config_two);
-		});
+		// tabs.forEach((tab) => {
+		// 	observer_two.observe(tab, config_two);
+		// });
 
 		return () => {
 			observer.disconnect();
@@ -718,7 +720,7 @@
 		tabindex="0"
 	>
 		<table
-			bind:clientWidth={t_width}
+			bind:contentRect={t_rect}
 			bind:this={table}
 			class:fixed-layout={column_widths.length != 0}
 		>
