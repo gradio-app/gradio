@@ -5,20 +5,20 @@
 
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
 
-	export let src: HTMLVideoAttributes["src"] = undefined;
+	export let src: HTMLVideoAttributes["src"] | MediaStream = undefined;
 
 	export let muted: HTMLVideoAttributes["muted"] = undefined;
 	export let playsinline: HTMLVideoAttributes["playsinline"] = undefined;
 	export let preload: HTMLVideoAttributes["preload"] = undefined;
 	export let autoplay: HTMLVideoAttributes["autoplay"] = undefined;
 	export let controls: HTMLVideoAttributes["controls"] = undefined;
+	export let visible: boolean = true;
 
 	export let currentTime: number | undefined = undefined;
 	export let duration: number | undefined = undefined;
 	export let paused: boolean | undefined = undefined;
 
 	export let node: HTMLVideoElement | undefined = undefined;
-	export let streaming: boolean;
 
 	// $: if(node && node.srcObject) console.log("node.srcObject in Video.svelte", node.srcObject);
 
@@ -40,11 +40,17 @@
 
 		latest_src = src;
 		const resolving_src = src;
-		resolve_wasm_src(resolving_src).then((s) => {
-			if (latest_src === resolving_src) {
-				resolved_src = s;
-			}
-		});
+		if (resolving_src instanceof MediaStream) {
+			resolved_src = resolving_src;
+			node!.srcObject = resolving_src;
+			node!.play();
+		} else {
+			resolve_wasm_src(resolving_src).then((s) => {
+				if (latest_src === resolving_src) {
+					resolved_src = s;
+				}
+			});
+		}
 	}
 
 	const dispatch = createEventDispatcher();

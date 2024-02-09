@@ -9,6 +9,7 @@ export type { SpaceStatus } from "./types.js";
 export {
 	normalise_file,
 	FileData,
+	FileDataFromStream,
 	upload,
 	get_fetchable_url_or_file,
 	prepare_files

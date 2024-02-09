@@ -133,9 +133,9 @@ export async function prepare_files(
 	);
 }
 
-export class FileData {
+export class FileDataFromStream {
 	path: string;
-	url?: string;
+	url?: string | MediaStream;
 	orig_name?: string;
 	size?: number;
 	blob?: File;
@@ -171,4 +171,8 @@ export class FileData {
 		this.mime_type = mime_type;
 		this.alt_text = alt_text;
 	}
+}
+
+export class FileData extends FileDataFromStream {
+	url?: string;
 }

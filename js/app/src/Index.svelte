@@ -253,7 +253,7 @@
 
 		app = await client(api_url, {
 			status_callback: handle_status,
-			normalise_files: false
+			normalise_files: true
 		});
 		config = app.config;
 		window.__gradio_space__ = config.space_id;

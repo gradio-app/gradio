@@ -52,8 +52,7 @@ type client_return = {
 		data?: unknown[],
 		event_data?: unknown,
 		trigger_id?: number | null,
-		webrtc_callback?: any | null,
-		node?: any | null
+		webrtc_callback?: any | null
 	) => SubmitReturn;
 	component_server: (
 		component_id: number,
@@ -435,8 +434,7 @@ export function api_factory(
 				data: unknown[],
 				event_data?: unknown,
 				trigger_id: number | null = null,
-				webrtc_callback?: () => MediaStream | null = null,
-				node?: any
+				webrtc_callback?: () => MediaStream | null = null
 			): SubmitReturn {
 				let fn_index: number;
 				let api_info;
@@ -456,11 +454,15 @@ export function api_factory(
 						"There is no endpoint matching that name of fn_index matching that number."
 					);
 				}
-				const webrtc_id = `${session_hash}-${fn_index}`;
-				const newNode = { srcObject: null };
+				const output_streaming_value = { srcObject: null };
 				if (webrtc_callback && !peer_connection_established) {
-					console.log("HERE before start");
-					start(webrtc_id, webrtc_callback, newNode, config.root);
+					const webrtc_id = `${session_hash}-${fn_index}`;
+					start(
+						webrtc_id,
+						webrtc_callback,
+						output_streaming_value,
+						config.root
+					);
 					peer_connection_established = true;
 				}
 
@@ -892,7 +894,15 @@ export function api_factory(
 												fire_event({
 													type: "data",
 													time: new Date(),
-													data: [newNode.srcObject],
+													data: transform_files
+														? transform_output(
+																data.data,
+																api_info,
+																config.root,
+																config.root_url,
+																output_streaming_value.srcObject
+														  )
+														: data.data,
 													endpoint: _endpoint,
 													fn_index
 												});
@@ -1255,19 +1265,17 @@ function transform_output(
 	data: any[],
 	api_info: any,
 	root_url: string,
-	remote_url?: string
+	remote_url?: string,
+	medias_stream?: MediaStream
 ): unknown[] {
 	return data.map((d, i) => {
-		if (api_info?.returns?.[i]?.component === "File") {
-			return normalise_file(d, root_url, remote_url);
-		} else if (api_info?.returns?.[i]?.component === "Gallery") {
-			return d.map((img) => {
-				return Array.isArray(img)
-					? [normalise_file(img[0], root_url, remote_url), img[1]]
-					: [normalise_file(img, root_url, remote_url), null];
-			});
-		} else if (typeof d === "object" && d.path) {
-			return normalise_file(d, root_url, remote_url);
+		if (
+			medias_stream &&
+			JSON.stringify(d) ===
+				JSON.stringify({ __gradio__internal__streaming__output__: true })
+		) {
+			console.log("Setting this here");
+			return medias_stream;
 		}
 		return d;
 	});
