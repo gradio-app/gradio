@@ -3,9 +3,14 @@
 <script lang="ts">
 	import type { Gradio, ShareData } from "@gradio/utils";
 
-	import { normalise_file, type FileData } from "@gradio/client";
+	import {
+		normalise_file,
+		type FileData,
+		FileDataFromStream
+	} from "@gradio/client";
 	import { Block, UploadText } from "@gradio/atoms";
 	import StaticVideo from "./shared/VideoPreview.svelte";
+	import VideoStream from "./shared/VideoStream.svelte";
 	import Video from "./shared/InteractiveVideo.svelte";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
@@ -14,10 +19,13 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value:
-		| { video: FileData; subtitles: FileData | null }
-		| HTMLVideoElement
+		| { video: FileDataFromStream; subtitles: FileData | null }
+		| MediaStream
 		| null = null;
-	let old_value: { video: FileData; subtitles: FileData | null } | null = null;
+	let old_value:
+		| { video: FileDataFromStream; subtitles: FileData | null }
+		| null
+		| MediaStream = null;
 
 	export let label: string;
 	export let sources:
@@ -32,7 +40,6 @@
 	export let height: number | undefined;
 	export let width: number | undefined;
 	export let streaming: boolean;
-	export let node: HTMLVideoElement;
 
 	export let container = false;
 	export let scale: number | null = null;
@@ -58,16 +65,17 @@
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
 
-	let _video: FileData | null = null;
+	let _video: FileDataFromStream | null = null;
 	let _subtitle: FileData | null = null;
 
 	let active_source: "webcam" | "upload";
 
-	let initial_value: { video: FileData; subtitles: FileData | null } | null =
-		value;
+	let initial_value:
+		| { video: FileDataFromStream; subtitles: FileData | null }
+		| MediaStream
+		| null = value;
 
 	let node_set = false;
-	// $: if(node && node.srcObject && !node_set) console.log("node.srcObject", node.srcObject);
 
 	$: if (value && initial_value === null) {
 		initial_value = value;
@@ -86,17 +94,14 @@
 	}
 
 	$: {
-		if (value != null && value instanceof MediaStream && !node_set) {
-			console.log("HERE stting the node");
-			console.log("value", value);
+		if (streaming && !node_set && value != null) {
+			_video = { url: value as MediaStream, path: "streaming" };
+			_subtitle = null;
 			node_set = true;
-			node.srcObject = value;
-			node.play();
-			console.log("node.srcObject", node.srcObject);
-		} else if (value != null) {
-			_video = normalise_file(value.video, root, proxy_url);
+		} else if (!streaming && value != null && !(value instanceof MediaStream)) {
+			_video = normalise_file(value.video as FileData, root, proxy_url);
 			_subtitle = normalise_file(value.subtitles, root, proxy_url);
-		} else {
+		} else if (!streaming) {
 			_video = null;
 			_subtitle = null;
 		}
@@ -133,7 +138,29 @@
 	}
 </script>
 
-{#if !interactive}
+{#if streaming}
+	<Block
+		{visible}
+		variant={"solid"}
+		border_mode={"base"}
+		padding={false}
+		{elem_id}
+		{elem_classes}
+		{height}
+		{width}
+		{container}
+		{scale}
+		{min_width}
+		allow_overflow={false}
+	>
+		<StatusTracker
+			autoscroll={gradio.autoscroll}
+			i18n={gradio.i18n}
+			{...loading_status}
+		/>
+		<VideoStream value={_video} {label} {show_label} />
+	</Block>
+{:else if !interactive}
 	<Block
 		{visible}
 		variant={value === null && active_source === "upload" ? "dashed" : "solid"}
@@ -153,15 +180,7 @@
 			i18n={gradio.i18n}
 			{...loading_status}
 		/>
-		<video
-			bind:this={node}
-			playsinline={true}
-			data-testid={$$props["data-testid"]}
-			crossorigin="anonymous"
-		>
-		</video>
-		<!-- <StaticVideo
-			bind:node
+		<StaticVideo
 			value={_video}
 			subtitle={_subtitle}
 			{label}
@@ -177,7 +196,7 @@
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => gradio.dispatch("error", detail)}
 			i18n={gradio.i18n}
-		/> -->
+		/>
 	</Block>
 {:else}
 	<Block

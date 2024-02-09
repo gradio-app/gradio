@@ -30,7 +30,7 @@ export function createPeerConnection(node) {
 		false
 	);
 
-	// connect audio / video
+	// connect audio / video from server to local
 	pc.addEventListener("track", (evt) => {
 		console.log("track event listener");
 		if (evt.track.kind == "video") {
@@ -47,9 +47,8 @@ export async function start(webrtc_id, stream_callback, node, root) {
 	const pc = createPeerConnection(node);
 
 	const stream = stream_callback();
-	// console.log("STREAM", stream);
 	stream.getTracks().forEach((track) => {
-        track.applyConstraints({ frameRate: { max: 30 } });
+		track.applyConstraints({ frameRate: { max: 30 } });
 
 		console.log("Track stream callback", track);
 		pc.addTrack(track, stream);

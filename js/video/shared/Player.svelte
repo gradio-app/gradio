@@ -16,7 +16,7 @@
 	export let interactive = false;
 	export let handle_change: (video: FileData) => void = () => {};
 	export let handle_reset_value: () => void = () => {};
-	export let video: HTMLVideoElement;
+	let video: HTMLVideoElement;
 
 	const dispatch = createEventDispatcher<{
 		play: undefined;

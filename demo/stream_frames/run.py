@@ -1,6 +1,7 @@
 import gradio as gr
 import numpy as np
 import cv2
+import random
 
 def transform_cv2(frame, transform):
     print("transform", transform)
@@ -22,17 +23,15 @@ def transform_cv2(frame, transform):
             2,
         )
         img_edges = cv2.cvtColor(img_edges, cv2.COLOR_GRAY2RGB)
-
         # combine color and edges
         img = cv2.bitwise_and(img_color, img_edges)
-        return img
+        return img, random.random()
     elif transform == "edges":
         # perform edge detection
         img = cv2.cvtColor(cv2.Canny(frame, 100, 200), cv2.COLOR_GRAY2BGR)
-
-        return img
+        return img, random.random()
     else:
-        return np.flipud(frame)
+        return np.flipud(frame), random.random()
 
 
 
@@ -43,7 +42,8 @@ with gr.Blocks() as demo:
             input_img = gr.Image(sources=["webcam"], streaming=True)
         with gr.Column():
             output_img = gr.Video(streaming=True)
-        input_img.stream(transform_cv2, [input_img, transform], output_img)
+            num = gr.Number()
+        input_img.stream(transform_cv2, [input_img, transform], [output_img, num])
 demo.launch(share=False)
 
 if __name__ == "__main__":

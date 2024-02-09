@@ -21,6 +21,7 @@ from gradio.data_classes import PredictBody, PredictOutput
 from gradio.exceptions import Error
 from gradio.helpers import EventData
 from gradio.state_holder import SessionState
+from gradio import components
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -551,7 +552,7 @@ class GradioMultiPartParser:
 class WebRTCSession:
     body: PredictBody
     request: fastapi.Request
-    output: dict | None
+    output: PredictOutput | None
 
 
 @python_dataclass
@@ -568,11 +569,11 @@ class WebRTCContext:
     def get_session(self, session_id: str) -> WebRTCSession:
         return self.sessions[session_id]
 
-from aiortc import MediaStreamTrack, VideoStreamTrack
-from aiortc.contrib.media import VideoFrame, AudioFrame
+from aiortc import AudioStreamTrack, VideoStreamTrack
+from aiortc.contrib.media import VideoFrame, AudioFrame, VideoStream
 class GradioTransformTrack(VideoStreamTrack):
     """
-    This works for streaming input
+    This works for streaming input and output
     """
 
     kind = "video"
@@ -582,7 +583,8 @@ class GradioTransformTrack(VideoStreamTrack):
         self.track = track
         self.context = context
         self.webrtc_id = webrtc_id
-        self.streaming_index = 0
+        self.streaming_index = None
+        self.output_index = None
     
     @property
     def tracked_in_context(self):
@@ -597,18 +599,29 @@ class GradioTransformTrack(VideoStreamTrack):
             #TODO: right now we're assuming only one component is streaming
             if getattr(blocks.blocks[component_id], "streaming", False):
                 self.streaming_index = i
+        outputs = blocks.dependencies[session.body.fn_index]["outputs"]
+        for i, component_id in enumerate(outputs):
+            #TODO: right now we're assuming only one output streaming component
+            #TODO: this would not work for custom components?
+            if isinstance(blocks.blocks[component_id], components.Video):
+                self.output_index = i
     
     def add_frame_to_payload(self, frame: np.ndarray) -> PredictBody:
         assert self.context
+        assert self.streaming_index is not None
         body = self.context.get_session(self.webrtc_id).body
         body.data[self.streaming_index] = frame
         return body
 
     def extract_frame_array_from_output(self, output: PredictOutput) -> tuple[np.ndarray, PredictOutput]:
+        assert self.streaming_index is not None
+        assert self.output_index is not None
         assert self.context
         assert self.context.get_session(self.webrtc_id).body.fn_index is not None
-        frame = output["data"][self.streaming_index]
-        output["data"][self.streaming_index] = None
+        frame = output["data"][self.output_index]
+        # This is hacky but not sure how else to communicate that the output corresponds
+        # to a mediaStream the client received
+        output["data"][self.output_index] = {"__gradio__internal__streaming__output__": True}
         return frame, output
 
     def array_to_frame(self, array: np.ndarray) -> VideoFrame | AudioFrame:
@@ -659,6 +672,7 @@ class GradioTransformTrack(VideoStreamTrack):
             session.output = output
             return new_frame
         except Exception as e:
+            breakpoint()
             print(e)
             import traceback
             traceback.print_stack()

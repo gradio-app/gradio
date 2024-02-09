@@ -7,7 +7,6 @@
 	import { DownloadLink } from "@gradio/wasm/svelte";
 
 	import Player from "./Player.svelte";
-	import StaticVideo from "./Video.svelte";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 
 	export let value: FileData | null = null;
@@ -18,10 +17,6 @@
 	export let show_share_button = true;
 	export let show_download_button = true;
 	export let i18n: I18nFormatter;
-	export let node: HTMLVideoElement;
-	export let streaming: boolean;
-
-	// $: if(node && node.srcObject) console.log("node.srcObject in VideoPreview", node.srcObject);
 
 	let old_value: FileData | null = null;
 	let old_subtitle: FileData | null = null;
@@ -54,9 +49,7 @@
 </script>
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
-{#if streaming}
-	<StaticVideo bind:node {streaming} />
-{:else if !streaming && (value === null || value.url === undefined)}
+{#if value === null || value.url === undefined}
 	<Empty unpadded_box={true} size="large"><Video /></Empty>
 {:else}
 	{#key value.url}
