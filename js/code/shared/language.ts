@@ -1,5 +1,6 @@
 import type { Extension } from "@codemirror/state";
 import { StreamLanguage } from "@codemirror/language";
+import { sql } from "@codemirror/legacy-modes/mode/sql";
 
 const possible_langs = [
 	"python",
@@ -12,8 +13,25 @@ const possible_langs = [
 	"yaml",
 	"dockerfile",
 	"shell",
-	"r"
+	"r",
+	"sql"
 ];
+
+const sql_dialects = [
+	"standardSQL",
+	"msSQL",
+	"mySQL",
+	"mariaDB",
+	"sqlite",
+	"cassandra",
+	"plSQL",
+	"hive",
+	"pgSQL",
+	"gql",
+	"gpSQL",
+	"sparkSQL",
+	"esper"
+] as const;
 
 const lang_map: Record<string, (() => Promise<Extension>) | undefined> = {
 	python: () => import("@codemirror/lang-python").then((m) => m.python()),
@@ -48,7 +66,20 @@ const lang_map: Record<string, (() => Promise<Extension>) | undefined> = {
 	r: () =>
 		import("@codemirror/legacy-modes/mode/r").then((m) =>
 			StreamLanguage.define(m.r)
-		)
+		),
+	sql: () =>
+		import("@codemirror/legacy-modes/mode/sql").then((m) =>
+			StreamLanguage.define(m.standardSQL)
+		),
+	...Object.fromEntries(
+		sql_dialects.map((dialect) => [
+			"sql-" + dialect,
+			() =>
+				import("@codemirror/legacy-modes/mode/sql").then((m) =>
+					StreamLanguage.define(m[dialect])
+				)
+		])
+	)
 } as const;
 
 const alias_map: Record<string, string> = {
