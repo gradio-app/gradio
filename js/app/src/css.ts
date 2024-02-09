@@ -36,14 +36,18 @@ export function prefix_css(
 	for (let i = 0; i < rules.length; i++) {
 		const rule = rules[i];
 
+		let is_dark_rule = rule.cssText.includes(".dark");
 		if (rule instanceof CSSStyleRule) {
 			const selector = rule.selectorText;
 			if (selector) {
 				const new_selector = selector
+					.replace(".dark", "")
 					.split(",")
 					.map(
 						(s) =>
-							`gradio-app .gradio-container.gradio-container-${version} .contain ${s.trim()}`
+							`${
+								is_dark_rule ? ".dark" : ""
+							} gradio-app .gradio-container.gradio-container-${version} .contain ${s.trim()} `
 					)
 					.join(",");
 
