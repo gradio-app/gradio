@@ -39,6 +39,7 @@ jobs:
   comment-spaces-start:
     needs: changes
     uses: "./.github/workflows/comment-queue.yml"
+    if: ${{ needs.changes.outputs.should_run == 'true' }}
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
