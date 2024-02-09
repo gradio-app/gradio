@@ -7,7 +7,7 @@ import secrets
 import shutil
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from fastapi import Request
 from gradio_client.utils import traverse
@@ -15,7 +15,7 @@ from typing_extensions import Literal
 
 from . import wasm_utils
 
-if not wasm_utils.IS_WASM:
+if not wasm_utils.IS_WASM or TYPE_CHECKING:
     from pydantic import BaseModel, RootModel, ValidationError  # type: ignore
 else:
     # XXX: Currently Pyodide V2 is not available on Pyodide,
