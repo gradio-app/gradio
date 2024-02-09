@@ -41,7 +41,7 @@ from fastapi.responses import (
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from gradio_client import utils as client_utils
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 from gradio_client.utils import ServerMessage
 from jinja2.exceptions import TemplateNotFound
 from multipart.multipart import parse_options_header
@@ -885,9 +885,6 @@ def get_types(cls_set: List[Type]):
                 types.append(line.split("value (")[1].split(")")[0])
         docset.append(doc_lines[1].split(":")[-1])
     return docset, types
-
-
-set_documentation_group("routes")
 
 
 @document()
