@@ -129,7 +129,6 @@ jobs:
     needs: [deploy-spaces, changes]
     if: >
       github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success' &&
       needs.deploy-spaces.result == 'success'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
