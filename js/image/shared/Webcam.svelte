@@ -168,7 +168,7 @@
 
 	if (streaming && mode === "image") {
 		window.setInterval(() => {
-			if (webcam_accessed) dispatch("stream", get_stream_callback);
+			if (recording) dispatch("stream", get_stream_callback);
 		}, 200);
 	}
 	async function select_source(): Promise<void> {
