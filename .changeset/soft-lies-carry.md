@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Stop caching root
+feat:Stop caching root url
