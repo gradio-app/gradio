@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import copy
 import sys
 
 if sys.version_info >= (3, 9):
@@ -312,10 +313,9 @@ class App(FastAPI):
             blocks = app.get_blocks()
             root_path = route_utils.strip_url(str(request.url))
             if app.auth is None or user is not None:
-                config = app.get_blocks().config
-                if "root" not in config:
-                    config["root"] = root_path
-                    config = add_root_url(config, root_path)
+                config = copy.deepcopy(app.get_blocks().config)
+                config["root"] = root_path
+                config = add_root_url(config, root_path)
             else:
                 config = {
                     "auth_required": True,
@@ -353,10 +353,9 @@ class App(FastAPI):
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
             root_path = route_utils.strip_url(str(request.url))[:-7]
-            config = app.get_blocks().config
-            if "root" not in config:
-                config["root"] = route_utils.strip_url(root_path)
-                config = add_root_url(config, root_path)
+            config = copy.deepcopy(app.get_blocks().config)
+            config["root"] = route_utils.strip_url(root_path)
+            config = add_root_url(config, root_path)
             return config
 
         @app.get("/static/{path:path}")
