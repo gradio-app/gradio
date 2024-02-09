@@ -57,6 +57,7 @@
 		"eslint": "^8.46.0",
 		"eslint-plugin-svelte": "^2.32.4",
 		"globals": "^13.20.0",
+		"happy-dom": "^13.3.8",
 		"jsdom": "^24.0.0",
 		"kleur": "^4.1.5",
 		"msw": "^2.0.0",
@@ -85,7 +86,7 @@
 		"typescript-svelte-plugin": "^0.3.34",
 		"vite": "^4.3.9",
 		"vite-plugin-turbosnap": "1.0.3",
-		"vitest": "^0.34.6"
+		"vitest": "^1.2.2"
 	},
 	"devDependencies": {
 		"@storybook/addon-a11y": "^7.5.1",
