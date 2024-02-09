@@ -755,7 +755,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 if is_then_event:
                     targets = [EventListenerMethod(None, "then")]
                     dependency["trigger_after"] = dependency.pop("trigger_after")
-                    dependency["trigger_only_on_success"] = dependency.pop("trigger_only_on_success")
+                    dependency["trigger_only_on_success"] = dependency.pop(
+                        "trigger_only_on_success"
+                    )
                     dependency["no_target"] = True
                 else:
                     targets = [
@@ -769,7 +771,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     ]
                     targets = [
                         EventListenerMethod(
-                            t.__self__ if t.has_trigger else None, t.event_name  # type: ignore
+                            t.__self__ if t.has_trigger else None,
+                            t.event_name,  # type: ignore
                         )
                         for t in targets
                     ]
