@@ -28,16 +28,16 @@ else:
     # Map V2 method calls to V1 implementations.
     # Ref: https://docs.pydantic.dev/latest/migration/#changes-to-pydanticbasemodel
     class BaseModelMeta(type(BaseModelV1)):
-        def __new__(mcs, name, bases, dct):  # noqa: N804
+        def __new__(cls, name, bases, dct):
             # Override `dct` to dynamically create a `Config` class based on `model_config`.
             if "model_config" in dct:
-                ConfigClass = type("Config", (), {})  # noqa: N806
+                config_class = type("Config", (), {})
                 for key, value in dct["model_config"].items():
-                    setattr(ConfigClass, key, value)
-                dct["Config"] = ConfigClass
+                    setattr(config_class, key, value)
+                dct["Config"] = config_class
 
-            cls = super().__new__(mcs, name, bases, dct)
-            return cls
+            model_class = super().__new__(cls, name, bases, dct)
+            return model_class
 
     class BaseModel(BaseModelV1, metaclass=BaseModelMeta):
         pass
