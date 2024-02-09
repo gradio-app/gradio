@@ -71,29 +71,36 @@ class Client:
         src: str,
         hf_token: str | None = None,
         max_workers: int = 40,
-        serialize: bool = True,
+        serialize: bool | None = None,
         output_dir: str | Path = DEFAULT_TEMP_DIR,
         verbose: bool = True,
         auth: tuple[str, str] | None = None,
         *,
         headers: dict[str, str] | None = None,
-        deserialize: bool = True,
+        upload_files: bool = True,
+        download_files: bool = True,
     ):
         """
         Parameters:
             src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
             hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
-            serialize: Whether the client should treat input string filepath as files and upload them to the remote server. If False, the client will treat input string filepaths as strings always and not modify them.
+            serialize: Deprecated. Please use the equivalent `upload_files` parameter instead.
             output_dir: The directory to save files that are downloaded from the remote API. If None, reads from the GRADIO_TEMP_DIR environment variable. Defaults to a temporary directory on your machine.
             verbose: Whether the client should print statements to the console.
             headers: Additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. These headers will override the default headers if they have the same keys.
-            deserialize: Whether the client should download output files from the remote API and return them as string filepaths on the local machine. If False, the client will a FileData dataclass object with the filepath on the remote machine instead.
+            upload_files: Whether the client should treat input string filepath as files and upload them to the remote server. If False, the client will treat input string filepaths as strings always and not modify them.
+            download_files: Whether the client should download output files from the remote API and return them as string filepaths on the local machine. If False, the client will a FileData dataclass object with the filepath on the remote machine instead.
         """
         self.verbose = verbose
         self.hf_token = hf_token
-        self.serialize = serialize
-        self.deserialize = deserialize
+        if serialize is not None:
+            warnings.warn(
+                "The `serialize` parameter is deprecated and will be removed. Please use the equivalent `upload_files` parameter instead."
+            )
+            upload_files = serialize
+        self.upload_files = upload_files
+        self.download_files = download_files
         self.headers = build_hf_headers(
             token=hf_token,
             library_name="gradio_client",
@@ -466,11 +473,7 @@ class Client:
         return job
 
     def _get_api_info(self):
-        if self.serialize:
-            api_info_url = urllib.parse.urljoin(self.src, utils.API_INFO_URL)
-        else:
-            api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
-
+        api_info_url = urllib.parse.urljoin(self.src, utils.API_INFO_URL)
         if self.app_version > version.Version("3.36.1"):
             r = httpx.get(api_info_url, headers=self.headers, cookies=self.cookies)
             if r.is_success:
@@ -480,7 +483,7 @@ class Client:
         else:
             fetch = httpx.post(
                 utils.SPACE_FETCHER_URL,
-                json={"config": json.dumps(self.config), "serialize": self.serialize},
+                json={"config": json.dumps(self.config), "serialize": True},
             )
             if fetch.is_success:
                 info = fetch.json()["api"]
@@ -980,7 +983,7 @@ class Endpoint:
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
             data = self.insert_state(*data)
-            if self.client.serialize:
+            if self.client.upload_files:
                 data = self.serialize(*data)
             predictions = _predict(*data)
             predictions = self.process_predictions(*predictions)
@@ -1193,7 +1196,7 @@ class Endpoint:
         return tuple(data_)
 
     def process_predictions(self, *predictions):
-        if self.client.deserialize:
+        if self.client.download_files:
             predictions = self.deserialize(*predictions)
         predictions = self.remove_skipped_components(*predictions)
         predictions = self.reduce_singleton_output(*predictions)
@@ -1265,7 +1268,7 @@ class EndpointV3Compatibility:
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
             data = self.insert_state(*data)
-            if self.client.serialize:
+            if self.client.upload_files:
                 data = self.serialize(*data)
             predictions = _predict(*data)
             predictions = self.process_predictions(*predictions)
@@ -1456,7 +1459,7 @@ class EndpointV3Compatibility:
         return outputs
 
     def process_predictions(self, *predictions):
-        if self.client.serialize:
+        if self.client.download_files:
             predictions = self.deserialize(*predictions)
         predictions = self.remove_skipped_components(*predictions)
         predictions = self.reduce_singleton_output(*predictions)
