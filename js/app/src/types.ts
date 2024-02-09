@@ -31,6 +31,7 @@ export interface Payload {
 	event_data: unknown | null;
 	trigger_id: number | null;
 	webrtc_callback: any;
+	pc: RTCPeerConnection
 }
 
 export interface Dependency {

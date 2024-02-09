@@ -421,6 +421,9 @@
 	});
 
 	const MESSAGE_QUOTE_RE = /^'([^]+)'$/;
+	// TODO: Handle more than one connection at a time
+	let pc: RTCPeerConnection | null = null;
+	let callback: any = null;
 
 	const DUPLICATE_MESSAGE = $_("blocks.long_requests_queue");
 	const MOBILE_QUEUE_WARNING = $_("blocks.connection_can_break");
@@ -441,18 +444,13 @@
 		return comp.props.value;
 	}
 
-	function get_webrtc_callback(dep: Dependency): any {
+	function get_webrtc_data(dep: Dependency): { webrtc_callback: any; pc: any } {
 		const comp_id = dep.inputs.find((id) => instance_map[id].props.streaming);
 		const o = comp_id
-			? instance_map[comp_id].instance.webrtc_callback
-			: comp_id;
+			? {webrtc_callback: instance_map[comp_id].instance.webrtc_callback, pc: new RTCPeerConnection()}
+			: {webrtc_callback: null, pc: null}
 		return o;
 	}
-
-	// function get_node(dep: Dependency): any {
-	// 	const comp_id = dep.outputs.find((id) => instance_map[id].props.streaming);
-	// 	return comp_id ? instance_map[comp_id].instance.node : comp_id;
-	// }
 
 	async function trigger_api_call(
 		dep_index: number,
@@ -475,6 +473,8 @@
 			dep.pending_request = true;
 		}
 
+		const { webrtc_callback, pc }: { webrtc_callback: any; pc: RTCPeerConnection } = get_webrtc_data(dep);
+		
 		let payload: Payload = {
 			fn_index: dep_index,
 			data: await Promise.all(
@@ -482,7 +482,8 @@
 			),
 			event_data: dep.collects_event_data ? event_data : null,
 			trigger_id: trigger_id,
-			webrtc_callback: get_webrtc_callback(dep)
+			webrtc_callback: webrtc_callback,
+			pc: pc
 		};
 
 		if (dep.frontend_fn) {
