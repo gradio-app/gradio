@@ -25,38 +25,13 @@
 	let viewport_height = 0;
 	let visible: { index: number; data: any[] }[] = [];
 	let viewport_box: DOMRectReadOnly;
-	$: console.log(viewport_box);
-	$: {
-		if (viewport_box) {
-			viewport_height = viewport_box.height;
-		}
-	}
 
-	$: console.log("props: ", $$props);
-	$: console.log("local: ", {
-		start,
-		end,
-		selected,
-		height,
-		average_height,
-		bottom,
-		contents,
-		head_height,
-		foot_height,
-		height_map,
-		mounted,
-		rows,
-		top,
-		viewport,
-		viewport_height,
-		visible
-	});
+	$: viewport_height = viewport_box?.height || 0;
 
 	$: if (mounted) requestAnimationFrame(() => refresh_height_map(sortedItems));
 
 	let content_height = 0;
 	async function refresh_height_map(_items: typeof items): Promise<void> {
-		console.log("refresh_height_map");
 		if (viewport_height === 0) {
 			return;
 		}
@@ -112,7 +87,6 @@
 	$: scroll_and_render(selected);
 
 	async function scroll_and_render(n: number | false): Promise<void> {
-		console.log("scroll_and_render");
 		requestAnimationFrame(async () => {
 			if (typeof n !== "number") return;
 			const direction = typeof n !== "number" ? false : is_in_view(n);
@@ -130,7 +104,6 @@
 	}
 
 	function is_in_view(n: number): "back" | "forwards" | true {
-		console.log("is_in_view");
 		const current = rows && rows[n - start];
 		if (!current && n < start) {
 			return "back";
@@ -164,7 +137,6 @@
 	}
 
 	async function handle_scroll(e: Event): Promise<void> {
-		console.log("handle_scroll");
 		const scroll_top = viewport.scrollTop;
 
 		rows = contents.children as HTMLCollectionOf<HTMLTableRowElement>;
@@ -235,7 +207,6 @@
 		opts: ScrollToOptions,
 		align_end = false
 	): Promise<void> {
-		console.log("scroll_to_index");
 		await tick();
 
 		const _itemHeight = average_height;
@@ -277,7 +248,6 @@
 		class="table"
 		bind:this={viewport}
 		bind:contentRect={viewport_box}
-		bind:offsetHeight={viewport_height}
 		on:scroll={handle_scroll}
 		style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px"
 	>
