@@ -4,11 +4,10 @@
 	import { createEventDispatcher } from "svelte";
 	import type { I18nFormatter, SelectData } from "@gradio/utils";
 	import { DownloadLink } from "@gradio/wasm/svelte";
-	import { Clear } from "@gradio/icons";
-	import { IconButton } from "@gradio/atoms";
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
+		change: FileData[] | FileData;
 	}>();
 	export let value: FileData | FileData[];
 	export let selectable = false;
@@ -28,13 +27,15 @@
 		return {
 			...file,
 			filename_stem,
-			filename_ext,
+			filename_ext
 		};
 	});
 
 	function remove_file(index: number): void {
 		normalized_files.splice(index, 1);
 		normalized_files = [...normalized_files];
+		value = normalized_files;
+		dispatch("change", normalized_files);
 	}
 </script>
 
@@ -51,7 +52,7 @@
 					on:click={() =>
 						dispatch("select", {
 							value: file.orig_name,
-							index: i,
+							index: i
 						})}
 				>
 					<td class="filename" aria-label={file.orig_name}>
