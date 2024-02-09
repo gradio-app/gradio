@@ -570,7 +570,7 @@ class App(FastAPI):
                     content={"error": str(error) if show_error else None},
                     status_code=500,
                 )
-            root_path = app.get_blocks().config.get("root", "")
+            root_path = route_utils.get_root_url(request)
             output = add_root_url(output, root_path)
             return output
 
@@ -580,7 +580,7 @@ class App(FastAPI):
             session_hash: str,
         ):
             blocks = app.get_blocks()
-            root_path = app.get_blocks().config.get("root", "")
+            root_path = route_utils.get_root_url(request)
 
             async def sse_stream(request: fastapi.Request):
                 try:
