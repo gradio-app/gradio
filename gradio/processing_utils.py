@@ -190,7 +190,9 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
     full_temp_file_path = str(abspath(temp_dir / name))
 
     if not Path(full_temp_file_path).exists():
-        with httpx.stream("GET", url) as r, open(full_temp_file_path, "wb") as f:
+        with httpx.stream("GET", url, follow_redirects=True) as r, open(
+            full_temp_file_path, "wb"
+        ) as f:
             for chunk in r.iter_raw():
                 f.write(chunk)
 
@@ -234,15 +236,22 @@ def move_resource_to_block_cache(
     return block.move_resource_to_block_cache(url_or_file_path)
 
 
-def move_files_to_cache(data: Any, block: Component, postprocess: bool = False):
-    """Move files to cache and replace the file path with the cache path.
+def move_files_to_cache(
+    data: Any,
+    block: Component,
+    postprocess: bool = False,
+    add_urls=False,
+) -> dict:
+    """Move any files in `data` to cache and (optionally), adds URL prefixes (/file=...) needed to access the cached file.
+    Also handles the case where the file is on an external Gradio app (/proxy=...).
 
-    Runs after .postprocess(), after .process_example(), and before .preprocess().
+    Runs after .postprocess() and before .preprocess().
 
     Args:
         data: The input or output data for a component. Can be a dictionary or a dataclass
-        block: The component
+        block: The component whose data is being processed
         postprocess: Whether its running from postprocessing
+        root_url: The root URL of the local server, if applicable
     """
 
     def _move_to_cache(d: dict):
@@ -257,12 +266,34 @@ def move_files_to_cache(data: Any, block: Component, postprocess: bool = False):
             temp_file_path = move_resource_to_block_cache(payload.path, block)
         assert temp_file_path is not None
         payload.path = temp_file_path
+
+        if add_urls:
+            url_prefix = "/stream/" if payload.is_stream else "/file="
+            if block.proxy_url:
+                url = f"/proxy={block.proxy_url}{url_prefix}{temp_file_path}"
+            elif client_utils.is_http_url_like(
+                temp_file_path
+            ) or temp_file_path.startswith(f"{url_prefix}"):
+                url = temp_file_path
+            else:
+                url = f"{url_prefix}{temp_file_path}"
+            payload.url = url
+
         return payload.model_dump()
 
     if isinstance(data, (GradioRootModel, GradioModel)):
         data = data.model_dump()
 
     return client_utils.traverse(data, _move_to_cache, client_utils.is_file_obj)
+
+
+def add_root_url(data, root_url) -> dict:
+    def _add_root_url(file_dict: dict):
+        if not client_utils.is_http_url_like(file_dict["url"]):
+            file_dict["url"] = f'{root_url}{file_dict["url"]}'
+        return file_dict
+
+    return client_utils.traverse(data, _add_root_url, client_utils.is_file_obj_with_url)
 
 
 def resize_and_crop(img, size, crop_type="center"):

@@ -18,7 +18,6 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { FileData } from "@gradio/client";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { normalise_file } from "@gradio/client";
 
 	type sources = "upload" | "webcam" | "clipboard" | null;
 
@@ -26,12 +25,11 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: null | FileData = null;
-	$: _value = normalise_file(value, root, proxy_url);
+	let old_value: null | FileData = null;
 	export let label: string;
 	export let show_label: boolean;
 	export let show_download_button: boolean;
 	export let root: string;
-	export let proxy_url: null | string;
 
 	export let height: number | undefined;
 	export let width: number | undefined;
@@ -64,8 +62,12 @@
 		share: ShareData;
 	}>;
 
-	$: url = _value?.url;
-	$: url, gradio.dispatch("change");
+	$: {
+		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
+			old_value = value;
+			gradio.dispatch("change");
+		}
+	}
 
 	let dragging: boolean;
 	let active_source: sources = null;
@@ -95,7 +97,7 @@
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => gradio.dispatch("error", detail)}
-			value={_value}
+			{value}
 			{label}
 			{show_label}
 			{show_download_button}
@@ -107,7 +109,7 @@
 {:else}
 	<Block
 		{visible}
-		variant={_value === null ? "dashed" : "solid"}
+		variant={value === null ? "dashed" : "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
 		{elem_id}

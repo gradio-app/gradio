@@ -117,7 +117,6 @@ That's ok.
     import { StatusTracker } from "@gradio/statustracker";
     import type { LoadingStatus } from "@gradio/statustracker";
     import type { FileData } from "@gradio/client";
-    import { normalise_file } from "@gradio/client";
     import { Upload, ModifyUpload } from "@gradio/upload";
 
 	export let elem_id = "";
@@ -315,10 +314,6 @@ Add the following code to `Index.svelte`:
             page.render(renderContext);
         });
     }
-
-    // Compute the url to fetch the file from the backend
-    // whenever a new value is passed in.
-    $: _value = normalise_file(value, root, proxy_url);
 
     // If the value changes, render the PDF of the currentPage
     $: if(JSON.stringify(old_value) != JSON.stringify(_value)) {

@@ -154,10 +154,7 @@ const changelogFunctions = {
 		const users =
 			usersFromSummary && usersFromSummary.length
 				? usersFromSummary
-						.map(
-							(userFromSummary) =>
-								`[@${userFromSummary}](https://github.com/${userFromSummary})`
-						)
+						.map((userFromSummary) => `@${userFromSummary}`)
 						.join(", ")
 				: links.user;
 

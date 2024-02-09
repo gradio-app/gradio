@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Small cleanups of `Code` component
+feat:Add SQL Support for gr.Code
