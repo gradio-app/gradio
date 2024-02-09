@@ -546,6 +546,13 @@ class App(FastAPI):
                     print("ICE Connection failed.")
                     await pc.close()
                     pcs.discard(pc)
+            
+            @pc.on("connectionstatechange")
+            async def on_connectionstatechange():
+                if pc.connectionState == "failed":
+                    await pc.close()
+                    pcs.discard(pc)
+
 
             @pc.on("track")
             def on_track(track):

@@ -1,9 +1,7 @@
-export function createPeerConnection(node) {
+export function createPeerConnection(pc, node) {
 	var config = {
 		sdpSemantics: "unified-plan"
 	};
-
-	const pc = new RTCPeerConnection();
 
 	// register some listeners to help debugging
 	pc.addEventListener(
@@ -107,19 +105,6 @@ async function negotiate(
 		})
 		.then(() => {
 			var offer = pc.localDescription;
-			// var codec;
-
-			// codec = document.getElementById('audio-codec').value;
-			// if (codec !== 'default') {
-			//     offer.sdp = sdpFilterCodec('audio', codec, offer.sdp);
-			// }
-
-			// codec = document.getElementById('video-codec').value;
-			// if (codec !== 'default') {
-			//     offer.sdp = sdpFilterCodec('video', codec, offer.sdp);
-			// }
-
-			// document.getElementById('offer-sdp').textContent = offer.sdp;
 			console.log("webrtc_id", webrtc_id);
 			return fetch(`${root}/offer`, {
 				body: JSON.stringify({
