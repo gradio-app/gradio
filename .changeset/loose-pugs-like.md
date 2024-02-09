@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:recalculate virtual table if tab visibility changes
+fix:ensure Dataframes in background tabs are visible when the tab is selected
