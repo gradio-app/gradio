@@ -991,8 +991,11 @@ class Endpoint:
             data = self.insert_state(*data)
             if self.client.upload_files:
                 data = self.serialize(*data)
+            print("data", data)
             predictions = _predict(*data)
-            predictions = self.process_predictions(*predictions)
+            if self.client.download_files:
+                predictions = self.process_predictions(*predictions)
+            print("\n>predictions", predictions)
             # Append final output only if not already present
             # for consistency between generators and not generators
             if helper:
@@ -1202,8 +1205,7 @@ class Endpoint:
         return tuple(data_)
 
     def process_predictions(self, *predictions):
-        if self.client.download_files:
-            predictions = self.deserialize(*predictions)
+        predictions = self.deserialize(*predictions)
         predictions = self.remove_skipped_components(*predictions)
         predictions = self.reduce_singleton_output(*predictions)
         return predictions
