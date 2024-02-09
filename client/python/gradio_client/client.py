@@ -473,7 +473,10 @@ class Client:
         return job
 
     def _get_api_info(self):
-        api_info_url = urllib.parse.urljoin(self.src, utils.API_INFO_URL)
+        if self.upload_files:
+            api_info_url = urllib.parse.urljoin(self.src, utils.API_INFO_URL)
+        else:
+            api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
         if self.app_version > version.Version("3.36.1"):
             r = httpx.get(api_info_url, headers=self.headers, cookies=self.cookies)
             if r.is_success:
@@ -483,7 +486,10 @@ class Client:
         else:
             fetch = httpx.post(
                 utils.SPACE_FETCHER_URL,
-                json={"config": json.dumps(self.config), "serialize": True},
+                json={
+                    "config": json.dumps(self.config),
+                    "serialize": self.upload_files,
+                },
             )
             if fetch.is_success:
                 info = fetch.json()["api"]
