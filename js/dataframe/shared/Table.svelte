@@ -735,7 +735,6 @@
 		>
 			<VirtualTable
 				bind:items={data}
-				table_width={t_width}
 				max_height={height}
 				bind:actual_height={table_height}
 				bind:table_scrollbar_width={scrollbar_width}

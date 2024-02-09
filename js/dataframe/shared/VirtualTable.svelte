@@ -5,7 +5,6 @@
 
 	export let items: any[][] = [];
 
-	export let table_width: number;
 	export let max_height: number;
 	export let actual_height: number;
 	export let table_scrollbar_width: number;
@@ -27,7 +26,25 @@
 	let viewport_height = 0;
 	let visible: { index: number; data: any[] }[] = [];
 
-	$: console.log($$props);
+	$: console.log("props: ", $$props);
+	$: console.log("local: ", {
+		start,
+		end,
+		selected,
+		height,
+		average_height,
+		bottom,
+		contents,
+		head_height,
+		foot_height,
+		height_map,
+		mounted,
+		rows,
+		top,
+		viewport,
+		viewport_height,
+		visible
+	});
 
 	$: if (mounted) requestAnimationFrame(() => refresh_height_map(sortedItems));
 
@@ -36,7 +53,7 @@
 	let content_height = 0;
 	async function refresh_height_map(_items: typeof items): Promise<void> {
 		console.log("refresh_height_map");
-		if (viewport_height === 0 || table_width === 0) {
+		if (viewport_height === 0) {
 			return;
 		}
 		const { scrollTop } = viewport;
