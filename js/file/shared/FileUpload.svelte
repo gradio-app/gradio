@@ -69,7 +69,7 @@
 
 {#if value && (Array.isArray(value) ? value.length > 0 : true)}
 	<ModifyUpload {i18n} on:clear={handle_clear} absolute />
-	<FilePreview {i18n} on:select {selectable} {value} {height} />
+	<FilePreview {i18n} on:select {selectable} {value} {height} on:change />
 {:else}
 	<Upload
 		on:load={handle_upload}

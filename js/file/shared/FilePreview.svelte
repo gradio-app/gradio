@@ -7,6 +7,7 @@
 
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
+		change: FileData[] | FileData;
 	}>();
 	export let value: FileData | FileData[];
 	export let selectable = false;
@@ -29,6 +30,13 @@
 			filename_ext
 		};
 	});
+
+	function remove_file(index: number): void {
+		normalized_files.splice(index, 1);
+		normalized_files = [...normalized_files];
+		value = normalized_files;
+		dispatch("change", normalized_files);
+	}
 </script>
 
 <div
@@ -66,6 +74,21 @@
 							{i18n("file.uploading")}
 						{/if}
 					</td>
+					{#if normalized_files.length > 1}
+						<td>
+							<button
+								class="label-clear-button"
+								aria-label="Remove this file"
+								on:click={() => remove_file(i)}
+								on:keydown={(event) => {
+									if (event.key === "Enter") {
+										remove_file(i);
+									}
+								}}
+								>×
+							</button>
+						</td>
+					{/if}
 				</tr>
 			{/each}
 		</tbody>
@@ -73,6 +96,16 @@
 </div>
 
 <style>
+	.label-clear-button {
+		color: var(--body-text-color-subdued);
+		position: relative;
+		left: -3px;
+	}
+
+	.label-clear-button:hover {
+		color: var(--body-text-color);
+	}
+
 	.file-preview {
 		table-layout: fixed;
 		width: var(--size-full);
