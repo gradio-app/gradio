@@ -16,7 +16,7 @@ from typing_extensions import Literal
 from . import wasm_utils
 
 if not wasm_utils.IS_WASM or TYPE_CHECKING:
-    from pydantic import BaseModel, RootModel, ValidationError  # type: ignore
+    from pydantic import BaseModel, RootModel, ValidationError
 else:
     # XXX: Currently Pyodide V2 is not available on Pyodide,
     # so we install V1 for the Wasm version.
