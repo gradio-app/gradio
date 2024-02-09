@@ -617,6 +617,55 @@
 	$: selected_index = !!selected && selected[0];
 
 	let is_visible = false;
+
+	function is_effectively_visible(element: HTMLElement): boolean {
+		if (element) {
+			const style = window.getComputedStyle(element);
+			if (
+				style.display === "none" ||
+				style.visibility === "hidden" ||
+				style.opacity === "0"
+			) {
+				return false;
+			}
+			if (element.parentElement) {
+				return is_effectively_visible(element.parentElement);
+			}
+			return true;
+		}
+		return false;
+	}
+
+	async function mutation_callback(
+		mutations_list: MutationRecord[],
+		observer: MutationObserver
+	): Promise<void> {
+		for (const mutation of mutations_list) {
+			if (
+				mutation.type === "attributes" &&
+				mutation.attributeName === "style"
+			) {
+				const target_visible = is_effectively_visible(table);
+
+				await tick();
+				requestAnimationFrame(() => {
+					if (target_visible) {
+						const tmp_table_height = table.getBoundingClientRect().height;
+						table_height = tmp_table_height === 0 ? height : tmp_table_height;
+					}
+				});
+
+				// setTimeout(() => {
+				// 	if (target_visible) {
+				// 		element_visible = true;
+				// 	} else {
+				// 		element_visible = false;
+				// 	}
+				// }, 1000);
+			}
+		}
+	}
+
 	onMount(() => {
 		const observer = new IntersectionObserver((entries, observer) => {
 			entries.forEach((entry) => {
@@ -630,6 +679,15 @@
 		});
 
 		observer.observe(parent);
+
+		const tabs = document.querySelectorAll(".tabitem");
+
+		const observer_two = new MutationObserver(mutation_callback);
+		const config_two = { attributes: true, childList: false, subtree: false };
+
+		tabs.forEach((tab) => {
+			observer_two.observe(tab, config_two);
+		});
 
 		return () => {
 			observer.disconnect();
