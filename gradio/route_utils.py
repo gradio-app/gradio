@@ -272,7 +272,6 @@ def get_root_url(request: fastapi.Request) -> str:
     root_url = str(root_url)
     if request.headers.get("x-forwarded-proto") == "https":
         root_url = root_url.replace("http://", "https://")
-    root_url = root_url[: -len(request.url.path)]
     return root_url.rstrip("/")
 
 
