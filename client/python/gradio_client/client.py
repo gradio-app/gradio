@@ -991,11 +991,9 @@ class Endpoint:
             data = self.insert_state(*data)
             if self.client.upload_files:
                 data = self.serialize(*data)
-            print("data", data)
             predictions = _predict(*data)
             if self.client.download_files:
                 predictions = self.process_predictions(*predictions)
-            print("\n>predictions", predictions)
             # Append final output only if not already present
             # for consistency between generators and not generators
             if helper:
