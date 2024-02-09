@@ -133,6 +133,28 @@ class TestClientPredictions:
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
 
+    @pytest.mark.flaky
+    def test_space_with_files_v4_sse_v2(self):
+        space_id = "gradio-tests/space_with_files_v4_sse_v2"
+        client = Client(space_id)
+        payload = (
+            "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+            {
+                "video": "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4",
+                "subtitle": None,
+            },
+            "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+        )
+        output = client.predict(*payload, api_name="/predict")
+        assert output[0].endswith(".wav")  # Audio files are converted to wav
+        assert output[1]["video"].endswith(
+            "world.mp4"
+        )  # Video files are not converted by default
+        assert (
+            output[2]
+            == "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
+        )  # textbox string should remain exactly the same
+
     def test_state(self, increment_demo):
         with connect(increment_demo) as client:
             output = client.predict(api_name="/increment_without_queue")
