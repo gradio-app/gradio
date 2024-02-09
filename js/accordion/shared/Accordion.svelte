@@ -1,15 +1,23 @@
 <script lang="ts">
+	import { writable } from "svelte/store";
+
+	export let initial_open = true;
 	export let label = "";
-	export let open = true;
+
+	let open = writable(initial_open);
+
+	const toggle_open = (): void => {
+		open.update((value) => !value);
+	};
 </script>
 
-<button on:click={() => (open = !open)} class="label-wrap" class:open>
+<button on:click={toggle_open} class="label-wrap" class:open={$open}>
 	<span>{label}</span>
-	<span style:transform={open ? "rotate(0)" : "rotate(90deg)"} class="icon">
+	<span style:transform={$open ? "rotate(0)" : "rotate(90deg)"} class="icon">
 		▼
 	</span>
 </button>
-<div style:display={open ? "block" : "none"}>
+<div style:display={$open ? "block" : "none"}>
 	<slot />
 </div>
 
