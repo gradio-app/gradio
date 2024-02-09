@@ -353,7 +353,7 @@ class App(FastAPI):
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
             config = copy.deepcopy(app.get_blocks().config)
-            root_path = route_utils.get_root_url(request)[:-7]
+            root_path = route_utils.get_root_url(request)[: -len("/config")]
             config["root"] = root_path
             config = add_root_url(config, root_path)
             return config
