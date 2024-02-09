@@ -1,6 +1,6 @@
 ---
-"@gradio/dataframe": minor
-"gradio": minor
+"@gradio/dataframe": patch
+"gradio": patch
 ---
 
-feat:recalculate virtual table if tab visibility changes
+fix:recalculate virtual table if tab visibility changes
