@@ -289,7 +289,7 @@ def _replace_old_class_name(old_class_name: str, new_class_name: str, content: s
 
 def _strip_document_lines(content: str):
     return "\n".join(
-        [line for line in content.split("\n") if not line.startswith("@document()")]
+        [line for line in content.split("\n") if not line.startswith("@document(")]
     )
 
 
