@@ -45,8 +45,6 @@
 	let styling: string[][] | null = value?.metadata?.styling ?? null;
 	let t_rect: DOMRectReadOnly;
 
-	$: t_width = t_rect?.width || 0;
-
 	$: {
 		if (value) {
 			headers = value.headers;
