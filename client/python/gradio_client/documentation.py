@@ -12,6 +12,11 @@ classes_to_document = defaultdict(list)
 classes_inherit_documentation = {}
 
 
+def set_documentation_group(m):  # noqa: ARG001
+    """A no-op for backwards compatibility of custom components published prior to 4.16.0"""
+    pass
+
+
 def extract_instance_attr_doc(cls, attr):
     code = inspect.getsource(cls.__init__)
     lines = [line.strip() for line in code.split("\n")]
