@@ -1,5 +1,27 @@
 # gradio
 
+## 4.18.0
+
+### Features
+
+- [#7299](https://github.com/gradio-app/gradio/pull/7299) [`f35f615`](https://github.com/gradio-app/gradio/commit/f35f615e33a5dd90bfeb106b6f5dca689849fcef) - Added remove button for every file in file preview, to remove individual file in gr.File().  Thanks [@shubhamofbce](https://github.com/shubhamofbce)!
+- [#7183](https://github.com/gradio-app/gradio/pull/7183) [`49d9c48`](https://github.com/gradio-app/gradio/commit/49d9c48537aa706bf72628e3640389470138bdc6) - [WIP] Refactor file normalization to be in the backend and remove it from the frontend of each component.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7333](https://github.com/gradio-app/gradio/pull/7333) [`7e9b206`](https://github.com/gradio-app/gradio/commit/7e9b206a149740a421e03c8adb64978a5070f28f) - Stop using deprecated pydantic config class and filter gradio warnings from tests.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#7377](https://github.com/gradio-app/gradio/pull/7377) [`6dfd40f`](https://github.com/gradio-app/gradio/commit/6dfd40fc6b2fa461490d2370ab91fcda7e07c0da) - Make set_documentation_group a no-op.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#7328](https://github.com/gradio-app/gradio/pull/7328) [`c1a7ea7`](https://github.com/gradio-app/gradio/commit/c1a7ea7c0c294aa970624f02225717c12bcf9b58) - Add SQL Support for gr.Code.  Thanks [@aersam](https://github.com/aersam)!
+- [#7369](https://github.com/gradio-app/gradio/pull/7369) [`7b10d97`](https://github.com/gradio-app/gradio/commit/7b10d97b0f928fde6a71a94460fb8ca784e7a31d) - Remove the `@gradio/wasm` dependency from `@gradio/gallery` that is not used.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#7334](https://github.com/gradio-app/gradio/pull/7334) [`b95d0d0`](https://github.com/gradio-app/gradio/commit/b95d0d043c739926af986e573200af92732bbc01) - Allow setting custom headers in Python Client.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7365](https://github.com/gradio-app/gradio/pull/7365) [`1e68561`](https://github.com/gradio-app/gradio/commit/1e68561167cd240d053444db091b297a3129cebb) - Update Pydantic patch for Lite that emulates PydanticV2 API using V1.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#6890](https://github.com/gradio-app/gradio/pull/6890) [`cccab27`](https://github.com/gradio-app/gradio/commit/cccab27fe8b6ae6860b3fff68694fa33060e18a7) - E2E tests for Lite.  Thanks [@whitphx](https://github.com/whitphx)!
+
+### Fixes
+
+- [#7354](https://github.com/gradio-app/gradio/pull/7354) [`a7fa47a`](https://github.com/gradio-app/gradio/commit/a7fa47a175fbcf0fd6573ca19334a3a55b55bb24) - ensure Dataframes in background tabs are visible when the tab is selected.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#7355](https://github.com/gradio-app/gradio/pull/7355) [`2244059`](https://github.com/gradio-app/gradio/commit/2244059cdbacb713530a3b760205c5464c05491c) - Ensure CSS `.dark` rule selectors are applied.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#7375](https://github.com/gradio-app/gradio/pull/7375) [`4dc9ffb`](https://github.com/gradio-app/gradio/commit/4dc9ffbf70e2233c5b18ed3f722c1189a310a036) - Store `gr.Accordion`'s `open` value.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#7374](https://github.com/gradio-app/gradio/pull/7374) [`7f19ba2`](https://github.com/gradio-app/gradio/commit/7f19ba272c5a46d7f2c11ad5c9f0ab15d4e27083) - Stop caching root url.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7350](https://github.com/gradio-app/gradio/pull/7350) [`7302a6e`](https://github.com/gradio-app/gradio/commit/7302a6e151dac553c17833be64d4639ee4cf97aa) - Fix `gr.load` for file-based Spaces.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 4.17.0
 
 ### Features

@@ -1,5 +1,11 @@
 # @gradio/accordion
 
+## 0.3.1
+
+### Fixes
+
+- [#7375](https://github.com/gradio-app/gradio/pull/7375) [`4dc9ffb`](https://github.com/gradio-app/gradio/commit/4dc9ffbf70e2233c5b18ed3f722c1189a310a036) - Store `gr.Accordion`'s `open` value.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.3.0
 
 ### Features
