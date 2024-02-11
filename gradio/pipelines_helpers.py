@@ -238,7 +238,7 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
 
     # Handle diffuser pipelines
     if hasattr(diffusers, "StableDiffusionPipeline") and isinstance(
-        pipeline, diffuser_pipelines.StableDiffusionPipeline
+        pipeline, diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion.StableDiffusionPipeline
     ):
         pipeline_info = {
             "inputs": [
@@ -271,7 +271,7 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
             "postprocess": lambda r: r["images"][0],
         }
     elif hasattr(diffusers, "StableDiffusionImg2ImgPipeline") and isinstance(
-        pipeline, diffuser_pipelines.StableDiffusionImg2ImgPipeline
+        pipeline, diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion_img2img.StableDiffusionImg2ImgPipeline
     ):
         pipeline_info = {
             "inputs": [
@@ -315,7 +315,7 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
             "postprocess": lambda r: r["images"][0],
         }
     elif hasattr(diffusers, "StableDiffusionInpaintPipeline") and isinstance(
-        pipeline, diffuser_pipelines.StableDiffusionInpaintPipeline
+        pipeline, diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion_inpaint.StableDiffusionInpaintPipeline
     ):
         pipeline_info = {
             "inputs": [
@@ -362,7 +362,7 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
             "postprocess": lambda r: r["images"][0],
         }
     elif hasattr(diffusers, "StableDiffusionDepth2ImgPipeline") and isinstance(
-        pipeline, diffuser_pipelines.StableDiffusionDepth2ImgPipeline
+        pipeline, diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion_depth2img.StableDiffusionDepth2ImgPipeline
     ):
         pipeline_info = {
             "inputs": [
@@ -406,7 +406,7 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
             "postprocess": lambda r: r["images"][0],
         }
     elif hasattr(diffusers, "StableDiffusionImageVariationPipeline") and isinstance(
-        pipeline, diffuser_pipelines.StableDiffusionImageVariationPipeline
+        pipeline, diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion_image_variation.StableDiffusionImageVariationPipeline
     ):
         pipeline_info = {
             "inputs": [
@@ -437,7 +437,7 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
             "postprocess": lambda r: r["images"][0],
         }
     elif hasattr(diffusers, "StableDiffusionInstructPix2PixPipeline") and isinstance(
-        pipeline, diffuser_pipelines.StableDiffusionInstructPix2PixPipeline
+        pipeline, diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion_instruct_pix2pix.StableDiffusionInstructPix2PixPipeline
     ):
         pipeline_info = {
             "inputs": [
@@ -485,7 +485,7 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
             "postprocess": lambda r: r["images"][0],
         }
     elif hasattr(diffusers, "StableDiffusionUpscalePipeline") and isinstance(
-        pipeline, diffuser_pipelines.StableDiffusionUpscalePipeline
+        pipeline, diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion_upscale.StableDiffusionUpscalePipeline
     ):
         pipeline_info = {
             "inputs": [
