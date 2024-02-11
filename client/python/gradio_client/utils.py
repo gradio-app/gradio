@@ -895,6 +895,7 @@ def get_type(schema: dict):
         raise APIInfoParseError(f"Cannot parse type for {schema}")
 
 
+OLD_FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)"
 FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool)"
 
 
@@ -995,7 +996,7 @@ def traverse(json_obj: Any, func: Callable, is_root: Callable) -> Any:
 
 def value_is_file(api_info: dict) -> bool:
     info = _json_schema_to_python_type(api_info, api_info.get("$defs"))
-    return FILE_DATA in info
+    return FILE_DATA in info or OLD_FILE_DATA in info
 
 
 def is_filepath(s):

@@ -1,5 +1,11 @@
 # @gradio/dataframe
 
+## 0.6.1
+
+### Fixes
+
+- [#7354](https://github.com/gradio-app/gradio/pull/7354) [`a7fa47a`](https://github.com/gradio-app/gradio/commit/a7fa47a175fbcf0fd6573ca19334a3a55b55bb24) - ensure Dataframes in background tabs are visible when the tab is selected.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.6.0
 
 ### Features
