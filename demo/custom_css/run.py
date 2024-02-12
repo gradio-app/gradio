@@ -35,12 +35,24 @@ css = """
     }
 }
 
+.dark .markdown {
+    background: pink;
+}
+
+.darktest h3 {
+    color: black;
+}
+
+.dark .darktest h3 {
+    color: yellow;
+}
+
 """
 
 with gr.Blocks(css=css) as demo:
     with gr.Column(elem_classes="cool-col"):
-        gr.Markdown("### Gradio Demo with Custom CSS")
+        gr.Markdown("### Gradio Demo with Custom CSS", elem_classes="darktest")
         gr.Markdown(elem_classes="markdown", value="Resize the browser window to see the CSS media query in action.")
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(allowed_paths=['./'])
