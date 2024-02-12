@@ -32,6 +32,7 @@ export function prefix_css(
 	const rules = stylesheet.cssRules;
 
 	let css_string = "";
+	let gradio_css_infix = `gradio-app .gradio-container.gradio-container-${version} .contain `;
 
 	for (let i = 0; i < rules.length; i++) {
 		const rule = rules[i];
@@ -45,15 +46,44 @@ export function prefix_css(
 					.split(",")
 					.map(
 						(s) =>
-							`${
-								is_dark_rule ? ".dark" : ""
-							} gradio-app .gradio-container.gradio-container-${version} .contain ${s.trim()} `
+							`${is_dark_rule ? ".dark" : ""} ${gradio_css_infix} ${s.trim()} `
 					)
 					.join(",");
 
 				css_string += rule.cssText;
 				css_string += rule.cssText.replace(selector, new_selector);
 			}
+		} else if (rule instanceof CSSMediaRule) {
+			let mediaCssString = `@media ${rule.media.mediaText} {`;
+			for (let j = 0; j < rule.cssRules.length; j++) {
+				const innerRule = rule.cssRules[j];
+				if (innerRule instanceof CSSStyleRule) {
+					let is_dark_rule = innerRule.cssText.includes(".dark");
+					const selector = innerRule.selectorText;
+					const new_selector = selector
+						.replace(".dark", "")
+						.split(",")
+						.map(
+							(s) =>
+								`${
+									is_dark_rule ? ".dark" : ""
+								} ${gradio_css_infix} ${s.trim()} `
+						)
+						.join(",");
+					mediaCssString += innerRule.cssText.replace(selector, new_selector);
+				}
+			}
+			mediaCssString += "}";
+			css_string += mediaCssString;
+		} else if (rule instanceof CSSKeyframesRule) {
+			css_string += `@keyframes ${rule.name} {`;
+			for (let j = 0; j < rule.cssRules.length; j++) {
+				const innerRule = rule.cssRules[j];
+				if (innerRule instanceof CSSKeyframeRule) {
+					css_string += `${innerRule.keyText} { ${innerRule.style.cssText} }`;
+				}
+			}
+			css_string += "}";
 		}
 	}
 	style_element.textContent = css_string;
