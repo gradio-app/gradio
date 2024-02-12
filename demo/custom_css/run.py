@@ -1,26 +1,21 @@
 import gradio as gr
 
 css = """
-/* CSSStyleRule */
-* {
-    font-family: 'SourceCodePro', sans-serif;
-}
-
 /* CSSKeyframesRule for animation */
-@keyframes example {
+@keyframes animation {
     from {background-color: red;}
     to {background-color: blue;}
 }
 
-/* Applying the animation */
 .cool-col {
-    animation-name: example;
+    animation-name: animation;
     animation-duration: 4s;
     animation-iteration-count: infinite;
     border-radius: 10px;
     padding: 20px;
 }
 
+/* CSSStyleRule */
 .markdown {
     background-color: lightblue;
     padding: 20px;
