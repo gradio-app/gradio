@@ -1,6 +1,6 @@
 ---
-"@gradio/dropdown": minor
-"gradio": minor
+"@gradio/dropdown": patch
+"gradio": patch
 ---
 
-feat:dropdown choice bug
+fix:Retain dropdown value if choices have been changed
