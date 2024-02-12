@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Allow applying `@media` and `@keyframes` in custom CSS
+fix:Allow applying `@media`, `@keyframes` and `@import` in custom CSS
