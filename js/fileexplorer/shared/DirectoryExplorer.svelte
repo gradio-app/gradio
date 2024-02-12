@@ -29,6 +29,7 @@
 		{interactive}
 		{ls_fn}
 		{file_count}
+		valid_for_selection={false}
 		on:check={(e) => {
 			const { path, checked, type } = e.detail;
 			if (checked) {

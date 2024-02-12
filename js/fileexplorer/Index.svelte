@@ -22,6 +22,8 @@
 	export let height: number | undefined = undefined;
 	export let file_count: "single" | "multiple" = "multiple";
 	export let root_dir: string;
+	export let glob: string;
+	export let ignore_glob: string;
 	export let loading_status: LoadingStatus;
 	export let container = true;
 	export let scale: number | null = null;
@@ -33,6 +35,8 @@
 		ls: (path: string[]) => Promise<FileNode[]>;
 	};
 	export let interactive: boolean;
+
+	$: rerender_key = [root_dir, glob, ignore_glob];
 </script>
 
 <Block
@@ -59,7 +63,7 @@
 		label={label || "FileExplorer"}
 		float={false}
 	/>
-	{#key root_dir}
+	{#key rerender_key}
 		<DirectoryExplorer
 			bind:value
 			{file_count}

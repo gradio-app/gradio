@@ -166,26 +166,29 @@ class FileExplorer(Component):
         full_subdir_path = self._safe_join(subdirectory)
 
         try:
-            subdir_items = os.listdir(full_subdir_path)
+            subdir_items = sorted(os.listdir(full_subdir_path))
         except FileNotFoundError:
             return []
 
-        output = []
+        files, folders = [], []
         for item in subdir_items:
             full_path = os.path.join(full_subdir_path, item)
             is_file = not os.path.isdir(full_path)
-            if is_file and not fnmatch.fnmatch(full_path, self.glob):
+            valid_by_glob = fnmatch.fnmatch(full_path, self.glob)
+            if is_file and not valid_by_glob:
                 continue
             if self.ignore_glob and fnmatch.fnmatch(full_path, self.ignore_glob):
                 continue
-            output.append(
+            target = files if is_file else folders
+            target.append(
                 {
                     "name": item,
                     "type": "file" if is_file else "folder",
+                    "valid": valid_by_glob,
                 }
             )
 
-        return output
+        return folders + files
 
     def _safe_join(self, folders):
         combined_path = os.path.join(self.root_dir, *folders)

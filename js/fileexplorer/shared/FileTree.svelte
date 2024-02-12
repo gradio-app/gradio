@@ -5,6 +5,7 @@
 	import Arrow from "./ArrowIcon.svelte";
 	import Checkbox from "./Checkbox.svelte";
 	import FileIcon from "../icons/light-file.svg";
+	import FolderIcon from "../icons/light-folder.svg";
 
 	export let path: string[] = [];
 	export let selected_files: string[][] = [];
@@ -13,6 +14,7 @@
 	export let interactive: boolean;
 	export let ls_fn: (path: string[]) => Promise<FileNode[]>;
 	export let file_count: "single" | "multiple" = "multiple";
+	export let valid_for_selection: boolean;
 
 	let content: FileNode[] = [];
 	let opened_folders: number[] = [];
@@ -33,6 +35,9 @@
 
 	(async () => {
 		content = await ls_fn(path);
+		if (valid_for_selection) {
+			content = [{ name: ".", type: "file" }, ...content];
+		}
 		opened_folders = content
 			.map((x, i) =>
 				x.type === "folder" &&
@@ -59,7 +64,7 @@
 </script>
 
 <ul>
-	{#each content as { type, name }, i}
+	{#each content as { type, name, valid }, i}
 		<li>
 			<span class="wrap">
 				<Checkbox
@@ -97,7 +102,7 @@
 					>
 				{:else}
 					<span class="file-icon">
-						<img src={FileIcon} alt="file icon" />
+						<img src={name === "." ? FolderIcon : FileIcon} alt="file icon" />
 					</span>
 				{/if}
 				{name}
@@ -117,6 +122,7 @@
 					{interactive}
 					{ls_fn}
 					{file_count}
+					valid_for_selection={valid}
 					on:check
 				/>
 			{/if}
