@@ -3,6 +3,7 @@
 	import { BlockLabel, IconButton } from "@gradio/atoms";
 	import { File, Download, Undo } from "@gradio/icons";
 	import Canvas3D from "./Canvas3D.svelte";
+	import Canvas3DGS from "./Canvas3DGS.svelte";
 	import type { I18nFormatter } from "@gradio/utils";
 	import { dequal } from "dequal";
 
@@ -22,7 +23,9 @@
 
 	let current_settings = { camera_position, zoom_speed, pan_speed };
 
+	let canvas3dgs: Canvas3DGS;
 	let canvas3d: Canvas3D;
+	let use_3dgs = false;
 	let resolved_url: string | undefined;
 
 	function handle_undo(): void {
@@ -37,6 +40,12 @@
 		) {
 			canvas3d.reset_camera_position(camera_position, zoom_speed, pan_speed);
 			current_settings = { camera_position, zoom_speed, pan_speed };
+		}
+	}
+
+	$: {
+		if (value) {
+			use_3dgs = value?.path.endsWith(".splat") || value?.path.endsWith(".ply");
 		}
 	}
 </script>
@@ -59,15 +68,25 @@
 			</a>
 		</div>
 
-		<Canvas3D
-			bind:this={canvas3d}
-			bind:resolved_url
-			{value}
-			{clear_color}
-			{camera_position}
-			{zoom_speed}
-			{pan_speed}
-		/>
+		{#if use_3dgs}
+			<Canvas3DGS
+				bind:this={canvas3dgs}
+				bind:resolved_url
+				{value}
+				{zoom_speed}
+				{pan_speed}
+			/>
+		{:else}
+			<Canvas3D
+				bind:this={canvas3d}
+				bind:resolved_url
+				{value}
+				{clear_color}
+				{camera_position}
+				{zoom_speed}
+				{pan_speed}
+			/>
+		{/if}
 	</div>
 {/if}
 

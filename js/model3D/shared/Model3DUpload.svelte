@@ -6,6 +6,7 @@
 	import { File } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import Canvas3D from "./Canvas3D.svelte";
+	import Canvas3DGS from "./Canvas3DGS.svelte";
 
 	export let value: null | FileData;
 	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
@@ -39,9 +40,12 @@
 		dispatch("change");
 	}
 
-	let canvas3D: Canvas3D;
+	let canvas3d: Canvas3D;
+	let canvas3dgs: Canvas3DGS;
+	let use_3dgs = false;
+
 	async function handle_undo(): Promise<void> {
-		canvas3D.reset_camera_position(camera_position, zoom_speed, pan_speed);
+		canvas3d.reset_camera_position(camera_position, zoom_speed, pan_speed);
 	}
 
 	const dispatch = createEventDispatcher<{
@@ -54,6 +58,12 @@
 	let dragging = false;
 
 	$: dispatch("drag", dragging);
+
+	$: {
+		if (value) {
+			use_3dgs = value?.path.endsWith(".splat") || value?.path.endsWith(".ply");
+		}
+	}
 </script>
 
 <BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
@@ -62,7 +72,7 @@
 	<Upload
 		on:load={handle_upload}
 		{root}
-		filetype={[".stl", ".obj", ".gltf", ".glb", "model/obj"]}
+		filetype={[".stl", ".obj", ".gltf", ".glb", "model/obj", ".splat", ".ply"]}
 		bind:dragging
 	>
 		<slot />
@@ -76,14 +86,19 @@
 			on:undo={handle_undo}
 			absolute
 		/>
-		<Canvas3D
-			bind:this={canvas3D}
-			{value}
-			{clear_color}
-			{camera_position}
-			{zoom_speed}
-			{pan_speed}
-		></Canvas3D>
+
+		{#if use_3dgs}
+			<Canvas3DGS bind:this={canvas3dgs} {value} {zoom_speed} {pan_speed} />
+		{:else}
+			<Canvas3D
+				bind:this={canvas3d}
+				{value}
+				{clear_color}
+				{camera_position}
+				{zoom_speed}
+				{pan_speed}
+			/>
+		{/if}
 	</div>
 {/if}
 
