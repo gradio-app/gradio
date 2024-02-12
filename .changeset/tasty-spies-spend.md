@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-fix:Add `.key_down` event listener to `gr.Dropdown()`
+Add `.key_down` event listener to `gr.Dropdown()`
