@@ -9,7 +9,7 @@ test("applies the custom CSS styles", async ({ page }) => {
 	const animationName = await page
 		.locator(".cool-col")
 		.evaluate((node) => getComputedStyle(node).animationName);
-	expect(animationName).toBe("example");
+	expect(animationName).toBe("animation");
 
 	// Test for CSSMediaRule and CSSStyleRule
 	await page.setViewportSize({ width: 500, height: 720 });
