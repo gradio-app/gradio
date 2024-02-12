@@ -40,6 +40,13 @@ test("applies the custom font family", async ({ page }) => {
 	);
 });
 
+test("applies resources from the @import rule", async ({ page }) => {
+	await expect(page.locator(".markdown p")).toHaveCSS(
+		"font-family",
+		'"Protest Riot", sans-serif'
+	);
+});
+
 test(".dark styles are applied corrently", async ({ page }) => {
 	await page.emulateMedia({ colorScheme: "dark" });
 

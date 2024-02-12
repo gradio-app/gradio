@@ -47,13 +47,21 @@ css = """
     color: yellow;
 }
 
+/* CSSFontFaceRule */
 @font-face {
     font-family: "test-font";
     src: url("https://mdn.github.io/css-examples/web-fonts/VeraSeBd.ttf") format("truetype");
 }
 
-* {
+.cool-col {
     font-family: "test-font";
+}
+
+/* CSSImportRule */
+@import url("https://fonts.googleapis.com/css2?family=Protest+Riot&display=swap");
+
+.markdown {
+  font-family: "Protest Riot", sans-serif;
 }
 """
 

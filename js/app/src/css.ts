@@ -29,6 +29,12 @@ export function prefix_css(
 	const stylesheet = new CSSStyleSheet();
 	stylesheet.replaceSync(string);
 
+	let importString = "";
+	string = string.replace(/@import\s+url\((.*?)\);\s*/g, (match, url) => {
+		importString += `@import url(${url});\n`;
+		return ""; // remove and store any @import statements from the CSS
+	});
+
 	const rules = stylesheet.cssRules;
 
 	let css_string = "";
@@ -88,6 +94,7 @@ export function prefix_css(
 			css_string += `@font-face { ${rule.style.cssText} }`;
 		}
 	}
+	css_string = importString + css_string;
 	style_element.textContent = css_string;
 
 	document.head.appendChild(style_element);
