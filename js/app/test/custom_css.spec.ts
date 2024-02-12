@@ -34,14 +34,13 @@ test("applies the custom CSS styles", async ({ page }) => {
 });
 
 test("applies the custom font family", async ({ page }) => {
-	await expect(page.locator(".markdown p")).toHaveCSS(
-		"font-family",
-		"test-font"
-	);
+	await expect(
+		page.getByRole("heading", { name: "Gradio Demo with Custom CSS" })
+	).toHaveCSS("font-family", "test-font");
 });
 
 test("applies resources from the @import rule", async ({ page }) => {
-	await expect(page.locator(".markdown p")).toHaveCSS(
+	await expect(page.getByText("Resize the browser window to")).toHaveCSS(
 		"font-family",
 		'"Protest Riot", sans-serif'
 	);
