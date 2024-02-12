@@ -6,6 +6,7 @@ These are used by load_from_pipeline method in pipelines.py.
 from typing import Any
 
 from gradio import components
+from PIL import Image
 
 
 def _handle_transformers_pipeline(pipeline: Any) -> dict:
@@ -229,7 +230,6 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
     try:
         import diffusers
         from diffusers import pipelines as diffuser_pipelines
-        from PIL import Image
 
     except ImportError as ie:
         raise ImportError(
