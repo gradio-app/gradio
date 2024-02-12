@@ -33,15 +33,26 @@ test("applies the custom CSS styles", async ({ page }) => {
 	);
 });
 
-test('.dark styles are applied corrently', async ({ page }) => {
-	await page.emulateMedia({ colorScheme: 'dark' });
+test(".dark styles are applied corrently", async ({ page }) => {
+	await page.emulateMedia({ colorScheme: "dark" });
 
-	await expect(page.locator('.markdown').nth(1)).toHaveCSS('background-color', 'rgb(255, 192, 203)');
-	await expect(page.locator('.darktest h3')).toHaveCSS('color', 'rgb(255, 255, 0)');
+	await expect(page.locator(".markdown").nth(1)).toHaveCSS(
+		"background-color",
+		"rgb(255, 192, 203)"
+	);
+	await expect(page.locator(".darktest h3")).toHaveCSS(
+		"color",
+		"rgb(255, 255, 0)"
+	);
 
-	await page.emulateMedia({ colorScheme: 'light' });
+	await page.emulateMedia({ colorScheme: "light" });
 
-	await expect(page.locator('.markdown').nth(1)).toHaveCSS('background-color', "rgb(173, 216, 230)");
-	await expect(page.locator('.darktest h3')).toHaveCSS('color', 'rgb(31, 41, 55)');
-
+	await expect(page.locator(".markdown").nth(1)).toHaveCSS(
+		"background-color",
+		"rgb(173, 216, 230)"
+	);
+	await expect(page.locator(".darktest h3")).toHaveCSS(
+		"color",
+		"rgb(31, 41, 55)"
+	);
 });
