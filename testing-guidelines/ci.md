@@ -2,16 +2,16 @@
 
 The CI for Gradio uses GitHub Actions and almost all of the configuration to run the CI exists within the repo. 
 
-The one two cardinal rules that we have for CI are that:
+The two cardinal rules that we have for CI are that:
 
 - CI should run on _all_ pull requests, whether those PRs are made from forks or from a branch within the repo.
 - These runs must be secure and _never_ leak any secrets, even if the run needs to have access to secrets in order to run successfully.
 
-More information onm how we achieve this can be found in the [architecture section of this document](#architecture).
+More information on how we achieve this can be found in the [architecture section of this document](#architecture).
 
 ## High-level overview
 
-Broadly speaking, CI is plit into three main parts. 
+Broadly speaking, CI is split into three main parts. 
 
 - Quality
 - Deployments
@@ -58,9 +58,9 @@ This is a simple breakdown of our current quality checks:
 | n/a        | Notebooks match | linux            | `test-hygiene.yml`       | Ensures that notebooks and demos are in sync |
 
 
-One important thing to note is that we split 'flaky' and 'non-flaky' python unit/ integration test out. These test are flaky because of network requests that they make, they are typically fine but anything that can cause a red check in PRs makes us less trustworthy of our Ci and confidence is the goal! The windows test are also very slow and only test a few edge cases. The flaky and windows tests are not run in every PR but are always run against the release PR to ensure everything is working as expected prior to a release. All other checks are run for every pull request, ensuring everything will work when we merge into `main`.
+One important thing to note is that we split 'flaky' and 'non-flaky' Python unit/integration tests out. These tests are flaky because of network requests that they make. They are typically fine, but anything that can cause a red check in PRs makes us less trustworthy of our CI and confidence is the goal! The Windows tests are also very slow and only test a few edge cases. The flaky and windows tests are not run in every PR, but are always run against the release PR to ensure everything is working as expected prior to a release. All other checks are run for every pull request, ensuring everything will work when we merge into `main`.
 
-For more information about the tests and tools that we use and our approach to quality, check the [testing-strategy](https://github.com/gradio-app/gradio/blob/main/testing-guidelines/quality-strategy.md) document. For mroe information on how to run and write tests, see the [contributing guide](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md).
+For more information about the tests and tools that we use and our approach to quality, check the [testing-strategy](https://github.com/gradio-app/gradio/blob/main/testing-guidelines/quality-strategy.md) document. For more information on how to run and write tests, see the [contributing guide](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md).
 
 
 ### Deployments
@@ -75,13 +75,13 @@ We have three different deployment types that happen when a pull request is crea
 
 When a PR is created and source code has changed, a preview of the website is created.
 
-When a PR is merged into main the production version of the website is redeployed with the latest changes. 
+When a PR is merged into `main` the production version of the website is redeployed with the latest changes. 
 
 Documentation is stored by version, `main` represents the current version of the repo which may or may not match the latest release version. The process of generating documentation is roughly like this:
 
 - In Pull Requests, `main` documentation is built from the pull request branch, reflecting the latest changes in that PR (when selecting the `main` option on the docs or guides).
-- When we merge a normal Pull Request into `main` the  documentation is built from the repo, reflecting the latest changes on `main` The demo spaces are also redeployed to Hugging Face Spaces at this point (the space variant with the `main_` prefix).
-- When a new version of gradio is released (when a versioning PR is merged), the current documentation in the repo is deployed under a version tag. So for version `3.1.1` the current docs and guides in main will be available under that version for eternity. At this point `main` (built from source) and `3.1.1` (built from source and stored in the cloud) are equivalent. We also redeploy demo spaces when a new Gradio version is released, this time without the `main_` prefix).
+- When we merge a normal pull request into `main` the documentation is built from the repo, reflecting the latest changes on `main`. The demo spaces are also redeployed to Hugging Face Spaces at this point (the space variant with the `main_` prefix).
+- When a new version of Gradio is released (when a versioning PR is merged), the current documentation in the repo is deployed under a version tag. So for version `3.1.1` the current docs and guides in main will be available under that version for eternity. At this point `main` (built from source) and `3.1.1` (built from source and stored in the cloud) are equivalent. We also redeploy demo spaces when a new Gradio version is released, this time without the `main_` prefix.
 
 > [!NOTE]
 > Our non-main documentation is all stored in S3.
@@ -92,9 +92,9 @@ Documentation is stored by version, `main` represents the current version of the
 
 For every pull request we deploy a Gradio app to Hugging Face Spaces. This allows us to test out new features and check for any obvious issues. This process is follows:
 
-- Build gradio and create a wheel
+- Build Gradio and create a wheel
 - Upload the wheel to S3
-- Copy certain demos to a folder with somne configuration
+- Copy certain demos to a folder with some configuration
 - Create a requirements.txt contain links to the uploaded wheels
 - Create the necessary spaces configuration (via a README.md file)
 - Create a space using the `huggingface_hub` library
@@ -104,7 +104,7 @@ These spaces are cleaned up after a certain period of time has passed, the wheel
 
 #### storybook
 
-We redeploy storybook on every pull request that contains changes to the js source code to allow users to preview visual changes. Each PR is commented with a link to the storybook deployment. This deployment is also responsible for our visual tests as they are part of the same process.
+We redeploy storybook on every pull request that contains changes to the frontend source code to allow users to preview visual changes. Each PR is commented with a link to the storybook deployment. This deployment is also responsible for our visual tests as they are part of the same process.
 
 The storybook deploment process is relatively simple as we use an action created by the storybook developers and use their service (chromatic) to handle this:
 
