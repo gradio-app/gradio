@@ -58,7 +58,7 @@ export function prefix_css(
 			for (let j = 0; j < rule.cssRules.length; j++) {
 				const innerRule = rule.cssRules[j];
 				if (innerRule instanceof CSSStyleRule) {
-					let is_dark_rule = innerRule.cssText.includes(".dark");
+					let is_dark_rule = innerRule.cssText.includes(".dark ");
 					const selector = innerRule.selectorText;
 					const new_selector = selector
 						.replace(".dark", "")
@@ -84,6 +84,8 @@ export function prefix_css(
 				}
 			}
 			css_string += "}";
+		} else if (rule instanceof CSSFontFaceRule) {
+			css_string += `@font-face { ${rule.style.cssText} }`;
 		}
 	}
 	style_element.textContent = css_string;
