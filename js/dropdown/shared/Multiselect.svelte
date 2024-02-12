@@ -42,6 +42,7 @@
 		select: SelectData;
 		blur: undefined;
 		focus: undefined;
+		type: undefined;
 	}>();
 
 	// Setting the initial value of the multiselect dropdown
@@ -187,6 +188,7 @@
 			show_options = false;
 			active_index = null;
 		}
+		dispatch("type");
 	}
 
 	function set_selected_indices(): void {

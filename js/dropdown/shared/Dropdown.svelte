@@ -185,6 +185,7 @@
 				filter_input.blur();
 			}
 		}
+		dispatch("type");
 	}
 
 	afterUpdate(() => {
@@ -214,7 +215,6 @@
 					on:keydown={handle_key_down}
 					on:blur={handle_blur}
 					on:focus={handle_focus}
-					on:keydown={() => dispatch("type")}
 					readonly={!filterable}
 				/>
 				{#if !disabled}
