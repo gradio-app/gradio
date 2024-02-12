@@ -188,7 +188,7 @@
 			show_options = false;
 			active_index = null;
 		}
-		dispatch("type");
+		dispatch("key_down");
 	}
 
 	function set_selected_indices(): void {

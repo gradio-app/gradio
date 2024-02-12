@@ -73,7 +73,7 @@
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
-			on:type={() => gradio.dispatch("type")}
+			on:type={() => gradio.dispatch("key_down")}
 			disabled={!interactive}
 		/>
 	{:else}
@@ -92,7 +92,7 @@
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
-			on:type={() => gradio.dispatch("type")}
+			on:type={() => gradio.dispatch("key_down")}
 			disabled={!interactive}
 		/>
 	{/if}

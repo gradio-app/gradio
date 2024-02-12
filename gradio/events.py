@@ -516,9 +516,9 @@ class Events:
         "load",
         doc="This listener is triggered when the {{ component }} initially loads in the browser.",
     )
-    type = EventListener(
-        "type",
-        doc="This listener is triggered when the user types into the {{ component }}.",
+    key_down = EventListener(
+        "key_down",
+        doc="This listener is triggered when the user presses a key while the {{ component }} is focused.",
     )
 
 

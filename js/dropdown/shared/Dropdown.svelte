@@ -185,7 +185,7 @@
 				filter_input.blur();
 			}
 		}
-		dispatch("type");
+		dispatch("key_down");
 	}
 
 	afterUpdate(() => {
