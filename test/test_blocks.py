@@ -7,7 +7,6 @@ import random
 import sys
 import time
 import uuid
-import warnings
 from concurrent.futures import wait
 from contextlib import contextmanager
 from functools import partial
@@ -829,21 +828,23 @@ class TestStateHolder:
             dropdown = gr.Dropdown(label="list", choices=["Choice 1"], interactive=True)
             button = gr.Button("Get dropdown value")
             button2 = gr.Button("Convert dropdown to multiselect")
-            button.click(lambda x:x, inputs=dropdown, outputs=dropdown)
-            button2.click(lambda :gr.Dropdown(multiselect=True), outputs=dropdown)
+            button.click(lambda x: x, inputs=dropdown, outputs=dropdown)
+            button2.click(lambda: gr.Dropdown(multiselect=True), outputs=dropdown)
 
         app, _, _ = demo.launch(prevent_thread_lock=True)
         client = TestClient(app)
 
         response = client.post(
-            "/api/predict/", json={"data": ["Choice 1"], "session_hash": "1", "fn_index": 0}
+            "/api/predict/",
+            json={"data": ["Choice 1"], "session_hash": "1", "fn_index": 0},
         )
         assert response.json()["data"][0] == "Choice 1"
         response = client.post(
             "/api/predict/", json={"data": [], "session_hash": "1", "fn_index": 1}
         )
         response = client.post(
-            "/api/predict/", json={"data": ["Choice 1"], "session_hash": "1", "fn_index": 0}
+            "/api/predict/",
+            json={"data": ["Choice 1"], "session_hash": "1", "fn_index": 0},
         )
         assert response.json()["data"][0] == ["Choice 1"]
 
