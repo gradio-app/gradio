@@ -122,6 +122,21 @@ class SelectData(EventData):
         """
 
 
+class KeyDownData(EventData):
+    def __init__(self, target: Block | None, data: Any):
+        super().__init__(target, data)
+        self.key: str = data["key"]
+        """
+        The key that was pressed.
+        """
+        self.input_value: str = data["input_value"]
+        """
+        The value of the input component after the key was pressed. This may be different than the value
+        of the component itself, as the value of some components (e.g. Dropdown) are not updated until the
+        user presses Enter.
+        """
+
+
 @dataclasses.dataclass
 class EventListenerMethod:
     block: Block | None

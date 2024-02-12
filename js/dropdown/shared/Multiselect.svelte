@@ -3,7 +3,7 @@
 	import { _, number } from "svelte-i18n";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
-	import type { SelectData, I18nFormatter } from "@gradio/utils";
+	import type { KeyDownData, SelectData, I18nFormatter } from "@gradio/utils";
 	import DropdownOptions from "./DropdownOptions.svelte";
 	import { handle_filter, handle_change, handle_shared_keys } from "./utils";
 
@@ -42,7 +42,7 @@
 		select: SelectData;
 		blur: undefined;
 		focus: undefined;
-		key_down: undefined;
+		key_down: KeyDownData;
 	}>();
 
 	// Setting the initial value of the multiselect dropdown
@@ -188,7 +188,10 @@
 			show_options = false;
 			active_index = null;
 		}
-		dispatch("key_down");
+		dispatch("key_down", {
+			key: e.key,
+			input_value: input_text,
+		});
 	}
 
 	function set_selected_indices(): void {

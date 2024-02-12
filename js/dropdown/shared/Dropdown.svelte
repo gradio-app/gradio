@@ -3,7 +3,7 @@
 	import { createEventDispatcher, afterUpdate } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { DropdownArrow } from "@gradio/icons";
-	import type { SelectData } from "@gradio/utils";
+	import type { SelectData, KeyDownData } from "@gradio/utils";
 	import { handle_filter, handle_change, handle_shared_keys } from "./utils";
 
 	export let label: string;
@@ -42,7 +42,7 @@
 		select: SelectData;
 		blur: undefined;
 		focus: undefined;
-		key_down: undefined;
+		key_down: KeyDownData;
 	}>();
 
 	// Setting the initial value of the dropdown
@@ -185,7 +185,10 @@
 				filter_input.blur();
 			}
 		}
-		dispatch("key_down");
+		dispatch("key_down", {
+			key: e.key,
+			input_value: input_text,
+		});
 	}
 
 	afterUpdate(() => {

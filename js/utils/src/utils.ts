@@ -5,10 +5,17 @@ export interface SelectData {
 	selected?: boolean;
 }
 
+
+
 export interface LikeData {
 	index: number | [number, number];
 	value: any;
 	liked?: boolean;
+}
+
+export interface KeyDownData {
+	key: string;
+	input_value: string;
 }
 
 export interface ShareData {
