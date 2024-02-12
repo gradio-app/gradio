@@ -1,6 +1,6 @@
-# Test Strategy
+# Quality Strategy
 
-Very brief, mildly aspirational test strategy document. This isn't where we are but it is where we want to get to.
+Very brief, mildly aspirational quality strategy document. This isn't where we are but it is where we want to get to.
 
 This document does not detail how to setup an environment or how to run the tests locally nor does it contain any best practices that we try to follow when writing tests, that information exists in the [contributing guide](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md).
 
@@ -63,12 +63,12 @@ We currently use the following tools:
 
 ### Static quality checks
 
-- Python type-checking (python)
-- Black linting (python)
 - ruff formatting (python)
+- ruff linting (python)
+- pyright type-checking (python)
 - prettier formatting (javascript/svelte)
+- eslint linting (javascript/svelte)
 - TypeScript type-checking (javascript/svelte)
-- eslint linting (javascript/svelte) [in progress]
 
 ### Dynamic code tests
 
@@ -79,7 +79,7 @@ We currently use the following tools:
 ### Functional/acceptance tests
 
 - playwright (full end to end testing)
-- chromatic (visual testing) [in progress]
+- chromatic (visual testing)
 - Accessibility testing [to do]
 
 ## Supported environments and versions
