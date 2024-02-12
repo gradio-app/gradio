@@ -65,11 +65,16 @@ class TestUtils:
         assert out_article == in_article
 
         # only files with HTTP(S) URL can be downloaded
-        in_article = "ftp:///tmp/index.html"
+        in_article = "ftp://localhost/tmp/index.html"
         out_article = download_if_url(in_article)
         assert out_article == in_article
 
         in_article = "file:///C:/tmp/index.html"
+        out_article = download_if_url(in_article)
+        assert out_article == in_article
+
+        # this address will raise ValueError during parsing
+        in_article = "https://[unmatched_bracket#?:@/index.html"
         out_article = download_if_url(in_article)
         assert out_article == in_article
 
