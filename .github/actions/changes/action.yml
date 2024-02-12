@@ -61,7 +61,7 @@ runs:
       id: changes
       with:
         base: main
-        ref: ${{ steps.pr.outputs.sha }}
+        ref: ${{ steps.pr.outputs.sha == github.sha && 'main' || steps.pr.outputs.sha }}
         filters: |
           gradio:
             - 'client/python/**'

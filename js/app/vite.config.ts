@@ -37,7 +37,7 @@ import {
 
 const GRADIO_VERSION = version_raw || "asd_stub_asd";
 const CDN_BASE = "https://gradio.s3-us-west-2.amazonaws.com";
-const TEST_MODE = process.env.TEST_MODE || "jsdom";
+const TEST_MODE = process.env.TEST_MODE || "happy-dom";
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {
@@ -50,12 +50,14 @@ export default defineConfig(({ mode }) => {
 	const development = mode === "development" || mode === "development:lite";
 	const is_lite = mode.endsWith(":lite");
 
+	const is_e2e_test = process.env.GRADIO_E2E_TEST_LITE;
+
 	return {
 		base: "./",
 
 		server: {
 			port: 9876,
-			open: is_lite ? "/lite.html" : "/"
+			open: is_e2e_test ? false : is_lite ? "/lite.html" : "/"
 		},
 
 		build: {

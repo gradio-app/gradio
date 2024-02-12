@@ -11,7 +11,6 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import { Block, UploadText } from "@gradio/atoms";
 	import type { WaveformOptions } from "./shared/types";
-	import { normalise_file } from "@gradio/client";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -26,7 +25,6 @@
 	export let label: string;
 	export let root: string;
 	export let show_label: boolean;
-	export let proxy_url: null | string;
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -56,9 +54,7 @@
 		share: ShareData;
 	}>;
 
-	let old_value: null | FileData | string = null;
-	let _value: null | FileData;
-	$: _value = normalise_file(value, root, proxy_url);
+	let old_value: null | FileData = null;
 
 	let active_source: "microphone" | "upload";
 
@@ -152,7 +148,7 @@
 			{show_label}
 			{show_download_button}
 			{show_share_button}
-			value={_value}
+			{value}
 			{label}
 			{waveform_settings}
 			{waveform_options}
@@ -185,7 +181,7 @@
 			{label}
 			{show_label}
 			{show_download_button}
-			value={_value}
+			{value}
 			on:change={({ detail }) => (value = detail)}
 			on:stream={({ detail }) => {
 				value = detail;

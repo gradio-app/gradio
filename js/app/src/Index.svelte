@@ -62,7 +62,7 @@
 </script>
 
 <script lang="ts">
-	import { onMount, setContext } from "svelte";
+	import { onMount, setContext, createEventDispatcher } from "svelte";
 	import type { api_factory, SpaceStatus } from "@gradio/client";
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./types";
@@ -73,6 +73,8 @@
 	import { setWorkerProxyContext } from "@gradio/wasm/svelte";
 
 	setupi18n();
+
+	const dispatch = createEventDispatcher();
 
 	export let autoscroll: boolean;
 	export let version: string;
@@ -250,8 +252,7 @@
 				: host || space || src || location.origin;
 
 		app = await client(api_url, {
-			status_callback: handle_status,
-			normalise_files: false
+			status_callback: handle_status
 		});
 		config = app.config;
 		window.__gradio_space__ = config.space_id;
@@ -268,6 +269,8 @@
 		css_ready = true;
 		window.__is_colab__ = config.is_colab;
 
+		dispatch("loaded");
+
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(api_url);
@@ -276,8 +279,7 @@
 				eventSource.onmessage = async function (event) {
 					if (event.data === "CHANGE") {
 						app = await client(api_url, {
-							status_callback: handle_status,
-							normalise_files: false
+							status_callback: handle_status
 						});
 
 						config = app.config;

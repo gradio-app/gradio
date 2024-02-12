@@ -35,8 +35,10 @@ describe("Gallery", () => {
 			value: [
 				{
 					image: {
-						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-					}
+						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+					},
+					caption: null
 				}
 			]
 		});
@@ -58,8 +60,10 @@ describe("Gallery", () => {
 			value: [
 				{
 					image: {
-						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-					}
+						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+					},
+					caption: null
 				}
 			]
 		});
@@ -69,8 +73,10 @@ describe("Gallery", () => {
 			value: [
 				{
 					image: {
-						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-					}
+						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+					},
+					caption: null
 				}
 			]
 		});
