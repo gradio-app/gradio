@@ -86,7 +86,7 @@ Documentation is stored by version, `main` represents the current version of the
 > [!NOTE]
 > Our non-main documentation is all stored in S3.
 > Each version `x.x.x` has its own folder containing a JSON file with all docs and guides.
-> They live forever.
+> They are immortal.
 
 #### spaces
 
