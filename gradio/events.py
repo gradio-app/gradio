@@ -516,6 +516,10 @@ class Events:
         "load",
         doc="This listener is triggered when the {{ component }} initially loads in the browser.",
     )
+    type = EventListener(
+        "type",
+        doc="This listener is triggered when the user types into the {{ component }}.",
+    )
 
 
 class LikeData(EventData):

@@ -42,6 +42,7 @@
 		select: SelectData;
 		blur: undefined;
 		focus: undefined;
+		type: undefined;
 	}>();
 
 	// Setting the initial value of the dropdown
@@ -213,6 +214,7 @@
 					on:keydown={handle_key_down}
 					on:blur={handle_blur}
 					on:focus={handle_focus}
+					on:keydown={() => dispatch("type")}
 					readonly={!filterable}
 				/>
 				{#if !disabled}
