@@ -11,6 +11,6 @@ with gr.Blocks() as demo:
     d = gr.Dropdown(["abc", "def"], allow_custom_value=True)
     t = gr.JSON()
     d.key_down(test, d, t)
-    
+
 if __name__ == "__main__":
     demo.launch()
