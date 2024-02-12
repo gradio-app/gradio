@@ -47,6 +47,14 @@ css = """
     color: yellow;
 }
 
+@font-face {
+    font-family: "test-font";
+    src: url("https://mdn.github.io/css-examples/web-fonts/VeraSeBd.ttf") format("truetype");
+}
+
+* {
+    font-family: "test-font";
+}
 """
 
 with gr.Blocks(css=css) as demo:

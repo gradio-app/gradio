@@ -33,6 +33,13 @@ test("applies the custom CSS styles", async ({ page }) => {
 	);
 });
 
+test("applies the custom font family", async ({ page }) => {
+	await expect(page.locator(".markdown p")).toHaveCSS(
+		"font-family",
+		"test-font"
+	);
+});
+
 test(".dark styles are applied corrently", async ({ page }) => {
 	await page.emulateMedia({ colorScheme: "dark" });
 
