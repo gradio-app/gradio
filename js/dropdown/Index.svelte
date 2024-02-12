@@ -35,7 +35,7 @@
 		select: SelectData;
 		blur: never;
 		focus: never;
-		type: never;
+		key_down: never;
 	}>;
 	export let interactive: boolean;
 </script>
@@ -73,7 +73,7 @@
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
-			on:type={() => gradio.dispatch("key_down")}
+			on:key_down={() => gradio.dispatch("key_down")}
 			disabled={!interactive}
 		/>
 	{:else}
@@ -92,7 +92,7 @@
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
-			on:type={() => gradio.dispatch("key_down")}
+			on:key_down={() => gradio.dispatch("key_down")}
 			disabled={!interactive}
 		/>
 	{/if}

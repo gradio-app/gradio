@@ -42,7 +42,7 @@
 		select: SelectData;
 		blur: undefined;
 		focus: undefined;
-		type: undefined;
+		key_down: undefined;
 	}>();
 
 	// Setting the initial value of the dropdown
