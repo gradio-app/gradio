@@ -7,7 +7,6 @@ import warnings
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import httpx
 import pytest
 from typing_extensions import Literal
 
@@ -20,6 +19,7 @@ from gradio.utils import (
     check_function_inputs_match,
     colab_check,
     delete_none,
+    download_if_url,
     get_continuous_fn,
     get_extension_from_file_path_or_url,
     get_type_hints,
@@ -27,7 +27,6 @@ from gradio.utils import (
     is_in_or_equal,
     is_special_typed_parameter,
     kaggle_check,
-    download_if_url,
     sagemaker_check,
     sanitize_list_for_csv,
     sanitize_value_for_csv,
