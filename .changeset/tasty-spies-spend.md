@@ -1,6 +1,7 @@
 ---
-"@gradio/dropdown": patch
-"gradio": patch
+"@gradio/dropdown": minor
+"@gradio/utils": minor
+"gradio": minor
 ---
 
-fix:Retain dropdown value if choices have been changed
+fix:Add `.key_down` event listener to `gr.Dropdown()`
