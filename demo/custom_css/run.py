@@ -71,4 +71,4 @@ with gr.Blocks(css=css) as demo:
         gr.Markdown(elem_classes="markdown", value="Resize the browser window to see the CSS media query in action.")
 
 if __name__ == "__main__":
-    demo.launch(allowed_paths=['./'])
+    demo.launch()
