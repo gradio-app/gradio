@@ -187,7 +187,7 @@
 		}
 		dispatch("key_down", {
 			key: e.key,
-			input_value: input_text,
+			input_value: input_text
 		});
 	}
 

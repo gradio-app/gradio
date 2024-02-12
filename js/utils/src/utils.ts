@@ -5,8 +5,6 @@ export interface SelectData {
 	selected?: boolean;
 }
 
-
-
 export interface LikeData {
 	index: number | [number, number];
 	value: any;
