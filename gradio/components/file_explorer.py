@@ -158,7 +158,7 @@ class FileExplorer(Component):
     def ls(self, subdirectory: list | None = None) -> list[dict[str, str]] | None:
         """
         Returns:
-            tuple of list of files in directory, then list of folders in directory
+            a list of dictionaries, where each dictionary represents a file or subdirectory in the given subdirectory
         """
         if subdirectory is None:
             subdirectory = []
