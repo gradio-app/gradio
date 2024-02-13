@@ -4,7 +4,6 @@
 
 	export let items: any[][] = [];
 
-	export let table_width: number;
 	export let max_height: number;
 	export let actual_height: number;
 	export let table_scrollbar_width: number;
@@ -25,12 +24,15 @@
 	let viewport: HTMLTableElement;
 	let viewport_height = 0;
 	let visible: { index: number; data: any[] }[] = [];
+	let viewport_box: DOMRectReadOnly;
+
+	$: viewport_height = viewport_box?.height || 0;
 
 	$: if (mounted) requestAnimationFrame(() => refresh_height_map(sortedItems));
 
 	let content_height = 0;
 	async function refresh_height_map(_items: typeof items): Promise<void> {
-		if (viewport_height === 0 || table_width === 0) {
+		if (viewport_height === 0) {
 			return;
 		}
 		const { scrollTop } = viewport;
@@ -83,6 +85,7 @@
 	}
 
 	$: scroll_and_render(selected);
+
 	async function scroll_and_render(n: number | false): Promise<void> {
 		requestAnimationFrame(async () => {
 			if (typeof n !== "number") return;
@@ -244,7 +247,7 @@
 	<table
 		class="table"
 		bind:this={viewport}
-		bind:offsetHeight={viewport_height}
+		bind:contentRect={viewport_box}
 		on:scroll={handle_scroll}
 		style="height: {height}; --bw-svt-p-top: {top}px; --bw-svt-p-bottom: {bottom}px; --bw-svt-head-height: {head_height}px; --bw-svt-foot-height: {foot_height}px; --bw-svt-avg-row-height: {average_height}px"
 	>

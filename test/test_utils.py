@@ -27,7 +27,7 @@ from gradio.utils import (
     is_in_or_equal,
     is_special_typed_parameter,
     kaggle_check,
-    readme_to_html,
+    download_if_url,
     sagemaker_check,
     sanitize_list_for_csv,
     sanitize_value_for_csv,
@@ -54,13 +54,34 @@ class TestUtils:
         mock_get_ipython.return_value = None
         assert ipython_check() is False
 
-    @patch("httpx.get")
-    def test_readme_to_html_doesnt_crash_on_connection_error(self, mock_get):
-        mock_get.side_effect = httpx.ConnectError("Connection error")
-        readme_to_html("placeholder")
+    def test_download_if_url_doesnt_crash_on_connection_error(self):
+        in_article = "placeholder"
+        out_article = download_if_url(in_article)
+        assert out_article == in_article
 
-    def test_readme_to_html_correct_parse(self):
-        readme_to_html("https://github.com/gradio-app/gradio/blob/master/README.md")
+        # non-printable characters are not allowed in URL address
+        in_article = "text\twith\rnon-printable\nASCII\x00characters"
+        out_article = download_if_url(in_article)
+        assert out_article == in_article
+
+        # only files with HTTP(S) URL can be downloaded
+        in_article = "ftp://localhost/tmp/index.html"
+        out_article = download_if_url(in_article)
+        assert out_article == in_article
+
+        in_article = "file:///C:/tmp/index.html"
+        out_article = download_if_url(in_article)
+        assert out_article == in_article
+
+        # this address will raise ValueError during parsing
+        in_article = "https://[unmatched_bracket#?:@/index.html"
+        out_article = download_if_url(in_article)
+        assert out_article == in_article
+
+    def test_download_if_url_correct_parse(self):
+        in_article = "https://github.com/gradio-app/gradio/blob/master/README.md"
+        out_article = download_if_url(in_article)
+        assert out_article != in_article
 
     def test_sagemaker_check_false(self):
         assert not sagemaker_check()

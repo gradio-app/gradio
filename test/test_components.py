@@ -854,8 +854,9 @@ class TestAudio:
         with pytest.raises(ValueError):
             gr.Audio(type="unknown")
 
+        rng = np.random.default_rng()
         # Confirm Audio can be instantiated with a numpy array
-        gr.Audio((100, np.random.random(size=(1000, 2))), label="Play your audio")
+        gr.Audio((100, rng.random(size=(1000, 2))), label="Play your audio")
 
         # Output functionalities
         y_audio = client_utils.decode_base64_to_file(

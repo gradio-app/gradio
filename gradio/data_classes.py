@@ -7,7 +7,7 @@ import secrets
 import shutil
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from fastapi import Request
 from gradio_client.utils import traverse
@@ -15,8 +15,8 @@ from typing_extensions import Literal
 
 from . import wasm_utils
 
-if not wasm_utils.IS_WASM:
-    from pydantic import BaseModel, RootModel, ValidationError  # type: ignore
+if not wasm_utils.IS_WASM or TYPE_CHECKING:
+    from pydantic import BaseModel, RootModel, ValidationError
 else:
     # XXX: Currently Pyodide V2 is not available on Pyodide,
     # so we install V1 for the Wasm version.
@@ -27,7 +27,20 @@ else:
 
     # Map V2 method calls to V1 implementations.
     # Ref: https://docs.pydantic.dev/latest/migration/#changes-to-pydanticbasemodel
-    class BaseModel(BaseModelV1):
+    class BaseModelMeta(type(BaseModelV1)):
+        def __new__(cls, name, bases, dct):
+            # Override `dct` to dynamically create a `Config` class based on `model_config`.
+            if "model_config" in dct:
+                config_class = type("Config", (), {})
+                for key, value in dct["model_config"].items():
+                    setattr(config_class, key, value)
+                dct["Config"] = config_class
+                del dct["model_config"]
+
+            model_class = super().__new__(cls, name, bases, dct)
+            return model_class
+
+    class BaseModel(BaseModelV1, metaclass=BaseModelMeta):
         pass
 
     BaseModel.model_dump = BaseModel.dict  # type: ignore

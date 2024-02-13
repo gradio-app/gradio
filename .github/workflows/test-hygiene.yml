@@ -32,10 +32,6 @@ jobs:
         with:
           type: "all"
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: echo github context
-        if: always()
-        run: echo "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
-  
   test-hygiene:
     name: "test-hygiene"
     runs-on: ubuntu-latest
@@ -48,7 +44,7 @@ jobs:
           repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
       - name: Generate Notebooks
         run: |
-          pip install nbformat && cd demo && python generate_notebooks.py
+          pip install nbformat && python scripts/generate_notebooks.py
       - name: Print Git Status
         run: echo $(git status) && echo $(git diff)
       - name: Assert Notebooks Match 

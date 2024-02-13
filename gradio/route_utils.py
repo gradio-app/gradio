@@ -261,14 +261,18 @@ async def call_process_api(
     return output
 
 
-def strip_url(orig_url: str) -> str:
+def get_root_url(request: fastapi.Request) -> str:
     """
-    Strips the query parameters and trailing slash from a URL.
+    Gets the root url of the request, stripping off any query parameters and trailing slashes.
+    Also ensures that the root url is https if the request is https.
     """
-    parsed_url = httpx.URL(orig_url)
-    stripped_url = parsed_url.copy_with(query=None)
-    stripped_url = str(stripped_url)
-    return stripped_url.rstrip("/")
+    root_url = str(request.url)
+    root_url = httpx.URL(root_url)
+    root_url = root_url.copy_with(query=None)
+    root_url = str(root_url)
+    if request.headers.get("x-forwarded-proto") == "https":
+        root_url = root_url.replace("http://", "https://")
+    return root_url.rstrip("/")
 
 
 def _user_safe_decode(src: bytes, codec: str) -> str:

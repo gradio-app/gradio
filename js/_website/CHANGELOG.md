@@ -1,17 +1,24 @@
 # website
 
+## 0.23.1
+
+### Patch Changes
+
+- Updated dependencies [[`c1a7ea7`](https://github.com/gradio-app/gradio/commit/c1a7ea7c0c294aa970624f02225717c12bcf9b58)]:
+  - @gradio/code@0.5.0
+
 ## 0.23.0
 
 ### Features
 
-- [#7116](https://github.com/gradio-app/gradio/pull/7116) [`3c8c4ac`](https://github.com/gradio-app/gradio/commit/3c8c4ac2db284e1cb503c397205a79a6dcc27e23) - Document the `gr.ParamViewer` component, and fix component preprocessing/postprocessing docstrings.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7116](https://github.com/gradio-app/gradio/pull/7116) [`3c8c4ac`](https://github.com/gradio-app/gradio/commit/3c8c4ac2db284e1cb503c397205a79a6dcc27e23) - Document the `gr.ParamViewer` component, and fix component preprocessing/postprocessing docstrings. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.22.0
 
 ### Features
 
-- [#6970](https://github.com/gradio-app/gradio/pull/6970) [`dfe1f08`](https://github.com/gradio-app/gradio/commit/dfe1f08ae216dca8bac8e2d992ebde1f8746c795) - Style changes to custom components gallery.  Thanks [@aliabd](https://github.com/aliabd)!
-- [#7080](https://github.com/gradio-app/gradio/pull/7080) [`6654a32`](https://github.com/gradio-app/gradio/commit/6654a32ebad3c5b9f762d8e9e531f29152625819) - start cc docs guide.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6970](https://github.com/gradio-app/gradio/pull/6970) [`dfe1f08`](https://github.com/gradio-app/gradio/commit/dfe1f08ae216dca8bac8e2d992ebde1f8746c795) - Style changes to custom components gallery. Thanks [@aliabd](https://github.com/aliabd)!
+- [#7080](https://github.com/gradio-app/gradio/pull/7080) [`6654a32`](https://github.com/gradio-app/gradio/commit/6654a32ebad3c5b9f762d8e9e531f29152625819) - start cc docs guide. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.21.3
 

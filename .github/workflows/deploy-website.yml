@@ -39,10 +39,6 @@ jobs:
           type: "website"
           token: ${{ secrets.GITHUB_TOKEN }}
           commit_status: false
-      - name: echo github context
-        if: always()
-        run: echo "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
-
   comment-deploy-start:
     needs: changes
     uses: "./.github/workflows/comment-queue.yml"
@@ -78,12 +74,6 @@ jobs:
           aws s3 cp ./js/_website/src/lib/json/ s3://gradio-docs-json/$version/ --recursive
       - name: Install Vercel CLI
         run: pnpm install --global vercel@latest
-      - name: echo outputs
-        run: |
-          echo "source_repo=${{ needs.changes.outputs.source_repo }}"
-          echo "source_branch=${{ needs.changes.outputs.source_branch }}"
-          echo "found_pr=${{ needs.changes.outputs.found_pr }}"
-          echo "pr_number=${{ needs.changes.outputs.pr_number }}"
       # preview
       - name: Pull Vercel Environment Information
         shell: bash

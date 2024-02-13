@@ -287,6 +287,12 @@ def _replace_old_class_name(old_class_name: str, new_class_name: str, content: s
     return re.sub(pattern, new_class_name, content)
 
 
+def _strip_document_lines(content: str):
+    return "\n".join(
+        [line for line in content.split("\n") if not line.startswith("@document(")]
+    )
+
+
 def _create_backend(
     name: str, component: ComponentFiles, directory: Path, package_name: str
 ):
@@ -388,11 +394,11 @@ __all__ = ['{name}']
         shutil.copy(str(source_pyi_file), str(pyi_file))
 
     content = python_file.read_text()
-    python_file.write_text(
-        _replace_old_class_name(correct_cased_template, name, content)
-    )
+    content = _replace_old_class_name(correct_cased_template, name, content)
+    content = _strip_document_lines(content)
+    python_file.write_text(content)
     if pyi_file.exists():
         pyi_content = pyi_file.read_text()
-        pyi_file.write_text(
-            _replace_old_class_name(correct_cased_template, name, pyi_content)
-        )
+        pyi_content = _replace_old_class_name(correct_cased_template, name, content)
+        pyi_content = _strip_document_lines(pyi_content)
+        pyi_file.write_text(pyi_content)

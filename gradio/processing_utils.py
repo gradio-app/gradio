@@ -261,22 +261,24 @@ def move_files_to_cache(
         # without it being served from the gradio server
         # This makes it so that the URL is not downloaded and speeds up event processing
         if payload.url and postprocess:
-            temp_file_path = payload.url
-        else:
+            payload.path = payload.url
+        elif not block.proxy_url:
+            # If the file is on a remote server, do not move it to cache.
             temp_file_path = move_resource_to_block_cache(payload.path, block)
-        assert temp_file_path is not None
-        payload.path = temp_file_path
+            assert temp_file_path is not None
+            payload.path = temp_file_path
 
         if add_urls:
             url_prefix = "/stream/" if payload.is_stream else "/file="
             if block.proxy_url:
-                url = f"/proxy={block.proxy_url}{url_prefix}{temp_file_path}"
-            elif client_utils.is_http_url_like(
-                temp_file_path
-            ) or temp_file_path.startswith(f"{url_prefix}"):
-                url = temp_file_path
+                proxy_url = block.proxy_url.rstrip("/")
+                url = f"/proxy={proxy_url}{url_prefix}{payload.path}"
+            elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
+                f"{url_prefix}"
+            ):
+                url = payload.path
             else:
-                url = f"{url_prefix}{temp_file_path}"
+                url = f"{url_prefix}{payload.path}"
             payload.url = url
 
         return payload.model_dump()
