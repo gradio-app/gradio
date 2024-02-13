@@ -3,7 +3,7 @@ name: "test / functional"
 on:
   workflow_run:
     workflows: ["trigger"]
-    types: 
+    types:
       - requested
 
 permissions:
@@ -41,7 +41,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.should_run == 'true'
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -72,6 +72,7 @@ jobs:
         run: |
           . venv/bin/activate
           pnpm run test:ct
+      # - run: pnpm --filter @gradio/app test:browser:lite
       - name: do check
         if: always()
         uses: "gradio-app/github/actions/commit-status@main"

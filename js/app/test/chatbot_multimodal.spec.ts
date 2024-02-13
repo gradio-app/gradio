@@ -35,9 +35,10 @@ test("images uploaded by a user should be shown in the chat", async ({
 		.first()
 		.getByRole("paragraph")
 		.textContent();
-	const image_data = await user_message.getAttribute("src");
-	await expect(image_data).toContain("cheetah1.jpg");
-	await expect(bot_message).toBeTruthy();
+	const image_src = await user_message.getAttribute("src");
+	expect(image_src).toBeTruthy();
+
+	expect(bot_message).toBeTruthy();
 });
 
 test("audio uploaded by a user should be shown in the chatbot", async ({
@@ -56,7 +57,7 @@ test("audio uploaded by a user should be shown in the chatbot", async ({
 		.getByRole("paragraph")
 		.textContent();
 	const audio_data = await user_message.getAttribute("src");
-	await expect(audio_data).toContain("audio_sample.wav");
+	await expect(audio_data).toBeTruthy();
 	await expect(bot_message).toBeTruthy();
 });
 
@@ -76,7 +77,7 @@ test("videos uploaded by a user should be shown in the chatbot", async ({
 		.getByRole("paragraph")
 		.textContent();
 	const video_data = await user_message.getAttribute("src");
-	await expect(video_data).toContain("video_sample.mp4");
+	await expect(video_data).toBeTruthy();
 	await expect(bot_message).toBeTruthy();
 });
 

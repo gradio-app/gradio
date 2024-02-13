@@ -169,5 +169,6 @@
 	span :global(h6) {
 		display: flex;
 		align-items: center;
+		white-space-collapse: break-spaces;
 	}
 </style>

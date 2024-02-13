@@ -25,6 +25,7 @@ jobs:
       source_repo: ${{ steps.changes.outputs.source_repo }}
       merge_sha: ${{ steps.changes.outputs.merge_sha }}
       mergeable: ${{ steps.changes.outputs.mergeable }}
+      found_pr: ${{ steps.changes.outputs.found_pr }}
     steps:
       - uses: actions/checkout@v4
       - uses: "gradio-app/gradio/.github/actions/changes@main"
@@ -34,13 +35,11 @@ jobs:
           name: "deploy / spaces"
           token: ${{ secrets.GITHUB_TOKEN }}
           commit_status: false
-      - name: echo github context
-        if: always()
-        run: echo "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
   
   comment-spaces-start:
     needs: changes
     uses: "./.github/workflows/comment-queue.yml"
+    if: ${{ needs.changes.outputs.should_run == 'true' }}
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
@@ -73,7 +72,7 @@ jobs:
         cache-dependency-path: pnpm-lock.yaml
     - name: Install pip
       run: python -m pip install build requests
-    - name: Get PR Number
+    - name: Get Gradio Version
       id: get_gradio_version
       run: |
         if ${{ github.event_name == 'pull_request' || github.event.workflow_run.event == 'pull_request' }}; then
@@ -119,13 +118,15 @@ jobs:
         python scripts/upload_website_demos.py --AUTH_TOKEN ${{ secrets.WEBSITE_SPACES_DEPLOY_TOKEN }} \
         --WHEEL_URL https://gradio-builds.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/ \
         --GRADIO_VERSION ${{ steps.get_gradio_version.outputs.GRADIO_VERSION }}
+    - name: log
+      run: |
+        echo ${{github.event.workflow_run.event }}
+        echo ${{ github.event.workflow_run.conclusion }}
+    
   comment-spaces-success:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy-spaces, changes]
-    if: >
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success' &&
-      needs.deploy-spaces.result == 'success'
+    if: needs.deploy-spaces.result == 'success' && needs.changes.outputs.found_pr == 'true'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
@@ -144,7 +145,7 @@ jobs:
   comment-spaces-failure:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy-spaces, changes]
-    if: always() && needs.deploy-spaces == 'failure'
+    if: always() && needs.deploy-spaces == 'failure' && needs.changes.outputs.found_pr == 'true'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:

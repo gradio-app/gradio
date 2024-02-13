@@ -153,7 +153,7 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         fn = custom_post_binary
     # example model: facebook/wav2vec2-base-960h
     elif p == "automatic-speech-recognition":
-        inputs = components.Audio(sources=["upload"], type="filepath", label="Input")
+        inputs = components.Audio(type="filepath", label="Input")
         outputs = components.Textbox(label="Output")
         examples = [
             "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
@@ -418,12 +418,16 @@ def from_spaces(
 
 
 def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
-    client = Client(space, hf_token=hf_token)
+    client = Client(space, hf_token=hf_token, download_files=False)
+    # We set deserialize to False to avoid downloading output files from the server.
+    # Instead, we serve them as URLs using the /proxy/ endpoint directly from the server.
+
     if client.app_version < version.Version("4.0.0b14"):
         raise GradioVersionIncompatibleError(
             f"Gradio version 4.x cannot load spaces with versions less than 4.x ({client.app_version})."
             "Please downgrade to version 3 to load this space."
         )
+
     # Use end_to_end_fn here to properly upload/download all files
     predict_fns = []
     for fn_index, endpoint in enumerate(client.endpoints):

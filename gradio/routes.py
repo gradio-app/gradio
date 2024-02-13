@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import copy
 import sys
 
 if sys.version_info >= (3, 9):
@@ -17,7 +18,6 @@ import mimetypes
 import os
 import posixpath
 import secrets
-import shutil
 import tempfile
 import threading
 import time
@@ -55,6 +55,7 @@ from gradio.context import Context
 from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
+from gradio.processing_utils import add_root_url
 from gradio.queueing import Estimation
 from gradio.route_utils import (  # noqa: F401
     FileUploadProgress,
@@ -64,6 +65,7 @@ from gradio.route_utils import (  # noqa: F401
     GradioUploadFile,
     MultiPartException,
     Request,
+    move_uploaded_files_to_cache,
 )
 from gradio.state_holder import StateHolder
 from gradio.utils import (
@@ -115,12 +117,6 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
 
 client = httpx.AsyncClient()
-
-
-def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
-    for file, dest in zip(files, destinations):
-        shutil.move(file, dest)
-
 
 file_upload_statuses = FileUploadProgress()
 
@@ -316,20 +312,17 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
-            root_path = (
-                request.scope.get("root_path")
-                or request.headers.get("X-Direct-Url")
-                or ""
-            )
+            root_path = route_utils.get_root_url(request)
             if app.auth is None or user is not None:
-                config = app.get_blocks().config
-                config["root"] = route_utils.strip_url(root_path)
+                config = copy.deepcopy(app.get_blocks().config)
+                config["root"] = root_path
+                config = add_root_url(config, root_path)
             else:
                 config = {
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
                     "space_id": app.get_blocks().space_id,
-                    "root": route_utils.strip_url(root_path),
+                    "root": root_path,
                 }
 
             try:
@@ -360,13 +353,10 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
-            root_path = (
-                request.scope.get("root_path")
-                or request.headers.get("X-Direct-Url")
-                or ""
-            )
-            config = app.get_blocks().config
-            config["root"] = route_utils.strip_url(root_path)
+            config = copy.deepcopy(app.get_blocks().config)
+            root_path = route_utils.get_root_url(request)[: -len("/config")]
+            config["root"] = root_path
+            config = add_root_url(config, root_path)
             return config
 
         @app.get("/static/{path:path}")
@@ -581,6 +571,8 @@ class App(FastAPI):
                     content={"error": str(error) if show_error else None},
                     status_code=500,
                 )
+            root_path = route_utils.get_root_url(request)[: -len(f"/api/{api_name}")]
+            output = add_root_url(output, root_path)
             return output
 
         @app.get("/queue/data", dependencies=[Depends(login_check)])
@@ -602,6 +594,7 @@ class App(FastAPI):
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="Event not found.",
                 )
+            root_path = route_utils.get_root_url(request)[: -len("/queue/data")]
 
             async def sse_stream(request: fastapi.Request):
                 try:
@@ -652,6 +645,7 @@ class App(FastAPI):
                                 "success": False,
                             }
                         if message:
+                            add_root_url(message, root_path)
                             yield f"data: {json.dumps(message)}\n\n"
                             if message["msg"] == ServerMessage.process_completed:
                                 _event_id = message["event_id"]
