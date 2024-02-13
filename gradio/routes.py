@@ -22,6 +22,7 @@ import tempfile
 import threading
 import time
 import traceback
+import uuid
 from pathlib import Path
 from queue import Empty as EmptyQueue
 from typing import TYPE_CHECKING, Any, AsyncIterator, Dict, List, Optional, Type
@@ -586,8 +587,21 @@ class App(FastAPI):
         async def queue_data(
             request: fastapi.Request,
             session_hash: str,
+            event_id: Optional[str] = None,
         ):
             blocks = app.get_blocks()
+            queue = blocks._queue
+
+            if session_hash not in queue.pending_event_ids_per_session:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Session not found.",
+                )
+            if event_id and event_id not in queue.pending_messages_per_event_id:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Event not found.",
+                )
 
             async def sse_stream(request: fastapi.Request):
                 try:
@@ -597,24 +611,29 @@ class App(FastAPI):
                             await blocks._queue.clean_events(session_hash=session_hash)
                             return
 
-                        if (
-                            session_hash
-                            not in blocks._queue.pending_messages_per_session
-                        ):
-                            raise HTTPException(
-                                status_code=status.HTTP_404_NOT_FOUND,
-                                detail="Session not found.",
-                            )
-
                         heartbeat_rate = 15
                         check_rate = 0.05
                         message = None
-                        try:
-                            messages = blocks._queue.pending_messages_per_session[
-                                session_hash
+                        if event_id:
+                            message_queues = [
+                                queue.pending_messages_per_event_id[event_id]
                             ]
-                            message = messages.get_nowait()
-                        except EmptyQueue:
+                        else:
+                            message_queues = [
+                                queue.pending_messages_per_event_id[_event_id]
+                                for _event_id in queue.pending_event_ids_per_session[
+                                    session_hash
+                                ]
+                            ]
+                        message_sent = False
+                        for messages in message_queues:
+                            try:
+                                message = messages.get_nowait()
+                                message_sent = True
+                                break
+                            except EmptyQueue:
+                                pass
+                        if not message_sent:
                             await asyncio.sleep(check_rate)
                             if time.perf_counter() - last_heartbeat > heartbeat_rate:
                                 # Fix this
@@ -626,7 +645,7 @@ class App(FastAPI):
                                 # and then the stream will retry leading to infinite queue 😬
                                 last_heartbeat = time.perf_counter()
 
-                        if blocks._queue.stopped:
+                        if queue.stopped:
                             message = {
                                 "msg": "unexpected_error",
                                 "message": "Server stopped unexpectedly.",
@@ -635,14 +654,17 @@ class App(FastAPI):
                         if message:
                             yield f"data: {json.dumps(message)}\n\n"
                             if message["msg"] == ServerMessage.process_completed:
-                                blocks._queue.pending_event_ids_session[
+                                _event_id = message["event_id"]
+                                queue.pending_event_ids_per_session[
                                     session_hash
-                                ].remove(message["event_id"])
+                                ].remove(_event_id)
+                                queue.pending_messages_per_event_id.pop(_event_id)
+
                                 if message["msg"] == ServerMessage.server_stopped or (
                                     message["msg"] == ServerMessage.process_completed
                                     and (
                                         len(
-                                            blocks._queue.pending_event_ids_session[
+                                            queue.pending_event_ids_per_session[
                                                 session_hash
                                             ]
                                         )
@@ -684,6 +706,9 @@ class App(FastAPI):
                     detail="Queue is stopped.",
                 )
 
+            if body.session_hash is None:
+                body.session_hash = uuid.uuid4().hex
+
             success, event_id = await blocks._queue.push(body, request, username)
             if not success:
                 status_code = (
@@ -692,7 +717,20 @@ class App(FastAPI):
                     else status.HTTP_400_BAD_REQUEST
                 )
                 raise HTTPException(status_code=status_code, detail=event_id)
-            return {"event_id": event_id}
+            return {"event_id": event_id, "session_hash": body.session_hash}
+
+        @app.post("/queue/join/{api_name}", dependencies=[Depends(login_check)])
+        async def queue_join_api(
+            api_name: str,
+            body: PredictBody,
+            request: fastapi.Request,
+            username: str = Depends(get_current_user),
+        ):
+            fn_index_inferred = route_utils.infer_fn_index(
+                app=app, api_name=api_name, body=body
+            )
+            body.fn_index = fn_index_inferred
+            return await queue_join(body, request, username)
 
         @app.post("/component_server", dependencies=[Depends(login_check)])
         @app.post("/component_server/", dependencies=[Depends(login_check)])

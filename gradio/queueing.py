@@ -84,8 +84,8 @@ class Queue:
         block_fns: list[BlockFunction],
         default_concurrency_limit: int | None | Literal["not_set"] = "not_set",
     ):
-        self.pending_messages_per_session: LRUCache[str, ThreadQueue] = LRUCache(2000)
-        self.pending_event_ids_session: dict[str, set[str]] = {}
+        self.pending_messages_per_event_id: LRUCache[str, ThreadQueue] = LRUCache(2000)
+        self.pending_event_ids_per_session: dict[str, set[str]] = {}
         self.pending_message_lock = safe_get_lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
         self.stopped = False
@@ -156,7 +156,7 @@ class Queue:
         if not event.alive:
             return
         data = {} if data is None else data
-        messages = self.pending_messages_per_session[event.session_hash]
+        messages = self.pending_messages_per_event_id[event._id]
         messages.put_nowait({"msg": message_type, "event_id": event._id, **data})
 
     def _resolve_concurrency_limit(
@@ -208,12 +208,11 @@ class Queue:
             self.block_fns[body.fn_index].concurrency_id,
         )
         event.data = body
+        self.pending_messages_per_event_id[event._id] = ThreadQueue()
         async with self.pending_message_lock:
-            if body.session_hash not in self.pending_messages_per_session:
-                self.pending_messages_per_session[body.session_hash] = ThreadQueue()
-            if body.session_hash not in self.pending_event_ids_session:
-                self.pending_event_ids_session[body.session_hash] = set()
-        self.pending_event_ids_session[body.session_hash].add(event._id)
+            if body.session_hash not in self.pending_event_ids_per_session:
+                self.pending_event_ids_per_session[body.session_hash] = set()
+        self.pending_event_ids_per_session[body.session_hash].add(event._id)
         event_queue = self.event_queue_per_concurrency_id[event.concurrency_id]
         event_queue.queue.append(event)
 
