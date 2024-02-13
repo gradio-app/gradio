@@ -7,7 +7,7 @@ import secrets
 import shutil
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, TypedDict, Union
 
 from fastapi import Request
 from gradio_client.utils import traverse
@@ -95,6 +95,7 @@ class PredictBody(BaseModel):
     def webrtc_id(self):
         return f"{self.session_hash}-{self.fn_index}"
 
+
 class ResetBody(BaseModel):
     event_id: str
 
@@ -104,8 +105,6 @@ class WebRTCOfferBody(BaseModel):
     type: str
     webrtc_id: str
 
-
-from typing import List, TypedDict
 
 class PredictOutput(TypedDict):
     data: List[Any]

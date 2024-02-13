@@ -1327,7 +1327,11 @@ Received inputs:
                     inputs_cached = processing_utils.move_files_to_cache(
                         inputs[i], block, add_urls=True
                     )
-                    if getattr(block, "data_model", None) and inputs_cached is not None and not getattr(block, "streaming", False):
+                    if (
+                        getattr(block, "data_model", None)
+                        and inputs_cached is not None
+                        and not getattr(block, "streaming", False)
+                    ):
                         if issubclass(block.data_model, GradioModel):  # type: ignore
                             inputs_cached = block.data_model(**inputs_cached)  # type: ignore
                         elif issubclass(block.data_model, GradioRootModel):  # type: ignore
@@ -1509,7 +1513,7 @@ Received outputs:
                 data[i] = last_diffs[i]
                 continue
 
-            if first_run:
+            if first_run or i == self.streaming_output_index(fn_index):
                 last_diffs[i] = data[i]
             else:
                 prev_chunk = last_diffs[i]
@@ -1520,6 +1524,12 @@ Received outputs:
             del self.pending_diff_streams[session_hash][run]
 
         return data
+
+    def is_generator_fn(self, fn_index: int):
+        block_fn = self.fns[fn_index]
+        return inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(
+            block_fn.fn
+        )
 
     async def process_api(
         self,
@@ -2327,7 +2337,23 @@ Received outputs:
 
     def queue_enabled_for_fn(self, fn_index: int):
         return self.dependencies[fn_index]["queue"] is not False
-    
+
+    def streaming_input_index(self, fn_index: int):
+        inputs = self.dependencies[fn_index]["inputs"]
+        for i, id_ in enumerate(inputs):
+            component = self.blocks[id_]
+            if getattr(component, "streaming", False):
+                return i
+        return None
+
+    def streaming_output_index(self, fn_index: int):
+        outputs = self.dependencies[fn_index]["outputs"]
+        for i, id_ in enumerate(outputs):
+            component = self.blocks[id_]
+            if getattr(component, "streaming", False):
+                return i
+        return None
+
     def is_fn_streaming(self, fn_index: int):
         inputs = self.dependencies[fn_index]["inputs"]
         outputs = self.dependencies[fn_index]["outputs"]

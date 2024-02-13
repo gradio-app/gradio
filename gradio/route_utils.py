@@ -11,18 +11,20 @@ from typing import TYPE_CHECKING, AsyncGenerator, BinaryIO, List, Optional, Tupl
 import fastapi
 import httpx
 import multipart
+import numpy as np
+from aiortc import VideoStreamTrack
+from aiortc.contrib.media import AudioFrame, VideoFrame
+from aiortc.mediastreams import MediaStreamError
 from gradio_client.documentation import document
 from multipart.multipart import parse_options_header
-import numpy as np
 from starlette.datastructures import FormData, Headers, UploadFile
 from starlette.formparsers import MultiPartException, MultipartPart
 
-from gradio import utils
+from gradio import components, utils
 from gradio.data_classes import PredictBody, PredictOutput
 from gradio.exceptions import Error
 from gradio.helpers import EventData
 from gradio.state_holder import SessionState
-from gradio import components
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -553,6 +555,7 @@ class GradioMultiPartParser:
             self.upload_progress.set_done(self.upload_id)  # type: ignore
         return FormData(self.items)
 
+
 @python_dataclass
 class WebRTCSession:
     body: PredictBody
@@ -570,12 +573,11 @@ class WebRTCContext:
 
     def add_session(self, session: WebRTCSession):
         self.sessions[session.body.webrtc_id] = session
-    
+
     def get_session(self, session_id: str) -> WebRTCSession:
         return self.sessions[session_id]
 
-from aiortc import AudioStreamTrack, VideoStreamTrack
-from aiortc.contrib.media import VideoFrame, AudioFrame, VideoStream
+
 class GradioTransformTrack(VideoStreamTrack):
     """
     This works for streaming input and output
@@ -583,103 +585,122 @@ class GradioTransformTrack(VideoStreamTrack):
 
     kind = "video"
 
-    def __init__(self, track, context: WebRTCContext, webrtc_id: str):
+    def __init__(
+        self,
+        track,
+        context: WebRTCContext,
+        webrtc_id: str,
+        get_input_frame: bool = False,
+    ) -> None:
         super().__init__()  # don't forget this!
         self.track = track
         self.context = context
         self.webrtc_id = webrtc_id
         self.streaming_index = None
         self.output_index = None
-    
+        self.get_input_frame = get_input_frame
+
     @property
     def tracked_in_context(self):
         return self.webrtc_id in self.context.sessions
 
-    #TODO: confusing that this also has set_session
+    # TODO: confusing that this also has set_session
     def set_session(self, session: WebRTCSession):
         assert session.body.fn_index is not None
         blocks = self.context.app.get_blocks()
         inputs = blocks.dependencies[session.body.fn_index]["inputs"]
         for i, component_id in enumerate(inputs):
-            #TODO: right now we're assuming only one component is streaming
+            # TODO: right now we're assuming only one component is streaming
             if getattr(blocks.blocks[component_id], "streaming", False):
                 self.streaming_index = i
         outputs = blocks.dependencies[session.body.fn_index]["outputs"]
         for i, component_id in enumerate(outputs):
-            #TODO: right now we're assuming only one output streaming component
-            #TODO: this would not work for custom components?
+            # TODO: right now we're assuming only one output streaming component
+            # TODO: this would not work for custom components?
             if isinstance(blocks.blocks[component_id], components.Video):
                 self.output_index = i
-    
-    def add_frame_to_payload(self, frame: np.ndarray) -> PredictBody:
+
+    def add_frame_to_payload(self, frame: np.ndarray | None) -> PredictBody:
         assert self.context
-        assert self.streaming_index is not None
         body = self.context.get_session(self.webrtc_id).body
-        body.data[self.streaming_index] = frame
+        if frame is not None:
+            assert self.streaming_index is not None
+            body.data[self.streaming_index] = frame
         return body
 
-    def extract_frame_array_from_output(self, output: PredictOutput) -> tuple[np.ndarray, PredictOutput]:
-        assert self.streaming_index is not None
+    def extract_frame_array_from_output(
+        self, output: PredictOutput
+    ) -> tuple[np.ndarray, PredictOutput]:
         assert self.output_index is not None
         assert self.context
         assert self.context.get_session(self.webrtc_id).body.fn_index is not None
         frame = output["data"][self.output_index]
         # This is hacky but not sure how else to communicate that the output corresponds
         # to a mediaStream the client received
-        output["data"][self.output_index] = {"__gradio__internal__streaming__output__": True}
+        output["data"][self.output_index] = {
+            "__gradio__internal__streaming__output__": True
+        }
         return frame, output
 
     def array_to_frame(self, array: np.ndarray) -> VideoFrame | AudioFrame:
-        #TODO: check format
-        return VideoFrame.from_ndarray(array, format="bgr24",)
+        # TODO: check format
+        return VideoFrame.from_ndarray(array, format="bgr24")
 
     async def recv(self):
         try:
-            # TODO: don't think we need ut jiv
-            if not self.tracked_in_context:
-                print("Not tracked in context")
-                pts, time_base = await self.next_timestamp()
-
-                frame = VideoFrame(width=640, height=480)
-                for p in frame.planes:
-                    p.update(bytes(p.buffer_size))
-                frame.pts = pts
-                frame.time_base = time_base
-                return frame
-
-            if self.tracked_in_context and not self.streaming_index:
+            # print("CALLING RECV")
+            if self.tracked_in_context and (
+                self.streaming_index is None and self.output_index is None
+            ):
                 print("no streaming index")
                 self.set_session(self.context.get_session(self.webrtc_id))
 
             session = self.context.get_session(self.webrtc_id)
-            frame = await self.track.recv()
-            frame_array = frame.to_ndarray(format="bgr24")
+            if self.get_input_frame:
+                frame = await self.track.recv()
+                frame_array = frame.to_ndarray(format="bgr24")
+            else:
+                frame_array = None
+                frame = None
             body = self.add_frame_to_payload(frame_array)
             gr_request = compile_gr_request(
-                app=self.context.app, # type: ignore
+                app=self.context.app,  # type: ignore
                 body=body,
-                fn_index_inferred=body.fn_index, #type: ignore
-                #TODO: fix this
+                fn_index_inferred=body.fn_index,  # type: ignore
+                # TODO: fix this
                 username="foo",
                 request=session.request,
             )
 
             output: PredictOutput = await call_process_api(
-                app=self.context.app, # type: ignore
+                app=self.context.app,  # type: ignore
                 body=body,
                 gr_request=gr_request,
-                fn_index_inferred=body.fn_index, #type: ignore
-                )
+                fn_index_inferred=body.fn_index,  # type: ignore
+            )
             array, output = self.extract_frame_array_from_output(output)
+
             new_frame = self.array_to_frame(array)
-            new_frame.pts = frame.pts
-            new_frame.time_base = frame.time_base
+            if frame:
+                new_frame.pts = frame.pts
+                new_frame.time_base = frame.time_base
+            else:
+                pts, time_base = await self.next_timestamp()
+                new_frame.pts = pts
+                new_frame.time_base = time_base
             session.output = output
+            if not output[
+                "is_generating"
+            ] and self.context.app.get_blocks().is_generator_fn(body.fn_index):
+                print("STOPPING")
+                self.stop()
+                raise MediaStreamError()
             return new_frame
         except Exception as e:
             print(e)
             import traceback
-            traceback.print_stack()
+
+            traceback.print_exc()
 
 
 def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:

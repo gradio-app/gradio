@@ -41,12 +41,18 @@ export async function start(webrtc_id, stream_callback, pc, node, root) {
 	pc = createPeerConnection(pc, node);
 
 	const stream = stream_callback();
-	stream.getTracks().forEach((track) => {
-		track.applyConstraints({ frameRate: { max: 30 } });
+	if (stream) {
+		stream.getTracks().forEach((track) => {
+			track.applyConstraints({ frameRate: { max: 30 } });
 
-		console.log("Track stream callback", track);
-		pc.addTrack(track, stream);
-	});
+			console.log("Track stream callback", track);
+			pc.addTrack(track, stream);
+		});
+	} else {
+		console.log("Creating transceiver!");
+		pc.addTransceiver("video", { direction: "recvonly" });
+	}
+
 	await negotiate(pc, webrtc_id, root);
 	return pc;
 }
@@ -59,11 +65,13 @@ async function negotiate(
 	return pc
 		.createOffer()
 		.then((offer) => {
+			console.log("offer", offer);
 			return pc.setLocalDescription(offer);
 		})
 		.then(() => {
 			// wait for ICE gathering to complete
 			return new Promise<void>((resolve) => {
+				console.log("ice gathering state", pc.iceGatheringState);
 				if (pc.iceGatheringState === "complete") {
 					resolve();
 				} else {
@@ -79,6 +87,7 @@ async function negotiate(
 			});
 		})
 		.then(() => {
+			console.log("before offer");
 			var offer = pc.localDescription;
 			console.log("webrtc_id", webrtc_id);
 			return fetch(`${root}/offer`, {

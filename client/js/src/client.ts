@@ -957,12 +957,21 @@ export function api_factory(
 						});
 					} else {
 						data.data.forEach((value: any, i: number) => {
-							let new_data = apply_diff(
-								pending_diff_streams[event_id][i],
-								value
-							);
-							pending_diff_streams[event_id][i] = new_data;
-							data.data[i] = new_data;
+							if (
+								JSON.stringify(value) ===
+								JSON.stringify({
+									__gradio__internal__streaming__output__: true
+								})
+							) {
+								data.data[i] = value;
+							} else {
+								let new_data = apply_diff(
+									pending_diff_streams[event_id][i],
+									value
+								);
+								pending_diff_streams[event_id][i] = new_data;
+								data.data[i] = new_data;
+							}
 						});
 					}
 				}

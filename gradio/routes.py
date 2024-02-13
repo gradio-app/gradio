@@ -30,6 +30,7 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
+from aiortc.contrib.media import MediaRelay
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
@@ -51,7 +52,12 @@ from starlette.responses import RedirectResponse, StreamingResponse
 import gradio
 from gradio import ranged_response, route_utils, utils, wasm_utils
 from gradio.context import Context
-from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody, WebRTCOfferBody
+from gradio.data_classes import (
+    ComponentServerBody,
+    PredictBody,
+    ResetBody,
+    WebRTCOfferBody,
+)
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
 from gradio.processing_utils import add_root_url
@@ -66,7 +72,6 @@ from gradio.route_utils import (  # noqa: F401
     Request,
     move_uploaded_files_to_cache,
 )
-from aiortc.contrib.media import MediaRelay
 from gradio.state_holder import StateHolder
 from gradio.utils import (
     get_package_version,
@@ -124,28 +129,10 @@ pcs = set()
 relay = MediaRelay()
 
 
-import argparse
-import asyncio
-import json
-import logging
-import os
-import ssl
-import uuid
-
-import cv2
-from aiohttp import web
-from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription
-from aiortc.contrib.media import MediaBlackhole, MediaPlayer, MediaRecorder, MediaRelay
-from av import VideoFrame
-
 ROOT = os.path.dirname(__file__)
 
-logger = logging.getLogger("pc")
 pcs = set()
 relay = MediaRelay()
-
-
-
 
 
 class App(FastAPI):
@@ -196,7 +183,7 @@ class App(FastAPI):
         if self.blocks is None:
             raise ValueError("No Blocks has been configured for this app.")
         return self.blocks
-    
+
     def is_fn_index_streaming(self, fn_index: int) -> bool:
         return self.get_blocks().is_fn_streaming(fn_index)
 
@@ -344,10 +331,12 @@ class App(FastAPI):
         ###############
         # Main Routes
         ###############
-            
+
         @app.get("/client.js")
         def get_client():
-            p = str(Path(__file__).parent.joinpath("templates", "frontend", "client.js"))
+            p = str(
+                Path(__file__).parent.joinpath("templates", "frontend", "client.js")
+            )
             return FileResponse(p)
 
         @app.head("/", response_class=HTMLResponse)
@@ -515,18 +504,14 @@ class App(FastAPI):
                     return response
 
             return FileResponse(abs_path, headers={"Accept-Ranges": "bytes"})
-        
+
         @app.post("/offer", dependencies=[Depends(login_check)])
         async def offer(params: WebRTCOfferBody) -> JSONResponse:
-
-            from aiortc import (
-                RTCPeerConnection,
-                RTCSessionDescription)
+            from aiortc import RTCPeerConnection, RTCSessionDescription
 
             offer = RTCSessionDescription(sdp=params.sdp, type=params.type)
 
             pc = RTCPeerConnection()
-            pc_id = f"PeerConnection({secrets.token_hex(4)}" 
             pcs.add(pc)
 
             @pc.on("iceconnectionstatechange")
@@ -536,20 +521,37 @@ class App(FastAPI):
                     print("ICE Connection failed.")
                     await pc.close()
                     pcs.discard(pc)
-            
+
             @pc.on("connectionstatechange")
             async def on_connectionstatechange():
                 if pc.connectionState in ["failed", "closed"]:
                     await pc.close()
                     pcs.discard(pc)
 
+            fn_index = int(params.webrtc_id.split("-")[1])
+            blocks = app.get_blocks()
+            if blocks.streaming_input_index(fn_index) is not None:
+                print("STREAMING INPUT")
 
-            @pc.on("track")
-            def on_track(track):
-                #TODO: Assumes video
+                @pc.on("track")
+                def on_track(track):
+                    # TODO: Assumes video
+                    print("HERE IN CALLBACK")
+                    pc.addTrack(
+                        route_utils.GradioTransformTrack(
+                            relay.subscribe(track),
+                            blocks._queue.webrtc_context,
+                            params.webrtc_id,
+                            get_input_frame=True,
+                        )
+                    )
+            else:
                 pc.addTrack(
                     route_utils.GradioTransformTrack(
-                        relay.subscribe(track), blocks._queue.webrtc_context, params.webrtc_id
+                        None,
+                        blocks._queue.webrtc_context,
+                        params.webrtc_id,
+                        get_input_frame=False,
                     )
                 )
 
@@ -558,12 +560,14 @@ class App(FastAPI):
 
             # send answer
             answer = await pc.createAnswer()
-            await pc.setLocalDescription(answer) # type: ignore
+            await pc.setLocalDescription(answer)  # type: ignore
 
             return JSONResponse(
-                content={"sdp": pc.localDescription.sdp, "type": pc.localDescription.type}
+                content={
+                    "sdp": pc.localDescription.sdp,
+                    "type": pc.localDescription.type,
+                }
             )
-
 
         @app.get(
             "/stream/{session_hash}/{run}/{component_id}",
@@ -674,6 +678,7 @@ class App(FastAPI):
         ):
             blocks = app.get_blocks()
             root_path = route_utils.get_root_url(request)[: -len("/queue/data")]
+            print("SESSION_HASH", session_hash)
 
             async def sse_stream(request: fastapi.Request):
                 try:
