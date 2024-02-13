@@ -13,7 +13,7 @@ with gr.Blocks() as demo:
             txt_only_glob = gr.Checkbox(label="Show only text files", value=False)
             ignore_txt_in_glob = gr.Checkbox(label="Ignore text files in glob", value=False)
 
-    fe = gr.FileExplorer(root=str(base_root / "dir1"),
+    fe = gr.FileExplorer(root_dir=str(base_root / "dir1"),
                          glob="**/*", interactive=True)
     textbox = gr.Textbox(label="Selected Directory")
     run = gr.Button("Run")
