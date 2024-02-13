@@ -525,22 +525,7 @@
 				.on("status", ({ fn_index, ...status }) => {
 					tick().then(() => {
 						const outputs = dependencies[fn_index].outputs;
-						outputs.forEach((id) => {
-							if (
-								instance_map[id].props.interactive &&
-								status.stage === "pending" &&
-								dep.targets[0][1] !== "focus"
-							) {
-								pending_outputs.push(id);
-								instance_map[id].props.interactive = false;
-							} else if (
-								["complete", "error"].includes(status.stage) &&
-								pending_outputs.includes(id) &&
-								!outputs_set_to_non_interactive.includes(id)
-							) {
-								instance_map[id].props.interactive = true;
-							}
-						});
+
 						//@ts-ignore
 						loading_status.update({
 							...status,
