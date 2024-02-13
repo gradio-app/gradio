@@ -529,10 +529,10 @@
 							if (
 								instance_map[id].props.interactive &&
 								status.stage === "pending" &&
-								dep.targets[0][1] !== "focus"
+								!["focus", "type"].includes(dep.targets[0][1])
 							) {
 								pending_outputs.push(id);
-								// instance_map[id].props.interactive = false;
+								instance_map[id].props.interactive = false;
 							} else if (
 								["complete", "error"].includes(status.stage) &&
 								pending_outputs.includes(id) &&
