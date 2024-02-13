@@ -10,22 +10,18 @@ with gr.Blocks() as demo:
                         choices=[str(base_root / "dir1"), str(base_root / "dir2"),
                                  str(base_root / "dir3")])
         with gr.Group():
-            dir_only_glob = gr.Checkbox(label="Show only directories", value=False)
-            ignore_dir_in_glob = gr.Checkbox(label="Ignore directories in glob", value=False)
+            txt_only_glob = gr.Checkbox(label="Show only text files", value=False)
+            ignore_txt_in_glob = gr.Checkbox(label="Ignore text files in glob", value=False)
 
-    fe = gr.FileExplorer(root=str(base_root / "dir1"),
+    fe = gr.FileExplorer(root_dir=str(base_root / "dir1"),
                          glob="**/*", interactive=True)
     textbox = gr.Textbox(label="Selected Directory")
     run = gr.Button("Run")
     
-    dir_only_glob.select(lambda s: gr.FileExplorer(glob="**/" if s else "**/*.*",
-                                                   file_count="multiple",
-                                                   root=str(base_root / "dir3")) ,
-                         inputs=[dir_only_glob], outputs=[fe])
-    ignore_dir_in_glob.select(lambda s: gr.FileExplorer(glob="**/*",
-                                                        ignore_glob="**/",
-                                                        root=str(base_root / "dir3")),
-                            inputs=[ignore_dir_in_glob], outputs=[fe])            
+    txt_only_glob.select(lambda s: gr.FileExplorer(glob="*.txt" if s else "*") ,
+                         inputs=[txt_only_glob], outputs=[fe])
+    ignore_txt_in_glob.select(lambda s: gr.FileExplorer(ignore_glob="*.txt" if s else None),
+                            inputs=[ignore_txt_in_glob], outputs=[fe])            
 
     dd.select(lambda s: gr.FileExplorer(root=s), inputs=[dd], outputs=[fe])
     run.click(lambda s: ",".join(s) if isinstance(s, list) else s, inputs=[fe], outputs=[textbox])

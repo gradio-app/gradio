@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import itertools
+import fnmatch
 import os
-import re
 import warnings
 from pathlib import Path
 from typing import Any, Callable, List, Literal
@@ -33,7 +32,7 @@ class FileExplorer(Component):
 
     def __init__(
         self,
-        glob: str = "**/*.*",
+        glob: str = "**/*",
         *,
         value: str | list[str] | Callable | None = None,
         file_count: Literal["single", "multiple"] = "multiple",
@@ -59,7 +58,7 @@ class FileExplorer(Component):
             value: The file (or list of files, depending on the `file_count` parameter) to show as "selected" when the component is first loaded. If a callable is provided, it will be called when the app loads to set the initial value of the component. If not provided, no files are shown as selected.
             file_count: Whether to allow single or multiple files to be selected. If "single", the component will return a single absolute file path as a string. If "multiple", the component will return a list of absolute file paths as a list of strings.
             root_dir: Path to root directory to select files from. If not provided, defaults to current working directory.
-            ignore_glob: The glob-tyle pattern that will be used to exclude files from the list. For example, "*.py" will exclude all .py files from the list. See the Python glob documentation at https://docs.python.org/3/library/glob.html for more information.
+            ignore_glob: The glob-style, case-sensitive pattern that will be used to exclude files from the list. For example, "*.py" will exclude all .py files from the list. See the Python glob documentation at https://docs.python.org/3/library/glob.html for more information.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise.sed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -82,10 +81,10 @@ class FileExplorer(Component):
         self.root_dir = os.path.abspath(root_dir)
         self.glob = glob
         self.ignore_glob = ignore_glob
-        valid_file_count = ["single", "multiple", "directory"]
+        valid_file_count = ["single", "multiple"]
         if file_count not in valid_file_count:
             raise ValueError(
-                f"Invalid value for parameter `type`: {type}. Please choose from one of: {valid_file_count}"
+                f"Invalid value for parameter `file_count`: {file_count}. Please choose from one of: {valid_file_count}"
             )
         self.file_count = file_count
         self.height = height
@@ -156,80 +155,40 @@ class FileExplorer(Component):
         return FileExplorerData(root=root)
 
     @server
-    def ls(self, _=None) -> list[dict[str, str]] | None:
+    def ls(self, subdirectory: list | None = None) -> list[dict[str, str]] | None:
         """
         Returns:
-            tuple of list of files in directory, then list of folders in directory
+            a list of dictionaries, where each dictionary represents a file or subdirectory in the given subdirectory
         """
+        if subdirectory is None:
+            subdirectory = []
 
-        def expand_braces(text, seen=None):
-            if seen is None:
-                seen = set()
+        full_subdir_path = self._safe_join(subdirectory)
 
-            spans = [m.span() for m in re.finditer("{[^{}]*}", text)][::-1]
-            alts = [text[start + 1 : stop - 1].split(",") for start, stop in spans]
+        try:
+            subdir_items = sorted(os.listdir(full_subdir_path))
+        except FileNotFoundError:
+            return []
 
-            if len(spans) == 0:
-                if text not in seen:
-                    yield text
-                seen.add(text)
+        files, folders = [], []
+        for item in subdir_items:
+            full_path = os.path.join(full_subdir_path, item)
+            is_file = not os.path.isdir(full_path)
+            valid_by_glob = fnmatch.fnmatch(full_path, self.glob)
+            if is_file and not valid_by_glob:
+                continue
+            if self.ignore_glob and fnmatch.fnmatch(full_path, self.ignore_glob):
+                continue
+            target = files if is_file else folders
+            target.append(
+                {
+                    "name": item,
+                    "type": "file" if is_file else "folder",
+                    "valid": valid_by_glob,
+                }
+            )
 
-            else:
-                for combo in itertools.product(*alts):
-                    replaced = list(text)
-                    for (start, stop), replacement in zip(spans, combo):
-                        replaced[start:stop] = replacement
-
-                    yield from expand_braces("".join(replaced), seen)
-
-        def make_tree(files):
-            tree = []
-            for file in files:
-                parts = file.split(os.path.sep)
-                make_node(parts, tree)
-            return tree
-
-        def make_node(parts, tree):
-            _tree = tree
-            for i in range(len(parts)):
-                if _tree is None:
-                    continue
-                if i == len(parts) - 1:
-                    type = "file"
-                    _tree.append({"path": parts[i], "type": type, "children": None})
-                    continue
-                type = "folder"
-                j = next(
-                    (index for (index, v) in enumerate(_tree) if v["path"] == parts[i]),
-                    None,
-                )
-                if j is not None:
-                    _tree = _tree[j]["children"]
-                else:
-                    _tree.append({"path": parts[i], "type": type, "children": []})
-                    _tree = _tree[-1]["children"]
-
-        files: list[Path] = []
-        for result in expand_braces(self.glob):
-            files += list(Path(self.root_dir).resolve().glob(result))
-
-        files = [f for f in files if f != Path(self.root_dir).resolve()]
-
-        ignore_files = []
-        if self.ignore_glob:
-            for result in expand_braces(self.ignore_glob):
-                ignore_files += list(Path(self.root_dir).resolve().glob(result))
-            files = list(set(files) - set(ignore_files))
-
-        files_with_sep = []
-        for f in files:
-            file = str(f.relative_to(self.root_dir))
-            if f.is_dir():
-                file += os.path.sep
-            files_with_sep.append(file)
-
-        tree = make_tree(files_with_sep)
-        return tree
+        return folders + files
 
     def _safe_join(self, folders):
         combined_path = os.path.join(self.root_dir, *folders)

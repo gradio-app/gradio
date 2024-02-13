@@ -2874,7 +2874,7 @@ class TestFileExplorer:
         file_explorer = gr.FileExplorer(file_count="single")
 
         config = file_explorer.get_config()
-        assert config["glob"] == "**/*.*"
+        assert config["glob"] == "**/*"
         assert config["value"] is None
         assert config["file_count"] == "single"
         assert config["server_fns"] == ["ls"]
@@ -2891,7 +2891,7 @@ class TestFileExplorer:
         file_explorer = gr.FileExplorer(file_count="multiple")
 
         config = file_explorer.get_config()
-        assert config["glob"] == "**/*.*"
+        assert config["glob"] == "**/*"
         assert config["value"] is None
         assert config["file_count"] == "multiple"
         assert config["server_fns"] == ["ls"]
@@ -2905,66 +2905,24 @@ class TestFileExplorer:
         preprocessed_data = file_explorer.preprocess(input_data)
         assert preprocessed_data == []
 
-    def test_file_explorer_dir_only_glob(self, tmpdir):
+    def test_file_explorer_txt_only_glob(self, tmpdir):
         tmpdir.mkdir("foo")
-        tmpdir.mkdir("bar")
-        tmpdir.mkdir("baz")
-        (Path(tmpdir) / "baz" / "qux").mkdir()
-        (Path(tmpdir) / "foo" / "abc").mkdir()
-        (Path(tmpdir) / "foo" / "abc" / "def").mkdir()
-        (Path(tmpdir) / "foo" / "abc" / "def" / "file.txt").touch()
+        (Path(tmpdir) / "foo" / "bar").mkdir()
+        (Path(tmpdir) / "foo" / "file.txt").touch()
+        (Path(tmpdir) / "foo" / "file2.txt").touch()
+        (Path(tmpdir) / "foo" / "file3.log").touch()
+        (Path(tmpdir) / "foo" / "img.png").touch()
+        (Path(tmpdir) / "foo" / "bar" / "bar.txt").touch()
 
-        file_explorer = gr.FileExplorer(glob="**/", root=Path(tmpdir))
-        tree = file_explorer.ls()
-
-        def sort_answer(answer):
-            answer = sorted(answer, key=lambda x: x["path"])
-            for item in answer:
-                if item["children"]:
-                    item["children"] = sort_answer(item["children"])
-            return answer
+        file_explorer = gr.FileExplorer(glob="*.txt", root=Path(tmpdir))
+        tree = file_explorer.ls(["foo"])
 
         answer = [
-            {
-                "path": "bar",
-                "type": "folder",
-                "children": [{"path": "", "type": "file", "children": None}],
-            },
-            {
-                "path": "baz",
-                "type": "folder",
-                "children": [
-                    {"path": "", "type": "file", "children": None},
-                    {
-                        "path": "qux",
-                        "type": "folder",
-                        "children": [{"path": "", "type": "file", "children": None}],
-                    },
-                ],
-            },
-            {
-                "path": "foo",
-                "type": "folder",
-                "children": [
-                    {"path": "", "type": "file", "children": None},
-                    {
-                        "path": "abc",
-                        "type": "folder",
-                        "children": [
-                            {"path": "", "type": "file", "children": None},
-                            {
-                                "path": "def",
-                                "type": "folder",
-                                "children": [
-                                    {"path": "", "type": "file", "children": None}
-                                ],
-                            },
-                        ],
-                    },
-                ],
-            },
+            {"name": "bar", "type": "folder", "valid": False},
+            {"name": "file.txt", "type": "file", "valid": True},
+            {"name": "file2.txt", "type": "file", "valid": True},
         ]
-        assert sort_answer(tree) == sort_answer(answer)
+        assert tree == answer
 
 
 def test_component_class_ids():
