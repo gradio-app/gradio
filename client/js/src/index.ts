@@ -7,7 +7,6 @@ export {
 } from "./client.js";
 export type { SpaceStatus } from "./types.js";
 export {
-	normalise_file,
 	FileData,
 	FileDataFromStream,
 	upload,

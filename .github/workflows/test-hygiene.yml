@@ -32,10 +32,6 @@ jobs:
         with:
           type: "all"
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: echo github context
-        if: always()
-        run: echo "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
-  
   test-hygiene:
     name: "test-hygiene"
     runs-on: ubuntu-latest

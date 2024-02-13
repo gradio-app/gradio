@@ -13,7 +13,6 @@
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { normalise_file } from "@gradio/client";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -42,7 +41,6 @@
 		"clipboard",
 		"webcam"
 	];
-	export let proxy_url: string;
 	export let interactive: boolean;
 
 	export let brush: Brush;
@@ -120,7 +118,7 @@
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => gradio.dispatch("error", detail)}
-			value={normalise_file(value?.composite || null, root, proxy_url)}
+			value={value?.composite || null}
 			{label}
 			{show_label}
 			{show_download_button}
@@ -174,7 +172,6 @@
 			on:error
 			{brush}
 			{eraser}
-			{proxy_url}
 			changeable={attached_events.includes("change")}
 			i18n={gradio.i18n}
 			{transforms}

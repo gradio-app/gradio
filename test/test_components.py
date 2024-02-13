@@ -854,8 +854,9 @@ class TestAudio:
         with pytest.raises(ValueError):
             gr.Audio(type="unknown")
 
+        rng = np.random.default_rng()
         # Confirm Audio can be instantiated with a numpy array
-        gr.Audio((100, np.random.random(size=(1000, 2))), label="Play your audio")
+        gr.Audio((100, rng.random(size=(1000, 2))), label="Play your audio")
 
         # Output functionalities
         y_audio = client_utils.decode_base64_to_file(
@@ -1537,6 +1538,7 @@ class TestVideo:
                 "mime_type": None,
                 "size": None,
                 "url": None,
+                "is_stream": False,
             },
             "subtitles": None,
         }
@@ -1548,6 +1550,7 @@ class TestVideo:
                 "mime_type": None,
                 "size": None,
                 "url": None,
+                "is_stream": False,
             },
             "subtitles": {
                 "path": "s1.srt",
@@ -1555,6 +1558,7 @@ class TestVideo:
                 "orig_name": None,
                 "size": None,
                 "url": None,
+                "is_stream": False,
             },
         }
         postprocessed_video["video"]["path"] = os.path.basename(
@@ -2251,6 +2255,7 @@ class TestGallery:
                     "mime_type": None,
                     "size": None,
                     "url": url,
+                    "is_stream": False,
                 },
                 "caption": None,
             }
@@ -2278,6 +2283,7 @@ class TestGallery:
                     "mime_type": None,
                     "size": None,
                     "url": None,
+                    "is_stream": False,
                 },
                 "caption": "foo_caption",
             },
@@ -2288,6 +2294,7 @@ class TestGallery:
                     "mime_type": None,
                     "size": None,
                     "url": None,
+                    "is_stream": False,
                 },
                 "caption": "bar_caption",
             },
@@ -2298,6 +2305,7 @@ class TestGallery:
                     "mime_type": None,
                     "size": None,
                     "url": None,
+                    "is_stream": False,
                 },
                 "caption": None,
             },
@@ -2308,6 +2316,7 @@ class TestGallery:
                     "mime_type": None,
                     "size": None,
                     "url": None,
+                    "is_stream": False,
                 },
                 "caption": None,
             },

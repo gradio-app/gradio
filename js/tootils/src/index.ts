@@ -55,7 +55,7 @@ const test_lite = base.extend<{ setup: void }>({
 		async ({ page }, use, testInfo) => {
 			const { file } = testInfo;
 
-			console.debug("Setting up a test in the Lite mode", file);
+			console.debug("\nSetting up a test in lite mode", file);
 			const test_name = path.basename(file, ".spec.ts");
 			const demo_dir = path.resolve(ROOT_DIR, `./demo/${test_name}`);
 			const demo_file_paths = await fsPromises
@@ -71,7 +71,6 @@ const test_lite = base.extend<{ setup: void }>({
 				.then((dirents) =>
 					dirents.map((dirent) => path.join(dirent.path, dirent.name))
 				);
-			console.debug("Reading demo files", demo_file_paths);
 			const demo_files = await Promise.all(
 				demo_file_paths.map(async (filepath) => {
 					const relpath = path.relative(demo_dir, filepath);
@@ -109,10 +108,9 @@ const test_lite = base.extend<{ setup: void }>({
 								.split("\n")
 								.map((line) => line.trim())
 								.filter((line) => line);
-							console.debug("Installing requirements", requirements);
+
 							await controller.install(requirements);
 						} else {
-							console.debug("Writing a file", filepath);
 							await controller.write(filepath, data, {});
 						}
 					}
@@ -122,7 +120,7 @@ const test_lite = base.extend<{ setup: void }>({
 				demo_files
 			);
 
-			console.debug("App setup done. Starting the test,", test_name);
+			console.debug("App setup done. Starting the test,", test_name, "\n");
 			await use();
 
 			controllerHandle.dispose();

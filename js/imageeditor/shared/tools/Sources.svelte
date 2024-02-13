@@ -12,7 +12,7 @@
 	import { type I18nFormatter } from "@gradio/utils";
 
 	import { add_bg_color, add_bg_image } from "./sources";
-	import type { FileData, normalise_file } from "@gradio/client";
+	import type { FileData } from "@gradio/client";
 
 	export let background_file: FileData | null;
 	export let root: string;

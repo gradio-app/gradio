@@ -147,18 +147,12 @@ This is the `Example.svelte` file for the code `Radio` component:
 ## Handling Files
 
 If your component deals with files, these files **should** be uploaded to the backend server. 
-The `@gradio/client` npm package provides the `upload`, `prepare_files`, and `normalise_file` utility functions to help you do this.
+The `@gradio/client` npm package provides the `upload` and `prepare_files` utility functions to help you do this.
 
 The `prepare_files` function will convert the browser's `File` datatype to gradio's internal `FileData` type.
 You should use the `FileData` data in your component to keep track of uploaded files.
 
 The `upload` function will upload an array of `FileData` values to the server.
-
-The `normalise_file` function will generate the correct URL for your component to fetch the file from and set it to the `data` property of the `FileData.`
-
-
-Tip: Be sure you call `normalise_file` whenever your files are updated!
-
 
 Here's an example of loading files from an `<input>` element when its value changes.
 
@@ -166,12 +160,10 @@ Here's an example of loading files from an `<input>` element when its value chan
 ```typescript
 <script lang="ts">
 
-    import { upload, prepare_files, normalise_file, type FileData } from "@gradio/client";
+    import { upload, prepare_files, type FileData } from "@gradio/client";
     export let root;
     export let value;
     let uploaded_files;
-
-    $: value: normalise_file(uploaded_files, root)
 
     async function handle_upload(file_data: FileData[]): Promise<void> {
         await tick();
@@ -231,7 +223,7 @@ Here is how you can use them to create a user interface to upload and display PD
 
 ```typescript
 <script>
-	import { type FileData, normalise_file, Upload, ModifyUpload } from "@gradio/upload";
+	import { type FileData, Upload, ModifyUpload } from "@gradio/upload";
 	import { Empty, UploadText, BlockLabel } from "@gradio/atoms";
 </script>
 

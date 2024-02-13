@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 import uvicorn
 from fastapi.testclient import TestClient
-from gradio_client import media_data
+from gradio_client import Client, media_data
 from PIL import Image
 
 import gradio as gr
@@ -822,6 +822,26 @@ class TestStateHolder:
         assert (
             "error" not in session_1.json()
         )  # no error because sesssion 1 block config was lost when session 3 was added
+
+    def test_state_holder_is_used_in_postprocess(self, connect):
+        with gr.Blocks() as demo:
+            dropdown = gr.Dropdown(label="list", choices=["Choice 1"], interactive=True)
+            button = gr.Button("Get dropdown value")
+            button2 = gr.Button("Convert dropdown to multiselect")
+            button.click(
+                lambda x: x, inputs=dropdown, outputs=dropdown, api_name="predict"
+            )
+            button2.click(
+                lambda: gr.Dropdown(multiselect=True),
+                outputs=dropdown,
+                api_name="set_multiselect",
+            )
+
+        client: Client
+        with connect(demo) as client:
+            assert client.predict("Choice 1", api_name="/predict") == "Choice 1"
+            client.predict(api_name="/set_multiselect")
+            assert client.predict("Choice 1", api_name="/predict") == ["Choice 1"]
 
 
 class TestCallFunction:

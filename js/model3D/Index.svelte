@@ -5,7 +5,7 @@
 </script>
 
 <script lang="ts">
-	import { normalise_file, type FileData } from "@gradio/client";
+	import type { FileData } from "@gradio/client";
 	import Model3D from "./shared/Model3D.svelte";
 	import Model3DUpload from "./shared/Model3DUpload.svelte";
 	import { BlockLabel, Block, Empty, UploadText } from "@gradio/atoms";
@@ -20,7 +20,6 @@
 	export let visible = true;
 	export let value: null | FileData = null;
 	export let root: string;
-	export let proxy_url: null | string;
 	export let clear_color: [number, number, number, number];
 	export let loading_status: LoadingStatus;
 	export let label: string;
@@ -39,9 +38,6 @@
 		null
 	];
 	export let interactive: boolean;
-
-	let _value: null | FileData;
-	$: _value = normalise_file(value, root, proxy_url);
 
 	let dragging = false;
 </script>
@@ -67,7 +63,7 @@
 
 		{#if value}
 			<Model3D
-				value={_value}
+				{value}
 				i18n={gradio.i18n}
 				{clear_color}
 				{label}
@@ -108,7 +104,7 @@
 			{show_label}
 			{root}
 			{clear_color}
-			value={_value}
+			{value}
 			{camera_position}
 			{zoom_speed}
 			on:change={({ detail }) => (value = detail)}

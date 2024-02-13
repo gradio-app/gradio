@@ -30,7 +30,7 @@ import type {
 
 import { start, stop } from "./webrtc_utils.ts";
 
-import { FileData, normalise_file } from "./upload";
+import { FileData } from "./upload";
 
 import type { Config } from "./types.js";
 
@@ -169,7 +169,6 @@ interface Client {
 		options: {
 			hf_token?: `hf_${string}`;
 			status_callback?: SpaceStatusCallback;
-			normalise_files?: boolean;
 		}
 	) => Promise<client_return>;
 	handle_blob: (
@@ -262,11 +261,10 @@ export function api_factory(
 		options: {
 			hf_token?: `hf_${string}`;
 			status_callback?: SpaceStatusCallback;
-			normalise_files?: boolean;
-		} = { normalise_files: true }
+		} = {}
 	): Promise<client_return> {
 		return new Promise(async (res) => {
-			const { status_callback, hf_token, normalise_files } = options;
+			const { status_callback, hf_token } = options;
 			const return_obj = {
 				predict,
 				submit,
@@ -274,7 +272,6 @@ export function api_factory(
 				component_server
 			};
 
-			const transform_files = normalise_files ?? true;
 			if (
 				(typeof window === "undefined" || !("WebSocket" in window)) &&
 				!global.Websocket
@@ -509,14 +506,7 @@ export function api_factory(
 								hf_token
 							)
 								.then(([output, status_code]) => {
-									const data = transform_files
-										? transform_output(
-												output.data,
-												api_info,
-												config.root,
-												config.root_url
-										  )
-										: output.data;
+									const data = output.data;
 									if (status_code == 200) {
 										fire_event({
 											type: "data",
@@ -644,14 +634,7 @@ export function api_factory(
 									fire_event({
 										type: "data",
 										time: new Date(),
-										data: transform_files
-											? transform_output(
-													data.data,
-													api_info,
-													config.root,
-													config.root_url
-											  )
-											: data.data,
+										data: data.data,
 										endpoint: _endpoint,
 										fn_index
 									});
@@ -766,14 +749,7 @@ export function api_factory(
 									fire_event({
 										type: "data",
 										time: new Date(),
-										data: transform_files
-											? transform_output(
-													data.data,
-													api_info,
-													config.root,
-													config.root_url
-											  )
-											: data.data,
+										data: data.data,
 										endpoint: _endpoint,
 										fn_index
 									});

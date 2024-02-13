@@ -4,9 +4,8 @@
 	import type { Gradio, ShareData } from "@gradio/utils";
 
 	import {
-		normalise_file,
 		type FileData,
-		FileDataFromStream
+		type FileDataFromStream
 	} from "@gradio/client";
 	import { Block, UploadText } from "@gradio/atoms";
 	import StaticVideo from "./shared/VideoPreview.svelte";
@@ -34,7 +33,6 @@
 		| ["webcam", "upload"]
 		| ["upload", "webcam"];
 	export let root: string;
-	export let proxy_url: null | string;
 	export let show_label: boolean;
 	export let loading_status: LoadingStatus;
 	export let height: number | undefined;
@@ -99,8 +97,8 @@
 			_subtitle = null;
 			node_set = true;
 		} else if (!streaming && value != null && !(value instanceof MediaStream)) {
-			_video = normalise_file(value.video as FileData, root, proxy_url);
-			_subtitle = normalise_file(value.subtitles, root, proxy_url);
+			_video = value.video;
+			_subtitle = value.subtitles;
 		} else if (!streaming) {
 			_video = null;
 			_subtitle = null;
