@@ -9,12 +9,18 @@
 	export let label = "test";
 	export let show_label: boolean = true;
 	let video: HTMLVideoElement;
+	let previous_url: string | null = null;
 
 	$: value_set = value !== null && value.url instanceof MediaStream;
-	$: console.log("value_set", value_set);
 
-	$: if (value_set) {
-		video.srcObject = value!.url as MediaStream;
+	$: if (value_set && value) {
+		const url_ = value.url as MediaStream;
+		// Need to manually trigger the video to play when the stream changes
+		if (previous_url !== url_.id) {
+			previous_url = url_.id;
+			video.srcObject = url_;
+			video.play();
+		}
 	}
 </script>
 
@@ -24,11 +30,7 @@
 </div>
 <div class="wrap" class:hide={!value_set}>
 	<div class="mirror-wrap">
-		<Video
-			preload="auto"
-			autoplay={true}
-			bind:node={video}
-			data-testid={`${label}-player`}
+		<Video preload="auto" bind:node={video} data-testid={`${label}-player`}
 		></Video>
 	</div>
 </div>

@@ -1,8 +1,4 @@
 export function createPeerConnection(pc, node) {
-	var config = {
-		sdpSemantics: "unified-plan"
-	};
-
 	// register some listeners to help debugging
 	pc.addEventListener(
 		"icegatheringstatechange",
@@ -41,8 +37,8 @@ export function createPeerConnection(pc, node) {
 	return pc;
 }
 
-export async function start(webrtc_id, stream_callback, node, root) {
-	const pc = createPeerConnection(node);
+export async function start(webrtc_id, stream_callback, pc, node, root) {
+	pc = createPeerConnection(pc, node);
 
 	const stream = stream_callback();
 	stream.getTracks().forEach((track) => {
@@ -52,28 +48,7 @@ export async function start(webrtc_id, stream_callback, node, root) {
 		pc.addTrack(track, stream);
 	});
 	await negotiate(pc, webrtc_id, root);
-
-	// Build media constraints.
-
-	// const constraints = {
-	//     audio: false,
-	//     video: false
-	// };
-
-	// Acquire media and start negociation.
-
-	// if (constraints.audio || constraints.video) {
-	//     navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
-	//         stream.getTracks().forEach((track) => {
-	//             pc.addTrack(track, stream);
-	//         });
-	//         return negotiate(pc, webrtc_id);
-	//     }, (err) => {
-	//         alert('Could not acquire media: ' + err);
-	//     });
-	// } else {
-	//     negotiate();
-	// }
+	return pc;
 }
 
 async function negotiate(
@@ -132,6 +107,8 @@ async function negotiate(
 }
 
 export function stop(pc: RTCPeerConnection) {
+	console.log("pc", pc);
+	console.log("STOPPING");
 	// close transceivers
 	if (pc.getTransceivers) {
 		pc.getTransceivers().forEach((transceiver) => {
