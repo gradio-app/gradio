@@ -37,7 +37,7 @@ import {
 
 const GRADIO_VERSION = version_raw || "asd_stub_asd";
 const CDN_BASE = "https://gradio.s3-us-west-2.amazonaws.com";
-const TEST_MODE = process.env.TEST_MODE || "jsdom";
+const TEST_MODE = process.env.TEST_MODE || "happy-dom";
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {

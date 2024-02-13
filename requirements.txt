@@ -3,7 +3,11 @@ aiortc>=1.7.0,<2.0
 altair>=4.2.0,<6.0
 fastapi
 ffmpy
+<<<<<<< HEAD
 gradio_client==0.9.0
+=======
+gradio_client==0.10.0
+>>>>>>> main
 httpx
 huggingface_hub>=0.19.3
 importlib_resources>=1.3,<7.0

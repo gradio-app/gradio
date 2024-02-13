@@ -1,5 +1,17 @@
 # gradio_client
 
+## 0.10.0
+
+### Features
+
+- [#7183](https://github.com/gradio-app/gradio/pull/7183) [`49d9c48`](https://github.com/gradio-app/gradio/commit/49d9c48537aa706bf72628e3640389470138bdc6) - [WIP] Refactor file normalization to be in the backend and remove it from the frontend of each component.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7377](https://github.com/gradio-app/gradio/pull/7377) [`6dfd40f`](https://github.com/gradio-app/gradio/commit/6dfd40fc6b2fa461490d2370ab91fcda7e07c0da) - Make set_documentation_group a no-op.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#7334](https://github.com/gradio-app/gradio/pull/7334) [`b95d0d0`](https://github.com/gradio-app/gradio/commit/b95d0d043c739926af986e573200af92732bbc01) - Allow setting custom headers in Python Client.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+### Fixes
+
+- [#7350](https://github.com/gradio-app/gradio/pull/7350) [`7302a6e`](https://github.com/gradio-app/gradio/commit/7302a6e151dac553c17833be64d4639ee4cf97aa) - Fix `gr.load` for file-based Spaces.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.9.0
 
 ### Features

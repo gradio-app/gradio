@@ -418,12 +418,16 @@ def from_spaces(
 
 
 def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
-    client = Client(space, hf_token=hf_token)
+    client = Client(space, hf_token=hf_token, download_files=False)
+    # We set deserialize to False to avoid downloading output files from the server.
+    # Instead, we serve them as URLs using the /proxy/ endpoint directly from the server.
+
     if client.app_version < version.Version("4.0.0b14"):
         raise GradioVersionIncompatibleError(
             f"Gradio version 4.x cannot load spaces with versions less than 4.x ({client.app_version})."
             "Please downgrade to version 3 to load this space."
         )
+
     # Use end_to_end_fn here to properly upload/download all files
     predict_fns = []
     for fn_index, endpoint in enumerate(client.endpoints):
