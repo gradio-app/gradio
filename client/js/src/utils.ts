@@ -292,6 +292,7 @@ export function apply_diff(
 	obj: any,
 	diff: [string, (number | string)[], any][]
 ): any {
+	console.log("diff", diff);
 	diff.forEach(([action, path, value]) => {
 		obj = apply_edit(obj, path, action, value);
 	});

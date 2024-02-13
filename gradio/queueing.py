@@ -154,10 +154,22 @@ class Queue:
         message_type: str,
         data: dict | None = None,
     ):
+        if not hasattr(self, "message_dict"):
+            self.message_dict = {}
         if not event.alive:
             return
         data = {} if data is None else data
         messages = self.pending_messages_per_session[event.session_hash]
+        if message_type not in self.message_dict:
+            self.message_dict[message_type] = message_type
+            print(
+                "MESSAGE_TYPE",
+                message_type,
+                "event",
+                event._id,
+                "session_hash",
+                event.session_hash,
+            )
         messages.put_nowait({"msg": message_type, "event_id": event._id, **data})
 
     def _resolve_concurrency_limit(
@@ -209,14 +221,18 @@ class Queue:
             self.block_fns[body.fn_index].concurrency_id,
         )
         assert self.server_app is not None
-        if self.server_app.is_fn_index_streaming(body.fn_index) and not self.webrtc_context.is_tracked(body.webrtc_id):
+        if self.server_app.is_fn_index_streaming(
+            body.fn_index
+        ) and not self.webrtc_context.is_tracked(body.webrtc_id):
             session = route_utils.WebRTCSession(
                 body=body,
                 request=request,
                 output=None,
             )
             self.webrtc_context.add_session(session)
-        elif self.server_app.is_fn_index_streaming(body.fn_index) and self.webrtc_context.is_tracked(body.webrtc_id):
+        elif self.server_app.is_fn_index_streaming(
+            body.fn_index
+        ) and self.webrtc_context.is_tracked(body.webrtc_id):
             self.webrtc_context.get_session(body.webrtc_id).body = body
             self.webrtc_context.get_session(body.webrtc_id).request = request
 
@@ -511,6 +527,7 @@ class Queue:
                     print(f"waiting for {body.webrtc_id}")
                     await asyncio.sleep(0.5)
                 output = self.webrtc_context.get_session(body.webrtc_id).output
+                self.webrtc_context.get_session(body.webrtc_id).output = None
             else:
                 output = await route_utils.call_process_api(
                     app=app,
@@ -548,6 +565,7 @@ class Queue:
         try:
             for event in events:
                 if event.alive:
+                    print(event._id, "Start")
                     self.send_message(
                         event,
                         ServerMessage.process_starts,

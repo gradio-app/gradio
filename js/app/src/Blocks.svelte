@@ -444,15 +444,21 @@
 		return comp.props.value;
 	}
 
-	function get_webrtc_data(dep: Dependency): { webrtc_callback: any; pc: any } {
-		const comp_id = dep.inputs.find((id) => instance_map[id].props.streaming);
-		const o = comp_id
-			? {
-					webrtc_callback: instance_map[comp_id].instance.webrtc_callback,
-					pc: new RTCPeerConnection()
-			  }
-			: { webrtc_callback: null, pc: null };
-		return o;
+	function get_webrtc_data(dep: Dependency): (() => MediaStream | null) | null {
+		const streaming_input_id = dep.inputs.find(
+			(id) => instance_map[id].props.streaming
+		);
+		const streaming_output_id = dep.outputs.find(
+			(id) => instance_map[id].props.streaming
+		);
+		if (streaming_input_id) {
+			return instance_map[streaming_input_id].instance.webrtc_callback;
+		} else if (streaming_output_id) {
+			const foo = () => null;
+			return foo;
+		} else {
+			return null;
+		}
 	}
 
 	async function trigger_api_call(
@@ -476,10 +482,7 @@
 			dep.pending_request = true;
 		}
 
-		const {
-			webrtc_callback,
-			pc
-		}: { webrtc_callback: any; pc: RTCPeerConnection } = get_webrtc_data(dep);
+		const webrtc_callback = get_webrtc_data(dep);
 
 		let payload: Payload = {
 			fn_index: dep_index,
@@ -488,8 +491,7 @@
 			),
 			event_data: dep.collects_event_data ? event_data : null,
 			trigger_id: trigger_id,
-			webrtc_callback: webrtc_callback,
-			pc: pc
+			webrtc_callback: webrtc_callback
 		};
 
 		if (dep.frontend_fn) {

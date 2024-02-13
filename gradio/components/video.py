@@ -6,8 +6,8 @@ import tempfile
 import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal, Optional
-import numpy as np
 
+import numpy as np
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
