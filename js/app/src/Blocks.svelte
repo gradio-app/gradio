@@ -447,8 +447,11 @@
 	function get_webrtc_data(dep: Dependency): { webrtc_callback: any; pc: any } {
 		const comp_id = dep.inputs.find((id) => instance_map[id].props.streaming);
 		const o = comp_id
-			? {webrtc_callback: instance_map[comp_id].instance.webrtc_callback, pc: new RTCPeerConnection()}
-			: {webrtc_callback: null, pc: null}
+			? {
+					webrtc_callback: instance_map[comp_id].instance.webrtc_callback,
+					pc: new RTCPeerConnection()
+			  }
+			: { webrtc_callback: null, pc: null };
 		return o;
 	}
 
@@ -473,8 +476,11 @@
 			dep.pending_request = true;
 		}
 
-		const { webrtc_callback, pc }: { webrtc_callback: any; pc: RTCPeerConnection } = get_webrtc_data(dep);
-		
+		const {
+			webrtc_callback,
+			pc
+		}: { webrtc_callback: any; pc: RTCPeerConnection } = get_webrtc_data(dep);
+
 		let payload: Payload = {
 			fn_index: dep_index,
 			data: await Promise.all(
@@ -701,6 +707,8 @@
 			if (event === "share") {
 				const { title, description } = data as ShareData;
 				trigger_share(title, description);
+			} else if (event == "stop_stream") {
+				app.stop_stream();
 			} else if (event === "error" || event === "warning") {
 				messages = [new_message(data, -1, event), ...messages];
 			} else {

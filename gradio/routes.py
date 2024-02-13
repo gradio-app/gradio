@@ -539,7 +539,7 @@ class App(FastAPI):
             
             @pc.on("connectionstatechange")
             async def on_connectionstatechange():
-                if pc.connectionState == "failed":
+                if pc.connectionState in ["failed", "closed"]:
                     await pc.close()
                     pcs.discard(pc)
 

@@ -3,10 +3,7 @@
 <script lang="ts">
 	import type { Gradio, ShareData } from "@gradio/utils";
 
-	import {
-		type FileData,
-		type FileDataFromStream
-	} from "@gradio/client";
+	import { type FileData, type FileDataFromStream } from "@gradio/client";
 	import { Block, UploadText } from "@gradio/atoms";
 	import StaticVideo from "./shared/VideoPreview.svelte";
 	import VideoStream from "./shared/VideoStream.svelte";
@@ -92,7 +89,7 @@
 	}
 
 	$: {
-		if (streaming && !node_set && value != null) {
+		if (streaming && value != null) {
 			_video = { url: value as MediaStream, path: "streaming" };
 			_subtitle = null;
 			node_set = true;

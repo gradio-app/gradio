@@ -60,6 +60,7 @@ type client_return = {
 		data: unknown[]
 	) => any;
 	view_api: (c?: Config) => Promise<ApiInfo<JsApiData>>;
+	stop_stream: () => void;
 };
 
 type SubmitReturn = {
@@ -269,7 +270,8 @@ export function api_factory(
 				predict,
 				submit,
 				view_api,
-				component_server
+				component_server,
+				stop_stream
 			};
 
 			if (
@@ -296,6 +298,8 @@ export function api_factory(
 			let config: Config;
 			let api_map: Record<string, number> = {};
 			let peer_connection_established = false;
+			let pc: RTCPeerConnection;
+			let output_streaming_value = { srcObject: null };
 
 			let jwt: false | string = false;
 
@@ -377,6 +381,11 @@ export function api_factory(
 				}
 			}
 
+			function stop_stream(): void {
+				peer_connection_established = false;
+				stop(pc);
+			}
+
 			function predict(
 				endpoint: string,
 				data: unknown[],
@@ -451,15 +460,18 @@ export function api_factory(
 						"There is no endpoint matching that name of fn_index matching that number."
 					);
 				}
-				const output_streaming_value = { srcObject: null };
 				if (webrtc_callback && !peer_connection_established) {
 					const webrtc_id = `${session_hash}-${fn_index}`;
+					pc = new RTCPeerConnection();
 					start(
 						webrtc_id,
 						webrtc_callback,
+						pc,
 						output_streaming_value,
 						config.root
-					);
+					).then((connection) => {
+						pc = connection;
+					});
 					peer_connection_established = true;
 				}
 
@@ -870,15 +882,13 @@ export function api_factory(
 												fire_event({
 													type: "data",
 													time: new Date(),
-													data: transform_files
-														? transform_output(
-																data.data,
-																api_info,
-																config.root,
-																config.root_url,
-																output_streaming_value.srcObject
-														  )
-														: data.data,
+													data: transform_output(
+														data.data,
+														api_info,
+														config.root,
+														config.root_url,
+														output_streaming_value.srcObject
+													),
 													endpoint: _endpoint,
 													fn_index
 												});
@@ -1250,7 +1260,6 @@ function transform_output(
 			JSON.stringify(d) ===
 				JSON.stringify({ __gradio__internal__streaming__output__: true })
 		) {
-			console.log("Setting this here");
 			return medias_stream;
 		}
 		return d;

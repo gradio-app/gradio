@@ -61,6 +61,7 @@
 		clear: never;
 		select: SelectData;
 		share: ShareData;
+		stop_stream: never;
 	}>;
 
 	$: {
@@ -142,6 +143,7 @@
 				webrtc_callback = e.detail;
 				gradio.dispatch("stream");
 			}}
+			on:stop_stream={() => gradio.dispatch("stop_stream")}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload={() => gradio.dispatch("upload")}
 			on:select={({ detail }) => gradio.dispatch("select", detail)}

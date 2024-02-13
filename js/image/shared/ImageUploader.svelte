@@ -63,6 +63,7 @@
 		drag: boolean;
 		upload?: never;
 		select: SelectData;
+		stop_stream?: never;
 	}>();
 
 	let dragging = false;
@@ -125,6 +126,7 @@
 				{root}
 				on:capture={(e) => handle_save(e.detail)}
 				on:stream={(e) => dispatch("stream", e.detail)}
+				on:stop_stream={() => dispatch("stop_stream")}
 				on:error
 				on:drag
 				on:upload={(e) => handle_save(e.detail)}
