@@ -532,7 +532,7 @@
 								dep.targets[0][1] !== "focus"
 							) {
 								pending_outputs.push(id);
-								instance_map[id].props.interactive = false;
+								// instance_map[id].props.interactive = false;
 							} else if (
 								["complete", "error"].includes(status.stage) &&
 								pending_outputs.includes(id) &&
