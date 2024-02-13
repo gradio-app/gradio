@@ -25,7 +25,7 @@ class Dropdown(FormComponent):
         Events.select,
         Events.focus,
         Events.blur,
-        Events.key_down,
+        Events.key_up,
     ]
 
     def __init__(

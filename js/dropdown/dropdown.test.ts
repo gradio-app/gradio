@@ -89,7 +89,7 @@ describe("Dropdown", () => {
 			interactive: true
 		});
 
-		const key_down_event = listen("key_down");
+		const key_up_event = listen("key_up");
 
 		const item: HTMLInputElement = getByLabelText(
 			"Dropdown"
@@ -107,7 +107,7 @@ describe("Dropdown", () => {
 
 		await expect(options_new).toHaveLength(1);
 		await expect(options[0]).toContainHTML("zebra");
-		await assert.equal(key_down_event.callCount, 1);
+		await assert.equal(key_up.callCount, 1);
 	});
 
 	test("blurring the textbox should cancel the filter", async () => {
