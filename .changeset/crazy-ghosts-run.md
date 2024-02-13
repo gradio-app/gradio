@@ -1,6 +1,6 @@
 ---
-"@gradio/app": minor
-"gradio": minor
+"@gradio/app": patch
+"gradio": patch
 ---
 
-feat:remove static while pending behaviour
+fix:remove static while pending behaviour
