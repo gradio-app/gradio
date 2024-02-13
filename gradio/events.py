@@ -132,7 +132,7 @@ class KeyUpData(EventData):
         self.input_value: str = data["input_value"]
         """
         The displayed value in the input textbox after the key was pressed. This may be different than the `value`
-        attribute of the component itself, as the `value` attribute of some components (e.g. Dropdown) are not updated 
+        attribute of the component itself, as the `value` attribute of some components (e.g. Dropdown) are not updated
         until the user presses Enter.
         """
 

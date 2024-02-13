@@ -11,7 +11,7 @@ export interface LikeData {
 	liked?: boolean;
 }
 
-export interface KeyDownData {
+export interface KeyUpData {
 	key: string;
 	input_value: string;
 }
