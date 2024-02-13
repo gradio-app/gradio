@@ -674,7 +674,17 @@ class App(FastAPI):
                     }
                     yield f"data: {json.dumps(message)}\n\n"
                     if isinstance(e, asyncio.CancelledError):
-                        del blocks._queue.pending_messages_per_session[session_hash]
+                        if event_id:
+                            if event_id in queue.pending_messages_per_event_id:
+                                del queue.pending_messages_per_event_id[event_id]
+                        else:
+                            for _event_id in queue.pending_event_ids_per_session[
+                                session_hash
+                            ]:
+                                if _event_id in queue.pending_messages_per_event_id:
+                                    del queue.pending_messages_per_event_id[_event_id]
+                            if session_hash in queue.pending_event_ids_per_session:
+                                del queue.pending_event_ids_per_session[session_hash]
                         await blocks._queue.clean_events(session_hash=session_hash)
                     raise e
 
