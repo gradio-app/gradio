@@ -124,8 +124,6 @@ describe("Dropdown", () => {
 		const item: HTMLInputElement = getByLabelText(
 			"Dropdown"
 		) as HTMLInputElement;
-		const change_event = listen("change");
-		const select_event = listen("select");
 
 		item.focus();
 		await event.keyboard("other");
@@ -135,7 +133,7 @@ describe("Dropdown", () => {
 		const { getByLabelText, listen } = await render(Dropdown, {
 			show_label: true,
 			loading_status,
-			value: "default",
+			value: "new ",
 			label: "Dropdown",
 			max_choices: undefined,
 			allow_custom_value: true,
@@ -156,7 +154,7 @@ describe("Dropdown", () => {
 		await event.keyboard("kevin");
 		await item.blur();
 
-		assert.equal(item.value, "kevin");
+		assert.equal(item.value, "new kevin");
 		assert.equal(change_event.callCount, 1);
 	});
 
@@ -406,5 +404,38 @@ describe("Dropdown", () => {
 		expect(item.value).toBe("applez");
 		await item.blur();
 		expect(item.value).toBe("apple");
+	});
+
+	test("updating choices should keep the dropdown focus-able and change the choice name", async () => {
+		const { getByLabelText, component } = await render(Dropdown, {
+			show_label: true,
+			loading_status,
+			value: "apple_internal_value",
+			allow_custom_value: false,
+			label: "Dropdown",
+			choices: [
+				["apple_choice", "apple_internal_value"],
+				["zebra_choice", "zebra_internal_value"]
+			],
+			filterable: true,
+			interactive: true
+		});
+
+		const item: HTMLInputElement = getByLabelText(
+			"Dropdown"
+		) as HTMLInputElement;
+
+		await expect(item.value).toBe("apple_choice");
+
+		component.$set({
+			choices: [
+				["apple_new_choice", "apple_internal_value"],
+				["zebra_new_choice", "zebra_internal_value"]
+			]
+		});
+
+		await item.focus();
+		await item.blur();
+		await expect(item.value).toBe("apple_new_choice");
 	});
 });
