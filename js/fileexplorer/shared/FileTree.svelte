@@ -67,24 +67,25 @@
 	{#each content as { type, name, valid }, i}
 		<li>
 			<span class="wrap">
-				<Checkbox
-					disabled={!interactive ||
-						(type === "folder" && file_count === "single")}
-					value={(type === "file" ? selected_files : selected_folders).some(
-						(x) => x[0] === name && x.length === 1
-					)}
-					on:change={(e) => {
-						let checked = e.detail;
-						dispatch("check", {
-							path: [...path, name],
-							checked,
-							type
-						});
-						if (type === "folder" && checked) {
-							open_folder(i);
-						}
-					}}
-				/>
+				{#if interactive}
+					<Checkbox
+						disabled={type === "folder" && file_count === "single"}
+						value={(type === "file" ? selected_files : selected_folders).some(
+							(x) => x[0] === name && x.length === 1
+						)}
+						on:change={(e) => {
+							let checked = e.detail;
+							dispatch("check", {
+								path: [...path, name],
+								checked,
+								type
+							});
+							if (type === "folder" && checked) {
+								open_folder(i);
+							}
+						}}
+					/>
+				{/if}
 
 				{#if type === "folder"}
 					<span
