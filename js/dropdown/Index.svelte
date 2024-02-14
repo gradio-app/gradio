@@ -5,7 +5,7 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, SelectData } from "@gradio/utils";
+	import type { Gradio, KeyUpData, SelectData } from "@gradio/utils";
 	import Multiselect from "./shared/Multiselect.svelte";
 	import Dropdown from "./shared/Dropdown.svelte";
 	import { Block } from "@gradio/atoms";
@@ -35,6 +35,7 @@
 		select: SelectData;
 		blur: never;
 		focus: never;
+		key_up: KeyUpData;
 	}>;
 	export let interactive: boolean;
 </script>
@@ -72,6 +73,7 @@
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
+			on:key_up={() => gradio.dispatch("key_up")}
 			disabled={!interactive}
 		/>
 	{:else}
@@ -90,6 +92,7 @@
 			on:select={(e) => gradio.dispatch("select", e.detail)}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
+			on:key_up={(e) => gradio.dispatch("key_up", e.detail)}
 			disabled={!interactive}
 		/>
 	{/if}
