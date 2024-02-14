@@ -454,6 +454,7 @@
 		if (streaming_input_id) {
 			return instance_map[streaming_input_id].instance.webrtc_callback;
 		} else if (streaming_output_id) {
+			//TODO: fix this
 			const foo = () => null;
 			return foo;
 		} else {
@@ -483,6 +484,7 @@
 		}
 
 		const webrtc_callback = get_webrtc_data(dep);
+		console.log("webrtc_callback BLOCKS", webrtc_callback)
 
 		let payload: Payload = {
 			fn_index: dep_index,

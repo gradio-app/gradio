@@ -39,7 +39,6 @@ export function createPeerConnection(pc, node) {
 
 export async function start(webrtc_id, stream_callback, pc, node, root) {
 	pc = createPeerConnection(pc, node);
-
 	const stream = stream_callback();
 	if (stream) {
 		stream.getTracks().forEach((track) => {
