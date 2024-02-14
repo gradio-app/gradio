@@ -52,9 +52,9 @@ test("File Explorer correctly displays both directories and files. Directories i
 
 	await page
 		.locator("li")
-		.filter({ hasText: "dir4 dir5 dir7 . dir_4_foo.txt" })
+		.filter({ hasText: "dir4 . dir5 dir7 dir_4_bar.log dir_4_foo.txt" })
 		.getByRole("checkbox")
-		.nth(3)
+		.first()
 		.check();
 
 	await page
@@ -97,19 +97,20 @@ test("File Explorer selects all children when top level directory is selected.",
 	const directory_paths_displayed = async () => {
 		const value = await page.getByLabel("Selected Directory").inputValue();
 		const files_and_dirs = value.split(",");
-		expect(files_and_dirs.length).toBe(6);
+		expect(files_and_dirs.length).toBe(7);
 	};
 	await expect(directory_paths_displayed).toPass();
 });
 
-test("File Explorer correctly displays only directories and properly adds it to the value", async ({
-	page
-}) => {
+test("File Explorer correctly displays only text files", async ({ page }) => {
 	const check = page.getByRole("checkbox", {
-		name: "Show only directories",
+		name: "Show only text files",
 		exact: true
 	});
 	await check.click();
+
+	await page.getByLabel("Select File Explorer Root").click();
+	await page.getByLabel(new RegExp("/dir3$"), { exact: true }).first().click();
 
 	await page
 		.locator("span")
@@ -118,24 +119,26 @@ test("File Explorer correctly displays only directories and properly adds it to 
 		.check();
 	await page.getByRole("button", { name: "Run" }).click();
 
-	const directory_paths_displayed = async () => {
+	const text_files_displayed = async () => {
 		const value = await page.getByLabel("Selected Directory").inputValue();
 		const dirs = value.split(",");
-		expect(dirs.some((f) => f.endsWith("dir4"))).toBeTruthy();
-		expect(dirs.some((f) => f.endsWith("dir5"))).toBeTruthy();
-		expect(dirs.some((f) => f.endsWith("dir7"))).toBeTruthy();
+		expect(dirs.length).toBe(3);
+		expect(dirs.every((d) => d.endsWith(".txt"))).toBeTruthy();
 	};
-	await expect(directory_paths_displayed).toPass();
+	await expect(text_files_displayed).toPass();
 });
 
-test("File Explorer correctly excludes directories when ignore_glob is '**/'.", async ({
+test("File Explorer correctly excludes text files when ignore_glob is '*.txt'.", async ({
 	page
 }) => {
 	const check = page.getByRole("checkbox", {
-		name: "Ignore directories in glob",
+		name: "Ignore text files in glob",
 		exact: true
 	});
 	await check.click();
+
+	await page.getByLabel("Select File Explorer Root").click();
+	await page.getByLabel(new RegExp("/dir3$"), { exact: true }).first().click();
 
 	await page
 		.locator("span")
@@ -147,10 +150,9 @@ test("File Explorer correctly excludes directories when ignore_glob is '**/'.", 
 	const only_files_displayed = async () => {
 		const value = await page.getByLabel("Selected Directory").inputValue();
 		const files = value.split(",");
-		expect(files.length).toBe(3);
-		expect(files.some((f) => f.endsWith("dir_4_foo.txt"))).toBeTruthy();
-		expect(files.some((f) => f.endsWith("dir5_foo.txt"))).toBeTruthy();
-		expect(files.some((f) => f.endsWith("dir7_foo.txt"))).toBeTruthy();
+		expect(files.length).toBe(4);
+		expect(files.some((f) => f.endsWith(".log"))).toBeTruthy();
+		expect(files.some((f) => f.endsWith(".txt"))).toBeFalsy();
 	};
 	await expect(only_files_displayed).toPass();
 });

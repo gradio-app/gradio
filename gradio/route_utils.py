@@ -16,7 +16,7 @@ from multipart.multipart import parse_options_header
 from starlette.datastructures import FormData, Headers, UploadFile
 from starlette.formparsers import MultiPartException, MultipartPart
 
-from gradio import utils
+from gradio import processing_utils, utils
 from gradio.data_classes import PredictBody
 from gradio.exceptions import Error
 from gradio.helpers import EventData
@@ -261,18 +261,24 @@ async def call_process_api(
     return output
 
 
-def get_root_url(request: fastapi.Request) -> str:
+def get_root_url(
+    request: fastapi.Request, route_path: str, root_path: str | None
+) -> str:
     """
-    Gets the root url of the request, stripping off any query parameters and trailing slashes.
-    Also ensures that the root url is https if the request is https.
+    Gets the root url of the request, stripping off any query parameters, the route_path, and trailing slashes.
+    Also ensures that the root url is https if the request is https. If root_path is provided, it is appended to the root url.
+    The final root url will not have a trailing slash.
     """
     root_url = str(request.url)
     root_url = httpx.URL(root_url)
     root_url = root_url.copy_with(query=None)
-    root_url = str(root_url)
+    root_url = str(root_url).rstrip("/")
     if request.headers.get("x-forwarded-proto") == "https":
         root_url = root_url.replace("http://", "https://")
-    return root_url.rstrip("/")
+    route_path = route_path.rstrip("/")
+    if len(route_path) > 0:
+        root_url = root_url[: -len(route_path)]
+    return (root_url.rstrip("/") + (root_path or "")).rstrip("/")
 
 
 def _user_safe_decode(src: bytes, codec: str) -> str:
@@ -555,3 +561,16 @@ class GradioMultiPartParser:
 def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
     for file, dest in zip(files, destinations):
         shutil.move(file, dest)
+
+
+def update_root_in_config(config: dict, root: str) -> dict:
+    """
+    Updates the root "key" in the config dictionary to the new root url. If the
+    root url has changed, all of the urls in the config that correspond to component
+    file urls are updated to use the new root url.
+    """
+    previous_root = config.get("root", None)
+    if previous_root is None or previous_root != root:
+        config["root"] = root
+        config = processing_utils.add_root_url(config, root, previous_root)
+    return config
