@@ -1182,6 +1182,9 @@ importers:
       dequal:
         specifier: ^2.0.2
         version: 2.0.3
+      gsplat:
+        specifier: ^1.0.5
+        version: 1.0.5
 
   js/number:
     dependencies:
@@ -10983,6 +10986,10 @@ packages:
   /graphql@16.8.1:
     resolution: {integrity: sha512-59LZHPdGZVh695Ud9lRzPBVTtlX9ZCV150Er2W43ro37wVof0ctenSaskPPjN7lVTIN8mSZt8PHUNKZuNQUuxw==}
     engines: {node: ^12.22.0 || ^14.16.0 || ^16.0.0 || >=17.0.0}
+    dev: false
+
+  /gsplat@1.0.5:
+    resolution: {integrity: sha512-SM85+qMA/UwdDk2lFRmkJvLhD5A+qloRzINmPzjvXJ6Iugl3yAEr8TomVQmge0z1i98bHEoSZrJC/UOKVXq3Hg==}
     dev: false
 
   /gunzip-maybe@1.4.2:

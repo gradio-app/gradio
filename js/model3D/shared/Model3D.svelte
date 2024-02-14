@@ -2,7 +2,6 @@
 	import type { FileData } from "@gradio/client";
 	import { BlockLabel, IconButton } from "@gradio/atoms";
 	import { File, Download, Undo } from "@gradio/icons";
-	import Canvas3D from "./Canvas3D.svelte";
 	import type { I18nFormatter } from "@gradio/utils";
 	import { dequal } from "dequal";
 
@@ -22,8 +21,20 @@
 
 	let current_settings = { camera_position, zoom_speed, pan_speed };
 
-	let canvas3d: Canvas3D;
+	let canvas3dgs: any;
+	let canvas3d: any;
+	let use_3dgs = false;
 	let resolved_url: string | undefined;
+
+	async function loadCanvas3D(): Promise<any> {
+		const module = await import("./Canvas3D.svelte");
+		return module.default;
+	}
+
+	async function loadCanvas3DGS(): Promise<any> {
+		const module = await import("./Canvas3DGS.svelte");
+		return module.default;
+	}
 
 	function handle_undo(): void {
 		canvas3d.reset_camera_position(camera_position, zoom_speed, pan_speed);
@@ -37,6 +48,21 @@
 		) {
 			canvas3d.reset_camera_position(camera_position, zoom_speed, pan_speed);
 			current_settings = { camera_position, zoom_speed, pan_speed };
+		}
+	}
+
+	$: {
+		if (value) {
+			use_3dgs = value?.path.endsWith(".splat") || value?.path.endsWith(".ply");
+			if (use_3dgs) {
+				loadCanvas3DGS().then((module) => {
+					canvas3dgs = module;
+				});
+			} else {
+				loadCanvas3D().then((module) => {
+					canvas3d = module;
+				});
+			}
 		}
 	}
 </script>
@@ -59,15 +85,25 @@
 			</a>
 		</div>
 
-		<Canvas3D
-			bind:this={canvas3d}
-			bind:resolved_url
-			{value}
-			{clear_color}
-			{camera_position}
-			{zoom_speed}
-			{pan_speed}
-		/>
+		{#if use_3dgs}
+			<svelte:component
+				this={canvas3dgs}
+				bind:resolved_url
+				{value}
+				{zoom_speed}
+				{pan_speed}
+			/>
+		{:else}
+			<svelte:component
+				this={canvas3d}
+				bind:resolved_url
+				{value}
+				{clear_color}
+				{camera_position}
+				{zoom_speed}
+				{pan_speed}
+			/>
+		{/if}
 	</div>
 {/if}
 
