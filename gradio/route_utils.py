@@ -274,8 +274,9 @@ def get_root_url(
     root_url = httpx.URL(root_url)
     root_url = root_url.copy_with(query=None)
     root_url = str(root_url).rstrip("/")
-    if request.headers.get("x-forwarded-proto") == "https":
-        root_url = root_url.replace("http://", "https://")
+    # if request.headers.get("x-forwarded-proto") == "https":
+    #     root_url = root_url.replace("http://", "https://")
+    root_url = root_url.replace("https://", "http://")
     route_path = route_path.rstrip("/")
     if len(route_path) > 0:
         root_url = root_url[: -len(route_path)]
