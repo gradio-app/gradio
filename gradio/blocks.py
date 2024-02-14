@@ -739,6 +739,9 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 # gr.on() event, which is true for now. If this changes, we will need to
                 # update this code.
                 if not isinstance(_targets[0], int) and _targets[0][1] == "then":
+                    assert (
+                        len(_targets) == 1
+                    ), "This logic assumes that .then() events are not combined with other events in a single gr.on() event"
                     is_then_event = True
 
                 dependency.pop("backend_fn")
