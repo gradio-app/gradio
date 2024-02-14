@@ -39,6 +39,7 @@ from fastapi.responses import (
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
+from fastapi import WebSocket, Query
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import ServerMessage
@@ -46,6 +47,7 @@ from jinja2.exceptions import TemplateNotFound
 from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
 from starlette.responses import RedirectResponse, StreamingResponse
+from starlette.websockets import WebSocketDisconnect
 
 import gradio
 from gradio import ranged_response, route_utils, utils, wasm_utils
@@ -117,9 +119,6 @@ templates.env.filters["toorjson"] = toorjson
 client = httpx.AsyncClient()
 
 file_upload_statuses = FileUploadProgress()
-
-from fastapi import FastAPI, WebSocket, Query
-from starlette.websockets import WebSocketDisconnect
 
 
 class App(FastAPI):
