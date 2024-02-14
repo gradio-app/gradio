@@ -420,7 +420,7 @@ class App(FastAPI):
 
         @app.head("/file={path_or_url:path}", dependencies=[Depends(login_check)])
         @app.get("/file={path_or_url:path}", dependencies=[Depends(login_check)])
-        def file(path_or_url: str, request: fastapi.Request):
+        async def file(path_or_url: str, request: fastapi.Request):
             blocks = app.get_blocks()
             if client_utils.is_http_url_like(path_or_url):
                 return RedirectResponse(
@@ -516,7 +516,7 @@ class App(FastAPI):
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
         async def file_deprecated(path: str, request: fastapi.Request):
-            return file(path, request)
+            return await file(path, request)
 
         @app.post("/reset/")
         @app.post("/reset")
