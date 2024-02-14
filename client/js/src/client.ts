@@ -301,7 +301,7 @@ export function api_factory(
 
 			async function config_success(_config: Config): Promise<client_return> {
 				config = _config;
-				if (window.location.protocol === "https://") {
+				if (window.location.protocol === "https:") {
 					config.root = config.root.replace("http://", "https://");
 				}
 				api_map = map_names_to_ids(_config?.dependencies || []);
@@ -312,6 +312,7 @@ export function api_factory(
 					};
 				}
 				try {
+					console.log("root", config.root, )
 					api = await view_api(config);
 				} catch (e) {
 					console.error(`Could not get api details: ${e.message}`);
