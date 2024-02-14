@@ -16,7 +16,7 @@ from multipart.multipart import parse_options_header
 from starlette.datastructures import FormData, Headers, UploadFile
 from starlette.formparsers import MultiPartException, MultipartPart
 
-from gradio import utils
+from gradio import processing_utils, utils
 from gradio.data_classes import PredictBody
 from gradio.exceptions import Error
 from gradio.helpers import EventData
@@ -561,3 +561,16 @@ class GradioMultiPartParser:
 def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
     for file, dest in zip(files, destinations):
         shutil.move(file, dest)
+
+
+def update_root_in_config(config: dict, root: str) -> dict:
+    """
+    Updates the root "key" in the config dictionary to the new root url. If the
+    root url has changed, all of the urls in the config that correspond to component
+    file urls are updated to use the new root url.
+    """
+    previous_root = config.get("root", None)
+    if previous_root is None or previous_root != root:
+        config["root"] = root
+        config = processing_utils.add_root_url(config, root, previous_root)
+    return config

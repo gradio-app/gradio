@@ -332,3 +332,42 @@ class TestVideoProcessing:
             )
             # If the conversion succeeded it'd be .mp4
             assert Path(playable_vid).suffix == ".avi"
+
+
+def test_add_root_url():
+    data = {
+        "file": {
+            "path": "path",
+            "url": "/file=path",
+        },
+        "file2": {
+            "path": "path2",
+            "url": "https://www.gradio.app",
+        },
+    }
+    root_url = "http://localhost:7860"
+    expected = {
+        "file": {
+            "path": "path",
+            "url": f"{root_url}/file=path",
+        },
+        "file2": {
+            "path": "path2",
+            "url": "https://www.gradio.app",
+        },
+    }
+    assert processing_utils.add_root_url(data, root_url, None) == expected
+    new_root_url = "https://1234.gradio.live"
+    new_expected = {
+        "file": {
+            "path": "path",
+            "url": f"{root_url}/file=path",
+        },
+        "file2": {
+            "path": "path2",
+            "url": "https://www.gradio.app",
+        },
+    }
+    assert (
+        processing_utils.add_root_url(expected, root_url, new_root_url) == new_expected
+    )

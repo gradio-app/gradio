@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-import copy
 import sys
 
 if sys.version_info >= (3, 9):
@@ -311,19 +310,18 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
-            root_path = route_utils.get_root_url(
+            root = route_utils.get_root_url(
                 request=request, route_path="/", root_path=app.root_path
             )
             if app.auth is None or user is not None:
-                config = copy.deepcopy(app.get_blocks().config)
-                config["root"] = root_path
-                config = add_root_url(config, root_path)
+                config = app.get_blocks().config
+                config = route_utils.update_root_in_config(config, root)
             else:
                 config = {
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
                     "space_id": app.get_blocks().space_id,
-                    "root": root_path,
+                    "root": root,
                 }
 
             try:
@@ -354,13 +352,12 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
-            config = copy.deepcopy(app.get_blocks().config)
-            root_path = route_utils.get_root_url(
+            config = app.get_blocks().config
+            root = route_utils.get_root_url(
                 request=request, route_path="/config", root_path=app.root_path
             )
-            config["root"] = root_path
-            config = add_root_url(config, root_path)
-            return config
+            config = route_utils.update_root_in_config(config, root)
+            return ORJSONResponse(content=config)
 
         @app.get("/static/{path:path}")
         def static_resource(path: str):
@@ -577,7 +574,7 @@ class App(FastAPI):
             root_path = route_utils.get_root_url(
                 request=request, route_path=f"/api/{api_name}", root_path=app.root_path
             )
-            output = add_root_url(output, root_path)
+            output = add_root_url(output, root_path, None)
             return output
 
         @app.get("/queue/data", dependencies=[Depends(login_check)])
@@ -634,7 +631,7 @@ class App(FastAPI):
                                 "success": False,
                             }
                         if message:
-                            add_root_url(message, root_path)
+                            add_root_url(message, root_path, None)
                             yield f"data: {json.dumps(message)}\n\n"
                             if message["msg"] == ServerMessage.process_completed:
                                 blocks._queue.pending_event_ids_session[
