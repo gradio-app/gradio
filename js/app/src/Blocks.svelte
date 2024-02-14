@@ -513,8 +513,6 @@
 				})
 				.on("status", ({ fn_index, ...status }) => {
 					tick().then(() => {
-						const outputs = dependencies[fn_index].outputs;
-
 						//@ts-ignore
 						loading_status.update({
 							...status,
