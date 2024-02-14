@@ -5,8 +5,6 @@
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
-	import Canvas3D from "./Canvas3D.svelte";
-	import Canvas3DGS from "./Canvas3DGS.svelte";
 
 	export let value: null | FileData;
 	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
@@ -40,9 +38,19 @@
 		dispatch("change");
 	}
 
-	let canvas3d: Canvas3D;
-	let canvas3dgs: Canvas3DGS;
+	let canvas3d: any;
+	let canvas3dgs: any;
 	let use_3dgs = false;
+
+	async function loadCanvas3D(): Promise<any> {
+		const module = await import("./Canvas3D.svelte");
+		return module.default;
+	}
+
+	async function loadCanvas3DGS(): Promise<any> {
+		const module = await import("./Canvas3DGS.svelte");
+		return module.default;
+	}
 
 	async function handle_undo(): Promise<void> {
 		canvas3d.reset_camera_position(camera_position, zoom_speed, pan_speed);
@@ -62,6 +70,15 @@
 	$: {
 		if (value) {
 			use_3dgs = value?.path.endsWith(".splat") || value?.path.endsWith(".ply");
+			if (use_3dgs) {
+				loadCanvas3DGS().then((module) => {
+					canvas3dgs = module;
+				});
+			} else {
+				loadCanvas3D().then((module) => {
+					canvas3d = module;
+				});
+			}
 		}
 	}
 </script>
@@ -88,10 +105,10 @@
 		/>
 
 		{#if use_3dgs}
-			<Canvas3DGS bind:this={canvas3dgs} {value} {zoom_speed} {pan_speed} />
+			<svelte:component this={canvas3dgs} {value} {zoom_speed} {pan_speed} />
 		{:else}
-			<Canvas3D
-				bind:this={canvas3d}
+			<svelte:component
+				this={canvas3d}
 				{value}
 				{clear_color}
 				{camera_position}
