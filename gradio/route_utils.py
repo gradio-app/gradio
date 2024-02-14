@@ -14,13 +14,12 @@ import multipart
 import numpy as np
 from aiortc import VideoStreamTrack
 from aiortc.contrib.media import AudioFrame, VideoFrame
-from aiortc.mediastreams import MediaStreamError
 from gradio_client.documentation import document
 from multipart.multipart import parse_options_header
 from starlette.datastructures import FormData, Headers, UploadFile
 from starlette.formparsers import MultiPartException, MultipartPart
 
-from gradio import components, utils
+from gradio import utils
 from gradio.data_classes import PredictBody, PredictOutput
 from gradio.exceptions import Error
 from gradio.helpers import EventData
@@ -617,7 +616,7 @@ class GradioTransformTrack(VideoStreamTrack):
         for i, component_id in enumerate(outputs):
             # TODO: right now we're assuming only one output streaming component
             # TODO: this would not work for custom components?
-            if isinstance(blocks.blocks[component_id], components.Video):
+            if getattr(blocks.blocks[component_id], "streaming", False):
                 self.output_index = i
 
     def add_frame_to_payload(self, frame: np.ndarray | None) -> PredictBody:
@@ -694,7 +693,7 @@ class GradioTransformTrack(VideoStreamTrack):
             ] and self.context.app.get_blocks().is_generator_fn(body.fn_index):
                 print("STOPPING")
                 self.stop()
-                raise MediaStreamError()
+                return None
             return new_frame
         except Exception as e:
             print(e)

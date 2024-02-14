@@ -1518,6 +1518,8 @@ Received outputs:
             else:
                 prev_chunk = last_diffs[i]
                 last_diffs[i] = data[i]
+                print("prev_chunk", prev_chunk)
+                print("data[i]", data[i])
                 data[i] = utils.diff(prev_chunk, data[i])
 
         if final:

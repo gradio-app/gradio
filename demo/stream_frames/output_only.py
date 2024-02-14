@@ -7,7 +7,7 @@ def process_video(input_video):
     # while True:
     #     yield np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8), i
     #     i += 1
-    cap = cv2.VideoCapture("/Users/freddy/Pictures/bark_demo.mp4")
+    cap = cv2.VideoCapture(input_video)
 
     output_path = "output.mp4"
 
@@ -19,29 +19,29 @@ def process_video(input_video):
 
     iterating, frame = cap.read()
     while iterating:
-        print("ITERATING")
 
         # flip frame vertically
         frame = cv2.flip(frame, 0)
         display_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         video.write(frame)
-        yield display_frame
-
+        yield display_frame, None
         iterating, frame = cap.read()
 
     video.release()
-    yield display_frame
+    yield display_frame, gr.Video(value=output_path, visible=True)
 
 with gr.Blocks() as demo:
     with gr.Row():
         input_video = gr.Video(label="input")
-        num = gr.Number(label="number")
-        output_video = gr.Video(label="output", streaming=True)
+        #num = gr.Number(label="number")
+        output_frame = gr.Video(label="Frames", streaming=True)
+        video = gr.Video(label="Video File", visible=False)
+
 
     with gr.Row():
         process_video_btn = gr.Button("process video")
 
-    process_video_btn.click(process_video, input_video, [output_video])
+    process_video_btn.click(process_video, input_video, [output_frame, video])
 
 demo.launch()
