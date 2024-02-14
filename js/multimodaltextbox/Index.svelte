@@ -25,7 +25,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: [string | null ][] | null = null;
+	export let value = "";
 	export let lines: number;
 	export let placeholder = "";
 	export let show_label: boolean;

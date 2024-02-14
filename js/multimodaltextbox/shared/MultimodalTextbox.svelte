@@ -6,6 +6,7 @@
 		tick
 	} from "svelte";
 	import { Upload } from "@gradio/upload";
+	import { Image } from "@gradio/image/shared";
 	import type { FileData } from "@gradio/client";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Copy, Check } from "@gradio/icons";
@@ -13,6 +14,7 @@
 	import type { SelectData } from "@gradio/utils";
 
 	export let value = "";
+	export let images: FileData[] = [];
 	export let value_is_output = false;
 	export let lines = 1;
 	export let placeholder = "Type here...";
@@ -190,7 +192,7 @@
 		_el.style.overflowY = "scroll";
 		_el.addEventListener("input", resize);
 
-		if (!_value.trim()) return;
+		// if (!_value.trim()) return;
 		resize({ target: _el });
 
 		return {
@@ -202,8 +204,8 @@
 
 	async function handle_upload({
 		detail
-	}: CustomEvent<FileData | FileData[]>): Promise<void> {
-		value = detail;
+	}: CustomEvent<FileData>): Promise<void> {
+		images.push(detail);
 		await tick();
 		dispatch("change", value);
 		dispatch("upload", detail);
@@ -212,26 +214,29 @@
 
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container>
-	<BlockTitle {show_label} {info}>{label}</BlockTitle>
-
-	{#if lines === 1 && max_lines === 1}
-		<div class="input-container">
-			<input
-				data-testid="textbox"
-				type="text"
-				class="scroll-hide"
-				dir={rtl ? "rtl" : "ltr"}
-				bind:value
-				bind:this={el}
-				{placeholder}
-				{disabled}
-				{autofocus}
-				on:keypress={handle_keypress}
-				on:blur
-				on:select={handle_select}
-				on:focus
-				style={text_align ? "text-align: " + text_align : ""}
-			/>
+	{#if show_label && show_copy_button}
+		{#if copied}
+			<button
+				in:fade={{ duration: 300 }}
+				aria-label="Copied"
+				aria-roledescription="Text copied"><Check /></button
+			>
+		{:else}
+			<button
+				on:click={handle_copy}
+				aria-label="Copy"
+				aria-roledescription="Copy text"><Copy /></button
+			>
+		{/if}
+	{/if}
+	<div class="input-container">
+		<Upload
+			on:load={handle_upload}
+			filetype={accept_file_types}
+			{root}
+			disable_click={true}
+			bind:dragging
+		>
 			<input
 				id="file-upload"
 				type="file"
@@ -239,31 +244,24 @@
 				on:change={handle_upload}
 			/>
 			<label for="file-upload" class="plus-button">+</label>
-		</div>
-	{:else}
-		{#if show_label && show_copy_button}
-			{#if copied}
-				<button
-					in:fade={{ duration: 300 }}
-					aria-label="Copied"
-					aria-roledescription="Text copied"><Check /></button
-				>
-			{:else}
-				<button
-					on:click={handle_copy}
-					aria-label="Copy"
-					aria-roledescription="Copy text"><Copy /></button
-				>
-			{/if}
-		{/if}
-		<div class="input-container">
-			<Upload
-				on:load={handle_upload}
-				filetype={accept_file_types}
-				{root}
-				disable_click={true}
-				bind:dragging
+			{#if images.length > 0}
+			<div
+				class="thumbnails scroll-hide"
+				data-testid="container_el"
+				style="display: {images.length > 0 ? 'flex' : 'none'};"
 			>
+			{#each images as image}
+				<button class="thumbnail-item thumbnail-small">
+					<Image
+						src={image.url}
+						title={null}
+						alt=""
+						loading="lazy"
+					/>
+				</button>
+			{/each}
+			</div>
+		{/if}
 			<textarea
 				data-testid="textbox"
 				use:text_area_resize={value}
@@ -282,52 +280,38 @@
 				on:scroll={handle_scroll}
 				style={text_align ? "text-align: " + text_align : ""}
 			/>
-			<input
-				id="file-upload"
-				type="file"
-				style="display: none;"
-				on:change={handle_upload}
-			/>
-			<label for="file-upload" class="plus-button">+</label>
-		</Upload>
-		</div>
-	{/if}
+	</Upload>
+	</div>
 </label>
 
 <style>
-	.upload-component {
-		background-color: red;
-	}
-	label {
-		display: block;
-		width: 100%;
-	}
+	.input-container {
+        display: flex;
+		flex-direction: column;
+    }
+
+	.input-container:focus {
+        border: 2px solid var(--input-border-color-focus);
+    }
 
 	input,
 	textarea {
-		display: block;
-		position: relative;
+		align-self: flex-start;
 		outline: none !important;
 		box-shadow: var(--input-shadow);
 		background: var(--input-background-fill);
 		padding: var(--input-padding);
-		width: 100%;
+		width: 90%;
+		max-height: 100%;
+		height: 25px;
 		color: var(--body-text-color);
 		font-weight: var(--input-text-weight);
 		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
 		border: none;
+		margin-top: 15px;
 	}
-	label:not(.container),
-	label:not(.container) > input,
-	label:not(.container) > textarea {
-		height: 100%;
-	}
-	.container > input,
-	.container > textarea {
-		border: var(--input-border-width) solid var(--input-border-color);
-		border-radius: var(--input-radius);
-	}
+
 	input:disabled,
 	textarea:disabled {
 		-webkit-text-fill-color: var(--body-text-color);
@@ -345,47 +329,83 @@
 	textarea::placeholder {
 		color: var(--input-placeholder-color);
 	}
-	button {
-		display: flex;
-		position: absolute;
-		top: var(--block-label-margin);
-		right: var(--block-label-margin);
-		align-items: center;
-		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--color-border-primary);
-		border-top: none;
-		border-right: none;
-		border-radius: var(--block-label-right-radius);
-		background: var(--block-label-background-fill);
-		padding: 5px;
-		width: 22px;
-		height: 22px;
-		overflow: hidden;
-		color: var(--block-label-color);
-		font: var(--font-sans);
-		font-size: var(--button-small-text-size);
-	}
-
-	.input-container {
-        position: relative;
-    }
 
     .plus-button {
         position: absolute;
-        bottom: 7px;
         right: 10px;
+		margin-left: 5px;
+		bottom: 20px;
         background-color: var(--input-border-color-focus);
         border: none;
         color: white;
         text-align: center;
         text-decoration: none;
-        display: flex;
-        justify-content: center;
-        align-items: center;
         font-size: 20px;
         cursor: pointer;
         border-radius: 50%;
-        max-width: 30px;
-        max-height: 30px;
+        width: 30px;
+        height: 30px;
     }
+
+	.thumbnails :global(img) {
+		object-fit: cover;
+		width: var(--size-full);
+		height: var(--size-full);
+	}
+
+	.thumbnails {
+		align-self: flex-start;
+		height: auto;
+        overflow: auto;
+		display: flex;
+		justify-content: left;
+		align-items: center;
+		gap: var(--spacing-lg);
+		overflow-x: scroll;
+	}
+
+	.thumbnail-item {
+		--ring-color: transparent;
+		position: relative;
+		box-shadow:
+			0 0 0 2px var(--ring-color),
+			var(--shadow-drop);
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--button-small-radius);
+		background: var(--background-fill-secondary);
+		aspect-ratio: var(--ratio-square);
+		width: var(--size-full);
+		height: var(--size-full);
+		overflow: clip;
+	}
+
+	.thumbnail-item:hover {
+		--ring-color: var(--color-accent);
+		filter: brightness(1.1);
+	}
+
+	.thumbnail-item.selected {
+		--ring-color: var(--color-accent);
+	}
+
+	.thumbnail-small {
+		flex: none;
+		transform: scale(0.9);
+		transition: 0.075s;
+		width: var(--size-9);
+		height: var(--size-9);
+	}
+
+	.thumbnail-small.selected {
+		--ring-color: var(--color-accent);
+		transform: scale(1);
+		border-color: var(--color-accent);
+	}
+
+	.thumbnail-small > img {
+		width: var(--size-full);
+		height: var(--size-full);
+		overflow: hidden;
+		object-fit: var(--object-fit);
+	}
 </style>

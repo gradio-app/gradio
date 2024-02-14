@@ -18,6 +18,7 @@
 		"@gradio/icons": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/upload": "workspace:^"
+		"@gradio/upload": "workspace:^",
+		"@gradio/image": "workspace:^"
 	}
 }

@@ -1194,6 +1194,9 @@ importers:
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
+      '@gradio/image':
+        specifier: workspace:^
+        version: link:../image
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker
