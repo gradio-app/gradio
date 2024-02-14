@@ -941,7 +941,7 @@ export function api_factory(
 									event_callbacks[event_id] = callback;
 									unclosed_events.add(event_id);
 									if (!stream_open) {
-										open_stream();
+										open_stream(webrtc_callback);
 									}
 								}
 							});
@@ -1066,7 +1066,7 @@ export function api_factory(
 				};
 			}
 
-			function open_stream(): void {
+			function open_stream(webrtc_callback): void {
 				stream_open = true;
 				let params = new URLSearchParams({
 					session_hash: session_hash
@@ -1084,7 +1084,9 @@ export function api_factory(
 						);
 					} else if (event_callbacks[event_id]) {
 						if (_data.msg === "process_completed") {
-							stop_stream();
+							if (!webrtc_callback()){
+								stop_stream();
+							}
 							unclosed_events.delete(event_id);
 							if (unclosed_events.size === 0) {
 								close_stream();
