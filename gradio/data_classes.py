@@ -10,7 +10,7 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from fastapi import Request
-from gradio_client.utils import traverse
+from gradio_client.utils import ServerMessage, traverse
 from typing_extensions import Literal
 
 from . import wasm_utils
@@ -75,6 +75,11 @@ else:
     RootModel.model_json_schema = RootModel.schema  # type: ignore
 
 
+class SimplePredictBody(BaseModel):
+    data: List[Any]
+    session_hash: Optional[str] = None
+
+
 class PredictBody(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
 
@@ -84,6 +89,7 @@ class PredictBody(BaseModel):
     event_data: Optional[Any] = None
     fn_index: Optional[int] = None
     trigger_id: Optional[int] = None
+    simple_format: bool = False
     batched: Optional[
         bool
     ] = False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
@@ -108,6 +114,11 @@ class InterfaceTypes(Enum):
     INPUT_ONLY = auto()
     OUTPUT_ONLY = auto()
     UNIFIED = auto()
+
+
+class EventMessage(BaseModel, extra="allow"):
+    msg: ServerMessage
+    event_id: Optional[str] = None
 
 
 class Estimation(BaseModel):

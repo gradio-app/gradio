@@ -1496,6 +1496,7 @@ Received outputs:
         session_hash: str | None,
         run: int | None,
         final: bool,
+        simple_format: bool = False,
     ) -> list:
         if session_hash is None or run is None:
             return data
@@ -1511,7 +1512,7 @@ Received outputs:
 
             if first_run:
                 last_diffs[i] = data[i]
-            else:
+            elif not simple_format:
                 prev_chunk = last_diffs[i]
                 last_diffs[i] = data[i]
                 data[i] = utils.diff(prev_chunk, data[i])
@@ -1532,6 +1533,7 @@ Received outputs:
         event_id: str | None = None,
         event_data: EventData | None = None,
         in_event_listener: bool = True,
+        simple_format: bool = False,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -1616,6 +1618,7 @@ Received outputs:
                     session_hash=session_hash,
                     run=run,
                     final=not is_generating,
+                    simple_format=simple_format,
                 )
 
         block_fn.total_runtime += result["duration"]

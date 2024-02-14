@@ -1,6 +1,11 @@
 import gradio as gr
 
 def greet(name):
+    import time
+    for letter in name:
+        time.sleep(1)
+        yield "Hello " + letter + "!"
+    time.sleep(30)
     return "Hello " + name + "!"
 
 with gr.Blocks() as demo:

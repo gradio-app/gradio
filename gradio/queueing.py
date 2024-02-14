@@ -19,6 +19,7 @@ from typing_extensions import Literal
 from gradio import route_utils, routes
 from gradio.data_classes import (
     Estimation,
+    EventMessage,
     LogMessage,
     PredictBody,
     Progress,
@@ -35,18 +36,18 @@ if TYPE_CHECKING:
 class Event:
     def __init__(
         self,
-        session_hash: str,
+        session_hash: str | None,
         fn_index: int,
         request: fastapi.Request,
         username: str | None,
         concurrency_id: str,
     ):
-        self.session_hash = session_hash
+        self._id = uuid.uuid4().hex
+        self.session_hash: str = session_hash or self._id
         self.fn_index = fn_index
         self.request = request
         self.username = username
         self.concurrency_id = concurrency_id
-        self._id = uuid.uuid4().hex
         self.data: PredictBody | None = None
         self.progress: Progress | None = None
         self.progress_pending: bool = False
@@ -84,7 +85,9 @@ class Queue:
         block_fns: list[BlockFunction],
         default_concurrency_limit: int | None | Literal["not_set"] = "not_set",
     ):
-        self.pending_messages_per_session: LRUCache[str, ThreadQueue] = LRUCache(2000)
+        self.pending_messages_per_session: LRUCache[
+            str, ThreadQueue[EventMessage]
+        ] = LRUCache(2000)
         self.pending_event_ids_session: dict[str, set[str]] = {}
         self.pending_message_lock = safe_get_lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
@@ -150,14 +153,19 @@ class Queue:
     def send_message(
         self,
         event: Event,
-        message_type: str,
+        message_type: ServerMessage,
         data: dict | None = None,
     ):
         if not event.alive:
             return
         data = {} if data is None else data
         messages = self.pending_messages_per_session[event.session_hash]
-        messages.put_nowait({"msg": message_type, "event_id": event._id, **data})
+        message = EventMessage(
+            msg=message_type,
+            event_id=event._id,
+            **data,
+        )
+        messages.put_nowait(message)
 
     def _resolve_concurrency_limit(
         self, default_concurrency_limit: int | None | Literal["not_set"]
@@ -190,8 +198,6 @@ class Queue:
     async def push(
         self, body: PredictBody, request: fastapi.Request, username: str | None
     ) -> tuple[bool, str]:
-        if body.session_hash is None:
-            return False, "No session hash provided."
         if body.fn_index is None:
             return False, "No function index provided."
         if self.max_size is not None and len(self) >= self.max_size:
@@ -208,6 +214,8 @@ class Queue:
             self.block_fns[body.fn_index].concurrency_id,
         )
         event.data = body
+        if body.session_hash is None:
+            body.session_hash = event.session_hash
         async with self.pending_message_lock:
             if body.session_hash not in self.pending_messages_per_session:
                 self.pending_messages_per_session[body.session_hash] = ThreadQueue()
