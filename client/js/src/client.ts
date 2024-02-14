@@ -1084,7 +1084,7 @@ export function api_factory(
 						);
 					} else if (event_callbacks[event_id]) {
 						if (_data.msg === "process_completed") {
-							if (!webrtc_callback()){
+							if (webrtc_callback != null && !webrtc_callback()){
 								stop_stream();
 							}
 							unclosed_events.delete(event_id);
