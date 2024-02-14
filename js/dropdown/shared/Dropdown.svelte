@@ -95,11 +95,13 @@
 
 	$: {
 		if (choices !== old_choices) {
-			set_input_text();
 			old_choices = choices;
 			filtered_indices = handle_filter(choices, input_text);
 			if (!allow_custom_value && filtered_indices.length > 0) {
 				active_index = filtered_indices[0];
+			}
+			if (filter_input == document.activeElement) {
+				show_options = true;
 			}
 		}
 	}
