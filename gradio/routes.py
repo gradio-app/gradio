@@ -310,13 +310,12 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
-            root = route_utils.get_root_url(request=request, route_path="/", root_path=app.root_path)
+            root = route_utils.get_root_url(
+                request=request, route_path="/", root_path=app.root_path
+            )
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
-                previous_root = config.get("root", None)
-                if previous_root is None or previous_root != root:
-                    config["root"] = root
-                    config = add_root_url(config, root, previous_root)
+                config = route_utils.update_root_in_config(config, root)
             else:
                 config = {
                     "auth_required": True,
@@ -354,11 +353,10 @@ class App(FastAPI):
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
             config = app.get_blocks().config
-            root = route_utils.get_root_url(request=request, route_path="/config", root_path=app.root_path)
-            previous_root = config.get("root", None)
-            if previous_root is None or previous_root != root:
-                config["root"] = root
-                config = add_root_url(config, root, previous_root)
+            root = route_utils.get_root_url(
+                request=request, route_path="/config", root_path=app.root_path
+            )
+            config = route_utils.update_root_in_config(config, root)
             return ORJSONResponse(content=config)
 
         @app.get("/static/{path:path}")
@@ -573,7 +571,9 @@ class App(FastAPI):
                     content={"error": str(error) if show_error else None},
                     status_code=500,
                 )
-            root_path = route_utils.get_root_url(request=request, route_path=f"/api/{api_name}", root_path=app.root_path)
+            root_path = route_utils.get_root_url(
+                request=request, route_path=f"/api/{api_name}", root_path=app.root_path
+            )
             output = add_root_url(output, root_path, None)
             return output
 
