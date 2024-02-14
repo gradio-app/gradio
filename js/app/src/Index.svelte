@@ -255,9 +255,6 @@
 			status_callback: handle_status
 		});
 		config = app.config;
-		if (window.location.protocol === "https:") {
-			config.root = config.root.replace("http://", "https://");
-		}
 		window.__gradio_space__ = config.space_id;
 
 		status = {
