@@ -69,7 +69,6 @@ from gradio.state_holder import StateHolder
 from gradio.utils import (
     get_package_version,
 )
-from gradio.components import State
 
 if TYPE_CHECKING:
     from gradio.blocks import Block
@@ -223,6 +222,7 @@ class App(FastAPI):
                     data = await websocket.receive_text()
                     print(f"Message from client: {data}")
             except WebSocketDisconnect:
+                from gradio.components import State  # fmt: skip
                 states = app.state_holder.session_data[session_hash]
                 for k, state_data in states._data.items():
                     state = states.blocks.blocks[k]
