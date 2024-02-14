@@ -312,7 +312,7 @@ export function api_factory(
 					};
 				}
 				try {
-					console.log("root", config.root, )
+					console.log("root", config.root, window.location.protocol);
 					api = await view_api(config);
 				} catch (e) {
 					console.error(`Could not get api details: ${e.message}`);
