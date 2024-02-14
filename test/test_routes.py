@@ -888,8 +888,8 @@ def test_component_server_endpoints(connect):
         ),
         (
             "http://localhost:7860/demo/test?query=1",
-            "/demo/test",
-            "/gradio",
+            "/demo/test/",
+            "/gradio/",
             "http://localhost:7860/gradio",
         ),
         (
