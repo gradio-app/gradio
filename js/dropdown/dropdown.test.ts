@@ -74,8 +74,8 @@ describe("Dropdown", () => {
 		expect(options[1]).toContainHTML("name2");
 	});
 
-	test("editing the textbox value should filter the options", async () => {
-		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
+	test("editing the textbox value should trigger the type event and filter the options", async () => {
+		const { getByLabelText, listen, getAllByTestId } = await render(Dropdown, {
 			show_label: true,
 			loading_status,
 			max_choices: 10,
@@ -89,6 +89,8 @@ describe("Dropdown", () => {
 			interactive: true
 		});
 
+		const key_up_event = listen("key_up");
+
 		const item: HTMLInputElement = getByLabelText(
 			"Dropdown"
 		) as HTMLInputElement;
@@ -100,10 +102,12 @@ describe("Dropdown", () => {
 
 		item.value = "";
 		await event.keyboard("z");
+
 		const options_new = getAllByTestId("dropdown-option");
 
-		expect(options_new).toHaveLength(1);
-		expect(options[0]).toContainHTML("zebra");
+		await expect(options_new).toHaveLength(1);
+		await expect(options[0]).toContainHTML("zebra");
+		await assert.equal(key_up_event.callCount, 1);
 	});
 
 	test("blurring the textbox should cancel the filter", async () => {
