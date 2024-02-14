@@ -34,11 +34,11 @@ def transform_cv2(frame, transform):
         return np.flipud(frame)
 
 
-
 with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
-            transform = gr.Dropdown(choices=["cartoon", "edges", "flip"], value="flip", label="Transformation")
+            transform = gr.Dropdown(choices=["cartoon", "edges", "flip"],
+                                    value="flip", label="Transformation")
             input_img = gr.Image(sources=["webcam"], streaming=True)
         with gr.Column():
             output_img = gr.Video(streaming=True)

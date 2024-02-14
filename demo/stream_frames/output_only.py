@@ -25,23 +25,22 @@ def process_video(input_video):
         display_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         video.write(frame)
-        yield display_frame
+        yield display_frame, None
         iterating, frame = cap.read()
 
     video.release()
-    yield display_frame
+    yield display_frame, gr.Video(output_path, visible=True)
 
 with gr.Blocks() as demo:
     with gr.Row():
         input_video = gr.Video(label="input")
-        #num = gr.Number(label="number")
         output_frame = gr.Video(label="Frames", streaming=True)
-        #video = gr.Video(label="Video File", visible=False)
+        video = gr.Video(label="Video File", visible=False)
 
 
     with gr.Row():
         process_video_btn = gr.Button("process video")
 
-    process_video_btn.click(process_video, input_video, [output_frame])
+    process_video_btn.click(process_video, input_video, [output_frame, video])
 
 demo.launch()
