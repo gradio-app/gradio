@@ -354,9 +354,7 @@ If a workflow "runs in the context of the default branch" then it will use the w
 
 The information available inside a workflow after it has started (usually available via the [`github` context](https://docs.github.com/en/actions/learn-github-actions/contexts#github-context)). For pull requests, this will include things like the pull request number, and the ref and HEAD SHA of the pull request branch. For workflows running in the context of the default branch, this may not contain much information, but all references to the branch and sha will mainly just be references to main.
 
-This diagram is an attempt at illustrating this process.
-
-<details>
+</details>
 
 #### New solution, new problems
 
@@ -388,7 +386,7 @@ It is much easier to find a SHA from a PR number than the other way around but b
 - The SHA of the magical 'merge' branch that github creates (we want to check this out usually)
 - Any labels for the PR (we use these for certain conditional jobs)
 
-<detail>
+<details>
 <summary>A magical branch, you say?</summary>
 
 GitHub actually creates two magical refs. `pull/<pr-number>/head` and `pull/<pr-number>/merge`. Both of these refs are read-only, you cannot push to them no matter how many `-f`s you add.
@@ -397,7 +395,9 @@ The `head` variant is pretty much the same as the HEAD of the pr branch, except 
 
 The `merge` variant is special. This is a branch that merges the PR changes into the target branch. `pull_request` events have this branch set as their 'default' and it is what gets checked out by default in `pull_request` workflows. The beauty of this branch is that any tests you run against it are essentially being run on the merged result of this PR and `main`. This isn't commonly know but it is exactly what you want in a pull request.
 
-</detail>
+i have a picture, i need to find it
+
+</details>
 
 The path to getting this information isn't necessarily complex but it is different for every event type (worse if also want to manually determine it for `pull_request` and `push` events too). To solve this problem we wrote a [custom JavaScript action](https://docs.github.com/en/actions/creating-actions/about-custom-actions) to solve it (yes, GitHub actions has naming issues "Actions" is the product "an action" is a discrete component).
 
