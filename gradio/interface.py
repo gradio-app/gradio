@@ -134,7 +134,7 @@ class Interface(Blocks):
             live: Whether the interface should automatically rerun if any of the inputs change.
             title: A title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
             description: A description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
-            article: An expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content.
+            article: An expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content. If it is an HTTP(S) link to a downloadable remote file, the content of this file is displayed.
             thumbnail: String path or url to image to use as display image when the web demo is shared on social media.
             theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             css: Custom css as a string or path to a css file. This css will be included in the demo webpage.
@@ -295,7 +295,7 @@ class Interface(Blocks):
         self.simple_description = utils.remove_html_tags(description)
         self.description = description
         if article is not None:
-            article = utils.readme_to_html(article)
+            article = utils.download_if_url(article)
         self.article = article
 
         self.thumbnail = thumbnail

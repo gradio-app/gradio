@@ -1449,7 +1449,10 @@ Received outputs:
                         raise InvalidComponentError(
                             f"{block.__class__} Component with id {output_id} not a valid output component."
                         )
+                    if output_id in state:
+                        block = state[output_id]
                     prediction_value = block.postprocess(prediction_value)
+
                 outputs_cached = processing_utils.move_files_to_cache(
                     prediction_value,
                     block,  # type: ignore

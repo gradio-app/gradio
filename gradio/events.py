@@ -122,6 +122,21 @@ class SelectData(EventData):
         """
 
 
+class KeyUpData(EventData):
+    def __init__(self, target: Block | None, data: Any):
+        super().__init__(target, data)
+        self.key: str = data["key"]
+        """
+        The key that was pressed.
+        """
+        self.input_value: str = data["input_value"]
+        """
+        The displayed value in the input textbox after the key was pressed. This may be different than the `value`
+        attribute of the component itself, as the `value` attribute of some components (e.g. Dropdown) are not updated
+        until the user presses Enter.
+        """
+
+
 @dataclasses.dataclass
 class EventListenerMethod:
     block: Block | None
@@ -515,6 +530,10 @@ class Events:
     load = EventListener(
         "load",
         doc="This listener is triggered when the {{ component }} initially loads in the browser.",
+    )
+    key_up = EventListener(
+        "key_up",
+        doc="This listener is triggered when the user presses a key while the {{ component }} is focused.",
     )
 
 
