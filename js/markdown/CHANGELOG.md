@@ -1,5 +1,11 @@
 # @gradio/markdown
 
+## 0.6.3
+
+### Fixes
+
+- [#7361](https://github.com/gradio-app/gradio/pull/7361) [`17fb116`](https://github.com/gradio-app/gradio/commit/17fb116492f951ab66e3a39b5fdfb598f5446b6f) - Fixes gr.Markdown() does not render spaces around links correctly.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.6.2
 
 ### Features

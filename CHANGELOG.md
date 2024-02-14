@@ -1,5 +1,25 @@
 # gradio
 
+## 4.19.0
+
+### Features
+
+- [#7406](https://github.com/gradio-app/gradio/pull/7406) [`3e886d8`](https://github.com/gradio-app/gradio/commit/3e886d8f0ac55c416dae51c1c2661e16eb34718e) - Model3D Gaussian Splatting.  Thanks [@dylanebert](https://github.com/dylanebert)!
+
+### Fixes
+
+- [#7402](https://github.com/gradio-app/gradio/pull/7402) [`fa8225d`](https://github.com/gradio-app/gradio/commit/fa8225d24d86c0ec9a48cadee78dcc11b7084584) - Use updated component in `postprocess()`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7361](https://github.com/gradio-app/gradio/pull/7361) [`17fb116`](https://github.com/gradio-app/gradio/commit/17fb116492f951ab66e3a39b5fdfb598f5446b6f) - Fixes gr.Markdown() does not render spaces around links correctly.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#7337](https://github.com/gradio-app/gradio/pull/7337) [`65437ce`](https://github.com/gradio-app/gradio/commit/65437ce832f806da316aa074539b6263e1d8b7ac) - Improve File Explorer performance.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#7410](https://github.com/gradio-app/gradio/pull/7410) [`c2dfc59`](https://github.com/gradio-app/gradio/commit/c2dfc592a4988efd5a96a062eec3fb4906f71748) - remove static while pending behaviour.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#7389](https://github.com/gradio-app/gradio/pull/7389) [`b5c74ff`](https://github.com/gradio-app/gradio/commit/b5c74ffadbee351b2d5d79e578246f5343255508) - Fix HTTPX package crash for some values of "article" parameter in the interface.  Thanks [@YuryYakhno](https://github.com/YuryYakhno)!
+- [#7415](https://github.com/gradio-app/gradio/pull/7415) [`4ab399f`](https://github.com/gradio-app/gradio/commit/4ab399f40a300f267231f1b2dbe2a07494322d4d) - Allow config to include non-pickle-able values.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7404](https://github.com/gradio-app/gradio/pull/7404) [`065c5b1`](https://github.com/gradio-app/gradio/commit/065c5b163c4badb9d9cbd06d627fb4ba086003e7) - Add `.key_up` event listener to `gr.Dropdown()`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7417](https://github.com/gradio-app/gradio/pull/7417) [`314ccfa`](https://github.com/gradio-app/gradio/commit/314ccfa781810e777a944ff6d832dbd4b043631a) - Fix File Explorer interactivity.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#7401](https://github.com/gradio-app/gradio/pull/7401) [`dff4109`](https://github.com/gradio-app/gradio/commit/dff410955e41145848376784c03fe28ba1c4fd85) - Retain dropdown value if choices have been changed.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7411](https://github.com/gradio-app/gradio/pull/7411) [`32b317f`](https://github.com/gradio-app/gradio/commit/32b317f24e3d43f26684bb9f3964f31efd0ea556) - Set `root` correctly for Gradio apps that are deployed behind reverse proxies.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7395](https://github.com/gradio-app/gradio/pull/7395) [`46b4568`](https://github.com/gradio-app/gradio/commit/46b45683e1ea9eb40013121a8de5bee7aa98bf0b) - Allow applying `@media`, `@keyframes` and `@import` in custom CSS.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 4.18.0
 
 ### Features

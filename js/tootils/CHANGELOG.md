@@ -1,11 +1,19 @@
 # @gradio/tootils
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [[`065c5b1`](https://github.com/gradio-app/gradio/commit/065c5b163c4badb9d9cbd06d627fb4ba086003e7)]:
+  - @gradio/utils@0.3.0
+  - @gradio/statustracker@0.4.6
+
 ## 0.2.0
 
 ### Features
 
-- [#6890](https://github.com/gradio-app/gradio/pull/6890) [`cccab27`](https://github.com/gradio-app/gradio/commit/cccab27fe8b6ae6860b3fff68694fa33060e18a7) - E2E tests for Lite.  Thanks [@whitphx](https://github.com/whitphx)!
-- [#7342](https://github.com/gradio-app/gradio/pull/7342) [`0db7272`](https://github.com/gradio-app/gradio/commit/0db7272694f307890afa569c80619828c173c3d5) - Fix lite tests.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6890](https://github.com/gradio-app/gradio/pull/6890) [`cccab27`](https://github.com/gradio-app/gradio/commit/cccab27fe8b6ae6860b3fff68694fa33060e18a7) - E2E tests for Lite. Thanks [@whitphx](https://github.com/whitphx)!
+- [#7342](https://github.com/gradio-app/gradio/pull/7342) [`0db7272`](https://github.com/gradio-app/gradio/commit/0db7272694f307890afa569c80619828c173c3d5) - Fix lite tests. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.1.9
 
