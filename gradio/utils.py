@@ -286,13 +286,24 @@ def is_zero_gpu_space() -> bool:
     return os.getenv("SPACES_ZERO_GPU") == "true"
 
 
-def readme_to_html(article: str) -> str:
+def download_if_url(article: str) -> str:
+    try:
+        result = urllib.parse.urlparse(article)
+        is_url = all([result.scheme, result.netloc, result.path])
+        is_url = is_url and result.scheme in ["http", "https"]
+    except ValueError:
+        is_url = False
+
+    if not is_url:
+        return article
+
     try:
         response = httpx.get(article, timeout=3)
         if response.status_code == httpx.codes.OK:  # pylint: disable=no-member
             article = response.text
     except (httpx.InvalidURL, httpx.RequestError):
         pass
+
     return article
 
 

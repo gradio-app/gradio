@@ -40,7 +40,7 @@ filelock==3.7.1
     # via
     #   huggingface-hub
     #   transformers
-gradio_pdf==0.0.3
+gradio_pdf==0.0.5
     # via -r requirements.in
 h11==0.12.0
     # via httpcore

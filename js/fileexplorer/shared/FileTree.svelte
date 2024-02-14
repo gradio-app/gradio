@@ -1,76 +1,129 @@
 <script lang="ts">
-	import type { Node } from "./utils";
-	import { createEventDispatcher, tick } from "svelte";
+	import type { FileNode } from "./types";
+	import { createEventDispatcher } from "svelte";
 
 	import Arrow from "./ArrowIcon.svelte";
 	import Checkbox from "./Checkbox.svelte";
 	import FileIcon from "../icons/light-file.svg";
 	import FolderIcon from "../icons/light-folder.svg";
 
+	export let path: string[] = [];
+	export let selected_files: string[][] = [];
+	export let selected_folders: string[][] = [];
+	export let is_selected_entirely = false;
 	export let interactive: boolean;
-	export let tree: Node[] = [];
-	export let icons: any = {};
-	export let node_indices: number[] = [];
+	export let ls_fn: (path: string[]) => Promise<FileNode[]>;
 	export let file_count: "single" | "multiple" = "multiple";
+	export let valid_for_selection: boolean;
 
-	const dispatch = createEventDispatcher<{
-		check: { node_indices: number[]; checked: boolean };
-	}>();
+	let content: FileNode[] = [];
+	let opened_folders: number[] = [];
 
-	async function dispatch_change(i: number): Promise<void> {
-		await tick();
+	const toggle_open_folder = (i: number): void => {
+		if (opened_folders.includes(i)) {
+			opened_folders = opened_folders.filter((x) => x !== i);
+		} else {
+			opened_folders = [...opened_folders, i];
+		}
+	};
 
-		dispatch("check", {
-			node_indices: [...node_indices, i],
-			checked: !tree[i].checked
+	const open_folder = (i: number): void => {
+		if (!opened_folders.includes(i)) {
+			opened_folders = [...opened_folders, i];
+		}
+	};
+
+	(async () => {
+		content = await ls_fn(path);
+		if (valid_for_selection) {
+			content = [{ name: ".", type: "file" }, ...content];
+		}
+		opened_folders = content
+			.map((x, i) =>
+				x.type === "folder" &&
+				(is_selected_entirely || selected_files.some((y) => y[0] === x.name))
+					? i
+					: null
+			)
+			.filter((x): x is number => x !== null);
+	})();
+
+	$: if (is_selected_entirely) {
+		content.forEach((x) => {
+			dispatch("check", {
+				path: [...path, x.name],
+				checked: true,
+				type: x.type
+			});
 		});
 	}
+
+	const dispatch = createEventDispatcher<{
+		check: { path: string[]; checked: boolean; type: "file" | "folder" };
+	}>();
 </script>
 
 <ul>
-	{#each tree as { type, path, children, children_visible, checked }, i}
+	{#each content as { type, name, valid }, i}
 		<li>
 			<span class="wrap">
 				<Checkbox
 					disabled={!interactive ||
 						(type === "folder" && file_count === "single")}
-					bind:value={checked}
-					on:change={() => dispatch_change(i)}
+					value={(type === "file" ? selected_files : selected_folders).some(
+						(x) => x[0] === name && x.length === 1
+					)}
+					on:change={(e) => {
+						let checked = e.detail;
+						dispatch("check", {
+							path: [...path, name],
+							checked,
+							type
+						});
+						if (type === "folder" && checked) {
+							open_folder(i);
+						}
+					}}
 				/>
 
 				{#if type === "folder"}
 					<span
 						class="icon"
-						class:hidden={!tree[i].children_visible}
-						on:click|stopPropagation={() =>
-							(tree[i].children_visible = !tree[i].children_visible)}
+						class:hidden={!opened_folders.includes(i)}
+						on:click|stopPropagation={() => toggle_open_folder(i)}
 						role="button"
 						aria-label="expand directory"
 						tabindex="0"
-						on:keydown={({ key }) =>
-							(key === " " || key === "Enter") &&
-							(tree[i].children_visible = !tree[i].children_visible)}
-						><Arrow /></span
+						on:keydown={({ key }) => {
+							if (key === " " || key === "Enter") {
+								toggle_open_folder(i);
+							}
+						}}><Arrow /></span
 					>
-				{:else if path === ""}
-					<span class="file-icon">
-						<img src={FolderIcon} alt="folder icon" />
-					</span>
 				{:else}
 					<span class="file-icon">
-						<img src={FileIcon} alt="file icon" />
+						<img src={name === "." ? FolderIcon : FileIcon} alt="file icon" />
 					</span>
 				{/if}
-				{path ? path : "."}
+				{name}
 			</span>
-			{#if children && children_visible}
+			{#if type === "folder" && opened_folders.includes(i)}
 				<svelte:self
-					tree={children}
-					{icons}
-					on:check
-					node_indices={[...node_indices, i]}
+					path={[...path, name]}
+					selected_files={selected_files
+						.filter((x) => x[0] === name)
+						.map((x) => x.slice(1))}
+					selected_folders={selected_folders
+						.filter((x) => x[0] === name)
+						.map((x) => x.slice(1))}
+					is_selected_entirely={selected_folders.some(
+						(x) => x[0] === name && x.length === 1
+					)}
 					{interactive}
+					{ls_fn}
 					{file_count}
+					valid_for_selection={valid}
+					on:check
 				/>
 			{/if}
 		</li>

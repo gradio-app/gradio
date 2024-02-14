@@ -23,7 +23,7 @@
 		{...loading_status}
 	/>
 
-	<Accordion {label} bind:open>
+	<Accordion {label} initial_open={open}>
 		<Column>
 			<slot />
 		</Column>

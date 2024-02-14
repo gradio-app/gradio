@@ -3,13 +3,14 @@
 	import { createEventDispatcher, afterUpdate } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
 	import { DropdownArrow } from "@gradio/icons";
-	import type { SelectData } from "@gradio/utils";
+	import type { SelectData, KeyUpData } from "@gradio/utils";
 	import { handle_filter, handle_change, handle_shared_keys } from "./utils";
 
 	export let label: string;
 	export let info: string | undefined = undefined;
-	export let value: string | number | (string | number)[] | undefined = [];
-	let old_value: string | number | (string | number)[] | undefined = [];
+	export let value: string | number | (string | number)[] | undefined =
+		undefined;
+	let old_value: string | number | (string | number)[] | undefined = undefined;
 	export let value_is_output = false;
 	export let choices: [string, string | number][];
 	let old_choices: [string, string | number][];
@@ -41,6 +42,7 @@
 		select: SelectData;
 		blur: undefined;
 		focus: undefined;
+		key_up: KeyUpData;
 	}>();
 
 	// Setting the initial value of the dropdown
@@ -92,9 +94,19 @@
 	}
 
 	$: {
-		if (choices !== old_choices || input_text !== old_input_text) {
-			filtered_indices = handle_filter(choices, input_text);
+		if (choices !== old_choices) {
+			set_input_text();
 			old_choices = choices;
+			filtered_indices = handle_filter(choices, input_text);
+			if (!allow_custom_value && filtered_indices.length > 0) {
+				active_index = filtered_indices[0];
+			}
+		}
+	}
+
+	$: {
+		if (input_text !== old_input_text) {
+			filtered_indices = handle_filter(choices, input_text);
 			old_input_text = input_text;
 			if (!allow_custom_value && filtered_indices.length > 0) {
 				active_index = filtered_indices[0];
@@ -200,6 +212,11 @@
 					bind:value={input_text}
 					bind:this={filter_input}
 					on:keydown={handle_key_down}
+					on:keyup={(e) =>
+						dispatch("key_up", {
+							key: e.key,
+							input_value: input_text
+						})}
 					on:blur={handle_blur}
 					on:focus={handle_focus}
 					readonly={!filterable}

@@ -24,10 +24,11 @@ def create_gif(images):
 
 
 def fake_diffusion(steps):
+    rng = np.random.default_rng()
     images = []
     for _ in range(steps):
         time.sleep(1)
-        image = np.random.random((600, 600, 3))
+        image = rng.random((600, 600, 3))
         images.append(image)
         yield image, gr.Image(visible=False)
 

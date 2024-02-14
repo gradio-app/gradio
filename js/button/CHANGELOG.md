@@ -1,5 +1,13 @@
 # @gradio/button
 
+## 0.2.20
+
+### Patch Changes
+
+- Updated dependencies [[`49d9c48`](https://github.com/gradio-app/gradio/commit/49d9c48537aa706bf72628e3640389470138bdc6)]:
+  - @gradio/client@0.12.0
+  - @gradio/upload@0.7.2
+
 ## 0.2.19
 
 ### Patch Changes
