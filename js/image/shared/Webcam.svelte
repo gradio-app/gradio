@@ -86,15 +86,16 @@
 			if (mirror_webcam) {
 				context.scale(-1, 1);
 				context.drawImage(video_source, -video_source.videoWidth, 0);
-			}
-
-			canvas.toBlob(
+			}	
+			if (!streaming) {
+				canvas.toBlob(
 				(blob) => {
 					dispatch(streaming ? "stream" : "capture", blob);
 				},
 				"image/png",
 				0.8
-			);
+				);
+			}
 		}
 	}
 

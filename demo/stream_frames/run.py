@@ -25,13 +25,13 @@ def transform_cv2(frame, transform):
         img_edges = cv2.cvtColor(img_edges, cv2.COLOR_GRAY2RGB)
         # combine color and edges
         img = cv2.bitwise_and(img_color, img_edges)
-        return img, random.random()
+        return img
     elif transform == "edges":
         # perform edge detection
         img = cv2.cvtColor(cv2.Canny(frame, 100, 200), cv2.COLOR_GRAY2BGR)
-        return img, random.random()
+        return img
     else:
-        return np.flipud(frame), random.random()
+        return np.flipud(frame)
 
 
 
@@ -42,8 +42,7 @@ with gr.Blocks() as demo:
             input_img = gr.Image(sources=["webcam"], streaming=True)
         with gr.Column():
             output_img = gr.Video(streaming=True)
-            num = gr.Number()
-        input_img.stream(transform_cv2, [input_img, transform], [output_img, num])
+        input_img.stream(transform_cv2, [input_img, transform], [output_img])
 demo.launch(share=False)
 
 if __name__ == "__main__":
