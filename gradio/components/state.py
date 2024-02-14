@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any
+from typing import Any, Callable
 
 from gradio_client.documentation import document
 
@@ -27,6 +27,7 @@ class State(Component):
         self,
         value: Any = None,
         render: bool = True,
+        callback: Callable = None,
     ):
         """
         Parameters:
@@ -40,6 +41,7 @@ class State(Component):
             raise TypeError(
                 f"The initial value of `gr.State` must be able to be deepcopied. The initial value of type {type(value)} cannot be deepcopied."
             ) from err
+        self.callback = callback
         super().__init__(value=self.value, render=render)
 
     def preprocess(self, payload: Any) -> Any:

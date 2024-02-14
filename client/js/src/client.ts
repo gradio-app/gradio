@@ -283,6 +283,30 @@ export function api_factory(
 				await process_endpoint(app_reference, hf_token);
 
 			const session_hash = Math.random().toString(36).substring(2);
+
+			// WebSocket setup using the session_hash to check for alive state of client
+			const wsUrl = `${ws_protocol}://${host}/ws?session_hash=${session_hash}`;
+			const ws = new WebSocket(wsUrl);
+
+			ws.onopen = () => {
+						console.log("WebSocket connected with session_hash:", session_hash);
+						// Optionally send a message or perform an action upon connection
+			};
+
+			ws.onmessage = (event) => {
+						console.log("Received message:", event.data);
+						// Handle incoming WebSocket messages
+			};
+
+			ws.onerror = (error) => {
+						console.error("WebSocket error:", error);
+			};
+
+			ws.onclose = () => {
+						console.log("WebSocket connection closed");
+						// Optionally perform cleanup or reconnection logic
+			};
+
 			const last_status: Record<string, Status["stage"]> = {};
 			let stream_open = false;
 			let pending_stream_messages: Record<string, any[]> = {}; // Event messages may be received by the SSE stream before the initial data POST request is complete. To resolve this race condition, we store the messages in a dictionary and process them when the POST request is complete.

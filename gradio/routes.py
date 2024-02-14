@@ -118,6 +118,8 @@ client = httpx.AsyncClient()
 
 file_upload_statuses = FileUploadProgress()
 
+from fastapi import FastAPI, WebSocket, Query
+from starlette.websockets import WebSocketDisconnect
 
 class App(FastAPI):
     """
@@ -206,6 +208,25 @@ class App(FastAPI):
                 allow_methods=["*"],
                 allow_headers=["*"],
             )
+
+        @app.websocket("/ws")
+        async def websocket_endpoint(websocket: WebSocket, session_hash: str = Query(default=None)):
+            await websocket.accept()
+            print("Client Connected: %s" % session_hash, flush=True)
+            try:
+                while True:
+                    # You can also process incoming messages here
+                    data = await websocket.receive_text()
+                    print(f"Message from client: {data}")
+            except WebSocketDisconnect:
+                from gradio.components import State
+                states = app.state_holder.session_data[session_hash]
+                for k, state_data in states._data.items():
+                    state = states.blocks.blocks[k]
+                    if isinstance(state, State) and state.callback is not None:
+                        state.callback(state_data)
+                app.state_holder.session_data.pop(session_hash)
+            print("Client disconnected: %s" % session_hash, flush=True)
 
         @app.get("/user")
         @app.get("/user/")
