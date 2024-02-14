@@ -277,7 +277,7 @@ def get_root_url(
     if request.headers.get("x-forwarded-proto") == "https":
         root_url = root_url.replace("http://", "https://")
     route_path = route_path.rstrip("/")
-    if root_url.endswith(route_path) and len(route_path) > 0:
+    if len(route_path) > 0:
         root_url = root_url[: -len(route_path)]
     return (root_url.rstrip("/") + (root_path or "")).rstrip("/")
 
