@@ -69,6 +69,7 @@ from gradio.state_holder import StateHolder
 from gradio.utils import (
     get_package_version,
 )
+from gradio.components import State
 
 if TYPE_CHECKING:
     from gradio.blocks import Block
@@ -120,6 +121,7 @@ file_upload_statuses = FileUploadProgress()
 
 from fastapi import FastAPI, WebSocket, Query
 from starlette.websockets import WebSocketDisconnect
+
 
 class App(FastAPI):
     """
@@ -210,7 +212,9 @@ class App(FastAPI):
             )
 
         @app.websocket("/ws")
-        async def websocket_endpoint(websocket: WebSocket, session_hash: str = Query(default=None)):
+        async def websocket_endpoint(
+            websocket: WebSocket, session_hash: str = Query(default=None)
+        ):
             await websocket.accept()
             print("Client Connected: %s" % session_hash, flush=True)
             try:
@@ -219,7 +223,6 @@ class App(FastAPI):
                     data = await websocket.receive_text()
                     print(f"Message from client: {data}")
             except WebSocketDisconnect:
-                from gradio.components import State
                 states = app.state_holder.session_data[session_hash]
                 for k, state_data in states._data.items():
                     state = states.blocks.blocks[k]
