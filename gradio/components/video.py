@@ -350,4 +350,7 @@ class Video(Component):
         return FileData(path=str(subtitle))
 
     def example_inputs(self) -> Any:
-        return "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+        return {
+            "video": "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4",
+            "subtitles": None,
+        }

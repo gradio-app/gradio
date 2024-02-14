@@ -43,6 +43,7 @@
 	let selected: false | [number, number] = false;
 	let display_value: string[][] | null = value?.metadata?.display_value ?? null;
 	let styling: string[][] | null = value?.metadata?.styling ?? null;
+	let t_rect: DOMRectReadOnly;
 
 	$: {
 		if (value) {
@@ -523,8 +524,6 @@
 
 	let dragging = false;
 
-	let t_width = 0;
-
 	function get_max(
 		_d: { value: any; id: string }[][]
 	): { value: any; id: string }[] {
@@ -617,6 +616,7 @@
 	$: selected_index = !!selected && selected[0];
 
 	let is_visible = false;
+
 	onMount(() => {
 		const observer = new IntersectionObserver((entries, observer) => {
 			entries.forEach((entry) => {
@@ -660,7 +660,7 @@
 		tabindex="0"
 	>
 		<table
-			bind:clientWidth={t_width}
+			bind:contentRect={t_rect}
 			bind:this={table}
 			class:fixed-layout={column_widths.length != 0}
 		>
@@ -735,7 +735,6 @@
 		>
 			<VirtualTable
 				bind:items={data}
-				table_width={t_width}
 				max_height={height}
 				bind:actual_height={table_height}
 				bind:table_scrollbar_width={scrollbar_width}

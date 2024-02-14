@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import starlette.routing
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 from gradio_client import media_data
 
@@ -25,7 +25,7 @@ from gradio import (
     routes,
     wasm_utils,
 )
-from gradio.route_utils import FnIndexInferError
+from gradio.route_utils import FnIndexInferError, get_root_url
 
 
 @pytest.fixture()
@@ -438,6 +438,18 @@ class TestRoutes:
         assert "authorization" in dict(r.headers)
         r = app.build_proxy_request("https://google.com")
         assert "authorization" not in dict(r.headers)
+
+    def test_can_get_config_that_includes_non_pickle_able_objects(self):
+        my_dict = {"a": 1, "b": 2, "c": 3}
+        with Blocks() as demo:
+            gr.JSON(my_dict.keys())
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        response = client.get("/")
+        assert response.is_success
+        response = client.get("/config/")
+        assert response.is_success
 
 
 class TestApp:
@@ -862,3 +874,50 @@ def test_component_server_endpoints(connect):
             },
         )
         assert fail_req.status_code == 404
+
+
+@pytest.mark.parametrize(
+    "request_url, route_path, root_path, expected_root_url",
+    [
+        ("http://localhost:7860/", "/", None, "http://localhost:7860"),
+        (
+            "http://localhost:7860/demo/test",
+            "/demo/test",
+            None,
+            "http://localhost:7860",
+        ),
+        (
+            "http://localhost:7860/demo/test/",
+            "/demo/test",
+            None,
+            "http://localhost:7860",
+        ),
+        (
+            "http://localhost:7860/demo/test?query=1",
+            "/demo/test",
+            None,
+            "http://localhost:7860",
+        ),
+        (
+            "http://localhost:7860/demo/test?query=1",
+            "/demo/test/",
+            "/gradio/",
+            "http://localhost:7860/gradio",
+        ),
+        (
+            "http://localhost:7860/demo/test?query=1",
+            "/demo/test",
+            "/gradio/",
+            "http://localhost:7860/gradio",
+        ),
+        (
+            "https://localhost:7860/demo/test?query=1",
+            "/demo/test",
+            "/gradio/",
+            "https://localhost:7860/gradio",
+        ),
+    ],
+)
+def test_get_root_url(request_url, route_path, root_path, expected_root_url):
+    request = Request({"path": request_url, "type": "http", "headers": {}})
+    assert get_root_url(request, route_path, root_path) == expected_root_url
