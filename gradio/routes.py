@@ -29,7 +29,15 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
+from fastapi import (
+    BackgroundTasks,
+    Depends,
+    FastAPI,
+    HTTPException,
+    Query,
+    WebSocket,
+    status,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
@@ -39,7 +47,6 @@ from fastapi.responses import (
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
-from fastapi import WebSocket, Query
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 from gradio_client.utils import ServerMessage
@@ -222,6 +229,7 @@ class App(FastAPI):
                     print(f"Message from client: {data}")
             except WebSocketDisconnect:
                 from gradio.components import State  # fmt: skip
+
                 states = app.state_holder.session_data[session_hash]
                 for k, state_data in states._data.items():
                     state = states.blocks.blocks[k]
