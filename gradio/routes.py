@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import copy
 import sys
 
 if sys.version_info >= (3, 9):
@@ -21,7 +22,6 @@ import tempfile
 import threading
 import time
 import traceback
-import uuid
 from pathlib import Path
 from queue import Empty as EmptyQueue
 from typing import TYPE_CHECKING, Any, AsyncIterator, Dict, List, Optional, Type
@@ -311,18 +311,19 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
-            root = route_utils.get_root_url(
+            root_path = route_utils.get_root_url(
                 request=request, route_path="/", root_path=app.root_path
             )
             if app.auth is None or user is not None:
-                config = app.get_blocks().config
-                config = route_utils.update_root_in_config(config, root)
+                config = copy.deepcopy(app.get_blocks().config)
+                config["root"] = root_path
+                config = add_root_url(config, root_path)
             else:
                 config = {
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
                     "space_id": app.get_blocks().space_id,
-                    "root": root,
+                    "root": root_path,
                 }
 
             try:
@@ -353,12 +354,13 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
-            config = app.get_blocks().config
-            root = route_utils.get_root_url(
+            config = copy.deepcopy(app.get_blocks().config)
+            root_path = route_utils.get_root_url(
                 request=request, route_path="/config", root_path=app.root_path
             )
-            config = route_utils.update_root_in_config(config, root)
-            return ORJSONResponse(content=config)
+            config["root"] = root_path
+            config = add_root_url(config, root_path)
+            return config
 
         @app.get("/static/{path:path}")
         def static_resource(path: str):
@@ -575,35 +577,18 @@ class App(FastAPI):
             root_path = route_utils.get_root_url(
                 request=request, route_path=f"/api/{api_name}", root_path=app.root_path
             )
-            output = add_root_url(output, root_path, None)
+            output = add_root_url(output, root_path)
             return output
 
         @app.get("/queue/data", dependencies=[Depends(login_check)])
         async def queue_data(
             request: fastapi.Request,
             session_hash: str,
-            event_id: Optional[str] = None,
         ):
             blocks = app.get_blocks()
-<<<<<<< HEAD
-            queue = blocks._queue
-
-            if session_hash not in queue.pending_event_ids_per_session:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Session not found.",
-                )
-            if event_id and event_id not in queue.pending_messages_per_event_id:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Event not found.",
-                )
-            root_path = route_utils.get_root_url(request)[: -len("/queue/data")]
-=======
             root_path = route_utils.get_root_url(
                 request=request, route_path="/queue/data", root_path=app.root_path
             )
->>>>>>> origin
 
             async def sse_stream(request: fastapi.Request):
                 try:
@@ -613,29 +598,24 @@ class App(FastAPI):
                             await blocks._queue.clean_events(session_hash=session_hash)
                             return
 
+                        if (
+                            session_hash
+                            not in blocks._queue.pending_messages_per_session
+                        ):
+                            raise HTTPException(
+                                status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Session not found.",
+                            )
+
                         heartbeat_rate = 15
                         check_rate = 0.05
                         message = None
-                        if event_id:
-                            message_queues = [
-                                queue.pending_messages_per_event_id[event_id]
+                        try:
+                            messages = blocks._queue.pending_messages_per_session[
+                                session_hash
                             ]
-                        else:
-                            message_queues = [
-                                queue.pending_messages_per_event_id[_event_id]
-                                for _event_id in queue.pending_event_ids_per_session[
-                                    session_hash
-                                ]
-                            ]
-                        message_sent = False
-                        for messages in message_queues:
-                            try:
-                                message = messages.get_nowait()
-                                message_sent = True
-                                break
-                            except EmptyQueue:
-                                pass
-                        if not message_sent:
+                            message = messages.get_nowait()
+                        except EmptyQueue:
                             await asyncio.sleep(check_rate)
                             if time.perf_counter() - last_heartbeat > heartbeat_rate:
                                 # Fix this
@@ -647,27 +627,24 @@ class App(FastAPI):
                                 # and then the stream will retry leading to infinite queue 😬
                                 last_heartbeat = time.perf_counter()
 
-                        if queue.stopped:
+                        if blocks._queue.stopped:
                             message = {
                                 "msg": "unexpected_error",
                                 "message": "Server stopped unexpectedly.",
                                 "success": False,
                             }
                         if message:
-                            add_root_url(message, root_path, None)
+                            add_root_url(message, root_path)
                             yield f"data: {json.dumps(message)}\n\n"
                             if message["msg"] == ServerMessage.process_completed:
-                                _event_id = message["event_id"]
-                                queue.pending_event_ids_per_session[
+                                blocks._queue.pending_event_ids_session[
                                     session_hash
-                                ].remove(_event_id)
-                                queue.pending_messages_per_event_id.pop(_event_id)
-
+                                ].remove(message["event_id"])
                                 if message["msg"] == ServerMessage.server_stopped or (
                                     message["msg"] == ServerMessage.process_completed
                                     and (
                                         len(
-                                            queue.pending_event_ids_per_session[
+                                            blocks._queue.pending_event_ids_session[
                                                 session_hash
                                             ]
                                         )
@@ -683,17 +660,7 @@ class App(FastAPI):
                     }
                     yield f"data: {json.dumps(message)}\n\n"
                     if isinstance(e, asyncio.CancelledError):
-                        if event_id:
-                            if event_id in queue.pending_messages_per_event_id:
-                                del queue.pending_messages_per_event_id[event_id]
-                        else:
-                            for _event_id in queue.pending_event_ids_per_session[
-                                session_hash
-                            ]:
-                                if _event_id in queue.pending_messages_per_event_id:
-                                    del queue.pending_messages_per_event_id[_event_id]
-                            if session_hash in queue.pending_event_ids_per_session:
-                                del queue.pending_event_ids_per_session[session_hash]
+                        del blocks._queue.pending_messages_per_session[session_hash]
                         await blocks._queue.clean_events(session_hash=session_hash)
                     raise e
 
@@ -719,9 +686,6 @@ class App(FastAPI):
                     detail="Queue is stopped.",
                 )
 
-            if body.session_hash is None:
-                body.session_hash = uuid.uuid4().hex
-
             success, event_id = await blocks._queue.push(body, request, username)
             if not success:
                 status_code = (
@@ -730,20 +694,7 @@ class App(FastAPI):
                     else status.HTTP_400_BAD_REQUEST
                 )
                 raise HTTPException(status_code=status_code, detail=event_id)
-            return {"event_id": event_id, "session_hash": body.session_hash}
-
-        @app.post("/queue/join/{api_name}", dependencies=[Depends(login_check)])
-        async def queue_join_api(
-            api_name: str,
-            body: PredictBody,
-            request: fastapi.Request,
-            username: str = Depends(get_current_user),
-        ):
-            fn_index_inferred = route_utils.infer_fn_index(
-                app=app, api_name=api_name, body=body
-            )
-            body.fn_index = fn_index_inferred
-            return await queue_join(body, request, username)
+            return {"event_id": event_id}
 
         @app.post("/component_server", dependencies=[Depends(login_check)])
         @app.post("/component_server/", dependencies=[Depends(login_check)])
