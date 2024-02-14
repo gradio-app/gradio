@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:[WIP] Set `root path` correctly
+feat:Set `root` correctly for Gradio apps that are deployed behind reverse proxies 
