@@ -128,9 +128,11 @@ export function stop(pc: RTCPeerConnection) {
 	}
 
 	// close local audio / video
-	pc.getSenders().forEach((sender) => {
-		sender.track.stop();
-	});
+	if (pc.getSenders()) {
+		pc.getSenders().forEach((sender) => {
+			if (sender.track && sender.track.stop) sender.track.stop();
+		});
+	}
 
 	// close peer connection
 	setTimeout(() => {

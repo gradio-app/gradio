@@ -383,7 +383,7 @@ export function api_factory(
 
 			function stop_stream(): void {
 				peer_connection_established = false;
-				stop(pc);
+				if (pc) stop(pc);
 			}
 
 			function predict(
@@ -929,6 +929,7 @@ export function api_factory(
 												time: new Date()
 											});
 											close_stream();
+											stop_stream();
 										}
 									};
 									if (event_id in pending_stream_messages) {
@@ -970,6 +971,7 @@ export function api_factory(
 									value
 								);
 								pending_diff_streams[event_id][i] = new_data;
+								console.log("new_data", new_data);
 								data.data[i] = new_data;
 							}
 						});
@@ -1082,6 +1084,7 @@ export function api_factory(
 						);
 					} else if (event_callbacks[event_id]) {
 						if (_data.msg === "process_completed") {
+							stop_stream();
 							unclosed_events.delete(event_id);
 							if (unclosed_events.size === 0) {
 								close_stream();
@@ -1106,6 +1109,7 @@ export function api_factory(
 						)
 					);
 					close_stream();
+					stop_stream();
 				};
 			}
 

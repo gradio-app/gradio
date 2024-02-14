@@ -30,8 +30,7 @@
 </div>
 <div class="wrap" class:hide={!value_set}>
 	<div class="mirror-wrap">
-		<Video preload="auto" bind:node={video} data-testid={`${label}-player`}
-		></Video>
+		<Video preload="auto" bind:node={video} data-testid={`${label}-player`} />
 	</div>
 </div>
 
