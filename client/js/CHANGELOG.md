@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 0.12.1
+
+### Fixes
+
+- [#7411](https://github.com/gradio-app/gradio/pull/7411) [`32b317f`](https://github.com/gradio-app/gradio/commit/32b317f24e3d43f26684bb9f3964f31efd0ea556) - Set `root` correctly for Gradio apps that are deployed behind reverse proxies.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.12.0
 
 ### Features
