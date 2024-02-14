@@ -868,8 +868,18 @@ def test_component_server_endpoints(connect):
     "request_url, route_path, root_path, expected_root_url",
     [
         ("http://localhost:7860/", "/", None, "http://localhost:7860"),
-        ("http://localhost:7860/demo/test", "/demo/test", None, "http://localhost:7860"),
-        ("http://localhost:7860/demo/test/", "/demo/test", None, "http://localhost:7860"),
+        (
+            "http://localhost:7860/demo/test",
+            "/demo/test",
+            None,
+            "http://localhost:7860",
+        ),
+        (
+            "http://localhost:7860/demo/test/",
+            "/demo/test",
+            None,
+            "http://localhost:7860",
+        ),
         (
             "http://localhost:7860/demo/test?query=1",
             "/demo/test",
