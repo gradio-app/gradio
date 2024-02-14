@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 from gradio_client.documentation import document
 
@@ -27,7 +27,7 @@ class State(Component):
         self,
         value: Any = None,
         render: bool = True,
-        callback: Callable = None,
+        callback: Optional[Callable] = None,
     ):
         """
         Parameters:
