@@ -343,11 +343,7 @@
 		rootNode = rootNode;
 	}, 50);
 
-	async function handle_update(
-		data: any,
-		fn_index: number,
-		outputs_set_to_non_interactive: number[]
-	): Promise<void> {
+	async function handle_update(data: any, fn_index: number): Promise<void> {
 		const outputs = dependencies[fn_index].outputs;
 
 		data?.forEach((value: any, i: number) => {
@@ -367,11 +363,6 @@
 				for (const [update_key, update_value] of Object.entries(value)) {
 					if (update_key === "__type__") {
 						continue;
-					} else {
-						output.props[update_key] = update_value;
-						if (update_key == "interactive" && !update_value) {
-							outputs_set_to_non_interactive.push(outputs[i]);
-						}
 					}
 				}
 			} else {
@@ -485,7 +476,7 @@
 						payload.data = v;
 						make_prediction(payload);
 					} else {
-						handle_update(v, dep_index, []);
+						handle_update(v, dep_index);
 					}
 				});
 		} else {
@@ -505,8 +496,6 @@
 		}
 
 		function make_prediction(payload: Payload): void {
-			const pending_outputs: number[] = [];
-			let outputs_set_to_non_interactive: number[] = [];
 			const submission = app
 				.submit(
 					payload.fn_index,
@@ -520,7 +509,7 @@
 						make_prediction(dep.final_event);
 					}
 					dep.pending_request = false;
-					handle_update(data, fn_index, outputs_set_to_non_interactive);
+					handle_update(data, fn_index);
 				})
 				.on("status", ({ fn_index, ...status }) => {
 					tick().then(() => {

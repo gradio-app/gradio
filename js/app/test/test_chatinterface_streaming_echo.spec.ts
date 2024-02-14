@@ -11,15 +11,26 @@ test("chatinterface works with streaming functions and all buttons behave as exp
 
 	await textbox.fill("hello");
 	await submit_button.click();
+
 	await expect(textbox).toHaveValue("");
-	const bot_message_0 = page.locator(".bot.message").nth(0);
-	await expect(bot_message_0).toContainText("You typed: hello");
+	const expected_text_el_0 = page.locator(".bot  p", {
+		hasText: "Run 1 - You typed: hello"
+	});
+	await expect(expected_text_el_0).toBeVisible();
+	await expect
+		.poll(async () => page.locator(".bot.message").count(), { timeout: 2000 })
+		.toBe(1);
 
 	await textbox.fill("hi");
 	await submit_button.click();
 	await expect(textbox).toHaveValue("");
-	const bot_message_1 = page.locator(".bot").nth(1);
-	await expect(bot_message_1).toContainText("You typed: hi");
+	const expected_text_el_1 = page.locator(".bot p", {
+		hasText: "Run 2 - You typed: hi"
+	});
+	await expect(expected_text_el_1).toBeVisible();
+	await expect
+		.poll(async () => page.locator(".bot.message").count(), { timeout: 2000 })
+		.toBe(2);
 
 	await undo_button.click();
 	await expect
@@ -27,15 +38,25 @@ test("chatinterface works with streaming functions and all buttons behave as exp
 		.toBe(1);
 	await expect(textbox).toHaveValue("hi");
 
-	await textbox.fill("salaam");
+	await retry_button.click();
+	const expected_text_el_2 = page.locator(".bot p", {
+		hasText: "Run 3 - You typed: hello"
+	});
+	await expect(expected_text_el_2).toBeVisible();
+	await expect
+		.poll(async () => page.locator(".message.bot").count(), { timeout: 5000 })
+		.toBe(1);
+
+	await textbox.fill("hi");
 	await submit_button.click();
 	await expect(textbox).toHaveValue("");
-	await expect(page.locator(".bot").nth(1)).toContainText("You typed: salaam");
-
-	// TODO: This isn't testing anyting and is introducing flake, needs addressing.
-	// await retry_button.click();
-	// await expect(textbox).toHaveValue("");
-	// await expect(page.locator(".bot").nth(1)).toContainText("You typed: salaam");
+	const expected_text_el_3 = page.locator(".bot p", {
+		hasText: "Run 4 - You typed: hi"
+	});
+	await expect(expected_text_el_3).toBeVisible();
+	await expect
+		.poll(async () => page.locator(".bot.message").count(), { timeout: 2000 })
+		.toBe(2);
 
 	await clear_button.click();
 	await expect
