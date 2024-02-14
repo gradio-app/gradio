@@ -164,7 +164,7 @@ When the `changeset-release/main` branch is merged into main all of the necessar
 
 The CI on this repo is a little unconventional, this is mainly to work around various gaps in the GitHub Actions API while solving for our use case.
 
-The [technical details](#technical-details) below explain how things are setup, the [context](#context) sections explains what problem we are trying to solve with this architecture,why  we took this approach and the various challenges we faced along the way. It is a little 'extra' for repo docs but serves as good context for the future.
+The [technical details](#technical-details) below explain how things are setup, the [context](#context) sections explains what problem we are trying to solve with this architecture, why we took this approach, and the various challenges we faced along the way. It is a little 'extra' for repo docs but serves as good context for the future.
 
 ### Technical details
 
