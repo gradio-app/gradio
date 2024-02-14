@@ -420,7 +420,7 @@ class App(FastAPI):
 
         @app.head("/file={path_or_url:path}", dependencies=[Depends(login_check)])
         @app.get("/file={path_or_url:path}", dependencies=[Depends(login_check)])
-        async def file(path_or_url: str, request: fastapi.Request):
+        def file(path_or_url: str, request: fastapi.Request):
             blocks = app.get_blocks()
             if client_utils.is_http_url_like(path_or_url):
                 return RedirectResponse(
@@ -437,7 +437,11 @@ class App(FastAPI):
             if in_blocklist or is_dir:
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
-            created_by_app = str(abs_path) in set().union(*blocks.temp_file_sets)
+            created_by_app = False
+            for temp_file_set in blocks.temp_file_sets:
+                if abs_path in temp_file_set:
+                    created_by_app = True
+                    break
             in_allowlist = any(
                 utils.is_in_or_equal(abs_path, allowed_path)
                 for allowed_path in blocks.allowed_paths
@@ -512,7 +516,7 @@ class App(FastAPI):
 
         @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
         async def file_deprecated(path: str, request: fastapi.Request):
-            return await file(path, request)
+            return file(path, request)
 
         @app.post("/reset/")
         @app.post("/reset")
