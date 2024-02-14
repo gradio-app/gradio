@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import starlette.routing
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 from gradio_client import media_data
 
@@ -25,7 +25,7 @@ from gradio import (
     routes,
     wasm_utils,
 )
-from gradio.route_utils import FnIndexInferError
+from gradio.route_utils import FnIndexInferError, get_root_url
 
 
 @pytest.fixture()
@@ -862,3 +862,40 @@ def test_component_server_endpoints(connect):
             },
         )
         assert fail_req.status_code == 404
+
+
+@pytest.mark.parametrize(
+    "request_url, route_path, root_path, expected_root_url",
+    [
+        ("http://localhost:7860/", "/", None, "http://localhost:7860"),
+        ("http://localhost:7860/demo/test", "/demo/test", None, "http://localhost:7860"),
+        ("http://localhost:7860/demo/test/", "/demo/test", None, "http://localhost:7860"),
+        (
+            "http://localhost:7860/demo/test?query=1",
+            "/demo/test",
+            None,
+            "http://localhost:7860",
+        ),
+        (
+            "http://localhost:7860/demo/test?query=1",
+            "/demo/test",
+            "/gradio",
+            "http://localhost:7860/gradio",
+        ),
+        (
+            "http://localhost:7860/demo/test?query=1",
+            "/demo/test",
+            "/gradio/",
+            "http://localhost:7860/gradio",
+        ),
+        (
+            "https://localhost:7860/demo/test?query=1",
+            "/demo/test",
+            "/gradio/",
+            "https://localhost:7860/gradio",
+        ),
+    ],
+)
+def test_get_root_url(request_url, route_path, root_path, expected_root_url):
+    request = Request({"path": request_url, "type": "http", "headers": {}})
+    assert get_root_url(request, route_path, root_path) == expected_root_url
