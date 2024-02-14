@@ -1,6 +1,7 @@
 import gradio as gr
 import cv2
 import numpy as np
+import secrets
 
 def process_video(input_video):
     # i = 0
@@ -9,7 +10,7 @@ def process_video(input_video):
     #     i += 1
     cap = cv2.VideoCapture(input_video)
 
-    output_path = "output.mp4"
+    output_path = f"output-{secrets.token_hex(8)}.mp4"
 
     fps = int(cap.get(cv2.CAP_PROP_FPS))
     width  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
