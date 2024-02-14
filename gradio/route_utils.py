@@ -261,18 +261,24 @@ async def call_process_api(
     return output
 
 
-def get_root_url(request: fastapi.Request) -> str:
+def get_root_url(
+    request: fastapi.Request, route_path: str, root_path: str | None
+) -> str:
     """
-    Gets the root url of the request, stripping off any query parameters and trailing slashes.
-    Also ensures that the root url is https if the request is https.
+    Gets the root url of the request, stripping off any query parameters, the route_path, and trailing slashes.
+    Also ensures that the root url is https if the request is https. If root_path is provided, it is appended to the root url.
+    The final root url will not have a trailing slash.
     """
     root_url = str(request.url)
     root_url = httpx.URL(root_url)
     root_url = root_url.copy_with(query=None)
-    root_url = str(root_url)
+    root_url = str(root_url).rstrip("/")
     if request.headers.get("x-forwarded-proto") == "https":
         root_url = root_url.replace("http://", "https://")
-    return root_url.rstrip("/")
+    route_path = route_path.rstrip("/")
+    if len(route_path) > 0:
+        root_url = root_url[: -len(route_path)]
+    return (root_url.rstrip("/") + (root_path or "")).rstrip("/")
 
 
 def _user_safe_decode(src: bytes, codec: str) -> str:
