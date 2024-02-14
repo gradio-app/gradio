@@ -289,22 +289,22 @@ export function api_factory(
 			const ws = new WebSocket(wsUrl);
 
 			ws.onopen = () => {
-						console.log("WebSocket connected with session_hash:", session_hash);
-						// Optionally send a message or perform an action upon connection
+				console.log("WebSocket connected with session_hash:", session_hash);
+				// Optionally send a message or perform an action upon connection
 			};
 
 			ws.onmessage = (event) => {
-						console.log("Received message:", event.data);
-						// Handle incoming WebSocket messages
+				console.log("Received message:", event.data);
+				// Handle incoming WebSocket messages
 			};
 
 			ws.onerror = (error) => {
-						console.error("WebSocket error:", error);
+				console.error("WebSocket error:", error);
 			};
 
 			ws.onclose = () => {
-						console.log("WebSocket connection closed");
-						// Optionally perform cleanup or reconnection logic
+				console.log("WebSocket connection closed");
+				// Optionally perform cleanup or reconnection logic
 			};
 
 			const last_status: Record<string, Status["stage"]> = {};
