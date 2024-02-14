@@ -439,6 +439,17 @@ class TestRoutes:
         r = app.build_proxy_request("https://google.com")
         assert "authorization" not in dict(r.headers)
 
+    def test_can_get_config_that_includes_non_pickle_able_objects(self):
+        my_dict = {'a': 1, 'b': 2, 'c': 3}
+        with Blocks() as demo:
+            gr.JSON(my_dict.keys())
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        response = client.get("/")
+        assert response.is_success
+        response = client.get("/config/")
+        assert response.is_success
 
 class TestApp:
     def test_create_app(self):
