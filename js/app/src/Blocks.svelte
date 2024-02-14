@@ -363,6 +363,8 @@
 				for (const [update_key, update_value] of Object.entries(value)) {
 					if (update_key === "__type__") {
 						continue;
+					} else {
+						output.props[update_key] = update_value;
 					}
 				}
 			} else {
