@@ -1,6 +1,6 @@
 ---
-"@gradio/dropdown": minor
-"gradio": minor
+"@gradio/dropdown": patch
+"gradio": patch
 ---
 
-feat:Ensure `gr.Dropdown` can have empty value
+fix:Ensure `gr.Dropdown` can have empty value
