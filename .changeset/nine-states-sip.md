@@ -4,4 +4,4 @@
 "gradio": patch
 ---
 
-fix:Improve `gr.Audio()` in mobile
+fix:Improve responsiveness of `gr.Audio()` controls
