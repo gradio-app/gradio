@@ -25,7 +25,11 @@ from gradio import (
     routes,
     wasm_utils,
 )
-from gradio.route_utils import FnIndexInferError, get_root_url
+from gradio.route_utils import (
+    FnIndexInferError,
+    compare_passwords_securely,
+    get_root_url,
+)
 
 
 @pytest.fixture()
@@ -921,3 +925,11 @@ def test_component_server_endpoints(connect):
 def test_get_root_url(request_url, route_path, root_path, expected_root_url):
     request = Request({"path": request_url, "type": "http", "headers": {}})
     assert get_root_url(request, route_path, root_path) == expected_root_url
+
+
+def test_compare_passwords_securely():
+    password1 = "password"
+    password2 = "pässword"
+    assert compare_passwords_securely(password1, password1)
+    assert not compare_passwords_securely(password1, password2)
+    assert compare_passwords_securely(password2, password2)
