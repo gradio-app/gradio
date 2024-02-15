@@ -135,7 +135,7 @@ def save_pil_to_cache(
     temp_dir = Path(cache_dir) / hash_bytes(bytes_data)
     temp_dir.mkdir(exist_ok=True, parents=True)
     filename = str((temp_dir / f"{name}.{format}").resolve())
-    img.save(filename, pnginfo=get_pil_metadata(img))
+    (temp_dir / f"{name}.{format}").resolve().write_bytes(bytes_data)
     return filename
 
 
