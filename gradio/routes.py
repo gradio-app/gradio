@@ -740,7 +740,10 @@ class App(FastAPI):
                                 success=False,
                             )
                         if message:
-                            if isinstance(message, (ProcessGeneratingMessage, ProcessCompletedMessage)):
+                            if isinstance(
+                                message,
+                                (ProcessGeneratingMessage, ProcessCompletedMessage),
+                            ):
                                 add_root_url(message.output, root_path)
                             response = process_msg(message)
                             if response is not None:
