@@ -1521,6 +1521,9 @@ Received outputs:
 
         return data
 
+    def run_fn_batch(self, fn, batch, fn_index, state):
+        return [fn(fn_index, list(i), state) for i in zip(*batch)]
+
     async def process_api(
         self,
         fn_index: int,
@@ -1565,10 +1568,14 @@ Received outputs:
                 raise ValueError(
                     f"Batch size ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
                 )
-
-            inputs = [
-                self.preprocess_data(fn_index, list(i), state) for i in zip(*inputs)
-            ]
+            inputs = await anyio.to_thread.run_sync(
+                self.run_fn_batch,
+                self.preprocess_data,
+                inputs,
+                fn_index,
+                state,
+                limiter=self.limiter,
+            )
             result = await self.call_function(
                 fn_index,
                 list(zip(*inputs)),
@@ -1579,9 +1586,14 @@ Received outputs:
                 in_event_listener,
             )
             preds = result["prediction"]
-            data = [
-                self.postprocess_data(fn_index, list(o), state) for o in zip(*preds)
-            ]
+            data = await anyio.to_thread.run_sync(
+                self.run_fn_batch,
+                self.postprocess_data,
+                preds,
+                fn_index,
+                state,
+                limiter=self.limiter,
+            )
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
@@ -1589,7 +1601,9 @@ Received outputs:
             if old_iterator:
                 inputs = []
             else:
-                inputs = self.preprocess_data(fn_index, inputs, state)
+                inputs = await anyio.to_thread.run_sync(
+                    self.preprocess_data, fn_index, inputs, state, limiter=self.limiter
+                )
             was_generating = old_iterator is not None
             result = await self.call_function(
                 fn_index,
@@ -1600,7 +1614,13 @@ Received outputs:
                 event_data,
                 in_event_listener,
             )
-            data = self.postprocess_data(fn_index, result["prediction"], state)
+            data = await anyio.to_thread.run_sync(
+                self.postprocess_data,
+                fn_index,  # type: ignore
+                result["prediction"],
+                state,
+                limiter=self.limiter,
+            )
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
                 run = id(old_iterator) if was_generating else id(iterator)
