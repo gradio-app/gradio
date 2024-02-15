@@ -63,6 +63,7 @@ from gradio.route_utils import (  # noqa: F401
     GradioUploadFile,
     MultiPartException,
     Request,
+    compare_passwords_securely,
     move_uploaded_files_to_cache,
 )
 from gradio.state_holder import StateHolder
@@ -271,7 +272,7 @@ class App(FastAPI):
             if (
                 not callable(app.auth)
                 and username in app.auth
-                and app.auth[username] == password
+                and compare_passwords_securely(password, app.auth[username])  # type: ignore
             ) or (callable(app.auth) and app.auth.__call__(username, password)):
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username

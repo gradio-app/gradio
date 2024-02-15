@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import shutil
 from collections import deque
@@ -569,8 +570,12 @@ def update_root_in_config(config: dict, root: str) -> dict:
     root url has changed, all of the urls in the config that correspond to component
     file urls are updated to use the new root url.
     """
-    previous_root = config.get("root", None)
+    previous_root = config.get("root")
     if previous_root is None or previous_root != root:
         config["root"] = root
         config = processing_utils.add_root_url(config, root, previous_root)
     return config
+
+
+def compare_passwords_securely(input_password: str, correct_password: str) -> bool:
+    return hmac.compare_digest(input_password.encode(), correct_password.encode())
