@@ -428,12 +428,18 @@ class App(FastAPI):
                 return RedirectResponse(
                     url=path_or_url, status_code=status.HTTP_302_FOUND
                 )
+
+            invalid_prefixes = ["//", "file://", "ftp://", "sftp://", "smb://"]
+            if any(path_or_url.startswith(prefix) for prefix in invalid_prefixes):
+                raise HTTPException(403, f"File not allowed: {path_or_url}.")
+
             abs_path = utils.abspath(path_or_url)
 
             in_blocklist = any(
                 utils.is_in_or_equal(abs_path, blocked_path)
                 for blocked_path in blocks.blocked_paths
             )
+
             is_dir = abs_path.is_dir()
 
             if in_blocklist or is_dir:
