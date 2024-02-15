@@ -741,7 +741,7 @@ class App(FastAPI):
                                 message,
                                 (ProcessGeneratingMessage, ProcessCompletedMessage),
                             ):
-                                add_root_url(message.output, root_path)
+                                add_root_url(message.output, root_path, None)
                             response = process_msg(message)
                             if response is not None:
                                 yield response
