@@ -1512,10 +1512,11 @@ Received outputs:
 
             if first_run:
                 last_diffs[i] = data[i]
-            elif not simple_format:
+            else:
                 prev_chunk = last_diffs[i]
                 last_diffs[i] = data[i]
-                data[i] = utils.diff(prev_chunk, data[i])
+                if not simple_format:
+                    data[i] = utils.diff(prev_chunk, data[i])
 
         if final:
             del self.pending_diff_streams[session_hash][run]
