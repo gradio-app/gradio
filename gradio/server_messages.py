@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 class BaseMessage(BaseModel):
     msg: ServerMessage
-    event_id: str
+    event_id: Optional[str] = None
 
 
 class ProgressUnit(BaseModel):
