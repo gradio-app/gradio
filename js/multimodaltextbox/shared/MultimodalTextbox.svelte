@@ -3,13 +3,14 @@
 		beforeUpdate,
 		afterUpdate,
 		createEventDispatcher,
-		tick
+		tick,
+		getContext
 	} from "svelte";
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
 	import type { FileData } from "@gradio/client";
-	import { BlockTitle } from "@gradio/atoms";
-	import { Copy, Check } from "@gradio/icons";
+	import {upload, prepare_files } from "@gradio/client";
+	import { Copy, Check, Clear } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import type { SelectData } from "@gradio/utils";
 
@@ -18,8 +19,6 @@
 	export let value_is_output = false;
 	export let lines = 1;
 	export let placeholder = "Type here...";
-	export let label: string;
-	export let info: string | undefined = undefined;
 	export let disabled = false;
 	export let show_label = true;
 	export let container = true;
@@ -31,7 +30,10 @@
 	export let autoscroll = true;
 	export let root: string;
 	export let file_types: string[] | null = null;
+	export let uploading = false;
 
+	let upload_id: string;
+	let file_data: FileData[];
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
 	let timer: NodeJS.Timeout;
@@ -41,6 +43,8 @@
 
 	let dragging = false;
 	$: dispatch("drag", dragging);
+
+	const upload_fn = getContext<typeof upload_files>("upload_files");
 
 	let accept_file_types: string | null;
 	if (file_types == null) {
@@ -206,9 +210,33 @@
 		detail
 	}: CustomEvent<FileData>): Promise<void> {
 		images.push(detail);
+		images = images;
 		await tick();
 		dispatch("change", value);
 		dispatch("upload", detail);
+	}
+
+	async function load_files_from_upload(e: Event): Promise<void> {
+		const target = e.target as HTMLInputElement;
+		if (!target.files) return;
+			await load_files(Array.from(target.files));
+			dispatch("upload", target.files);
+	}
+
+	export async function load_files(
+		files: File[] | Blob[]
+	): Promise<(FileData | null)[] | void> {
+		if (!files.length) {
+			return;
+		}
+		let _files: File[] = files.map((f) => new File([f], f.name));
+		file_data = await prepare_files(_files);
+		return await handle_upload(file_data);
+	}
+
+	function remove_thumbnail(index: number): void {
+        images.splice(index, 1);
+        images = images;
 	}
 </script>
 
@@ -241,7 +269,7 @@
 				id="file-upload"
 				type="file"
 				style="display: none;"
-				on:change={handle_upload}
+				on:change={load_files_from_upload}
 			/>
 			<label for="file-upload" class="plus-button">+</label>
 			{#if images.length > 0}
@@ -250,14 +278,16 @@
 				data-testid="container_el"
 				style="display: {images.length > 0 ? 'flex' : 'none'};"
 			>
-			{#each images as image}
-				<button class="thumbnail-item thumbnail-small">
+		{#each images as image, index}
+			<button class="thumbnail-item thumbnail-small">
+					<button class="delete-button" on:click={() => remove_thumbnail(index)}><Clear /></button>
 					<Image
 						src={image.url}
 						title={null}
 						alt=""
 						loading="lazy"
-					/>
+						class={"thumbnail-image"}
+						/>
 				</button>
 			{/each}
 			</div>
@@ -348,20 +378,18 @@
     }
 
 	.thumbnails :global(img) {
-		object-fit: cover;
 		width: var(--size-full);
 		height: var(--size-full);
+		object-fit: var(--object-fit);
+		border-radius: var(--button-small-radius);
 	}
 
 	.thumbnails {
 		align-self: flex-start;
-		height: auto;
-        overflow: auto;
 		display: flex;
 		justify-content: left;
 		align-items: center;
 		gap: var(--spacing-lg);
-		overflow-x: scroll;
 	}
 
 	.thumbnail-item {
@@ -376,36 +404,43 @@
 		aspect-ratio: var(--ratio-square);
 		width: var(--size-full);
 		height: var(--size-full);
-		overflow: clip;
-	}
-
-	.thumbnail-item:hover {
-		--ring-color: var(--color-accent);
-		filter: brightness(1.1);
-	}
-
-	.thumbnail-item.selected {
-		--ring-color: var(--color-accent);
+		cursor: default;
 	}
 
 	.thumbnail-small {
 		flex: none;
 		transform: scale(0.9);
 		transition: 0.075s;
-		width: var(--size-9);
-		height: var(--size-9);
+		width: var(--size-12);
+		height: var(--size-12);
 	}
 
-	.thumbnail-small.selected {
-		--ring-color: var(--color-accent);
-		transform: scale(1);
-		border-color: var(--color-accent);
-	}
+    .delete-button {
+		display: flex;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
+        right: -7px;
+		top: -7px;
+        background-color: var(--input-border-color-focus);
+        border: none;
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        font-size: 10px;
+        cursor: pointer;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+    }
 
-	.thumbnail-small > img {
-		width: var(--size-full);
-		height: var(--size-full);
-		overflow: hidden;
-		object-fit: var(--object-fit);
+	.delete-button :global(svg) {
+        width: 15px;
+        height: 15px;
+    }
+
+	.delete-button:hover {
+		filter: brightness(1.2);
+		border: 0.5px solid white;
 	}
 </style>

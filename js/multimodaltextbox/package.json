@@ -19,6 +19,7 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@gradio/upload": "workspace:^",
-		"@gradio/image": "workspace:^"
+		"@gradio/image": "workspace:^",
+		"@gradio/client": "workspace:^"
 	}
 }
