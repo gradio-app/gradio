@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import shutil
 from collections import deque
@@ -574,3 +575,7 @@ def update_root_in_config(config: dict, root: str) -> dict:
         config["root"] = root
         config = processing_utils.add_root_url(config, root, previous_root)
     return config
+
+
+def compare_passwords_securely(input_password: str, correct_password: str) -> bool:
+    return hmac.compare_digest(input_password, correct_password)
