@@ -983,7 +983,7 @@ class TestSimpleAPIRoutes:
             if line:
                 output.append(line.decode("utf-8"))
 
-        assert output == ['event: complete', 'data: ["a", "b"]']
+        assert output == ["event: complete", 'data: ["a", "b"]']
 
     def test_generative_simple_route(self):
         demo = self.get_demo()
@@ -1034,8 +1034,5 @@ class TestSimpleAPIRoutes:
             "event: generating",
             'data: ["Hello, w!"]',
             "event: error",
-            'data: null',
+            "data: null",
         ]
-
-        
-        
