@@ -439,7 +439,11 @@ class App(FastAPI):
             if in_blocklist or is_dir:
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
-            created_by_app = str(abs_path) in set().union(*blocks.temp_file_sets)
+            created_by_app = False
+            for temp_file_set in blocks.temp_file_sets:
+                if abs_path in temp_file_set:
+                    created_by_app = True
+                    break
             in_allowlist = any(
                 utils.is_in_or_equal(abs_path, allowed_path)
                 for allowed_path in blocks.allowed_paths
