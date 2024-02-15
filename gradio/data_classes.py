@@ -10,8 +10,7 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from fastapi import Request
-from gradio_client.utils import ServerMessage, traverse
-from typing_extensions import Literal
+from gradio_client.utils import traverse
 
 from . import wasm_utils
 
@@ -114,34 +113,6 @@ class InterfaceTypes(Enum):
     INPUT_ONLY = auto()
     OUTPUT_ONLY = auto()
     UNIFIED = auto()
-
-
-class EventMessage(BaseModel, extra="allow"):
-    msg: ServerMessage
-    event_id: Optional[str] = None
-
-
-class Estimation(BaseModel):
-    rank: Optional[int] = None
-    queue_size: int
-    rank_eta: Optional[float] = None
-
-
-class ProgressUnit(BaseModel):
-    index: Optional[int] = None
-    length: Optional[int] = None
-    unit: Optional[str] = None
-    progress: Optional[float] = None
-    desc: Optional[str] = None
-
-
-class Progress(BaseModel):
-    progress_data: List[ProgressUnit] = []
-
-
-class LogMessage(BaseModel):
-    log: str
-    level: Literal["info", "warning"]
 
 
 class GradioBaseModel(ABC):

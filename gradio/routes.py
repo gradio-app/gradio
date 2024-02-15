@@ -62,7 +62,6 @@ from gradio import ranged_response, route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import (
     ComponentServerBody,
-    EventMessage,
     PredictBody,
     ResetBody,
     SimplePredictBody,
@@ -70,7 +69,6 @@ from gradio.data_classes import (
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
 from gradio.processing_utils import add_root_url
-from gradio.queueing import Estimation
 from gradio.route_utils import (  # noqa: F401
     FileUploadProgress,
     FileUploadProgressNotQueuedError,
@@ -80,6 +78,14 @@ from gradio.route_utils import (  # noqa: F401
     MultiPartException,
     Request,
     move_uploaded_files_to_cache,
+)
+from gradio.server_messages import (
+    EstimationMessage,
+    EventMessage,
+    HeartbeatMessage,
+    ProcessCompletedMessage,
+    ProcessGeneratingMessage,
+    UnexpectedErrorMessage,
 )
 from gradio.state_holder import StateHolder
 from gradio.utils import (
@@ -655,15 +661,18 @@ class App(FastAPI):
             event_id: str,
         ):
             def process_msg(message: EventMessage) -> str | None:
-                if message.msg == ServerMessage.process_completed:
-                    event = "complete"
-                    data = message.output["data"]
-                elif message.msg == ServerMessage.process_generating:
-                    event = "generating"
-                    data = message.output["data"]
-                elif message.msg == ServerMessage.heartbeat:
+                if isinstance(message, ProcessCompletedMessage):
+                    event = "complete" if message.success else "error"
+                    data = message.output.get("data")
+                elif isinstance(message, ProcessGeneratingMessage):
+                    event = "generating" if message.success else "error"
+                    data = message.output.get("data")
+                elif isinstance(message, HeartbeatMessage):
                     event = "heartbeat"
-                    data = {}
+                    data = None
+                elif isinstance(message, UnexpectedErrorMessage):
+                    event = "error"
+                    data = message.message
                 else:
                     return None
                 return f"event: {event}\ndata: {json.dumps(data)}\n\n"
@@ -719,15 +728,14 @@ class App(FastAPI):
                             await asyncio.sleep(check_rate)
                             if time.perf_counter() - last_heartbeat > heartbeat_rate:
                                 # Fix this
-                                message = EventMessage(msg=ServerMessage.heartbeat)
+                                message = HeartbeatMessage()
                                 # Need to reset last_heartbeat with perf_counter
                                 # otherwise only a single hearbeat msg will be sent
                                 # and then the stream will retry leading to infinite queue 😬
                                 last_heartbeat = time.perf_counter()
 
                         if blocks._queue.stopped:
-                            message = EventMessage(
-                                msg=ServerMessage.unexpected_error,
+                            message = UnexpectedErrorMessage(
                                 message="Server stopped unexpectedly.",
                                 success=False,
                             )
@@ -754,10 +762,8 @@ class App(FastAPI):
                                 ):
                                     return
                 except BaseException as e:
-                    message = EventMessage(
-                        msg=ServerMessage.unexpected_error,
+                    message = UnexpectedErrorMessage(
                         message=str(e),
-                        success=False,
                     )
                     response = process_msg(message)
                     if response is not None:
@@ -793,7 +799,7 @@ class App(FastAPI):
         @app.get(
             "/queue/status",
             dependencies=[Depends(login_check)],
-            response_model=Estimation,
+            response_model=EstimationMessage,
         )
         async def get_queue_status():
             return app.get_blocks()._queue.get_status()

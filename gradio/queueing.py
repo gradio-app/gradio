@@ -13,20 +13,24 @@ from queue import Queue as ThreadQueue
 from typing import TYPE_CHECKING
 
 import fastapi
-from gradio_client.utils import ServerMessage
 from typing_extensions import Literal
 
 from gradio import route_utils, routes
 from gradio.data_classes import (
-    Estimation,
-    EventMessage,
-    LogMessage,
     PredictBody,
-    Progress,
-    ProgressUnit,
 )
 from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
+from gradio.server_messages import (
+    EstimationMessage,
+    EventMessage,
+    LogMessage,
+    ProcessCompletedMessage,
+    ProcessGeneratingMessage,
+    ProcessStartsMessage,
+    ProgressMessage,
+    ProgressUnit,
+)
 from gradio.utils import LRUCache, run_coro_in_background, safe_get_lock, set_task_name
 
 if TYPE_CHECKING:
@@ -49,7 +53,7 @@ class Event:
         self.username = username
         self.concurrency_id = concurrency_id
         self.data: PredictBody | None = None
-        self.progress: Progress | None = None
+        self.progress: ProgressMessage | None = None
         self.progress_pending: bool = False
         self.alive = True
 
@@ -153,19 +157,13 @@ class Queue:
     def send_message(
         self,
         event: Event,
-        message_type: ServerMessage,
-        data: dict | None = None,
+        event_message: EventMessage,
     ):
         if not event.alive:
             return
-        data = {} if data is None else data
+        event_message.event_id = event._id
         messages = self.pending_messages_per_session[event.session_hash]
-        message = EventMessage(
-            msg=message_type,
-            event_id=event._id,
-            **data,
-        )
-        messages.put_nowait(message)
+        messages.put_nowait(event_message)
 
     def _resolve_concurrency_limit(
         self, default_concurrency_limit: int | None | Literal["not_set"]
@@ -330,9 +328,7 @@ class Queue:
             for event in events:
                 if event.progress_pending and event.progress:
                     event.progress_pending = False
-                    self.send_message(
-                        event, ServerMessage.progress, event.progress.model_dump()
-                    )
+                    self.send_message(event, event.progress)
 
             await asyncio.sleep(self.progress_update_sleep_when_free)
 
@@ -358,7 +354,7 @@ class Queue:
                             desc=iterable.desc,
                         )
                         progress_data.append(progress_unit)
-                    evt.progress = Progress(progress_data=progress_data)
+                    evt.progress = ProgressMessage(progress_data=progress_data)
                     evt.progress_pending = True
 
     def log_message(
@@ -376,7 +372,7 @@ class Queue:
                     log=log,
                     level=level,
                 )
-                self.send_message(event, ServerMessage.log, log_message.model_dump())
+                self.send_message(event, log_message)
 
     async def clean_events(
         self, *, session_hash: str | None = None, event_id: str | None = None
@@ -449,10 +445,9 @@ class Queue:
             if after is None or rank >= after:
                 self.send_message(
                     event,
-                    ServerMessage.estimation,
-                    Estimation(
+                    EstimationMessage(
                         rank=rank, rank_eta=rank_eta, queue_size=len(event_queue.queue)
-                    ).model_dump(),
+                    ),
                 )
             if event_queue.concurrency_limit is None:
                 wait_so_far = 0
@@ -461,8 +456,8 @@ class Queue:
             else:
                 wait_so_far = None
 
-    def get_status(self) -> Estimation:
-        return Estimation(
+    def get_status(self) -> EstimationMessage:
+        return EstimationMessage(
             queue_size=len(self),
         )
 
@@ -538,12 +533,11 @@ class Queue:
                 if event.alive:
                     self.send_message(
                         event,
-                        ServerMessage.process_starts,
-                        {
-                            "eta": self.process_time_per_fn_index[fn_index].avg_time
+                        ProcessStartsMessage(
+                            eta=self.process_time_per_fn_index[fn_index].avg_time
                             if fn_index in self.process_time_per_fn_index
                             else None
-                        },
+                        ),
                     )
                     awake_events.append(event)
             if not awake_events:
@@ -557,15 +551,14 @@ class Queue:
                 for event in awake_events:
                     self.send_message(
                         event,
-                        ServerMessage.process_completed,
-                        {
-                            "output": {
+                        ProcessCompletedMessage(
+                            output={
                                 "error": None
                                 if len(e.args) and e.args[0] is None
                                 else str(e)
                             },
-                            "success": False,
-                        },
+                            success=False,
+                        ),
                     )
             if response and response.get("is_generating", False):
                 old_response = response
@@ -576,11 +569,10 @@ class Queue:
                     for event in awake_events:
                         self.send_message(
                             event,
-                            ServerMessage.process_generating,
-                            {
-                                "output": old_response,
-                                "success": old_response is not None,
-                            },
+                            ProcessGeneratingMessage(
+                                output=old_response,
+                                success=old_response is not None,
+                            ),
                         )
                     awake_events = [event for event in awake_events if event.alive]
                     if not awake_events:
@@ -595,14 +587,13 @@ class Queue:
                     relevant_response = response or err or old_err
                     self.send_message(
                         event,
-                        ServerMessage.process_completed,
-                        {
-                            "output": {"error": str(relevant_response)}
+                        ProcessCompletedMessage(
+                            output={"error": str(relevant_response)}
                             if isinstance(relevant_response, Exception)
                             else relevant_response,
-                            "success": relevant_response
+                            success=relevant_response
                             and not isinstance(relevant_response, Exception),
-                        },
+                        ),
                     )
             elif response:
                 output = copy.deepcopy(response)
@@ -611,11 +602,10 @@ class Queue:
                         output["data"] = list(zip(*response.get("data")))[e]
                     self.send_message(
                         event,
-                        ServerMessage.process_completed,
-                        {
-                            "output": output,
-                            "success": response is not None,
-                        },
+                        ProcessCompletedMessage(
+                            output=output,
+                            success=response is not None,
+                        ),
                     )
             end_time = time.time()
             if response is not None:
