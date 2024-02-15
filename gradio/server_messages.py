@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 class BaseMessage(BaseModel):
     msg: ServerMessage
-    event_id: Optional[str] = None
+    event_id: str
 
 
 class ProgressUnit(BaseModel):
@@ -52,12 +52,11 @@ class ProcessGeneratingMessage(BaseMessage):
     success: bool
 
 
-class HeartbeatMessage(BaseMessage):
+class HeartbeatMessage(BaseModel):
     msg: Literal[ServerMessage.heartbeat] = ServerMessage.heartbeat
-    event_id: None = None
 
 
-class UnexpectedErrorMessage(BaseMessage):
+class UnexpectedErrorMessage(BaseModel):
     msg: Literal[ServerMessage.unexpected_error] = ServerMessage.unexpected_error
     message: str
     success: Literal[False] = False
