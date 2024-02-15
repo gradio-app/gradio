@@ -748,7 +748,10 @@ class App(FastAPI):
                             response = process_msg(message)
                             if response is not None:
                                 yield response
-                            if message.msg == ServerMessage.process_completed:
+                            if (
+                                isinstance(message, ProcessCompletedMessage)
+                                and message.event_id
+                            ):
                                 blocks._queue.pending_event_ids_session[
                                     session_hash
                                 ].remove(message.event_id)

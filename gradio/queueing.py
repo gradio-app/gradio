@@ -461,7 +461,7 @@ class Queue:
             queue_size=len(self),
         )
 
-    async def call_prediction(self, events: list[Event], batch: bool):
+    async def call_prediction(self, events: list[Event], batch: bool) -> dict:
         body = events[0].data
         if body is None:
             raise ValueError("No event data")
@@ -520,6 +520,7 @@ class Queue:
         )  # Do the same as https://github.com/tiangolo/fastapi/blob/0.87.0/fastapi/routing.py#L264
         # Also, decode the JSON string to a Python object, emulating the HTTP client behavior e.g. the `json()` method of `httpx`.
         response_json = json.loads(http_response.body.decode())
+        assert isinstance(response_json, dict), "Unexpected object."
 
         return response_json
 
@@ -590,9 +591,11 @@ class Queue:
                         ProcessCompletedMessage(
                             output={"error": str(relevant_response)}
                             if isinstance(relevant_response, Exception)
-                            else relevant_response,
-                            success=relevant_response
-                            and not isinstance(relevant_response, Exception),
+                            else relevant_response or {},
+                            success=(
+                                relevant_response is not None
+                                and not isinstance(relevant_response, Exception)
+                            ),
                         ),
                     )
             elif response:
