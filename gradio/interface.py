@@ -11,7 +11,7 @@ import warnings
 import weakref
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio import Examples, utils
 from gradio.blocks import Blocks
@@ -31,8 +31,6 @@ from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Accordion, Column, Row, Tab, Tabs
 from gradio.pipelines import load_from_pipeline
 from gradio.themes import ThemeClass as Theme
-
-set_documentation_group("interface")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from transformers.pipelines.base import Pipeline
@@ -136,7 +134,7 @@ class Interface(Blocks):
             live: Whether the interface should automatically rerun if any of the inputs change.
             title: A title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
             description: A description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
-            article: An expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content.
+            article: An expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content. If it is an HTTP(S) link to a downloadable remote file, the content of this file is displayed.
             thumbnail: String path or url to image to use as display image when the web demo is shared on social media.
             theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             css: Custom css as a string or path to a css file. This css will be included in the demo webpage.
@@ -297,7 +295,7 @@ class Interface(Blocks):
         self.simple_description = utils.remove_html_tags(description)
         self.description = description
         if article is not None:
-            article = utils.readme_to_html(article)
+            article = utils.download_if_url(article)
         self.article = article
 
         self.thumbnail = thumbnail
@@ -649,9 +647,11 @@ class Interface(Blocks):
                 )
             else:
                 events: list[Callable] = []
+                streaming_event = False
                 for component in self.input_components:
                     if component.has_event("stream") and component.streaming:  # type: ignore
                         events.append(component.stream)  # type: ignore
+                        streaming_event = True
                     elif component.has_event("change"):
                         events.append(component.change)  # type: ignore
                 on(
@@ -662,6 +662,7 @@ class Interface(Blocks):
                     api_name=self.api_name,
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
+                    show_progress="hidden" if streaming_event else "full",
                 )
         else:
             if _submit_btn is None:
@@ -746,7 +747,7 @@ class Interface(Blocks):
             [],
             ([input_component_column] if input_component_column else []),  # type: ignore
             js=f"""() => {json.dumps(
-                
+
                     [{'variant': None, 'visible': True, '__type__': 'update'}]
                     if self.interface_type
                        in [
@@ -755,7 +756,7 @@ class Interface(Blocks):
                            InterfaceTypes.UNIFIED,
                        ]
                     else []
-                
+
             )}
             """,
         )

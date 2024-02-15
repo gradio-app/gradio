@@ -29,7 +29,7 @@ def _install_command(directory: Path, live: LivePanelDisplay, npm_install: str):
     live.update(
         f":construction_worker: Installing python... [grey37]({escape(' '.join(cmds))})[/]"
     )
-    pipe = subprocess.run(cmds, capture_output=True, text=True)
+    pipe = subprocess.run(cmds, capture_output=True, text=True, check=False)
 
     if pipe.returncode != 0:
         live.update(":red_square: Python installation [bold][red]failed[/][/]")
@@ -41,7 +41,9 @@ def _install_command(directory: Path, live: LivePanelDisplay, npm_install: str):
         f":construction_worker: Installing javascript... [grey37]({npm_install})[/]"
     )
     with set_directory(directory / "frontend"):
-        pipe = subprocess.run(npm_install.split(), capture_output=True, text=True)
+        pipe = subprocess.run(
+            npm_install.split(), capture_output=True, text=True, check=False
+        )
         if pipe.returncode != 0:
             live.update(":red_square: NPM install [bold][red]failed[/][/]")
             live.update(pipe.stdout)

@@ -24,7 +24,7 @@ import anyio
 import httpx
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio import (
     analytics,
@@ -77,7 +77,6 @@ try:
 except Exception:
     spaces = None
 
-set_documentation_group("blocks")
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
@@ -504,6 +503,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         css: str | None = None,
         js: str | None = None,
         head: str | None = None,
+        fill_height: bool = False,
         **kwargs,
     ):
         """
@@ -515,6 +515,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             css: Custom css as a string or path to a css file. This css will be included in the demo webpage.
             js: Custom js or path to js file to run when demo is first loaded. This javascript will be included in the demo webpage.
             head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
+            fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
         """
         self.limiter = None
         if theme is None:
@@ -542,6 +543,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.pending_diff_streams = defaultdict(dict)
         self.show_error = True
         self.head = head
+        self.fill_height = fill_height
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -582,7 +584,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.space_id = utils.get_space()
         self.favicon_path = None
         self.auth = None
-        self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", False))
+        self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", ""))
         self.app_id = random.getrandbits(64)
         self.temp_file_sets = []
         self.title = title
@@ -872,11 +874,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         if isinstance(outputs, set):
             outputs = sorted(outputs, key=lambda x: x._id)
-        else:
-            if outputs is None:
-                outputs = []
-            elif not isinstance(outputs, list):
-                outputs = [outputs]
+        elif outputs is None:
+            outputs = []
+        elif not isinstance(outputs, list):
+            outputs = [outputs]
 
         if fn is not None and not cancels:
             check_function_inputs_match(fn, inputs, inputs_as_dict)
@@ -1324,7 +1325,7 @@ Received inputs:
                     if input_id in state:
                         block = state[input_id]
                     inputs_cached = processing_utils.move_files_to_cache(
-                        inputs[i], block
+                        inputs[i], block, add_urls=True
                     )
                     if getattr(block, "data_model", None) and inputs_cached is not None:
                         if issubclass(block.data_model, GradioModel):  # type: ignore
@@ -1448,11 +1449,15 @@ Received outputs:
                         raise InvalidComponentError(
                             f"{block.__class__} Component with id {output_id} not a valid output component."
                         )
+                    if output_id in state:
+                        block = state[output_id]
                     prediction_value = block.postprocess(prediction_value)
+
                 outputs_cached = processing_utils.move_files_to_cache(
                     prediction_value,
                     block,  # type: ignore
                     postprocess=True,
+                    add_urls=True,
                 )
                 output.append(outputs_cached)
 
@@ -1516,6 +1521,9 @@ Received outputs:
 
         return data
 
+    def run_fn_batch(self, fn, batch, fn_index, state):
+        return [fn(fn_index, list(i), state) for i in zip(*batch)]
+
     async def process_api(
         self,
         fn_index: int,
@@ -1560,10 +1568,14 @@ Received outputs:
                 raise ValueError(
                     f"Batch size ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
                 )
-
-            inputs = [
-                self.preprocess_data(fn_index, list(i), state) for i in zip(*inputs)
-            ]
+            inputs = await anyio.to_thread.run_sync(
+                self.run_fn_batch,
+                self.preprocess_data,
+                inputs,
+                fn_index,
+                state,
+                limiter=self.limiter,
+            )
             result = await self.call_function(
                 fn_index,
                 list(zip(*inputs)),
@@ -1574,9 +1586,14 @@ Received outputs:
                 in_event_listener,
             )
             preds = result["prediction"]
-            data = [
-                self.postprocess_data(fn_index, list(o), state) for o in zip(*preds)
-            ]
+            data = await anyio.to_thread.run_sync(
+                self.run_fn_batch,
+                self.postprocess_data,
+                preds,
+                fn_index,
+                state,
+                limiter=self.limiter,
+            )
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
@@ -1584,7 +1601,9 @@ Received outputs:
             if old_iterator:
                 inputs = []
             else:
-                inputs = self.preprocess_data(fn_index, inputs, state)
+                inputs = await anyio.to_thread.run_sync(
+                    self.preprocess_data, fn_index, inputs, state, limiter=self.limiter
+                )
             was_generating = old_iterator is not None
             result = await self.call_function(
                 fn_index,
@@ -1595,7 +1614,13 @@ Received outputs:
                 event_data,
                 in_event_listener,
             )
-            data = self.postprocess_data(fn_index, result["prediction"], state)
+            data = await anyio.to_thread.run_sync(
+                self.postprocess_data,
+                fn_index,  # type: ignore
+                result["prediction"],
+                state,
+                limiter=self.limiter,
+            )
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
                 run = id(old_iterator) if was_generating else id(iterator)
@@ -1665,6 +1690,7 @@ Received outputs:
                     "body_text_color_dark"
                 ),
             },
+            "fill_height": self.fill_height,
         }
 
         def get_layout(block):
@@ -2173,7 +2199,7 @@ Received outputs:
             analytics.launched_analytics(self, data)
 
         # Block main thread if debug==True
-        if debug or int(os.getenv("GRADIO_DEBUG", 0)) == 1 and not wasm_utils.IS_WASM:
+        if debug or int(os.getenv("GRADIO_DEBUG", "0")) == 1 and not wasm_utils.IS_WASM:
             self.block_thread()
         # Block main thread if running in a script to stop script from exiting
         is_in_interactive_mode = bool(getattr(sys, "ps1", sys.flags.interactive))

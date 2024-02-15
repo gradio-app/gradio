@@ -33,23 +33,19 @@ jobs:
       source_repo: ${{ steps.changes.outputs.source_repo }}
       mergeable: ${{ steps.changes.outputs.mergeable }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: "gradio-app/gradio/.github/actions/changes@main"
         id: changes
         with:
           type: "js"
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: echo github context
-        if: always()
-        run: echo "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
-
   test-js:
     needs: changes
     if: needs.changes.outputs.should_run == 'true'
     name: test-js
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.changes.outputs.merge_sha }}
           repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
@@ -80,4 +76,3 @@ jobs:
           name: "test / js"
           result: ${{ job.status }}
           job_id: "test-js"  
- 

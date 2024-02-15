@@ -1,5 +1,21 @@
 # @gradio/form
 
+## 0.1.9
+
+### Patch Changes
+
+- Updated dependencies [[`065c5b1`](https://github.com/gradio-app/gradio/commit/065c5b163c4badb9d9cbd06d627fb4ba086003e7)]:
+  - @gradio/utils@0.3.0
+  - @gradio/atoms@0.5.2
+
+## 0.1.8
+
+### Patch Changes
+
+- Updated dependencies [[`fdd1521`](https://github.com/gradio-app/gradio/commit/fdd15213c24b9cbc58bbc1b6beb4af7c18f48557)]:
+  - @gradio/utils@0.2.2
+  - @gradio/atoms@0.5.1
+
 ## 0.1.7
 
 ### Patch Changes

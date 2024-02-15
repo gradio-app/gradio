@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { Music } from "@gradio/icons";
-	import type { I18nFormatter } from "@gradio/utils";
+	import { format_time, type I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
 	import { skip_audio, process_audio } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
@@ -47,13 +47,6 @@
 		end: undefined;
 	}>();
 
-	const formatTime = (seconds: number): string => {
-		const minutes = Math.floor(seconds / 60);
-		const secondsRemainder = Math.round(seconds) % 60;
-		const paddedSeconds = `0${secondsRemainder}`.slice(-2);
-		return `${minutes}:${paddedSeconds}`;
-	};
-
 	const create_waveform = (): void => {
 		waveform = WaveSurfer.create({
 			container: container,
@@ -75,13 +68,13 @@
 
 	$: waveform?.on("decode", (duration: any) => {
 		audio_duration = duration;
-		durationRef && (durationRef.textContent = formatTime(duration));
+		durationRef && (durationRef.textContent = format_time(duration));
 	});
 
 	$: waveform?.on(
 		"timeupdate",
 		(currentTime: any) =>
-			timeRef && (timeRef.textContent = formatTime(currentTime))
+			timeRef && (timeRef.textContent = format_time(currentTime))
 	);
 
 	$: waveform?.on("ready", () => {
@@ -170,7 +163,7 @@
 			<time bind:this={timeRef} id="time">0:00</time>
 			<div>
 				{#if mode === "edit" && trimDuration > 0}
-					<time id="trim-duration">{formatTime(trimDuration)}</time>
+					<time id="trim-duration">{format_time(trimDuration)}</time>
 				{/if}
 				<time bind:this={durationRef} id="duration">0:00</time>
 			</div>

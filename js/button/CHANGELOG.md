@@ -1,10 +1,36 @@
 # @gradio/button
 
+## 0.2.21
+
+### Patch Changes
+
+- Updated dependencies [[`065c5b1`](https://github.com/gradio-app/gradio/commit/065c5b163c4badb9d9cbd06d627fb4ba086003e7), [`32b317f`](https://github.com/gradio-app/gradio/commit/32b317f24e3d43f26684bb9f3964f31efd0ea556)]:
+  - @gradio/utils@0.3.0
+  - @gradio/client@0.12.1
+  - @gradio/upload@0.7.3
+
+## 0.2.20
+
+### Patch Changes
+
+- Updated dependencies [[`49d9c48`](https://github.com/gradio-app/gradio/commit/49d9c48537aa706bf72628e3640389470138bdc6)]:
+  - @gradio/client@0.12.0
+  - @gradio/upload@0.7.2
+
+## 0.2.19
+
+### Patch Changes
+
+- Updated dependencies [[`572e360`](https://github.com/gradio-app/gradio/commit/572e360fff4a03c335b86e1a7517a44cb6af2bcd), [`68a54a7`](https://github.com/gradio-app/gradio/commit/68a54a7a310d8d7072fdae930bf1cfdf12c45a7f), [`fdd1521`](https://github.com/gradio-app/gradio/commit/fdd15213c24b9cbc58bbc1b6beb4af7c18f48557), [`c3e61e4`](https://github.com/gradio-app/gradio/commit/c3e61e4f70696a71aede67b65d28447eb67daf16)]:
+  - @gradio/upload@0.7.1
+  - @gradio/client@0.11.0
+  - @gradio/utils@0.2.2
+
 ## 0.2.18
 
 ### Fixes
 
-- [#7126](https://github.com/gradio-app/gradio/pull/7126) [`5727b92`](https://github.com/gradio-app/gradio/commit/5727b92abc8a00a675bfc0a921b38de771af947b) - Allow buttons to take null value.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7126](https://github.com/gradio-app/gradio/pull/7126) [`5727b92`](https://github.com/gradio-app/gradio/commit/5727b92abc8a00a675bfc0a921b38de771af947b) - Allow buttons to take null value. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.2.17
 

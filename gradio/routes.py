@@ -17,7 +17,6 @@ import mimetypes
 import os
 import posixpath
 import secrets
-import shutil
 import tempfile
 import threading
 import time
@@ -41,7 +40,7 @@ from fastapi.responses import (
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from gradio_client import utils as client_utils
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 from gradio_client.utils import ServerMessage
 from jinja2.exceptions import TemplateNotFound
 from multipart.multipart import parse_options_header
@@ -49,12 +48,12 @@ from starlette.background import BackgroundTask
 from starlette.responses import RedirectResponse, StreamingResponse
 
 import gradio
-import gradio.ranged_response as ranged_response
-from gradio import route_utils, utils, wasm_utils
+from gradio import ranged_response, route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
+from gradio.processing_utils import add_root_url
 from gradio.queueing import Estimation
 from gradio.route_utils import (  # noqa: F401
     FileUploadProgress,
@@ -64,6 +63,7 @@ from gradio.route_utils import (  # noqa: F401
     GradioUploadFile,
     MultiPartException,
     Request,
+    move_uploaded_files_to_cache,
 )
 from gradio.state_holder import StateHolder
 from gradio.utils import (
@@ -115,12 +115,6 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 templates.env.filters["toorjson"] = toorjson
 
 client = httpx.AsyncClient()
-
-
-def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
-    for file, dest in zip(files, destinations):
-        shutil.move(file, dest)
-
 
 file_upload_statuses = FileUploadProgress()
 
@@ -238,7 +232,7 @@ class App(FastAPI):
 
         @app.get("/app_id")
         @app.get("/app_id/")
-        def app_id(request: fastapi.Request) -> dict:
+        def app_id(request: fastapi.Request) -> dict:  # noqa: ARG001
             return {"app_id": app.get_blocks().app_id}
 
         @app.get("/dev/reload", dependencies=[Depends(login_check)])
@@ -316,20 +310,18 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
-            root_path = (
-                request.scope.get("root_path")
-                or request.headers.get("X-Direct-Url")
-                or ""
+            root = route_utils.get_root_url(
+                request=request, route_path="/", root_path=app.root_path
             )
             if app.auth is None or user is not None:
                 config = app.get_blocks().config
-                config["root"] = route_utils.strip_url(root_path)
+                config = route_utils.update_root_in_config(config, root)
             else:
                 config = {
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
                     "space_id": app.get_blocks().space_id,
-                    "root": route_utils.strip_url(root_path),
+                    "root": root,
                 }
 
             try:
@@ -354,21 +346,18 @@ class App(FastAPI):
 
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
-        def api_info(serialize: bool = True):
-            # config = app.get_blocks().get_api_info()
+        def api_info():
             return app.get_blocks().get_api_info()  # type: ignore
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
-            root_path = (
-                request.scope.get("root_path")
-                or request.headers.get("X-Direct-Url")
-                or ""
-            )
             config = app.get_blocks().config
-            config["root"] = route_utils.strip_url(root_path)
-            return config
+            root = route_utils.get_root_url(
+                request=request, route_path="/config", root_path=app.root_path
+            )
+            config = route_utils.update_root_in_config(config, root)
+            return ORJSONResponse(content=config)
 
         @app.get("/static/{path:path}")
         def static_resource(path: str):
@@ -489,7 +478,10 @@ class App(FastAPI):
             dependencies=[Depends(login_check)],
         )
         async def stream(
-            session_hash: str, run: int, component_id: int, request: fastapi.Request
+            session_hash: str,
+            run: int,
+            component_id: int,
+            request: fastapi.Request,  # noqa: ARG001
         ):
             stream: list = (
                 app.get_blocks()
@@ -579,6 +571,10 @@ class App(FastAPI):
                     content={"error": str(error) if show_error else None},
                     status_code=500,
                 )
+            root_path = route_utils.get_root_url(
+                request=request, route_path=f"/api/{api_name}", root_path=app.root_path
+            )
+            output = add_root_url(output, root_path, None)
             return output
 
         @app.get("/queue/data", dependencies=[Depends(login_check)])
@@ -587,6 +583,9 @@ class App(FastAPI):
             session_hash: str,
         ):
             blocks = app.get_blocks()
+            root_path = route_utils.get_root_url(
+                request=request, route_path="/queue/data", root_path=app.root_path
+            )
 
             async def sse_stream(request: fastapi.Request):
                 try:
@@ -632,6 +631,7 @@ class App(FastAPI):
                                 "success": False,
                             }
                         if message:
+                            add_root_url(message, root_path, None)
                             yield f"data: {json.dumps(message)}\n\n"
                             if message["msg"] == ServerMessage.process_completed:
                                 blocks._queue.pending_event_ids_session[
@@ -884,9 +884,6 @@ def get_types(cls_set: List[Type]):
                 types.append(line.split("value (")[1].split(")")[0])
         docset.append(doc_lines[1].split(":")[-1])
     return docset, types
-
-
-set_documentation_group("routes")
 
 
 @document()

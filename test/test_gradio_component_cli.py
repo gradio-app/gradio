@@ -58,6 +58,10 @@ if __name__ == "__main__":
     )
     assert app.strip() == answer.strip()
     assert (tmp_path / "backend" / "gradio_mycomponent" / "mycomponent.py").exists()
+    source_code = (
+        tmp_path / "backend" / "gradio_mycomponent" / "mycomponent.py"
+    ).read_text()
+    assert "@document()" not in source_code
 
 
 def test_raise_error_component_template_does_not_exist(tmp_path):
@@ -187,7 +191,7 @@ with gr.Blocks() as demo:
 
 if __name__ == "__main__":
     demo.launch()
-    
+
 """
     )
     assert app.strip() == answer.strip()

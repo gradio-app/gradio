@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 from collections import deque
 from dataclasses import dataclass as python_dataclass
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
@@ -10,12 +11,12 @@ from typing import TYPE_CHECKING, AsyncGenerator, BinaryIO, List, Optional, Tupl
 import fastapi
 import httpx
 import multipart
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 from multipart.multipart import parse_options_header
 from starlette.datastructures import FormData, Headers, UploadFile
 from starlette.formparsers import MultiPartException, MultipartPart
 
-from gradio import utils
+from gradio import processing_utils, utils
 from gradio.data_classes import PredictBody
 from gradio.exceptions import Error
 from gradio.helpers import EventData
@@ -24,8 +25,6 @@ from gradio.state_holder import SessionState
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
     from gradio.routes import App
-
-set_documentation_group("routes")
 
 
 class Obj:
@@ -262,14 +261,24 @@ async def call_process_api(
     return output
 
 
-def strip_url(orig_url: str) -> str:
+def get_root_url(
+    request: fastapi.Request, route_path: str, root_path: str | None
+) -> str:
     """
-    Strips the query parameters and trailing slash from a URL.
+    Gets the root url of the request, stripping off any query parameters, the route_path, and trailing slashes.
+    Also ensures that the root url is https if the request is https. If root_path is provided, it is appended to the root url.
+    The final root url will not have a trailing slash.
     """
-    parsed_url = httpx.URL(orig_url)
-    stripped_url = parsed_url.copy_with(query=None)
-    stripped_url = str(stripped_url)
-    return stripped_url.rstrip("/")
+    root_url = str(request.url)
+    root_url = httpx.URL(root_url)
+    root_url = root_url.copy_with(query=None)
+    root_url = str(root_url).rstrip("/")
+    if request.headers.get("x-forwarded-proto") == "https":
+        root_url = root_url.replace("http://", "https://")
+    route_path = route_path.rstrip("/")
+    if len(route_path) > 0:
+        root_url = root_url[: -len(route_path)]
+    return (root_url.rstrip("/") + (root_path or "")).rstrip("/")
 
 
 def _user_safe_decode(src: bytes, codec: str) -> str:
@@ -547,3 +556,21 @@ class GradioMultiPartParser:
         if self.upload_progress is not None:
             self.upload_progress.set_done(self.upload_id)  # type: ignore
         return FormData(self.items)
+
+
+def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
+    for file, dest in zip(files, destinations):
+        shutil.move(file, dest)
+
+
+def update_root_in_config(config: dict, root: str) -> dict:
+    """
+    Updates the root "key" in the config dictionary to the new root url. If the
+    root url has changed, all of the urls in the config that correspond to component
+    file urls are updated to use the new root url.
+    """
+    previous_root = config.get("root", None)
+    if previous_root is None or previous_root != root:
+        config["root"] = root
+        config = processing_utils.add_root_url(config, root, previous_root)
+    return config

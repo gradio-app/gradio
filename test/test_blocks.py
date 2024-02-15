@@ -6,7 +6,6 @@ import pathlib
 import random
 import sys
 import time
-import unittest.mock as mock
 import uuid
 from concurrent.futures import wait
 from contextlib import contextmanager
@@ -19,7 +18,7 @@ import numpy as np
 import pytest
 import uvicorn
 from fastapi.testclient import TestClient
-from gradio_client import media_data
+from gradio_client import Client, media_data
 from PIL import Image
 
 import gradio as gr
@@ -142,14 +141,14 @@ class TestBlocksMethods:
             assert difference >= 0.01
             assert result
 
-    @mock.patch("gradio.analytics._do_analytics_request")
+    @patch("gradio.analytics._do_analytics_request")
     def test_initiated_analytics(self, mock_anlaytics, monkeypatch):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         with gr.Blocks():
             pass
         mock_anlaytics.assert_called_once()
 
-    @mock.patch("gradio.analytics._do_analytics_request")
+    @patch("gradio.analytics._do_analytics_request")
     def test_launch_analytics_does_not_error_with_invalid_blocks(
         self, mock_anlaytics, monkeypatch
     ):
@@ -823,6 +822,26 @@ class TestStateHolder:
         assert (
             "error" not in session_1.json()
         )  # no error because sesssion 1 block config was lost when session 3 was added
+
+    def test_state_holder_is_used_in_postprocess(self, connect):
+        with gr.Blocks() as demo:
+            dropdown = gr.Dropdown(label="list", choices=["Choice 1"], interactive=True)
+            button = gr.Button("Get dropdown value")
+            button2 = gr.Button("Convert dropdown to multiselect")
+            button.click(
+                lambda x: x, inputs=dropdown, outputs=dropdown, api_name="predict"
+            )
+            button2.click(
+                lambda: gr.Dropdown(multiselect=True),
+                outputs=dropdown,
+                api_name="set_multiselect",
+            )
+
+        client: Client
+        with connect(demo) as client:
+            assert client.predict("Choice 1", api_name="/predict") == "Choice 1"
+            client.predict(api_name="/set_multiselect")
+            assert client.predict("Choice 1", api_name="/predict") == ["Choice 1"]
 
 
 class TestCallFunction:

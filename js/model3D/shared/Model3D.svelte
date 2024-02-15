@@ -2,10 +2,6 @@
 	import type { FileData } from "@gradio/client";
 	import { BlockLabel, IconButton } from "@gradio/atoms";
 	import { File, Download, Undo } from "@gradio/icons";
-	import { add_new_model, reset_camera_position } from "./utils";
-	import { onMount } from "svelte";
-	import * as BABYLON from "babylonjs";
-	import * as BABYLON_LOADERS from "babylonjs-loaders";
 	import type { I18nFormatter } from "@gradio/utils";
 	import { dequal } from "dequal";
 
@@ -25,72 +21,48 @@
 
 	let current_settings = { camera_position, zoom_speed, pan_speed };
 
-	$: {
-		if (
-			BABYLON_LOADERS.OBJFileLoader != undefined &&
-			!BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS
-		) {
-			BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS = true;
-		}
+	let canvas3dgs: any;
+	let canvas3d: any;
+	let use_3dgs = false;
+	let resolved_url: string | undefined;
+
+	async function loadCanvas3D(): Promise<any> {
+		const module = await import("./Canvas3D.svelte");
+		return module.default;
 	}
 
-	let canvas: HTMLCanvasElement;
-	let scene: BABYLON.Scene;
-	let engine: BABYLON.Engine | null;
-	let mounted = false;
-
-	onMount(() => {
-		engine = new BABYLON.Engine(canvas, true);
-		window.addEventListener("resize", () => {
-			engine?.resize();
-		});
-		mounted = true;
-	});
-
-	$: ({ path } = value || {
-		path: undefined
-	});
-
-	$: canvas && mounted && path && dispose();
-
-	function dispose(): void {
-		if (scene && !scene.isDisposed) {
-			scene.dispose();
-			engine?.stopRenderLoop();
-			engine?.dispose();
-			engine = null;
-			engine = new BABYLON.Engine(canvas, true);
-			window.addEventListener("resize", () => {
-				engine?.resize();
-			});
-		}
-		if (engine !== null) {
-			scene = add_new_model(
-				canvas,
-				scene,
-				engine,
-				value,
-				clear_color,
-				camera_position,
-				zoom_speed,
-				pan_speed
-			);
-		}
+	async function loadCanvas3DGS(): Promise<any> {
+		const module = await import("./Canvas3DGS.svelte");
+		return module.default;
 	}
 
 	function handle_undo(): void {
-		reset_camera_position(scene, camera_position, zoom_speed, pan_speed);
+		canvas3d.reset_camera_position(camera_position, zoom_speed, pan_speed);
 	}
 
 	$: {
 		if (
-			scene &&
-			(!dequal(current_settings.camera_position, camera_position) ||
-				current_settings.zoom_speed !== zoom_speed ||
-				current_settings.pan_speed !== pan_speed)
+			!dequal(current_settings.camera_position, camera_position) ||
+			current_settings.zoom_speed !== zoom_speed ||
+			current_settings.pan_speed !== pan_speed
 		) {
-			reset_camera_position(scene, camera_position, zoom_speed, pan_speed);
+			canvas3d.reset_camera_position(camera_position, zoom_speed, pan_speed);
 			current_settings = { camera_position, zoom_speed, pan_speed };
+		}
+	}
+
+	$: {
+		if (value) {
+			use_3dgs = value?.path.endsWith(".splat") || value?.path.endsWith(".ply");
+			if (use_3dgs) {
+				loadCanvas3DGS().then((module) => {
+					canvas3dgs = module;
+				});
+			} else {
+				loadCanvas3D().then((module) => {
+					canvas3d = module;
+				});
+			}
 		}
 	}
 </script>
@@ -105,7 +77,7 @@
 		<div class="buttons">
 			<IconButton Icon={Undo} label="Undo" on:click={() => handle_undo()} />
 			<a
-				href={value.url}
+				href={resolved_url}
 				target={window.__is_colab__ ? "_blank" : null}
 				download={window.__is_colab__ ? null : value.orig_name || value.path}
 			>
@@ -113,7 +85,25 @@
 			</a>
 		</div>
 
-		<canvas bind:this={canvas} />
+		{#if use_3dgs}
+			<svelte:component
+				this={canvas3dgs}
+				bind:resolved_url
+				{value}
+				{zoom_speed}
+				{pan_speed}
+			/>
+		{:else}
+			<svelte:component
+				this={canvas3d}
+				bind:resolved_url
+				{value}
+				{clear_color}
+				{camera_position}
+				{zoom_speed}
+				{pan_speed}
+			/>
+		{/if}
 	</div>
 {/if}
 
@@ -124,7 +114,7 @@
 		width: var(--size-full);
 		height: var(--size-full);
 	}
-	canvas {
+	.model3D :global(canvas) {
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: contain;

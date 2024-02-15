@@ -10,7 +10,7 @@ from typing import Iterable
 
 import huggingface_hub
 import semantic_version as semver
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 from huggingface_hub import CommitOperationAdd
 
 from gradio.themes.utils import (
@@ -21,8 +21,6 @@ from gradio.themes.utils import (
     sizes,
 )
 from gradio.themes.utils.readme_content import README_CONTENT
-
-set_documentation_group("themes")
 
 
 class ThemeClass:

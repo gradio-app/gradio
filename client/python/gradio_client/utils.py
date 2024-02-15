@@ -633,7 +633,9 @@ def download_file(
     temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
     temp_dir.mkdir(exist_ok=True, parents=True)
 
-    with httpx.stream("GET", url_path, headers=headers) as response:
+    with httpx.stream(
+        "GET", url_path, headers=headers, follow_redirects=True
+    ) as response:
         response.raise_for_status()
         with open(temp_dir / Path(url_path).name, "wb") as f:
             for chunk in response.iter_bytes(chunk_size=128 * sha1.block_size):
@@ -666,7 +668,9 @@ def download_tmp_copy_of_file(
     directory.mkdir(exist_ok=True, parents=True)
     file_path = directory / Path(url_path).name
 
-    with httpx.stream("GET", url_path, headers=headers) as response:
+    with httpx.stream(
+        "GET", url_path, headers=headers, follow_redirects=True
+    ) as response:
         response.raise_for_status()
         with open(file_path, "wb") as f:
             for chunk in response.iter_raw():
@@ -891,7 +895,8 @@ def get_type(schema: dict):
         raise APIInfoParseError(f"Cannot parse type for {schema}")
 
 
-FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)"
+OLD_FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)"
+FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool)"
 
 
 def json_schema_to_python_type(schema: Any) -> str:
@@ -991,7 +996,7 @@ def traverse(json_obj: Any, func: Callable, is_root: Callable) -> Any:
 
 def value_is_file(api_info: dict) -> bool:
     info = _json_schema_to_python_type(api_info, api_info.get("$defs"))
-    return FILE_DATA in info
+    return FILE_DATA in info or OLD_FILE_DATA in info
 
 
 def is_filepath(s):
@@ -1004,6 +1009,12 @@ def is_url(s):
 
 def is_file_obj(d):
     return isinstance(d, dict) and "path" in d
+
+
+def is_file_obj_with_url(d):
+    return (
+        isinstance(d, dict) and "path" in d and "url" in d and isinstance(d["url"], str)
+    )
 
 
 SKIP_COMPONENTS = {

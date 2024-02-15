@@ -7,7 +7,7 @@
 	import Webcam from "./Webcam.svelte";
 
 	import { Upload } from "@gradio/upload";
-	import { type FileData, normalise_file } from "@gradio/client";
+	import type { FileData } from "@gradio/client";
 	import ClearImage from "./ClearImage.svelte";
 	import { SelectSource } from "@gradio/atoms";
 	import Image from "./Image.svelte";
@@ -31,7 +31,7 @@
 	export let active_source: source_type = null;
 
 	function handle_upload({ detail }: CustomEvent<FileData>): void {
-		value = normalise_file(detail, root, null);
+		value = detail;
 		dispatch("upload");
 	}
 
@@ -55,8 +55,6 @@
 
 	$: active_streaming = streaming && active_source === "webcam";
 	$: if (uploading && !active_streaming) value = null;
-
-	$: value && !value.url && (value = normalise_file(value, root, null));
 
 	const dispatch = createEventDispatcher<{
 		change?: never;

@@ -8,20 +8,15 @@ from pathlib import Path
 from typing import Any, Iterable, List, Literal, Optional, TypedDict, Union, cast
 
 import numpy as np
-from gradio_client.documentation import document, set_documentation_group
-from PIL import Image as _Image  # using _ to minimize namespace pollution
+import PIL.Image
+from gradio_client.documentation import document
 
-import gradio.image_utils as image_utils
-from gradio import utils
+from gradio import image_utils, utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
 
-set_documentation_group("component")
-_Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
-
-
-ImageType = Union[np.ndarray, _Image.Image, str]
+ImageType = Union[np.ndarray, PIL.Image.Image, str]
 
 
 class EditorValue(TypedDict):
@@ -152,7 +147,7 @@ class ImageEditor(Component):
             show_label: if True, will display label.
             show_download_button: If True, will display button to download image.
             container: If True, will place the component in a container - providing some extra padding around the border.
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
+            scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to upload and edit an image; if False, can only be used to display images. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
@@ -218,11 +213,11 @@ class ImageEditor(Component):
     def convert_and_format_image(
         self,
         file: FileData | None,
-    ) -> np.ndarray | _Image.Image | str | None:
+    ) -> np.ndarray | PIL.Image.Image | str | None:
         if file is None:
             return None
 
-        im = _Image.open(file.path)
+        im = PIL.Image.open(file.path)
 
         if file.orig_name:
             p = Path(file.orig_name)
@@ -282,7 +277,7 @@ class ImageEditor(Component):
             return None
         elif isinstance(value, dict):
             pass
-        elif isinstance(value, (np.ndarray, _Image.Image, str)):
+        elif isinstance(value, (np.ndarray, PIL.Image.Image, str)):
             value = {"background": value, "layers": [], "composite": value}
         else:
             raise ValueError(
@@ -293,7 +288,7 @@ class ImageEditor(Component):
             [
                 FileData(
                     path=image_utils.save_image(
-                        cast(Union[np.ndarray, _Image.Image, str], layer),
+                        cast(Union[np.ndarray, PIL.Image.Image, str], layer),
                         self.GRADIO_CACHE,
                     )
                 )
@@ -312,7 +307,7 @@ class ImageEditor(Component):
             layers=layers,
             composite=FileData(
                 path=image_utils.save_image(
-                    cast(Union[np.ndarray, _Image.Image, str], value["composite"]),
+                    cast(Union[np.ndarray, PIL.Image.Image, str], value["composite"]),
                     self.GRADIO_CACHE,
                 )
             )

@@ -1,5 +1,17 @@
 # @gradio/utils
 
+## 0.3.0
+
+### Fixes
+
+- [#7404](https://github.com/gradio-app/gradio/pull/7404) [`065c5b1`](https://github.com/gradio-app/gradio/commit/065c5b163c4badb9d9cbd06d627fb4ba086003e7) - Add `.key_up` event listener to `gr.Dropdown()`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+## 0.2.2
+
+### Features
+
+- [#7274](https://github.com/gradio-app/gradio/pull/7274) [`fdd1521`](https://github.com/gradio-app/gradio/commit/fdd15213c24b9cbc58bbc1b6beb4af7c18f48557) - chore: Change time format (thanks @jjshoots for the independent contribution).  Thanks [@arian81](https://github.com/arian81)!
+
 ## 0.2.1
 
 ### Fixes

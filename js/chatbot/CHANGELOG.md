@@ -1,5 +1,41 @@
 # @gradio/chatbot
 
+## 0.7.1
+
+### Patch Changes
+
+- Updated dependencies [[`17fb116`](https://github.com/gradio-app/gradio/commit/17fb116492f951ab66e3a39b5fdfb598f5446b6f), [`065c5b1`](https://github.com/gradio-app/gradio/commit/065c5b163c4badb9d9cbd06d627fb4ba086003e7), [`32b317f`](https://github.com/gradio-app/gradio/commit/32b317f24e3d43f26684bb9f3964f31efd0ea556)]:
+  - @gradio/markdown@0.6.3
+  - @gradio/utils@0.3.0
+  - @gradio/client@0.12.1
+  - @gradio/atoms@0.5.2
+  - @gradio/audio@0.9.1
+  - @gradio/image@0.9.1
+  - @gradio/statustracker@0.4.6
+  - @gradio/upload@0.7.3
+  - @gradio/video@0.6.1
+
+## 0.7.0
+
+### Features
+
+- [#7183](https://github.com/gradio-app/gradio/pull/7183) [`49d9c48`](https://github.com/gradio-app/gradio/commit/49d9c48537aa706bf72628e3640389470138bdc6) - [WIP] Refactor file normalization to be in the backend and remove it from the frontend of each component. Thanks [@abidlabs](https://github.com/abidlabs)!
+
+## 0.6.4
+
+### Patch Changes
+
+- Updated dependencies [[`e5344ba`](https://github.com/gradio-app/gradio/commit/e5344ba0cd63d21dbb525330bbc07ca2eca57832), [`572e360`](https://github.com/gradio-app/gradio/commit/572e360fff4a03c335b86e1a7517a44cb6af2bcd), [`ded5256`](https://github.com/gradio-app/gradio/commit/ded5256c4a39a84155b9c3d7f4e8e7060d798186), [`733ca26`](https://github.com/gradio-app/gradio/commit/733ca266bb1ba9049ed7309b8f0614199682e173), [`68a54a7`](https://github.com/gradio-app/gradio/commit/68a54a7a310d8d7072fdae930bf1cfdf12c45a7f), [`2e6672c`](https://github.com/gradio-app/gradio/commit/2e6672c815e39fd6af78353e66661100b9102cd4), [`fdd1521`](https://github.com/gradio-app/gradio/commit/fdd15213c24b9cbc58bbc1b6beb4af7c18f48557), [`200e251`](https://github.com/gradio-app/gradio/commit/200e2518e4d449aa82819a8d119e912bd1d95c15), [`c3e61e4`](https://github.com/gradio-app/gradio/commit/c3e61e4f70696a71aede67b65d28447eb67daf16), [`e3217b4`](https://github.com/gradio-app/gradio/commit/e3217b41862925a6a05f44070ac2bdabbeee6769), [`8dd6f4b`](https://github.com/gradio-app/gradio/commit/8dd6f4bc1901792f05cd59e86df7b1dbab692739)]:
+  - @gradio/markdown@0.6.2
+  - @gradio/upload@0.7.1
+  - @gradio/audio@0.8.1
+  - @gradio/image@0.8.0
+  - @gradio/client@0.11.0
+  - @gradio/utils@0.2.2
+  - @gradio/video@0.5.1
+  - @gradio/atoms@0.5.1
+  - @gradio/statustracker@0.4.5
+
 ## 0.6.3
 
 ### Patch Changes

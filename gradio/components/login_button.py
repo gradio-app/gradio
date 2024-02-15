@@ -5,13 +5,11 @@ import json
 import warnings
 from typing import Literal
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components import Button
 from gradio.context import Context
 from gradio.routes import Request
-
-set_documentation_group("component")
 
 
 @document()
@@ -90,7 +88,7 @@ class LoginButton(Button):
             request.request, "session", None
         )
         if session is None or "oauth_info" not in session:
-            return LoginButton(value=self.value, interactive=True)
+            return LoginButton(value=self.value, interactive=True)  # type: ignore
         else:
             username = session["oauth_info"]["userinfo"]["preferred_username"]
             logout_text = self.logout_value.format(username)

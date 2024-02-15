@@ -1,12 +1,10 @@
 import json
 
 import gradio._simple_templates
-import gradio.components as components
 import gradio.image_utils
-import gradio.layouts as layouts
 import gradio.processing_utils
 import gradio.templates
-import gradio.themes as themes
+from gradio import components, layouts, themes
 from gradio.blocks import Blocks
 from gradio.chat_interface import ChatInterface
 from gradio.cli import deploy
@@ -61,7 +59,7 @@ from gradio.components import (
 from gradio.components.audio import WaveformOptions
 from gradio.components.image_editor import Brush, Eraser
 from gradio.data_classes import FileData
-from gradio.events import EventData, LikeData, SelectData, on
+from gradio.events import EventData, KeyUpData, LikeData, SelectData, on
 from gradio.exceptions import Error
 from gradio.external import load
 from gradio.flagging import (

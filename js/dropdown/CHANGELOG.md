@@ -1,5 +1,18 @@
 # @gradio/dropdown
 
+## 0.6.0
+
+### Fixes
+
+- [#7404](https://github.com/gradio-app/gradio/pull/7404) [`065c5b1`](https://github.com/gradio-app/gradio/commit/065c5b163c4badb9d9cbd06d627fb4ba086003e7) - Add `.key_up` event listener to `gr.Dropdown()`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7401](https://github.com/gradio-app/gradio/pull/7401) [`dff4109`](https://github.com/gradio-app/gradio/commit/dff410955e41145848376784c03fe28ba1c4fd85) - Retain dropdown value if choices have been changed.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+## 0.5.2
+
+### Fixes
+
+- [#7192](https://github.com/gradio-app/gradio/pull/7192) [`8dd6f4b`](https://github.com/gradio-app/gradio/commit/8dd6f4bc1901792f05cd59e86df7b1dbab692739) - Handle the case where examples is `null` for all components.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.5.1
 
 ### Fixes

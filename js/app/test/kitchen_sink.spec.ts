@@ -1,7 +1,13 @@
 import { test, expect } from "@gradio/tootils";
-import { BASE64_IMAGE } from "./media_data";
+import { chromium } from "playwright";
 
 test("test inputs", async ({ page }) => {
+	const browser = await chromium.launch();
+	const context = await browser.newContext({
+		permissions: ["camera"]
+	});
+	context.grantPermissions(["camera"]);
+
 	const textbox = await page.getByLabel("Textbox").nth(0);
 	await expect(textbox).toHaveValue("Lorem ipsum");
 
@@ -23,7 +29,7 @@ test("test inputs", async ({ page }) => {
 
 	const uploaded_image = await page.locator("img").nth(0);
 	const image_data = await uploaded_image.getAttribute("src");
-	await expect(image_data).toContain("cheetah1.jpg");
+	await expect(image_data).toBeTruthy();
 
 	// Image Input w/ Cropper
 	const image_cropper = await page.locator("input").nth(10);
@@ -31,7 +37,12 @@ test("test inputs", async ({ page }) => {
 
 	const uploaded_image_cropper = await page.locator("img").nth(0);
 	const image_data_cropper = await uploaded_image_cropper.getAttribute("src");
-	await expect(image_data_cropper).toContain("cheetah1.jpg");
+	await expect(image_data_cropper).toBeTruthy();
+
+	// Image Input w/ Webcam
+	await page.getByRole("button", { name: "Click to Access Webcam" }).click();
+	await page.getByRole("button", { name: "select input source" }).click();
+	expect(await page.getByText("fake_device_0")).toBeTruthy();
 });
 
 test("test outputs", async ({ page }) => {
@@ -86,15 +97,13 @@ test("test outputs", async ({ page }) => {
         }
         }`);
 
-	const image = await page.locator("img").nth(0);
+	const image = page.locator("img").nth(0);
 	const image_data = await image.getAttribute("src");
-	await expect(image_data).toContain(
-		"gradio/d0a3c81692e072d119e2c665defbd47ce4d3b89a/cheetah1.jpg"
-	);
+	expect(image_data).toBeTruthy();
 
-	const audio = await page.getByTestId("unlabelled-audio");
+	const audio = page.getByTestId("unlabelled-audio");
 	expect(audio).toBeTruthy();
 
-	const controls = await page.getByTestId("waveform-controls");
-	expect(controls).toBeVisible();
+	const controls = page.getByTestId("waveform-controls");
+	await expect(controls).toBeVisible();
 });
