@@ -442,4 +442,25 @@ describe("Dropdown", () => {
 		await item.blur();
 		await expect(item.value).toBe("apple_new_choice");
 	});
+
+	test("ensure dropdown can have an empty value", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			show_label: true,
+			loading_status,
+			allow_custom_value: false,
+			label: "Dropdown",
+			choices: [
+				["apple_choice", "apple_internal_value"],
+				["zebra_choice", "zebra_internal_value"]
+			],
+			filterable: true,
+			interactive: true
+		});
+
+		const item: HTMLInputElement = getByLabelText(
+			"Dropdown"
+		) as HTMLInputElement;
+
+		await expect(item.value).toBe("");
+	});
 });
