@@ -1,7 +1,6 @@
 ---
 "@gradio/audio": patch
 "@gradio/icons": patch
-"@gradio/storybook": patch
 "gradio": patch
 ---
 
