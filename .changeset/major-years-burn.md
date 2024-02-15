@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Ensure `gr.Dropdown` can have empty value
+fix:Ensure `gr.Dropdown` can have an empty initial value
