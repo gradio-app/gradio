@@ -1,4 +1,4 @@
-""" Functions related to analytics and telemetry. """
+""" Functions related to analytics and telemetry."""
 from __future__ import annotations
 
 import asyncio
