@@ -169,11 +169,11 @@ The [technical details](#technical-details) below explain how things are setup, 
 <details>
 <summary>Please show me a gigantic diagram of the CI</summary>
 
-ok
+ok.
 
 ![]("gh-actions-flow.svg")
 
-</summary>
+</details>
 
 ### Technical details
 
