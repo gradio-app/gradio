@@ -3,7 +3,7 @@
 Gradio uses [playwright](https://playwright.dev/docs/intro) to interact with gradio applications programmatically to ensure that both the frontend and backend function as expected.
 Playwright is very powerful but it can be a little intimidating if you haven't used it before.
 No one on the team is a testing expert so don't be afraid to ask if you're unsure how to do something.
-Likewise, if you learn something new about playwright, please share with the team! 
+Likewise, if you learn something new about playwright, please share with the team!
 
 ### Tip 1 - Retrying Assertions
 
@@ -17,6 +17,7 @@ These assertions will retry until they pass or a timeout is reached, by default 
 So even if playwright checks a DOM element before the server is done, it gives the server a chance to finish by retrying.
 
 An example of a retrying assertion is `toBeChecked`. Note that you can manually increase the timeout as well:
+
 ```js
 // 5 seconds
 await expect(page.getByTestId('checkbox')).toBeChecked({timeout?: 5000});
@@ -25,7 +26,7 @@ await expect(page.getByTestId('checkbox')).toBeChecked({timeout?: 5000});
 An example of a non-retrying assertion is `isChecked`:
 
 ```js
-await expect(page.getByTestId('checkbox').isChecked())
+await expect(page.getByTestId("checkbox").isChecked());
 ```
 
 Sometimes there may not be a retrying assertion for what you need to check.
@@ -33,18 +34,20 @@ In that case, you can retry any custom async function until it passes using `toP
 
 ```js
 await expect(async () => {
-  const response = await page.request.get('https://api.example.com');
-  expect(response.status()).toBe(200);
+	const response = await page.request.get("https://api.example.com");
+	expect(response.status()).toBe(200);
 }).toPass();
 ```
 
 ### Tip 2 - Don't rely on internal network calls to check if something is done
+
 Internal network calls are not visible to the user, so they can be refactored whenever.
 If we have tests that rely on a request to a given route finishing before moving on, for example, they will fail if we ever change the route name or some other implementation detail.
 
 It's much better to use a retrying assertion that targets a visible DOM element with a larger timeout to check if some work is done.
 
 Avoid this:
+
 ```js
 const uploadButton = page...
 await uploadButton.click();
@@ -53,6 +56,7 @@ await expect(page.getByTestId("file-component")).toHaveValue(...)
 ```
 
 Do This:
+
 ```js
 const uploadButton = page...
 await uploadButton.click();
@@ -60,6 +64,7 @@ await expect(page.getByTestId("file-component")).toHaveValue(..., {timeout?: 500
 ```
 
 ### Tip 3 - Use the playwright trace viewer
+
 Whenever a test fails locally, playwright will write out some details about the test to the `test-results` directory at the top level of the repo.
 
 You can view the trace using the following command:
