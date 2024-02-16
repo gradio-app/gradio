@@ -2,24 +2,25 @@ import adapter from "@sveltejs/adapter-static";
 import { vitePreprocess } from "@sveltejs/kit/vite";
 import { redirects } from "./src/routes/redirects.js";
 
-let version; 
+let version;
 
 async function get_version() {
 	try {
-	  const _version = await import("./src/lib/json/version.json", {
-		assert: { type: "json" },
-	  });
-	  return _version;
+		const _version = await import("./src/lib/json/version.json", {
+			assert: { type: "json" }
+		});
+		return _version;
 	} catch (error) {
-	  console.error("Using fallback version 4.0.0 as version.json was not found. Run `generate_jsons/generate.py` to get the latest version.");
-	  return { version: "4.0.0" };
+		console.error(
+			"Using fallback version 4.0.0 as version.json was not found. Run `generate_jsons/generate.py` to get the latest version."
+		);
+		return { version: "4.0.0" };
 	}
-  }
+}
 
 get_version().then((_version) => {
 	version = _version.version;
 });
-
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
