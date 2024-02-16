@@ -11,7 +11,7 @@ async function get_version() {
 	  });
 	  return _version;
 	} catch (error) {
-	  console.error("version.json not found");
+	  console.error("Using fallback version 4.0.0 as version.json was not found. Run `generate_jsons/generate.py` to get the latest version.");
 	  return { version: "4.0.0" };
 	}
   }
