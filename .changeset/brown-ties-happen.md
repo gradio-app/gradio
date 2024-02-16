@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Block `/file=` filepaths that could expose credentials on Windows
+fix:Block `/file=` filepaths that could expose credentials on Windows
