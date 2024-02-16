@@ -1,5 +1,19 @@
 # @gradio/chatbot
 
+## 0.7.2
+
+### Patch Changes
+
+- Updated dependencies [[`f191786`](https://github.com/gradio-app/gradio/commit/f1917867916647d383b8d7ce15e0c17f2abbdec1)]:
+  - @gradio/audio@0.9.2
+  - @gradio/icons@0.3.3
+  - @gradio/atoms@0.5.3
+  - @gradio/image@0.9.2
+  - @gradio/statustracker@0.4.7
+  - @gradio/upload@0.7.4
+  - @gradio/video@0.6.2
+  - @gradio/markdown@0.6.4
+
 ## 0.7.1
 
 ### Patch Changes
