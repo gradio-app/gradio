@@ -480,7 +480,7 @@ class TestRoutes:
         assert file_response.headers["access-control-allow-origin"] == "127.0.0.1"
         io.close()
 
-    def test_delete_cache(self, connect, gradio_temp_dir):
+    def test_delete_cache(self, connect, gradio_temp_dir, capsys):
         def check_num_files_exist(blocks: Blocks):
             num_files = 0
             for temp_file_set in blocks.temp_file_sets:
@@ -503,6 +503,25 @@ class TestRoutes:
             assert check_num_files_exist(demo_delete) == 2
         assert check_num_files_exist(demo_delete) == 0
         assert check_num_files_exist(demo) == 1
+
+        @asynccontextmanager
+        async def mylifespan(app: FastAPI):
+            print("IN CUSTOM LIFESPAN")
+            yield
+            print("AFTER CUSTOM LIFESPAN")
+
+        demo_custom_lifespan = gr.Interface(
+            lambda s: s, gr.Textbox(), gr.File(), delete_cache=True
+        )
+
+        with connect(
+            demo_custom_lifespan, app_kwargs={"lifespan": mylifespan}
+        ) as client:
+            client.predict("test/test_files/alphabet.txt")
+        assert check_num_files_exist(demo_custom_lifespan) == 0
+        captured = capsys.readouterr()
+        assert "IN CUSTOM LIFESPAN" in captured.out
+        assert "AFTER CUSTOM LIFESPAN" in captured.out
 
 
 class TestApp:

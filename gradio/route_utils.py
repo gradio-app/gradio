@@ -10,8 +10,18 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass as python_dataclass
 from pathlib import Path
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
-from typing import TYPE_CHECKING, AsyncGenerator, BinaryIO, List, Optional, Tuple, Union
 from urllib.parse import urlparse
+from typing import (
+    TYPE_CHECKING,
+    AsyncContextManager,
+    AsyncGenerator,
+    BinaryIO,
+    Callable,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import fastapi
 import httpx
@@ -652,8 +662,24 @@ def delete_files_created_by_app(blocks: Blocks) -> None:
 
 
 @asynccontextmanager
-async def lifespan_handler(app: App):
+async def _lifespan_handler(app: App):
+    """A context manager that triggers the startup and shutdown events of the app."""
     app.get_blocks().startup_events()
     app.startup_events_triggered = True
     yield
     delete_files_created_by_app(app.get_blocks())
+
+
+def create_lifespan_handler(user_lifespan: Callable[[App], AsyncContextManager] | None):
+    """Return a context manager that applies _lifespan_handler and user_lifespan if it exists."""
+
+    @asynccontextmanager
+    async def _handler(app: App):
+        async with _lifespan_handler(app):
+            if user_lifespan is not None:
+                async with user_lifespan(app):
+                    yield
+            else:
+                yield
+
+    return _handler
