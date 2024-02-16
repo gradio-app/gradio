@@ -10,6 +10,7 @@ import { wasm_proxied_EventSource_factory } from "./sse";
 import { wasm_proxied_mount_css, mount_prebuilt_css } from "./css";
 import type { mount_css } from "../css";
 import Index from "../Index.svelte";
+import Playground from "./Playground.svelte";
 import ErrorDisplay from "./ErrorDisplay.svelte";
 import type { ThemeMode } from "../types";
 import { bootstrap_custom_element } from "./custom-element";
@@ -65,6 +66,7 @@ export interface Options {
 	autoScroll: boolean;
 	controlPageTitle: boolean;
 	appMode: boolean;
+	playground: boolean | undefined;
 }
 export function create(options: Options): GradioAppController {
 	// TODO: Runtime type validation for options.
@@ -116,11 +118,35 @@ export function create(options: Options): GradioAppController {
 	};
 
 	let app: SvelteComponent;
+	let app_props: any;
 	function showError(error: Error): void {
 		if (app != null) {
 			app.$destroy();
 		}
-
+		if (options.playground) {
+			app = new Playground({
+				target: options.target,
+				props: {
+					...app_props, 
+					code: options.code, 
+					error_display: {
+							is_embed: !options.isEmbed,
+							error
+						},
+					loaded: true
+				}
+			});
+			app.$on("code", (code) => {
+				options.code = code.detail.code;
+				worker_proxy
+				.runPythonCode(options.code)
+				.then(launchNewApp(true))
+				.catch((e) => {
+					showError(e);
+					throw e;
+				});
+			});
+		} else {
 		app = new ErrorDisplay({
 			target: options.target,
 			props: {
@@ -129,42 +155,62 @@ export function create(options: Options): GradioAppController {
 			}
 		});
 	}
-	function launchNewApp(): Promise<void> {
+	}
+	function launchNewApp(loaded: Boolean = false): Promise<void> {
 		if (app != null) {
 			app.$destroy();
 		}
 
+		app_props = {
+			// embed source
+			space: null,
+			src: null,
+			host: null,
+			// embed info
+			info: options.info,
+			container: options.container,
+			is_embed: options.isEmbed,
+			initial_height: options.initialHeight ?? "300px", // default: 300px
+			eager: options.eager,
+			// gradio meta info
+			version: GRADIO_VERSION,
+			theme_mode: options.themeMode,
+			// misc global behaviour
+			autoscroll: options.autoScroll,
+			control_page_title: options.controlPageTitle,
+			// for gradio docs
+			// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
+			app_mode: options.appMode,
+			// For Wasm mode
+			worker_proxy,
+			client,
+			upload_files,
+			mount_css: overridden_mount_css,
+			fetch_implementation: overridden_fetch,
+			EventSource_factory
+		}
+
+		if (options.playground) {
+			app = new Playground({
+				target: options.target,
+				props: {...app_props, code: options.code, error_display: null, loaded: loaded}
+			});
+			app.$on("code", (code) => {
+				options.code = code.detail.code;
+				worker_proxy
+				.runPythonCode(options.code)
+				.then(launchNewApp(true))
+				.catch((e) => {
+					showError(e);
+					throw e;
+				});
+			});
+		} else {
 		app = new Index({
 			target: options.target,
-			props: {
-				// embed source
-				space: null,
-				src: null,
-				host: null,
-				// embed info
-				info: options.info,
-				container: options.container,
-				is_embed: options.isEmbed,
-				initial_height: options.initialHeight ?? "300px", // default: 300px
-				eager: options.eager,
-				// gradio meta info
-				version: GRADIO_VERSION,
-				theme_mode: options.themeMode,
-				// misc global behaviour
-				autoscroll: options.autoScroll,
-				control_page_title: options.controlPageTitle,
-				// for gradio docs
-				// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
-				app_mode: options.appMode,
-				// For Wasm mode
-				worker_proxy,
-				client,
-				upload_files,
-				mount_css: overridden_mount_css,
-				fetch_implementation: overridden_fetch,
-				EventSource_factory
-			}
+			props: app_props
 		});
+	}
 
 		return new Promise((resolve) => {
 			app.$on("loaded", () => {

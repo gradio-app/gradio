@@ -223,6 +223,7 @@ async function initializeApp(
 	updateProgress("Installing packages");
 	await micropip.install.callKwargs(options.requirements, { keep_going: true });
 	console.debug("Packages are installed.");
+	updateProgress("App is now loaded");
 }
 
 const ctx = self as DedicatedWorkerGlobalScope | SharedWorkerGlobalScope;

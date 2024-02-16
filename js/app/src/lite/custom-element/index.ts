@@ -30,7 +30,6 @@ function parseRequirementsTxt(content: string): string[] {
 
 export function bootstrap_custom_element(): void {
 	const LITE_CUSTOM_ELEMENT_NAME = "gradio-lite";
-	const PLAYGROUND_CUSTOM_ELEMENT_NAME = "gradio-playground";
 
 	if (customElements.get(LITE_CUSTOM_ELEMENT_NAME)) {
 		return;
@@ -45,7 +44,6 @@ export function bootstrap_custom_element(): void {
 			const gradioLiteAppOptions = this.parseGradioLiteAppOptions();
 
 			this.innerHTML = "";
-			this.code = gradioLiteAppOptions.code;
 			
 
 			create({
@@ -54,6 +52,7 @@ export function bootstrap_custom_element(): void {
 				requirements: gradioLiteAppOptions.requirements,
 				files: gradioLiteAppOptions.files,
 				entrypoint: gradioLiteAppOptions.entrypoint,
+				playground: this.hasAttribute("playground"),
 				...gradioComponentOptions
 			});
 		}
@@ -161,26 +160,26 @@ export function bootstrap_custom_element(): void {
 			const firstRequirementsElement = requirementsElements[0];
 			const requirementsTxt = firstRequirementsElement?.textContent ?? "";
 			options.requirements = parseRequirementsTxt(requirementsTxt);
-
 			return options;
 		}
 	}
 
-	if (customElements.get(PLAYGROUND_CUSTOM_ELEMENT_NAME)) {
-		return;
-	}
+	// if (customElements.get(PLAYGROUND_CUSTOM_ELEMENT_NAME)) {
+	// 	return;
+	// }
 
-	class GradioPlaygroundElement extends HTMLElement {
-		code: any;
+	// class GradioPlaygroundElement extends GradioLiteAppElement {
+	// 	code: any;
 
-		constructor() {
-			super();
-			const code = this.code
-
-			console.log("code", code)
-		}
-	}
+	// 	constructor() {
+	// 		super();
+	// 		const code = this.code
+	// 		const codeElement = document.createElement("p");
+	// 		codeElement.textContent = code;
+	// 		this.insertBefore(codeElement, this.firstChild); 
+	// 	}
+	// }
 	
 	customElements.define(LITE_CUSTOM_ELEMENT_NAME, GradioLiteAppElement);
-	customElements.define(PLAYGROUND_CUSTOM_ELEMENT_NAME, GradioPlaygroundElement);
+	// customElements.define(PLAYGROUND_CUSTOM_ELEMENT_NAME, GradioPlaygroundElement);
 }

@@ -19,31 +19,14 @@
 		<link rel="stylesheet" href="./dist/lite.css" />
 	</head>
 
-	<body style="margin: 0; padding: 0; height: 100%">
-		<div id="gradio-app"></div>
+	<body style="margin: auto; padding: 0; height: 100%; width: 100%; ">
+<gradio-lite playground>import gradio as gr
+gr.Interface(
+	fn=lambda x: x,
+	inputs=gr.Textbox(),
+	outputs=gr.Textbox()
+).launch()
+</gradio-lite>
 
-		<script type="module">
-			// type="module" is necessary to use `createGradioApp()`, which is loaded with <script type="module" /> tag above.
-			createGradioApp({
-				target: document.getElementById("gradio-app"),
-				code: `
-import gradio as gr
-
-def greet(name):
-		return "Hello, " + name + "!"
-
-gr.Interface(fn=greet, inputs="text", outputs="text").launch()
-`,
-				info: true,
-				container: true,
-				isEmbed: false,
-				initialHeight: "300px",
-				eager: false,
-				themeMode: null,
-				autoScroll: false,
-				controlPageTitle: false,
-				appMode: true
-			});
-		</script>
 	</body>
 </html>
