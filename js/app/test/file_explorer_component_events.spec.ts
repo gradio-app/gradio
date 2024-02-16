@@ -44,7 +44,6 @@ test("File Explorer is interactive and re-runs the server_fn when root is update
 		.uncheck();
 
 	await expect(page.locator("#total-changes input")).toHaveValue("3");
-
 });
 
 test("File Explorer correctly displays both directories and files. Directories included in value.", async ({
