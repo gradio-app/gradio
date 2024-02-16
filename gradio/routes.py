@@ -63,6 +63,7 @@ from gradio.route_utils import (  # noqa: F401
     GradioUploadFile,
     MultiPartException,
     Request,
+    compare_passwords_securely,
     move_uploaded_files_to_cache,
 )
 from gradio.state_holder import StateHolder
@@ -271,7 +272,7 @@ class App(FastAPI):
             if (
                 not callable(app.auth)
                 and username in app.auth
-                and app.auth[username] == password
+                and compare_passwords_securely(password, app.auth[username])  # type: ignore
             ) or (callable(app.auth) and app.auth.__call__(username, password)):
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
@@ -427,18 +428,28 @@ class App(FastAPI):
                 return RedirectResponse(
                     url=path_or_url, status_code=status.HTTP_302_FOUND
                 )
+
+            invalid_prefixes = ["//", "file://", "ftp://", "sftp://", "smb://"]
+            if any(path_or_url.startswith(prefix) for prefix in invalid_prefixes):
+                raise HTTPException(403, f"File not allowed: {path_or_url}.")
+
             abs_path = utils.abspath(path_or_url)
 
             in_blocklist = any(
                 utils.is_in_or_equal(abs_path, blocked_path)
                 for blocked_path in blocks.blocked_paths
             )
+
             is_dir = abs_path.is_dir()
 
             if in_blocklist or is_dir:
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
-            created_by_app = str(abs_path) in set().union(*blocks.temp_file_sets)
+            created_by_app = False
+            for temp_file_set in blocks.temp_file_sets:
+                if abs_path in temp_file_set:
+                    created_by_app = True
+                    break
             in_allowlist = any(
                 utils.is_in_or_equal(abs_path, allowed_path)
                 for allowed_path in blocks.allowed_paths

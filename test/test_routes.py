@@ -25,7 +25,11 @@ from gradio import (
     routes,
     wasm_utils,
 )
-from gradio.route_utils import FnIndexInferError, get_root_url
+from gradio.route_utils import (
+    FnIndexInferError,
+    compare_passwords_securely,
+    get_root_url,
+)
 
 
 @pytest.fixture()
@@ -394,9 +398,15 @@ class TestRoutes:
     def test_cannot_access_files_in_working_directory(self, test_client):
         response = test_client.get(r"/file=not-here.js")
         assert response.status_code == 403
+        response = test_client.get(r"/file=subdir/.env")
+        assert response.status_code == 403
 
     def test_cannot_access_directories_in_working_directory(self, test_client):
         response = test_client.get(r"/file=gradio")
+        assert response.status_code == 403
+
+    def test_block_protocols_that_expose_windows_credentials(self, test_client):
+        response = test_client.get(r"/file=//11.0.225.200/share")
         assert response.status_code == 403
 
     def test_do_not_expose_existence_of_files_outside_working_directory(
@@ -716,25 +726,6 @@ def test_orjson_serialization():
     demo.close()
 
 
-def test_file_route_does_not_allow_dot_paths(tmp_path):
-    dot_file = tmp_path / ".env"
-    dot_file.write_text("secret=1234")
-    subdir = tmp_path / "subdir"
-    subdir.mkdir()
-    sub_dot_file = subdir / ".env"
-    sub_dot_file.write_text("secret=1234")
-    secret_sub_dir = tmp_path / ".versioncontrol"
-    secret_sub_dir.mkdir()
-    secret_sub_dir_regular_file = secret_sub_dir / "settings"
-    secret_sub_dir_regular_file.write_text("token = 8")
-    with closing(gr.Interface(lambda s: s.name, gr.File(), gr.File())) as io:
-        app, _, _ = io.launch(prevent_thread_lock=True)
-        client = TestClient(app)
-        assert client.get("/file=.env").status_code == 403
-        assert client.get("/file=subdir/.env").status_code == 403
-        assert client.get("/file=.versioncontrol/settings").status_code == 403
-
-
 def test_api_name_set_for_all_events(connect):
     with gr.Blocks() as demo:
         i = Textbox()
@@ -921,3 +912,11 @@ def test_component_server_endpoints(connect):
 def test_get_root_url(request_url, route_path, root_path, expected_root_url):
     request = Request({"path": request_url, "type": "http", "headers": {}})
     assert get_root_url(request, route_path, root_path) == expected_root_url
+
+
+def test_compare_passwords_securely():
+    password1 = "password"
+    password2 = "pässword"
+    assert compare_passwords_securely(password1, password1)
+    assert not compare_passwords_securely(password1, password2)
+    assert compare_passwords_securely(password2, password2)
