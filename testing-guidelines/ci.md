@@ -23,8 +23,8 @@ Checks only run when needed but are required to pass when they run.
 
 We check to see which source files have changed and run the necessary checks. A full breakdown of how we determine this for each kind of check can be found in the [`changes` action](https://github.com/gradio-app/gradio/blob/main/.github/actions/changes/action.yml#L65-L108) but the high-level breakdown is as follows:
 
-- __python checks__ - whenever python source, dependencies or config change.
-- __javascript checks__ - whenever javascript source, dependencies or config change.
+- __Python checks__ - whenever Python source, dependencies or config change.
+- __Javascript checks__ - whenever JavaScript source, dependencies or config change.
 - __functional and visual checks__ - whenever any sopurce of config changes (most of the time).
 - __repo hygiene checks__ - always.
 
@@ -58,7 +58,11 @@ This is a simple breakdown of our current quality checks:
 | n/a        | Notebooks match | linux            | `test-hygiene.yml`       | Ensures that notebooks and demos are in sync |
 
 
-One important thing to note is that we split 'flaky' and 'non-flaky' Python unit/integration tests out. These tests are flaky because of network requests that they make. They are typically fine, but anything that can cause a red check in PRs makes us less trustworthy of our CI and confidence is the goal! The Windows tests are also very slow and only test a few edge cases. The flaky and windows tests are not run in every PR, but are always run against the release PR to ensure everything is working as expected prior to a release. All other checks are run for every pull request, ensuring everything will work when we merge into `main`.
+One important thing to note is that we split 'flaky' and 'non-flaky' Python unit/integration tests out.
+These tests are flaky because of network requests that they make. They are typically fine, but anything that can cause a red check in PRs makes us less trustworthy of our CI and confidence is the goal!
+The Windows tests are also very slow and only test a few edge cases.
+The flaky and Windows tests are not run in every PR, but are always run against the release PR to ensure everything is working as expected prior to a release.
+All other checks are run for every pull request, ensuring everything will work when we merge into `main`.
 
 For more information about the tests and tools that we use and our approach to quality, check the [testing-strategy](https://github.com/gradio-app/gradio/blob/main/testing-guidelines/quality-strategy.md) document. For more information on how to run and write tests, see the [contributing guide](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md).
 
@@ -124,9 +128,9 @@ To manage versioning and publishing we use a combination of the [`changesets`](h
 
 #### pull request changesets
 
-Each pull request must include a 'changeset', this is a simple markdown file that states what _type_ of change it is, what version bump is required for each affected package, and a description of that change.
+Each pull request must include a changeset file. This is a simple markdown file that states what _type_ of change it is, what (if any) version bump is required for each affected package, and a description of that change.
 
-Change types are purely semantic and we only use them to organise the changelog, these 'types' are related to bump types but they are not the same. They can be one of the following:
+Change types are purely semantic and we only use them to organise the changelog. These "types" are related to bump types but they are not the same. They can be one of the following:
 
 - `fix` - we fixed a thing.
 - `feature` - we added a new capability.
@@ -329,7 +333,7 @@ Some of these are discrete problems with their own discrete solutions but a lot 
 
 #### Demystifying event triggers
 
-Workflows are a discreet set of jobs with a discrete set of steps. It might be reasonable to assume that a workflow is a workflow. Sadly this isn't true, the event that triggers the workflow dictates not only when that workflow will run (which makes sense) but also a bunch of other information about both its environment and even which version of that workflow file will run (this is a git repo after all). This latter feature, _also_ makes sense, but it isn't immediately apparent.
+Workflows are a discrete set of jobs with a discrete set of steps. It might be reasonable to assume that a workflow is a workflow. Sadly this isn't true, the event that triggers the workflow dictates not only when that workflow will run (which makes sense) but also a bunch of other information about both its environment and even which version of that workflow file will run (this is a git repo after all). This latter feature _also_ makes sense, but it isn't immediately apparent.
 
 - `pull_request` - This event runs correctly on contributor PRs and check out the correct branch by default (more on this later) but it doesn't not have access to secrets.
 - `pull_request_target` - Same as `pull_request` but it _does_ have access to secrets. However because this event runs in to context of the branch (and repo) the PR is made from, that PR has also has direct access to secrets making it insecure.
@@ -337,7 +341,7 @@ Workflows are a discreet set of jobs with a discrete set of steps. It might be r
 
 There are ways to run workflows indirectly:
 
-- `workflow_dispatch` - This event always runs in the context of main  You can programatically trigger this workflow event, allowing more control over where that workflow runs but you need to use the GitHub API to do this. Ttherefore the triggering workflow needs access to secrets, rendering it insecure for our purposes.
+- `workflow_dispatch` - This event always runs in the context of `main`. You can programatically trigger this workflow event, allowing more control over where that workflow runs but you need to use the GitHub API to do this. Therefore the triggering workflow needs access to secrets, rendering it insecure for our purposes.
 - `workflow_run` - This is essentially `workflow_dispatch` inverted. Instead of triggering it from elsewhere explicitly, the workflow _itself_ determines which workflow will trigger _it_. This means that you do not need access to secrets in order to start a `workflow_run` and since this event type runs in the context of main, it is secure.
 
 <details>
@@ -350,7 +354,7 @@ For example, you can check out any branch of any public repo in any workflow but
 - Which workflow file on which branch actually runs.
 - What information about the repo or triggering event does that workflow have access to.
 
-If a workflow "runs in the context of the default branch" then it will use the workflow that exists on trhe default branch, regardless of whether or not the event that originall triggered it was on another branch. If the workflow "runs in the context of the pull request branch" then it will pull the workflow file from the pull request branch.
+If a workflow "runs in the context of the default branch" then it will use the workflow that exists on the default branch, regardless of whether or not the event that originally triggered it was on another branch. If the workflow "runs in the context of the pull request branch" then it will pull the workflow file from the pull request branch.
 
 The information available inside a workflow after it has started (usually available via the [`github` context](https://docs.github.com/en/actions/learn-github-actions/contexts#github-context)). For pull requests, this will include things like the pull request number, and the ref and HEAD SHA of the pull request branch. For workflows running in the context of the default branch, this may not contain much information, but all references to the branch and sha will mainly just be references to main.
 
@@ -360,16 +364,16 @@ The information available inside a workflow after it has started (usually availa
 
 For the reasons described above, we chose to use `workflow_run` _heavily_ for the gradio repo. However `workflow_run` presents its own challenges:
 
-- This event runs in the context of main, it doesn't offer any of the conveniences that `push` and `pull_request` events give you, it knows very very little about the workflow run even that triggered it. It _does not_ inherit the teriggering workflow's context. This is a huge problem.
+- This event runs in the context of main, it doesn't offer any of the conveniences that `push` and `pull_request` events give you, it knows very very little about the workflow run even that triggered it. It _does not_ inherit the triggering workflow's context. This is a huge problem.
 - This workflow kind of runs in the void. It is run in the context of the default branch and so maintains references to that branch, however, it isn't really 'attached' to a commit or ref in any meaningful way and the status of the run (the 'check') is not added to any commits anywhere.
 
 Both of these problems were eventually solve by using the GitHub API in combination with the information we get from the workflow event's context. Getting the commit reference of the pull request that triggered the workflow is the main challenge, when we have that, creating statuses on commits is trivial. 
 
-##### What branch am i even in?
+##### What branch am I even in?
 
 The 'context' a workflow runs in is the branch that actions/checkout will checkout by default. In this case that is `main`. We don't want `main`.
 
-Figuring out what branch or pull request triggered a workflow run is surprisingly difficult depending on the event that you allow to trigger it. The data you have access to in a ` workflow_run` event is pretty limited. It is okay for pull requests, you get the PR number, but for pushes and other events it can be challenging. We trigger `workflow_runs` from the following events:
+Figuring out what branch or pull request triggered a workflow run is surprisingly difficult depending on the event that you allow to trigger it. The data you have access to in a `workflow_run` event is pretty limited. It is okay for pull requests, you get the PR number, but for pushes and other events it can be challenging. We trigger `workflow_run`s from the following events:
 
 - `pull_request` - this is fine, we get the PR number.
 - `push` - not fine, but we get the commit SHA which will do.
@@ -391,9 +395,9 @@ It is much easier to find a SHA from a PR number than the other way around but b
 
 GitHub actually creates two magical refs. `pull/<pr-number>/head` and `pull/<pr-number>/merge`. Both of these refs are read-only, you cannot push to them no matter how many `-f`s you add.
 
-The `head` variant is pretty much the same as the HEAD of the pr branch, except it exists in the target repo regardless of whether it was created from a fork or not. This is quite nice as the commit SHA for this ref will be the same as the commit SHA for the HEAD of the source branch. This makes checking out the branch easier.
+The `head` variant is pretty much the same as the HEAD of the PR branch, except it exists in the target repo regardless of whether it was created from a fork or not. This is quite nice as the commit SHA for this ref will be the same as the commit SHA for the HEAD of the source branch. This makes checking out the branch easier.
 
-The `merge` variant is special. This is a branch that merges the PR changes into the target branch. `pull_request` events have this branch set as their 'default' and it is what gets checked out by default in `pull_request` workflows. The beauty of this branch is that any tests you run against it are essentially being run on the merged result of this PR and `main`. This isn't commonly know but it is exactly what you want in a pull request.
+The `merge` variant is special. This is a ref that has merged the PR changes into the target branch. `pull_request` events have this ref set as their 'default' and it is what gets checked out by default in `pull_request` workflows. The beauty of this ref is that any tests you run against it are essentially being run on the merged result of this PR and `main`. This isn't commonly known but it is exactly what you want in a pull request.
 
 i have a picture, i need to find it
 
@@ -404,13 +408,13 @@ The path to getting this information isn't necessarily complex but it is differe
 
 ##### Optional, required checks
 
-This sounds contradictory but what we want is check that don't _always_ need to run but when they run they _must_ pass. GitHub doesn't really have a concept of this.
+This sounds contradictory, but what we want is a check that doesn't _always_ need to run but when they run they _must_ pass. GitHub doesn't really have a concept of this.
 
 The solution is to set the check as required in the repo settings and then do the following:
 
 - If the job runs then the commit status is set to pending prior to the run.
 - If the job fails then the commit status should be set to failed.
-- If the job successed then then commit status should be set to success.
+- If the job succeeded then then commit status should be set to success.
 - If the job does not need to run then it should be set to success with some text explaining it was skipped.
 
 Determining what has changed is straightforward, we use a third-party action for this. But we clear need to run but also maybe not run our workflows.
@@ -420,9 +424,9 @@ To solve this particular problem we _always_ trigger our workflows but don't alw
 - Every workflow we might want to run is triggered by the pull request. We have a simple workflow that does nothing, it simply acts as a 'hook' for the `workflow_run` workflows to listen to.
 - Those workflows have their own information about whether the job should run or not.
 - If the job thinks that it _should_ run then it creates a 'pending' status and sets its output to `should_run = true`
-- If the job thinkgs that it _shouldn't_ run then it creates a 'success' status nand sets its output to `should_run = false`. 
+- If the job thinks that it _shouldn't_ run then it creates a 'success' status nand sets its output to `should_run = false`. 
 - The next job in the workflow _depends_ on that initial run. It will only run on the condition that the `changes` job has an output of `should_run == true`. 
-- If it does run then the workflow does its thing and then updates the commit status to `success` or `failure` depending on the outcome. 
+- If it does run, the workflow does its thing and then updates the commit status to `success` or `failure` depending on the outcome. 
 
 We use a composite action to colocate the change detection logic and reuse that across workflows. We use a custom JavaScript action to create the commit statuses, again for easier reuse.
 
