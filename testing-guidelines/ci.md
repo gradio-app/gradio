@@ -171,7 +171,7 @@ The [technical details](#technical-details) below explain how things are setup, 
 
 ok.
 
-![](gh-actions-flow.svg)
+![](gh-actions-flow.png)
 
 </details>
 
@@ -418,7 +418,7 @@ The solution is to set the check as required in the repo settings and then do th
 - If the job succeeded then then commit status should be set to success.
 - If the job does not need to run then it should be set to success with some text explaining it was skipped.
 
-Determining what has changed is straightforward, we use a third-party action for this. But we clear need to run but also maybe not run our workflows.
+Determining what has changed is straightforward, we use a third-party action for this, but we also need to somehow prevent a workflow from running after we have started it, conceptually at least.
 
 To solve this particular problem we _always_ trigger our workflows but don't always run all of them.
 
