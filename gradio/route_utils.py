@@ -6,7 +6,9 @@ import json
 import re
 import shutil
 from collections import deque
+from contextlib import asynccontextmanager
 from dataclasses import dataclass as python_dataclass
+from pathlib import Path
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 from typing import TYPE_CHECKING, AsyncGenerator, BinaryIO, List, Optional, Tuple, Union
 from urllib.parse import urlparse
@@ -640,3 +642,18 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
             "Access-Control-Allow-Headers"
         ] = "Origin, Content-Type, Accept"
         return response
+
+
+def delete_files_created_by_app(blocks: Blocks) -> None:
+    for temp_set in blocks.temp_file_sets:
+        for file in temp_set:
+            print(file)
+            Path(file).unlink(missing_ok=True)
+
+
+@asynccontextmanager
+async def lifespan_handler(app: App):
+    app.get_blocks().startup_events()
+    app.startup_events_triggered = True
+    yield
+    delete_files_created_by_app(app.get_blocks())

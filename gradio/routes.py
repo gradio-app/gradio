@@ -63,6 +63,7 @@ from gradio.route_utils import (  # noqa: F401
     MultiPartException,
     Request,
     compare_passwords_securely,
+    lifespan_handler,
     move_uploaded_files_to_cache,
 )
 from gradio.state_holder import StateHolder
@@ -192,6 +193,8 @@ class App(FastAPI):
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
+        if blocks.delete_cache:
+            app_kwargs.setdefault("lifespan", lifespan_handler)
         app = App(**app_kwargs)
         app.configure_app(blocks)
 
@@ -833,7 +836,6 @@ class App(FastAPI):
                 )
             return output_files
 
-        @app.on_event("startup")
         @app.get("/startup-events")
         async def startup_events():
             if not app.startup_events_triggered:

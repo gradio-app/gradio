@@ -480,6 +480,30 @@ class TestRoutes:
         assert file_response.headers["access-control-allow-origin"] == "127.0.0.1"
         io.close()
 
+    def test_delete_cache(self, connect, gradio_temp_dir):
+        def check_num_files_exist(blocks: Blocks):
+            num_files = 0
+            for temp_file_set in blocks.temp_file_sets:
+                for temp_file in temp_file_set:
+                    if os.path.exists(temp_file):
+                        num_files += 1
+            return num_files
+
+        demo = gr.Interface(lambda s: s, gr.Textbox(), gr.File(), delete_cache=False)
+        with connect(demo) as client:
+            client.predict("test/test_files/cheetah1.jpg")
+        assert check_num_files_exist(demo) == 1
+
+        demo_delete = gr.Interface(
+            lambda s: s, gr.Textbox(), gr.File(), delete_cache=True
+        )
+        with connect(demo_delete) as client:
+            client.predict("test/test_files/alphabet.txt")
+            client.predict("test/test_files/bus.png")
+            assert check_num_files_exist(demo_delete) == 2
+        assert check_num_files_exist(demo_delete) == 0
+        assert check_num_files_exist(demo) == 1
+
 
 class TestApp:
     def test_create_app(self):

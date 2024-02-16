@@ -77,6 +77,7 @@ class ChatInterface(Blocks):
         autofocus: bool = True,
         concurrency_limit: int | None | Literal["default"] = "default",
         fill_height: bool = True,
+        delete_cache: bool = False,
     ):
         """
         Parameters:
@@ -103,6 +104,7 @@ class ChatInterface(Blocks):
             autofocus: If True, autofocuses to the textbox when the page loads.
             concurrency_limit: If set, this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
             fill_height: If True, the chat interface will expand to the height of window.
+            delete_cache: Whether to clear the contents of GRADIO_CACHE_DIR created by this Blocks instance when the server is shut down.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -113,6 +115,7 @@ class ChatInterface(Blocks):
             js=js,
             head=head,
             fill_height=fill_height,
+            delete_cache=delete_cache,
         )
         self.concurrency_limit = concurrency_limit
         self.fn = fn
