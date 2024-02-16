@@ -778,7 +778,7 @@ class App(FastAPI):
         ):
             content_type_header = request.headers.get("Content-Type")
             content_type: bytes
-            content_type, _ = parse_options_header(content_type_header)
+            content_type, _ = parse_options_header(content_type_header or "")
             if content_type != b"multipart/form-data":
                 raise HTTPException(status_code=400, detail="Invalid content type.")
 
