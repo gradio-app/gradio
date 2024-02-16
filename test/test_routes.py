@@ -29,6 +29,7 @@ from gradio.route_utils import (
     FnIndexInferError,
     compare_passwords_securely,
     get_root_url,
+    starts_with_protocol,
 )
 
 
@@ -920,3 +921,21 @@ def test_compare_passwords_securely():
     assert compare_passwords_securely(password1, password1)
     assert not compare_passwords_securely(password1, password2)
     assert compare_passwords_securely(password2, password2)
+
+
+@pytest.mark.parametrize(
+    "string, expected",
+    [
+        ("http://localhost:7860/", True),
+        ("https://localhost:7860/", True),
+        ("ftp://localhost:7860/", True),
+        ("smb://example.com", True),
+        ("ipfs://QmTzQ1Nj5R9BzF1djVQv8gvzZxVkJb1vhrLcXL1QyJzZE", True),
+        ("usr/local/bin", False),
+        ("localhost:7860", False),
+        ("localhost", False),
+        ("C:/Users/username", False),
+    ],
+)
+def test_starts_with_protocol(string, expected):
+    assert starts_with_protocol(string) == expected
