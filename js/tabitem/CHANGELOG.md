@@ -1,10 +1,18 @@
 # @gradio/tabitem
 
+## 0.2.3
+
+### Patch Changes
+
+- Updated dependencies [[`065c5b1`](https://github.com/gradio-app/gradio/commit/065c5b163c4badb9d9cbd06d627fb4ba086003e7)]:
+  - @gradio/utils@0.3.0
+  - @gradio/tabs@0.2.3
+
 ## 0.2.2
 
 ### Fixes
 
-- [#7220](https://github.com/gradio-app/gradio/pull/7220) [`3b8dfc6`](https://github.com/gradio-app/gradio/commit/3b8dfc684dc0eb0544d06300fa546b23f587c63f) - Add `visible` check to Tab.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#7220](https://github.com/gradio-app/gradio/pull/7220) [`3b8dfc6`](https://github.com/gradio-app/gradio/commit/3b8dfc684dc0eb0544d06300fa546b23f587c63f) - Add `visible` check to Tab. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ## 0.2.1
 
