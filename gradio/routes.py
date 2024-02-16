@@ -429,8 +429,7 @@ class App(FastAPI):
                     url=path_or_url, status_code=status.HTTP_302_FOUND
                 )
 
-            invalid_prefixes = ["//", "file://", "ftp://", "sftp://", "smb://"]
-            if any(path_or_url.startswith(prefix) for prefix in invalid_prefixes):
+            if route_utils.starts_with_protocol(path_or_url):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             abs_path = utils.abspath(path_or_url)
@@ -779,7 +778,7 @@ class App(FastAPI):
         ):
             content_type_header = request.headers.get("Content-Type")
             content_type: bytes
-            content_type, _ = parse_options_header(content_type_header)
+            content_type, _ = parse_options_header(content_type_header or "")
             if content_type != b"multipart/form-data":
                 raise HTTPException(status_code=400, detail="Invalid content type.")
 
