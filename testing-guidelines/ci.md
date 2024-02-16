@@ -171,7 +171,7 @@ The [technical details](#technical-details) below explain how things are setup, 
 
 ok
 
-![]("./gh-actions-flow.svg")
+![]("gh-actions-flow.svg")
 
 </summary>
 
@@ -401,7 +401,7 @@ The `head` variant is pretty much the same as the HEAD of the PR branch, except 
 
 The `merge` variant is special. This is a ref that has merged the PR changes into the target branch. `pull_request` events have this ref set as their 'default' and it is what gets checked out by default in `pull_request` workflows. The beauty of this ref is that any tests you run against it are essentially being run on the merged result of this PR and `main`. This isn't commonly known but it is exactly what you want in a pull request.
 
-![]("./git-tree.svg")
+![]("git-tree.svg")
 
 </details>
 
