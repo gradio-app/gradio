@@ -410,7 +410,7 @@ describe("Dropdown", () => {
 		expect(item.value).toBe("apple");
 	});
 
-	test("updating choices should keep the dropdown focus-able and change the choice name", async () => {
+	test("updating choices should keep the dropdown focus-able and change the value appropriately if custom values are not allowed", async () => {
 		const { getByLabelText, component } = await render(Dropdown, {
 			show_label: true,
 			loading_status,
@@ -443,11 +443,12 @@ describe("Dropdown", () => {
 		await expect(item.value).toBe("apple_new_choice");
 	});
 
-	test("ensure dropdown can have an empty value", async () => {
-		const { getByLabelText } = await render(Dropdown, {
+	test("updating choices should not reset the value if custom values are allowed", async () => {
+		const { getByLabelText, component } = await render(Dropdown, {
 			show_label: true,
 			loading_status,
-			allow_custom_value: false,
+			value: "apple_internal_value",
+			allow_custom_value: true,
 			label: "Dropdown",
 			choices: [
 				["apple_choice", "apple_internal_value"],
@@ -461,6 +462,34 @@ describe("Dropdown", () => {
 			"Dropdown"
 		) as HTMLInputElement;
 
+		await expect(item.value).toBe("apple_choice");
+
+		component.$set({
+			choices: [
+				["apple_new_choice", "apple_internal_value"],
+				["zebra_new_choice", "zebra_internal_value"]
+			]
+		});
+
+		await expect(item.value).toBe("apple_choice");
+	});
+
+	test("ensure dropdown can have an empty value", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			show_label: true,
+			loading_status,
+			allow_custom_value: false,
+			label: "Dropdown",
+			choices: [
+				["apple_choice", "apple_internal_value"],
+				["zebra_choice", "zebra_internal_value"]
+			],
+			filterable: true,
+			interactive: true
+		});
+		const item: HTMLInputElement = getByLabelText(
+			"Dropdown"
+		) as HTMLInputElement;
 		await expect(item.value).toBe("");
 	});
 });
