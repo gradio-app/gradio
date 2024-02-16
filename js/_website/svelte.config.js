@@ -2,52 +2,46 @@ import adapter from "@sveltejs/adapter-static";
 import { vitePreprocess } from "@sveltejs/kit/vite";
 import { redirects } from "./src/routes/redirects.js";
 
-async function get_version() {
+let version = "4.0.0"; // default version
+
+const get_version = async () => {
 	try {
-		const _version = await import("./src/lib/json/version.json", {
-			assert: { type: "json" }
+		await import("./src/lib/json/version.json").then((module) => {
+			version = module.version;
 		});
-		return _version.version;
 	} catch (error) {
 		console.error(
 			"Using fallback version 4.0.0 as version.json was not found. Run `generate_jsons/generate.py` to get the latest version."
 		);
-		return "4.0.0";
 	}
-}
+	return version;
+};
 
 /** @type {import('@sveltejs/kit').Config} */
-async function get_config() {
-	const version = await get_version();
+const config = {
+	preprocess: vitePreprocess(),
+	kit: {
+		prerender: {
+			crawl: true,
+			entries: [
+				"*",
+				`/${get_version()}/docs`,
+				`/${get_version()}/guides`,
+				`/main/docs`,
+				`/main/guides`,
+				`/main/docs/js`,
+				`/main/docs/js/storybook`,
+				`/main/docs/js/`,
+				`/${version}/docs`,
+				`/${version}/guides`,
+				...Object.keys(redirects)
+			]
+		},
+		files: {
+			lib: "src/lib"
+		},
+		adapter: adapter()
+	}
+};
 
-	return {
-		// Consult https://kit.svelte.dev/docs/integrations#preprocessors
-		// for more information about preprocessors
-		preprocess: vitePreprocess(),
-
-		kit: {
-			prerender: {
-				crawl: true,
-				entries: [
-					"*",
-					`/${version}/docs`,
-					`/${version}/guides`,
-					`/main/docs`,
-					`/main/guides`,
-					`/main/docs/js`,
-					`/main/docs/js/storybook`,
-					`/main/docs/js/`,
-					`/3.50.2/docs`,
-					`/3.50.2/guides`,
-					...Object.keys(redirects)
-				]
-			},
-			files: {
-				lib: "src/lib"
-			},
-			adapter: adapter()
-		}
-	};
-}
-
-export default get_config();
+export default config;
