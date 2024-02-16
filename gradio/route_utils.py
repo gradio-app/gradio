@@ -467,12 +467,10 @@ class GradioMultiPartParser:
         self._current_partial_header_value = b""
 
     def on_headers_finished(self) -> None:
-        disposition, options = parse_options_header(
-            self._current_part.content_disposition
-        )
+        _, options = parse_options_header(self._current_part.content_disposition or b"")
         try:
             self._current_part.field_name = _user_safe_decode(
-                options[b"name"], self._charset
+                options[b"name"], str(self._charset)
             )
         except KeyError as e:
             raise MultiPartException(
@@ -484,7 +482,7 @@ class GradioMultiPartParser:
                 raise MultiPartException(
                     f"Too many files. Maximum number of files is {self.max_files}."
                 )
-            filename = _user_safe_decode(options[b"filename"], self._charset)
+            filename = _user_safe_decode(options[b"filename"], str(self._charset))
             tempfile = NamedTemporaryFile(delete=False)
             self._files_to_close_on_error.append(tempfile)
             self._current_part.file = GradioUploadFile(
