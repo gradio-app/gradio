@@ -82,8 +82,8 @@ runs:
       shell: bash
       run: |
         . ${{ env.VENV_ACTIVATE }}
-        python -m pip install --force-reinstall -e client/python  
-        python -m pip install --force-reinstall -e ".[oauth]"
+        python -m pip install -e client/python  
+        python -m pip install -e ".[oauth]"
     - name: install-frontend
       uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
       with:
