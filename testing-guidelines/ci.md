@@ -171,7 +171,7 @@ The [technical details](#technical-details) below explain how things are setup, 
 
 ok.
 
-![](https://raw.githubusercontent.com/gradio-app/gradio/update-test-strategy-document/testing-guidelines/gh-actions-flow.png)
+![](https://raw.githubusercontent.com/gradio-app/gradio/main/testing-guidelines/gh-actions-flow.png)
 
 </details>
 
