@@ -429,8 +429,7 @@ class App(FastAPI):
                     url=path_or_url, status_code=status.HTTP_302_FOUND
                 )
 
-            invalid_prefixes = ["//", "file://", "ftp://", "sftp://", "smb://"]
-            if any(path_or_url.startswith(prefix) for prefix in invalid_prefixes):
+            if route_utils.starts_with_protocol(path_or_url):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             abs_path = utils.abspath(path_or_url)
