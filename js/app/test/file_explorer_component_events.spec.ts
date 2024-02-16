@@ -100,7 +100,14 @@ test("File Explorer selects all children when top level directory is selected.",
 		.getByRole("checkbox")
 		.check();
 
+	const res = page.waitForEvent("response", {
+		predicate: async (response) => {
+			return (await response.text()).indexOf("process_completed") !== -1;
+		}
+	});
 	await page.getByRole("button", { name: "Run" }).click();
+
+	await res;
 
 	const directory_paths_displayed = async () => {
 		const value = await page.getByLabel("Selected Directory").inputValue();
