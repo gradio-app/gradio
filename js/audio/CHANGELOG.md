@@ -1,5 +1,11 @@
 # @gradio/audio
 
+## 0.9.2
+
+### Fixes
+
+- [#6991](https://github.com/gradio-app/gradio/pull/6991) [`f191786`](https://github.com/gradio-app/gradio/commit/f1917867916647d383b8d7ce15e0c17f2abbdec1) - Improve responsiveness of `gr.Audio()` controls.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.9.1
 
 ### Patch Changes

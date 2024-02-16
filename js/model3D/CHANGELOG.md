@@ -1,32 +1,42 @@
 # @gradio/model3d
 
+## 0.8.1
+
+### Patch Changes
+
+- Updated dependencies [[`f191786`](https://github.com/gradio-app/gradio/commit/f1917867916647d383b8d7ce15e0c17f2abbdec1)]:
+  - @gradio/icons@0.3.3
+  - @gradio/atoms@0.5.3
+  - @gradio/statustracker@0.4.7
+  - @gradio/upload@0.7.4
+
 ## 0.8.0
 
 ### Features
 
-- [#7406](https://github.com/gradio-app/gradio/pull/7406) [`3e886d8`](https://github.com/gradio-app/gradio/commit/3e886d8f0ac55c416dae51c1c2661e16eb34718e) - Model3D Gaussian Splatting.  Thanks [@dylanebert](https://github.com/dylanebert)!
+- [#7406](https://github.com/gradio-app/gradio/pull/7406) [`3e886d8`](https://github.com/gradio-app/gradio/commit/3e886d8f0ac55c416dae51c1c2661e16eb34718e) - Model3D Gaussian Splatting. Thanks [@dylanebert](https://github.com/dylanebert)!
 
 ## 0.7.0
 
 ### Features
 
-- [#7183](https://github.com/gradio-app/gradio/pull/7183) [`49d9c48`](https://github.com/gradio-app/gradio/commit/49d9c48537aa706bf72628e3640389470138bdc6) - [WIP] Refactor file normalization to be in the backend and remove it from the frontend of each component.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7183](https://github.com/gradio-app/gradio/pull/7183) [`49d9c48`](https://github.com/gradio-app/gradio/commit/49d9c48537aa706bf72628e3640389470138bdc6) - [WIP] Refactor file normalization to be in the backend and remove it from the frontend of each component. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.6.0
 
 ### Features
 
-- [#7315](https://github.com/gradio-app/gradio/pull/7315) [`b3a9c83`](https://github.com/gradio-app/gradio/commit/b3a9c830955a5ded8528d6118aaf1b6e019857a2) - Lite: Wasm-compatible Model3D.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#7315](https://github.com/gradio-app/gradio/pull/7315) [`b3a9c83`](https://github.com/gradio-app/gradio/commit/b3a9c830955a5ded8528d6118aaf1b6e019857a2) - Lite: Wasm-compatible Model3D. Thanks [@whitphx](https://github.com/whitphx)!
 
 ### Fixes
 
-- [#7192](https://github.com/gradio-app/gradio/pull/7192) [`8dd6f4b`](https://github.com/gradio-app/gradio/commit/8dd6f4bc1901792f05cd59e86df7b1dbab692739) - Handle the case where examples is `null` for all components.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7192](https://github.com/gradio-app/gradio/pull/7192) [`8dd6f4b`](https://github.com/gradio-app/gradio/commit/8dd6f4bc1901792f05cd59e86df7b1dbab692739) - Handle the case where examples is `null` for all components. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.5.0
 
 ### Features
 
-- [#7049](https://github.com/gradio-app/gradio/pull/7049) [`1718c4a`](https://github.com/gradio-app/gradio/commit/1718c4aeb23a88ef02b17b30a1d1cb72e413e04a) - add STL 3D model support.  Thanks [@Mon-ius](https://github.com/Mon-ius)!
+- [#7049](https://github.com/gradio-app/gradio/pull/7049) [`1718c4a`](https://github.com/gradio-app/gradio/commit/1718c4aeb23a88ef02b17b30a1d1cb72e413e04a) - add STL 3D model support. Thanks [@Mon-ius](https://github.com/Mon-ius)!
 
 ## 0.4.15
 

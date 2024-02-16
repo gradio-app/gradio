@@ -1,5 +1,15 @@
 # @gradio/dropdown
 
+## 0.6.1
+
+### Features
+
+- [#7425](https://github.com/gradio-app/gradio/pull/7425) [`3e4e680`](https://github.com/gradio-app/gradio/commit/3e4e680a52ba5a73c108ef1b328dacd7b6e4b566) - Fixes to the `.key_up()` method to make it usable for a dynamic dropdown autocomplete.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+### Fixes
+
+- [#7431](https://github.com/gradio-app/gradio/pull/7431) [`6b8a7e5`](https://github.com/gradio-app/gradio/commit/6b8a7e5d36887cdfcfbfec1536a915128df0d6b2) - Ensure `gr.Dropdown` can have an empty initial value.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.6.0
 
 ### Fixes

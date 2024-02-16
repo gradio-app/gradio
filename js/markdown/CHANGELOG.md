@@ -1,39 +1,47 @@
 # @gradio/markdown
 
+## 0.6.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/atoms@0.5.3
+  - @gradio/statustracker@0.4.7
+
 ## 0.6.3
 
 ### Fixes
 
-- [#7361](https://github.com/gradio-app/gradio/pull/7361) [`17fb116`](https://github.com/gradio-app/gradio/commit/17fb116492f951ab66e3a39b5fdfb598f5446b6f) - Fixes gr.Markdown() does not render spaces around links correctly.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#7361](https://github.com/gradio-app/gradio/pull/7361) [`17fb116`](https://github.com/gradio-app/gradio/commit/17fb116492f951ab66e3a39b5fdfb598f5446b6f) - Fixes gr.Markdown() does not render spaces around links correctly. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
 
 ## 0.6.2
 
 ### Features
 
-- [#7298](https://github.com/gradio-app/gradio/pull/7298) [`e5344ba`](https://github.com/gradio-app/gradio/commit/e5344ba0cd63d21dbb525330bbc07ca2eca57832) - chore(deps): update dependency marked to v12.  Thanks [@renovate](https://github.com/apps/renovate)!
+- [#7298](https://github.com/gradio-app/gradio/pull/7298) [`e5344ba`](https://github.com/gradio-app/gradio/commit/e5344ba0cd63d21dbb525330bbc07ca2eca57832) - chore(deps): update dependency marked to v12. Thanks [@renovate](https://github.com/apps/renovate)!
 
 ### Fixes
 
-- [#7192](https://github.com/gradio-app/gradio/pull/7192) [`8dd6f4b`](https://github.com/gradio-app/gradio/commit/8dd6f4bc1901792f05cd59e86df7b1dbab692739) - Handle the case where examples is `null` for all components.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7192](https://github.com/gradio-app/gradio/pull/7192) [`8dd6f4b`](https://github.com/gradio-app/gradio/commit/8dd6f4bc1901792f05cd59e86df7b1dbab692739) - Handle the case where examples is `null` for all components. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.6.1
 
 ### Fixes
 
-- [#7138](https://github.com/gradio-app/gradio/pull/7138) [`ca8753b`](https://github.com/gradio-app/gradio/commit/ca8753bb3d829d0077f758ba8d0ddc866ff74d3d) - Fixes: Chatbot crashes when given empty url following http:// or https://.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#7138](https://github.com/gradio-app/gradio/pull/7138) [`ca8753b`](https://github.com/gradio-app/gradio/commit/ca8753bb3d829d0077f758ba8d0ddc866ff74d3d) - Fixes: Chatbot crashes when given empty url following http:// or https://. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
 
 ## 0.6.0
 
 ### Features
 
-- [#6842](https://github.com/gradio-app/gradio/pull/6842) [`846d52d`](https://github.com/gradio-app/gradio/commit/846d52d1c92d429077382ce494eea27fd062d9f6) - Fix md highlight.  Thanks [@pngwn](https://github.com/pngwn)!
-- [#6831](https://github.com/gradio-app/gradio/pull/6831) [`f3abde8`](https://github.com/gradio-app/gradio/commit/f3abde80884d96ad69b825020c46486d9dd5cac5) - Add an option to enable header links for markdown.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6842](https://github.com/gradio-app/gradio/pull/6842) [`846d52d`](https://github.com/gradio-app/gradio/commit/846d52d1c92d429077382ce494eea27fd062d9f6) - Fix md highlight. Thanks [@pngwn](https://github.com/pngwn)!
+- [#6831](https://github.com/gradio-app/gradio/pull/6831) [`f3abde8`](https://github.com/gradio-app/gradio/commit/f3abde80884d96ad69b825020c46486d9dd5cac5) - Add an option to enable header links for markdown. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.5.0
 
 ### Features
 
-- [#6603](https://github.com/gradio-app/gradio/pull/6603) [`6b1401c`](https://github.com/gradio-app/gradio/commit/6b1401c514c2ec012b0a50c72a6ec81cb673bf1d) - chore(deps): update dependency marked to v11.  Thanks [@renovate](https://github.com/apps/renovate)!
+- [#6603](https://github.com/gradio-app/gradio/pull/6603) [`6b1401c`](https://github.com/gradio-app/gradio/commit/6b1401c514c2ec012b0a50c72a6ec81cb673bf1d) - chore(deps): update dependency marked to v11. Thanks [@renovate](https://github.com/apps/renovate)!
 
 ## 0.4.1
 

@@ -282,7 +282,7 @@ importers:
   js/_website:
     dependencies:
       '@gradio/code':
-        specifier: 0.5.1
+        specifier: 0.5.2
         version: link:../code
       '@sindresorhus/slugify':
         specifier: ^2.2.0
@@ -1323,10 +1323,10 @@ importers:
   js/preview/test/test/frontend:
     dependencies:
       '@gradio/atoms':
-        specifier: 0.5.2
+        specifier: 0.5.3
         version: link:../../../../atoms
       '@gradio/statustracker':
-        specifier: 0.4.6
+        specifier: 0.4.7
         version: link:../../../../statustracker
       '@gradio/utils':
         specifier: 0.3.0

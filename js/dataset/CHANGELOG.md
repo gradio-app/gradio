@@ -1,5 +1,13 @@
 # @gradio/dataset
 
+## 0.1.22
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/atoms@0.5.3
+  - @gradio/upload@0.7.4
+
 ## 0.1.21
 
 ### Patch Changes
