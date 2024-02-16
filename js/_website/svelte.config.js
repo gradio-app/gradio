@@ -1,9 +1,25 @@
 import adapter from "@sveltejs/adapter-static";
 import { vitePreprocess } from "@sveltejs/kit/vite";
-import _version from "./src/lib/json/version.json" assert { type: "json" };
 import { redirects } from "./src/routes/redirects.js";
 
-const version = _version.version;
+let version; 
+
+async function get_version() {
+	try {
+	  const _version = await import("./src/lib/json/version.json", {
+		assert: { type: "json" },
+	  });
+	  return _version;
+	} catch (error) {
+	  console.error("version.json not found");
+	  return { version: "4.0.0" };
+	}
+  }
+
+get_version().then((_version) => {
+	version = _version.version;
+});
+
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
