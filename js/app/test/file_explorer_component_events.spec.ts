@@ -36,6 +36,14 @@ test("File Explorer is interactive and re-runs the server_fn when root is update
 	await expect(
 		page.locator("span").filter({ hasText: "foo.png" }).getByRole("checkbox")
 	).toBeChecked();
+
+	await page
+		.locator("span")
+		.filter({ hasText: "foo.png" })
+		.getByRole("checkbox")
+		.uncheck();
+
+	await expect(page.locator("#total-changes input")).toHaveValue("3");
 });
 
 test("File Explorer correctly displays both directories and files. Directories included in value.", async ({
@@ -92,7 +100,14 @@ test("File Explorer selects all children when top level directory is selected.",
 		.getByRole("checkbox")
 		.check();
 
+	const res = page.waitForEvent("response", {
+		predicate: async (response) => {
+			return (await response.text()).indexOf("process_completed") !== -1;
+		}
+	});
 	await page.getByRole("button", { name: "Run" }).click();
+
+	await res;
 
 	const directory_paths_displayed = async () => {
 		const value = await page.getByLabel("Selected Directory").inputValue();
