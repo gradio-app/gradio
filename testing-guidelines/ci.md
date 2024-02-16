@@ -1,6 +1,6 @@
 # Continous Integration
 
-The CI for Gradio uses GitHub Actions and almost all of the configuration to run the CI exists within the repo. 
+The CI for Gradio uses GitHub Actions and almost all of the configuration to run the CI exists within the repo.
 
 The two cardinal rules that we have for CI are that:
 
@@ -11,7 +11,7 @@ More information on how we achieve this can be found in the [architecture sectio
 
 ## High-level overview
 
-Broadly speaking, CI is split into three main parts. 
+Broadly speaking, CI is split into three main parts.
 
 - Quality
 - Deployments
@@ -23,40 +23,38 @@ Checks only run when needed but are required to pass when they run.
 
 We check to see which source files have changed and run the necessary checks. A full breakdown of how we determine this for each kind of check can be found in the [`changes` action](https://github.com/gradio-app/gradio/blob/main/.github/actions/changes/action.yml#L65-L108) but the high-level breakdown is as follows:
 
-- __Python checks__ - whenever Python source, dependencies or config change.
-- __Javascript checks__ - whenever JavaScript source, dependencies or config change.
-- __functional and visual checks__ - whenever any sopurce of config changes (most of the time).
-- __repo hygiene checks__ - always.
+- **Python checks** - whenever Python source, dependencies or config change.
+- **Javascript checks** - whenever JavaScript source, dependencies or config change.
+- **functional and visual checks** - whenever any sopurce of config changes (most of the time).
+- **repo hygiene checks** - always.
 
 Checks almost always run when the CI config has changed.
 
 If a check can be skipped, the status is set to `success` (green tick) to satisfy the GitHub required checks, but the message will have a text of `Skipped`.
 
-
 ### Quality
 
-We run a series of quality checks on the repo. These range from static checks like linting to unit tests all the way through to fully end-to-end functional tests. 
+We run a series of quality checks on the repo. These range from static checks like linting to unit tests all the way through to fully end-to-end functional tests.
 
 All tests have a name of something like `test-<type>-<os>-<stability-level>`. `os` and `stability-level` are optional.
 
 This is a simple breakdown of our current quality checks:
 
-| Language   | Check           | operating system | Workflow file            | Notes |
-| ---------- | --------------- | ---------------- | ------------------------ | ----- |
-| Python     | Linting         | linux            | `test-python.yml`        |       |
-| Python     | Formatting      | linux            | `test-python.yml`        |       |
-| Python     | Type-checking   | linux            | `test-python.yml`        |       |
-| Python     | Unit tests      | linux            | `test-python.yml`        |       |
-| Python     | Unit tests      | windows          | `test-python.yml`        |       |
-| JavaScript | Linting         | linux            | `test-js.yml`            |       |
-| JavaScript | Formatting      | linux            | `test-js.yml`            |       |
-| JavaScript | Type-checking   | linux            | `test-js.yml`            |       |
-| JavaScript | Unit tests      | linux            | `test-js.yml`            |       |
-| n/a        | Functional      | linux            | `test-functional/yml`    |       |
-| n/a        | Visual          | linux            | `deploy+test-visual/yml` |       |
-| n/a        | Large files     | linux            | `test-hygiene.yml`       | Checks that all files are below 5 MB |
+| Language   | Check           | operating system | Workflow file            | Notes                                        |
+| ---------- | --------------- | ---------------- | ------------------------ | -------------------------------------------- |
+| Python     | Linting         | linux            | `test-python.yml`        |                                              |
+| Python     | Formatting      | linux            | `test-python.yml`        |                                              |
+| Python     | Type-checking   | linux            | `test-python.yml`        |                                              |
+| Python     | Unit tests      | linux            | `test-python.yml`        |                                              |
+| Python     | Unit tests      | windows          | `test-python.yml`        |                                              |
+| JavaScript | Linting         | linux            | `test-js.yml`            |                                              |
+| JavaScript | Formatting      | linux            | `test-js.yml`            |                                              |
+| JavaScript | Type-checking   | linux            | `test-js.yml`            |                                              |
+| JavaScript | Unit tests      | linux            | `test-js.yml`            |                                              |
+| n/a        | Functional      | linux            | `test-functional/yml`    |                                              |
+| n/a        | Visual          | linux            | `deploy+test-visual/yml` |                                              |
+| n/a        | Large files     | linux            | `test-hygiene.yml`       | Checks that all files are below 5 MB         |
 | n/a        | Notebooks match | linux            | `test-hygiene.yml`       | Ensures that notebooks and demos are in sync |
-
 
 One important thing to note is that we split 'flaky' and 'non-flaky' Python unit/integration tests out.
 These tests are flaky because of network requests that they make. They are typically fine, but anything that can cause a red check in PRs makes us less trustworthy of our CI and confidence is the goal!
@@ -65,7 +63,6 @@ The flaky and Windows tests are not run in every PR, but are always run against 
 All other checks are run for every pull request, ensuring everything will work when we merge into `main`.
 
 For more information about the tests and tools that we use and our approach to quality, check the [testing-strategy](https://github.com/gradio-app/gradio/blob/main/testing-guidelines/quality-strategy.md) document. For more information on how to run and write tests, see the [contributing guide](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md).
-
 
 ### Deployments
 
@@ -79,7 +76,7 @@ We have three different deployment types that happen when a pull request is crea
 
 When a PR is created and source code has changed, a preview of the website is created.
 
-When a PR is merged into `main` the production version of the website is redeployed with the latest changes. 
+When a PR is merged into `main` the production version of the website is redeployed with the latest changes.
 
 Documentation is stored by version, `main` represents the current version of the repo which may or may not match the latest release version. The process of generating documentation is roughly like this:
 
@@ -161,14 +158,22 @@ A normal pull request created by a user that does not contain a changeset will d
 
 A normal pull request created by a user that _does_ contain a changeset will either create or update a versioning PR. This is a PR that tracks the changelog and versions that will be used for the release. The changelogs for each package are generated from the descriptions in the changeset files. The generated version pull request is on a branch named `changeset-release/main` and there is only ever one (unless we are also working on a pre-release).
 
-When the `changeset-release/main` branch is merged into main all of the necessary versions will have been bumped and the changelogs generated. We then go through to see what needs to be published and publish to PyPi for Python packages and npm for javascript pacakges.
-
+When the `changeset-release/main` branch is merged into main all of the necessary versions will have been bumped and the changelogs generated. We then go through to see what needs to be published and publish to PyPi for Python packages and npm for JavaScript pacakges.
 
 ## Architecture
 
 The CI on this repo is a little unconventional, this is mainly to work around various gaps in the GitHub Actions API while solving for our use case.
 
 The [technical details](#technical-details) below explain how things are setup, the [context](#context) sections explains what problem we are trying to solve with this architecture, why we took this approach, and the various challenges we faced along the way. It is a little 'extra' for repo docs but serves as good context for the future.
+
+<details>
+<summary>Please show me a gigantic diagram of the CI</summary>
+
+ok
+
+![]("./gh-actions-flow.svg")
+
+</summary>
 
 ### Technical details
 
@@ -185,14 +190,11 @@ From a technical point of view our workflows can be split into two categories:
 - Quality, deployment and versioning for pull requests
 - Final versioning and release when merged into main
 
-
 #### Pull requests
-
 
 Every PR run triggers a 'trigger' workflow that does nothing itself but acts as a trigger for other workflows to run via the `workflow_run` event.
 
-
-##### changes 
+##### changes
 
 With the exception of the `hygiene` check everything is conditional and will only run if specific files have changes. These runs all have one job that everything else depends on that reuses a composite [`changes`](https://github.com/gradio-app/gradio/tree/main/.github/actions/changes) action, this action determines whether or not a check should run based on the files that have changed and also determines important metadata about the pull request that triggered the run. The [`find-pr`](https://github.com/gradio-app/github/tree/main/packages/find-pr) action is responsible for getting this metadata that all runs rely on.
 
@@ -236,7 +238,7 @@ The process is relatively straightforward, and follows [the steps mentioned abov
 - We use [a custom script](https://github.com/gradio-app/gradio/blob/main/scripts/copy_demos.py) to pull in a select number of spaces and build them into a single FastAPI application. We serve each demo on its own subpath. This is the demo app that gets deployed to spaces.
 - We build a new wheel from the pull requests source code and upload it to s3, we then add the url for this wheel to the requirements.txt of the space we are deploying.
   - The wheel name (and subsequently the url) include the commit SHA, every build is unique even for the same pull request
-  - It is important the 'version' of the wheel is the same as the latest version of Gradio. This is because spaces _first_ installs the requirements from the `requirements.txt` and _then_ installs whatever it needs to  based on the `sdk` field of the spaces `README.md`. Since the `sdk` is set to Gradio in this case, it will attempt to install the latest version of Gradio and see that the version requirement is already satisfied. If we didn't have matching versions then our custom wheel would be overwritten.
+  - It is important the 'version' of the wheel is the same as the latest version of Gradio. This is because spaces _first_ installs the requirements from the `requirements.txt` and _then_ installs whatever it needs to based on the `sdk` field of the spaces `README.md`. Since the `sdk` is set to Gradio in this case, it will attempt to install the latest version of Gradio and see that the version requirement is already satisfied. If we didn't have matching versions then our custom wheel would be overwritten.
 
 The spaces previews are cleaned up a few days after the pull request that created them is closed or merged.
 
@@ -265,34 +267,34 @@ These reruns will cause the changeset to be updated if necessary. The change det
 Changed packages:
 
 - Check which files have changed and which packages those changes correspond to.
-- Check if any of the changed packages have  `"main_changeset": true,` in their `package.json` file, if so this is also an update to the main `gradio` library.
+- Check if any of the changed packages have `"main_changeset": true,` in their `package.json` file, if so this is also an update to the main `gradio` library.
 - [NYI] - Check if the version of a package should be bound to the version of another package in any way.
 
 Determining the bump type (`patch`, `minor`, `major`):
 
-- Check if the pull request has a `"v: *"` labal explicitly dictating the bump type. 
+- Check if the pull request has a `"v: *"` labal explicitly dictating the bump type.
   - If it does set that as the bump type and stop guessing.
 - Check if the pull requests has a `fixes` or `closes` reference to an issue.
-    - If it has a `"bug"` label then return a `patch` bump and stop guessing
-    - If it has a `"enhancement"` label then return a `minor` bump and stop guessing
-    - If it has a both then return a `minor` bump and stop guessing
+  - If it has a `"bug"` label then return a `patch` bump and stop guessing
+  - If it has a `"enhancement"` label then return a `minor` bump and stop guessing
+  - If it has a both then return a `minor` bump and stop guessing
 - If the version can't be determined then just return a `minor` bump.
 
 Determining the change type (`fix`, `feat`, `highlight`):
 
-- Check if the pull request has a `"t: *"` labal explicitly dictating the change type. 
+- Check if the pull request has a `"t: *"` labal explicitly dictating the change type.
   - If it does set that as the change type and stop guessing.
 - Check if the pull requests has a `fixes` or `closes` reference to an issue.
-    - If it has a `"bug"` label then return a `fix` change type and stop guessing
-    - If it has a `"enhancement"` label then return a `feat` change type and stop guessing
-    - If it has a both then return a `feat` bump and stop guessing
+  - If it has a `"bug"` label then return a `fix` change type and stop guessing
+  - If it has a `"enhancement"` label then return a `feat` change type and stop guessing
+  - If it has a both then return a `feat` bump and stop guessing
 - If the change type can't be determined then just return a `feat`.
 
 If someone manually edits the changeset file, then this workflow will not detect anything but it will update the special pull request comment to reflect the change details in the changeset file.
 
 #### publishing
 
-Publishing is a two step provess as detailed above. 
+Publishing is a two step provess as detailed above.
 
 - When a branch with a changeset is merged into `main`, a versioning PR is generated or updated.
 - When a versioning PR is updated, new versions of packages are released.
@@ -302,7 +304,7 @@ We use [`changesets`](https://github.com/changesets/changesets) for versioning a
 - We use a custom [changelog generation script](https://github.com/gradio-app/gradio/blob/main/.changeset/changeset.cjs)
   - This is partly so that we can tweak the ouput, but mainly so that we can use this as a hook to store some structured data about each changeset.
 - We run a script to regenerate the chnagelogs in the format we want them to be in. We use the structure data we gather in the previous step to customise the changelog format.
-- We have added `package.json`s to our python packages, which allows changesets to track them as if they were javascript pacakges and bump their version in line with everything else
+- We have added `package.json`s to our python packages, which allows changesets to track them as if they were JavaScript pacakges and bump their version in line with everything else
 - We have accept an optional `main_changeset: true | false` field on the package.json of any packge. This allows to easy figure out if changes to this package should be considered changes to the main Gradio package. We cannot do this only via tracking dependencies because we want the changelog entries for these packages to actually appear in the Gradio changelog. If we were to only use dependencies to manage this we would only get an unhelpful "dependencies updated" message in the changelog of our main library.
 
 Publishig itself is also a little different. `changesets` is only set up to publish `npm` packages, so we use the standard changeset GitHub action to do this and we use its `hasChangesets` output to decide whether or not publish to pypi. If `main` `hasChangesets` then we do not want to publish (because that means we haven't bumped the version and deleted the changeset files yet). When we do want to publish, we use [another custom action](https://github.com/gradio-app/github/tree/main/packages/publish-pypi) that does exactly that. This actually will take dependencies between packages into account when deciding which order to publish in (in case of failures) and allows each package being published to define a `build_pypi.sh` script that will be run prior to publishing, this typically builds the wheel.
@@ -313,7 +315,7 @@ When releasing a new version of gradio we also create a JSON file containing the
 
 ### Context
 
-This is some additional context about why things are the way they are and the challenges we had to overcome. This isn't essential reading  but may be helpful if you want to understand why we chose the current design. This will also be helpful as we iterate further on CI in the future; the trauma is fresh as I write this but it will fade with time, and so too will my memory of it.
+This is some additional context about why things are the way they are and the challenges we had to overcome. This isn't essential reading but may be helpful if you want to understand why we chose the current design. This will also be helpful as we iterate further on CI in the future; the trauma is fresh as I write this but it will fade with time, and so too will my memory of it.
 
 If you haven't read the previous sections, this part may not make complete sense.
 
@@ -347,7 +349,7 @@ There are ways to run workflows indirectly:
 <details>
   <summary>What does the "context" of an event mean?</summary>
 
-In GitHub Actions 'context' is a somewhat overloaded term, but it typically describes the permissions, available data, and the source code state that a given workflow has access to, without any additional code. 
+In GitHub Actions 'context' is a somewhat overloaded term, but it typically describes the permissions, available data, and the source code state that a given workflow has access to, without any additional code.
 
 For example, you can check out any branch of any public repo in any workflow but the context is important before any configured steps are run, in fact, the context is important before the workflow even starts. For practical purposes, there are two elements to the 'context' that people care about.
 
@@ -367,7 +369,7 @@ For the reasons described above, we chose to use `workflow_run` _heavily_ for th
 - This event runs in the context of main, it doesn't offer any of the conveniences that `push` and `pull_request` events give you, it knows very very little about the workflow run even that triggered it. It _does not_ inherit the triggering workflow's context. This is a huge problem.
 - This workflow kind of runs in the void. It is run in the context of the default branch and so maintains references to that branch, however, it isn't really 'attached' to a commit or ref in any meaningful way and the status of the run (the 'check') is not added to any commits anywhere.
 
-Both of these problems were eventually solve by using the GitHub API in combination with the information we get from the workflow event's context. Getting the commit reference of the pull request that triggered the workflow is the main challenge, when we have that, creating statuses on commits is trivial. 
+Both of these problems were eventually solve by using the GitHub API in combination with the information we get from the workflow event's context. Getting the commit reference of the pull request that triggered the workflow is the main challenge, when we have that, creating statuses on commits is trivial.
 
 ##### What branch am I even in?
 
@@ -379,7 +381,7 @@ Figuring out what branch or pull request triggered a workflow run is surprisingl
 - `push` - not fine, but we get the commit SHA which will do.
 - `issue_comment` - couldn't be less fine, we only get the title.
 
-*The reason we use the `issue_comment` event is because pull request are actually a special type of issue when it comes to the title, body, and replies.*
+_The reason we use the `issue_comment` event is because pull request are actually a special type of issue when it comes to the title, body, and replies._
 
 It is much easier to find a SHA from a PR number than the other way around but both are possible, getting a PR from an issue title, or PR title is pretty error-prone. We typically need the following information in our workflows:
 
@@ -399,12 +401,11 @@ The `head` variant is pretty much the same as the HEAD of the PR branch, except 
 
 The `merge` variant is special. This is a ref that has merged the PR changes into the target branch. `pull_request` events have this ref set as their 'default' and it is what gets checked out by default in `pull_request` workflows. The beauty of this ref is that any tests you run against it are essentially being run on the merged result of this PR and `main`. This isn't commonly known but it is exactly what you want in a pull request.
 
-i have a picture, i need to find it
+![]("./git-tree.svg")
 
 </details>
 
 The path to getting this information isn't necessarily complex but it is different for every event type (worse if also want to manually determine it for `pull_request` and `push` events too). To solve this problem we wrote a [custom JavaScript action](https://docs.github.com/en/actions/creating-actions/about-custom-actions) to solve it (yes, GitHub actions has naming issues "Actions" is the product "an action" is a discrete component).
-
 
 ##### Optional, required checks
 
@@ -424,12 +425,8 @@ To solve this particular problem we _always_ trigger our workflows but don't alw
 - Every workflow we might want to run is triggered by the pull request. We have a simple workflow that does nothing, it simply acts as a 'hook' for the `workflow_run` workflows to listen to.
 - Those workflows have their own information about whether the job should run or not.
 - If the job thinks that it _should_ run then it creates a 'pending' status and sets its output to `should_run = true`
-- If the job thinks that it _shouldn't_ run then it creates a 'success' status nand sets its output to `should_run = false`. 
-- The next job in the workflow _depends_ on that initial run. It will only run on the condition that the `changes` job has an output of `should_run == true`. 
-- If it does run, the workflow does its thing and then updates the commit status to `success` or `failure` depending on the outcome. 
+- If the job thinks that it _shouldn't_ run then it creates a 'success' status nand sets its output to `should_run = false`.
+- The next job in the workflow _depends_ on that initial run. It will only run on the condition that the `changes` job has an output of `should_run == true`.
+- If it does run, the workflow does its thing and then updates the commit status to `success` or `failure` depending on the outcome.
 
 We use a composite action to colocate the change detection logic and reuse that across workflows. We use a custom JavaScript action to create the commit statuses, again for easier reuse.
-
-
-
-
