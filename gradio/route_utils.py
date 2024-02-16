@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import re
 import shutil
 from collections import deque
 from dataclasses import dataclass as python_dataclass
@@ -579,3 +580,11 @@ def update_root_in_config(config: dict, root: str) -> dict:
 
 def compare_passwords_securely(input_password: str, correct_password: str) -> bool:
     return hmac.compare_digest(input_password.encode(), correct_password.encode())
+
+
+def starts_with_protocol(string: str) -> bool:
+    """This regex matches strings that start with a scheme (one or more characters not including colon, slash, or space)
+    followed by ://
+    """
+    pattern = r"^[a-zA-Z][a-zA-Z0-9+\-.]*://"
+    return re.match(pattern, string) is not None
