@@ -1109,6 +1109,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             inputs=processed_inputs,
             request=None,
             state={},
+            explicit_call=True,
         )
         outputs = outputs["data"]
 
@@ -1298,7 +1299,11 @@ Received inputs:
             )
 
     def preprocess_data(
-        self, fn_index: int, inputs: list[Any], state: SessionState | None
+        self,
+        fn_index: int,
+        inputs: list[Any],
+        state: SessionState | None,
+        explicit_call: bool = False,
     ):
         state = state or SessionState(self)
         block_fn = self.fns[fn_index]
@@ -1325,7 +1330,10 @@ Received inputs:
                     if input_id in state:
                         block = state[input_id]
                     inputs_cached = processing_utils.move_files_to_cache(
-                        inputs[i], block, add_urls=True, check_in_upload_folder=True
+                        inputs[i],
+                        block,
+                        add_urls=True,
+                        check_in_upload_folder=not explicit_call,
                     )
                     if getattr(block, "data_model", None) and inputs_cached is not None:
                         if issubclass(block.data_model, GradioModel):  # type: ignore
@@ -1535,6 +1543,7 @@ Received outputs:
         event_id: str | None = None,
         event_data: EventData | None = None,
         in_event_listener: bool = True,
+        explicit_call: bool = False,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -1574,6 +1583,7 @@ Received outputs:
                 inputs,
                 fn_index,
                 state,
+                explicit_call,
                 limiter=self.limiter,
             )
             result = await self.call_function(
