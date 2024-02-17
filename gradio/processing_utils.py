@@ -254,7 +254,7 @@ def move_files_to_cache(
         postprocess: Whether its running from postprocessing
         root_url: The root URL of the local server, if applicable
         add_urls: Whether to add URLs to the payload
-        check_already_cached: If True, instead of moving the file to cache, checks if the file is already in cache.
+        check_in_upload_folder: If True, instead of moving the file to cache, checks if the file is in upload folder.
     """
 
     def _move_to_cache(d: dict):
