@@ -1325,7 +1325,7 @@ Received inputs:
                     if input_id in state:
                         block = state[input_id]
                     inputs_cached = processing_utils.move_files_to_cache(
-                        inputs[i], block, add_urls=True
+                        inputs[i], block, add_urls=True, check_in_upload_folder=True
                     )
                     if getattr(block, "data_model", None) and inputs_cached is not None:
                         if issubclass(block.data_model, GradioModel):  # type: ignore
