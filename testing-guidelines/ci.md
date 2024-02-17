@@ -211,7 +211,7 @@ The CI jobs in this repo usually depend on either Python or node or both. Someti
 
 These actions are called by different jobs with slightly different inputs. These inputs allow us to skip certain steps when needed. For example, in Python unit tests, if there is a cache hit for the frontend build, then we don't need to install `pnpm` or frontend dependencies at all. But in the frontend unit tests, we never need to build the frontend but we always need to install `pnpm` and node.
 
-By default all checks run in Linux, but we run certain Pyhon checks in windows. Sadly, Windows action runners are very slow and the windows tests are mostly there to handle a few edge cases. In order to ensure that we have good test coverage but don't slow down contributors with long CI runs, we only run the Windows check in the release pull request. If a pull request is specifically targetting a Windows issue, then maintainers can add the `windows` label which will make the Windows test run in that pull request as well.
+By default all checks run in Linux, but we run certain Pyhon checks in windows. Sadly, Windows action runners are very slow and the windows tests are mostly there to handle a few edge cases. In order to ensure that we have good test coverage but don't slow down contributors with long CI runs, we only run the Windows check in the release pull request. If a pull request is specifically targeting a Windows issue, then maintainers can add the `windows` label which will make the Windows test run in that pull request as well.
 
 We only run our Python tests for a single Python version, the oldest we support (3.8), for practical reasons.
 
