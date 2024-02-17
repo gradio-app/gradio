@@ -605,7 +605,6 @@ class App(FastAPI):
                             await blocks._queue.clean_events(session_hash=session_hash)
                             return
 
-
                         heartbeat_rate = 15
                         check_rate = 0.05
                         message = None
