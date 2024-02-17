@@ -605,19 +605,16 @@ class App(FastAPI):
                             await blocks._queue.clean_events(session_hash=session_hash)
                             return
 
-                        if (
-                            session_hash
-                            not in blocks._queue.pending_messages_per_session
-                        ):
-                            raise HTTPException(
-                                status_code=status.HTTP_404_NOT_FOUND,
-                                detail="Session not found.",
-                            )
 
                         heartbeat_rate = 15
                         check_rate = 0.05
                         message = None
                         try:
+                            if (
+                                session_hash
+                                not in blocks._queue.pending_messages_per_session
+                            ):
+                                raise EmptyQueue
                             messages = blocks._queue.pending_messages_per_session[
                                 session_hash
                             ]
