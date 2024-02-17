@@ -73,8 +73,8 @@ runs:
       shell: bash
       run: |
         . ${{ env.VENV_ACTIVATE }}
-        python -m uv pip install -e client/python  
-        python -m uv pip install -e ".[oauth]"
+        uv pip install -e client/python  
+        uv pip install -e ".[oauth]"
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
     - name: Install test dependencies
@@ -82,8 +82,8 @@ runs:
       shell: bash
       run: |
         . ${{ env.VENV_ACTIVATE }}
-        python -m uv pip install -r test/requirements.txt
-        python -m uv pip install -r client/python/test/requirements.txt
+        uv pip install -r test/requirements.txt
+        uv pip install -r client/python/test/requirements.txt
     - name: install-frontend
       uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
       with:
