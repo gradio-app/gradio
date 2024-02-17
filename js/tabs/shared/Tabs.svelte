@@ -180,7 +180,4 @@
 		height: 2px;
 		content: "";
 	}
-	.hide {
-		display: none;
-	}
 </style>
