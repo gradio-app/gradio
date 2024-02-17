@@ -31,19 +31,22 @@
 
 	setContext(TABS, {
 		register_tab: (tab: Tab) => {
+			let index: number;
 			let existingTab = tabs.find((t) => t.id === tab.id);
 			if (existingTab) {
 				// update existing tab with newer values
 				let i = tabs.findIndex((t) => t.id === tab.id);
 				tabs[i] = { ...tabs[i], ...tab };
+				index = i;
 			} else {
 				tabs.push({
 					name: tab.name,
 					id: tab.id,
 					elem_id: tab.elem_id,
 					visible: tab.visible,
-					interactive: tab.interactive
+					interactive: tab.interactive,
 				});
+				index = tabs.length - 1;
 			}
 			selected_tab.update((current) => {
 				if (current === false && tab.visible && tab.interactive) {
@@ -54,17 +57,17 @@
 				return nextTab ? nextTab.id : current;
 			});
 			tabs = tabs;
-			return tabs.length - 1;
+			return index;
 		},
 		unregister_tab: (tab: Tab) => {
 			const i = tabs.findIndex((t) => t.id === tab.id);
 			tabs.splice(i, 1);
 			selected_tab.update((current) =>
-				current === tab.id ? tabs[i]?.id || tabs[tabs.length - 1]?.id : current
+				current === tab.id ? tabs[i]?.id || tabs[tabs.length - 1]?.id : current,
 			);
 		},
 		selected_tab,
-		selected_tab_index
+		selected_tab_index,
 	});
 
 	function change_tab(id: object | string | number): void {
@@ -89,33 +92,33 @@
 <div class="tabs {elem_classes.join(' ')}" class:hide={!visible} id={elem_id}>
 	<div class="tab-nav scroll-hide" role="tablist">
 		{#each tabs as t, i (t.id)}
-			{#if t.visible}
-				{#if t.id === $selected_tab}
-					<button
-						role="tab"
-						class="selected"
-						aria-selected={true}
-						aria-controls={t.elem_id}
-						id={t.elem_id ? t.elem_id + "-button" : null}
-					>
-						{t.name}
-					</button>
-				{:else}
-					<button
-						role="tab"
-						aria-selected={false}
-						aria-controls={t.elem_id}
-						disabled={!t.interactive}
-						aria-disabled={!t.interactive}
-						id={t.elem_id ? t.elem_id + "-button" : null}
-						on:click={() => {
-							change_tab(t.id);
-							dispatch("select", { value: t.name, index: i });
-						}}
-					>
-						{t.name}
-					</button>
-				{/if}
+			{#if t.id === $selected_tab}
+				<button
+					role="tab"
+					class="selected"
+					class:hide={!t.visible}
+					aria-selected={true}
+					aria-controls={t.elem_id}
+					id={t.elem_id ? t.elem_id + "-button" : null}
+				>
+					{t.name}
+				</button>
+			{:else}
+				<button
+					role="tab"
+					class:hide={!t.visible}
+					aria-selected={false}
+					aria-controls={t.elem_id}
+					disabled={!t.interactive}
+					aria-disabled={!t.interactive}
+					id={t.elem_id ? t.elem_id + "-button" : null}
+					on:click={() => {
+						change_tab(t.id);
+						dispatch("select", { value: t.name, index: i });
+					}}
+				>
+					{t.name}
+				</button>
 			{/if}
 		{/each}
 	</div>
@@ -176,5 +179,8 @@
 		width: 100%;
 		height: 2px;
 		content: "";
+	}
+	.hide {
+		display: none;
 	}
 </style>
