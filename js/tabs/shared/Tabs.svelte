@@ -44,7 +44,7 @@
 					id: tab.id,
 					elem_id: tab.elem_id,
 					visible: tab.visible,
-					interactive: tab.interactive,
+					interactive: tab.interactive
 				});
 				index = tabs.length - 1;
 			}
@@ -63,11 +63,11 @@
 			const i = tabs.findIndex((t) => t.id === tab.id);
 			tabs.splice(i, 1);
 			selected_tab.update((current) =>
-				current === tab.id ? tabs[i]?.id || tabs[tabs.length - 1]?.id : current,
+				current === tab.id ? tabs[i]?.id || tabs[tabs.length - 1]?.id : current
 			);
 		},
 		selected_tab,
-		selected_tab_index,
+		selected_tab_index
 	});
 
 	function change_tab(id: object | string | number): void {
