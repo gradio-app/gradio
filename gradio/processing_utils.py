@@ -135,7 +135,7 @@ def save_pil_to_cache(
     temp_dir = Path(cache_dir) / hash_bytes(bytes_data)
     temp_dir.mkdir(exist_ok=True, parents=True)
     filename = str((temp_dir / f"{name}.{format}").resolve())
-    img.save(filename, pnginfo=get_pil_metadata(img))
+    (temp_dir / f"{name}.{format}").resolve().write_bytes(bytes_data)
     return filename
 
 
@@ -289,9 +289,11 @@ def move_files_to_cache(
     return client_utils.traverse(data, _move_to_cache, client_utils.is_file_obj)
 
 
-def add_root_url(data, root_url) -> dict:
+def add_root_url(data: dict, root_url: str, previous_root_url: str | None) -> dict:
     def _add_root_url(file_dict: dict):
         if not client_utils.is_http_url_like(file_dict["url"]):
+            if previous_root_url and file_dict["url"].startswith(previous_root_url):
+                file_dict["url"] = file_dict["url"][len(previous_root_url) :]
             file_dict["url"] = f'{root_url}{file_dict["url"]}'
         return file_dict
 

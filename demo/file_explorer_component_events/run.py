@@ -17,6 +17,7 @@ with gr.Blocks() as demo:
                          glob="**/*", interactive=True)
     textbox = gr.Textbox(label="Selected Directory")
     run = gr.Button("Run")
+    total_changes = gr.Number(0, elem_id="total-changes")
     
     txt_only_glob.select(lambda s: gr.FileExplorer(glob="*.txt" if s else "*") ,
                          inputs=[txt_only_glob], outputs=[fe])
@@ -25,6 +26,7 @@ with gr.Blocks() as demo:
 
     dd.select(lambda s: gr.FileExplorer(root=s), inputs=[dd], outputs=[fe])
     run.click(lambda s: ",".join(s) if isinstance(s, list) else s, inputs=[fe], outputs=[textbox])
+    fe.change(lambda num: num + 1, inputs=total_changes, outputs=total_changes)
 
     with gr.Row():
         a = gr.Textbox(elem_id="input-box")
