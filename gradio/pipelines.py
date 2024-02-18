@@ -19,7 +19,6 @@ def load_from_pipeline(pipeline: Any) -> dict:
     (dict): a dictionary of kwargs that can be used to construct an Interface object
     """
 
-
     # module of pipeline will look like this:
     # for transformers.pipelines: transformers.pipelines.xxxxxx.xxxx
     # for diffusers.pipelines: diffusers.pipelines.xxxxx.xxxx

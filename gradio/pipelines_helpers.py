@@ -3,13 +3,14 @@ Defines internal helper methods for handling transformers and diffusers pipeline
 These are used by load_from_pipeline method in pipelines.py.
 """
 
-from typing import Any
+from typing import Any, Dict, Optional
 
-from gradio import components
 from PIL import Image
 
+from gradio import components
 
-def _handle_transformers_pipeline(pipeline: Any) -> dict:
+
+def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
     try:
         import transformers
         from transformers import pipelines
@@ -19,11 +20,13 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
             "transformers not installed. Please try `pip install transformers`"
         ) from ie
 
+    def is_transformers_pipeline_type(pipeline, class_name: str):
+        cls = getattr(transformers, class_name, None)
+        return cls and isinstance(pipeline, cls)
+
     # Handle the different pipelines. The has_attr() checks to make sure the pipeline exists in the
     # version of the transformers library that the user has installed.
-    if hasattr(transformers, "AudioClassificationPipeline") and isinstance(
-        pipeline, pipelines.audio_classification.AudioClassificationPipeline
-    ):
+    if is_transformers_pipeline_type(pipeline, "AudioClassificationPipeline"):
         pipeline_info = {
             "inputs": components.Audio(
                 sources=["microphone"],
@@ -37,10 +40,7 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(transformers, "AutomaticSpeechRecognitionPipeline") and isinstance(
-        pipeline,
-        pipelines.automatic_speech_recognition.AutomaticSpeechRecognitionPipeline,
-    ):
+    elif is_transformers_pipeline_type(pipeline, "AutomaticSpeechRecognitionPipeline"):
         pipeline_info = {
             "inputs": components.Audio(
                 sources=["microphone"], type="filepath", label="Input", render=False
@@ -51,9 +51,7 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(transformers, "FeatureExtractionPipeline") and isinstance(
-        pipeline, pipelines.feature_extraction.FeatureExtractionPipeline
-    ):
+    elif is_transformers_pipeline_type(pipeline, "FeatureExtractionPipeline"):
         pipeline_info = {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Dataframe(label="Output", render=False),
@@ -62,9 +60,7 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(transformers, "FillMaskPipeline") and isinstance(
-        pipeline, pipelines.fill_mask.FillMaskPipeline
-    ):
+    elif is_transformers_pipeline_type(pipeline, "FillMaskPipeline"):
         pipeline_info = {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Label(label="Classification", render=False),
@@ -73,9 +69,7 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(transformers, "ImageClassificationPipeline") and isinstance(
-        pipeline, pipelines.image_classification.ImageClassificationPipeline
-    ):
+    elif is_transformers_pipeline_type(pipeline, "ImageClassificationPipeline"):
         pipeline_info = {
             "inputs": components.Image(
                 type="filepath", label="Input Image", render=False
@@ -86,9 +80,7 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(transformers, "QuestionAnsweringPipeline") and isinstance(
-        pipeline, pipelines.question_answering.QuestionAnsweringPipeline
-    ):
+    elif is_transformers_pipeline_type(pipeline, "QuestionAnsweringPipeline"):
         pipeline_info = {
             "inputs": [
                 components.Textbox(lines=7, label="Context", render=False),
@@ -103,9 +95,7 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(transformers, "SummarizationPipeline") and isinstance(
-        pipeline, pipelines.text2text_generation.SummarizationPipeline
-    ):
+    elif is_transformers_pipeline_type(pipeline, "SummarizationPipeline"):
         pipeline_info = {
             "inputs": components.Textbox(lines=7, label="Input", render=False),
             "outputs": components.Textbox(label="Summary", render=False),
@@ -114,9 +104,7 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(transformers, "TextClassificationPipeline") and isinstance(
-        pipeline, pipelines.text_classification.TextClassificationPipeline
-    ):
+    elif is_transformers_pipeline_type(pipeline, "TextClassificationPipeline"):
         pipeline_info = {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Label(label="Classification", render=False),
@@ -125,9 +113,7 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(transformers, "TextGenerationPipeline") and isinstance(
-        pipeline, pipelines.text_generation.TextGenerationPipeline
-    ):
+    elif is_transformers_pipeline_type(pipeline, "TextGenerationPipeline"):
         pipeline_info = {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Textbox(label="Output", render=False),
@@ -136,18 +122,14 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(transformers, "TranslationPipeline") and isinstance(
-        pipeline, pipelines.text2text_generation.TranslationPipeline
-    ):
+    elif is_transformers_pipeline_type(pipeline, "TranslationPipeline"):
         pipeline_info = {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Textbox(label="Translation", render=False),
             "preprocess": lambda x: [x],
             "postprocess": lambda r: r[0]["translation_text"],
         }
-    elif hasattr(transformers, "Text2TextGenerationPipeline") and isinstance(
-        pipeline, pipelines.text2text_generation.Text2TextGenerationPipeline
-    ):
+    elif is_transformers_pipeline_type(pipeline, "Text2TextGenerationPipeline"):
         pipeline_info = {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Textbox(label="Generated Text", render=False),
@@ -156,9 +138,7 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(transformers, "ZeroShotClassificationPipeline") and isinstance(
-        pipeline, pipelines.zero_shot_classification.ZeroShotClassificationPipeline
-    ):
+    elif is_transformers_pipeline_type(pipeline, "ZeroShotClassificationPipeline"):
         pipeline_info = {
             "inputs": [
                 components.Textbox(label="Input", render=False),
@@ -179,10 +159,7 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(transformers, "DocumentQuestionAnsweringPipeline") and isinstance(
-        pipeline,
-        pipelines.document_question_answering.DocumentQuestionAnsweringPipeline,  # type: ignore
-    ):
+    elif is_transformers_pipeline_type(pipeline, "DocumentQuestionAnsweringPipeline"):
         pipeline_info = {
             "inputs": [
                 components.Image(type="filepath", label="Input Document", render=False),
@@ -194,9 +171,7 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(transformers, "VisualQuestionAnsweringPipeline") and isinstance(
-        pipeline, pipelines.visual_question_answering.VisualQuestionAnsweringPipeline
-    ):
+    elif is_transformers_pipeline_type(pipeline, "VisualQuestionAnsweringPipeline"):
         pipeline_info = {
             "inputs": [
                 components.Image(type="filepath", label="Input Image", render=False),
@@ -208,10 +183,7 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(transformers, "ImageToTextPipeline") and isinstance(
-        pipeline,
-        pipelines.image_to_text.ImageToTextPipeline,  # type: ignore
-    ):
+    elif is_transformers_pipeline_type(pipeline, "ImageToTextPipeline"):
         pipeline_info = {
             "inputs": components.Image(
                 type="filepath", label="Input Image", render=False
@@ -222,9 +194,7 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(transformers, "ObjectDetectionPipeline") and isinstance(
-        pipeline, pipelines.object_detection.ObjectDetectionPipeline
-    ):
+    elif is_transformers_pipeline_type(pipeline, "ObjectDetectionPipeline"):
         pipeline_info = {
             "inputs": components.Image(
                 type="filepath", label="Input Image", render=False
@@ -255,7 +225,7 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
         raise ValueError(f"Unsupported pipeline type: {type(pipeline)}")
 
 
-def _handle_diffusers_pipeline(pipeline: Any) -> dict:
+def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
     try:
         import diffusers
         from diffusers import pipelines as diffuser_pipelines
@@ -265,11 +235,12 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
             "diffusers not installed. Please try `pip install diffusers`"
         ) from ie
 
+    def is_diffusers_pipeline_type(pipeline, class_name: str):
+        cls = getattr(diffusers, class_name, None)
+        return cls and isinstance(pipeline, cls)
+
     # Handle diffuser pipelines
-    if hasattr(diffusers, "StableDiffusionPipeline") and isinstance(
-        pipeline,
-        diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion.StableDiffusionPipeline,
-    ):
+    if is_diffusers_pipeline_type(pipeline, "StableDiffusionPipeline"):
         pipeline_info = {
             "inputs": [
                 components.Textbox(label="Prompt", render=False),
@@ -302,10 +273,7 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(diffusers, "StableDiffusionImg2ImgPipeline") and isinstance(
-        pipeline,
-        diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion_img2img.StableDiffusionImg2ImgPipeline,
-    ):
+    elif is_diffusers_pipeline_type(pipeline, "StableDiffusionImg2ImgPipeline"):
         pipeline_info = {
             "inputs": [
                 components.Textbox(label="Prompt", render=False),
@@ -349,10 +317,7 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(diffusers, "StableDiffusionInpaintPipeline") and isinstance(
-        pipeline,
-        diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion_inpaint.StableDiffusionInpaintPipeline,
-    ):
+    elif is_diffusers_pipeline_type(pipeline, "StableDiffusionInpaintPipeline"):
         pipeline_info = {
             "inputs": [
                 components.Textbox(label="Prompt", render=False),
@@ -399,10 +364,7 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(diffusers, "StableDiffusionDepth2ImgPipeline") and isinstance(
-        pipeline,
-        diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion_depth2img.StableDiffusionDepth2ImgPipeline,
-    ):
+    elif is_diffusers_pipeline_type(pipeline, "StableDiffusionDepth2ImgPipeline"):
         pipeline_info = {
             "inputs": [
                 components.Textbox(label="Prompt", render=False),
@@ -446,10 +408,7 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(diffusers, "StableDiffusionImageVariationPipeline") and isinstance(
-        pipeline,
-        diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion_image_variation.StableDiffusionImageVariationPipeline,
-    ):
+    elif is_diffusers_pipeline_type(pipeline, "StableDiffusionImageVariationPipeline"):
         pipeline_info = {
             "inputs": [
                 components.Image(type="filepath", label="Image", render=False),
@@ -480,10 +439,7 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(diffusers, "StableDiffusionInstructPix2PixPipeline") and isinstance(
-        pipeline,
-        diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion_instruct_pix2pix.StableDiffusionInstructPix2PixPipeline,
-    ):
+    elif is_diffusers_pipeline_type(pipeline, "StableDiffusionInstructPix2PixPipeline"):
         pipeline_info = {
             "inputs": [
                 components.Textbox(label="Prompt", render=False),
@@ -531,10 +487,7 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
         }
         return pipeline_info
 
-    elif hasattr(diffusers, "StableDiffusionUpscalePipeline") and isinstance(
-        pipeline,
-        diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion_upscale.StableDiffusionUpscalePipeline,
-    ):
+    elif is_diffusers_pipeline_type(pipeline, "StableDiffusionUpscalePipeline"):
         pipeline_info = {
             "inputs": [
                 components.Textbox(label="Prompt", render=False),
@@ -580,4 +533,3 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
 
     else:
         raise ValueError(f"Unsupported pipeline type: {type(pipeline)}")
-
