@@ -20,11 +20,13 @@ def load_from_pipeline(pipeline: Any) -> dict:
     """
 
 
-
-    if str(type(pipeline)).startswith("<class 'transformers.pipelines"):
+    # module of pipeline will look like this:
+    # for transformers.pipelines: transformers.pipelines.xxxxxx.xxxx
+    # for diffusers.pipelines: diffusers.pipelines.xxxxx.xxxx
+    if str(type(pipeline).__module__).startswith("transformers.pipelines"):
         pipeline_info = _handle_transformers_pipeline(pipeline)
 
-    elif str(type(pipeline)).startswith("<class 'diffusers.pipelines"):
+    elif str(type(pipeline).__module__).startswith("diffusers.pipelines"):
         pipeline_info = _handle_diffusers_pipeline(pipeline)
 
     else:
@@ -35,7 +37,7 @@ def load_from_pipeline(pipeline: Any) -> dict:
     # define the function that will be called by the Interface
     def fn(*params):
         data = pipeline_info["preprocess"](*params)
-        if "transformers.pipelines" in str(type(pipeline)):
+        if str(type(pipeline).__module__).startswith("transformers.pipelines"):
             from transformers import pipelines
 
             # special cases that needs to be handled differently
@@ -61,7 +63,7 @@ def load_from_pipeline(pipeline: Any) -> dict:
                 output = pipeline_info["postprocess"](data)
             return output
 
-        elif str(type(pipeline)).startswith("<class 'diffusers.pipelines"):
+        elif str(type(pipeline).__module__).startswith("diffusers.pipelines"):
             data = pipeline(**data)
             output = pipeline_info["postprocess"](data)
             return output
@@ -74,7 +76,7 @@ def load_from_pipeline(pipeline: Any) -> dict:
     # define the title/description of the Interface
     interface_info["title"] = (
         pipeline.model.__class__.__name__
-        if str(type(pipeline)).startswith("<class 'transformers.pipelines")
+        if str(type(pipeline).__module__).startswith("transformers.pipelines")
         else pipeline.__class__.__name__
     )
 
