@@ -35,39 +35,42 @@ def load_from_pipeline(pipeline: Any) -> dict:
 
     # define the function that will be called by the Interface
     def fn(*params):
-        data = pipeline_info["preprocess"](*params)
-        if str(type(pipeline).__module__).startswith("transformers.pipelines"):
-            from transformers import pipelines
+        if pipeline_info:
+            data = pipeline_info["preprocess"](*params)
+            if str(type(pipeline).__module__).startswith("transformers.pipelines"):
+                from transformers import pipelines
 
-            # special cases that needs to be handled differently
-            if isinstance(
-                pipeline,
-                (
-                    pipelines.text_classification.TextClassificationPipeline,
-                    pipelines.text2text_generation.Text2TextGenerationPipeline,
-                    pipelines.text2text_generation.TranslationPipeline,
-                ),
-            ):
-                data = pipeline(*data)
-            else:
+                # special cases that needs to be handled differently
+                if isinstance(
+                    pipeline,
+                    (
+                        pipelines.text_classification.TextClassificationPipeline,
+                        pipelines.text2text_generation.Text2TextGenerationPipeline,
+                        pipelines.text2text_generation.TranslationPipeline,
+                    ),
+                ):
+                    data = pipeline(*data)
+                else:
+                    data = pipeline(**data)
+                # special case for object-detection
+                # original input image sent to postprocess function
+                if isinstance(
+                    pipeline,
+                    pipelines.object_detection.ObjectDetectionPipeline,
+                ):
+                    output = pipeline_info["postprocess"](data, params[0])
+                else:
+                    output = pipeline_info["postprocess"](data)
+                return output
+
+            elif str(type(pipeline).__module__).startswith("diffusers.pipelines"):
                 data = pipeline(**data)
-            # special case for object-detection
-            # original input image sent to postprocess function
-            if isinstance(
-                pipeline,
-                pipelines.object_detection.ObjectDetectionPipeline,
-            ):
-                output = pipeline_info["postprocess"](data, params[0])
-            else:
                 output = pipeline_info["postprocess"](data)
-            return output
+                return output
+        else:
+            raise ValueError("pipeline_info can not be None.")
 
-        elif str(type(pipeline).__module__).startswith("diffusers.pipelines"):
-            data = pipeline(**data)
-            output = pipeline_info["postprocess"](data)
-            return output
-
-    interface_info = pipeline_info.copy()
+    interface_info = pipeline_info.copy() if pipeline_info else {}
     interface_info["fn"] = fn
     del interface_info["preprocess"]
     del interface_info["postprocess"]
