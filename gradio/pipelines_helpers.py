@@ -35,6 +35,8 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
             "preprocess": lambda i: {"inputs": i},
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
+        return pipeline_info
+
     elif hasattr(transformers, "AutomaticSpeechRecognitionPipeline") and isinstance(
         pipeline,
         pipelines.automatic_speech_recognition.AutomaticSpeechRecognitionPipeline,
@@ -47,6 +49,8 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
             "preprocess": lambda i: {"inputs": i},
             "postprocess": lambda r: r["text"],
         }
+        return pipeline_info
+
     elif hasattr(transformers, "FeatureExtractionPipeline") and isinstance(
         pipeline, pipelines.feature_extraction.FeatureExtractionPipeline
     ):
@@ -56,6 +60,8 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r[0],
         }
+        return pipeline_info
+
     elif hasattr(transformers, "FillMaskPipeline") and isinstance(
         pipeline, pipelines.fill_mask.FillMaskPipeline
     ):
@@ -65,6 +71,8 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: {i["token_str"]: i["score"] for i in r},
         }
+        return pipeline_info
+
     elif hasattr(transformers, "ImageClassificationPipeline") and isinstance(
         pipeline, pipelines.image_classification.ImageClassificationPipeline
     ):
@@ -76,6 +84,8 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
             "preprocess": lambda i: {"images": i},
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
+        return pipeline_info
+
     elif hasattr(transformers, "QuestionAnsweringPipeline") and isinstance(
         pipeline, pipelines.question_answering.QuestionAnsweringPipeline
     ):
@@ -91,6 +101,8 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
             "preprocess": lambda c, q: {"context": c, "question": q},
             "postprocess": lambda r: (r["answer"], r["score"]),
         }
+        return pipeline_info
+
     elif hasattr(transformers, "SummarizationPipeline") and isinstance(
         pipeline, pipelines.text2text_generation.SummarizationPipeline
     ):
@@ -100,6 +112,8 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r[0]["summary_text"],
         }
+        return pipeline_info
+
     elif hasattr(transformers, "TextClassificationPipeline") and isinstance(
         pipeline, pipelines.text_classification.TextClassificationPipeline
     ):
@@ -109,6 +123,8 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
             "preprocess": lambda x: [x],
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
+        return pipeline_info
+
     elif hasattr(transformers, "TextGenerationPipeline") and isinstance(
         pipeline, pipelines.text_generation.TextGenerationPipeline
     ):
@@ -118,6 +134,8 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
             "preprocess": lambda x: {"text_inputs": x},
             "postprocess": lambda r: r[0]["generated_text"],
         }
+        return pipeline_info
+
     elif hasattr(transformers, "TranslationPipeline") and isinstance(
         pipeline, pipelines.text2text_generation.TranslationPipeline
     ):
@@ -136,6 +154,8 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
             "preprocess": lambda x: [x],
             "postprocess": lambda r: r[0]["generated_text"],
         }
+        return pipeline_info
+
     elif hasattr(transformers, "ZeroShotClassificationPipeline") and isinstance(
         pipeline, pipelines.zero_shot_classification.ZeroShotClassificationPipeline
     ):
@@ -157,6 +177,8 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
                 r["labels"][i]: r["scores"][i] for i in range(len(r["labels"]))
             },
         }
+        return pipeline_info
+
     elif hasattr(transformers, "DocumentQuestionAnsweringPipeline") and isinstance(
         pipeline,
         pipelines.document_question_answering.DocumentQuestionAnsweringPipeline,  # type: ignore
@@ -170,6 +192,8 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
             "preprocess": lambda img, q: {"image": img, "question": q},
             "postprocess": lambda r: {i["answer"]: i["score"] for i in r},
         }
+        return pipeline_info
+
     elif hasattr(transformers, "VisualQuestionAnsweringPipeline") and isinstance(
         pipeline, pipelines.visual_question_answering.VisualQuestionAnsweringPipeline
     ):
@@ -182,6 +206,8 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
             "preprocess": lambda img, q: {"image": img, "question": q},
             "postprocess": lambda r: {i["answer"]: i["score"] for i in r},
         }
+        return pipeline_info
+
     elif hasattr(transformers, "ImageToTextPipeline") and isinstance(
         pipeline,
         pipelines.image_to_text.ImageToTextPipeline,  # type: ignore
@@ -194,6 +220,8 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
             "preprocess": lambda i: {"images": i},
             "postprocess": lambda r: r[0]["generated_text"],
         }
+        return pipeline_info
+
     elif hasattr(transformers, "ObjectDetectionPipeline") and isinstance(
         pipeline, pipelines.object_detection.ObjectDetectionPipeline
     ):
@@ -221,9 +249,10 @@ def _handle_transformers_pipeline(pipeline: Any) -> dict:
                 ],
             ),
         }
+        return pipeline_info
+
     else:
         raise ValueError(f"Unsupported pipeline type: {type(pipeline)}")
-    return pipeline_info
 
 
 def _handle_diffusers_pipeline(pipeline: Any) -> dict:
@@ -271,6 +300,8 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
             },
             "postprocess": lambda r: r["images"][0],
         }
+        return pipeline_info
+
     elif hasattr(diffusers, "StableDiffusionImg2ImgPipeline") and isinstance(
         pipeline,
         diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion_img2img.StableDiffusionImg2ImgPipeline,
@@ -316,6 +347,8 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
             },
             "postprocess": lambda r: r["images"][0],
         }
+        return pipeline_info
+
     elif hasattr(diffusers, "StableDiffusionInpaintPipeline") and isinstance(
         pipeline,
         diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion_inpaint.StableDiffusionInpaintPipeline,
@@ -364,6 +397,8 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
             },
             "postprocess": lambda r: r["images"][0],
         }
+        return pipeline_info
+
     elif hasattr(diffusers, "StableDiffusionDepth2ImgPipeline") and isinstance(
         pipeline,
         diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion_depth2img.StableDiffusionDepth2ImgPipeline,
@@ -409,6 +444,8 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
             },
             "postprocess": lambda r: r["images"][0],
         }
+        return pipeline_info
+
     elif hasattr(diffusers, "StableDiffusionImageVariationPipeline") and isinstance(
         pipeline,
         diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion_image_variation.StableDiffusionImageVariationPipeline,
@@ -441,6 +478,8 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
             },
             "postprocess": lambda r: r["images"][0],
         }
+        return pipeline_info
+
     elif hasattr(diffusers, "StableDiffusionInstructPix2PixPipeline") and isinstance(
         pipeline,
         diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion_instruct_pix2pix.StableDiffusionInstructPix2PixPipeline,
@@ -490,6 +529,8 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
             },
             "postprocess": lambda r: r["images"][0],
         }
+        return pipeline_info
+
     elif hasattr(diffusers, "StableDiffusionUpscalePipeline") and isinstance(
         pipeline,
         diffuser_pipelines.stable_diffusion.pipeline_stable_diffusion_upscale.StableDiffusionUpscalePipeline,
@@ -535,7 +576,8 @@ def _handle_diffusers_pipeline(pipeline: Any) -> dict:
             },
             "postprocess": lambda r: r["images"][0],
         }
+        return pipeline_info
+
     else:
         raise ValueError(f"Unsupported pipeline type: {type(pipeline)}")
 
-    return pipeline_info

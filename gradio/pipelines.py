@@ -19,6 +19,8 @@ def load_from_pipeline(pipeline: Any) -> dict:
     (dict): a dictionary of kwargs that can be used to construct an Interface object
     """
 
+
+
     if str(type(pipeline)).startswith("<class 'transformers.pipelines"):
         pipeline_info = _handle_transformers_pipeline(pipeline)
 
@@ -33,7 +35,7 @@ def load_from_pipeline(pipeline: Any) -> dict:
     # define the function that will be called by the Interface
     def fn(*params):
         data = pipeline_info["preprocess"](*params)
-        if "tranformers.pipelines" in str(type(pipeline)):
+        if "transformers.pipelines" in str(type(pipeline)):
             from transformers import pipelines
 
             # special cases that needs to be handled differently
@@ -72,7 +74,7 @@ def load_from_pipeline(pipeline: Any) -> dict:
     # define the title/description of the Interface
     interface_info["title"] = (
         pipeline.model.__class__.__name__
-        if str(type(pipeline)).startswith("<class 'transfomers.pipelines")
+        if str(type(pipeline)).startswith("<class 'transformers.pipelines")
         else pipeline.__class__.__name__
     )
 
