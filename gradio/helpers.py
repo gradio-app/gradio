@@ -346,7 +346,8 @@ class Examples:
                 batch=self.batch,
             )
 
-            assert self.outputs is not None
+            if self.outputs is None:
+                raise ValueError("self.outputs is missing")
             cache_logger.setup(self.outputs, self.cached_folder)
             for example_id, _ in enumerate(self.examples):
                 print(f"Caching example {example_id + 1}/{len(self.examples)}")
@@ -405,7 +406,8 @@ class Examples:
             examples = list(csv.reader(cache))
         example = examples[example_id + 1]  # +1 to adjust for header
         output = []
-        assert self.outputs is not None
+        if self.outputs is None:
+            raise ValueError("self.outputs is missing")
         for component, value in zip(self.outputs, example):
             value_to_use = value
             try:
@@ -417,9 +419,10 @@ class Examples:
                     component, components.File
                 ):
                     value_to_use = value_as_dict
-                assert utils.is_update(value_as_dict)
+                if not utils.is_update(value_as_dict):
+                    raise TypeError("value wasn't an update")  # caught below
                 output.append(value_as_dict)
-            except (ValueError, TypeError, SyntaxError, AssertionError):
+            except (ValueError, TypeError, SyntaxError):
                 output.append(component.read_from_flag(value_to_use))
         return output
 
@@ -784,9 +787,7 @@ def special_args(
 
                 # Inject user token
                 elif type_hint in (Optional[oauth.OAuthToken], oauth.OAuthToken):
-                    oauth_info = (
-                        session["oauth_info"] if "oauth_info" in session else None
-                    )
+                    oauth_info = session.get("oauth_info", None)
                     oauth_token = (
                         oauth.OAuthToken(
                             token=oauth_info["access_token"],
@@ -912,7 +913,8 @@ def make_waveform(
         return [int(hex_str[i : i + 2], 16) for i in range(1, 6, 2)]
 
     def get_color_gradient(c1, c2, n):
-        assert n > 1
+        if n < 1:
+            raise ValueError("Must have at least one stop in gradient")
         c1_rgb = np.array(hex_to_rgb(c1)) / 255
         c2_rgb = np.array(hex_to_rgb(c2)) / 255
         mix_pcts = [x / (n - 1) for x in range(n)]
