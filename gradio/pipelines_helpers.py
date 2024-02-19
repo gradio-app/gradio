@@ -27,7 +27,7 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
     # Handle the different pipelines. The has_attr() checks to make sure the pipeline exists in the
     # version of the transformers library that the user has installed.
     if is_transformers_pipeline_type(pipeline, "AudioClassificationPipeline"):
-        pipeline_info = {
+        return {
             "inputs": components.Audio(
                 sources=["microphone"],
                 type="filepath",
@@ -38,10 +38,9 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda i: {"inputs": i},
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
-        return pipeline_info
 
-    elif is_transformers_pipeline_type(pipeline, "AutomaticSpeechRecognitionPipeline"):
-        pipeline_info = {
+    if is_transformers_pipeline_type(pipeline, "AutomaticSpeechRecognitionPipeline"):
+        return {
             "inputs": components.Audio(
                 sources=["microphone"], type="filepath", label="Input", render=False
             ),
@@ -49,28 +48,25 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda i: {"inputs": i},
             "postprocess": lambda r: r["text"],
         }
-        return pipeline_info
 
-    elif is_transformers_pipeline_type(pipeline, "FeatureExtractionPipeline"):
-        pipeline_info = {
+    if is_transformers_pipeline_type(pipeline, "FeatureExtractionPipeline"):
+        return {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Dataframe(label="Output", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r[0],
         }
-        return pipeline_info
 
-    elif is_transformers_pipeline_type(pipeline, "FillMaskPipeline"):
-        pipeline_info = {
+    if is_transformers_pipeline_type(pipeline, "FillMaskPipeline"):
+        return {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Label(label="Classification", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: {i["token_str"]: i["score"] for i in r},
         }
-        return pipeline_info
 
-    elif is_transformers_pipeline_type(pipeline, "ImageClassificationPipeline"):
-        pipeline_info = {
+    if is_transformers_pipeline_type(pipeline, "ImageClassificationPipeline"):
+        return {
             "inputs": components.Image(
                 type="filepath", label="Input Image", render=False
             ),
@@ -78,10 +74,9 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda i: {"images": i},
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
-        return pipeline_info
 
-    elif is_transformers_pipeline_type(pipeline, "QuestionAnsweringPipeline"):
-        pipeline_info = {
+    if is_transformers_pipeline_type(pipeline, "QuestionAnsweringPipeline"):
+        return {
             "inputs": [
                 components.Textbox(lines=7, label="Context", render=False),
                 components.Textbox(label="Question", render=False),
@@ -93,53 +88,49 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda c, q: {"context": c, "question": q},
             "postprocess": lambda r: (r["answer"], r["score"]),
         }
-        return pipeline_info
 
-    elif is_transformers_pipeline_type(pipeline, "SummarizationPipeline"):
-        pipeline_info = {
+    if is_transformers_pipeline_type(pipeline, "SummarizationPipeline"):
+        return {
             "inputs": components.Textbox(lines=7, label="Input", render=False),
             "outputs": components.Textbox(label="Summary", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r[0]["summary_text"],
         }
-        return pipeline_info
 
-    elif is_transformers_pipeline_type(pipeline, "TextClassificationPipeline"):
-        pipeline_info = {
+    if is_transformers_pipeline_type(pipeline, "TextClassificationPipeline"):
+        return {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Label(label="Classification", render=False),
             "preprocess": lambda x: [x],
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
-        return pipeline_info
 
-    elif is_transformers_pipeline_type(pipeline, "TextGenerationPipeline"):
-        pipeline_info = {
+    if is_transformers_pipeline_type(pipeline, "TextGenerationPipeline"):
+        return {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Textbox(label="Output", render=False),
             "preprocess": lambda x: {"text_inputs": x},
             "postprocess": lambda r: r[0]["generated_text"],
         }
-        return pipeline_info
 
-    elif is_transformers_pipeline_type(pipeline, "TranslationPipeline"):
-        pipeline_info = {
+    if is_transformers_pipeline_type(pipeline, "TranslationPipeline"):
+        return {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Textbox(label="Translation", render=False),
             "preprocess": lambda x: [x],
             "postprocess": lambda r: r[0]["translation_text"],
         }
-    elif is_transformers_pipeline_type(pipeline, "Text2TextGenerationPipeline"):
-        pipeline_info = {
+
+    if is_transformers_pipeline_type(pipeline, "Text2TextGenerationPipeline"):
+        return {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Textbox(label="Generated Text", render=False),
             "preprocess": lambda x: [x],
             "postprocess": lambda r: r[0]["generated_text"],
         }
-        return pipeline_info
 
-    elif is_transformers_pipeline_type(pipeline, "ZeroShotClassificationPipeline"):
-        pipeline_info = {
+    if is_transformers_pipeline_type(pipeline, "ZeroShotClassificationPipeline"):
+        return {
             "inputs": [
                 components.Textbox(label="Input", render=False),
                 components.Textbox(
@@ -157,10 +148,9 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
                 r["labels"][i]: r["scores"][i] for i in range(len(r["labels"]))
             },
         }
-        return pipeline_info
 
-    elif is_transformers_pipeline_type(pipeline, "DocumentQuestionAnsweringPipeline"):
-        pipeline_info = {
+    if is_transformers_pipeline_type(pipeline, "DocumentQuestionAnsweringPipeline"):
+        return {
             "inputs": [
                 components.Image(type="filepath", label="Input Document", render=False),
                 components.Textbox(label="Question", render=False),
@@ -169,10 +159,9 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda img, q: {"image": img, "question": q},
             "postprocess": lambda r: {i["answer"]: i["score"] for i in r},
         }
-        return pipeline_info
 
-    elif is_transformers_pipeline_type(pipeline, "VisualQuestionAnsweringPipeline"):
-        pipeline_info = {
+    if is_transformers_pipeline_type(pipeline, "VisualQuestionAnsweringPipeline"):
+        return {
             "inputs": [
                 components.Image(type="filepath", label="Input Image", render=False),
                 components.Textbox(label="Question", render=False),
@@ -181,10 +170,9 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda img, q: {"image": img, "question": q},
             "postprocess": lambda r: {i["answer"]: i["score"] for i in r},
         }
-        return pipeline_info
 
-    elif is_transformers_pipeline_type(pipeline, "ImageToTextPipeline"):
-        pipeline_info = {
+    if is_transformers_pipeline_type(pipeline, "ImageToTextPipeline"):
+        return {
             "inputs": components.Image(
                 type="filepath", label="Input Image", render=False
             ),
@@ -192,10 +180,9 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda i: {"images": i},
             "postprocess": lambda r: r[0]["generated_text"],
         }
-        return pipeline_info
 
-    elif is_transformers_pipeline_type(pipeline, "ObjectDetectionPipeline"):
-        pipeline_info = {
+    if is_transformers_pipeline_type(pipeline, "ObjectDetectionPipeline"):
+        return {
             "inputs": components.Image(
                 type="filepath", label="Input Image", render=False
             ),
@@ -219,10 +206,8 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
                 ],
             ),
         }
-        return pipeline_info
 
-    else:
-        raise ValueError(f"Unsupported pipeline type: {type(pipeline)}")
+    raise ValueError(f"Unsupported pipeline type: {type(pipeline)}")
 
 
 def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
@@ -241,7 +226,7 @@ def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
 
     # Handle diffuser pipelines
     if is_diffusers_pipeline_type(pipeline, "StableDiffusionPipeline"):
-        pipeline_info = {
+        return {
             "inputs": [
                 components.Textbox(label="Prompt", render=False),
                 components.Textbox(label="Negative prompt", render=False),
@@ -271,10 +256,9 @@ def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             },
             "postprocess": lambda r: r["images"][0],
         }
-        return pipeline_info
 
-    elif is_diffusers_pipeline_type(pipeline, "StableDiffusionImg2ImgPipeline"):
-        pipeline_info = {
+    if is_diffusers_pipeline_type(pipeline, "StableDiffusionImg2ImgPipeline"):
+        return {
             "inputs": [
                 components.Textbox(label="Prompt", render=False),
                 components.Textbox(label="Negative prompt", render=False),
@@ -315,10 +299,9 @@ def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             },
             "postprocess": lambda r: r["images"][0],
         }
-        return pipeline_info
 
-    elif is_diffusers_pipeline_type(pipeline, "StableDiffusionInpaintPipeline"):
-        pipeline_info = {
+    if is_diffusers_pipeline_type(pipeline, "StableDiffusionInpaintPipeline"):
+        return {
             "inputs": [
                 components.Textbox(label="Prompt", render=False),
                 components.Textbox(label="Negative prompt", render=False),
@@ -362,10 +345,9 @@ def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             },
             "postprocess": lambda r: r["images"][0],
         }
-        return pipeline_info
 
-    elif is_diffusers_pipeline_type(pipeline, "StableDiffusionDepth2ImgPipeline"):
-        pipeline_info = {
+    if is_diffusers_pipeline_type(pipeline, "StableDiffusionDepth2ImgPipeline"):
+        return {
             "inputs": [
                 components.Textbox(label="Prompt", render=False),
                 components.Textbox(label="Negative prompt", render=False),
@@ -406,10 +388,9 @@ def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             },
             "postprocess": lambda r: r["images"][0],
         }
-        return pipeline_info
 
-    elif is_diffusers_pipeline_type(pipeline, "StableDiffusionImageVariationPipeline"):
-        pipeline_info = {
+    if is_diffusers_pipeline_type(pipeline, "StableDiffusionImageVariationPipeline"):
+        return {
             "inputs": [
                 components.Image(type="filepath", label="Image", render=False),
                 components.Slider(
@@ -437,10 +418,9 @@ def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             },
             "postprocess": lambda r: r["images"][0],
         }
-        return pipeline_info
 
-    elif is_diffusers_pipeline_type(pipeline, "StableDiffusionInstructPix2PixPipeline"):
-        pipeline_info = {
+    if is_diffusers_pipeline_type(pipeline, "StableDiffusionInstructPix2PixPipeline"):
+        return {
             "inputs": [
                 components.Textbox(label="Prompt", render=False),
                 components.Textbox(label="Negative prompt", render=False),
@@ -485,10 +465,9 @@ def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             },
             "postprocess": lambda r: r["images"][0],
         }
-        return pipeline_info
 
-    elif is_diffusers_pipeline_type(pipeline, "StableDiffusionUpscalePipeline"):
-        pipeline_info = {
+    if is_diffusers_pipeline_type(pipeline, "StableDiffusionUpscalePipeline"):
+        return {
             "inputs": [
                 components.Textbox(label="Prompt", render=False),
                 components.Textbox(label="Negative prompt", render=False),
@@ -529,7 +508,5 @@ def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             },
             "postprocess": lambda r: r["images"][0],
         }
-        return pipeline_info
 
-    else:
-        raise ValueError(f"Unsupported pipeline type: {type(pipeline)}")
+    raise ValueError(f"Unsupported pipeline type: {type(pipeline)}")
