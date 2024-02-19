@@ -117,6 +117,7 @@ extend-select = [
   "I",
   "N",
   "PL",
+  "S101",
   "SIM",
   "UP",
   "W",
@@ -157,9 +158,11 @@ ignore = [
 ]
 "client/python/test/*" = [
   "ARG",
+  "S101", # tests may use assertions
 ]
 "test/*" = [
   "ARG",
+  "S101", # tests may use assertions
 ]
 
 [tool.pytest.ini_options]
