@@ -171,7 +171,7 @@ class App(FastAPI):
 
     def build_proxy_request(self, url_path):
         url = httpx.URL(url_path)
-        assert self.blocks
+        assert self.blocks  # noqa: S101
         # Don't proxy a URL unless it's a URL specifically loaded by the user using
         # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.
         is_safe_url = any(
@@ -801,7 +801,8 @@ class App(FastAPI):
             files_to_copy = []
             locations: list[str] = []
             for temp_file in form.getlist("files"):
-                assert isinstance(temp_file, GradioUploadFile)
+                if not isinstance(temp_file, GradioUploadFile):
+                    raise TypeError("File is not an instance of GradioUploadFile")
                 if temp_file.filename:
                     file_name = Path(temp_file.filename).name
                     name = client_utils.strip_invalid_filename_characters(file_name)

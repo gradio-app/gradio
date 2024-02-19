@@ -399,9 +399,6 @@ class GradioMultiPartParser:
         upload_id: str | None = None,
         upload_progress: FileUploadProgress | None = None,
     ) -> None:
-        assert (
-            multipart is not None
-        ), "The `python-multipart` library must be installed to use form parsing."
         self.headers = headers
         self.stream = stream
         self.max_files = max_files
@@ -538,11 +535,11 @@ class GradioMultiPartParser:
                 # (regular, non-async functions), that would block the event loop in
                 # the main thread.
                 for part, data in self._file_parts_to_write:
-                    assert part.file  # for type checkers
+                    assert part.file  # for type checkers  # noqa: S101
                     await part.file.write(data)
                     part.file.sha.update(data)  # type: ignore
                 for part in self._file_parts_to_finish:
-                    assert part.file  # for type checkers
+                    assert part.file  # for type checkers  # noqa: S101
                     await part.file.seek(0)
                 self._file_parts_to_write.clear()
                 self._file_parts_to_finish.clear()
