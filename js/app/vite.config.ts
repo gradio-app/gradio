@@ -100,6 +100,7 @@ export default defineConfig(({ mode }) => {
 
 		define: {
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
+			GRADIO_E2E_TEST_LITE: process.env.GRADIO_E2E_TEST_LITE,
 			BACKEND_URL: production
 				? JSON.stringify("")
 				: JSON.stringify("http://localhost:7860/"),
