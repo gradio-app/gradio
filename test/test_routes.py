@@ -2,10 +2,10 @@
 import functools
 import os
 import tempfile
+import time
 from contextlib import asynccontextmanager, closing
 from unittest.mock import patch
 
-import time
 import gradio_client as grc
 import numpy as np
 import pandas as pd

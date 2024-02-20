@@ -539,7 +539,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             js: Custom js or path to js file to run when demo is first loaded. This javascript will be included in the demo webpage.
             head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
             fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
-            delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the contents of GRADIO_CACHE_DIR created by this Blocks instance will be deleted if they are older than `age` seconds. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
+            delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the contents of GRADIO_CACHE_DIR created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
         """
         self.limiter = None
         if theme is None:
