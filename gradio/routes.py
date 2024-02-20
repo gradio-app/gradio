@@ -63,6 +63,7 @@ from gradio.route_utils import (  # noqa: F401
     GradioUploadFile,
     MultiPartException,
     Request,
+    compare_passwords_securely,
     move_uploaded_files_to_cache,
 )
 from gradio.state_holder import StateHolder
@@ -170,7 +171,7 @@ class App(FastAPI):
 
     def build_proxy_request(self, url_path):
         url = httpx.URL(url_path)
-        assert self.blocks
+        assert self.blocks  # noqa: S101
         # Don't proxy a URL unless it's a URL specifically loaded by the user using
         # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.
         is_safe_url = any(
@@ -271,7 +272,7 @@ class App(FastAPI):
             if (
                 not callable(app.auth)
                 and username in app.auth
-                and app.auth[username] == password
+                and compare_passwords_securely(password, app.auth[username])  # type: ignore
             ) or (callable(app.auth) and app.auth.__call__(username, password)):
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
@@ -427,18 +428,27 @@ class App(FastAPI):
                 return RedirectResponse(
                     url=path_or_url, status_code=status.HTTP_302_FOUND
                 )
+
+            if route_utils.starts_with_protocol(path_or_url):
+                raise HTTPException(403, f"File not allowed: {path_or_url}.")
+
             abs_path = utils.abspath(path_or_url)
 
             in_blocklist = any(
                 utils.is_in_or_equal(abs_path, blocked_path)
                 for blocked_path in blocks.blocked_paths
             )
+
             is_dir = abs_path.is_dir()
 
             if in_blocklist or is_dir:
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
-            created_by_app = str(abs_path) in set().union(*blocks.temp_file_sets)
+            created_by_app = False
+            for temp_file_set in blocks.temp_file_sets:
+                if abs_path in temp_file_set:
+                    created_by_app = True
+                    break
             in_allowlist = any(
                 utils.is_in_or_equal(abs_path, allowed_path)
                 for allowed_path in blocks.allowed_paths
@@ -768,7 +778,7 @@ class App(FastAPI):
         ):
             content_type_header = request.headers.get("Content-Type")
             content_type: bytes
-            content_type, _ = parse_options_header(content_type_header)
+            content_type, _ = parse_options_header(content_type_header or "")
             if content_type != b"multipart/form-data":
                 raise HTTPException(status_code=400, detail="Invalid content type.")
 
@@ -791,7 +801,8 @@ class App(FastAPI):
             files_to_copy = []
             locations: list[str] = []
             for temp_file in form.getlist("files"):
-                assert isinstance(temp_file, GradioUploadFile)
+                if not isinstance(temp_file, GradioUploadFile):
+                    raise TypeError("File is not an instance of GradioUploadFile")
                 if temp_file.filename:
                     file_name = Path(temp_file.filename).name
                     name = client_utils.strip_invalid_filename_characters(file_name)

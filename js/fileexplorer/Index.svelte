@@ -17,6 +17,7 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: string[][];
+	let old_value: string[][];
 	export let label: string;
 	export let show_label: boolean;
 	export let height: number | undefined = undefined;
@@ -37,6 +38,11 @@
 	export let interactive: boolean;
 
 	$: rerender_key = [root_dir, glob, ignore_glob];
+
+	$: if (JSON.stringify(value) !== JSON.stringify(old_value)) {
+		old_value = value;
+		gradio.dispatch("change");
+	}
 </script>
 
 <Block
@@ -69,7 +75,6 @@
 			{file_count}
 			{interactive}
 			ls_fn={server.ls}
-			on:change={() => gradio.dispatch("change")}
 		/>
 	{/key}
 </Block>

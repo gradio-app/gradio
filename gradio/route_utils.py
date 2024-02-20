@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
+import re
 import shutil
 from collections import deque
 from dataclasses import dataclass as python_dataclass
@@ -397,9 +399,6 @@ class GradioMultiPartParser:
         upload_id: str | None = None,
         upload_progress: FileUploadProgress | None = None,
     ) -> None:
-        assert (
-            multipart is not None
-        ), "The `python-multipart` library must be installed to use form parsing."
         self.headers = headers
         self.stream = stream
         self.max_files = max_files
@@ -465,12 +464,10 @@ class GradioMultiPartParser:
         self._current_partial_header_value = b""
 
     def on_headers_finished(self) -> None:
-        disposition, options = parse_options_header(
-            self._current_part.content_disposition
-        )
+        _, options = parse_options_header(self._current_part.content_disposition or b"")
         try:
             self._current_part.field_name = _user_safe_decode(
-                options[b"name"], self._charset
+                options[b"name"], str(self._charset)
             )
         except KeyError as e:
             raise MultiPartException(
@@ -482,7 +479,7 @@ class GradioMultiPartParser:
                 raise MultiPartException(
                     f"Too many files. Maximum number of files is {self.max_files}."
                 )
-            filename = _user_safe_decode(options[b"filename"], self._charset)
+            filename = _user_safe_decode(options[b"filename"], str(self._charset))
             tempfile = NamedTemporaryFile(delete=False)
             self._files_to_close_on_error.append(tempfile)
             self._current_part.file = GradioUploadFile(
@@ -515,7 +512,7 @@ class GradioMultiPartParser:
             raise MultiPartException("Missing boundary in multipart.") from e
 
         # Callbacks dictionary.
-        callbacks = {
+        callbacks: multipart.multipart.MultipartCallbacks = {
             "on_part_begin": self.on_part_begin,
             "on_part_data": self.on_part_data,
             "on_part_end": self.on_part_end,
@@ -538,11 +535,11 @@ class GradioMultiPartParser:
                 # (regular, non-async functions), that would block the event loop in
                 # the main thread.
                 for part, data in self._file_parts_to_write:
-                    assert part.file  # for type checkers
+                    assert part.file  # for type checkers  # noqa: S101
                     await part.file.write(data)
                     part.file.sha.update(data)  # type: ignore
                 for part in self._file_parts_to_finish:
-                    assert part.file  # for type checkers
+                    assert part.file  # for type checkers  # noqa: S101
                     await part.file.seek(0)
                 self._file_parts_to_write.clear()
                 self._file_parts_to_finish.clear()
@@ -569,8 +566,20 @@ def update_root_in_config(config: dict, root: str) -> dict:
     root url has changed, all of the urls in the config that correspond to component
     file urls are updated to use the new root url.
     """
-    previous_root = config.get("root", None)
+    previous_root = config.get("root")
     if previous_root is None or previous_root != root:
         config["root"] = root
         config = processing_utils.add_root_url(config, root, previous_root)
     return config
+
+
+def compare_passwords_securely(input_password: str, correct_password: str) -> bool:
+    return hmac.compare_digest(input_password.encode(), correct_password.encode())
+
+
+def starts_with_protocol(string: str) -> bool:
+    """This regex matches strings that start with a scheme (one or more characters not including colon, slash, or space)
+    followed by ://
+    """
+    pattern = r"^[a-zA-Z][a-zA-Z0-9+\-.]*://"
+    return re.match(pattern, string) is not None
