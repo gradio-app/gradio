@@ -16,6 +16,7 @@
 	export let hidden = false;
 	export let format: "blob" | "file" = "file";
 	export let uploading = false;
+	export let hidden_upload: HTMLInputElement;
 
 	let upload_id: string;
 	let file_data: FileData[];
@@ -24,7 +25,6 @@
 	// Needed for wasm support
 	const upload_fn = getContext<typeof upload_files>("upload_files");
 
-	let hidden_upload: HTMLInputElement;
 
 	const dispatch = createEventDispatcher();
 	$: if (filetype == null || typeof filetype === "string") {

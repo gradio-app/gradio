@@ -3,18 +3,19 @@
 		beforeUpdate,
 		afterUpdate,
 		createEventDispatcher,
-		tick,
-		getContext
+		tick
 	} from "svelte";
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
 	import type { FileData } from "@gradio/client";
-	import {upload, prepare_files } from "@gradio/client";
 	import { Copy, Check, Clear } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import type { SelectData } from "@gradio/utils";
 
-	export let value = "";
+	export let value: [
+		{ type: string; text: string | null } | null,
+		{ type: string; image_url: string | null } | null
+	][] = [];
 	export let images: FileData[] = [];
 	export let value_is_output = false;
 	export let lines = 1;
@@ -30,10 +31,7 @@
 	export let autoscroll = true;
 	export let root: string;
 	export let file_types: string[] | null = null;
-	export let uploading = false;
 
-	let upload_id: string;
-	let file_data: FileData[];
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let copied = false;
 	let timer: NodeJS.Timeout;
@@ -43,8 +41,6 @@
 
 	let dragging = false;
 	$: dispatch("drag", dragging);
-
-	const upload_fn = getContext<typeof upload_files>("upload_files");
 
 	let accept_file_types: string | null;
 	if (file_types == null) {
@@ -61,10 +57,8 @@
 
 	$: value, el && lines !== max_lines && resize({ target: el });
 
-	$: if (value === null) value = "";
-
 	const dispatch = createEventDispatcher<{
-		change: string;
+		change: typeof value;
 		submit: undefined;
 		blur: undefined;
 		select: SelectData;
@@ -72,6 +66,9 @@
 		focus: undefined;
 		drag: boolean;
 		upload: FileData[] | FileData;
+		clear: undefined;
+		load: FileData[] | FileData;
+		error: string;
 	}>();
 
 	beforeUpdate(() => {
@@ -103,7 +100,7 @@
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
-			await navigator.clipboard.writeText(value);
+			await navigator.clipboard.writeText(value["text"]);
 			copy_feedback();
 		}
 	}
@@ -204,40 +201,33 @@
 		};
 	}
 
-	let selectedFile;
 
 	async function handle_upload({
 		detail
-	}: CustomEvent<FileData>): Promise<void> {
-		images.push(detail);
-		images = images;
+	}: CustomEvent<FileData | FileData[]>): Promise<void> {
+		if (Array.isArray(detail)) {
+			images = images.concat(detail);
+		} else {
+			images.push(detail);
+		}
 		await tick();
 		dispatch("change", value);
 		dispatch("upload", detail);
 	}
 
-	async function load_files_from_upload(e: Event): Promise<void> {
-		const target = e.target as HTMLInputElement;
-		if (!target.files) return;
-			await load_files(Array.from(target.files));
-			dispatch("upload", target.files);
-	}
-
-	export async function load_files(
-		files: File[] | Blob[]
-	): Promise<(FileData | null)[] | void> {
-		if (!files.length) {
-			return;
-		}
-		let _files: File[] = files.map((f) => new File([f], f.name));
-		file_data = await prepare_files(_files);
-		return await handle_upload(file_data);
-	}
-
-	function remove_thumbnail(index: number): void {
+	function remove_thumbnail(event: MouseEvent, index: number): void {
+		event.stopPropagation();
         images.splice(index, 1);
         images = images;
 	}
+
+	let hidden_upload: HTMLInputElement;
+
+    function handle_upload_click(): void {
+        if (hidden_upload) {
+            hidden_upload.click();
+        }
+    }
 </script>
 
 <!-- svelte-ignore a11y-autofocus -->
@@ -262,16 +252,12 @@
 			on:load={handle_upload}
 			filetype={accept_file_types}
 			{root}
-			disable_click={true}
 			bind:dragging
+			disable_click={true}
+			bind:hidden_upload={hidden_upload}
 		>
-			<input
-				id="file-upload"
-				type="file"
-				style="display: none;"
-				on:change={load_files_from_upload}
-			/>
-			<label for="file-upload" class="plus-button">+</label>
+		<button class="submit-button" on:click={() => dispatch("submit")}>↑</button>
+		<button class="plus-button" on:click={handle_upload_click}>+</button>
 			{#if images.length > 0}
 			<div
 				class="thumbnails scroll-hide"
@@ -280,7 +266,7 @@
 			>
 		{#each images as image, index}
 			<button class="thumbnail-item thumbnail-small">
-					<button class="delete-button" on:click={() => remove_thumbnail(index)}><Clear /></button>
+					<button class="delete-button" on:click={(event) => remove_thumbnail(event, index)}><Clear /></button>
 					<Image
 						src={image.url}
 						title={null}
@@ -297,7 +283,7 @@
 				use:text_area_resize={value}
 				class="scroll-hide"
 				dir={rtl ? "rtl" : "ltr"}
-				bind:value
+				bind:value={value["text"]}
 				bind:this={el}
 				{placeholder}
 				rows={lines}
@@ -320,18 +306,13 @@
 		flex-direction: column;
     }
 
-	.input-container:focus {
-        border: 2px solid var(--input-border-color-focus);
-    }
-
-	input,
 	textarea {
 		align-self: flex-start;
 		outline: none !important;
 		box-shadow: var(--input-shadow);
 		background: var(--input-background-fill);
 		padding: var(--input-padding);
-		width: 90%;
+		width: 95%;
 		max-height: 100%;
 		height: 25px;
 		color: var(--body-text-color);
@@ -340,31 +321,20 @@
 		line-height: var(--line-sm);
 		border: none;
 		margin-top: 15px;
+		margin-left: 30px;
 	}
 
-	input:disabled,
 	textarea:disabled {
 		-webkit-text-fill-color: var(--body-text-color);
 		-webkit-opacity: 1;
 		opacity: 1;
 	}
 
-	input:focus,
-	textarea:focus {
-		box-shadow: var(--input-shadow-focus);
-		border-color: var(--input-border-color-focus);
-	}
-
-	input::placeholder,
 	textarea::placeholder {
 		color: var(--input-placeholder-color);
 	}
 
-    .plus-button {
-        position: absolute;
-        right: 10px;
-		margin-left: 5px;
-		bottom: 20px;
+    .plus-button, .submit-button {
         background-color: var(--input-border-color-focus);
         border: none;
         color: white;
@@ -376,6 +346,25 @@
         width: 30px;
         height: 30px;
     }
+
+	.submit-button:active {
+		background-color: var(--color-grey-500);
+	}
+
+	.submit-button {
+        position: absolute;
+        right: 10px;
+		margin-left: 5px;
+		bottom: 10px;
+		padding-bottom: 5px;
+	}
+
+	.plus-button {
+        position: absolute;
+        left: 10px;
+		margin-right: 5px;
+		bottom: 10px;
+	}
 
 	.thumbnails :global(img) {
 		width: var(--size-full);
@@ -441,6 +430,6 @@
 
 	.delete-button:hover {
 		filter: brightness(1.2);
-		border: 0.5px solid white;
+		border: 0.8px solid var(--color-grey-500);
 	}
 </style>

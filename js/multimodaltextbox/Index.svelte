@@ -13,19 +13,21 @@
 	import type { LoadingStatus } from "@gradio/statustracker";
 
 	export let gradio: Gradio<{
-		change: string;
+		change: typeof value;
 		submit: never;
 		blur: never;
 		select: SelectData;
 		input: never;
 		focus: never;
 	}>;
-	export let label = "MultimodalTextbox";
 	export let info: string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value = "";
+	export let value: [
+		{ type: string; text: string | null } | null,
+		{ type: string; image_url: string | null } | null
+	][] = [];
 	export let lines: number;
 	export let placeholder = "";
 	export let show_label: boolean;
@@ -65,8 +67,6 @@
 		bind:value
 		bind:value_is_output
 		{root}
-		{label}
-		{info}
 		{show_label}
 		{lines}
 		{rtl}

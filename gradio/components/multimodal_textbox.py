@@ -30,7 +30,7 @@ class MultimodalTextbox(FormComponent):
 
     def __init__(
         self,
-        value: str | list[str] | Callable | None = "",
+        value: list[dict[str, str]] | Callable | None = [{}],
         *,
         lines: int = 1,
         max_lines: int = 20,
@@ -108,7 +108,7 @@ class MultimodalTextbox(FormComponent):
         Returns:
             Passes text value as a {str} into the function.
         """
-        return None if payload is None else str(payload)
+        return None if payload is None else payload
 
     def postprocess(self, value: str | None) -> str | None:
         """
@@ -117,10 +117,10 @@ class MultimodalTextbox(FormComponent):
         Returns:
             The value to display in the textarea.
         """
-        return None if value is None else str(value)
+        return None if value is None else value
 
     def api_info(self) -> dict[str, Any]:
-        return {"type": "string"}
+        return {"type": "list"}
 
     def example_inputs(self) -> Any:
-        return "Hello!!"
+        return [{"type": "text", "text": "Hello!!"}]
