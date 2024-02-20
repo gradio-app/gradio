@@ -98,4 +98,9 @@ from gradio.templates import (
 from gradio.themes import Base as Theme
 from gradio.utils import get_package_version
 
+# These two lines PIL.Image.open add support of .heic
+# images for PIL's image loader
+from pillow_heif import register_heif_opener
+register_heif_opener()
+
 __version__ = get_package_version()
