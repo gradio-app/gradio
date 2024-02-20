@@ -201,6 +201,7 @@ export function api_factory(
 				headers
 			});
 		} catch (e) {
+			console.log("error 1", e);
 			return [{ error: BROKEN_CONNECTION_MSG }, 500];
 		}
 		let output: PostResponse;
@@ -245,6 +246,7 @@ export function api_factory(
 					headers
 				});
 			} catch (e) {
+				console.log("error 2", e);
 				return { error: BROKEN_CONNECTION_MSG };
 			}
 			const output: UploadResponse["files"] = await response.json();
@@ -559,6 +561,7 @@ export function api_factory(
 
 							websocket.onclose = (evt) => {
 								if (!evt.wasClean) {
+									console.log("error 3", evt);
 									fire_event({
 										type: "status",
 										stage: "error",
@@ -700,6 +703,7 @@ export function api_factory(
 										hf_token
 									);
 									if (status !== 200) {
+										console.log("error 4", status);
 										fire_event({
 											type: "status",
 											stage: "error",
@@ -785,6 +789,7 @@ export function api_factory(
 										time: new Date()
 									});
 								} else if (status !== 200) {
+									console.log("error 5", status);
 									fire_event({
 										type: "status",
 										stage: "error",
@@ -1057,6 +1062,7 @@ export function api_factory(
 					}
 				};
 				event_stream.onerror = async function (event) {
+					console.log("error 6", event);
 					await Promise.all(
 						Object.keys(event_callbacks).map((event_id) =>
 							event_callbacks[event_id]({
@@ -1150,6 +1156,7 @@ export function api_factory(
 				}
 
 				if (!response.ok) {
+					console.log("error 7", response);
 					throw new Error(BROKEN_CONNECTION_MSG);
 				}
 
