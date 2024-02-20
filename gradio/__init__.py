@@ -1,5 +1,7 @@
 import json
 
+from pillow_heif import register_heif_opener
+
 import gradio._simple_templates
 import gradio.image_utils
 import gradio.processing_utils
@@ -98,10 +100,8 @@ from gradio.templates import (
 from gradio.themes import Base as Theme
 from gradio.utils import get_package_version
 
-# These two lines add support of images in .heic
+# This line adds support of images in .heic
 # format for PIL's image loader
-from pillow_heif import register_heif_opener
-
 register_heif_opener()
 
 __version__ = get_package_version()
