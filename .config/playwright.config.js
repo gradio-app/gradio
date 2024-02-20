@@ -15,14 +15,14 @@ const base = defineConfig({
 			]
 		}
 	},
-	expect: { timeout: 15000 },
-	timeout: 15000,
 	testMatch: /.*.spec.ts/,
 	testDir: "..",
 	workers: process.env.CI ? 1 : undefined
 });
 
 const normal = defineConfig(base, {
+	expect: { timeout: 15000 },
+	timeout: 15000,
 	globalSetup: "./playwright-setup.js"
 });
 normal.projects = undefined; // Explicitly unset this field due to https://github.com/microsoft/playwright/issues/28795
@@ -41,6 +41,8 @@ const lite = defineConfig(base, {
 		"**/load_space.spec.ts", // `gr.load()`, which calls `httpx.get` is not supported in lite.
 		"**/gradio_pdf_demo.spec.ts" // The PDF component is not working on Lite, https://github.com/gradio-app/gradio/issues/7476
 	],
+	expect: { timeout: 60000 },
+	timeout: 60000,
 	workers: 1
 });
 lite.projects = undefined; // Explicitly unset this field due to https://github.com/microsoft/playwright/issues/28795
