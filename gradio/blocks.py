@@ -623,7 +623,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
     def get_component(self, id: int) -> Component | BlockContext:
         comp = self.blocks[id]
-        assert isinstance(comp, (components.Component, BlockContext)), f"{comp}"
+        if not isinstance(comp, (components.Component, BlockContext)):
+            raise TypeError(f"Block with id {id} is not a Component or BlockContext")
         return comp
 
     @property
@@ -2379,7 +2380,8 @@ Received outputs:
                     continue
                 label = component["props"].get("label", f"parameter_{i}")
                 comp = self.get_component(component["id"])
-                assert isinstance(comp, components.Component)
+                if not isinstance(comp, components.Component):
+                    raise TypeError(f"{comp!r} is not a Component")
                 info = component["api_info"]
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
@@ -2409,7 +2411,8 @@ Received outputs:
                     continue
                 label = component["props"].get("label", f"value_{o}")
                 comp = self.get_component(component["id"])
-                assert isinstance(comp, components.Component)
+                if not isinstance(comp, components.Component):
+                    raise TypeError(f"{comp!r} is not a Component")
                 info = component["api_info"]
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
