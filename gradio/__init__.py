@@ -101,6 +101,7 @@ from gradio.utils import get_package_version
 # These two lines add support of images in .heic
 # format for PIL's image loader
 from pillow_heif import register_heif_opener
+
 register_heif_opener()
 
 __version__ = get_package_version()
