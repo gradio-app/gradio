@@ -5,6 +5,7 @@ import tempfile
 from contextlib import asynccontextmanager, closing
 from unittest.mock import patch
 
+import time
 import gradio_client as grc
 import numpy as np
 import pandas as pd
@@ -489,18 +490,19 @@ class TestRoutes:
                         num_files += 1
             return num_files
 
-        demo = gr.Interface(lambda s: s, gr.Textbox(), gr.File(), delete_cache=False)
+        demo = gr.Interface(lambda s: s, gr.Textbox(), gr.File(), delete_cache=None)
         with connect(demo) as client:
             client.predict("test/test_files/cheetah1.jpg")
         assert check_num_files_exist(demo) == 1
 
         demo_delete = gr.Interface(
-            lambda s: s, gr.Textbox(), gr.File(), delete_cache=True
+            lambda s: s, gr.Textbox(), gr.File(), delete_cache=(2, 3)
         )
         with connect(demo_delete) as client:
             client.predict("test/test_files/alphabet.txt")
+            time.sleep(3)
             client.predict("test/test_files/bus.png")
-            assert check_num_files_exist(demo_delete) == 2
+            assert check_num_files_exist(demo_delete) == 1
         assert check_num_files_exist(demo_delete) == 0
         assert check_num_files_exist(demo) == 1
 
@@ -511,7 +513,7 @@ class TestRoutes:
             print("AFTER CUSTOM LIFESPAN")
 
         demo_custom_lifespan = gr.Interface(
-            lambda s: s, gr.Textbox(), gr.File(), delete_cache=True
+            lambda s: s, gr.Textbox(), gr.File(), delete_cache=(5, 1)
         )
 
         with connect(

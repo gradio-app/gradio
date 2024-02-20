@@ -193,9 +193,10 @@ class App(FastAPI):
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
-        if blocks.delete_cache:
+        if blocks.delete_cache is not None:
             app_kwargs["lifespan"] = create_lifespan_handler(
-                app_kwargs.get("lifespan", None)
+                app_kwargs.get("lifespan", None),
+                *blocks.delete_cache
             )
         app = App(**app_kwargs)
         app.configure_app(blocks)

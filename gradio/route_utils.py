@@ -1,13 +1,16 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import hmac
 import json
+import os
 import re
 import shutil
 from collections import deque
 from contextlib import asynccontextmanager
 from dataclasses import dataclass as python_dataclass
+from datetime import datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 from urllib.parse import urlparse
@@ -23,6 +26,7 @@ from typing import (
     Union,
 )
 
+import anyio
 import fastapi
 import httpx
 import multipart
@@ -654,28 +658,51 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
         return response
 
 
-def delete_files_created_by_app(blocks: Blocks) -> None:
+def delete_files_created_by_app(blocks: Blocks, age: int | None) -> None:
+    """Delete files that are older than age. If age is None, delete all files."""
     for temp_set in blocks.temp_file_sets:
         for file in temp_set:
-            print(file)
-            Path(file).unlink(missing_ok=True)
+            file_path = Path(file)
+            try:
+                modified_time = datetime.fromtimestamp(file_path.lstat().st_mtime)
+                if age is None or (datetime.now() - modified_time).seconds > age:
+                    os.remove(file)
+                    temp_set.remove(file)
+            except FileNotFoundError:
+                continue
+
+
+async def delete_files_on_schedule(app: App, frequency: int, age: int) -> None:
+    """Startup task to delete files created by the app based on time since last modification."""
+    while True:
+        await asyncio.sleep(frequency)
+        await anyio.to_thread.run_sync(
+            delete_files_created_by_app, app.get_blocks(), age
+        )
 
 
 @asynccontextmanager
-async def _lifespan_handler(app: App):
+async def _lifespan_handler(
+    app: App, frequency: int = 1, age: int = 1
+) -> AsyncGenerator:
     """A context manager that triggers the startup and shutdown events of the app."""
     app.get_blocks().startup_events()
     app.startup_events_triggered = True
+    asyncio.create_task(delete_files_on_schedule(app, frequency, age))
     yield
-    delete_files_created_by_app(app.get_blocks())
+    delete_files_created_by_app(app.get_blocks(), age=None)
 
 
-def create_lifespan_handler(user_lifespan: Callable[[App], AsyncContextManager] | None):
+def create_lifespan_handler(
+    user_lifespan: Callable[[App], AsyncContextManager] | None,
+    frequency: int = 1,
+    age: int = 1,
+) -> Callable[[App], AsyncContextManager]:
     """Return a context manager that applies _lifespan_handler and user_lifespan if it exists."""
 
     @asynccontextmanager
     async def _handler(app: App):
-        async with _lifespan_handler(app):
+        async with _lifespan_handler(app, frequency, age):
             if user_lifespan is not None:
                 async with user_lifespan(app):
                     yield

@@ -121,7 +121,7 @@ class Interface(Blocks):
         submit_btn: str | Button = "Submit",
         stop_btn: str | Button = "Stop",
         clear_btn: str | Button = "Clear",
-        delete_cache: bool = False,
+        delete_cache: tuple[int, int] | None = None,
         **kwargs,
     ):
         """
@@ -156,8 +156,8 @@ class Interface(Blocks):
             submit_btn: The button to use for submitting inputs. Defaults to a `gr.Button("Submit", variant="primary")`. This parameter does not apply if the Interface is output-only, in which case the submit button always displays "Generate". Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization).
             stop_btn: The button to use for stopping the interface. Defaults to a `gr.Button("Stop", variant="stop", visible=False)`. Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization).
             clear_btn: The button to use for clearing the inputs. Defaults to a `gr.Button("Clear", variant="secondary")`. Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization).
-            delete_cache: Whether to clear the contents of GRADIO_CACHE_DIR created by this Blocks instance when the server is shut down.
-        """
+            delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the contents of GRADIO_CACHE_DIR created by this Blocks instance will be deleted if they are older than `age` seconds. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
+            """
         super().__init__(
             analytics_enabled=analytics_enabled,
             mode="interface",
