@@ -199,10 +199,7 @@ class ChatInterface(Blocks):
                         textbox.container = False
                         textbox.show_label = False
                         textbox_ = textbox.render()
-                        if not isinstance(textbox_, Textbox):
-                            raise TypeError(
-                                f"Expected a gr.Textbox, but got {type(textbox_)}"
-                            )
+                        assert isinstance(textbox_, Textbox)
                         self.textbox = textbox_
                     else:
                         self.textbox = Textbox(

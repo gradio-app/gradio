@@ -41,8 +41,7 @@ class JupyterReloader(BaseReloader):
 
     @property
     def running_app(self) -> App:
-        if not self.running_demo.server:
-            raise RuntimeError("Server not running")
+        assert self.running_demo.server
         return self.running_demo.server.running_app  # type: ignore
 
     @property

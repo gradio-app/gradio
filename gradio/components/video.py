@@ -165,8 +165,7 @@ class Video(Component):
         """
         if payload is None:
             return None
-        if not payload.video.path:
-            raise ValueError("Payload path missing")
+        assert payload.video.path
         file_name = Path(payload.video.path)
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
@@ -258,8 +257,7 @@ class Video(Component):
 
         else:
             raise Exception(f"Cannot process type as video: {type(value)}")
-        if not processed_files[0]:
-            raise ValueError("Video data missing")
+        assert processed_files[0]
         return VideoData(video=processed_files[0], subtitles=processed_files[1])
 
     def _format_video(self, video: str | Path | None) -> FileData | None:

@@ -187,12 +187,9 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
             if "args" in parameter_doc["doc"]:
                 parameter_doc["args"] = True
         parameter_docs.append(parameter_doc)
-    if parameters:
-        raise ValueError(
-            f"Documentation format for {fn.__name__} documents "
-            f"nonexistent parameters: {', '.join(parameters.keys())}. "
-            f"Valid parameters: {', '.join(signature.parameters.keys())}"
-        )
+    assert (
+        len(parameters) == 0
+    ), f"Documentation format for {fn.__name__} documents nonexistent parameters: {', '.join(parameters.keys())}. Valid parameters: {', '.join(signature.parameters.keys())}"
     if len(returns) == 0:
         return_docs = {}
     elif len(returns) == 1:
@@ -340,7 +337,7 @@ def generate_documentation():
                             inherited_fn["description"] = extract_instance_attr_doc(
                                 cls, inherited_fn["name"]
                             )
-                        except ValueError:
+                        except (ValueError, AssertionError):
                             pass
                         documentation[mode][i]["fns"].append(inherited_fn)
     return documentation

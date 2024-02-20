@@ -78,8 +78,7 @@ def extract_class_source_code(
     for node in ast.walk(class_ast):
         if isinstance(node, ast.ClassDef) and node.name == class_name:
             segment = ast.get_source_segment(code, node)
-            if not segment:
-                raise ValueError("segment not found")
+            assert segment
             return segment, node.lineno
     return None, None
 
@@ -93,9 +92,8 @@ def create_or_modify_pyi(
 
     current_impl, lineno = extract_class_source_code(source_code, class_name)
 
-    if not (current_impl and lineno):
-        raise ValueError("Couldn't find class source code")
-
+    assert current_impl
+    assert lineno
     new_interface = create_pyi(current_impl, events)
 
     pyi_file = source_file.with_suffix(".pyi")

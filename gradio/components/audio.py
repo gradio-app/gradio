@@ -194,9 +194,7 @@ class Audio(
         if payload is None:
             return payload
 
-        if not payload.path:
-            raise ValueError("payload path missing")
-
+        assert payload.path
         # Need a unique name for the file to avoid re-using the same audio file if
         # a user submits the same audio file twice
         temp_file_path = Path(payload.path)
