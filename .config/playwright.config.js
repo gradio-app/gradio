@@ -33,10 +33,13 @@ const lite = defineConfig(base, {
 		url: "http://localhost:9876/lite.html",
 		reuseExistingServer: !process.env.CI
 	},
-	testMatch: [
-		"**/file_component_events.spec.ts",
-		"**/chatbot_multimodal.spec.ts",
-		"**/kitchen_sink.spec.ts"
+	testIgnore: [
+		"**/audio_component_events.spec.ts", // Uploading a file requires ffprobe on the server-side, which is not supported in lite.
+		"**/cancel_events.spec.ts", // This sample app uses `time.sleep` which is not supported on Pyodide.
+		"**/custom_css.spec.ts", // Media queries is not working somehow.
+		"**/clear_components.spec.ts", // `gr.Image()` with remote image is not supported in lite because it calls `httpx.stream` through `processing_utils.save_url_to_cache()`.
+		"**/load_space.spec.ts", // `gr.load()`, which calls `httpx.get` is not supported in lite.
+		"**/gradio_pdf_demo.spec.ts" // The PDF component is not working on Lite, https://github.com/gradio-app/gradio/issues/7476
 	],
 	workers: 1
 });
