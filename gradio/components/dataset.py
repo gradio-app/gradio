@@ -76,9 +76,10 @@ class Dataset(Component):
         ]
 
         # Narrow type to Component
-        assert all(
-            isinstance(c, Component) for c in self._components
-        ), "All components in a `Dataset` must be subclasses of `Component`"
+        if not all(isinstance(c, Component) for c in self._components):
+            raise TypeError(
+                "All components in a `Dataset` must be subclasses of `Component`"
+            )
         self._components = [c for c in self._components if isinstance(c, Component)]
         self.proxy_url = proxy_url
         for component in self._components:
