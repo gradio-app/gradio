@@ -789,7 +789,7 @@ export function api_factory(
 										time: new Date()
 									});
 								} else if (status !== 200) {
-									console.log("error 5", response, status);
+									console.log("error 5", status);
 									fire_event({
 										type: "status",
 										stage: "error",
