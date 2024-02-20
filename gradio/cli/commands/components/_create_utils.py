@@ -323,9 +323,6 @@ def _create_backend(
             "Please pass in a valid component name via the --template option. It must match the name of the python class."
         )
 
-    if not module:
-        raise ValueError("Module not found")
-
     readme_contents = textwrap.dedent(
         """
 # {package_name}
@@ -384,6 +381,7 @@ __all__ = ['{name}']
 
     p = Path(inspect.getfile(gradio)).parent
     python_file = backend / f"{name.lower()}.py"
+    assert module is not None
 
     shutil.copy(
         str(p / module / component.python_file_name),

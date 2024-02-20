@@ -152,8 +152,7 @@ class Dropdown(FormComponent):
             if payload is None:
                 return None
             elif self.multiselect:
-                if not isinstance(payload, list):
-                    raise TypeError("Multiselect dropdown payload must be a list")
+                assert isinstance(payload, list)
                 return [
                     choice_values.index(choice) if choice in choice_values else None
                     for choice in payload

@@ -179,14 +179,8 @@ class Interface(Blocks):
         if additional_inputs is None:
             additional_inputs = []
 
-        if not isinstance(inputs, (str, list, Component)):
-            raise TypeError(
-                f"inputs must be a string, list, or Component, not {inputs}"
-            )
-        if not isinstance(outputs, (str, list, Component)):
-            raise TypeError(
-                f"outputs must be a string, list, or Component, not {outputs}"
-            )
+        assert isinstance(inputs, (str, list, Component))
+        assert isinstance(outputs, (str, list, Component))
 
         if not isinstance(inputs, list):
             inputs = [inputs]
@@ -285,10 +279,7 @@ class Interface(Blocks):
             InterfaceTypes.OUTPUT_ONLY,
         ]:
             for o in self.output_components:
-                if not isinstance(o, Component):
-                    raise TypeError(
-                        f"Output component must be a Component, not {type(o)}"
-                    )
+                assert isinstance(o, Component)
                 if o.interactive is None:
                     # Unless explicitly otherwise specified, force output components to
                     # be non-interactive
@@ -427,17 +418,11 @@ class Interface(Blocks):
         except (TypeError, ValueError):
             param_names = utils.default_input_labels()
         for component, param_name in zip(self.input_components, param_names):
-            if not isinstance(component, Component):
-                raise TypeError(
-                    f"Input component must be a Component, not {type(component)}"
-                )
+            assert isinstance(component, Component)
             if component.label is None:
                 component.label = param_name
         for i, component in enumerate(self.output_components):
-            if not isinstance(component, Component):
-                raise TypeError(
-                    f"Output component must be a Component, not {type(component)}"
-                )
+            assert isinstance(component, Component)
             if component.label is None:
                 if len(self.output_components) == 1:
                     component.label = "output"
@@ -810,10 +795,7 @@ class Interface(Blocks):
             flag_components = self.input_components + self.output_components
 
         for flag_btn, (label, value) in zip(flag_btns, self.flagging_options):
-            if not isinstance(value, str):
-                raise TypeError(
-                    f"Flagging option value must be a string, not {value!r}"
-                )
+            assert isinstance(value, str)
             flag_method = FlagMethod(self.flagging_callback, label, value)
             flag_btn.click(
                 lambda: Button(value="Saving...", interactive=False),
