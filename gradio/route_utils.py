@@ -9,6 +9,7 @@ from collections import deque
 from dataclasses import dataclass as python_dataclass
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 from typing import TYPE_CHECKING, AsyncGenerator, BinaryIO, List, Optional, Tuple, Union
+from urllib.parse import urlparse
 
 import fastapi
 import httpx
@@ -588,23 +589,18 @@ def starts_with_protocol(string: str) -> bool:
 
 class CustomCORSMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: fastapi.Request, call_next):
-        # Extract host and origin from the request headers
-        host_header: str = request.headers.get("host", "")
-        origin_header: str = (
-            request.headers.get("origin", "")
-            .replace("http://", "")
-            .replace("https://", "")
-        )
+        host_header: str | None = request.headers.get("host")
+        origin_header: str | None = request.headers.get("origin")
+        host_header_host = urlparse(host_header).hostname if host_header else ""
+        origin_header_host = urlparse(origin_header).hostname if origin_header else ""
 
-        localhost_prefixes = ("localhost", "127.0.0.1", "0.0.0.0")
+        localhost_aliases = ("localhost", "127.0.0.1", "0.0.0.0")
 
-        # Check if the host starts with localhost and origin is not localhost
         if (
-            host_header.startswith(localhost_prefixes)
-            and origin_header
-            and not origin_header.startswith(localhost_prefixes)
+            host_header_host in localhost_aliases
+            and origin_header_host
+            and origin_header_host not in localhost_aliases
         ):
-            # Block the request by returning a 403 Forbidden response
             return fastapi.Response(
                 content="Blocked by CORS policy.",
                 status_code=fastapi.status.HTTP_403_FORBIDDEN,
@@ -613,11 +609,11 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         response.headers["Access-Control-Allow-Origin"] = request.headers.get(
             "origin", "*"
-        )  # Allow the requesting origin
+        )
         response.headers[
             "Access-Control-Allow-Methods"
-        ] = "GET, POST, PUT, DELETE, OPTIONS"  # Adjust the methods as needed
+        ] = "GET, POST, PUT, DELETE, OPTIONS"
         response.headers[
             "Access-Control-Allow-Headers"
-        ] = "Origin, Content-Type, Accept"  # Adjust the headers as needed
+        ] = "Origin, Content-Type, Accept"
         return response
