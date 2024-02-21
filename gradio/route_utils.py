@@ -608,6 +608,8 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
         host_header_host = get_core_url(host_header)
         origin_header_host = get_core_url(origin_header)
 
+        print("host_header_host", host_header_host, "origin_header_host", origin_header_host)
+
         localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0"]
 
         if (
@@ -626,7 +628,7 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
         )
         response.headers[
             "Access-Control-Allow-Methods"
-        ] = "GET, POST, PUT, DELETE, OPTIONS"
+        ] = "*"
         response.headers[
             "Access-Control-Allow-Headers"
         ] = "Origin, Content-Type, Accept"
