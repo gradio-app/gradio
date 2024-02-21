@@ -101,7 +101,6 @@ test("File Explorer selects all children when top level directory is selected.",
 		.check();
 
 	if (!process.env.GRADIO_E2E_TEST_LITE) {
-		// Lite hooks the HTTP request to the image, so we can't wait for it.
 		const res = page.waitForEvent("response", {
 			predicate: async (response) => {
 				return (await response.text()).indexOf("process_completed") !== -1;
@@ -110,6 +109,7 @@ test("File Explorer selects all children when top level directory is selected.",
 		await page.getByRole("button", { name: "Run" }).click();
 		await res;
 	} else {
+		// Lite hooks the HTTP requests, so we can't observe the response in this case.
 		await page.getByRole("button", { name: "Run" }).click();
 	}
 
