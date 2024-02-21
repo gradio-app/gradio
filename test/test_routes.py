@@ -2,7 +2,6 @@
 import functools
 import os
 import tempfile
-import time
 from contextlib import asynccontextmanager, closing
 from unittest.mock import patch
 

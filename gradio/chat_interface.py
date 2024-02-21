@@ -104,7 +104,7 @@ class ChatInterface(Blocks):
             autofocus: If True, autofocuses to the textbox when the page loads.
             concurrency_limit: If set, this is the maximum number of chatbot submissions that can be running simultaneously. Can be set to None to mean no limit (any number of chatbot submissions can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `.queue()`, which is 1 by default).
             fill_height: If True, the chat interface will expand to the height of window.
-            delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the contents of GRADIO_CACHE_DIR created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
+            delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,

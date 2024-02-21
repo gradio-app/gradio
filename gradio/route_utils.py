@@ -660,18 +660,13 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
 
 def delete_files_created_by_app(blocks: Blocks, age: int | None) -> None:
     """Delete files that are older than age. If age is None, delete all files."""
-    print("age", age)
     for temp_set in blocks.temp_file_sets:
         to_remove = set()
         for file in temp_set:
             try:
                 file_path = Path(file)
                 modified_time = datetime.fromtimestamp(file_path.lstat().st_ctime)
-                print("modified_time", modified_time)
-                print("now", datetime.now())
-                print("age", (datetime.now() - modified_time).seconds)
                 if age is None or (datetime.now() - modified_time).seconds > age:
-                    print("Deleting file", file)
                     os.remove(file)
                     to_remove.add(file)
             except FileNotFoundError:
