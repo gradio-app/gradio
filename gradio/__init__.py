@@ -96,6 +96,8 @@ from gradio.templates import (
     TextArea,
 )
 from gradio.themes import Base as Theme
-from gradio.utils import get_package_version
+from gradio.utils import get_package_version, is_h2oai_version
 
 __version__ = get_package_version()
+
+__h2oai__ = is_h2oai_version()
