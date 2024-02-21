@@ -247,7 +247,8 @@ def _publish(
         except Exception:
             latest_release = None
 
-        assert demo_dir
+        if not demo_dir:
+            raise ValueError("demo_dir must be set")
         demo_path = resolve_demo(demo_dir)
 
         if prefer_local or not latest_release:

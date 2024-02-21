@@ -82,7 +82,8 @@ class RangedFileResponse(Response):
         self.stat_result = stat_result
 
     def set_range_headers(self, range: ClosedRange) -> None:
-        assert self.stat_result
+        if not self.stat_result:
+            raise ValueError("No stat result to set range headers with")
         total_length = self.stat_result.st_size
         content_length = len(range)
         self.headers[
