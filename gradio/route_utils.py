@@ -610,7 +610,7 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
 
         print("host_header_host", host_header_host, "origin_header_host", origin_header_host)
 
-        localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0"]
+        localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0", "null"]
 
         if (
             host_header_host in localhost_aliases
