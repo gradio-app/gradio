@@ -100,14 +100,18 @@ test("File Explorer selects all children when top level directory is selected.",
 		.getByRole("checkbox")
 		.check();
 
-	const res = page.waitForEvent("response", {
-		predicate: async (response) => {
-			return (await response.text()).indexOf("process_completed") !== -1;
-		}
-	});
-	await page.getByRole("button", { name: "Run" }).click();
-
-	await res;
+	if (!process.env.GRADIO_E2E_TEST_LITE) {
+		// Lite hooks the HTTP request to the image, so we can't wait for it.
+		const res = page.waitForEvent("response", {
+			predicate: async (response) => {
+				return (await response.text()).indexOf("process_completed") !== -1;
+			}
+		});
+		await page.getByRole("button", { name: "Run" }).click();
+		await res;
+	} else {
+		await page.getByRole("button", { name: "Run" }).click();
+	}
 
 	const directory_paths_displayed = async () => {
 		const value = await page.getByLabel("Selected Directory").inputValue();
