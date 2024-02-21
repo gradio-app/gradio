@@ -24,6 +24,7 @@ with gr.Blocks() as demo:
         img_i,
         img_o,
         flip,
+        cache_examples=True,
     )
 
 demo.launch()

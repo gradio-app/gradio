@@ -1,5 +1,6 @@
 import type { ComponentType } from "svelte";
 import type { SvelteComponent } from "svelte";
+import type { key } from "vega";
 
 interface ComponentImport {
 	interactive: SvelteComponent;
@@ -7,11 +8,18 @@ interface ComponentImport {
 	example: SvelteComponent;
 }
 
+interface SharedProps {
+	elem_id?: string;
+	elem_classes?: string[];
+	interactive: boolean;
+	[key: string]: unknown;
+}
+
 export interface ComponentMeta {
 	type: string;
 	id: number;
 	has_modes: boolean;
-	props: Record<string, unknown> & { interactive: boolean };
+	props: SharedProps;
 	instance: SvelteComponent;
 	component: ComponentType<SvelteComponent>;
 	documentation?: Documentation;

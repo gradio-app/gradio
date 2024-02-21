@@ -2,6 +2,7 @@
 	import { Gradio } from "./gradio_helper";
 	import { onMount, createEventDispatcher, setContext } from "svelte";
 	import type { ComponentMeta, ThemeMode } from "./types";
+	import RenderComponent from "./RenderComponent.svelte";
 
 	export let root: string;
 	export let component: ComponentMeta["component"];
@@ -64,11 +65,12 @@
 			}
 		}
 	}
+	console.log("BOO");
 </script>
 
-<svelte:component
-	this={component}
-	bind:this={instance_map[id].instance}
+<RenderComponent
+	{component}
+	bind:instance={instance_map[id].instance}
 	bind:value={instance_map[id].props.value}
 	elem_id={("elem_id" in props && props.elem_id) || `component-${id}`}
 	elem_classes={("elem_classes" in props && props.elem_classes) || []}
@@ -97,4 +99,4 @@
 			/>
 		{/each}
 	{/if}
-</svelte:component>
+</RenderComponent>

@@ -439,6 +439,7 @@
 		trigger_id: number | null = null,
 		event_data: unknown = null
 	): Promise<void> {
+		console.log({ dep_index, trigger_id, event_data });
 		let dep = dependencies[dep_index];
 		const current_status = loading_status.get_status_for_fn(dep_index);
 		messages = messages.filter(({ fn_index }) => fn_index !== dep_index);
@@ -484,6 +485,7 @@
 		} else {
 			if (dep.backend_fn) {
 				if (dep.trigger_mode === "once") {
+					console.log("making prediction once");
 					if (!dep.pending_request) make_prediction(payload);
 				} else if (dep.trigger_mode === "multiple") {
 					make_prediction(payload);
@@ -506,6 +508,7 @@
 					payload.trigger_id
 				)
 				.on("data", ({ data, fn_index }) => {
+					console.log({ data, fn_index });
 					if (dep.pending_request && dep.final_event) {
 						dep.pending_request = false;
 						make_prediction(dep.final_event);
@@ -594,6 +597,7 @@
 				.on("log", ({ log, fn_index, level }) => {
 					messages = [new_message(log, fn_index, level), ...messages];
 				});
+			console.log("make_prediction", { dep_index, submission });
 
 			submit_map.set(dep_index, submission);
 		}
