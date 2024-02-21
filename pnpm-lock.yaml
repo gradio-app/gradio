@@ -78,8 +78,8 @@ importers:
         specifier: ^2.32.4
         version: 2.32.4(eslint@8.46.0)(svelte@4.2.2)
       globals:
-        specifier: ^13.20.0
-        version: 13.20.0
+        specifier: ^14.0.0
+        version: 14.0.0
       happy-dom:
         specifier: ^13.3.8
         version: 13.3.8
@@ -10942,6 +10942,11 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       type-fest: 0.20.2
+
+  /globals@14.0.0:
+    resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
+    engines: {node: '>=18'}
+    dev: false
 
   /globalthis@1.0.3:
     resolution: {integrity: sha512-sFdI5LyBiNTHjRd7cGPWapiHWMOXKyuBNX/cWJ3NfzrZQVa8GI/8cofCl74AOVqq9W5kNmguTIzJ/1s2gyI9wA==}
