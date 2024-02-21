@@ -1085,7 +1085,7 @@ def diff(old, new):
     return compare_objects(old, new)
 
 
-def get_upload_folder():
+def get_upload_folder() -> str:
     return os.environ.get("GRADIO_TEMP_DIR") or str(
         (Path(tempfile.gettempdir()) / "gradio").resolve()
     )

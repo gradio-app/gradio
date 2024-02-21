@@ -20,7 +20,7 @@ from PIL import Image, ImageOps, PngImagePlugin
 
 from gradio import wasm_utils
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
-from gradio.utils import abspath, get_upload_folder
+from gradio.utils import abspath, get_upload_folder, is_in_or_equal
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
@@ -254,7 +254,7 @@ def move_files_to_cache(
         postprocess: Whether its running from postprocessing
         root_url: The root URL of the local server, if applicable
         add_urls: Whether to add URLs to the payload
-        check_in_upload_folder: If True, instead of moving the file to cache, checks if the file is in upload folder.
+        check_in_upload_folder: If True, instead of moving the file to cache, checks if the file is in already in cache (exception if not).
     """
 
     def _move_to_cache(d: dict):
@@ -269,7 +269,10 @@ def move_files_to_cache(
             # If the file is on a remote server, do not move it to cache.
             if check_in_upload_folder:
                 path = os.path.abspath(payload.path)
-                assert path.startswith(get_upload_folder()), "File not in upload folder"
+                if not is_in_or_equal(path, get_upload_folder()):
+                    raise ValueError(
+                        f"File {path} is not in the upload folder and cannot be accessed."
+                    )
             temp_file_path = block.move_resource_to_block_cache(payload.path)
             if temp_file_path is None:
                 raise ValueError("Did not determine a file path for the resource.")

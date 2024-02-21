@@ -9,7 +9,6 @@ import random
 import secrets
 import string
 import sys
-import tempfile
 import threading
 import time
 import warnings
@@ -70,6 +69,7 @@ from gradio.utils import (
     get_cancel_function,
     get_continuous_fn,
     get_package_version,
+    get_upload_folder,
 )
 
 try:
@@ -119,12 +119,7 @@ class Block:
         self._constructor_args: list[dict]
         self.state_session_capacity = 10000
         self.temp_files: set[str] = set()
-        self.GRADIO_CACHE = str(
-            Path(
-                os.environ.get("GRADIO_TEMP_DIR")
-                or str(Path(tempfile.gettempdir()) / "gradio")
-            ).resolve()
-        )
+        self.GRADIO_CACHE = get_upload_folder()
 
         if render:
             self.render()
@@ -1530,8 +1525,14 @@ Received outputs:
 
         return data
 
-    def run_fn_batch(self, fn, batch, fn_index, state):
-        return [fn(fn_index, list(i), state) for i in zip(*batch)]
+    def run_fn_batch(self, fn, batch, fn_index, state, explicit_call=None):
+        output = []
+        for i in zip(*batch):
+            args = [fn_index, list(i), state, explicit_call]
+            if explicit_call is not None:
+                args.append(explicit_call)
+            output.append(fn(*args))
+        return output
 
     async def process_api(
         self,
@@ -1557,6 +1558,8 @@ Received outputs:
             iterators: the in-progress iterators for each generator function (key is function index)
             event_id: id of event that triggered this API call
             event_data: data associated with the event trigger itself
+            in_event_listener: whether this API call is being made in response to an event listener
+            explicit_call: whether this call is being made directly by calling the Blocks function, instead of through an event listener or API route
         Returns: None
         """
         block_fn = self.fns[fn_index]
