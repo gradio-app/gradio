@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Callable, List, Literal, Optional, Tuple, Union
 from urllib.parse import urlparse
@@ -165,7 +166,8 @@ class Gallery(Component):
         if value is None:
             return GalleryData(root=[])
         output = []
-        for img in value:
+
+        def _save(img):
             url = None
             caption = None
             orig_name = None
@@ -194,11 +196,14 @@ class Gallery(Component):
                 orig_name = img.name
             else:
                 raise ValueError(f"Cannot process type as image: {type(img)}")
-            entry = GalleryImage(
+            return GalleryImage(
                 image=FileData(path=file_path, url=url, orig_name=orig_name),
                 caption=caption,
             )
-            output.append(entry)
+
+        with ThreadPoolExecutor() as executor:
+            for o in executor.map(_save, value):
+                output.append(o)
         return GalleryData(root=output)
 
     @staticmethod

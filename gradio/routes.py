@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-import copy
 import sys
 
 if sys.version_info >= (3, 9):
@@ -64,6 +63,7 @@ from gradio.route_utils import (  # noqa: F401
     GradioUploadFile,
     MultiPartException,
     Request,
+    compare_passwords_securely,
     move_uploaded_files_to_cache,
 )
 from gradio.state_holder import StateHolder
@@ -171,7 +171,7 @@ class App(FastAPI):
 
     def build_proxy_request(self, url_path):
         url = httpx.URL(url_path)
-        assert self.blocks
+        assert self.blocks  # noqa: S101
         # Don't proxy a URL unless it's a URL specifically loaded by the user using
         # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.
         is_safe_url = any(
@@ -272,7 +272,7 @@ class App(FastAPI):
             if (
                 not callable(app.auth)
                 and username in app.auth
-                and app.auth[username] == password
+                and compare_passwords_securely(password, app.auth[username])  # type: ignore
             ) or (callable(app.auth) and app.auth.__call__(username, password)):
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
@@ -311,17 +311,18 @@ class App(FastAPI):
         def main(request: fastapi.Request, user: str = Depends(get_current_user)):
             mimetypes.add_type("application/javascript", ".js")
             blocks = app.get_blocks()
-            root_path = route_utils.get_root_url(request)
+            root = route_utils.get_root_url(
+                request=request, route_path="/", root_path=app.root_path
+            )
             if app.auth is None or user is not None:
-                config = copy.deepcopy(app.get_blocks().config)
-                config["root"] = root_path
-                config = add_root_url(config, root_path)
+                config = app.get_blocks().config
+                config = route_utils.update_root_in_config(config, root)
             else:
                 config = {
                     "auth_required": True,
                     "auth_message": blocks.auth_message,
                     "space_id": app.get_blocks().space_id,
-                    "root": root_path,
+                    "root": root,
                 }
 
             try:
@@ -352,11 +353,12 @@ class App(FastAPI):
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
         def get_config(request: fastapi.Request):
-            config = copy.deepcopy(app.get_blocks().config)
-            root_path = route_utils.get_root_url(request)[: -len("/config")]
-            config["root"] = root_path
-            config = add_root_url(config, root_path)
-            return config
+            config = app.get_blocks().config
+            root = route_utils.get_root_url(
+                request=request, route_path="/config", root_path=app.root_path
+            )
+            config = route_utils.update_root_in_config(config, root)
+            return ORJSONResponse(content=config)
 
         @app.get("/static/{path:path}")
         def static_resource(path: str):
@@ -426,18 +428,27 @@ class App(FastAPI):
                 return RedirectResponse(
                     url=path_or_url, status_code=status.HTTP_302_FOUND
                 )
+
+            if route_utils.starts_with_protocol(path_or_url):
+                raise HTTPException(403, f"File not allowed: {path_or_url}.")
+
             abs_path = utils.abspath(path_or_url)
 
             in_blocklist = any(
                 utils.is_in_or_equal(abs_path, blocked_path)
                 for blocked_path in blocks.blocked_paths
             )
+
             is_dir = abs_path.is_dir()
 
             if in_blocklist or is_dir:
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
-            created_by_app = str(abs_path) in set().union(*blocks.temp_file_sets)
+            created_by_app = False
+            for temp_file_set in blocks.temp_file_sets:
+                if abs_path in temp_file_set:
+                    created_by_app = True
+                    break
             in_allowlist = any(
                 utils.is_in_or_equal(abs_path, allowed_path)
                 for allowed_path in blocks.allowed_paths
@@ -570,8 +581,10 @@ class App(FastAPI):
                     content={"error": str(error) if show_error else None},
                     status_code=500,
                 )
-            root_path = route_utils.get_root_url(request)[: -len(f"/api/{api_name}")]
-            output = add_root_url(output, root_path)
+            root_path = route_utils.get_root_url(
+                request=request, route_path=f"/api/{api_name}", root_path=app.root_path
+            )
+            output = add_root_url(output, root_path, None)
             return output
 
         @app.get("/queue/data", dependencies=[Depends(login_check)])
@@ -580,7 +593,9 @@ class App(FastAPI):
             session_hash: str,
         ):
             blocks = app.get_blocks()
-            root_path = route_utils.get_root_url(request)[: -len("/queue/data")]
+            root_path = route_utils.get_root_url(
+                request=request, route_path="/queue/data", root_path=app.root_path
+            )
 
             async def sse_stream(request: fastapi.Request):
                 try:
@@ -626,7 +641,7 @@ class App(FastAPI):
                                 "success": False,
                             }
                         if message:
-                            add_root_url(message, root_path)
+                            add_root_url(message, root_path, None)
                             yield f"data: {json.dumps(message)}\n\n"
                             if message["msg"] == ServerMessage.process_completed:
                                 blocks._queue.pending_event_ids_session[
@@ -763,7 +778,7 @@ class App(FastAPI):
         ):
             content_type_header = request.headers.get("Content-Type")
             content_type: bytes
-            content_type, _ = parse_options_header(content_type_header)
+            content_type, _ = parse_options_header(content_type_header or "")
             if content_type != b"multipart/form-data":
                 raise HTTPException(status_code=400, detail="Invalid content type.")
 
@@ -786,7 +801,8 @@ class App(FastAPI):
             files_to_copy = []
             locations: list[str] = []
             for temp_file in form.getlist("files"):
-                assert isinstance(temp_file, GradioUploadFile)
+                if not isinstance(temp_file, GradioUploadFile):
+                    raise TypeError("File is not an instance of GradioUploadFile")
                 if temp_file.filename:
                     file_name = Path(temp_file.filename).name
                     name = client_utils.strip_invalid_filename_characters(file_name)
