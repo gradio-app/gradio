@@ -9,7 +9,6 @@ from collections import deque
 from dataclasses import dataclass as python_dataclass
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 from typing import TYPE_CHECKING, AsyncGenerator, BinaryIO, List, Optional, Tuple, Union
-from urllib.parse import urlparse
 
 import fastapi
 import httpx
@@ -591,10 +590,13 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: fastapi.Request, call_next):
         host_header: str | None = request.headers.get("host")
         origin_header: str | None = request.headers.get("origin")
-        host_header_host = urlparse(host_header).hostname if host_header else ""
-        origin_header_host = urlparse(origin_header).hostname if origin_header else ""
+        host_header_host = httpx.URL(host_header).host if host_header else ""
+        origin_header_host = httpx.URL(origin_header).host if origin_header else ""
 
-        localhost_aliases = ("localhost", "127.0.0.1", "0.0.0.0")
+        localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0"]
+
+        print("host>", host_header_host, "origin", origin_header_host)
+        print("host", host_header_host, "origin", origin_header_host)
 
         if (
             host_header_host in localhost_aliases
