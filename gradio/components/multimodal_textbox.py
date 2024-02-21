@@ -30,7 +30,7 @@ class MultimodalTextbox(FormComponent):
 
     def __init__(
         self,
-        value: list[dict[str, str]] | Callable | None = [{}],
+        value: list[dict[str, str]] | Callable | None = [],
         *,
         lines: int = 1,
         max_lines: int = 20,
@@ -101,7 +101,7 @@ class MultimodalTextbox(FormComponent):
         self.rtl = rtl
         self.text_align = text_align
 
-    def preprocess(self, payload: str | None) -> str | None:
+    def preprocess(self, payload: list[dict[str, str]] | None) -> list[dict[str, str]] | None:
         """
         Parameters:
             payload: the text entered in the textarea.
@@ -110,17 +110,16 @@ class MultimodalTextbox(FormComponent):
         """
         return None if payload is None else payload
 
-    def postprocess(self, value: str | None) -> str | None:
-        """
-        Parameters:
-            value: Expects a {str} returned from function and sets textarea value to it.
-        Returns:
-            The value to display in the textarea.
-        """
-        return None if value is None else value
-
     def api_info(self) -> dict[str, Any]:
-        return {"type": "list"}
+        return {"type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "type": {"type": "string", "enum": ["text", "file"]},
+                        "text": {"type": "string"},
+                        "file": {"type": "object", "properties": {"path": {"type": "string"}}},
+                    }
+                }}
 
     def example_inputs(self) -> Any:
         return [{"type": "text", "text": "Hello!!"}]

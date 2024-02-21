@@ -11,10 +11,11 @@
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
+	import type { FileData } from "@gradio/client";
 
 	export let gradio: Gradio<{
 		change: typeof value;
-		submit: never;
+		submit: typeof value;
 		blur: never;
 		select: SelectData;
 		input: never;
@@ -24,10 +25,9 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: [
-		{ type: string; text: string | null } | null,
-		{ type: string; image_url: string | null } | null
-	][] = [];
+	export let value: 
+	({ type: string; text: string; } | 
+	{ type: string; file: FileData | null; })[] = [];
 	export let lines: number;
 	export let placeholder = "";
 	export let show_label: boolean;
@@ -44,6 +44,7 @@
 	export let autoscroll = true;
 	export let interactive: boolean;
 	export let root: string;
+
 </script>
 
 <Block

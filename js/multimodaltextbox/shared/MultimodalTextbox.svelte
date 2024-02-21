@@ -12,11 +12,9 @@
 	import { fade } from "svelte/transition";
 	import type { SelectData } from "@gradio/utils";
 
-	export let value: [
-		{ type: string; text: string | null } | null,
-		{ type: string; image_url: string | null } | null
-	][] = [];
-	export let images: FileData[] = [];
+	export let value: 
+	({ type: string; text: string; } | 
+	{ type: string; file: FileData | null; })[] = [];
 	export let value_is_output = false;
 	export let lines = 1;
 	export let placeholder = "Type here...";
@@ -39,6 +37,7 @@
 	let previous_scroll_top = 0;
 	let user_has_scrolled_up = false;
 
+	let text = "";
 	let dragging = false;
 	$: dispatch("drag", dragging);
 
@@ -56,10 +55,11 @@
 	}
 
 	$: value, el && lines !== max_lines && resize({ target: el });
+	$: file_count = value.filter(item => item.type === "file").length;
 
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
-		submit: undefined;
+		submit: typeof value;
 		blur: undefined;
 		select: SelectData;
 		input: undefined;
@@ -87,6 +87,7 @@
 			dispatch("input");
 		}
 	}
+
 	afterUpdate(() => {
 		if (autofocus) {
 			el.focus();
@@ -100,8 +101,11 @@
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
-			await navigator.clipboard.writeText(value["text"]);
-			copy_feedback();
+			const text = value.find(item => item && 'text' in item);
+			if (text && 'text' in text && typeof text["text"] === 'string') {
+				await navigator.clipboard.writeText(text["text"]);
+				copy_feedback();
+			}
 		}
 	}
 
@@ -129,7 +133,11 @@
 		await tick();
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
-			dispatch("submit");
+			value.push({type: "text", text: text});
+			dispatch("submit", value);
+			text = "";
+			await tick();
+			value = [];
 		} else if (
 			e.key === "Enter" &&
 			!e.shiftKey &&
@@ -137,7 +145,11 @@
 			max_lines >= 1
 		) {
 			e.preventDefault();
-			dispatch("submit");
+			value.push({type: "text", text: text});
+			dispatch("submit", value);
+			text = "";
+			await tick();
+			value = [];
 		}
 	}
 
@@ -193,7 +205,7 @@
 		_el.style.overflowY = "scroll";
 		_el.addEventListener("input", resize);
 
-		// if (!_value.trim()) return;
+		if (!_value.trim()) return;
 		resize({ target: _el });
 
 		return {
@@ -206,9 +218,12 @@
 		detail
 	}: CustomEvent<FileData | FileData[]>): Promise<void> {
 		if (Array.isArray(detail)) {
-			images = images.concat(detail);
+			for (let file of detail) {
+				value = [...value, {type: "file", file: file}];
+			}
 		} else {
-			images.push(detail);
+			value.push({type: "file", file: detail});
+			value = value;
 		}
 		await tick();
 		dispatch("change", value);
@@ -217,8 +232,8 @@
 
 	function remove_thumbnail(event: MouseEvent, index: number): void {
 		event.stopPropagation();
-        images.splice(index, 1);
-        images = images;
+		value.splice(index, 1);
+		value = value;
 	}
 
 	let hidden_upload: HTMLInputElement;
@@ -228,6 +243,14 @@
             hidden_upload.click();
         }
     }
+
+	async function handle_submit(): Promise<void> {
+		value.push({type: "text", text: text});
+		dispatch("submit", value);
+		text = "";
+		await tick();
+		value = [];
+	}
 </script>
 
 <!-- svelte-ignore a11y-autofocus -->
@@ -256,19 +279,19 @@
 			disable_click={true}
 			bind:hidden_upload={hidden_upload}
 		>
-		<button class="submit-button" on:click={() => dispatch("submit")}>↑</button>
+		<button class="submit-button" on:click={handle_submit}>↑</button>
 		<button class="plus-button" on:click={handle_upload_click}>+</button>
-			{#if images.length > 0}
+		{#if file_count > 0}
 			<div
 				class="thumbnails scroll-hide"
 				data-testid="container_el"
-				style="display: {images.length > 0 ? 'flex' : 'none'};"
+				style="display: {file_count > 0 ? 'flex' : 'none'};"
 			>
-		{#each images as image, index}
-			<button class="thumbnail-item thumbnail-small">
+			{#each value.filter(item => item.type === "file") as file, index}
+				<button class="thumbnail-item thumbnail-small">
 					<button class="delete-button" on:click={(event) => remove_thumbnail(event, index)}><Clear /></button>
 					<Image
-						src={image.url}
+						src={file.file.url}
 						title={null}
 						alt=""
 						loading="lazy"
@@ -280,10 +303,10 @@
 		{/if}
 			<textarea
 				data-testid="textbox"
-				use:text_area_resize={value}
+				use:text_area_resize={text}
 				class="scroll-hide"
 				dir={rtl ? "rtl" : "ltr"}
-				bind:value={value["text"]}
+				bind:value={text}
 				bind:this={el}
 				{placeholder}
 				rows={lines}
