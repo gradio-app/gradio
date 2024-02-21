@@ -629,7 +629,7 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
         )
         response.headers[
             "Access-Control-Allow-Methods"
-        ] = "*"
+        ] = "GET, POST, PUT, DELETE, OPTIONS"
         response.headers[
             "Access-Control-Allow-Headers"
         ] = "Origin, Content-Type, Accept"
