@@ -344,6 +344,7 @@
 		left: 0px;
 		flex-direction: column;
 		z-index: var(--layer-2);
+		border-radius: calc(var(--block-radius) - var(--block-border-width));
 		-webkit-backdrop-filter: blur(8px);
 		backdrop-filter: blur(8px);
 		background: var(--background-fill-primary);
