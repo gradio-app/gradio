@@ -660,9 +660,21 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
 
 def delete_files_created_by_app(blocks: Blocks, age: int | None) -> None:
     """Delete files that are older than age. If age is None, delete all files."""
+
+    # Avoid circular import
+    from gradio.components.dataset import Dataset
+
+    used_in_examples = set()
+    for component in blocks.blocks.values():
+        if isinstance(component, Dataset):
+            used_in_examples.update(component.dataset_cache)
     for temp_set in blocks.temp_file_sets:
+        # We use a copy of the set to avoid modifying the set while iterating over it
+        # otherwise we would get an exception: Set changed size during iteration
         to_remove = set()
         for file in temp_set:
+            if file in used_in_examples:
+                continue
             try:
                 file_path = Path(file)
                 modified_time = datetime.fromtimestamp(file_path.lstat().st_ctime)
