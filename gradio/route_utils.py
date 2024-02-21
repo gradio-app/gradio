@@ -586,17 +586,29 @@ def starts_with_protocol(string: str) -> bool:
     return re.match(pattern, string) is not None
 
 
+def get_core_url(original_url: str) -> str:
+    """
+    Returns the core url of a given url. If the url does not have a scheme, it is assumed to be http.
+    Examples:
+        get_core_url("https://www.gradio.app") -> "www.gradio.app"
+        get_core_url("localhost:7860") -> "localhost"
+        get_core_url("127.0.0.1") -> "127.0.0.1"
+    """
+    if not original_url:
+        return ""
+    if "://" not in original_url:
+        original_url = "http://" + original_url
+    return httpx.URL(original_url).host
+
+
 class CustomCORSMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: fastapi.Request, call_next):
-        host_header: str | None = request.headers.get("host")
-        origin_header: str | None = request.headers.get("origin")
-        host_header_host = httpx.URL(host_header).host if host_header else ""
-        origin_header_host = httpx.URL(origin_header).host if origin_header else ""
+        host_header: str = request.headers.get("host", "")
+        origin_header: str = request.headers.get("origin", "")
+        host_header_host = get_core_url(host_header)
+        origin_header_host = get_core_url(origin_header)
 
         localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0"]
-
-        print("host>", host_header_host, "origin", origin_header_host)
-        print("host", host_header_host, "origin", origin_header_host)
 
         if (
             host_header_host in localhost_aliases
