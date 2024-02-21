@@ -35,9 +35,8 @@
 			let existingTab = tabs.find((t) => t.id === tab.id);
 			if (existingTab) {
 				// update existing tab with newer values
-				let i = tabs.findIndex((t) => t.id === tab.id);
-				tabs[i] = { ...tabs[i], ...tab };
-				index = i;
+				index = tabs.findIndex((t) => t.id === tab.id);
+				tabs[index] = { ...tabs[index], ...tab };
 			} else {
 				tabs.push({
 					name: tab.name,
