@@ -135,9 +135,9 @@ class LogMessage(BaseModel):
 
 class GradioBaseModel(ABC):
     def copy_to_dir(self, dir: str | pathlib.Path) -> GradioDataModel:
-        assert isinstance(self, (BaseModel, RootModel))
-        if isinstance(dir, str):
-            dir = pathlib.Path(dir)
+        if not isinstance(self, (BaseModel, RootModel)):
+            raise TypeError("must be used in a Pydantic model")
+        dir = pathlib.Path(dir)
 
         # TODO: Making sure path is unique should be done in caller
         def unique_copy(obj: dict):
@@ -204,7 +204,8 @@ class FileData(GradioModel):
         pathlib.Path(dir).mkdir(exist_ok=True)
         new_obj = dict(self)
 
-        assert self.path
+        if not self.path:
+            raise ValueError("Source file path is not set")
         new_name = shutil.copy(self.path, dir)
         new_obj["path"] = new_name
         return self.__class__(**new_obj)

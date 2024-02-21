@@ -105,6 +105,9 @@ exclude = [
 ]
 
 [tool.ruff]
+exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py"]
+
+[tool.ruff.lint]
 extend-select = [
   "ARG",
   "B",
@@ -114,6 +117,7 @@ extend-select = [
   "I",
   "N",
   "PL",
+  "S101",
   "SIM",
   "UP",
   "W",
@@ -133,9 +137,8 @@ ignore = [
   "UP006",   # use `list` instead of `List` for type annotations (fails for 3.8)
   "UP007",   # use X | Y for type annotations (TODO: can be enabled once Pydantic plays nice with them)
 ]
-exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "demo/*" = [
   "ARG",
   "E402", # Demos may have imports not at the top
@@ -155,9 +158,11 @@ exclude = ["gradio/node/*.py", ".venv/*", "gradio/_frontend_code/*.py"]
 ]
 "client/python/test/*" = [
   "ARG",
+  "S101", # tests may use assertions
 ]
 "test/*" = [
   "ARG",
+  "S101", # tests may use assertions
 ]
 
 [tool.pytest.ini_options]

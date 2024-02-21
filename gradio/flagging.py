@@ -421,9 +421,11 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             # Add deserialized object to row
             features[label] = {"dtype": "string", "_type": "Value"}
             try:
-                assert Path(deserialized).exists()
-                row.append(str(Path(deserialized).relative_to(self.dataset_dir)))
-            except (AssertionError, TypeError, ValueError):
+                deserialized_path = Path(deserialized)
+                if not deserialized_path.exists():
+                    raise FileNotFoundError(f"File {deserialized} not found")
+                row.append(str(deserialized_path.relative_to(self.dataset_dir)))
+            except (FileNotFoundError, TypeError, ValueError):
                 deserialized = "" if deserialized is None else str(deserialized)
                 row.append(deserialized)
 

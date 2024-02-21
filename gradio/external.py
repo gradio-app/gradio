@@ -431,7 +431,10 @@ def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
     # Use end_to_end_fn here to properly upload/download all files
     predict_fns = []
     for fn_index, endpoint in enumerate(client.endpoints):
-        assert isinstance(endpoint, Endpoint)
+        if not isinstance(endpoint, Endpoint):
+            raise TypeError(
+                f"Expected endpoint to be an Endpoint, but got {type(endpoint)}"
+            )
         helper = client.new_helper(fn_index)
         if endpoint.backend_fn:
             predict_fns.append(endpoint.make_end_to_end_fn(helper))

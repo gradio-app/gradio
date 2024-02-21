@@ -377,7 +377,8 @@ async def get_pred_from_sse_v0(
         except asyncio.CancelledError:
             pass
 
-    assert len(done) == 1
+    if len(done) != 1:
+        raise ValueError(f"Did not expect {len(done)} tasks to be done.")
     for task in done:
         return task.result()
 
@@ -407,7 +408,8 @@ async def get_pred_from_sse_v1_v2(
         except asyncio.CancelledError:
             pass
 
-    assert len(done) == 1
+    if len(done) != 1:
+        raise ValueError(f"Did not expect {len(done)} tasks to be done.")
     for task in done:
         exception = task.exception()
         if exception:
