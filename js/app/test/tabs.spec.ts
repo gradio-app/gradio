@@ -25,16 +25,24 @@ test("correct selected tab shown", async ({ page }) => {
 	await page
 		.getByRole("button", { name: "Make Even Tabs Uninteractive" })
 		.click();
+	await page.waitForTimeout(1000);
+
 	await page.getByRole("tab", { name: "Tab 2" }).click();
 	await expect(page.getByLabel("Selected Tab")).toHaveValue("Tab 5");
 
 	await page.getByRole("button", { name: "Make All Tabs Interactive" }).click();
+	await page.waitForTimeout(1000);
+
 	await page.getByRole("tab", { name: "Tab 2" }).click();
 	await expect(page.getByLabel("Selected Tab")).toHaveValue("Tab 2");
 
 	await page.getByRole("button", { name: "Hide Odd Tabs" }).click();
+	await page.waitForTimeout(1000);
+
 	await page.getByRole("tab", { name: "Tab 4" }).click();
 	await page.getByRole("button", { name: "Show All Tabs" }).click();
+	await page.waitForTimeout(1000);
+
 	await page.getByRole("tab", { name: "Tab 9" }).click();
 	await expect(page.getByLabel("Selected Tab")).toHaveValue("Tab 9");
 });
