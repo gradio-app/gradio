@@ -15,14 +15,14 @@ const base = defineConfig({
 			]
 		}
 	},
+	expect: { timeout: 15000 },
+	timeout: 15000,
 	testMatch: /.*.spec.ts/,
 	testDir: "..",
 	workers: process.env.CI ? 1 : undefined
 });
 
 const normal = defineConfig(base, {
-	expect: { timeout: 15000 },
-	timeout: 15000,
 	globalSetup: "./playwright-setup.js"
 });
 normal.projects = undefined; // Explicitly unset this field due to https://github.com/microsoft/playwright/issues/28795
@@ -42,8 +42,6 @@ const lite = defineConfig(base, {
 		"**/gradio_pdf_demo.spec.ts", // The PDF component is not working on Lite, https://github.com/gradio-app/gradio/issues/7476
 		"**/queue_full_e2e_test.spec.ts" // In Lite, there is only one event loop, so multiple requests are pushed to the queue sequentially, which is not the case in normal mode.
 	],
-	expect: { timeout: 60000 },
-	timeout: 60000,
 	workers: 1
 });
 lite.projects = undefined; // Explicitly unset this field due to https://github.com/microsoft/playwright/issues/28795
