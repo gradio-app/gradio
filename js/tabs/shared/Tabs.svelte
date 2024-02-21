@@ -31,11 +31,12 @@
 
 	setContext(TABS, {
 		register_tab: (tab: Tab) => {
+			let index: number;
 			let existingTab = tabs.find((t) => t.id === tab.id);
 			if (existingTab) {
 				// update existing tab with newer values
-				let i = tabs.findIndex((t) => t.id === tab.id);
-				tabs[i] = { ...tabs[i], ...tab };
+				index = tabs.findIndex((t) => t.id === tab.id);
+				tabs[index] = { ...tabs[index], ...tab };
 			} else {
 				tabs.push({
 					name: tab.name,
@@ -44,6 +45,7 @@
 					visible: tab.visible,
 					interactive: tab.interactive
 				});
+				index = tabs.length - 1;
 			}
 			selected_tab.update((current) => {
 				if (current === false && tab.visible && tab.interactive) {
@@ -54,7 +56,7 @@
 				return nextTab ? nextTab.id : current;
 			});
 			tabs = tabs;
-			return tabs.length - 1;
+			return index;
 		},
 		unregister_tab: (tab: Tab) => {
 			const i = tabs.findIndex((t) => t.id === tab.id);
