@@ -27,8 +27,7 @@ test("correct selected tab shown", async ({ page }) => {
 		.click();
 	await page.waitForTimeout(1000);
 
-	await page.getByRole("tab", { name: "Tab 2" }).click();
-	await expect(page.getByLabel("Selected Tab")).toHaveValue("Tab 5");
+	await expect(page.getByRole("tab", { name: "Tab 2" })).toBeDisabled();
 
 	await page.getByRole("button", { name: "Make All Tabs Interactive" }).click();
 	await page.waitForTimeout(1000);
