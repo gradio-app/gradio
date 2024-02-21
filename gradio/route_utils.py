@@ -617,11 +617,12 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
             and origin_header_host
             and origin_header_host not in localhost_aliases
         ):
+            print(">>Blocked by CORS policy.", host_header_host in localhost_aliases, origin_header_host, origin_header_host not in localhost_aliases)
             return fastapi.Response(
                 content="Blocked by CORS policy.",
                 status_code=fastapi.status.HTTP_403_FORBIDDEN,
             )
-
+        print(">>Allowed by CORS policy.")
         response = await call_next(request)
         response.headers["Access-Control-Allow-Origin"] = request.headers.get(
             "origin", "*"
