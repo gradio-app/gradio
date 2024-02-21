@@ -1,0 +1,34 @@
+name: uv test pip
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        uv venv venv
+    - name: Get uv cache dir
+      id: uv-cache
+      run: |
+        echo "dir=$(uv cache dir)" >> $GITHUB_OUTPUT
+      
+    - name: pip cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.uv-cache.outputs.dir }}
+        key: ${{ runner.os }}-uv-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-uv-
+    - name: install deps
+      run: |
+        source .venv/bin/activate
+        uv pip install -r test/requirements.txt
+        uv pip install -r 
