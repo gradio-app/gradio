@@ -32,4 +32,5 @@ jobs:
       run: |
         source .venv/bin/activate
         uv pip install -r test/requirements.txt
-        uv pip install -r 
+        uv pip install -r client/python/test/requirements.txt
+        uv pip install -e ".[oauth]"
