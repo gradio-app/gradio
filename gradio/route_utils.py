@@ -592,6 +592,8 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
         # Extract host and origin from the request headers
         host_header: str = request.headers.get('host', '')
         origin_header: str = request.headers.get('origin', '').replace('http://', '').replace('https://', '')
+        print(f"host_header: {host_header}")
+        print(f"origin_header: {origin_header}")
 
         localhost_prefixes = (
             'localhost',
@@ -602,8 +604,11 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
         # Check if the host starts with localhost and origin is not localhost
         if host_header.startswith(localhost_prefixes) and origin_header and not origin_header.startswith(localhost_prefixes):
             # Block the request by returning a 403 Forbidden response
+            print("Blocked by CORS policy.")
             return Response(content="Blocked by CORS policy.", status_code=status.HTTP_403_FORBIDDEN)
 
-        # If the request doesn't match the blocking criteria, proceed as normal
         response = await call_next(request)
+        response.headers['Access-Control-Allow-Origin'] = request.headers.get('origin', '*')  # Allow the requesting origin
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'  # Adjust the methods as needed
+        response.headers['Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept'  # Adjust the headers as needed
         return response
