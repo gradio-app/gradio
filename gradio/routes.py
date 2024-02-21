@@ -30,7 +30,6 @@ import httpx
 import markupsafe
 import orjson
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
