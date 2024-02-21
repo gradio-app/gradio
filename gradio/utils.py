@@ -95,7 +95,7 @@ class BaseReloader(ABC):
         )
 
     def swap_blocks(self, demo: Blocks):
-        assert self.running_app.blocks
+        assert self.running_app.blocks  # noqa: S101
         # Copy over the blocks to get new components and events but
         # not a new queue
         self.running_app.blocks._queue.block_fns = demo.fns

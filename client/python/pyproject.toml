@@ -60,7 +60,7 @@ include = [
 [tool.ruff]
 extend = "../../pyproject.toml"
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = [
   "gradio_client"
 ]
