@@ -5,4 +5,4 @@
 "gradio": minor
 ---
 
-feat:WIP: Multimodal Textbox (Chat Input Component)
+feat: Multimodal Textbox (Chat Input Component)
