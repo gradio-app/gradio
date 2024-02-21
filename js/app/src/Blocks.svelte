@@ -867,6 +867,7 @@
 
 	.backdrop {
 		flex: 1 1 0%;
+		-webkit-backdrop-filter: blur(4px);
 		backdrop-filter: blur(4px);
 	}
 

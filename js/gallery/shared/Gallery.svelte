@@ -344,6 +344,7 @@
 		left: 0px;
 		flex-direction: column;
 		z-index: var(--layer-2);
+		-webkit-backdrop-filter: blur(8px);
 		backdrop-filter: blur(8px);
 		background: var(--background-fill-primary);
 		background: color-mix(in srgb, var(--background-fill-primary) 90%, transparent);
