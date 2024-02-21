@@ -74,12 +74,14 @@ jobs:
           . venv/bin/activate
           pnpm run test:ct
 
-      - run: |
+      - name: Build Lite
+        run: |
           . venv/bin/activate
           python -m pip install build
           pnpm --filter @gradio/app build:lite
 
-      - run: |
+      - name: Run Lite E2E tests
+        run: |
           . venv/bin/activate
           pnpm --filter @gradio/app test:browser:lite
 
