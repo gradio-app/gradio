@@ -56,6 +56,7 @@ from gradio.oauth import attach_oauth
 from gradio.processing_utils import add_root_url
 from gradio.queueing import Estimation
 from gradio.route_utils import (  # noqa: F401
+    CustomCORSMiddleware,
     FileUploadProgress,
     FileUploadProgressNotQueuedError,
     FileUploadProgressNotTrackedError,
@@ -201,12 +202,7 @@ class App(FastAPI):
         app.configure_app(blocks)
 
         if not wasm_utils.IS_WASM:
-            app.add_middleware(
-                CORSMiddleware,
-                allow_origins=["*"],
-                allow_methods=["*"],
-                allow_headers=["*"],
-            )
+            app.add_middleware(CustomCORSMiddleware)
 
         @app.get("/user")
         @app.get("/user/")
