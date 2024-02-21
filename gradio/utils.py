@@ -68,6 +68,18 @@ def get_package_version() -> str:
         return ""
 
 
+def is_h2oai_version() -> bool:
+    try:
+        package_json_data = (
+            pkgutil.get_data(__name__, "package.json").decode("utf-8").strip()  # type: ignore
+        )
+        package_data = json.loads(package_json_data)
+        version = package_data.get("h2oai", "")
+        return version == "true"
+    except Exception:
+        return False
+
+
 def safe_get_lock() -> asyncio.Lock:
     """Get asyncio.Lock() without fear of getting an Exception.
 

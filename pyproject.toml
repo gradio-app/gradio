@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gradio"
-dynamic = ["version", "dependencies", "optional-dependencies", "readme"]
+dynamic = ["version", "dependencies", "optional-dependencies", "readme", "h2oai"]
 description = "Python library for easily interacting with trained machine learning models"
 license = "Apache-2.0"
 requires-python = ">=3.8"
@@ -50,6 +50,10 @@ Homepage = "https://github.com/gradio-app/gradio"
 [tool.hatch.version]
 path = "gradio/package.json"
 pattern = ".*\"version\":\\s*\"(?P<version>[^\"]+)\""
+
+[tool.hatch.h2oai]
+path = "gradio/package.json"
+pattern = ".*\"h2oai\":\\s*\"(?P<h2oai>[^\"]+)\""
 
 [tool.hatch.metadata.hooks.requirements_txt]
 filename = "requirements.txt"

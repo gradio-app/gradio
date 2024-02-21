@@ -130,7 +130,7 @@
 				selected: true
 			});
 		}
-		if (selected_indices.length === max_choices) {
+		if (selected_indices.length === 1000000) {
 			show_options = false;
 			active_index = null;
 			filter_input.blur();
@@ -159,7 +159,7 @@
 
 	function handle_focus(e: FocusEvent): void {
 		filtered_indices = choices.map((_, i) => i);
-		if (max_choices === null || selected_indices.length < max_choices) {
+		if (max_choices === null || selected_indices.length < 100000) {
 			show_options = true;
 		}
 		dispatch("focus");
@@ -185,7 +185,6 @@
 			selected_indices = [...selected_indices.slice(0, -1)];
 		}
 		if (selected_indices.length === max_choices) {
-			show_options = false;
 			active_index = null;
 		}
 	}
@@ -254,7 +253,7 @@
 					class="border-none"
 					class:subdued={(!choices_names.includes(input_text) &&
 						!allow_custom_value) ||
-						selected_indices.length === max_choices}
+						selected_indices.length === 10000}
 					{disabled}
 					autocomplete="off"
 					bind:value={input_text}
