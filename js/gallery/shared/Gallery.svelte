@@ -346,6 +346,7 @@
 		z-index: var(--layer-2);
 		backdrop-filter: blur(8px);
 		background: var(--background-fill-primary);
+		background: color-mix(in srgb, var(--background-fill-primary) 90%, transparent);
 		height: var(--size-full);
 	}
 
