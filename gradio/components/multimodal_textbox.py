@@ -13,9 +13,9 @@ from gradio.events import Events
 @document()
 class MultimodalTextbox(FormComponent):
     """
-    Creates a textarea for user to enter string input or display string output.
+    Creates a textarea for users to enter string input or display string output and also allows for the uploading of multimedia files.
 
-    Demos: hello_world, diff_texts, sentence_builder
+    Demos: chatbot_multimodal
     Guides: creating-a-chatbot, real-time-speech-recognition
     """
 
@@ -59,7 +59,7 @@ class MultimodalTextbox(FormComponent):
             lines: minimum number of line rows to provide in textarea.
             max_lines: maximum number of line rows to provide in textarea.
             placeholder: placeholder hint to provide behind textarea.
-            label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
+            label: The label for this component. Appears above the component and is also used as the header if there is a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             info: additional component description.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
