@@ -4,6 +4,8 @@
 	import { File, Download, Undo } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import { dequal } from "dequal";
+	import type Canvas3DGS from "./Canvas3DGS.svelte";
+	import type Canvas3D from "./Canvas3D.svelte";
 
 	export let value: FileData | null;
 	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
@@ -21,23 +23,33 @@
 
 	let current_settings = { camera_position, zoom_speed, pan_speed };
 
-	let canvas3dgs: any;
-	let canvas3d: any;
 	let use_3dgs = false;
-	let resolved_url: string | undefined;
-
-	async function loadCanvas3D(): Promise<any> {
+	let Canvas3DGSComponent: typeof Canvas3DGS;
+	let Canvas3DComponent: typeof Canvas3D;
+	async function loadCanvas3D(): Promise<typeof Canvas3D> {
 		const module = await import("./Canvas3D.svelte");
 		return module.default;
 	}
-
-	async function loadCanvas3DGS(): Promise<any> {
+	async function loadCanvas3DGS(): Promise<typeof Canvas3DGS> {
 		const module = await import("./Canvas3DGS.svelte");
 		return module.default;
 	}
+	$: if (value) {
+		use_3dgs = value.path.endsWith(".splat") || value.path.endsWith(".ply");
+		if (use_3dgs) {
+			loadCanvas3DGS().then((component) => {
+				Canvas3DGSComponent = component;
+			});
+		} else {
+			loadCanvas3D().then((component) => {
+				Canvas3DComponent = component;
+			});
+		}
+	}
 
+	let canvas3d: Canvas3D | undefined;
 	function handle_undo(): void {
-		canvas3d.reset_camera_position(camera_position, zoom_speed, pan_speed);
+		canvas3d?.reset_camera_position(camera_position, zoom_speed, pan_speed);
 	}
 
 	$: {
@@ -46,25 +58,12 @@
 			current_settings.zoom_speed !== zoom_speed ||
 			current_settings.pan_speed !== pan_speed
 		) {
-			canvas3d.reset_camera_position(camera_position, zoom_speed, pan_speed);
+			canvas3d?.reset_camera_position(camera_position, zoom_speed, pan_speed);
 			current_settings = { camera_position, zoom_speed, pan_speed };
 		}
 	}
 
-	$: {
-		if (value) {
-			use_3dgs = value?.path.endsWith(".splat") || value?.path.endsWith(".ply");
-			if (use_3dgs) {
-				loadCanvas3DGS().then((module) => {
-					canvas3dgs = module;
-				});
-			} else {
-				loadCanvas3D().then((module) => {
-					canvas3d = module;
-				});
-			}
-		}
-	}
+	let resolved_url: string | undefined;
 </script>
 
 <BlockLabel
@@ -75,7 +74,10 @@
 {#if value}
 	<div class="model3D">
 		<div class="buttons">
-			<IconButton Icon={Undo} label="Undo" on:click={() => handle_undo()} />
+			{#if !use_3dgs}
+				<!-- Canvas3DGS doesn't implement the undo method (reset_camera_position) -->
+				<IconButton Icon={Undo} label="Undo" on:click={() => handle_undo()} />
+			{/if}
 			<a
 				href={resolved_url}
 				target={window.__is_colab__ ? "_blank" : null}
@@ -87,7 +89,7 @@
 
 		{#if use_3dgs}
 			<svelte:component
-				this={canvas3dgs}
+				this={Canvas3DGSComponent}
 				bind:resolved_url
 				{value}
 				{zoom_speed}
@@ -95,7 +97,8 @@
 			/>
 		{:else}
 			<svelte:component
-				this={canvas3d}
+				this={Canvas3DComponent}
+				bind:this={canvas3d}
 				bind:resolved_url
 				{value}
 				{clear_color}
