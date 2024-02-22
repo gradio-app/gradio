@@ -133,7 +133,7 @@
 			css_text_stylesheet = prefix_css(
 				css_string,
 				version,
-				css_text_stylesheet || undefined,
+				css_text_stylesheet || undefined
 			);
 		}
 		await mount_css(config.root + "/theme.css", document.head);
@@ -152,28 +152,28 @@
 					.then((css_string) => {
 						prefix_css(css_string, version);
 					});
-			}),
+			})
 		);
 	}
 	async function add_custom_html_head(
-		head_string: string | null,
+		head_string: string | null
 	): Promise<void> {
 		if (head_string) {
 			const parser = new DOMParser();
 			const parsed_head_html = Array.from(
-				parser.parseFromString(head_string, "text/html").head.children,
+				parser.parseFromString(head_string, "text/html").head.children
 			);
 
 			if (parsed_head_html) {
 				for (let head_element of parsed_head_html) {
 					if (head_element.tagName.toLowerCase() == "meta") {
 						const domMetaList = Array.from(
-							document.head.getElementsByTagName("meta") ?? [],
+							document.head.getElementsByTagName("meta") ?? []
 						);
 						const matched = domMetaList.find(
 							(el) =>
 								el.getAttribute("property") ==
-								head_element.getAttribute("property"),
+								head_element.getAttribute("property")
 						);
 						if (matched) {
 							document.head.removeChild(matched);
@@ -194,7 +194,7 @@
 	function handle_darkmode(target: HTMLDivElement): "light" | "dark" {
 		let url = new URL(window.location.toString());
 		let url_color_mode: ThemeMode | null = url.searchParams.get(
-			"__theme",
+			"__theme"
 		) as ThemeMode | null;
 		active_theme_mode = theme_mode || url_color_mode || "system";
 
@@ -214,7 +214,7 @@
 
 		function update_scheme(): "light" | "dark" {
 			let _theme: "light" | "dark" = window?.matchMedia?.(
-				"(prefers-color-scheme: dark)",
+				"(prefers-color-scheme: dark)"
 			).matches
 				? "dark"
 				: "light";
@@ -240,7 +240,7 @@
 		message: "",
 		load_status: "pending",
 		status: "sleeping",
-		detail: "SLEEPING",
+		detail: "SLEEPING"
 	};
 
 	let app: Awaited<ReturnType<typeof client>>;
@@ -262,11 +262,11 @@
 			BUILD_MODE === "dev" || gradio_dev_mode === "dev"
 				? `http://localhost:${
 						typeof server_port === "number" ? server_port : 7860
-					}`
+				  }`
 				: host || space || src || location.origin;
 
 		app = await client(api_url, {
-			status_callback: handle_status,
+			status_callback: handle_status
 		});
 		config = app.config;
 		window.__gradio_space__ = config.space_id;
@@ -275,7 +275,7 @@
 			message: "",
 			load_status: "complete",
 			status: "running",
-			detail: "RUNNING",
+			detail: "RUNNING"
 		};
 
 		await mount_custom_css(config.css);
@@ -293,7 +293,7 @@
 				eventSource.onmessage = async function (event) {
 					if (event.data === "CHANGE") {
 						app = await client(api_url, {
-							status_callback: handle_status,
+							status_callback: handle_status
 						});
 
 						config = app.config;
@@ -311,8 +311,8 @@
 		!ready && status.load_status !== "error"
 			? "pending"
 			: !ready && status.load_status === "error"
-				? "error"
-				: status.load_status;
+			? "error"
+			: status.load_status;
 
 	$: config && (eager || $intersecting[_id]) && load_demo();
 
@@ -345,7 +345,7 @@
 			CONFIG_ERROR: $_("errors.config_error"),
 			BUILD_ERROR: $_("errors.build_error"),
 			RUNTIME_ERROR: $_("errors.runtime_error"),
-			PAUSED: $_("errors.space_paused"),
+			PAUSED: $_("errors.space_paused")
 		} as const,
 		title(error: error_types): string {
 			return encodeURIComponent($_("errors.space_not_working"));
@@ -354,9 +354,9 @@
 			return encodeURIComponent(
 				`Hello,\n\nFirstly, thanks for creating this space!\n\nI noticed that the space isn't working correctly because there is ${
 					this.readable_error[error] || "an error"
-				}.\n\nIt would be great if you could take a look at this because this space is being embedded on ${site}.\n\nThanks!`,
+				}.\n\nIt would be great if you could take a look at this because this space is being embedded on ${site}.\n\nThanks!`
 			);
-		},
+		}
 	};
 
 	onMount(async () => {
@@ -368,8 +368,8 @@
 			new CustomEvent("render", {
 				bubbles: true,
 				cancelable: false,
-				composed: true,
-			}),
+				composed: true
+			})
 		);
 	}
 </script>
@@ -403,10 +403,10 @@
 					<p>
 						Please <a
 							href="https://huggingface.co/spaces/{space}/discussions/new?title={discussion_message.title(
-								status?.detail,
+								status?.detail
 							)}&description={discussion_message.description(
 								status?.detail,
-								location.origin,
+								location.origin
 							)}"
 						>
 							contact the author of the space</a
