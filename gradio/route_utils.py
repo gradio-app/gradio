@@ -621,18 +621,20 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
             and "access-control-request-method" in request.headers
         )
 
-        if is_preflight and host_header_host in localhost_aliases:
-            response = fastapi.Response()
-            if origin_header_host in localhost_aliases:
-                response.headers["Access-Control-Allow-Origin"] = origin_header
-            else:
-                response.headers["Access-Control-Allow-Origin"] = "http://localhost"
-            return response
+        allow_origin_header = None
+        if (
+            host_header_host in localhost_aliases
+            and origin_header_host in localhost_aliases
+        ):
+            allow_origin_header = origin_header
 
-        response = await call_next(request)
-        response.headers["Access-Control-Allow-Origin"] = request.headers.get(
-            "origin", "*"
-        )
+        if is_preflight:
+            response = fastapi.Response()
+        else:
+            response = await call_next(request)
+
+        if allow_origin_header:
+            response.headers["Access-Control-Allow-Origin"] = allow_origin_header
         response.headers[
             "Access-Control-Allow-Methods"
         ] = "GET, POST, PUT, DELETE, OPTIONS"
