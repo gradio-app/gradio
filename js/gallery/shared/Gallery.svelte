@@ -338,14 +338,22 @@
 	.preview {
 		display: flex;
 		position: absolute;
-		top: 0px;
-		right: 0px;
-		bottom: 0px;
-		left: 0px;
 		flex-direction: column;
 		z-index: var(--layer-2);
+		border-radius: calc(var(--block-radius) - var(--block-border-width));
+		-webkit-backdrop-filter: blur(8px);
 		backdrop-filter: blur(8px);
+		width: var(--size-full);
+		height: var(--size-full);
+	}
+
+	.preview::before {
+		content: "";
+		position: absolute;
+		z-index: var(--layer-below);
 		background: var(--background-fill-primary);
+		opacity: 0.9;
+		width: var(--size-full);
 		height: var(--size-full);
 	}
 
