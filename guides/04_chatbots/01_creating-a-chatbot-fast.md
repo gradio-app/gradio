@@ -202,7 +202,7 @@ from openai import OpenAI
 import gradio as gr
 
 api_key = "sk-..."  # Replace with your key
-client = OpenAI(api_key)
+client = OpenAI(api_key=api_key)
 
 def predict(message, history):
     history_openai_format = []
