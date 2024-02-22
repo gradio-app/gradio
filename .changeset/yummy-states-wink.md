@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix canvas 3d async imports
+fix:Fix Canvas3D/Canvas3DGS async imports
