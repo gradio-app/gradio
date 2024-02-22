@@ -623,7 +623,11 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
                 status_code=fastapi.status.HTTP_403_FORBIDDEN,
             )
         print(">>Allowed by CORS policy.")
-        response = await call_next(request)
+        if request.method == "OPTIONS":
+            response = fastapi.Response()
+        else:
+            response = await call_next(request)
+
         response.headers["Access-Control-Allow-Origin"] = request.headers.get(
             "origin", "*"
         )

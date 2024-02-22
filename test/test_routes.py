@@ -462,6 +462,14 @@ class TestRoutes:
         response = client.get("/config/")
         assert response.is_success
 
+    def test_cors_restrictions(self):
+        io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        file_response = client.get("/config")
+        assert file_response.status_code == 403
+        io.close()
+
 
 class TestApp:
     def test_create_app(self):
