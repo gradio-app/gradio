@@ -1616,7 +1616,12 @@ Received outputs:
                 inputs = []
             else:
                 inputs = await anyio.to_thread.run_sync(
-                    self.preprocess_data, fn_index, inputs, state, limiter=self.limiter
+                    self.preprocess_data,
+                    fn_index,
+                    inputs,
+                    state,
+                    explicit_call,
+                    limiter=self.limiter,
                 )
             was_generating = old_iterator is not None
             result = await self.call_function(

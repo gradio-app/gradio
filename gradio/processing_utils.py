@@ -259,7 +259,6 @@ def move_files_to_cache(
 
     def _move_to_cache(d: dict):
         payload = FileData(**d)
-        print(">>", payload.path, client_utils.is_http_url_like(payload.path))
         # If the gradio app developer is returning a URL from
         # postprocess, it means the component can display a URL
         # without it being served from the gradio server
