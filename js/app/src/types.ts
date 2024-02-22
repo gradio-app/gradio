@@ -1,13 +1,7 @@
 import type { ComponentType } from "svelte";
 import type { SvelteComponent } from "svelte";
-import type { key } from "vega";
 
-interface ComponentImport {
-	interactive: SvelteComponent;
-	static: SvelteComponent;
-	example: SvelteComponent;
-}
-
+/** The props that are always present on a component */
 interface SharedProps {
 	elem_id?: string;
 	elem_classes?: string[];
@@ -15,6 +9,10 @@ interface SharedProps {
 	[key: string]: unknown;
 }
 
+/** The metadata for a component
+ * The non optional fields are what are received from the backend
+ * The optional fields are what are added by the frontend
+ */
 export interface ComponentMeta {
 	type: string;
 	id: number;
@@ -28,11 +26,13 @@ export interface ComponentMeta {
 	component_class_id: string;
 }
 
+/** Dictates whether a dependency is continous and/or a generator */
 export interface DependencyTypes {
 	continuous: boolean;
 	generator: boolean;
 }
 
+/** An event payload that is sent with an API request */
 export interface Payload {
 	fn_index: number;
 	data: unknown[];
@@ -40,6 +40,7 @@ export interface Payload {
 	trigger_id: number | null;
 }
 
+/** A dependency as received from the backend */
 export interface Dependency {
 	targets: [number, string][];
 	inputs: number[];
@@ -75,9 +76,14 @@ export interface Documentation {
 	example_data?: string;
 }
 
+/** A layout node as recived from the backend */
 export interface LayoutNode {
 	id: number;
 	children: LayoutNode[];
 }
 
+/** The system theme mode */
 export type ThemeMode = "system" | "light" | "dark";
+
+/** the target map is an object mapping the target id to a series of events (another object), those events are a mapping of the event name to the function id's they trigger */
+export type TargetMap = Record<number, Record<string, number[]>>;

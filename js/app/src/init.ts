@@ -1,9 +1,5 @@
 import { writable } from "svelte/store";
-import type { ComponentMeta, Dependency, LayoutNode } from "./types";
-
-// export let components: ComponentMeta[];
-// export let layout: LayoutNode;
-// export let dependencies: Dependency[];
+import type { ComponentMeta, Dependency, LayoutNode, TargetMap } from "./types";
 
 /**
  *
@@ -19,7 +15,7 @@ export function create_components(
 ) {
 	const _component_map = new Map();
 	const layout_store = writable({});
-	const target_map = new Map();
+	const target_map: TargetMap = {};
 
 	function update_value(id: number, value: any, prop: string): void {
 		// update the value of a component
@@ -71,4 +67,34 @@ export function process_frontend_fn(
 		console.error(e);
 		return null;
 	}
+}
+
+/**
+ * `Dependency.targets` is an array of `[id, trigger]` pairs with the indices as the `fn_index`.
+ * This function take a single list of `Dependency.targets` and add those to the target_map.
+ * @param targets the targets array
+ * @param fn_index the function index
+ * @param target_map the target map
+ * @returns the tagert map
+ */
+export function create_target_meta(
+	targets: Dependency["targets"],
+	fn_index: number,
+	target_map: TargetMap
+): TargetMap {
+	targets.forEach(([id, trigger]) => {
+		if (!target_map[id]) {
+			target_map[id] = {};
+		}
+		if (
+			target_map[id]?.[trigger] &&
+			!target_map[id]?.[trigger].includes(fn_index)
+		) {
+			target_map[id][trigger].push(fn_index);
+		} else {
+			target_map[id][trigger] = [fn_index];
+		}
+	});
+
+	return target_map;
 }

@@ -1,5 +1,6 @@
-import { describe, test, assert, expect } from "vitest";
-import { process_frontend_fn } from "./init";
+import { describe, test, expect } from "vitest";
+import { process_frontend_fn, create_target_meta } from "./init";
+import { Dependency, TargetMap } from "./types";
 
 describe("process_frontend_fn", () => {
 	test("empty source code returns null", () => {
@@ -107,5 +108,88 @@ describe("process_frontend_fn", () => {
 		if (fn) {
 			await expect(fn([1])).resolves.toEqual(1);
 		}
+	});
+});
+
+describe("create_target_meta", () => {
+	test("creates a target map", () => {
+		const targets: Dependency["targets"] = [
+			[1, "change"],
+			[2, "input"],
+			[3, "load"]
+		];
+		const fn_index = 0;
+		const target_map = {};
+
+		const result = create_target_meta(targets, fn_index, target_map);
+		expect(result).toEqual({
+			1: { change: [0] },
+			2: { input: [0] },
+			3: { load: [0] }
+		});
+	});
+
+	test("if the target already exists, it adds the new trigger to the list", () => {
+		const targets: Dependency["targets"] = [
+			[1, "change"],
+			[1, "input"],
+			[1, "load"]
+		];
+		const fn_index = 1;
+		const target_map: TargetMap = {
+			1: { change: [0] }
+		};
+
+		const result = create_target_meta(targets, fn_index, target_map);
+		expect(result).toEqual({
+			1: { change: [0, 1], input: [1], load: [1] }
+		});
+	});
+
+	test("if the trigger already exists, it adds the new function to the list", () => {
+		const targets: Dependency["targets"] = [
+			[1, "change"],
+			[2, "change"],
+			[3, "change"]
+		];
+		const fn_index = 1;
+		const target_map: TargetMap = {
+			1: { change: [0] },
+			2: { change: [0] },
+			3: { change: [0] }
+		};
+
+		const result = create_target_meta(targets, fn_index, target_map);
+		expect(result).toEqual({
+			1: { change: [0, 1] },
+			2: { change: [0, 1] },
+			3: { change: [0, 1] }
+		});
+	});
+
+	test("if the target and trigger already exist, it adds the new function to the list", () => {
+		const targets: Dependency["targets"] = [[1, "change"]];
+		const fn_index = 1;
+		const target_map: TargetMap = {
+			1: { change: [0] }
+		};
+
+		const result = create_target_meta(targets, fn_index, target_map);
+		expect(result).toEqual({
+			1: { change: [0, 1] }
+		});
+	});
+
+	test("if the target, trigger and function id already exist, it does not add duplicates", () => {
+		const targets: Dependency["targets"] = [[1, "change"]];
+		const fn_index = 0;
+		const target_map: TargetMap = {
+			1: { change: [0] }
+		};
+
+		const result = create_target_meta(targets, fn_index, target_map);
+		expect(result).toEqual({
+			1: { change: [0] }
+		});
 	});
 });
