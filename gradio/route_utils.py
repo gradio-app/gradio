@@ -607,10 +607,10 @@ def get_hostname(url: str) -> str:
 
 class CustomCORSMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: fastapi.Request, call_next):
-        host_header: str = request.headers.get("host", "")
-        origin_header: str = request.headers.get("origin", "")
-        host_header_host = get_hostname(host_header)
-        origin_header_host = get_hostname(origin_header)
+        host: str = request.headers.get("host", "")
+        origin: str = request.headers.get("origin", "")
+        host_name = get_hostname(host)
+        origin_name = get_hostname(origin)
 
         # Any of these hosts suggests that the Gradio app is running locally.
         # Note: "null" is a special case that happens if a Gradio app is running
@@ -622,11 +622,8 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
         )
 
         allow_origin_header = None
-        if (
-            host_header_host in localhost_aliases
-            and origin_header_host in localhost_aliases
-        ):
-            allow_origin_header = origin_header
+        if host_name in localhost_aliases and origin_name in localhost_aliases:
+            allow_origin_header = origin
 
         if is_preflight:
             response = fastapi.Response()
