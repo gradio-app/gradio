@@ -287,18 +287,13 @@ def is_zero_gpu_space() -> bool:
     return os.getenv("SPACES_ZERO_GPU") == "true"
 
 
-def check_is_url(url: str) -> bool:
+def download_if_url(article: str) -> str:
     try:
-        result = urllib.parse.urlparse(url)
+        result = urllib.parse.urlparse(article)
         is_url = all([result.scheme, result.netloc, result.path])
         is_url = is_url and result.scheme in ["http", "https"]
     except ValueError:
         is_url = False
-    return is_url
-
-
-def download_if_url(article: str) -> str:
-    is_url = check_is_url(article)
 
     if not is_url:
         return article

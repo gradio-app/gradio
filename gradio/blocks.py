@@ -1528,7 +1528,7 @@ Received outputs:
     def run_fn_batch(self, fn, batch, fn_index, state, explicit_call=None):
         output = []
         for i in zip(*batch):
-            args = [fn_index, list(i), state, explicit_call]
+            args = [fn_index, list(i), state]
             if explicit_call is not None:
                 args.append(explicit_call)
             output.append(fn(*args))

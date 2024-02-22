@@ -20,7 +20,7 @@ from PIL import Image, ImageOps, PngImagePlugin
 
 from gradio import wasm_utils
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
-from gradio.utils import abspath, check_is_url, get_upload_folder, is_in_or_equal
+from gradio.utils import abspath, get_upload_folder, is_in_or_equal
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
@@ -259,15 +259,18 @@ def move_files_to_cache(
 
     def _move_to_cache(d: dict):
         payload = FileData(**d)
+        print(">>", payload.path, client_utils.is_http_url_like(payload.path))
         # If the gradio app developer is returning a URL from
         # postprocess, it means the component can display a URL
         # without it being served from the gradio server
         # This makes it so that the URL is not downloaded and speeds up event processing
         if payload.url and postprocess:
             payload.path = payload.url
-        elif not block.proxy_url and not check_is_url(payload.path):
+        elif not block.proxy_url:
             # If the file is on a remote server, do not move it to cache.
-            if check_in_upload_folder:
+            if check_in_upload_folder and not client_utils.is_http_url_like(
+                payload.path
+            ):
                 path = os.path.abspath(payload.path)
                 if not is_in_or_equal(path, get_upload_folder()):
                     raise ValueError(
