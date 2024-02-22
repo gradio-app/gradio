@@ -166,6 +166,12 @@
 
 			if (parsed_head_html) {
 				for (let head_element of parsed_head_html) {
+	        if (head_element.tagName.toLowerCase() == "meta") {
+	            const domMetaList = Array.from(document.head.getElementsByTagName("meta"));
+	            const matched = domMetaList.find((el) => el.getAttribute("property") == head_element.getAttribute("property"));
+	            document.head.removeChild(matched);
+	        }
+
 					let newElement = document.createElement(head_element.tagName);
 					Array.from(head_element.attributes).forEach((attr) => {
 						newElement.setAttribute(attr.name, attr.value);
