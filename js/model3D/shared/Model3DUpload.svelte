@@ -40,36 +40,17 @@
 		dispatch("change");
 	}
 
-	let canvas3d: any;
 	let use_3dgs = false;
-
+	let Canvas3DGSComponent: typeof Canvas3DGS;
+	let Canvas3DComponent: typeof Canvas3D;
 	async function loadCanvas3D(): Promise<typeof Canvas3D> {
 		const module = await import("./Canvas3D.svelte");
 		return module.default;
 	}
-
 	async function loadCanvas3DGS(): Promise<typeof Canvas3DGS> {
 		const module = await import("./Canvas3DGS.svelte");
 		return module.default;
 	}
-
-	async function handle_undo(): Promise<void> {
-		canvas3d.reset_camera_position(camera_position, zoom_speed, pan_speed);
-	}
-
-	const dispatch = createEventDispatcher<{
-		change: FileData | null;
-		clear: undefined;
-		drag: boolean;
-		load: FileData;
-	}>();
-
-	let dragging = false;
-
-	$: dispatch("drag", dragging);
-
-	let Canvas3DGSComponent: typeof Canvas3DGS;
-	let Canvas3DComponent: typeof Canvas3D;
 	$: {
 		if (value) {
 			use_3dgs = value?.path.endsWith(".splat") || value?.path.endsWith(".ply");
@@ -84,6 +65,22 @@
 			}
 		}
 	}
+
+	let canvas3d: any;
+	async function handle_undo(): Promise<void> {
+		canvas3d.reset_camera_position(camera_position, zoom_speed, pan_speed);
+	}
+
+	const dispatch = createEventDispatcher<{
+		change: FileData | null;
+		clear: undefined;
+		drag: boolean;
+		load: FileData;
+	}>();
+
+	let dragging = false;
+
+	$: dispatch("drag", dragging);
 </script>
 
 <BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
