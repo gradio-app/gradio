@@ -17,7 +17,6 @@ import mimetypes
 import os
 import posixpath
 import secrets
-import tempfile
 import threading
 import time
 import traceback
@@ -67,9 +66,7 @@ from gradio.route_utils import (  # noqa: F401
     move_uploaded_files_to_cache,
 )
 from gradio.state_holder import StateHolder
-from gradio.utils import (
-    get_package_version,
-)
+from gradio.utils import get_package_version, get_upload_folder
 
 if TYPE_CHECKING:
     from gradio.blocks import Block
@@ -136,9 +133,7 @@ class App(FastAPI):
         self.cookie_id = secrets.token_urlsafe(32)
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
-        self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
-            (Path(tempfile.gettempdir()) / "gradio").resolve()
-        )
+        self.uploaded_file_dir = get_upload_folder()
         self.change_event: None | threading.Event = None
         self._asyncio_tasks: list[asyncio.Task] = []
         # Allow user to manually set `docs_url` and `redoc_url`

@@ -13,6 +13,7 @@ import json.decoder
 import os
 import pkgutil
 import re
+import tempfile
 import threading
 import time
 import traceback
@@ -1082,3 +1083,9 @@ def diff(old, new):
         return edits
 
     return compare_objects(old, new)
+
+
+def get_upload_folder() -> str:
+    return os.environ.get("GRADIO_TEMP_DIR") or str(
+        (Path(tempfile.gettempdir()) / "gradio").resolve()
+    )
