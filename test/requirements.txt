@@ -47,7 +47,7 @@ colorama==0.4.6
     # via typer
 contourpy==1.2.0
     # via matplotlib
-coverage[toml]==7.4.1
+coverage[toml]==7.4.2
     # via
     #   -r requirements.in
     #   pytest-cov
@@ -82,6 +82,8 @@ fsspec==2024.2.0
     #   gradio-client
     #   huggingface-hub
     #   torch
+gradio-client==0.10.0
+    # via gradio
 gradio-pdf==0.0.3
     # via -r requirements.in
 h11==0.12.0
@@ -269,7 +271,7 @@ rfc3986[idna2008]==1.5.0
     #   rfc3986
 rich==13.7.0
     # via typer
-ruff==0.1.13
+ruff==0.2.2
     # via
     #   -r requirements.in
     #   gradio
