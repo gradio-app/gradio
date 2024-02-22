@@ -13,8 +13,6 @@
 	export let gradio: Gradio;
 	export let elem_id: string;
 	export let elem_classes: string[];
-
-	$: console.log(value);
 </script>
 
 <svelte:component
