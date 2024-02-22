@@ -1,5 +1,11 @@
 import { writable } from "svelte/store";
-import type { ComponentMeta, Dependency, LayoutNode, TargetMap } from "./types";
+import type {
+	ComponentMeta,
+	Dependency,
+	DependencyTypes,
+	LayoutNode,
+	TargetMap
+} from "./types";
 
 /**
  *
@@ -11,11 +17,19 @@ import type { ComponentMeta, Dependency, LayoutNode, TargetMap } from "./types";
 export function create_components(
 	components: ComponentMeta[],
 	layout: LayoutNode,
-	dependencies: Dependency
+	dependencies: Dependency[]
 ) {
 	const _component_map = new Map();
 	const layout_store = writable({});
+
 	const target_map: TargetMap = {};
+	const inputs = new Set<number>();
+	const outputs = new Set<number>();
+
+	dependencies.forEach((dep, fn_index) => {
+		create_target_meta(dep.targets, fn_index, target_map);
+		get_inputs_outputs(dep, inputs, outputs);
+	});
 
 	function update_value(id: number, value: any, prop: string): void {
 		// update the value of a component
@@ -28,9 +42,9 @@ export function create_components(
 	};
 }
 
-// process frontend_fn
-// create target map ???
-// create loading status store ???]
+// process frontend_fn - done
+// create target map - done
+// create loading status store ???
 // infer dynamic IDS
 // set interactivity mode
 // load example components + components
@@ -97,4 +111,65 @@ export function create_target_meta(
 	});
 
 	return target_map;
+}
+
+/**
+ * Get all component ids that are an input or output of a dependency
+ * @param dep the dependency
+ * @param inputs the set of inputs
+ * @param outputs the set of outputs
+ * @returns a tuple of the inputs and outputs
+ */
+export function get_inputs_outputs(
+	dep: Dependency,
+	inputs: Set<number>,
+	outputs: Set<number>
+): [Set<number>, Set<number>] {
+	dep.inputs.forEach((input) => inputs.add(input));
+	dep.outputs.forEach((output) => outputs.add(output));
+	return [inputs, outputs];
+}
+
+/**
+ * Check if a value is not a default value
+ * @param value the value to check
+ * @returns default value boolean
+ */
+function has_no_default_value(value: any): boolean {
+	return (
+		(Array.isArray(value) && value.length === 0) ||
+		value === "" ||
+		value === 0 ||
+		!value
+	);
+}
+
+/**
+ * Deternmines if a component is interactive
+ * @param id component id
+ * @param interactive_prop value of the interactive prop
+ * @param value the main value of the component
+ * @param inputs set of ids that are inputs to a dependency
+ * @param outputs set of ids that are outputs to a dependency
+ * @returns if the component is interactive
+ */
+export function get_interactivity(
+	id: number,
+	interactive_prop: boolean | undefined,
+	value: any,
+	inputs: Set<number>,
+	outputs: Set<number>
+): boolean {
+	if (interactive_prop === false) {
+		return false;
+	} else if (interactive_prop === true) {
+		return true;
+	} else if (
+		inputs.has(id) ||
+		(!outputs.has(id) && has_no_default_value(value))
+	) {
+		return true;
+	}
+
+	return false;
 }

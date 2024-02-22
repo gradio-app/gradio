@@ -229,7 +229,7 @@
 			if ((c.props as any).interactive === false) {
 				(c.props as any).interactive = false;
 			} else if ((c.props as any).interactive === true) {
-				(c.props as any).interactive = true;
+				c.props.interactive = true;
 			} else if (dynamic_ids.has(c.id)) {
 				(c.props as any).interactive = true;
 			} else {

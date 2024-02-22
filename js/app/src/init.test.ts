@@ -1,5 +1,9 @@
 import { describe, test, expect } from "vitest";
-import { process_frontend_fn, create_target_meta } from "./init";
+import {
+	process_frontend_fn,
+	create_target_meta,
+	get_interactivity
+} from "./init";
 import { Dependency, TargetMap } from "./types";
 
 describe("process_frontend_fn", () => {
@@ -191,5 +195,122 @@ describe("create_target_meta", () => {
 		expect(result).toEqual({
 			1: { change: [0] }
 		});
+	});
+});
+
+describe("get_interactivity", () => {
+	test("returns true if the prop is interactive = true", () => {
+		const result = get_interactivity(0, true, "hi", new Set([0]), new Set([2]));
+		expect(result).toBe(true);
+	});
+
+	test("returns false if the prop is interactive = false", () => {
+		const result = get_interactivity(
+			0,
+			false,
+			"hi",
+			new Set([0]),
+			new Set([2])
+		);
+		expect(result).toBe(false);
+	});
+
+	test("returns true if the component is an input", () => {
+		const result = get_interactivity(
+			0,
+			undefined,
+			"hi",
+			new Set([0]),
+			new Set([2])
+		);
+		expect(result).toBe(true);
+	});
+
+	// test("returns false if the component is an output", () => {
+	// 	const result = get_interactivity(
+	// 		0,
+	// 		undefined,
+	// 		"hi",
+	// 		new Set([0]),
+	// 		new Set([2])
+	// 	);
+	// 	expect(result).toBe(true);
+	// });
+
+	test("returns true if the component is not an input or output and the component has no default value: empty string", () => {
+		const result = get_interactivity(
+			2,
+			undefined,
+			"",
+			new Set([0]),
+			new Set([1])
+		);
+		expect(result).toBe(true);
+	});
+
+	test("returns true if the component is not an input or output and the component has no default value: empty array", () => {
+		const result = get_interactivity(
+			2,
+			undefined,
+			[],
+			new Set([0]),
+			new Set([1])
+		);
+		expect(result).toBe(true);
+	});
+
+	test("returns true if the component is not an input or output and the component has no default value: boolean", () => {
+		const result = get_interactivity(
+			2,
+			undefined,
+			false,
+			new Set([0]),
+			new Set([1])
+		);
+		expect(result).toBe(true);
+	});
+
+	test("returns true if the component is not an input or output and the component has no default value: undefined", () => {
+		const result = get_interactivity(
+			2,
+			undefined,
+			undefined,
+			new Set([0]),
+			new Set([1])
+		);
+		expect(result).toBe(true);
+	});
+
+	test("returns true if the component is not an input or output and the component has no default value: null", () => {
+		const result = get_interactivity(
+			2,
+			undefined,
+			null,
+			new Set([0]),
+			new Set([1])
+		);
+		expect(result).toBe(true);
+	});
+
+	test("returns true if the component is not an input or output and the component has no default value: 0", () => {
+		const result = get_interactivity(
+			2,
+			undefined,
+			0,
+			new Set([0]),
+			new Set([1])
+		);
+		expect(result).toBe(true);
+	});
+
+	test("returns false if the component is not an input or output and the component has a default value", () => {
+		const result = get_interactivity(
+			2,
+			undefined,
+			"hello",
+			new Set([0]),
+			new Set([1])
+		);
+		expect(result).toBe(false);
 	});
 });
