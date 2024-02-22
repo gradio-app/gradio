@@ -472,7 +472,6 @@ class TestRoutes:
         }
         file_response = client.get("/config", headers=custom_headers)
         assert "access-control-allow-origin" not in file_response.headers
-
         custom_headers = {
             "host": "localhost:7860",
             "origin": "127.0.0.1",
