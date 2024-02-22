@@ -34,18 +34,16 @@
 		const module = await import("./Canvas3DGS.svelte");
 		return module.default;
 	}
-	$: {
-		if (value) {
-			use_3dgs = value?.path.endsWith(".splat") || value?.path.endsWith(".ply");
-			if (use_3dgs) {
-				loadCanvas3DGS().then((component) => {
-					Canvas3DGSComponent = component;
-				});
-			} else {
-				loadCanvas3D().then((component) => {
-					Canvas3DComponent = component;
-				});
-			}
+	$: if (value) {
+		use_3dgs = value.path.endsWith(".splat") || value.path.endsWith(".ply");
+		if (use_3dgs) {
+			loadCanvas3DGS().then((component) => {
+				Canvas3DGSComponent = component;
+			});
+		} else {
+			loadCanvas3D().then((component) => {
+				Canvas3DComponent = component;
+			});
 		}
 	}
 
