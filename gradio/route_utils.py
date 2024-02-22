@@ -9,6 +9,7 @@ from collections import deque
 from dataclasses import dataclass as python_dataclass
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 from typing import TYPE_CHECKING, AsyncGenerator, BinaryIO, List, Optional, Tuple, Union
+from urllib.parse import urlparse
 
 import fastapi
 import httpx
@@ -17,6 +18,7 @@ from gradio_client.documentation import document
 from multipart.multipart import parse_options_header
 from starlette.datastructures import FormData, Headers, UploadFile
 from starlette.formparsers import MultiPartException, MultipartPart
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from gradio import processing_utils, utils
 from gradio.data_classes import PredictBody
@@ -583,3 +585,58 @@ def starts_with_protocol(string: str) -> bool:
     """
     pattern = r"^[a-zA-Z][a-zA-Z0-9+\-.]*://"
     return re.match(pattern, string) is not None
+
+
+def get_hostname(url: str) -> str:
+    """
+    Returns the hostname of a given url, or an empty string if the url cannot be parsed.
+    Examples:
+        get_hostname("https://www.gradio.app") -> "www.gradio.app"
+        get_hostname("localhost:7860") -> "localhost"
+        get_hostname("127.0.0.1") -> "127.0.0.1"
+    """
+    if not url:
+        return ""
+    if "://" not in url:
+        url = "http://" + url
+    try:
+        return urlparse(url).hostname or ""
+    except Exception:
+        return ""
+
+
+class CustomCORSMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: fastapi.Request, call_next):
+        host: str = request.headers.get("host", "")
+        origin: str = request.headers.get("origin", "")
+        host_name = get_hostname(host)
+        origin_name = get_hostname(origin)
+
+        # Any of these hosts suggests that the Gradio app is running locally.
+        # Note: "null" is a special case that happens if a Gradio app is running
+        # as an embedded web component in a local static webpage.
+        localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0", "null"]
+        is_preflight = (
+            request.method == "OPTIONS"
+            and "access-control-request-method" in request.headers
+        )
+
+        if host_name in localhost_aliases and origin_name not in localhost_aliases:
+            allow_origin_header = None
+        else:
+            allow_origin_header = origin
+
+        if is_preflight:
+            response = fastapi.Response()
+        else:
+            response = await call_next(request)
+
+        if allow_origin_header:
+            response.headers["Access-Control-Allow-Origin"] = allow_origin_header
+        response.headers[
+            "Access-Control-Allow-Methods"
+        ] = "GET, POST, PUT, DELETE, OPTIONS"
+        response.headers[
+            "Access-Control-Allow-Headers"
+        ] = "Origin, Content-Type, Accept"
+        return response
