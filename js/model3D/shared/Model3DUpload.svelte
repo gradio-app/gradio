@@ -5,6 +5,8 @@
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
+	import type Canvas3DGS from "./Canvas3DGS.svelte";
+	import type Canvas3D from "./Canvas3D.svelte";
 
 	export let value: null | FileData;
 	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
@@ -39,15 +41,14 @@
 	}
 
 	let canvas3d: any;
-	let canvas3dgs: any;
 	let use_3dgs = false;
 
-	async function loadCanvas3D(): Promise<any> {
+	async function loadCanvas3D(): Promise<typeof Canvas3D> {
 		const module = await import("./Canvas3D.svelte");
 		return module.default;
 	}
 
-	async function loadCanvas3DGS(): Promise<any> {
+	async function loadCanvas3DGS(): Promise<typeof Canvas3DGS> {
 		const module = await import("./Canvas3DGS.svelte");
 		return module.default;
 	}
@@ -67,16 +68,18 @@
 
 	$: dispatch("drag", dragging);
 
+	let Canvas3DGSComponent: typeof Canvas3DGS;
+	let Canvas3DComponent: typeof Canvas3D;
 	$: {
 		if (value) {
 			use_3dgs = value?.path.endsWith(".splat") || value?.path.endsWith(".ply");
 			if (use_3dgs) {
-				loadCanvas3DGS().then((module) => {
-					canvas3dgs = module;
+				loadCanvas3DGS().then((component) => {
+					Canvas3DGSComponent = component;
 				});
 			} else {
-				loadCanvas3D().then((module) => {
-					canvas3d = module;
+				loadCanvas3D().then((component) => {
+					Canvas3DComponent = component;
 				});
 			}
 		}
@@ -105,10 +108,16 @@
 		/>
 
 		{#if use_3dgs}
-			<svelte:component this={canvas3dgs} {value} {zoom_speed} {pan_speed} />
+			<svelte:component
+				this={Canvas3DGSComponent}
+				{value}
+				{zoom_speed}
+				{pan_speed}
+			/>
 		{:else}
 			<svelte:component
-				this={canvas3d}
+				this={Canvas3DComponent}
+				bind:this={canvas3d}
 				{value}
 				{clear_color}
 				{camera_position}
