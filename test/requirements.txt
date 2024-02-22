@@ -82,6 +82,8 @@ fsspec==2024.2.0
     #   gradio-client
     #   huggingface-hub
     #   torch
+gradio==4.19.1
+    # via gradio-pdf
 gradio-client==0.10.0
     # via gradio
 gradio-pdf==0.0.3
@@ -262,8 +264,6 @@ requests==2.28.1
     #   huggingface-hub
     #   transformers
 respx==0.19.2
-    # via -r requirements.in
-ruff==0.2.2
     # via -r requirements.in
 rfc3986[idna2008]==1.5.0
     # via
