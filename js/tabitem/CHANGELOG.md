@@ -1,5 +1,12 @@
 # @gradio/tabitem
 
+## 0.2.4
+
+### Patch Changes
+
+- Updated dependencies [[`ba3ec13`](https://github.com/gradio-app/gradio/commit/ba3ec1300e81e64be7389d759b89284c66473158)]:
+  - @gradio/tabs@0.2.4
+
 ## 0.2.3
 
 ### Patch Changes

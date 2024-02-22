@@ -1,5 +1,11 @@
 # @gradio/app
 
+## 1.25.2
+
+### Fixes
+
+- [#7505](https://github.com/gradio-app/gradio/pull/7505) [`b186767`](https://github.com/gradio-app/gradio/commit/b18676774448f44a2ef3a9490224703254cffa7c) - Fix `Gallery` preview overlay and backdrop.  Thanks [@MMP0](https://github.com/MMP0)!
+
 ## 1.25.1
 
 ### Patch Changes

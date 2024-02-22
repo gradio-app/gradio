@@ -1,5 +1,12 @@
 # website
 
+## 0.23.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/code@0.5.3
+
 ## 0.23.3
 
 ### Patch Changes

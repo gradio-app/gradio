@@ -1,5 +1,11 @@
 # @gradio/file
 
+## 0.5.3
+
+### Fixes
+
+- [#7507](https://github.com/gradio-app/gradio/pull/7507) [`9c36572`](https://github.com/gradio-app/gradio/commit/9c36572e32aeec6e6352a861dfea6ee0f9a15e79) - Quick fix: File height overflow.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.5.2
 
 ### Patch Changes
