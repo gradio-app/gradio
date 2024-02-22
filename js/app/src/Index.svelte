@@ -166,10 +166,9 @@
 
 			if (parsed_head_html) {
 				for (let head_element of parsed_head_html) {
-					const head_element_tagName = head_element.tagName.toLowerCase();
 					const head_element_property = head_element.getAttribute("property");
-					
-					if (head_element_tagName == "meta" && head_element_property) {
+
+					if (head_element.tagName == "META" && head_element_property) {
 						const domMetaList = Array.from(
 							document.head.getElementsByTagName("meta") ?? []
 						);
