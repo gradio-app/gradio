@@ -9,6 +9,7 @@ from collections import deque
 from dataclasses import dataclass as python_dataclass
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 from typing import TYPE_CHECKING, AsyncGenerator, BinaryIO, List, Optional, Tuple, Union
+from urllib.parse import urlparse
 
 import fastapi
 import httpx
@@ -586,28 +587,34 @@ def starts_with_protocol(string: str) -> bool:
     return re.match(pattern, string) is not None
 
 
-def get_core_url(original_url: str) -> str:
+def get_hostname(url: str) -> str:
     """
-    Returns the core url of a given url. If the url does not have a scheme, it is assumed to be http.
+    Returns the hostname of a given url, or an empty string if the url cannot be parsed.
     Examples:
-        get_core_url("https://www.gradio.app") -> "www.gradio.app"
-        get_core_url("localhost:7860") -> "localhost"
-        get_core_url("127.0.0.1") -> "127.0.0.1"
+        get_hostname("https://www.gradio.app") -> "www.gradio.app"
+        get_hostname("localhost:7860") -> "localhost"
+        get_hostname("127.0.0.1") -> "127.0.0.1"
     """
-    if not original_url:
+    if not url:
         return ""
-    if "://" not in original_url:
-        original_url = "http://" + original_url
-    return httpx.URL(original_url).host
+    if "://" not in url:
+        url = "http://" + url
+    try:
+        return urlparse(url).hostname or ""
+    except Exception:
+        return ""
 
 
 class CustomCORSMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: fastapi.Request, call_next):
         host_header: str = request.headers.get("host", "")
         origin_header: str = request.headers.get("origin", "")
-        host_header_host = get_core_url(host_header)
-        origin_header_host = get_core_url(origin_header)
+        host_header_host = get_hostname(host_header)
+        origin_header_host = get_hostname(origin_header)
 
+        # Any of these hosts suggests that the Gradio app is running locally.
+        # Note: "null" is a special case that happens if a Gradio app is running
+        # as an embedded web component.
         localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0", "null"]
 
         if (
@@ -620,7 +627,10 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
                 status_code=fastapi.status.HTTP_403_FORBIDDEN,
             )
 
-        if request.method == "OPTIONS":
+        if (
+            request.method == "OPTIONS"
+            and "access-control-request-method" in request.headers
+        ):
             response = fastapi.Response()
         else:
             response = await call_next(request)
