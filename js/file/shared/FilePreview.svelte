@@ -115,6 +115,10 @@
 		color: var(--body-text-color);
 	}
 
+	.file-preview-holder {
+		overflow: auto;
+	}
+
 	.file {
 		display: flex;
 		width: var(--size-full);
