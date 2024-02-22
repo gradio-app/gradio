@@ -42,7 +42,7 @@ type predict = (
 	event_data?: unknown
 ) => Promise<unknown>;
 
-type client_return = {
+export type client_return = {
 	predict: predict;
 	config: Config;
 	submit: (

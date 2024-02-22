@@ -7,6 +7,8 @@ import type {
 	TargetMap
 } from "./types";
 
+import type { client_return } from "@gradio/client";
+
 /**
  *
  * @param components An array of component metadata
@@ -153,7 +155,7 @@ function has_no_default_value(value: any): boolean {
  * @param outputs set of ids that are outputs to a dependency
  * @returns if the component is interactive
  */
-export function get_interactivity(
+export function determine_interactivity(
 	id: number,
 	interactive_prop: boolean | undefined,
 	value: any,
@@ -172,4 +174,33 @@ export function get_interactivity(
 	}
 
 	return false;
+}
+
+type ServerFunctions = Record<string, (...args: any[]) => Promise<any>>;
+
+/**
+ * Process the server function names and return a dictionary of functions
+ * @param id the component id
+ * @param server_fns the server function names
+ * @param app the client instance
+ * @returns the actual server functions
+ */
+export function process_server_fn(
+	id: number,
+	server_fns: string[] | undefined,
+	app: client_return
+): ServerFunctions {
+	if (!server_fns) {
+		return {};
+	}
+	return server_fns.reduce((acc, fn: string) => {
+		acc[fn] = async (...args: any[]) => {
+			if (args.length === 1) {
+				args = args[0];
+			}
+			const result = await app.component_server(id, fn, args);
+			return result;
+		};
+		return acc;
+	}, {} as ServerFunctions);
 }
