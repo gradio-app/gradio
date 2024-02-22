@@ -166,14 +166,15 @@
 
 			if (parsed_head_html) {
 				for (let head_element of parsed_head_html) {
-					if (head_element.tagName.toLowerCase() == "meta") {
+					const head_element_tagName = head_element.tagName.toLowerCase();
+					const head_element_property = head_element.getAttribute("property");
+					
+					if (head_element_tagName == "meta" && head_element_property) {
 						const domMetaList = Array.from(
 							document.head.getElementsByTagName("meta") ?? []
 						);
 						const matched = domMetaList.find(
-							(el) =>
-								el.getAttribute("property") ==
-								head_element.getAttribute("property")
+							(el) => el.getAttribute("property") == head_element_property
 						);
 						if (matched) {
 							document.head.removeChild(matched);
