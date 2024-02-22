@@ -621,8 +621,9 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
             and "access-control-request-method" in request.headers
         )
 
-        allow_origin_header = None
-        if host_name in localhost_aliases and origin_name in localhost_aliases:
+        if host_name in localhost_aliases and origin_name not in localhost_aliases:
+            allow_origin_header = None
+        else:
             allow_origin_header = origin
 
         if is_preflight:
