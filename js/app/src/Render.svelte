@@ -65,7 +65,6 @@
 			}
 		}
 	}
-	console.log("BOO");
 </script>
 
 <RenderComponent

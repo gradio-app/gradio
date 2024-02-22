@@ -547,7 +547,6 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            print("predict")
             fn_index_inferred = route_utils.infer_fn_index(
                 app=app, api_name=api_name, body=body
             )
@@ -559,7 +558,6 @@ class App(FastAPI):
                     detail="This API endpoint does not accept direct HTTP POST requests. Please join the queue to use this API.",
                     status_code=status.HTTP_404_NOT_FOUND,
                 )
-            print("before gr_request")
             gr_request = route_utils.compile_gr_request(
                 app,
                 body,
@@ -569,9 +567,6 @@ class App(FastAPI):
             )
 
             try:
-                print(
-                    "before call_process_api", app, body, gr_request, fn_index_inferred
-                )
                 output = await route_utils.call_process_api(
                     app=app,
                     body=body,
@@ -579,7 +574,6 @@ class App(FastAPI):
                     fn_index_inferred=fn_index_inferred,
                 )
             except BaseException as error:
-                print("error", error)
                 show_error = app.get_blocks().show_error or isinstance(error, Error)
                 traceback.print_exc()
                 return JSONResponse(
@@ -587,13 +581,10 @@ class App(FastAPI):
                     status_code=500,
                 )
 
-            print("before root_path")
             root_path = route_utils.get_root_url(
                 request=request, route_path=f"/api/{api_name}", root_path=app.root_path
             )
-            print("before add_root_url", root_path)
             output = add_root_url(output, root_path, None)
-            print("before return", output)
             return output
 
         @app.get("/queue/data", dependencies=[Depends(login_check)])
@@ -601,7 +592,6 @@ class App(FastAPI):
             request: fastapi.Request,
             session_hash: str,
         ):
-            print("queue_data")
             blocks = app.get_blocks()
             root_path = route_utils.get_root_url(
                 request=request, route_path="/queue/data", root_path=app.root_path
@@ -651,7 +641,6 @@ class App(FastAPI):
                                 "success": False,
                             }
                         if message:
-                            print("message", message)
                             add_root_url(message, root_path, None)
                             yield f"data: {json.dumps(message)}\n\n"
                             if message["msg"] == ServerMessage.process_completed:
