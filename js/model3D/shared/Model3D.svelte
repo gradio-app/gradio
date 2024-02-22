@@ -49,8 +49,7 @@
 
 	let canvas3d: Canvas3D | undefined;
 	function handle_undo(): void {
-		canvas3d &&
-			canvas3d.reset_camera_position(camera_position, zoom_speed, pan_speed);
+		canvas3d?.reset_camera_position(camera_position, zoom_speed, pan_speed);
 	}
 
 	$: {
@@ -59,8 +58,7 @@
 			current_settings.zoom_speed !== zoom_speed ||
 			current_settings.pan_speed !== pan_speed
 		) {
-			canvas3d &&
-				canvas3d.reset_camera_position(camera_position, zoom_speed, pan_speed);
+			canvas3d?.reset_camera_position(camera_position, zoom_speed, pan_speed);
 			current_settings = { camera_position, zoom_speed, pan_speed };
 		}
 	}
