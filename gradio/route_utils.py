@@ -614,27 +614,22 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
 
         # Any of these hosts suggests that the Gradio app is running locally.
         # Note: "null" is a special case that happens if a Gradio app is running
-        # as an embedded web component.
+        # as an embedded web component in a local static webpage.
         localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0", "null"]
-
-        if (
-            host_header_host in localhost_aliases
-            and origin_header_host
-            and origin_header_host not in localhost_aliases
-        ):
-            return fastapi.Response(
-                content="Blocked by CORS policy.",
-                status_code=fastapi.status.HTTP_403_FORBIDDEN,
-            )
-
-        if (
+        is_preflight = (
             request.method == "OPTIONS"
             and "access-control-request-method" in request.headers
-        ):
-            response = fastapi.Response()
-        else:
-            response = await call_next(request)
+        )
 
+        if is_preflight and host_header_host in localhost_aliases:
+            response = fastapi.Response()
+            if origin_header_host in localhost_aliases:
+                response.headers["Access-Control-Allow-Origin"] = origin_header
+            else:
+                response.headers["Access-Control-Allow-Origin"] = "http://localhost"
+            return response
+
+        response = await call_next(request)
         response.headers["Access-Control-Allow-Origin"] = request.headers.get(
             "origin", "*"
         )
