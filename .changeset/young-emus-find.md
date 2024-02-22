@@ -1,7 +1,7 @@
 ---
-"@gradio/app": minor
-"@gradio/gallery": minor
-"gradio": minor
+"@gradio/app": patch
+"@gradio/gallery": patch
+"gradio": patch
 ---
 
-feat:Fix `Gallery` preview overlay and backdrop
+fix:Fix `Gallery` preview overlay and backdrop
