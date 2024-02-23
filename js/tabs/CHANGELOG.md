@@ -1,5 +1,11 @@
 # @gradio/tabs
 
+## 0.2.4
+
+### Fixes
+
+- [#7470](https://github.com/gradio-app/gradio/pull/7470) [`ba3ec13`](https://github.com/gradio-app/gradio/commit/ba3ec1300e81e64be7389d759b89284c66473158) - Tab select fix.  Thanks [@aliabid94](https://github.com/aliabid94)!
+
 ## 0.2.3
 
 ### Patch Changes
