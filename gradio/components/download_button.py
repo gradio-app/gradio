@@ -75,22 +75,6 @@ class DownloadButton(Component):
         )
         self.icon = self.move_resource_to_block_cache(icon)
 
-    def _process_single_file(self, f: FileData) -> bytes | NamedString:
-        file_name = f.path
-        if self.type == "filepath":
-            file = tempfile.NamedTemporaryFile(delete=False, dir=self.GRADIO_CACHE)
-            file.name = file_name
-            return NamedString(file_name)
-        elif self.type == "binary":
-            with open(file_name, "rb") as file_data:
-                return file_data.read()
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + str(type)
-                + ". Please choose from: 'filepath', 'binary'."
-            )
-
     def preprocess(self, payload: FileData | None) -> str | None:
         """
         Parameters:
@@ -108,9 +92,9 @@ class DownloadButton(Component):
     def postprocess(self, value: str | None) -> FileData | None:
         """
         Parameters:
-            value: Expects a `str` filepath, or a `list[str]` of filepaths.
+            value: Expects a `str` filepath
         Returns:
-            File information as a FileData object, or a list of FileData objects.
+            File information as a FileData object
         """
         if value is None:
             return None
