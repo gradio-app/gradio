@@ -19,5 +19,8 @@
 	"eslint.options": {
 		"overrideConfigFile": "./.config/eslint.config.js"
 	},
-	"typescript.tsdk": "node_modules/typescript/lib"
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"i18n-ally.localesPaths": [
+		"js/app/src/lang"
+	]
 }
