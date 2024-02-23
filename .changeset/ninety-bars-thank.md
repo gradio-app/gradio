@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:fix: remove old element before append new meta tag to prevent tag duplication
+fix:when adding custom head html, ensure there are no duplicate meta tags
