@@ -261,34 +261,12 @@ globalThis.createGradioApp = create;
 bootstrap_custom_element(create);
 
 declare let BUILD_MODE: string;
-declare let GRADIO_E2E_TEST_LITE: string;
 if (BUILD_MODE === "dev") {
-	if (GRADIO_E2E_TEST_LITE) {
-		// For the Playwright E2E tests, we create an app and expose the controller to the global scope.
-		const controller = create({
-			target: document.getElementById("gradio-app")!,
-			code: "import gradio as gr; demo = gr.Interface(lambda x: x, 'text', 'text'); demo.launch()",
-			requirements: [],
-			sharedWorkerMode: true,
-			info: true,
-			container: true,
-			isEmbed: false,
-			initialHeight: "300px",
-			eager: false,
-			themeMode: null,
-			autoScroll: false,
-			controlPageTitle: false,
-			appMode: true
-		});
-		// @ts-ignore
-		window.controller = controller;
-	} else {
-		(async function () {
-			const DevApp = (await import("./dev/App.svelte")).default;
+	(async function () {
+		const DevApp = (await import("./dev/App.svelte")).default;
 
-			const app = new DevApp({
-				target: document.getElementById("dev-app")!
-			});
-		})();
-	}
+		const app = new DevApp({
+			target: document.getElementById("dev-app")!
+		});
+	})();
 }

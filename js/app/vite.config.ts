@@ -50,14 +50,12 @@ export default defineConfig(({ mode }) => {
 	const development = mode === "development" || mode === "development:lite";
 	const is_lite = mode.endsWith(":lite");
 
-	const is_e2e_test = process.env.GRADIO_E2E_TEST_LITE;
-
 	return {
 		base: "./",
 
 		server: {
 			port: 9876,
-			open: is_e2e_test ? false : is_lite ? "/lite.html" : "/"
+			open: is_lite ? "/lite.html" : "/"
 		},
 
 		build: {
@@ -100,7 +98,6 @@ export default defineConfig(({ mode }) => {
 
 		define: {
 			BUILD_MODE: production ? JSON.stringify("prod") : JSON.stringify("dev"),
-			GRADIO_E2E_TEST_LITE: process.env.GRADIO_E2E_TEST_LITE,
 			BACKEND_URL: production
 				? JSON.stringify("")
 				: JSON.stringify("http://localhost:7860/"),
