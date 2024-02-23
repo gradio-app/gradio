@@ -5,7 +5,10 @@
 "@gradio/dataframe": patch
 "@gradio/dataset": patch
 "@gradio/image": patch
+"@gradio/imageeditor": patch
+"@gradio/simpleimage": patch
 "@gradio/uploadbutton": patch
+"@gradio/video": patch
 "gradio": patch
 ---
 
