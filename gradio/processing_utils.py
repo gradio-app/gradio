@@ -252,6 +252,7 @@ def move_files_to_cache(
         block: The component whose data is being processed
         postprocess: Whether its running from postprocessing
         root_url: The root URL of the local server, if applicable
+        add_urls: Whether to add URLs to the payload
         check_in_upload_folder: If True, instead of moving the file to cache, checks if the file is in already in cache (exception if not).
     """
 
@@ -261,7 +262,7 @@ def move_files_to_cache(
         # postprocess, it means the component can display a URL
         # without it being served from the gradio server
         # This makes it so that the URL is not downloaded and speeds up event processing
-        if payload.url and postprocess:
+        if payload.url and postprocess and client_utils.is_http_url_like(payload.url):
             payload.path = payload.url
         elif not block.proxy_url:
             # If the file is on a remote server, do not move it to cache.
