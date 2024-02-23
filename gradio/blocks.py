@@ -261,11 +261,10 @@ class Block:
 
         return temp_file_path
 
-
     def serve_static_file(self, url_or_file_path: str | Path | None) -> dict | None:
         """If a file is a local file, moves it to the block's cache directory and returns
-        a FileData-type dictionary corresponding to the file. If the file is a URL, returns a 
-        FileData-type dictionary corresponding to the URL. This ensures that the file is 
+        a FileData-type dictionary corresponding to the file. If the file is a URL, returns a
+        FileData-type dictionary corresponding to the URL. This ensures that the file is
         accessible in the frontend and can be served to users.
 
         Examples:
@@ -1353,7 +1352,6 @@ Received inputs:
                     inputs_cached = processing_utils.move_files_to_cache(
                         inputs[i],
                         block,
-                        add_urls=True,
                         check_in_upload_folder=not explicit_call,
                     )
                     if getattr(block, "data_model", None) and inputs_cached is not None:
@@ -1486,7 +1484,6 @@ Received outputs:
                     prediction_value,
                     block,  # type: ignore
                     postprocess=True,
-                    add_urls=True,
                 )
                 output.append(outputs_cached)
 
