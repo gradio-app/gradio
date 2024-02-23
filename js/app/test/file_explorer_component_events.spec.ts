@@ -81,11 +81,15 @@ test("File Explorer correctly displays both directories and files. Directories i
 	const directory_paths_displayed = async () => {
 		const value = await page.getByLabel("Selected Directory").inputValue();
 		const files = value.split(",");
-		expect(files.some((f) => f.endsWith("dir4"))).toBeTruthy();
-		expect(files.some((f) => f.endsWith("dir_4_foo.txt"))).toBeTruthy();
-		expect(files.some((f) => f.endsWith("dir3_foo.txt"))).toBeTruthy();
+
+		return (
+			files.some((f) => f.endsWith("dir4")) &&
+			files.some((f) => f.endsWith("dir_4_foo.txt")) &&
+			files.some((f) => f.endsWith("dir3_foo.txt"))
+		);
 	};
-	await expect(directory_paths_displayed).toPass();
+
+	await expect.poll(directory_paths_displayed).toBe(true);
 });
 
 test("File Explorer selects all children when top level directory is selected.", async ({
@@ -100,21 +104,15 @@ test("File Explorer selects all children when top level directory is selected.",
 		.getByRole("checkbox")
 		.check();
 
-	const res = page.waitForEvent("response", {
-		predicate: async (response) => {
-			return (await response.text()).indexOf("process_completed") !== -1;
-		}
-	});
-	await page.getByRole("button", { name: "Run" }).click();
+	await Promise.all([page.getByRole("button", { name: "Run" }).click()]);
 
-	await res;
-
-	const directory_paths_displayed = async () => {
+	async function directory_paths_displayed() {
 		const value = await page.getByLabel("Selected Directory").inputValue();
 		const files_and_dirs = value.split(",");
-		expect(files_and_dirs.length).toBe(7);
-	};
-	await expect(directory_paths_displayed).toPass();
+
+		return files_and_dirs.length === 7;
+	}
+	await expect.poll(directory_paths_displayed).toBe(true);
 });
 
 test("File Explorer correctly displays only text files", async ({ page }) => {
@@ -134,13 +132,13 @@ test("File Explorer correctly displays only text files", async ({ page }) => {
 		.check();
 	await page.getByRole("button", { name: "Run" }).click();
 
-	const text_files_displayed = async () => {
+	async function text_files_displayed() {
 		const value = await page.getByLabel("Selected Directory").inputValue();
 		const dirs = value.split(",");
-		expect(dirs.length).toBe(3);
-		expect(dirs.every((d) => d.endsWith(".txt"))).toBeTruthy();
-	};
-	await expect(text_files_displayed).toPass();
+		return dirs.length === 3 && dirs.every((d) => d.endsWith(".txt"));
+	}
+
+	await expect.poll(text_files_displayed).toBe(true);
 });
 
 test("File Explorer correctly excludes text files when ignore_glob is '*.txt'.", async ({
@@ -165,9 +163,12 @@ test("File Explorer correctly excludes text files when ignore_glob is '*.txt'.",
 	const only_files_displayed = async () => {
 		const value = await page.getByLabel("Selected Directory").inputValue();
 		const files = value.split(",");
-		expect(files.length).toBe(4);
-		expect(files.some((f) => f.endsWith(".log"))).toBeTruthy();
-		expect(files.some((f) => f.endsWith(".txt"))).toBeFalsy();
+		return (
+			files.length === 4 &&
+			files.some((f) => f.endsWith(".log")) &&
+			!files.some((f) => f.endsWith(".txt"))
+		);
 	};
-	await expect(only_files_displayed).toPass();
+
+	await expect.poll(only_files_displayed).toBe(true);
 });
