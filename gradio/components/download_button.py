@@ -3,16 +3,14 @@
 from __future__ import annotations
 
 import tempfile
-import warnings
 from pathlib import Path
-from typing import Any, Callable, Literal, Union
+from typing import Callable, Literal
 
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
-from gradio.data_classes import FileData, ListFiles
+from gradio.data_classes import FileData
 from gradio.events import Events
-from gradio.utils import NamedString
 
 
 @document()
@@ -98,10 +96,10 @@ class DownloadButton(Component):
         """
         if value is None:
             return None
-        return FileData(
-            path=value,
-            orig_name=Path(value).name,
-        )
+        return FileData(path=value)
+
+    def example_inputs(self) -> str:
+        return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
 
     @property
     def skip_api(self):
