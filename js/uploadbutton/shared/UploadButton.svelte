@@ -17,7 +17,7 @@
 	export let file_types: string[] = [];
 	export let root: string;
 	export let size: "sm" | "lg" = "lg";
-	export let icon: string | null = null;
+	export let icon: FileData | null = null;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
@@ -105,7 +105,7 @@
 	{disabled}
 >
 	{#if icon}
-		<img class="button-icon" src={icon} alt={`${value} icon`} />
+		<img class="button-icon" src={icon.url} alt={`${value} icon`} />
 	{/if}
 	<slot />
 </BaseButton>

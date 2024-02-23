@@ -17,7 +17,7 @@
 	export let root: string;
 	export let size: "sm" | "lg" = "lg";
 	export let scale: number | null = null;
-	export let icon: string | null = null;
+	export let icon: FileData | null = null;
 	export let min_width: number | undefined = undefined;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let gradio: Gradio<{

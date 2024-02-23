@@ -39,7 +39,7 @@
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
-	export let avatar_images: [string | null, string | null] = [null, null];
+	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
 	export let render_markdown = true;
@@ -166,7 +166,7 @@
 								<div class="avatar-container">
 									<Image
 										class="avatar-image"
-										src={avatar_images[j]}
+										src={avatar_images[j]?.url}
 										alt="{j == 0 ? 'user' : 'bot'} avatar"
 									/>
 								</div>

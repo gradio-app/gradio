@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { type FileData } from "@gradio/client";
+
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
@@ -6,7 +8,7 @@
 	export let size: "sm" | "lg" = "lg";
 	export let value: string | null = null;
 	export let link: string | null = null;
-	export let icon: string | null = null;
+	export let icon: FileData | null = null;
 	export let disabled = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -29,7 +31,7 @@
 		id={elem_id}
 	>
 		{#if icon}
-			<img class="button-icon" src={icon} alt={`${value} icon`} />
+			<img class="button-icon" src={icon.url} alt={`${value} icon`} />
 		{/if}
 		<slot />
 	</a>
@@ -47,7 +49,7 @@
 		{disabled}
 	>
 		{#if icon}
-			<img class="button-icon" src={icon} alt={`${value} icon`} />
+			<img class="button-icon" src={icon.url} alt={`${value} icon`} />
 		{/if}
 		<slot />
 	</button>

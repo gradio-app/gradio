@@ -47,7 +47,7 @@
 		error: string;
 		like: LikeData;
 	}>;
-	export let avatar_images: [string | null, string | null] = [null, null];
+	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 
 	let _value: [
 		string | { file: FileData; alt_text: string | null } | null,

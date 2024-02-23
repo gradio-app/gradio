@@ -101,7 +101,7 @@ class UploadButton(Component):
             min_width=min_width,
             interactive=interactive,
         )
-        self.icon = self.move_resource_to_block_cache(icon)
+        self.icon = self.serve_static_file(icon)
 
     def api_info(self) -> dict[str, list[str]]:
         if self.file_count == "single":

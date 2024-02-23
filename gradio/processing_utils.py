@@ -29,7 +29,7 @@ with warnings.catch_warnings():
 log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from gradio.components.base import Component
+    from gradio.blocks import Block
 
 #########################
 # GENERAL
@@ -228,7 +228,7 @@ def save_base64_to_cache(
 
 
 def move_resource_to_block_cache(
-    url_or_file_path: str | Path | None, block: Component
+    url_or_file_path: str | Path | None, block: Block
 ) -> str | None:
     """This method has been replaced by Block.move_resource_to_block_cache(), but is
     left here for backwards compatibility for any custom components created in Gradio 4.2.0 or earlier.
@@ -238,7 +238,7 @@ def move_resource_to_block_cache(
 
 def move_files_to_cache(
     data: Any,
-    block: Component,
+    block: Block,
     postprocess: bool = False,
     check_in_upload_folder=False,
 ) -> dict:
@@ -251,8 +251,6 @@ def move_files_to_cache(
         data: The input or output data for a component. Can be a dictionary or a dataclass
         block: The component whose data is being processed
         postprocess: Whether its running from postprocessing
-        root_url: The root URL of the local server, if applicable
-        add_urls: Whether to add URLs to the payload
         check_in_upload_folder: If True, instead of moving the file to cache, checks if the file is in already in cache (exception if not).
     """
 

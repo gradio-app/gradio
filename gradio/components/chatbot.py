@@ -123,13 +123,13 @@ class Chatbot(Component):
             render=render,
             value=value,
         )
-        self.avatar_images: list[str | None] = [None, None]
+        self.avatar_images: list[dict | None] = [None, None]
         if avatar_images is None:
             pass
         else:
             self.avatar_images = [
-                processing_utils.move_resource_to_block_cache(avatar_images[0], self),
-                processing_utils.move_resource_to_block_cache(avatar_images[1], self),
+                self.serve_static_file(avatar_images[0]),
+                self.serve_static_file(avatar_images[1]),
             ]
 
     def _preprocess_chat_messages(
