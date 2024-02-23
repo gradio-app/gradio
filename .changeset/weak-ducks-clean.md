@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Refactors `get_fetchable_url_or_file()` and adds a `gr.DownloadButton` component
+feat:Adds a `gr.DownloadButton` component
