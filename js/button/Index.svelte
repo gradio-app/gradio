@@ -22,8 +22,6 @@
 	export let gradio: Gradio<{
 		click: never;
 	}>;
-	export let root = "";
-	export let proxy_url: null | string = null;
 </script>
 
 <Button
@@ -37,8 +35,6 @@
 	{icon}
 	{min_width}
 	{visible}
-	{root}
-	{proxy_url}
 	disabled={!interactive}
 	on:click={() => gradio.dispatch("click")}
 >

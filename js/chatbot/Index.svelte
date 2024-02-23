@@ -134,8 +134,6 @@
 			{bubble_full_width}
 			{line_breaks}
 			{layout}
-			{proxy_url}
-			{root}
 		/>
 	</div>
 </Block>
