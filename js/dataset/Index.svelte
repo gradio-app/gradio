@@ -2,7 +2,6 @@
 	import { Block } from "@gradio/atoms";
 	import type { SvelteComponent, ComponentType } from "svelte";
 	import type { Gradio, SelectData } from "@gradio/utils";
-	import { get_fetchable_url_or_file } from "@gradio/client";
 	export let components: string[];
 	export let component_props: Record<string, any>[];
 	export let component_map: Map<
@@ -19,8 +18,6 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: number | null = null;
-	export let root: string;
-	export let proxy_url: null | string;
 	export let samples_per_page = 10;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;

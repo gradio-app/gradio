@@ -10,7 +10,7 @@
 	import { Video } from "@gradio/video/shared";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
-	import { get_fetchable_url_or_file, type FileData } from "@gradio/client";
+	import { type FileData } from "@gradio/client";
 	import Copy from "./Copy.svelte";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import LikeDislike from "./LikeDislike.svelte";
