@@ -18,6 +18,8 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: number | null = null;
+	export let root: string;
+	export let proxy_url: null | string;
 	export let samples_per_page = 10;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -26,6 +28,9 @@
 		select: SelectData;
 	}>;
 
+	// Although the `samples_dir` prop is not used in any of the core Gradio component, it is kept for backward compatibility
+	// with any custom components created before gradio==4.20.0
+	let samples_dir: string = proxy_url ? `/proxy=${proxy_url}file=` : `${root}/file=`;
 	let page = 0;
 	$: gallery = components.length < 2;
 	let paginate = samples.length > samples_per_page;
@@ -141,6 +146,7 @@
 								this={component_meta[0][0].component}
 								{...component_props[0]}
 								value={sample_row[0]}
+								{samples_dir}
 								type="gallery"
 								selected={current_hover === i}
 								index={i}
@@ -186,6 +192,7 @@
 											this={component}
 											{...component_props[j]}
 											{value}
+											{samples_dir}
 											type="table"
 											selected={current_hover === i}
 											index={i}
