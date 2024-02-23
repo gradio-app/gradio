@@ -133,8 +133,12 @@
 	async function loadFilesFromDrop(e: DragEvent): Promise<void> {
 		dragging = false;
 		if (!e.dataTransfer?.files) return;
+		const isIphone = /iPhone|iPod/.test(navigator.userAgent);
 		const files_to_load = Array.from(e.dataTransfer.files).filter((file) => {
 			const file_extension = "." + file.name.split(".").pop();
+			if (isIphone) {
+				return true;
+			}
 			if (
 				file_extension &&
 				is_valid_mimetype(filetype, file_extension, file.type)
