@@ -44,8 +44,6 @@
 	export let bubble_full_width = true;
 	export let render_markdown = true;
 	export let line_breaks = true;
-	export let root: string;
-	export let proxy_url: null | string;
 	export let i18n: I18nFormatter;
 	export let layout: "bubble" | "panel" = "bubble";
 
@@ -168,11 +166,7 @@
 								<div class="avatar-container">
 									<Image
 										class="avatar-image"
-										src={get_fetchable_url_or_file(
-											avatar_images[j],
-											root,
-											proxy_url
-										)}
+										src={avatar_images[j]}
 										alt="{j == 0 ? 'user' : 'bot'} avatar"
 									/>
 								</div>

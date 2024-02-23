@@ -472,7 +472,6 @@ To do so, we're going to add some of the pdf rendering logic in `Index.svelte` t
 ```ts
 <script lang="ts">
 	export let value: string;
-	export let samples_dir: string;
 	export let type: "gallery" | "table";
 	export let selected = false;
 	import pdfjsLib from "pdfjs-dist";
@@ -505,7 +504,7 @@ To do so, we're going to add some of the pdf rendering logic in `Index.svelte` t
 			});
 		}
 	
-	$: get_doc(samples_dir + value);
+	$: get_doc(value);
 </script>
 
 <div

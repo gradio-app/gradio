@@ -26,7 +26,6 @@
 		select: SelectData;
 	}>;
 
-	let samples_dir: string = get_fetchable_url_or_file(null, root, proxy_url);
 	let page = 0;
 	$: gallery = components.length < 2;
 	let paginate = samples.length > samples_per_page;
@@ -142,7 +141,6 @@
 								this={component_meta[0][0].component}
 								{...component_props[0]}
 								value={sample_row[0]}
-								{samples_dir}
 								type="gallery"
 								selected={current_hover === i}
 								index={i}
@@ -188,7 +186,6 @@
 											this={component}
 											{...component_props[j]}
 											{value}
-											{samples_dir}
 											type="table"
 											selected={current_hover === i}
 											index={i}

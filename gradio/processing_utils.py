@@ -240,7 +240,6 @@ def move_files_to_cache(
     data: Any,
     block: Component,
     postprocess: bool = False,
-    add_urls=False,
     check_in_upload_folder=False,
 ) -> dict:
     """Move any files in `data` to cache and (optionally), adds URL prefixes (/file=...) needed to access the cached file.
@@ -253,7 +252,6 @@ def move_files_to_cache(
         block: The component whose data is being processed
         postprocess: Whether its running from postprocessing
         root_url: The root URL of the local server, if applicable
-        add_urls: Whether to add URLs to the payload
         check_in_upload_folder: If True, instead of moving the file to cache, checks if the file is in already in cache (exception if not).
     """
 
@@ -280,18 +278,17 @@ def move_files_to_cache(
                 raise ValueError("Did not determine a file path for the resource.")
             payload.path = temp_file_path
 
-        if add_urls:
-            url_prefix = "/stream/" if payload.is_stream else "/file="
-            if block.proxy_url:
-                proxy_url = block.proxy_url.rstrip("/")
-                url = f"/proxy={proxy_url}{url_prefix}{payload.path}"
-            elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
-                f"{url_prefix}"
-            ):
-                url = payload.path
-            else:
-                url = f"{url_prefix}{payload.path}"
-            payload.url = url
+        url_prefix = "/stream/" if payload.is_stream else "/file="
+        if block.proxy_url:
+            proxy_url = block.proxy_url.rstrip("/")
+            url = f"/proxy={proxy_url}{url_prefix}{payload.path}"
+        elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
+            f"{url_prefix}"
+        ):
+            url = payload.path
+        else:
+            url = f"{url_prefix}{payload.path}"
+        payload.url = url
 
         return payload.model_dump()
 

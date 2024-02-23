@@ -1328,7 +1328,6 @@ Received inputs:
                     inputs_cached = processing_utils.move_files_to_cache(
                         inputs[i],
                         block,
-                        add_urls=True,
                         check_in_upload_folder=not explicit_call,
                     )
                     if getattr(block, "data_model", None) and inputs_cached is not None:
@@ -1461,7 +1460,6 @@ Received outputs:
                     prediction_value,
                     block,  # type: ignore
                     postprocess=True,
-                    add_urls=True,
                 )
                 output.append(outputs_cached)
 

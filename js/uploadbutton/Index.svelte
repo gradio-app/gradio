@@ -26,7 +26,6 @@
 		click: never;
 	}>;
 	export let interactive: boolean;
-	export let proxy_url: null | string = null;
 
 	$: disabled = !interactive;
 
@@ -54,7 +53,6 @@
 	{disabled}
 	{variant}
 	{label}
-	{proxy_url}
 	on:click={() => gradio.dispatch("click")}
 	on:change={({ detail }) => handle_event(detail, "change")}
 	on:upload={({ detail }) => handle_event(detail, "upload")}
