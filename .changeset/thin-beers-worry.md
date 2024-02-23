@@ -2,7 +2,9 @@
 "@gradio/button": patch
 "@gradio/chatbot": patch
 "@gradio/client": patch
+"@gradio/dataframe": patch
 "@gradio/dataset": patch
+"@gradio/image": patch
 "@gradio/uploadbutton": patch
 "gradio": patch
 ---
