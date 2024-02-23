@@ -3,7 +3,8 @@
 </script>
 
 <script lang="ts">
-	import type { Gradio, ShareData } from "@gradio/utils";
+	import type { Gradio } from "@gradio/utils";
+	import { type FileData } from "@gradio/client";
 
 	import Button from "./shared/Button.svelte";
 
@@ -15,7 +16,7 @@
 	export let interactive: boolean;
 	export let size: "sm" | "lg" = "lg";
 	export let scale: number | null = null;
-	export let icon: string | null = null;
+	export let icon: FileData | null = null;
 	export let link: string | null = null;
 	export let min_width: number | undefined = undefined;
 	export let gradio: Gradio<{
