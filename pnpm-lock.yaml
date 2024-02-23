@@ -208,8 +208,8 @@ importers:
         specifier: ^7.5.1
         version: 7.5.1(react-dom@18.2.0)(react@18.2.0)
       chromatic:
-        specifier: ^10.0.0
-        version: 10.0.0
+        specifier: ^11.0.0
+        version: 11.0.0
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -8608,9 +8608,17 @@ packages:
     resolution: {integrity: sha512-bIomtDF5KGpdogkLd9VspvFzk9KfpyyGlS8YFVZl7TGPBHL5snIOnxeshwVgPteQ9b4Eydl+pVbIyE1DcvCWgQ==}
     engines: {node: '>=10'}
 
-  /chromatic@10.0.0:
-    resolution: {integrity: sha512-RLU/Y0FdYVnPJIhm/gG3CSJO1hKg2O/nvfutyWT88Tg2o4aIGqSrQKCBiAUAHKrQKpfF+9Dvn/oHRTPtRcinHA==}
+  /chromatic@11.0.0:
+    resolution: {integrity: sha512-utzRVqdMrpzYwZNf7dHWU0z0/rx6SH/FUVNozQxYHDtQfYUdEj+Ro4OSch5+Wsk2FoUmznJyLkaC2J839z1N7A==}
     hasBin: true
+    peerDependencies:
+      '@chromatic-com/cypress': ^0.5.2 || ^1.0.0
+      '@chromatic-com/playwright': ^0.5.2 || ^1.0.0
+    peerDependenciesMeta:
+      '@chromatic-com/cypress':
+        optional: true
+      '@chromatic-com/playwright':
+        optional: true
     dev: true
 
   /chrome-trace-event@1.0.3:

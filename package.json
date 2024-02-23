@@ -101,7 +101,7 @@
 		"@storybook/svelte-vite": "^7.5.1",
 		"@storybook/testing-library": "^0.2.2",
 		"@storybook/theming": "^7.5.1",
-		"chromatic": "^10.0.0",
+		"chromatic": "^11.0.0",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"storybook": "^7.5.1",
