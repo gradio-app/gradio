@@ -1482,7 +1482,7 @@ Received outputs:
 
                 outputs_cached = processing_utils.move_files_to_cache(
                     prediction_value,
-                    block,  # type: ignore
+                    block,
                     postprocess=True,
                 )
                 output.append(outputs_cached)
