@@ -13,10 +13,7 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	<Image
-		src={value.composite?.url || value.background?.url}
-		alt=""
-	/>
+	<Image src={value.composite?.url || value.background?.url} alt="" />
 </div>
 
 <style>

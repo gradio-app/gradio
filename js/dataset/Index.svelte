@@ -30,7 +30,9 @@
 
 	// Although the `samples_dir` prop is not used in any of the core Gradio component, it is kept for backward compatibility
 	// with any custom components created before gradio==4.20.0
-	let samples_dir: string = proxy_url ? `/proxy=${proxy_url}file=` : `${root}/file=`;
+	let samples_dir: string = proxy_url
+		? `/proxy=${proxy_url}file=`
+		: `${root}/file=`;
 	let page = 0;
 	$: gallery = components.length < 2;
 	let paginate = samples.length > samples_per_page;
