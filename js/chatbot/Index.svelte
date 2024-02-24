@@ -24,7 +24,6 @@
 	export let label: string;
 	export let show_label = true;
 	export let root: string;
-	export let proxy_url: null | string;
 	export let _selectable = false;
 	export let likeable = false;
 	export let show_share_button = false;
