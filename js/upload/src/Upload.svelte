@@ -84,7 +84,7 @@
 		if (!files.length) {
 			return;
 		}
-		let _files: File[] = files.map((f) => new File([f], f.name));
+		let _files: File[] = files.map((f) => new File([f], f.name, { type: f.type }));
 		file_data = await prepare_files(_files);
 		return await handle_upload(file_data);
 	}

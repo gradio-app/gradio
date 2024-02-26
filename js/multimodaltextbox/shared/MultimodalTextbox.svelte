@@ -8,7 +8,7 @@
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
 	import type { FileData } from "@gradio/client";
-	import { Copy, Check, Clear } from "@gradio/icons";
+	import { Copy, Check, Clear, File, Music, Video } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import type { SelectData } from "@gradio/utils";
 
@@ -290,6 +290,7 @@
 			{#each value.filter(item => item.type === "file") as file, index}
 				<button class="thumbnail-item thumbnail-small">
 					<button class="delete-button" on:click={(event) => remove_thumbnail(event, index)}><Clear /></button>
+				{#if file.file.mime_type.includes("image")}
 					<Image
 						src={file.file.url}
 						title={null}
@@ -297,6 +298,13 @@
 						loading="lazy"
 						class={"thumbnail-image"}
 						/>
+				{:else if file.file.mime_type.includes("audio")}
+					<Music/>
+				{:else if file.file.mime_type.includes("video")}
+					<Video/>
+				{:else}
+					<File/>
+				{/if}
 				</button>
 			{/each}
 			</div>
@@ -405,6 +413,9 @@
 	}
 
 	.thumbnail-item {
+		display: flex;
+        justify-content: center;
+        align-items: center;
 		--ring-color: transparent;
 		position: relative;
 		box-shadow:
@@ -426,6 +437,11 @@
 		width: var(--size-12);
 		height: var(--size-12);
 	}
+
+	.thumbnail-item :global(svg) {
+        width: 30px;
+        height: 30px;
+    }
 
     .delete-button {
 		display: flex;
