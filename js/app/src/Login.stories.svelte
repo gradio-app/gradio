@@ -27,5 +27,7 @@
 />
 <Story
 	name="Login page with HTML auth message"
-	args={{ auth_message: "<em>Log in to this <strong>great</strong> gradio app</em>" }}
+	args={{
+		auth_message: "<em>Log in to this <strong>great</strong> gradio app</em>"
+	}}
 />
