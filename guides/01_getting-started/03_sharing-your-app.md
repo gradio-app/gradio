@@ -223,6 +223,7 @@ with gr.Blocks() as demo:
 demo.launch(auth=[("Pete", "Pete"), ("Dawood", "Dawood")])
 ```
 
+Note: Gradio's built-in authentication provides a straightforward and basic layer of access control but does not offer robust security features for applications that require stringent access controls (e.g.  multi-factor authentication, rate limiting, or automatic lockout policies).
 
 ### OAuth (Login via Hugging Face)
 
