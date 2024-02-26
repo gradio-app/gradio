@@ -272,7 +272,7 @@ Changed packages:
 
 Determining the bump type (`patch`, `minor`, `major`):
 
-- Check if the pull request has a `"v: *"` labal explicitly dictating the bump type.
+- Check if the pull request has a `"v: *"` label explicitly dictating the bump type.
   - If it does set that as the bump type and stop guessing.
 - Check if the pull requests has a `fixes` or `closes` reference to an issue.
   - If it has a `"bug"` label then return a `patch` bump and stop guessing
@@ -282,7 +282,7 @@ Determining the bump type (`patch`, `minor`, `major`):
 
 Determining the change type (`fix`, `feat`, `highlight`):
 
-- Check if the pull request has a `"t: *"` labal explicitly dictating the change type.
+- Check if the pull request has a `"t: *"` label explicitly dictating the change type.
   - If it does set that as the change type and stop guessing.
 - Check if the pull requests has a `fixes` or `closes` reference to an issue.
   - If it has a `"bug"` label then return a `fix` change type and stop guessing

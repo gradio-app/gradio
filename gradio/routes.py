@@ -17,7 +17,6 @@ import mimetypes
 import os
 import posixpath
 import secrets
-import tempfile
 import threading
 import time
 import traceback
@@ -30,7 +29,6 @@ import httpx
 import markupsafe
 import orjson
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
@@ -56,6 +54,7 @@ from gradio.oauth import attach_oauth
 from gradio.processing_utils import add_root_url
 from gradio.queueing import Estimation
 from gradio.route_utils import (  # noqa: F401
+    CustomCORSMiddleware,
     FileUploadProgress,
     FileUploadProgressNotQueuedError,
     FileUploadProgressNotTrackedError,
@@ -67,9 +66,7 @@ from gradio.route_utils import (  # noqa: F401
     move_uploaded_files_to_cache,
 )
 from gradio.state_holder import StateHolder
-from gradio.utils import (
-    get_package_version,
-)
+from gradio.utils import get_package_version, get_upload_folder
 
 if TYPE_CHECKING:
     from gradio.blocks import Block
@@ -136,9 +133,7 @@ class App(FastAPI):
         self.cookie_id = secrets.token_urlsafe(32)
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
-        self.uploaded_file_dir = os.environ.get("GRADIO_TEMP_DIR") or str(
-            (Path(tempfile.gettempdir()) / "gradio").resolve()
-        )
+        self.uploaded_file_dir = get_upload_folder()
         self.change_event: None | threading.Event = None
         self._asyncio_tasks: list[asyncio.Task] = []
         # Allow user to manually set `docs_url` and `redoc_url`
@@ -171,7 +166,7 @@ class App(FastAPI):
 
     def build_proxy_request(self, url_path):
         url = httpx.URL(url_path)
-        assert self.blocks
+        assert self.blocks  # noqa: S101
         # Don't proxy a URL unless it's a URL specifically loaded by the user using
         # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.
         is_safe_url = any(
@@ -201,12 +196,7 @@ class App(FastAPI):
         app.configure_app(blocks)
 
         if not wasm_utils.IS_WASM:
-            app.add_middleware(
-                CORSMiddleware,
-                allow_origins=["*"],
-                allow_methods=["*"],
-                allow_headers=["*"],
-            )
+            app.add_middleware(CustomCORSMiddleware)
 
         @app.get("/user")
         @app.get("/user/")
@@ -801,7 +791,8 @@ class App(FastAPI):
             files_to_copy = []
             locations: list[str] = []
             for temp_file in form.getlist("files"):
-                assert isinstance(temp_file, GradioUploadFile)
+                if not isinstance(temp_file, GradioUploadFile):
+                    raise TypeError("File is not an instance of GradioUploadFile")
                 if temp_file.filename:
                     file_name = Path(temp_file.filename).name
                     name = client_utils.strip_invalid_filename_characters(file_name)

@@ -13,6 +13,7 @@ import json.decoder
 import os
 import pkgutil
 import re
+import tempfile
 import threading
 import time
 import traceback
@@ -95,7 +96,7 @@ class BaseReloader(ABC):
         )
 
     def swap_blocks(self, demo: Blocks):
-        assert self.running_app.blocks
+        assert self.running_app.blocks  # noqa: S101
         # Copy over the blocks to get new components and events but
         # not a new queue
         self.running_app.blocks._queue.block_fns = demo.fns
@@ -1082,3 +1083,9 @@ def diff(old, new):
         return edits
 
     return compare_objects(old, new)
+
+
+def get_upload_folder() -> str:
+    return os.environ.get("GRADIO_TEMP_DIR") or str(
+        (Path(tempfile.gettempdir()) / "gradio").resolve()
+    )
