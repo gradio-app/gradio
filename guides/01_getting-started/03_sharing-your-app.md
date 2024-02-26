@@ -189,8 +189,27 @@ def same_auth(username, password):
 demo.launch(auth=same_auth)
 ```
 
-For authentication to work properly, third party cookies must be enabled in your browser.
-This is not the case by default for Safari, Chrome Incognito Mode.
+If you have multiple users, you may wish to customize the content that is shown depending on the user that is logged in. You can retrieve the logged in user by [accessing the network request directly](#accessing-the-network-request-directly) and then reading the `.username` attribute of the request. Here's an example:
+
+
+```python
+import gradio as gr
+
+def update_message(request: gr.Request):
+    return f"Welcome, {request.username}"
+
+with gr.Blocks() as demo:
+    m = gr.Markdown()
+    demo.load(update_message, None, m)
+    
+demo.launch(auth=[("Abubakar", "Abubakar"), ("Ali", "Ali")])
+```
+
+Note: For authentication to work properly, third party cookies must be enabled in your browser. This is not the case by default for Safari or for Chrome Incognito Mode. 
+
+If users visit the `/logout` page, they will automatically be logged out and session cookies deleted. This allows you to add logout functionality to your Gradio app as well. Here's an example of that:
+
+
 
 ### OAuth (Login via Hugging Face)
 
