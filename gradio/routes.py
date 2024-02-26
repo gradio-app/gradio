@@ -300,11 +300,10 @@ class App(FastAPI):
                 response.delete_cookie(
                     key=f"access-token-unsecure-{app.cookie_id}", path="/"
                 )
-                token_to_delete = next(
-                    (token for token in app.tokens if app.tokens[token] == user), None
-                )
-                if token_to_delete:
-                    del app.tokens[token_to_delete]
+                # A user may have multiple tokens, so we need to delete all of them.
+                for token in list(app.tokens.keys()):
+                    if app.tokens[token] == user:
+                        del app.tokens[token]
                 return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
 
         ###############

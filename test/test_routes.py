@@ -501,17 +501,49 @@ class TestAuthenticatedRoutes:
             data={"username": "test", "password": "correct_password"},
         )
         assert response.status_code == 200
+
         response = client.post(
             "/login",
             data={"username": "test", "password": "incorrect_password"},
         )
         assert response.status_code == 400
 
+        client.post(
+            "/login",
+            data={"username": "test", "password": "correct_password"},
+        )
         response = client.post(
             "/login",
             data={"username": " test ", "password": "correct_password"},
         )
         assert response.status_code == 200
+
+    def test_logout(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(
+            auth=("test", "correct_password"),
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        client.post(
+            "/login",
+            data={"username": "test", "password": "correct_password"},
+        )
+
+        response = client.post(
+            "/run/predict",
+            json={"data": ["test"]},
+        )
+        assert response.status_code == 200
+
+        response = client.get("/logout")
+
+        response = client.post(
+            "/run/predict",
+            json={"data": ["test"]},
+        )
+        assert response.status_code == 401
 
 
 class TestQueueRoutes:
