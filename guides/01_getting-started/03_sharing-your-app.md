@@ -207,8 +207,21 @@ demo.launch(auth=[("Abubakar", "Abubakar"), ("Ali", "Ali")])
 
 Note: For authentication to work properly, third party cookies must be enabled in your browser. This is not the case by default for Safari or for Chrome Incognito Mode. 
 
-If users visit the `/logout` page, they will automatically be logged out and session cookies deleted. This allows you to add logout functionality to your Gradio app as well. Here's an example of that:
+If users visit the `/logout` page of your Gradio app, they will automatically be logged out and session cookies deleted. This allows you to add logout functionality to your Gradio app as well. Let's update the previous example to include a log out button:
 
+```python
+import gradio as gr
+
+def update_message(request: gr.Request):
+    return f"Welcome, {request.username}"
+
+with gr.Blocks() as demo:
+    m = gr.Markdown()
+    logout_button = gr.Button("Logout", link="/logout")
+    demo.load(update_message, None, m)
+    
+demo.launch(auth=[("Pete", "Pete"), ("Dawood", "Dawood")])
+```
 
 
 ### OAuth (Login via Hugging Face)
