@@ -106,8 +106,8 @@
 	args={{
 		layout: "panel",
 		avatar_images: [
-			"https://avatars.githubusercontent.com/u/100000?v=4",
-			"https://avatars.githubusercontent.com/u/100000?v=4"
+			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" },
+			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" }
 		]
 	}}
 />
@@ -118,8 +118,8 @@
 		bubble_full_width: true,
 		layout: "bubble",
 		avatar_images: [
-			"https://avatars.githubusercontent.com/u/100000?v=4",
-			"https://avatars.githubusercontent.com/u/100000?v=4"
+			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" },
+			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" }
 		]
 	}}
 />

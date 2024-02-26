@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { get_fetchable_url_or_file } from "@gradio/client";
+	import { type FileData } from "@gradio/client";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -8,13 +8,10 @@
 	export let size: "sm" | "lg" = "lg";
 	export let value: string | null = null;
 	export let link: string | null = null;
-	export let icon: string | null = null;
+	export let icon: FileData | null = null;
 	export let disabled = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let root = "";
-	export let proxy_url: string | null = null;
-	$: icon_path = get_fetchable_url_or_file(icon, root, proxy_url);
 </script>
 
 {#if link && link.length > 0}
@@ -34,7 +31,7 @@
 		id={elem_id}
 	>
 		{#if icon}
-			<img class="button-icon" src={icon_path} alt={`${value} icon`} />
+			<img class="button-icon" src={icon.url} alt={`${value} icon`} />
 		{/if}
 		<slot />
 	</a>
@@ -52,7 +49,7 @@
 		{disabled}
 	>
 		{#if icon}
-			<img class="button-icon" src={icon_path} alt={`${value} icon`} />
+			<img class="button-icon" src={icon.url} alt={`${value} icon`} />
 		{/if}
 		<slot />
 	</button>

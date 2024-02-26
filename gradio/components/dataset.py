@@ -95,7 +95,8 @@ class Dataset(Component):
                     # custom components
                     example[i] = component.as_example(ex)
                     example[i] = processing_utils.move_files_to_cache(
-                        example[i], component
+                        example[i],
+                        component,
                     )
         self.type = type
         self.label = label

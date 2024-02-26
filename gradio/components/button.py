@@ -62,7 +62,7 @@ class Button(Component):
             scale=scale,
             min_width=min_width,
         )
-        self.icon = self.move_resource_to_block_cache(icon)
+        self.icon = self.serve_static_file(icon)
         self.variant = variant
         self.size = size
         self.link = link

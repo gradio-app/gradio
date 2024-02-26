@@ -65,7 +65,10 @@
 <Story
 	name="Button with external image icon"
 	args={{
-		icon: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg"
+		icon: {
+			url: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
+			path: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg"
+		}
 	}}
 />
 <Story

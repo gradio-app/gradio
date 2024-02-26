@@ -210,7 +210,9 @@ class Examples:
                     if isinstance(prediction_value, (GradioRootModel, GradioModel)):
                         prediction_value = prediction_value.model_dump()
                     prediction_value = processing_utils.move_files_to_cache(
-                        prediction_value, component, postprocess=True
+                        prediction_value,
+                        component,
+                        postprocess=True,
                     )
                     sub.append(prediction_value)
                 self.processed_examples.append(sub)

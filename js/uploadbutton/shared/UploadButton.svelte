@@ -5,7 +5,6 @@
 		upload,
 		prepare_files,
 		type FileData,
-		get_fetchable_url_or_file,
 		type upload_files
 	} from "@gradio/client";
 
@@ -18,13 +17,11 @@
 	export let file_types: string[] = [];
 	export let root: string;
 	export let size: "sm" | "lg" = "lg";
-	export let icon: string | null = null;
+	export let icon: FileData | null = null;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let disabled = false;
-	export let proxy_url: string | null = null;
-	$: icon_path = get_fetchable_url_or_file(icon, root, proxy_url);
 
 	const dispatch = createEventDispatcher();
 
@@ -108,7 +105,7 @@
 	{disabled}
 >
 	{#if icon}
-		<img class="button-icon" src={icon_path} alt={`${value} icon`} />
+		<img class="button-icon" src={icon.url} alt={`${value} icon`} />
 	{/if}
 	<slot />
 </BaseButton>
