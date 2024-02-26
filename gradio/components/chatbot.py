@@ -9,7 +9,7 @@ from typing import Any, Callable, List, Literal, Optional, Tuple, Union
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
-from gradio import processing_utils, utils
+from gradio import utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
@@ -123,13 +123,13 @@ class Chatbot(Component):
             render=render,
             value=value,
         )
-        self.avatar_images: list[str | None] = [None, None]
+        self.avatar_images: list[dict | None] = [None, None]
         if avatar_images is None:
             pass
         else:
             self.avatar_images = [
-                processing_utils.move_resource_to_block_cache(avatar_images[0], self),
-                processing_utils.move_resource_to_block_cache(avatar_images[1], self),
+                self.serve_static_file(avatar_images[0]),
+                self.serve_static_file(avatar_images[1]),
             ]
 
     def _preprocess_chat_messages(
