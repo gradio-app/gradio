@@ -50,7 +50,7 @@ from gradio import ranged_response, route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
 from gradio.exceptions import Error
-from gradio.oauth import _redirect_to_target, attach_oauth
+from gradio.oauth import attach_oauth
 from gradio.processing_utils import add_root_url
 from gradio.queueing import Estimation
 from gradio.route_utils import (  # noqa: F401
@@ -293,21 +293,19 @@ class App(FastAPI):
         if app.blocks is not None and app.blocks.expects_oauth:
             attach_oauth(app)
         else:
+
             @app.get("/logout")
-            def logout(response: Response):
-                response.set_cookie(
-                    key=f"access-token-{app.cookie_id}",
-                    value="",
-                    httponly=True,
-                    samesite="none",
-                    secure=True,
+            def logout(response: Response, user: str = Depends(get_current_user)):
+                response.delete_cookie(key=f"access-token-{app.cookie_id}", path="/")
+                response.delete_cookie(
+                    key=f"access-token-unsecure-{app.cookie_id}", path="/"
                 )
-                response.set_cookie(
-                    key=f"access-token-unsecure-{app.cookie_id}",
-                    value="",
-                    httponly=True,
+                token_to_delete = next(
+                    (token for token in app.tokens if app.tokens[token] == user), None
                 )
-                return {"success": True}
+                if token_to_delete:
+                    del app.tokens[token_to_delete]
+                return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
 
         ###############
         # Main Routes
