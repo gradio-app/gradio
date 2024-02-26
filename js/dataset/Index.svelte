@@ -2,7 +2,6 @@
 	import { Block } from "@gradio/atoms";
 	import type { SvelteComponent, ComponentType } from "svelte";
 	import type { Gradio, SelectData } from "@gradio/utils";
-	import { get_fetchable_url_or_file } from "@gradio/client";
 	export let components: string[];
 	export let component_props: Record<string, any>[];
 	export let component_map: Map<
@@ -29,7 +28,11 @@
 		select: SelectData;
 	}>;
 
-	let samples_dir: string = get_fetchable_url_or_file(null, root, proxy_url);
+	// Although the `samples_dir` prop is not used in any of the core Gradio component, it is kept for backward compatibility
+	// with any custom components created with gradio<=4.20.0
+	let samples_dir: string = proxy_url
+		? `/proxy=${proxy_url}file=`
+		: `${root}/file=`;
 	let page = 0;
 	$: gallery = components.length < 2;
 	let paginate = samples.length > samples_per_page;

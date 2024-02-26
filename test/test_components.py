@@ -2024,7 +2024,9 @@ class TestChatbot:
     def test_avatar_images_are_moved_to_cache(self):
         chatbot = gr.Chatbot(avatar_images=("test/test_files/bus.png", None))
         assert chatbot.avatar_images[0]
-        assert utils.is_in_or_equal(chatbot.avatar_images[0], chatbot.GRADIO_CACHE)
+        assert utils.is_in_or_equal(
+            chatbot.avatar_images[0]["path"], chatbot.GRADIO_CACHE
+        )
         assert chatbot.avatar_images[1] is None
 
 
