@@ -3,7 +3,7 @@ import gradio as gr
 
 def upload_file(filepath):
     name = Path(filepath).name
-    return [gr.UploadButton(visible=False), gr.DownloadButton(label=f"Download {name}", value=filepath, visible=True)]
+    return [gr.UploadButton(visible=False), gr.DownloadButton(label=f"Download {name}", value=filepath, visible=True, icon="cheetah.jpg")]
 
 def download_file():
     return [gr.UploadButton(visible=True), gr.DownloadButton(visible=False)]
