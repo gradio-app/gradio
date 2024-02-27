@@ -18,6 +18,7 @@
 	export let icon: string | null = null;
 	export let link: string | null = null;
 	export let min_width: number | undefined = undefined;
+	export let label: string | null = null;
 	export let gradio: Gradio<{
 		click: never;
 	}>;

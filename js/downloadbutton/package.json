@@ -7,7 +7,6 @@
 	"license": "ISC",
 	"private": false,
 	"dependencies": {
-		"@gradio/client": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^"
 	},
