@@ -745,7 +745,7 @@ class Client:
         if r.is_success:
             return r.json()
         elif r.status_code == 401:
-            raise ValueError(f"Could not load {self.src}. Please login.")
+            raise AuthenticationError(f"Could not load {self.src}. Please login.")
         else:  # to support older versions of Gradio
             r = httpx.get(self.src, headers=self.headers, cookies=self.cookies)
             if not r.is_success:
@@ -1076,7 +1076,12 @@ class Endpoint:
             for f in fs:
                 files.append(("files", (Path(f).name, open(f, "rb"))))  # noqa: SIM115
                 indices.append(i)
-        r = httpx.post(self.client.upload_url, headers=self.client.headers, cookies=self.client.cookies, files=files)
+        r = httpx.post(
+            self.client.upload_url,
+            headers=self.client.headers,
+            cookies=self.client.cookies,
+            files=files,
+        )
         if r.status_code != 200:
             uploaded = file_paths
         else:
@@ -1169,7 +1174,9 @@ class Endpoint:
         if file_data is None:
             return None
         if isinstance(file_data, str):
-            file_name = utils.decode_base64_to_file(file_data, dir=self.client.output_dir).name
+            file_name = utils.decode_base64_to_file(
+                file_data, dir=self.client.output_dir
+            ).name
         elif isinstance(file_data, dict):
             filepath = file_data.get("path")
             if not filepath:
