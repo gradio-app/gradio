@@ -234,6 +234,9 @@ class Block:
         """Moves a file or downloads a file from a url to a block's cache directory, adds
         to to the block's temp_files, and returns the path to the file in cache. This
         ensures that the file is accessible to the Block and can be served to users.
+
+        Note: this method is not used in any core Gradio components, but is kept here
+        for backwards compatibility with custom components created with gradio<=4.20.0.
         """
         if url_or_file_path is None:
             return None
@@ -257,6 +260,27 @@ class Block:
             self.temp_files.add(temp_file_path)
 
         return temp_file_path
+
+    def serve_static_file(self, url_or_file_path: str | Path | None) -> dict | None:
+        """If a file is a local file, moves it to the block's cache directory and returns
+        a FileData-type dictionary corresponding to the file. If the file is a URL, returns a
+        FileData-type dictionary corresponding to the URL. This ensures that the file is
+        accessible in the frontend and can be served to users.
+
+        Examples:
+        >>> block.serve_static_file("https://gradio.app/logo.png") -> {"path": "https://gradio.app/logo.png", "url": "https://gradio.app/logo.png"}
+        >>> block.serve_static_file("logo.png") -> {"path": "logo.png", "url": "/file=logo.png"}
+        """
+        if url_or_file_path is None:
+            return None
+        if isinstance(url_or_file_path, Path):
+            url_or_file_path = str(url_or_file_path)
+
+        if client_utils.is_http_url_like(url_or_file_path):
+            return FileData(path=url_or_file_path, url=url_or_file_path).model_dump()
+        else:
+            data = {"path": url_or_file_path}
+            return processing_utils.move_files_to_cache(data, self)
 
 
 class BlockContext(Block):
@@ -1328,7 +1352,6 @@ Received inputs:
                     inputs_cached = processing_utils.move_files_to_cache(
                         inputs[i],
                         block,
-                        add_urls=True,
                         check_in_upload_folder=not explicit_call,
                     )
                     if getattr(block, "data_model", None) and inputs_cached is not None:
@@ -1459,9 +1482,8 @@ Received outputs:
 
                 outputs_cached = processing_utils.move_files_to_cache(
                     prediction_value,
-                    block,  # type: ignore
+                    block,
                     postprocess=True,
-                    add_urls=True,
                 )
                 output.append(outputs_cached)
 
