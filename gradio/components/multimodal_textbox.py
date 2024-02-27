@@ -56,7 +56,6 @@ class MultimodalTextbox(FormComponent):
     ):
         """
         Parameters:
-            latex_delimiters: A list of dicts of the form {"left": open delimiter (str), "right": close delimiter (str), "display": whether to display in newline (bool)} that will be used to render LaTeX expressions. If not provided, `latex_delimiters` is set to `[{ "left": "$$", "right": "$$", "display": True }]`, so only expressions enclosed in $$ delimiters will be rendered as LaTeX, and in a new line. Pass in an empty list to disable LaTeX rendering. For more information, see the [KaTeX documentation](https://katex.org/docs/autorender.html).
             value: Default value to show in MultimodalTextbox. List of dictionaries of the form [{"type": "text", "text": "Sample Text"}, {"type": "file", "file": {path: "files/file.jpg", orig_name: "file.jpg", url: "http://image_url.jpg", size: 100}}]. If callable, the function will be called whenever the app loads to set the initial value of the component.
             file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.json', '.mp4']). "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             lines: minimum number of line rows to provide in textarea.
