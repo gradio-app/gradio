@@ -3,7 +3,10 @@
 	import MultimodalTextbox from "./Example.svelte";
 </script>
 
-<Meta title="Components/MultimodalTextbox/Example" component={MultimodalTextbox} />
+<Meta
+	title="Components/MultimodalTextbox/Example"
+	component={MultimodalTextbox}
+/>
 
 <Template let:args>
 	<MultimodalTextbox {...args} />

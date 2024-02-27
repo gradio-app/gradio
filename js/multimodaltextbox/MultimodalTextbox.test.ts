@@ -38,15 +38,18 @@ describe("MultimodalTextbox", () => {
 	});
 
 	test("changing the text should update the value", async () => {
-		const { component, getByDisplayValue, listen } = await render(MultimodalTextbox, {
-			show_label: true,
-			max_lines: 10,
-			loading_status,
-			lines: 1,
-			value: "hi ",
-			label: "MultimodalTextbox",
-			interactive: true
-		});
+		const { component, getByDisplayValue, listen } = await render(
+			MultimodalTextbox,
+			{
+				show_label: true,
+				max_lines: 10,
+				loading_status,
+				lines: 1,
+				value: "hi ",
+				label: "MultimodalTextbox",
+				interactive: true
+			}
+		);
 
 		const item: HTMLInputElement = getByDisplayValue("hi") as HTMLInputElement;
 

@@ -25,7 +25,6 @@
 	// Needed for wasm support
 	const upload_fn = getContext<typeof upload_files>("upload_files");
 
-
 	const dispatch = createEventDispatcher();
 	$: if (filetype == null || typeof filetype === "string") {
 		accept_file_types = filetype;
@@ -84,7 +83,9 @@
 		if (!files.length) {
 			return;
 		}
-		let _files: File[] = files.map((f) => new File([f], f.name, { type: f.type }));
+		let _files: File[] = files.map(
+			(f) => new File([f], f.name, { type: f.type })
+		);
 		file_data = await prepare_files(_files);
 		return await handle_upload(file_data);
 	}

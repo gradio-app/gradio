@@ -12,9 +12,10 @@
 	import { fade } from "svelte/transition";
 	import type { SelectData } from "@gradio/utils";
 
-	export let value: 
-	({ type: string; text: string; } | 
-	{ type: string; file: FileData | null; })[] = [];
+	export let value: (
+		| { type: string; text: string }
+		| { type: string; file: FileData | null }
+	)[] = [];
 	export let value_is_output = false;
 	export let lines = 1;
 	export let placeholder = "Type here...";
@@ -55,7 +56,7 @@
 	}
 
 	$: value, el && lines !== max_lines && resize({ target: el });
-	$: file_count = value.filter(item => item.type === "file").length;
+	$: file_count = value.filter((item) => item.type === "file").length;
 
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
@@ -101,8 +102,8 @@
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
-			const text = value.find(item => item && 'text' in item);
-			if (text && 'text' in text && typeof text["text"] === 'string') {
+			const text = value.find((item) => item && "text" in item);
+			if (text && "text" in text && typeof text["text"] === "string") {
 				await navigator.clipboard.writeText(text["text"]);
 				copy_feedback();
 			}
@@ -133,7 +134,7 @@
 		await tick();
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
-			value.push({type: "text", text: text});
+			value.push({ type: "text", text: text });
 			dispatch("submit", value);
 			text = "";
 			await tick();
@@ -145,7 +146,7 @@
 			max_lines >= 1
 		) {
 			e.preventDefault();
-			value.push({type: "text", text: text});
+			value.push({ type: "text", text: text });
 			dispatch("submit", value);
 			text = "";
 			await tick();
@@ -213,16 +214,15 @@
 		};
 	}
 
-
 	async function handle_upload({
 		detail
 	}: CustomEvent<FileData | FileData[]>): Promise<void> {
 		if (Array.isArray(detail)) {
 			for (let file of detail) {
-				value = [...value, {type: "file", file: file}];
+				value = [...value, { type: "file", file: file }];
 			}
 		} else {
-			value.push({type: "file", file: detail});
+			value.push({ type: "file", file: detail });
 			value = value;
 		}
 		await tick();
@@ -238,14 +238,14 @@
 
 	let hidden_upload: HTMLInputElement;
 
-    function handle_upload_click(): void {
-        if (hidden_upload) {
-            hidden_upload.click();
-        }
-    }
+	function handle_upload_click(): void {
+		if (hidden_upload) {
+			hidden_upload.click();
+		}
+	}
 
 	async function handle_submit(): Promise<void> {
-		value.push({type: "text", text: text});
+		value.push({ type: "text", text: text });
 		dispatch("submit", value);
 		text = "";
 		await tick();
@@ -277,38 +277,42 @@
 			{root}
 			bind:dragging
 			disable_click={true}
-			bind:hidden_upload={hidden_upload}
+			bind:hidden_upload
 		>
-		<button class="submit-button" on:click={handle_submit}>↑</button>
-		<button class="plus-button" on:click={handle_upload_click}>+</button>
-		{#if file_count > 0}
-			<div
-				class="thumbnails scroll-hide"
-				data-testid="container_el"
-				style="display: {file_count > 0 ? 'flex' : 'none'};"
-			>
-			{#each value.filter(item => item.type === "file") as file, index}
-				<button class="thumbnail-item thumbnail-small">
-					<button class="delete-button" on:click={(event) => remove_thumbnail(event, index)}><Clear /></button>
-				{#if file.file.mime_type.includes("image")}
-					<Image
-						src={file.file.url}
-						title={null}
-						alt=""
-						loading="lazy"
-						class={"thumbnail-image"}
-						/>
-				{:else if file.file.mime_type.includes("audio")}
-					<Music/>
-				{:else if file.file.mime_type.includes("video")}
-					<Video/>
-				{:else}
-					<File/>
-				{/if}
-				</button>
-			{/each}
-			</div>
-		{/if}
+			<button class="submit-button" on:click={handle_submit}>↑</button>
+			<button class="plus-button" on:click={handle_upload_click}>+</button>
+			{#if file_count > 0}
+				<div
+					class="thumbnails scroll-hide"
+					data-testid="container_el"
+					style="display: {file_count > 0 ? 'flex' : 'none'};"
+				>
+					{#each value.filter((item) => item.type === "file") as file, index}
+						<button class="thumbnail-item thumbnail-small">
+							<button
+								class="delete-button"
+								on:click={(event) => remove_thumbnail(event, index)}
+								><Clear /></button
+							>
+							{#if file.file.mime_type.includes("image")}
+								<Image
+									src={file.file.url}
+									title={null}
+									alt=""
+									loading="lazy"
+									class={"thumbnail-image"}
+								/>
+							{:else if file.file.mime_type.includes("audio")}
+								<Music />
+							{:else if file.file.mime_type.includes("video")}
+								<Video />
+							{:else}
+								<File />
+							{/if}
+						</button>
+					{/each}
+				</div>
+			{/if}
 			<textarea
 				data-testid="textbox"
 				use:text_area_resize={text}
@@ -327,17 +331,17 @@
 				on:scroll={handle_scroll}
 				style={text_align ? "text-align: " + text_align : ""}
 			/>
-	</Upload>
+		</Upload>
 	</div>
 </label>
 
 <style>
 	.input-container {
-        display: flex;
+		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-    }
+	}
 
 	textarea {
 		align-self: flex-start;
@@ -368,32 +372,33 @@
 		color: var(--input-placeholder-color);
 	}
 
-    .plus-button, .submit-button {
+	.plus-button,
+	.submit-button {
 		position: absolute;
-        background-color: var(--input-border-color-focus);
-        border: none;
-        color: white;
-        text-align: center;
-        text-decoration: none;
-        font-size: 20px;
-        cursor: pointer;
-        border-radius: 50%;
-        width: 30px;
-        height: 30px;
+		background-color: var(--input-border-color-focus);
+		border: none;
+		color: white;
+		text-align: center;
+		text-decoration: none;
+		font-size: 20px;
+		cursor: pointer;
+		border-radius: 50%;
+		width: 30px;
+		height: 30px;
 		bottom: 15px;
-    }
+	}
 
 	.submit-button:active {
 		background-color: var(--color-grey-500);
 	}
 
 	.submit-button {
-        right: 10px;
+		right: 10px;
 		margin-left: 5px;
 	}
 
 	.plus-button {
-        left: 10px;
+		left: 10px;
 		margin-right: 5px;
 	}
 
@@ -414,8 +419,8 @@
 
 	.thumbnail-item {
 		display: flex;
-        justify-content: center;
-        align-items: center;
+		justify-content: center;
+		align-items: center;
 		--ring-color: transparent;
 		position: relative;
 		box-shadow:
@@ -439,33 +444,33 @@
 	}
 
 	.thumbnail-item :global(svg) {
-        width: 30px;
-        height: 30px;
-    }
+		width: 30px;
+		height: 30px;
+	}
 
-    .delete-button {
+	.delete-button {
 		display: flex;
-        justify-content: center;
-        align-items: center;
-        position: absolute;
-        right: -7px;
+		justify-content: center;
+		align-items: center;
+		position: absolute;
+		right: -7px;
 		top: -7px;
-        background-color: var(--input-border-color-focus);
-        border: none;
-        color: white;
-        text-align: center;
-        text-decoration: none;
-        font-size: 10px;
-        cursor: pointer;
-        border-radius: 50%;
-        width: 20px;
-        height: 20px;
-    }
+		background-color: var(--input-border-color-focus);
+		border: none;
+		color: white;
+		text-align: center;
+		text-decoration: none;
+		font-size: 10px;
+		cursor: pointer;
+		border-radius: 50%;
+		width: 20px;
+		height: 20px;
+	}
 
 	.delete-button :global(svg) {
-        width: 15px;
-        height: 15px;
-    }
+		width: 15px;
+		height: 15px;
+	}
 
 	.delete-button:hover {
 		filter: brightness(1.2);
