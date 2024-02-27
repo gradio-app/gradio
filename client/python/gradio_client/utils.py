@@ -624,19 +624,19 @@ def apply_diff(obj, diff):
 
 def download_file(
     url_path: str,
-    dir: str,
-    hf_token: str | None = None,
+    save_dir: str,
+    headers: dict[str, str] | None = None,
+    cookies: dict[str, str] | None = None,
 ) -> str:
-    if dir is not None:
-        os.makedirs(dir, exist_ok=True)
-    headers = {"Authorization": "Bearer " + hf_token} if hf_token else {}
+    if save_dir is not None:
+        os.makedirs(save_dir, exist_ok=True)
 
     sha1 = hashlib.sha1()
     temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
     temp_dir.mkdir(exist_ok=True, parents=True)
 
     with httpx.stream(
-        "GET", url_path, headers=headers, follow_redirects=True
+        "GET", url_path, headers=headers, cookies=cookies, follow_redirects=True
     ) as response:
         response.raise_for_status()
         with open(temp_dir / Path(url_path).name, "wb") as f:
@@ -644,7 +644,7 @@ def download_file(
                 sha1.update(chunk)
                 f.write(chunk)
 
-    directory = Path(dir) / sha1.hexdigest()
+    directory = Path(save_dir) / sha1.hexdigest()
     directory.mkdir(exist_ok=True, parents=True)
     dest = directory / Path(url_path).name
     shutil.move(temp_dir / Path(url_path).name, dest)
