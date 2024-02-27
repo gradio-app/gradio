@@ -839,6 +839,12 @@ importers:
 
   js/downloadbutton:
     dependencies:
+      '@gradio/button':
+        specifier: workspace:^
+        version: link:../button
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils

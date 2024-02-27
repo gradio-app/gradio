@@ -7,6 +7,8 @@
 	"license": "ISC",
 	"private": false,
 	"dependencies": {
+		"@gradio/button": "workspace:^",
+		"@gradio/client": "workspace:^",
 		"@gradio/utils": "workspace:^"
 	},
 	"main": "./Index.svelte",

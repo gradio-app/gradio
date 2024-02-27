@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import tempfile
-from pathlib import Path
 from typing import Callable, Literal
 
 from gradio_client.documentation import document
@@ -71,7 +70,7 @@ class DownloadButton(Component):
             min_width=min_width,
             interactive=interactive,
         )
-        self.icon = self.move_resource_to_block_cache(icon)
+        self.icon = self.serve_static_file(icon)
 
     def preprocess(self, payload: FileData | None) -> str | None:
         """

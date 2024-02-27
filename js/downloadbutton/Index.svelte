@@ -4,19 +4,19 @@
 
 <script lang="ts">
 	import type { Gradio } from "@gradio/utils";
+	import { type FileData } from "@gradio/client";
 
 	import DownloadButton from "./shared/DownloadButton.svelte";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: string | null;
+	export let value: null | FileData;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let interactive: boolean;
 	export let size: "sm" | "lg" = "lg";
 	export let scale: number | null = null;
-	export let icon: string | null = null;
-	export let link: string | null = null;
+	export let icon: null | FileData = null;
 	export let min_width: number | undefined = undefined;
 	export let label: string | null = null;
 	export let gradio: Gradio<{
@@ -26,18 +26,16 @@
 
 <DownloadButton
 	{value}
-	{label}
 	{variant}
 	{elem_id}
 	{elem_classes}
 	{size}
 	{scale}
-	{link}
 	{icon}
 	{min_width}
 	{visible}
 	disabled={!interactive}
 	on:click={() => gradio.dispatch("click")}
 >
-	{value ? gradio.i18n(value) : ""}
+	{label ? gradio.i18n(label) : ""}
 </DownloadButton>
