@@ -1,6 +1,7 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import MultimodalTextbox from "./Index.svelte";
+	import Accordion from "js/accordion/shared/Accordion.svelte";
 </script>
 
 <Meta
@@ -17,12 +18,6 @@
 			description: "Whether to show the label",
 			control: { type: "boolean" },
 			defaultValue: true
-		},
-		type: {
-			options: ["text", "email", "password"],
-			description: "The type of textbox",
-			control: { type: "select" },
-			defaultValue: "text"
 		},
 		text_align: {
 			options: ["left", "right"],
@@ -53,20 +48,29 @@
 />
 
 <Template let:args>
-	<MultimodalTextbox {...args} value="hello world" />
+	<MultimodalTextbox {...args} />
 </Template>
 
 <Story
-	name="Textbox with label"
-	args={{ label: "My simple label", show_label: true }}
+	name="MultimodalTextbox with file and label"
+	args={{ value: [
+		{ type: "text",
+			text: "This is a text"
+		},
+		{ type: "file",
+			file: {
+				path: "cheetah.jpg",
+				orig_name: "cheetah.jpg",
+				url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+				size: 10000
+			}
+		}
+	],
+	label: "My simple label", show_label: true }}
 />
 <Story
-	name="Textbox with 5 lines and max 5 lines"
+	name="MultimodalTextbox with 5 lines and max 5 lines"
 	args={{ lines: 5, max_lines: 5 }}
-/>
-<Story
-	name="Password input"
-	args={{ type: "password", lines: 1, max_lines: 1 }}
 />
 <Story name="Right aligned textbox" args={{ text_align: "right" }} />
 <Story name="RTL textbox" args={{ rtl: true }} />

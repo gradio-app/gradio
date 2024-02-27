@@ -21,7 +21,6 @@
 		input: never;
 		focus: never;
 	}>;
-	export let info: string | undefined = undefined;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
