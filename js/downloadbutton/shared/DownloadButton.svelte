@@ -13,19 +13,19 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 
-	function download_file() : void {
+	function download_file(): void {
 		if (!value?.url) {
 			return;
 		}
 		let file_name;
 		if (!value.orig_name && value.url) {
-			const parts = value.url.split('/');
+			const parts = value.url.split("/");
 			file_name = parts[parts.length - 1];
-			file_name = file_name.split('?')[0].split('#')[0];
+			file_name = file_name.split("?")[0].split("#")[0];
 		} else {
 			file_name = value.orig_name;
-		}		
-		const a = document.createElement('a');
+		}
+		const a = document.createElement("a");
 		a.href = value.url;
 		a.download = file_name || "file";
 		document.body.appendChild(a);
@@ -33,7 +33,6 @@
 		document.body.removeChild(a);
 	}
 </script>
-
 
 <BaseButton
 	{size}
@@ -51,7 +50,6 @@
 	{/if}
 	<slot />
 </BaseButton>
-
 
 <style>
 	.button-icon {
