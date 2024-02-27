@@ -52,6 +52,8 @@ const config = {
 				`/main/docs/js`,
 				`/main/docs/js/storybook`,
 				`/main/docs/js/`,
+				`/3.50.2/docs`,
+				`/3.50.2/guides`,
 				...Object.keys(redirects)
 			]
 		},
