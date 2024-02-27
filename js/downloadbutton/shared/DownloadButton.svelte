@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { createEventDispatcher } from "svelte";
 	import { type FileData } from "@gradio/client";
 	import { BaseButton } from "@gradio/button";
 
@@ -12,6 +13,7 @@
 	export let disabled = false;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
+	const dispatch = createEventDispatcher();
 
 	function download_file(): void {
 		if (!value?.url) {
@@ -31,6 +33,7 @@
 		document.body.appendChild(a);
 		a.click();
 		document.body.removeChild(a);
+		dispatch("click");
 	}
 </script>
 
