@@ -6,7 +6,7 @@
 	$: url_version;
 </script>
 
-<div class="codeblock" id="{name}_code">
+<!-- <div class="codeblock" id="{name}_code">
 	<a
 		class="clipboard-button m-2"
 		href="https://colab.research.google.com/github/gradio-app/gradio/blob/main/demo/{name}/run.ipynb"
@@ -19,9 +19,9 @@
 			>{@html highlighted_code}</code
 		>
 </pre>
-</div>
+</div> -->
 
-{#key name}
+<!-- {#key name}
 	{#if url_version === "main"}
 		<gradio-app space={"gradio/" + name + "_main"} />
 	{:else if url_version === "3.50.2"}
@@ -29,4 +29,12 @@
 	{:else}
 		<gradio-app space={"gradio/" + name} />
 	{/if}
+{/key} -->
+
+<div class="py-2">
+{#key name}
+	<gradio-lite playground>
+		{code}
+	</gradio-lite>
 {/key}
+</div>
