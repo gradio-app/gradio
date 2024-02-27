@@ -280,7 +280,10 @@ class Block:
             return FileData(path=url_or_file_path, url=url_or_file_path).model_dump()
         else:
             data = {"path": url_or_file_path}
-            return processing_utils.move_files_to_cache(data, self)
+            try:
+                return processing_utils.move_files_to_cache(data, self)
+            except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
+                return data
 
 
 class BlockContext(Block):
