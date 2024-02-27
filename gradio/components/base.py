@@ -199,7 +199,6 @@ class Component(ComponentBase, Block):
             initial_value,
             self,  # type: ignore
             postprocess=True,
-            add_urls=True,
         )
 
         if callable(load_fn):
