@@ -240,8 +240,7 @@ When the user clicks on the login button, they get redirected in a new page to a
 Users can revoke access to their profile at any time in their [settings](https://huggingface.co/settings/connected-applications).
 
 As seen above, OAuth features are available only when your app runs in a Space. However, you often need to test your app
-locally before deploying it. To help with that, the `gr.LoginButton` is mocked. When a user clicks on it, they are
-automatically logged in with a fake user profile. This allows you to debug your app before deploying it to a Space.
+locally before deploying it. To test OAuth features locally, your machine must be logged in to Hugging Face. Please run `huggingface-cli login` or set `HF_TOKEN` as environment variable with one of your access token. You can generate a new token in your settings page (https://huggingface.co/settings/tokens). Then, clicking on the `gr.LoginButton` will login your local Hugging Face profile, allowing you to debug your app with your Hugging Face account before deploying it to a Space.
 
 ## Accessing the Network Request Directly
 
