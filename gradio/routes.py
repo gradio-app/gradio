@@ -28,7 +28,7 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Response, status
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
@@ -288,9 +288,23 @@ class App(FastAPI):
         ###############
 
         # Define OAuth routes if the app expects it (i.e. a LoginButton is defined).
-        # It allows users to "Sign in with HuggingFace".
+        # It allows users to "Sign in with HuggingFace". Otherwise, add the default
+        # logout route.
         if app.blocks is not None and app.blocks.expects_oauth:
             attach_oauth(app)
+        else:
+
+            @app.get("/logout")
+            def logout(response: Response, user: str = Depends(get_current_user)):
+                response.delete_cookie(key=f"access-token-{app.cookie_id}", path="/")
+                response.delete_cookie(
+                    key=f"access-token-unsecure-{app.cookie_id}", path="/"
+                )
+                # A user may have multiple tokens, so we need to delete all of them.
+                for token in list(app.tokens.keys()):
+                    if app.tokens[token] == user:
+                        del app.tokens[token]
+                return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
 
         ###############
         # Main Routes
@@ -856,7 +870,8 @@ def safe_join(directory: str, path: str) -> str:
 
     if path == "":
         raise HTTPException(400)
-
+    if route_utils.starts_with_protocol(path):
+        raise HTTPException(403)
     filename = posixpath.normpath(path)
     fullpath = os.path.join(directory, filename)
     if (
