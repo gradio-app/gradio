@@ -856,7 +856,8 @@ def safe_join(directory: str, path: str) -> str:
 
     if path == "":
         raise HTTPException(400)
-
+    if route_utils.starts_with_protocol(path):
+        raise HTTPException(403)
     filename = posixpath.normpath(path)
     fullpath = os.path.join(directory, filename)
     if (

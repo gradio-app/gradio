@@ -581,9 +581,9 @@ def compare_passwords_securely(input_password: str, correct_password: str) -> bo
 
 def starts_with_protocol(string: str) -> bool:
     """This regex matches strings that start with a scheme (one or more characters not including colon, slash, or space)
-    followed by ://
+    followed by ://, or start with just // or \\ as they are interpreted as SMB paths on Windows.
     """
-    pattern = r"^[a-zA-Z][a-zA-Z0-9+\-.]*://"
+    pattern = r"^(?:[a-zA-Z][a-zA-Z0-9+\-.]*://|//|\\\\)"
     return re.match(pattern, string) is not None
 
 
