@@ -16,7 +16,7 @@
 	export let hidden = false;
 	export let format: "blob" | "file" = "file";
 	export let uploading = false;
-	export let hidden_upload: HTMLInputElement;
+	export let hidden_upload: HTMLInputElement | null = null;
 
 	let upload_id: string;
 	let file_data: FileData[];

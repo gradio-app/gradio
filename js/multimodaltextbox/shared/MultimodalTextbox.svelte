@@ -12,10 +12,8 @@
 	import { fade } from "svelte/transition";
 	import type { SelectData } from "@gradio/utils";
 
-	export let value: (
-		| { type: string; text: string }
-		| { type: string; file: FileData | null }
-	)[] = [];
+	export let value: { type: string; text?: string; file?: FileData | null }[] =
+		[];
 	export let value_is_output = false;
 	export let lines = 1;
 	export let placeholder = "Type here...";
@@ -294,7 +292,7 @@
 								on:click={(event) => remove_thumbnail(event, index)}
 								><Clear /></button
 							>
-							{#if file.file.mime_type.includes("image")}
+							{#if file.file?.mime_type && file.file.mime_type.includes("image")}
 								<Image
 									src={file.file.url}
 									title={null}
@@ -302,9 +300,9 @@
 									loading="lazy"
 									class={"thumbnail-image"}
 								/>
-							{:else if file.file.mime_type.includes("audio")}
+							{:else if file.file?.mime_type && file.file.mime_type.includes("audio")}
 								<Music />
-							{:else if file.file.mime_type.includes("video")}
+							{:else if file.file?.mime_type && file.file.mime_type.includes("video")}
 								<Video />
 							{:else}
 								<File />
