@@ -1190,7 +1190,7 @@ class Endpoint:
 
         else:
             raise ValueError(
-                f"A FileSerializable component can only deserialize a string or a dict, not a {type(x)}: {x}"
+                f"A FileSerializable component can only deserialize a string or a dict, not a {type(file_name)}: {file_name}"
             )
         return file_name
 
