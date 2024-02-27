@@ -953,6 +953,9 @@ def test_compare_passwords_securely():
         ("localhost:7860", False),
         ("localhost", False),
         ("C:/Users/username", False),
+        ("//path", True),
+        ("\\\\path", True),
+        ("/usr/bin//test", False),
     ],
 )
 def test_starts_with_protocol(string, expected):
