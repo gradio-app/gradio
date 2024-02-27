@@ -177,6 +177,7 @@
 		class:center
 		class:boundedheight
 		class:flex
+		class:disable_click
 		style:height="100%"
 		tabindex={hidden ? -1 : 0}
 		on:drag|preventDefault|stopPropagation
@@ -229,6 +230,9 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
+	}
+	.disable_click {
+		cursor: default;
 	}
 
 	input {

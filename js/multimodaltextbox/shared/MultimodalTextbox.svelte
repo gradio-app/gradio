@@ -335,6 +335,8 @@
 	.input-container {
         display: flex;
 		flex-direction: column;
+		align-items: center;
+		justify-content: center;
     }
 
 	textarea {
@@ -351,7 +353,8 @@
 		font-size: var(--input-text-size);
 		line-height: var(--line-sm);
 		border: none;
-		margin-top: 15px;
+		margin-top: 0px;
+		margin-bottom: 0px;
 		margin-left: 30px;
 	}
 
@@ -366,6 +369,7 @@
 	}
 
     .plus-button, .submit-button {
+		position: absolute;
         background-color: var(--input-border-color-focus);
         border: none;
         color: white;
@@ -376,6 +380,7 @@
         border-radius: 50%;
         width: 30px;
         height: 30px;
+		bottom: 15px;
     }
 
 	.submit-button:active {
@@ -383,18 +388,13 @@
 	}
 
 	.submit-button {
-        position: absolute;
         right: 10px;
 		margin-left: 5px;
-		bottom: 10px;
-		padding-bottom: 5px;
 	}
 
 	.plus-button {
-        position: absolute;
         left: 10px;
 		margin-right: 5px;
-		bottom: 10px;
 	}
 
 	.thumbnails :global(img) {

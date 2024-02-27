@@ -32,6 +32,7 @@ class MultimodalTextbox(FormComponent):
         self,
         value: list[dict[str, str]] | Callable | None = [],
         *,
+        file_types: list[str] | None = None,
         lines: int = 1,
         max_lines: int = 20,
         placeholder: str | None = None,
@@ -56,6 +57,7 @@ class MultimodalTextbox(FormComponent):
         """
         Parameters:
             value: default text and files to provide in textarea. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.json', '.mp4']). "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             lines: minimum number of line rows to provide in textarea.
             max_lines: maximum number of line rows to provide in textarea.
             placeholder: placeholder hint to provide behind textarea.
@@ -77,6 +79,11 @@ class MultimodalTextbox(FormComponent):
             show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
         """
+        self.file_types = file_types
+        if file_types is not None and not isinstance(file_types, list):
+            raise ValueError(
+                f"Parameter file_types must be a list. Received {file_types.__class__.__name__}"
+            )
         self.lines = lines
         self.max_lines = max(lines, max_lines)
         self.placeholder = placeholder

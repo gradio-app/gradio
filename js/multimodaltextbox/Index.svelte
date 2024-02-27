@@ -28,6 +28,7 @@
 	export let value: 
 	({ type: string; text: string; } | 
 	{ type: string; file: FileData | null; })[] = [];
+	export let file_types: string[] | null = null;
 	export let lines: number;
 	export let placeholder = "";
 	export let show_label: boolean;
@@ -44,7 +45,6 @@
 	export let autoscroll = true;
 	export let interactive: boolean;
 	export let root: string;
-
 </script>
 
 <Block
@@ -67,6 +67,7 @@
 	<MultimodalTextbox
 		bind:value
 		bind:value_is_output
+		{file_types}
 		{root}
 		{show_label}
 		{lines}

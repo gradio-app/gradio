@@ -14,7 +14,7 @@ def add_message(history, message):
             history.append(((x["file"]["path"],), None))  
         elif x["type"] == "text" and x["text"] is not None:
             history.append((x["text"], None))
-    return history, gr.MultimodalTextbox(value=[], interactive=False)
+    return history, gr.MultimodalTextbox(value=[], interactive=False, file_types=["image"])
 
 def bot(history):
     response = "**That's cool!**"
@@ -33,7 +33,7 @@ with gr.Blocks() as demo:
         avatar_images=(None, (os.path.join(os.path.dirname(__file__), "avatar.png"))),
     )
 
-    chat_input = gr.MultimodalTextbox(label="Name", interactive=True, placeholder="Enter message or upload file...")
+    chat_input = gr.MultimodalTextbox(label="Name", interactive=True, file_types=["image"], placeholder="Enter message or upload file...")
     chat_msg = chat_input.submit(add_message, [chatbot, chat_input], [chatbot, chat_input], queue=False).then(
         bot, chatbot, chatbot, api_name="bot_response"
     )
