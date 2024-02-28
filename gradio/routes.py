@@ -934,6 +934,7 @@ def mount_gradio_app(
         blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted.
         app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
+        auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth.
     Example:
         from fastapi import FastAPI
         import gradio as gr
