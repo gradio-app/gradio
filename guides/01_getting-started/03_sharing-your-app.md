@@ -416,7 +416,7 @@ if __name__ == '__main__':
     uvicorn.run(app)
 ```
 
-There are actually two separate Gradio apps in this example! One that shows 
+There are actually two separate Gradio apps in this example! One that simply displays a log in button (this demo is accessible to any user), while the other main demo is only accessible to users that are logged in. 
 
 
 
