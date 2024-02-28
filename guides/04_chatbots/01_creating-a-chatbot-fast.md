@@ -87,7 +87,7 @@ def slow_echo(message, history):
 gr.ChatInterface(slow_echo).launch()
 ```
 
-Notice that we've [enabled queuing](/guides/key-features#queuing), which is required to use generator functions. While the response is streaming, the "Submit" button turns into a "Stop" button that can be used to stop the generator function. You can customize the appearance and behavior of the "Stop" button using the `stop_btn` parameter.
+Notice that we've [enabled queuing](/guides/01_getting-started/02_key-features#queuing), which is required to use generator functions. While the response is streaming, the "Submit" button turns into a "Stop" button that can be used to stop the generator function. You can customize the appearance and behavior of the "Stop" button using the `stop_btn` parameter.
 
 ## Customizing your chatbot
 
@@ -157,7 +157,7 @@ with gr.Blocks() as demo:
 demo.launch()
 ```
 
-If you need to create something even more custom, then its best to construct the chatbot UI using the low-level `gr.Blocks()` API. We have [a dedicated guide for that here](/guides/creating-a-custom-chatbot-with-blocks).
+If you need to create something even more custom, then its best to construct the chatbot UI using the low-level `gr.Blocks()` API. We have [a dedicated guide for that here](/guides/04_chatbots/02_creating-a-custom-chatbot-with-blocks).
 
 ## Using your chatbot via an API
 
