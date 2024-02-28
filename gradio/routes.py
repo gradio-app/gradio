@@ -22,7 +22,16 @@ import time
 import traceback
 from pathlib import Path
 from queue import Empty as EmptyQueue
-from typing import TYPE_CHECKING, Any, AsyncIterator, Dict, List, Optional, Type
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    AsyncIterator,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Type,
+)
 
 import fastapi
 import httpx
@@ -122,7 +131,7 @@ class App(FastAPI):
     FastAPI App Wrapper
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, auth_dependency: Callable[[fastapi.Request], str] | None = None, **kwargs):
         self.tokens = {}
         self.auth = None
         self.blocks: gradio.Blocks | None = None
@@ -136,6 +145,7 @@ class App(FastAPI):
         self.uploaded_file_dir = get_upload_folder()
         self.change_event: None | threading.Event = None
         self._asyncio_tasks: list[asyncio.Task] = []
+        self.auth_dependency = auth_dependency
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
@@ -188,11 +198,11 @@ class App(FastAPI):
 
     @staticmethod
     def create_app(
-        blocks: gradio.Blocks, app_kwargs: Dict[str, Any] | None = None
+        blocks: gradio.Blocks, app_kwargs: Dict[str, Any] | None = None, auth_dependency: Callable[[fastapi.Request], str] | None = None
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
-        app = App(**app_kwargs)
+        app = App(auth_dependency=auth_dependency, **app_kwargs)
         app.configure_app(blocks)
 
         if not wasm_utils.IS_WASM:
@@ -908,6 +918,8 @@ def mount_gradio_app(
     blocks: gradio.Blocks,
     path: str,
     app_kwargs: dict[str, Any] | None = None,
+    *,
+    auth_dependency: Callable[[fastapi.Request], str] | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -930,7 +942,7 @@ def mount_gradio_app(
     blocks.dev_mode = False
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
-    gradio_app = App.create_app(blocks, app_kwargs=app_kwargs)
+    gradio_app = App.create_app(blocks, app_kwargs=app_kwargs, auth_dependency=auth_dependency)
 
     old_lifespan = app.router.lifespan_context
 
