@@ -1891,7 +1891,7 @@ Received outputs:
         state_session_capacity: int = 10000,
         share_server_address: str | None = None,
         share_server_protocol: Literal["http", "https"] | None = None,
-        auth_dependency: Callable[[fastapi.Request], str] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         _frontend: bool = True,
     ) -> tuple[FastAPI, str, str]:
         """
@@ -2011,7 +2011,9 @@ Received outputs:
                 # and avoid using `networking.start_server` that would start a server that don't work in the Wasm env.
                 from gradio.routes import App
 
-                app = App.create_app(self, auth_dependency=auth_dependency, app_kwargs=app_kwargs)
+                app = App.create_app(
+                    self, auth_dependency=auth_dependency, app_kwargs=app_kwargs
+                )
                 wasm_utils.register_app(app)
             else:
                 (

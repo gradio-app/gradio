@@ -132,7 +132,9 @@ class App(FastAPI):
     """
 
     def __init__(
-        self, auth_dependency: Callable[[fastapi.Request], str] | None = None, **kwargs
+        self,
+        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        **kwargs,
     ):
         self.tokens = {}
         self.auth = None
@@ -202,7 +204,7 @@ class App(FastAPI):
     def create_app(
         blocks: gradio.Blocks,
         app_kwargs: Dict[str, Any] | None = None,
-        auth_dependency: Callable[[fastapi.Request], str] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
@@ -225,7 +227,7 @@ class App(FastAPI):
         @app.get("/login_check")
         @app.get("/login_check/")
         def login_check(user: str = Depends(get_current_user)):
-            if app.auth is None or user is not None:
+            if (app.auth is None and app.auth_dependency is None) or user is not None:
                 return
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
@@ -334,9 +336,13 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request, route_path="/", root_path=app.root_path
             )
-            if app.auth is None or user is not None:
+            if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = app.get_blocks().config
                 config = route_utils.update_root_in_config(config, root)
+            elif app.auth_dependency:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
+                )
             else:
                 config = {
                     "auth_required": True,
@@ -925,7 +931,7 @@ def mount_gradio_app(
     path: str,
     app_kwargs: dict[str, Any] | None = None,
     *,
-    auth_dependency: Callable[[fastapi.Request], str] | None = None,
+    auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
