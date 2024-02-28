@@ -310,9 +310,11 @@ locally before deploying it. To test OAuth features locally, your machine must b
 
 ### OAuth (with external providers)
 
-It is also possible to authenticate with external OAuth providers (e.g. Google OAuth) in your Gradio apps. To do this, you must mount your Gradio app within a FastAPI app ([as discussed above](#mounting-within-another-fastapi-app)). Then, you must write an authentication dependency function, which will get the user's username from the OAuth provider and return it. This function should be passed to the `auth_dependency` parameter in `gr.mount_gradio_app`. 
+It is also possible to authenticate with external OAuth providers (e.g. Google OAuth) in your Gradio apps. To do this, first mount your Gradio app within a FastAPI app ([as discussed above](#mounting-within-another-fastapi-app)). Then, you must write an *authentication function*, which gets the user's username from the OAuth provider and returns it. This function should be passed to the `auth_dependency` parameter in `gr.mount_gradio_app`. 
 
-Similar to [FastAPI dependency functions](https://fastapi.tiangolo.com/tutorial/dependencies/), this function will run before any Gradio-related route in your FastAPI app. Only if there is a valid username returend from the authentication dependency function can a user access the Gradio-related routes in your function. Let's show a simple example to illustrate the `auth_dependency` parameter:
+Similar to [FastAPI dependency functions](https://fastapi.tiangolo.com/tutorial/dependencies/), the function specified by `auth_dependency` will run before any Gradio-related route in your FastAPI app. The function should accept a single parameter: the FastAPI `Request` and return either a string (representing a user's username) or `None`. If a string is returned, the user will be able to access the Gradio-related routes in your FastAPI app. 
+
+First, let's show a simplistic example to illustrate the `auth_dependency` parameter:
 
 ```python
 from fastapi import FastAPI, Request
@@ -331,9 +333,9 @@ if __name__ == '__main__':
     uvicorn.run(app)
 ```
 
-In this example, only requests that include a "user" header will be allowed to access the Gradio app. Of course, this does not add any security, since any user can add this header in their request.
+In this example, only requests that include a "user" header will be allowed to access the Gradio app. Of course, this does not add much security, since any user can add this header in their request.
 
-Here's a complete example showing how to add Google OAuth to a Gradio app (assuming you've already created an OAuth ):
+Here's a more complete example showing how to add Google OAuth to a Gradio app (assuming you've already created OAuth Credentials on the [Google Developer Console](https://console.cloud.google.com/project)):
 
 ```python
 import os
