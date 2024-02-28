@@ -3,13 +3,13 @@
 	import type { SvelteComponent, ComponentType } from "svelte";
 	import type { Gradio, SelectData } from "@gradio/utils";
 	import { get_fetchable_url_or_file } from "@gradio/client";
+
 	export let components: string[];
 	export let component_props: Record<string, any>[];
 	export let component_map: Map<
 		string,
 		Promise<{
-			name: string;
-			component: { default: ComponentType<SvelteComponent> };
+			default: ComponentType<SvelteComponent>;
 		}>
 	>;
 	export let label = "Examples";
@@ -43,6 +43,7 @@
 	function handle_mouseenter(i: number): void {
 		current_hover = i;
 	}
+
 	function handle_mouseleave(): void {
 		current_hover = -1;
 	}
@@ -86,7 +87,7 @@
 						sample_row.map(async (sample_cell, j) => {
 							return {
 								value: sample_cell,
-								component: (await component_map.get(components[j]))?.component
+								component: (await component_map.get(components[j]))
 									?.default as ComponentType<SvelteComponent>
 							};
 						})

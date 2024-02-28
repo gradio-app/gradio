@@ -73,7 +73,7 @@ export function generate_dev_entry({ enable }: { enable: boolean }): Plugin {
 
 			const new_code = code.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
 				return `const ${$1.replace(
-					" as ",
+					/ as /g,
 					": "
 				)} = window.__gradio__svelte__internal;`;
 			});
@@ -294,6 +294,7 @@ export function inject_component_loader({ mode }: { mode: string }): Plugin {
 			if (id === v_id) return resolved_v_id;
 		},
 		load(id: string) {
+			this.addWatchFile(join(__dirname, "component_loader.js"));
 			if (id === resolved_v_id) {
 				return load_virtual_component_loader(mode);
 			}

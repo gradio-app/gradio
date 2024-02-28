@@ -180,7 +180,6 @@ export function api_factory(
 	fetch_implementation: typeof fetch,
 	EventSource_factory: (url: URL) => EventSource
 ): Client {
-	console.log(fetch_implementation);
 	return { post_data, upload_files, client, handle_blob };
 
 	async function post_data(
@@ -195,36 +194,25 @@ export function api_factory(
 		if (token) {
 			headers.Authorization = `Bearer ${token}`;
 		}
-		console.log(
-			"POSTING DATA",
-			url,
-			body,
-			headers,
-			fetch_implementation === fetch
-		);
+
 		try {
-			console.log("before fetch", fetch_implementation);
 			var response = await fetch_implementation(url, {
 				method: "POST",
 				body: JSON.stringify(body),
 				headers
 			});
 		} catch (e) {
-			console.log("error in fetch");
 			return [{ error: BROKEN_CONNECTION_MSG }, 500];
 		}
 		let output: PostResponse;
 		let status: int;
 		try {
-			console.log("before response.json");
 			output = await response.json();
 			status = response.status;
 		} catch (e) {
-			console.log("error in response.json");
 			output = { error: `Could not parse server response: ${e}` };
 			status = 500;
 		}
-		console.log("POSTED DATA", output, status);
 		return [output, status];
 	}
 
@@ -479,7 +467,6 @@ export function api_factory(
 
 				handle_blob(`${config.root}`, data, api_info, hf_token).then(
 					(_payload) => {
-						console.log("AFTER BLOB HANDLING:", protocol, _payload, config);
 						payload = {
 							data: _payload || [],
 							event_data,
@@ -496,8 +483,6 @@ export function api_factory(
 								time: new Date()
 							});
 
-							console.log("SKIP QUEUE", protocol, config);
-
 							post_data(
 								`${config.root}/run${
 									_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
@@ -509,7 +494,6 @@ export function api_factory(
 								hf_token
 							)
 								.then(([output, status_code]) => {
-									console.log("OUTPUT", output, status_code);
 									const data = output.data;
 									if (status_code == 200) {
 										fire_event({
@@ -685,7 +669,6 @@ export function api_factory(
 							);
 
 							eventSource = EventSource_factory(url);
-							console.log("EVENT SOURCE", eventSource);
 
 							eventSource.onmessage = async function (event) {
 								const _data = JSON.parse(event.data);
@@ -784,8 +767,6 @@ export function api_factory(
 								time: new Date()
 							});
 
-							console.log("EVENT SOURCE", eventSource);
-
 							post_data(
 								`${config.root}/queue/join?${url_params}`,
 								{
@@ -794,7 +775,6 @@ export function api_factory(
 								},
 								hf_token
 							).then(([response, status]) => {
-								console.log("RESPONSE", response, status);
 								if (status === 503) {
 									fire_event({
 										type: "status",

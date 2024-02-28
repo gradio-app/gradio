@@ -28,13 +28,13 @@ export function load_component({ api_url, name, id, variant }) {
 			component: request_map[`${id}-${variant}`]
 		};
 	} catch (e) {
-		console.error(e);
 		try {
 			request_map[`${id}-${variant}`] = get_component_with_css(
 				api_url,
 				id,
 				variant
 			);
+
 			return {
 				name,
 				component: request_map[`${id}-${variant}`]
@@ -73,6 +73,6 @@ function get_component_with_css(api_url, id, variant) {
 			/* @vite-ignore */ `${api_url}/custom_component/${id}/${variant}/index.js`
 		)
 	]).then(([_, module]) => {
-		return module.default;
+		return module;
 	});
 }

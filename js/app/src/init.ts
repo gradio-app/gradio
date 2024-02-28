@@ -1,4 +1,4 @@
-import { writable } from "svelte/store";
+import { writable, type Writable } from "svelte/store";
 import type {
 	ComponentMeta,
 	Dependency,
@@ -10,34 +10,67 @@ import type {
 } from "./types";
 import { load_component } from "virtual:component-loader";
 import type { client_return } from "@gradio/client";
+import { create_loading_status_store } from "./stores";
+
+export interface UpdateTransaction {
+	id: number;
+	value: any;
+	prop: string;
+}
 
 /**
- *
+ * Create a store with the layout and a map of targets
  * @param components An array of component metadata
  * @param layout The layout tree
  * @param dependencies The events, triggers, inputs, and outputs
  * @param root The root url of the app
+ * @param app The client instance
+ * @param options Options for the layout
  * @returns A store with the layout and a map of targets
  */
 export function create_components(
 	components: ComponentMeta[],
 	layout: LayoutNode,
 	dependencies: Dependency[],
-	root: string
+	root: string,
+	app: client_return,
+	options: {
+		fill_height: boolean;
+	}
 ) {
 	const _component_map = new Map();
-	const layout_store = writable({});
 
 	const target_map: TargetMap = {};
 	const inputs = new Set<number>();
 	const outputs = new Set<number>();
 
+	const _rootNode: ComponentMeta = {
+		id: layout.id,
+		type: "column",
+		props: { interactive: false, scale: options.fill_height ? 1 : null },
+		has_modes: false,
+		instance: null as unknown as ComponentMeta["instance"],
+		component: null as unknown as ComponentMeta["component"],
+		component_class_id: ""
+	};
+
+	components.push(_rootNode);
+	const loading_status = create_loading_status_store();
+
 	dependencies.forEach((dep, fn_index) => {
+		loading_status.register(fn_index, dep.inputs, dep.outputs);
+		dep.frontend_fn = process_frontend_fn(
+			dep.js,
+			!!dep.backend_fn,
+			dep.inputs.length,
+			dep.outputs.length
+		);
 		create_target_meta(dep.targets, fn_index, target_map);
 		get_inputs_outputs(dep, inputs, outputs);
 	});
 
-	let constructor_map: Map<ComponentMeta["type"], LoadingComponent> = new Map();
+	const constructor_map = preload_all_components(components, root);
+
 	let instance_map: { [id: number]: ComponentMeta } = components.reduce(
 		(acc, c) => {
 			acc[c.id] = c;
@@ -46,36 +79,82 @@ export function create_components(
 		{} as { [id: number]: ComponentMeta }
 	);
 
-	// walk_layout(layout, async (node) => {
-	// 	const instance = instance_map[node.id];
+	async function walk_layout(node: LayoutNode): Promise<ComponentMeta> {
+		const instance = instance_map[node.id];
 
-	// 	const { component, example_components } = get_component(
-	// 		instance.type,
-	// 		instance.component_class_id,
-	// 		root,
-	// 		components,
-	// 		instance?.props?.components
-	// 	);
-	// 	const _component = (await component)!.component;
-	// 	instance.component = _component.default;
+		instance.component = (await constructor_map.get(
+			instance.component_class_id
+		))!?.default;
 
-	// 	if (example_components) {
-	// 		const example_component_map = new Map();
-	// 		for (const [name, example_component] of example_components) {
-	// 			const _c = (await example_component)!.component;
-	// 			example_component_map.set(name, _c.default);
-	// 		}
-	// 		instance.props.components = example_component_map;
-	// 	}
-	// });
-	function update_value(id: number, value: any, prop: string): void {
-		// update the value of a component
+		if (instance.type === "dataset") {
+			instance.props.component_map = get_component(
+				instance.type,
+				instance.component_class_id,
+				root,
+				components,
+				instance.props.components
+			).example_components;
+		}
+
+		if (target_map[instance.id]) {
+			instance.props.attached_events = Object.keys(target_map[instance.id]);
+		}
+
+		instance.props.interactive = determine_interactivity(
+			instance.id,
+			instance.props.interactive,
+			instance.props.value,
+			inputs,
+			outputs
+		);
+
+		instance.props.server = process_server_fn(
+			instance.id,
+			instance.props.server_fns,
+			app
+		);
+
+		_component_map.set(instance.id, instance);
+
+		if (node.children) {
+			instance.children = await Promise.all(
+				node.children.map((v) => walk_layout(v))
+			);
+		}
+
+		return instance;
+	}
+
+	const layout_store: Writable<ComponentMeta> = writable();
+	walk_layout(layout).then(() => {
+		layout_store.set(_rootNode);
+	});
+
+	function update_value(updates: UpdateTransaction[]): void {
+		layout_store.update((layout) => {
+			updates.forEach((update) => {
+				const instance = instance_map[update.id];
+
+				instance.props[update.prop] = update.value;
+			});
+			return layout;
+		});
+	}
+
+	function get_data(id: number): any | Promise<any> {
+		const comp = _component_map.get(id);
+		if (comp.instance.get_value) {
+			return comp.instance.get_value() as Promise<any>;
+		}
+		return comp.props.value;
 	}
 
 	return {
 		layout: layout_store,
 		targets: target_map,
-		update_value
+		update_value,
+		get_data,
+		loading_status
 	};
 }
 
@@ -103,7 +182,7 @@ export function process_frontend_fn(
 	backend_fn: boolean,
 	input_length: number,
 	output_length: number
-): ((...args: unknown[]) => Promise<unknown>) | null {
+): ((...args: unknown[]) => Promise<unknown[]>) | null {
 	if (!source) return null;
 
 	const wrap = backend_fn ? input_length === 1 : output_length === 1;
@@ -285,8 +364,6 @@ export function get_component(
 		variant: "component"
 	});
 
-	console.log({ _c });
-
 	return {
 		component: _c.component,
 		name: _c.name,
@@ -295,19 +372,28 @@ export function get_component(
 	};
 }
 
-async function walk_layout(
-	node: LayoutNode,
+export function preload_all_components(
+	components: ComponentMeta[],
+	root: string
+): Map<ComponentMeta["type"], LoadingComponent> {
+	let constructor_map: Map<ComponentMeta["type"], LoadingComponent> = new Map();
 
-	handler: (node: LayoutNode) => void
-): Promise<void> {
-	// let instance = instance_map[node.id];
-	handler(node);
+	components.forEach((c) => {
+		const { component, example_components } = get_component(
+			c.type,
+			c.component_class_id,
+			root,
+			components
+		);
 
-	// const _component = (await constructor_map.get(instance.type))!.component;
-	// instance.component = _component.default;
+		constructor_map.set(c.component_class_id, component);
 
-	if (node.children) {
-		// instance.children = node.children.map((v) => instance_map[v.id]);
-		await Promise.all(node.children.map((v) => walk_layout(v, handler)));
-	}
+		if (example_components) {
+			for (const [name, example_component] of example_components) {
+				constructor_map.set(name, example_component);
+			}
+		}
+	});
+
+	return constructor_map;
 }

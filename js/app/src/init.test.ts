@@ -9,8 +9,10 @@ import {
 	determine_interactivity,
 	process_server_fn,
 	get_component
+	// walk_layout
 } from "./init";
 import { Dependency, TargetMap } from "./types";
+import type { client_return } from "@gradio/client";
 
 describe("process_frontend_fn", () => {
 	test("empty source code returns null", () => {
@@ -332,7 +334,7 @@ describe("process_server_fn", () => {
 			component_server: async (id: number, fn: string, args: any) => {
 				return args;
 			}
-		};
+		} as client_return;
 
 		const result = process_server_fn(1, ["fn1", "fn2"], app);
 		expect(Object.keys(result)).toEqual(["fn1", "fn2"]);
@@ -346,7 +348,7 @@ describe("process_server_fn", () => {
 			component_server: async (id: number, fn: string, args: any) => {
 				return args;
 			}
-		};
+		} as client_return;
 
 		const result = process_server_fn(1, ["fn1", "fn2"], app);
 		const response = result.fn1("hello");
@@ -358,10 +360,10 @@ describe("process_server_fn", () => {
 			return args;
 		});
 		const app = {
-			component_server: mock
-		};
+			component_server: mock as any
+		} as client_return;
 
-		const result = process_server_fn(1, ["fn1", "fn2"], app);
+		const result = process_server_fn(1, ["fn1", "fn2"], app as client_return);
 		const response = await result.fn1("hello");
 		expect(response).toBe("hello");
 		expect(mock.calls).toEqual([[1, "fn1", "hello"]]);
@@ -395,9 +397,8 @@ describe("get_component", () => {
 
 	test("the resolved component key is an object", async () => {
 		const result = get_component("test-component-one", "class_id", "root", []);
-		console.log(result);
 		const o = await result.component;
-		console.log({ o });
+
 		expect(o).toBeTypeOf("object");
 	});
 
@@ -519,3 +520,40 @@ describe("get_component", () => {
 		server.close();
 	});
 });
+
+// describe("walk_layout", () => {
+// 	test("calls the handler with the node", () => {
+// 		const handler = spy((node: any) => {});
+// 		const node = {
+// 			id: 1,
+// 			children: []
+// 		};
+
+// 		walk_layout(node, handler);
+// 		expect(handler.calls).toEqual([[node]]);
+// 	});
+
+// 	test("calls the handler with the node and its children", () => {
+// 		const handler = spy((node: any) => {});
+// 		const node = {
+// 			id: 1,
+// 			children: [
+// 				{
+// 					id: 2,
+// 					children: []
+// 				},
+// 				{
+// 					id: 3,
+// 					children: []
+// 				}
+// 			]
+// 		};
+
+// 		walk_layout(node, handler);
+// 		expect(handler.calls).toEqual([
+// 			[node],
+// 			[node.children[0]],
+// 			[node.children[1]]
+// 		]);
+// 	});
+// });

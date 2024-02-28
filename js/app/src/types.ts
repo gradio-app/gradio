@@ -5,8 +5,8 @@ import type { SvelteComponent } from "svelte";
 interface SharedProps {
 	elem_id?: string;
 	elem_classes?: string[];
-	components?: string[] | Map<ComponentMeta["type"], ComponentMeta>;
-
+	components?: string[];
+	server_fns?: string[];
 	interactive: boolean;
 	[key: string]: unknown;
 }
@@ -51,7 +51,7 @@ export interface Dependency {
 	js: string | null;
 	scroll_to_output: boolean;
 	show_progress: "full" | "minimal" | "hidden";
-	frontend_fn?: (...args: unknown[]) => Promise<unknown[]>;
+	frontend_fn: ((...args: unknown[]) => Promise<unknown[]>) | null;
 	status?: string;
 	queue: boolean | null;
 	api_name: string | null;

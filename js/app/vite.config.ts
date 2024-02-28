@@ -42,7 +42,6 @@ const TEST_MODE = process.env.TEST_MODE || "happy-dom";
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {
-	console.log(mode);
 	const targets = {
 		production: "../../gradio/templates/frontend",
 		"dev:custom": "../../gradio/templates/frontend"
