@@ -5,6 +5,8 @@ import type { SvelteComponent } from "svelte";
 interface SharedProps {
 	elem_id?: string;
 	elem_classes?: string[];
+	components?: string[] | Map<ComponentMeta["type"], ComponentMeta>;
+
 	interactive: boolean;
 	[key: string]: unknown;
 }
@@ -87,3 +89,13 @@ export type ThemeMode = "system" | "light" | "dark";
 
 /** the target map is an object mapping the target id to a series of events (another object), those events are a mapping of the event name to the function id's they trigger */
 export type TargetMap = Record<number, Record<string, number[]>>;
+
+/** A component that has been loaded via dynamic import */
+export type LoadedComponent = {
+	default: ComponentMeta["component"];
+};
+
+/**A component that is loading */
+export type LoadingComponent = Promise<{
+	default: ComponentMeta["component"];
+}>;

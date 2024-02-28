@@ -32,7 +32,8 @@ import {
 	generate_dev_entry,
 	handle_ce_css,
 	inject_component_loader,
-	resolve_svelte
+	resolve_svelte,
+	mock_modules
 } from "./build_plugins";
 
 const GRADIO_VERSION = version_raw || "asd_stub_asd";
@@ -163,7 +164,8 @@ export default defineConfig(({ mode }) => {
 			inject_ejs(),
 			generate_cdn_entry({ version: GRADIO_VERSION, cdn_base: CDN_BASE }),
 			handle_ce_css(),
-			inject_component_loader()
+			inject_component_loader({ mode }),
+			mode === "test" && mock_modules()
 		],
 		optimizeDeps: {
 			exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"]
@@ -181,6 +183,7 @@ export default defineConfig(({ mode }) => {
 				if (log.includes("was created with unknown prop")) return false;
 			}
 		},
+
 		resolve: {
 			alias: {
 				// For the Wasm app to import the wheel file URLs.

@@ -1,11 +1,14 @@
-import { describe, test, expect } from "vitest";
+import { describe, test, expect, vi } from "vitest";
 import { spy } from "tinyspy";
+import { setupServer } from "msw/node";
+import { http, HttpResponse } from "msw";
 
 import {
 	process_frontend_fn,
 	create_target_meta,
 	determine_interactivity,
-	process_server_fn
+	process_server_fn,
+	get_component
 } from "./init";
 import { Dependency, TargetMap } from "./types";
 
@@ -235,17 +238,6 @@ describe("determine_interactivity", () => {
 		expect(result).toBe(true);
 	});
 
-	// test("returns false if the component is an output", () => {
-	// 	const result = determine_interactivity(
-	// 		0,
-	// 		undefined,
-	// 		"hi",
-	// 		new Set([0]),
-	// 		new Set([2])
-	// 	);
-	// 	expect(result).toBe(true);
-	// });
-
 	test("returns true if the component is not an input or output and the component has no default value: empty string", () => {
 		const result = determine_interactivity(
 			2,
@@ -327,7 +319,7 @@ describe("determine_interactivity", () => {
 describe("process_server_fn", () => {
 	test("returns an object", () => {
 		const result = process_server_fn(1, ["fn1", "fn2"], {} as any);
-		expect(typeof result).toBe("object");
+		expect(result).toBeTypeOf("object");
 	});
 
 	test("returns an object with the correct keys", () => {
@@ -344,8 +336,9 @@ describe("process_server_fn", () => {
 
 		const result = process_server_fn(1, ["fn1", "fn2"], app);
 		expect(Object.keys(result)).toEqual(["fn1", "fn2"]);
-		expect(typeof result.fn1).toBe("function");
-		expect(typeof result.fn2).toBe("function");
+
+		expect(result.fn1).toBeInstanceOf(Function);
+		expect(result.fn2).toBeInstanceOf(Function);
 	});
 
 	test("returned server functions should resolve to a promise", async () => {
@@ -377,5 +370,152 @@ describe("process_server_fn", () => {
 	test("if there are no server functions, it returns an empty object", () => {
 		const result = process_server_fn(1, undefined, {} as any);
 		expect(result).toEqual({});
+	});
+});
+
+describe("get_component", () => {
+	test("returns an object", () => {
+		const result = get_component("test-component-one", "class_id", "root", []);
+		expect(result.component).toBeTypeOf("object");
+	});
+
+	test("returns an object with the correct keys", () => {
+		const result = get_component("test-component-one", "class_id", "root", []);
+		expect(Object.keys(result)).toEqual([
+			"component",
+			"name",
+			"example_components"
+		]);
+	});
+
+	test("the component key is a promise", () => {
+		const result = get_component("test-component-one", "class_id", "root", []);
+		expect(result.component).toBeInstanceOf(Promise);
+	});
+
+	test("the resolved component key is an object", async () => {
+		const result = get_component("test-component-one", "class_id", "root", []);
+		console.log(result);
+		const o = await result.component;
+		console.log({ o });
+		expect(o).toBeTypeOf("object");
+	});
+
+	test("getting the same component twice should return the same promise", () => {
+		const result = get_component("test-component-one", "class_id", "root", []);
+		const result_two = get_component(
+			"test-component-one",
+			"class_id",
+			"root",
+			[]
+		);
+
+		expect(result.component).toBe(result_two.component);
+	});
+
+	test("if example components are not provided, the  example_components key is undefined", async () => {
+		const result = get_component("dataset", "class_id", "root", []);
+		expect(result.example_components).toBe(undefined);
+	});
+
+	test("if the type is not a dataset, the  example_components key is undefined", async () => {
+		const result = get_component("test-component-one", "class_id", "root", []);
+		expect(result.example_components).toBe(undefined);
+	});
+
+	test("when the type is a dataset, returns an object with the correct keys and values and example components", () => {
+		const result = get_component(
+			"dataset",
+			"class_id",
+			"root",
+			[
+				{
+					type: "test-component-one",
+					component_class_id: "example_class_id",
+					id: 1,
+					props: {
+						value: "hi",
+						interactive: false
+					},
+					has_modes: false,
+					instance: {} as any,
+					component: {} as any
+				}
+			],
+			["test-component-one"]
+		);
+		expect(result.component).toBeTypeOf("object");
+		expect(result.example_components).toBeInstanceOf(Map);
+	});
+
+	test("when example components are returned, returns an object with the correct keys and values and example components", () => {
+		const result = get_component(
+			"dataset",
+			"class_id",
+			"root",
+			[
+				{
+					type: "test-component-one",
+					component_class_id: "example_class_id",
+					id: 1,
+					props: {
+						value: "hi",
+						interactive: false
+					},
+					has_modes: false,
+					instance: {} as any,
+					component: {} as any
+				}
+			],
+			["test-component-one"]
+		);
+		expect(result.example_components?.get("test-component-one")).toBeTypeOf(
+			"object"
+		);
+		expect(result.example_components?.get("test-component-one")).toBeInstanceOf(
+			Promise
+		);
+	});
+
+	test("if the component is not found then it should request the component from the server", async () => {
+		const api_url = "example.com";
+		const id = "test-random";
+		const variant = "component";
+		const handlers = [
+			http.get(`${api_url}/custom_component/${id}/${variant}/style.css`, () => {
+				return new HttpResponse('console.log("boo")', {
+					status: 200,
+					headers: {
+						"Content-Type": "text/css"
+					}
+				});
+			})
+		];
+
+		const { mock } = vi.hoisted(() => {
+			return { mock: vi.fn() };
+		});
+
+		vi.mock(
+			`example.com/custom_component/test-random/component/index.js`,
+			async () => {
+				mock();
+				return {
+					default: {
+						default: "HELLO"
+					}
+				};
+			}
+		);
+
+		const server = setupServer(...handlers);
+		server.listen();
+
+		const result = await get_component("test-random", id, api_url, [])
+			.component;
+
+		expect(mock).toHaveBeenCalled();
+
+		server.close();
 	});
 });

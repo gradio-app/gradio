@@ -4,9 +4,11 @@ import type {
 	Dependency,
 	DependencyTypes,
 	LayoutNode,
-	TargetMap
+	TargetMap,
+	LoadedComponent,
+	LoadingComponent
 } from "./types";
-
+import { load_component } from "virtual:component-loader";
 import type { client_return } from "@gradio/client";
 
 /**
@@ -14,12 +16,14 @@ import type { client_return } from "@gradio/client";
  * @param components An array of component metadata
  * @param layout The layout tree
  * @param dependencies The events, triggers, inputs, and outputs
+ * @param root The root url of the app
  * @returns A store with the layout and a map of targets
  */
 export function create_components(
 	components: ComponentMeta[],
 	layout: LayoutNode,
-	dependencies: Dependency[]
+	dependencies: Dependency[],
+	root: string
 ) {
 	const _component_map = new Map();
 	const layout_store = writable({});
@@ -33,6 +37,37 @@ export function create_components(
 		get_inputs_outputs(dep, inputs, outputs);
 	});
 
+	let constructor_map: Map<ComponentMeta["type"], LoadingComponent> = new Map();
+	let instance_map: { [id: number]: ComponentMeta } = components.reduce(
+		(acc, c) => {
+			acc[c.id] = c;
+			return acc;
+		},
+		{} as { [id: number]: ComponentMeta }
+	);
+
+	// walk_layout(layout, async (node) => {
+	// 	const instance = instance_map[node.id];
+
+	// 	const { component, example_components } = get_component(
+	// 		instance.type,
+	// 		instance.component_class_id,
+	// 		root,
+	// 		components,
+	// 		instance?.props?.components
+	// 	);
+	// 	const _component = (await component)!.component;
+	// 	instance.component = _component.default;
+
+	// 	if (example_components) {
+	// 		const example_component_map = new Map();
+	// 		for (const [name, example_component] of example_components) {
+	// 			const _c = (await example_component)!.component;
+	// 			example_component_map.set(name, _c.default);
+	// 		}
+	// 		instance.props.components = example_component_map;
+	// 	}
+	// });
 	function update_value(id: number, value: any, prop: string): void {
 		// update the value of a component
 	}
@@ -203,4 +238,76 @@ export function process_server_fn(
 		};
 		return acc;
 	}, {} as ServerFunctions);
+}
+
+export function get_component(
+	type: string,
+	class_id: string,
+	root: string,
+	components: ComponentMeta[],
+	example_components?: string[]
+): {
+	component: LoadingComponent;
+	name: ComponentMeta["type"];
+	example_components?: Map<ComponentMeta["type"], LoadingComponent>;
+} {
+	// if (target_map[c.id]) {
+	// 	c.props.attached_events = Object.keys(target_map[c.id]);
+	// }
+	// __type_for_id.set(c.id, c.props.interactive);
+
+	let example_component_map: Map<ComponentMeta["type"], LoadingComponent> =
+		new Map();
+	if (type === "dataset" && example_components) {
+		(example_components as string[]).forEach((name: string) => {
+			if (example_component_map.has(name)) {
+				return;
+			}
+			let _c;
+
+			const matching_component = components.find((c) => c.type === name);
+			if (matching_component) {
+				_c = load_component({
+					api_url: root,
+					name,
+					id: matching_component.component_class_id,
+					variant: "example"
+				});
+				example_component_map.set(name, _c.component);
+			}
+		});
+	}
+
+	const _c = load_component({
+		api_url: root,
+		name: type,
+		id: class_id,
+		variant: "component"
+	});
+
+	console.log({ _c });
+
+	return {
+		component: _c.component,
+		name: _c.name,
+		example_components:
+			example_component_map.size > 0 ? example_component_map : undefined
+	};
+}
+
+async function walk_layout(
+	node: LayoutNode,
+
+	handler: (node: LayoutNode) => void
+): Promise<void> {
+	// let instance = instance_map[node.id];
+	handler(node);
+
+	// const _component = (await constructor_map.get(instance.type))!.component;
+	// instance.component = _component.default;
+
+	if (node.children) {
+		// instance.children = node.children.map((v) => instance_map[v.id]);
+		await Promise.all(node.children.map((v) => walk_layout(v, handler)));
+	}
 }
