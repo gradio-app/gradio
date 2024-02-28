@@ -305,8 +305,6 @@ def add_root_url(data: dict, root_url: str, previous_root_url: str | None) -> di
             file_dict["url"] = f'{root_url}{file_dict["url"]}'
         return file_dict
 
-    print("add_root_url", root_url)
-
     return client_utils.traverse(data, _add_root_url, client_utils.is_file_obj_with_url)
 
 
