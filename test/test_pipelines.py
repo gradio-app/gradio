@@ -4,7 +4,7 @@ import transformers
 import gradio as gr
 
 
-@pytest.mark.flkay
+@pytest.mark.flaky
 def test_text_to_text_model_from_pipeline():
     pipe = transformers.pipeline(model="sshleifer/bart-tiny-random")
     io = gr.Interface.from_pipeline(pipe)
