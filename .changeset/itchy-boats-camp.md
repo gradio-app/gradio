@@ -1,8 +1,8 @@
 ---
-"@gradio/app": minor
-"@gradio/client": minor
-"@gradio/dataset": minor
-"gradio": minor
+"@gradio/app": patch
+"@gradio/client": patch
+"@gradio/dataset": patch
+"gradio": patch
 ---
 
-feat:7217 rendering perf
+fix:7217 rendering perf
