@@ -165,7 +165,7 @@ Once you've built your Gradio chatbot and are hosting it on [Hugging Face Spaces
 
 [](https://github.com/gradio-app/gradio/assets/1778297/7b10d6db-6476-4e2e-bebd-ecda802c3b8f)
 
-To use the endpoint, you should use either the [Gradio Python Client](/guides/getting-started-with-the-python-client) or the [Gradio JS client](/guides/getting-started-with-the-js-client).
+To use the endpoint, you should use either the [Gradio Python Client](/guides/08_gradio-clients-and-lite/01_getting-started-with-the-python-client) or the [Gradio JS client](/guides/08_gradio-clients-and-lite/02_getting-started-with-the-js-client).
 
 ## A `langchain` example
 
