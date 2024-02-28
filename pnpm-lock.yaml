@@ -411,6 +411,9 @@ importers:
       '@gradio/dataset':
         specifier: workspace:^
         version: link:../dataset
+      '@gradio/downloadbutton':
+        specifier: workspace:^
+        version: link:../downloadbutton
       '@gradio/dropdown':
         specifier: workspace:^
         version: link:../dropdown
@@ -830,6 +833,18 @@ importers:
       '@gradio/upload':
         specifier: workspace:^
         version: link:../upload
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
+
+  js/downloadbutton:
+    dependencies:
+      '@gradio/button':
+        specifier: workspace:^
+        version: link:../button
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
