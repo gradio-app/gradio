@@ -9,7 +9,6 @@ import random
 import secrets
 import string
 import sys
-import tempfile
 import threading
 import time
 import warnings
@@ -70,6 +69,7 @@ from gradio.utils import (
     get_cancel_function,
     get_continuous_fn,
     get_package_version,
+    get_upload_folder,
 )
 
 try:
@@ -119,12 +119,7 @@ class Block:
         self._constructor_args: list[dict]
         self.state_session_capacity = 10000
         self.temp_files: set[str] = set()
-        self.GRADIO_CACHE = str(
-            Path(
-                os.environ.get("GRADIO_TEMP_DIR")
-                or str(Path(tempfile.gettempdir()) / "gradio")
-            ).resolve()
-        )
+        self.GRADIO_CACHE = get_upload_folder()
 
         if render:
             self.render()
@@ -239,6 +234,9 @@ class Block:
         """Moves a file or downloads a file from a url to a block's cache directory, adds
         to to the block's temp_files, and returns the path to the file in cache. This
         ensures that the file is accessible to the Block and can be served to users.
+
+        Note: this method is not used in any core Gradio components, but is kept here
+        for backwards compatibility with custom components created with gradio<=4.20.0.
         """
         if url_or_file_path is None:
             return None
@@ -262,6 +260,30 @@ class Block:
             self.temp_files.add(temp_file_path)
 
         return temp_file_path
+
+    def serve_static_file(self, url_or_file_path: str | Path | None) -> dict | None:
+        """If a file is a local file, moves it to the block's cache directory and returns
+        a FileData-type dictionary corresponding to the file. If the file is a URL, returns a
+        FileData-type dictionary corresponding to the URL. This ensures that the file is
+        accessible in the frontend and can be served to users.
+
+        Examples:
+        >>> block.serve_static_file("https://gradio.app/logo.png") -> {"path": "https://gradio.app/logo.png", "url": "https://gradio.app/logo.png"}
+        >>> block.serve_static_file("logo.png") -> {"path": "logo.png", "url": "/file=logo.png"}
+        """
+        if url_or_file_path is None:
+            return None
+        if isinstance(url_or_file_path, Path):
+            url_or_file_path = str(url_or_file_path)
+
+        if client_utils.is_http_url_like(url_or_file_path):
+            return FileData(path=url_or_file_path, url=url_or_file_path).model_dump()
+        else:
+            data = {"path": url_or_file_path}
+            try:
+                return processing_utils.move_files_to_cache(data, self)
+            except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
+                return data
 
 
 class BlockContext(Block):
@@ -1110,6 +1132,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             inputs=processed_inputs,
             request=None,
             state={},
+            explicit_call=True,
         )
         outputs = outputs["data"]
 
@@ -1299,7 +1322,11 @@ Received inputs:
             )
 
     def preprocess_data(
-        self, fn_index: int, inputs: list[Any], state: SessionState | None
+        self,
+        fn_index: int,
+        inputs: list[Any],
+        state: SessionState | None,
+        explicit_call: bool = False,
     ):
         state = state or SessionState(self)
         block_fn = self.fns[fn_index]
@@ -1326,7 +1353,9 @@ Received inputs:
                     if input_id in state:
                         block = state[input_id]
                     inputs_cached = processing_utils.move_files_to_cache(
-                        inputs[i], block, add_urls=True
+                        inputs[i],
+                        block,
+                        check_in_upload_folder=not explicit_call,
                     )
                     if getattr(block, "data_model", None) and inputs_cached is not None:
                         if issubclass(block.data_model, GradioModel):  # type: ignore
@@ -1456,9 +1485,8 @@ Received outputs:
 
                 outputs_cached = processing_utils.move_files_to_cache(
                     prediction_value,
-                    block,  # type: ignore
+                    block,
                     postprocess=True,
-                    add_urls=True,
                 )
                 output.append(outputs_cached)
 
@@ -1522,8 +1550,14 @@ Received outputs:
 
         return data
 
-    def run_fn_batch(self, fn, batch, fn_index, state):
-        return [fn(fn_index, list(i), state) for i in zip(*batch)]
+    def run_fn_batch(self, fn, batch, fn_index, state, explicit_call=None):
+        output = []
+        for i in zip(*batch):
+            args = [fn_index, list(i), state]
+            if explicit_call is not None:
+                args.append(explicit_call)
+            output.append(fn(*args))
+        return output
 
     async def process_api(
         self,
@@ -1536,6 +1570,7 @@ Received outputs:
         event_id: str | None = None,
         event_data: EventData | None = None,
         in_event_listener: bool = True,
+        explicit_call: bool = False,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -1548,6 +1583,8 @@ Received outputs:
             iterators: the in-progress iterators for each generator function (key is function index)
             event_id: id of event that triggered this API call
             event_data: data associated with the event trigger itself
+            in_event_listener: whether this API call is being made in response to an event listener
+            explicit_call: whether this call is being made directly by calling the Blocks function, instead of through an event listener or API route
         Returns: None
         """
         block_fn = self.fns[fn_index]
@@ -1575,6 +1612,7 @@ Received outputs:
                 inputs,
                 fn_index,
                 state,
+                explicit_call,
                 limiter=self.limiter,
             )
             result = await self.call_function(
@@ -1603,7 +1641,12 @@ Received outputs:
                 inputs = []
             else:
                 inputs = await anyio.to_thread.run_sync(
-                    self.preprocess_data, fn_index, inputs, state, limiter=self.limiter
+                    self.preprocess_data,
+                    fn_index,
+                    inputs,
+                    state,
+                    explicit_call,
+                    limiter=self.limiter,
                 )
             was_generating = old_iterator is not None
             result = await self.call_function(

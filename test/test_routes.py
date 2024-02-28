@@ -462,6 +462,24 @@ class TestRoutes:
         response = client.get("/config/")
         assert response.is_success
 
+    def test_cors_restrictions(self):
+        io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        custom_headers = {
+            "host": "localhost:7860",
+            "origin": "https://example.com",
+        }
+        file_response = client.get("/config", headers=custom_headers)
+        assert "access-control-allow-origin" not in file_response.headers
+        custom_headers = {
+            "host": "localhost:7860",
+            "origin": "127.0.0.1",
+        }
+        file_response = client.get("/config", headers=custom_headers)
+        assert file_response.headers["access-control-allow-origin"] == "127.0.0.1"
+        io.close()
+
 
 class TestApp:
     def test_create_app(self):
@@ -483,17 +501,49 @@ class TestAuthenticatedRoutes:
             data={"username": "test", "password": "correct_password"},
         )
         assert response.status_code == 200
+
         response = client.post(
             "/login",
             data={"username": "test", "password": "incorrect_password"},
         )
         assert response.status_code == 400
 
+        client.post(
+            "/login",
+            data={"username": "test", "password": "correct_password"},
+        )
         response = client.post(
             "/login",
             data={"username": " test ", "password": "correct_password"},
         )
         assert response.status_code == 200
+
+    def test_logout(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(
+            auth=("test", "correct_password"),
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        client.post(
+            "/login",
+            data={"username": "test", "password": "correct_password"},
+        )
+
+        response = client.post(
+            "/run/predict",
+            json={"data": ["test"]},
+        )
+        assert response.status_code == 200
+
+        response = client.get("/logout")
+
+        response = client.post(
+            "/run/predict",
+            json={"data": ["test"]},
+        )
+        assert response.status_code == 401
 
 
 class TestQueueRoutes:
@@ -935,6 +985,9 @@ def test_compare_passwords_securely():
         ("localhost:7860", False),
         ("localhost", False),
         ("C:/Users/username", False),
+        ("//path", True),
+        ("\\\\path", True),
+        ("/usr/bin//test", False),
     ],
 )
 def test_starts_with_protocol(string, expected):

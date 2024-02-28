@@ -1,5 +1,11 @@
 # @gradio/dataframe
 
+## 0.6.4
+
+### Fixes
+
+- [#7495](https://github.com/gradio-app/gradio/pull/7495) [`ddd4d3e`](https://github.com/gradio-app/gradio/commit/ddd4d3e4d3883fb7540d1df240fb08202fc77705) - ensure Dataframe headers are aligned with content when scrolling.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.6.3
 
 ### Patch Changes

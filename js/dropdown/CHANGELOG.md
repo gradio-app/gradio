@@ -1,39 +1,46 @@
 # @gradio/dropdown
 
+## 0.6.2
+
+### Patch Changes
+
+- Updated dependencies [[`98a2719`](https://github.com/gradio-app/gradio/commit/98a2719bfb9c64338caf9009891b6c6b0b33ea89)]:
+  - @gradio/statustracker@0.4.8
+
 ## 0.6.1
 
 ### Features
 
-- [#7425](https://github.com/gradio-app/gradio/pull/7425) [`3e4e680`](https://github.com/gradio-app/gradio/commit/3e4e680a52ba5a73c108ef1b328dacd7b6e4b566) - Fixes to the `.key_up()` method to make it usable for a dynamic dropdown autocomplete.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7425](https://github.com/gradio-app/gradio/pull/7425) [`3e4e680`](https://github.com/gradio-app/gradio/commit/3e4e680a52ba5a73c108ef1b328dacd7b6e4b566) - Fixes to the `.key_up()` method to make it usable for a dynamic dropdown autocomplete. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ### Fixes
 
-- [#7431](https://github.com/gradio-app/gradio/pull/7431) [`6b8a7e5`](https://github.com/gradio-app/gradio/commit/6b8a7e5d36887cdfcfbfec1536a915128df0d6b2) - Ensure `gr.Dropdown` can have an empty initial value.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#7431](https://github.com/gradio-app/gradio/pull/7431) [`6b8a7e5`](https://github.com/gradio-app/gradio/commit/6b8a7e5d36887cdfcfbfec1536a915128df0d6b2) - Ensure `gr.Dropdown` can have an empty initial value. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ## 0.6.0
 
 ### Fixes
 
-- [#7404](https://github.com/gradio-app/gradio/pull/7404) [`065c5b1`](https://github.com/gradio-app/gradio/commit/065c5b163c4badb9d9cbd06d627fb4ba086003e7) - Add `.key_up` event listener to `gr.Dropdown()`.  Thanks [@abidlabs](https://github.com/abidlabs)!
-- [#7401](https://github.com/gradio-app/gradio/pull/7401) [`dff4109`](https://github.com/gradio-app/gradio/commit/dff410955e41145848376784c03fe28ba1c4fd85) - Retain dropdown value if choices have been changed.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7404](https://github.com/gradio-app/gradio/pull/7404) [`065c5b1`](https://github.com/gradio-app/gradio/commit/065c5b163c4badb9d9cbd06d627fb4ba086003e7) - Add `.key_up` event listener to `gr.Dropdown()`. Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7401](https://github.com/gradio-app/gradio/pull/7401) [`dff4109`](https://github.com/gradio-app/gradio/commit/dff410955e41145848376784c03fe28ba1c4fd85) - Retain dropdown value if choices have been changed. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.5.2
 
 ### Fixes
 
-- [#7192](https://github.com/gradio-app/gradio/pull/7192) [`8dd6f4b`](https://github.com/gradio-app/gradio/commit/8dd6f4bc1901792f05cd59e86df7b1dbab692739) - Handle the case where examples is `null` for all components.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7192](https://github.com/gradio-app/gradio/pull/7192) [`8dd6f4b`](https://github.com/gradio-app/gradio/commit/8dd6f4bc1901792f05cd59e86df7b1dbab692739) - Handle the case where examples is `null` for all components. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.5.1
 
 ### Fixes
 
-- [#7081](https://github.com/gradio-app/gradio/pull/7081) [`44c53d9`](https://github.com/gradio-app/gradio/commit/44c53d9bde7cab605b7dbd16331683d13cae029e) - Fix dropdown refocusing due to `<label />` element.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#7081](https://github.com/gradio-app/gradio/pull/7081) [`44c53d9`](https://github.com/gradio-app/gradio/commit/44c53d9bde7cab605b7dbd16331683d13cae029e) - Fix dropdown refocusing due to `<label />` element. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ## 0.5.0
 
 ### Fixes
 
-- [#6933](https://github.com/gradio-app/gradio/pull/6933) [`9cefd2e`](https://github.com/gradio-app/gradio/commit/9cefd2e90a1d0cc4d3e4e953fc5b9b1a7afb68dd) - Refactor examples so they accept data in the same format as is returned by function, rename `.as_example()` to `.process_example()`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#6933](https://github.com/gradio-app/gradio/pull/6933) [`9cefd2e`](https://github.com/gradio-app/gradio/commit/9cefd2e90a1d0cc4d3e4e953fc5b9b1a7afb68dd) - Refactor examples so they accept data in the same format as is returned by function, rename `.as_example()` to `.process_example()`. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.4.3
 
