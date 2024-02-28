@@ -181,7 +181,6 @@
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container>
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
-	
 	{#if lines === 1 && max_lines === 1}
 		{#if type === "text"}
 			<input
