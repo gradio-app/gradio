@@ -279,4 +279,4 @@ def predict(message, history):
 gr.ChatInterface(predict).launch()
 ```
 
-With those examples, you should be all set to create your own Gradio Chatbot demos soon! For building even more custom Chatbot applications, check out [a dedicated guide](/guides/creating-a-custom-chatbot-with-blocks) using the low-level `gr.Blocks()` API.
+With those examples, you should be all set to create your own Gradio Chatbot demos soon! For building even more custom Chatbot applications, check out [a dedicated guide](/guides/04_chatbots/creating-a-custom-chatbot-with-blocks) using the low-level `gr.Blocks()` API.
