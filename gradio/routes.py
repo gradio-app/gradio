@@ -62,6 +62,7 @@ from gradio.route_utils import (  # noqa: F401
     GradioUploadFile,
     MultiPartException,
     Request,
+    compact_messages,
     compare_passwords_securely,
     move_uploaded_files_to_cache,
 )
@@ -620,31 +621,42 @@ class App(FastAPI):
 
                         heartbeat_rate = 15
                         check_rate = 0.05
-                        message = None
-                        try:
-                            messages = blocks._queue.pending_messages_per_session[
-                                session_hash
-                            ]
-                            message = messages.get_nowait()
-                        except EmptyQueue:
+                        messages = []
+                        message_queue = blocks._queue.pending_messages_per_session[
+                            session_hash
+                        ]
+
+                        while True:
+                            try:
+                                messages.append(message_queue.get_nowait())
+                            except EmptyQueue:
+                                break
+
+                        if len(messages) == 0:
                             await asyncio.sleep(check_rate)
                             if time.perf_counter() - last_heartbeat > heartbeat_rate:
                                 # Fix this
-                                message = {
-                                    "msg": ServerMessage.heartbeat,
-                                }
+                                messages.append(
+                                    {
+                                        "msg": ServerMessage.heartbeat,
+                                    }
+                                )
                                 # Need to reset last_heartbeat with perf_counter
                                 # otherwise only a single hearbeat msg will be sent
                                 # and then the stream will retry leading to infinite queue 😬
                                 last_heartbeat = time.perf_counter()
 
                         if blocks._queue.stopped:
-                            message = {
-                                "msg": "unexpected_error",
-                                "message": "Server stopped unexpectedly.",
-                                "success": False,
-                            }
-                        if message:
+                            messages.append(
+                                {
+                                    "msg": "unexpected_error",
+                                    "message": "Server stopped unexpectedly.",
+                                    "success": False,
+                                }
+                            )
+
+                        messages = compact_messages(messages)
+                        for message in messages:
                             add_root_url(message, root_path, None)
                             yield f"data: {json.dumps(message)}\n\n"
                             if message["msg"] == ServerMessage.process_completed:

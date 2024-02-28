@@ -15,6 +15,7 @@ import fastapi
 import httpx
 import multipart
 from gradio_client.documentation import document
+from gradio_client.utils import ServerMessage
 from multipart.multipart import parse_options_header
 from starlette.datastructures import FormData, Headers, UploadFile
 from starlette.formparsers import MultiPartException, MultipartPart
@@ -640,3 +641,29 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
             "Access-Control-Allow-Headers"
         ] = "Origin, Content-Type, Accept"
         return response
+
+
+def compact_messages(messages: list[dict]) -> list[dict]:
+    """
+    Given a set of messages, reduces the number of messages by combining generating messages for the same event
+    """
+    generating_messages_per_event_id = {}
+    for message in messages:
+        event_id = message.get("event_id")
+        msg_type = message.get("msg")
+        if msg_type == ServerMessage.process_generating and event_id is not None:
+            if event_id not in generating_messages_per_event_id:
+                generating_messages_per_event_id[event_id] = []
+            generating_messages_per_event_id[event_id].append(message)
+
+    for generating_messages in generating_messages_per_event_id.values():
+        initial_message = generating_messages[0]
+        initial_data = initial_message["output"]["data"]
+        for subsequent_message in generating_messages[1:]:
+            subsequent_data = subsequent_message["output"]["data"]
+            initial_message["output"]["data"] = [
+                x + y for x, y in zip(initial_data, subsequent_data)
+            ]
+            messages.remove(subsequent_message)
+
+    return messages
