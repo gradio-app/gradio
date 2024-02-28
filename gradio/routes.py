@@ -131,7 +131,9 @@ class App(FastAPI):
     FastAPI App Wrapper
     """
 
-    def __init__(self, auth_dependency: Callable[[fastapi.Request], str] | None = None, **kwargs):
+    def __init__(
+        self, auth_dependency: Callable[[fastapi.Request], str] | None = None, **kwargs
+    ):
         self.tokens = {}
         self.auth = None
         self.blocks: gradio.Blocks | None = None
@@ -198,7 +200,9 @@ class App(FastAPI):
 
     @staticmethod
     def create_app(
-        blocks: gradio.Blocks, app_kwargs: Dict[str, Any] | None = None, auth_dependency: Callable[[fastapi.Request], str] | None = None
+        blocks: gradio.Blocks,
+        app_kwargs: Dict[str, Any] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str] | None = None,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
@@ -211,6 +215,8 @@ class App(FastAPI):
         @app.get("/user")
         @app.get("/user/")
         def get_current_user(request: fastapi.Request) -> Optional[str]:
+            if app.auth_dependency is not None:
+                return app.auth_dependency(request)
             token = request.cookies.get(
                 f"access-token-{app.cookie_id}"
             ) or request.cookies.get(f"access-token-unsecure-{app.cookie_id}")
@@ -942,7 +948,9 @@ def mount_gradio_app(
     blocks.dev_mode = False
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
-    gradio_app = App.create_app(blocks, app_kwargs=app_kwargs, auth_dependency=auth_dependency)
+    gradio_app = App.create_app(
+        blocks, app_kwargs=app_kwargs, auth_dependency=auth_dependency
+    )
 
     old_lifespan = app.router.lifespan_context
 
