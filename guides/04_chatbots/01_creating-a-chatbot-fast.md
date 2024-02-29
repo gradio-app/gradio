@@ -248,11 +248,10 @@ class StopOnTokens(StoppingCriteria):
         return False
 
 def predict(message, history):
-
     history_transformer_format = history + [[message, ""]]
     stop = StopOnTokens()
 
-    messages = "".join(["".join(["\n<human>:"+item[0], "\n<bot>:"+item[1]])  #curr_system_message +
+    messages = "".join(["".join(["\n<human>:"+item[0], "\n<bot>:"+item[1]])
                 for item in history_transformer_format])
 
     model_inputs = tokenizer([messages], return_tensors="pt").to("cuda")
@@ -271,12 +270,11 @@ def predict(message, history):
     t = Thread(target=model.generate, kwargs=generate_kwargs)
     t.start()
 
-    partial_message  = ""
+    partial_message = ""
     for new_token in streamer:
         if new_token != '<':
             partial_message += new_token
             yield partial_message
-
 
 gr.ChatInterface(predict).launch()
 ```
