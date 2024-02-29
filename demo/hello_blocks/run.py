@@ -21,6 +21,10 @@ with gr.Blocks() as demo:
     msg = gr.Textbox()
     clear = gr.ClearButton([msg, chatbot])
 
+    # create 1000 buttons
+    for i in range(2000):
+        gr.Button("hi", visible=False)
+
     def respond(message, chat_history):
         bot_message = "How are you?" * 10000
         chat_history.append((message, bot_message))

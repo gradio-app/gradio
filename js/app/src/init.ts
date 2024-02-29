@@ -1,4 +1,5 @@
 import { writable, type Writable } from "svelte/store";
+import { tick } from "svelte";
 import type {
 	ComponentMeta,
 	Dependency,
@@ -17,6 +18,8 @@ export interface UpdateTransaction {
 	value: any;
 	prop: string;
 }
+
+let pending_updates: UpdateTransaction[][] = [];
 
 /**
  * Create a store with the layout and a map of targets
@@ -130,15 +133,37 @@ export function create_components(
 		layout_store.set(_rootNode);
 	});
 
-	function update_value(updates: UpdateTransaction[]): void {
-		layout_store.update((layout) => {
-			updates.forEach((update) => {
-				const instance = instance_map[update.id];
+	const resolved_promise = /* @__PURE__ */ Promise.resolve();
+	let update_scheduled = false;
 
-				instance.props[update.prop] = update.value;
-			});
+	function flush(): void {
+		layout_store.update((layout) => {
+			for (let i = 0; i < pending_updates.length; i++) {
+				for (let j = 0; j < pending_updates[i].length; j++) {
+					const update = pending_updates[i][j];
+					const instance = instance_map[update.id];
+					let new_value;
+					if (Array.isArray(update.value)) new_value = [...update.value];
+					else if (typeof update.value === "object")
+						new_value = { ...update.value };
+					else new_value = update.value;
+					instance.props[update.prop] = new_value;
+				}
+			}
+
 			return layout;
 		});
+		pending_updates = [];
+		update_scheduled = false;
+	}
+
+	function update_value(updates: UpdateTransaction[]): void {
+		pending_updates.push(updates);
+
+		if (!update_scheduled) {
+			update_scheduled = true;
+			requestAnimationFrame(flush);
+		}
 	}
 
 	function get_data(id: number): any | Promise<any> {

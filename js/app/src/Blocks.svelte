@@ -69,7 +69,6 @@
 	}
 
 	export let render_complete = false;
-
 	async function handle_update(data: any, fn_index: number): Promise<void> {
 		const outputs = dependencies[fn_index].outputs;
 
@@ -83,7 +82,6 @@
 
 		update_value(meta_updates);
 
-		// refresh();
 		await tick();
 
 		const updates: UpdateTransaction[] = [];
@@ -233,7 +231,7 @@
 					handle_update(data, fn_index);
 				})
 				.on("status", ({ fn_index, ...status }) => {
-					tick().then(() => {
+					requestAnimationFrame(() => {
 						//@ts-ignore
 						loading_status.update({
 							...status,
@@ -422,7 +420,7 @@
 			}
 		);
 
-		update_value([...updates, ...additional_updates]);
+		// update_value([...updates, ...additional_updates]);
 	}
 
 	function isCustomEvent(event: Event): event is CustomEvent {
