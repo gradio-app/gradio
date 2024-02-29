@@ -361,7 +361,7 @@ def test_add_root_url():
     new_expected = {
         "file": {
             "path": "path",
-            "url": f"{root_url}/file=path",
+            "url": f"{new_root_url}/file=path",
         },
         "file2": {
             "path": "path2",
