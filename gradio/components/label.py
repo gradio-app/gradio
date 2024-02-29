@@ -30,7 +30,6 @@ class Label(Component):
     Displays a classification label, along with confidence scores of top categories, if provided. As this component does not
     accept user input, it is rarely used as an input component.
 
-    Demos: main_note, titanic_survival
     Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers
     """
 

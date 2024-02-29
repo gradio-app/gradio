@@ -17,7 +17,7 @@ class BarPlot(Plot):
     Creates a bar plot component to display data from a pandas DataFrame (as output). As this component does
     not accept user input, it is rarely used as an input component.
 
-    Demos: bar_plot, chicago-bikeshare-dashboard
+    Demos: bar_plot
     """
 
     data_model = AltairPlotData

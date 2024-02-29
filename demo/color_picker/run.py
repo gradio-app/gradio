@@ -34,10 +34,6 @@ demo = gr.Interface(
     fn=change_color,
     inputs=inputs,
     outputs=outputs,
-    examples=[
-        [os.path.join(os.path.dirname(__file__), "rabbit.png"), "#ff0000"],
-        [os.path.join(os.path.dirname(__file__), "rabbit.png"), "#0000FF"],
-    ],
 )
 
 if __name__ == "__main__":

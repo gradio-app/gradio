@@ -32,8 +32,7 @@ with gr.Blocks() as demo:
     chatbot = gr.Chatbot(
         [],
         elem_id="chatbot",
-        bubble_full_width=False,
-        avatar_images=(None, (os.path.join(os.path.dirname(__file__), "avatar.png"))),
+        bubble_full_width=False
     )
 
     with gr.Row():
