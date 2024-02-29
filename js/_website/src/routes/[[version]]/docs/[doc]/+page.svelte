@@ -5,8 +5,9 @@
 	import EventListeners from "$lib/components/EventListeners.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import anchor from "$lib/assets/img/anchor.svg";
-	import { onDestroy } from "svelte";
+	import { onDestroy, onMount } from "svelte";
 	import { page } from "$app/stores";
+	import { afterNavigate } from "$app/navigation";
 
 	export let data: any = {};
 
@@ -32,6 +33,13 @@
 	let y: number;
 	let header_targets: { [key: string]: HTMLElement } = {};
 	let target_elem: HTMLElement;
+
+	afterNavigate(() => {
+		const script = document.createElement("script");
+		script.src = "http://localhost:8000/dist/lite.js";
+		script.type = "module";
+		document.head.appendChild(script);
+	});
 
 	onDestroy(() => {
 		header_targets = {};

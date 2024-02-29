@@ -44,7 +44,6 @@ export function bootstrap_custom_element(): void {
 			const gradioLiteAppOptions = this.parseGradioLiteAppOptions();
 
 			this.innerHTML = "";
-			
 
 			create({
 				target: this, // Same as `js/app/src/main.ts`
@@ -163,23 +162,6 @@ export function bootstrap_custom_element(): void {
 			return options;
 		}
 	}
-
-	// if (customElements.get(PLAYGROUND_CUSTOM_ELEMENT_NAME)) {
-	// 	return;
-	// }
-
-	// class GradioPlaygroundElement extends GradioLiteAppElement {
-	// 	code: any;
-
-	// 	constructor() {
-	// 		super();
-	// 		const code = this.code
-	// 		const codeElement = document.createElement("p");
-	// 		codeElement.textContent = code;
-	// 		this.insertBefore(codeElement, this.firstChild); 
-	// 	}
-	// }
 	
 	customElements.define(LITE_CUSTOM_ELEMENT_NAME, GradioLiteAppElement);
-	// customElements.define(PLAYGROUND_CUSTOM_ELEMENT_NAME, GradioPlaygroundElement);
 }
