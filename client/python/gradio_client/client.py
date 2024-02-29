@@ -31,6 +31,7 @@ from huggingface_hub.utils import (
 from packaging import version
 
 from gradio_client import serializing, utils
+from gradio_client.data_classes import File
 from gradio_client.documentation import document
 from gradio_client.exceptions import SerializationSetupError
 from gradio_client.utils import (
@@ -89,8 +90,8 @@ class Client:
             output_dir: The directory to save files that are downloaded from the remote API. If None, reads from the GRADIO_TEMP_DIR environment variable. Defaults to a temporary directory on your machine.
             verbose: Whether the client should print statements to the console.
             headers: Additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. These headers will override the default headers if they have the same keys.
-            upload_files: Whether the client should treat input string filepath as files and upload them to the remote server. If False, the client will treat input string filepaths as strings always and not modify them.
-            download_files: Whether the client should download output files from the remote API and return them as string filepaths on the local machine. If False, the client will a FileData dataclass object with the filepath on the remote machine instead.
+            upload_files: Whether the client should treat input string filepath as files and upload them to the remote server. If False, the client will treat input string filepaths as strings always and not modify them, and files should be passed in explicitly using `gradio_client.File("path/to/file/or/url")` instead. False will become the default in a future version.
+            download_files: Whether the client should download output files from the remote API and return them as string filepaths on the local machine. If False, the client will return a FileData dataclass object with the filepath on the remote machine instead.
         """
         self.verbose = verbose
         self.hf_token = hf_token
@@ -989,8 +990,7 @@ class Endpoint:
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
             data = self.insert_state(*data)
-            if self.client.upload_files:
-                data = self.serialize(*data)
+            data = self.serialize(*data)
             predictions = _predict(*data)
             predictions = self.process_predictions(*predictions)
             # Append final output only if not already present
@@ -1128,8 +1128,14 @@ class Endpoint:
 
         def get_file(d):
             if utils.is_file_obj(d):
-                file_list.append(d["path"])
+                file_list.append(d)
+            elif isinstance(d, File):
+                file_list.append(d.path)
             else:
+                warnings.warn(f"Note: The Client is treating: {d} as a filepath/URL and uploading it to the remote Gradio app. "
+                              "In future versions, this behavior will not happen automatically. \n\nInstead, please provide filepaths "
+                              "or URLs like this: gradio_client.File('path/to/file/or/url'). \n\nTo disable automatic uploading, "
+                              "set upload_files=False in Client().")
                 file_list.append(d)
             return ReplaceMe(len(file_list) - 1)
 
@@ -1143,7 +1149,7 @@ class Endpoint:
                 # file dict is a corner case but still needed for completeness
                 # most users should be using filepaths
                 d = utils.traverse(
-                    d, get_file, lambda s: utils.is_file_obj(s) or utils.is_filepath(s)
+                    d, get_file, lambda s: (self.client.upload_files and (utils.is_file_obj(s) or utils.is_filepath(s))) or isinstance(s, File)
                 )
                 # Handle URLs here since we don't upload them
                 d = utils.traverse(d, handle_url, lambda s: utils.is_url(s))
@@ -1164,11 +1170,14 @@ class Endpoint:
 
     def serialize(self, *data) -> tuple:
         files, new_data = self._gather_files(*data)
-        uploaded_files = self._upload(files)
-        data = list(new_data)
-        data = self._add_uploaded_files_to_data(data, uploaded_files)
-        o = tuple(data)
-        return o
+        if files:
+            uploaded_files = self._upload(files)
+            data = list(new_data)
+            data = self._add_uploaded_files_to_data(data, uploaded_files)
+            o = tuple(data)
+            return o
+        else:
+            return tuple(data)
 
     @staticmethod
     def _download_file(

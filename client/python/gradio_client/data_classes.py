@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+from pathlib import Path
 from typing import TypedDict
 
 from typing_extensions import NotRequired
@@ -15,3 +17,8 @@ class FileData(TypedDict):
     orig_name: NotRequired[str]  # original filename
     mime_type: NotRequired[str]
     is_stream: NotRequired[bool]
+
+
+@dataclass
+class File:
+    path: str | Path | None
