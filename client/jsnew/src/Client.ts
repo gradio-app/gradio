@@ -82,21 +82,17 @@ export class Client {
 
 		const { http_protocol, host } = await process_endpoint(
 			this.app_reference,
-			hf_token ? `hf_${hf_token}` : undefined
+			hf_token ?? undefined
 		);
 
-		try {
-			this.config = await resolve_config(
-				fetch,
-				`${http_protocol}//${host}`,
-				this.options.hf_token
-			);
+		this.config = await resolve_config(
+			fetch,
+			`${http_protocol}//${host}`,
+			this.options.hf_token
+		);
 
-			this.session_hash = Math.random().toString(36).substring(2);
-			this.api_map = map_names_to_ids(this.config?.dependencies || []);
-			this.last_status = {};
-		} catch (e) {
-			throw new Error("Could not get config. " + (e as Error).message);
-		}
+		this.session_hash = Math.random().toString(36).substring(2);
+		this.api_map = map_names_to_ids(this.config?.dependencies || []);
+		this.last_status = {};
 	}
 }

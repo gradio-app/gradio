@@ -15,7 +15,7 @@ export async function view_api(this: Client, config?: Config): Promise<any> {
 
 	const { http_protocol, host } = await process_endpoint(
 		this.app_reference,
-		hf_token ? `hf_${hf_token}` : undefined
+		hf_token ?? undefined
 	);
 
 	const headers: {
@@ -29,15 +29,11 @@ export async function view_api(this: Client, config?: Config): Promise<any> {
 
 	try {
 		if (!config) {
-			try {
-				config = await resolve_config(
-					fetch,
-					`${http_protocol}//${host}`,
-					`hf_${hf_token}`
-				);
-			} catch (e) {
-				console.error(e);
-			}
+			config = await resolve_config(
+				fetch,
+				`${http_protocol}//${host}`,
+				hf_token
+			);
 		}
 
 		let response: Response;

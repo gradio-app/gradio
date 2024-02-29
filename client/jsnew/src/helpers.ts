@@ -30,7 +30,7 @@ export async function resolve_config(
 				headers
 			});
 
-			if (response.status === 200) {
+			if (response?.status === 200) {
 				let config = await response.json();
 				return { ...config, path: config.path ?? "", root: endpoint };
 			}
@@ -144,7 +144,7 @@ export async function process_endpoint(
 				{ headers }
 			);
 
-			if (res.status !== 200) {
+			if (res?.status !== 200) {
 				throw new Error(res.statusText);
 			}
 
