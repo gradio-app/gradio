@@ -56,13 +56,14 @@
 
 <svelte:head>
 	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
-    <script src="https://cdn.tailwindcss.com"></script>
 </svelte:head>
 
 
-<div class="h-full w-full flex items-stretch border border-gray-200"
+<div class="p-4 w-full h-full"
     >
-    <div class="code-editor border-r h-full grow"
+    <div class="flex flex-col md:flex-row w-full h-full border border-gray-200 rounded-md">
+    <div class:md:border-r={loaded}
+    class="code-editor grow flex-1"
     >
         <div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
             <h3 class="pt-1 grow">Code</h3>
@@ -117,11 +118,10 @@
         </div>
     {#if loaded}
     <div
-    class="preview w-full mx-auto h-full"
-    style="width: 50%"
+    class="preview flex flex-1 flex-col"
         >
         <div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
-            <h3 class="pt-1">Preview</h3>
+            <h3 class="pt-1 my-0.5">Preview</h3>
             <div class="flex float-right"></div>
         </div>
         {#if !error_display}
@@ -155,6 +155,7 @@
         {/if}
     </div>
     {/if}
+    </div>
 </div>
 
 <style>
@@ -177,6 +178,10 @@
 		overflow-y: scroll;
 		margin: 0 !important;
 	}
+    
+    :global(.gradio-container) {
+        max-width: none !important
+    }
 
 	.code-editor :global(label) {
 		display: none;
@@ -192,11 +197,6 @@
 
 	.code-editor :global(.cm-scroller) {
 		height: 100% !important;
-	}
-    @media (max-width: 640px) {
-		.preview {
-			width: 100% !important;
-		}
 	}
     .lite-demo :global(.embed-container) {
 		border: none !important;
@@ -241,5 +241,6 @@
         box-shadow: 9999px 0 0 -1px;
     }
     }
+
 
 </style>
