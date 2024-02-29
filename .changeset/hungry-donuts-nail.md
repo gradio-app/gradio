@@ -1,6 +1,6 @@
 ---
-"gradio": minor
-"gradio_client": minor
+"gradio": patch
+"gradio_client": patch
 ---
 
-feat:Require files to be explicitly provided as `File(...)` in the Client
+fix:Require files to be explicitly provided as `File(...)` in the Client
