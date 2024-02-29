@@ -14,11 +14,8 @@ demo = gr.Interface(
         type="polars"
     ),
     "dataframe",
-    description="Sort by Quantity",
-    examples=[
-        [os.path.join(os.path.dirname(__file__), "polars_sort.csv")],
-    ],
-)
+    description="Sort by Quantity"
+    )
 
 if __name__ == "__main__":
     demo.launch()

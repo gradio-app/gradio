@@ -16,7 +16,7 @@ class Number(FormComponent):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
 
-    Demos: tax_calculator, titanic_survival, blocks_simple_squares
+    Demos: tax_calculator, blocks_simple_squares
     """
 
     EVENTS = [Events.change, Events.input, Events.submit, Events.focus]

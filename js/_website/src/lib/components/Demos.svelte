@@ -1,11 +1,6 @@
 <script lang="ts">
 	export let name: string;
 	export let code: string;
-	import { onDestroy, onMount } from "svelte";
-
-	onDestroy(() => {
-
-	});
 </script>
 
 <svelte:head>

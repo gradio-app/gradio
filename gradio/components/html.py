@@ -15,7 +15,7 @@ class HTML(Component):
     """
     Creates a component to display arbitrary HTML output. As this component does not accept user input, it is rarely used as an input component.
 
-    Demos: text_analysis
+    Demos: blocks_scroll
     Guides: key-features
     """
 
