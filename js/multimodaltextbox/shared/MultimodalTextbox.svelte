@@ -54,7 +54,7 @@
 	}
 
 	$: value, el && lines !== max_lines && resize({ target: el });
-	$: file_count = value.filter((item) => item.type === "file").length;
+	$: file_count = Array.isArray(value) ? value.filter((item) => item.type === "file").length : 0;
 
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
@@ -88,7 +88,7 @@
 	}
 
 	afterUpdate(() => {
-		if (autofocus) {
+		if (autofocus && el !== null) {
 			el.focus();
 		}
 		if (can_scroll && autoscroll) {
@@ -404,7 +404,7 @@
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: var(--object-fit);
-		border-radius: var(--button-small-radius);
+		border-radius: var(--radius-lg);
 	}
 
 	.thumbnails {
@@ -425,7 +425,7 @@
 			0 0 0 2px var(--ring-color),
 			var(--shadow-drop);
 		border: 1px solid var(--border-color-primary);
-		border-radius: var(--button-small-radius);
+		border-radius: var(--radius-lg);
 		background: var(--background-fill-secondary);
 		aspect-ratio: var(--ratio-square);
 		width: var(--size-full);

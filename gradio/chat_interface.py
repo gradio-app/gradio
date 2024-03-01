@@ -20,6 +20,7 @@ from gradio.components import (
     Markdown,
     State,
     Textbox,
+    MultimodalTextbox,
     get_component_instance,
 )
 from gradio.events import Dependency, on
@@ -55,8 +56,9 @@ class ChatInterface(Blocks):
         self,
         fn: Callable,
         *,
+        multimodal: bool = False,
         chatbot: Chatbot | None = None,
-        textbox: Textbox | None = None,
+        textbox: Textbox | MultimodalTextbox | None = None,
         additional_inputs: str | Component | list[str | Component] | None = None,
         additional_inputs_accordion_name: str | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
@@ -81,8 +83,9 @@ class ChatInterface(Blocks):
         """
         Parameters:
             fn: The function to wrap the chat interface around. Should accept two parameters: a string input message and list of two-element lists of the form [[user_message, bot_message], ...] representing the chat history, and return a string response. See the Chatbot documentation for more information on the chat history format.
+            multimodal: If True, the chat interface will use a gr.MultimodalTextbox component for the input, which allows for the uploading of multimedia files. If False, the chat interface will use a gr.Textbox component for the input.
             chatbot: An instance of the gr.Chatbot component to use for the chat interface, if you would like to customize the chatbot properties. If not provided, a default gr.Chatbot component will be created.
-            textbox: An instance of the gr.Textbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox component will be created.
+            textbox: An instance of the gr.Textbox or gr.MultimodalTextbox component to use for the chat interface, if you would like to customize the textbox properties. If not provided, a default gr.Textbox or gr.MultimodalTextbox component will be created.
             additional_inputs: An instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion.
             additional_inputs_accordion_name: Deprecated. Will be removed in a future version of Gradio. Use the `additional_inputs_accordion` parameter instead.
             additional_inputs_accordion: If a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
@@ -114,6 +117,7 @@ class ChatInterface(Blocks):
             head=head,
             fill_height=fill_height,
         )
+        self.multimodal = multimodal
         self.concurrency_limit = concurrency_limit
         self.fn = fn
         self.is_async = inspect.iscoroutinefunction(
@@ -199,11 +203,20 @@ class ChatInterface(Blocks):
                         textbox.container = False
                         textbox.show_label = False
                         textbox_ = textbox.render()
-                        if not isinstance(textbox_, Textbox):
+                        if not isinstance(textbox_, Textbox) or not isinstance(textbox_, MultimodalTextbox) :
                             raise TypeError(
-                                f"Expected a gr.Textbox, but got {type(textbox_)}"
+                                f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {type(textbox_)}"
                             )
                         self.textbox = textbox_
+                    elif multimodal:
+                        submit_btn = None
+                        self.textbox = MultimodalTextbox(
+                            show_label=False,
+                            label="Message",
+                            placeholder="Type a message...",
+                            scale=7,
+                            autofocus=autofocus,
+                        )
                     else:
                         self.textbox = Textbox(
                             container=False,
@@ -213,7 +226,7 @@ class ChatInterface(Blocks):
                             scale=7,
                             autofocus=autofocus,
                         )
-                    if submit_btn is not None:
+                    if submit_btn is not None and not multimodal:
                         if isinstance(submit_btn, Button):
                             submit_btn.render()
                         elif isinstance(submit_btn, str):
@@ -436,18 +449,24 @@ class ChatInterface(Blocks):
             ),
         )
 
-    def _clear_and_save_textbox(self, message: str) -> tuple[str, str]:
-        return "", message
+    def _clear_and_save_textbox(self, message: str) -> tuple[str | list, str]:
+        if self.multimodal:
+            return [], message
+        else:
+            return "", message
 
     def _display_input(
         self, message: str, history: list[list[str | None]]
     ) -> tuple[list[list[str | None]], list[list[str | None]]]:
-        history.append([message, None])
+        if self.multimodal:
+            pass
+        else:
+            history.append([message, None])
         return history, history
 
     async def _submit_fn(
         self,
-        message: str,
+        message: str | list[dict[str, str]],
         history_with_input: list[list[str | None]],
         request: Request,
         *args,
@@ -464,7 +483,14 @@ class ChatInterface(Blocks):
                 self.fn, *inputs, limiter=self.limiter
             )
 
-        history.append([message, response])
+        if self.multimodal:
+            for x in message:
+                if x["type"] == "file" and x["file"]["path"] is not None:  
+                    history.append(((x["file"]["path"],), None))  
+                elif x["type"] == "text" and x["text"] is not None:
+                    history.append((x["text"], None))
+        else:
+            history.append([message, response])
         return history, history
 
     async def _stream_fn(
