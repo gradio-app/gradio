@@ -276,6 +276,7 @@
 		display: flex;
 		justify-self: self-end;
 		align-items: center;
+		grid-area: editing;
 	}
 	.text-button {
 		border: 1px solid var(--neutral-400);
@@ -299,9 +300,26 @@
 	.controls {
 		display: grid;
 		grid-template-columns: 1fr 1fr 1fr;
+		grid-template-areas: "controls playback editing";
 		margin-top: 5px;
 		align-items: center;
 		position: relative;
+		flex-wrap: wrap;
+		justify-content: space-between;
+	}
+	.controls div {
+		margin: var(--size-1) 0;
+	}
+
+	@media (max-width: 600px) {
+		.controls {
+			grid-template-columns: 1fr 1fr;
+			grid-template-rows: auto auto;
+			grid-template-areas:
+				"playback playback"
+				"controls editing";
+			overflow: scroll;
+		}
 	}
 
 	.hidden {
@@ -313,25 +331,10 @@
 		justify-self: self-start;
 		align-items: center;
 		justify-content: space-between;
-	}
-
-	@media (max-width: 375px) {
-		.controls {
-			display: flex;
-			flex-wrap: wrap;
-		}
-
-		.controls * {
-			margin: var(--spacing-sm);
-		}
-
-		.controls .text-button {
-			margin-left: 0;
-		}
+		grid-area: controls;
 	}
 
 	.action {
-		width: var(--size-5);
 		width: var(--size-5);
 		color: var(--neutral-400);
 		margin-left: var(--spacing-md);
@@ -343,6 +346,13 @@
 	.play-pause-wrapper {
 		display: flex;
 		justify-self: center;
+		grid-area: playback;
+	}
+
+	@media (max-width: 600px) {
+		.play-pause-wrapper {
+			margin: var(--spacing-md);
+		}
 	}
 	.playback {
 		border: 1px solid var(--neutral-400);
@@ -370,7 +380,6 @@
 
 	.play-pause-button {
 		width: var(--size-8);
-		width: var(--size-8);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -383,5 +392,6 @@
 		display: flex;
 		justify-content: center;
 		margin-right: var(--spacing-xl);
+		width: var(--size-5);
 	}
 </style>

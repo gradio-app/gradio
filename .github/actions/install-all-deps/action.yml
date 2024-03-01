@@ -69,12 +69,6 @@ runs:
         restore-keys: |
           gradio-lib-${{inputs.os}}-latest-pip-
         key: "gradio-lib-${{inputs.os}}-latest-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}${{ inputs.test == 'true' && '-test' || ''}}"
-    - name: Install Gradio and Client Libraries Locally (Linux)
-      shell: bash
-      run: |
-        . ${{ env.VENV_ACTIVATE }}
-        python -m pip install -e client/python  
-        python -m pip install -e ".[oauth]"
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
     - name: Install test dependencies
@@ -84,6 +78,12 @@ runs:
         . ${{ env.VENV_ACTIVATE }}
         python -m pip install -r test/requirements.txt
         python -m pip install -r client/python/test/requirements.txt
+    - name: Install Gradio and Client Libraries Locally (Linux)
+      shell: bash
+      run: |
+        . ${{ env.VENV_ACTIVATE }}
+        python -m pip install -e client/python  
+        python -m pip install -e ".[oauth]"
     - name: install-frontend
       uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
       with:

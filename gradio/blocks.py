@@ -9,7 +9,6 @@ import random
 import secrets
 import string
 import sys
-import tempfile
 import threading
 import time
 import warnings
@@ -70,6 +69,7 @@ from gradio.utils import (
     get_cancel_function,
     get_continuous_fn,
     get_package_version,
+    get_upload_folder,
 )
 
 try:
@@ -119,12 +119,7 @@ class Block:
         self._constructor_args: list[dict]
         self.state_session_capacity = 10000
         self.temp_files: set[str] = set()
-        self.GRADIO_CACHE = str(
-            Path(
-                os.environ.get("GRADIO_TEMP_DIR")
-                or str(Path(tempfile.gettempdir()) / "gradio")
-            ).resolve()
-        )
+        self.GRADIO_CACHE = get_upload_folder()
 
         if render:
             self.render()
@@ -239,6 +234,9 @@ class Block:
         """Moves a file or downloads a file from a url to a block's cache directory, adds
         to to the block's temp_files, and returns the path to the file in cache. This
         ensures that the file is accessible to the Block and can be served to users.
+
+        Note: this method is not used in any core Gradio components, but is kept here
+        for backwards compatibility with custom components created with gradio<=4.20.0.
         """
         if url_or_file_path is None:
             return None
@@ -269,6 +267,30 @@ class Block:
             self.temp_files.add(temp_file_path)
 
         return temp_file_path
+
+    def serve_static_file(self, url_or_file_path: str | Path | None) -> dict | None:
+        """If a file is a local file, moves it to the block's cache directory and returns
+        a FileData-type dictionary corresponding to the file. If the file is a URL, returns a
+        FileData-type dictionary corresponding to the URL. This ensures that the file is
+        accessible in the frontend and can be served to users.
+
+        Examples:
+        >>> block.serve_static_file("https://gradio.app/logo.png") -> {"path": "https://gradio.app/logo.png", "url": "https://gradio.app/logo.png"}
+        >>> block.serve_static_file("logo.png") -> {"path": "logo.png", "url": "/file=logo.png"}
+        """
+        if url_or_file_path is None:
+            return None
+        if isinstance(url_or_file_path, Path):
+            url_or_file_path = str(url_or_file_path)
+
+        if client_utils.is_http_url_like(url_or_file_path):
+            return FileData(path=url_or_file_path, url=url_or_file_path).model_dump()
+        else:
+            data = {"path": url_or_file_path}
+            try:
+                return processing_utils.move_files_to_cache(data, self)
+            except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
+                return data
 
 
 class BlockContext(Block):
@@ -630,7 +652,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
     def get_component(self, id: int) -> Component | BlockContext:
         comp = self.blocks[id]
-        assert isinstance(comp, (components.Component, BlockContext)), f"{comp}"
+        if not isinstance(comp, (components.Component, BlockContext)):
+            raise TypeError(f"Block with id {id} is not a Component or BlockContext")
         return comp
 
     @property
@@ -875,7 +898,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             collects_event_data: whether to collect event data for this event
             trigger_after: if set, this event will be triggered after 'trigger_after' function index
             trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
-            trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
+            trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` and `.key_up()` events) would allow a second submission after the pending event is complete.
             concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `queue()`, which itself is 1 by default).
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
             show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps to use this event. If fn is None, show_api will automatically be set to False.
@@ -928,7 +951,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     "Cannot set a value for `concurrency_limit` with `every`."
                 )
 
-        if _targets[0][1] == "change" and trigger_mode is None:
+        if _targets[0][1] in ["change", "key_up"] and trigger_mode is None:
             trigger_mode = "always_last"
         elif trigger_mode is None:
             trigger_mode = "once"
@@ -1136,6 +1159,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             inputs=processed_inputs,
             request=None,
             state={},
+            explicit_call=True,
         )
         outputs = outputs["data"]
 
@@ -1325,7 +1349,11 @@ Received inputs:
             )
 
     def preprocess_data(
-        self, fn_index: int, inputs: list[Any], state: SessionState | None
+        self,
+        fn_index: int,
+        inputs: list[Any],
+        state: SessionState | None,
+        explicit_call: bool = False,
     ):
         state = state or SessionState(self)
         block_fn = self.fns[fn_index]
@@ -1352,7 +1380,9 @@ Received inputs:
                     if input_id in state:
                         block = state[input_id]
                     inputs_cached = processing_utils.move_files_to_cache(
-                        inputs[i], block, add_urls=True
+                        inputs[i],
+                        block,
+                        check_in_upload_folder=not explicit_call,
                     )
                     if getattr(block, "data_model", None) and inputs_cached is not None:
                         if issubclass(block.data_model, GradioModel):  # type: ignore
@@ -1482,9 +1512,8 @@ Received outputs:
 
                 outputs_cached = processing_utils.move_files_to_cache(
                     prediction_value,
-                    block,  # type: ignore
+                    block,
                     postprocess=True,
-                    add_urls=True,
                 )
                 output.append(outputs_cached)
 
@@ -1548,6 +1577,15 @@ Received outputs:
 
         return data
 
+    def run_fn_batch(self, fn, batch, fn_index, state, explicit_call=None):
+        output = []
+        for i in zip(*batch):
+            args = [fn_index, list(i), state]
+            if explicit_call is not None:
+                args.append(explicit_call)
+            output.append(fn(*args))
+        return output
+
     async def process_api(
         self,
         fn_index: int,
@@ -1559,6 +1597,7 @@ Received outputs:
         event_id: str | None = None,
         event_data: EventData | None = None,
         in_event_listener: bool = True,
+        explicit_call: bool = False,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -1571,6 +1610,8 @@ Received outputs:
             iterators: the in-progress iterators for each generator function (key is function index)
             event_id: id of event that triggered this API call
             event_data: data associated with the event trigger itself
+            in_event_listener: whether this API call is being made in response to an event listener
+            explicit_call: whether this call is being made directly by calling the Blocks function, instead of through an event listener or API route
         Returns: None
         """
         block_fn = self.fns[fn_index]
@@ -1592,10 +1633,15 @@ Received outputs:
                 raise ValueError(
                     f"Batch size ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
                 )
-
-            inputs = [
-                self.preprocess_data(fn_index, list(i), state) for i in zip(*inputs)
-            ]
+            inputs = await anyio.to_thread.run_sync(
+                self.run_fn_batch,
+                self.preprocess_data,
+                inputs,
+                fn_index,
+                state,
+                explicit_call,
+                limiter=self.limiter,
+            )
             result = await self.call_function(
                 fn_index,
                 list(zip(*inputs)),
@@ -1606,9 +1652,14 @@ Received outputs:
                 in_event_listener,
             )
             preds = result["prediction"]
-            data = [
-                self.postprocess_data(fn_index, list(o), state) for o in zip(*preds)
-            ]
+            data = await anyio.to_thread.run_sync(
+                self.run_fn_batch,
+                self.postprocess_data,
+                preds,
+                fn_index,
+                state,
+                limiter=self.limiter,
+            )
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
@@ -1616,7 +1667,14 @@ Received outputs:
             if old_iterator:
                 inputs = []
             else:
-                inputs = self.preprocess_data(fn_index, inputs, state)
+                inputs = await anyio.to_thread.run_sync(
+                    self.preprocess_data,
+                    fn_index,
+                    inputs,
+                    state,
+                    explicit_call,
+                    limiter=self.limiter,
+                )
             was_generating = old_iterator is not None
             result = await self.call_function(
                 fn_index,
@@ -1627,7 +1685,13 @@ Received outputs:
                 event_data,
                 in_event_listener,
             )
-            data = self.postprocess_data(fn_index, result["prediction"], state)
+            data = await anyio.to_thread.run_sync(
+                self.postprocess_data,
+                fn_index,  # type: ignore
+                result["prediction"],
+                state,
+                limiter=self.limiter,
+            )
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
                 run = id(old_iterator) if was_generating else id(iterator)
@@ -2386,7 +2450,8 @@ Received outputs:
                     continue
                 label = component["props"].get("label", f"parameter_{i}")
                 comp = self.get_component(component["id"])
-                assert isinstance(comp, components.Component)
+                if not isinstance(comp, components.Component):
+                    raise TypeError(f"{comp!r} is not a Component")
                 info = component["api_info"]
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
@@ -2416,7 +2481,8 @@ Received outputs:
                     continue
                 label = component["props"].get("label", f"value_{o}")
                 comp = self.get_component(component["id"])
-                assert isinstance(comp, components.Component)
+                if not isinstance(comp, components.Component):
+                    raise TypeError(f"{comp!r} is not a Component")
                 info = component["api_info"]
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)

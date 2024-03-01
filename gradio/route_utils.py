@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
+import re
 import shutil
 from collections import deque
 from dataclasses import dataclass as python_dataclass
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 from typing import TYPE_CHECKING, AsyncGenerator, BinaryIO, List, Optional, Tuple, Union
+from urllib.parse import urlparse
 
 import fastapi
 import httpx
@@ -15,8 +18,9 @@ from gradio_client.documentation import document
 from multipart.multipart import parse_options_header
 from starlette.datastructures import FormData, Headers, UploadFile
 from starlette.formparsers import MultiPartException, MultipartPart
+from starlette.middleware.base import BaseHTTPMiddleware
 
-from gradio import utils
+from gradio import processing_utils, utils
 from gradio.data_classes import PredictBody
 from gradio.exceptions import Error
 from gradio.helpers import EventData
@@ -261,18 +265,24 @@ async def call_process_api(
     return output
 
 
-def get_root_url(request: fastapi.Request) -> str:
+def get_root_url(
+    request: fastapi.Request, route_path: str, root_path: str | None
+) -> str:
     """
-    Gets the root url of the request, stripping off any query parameters and trailing slashes.
-    Also ensures that the root url is https if the request is https.
+    Gets the root url of the request, stripping off any query parameters, the route_path, and trailing slashes.
+    Also ensures that the root url is https if the request is https. If root_path is provided, it is appended to the root url.
+    The final root url will not have a trailing slash.
     """
     root_url = str(request.url)
     root_url = httpx.URL(root_url)
     root_url = root_url.copy_with(query=None)
-    root_url = str(root_url)
+    root_url = str(root_url).rstrip("/")
     if request.headers.get("x-forwarded-proto") == "https":
         root_url = root_url.replace("http://", "https://")
-    return root_url.rstrip("/")
+    route_path = route_path.rstrip("/")
+    if len(route_path) > 0:
+        root_url = root_url[: -len(route_path)]
+    return (root_url.rstrip("/") + (root_path or "")).rstrip("/")
 
 
 def _user_safe_decode(src: bytes, codec: str) -> str:
@@ -391,9 +401,6 @@ class GradioMultiPartParser:
         upload_id: str | None = None,
         upload_progress: FileUploadProgress | None = None,
     ) -> None:
-        assert (
-            multipart is not None
-        ), "The `python-multipart` library must be installed to use form parsing."
         self.headers = headers
         self.stream = stream
         self.max_files = max_files
@@ -459,12 +466,10 @@ class GradioMultiPartParser:
         self._current_partial_header_value = b""
 
     def on_headers_finished(self) -> None:
-        disposition, options = parse_options_header(
-            self._current_part.content_disposition
-        )
+        _, options = parse_options_header(self._current_part.content_disposition or b"")
         try:
             self._current_part.field_name = _user_safe_decode(
-                options[b"name"], self._charset
+                options[b"name"], str(self._charset)
             )
         except KeyError as e:
             raise MultiPartException(
@@ -476,7 +481,7 @@ class GradioMultiPartParser:
                 raise MultiPartException(
                     f"Too many files. Maximum number of files is {self.max_files}."
                 )
-            filename = _user_safe_decode(options[b"filename"], self._charset)
+            filename = _user_safe_decode(options[b"filename"], str(self._charset))
             tempfile = NamedTemporaryFile(delete=False)
             self._files_to_close_on_error.append(tempfile)
             self._current_part.file = GradioUploadFile(
@@ -509,7 +514,7 @@ class GradioMultiPartParser:
             raise MultiPartException("Missing boundary in multipart.") from e
 
         # Callbacks dictionary.
-        callbacks = {
+        callbacks: multipart.multipart.MultipartCallbacks = {
             "on_part_begin": self.on_part_begin,
             "on_part_data": self.on_part_data,
             "on_part_end": self.on_part_end,
@@ -532,11 +537,11 @@ class GradioMultiPartParser:
                 # (regular, non-async functions), that would block the event loop in
                 # the main thread.
                 for part, data in self._file_parts_to_write:
-                    assert part.file  # for type checkers
+                    assert part.file  # for type checkers  # noqa: S101
                     await part.file.write(data)
                     part.file.sha.update(data)  # type: ignore
                 for part in self._file_parts_to_finish:
-                    assert part.file  # for type checkers
+                    assert part.file  # for type checkers  # noqa: S101
                     await part.file.seek(0)
                 self._file_parts_to_write.clear()
                 self._file_parts_to_finish.clear()
@@ -555,3 +560,83 @@ class GradioMultiPartParser:
 def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
     for file, dest in zip(files, destinations):
         shutil.move(file, dest)
+
+
+def update_root_in_config(config: dict, root: str) -> dict:
+    """
+    Updates the root "key" in the config dictionary to the new root url. If the
+    root url has changed, all of the urls in the config that correspond to component
+    file urls are updated to use the new root url.
+    """
+    previous_root = config.get("root")
+    if previous_root is None or previous_root != root:
+        config["root"] = root
+        config = processing_utils.add_root_url(config, root, previous_root)
+    return config
+
+
+def compare_passwords_securely(input_password: str, correct_password: str) -> bool:
+    return hmac.compare_digest(input_password.encode(), correct_password.encode())
+
+
+def starts_with_protocol(string: str) -> bool:
+    """This regex matches strings that start with a scheme (one or more characters not including colon, slash, or space)
+    followed by ://, or start with just // or \\ as they are interpreted as SMB paths on Windows.
+    """
+    pattern = r"^(?:[a-zA-Z][a-zA-Z0-9+\-.]*://|//|\\\\)"
+    return re.match(pattern, string) is not None
+
+
+def get_hostname(url: str) -> str:
+    """
+    Returns the hostname of a given url, or an empty string if the url cannot be parsed.
+    Examples:
+        get_hostname("https://www.gradio.app") -> "www.gradio.app"
+        get_hostname("localhost:7860") -> "localhost"
+        get_hostname("127.0.0.1") -> "127.0.0.1"
+    """
+    if not url:
+        return ""
+    if "://" not in url:
+        url = "http://" + url
+    try:
+        return urlparse(url).hostname or ""
+    except Exception:
+        return ""
+
+
+class CustomCORSMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: fastapi.Request, call_next):
+        host: str = request.headers.get("host", "")
+        origin: str = request.headers.get("origin", "")
+        host_name = get_hostname(host)
+        origin_name = get_hostname(origin)
+
+        # Any of these hosts suggests that the Gradio app is running locally.
+        # Note: "null" is a special case that happens if a Gradio app is running
+        # as an embedded web component in a local static webpage.
+        localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0", "null"]
+        is_preflight = (
+            request.method == "OPTIONS"
+            and "access-control-request-method" in request.headers
+        )
+
+        if host_name in localhost_aliases and origin_name not in localhost_aliases:
+            allow_origin_header = None
+        else:
+            allow_origin_header = origin
+
+        if is_preflight:
+            response = fastapi.Response()
+        else:
+            response = await call_next(request)
+
+        if allow_origin_header:
+            response.headers["Access-Control-Allow-Origin"] = allow_origin_header
+        response.headers[
+            "Access-Control-Allow-Methods"
+        ] = "GET, POST, PUT, DELETE, OPTIONS"
+        response.headers[
+            "Access-Control-Allow-Headers"
+        ] = "Origin, Content-Type, Accept"
+        return response
