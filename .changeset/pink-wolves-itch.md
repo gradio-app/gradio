@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Cherry pick lite fixes
+feat:Cherry pick Lite fixes
