@@ -3,7 +3,6 @@
 	import type { FileData } from "@gradio/client";
 
 	export let value: null | FileData;
-	export let samples_dir: string;
 	export let type: "gallery" | "table";
 	export let selected = false;
 </script>
@@ -16,7 +15,7 @@
 	class:border={value}
 >
 	{#if value}
-		<Image src={samples_dir + value.path} alt="" />
+		<Image src={value.url} alt="" />
 	{/if}
 </div>
 

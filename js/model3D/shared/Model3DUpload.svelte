@@ -5,7 +5,8 @@
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
-	import Canvas3D from "./Canvas3D.svelte";
+	import type Canvas3DGS from "./Canvas3DGS.svelte";
+	import type Canvas3D from "./Canvas3D.svelte";
 
 	export let value: null | FileData;
 	export let clear_color: [number, number, number, number] = [0, 0, 0, 0];
@@ -39,9 +40,33 @@
 		dispatch("change");
 	}
 
-	let canvas3D: Canvas3D;
+	let use_3dgs = false;
+	let Canvas3DGSComponent: typeof Canvas3DGS;
+	let Canvas3DComponent: typeof Canvas3D;
+	async function loadCanvas3D(): Promise<typeof Canvas3D> {
+		const module = await import("./Canvas3D.svelte");
+		return module.default;
+	}
+	async function loadCanvas3DGS(): Promise<typeof Canvas3DGS> {
+		const module = await import("./Canvas3DGS.svelte");
+		return module.default;
+	}
+	$: if (value) {
+		use_3dgs = value.path.endsWith(".splat") || value.path.endsWith(".ply");
+		if (use_3dgs) {
+			loadCanvas3DGS().then((component) => {
+				Canvas3DGSComponent = component;
+			});
+		} else {
+			loadCanvas3D().then((component) => {
+				Canvas3DComponent = component;
+			});
+		}
+	}
+
+	let canvas3d: Canvas3D | undefined;
 	async function handle_undo(): Promise<void> {
-		canvas3D.reset_camera_position(camera_position, zoom_speed, pan_speed);
+		canvas3d?.reset_camera_position(camera_position, zoom_speed, pan_speed);
 	}
 
 	const dispatch = createEventDispatcher<{
@@ -62,7 +87,7 @@
 	<Upload
 		on:load={handle_upload}
 		{root}
-		filetype={[".stl", ".obj", ".gltf", ".glb", "model/obj"]}
+		filetype={[".stl", ".obj", ".gltf", ".glb", "model/obj", ".splat", ".ply"]}
 		bind:dragging
 	>
 		<slot />
@@ -70,20 +95,31 @@
 {:else}
 	<div class="input-model">
 		<ModifyUpload
-			undoable
+			undoable={!use_3dgs}
 			on:clear={handle_clear}
 			{i18n}
 			on:undo={handle_undo}
 			absolute
 		/>
-		<Canvas3D
-			bind:this={canvas3D}
-			{value}
-			{clear_color}
-			{camera_position}
-			{zoom_speed}
-			{pan_speed}
-		></Canvas3D>
+
+		{#if use_3dgs}
+			<svelte:component
+				this={Canvas3DGSComponent}
+				{value}
+				{zoom_speed}
+				{pan_speed}
+			/>
+		{:else}
+			<svelte:component
+				this={Canvas3DComponent}
+				bind:this={canvas3d}
+				{value}
+				{clear_color}
+				{camera_position}
+				{zoom_speed}
+				{pan_speed}
+			/>
+		{/if}
 	</div>
 {/if}
 

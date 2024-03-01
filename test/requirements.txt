@@ -40,7 +40,7 @@ filelock==3.7.1
     # via
     #   huggingface-hub
     #   transformers
-gradio_pdf==0.0.5
+gradio_pdf==0.0.3
     # via -r requirements.in
 h11==0.12.0
     # via httpcore
@@ -161,7 +161,7 @@ requests==2.28.1
     #   transformers
 respx==0.19.2
     # via -r requirements.in
-ruff==0.1.13
+ruff==0.2.2
     # via -r requirements.in
 rfc3986[idna2008]==1.5.0
     # via httpx

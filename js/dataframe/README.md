@@ -35,7 +35,6 @@ BaseExample
 ```javascript
 	export let gradio: Gradio;
 	export let value: (string | number)[][] | string;
-	export let samples_dir: string;
 	export let type: "gallery" | "table";
 	export let selected = false;
 	export let index: number;

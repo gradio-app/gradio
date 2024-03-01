@@ -19,6 +19,7 @@ from gradio.components.code import Code
 from gradio.components.color_picker import ColorPicker
 from gradio.components.dataframe import Dataframe
 from gradio.components.dataset import Dataset
+from gradio.components.download_button import DownloadButton
 from gradio.components.dropdown import Dropdown
 from gradio.components.duplicate_button import DuplicateButton
 from gradio.components.fallback import Fallback
@@ -73,6 +74,7 @@ __all__ = [
     "Dataframe",
     "DataFrame",
     "Dataset",
+    "DownloadButton",
     "DuplicateButton",
     "Fallback",
     "Form",

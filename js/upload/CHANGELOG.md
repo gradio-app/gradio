@@ -1,5 +1,24 @@
 # @gradio/upload
 
+## 0.7.4
+
+### Patch Changes
+
+- Updated dependencies [[`f191786`](https://github.com/gradio-app/gradio/commit/f1917867916647d383b8d7ce15e0c17f2abbdec1)]:
+  - @gradio/icons@0.3.3
+  - @gradio/atoms@0.5.3
+  - @gradio/upload@0.7.4
+
+## 0.7.3
+
+### Patch Changes
+
+- Updated dependencies [[`065c5b1`](https://github.com/gradio-app/gradio/commit/065c5b163c4badb9d9cbd06d627fb4ba086003e7), [`32b317f`](https://github.com/gradio-app/gradio/commit/32b317f24e3d43f26684bb9f3964f31efd0ea556)]:
+  - @gradio/utils@0.3.0
+  - @gradio/client@0.12.1
+  - @gradio/atoms@0.5.2
+  - @gradio/upload@0.7.3
+
 ## 0.7.2
 
 ### Patch Changes
