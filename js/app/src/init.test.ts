@@ -2,17 +2,15 @@ import { describe, test, expect, vi } from "vitest";
 import { spy } from "tinyspy";
 import { setupServer } from "msw/node";
 import { http, HttpResponse } from "msw";
-
+import type { client_return } from "@gradio/client";
+import { Dependency, TargetMap } from "./types";
 import {
 	process_frontend_fn,
 	create_target_meta,
 	determine_interactivity,
 	process_server_fn,
 	get_component
-	// walk_layout
 } from "./init";
-import { Dependency, TargetMap } from "./types";
-import type { client_return } from "@gradio/client";
 
 describe("process_frontend_fn", () => {
 	test("empty source code returns null", () => {
@@ -493,6 +491,8 @@ describe("get_component", () => {
 			})
 		];
 
+		// vi.mock calls are always hoisted out of the test function to the top of the file
+		// so we need to use vi.hoisted to hoist the mock function above the vi.mock call
 		const { mock } = vi.hoisted(() => {
 			return { mock: vi.fn() };
 		});
@@ -512,48 +512,10 @@ describe("get_component", () => {
 		const server = setupServer(...handlers);
 		server.listen();
 
-		const result = await get_component("test-random", id, api_url, [])
-			.component;
+		await get_component("test-random", id, api_url, []).component;
 
 		expect(mock).toHaveBeenCalled();
 
 		server.close();
 	});
 });
-
-// describe("walk_layout", () => {
-// 	test("calls the handler with the node", () => {
-// 		const handler = spy((node: any) => {});
-// 		const node = {
-// 			id: 1,
-// 			children: []
-// 		};
-
-// 		walk_layout(node, handler);
-// 		expect(handler.calls).toEqual([[node]]);
-// 	});
-
-// 	test("calls the handler with the node and its children", () => {
-// 		const handler = spy((node: any) => {});
-// 		const node = {
-// 			id: 1,
-// 			children: [
-// 				{
-// 					id: 2,
-// 					children: []
-// 				},
-// 				{
-// 					id: 3,
-// 					children: []
-// 				}
-// 			]
-// 		};
-
-// 		walk_layout(node, handler);
-// 		expect(handler.calls).toEqual([
-// 			[node],
-// 			[node.children[0]],
-// 			[node.children[1]]
-// 		]);
-// 	});
-// });
