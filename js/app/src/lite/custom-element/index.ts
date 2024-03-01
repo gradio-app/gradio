@@ -1,4 +1,4 @@
-import { create, type Options } from "..";
+import { create, type Options, type GradioAppController } from "..";
 
 interface GradioComponentOptions {
 	info: Options["info"];
@@ -36,22 +36,31 @@ export function bootstrap_custom_element(): void {
 	}
 
 	class GradioLiteAppElement extends HTMLElement {
-		constructor() {
-			super();
+		controller: GradioAppController | null = null;
 
-			const gradioComponentOptions = this.parseGradioComponentOptions();
-			const gradioLiteAppOptions = this.parseGradioLiteAppOptions();
+		connectedCallback() {
+			// At the time of connectedCallback, the child elements of the custom element are not yet parsed,
+			// so we need to defer the initialization to the next frame.
+			// Ref: https://stackoverflow.com/q/70949141/13103190
+			window.requestAnimationFrame(() => {
+				const gradioComponentOptions = this.parseGradioComponentOptions();
+				const gradioLiteAppOptions = this.parseGradioLiteAppOptions();
 
-			this.innerHTML = "";
+				this.innerHTML = "";
 
-			create({
-				target: this, // Same as `js/app/src/main.ts`
-				code: gradioLiteAppOptions.code,
-				requirements: gradioLiteAppOptions.requirements,
-				files: gradioLiteAppOptions.files,
-				entrypoint: gradioLiteAppOptions.entrypoint,
-				...gradioComponentOptions
+				this.controller = create({
+					target: this, // Same as `js/app/src/main.ts`
+					code: gradioLiteAppOptions.code,
+					requirements: gradioLiteAppOptions.requirements,
+					files: gradioLiteAppOptions.files,
+					entrypoint: gradioLiteAppOptions.entrypoint,
+					...gradioComponentOptions
+				});
 			});
+		}
+
+		disconnectedCallback() {
+			this.controller?.unmount();
 		}
 
 		parseGradioComponentOptions(): GradioComponentOptions {

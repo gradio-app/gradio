@@ -35,7 +35,7 @@ declare let GRADIO_VERSION: string;
 // As a result, the users of the Wasm app will have to load the CSS file manually.
 // const ENTRY_CSS = "__ENTRY_CSS__";
 
-interface GradioAppController {
+export interface GradioAppController {
 	run_code: (code: string) => Promise<void>;
 	run_file: (path: string) => Promise<void>;
 	write: (
