@@ -17,7 +17,7 @@
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
-	import { create_components } from "./init";
+	import { create_components, AsyncFunction } from "./init";
 
 	setupi18n();
 
@@ -339,6 +339,14 @@
 		!!(link && new URL(link, location.href).origin !== location.origin);
 
 	async function handle_mount(): Promise<void> {
+		if (js) {
+			let blocks_frontend_fn = new AsyncFunction(
+				`let result = await (${js})();
+					return (!Array.isArray(result)) ? [result] : result;`
+			);
+			await blocks_frontend_fn();
+		}
+
 		await tick();
 
 		var a = target.getElementsByTagName("a");

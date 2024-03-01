@@ -3,10 +3,8 @@ import { tick } from "svelte";
 import type {
 	ComponentMeta,
 	Dependency,
-	DependencyTypes,
 	LayoutNode,
 	TargetMap,
-	LoadedComponent,
 	LoadingComponent
 } from "./types";
 import { load_component } from "virtual:component-loader";
@@ -40,7 +38,13 @@ export function create_components(
 	options: {
 		fill_height: boolean;
 	}
-) {
+): {
+	layout: Writable<ComponentMeta>;
+	targets: TargetMap;
+	update_value: (updates: UpdateTransaction[]) => void;
+	get_data: (id: number) => any | Promise<any>;
+	loading_status: ReturnType<typeof create_loading_status_store>;
+} {
 	const _component_map = new Map();
 
 	const target_map: TargetMap = {};
@@ -133,7 +137,6 @@ export function create_components(
 		layout_store.set(_rootNode);
 	});
 
-	const resolved_promise = /* @__PURE__ */ Promise.resolve();
 	let update_scheduled = false;
 
 	function flush(): void {
@@ -144,6 +147,7 @@ export function create_components(
 					const instance = instance_map[update.id];
 					let new_value;
 					if (Array.isArray(update.value)) new_value = [...update.value];
+					else if (update.value === null) new_value = null;
 					else if (typeof update.value === "object")
 						new_value = { ...update.value };
 					else new_value = update.value;
@@ -183,16 +187,12 @@ export function create_components(
 	};
 }
 
-// process frontend_fn - done
-// create target map - done
-// create loading status store ???
-// infer dynamic IDS
-// set interactivity mode
-// load example components + components
-// walk layout + build tree
-
 /** An async version of 'new Function' */
-const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+export const AsyncFunction: new (
+	...args: string[]
+) => (...args: any[]) => Promise<any> = Object.getPrototypeOf(
+	async function () {}
+).constructor;
 
 /**
  * Takes a string of source code and returns a function that can be called with arguments
@@ -286,7 +286,7 @@ function has_no_default_value(value: any): boolean {
 }
 
 /**
- * Deternmines if a component is interactive
+ * Determines if a component is interactive
  * @param id component id
  * @param interactive_prop value of the interactive prop
  * @param value the main value of the component
@@ -344,6 +344,15 @@ export function process_server_fn(
 	}, {} as ServerFunctions);
 }
 
+/**
+ * Get a component from the backend
+ * @param type the type of the component
+ * @param class_id the class id of the component
+ * @param root the root url of the app
+ * @param components the list of component metadata
+ * @param example_components the list of example components
+ * @returns the component and its name
+ */
 export function get_component(
 	type: string,
 	class_id: string,
@@ -355,11 +364,6 @@ export function get_component(
 	name: ComponentMeta["type"];
 	example_components?: Map<ComponentMeta["type"], LoadingComponent>;
 } {
-	// if (target_map[c.id]) {
-	// 	c.props.attached_events = Object.keys(target_map[c.id]);
-	// }
-	// __type_for_id.set(c.id, c.props.interactive);
-
 	let example_component_map: Map<ComponentMeta["type"], LoadingComponent> =
 		new Map();
 	if (type === "dataset" && example_components) {
@@ -397,6 +401,12 @@ export function get_component(
 	};
 }
 
+/**
+ * Preload all components
+ * @param components A list of component metadata
+ * @param root The root url of the app
+ * @returns A map of component ids to their constructors
+ */
 export function preload_all_components(
 	components: ComponentMeta[],
 	root: string
