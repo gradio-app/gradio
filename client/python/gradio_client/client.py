@@ -72,14 +72,14 @@ class Client:
         src: str,
         hf_token: str | None = None,
         max_workers: int = 40,
-        serialize: bool | None = None,
+        serialize: bool | None = None,  # TODO: remove in 1.0
         output_dir: str | Path = DEFAULT_TEMP_DIR,
         verbose: bool = True,
         auth: tuple[str, str] | None = None,
         *,
         headers: dict[str, str] | None = None,
-        upload_files: bool = True,
-        download_files: bool = True,
+        upload_files: bool = True,  # TODO: set to False in 1.0
+        download_files: bool = True,  # TODO: consider setting to False in 1.0
     ):
         """
         Parameters:
@@ -1128,7 +1128,7 @@ class Endpoint:
 
         def get_file(d):
             if utils.is_file_obj(d):
-                file_list.append(d)
+                file_list.append(d["path"])
             elif isinstance(d, File):
                 file_list.append(d.path)
             else:
@@ -1149,7 +1149,7 @@ class Endpoint:
                 # file dict is a corner case but still needed for completeness
                 # most users should be using filepaths
                 d = utils.traverse(
-                    d, get_file, lambda s: (self.client.upload_files and (utils.is_file_obj(s) or utils.is_filepath(s))) or isinstance(s, File)
+                    d, get_file, lambda s: getattr(s, "_type", False) == "FileData" and (self.client.upload_files and (utils.is_file_obj(s) or utils.is_filepath(s)))
                 )
                 # Handle URLs here since we don't upload them
                 d = utils.traverse(d, handle_url, lambda s: utils.is_url(s))
@@ -1175,6 +1175,7 @@ class Endpoint:
             data = list(new_data)
             data = self._add_uploaded_files_to_data(data, uploaded_files)
             o = tuple(data)
+            print("o", o)
             return o
         else:
             return tuple(data)

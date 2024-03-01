@@ -22,3 +22,4 @@ class FileData(TypedDict):
 @dataclass
 class File:
     path: str | Path | None
+    _type = "FileData"
