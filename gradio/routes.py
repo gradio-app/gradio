@@ -562,6 +562,7 @@ class App(FastAPI):
                     detail="This API endpoint does not accept direct HTTP POST requests. Please join the queue to use this API.",
                     status_code=status.HTTP_404_NOT_FOUND,
                 )
+
             gr_request = route_utils.compile_gr_request(
                 app,
                 body,
@@ -584,7 +585,6 @@ class App(FastAPI):
                     content={"error": str(error) if show_error else None},
                     status_code=500,
                 )
-
             root_path = route_utils.get_root_url(
                 request=request, route_path=f"/api/{api_name}", root_path=app.root_path
             )

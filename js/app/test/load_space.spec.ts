@@ -1,6 +1,6 @@
 import { test, expect } from "@gradio/tootils";
 
-test.skip("test that the submit and clear buttons in a loaded space work", async ({
+test("test that the submit and clear buttons in a loaded space work", async ({
 	page
 }) => {
 	await page.getByLabel("x").click();
