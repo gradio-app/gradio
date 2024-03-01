@@ -428,7 +428,7 @@
 			}
 		);
 
-		// update_value([...updates, ...additional_updates]);
+		update_value([...updates, ...additional_updates]);
 	}
 
 	function isCustomEvent(event: Event): event is CustomEvent {
