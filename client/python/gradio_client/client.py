@@ -990,8 +990,11 @@ class Endpoint:
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
             data = self.insert_state(*data)
+            print("data", data)
             data = self.serialize(*data)
+            print("data", data)
             predictions = _predict(*data)
+            print("predictions", predictions)
             predictions = self.process_predictions(*predictions)
             # Append final output only if not already present
             # for consistency between generators and not generators
@@ -1132,10 +1135,10 @@ class Endpoint:
             elif isinstance(d, File):
                 file_list.append(d.path)
             else:
-                warnings.warn(f"Note: The Client is treating: {d} as a filepath/URL and uploading it to the remote Gradio app. "
+                warnings.warn(f"The Client is treating: {d} as a filepath/URL and uploading it to the remote Gradio app. "
                               "In future versions, this behavior will not happen automatically. \n\nInstead, please provide filepaths "
-                              "or URLs like this: gradio_client.File('path/to/file/or/url'). \n\nTo disable automatic uploading, "
-                              "set upload_files=False in Client().")
+                              "or URL values like this: gradio_client.File('path/to/file/or/url'). \n\nNote: to disable automatic "
+                              "uploading, set upload_files=False in Client().")
                 file_list.append(d)
             return ReplaceMe(len(file_list) - 1)
 
@@ -1149,7 +1152,7 @@ class Endpoint:
                 # file dict is a corner case but still needed for completeness
                 # most users should be using filepaths
                 d = utils.traverse(
-                    d, get_file, lambda s: utils.is_file_data(s) or (self.client.upload_files and (utils.is_file_obj(s) or utils.is_filepath(s)))
+                    d, get_file, lambda s: utils.is_file_data(s) or utils.is_file_obj(s) or (self.client.upload_files and utils.is_filepath(s))
                 )
                 # Handle URLs here since we don't upload them
                 d = utils.traverse(d, handle_url, lambda s: utils.is_url(s))

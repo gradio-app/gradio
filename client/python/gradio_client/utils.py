@@ -26,6 +26,8 @@ import huggingface_hub
 from huggingface_hub import SpaceStage
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
+from gradio_client.data_classes import File
+
 API_URL = "api/predict/"
 SSE_URL_V0 = "queue/join"
 SSE_DATA_URL_V0 = "queue/data"
@@ -1010,7 +1012,7 @@ def is_url(s):
 
 
 def is_file_data(d):
-    return hasattr(d, "path") and (d.__class__.__name__ == "FileData" or getattr(d, "_class_name", "") == "FileData")
+    return isinstance(d, File)
 
 
 def is_file_obj(d):

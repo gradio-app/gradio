@@ -22,7 +22,3 @@ class FileData(TypedDict):
 @dataclass
 class File:
     path: str | Path | None
-
-    @property
-    def _class_name(self):
-        return "FileData"
