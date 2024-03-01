@@ -1149,7 +1149,7 @@ class Endpoint:
                 # file dict is a corner case but still needed for completeness
                 # most users should be using filepaths
                 d = utils.traverse(
-                    d, get_file, lambda s: getattr(s, "_type", False) == "FileData" and (self.client.upload_files and (utils.is_file_obj(s) or utils.is_filepath(s)))
+                    d, get_file, lambda s: utils.is_file_data(s) or (self.client.upload_files and (utils.is_file_obj(s) or utils.is_filepath(s)))
                 )
                 # Handle URLs here since we don't upload them
                 d = utils.traverse(d, handle_url, lambda s: utils.is_url(s))
@@ -1175,7 +1175,6 @@ class Endpoint:
             data = list(new_data)
             data = self._add_uploaded_files_to_data(data, uploaded_files)
             o = tuple(data)
-            print("o", o)
             return o
         else:
             return tuple(data)

@@ -1009,6 +1009,10 @@ def is_url(s):
     return isinstance(s, str) and is_http_url_like(s)
 
 
+def is_file_data(d):
+    return hasattr(d, "path") and (d.__class__.__name__ == "FileData" or getattr(d, "_class_name", "") == "FileData")
+
+
 def is_file_obj(d):
     return isinstance(d, dict) and "path" in d
 
