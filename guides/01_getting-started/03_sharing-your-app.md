@@ -212,7 +212,7 @@ You may wish to put an authentication page in front of your app to limit who can
 demo.launch(auth=("admin", "pass1234"))
 ```
 
-For more complex authentication handling, you can even pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise. This can be used for, among other things, making requests to 3rd-party authentication services.
+For more complex authentication handling, you can even pass a function that takes a username and password as arguments, and returns `True` to allow access, `False` otherwise.
 
 Here's an example of a function that accepts any login where the username and password are the same:
 
@@ -418,7 +418,7 @@ if __name__ == '__main__':
     uvicorn.run(app)
 ```
 
-There are actually two separate Gradio apps in this example! One that simply displays a log in button (this demo is accessible to any user), while the other main demo is only accessible to users that are logged in. 
+There are actually two separate Gradio apps in this example! One that simply displays a log in button (this demo is accessible to any user), while the other main demo is only accessible to users that are logged in. You can try this example out on [this Space](https://huggingface.co/spaces/gradio/oauth-example).
 
 
 
