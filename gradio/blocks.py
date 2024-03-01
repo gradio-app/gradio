@@ -252,9 +252,16 @@ class Block:
         else:
             url_or_file_path = str(utils.abspath(url_or_file_path))
             if not utils.is_in_or_equal(url_or_file_path, self.GRADIO_CACHE):
-                temp_file_path = processing_utils.save_file_to_cache(
-                    url_or_file_path, cache_dir=self.GRADIO_CACHE
-                )
+                try:
+                    temp_file_path = processing_utils.save_file_to_cache(
+                        url_or_file_path, cache_dir=self.GRADIO_CACHE
+                    )
+                except FileNotFoundError:
+                    # This can happen if when using gr.load() and the file is on a remote Space
+                    # but the file is not the `value` of the component. For example, if the file
+                    # is the `avatar_image` of the `Chatbot` component. In this case, we skip
+                    # copying the file to the cache and just use the remote file path.
+                    return url_or_file_path
             else:
                 temp_file_path = url_or_file_path
             self.temp_files.add(temp_file_path)
@@ -749,15 +756,17 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 # targets field
                 _targets = dependency.pop("targets")
                 trigger = dependency.pop("trigger", None)
-                targets = [
-                    getattr(
-                        original_mapping[
-                            target if isinstance(target, int) else target[0]
-                        ],
-                        trigger if isinstance(target, int) else target[1],
-                    )
-                    for target in _targets
-                ]
+                is_then_event = False
+
+                # This assumes that you cannot combine multiple .then() events in a single
+                # gr.on() event, which is true for now. If this changes, we will need to
+                # update this code.
+                if not isinstance(_targets[0], int) and _targets[0][1] == "then":
+                    assert (
+                        len(_targets) == 1
+                    ), "This logic assumes that .then() events are not combined with other events in a single gr.on() event"
+                    is_then_event = True
+
                 dependency.pop("backend_fn")
                 dependency.pop("documentation", None)
                 dependency["inputs"] = [
@@ -769,12 +778,30 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 dependency.pop("status_tracker", None)
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
-                targets = [
-                    EventListenerMethod(
-                        t.__self__ if t.has_trigger else None, t.event_name
+                if is_then_event:
+                    targets = [EventListenerMethod(None, "then")]
+                    dependency["trigger_after"] = dependency.pop("trigger_after")
+                    dependency["trigger_only_on_success"] = dependency.pop(
+                        "trigger_only_on_success"
                     )
-                    for t in targets
-                ]
+                    dependency["no_target"] = True
+                else:
+                    targets = [
+                        getattr(
+                            original_mapping[
+                                target if isinstance(target, int) else target[0]
+                            ],
+                            trigger if isinstance(target, int) else target[1],
+                        )
+                        for target in _targets
+                    ]
+                    targets = [
+                        EventListenerMethod(
+                            t.__self__ if t.has_trigger else None,
+                            t.event_name,  # type: ignore
+                        )
+                        for t in targets
+                    ]
                 dependency = blocks.set_event_trigger(
                     targets=targets, fn=fn, **dependency
                 )[0]
@@ -862,7 +889,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             show_progress: whether to show progress animation while running.
             api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
-            no_target: if True, sets "targets" to [], used for Blocks "load" event
+            no_target: if True, sets "targets" to [], used for the Blocks.load() event and .then() events
             queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
@@ -880,7 +907,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         # Support for singular parameter
         _targets = [
             (
-                target.block._id if target.block and not no_target else None,
+                target.block._id if not no_target and target.block else None,
                 target.event_name,
             )
             for target in targets
