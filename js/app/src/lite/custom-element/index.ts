@@ -38,7 +38,7 @@ export function bootstrap_custom_element(): void {
 	class GradioLiteAppElement extends HTMLElement {
 		controller: GradioAppController | null = null;
 
-		connectedCallback() {
+		connectedCallback(): void {
 			// At the time of connectedCallback, the child elements of the custom element are not yet parsed,
 			// so we need to defer the initialization to the next frame.
 			// Ref: https://stackoverflow.com/q/70949141/13103190
@@ -59,7 +59,7 @@ export function bootstrap_custom_element(): void {
 			});
 		}
 
-		disconnectedCallback() {
+		disconnectedCallback(): void {
 			this.controller?.unmount();
 		}
 
