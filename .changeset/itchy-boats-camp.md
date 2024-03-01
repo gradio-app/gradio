@@ -5,4 +5,4 @@
 "gradio": patch
 ---
 
-fix:7217 rendering perf
+fix:batch UI updates on a per frame basis
