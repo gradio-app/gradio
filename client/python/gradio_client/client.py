@@ -990,9 +990,7 @@ class Endpoint:
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
             data = self.insert_state(*data)
-            print("data", data)
             data = self.serialize(*data)
-            print("data", data)
             predictions = _predict(*data)
             if self.client.download_files:
                 predictions = self.process_predictions(*predictions)
