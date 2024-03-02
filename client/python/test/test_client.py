@@ -483,6 +483,13 @@ class TestClientPredictions:
             ret = client.predict(message, initial_history, api_name="/submit")
             assert ret == ("", [["", None], ["Hello", "I love you"]])
 
+    def test_does_not_upload_dir(self, stateful_chatbot):
+        with connect(stateful_chatbot) as client:
+            initial_history = [["", None]]
+            message = "Hello"
+            ret = client.predict(message, initial_history, api_name="/submit")
+            assert ret == ("", [["", None], ["Hello", "I love you"]])
+
     def test_can_call_mounted_app_via_api(self):
         def greet(name):
             return "Hello " + name + "!"
