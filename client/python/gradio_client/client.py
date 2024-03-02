@@ -1159,7 +1159,6 @@ class Endpoint:
                     d, get_file, lambda s: utils.is_file_data(s, url_ok=False) or utils.is_file_obj(s, url_ok=False) or (self.client.upload_files and utils.is_filepath(s, url_ok=False))
                 )
                 # Handle URLs here since we don't upload them
-                print(utils.is_url(d), isinstance(d, File) and utils.is_url(d.path))
                 d = utils.traverse(d, handle_url, lambda s: utils.is_url(s) or (isinstance(s, File) and utils.is_url(s.path)))
             new_data.append(d)
         return file_list, new_data
