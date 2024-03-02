@@ -19,7 +19,7 @@ from gradio.networking import Server
 from huggingface_hub import HfFolder
 from huggingface_hub.utils import RepositoryNotFoundError
 
-from gradio_client import Client
+from gradio_client import Client, File
 from gradio_client.client import DEFAULT_TEMP_DIR
 from gradio_client.utils import (
     Communicator,
@@ -253,7 +253,7 @@ class TestClientPredictions:
         with connect(video_component) as client:
             job = client.submit(
                 {
-                    "video": "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
+                    "video": File("https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4")
                 },
                 fn_index=0,
             )
@@ -267,7 +267,7 @@ class TestClientPredictions:
         with connect(video_component, output_dir=temp_dir) as client:
             job = client.submit(
                 {
-                    "video": "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
+                    "video": File("https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4")
                 },
                 fn_index=0,
             )
@@ -356,13 +356,13 @@ class TestClientPredictions:
     def test_stream_audio(self, stream_audio):
         with connect(stream_audio) as client:
             job1 = client.submit(
-                "https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4",
+                File("https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4"),
                 api_name="/predict",
             )
             assert Path(job1.result()).exists()
 
             job2 = client.submit(
-                "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
+                File("https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"),
                 api_name="/predict",
             )
             assert Path(job2.result()).exists()
