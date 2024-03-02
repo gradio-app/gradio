@@ -7,7 +7,10 @@ export function represent_value(
 	if (type === undefined) {
 		return lang === "py" ? "None" : null;
 	}
-	if (type === "string" || type === "str" || type == "filepath") {
+	if (type === "filepath" && lang === "py") {
+		return 'File("' + value + '")';
+	}
+	if (type === "string" || type === "str" || type === "filepath") {
 		return lang === null ? value : '"' + value + '"';
 	} else if (type === "number") {
 		return lang === null ? parseFloat(value) : value;

@@ -253,6 +253,7 @@ def move_files_to_cache(
         postprocess: Whether its running from postprocessing
         check_in_upload_folder: If True, instead of moving the file to cache, checks if the file is in already in cache (exception if not).
     """
+    print(">>>Reached move_files_to_cache")
 
     def _move_to_cache(d: dict):
         payload = FileData(**d)
@@ -261,18 +262,22 @@ def move_files_to_cache(
         # without it being served from the gradio server
         # This makes it so that the URL is not downloaded and speeds up event processing
         if payload.url and postprocess and client_utils.is_http_url_like(payload.url):
+            print(">>>>>>>")
             payload.path = payload.url
         elif not block.proxy_url:
+            print("abc")
             # If the file is on a remote server, do not move it to cache.
             if check_in_upload_folder and not client_utils.is_http_url_like(
                 payload.path
             ):
+                print(">>>Reached check_in_upload_folder")
                 path = os.path.abspath(payload.path)
                 if not is_in_or_equal(path, get_upload_folder()):
                     raise ValueError(
                         f"File {path} is not in the upload folder and cannot be accessed."
                     )
             temp_file_path = block.move_resource_to_block_cache(payload.path)
+            print("temp_file_path", temp_file_path)
             if temp_file_path is None:
                 raise ValueError("Did not determine a file path for the resource.")
             payload.path = temp_file_path
@@ -293,7 +298,8 @@ def move_files_to_cache(
 
     if isinstance(data, (GradioRootModel, GradioModel)):
         data = data.model_dump()
-
+    
+    print("data", data)
     return client_utils.traverse(data, _move_to_cache, client_utils.is_file_obj)
 
 

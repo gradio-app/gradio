@@ -1142,20 +1142,25 @@ class Endpoint:
                 file_list.append(d)
             return ReplaceMe(len(file_list) - 1)
 
-        def handle_url(s):
-            return {"path": s, "orig_name": s.split("/")[-1]}
+        def handle_url(s: str | File) -> dict[str, str]:
+            if isinstance(s, File):
+                s = s.path
+            # print({"path": s, "orig_name": s.split("/")[-1]}, "url": s)
+            return {"path": s, "orig_name": s.split("/")[-1], "url": s}
 
         new_data = []
         for i, d in enumerate(data):
             if self.input_component_types[i].value_is_file:
-                # Check file dicts and filepaths to upload
+                # Check files to upload
                 # file dict is a corner case but still needed for completeness
-                # most users should be using filepaths
+                # file paths are allowed for backwards compatibility
+                # if the Client is used directly, it should be a FileData object
                 d = utils.traverse(
-                    d, get_file, lambda s: utils.is_file_data(s) or utils.is_file_obj(s) or (self.client.upload_files and utils.is_filepath(s))
+                    d, get_file, lambda s: utils.is_file_data(s, url_ok=False) or utils.is_file_obj(s, url_ok=False) or (self.client.upload_files and utils.is_filepath(s, url_ok=False))
                 )
                 # Handle URLs here since we don't upload them
-                d = utils.traverse(d, handle_url, lambda s: utils.is_url(s))
+                print(utils.is_url(d), isinstance(d, File) and utils.is_url(d.path))
+                d = utils.traverse(d, handle_url, lambda s: utils.is_url(s) or (isinstance(s, File) and utils.is_url(s.path)))
             new_data.append(d)
         return file_list, new_data
 
@@ -1173,14 +1178,11 @@ class Endpoint:
 
     def serialize(self, *data) -> tuple:
         files, new_data = self._gather_files(*data)
-        if files:
-            uploaded_files = self._upload(files)
-            data = list(new_data)
-            data = self._add_uploaded_files_to_data(data, uploaded_files)
-            o = tuple(data)
-            return o
-        else:
-            return tuple(data)
+        uploaded_files = self._upload(files)
+        data = list(new_data)
+        data = self._add_uploaded_files_to_data(data, uploaded_files)
+        o = tuple(data)
+        return o
 
     @staticmethod
     def _download_file(

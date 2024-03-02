@@ -5,6 +5,15 @@
 	import { Block } from "@gradio/atoms";
 	import EndpointDetail from "./EndpointDetail.svelte";
 
+	interface EndpointParameter {
+		label: string;
+		type: string;
+		python_type: { type: string };
+		component: string;
+		example_input: string;
+		serializer: string;
+  }
+
 	export let dependency: Dependency;
 	export let dependency_index: number;
 	export let root: string;
@@ -18,19 +27,10 @@
 	let python_code: HTMLElement;
 	let js_code: HTMLElement;
 
+	let has_file_path = endpoint_parameters.some((param: EndpointParameter) => param.python_type.type === 'filepath');
 	let blob_components = ["Audio", "File", "Image", "Video"];
 	let blob_examples: any[] = endpoint_parameters.filter(
-		(param: {
-			label: string;
-			type: string;
-			python_type: {
-				type: string;
-				description: string;
-			};
-			component: string;
-			example_input: string;
-			serializer: string;
-		}) => blob_components.includes(param.component)
+		(param: EndpointParameter) => blob_components.includes(param.component)
 	);
 </script>
 
@@ -47,7 +47,7 @@
 					<CopyButton code={python_code?.innerText} />
 				</div>
 				<div bind:this={python_code}>
-					<pre>from gradio_client import Client
+					<pre>from gradio_client import Client{#if has_file_path}, File{/if}
 
 client = Client(<span class="token string">"{root}"</span>)
 result = client.predict(<!--
@@ -64,7 +64,7 @@ result = client.predict(<!--
 				-->{/if}<!--
 			--><span class="desc"
 								><!--
-			-->	# {python_type.type} {#if python_type.description}({python_type.description}){/if}<!----> in '{label}' <!--
+			-->	# {python_type.type} {#if python_type.description}({python_type.description}) {/if}<!---->in '{label}' <!--
 			-->{component} component<!--
 			--></span
 							><!--

@@ -1003,20 +1003,20 @@ def value_is_file(api_info: dict) -> bool:
     return FILE_DATA in info or OLD_FILE_DATA in info
 
 
-def is_filepath(s):
-    return isinstance(s, str) and Path(s).exists() and Path(s).is_file()
+def is_filepath(s, url_ok=True):
+    return isinstance(s, str) and Path(s).exists() and Path(s).is_file() and (url_ok or not is_url(s))
 
 
 def is_url(s):
     return isinstance(s, str) and is_http_url_like(s)
 
 
-def is_file_data(d):
-    return isinstance(d, File)
+def is_file_data(d, url_ok=True):
+    return isinstance(d, File) and (url_ok or not is_url(d.path))
 
 
-def is_file_obj(d):
-    return isinstance(d, dict) and "path" in d
+def is_file_obj(d, url_ok=True):
+    return isinstance(d, dict) and "path" in d and (url_ok or not is_url(d["path"]))
 
 
 def is_file_obj_with_url(d):
