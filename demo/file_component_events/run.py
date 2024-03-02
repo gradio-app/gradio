@@ -23,6 +23,13 @@ with gr.Blocks() as demo:
             output_file_3 = gr.File(label="Upload Multiple Files Output Image/Video", file_count="multiple")
             num_load_btn_3 = gr.Number(label="# Load Upload Multiple Files Image/Video", value=0)
             file_component_specific.upload(lambda s,n: (s, n + 1), [file_component_specific, num_load_btn_3], [output_file_3, num_load_btn_3])
+    with gr.Row():
+        with gr.Column():
+            file_component_pdf = gr.File(label="Upload PDF File", file_types=["pdf"])
+        with gr.Column():
+            output_file_4 = gr.File(label="Upload PDF File Output")
+            num_load_btn_4 = gr.Number(label="# Load Upload PDF File", value=0)
+            file_component_pdf.upload(lambda s,n: (s, n + 1), [file_component_pdf, num_load_btn_4], [output_file_4, num_load_btn_4])
 
 if __name__ == "__main__":
     demo.launch()

@@ -49,3 +49,15 @@ test("File component properly handles drag and drop of image and video files.", 
 		page.getByLabel("# Load Upload Multiple Files Image/Video")
 	).toHaveValue("2");
 });
+
+test("File component properly handles drag and drop of pdf file.", async ({
+	page
+}) => {
+	const uploader = await page.locator("input[type=file]").last();
+	await uploader.setInputFiles(["./test/files/sample_pdf.pdf"]);
+
+	// Check that the pdf file was uploaded
+	await expect(
+		page.getByLabel("# Load Upload PDF File")
+	).toHaveValue("1");
+});
