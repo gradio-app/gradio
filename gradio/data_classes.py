@@ -183,7 +183,6 @@ class FileData(GradioModel):
     mime_type: Optional[str] = None
     is_stream: bool = False
 
-
     @property
     def is_none(self):
         return all(

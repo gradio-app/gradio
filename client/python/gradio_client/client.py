@@ -1135,10 +1135,12 @@ class Endpoint:
             elif isinstance(d, File):
                 file_list.append(d.path)
             else:
-                warnings.warn(f"The Client is treating: {d} as a filepath/URL and uploading it to the remote Gradio app. "
-                              "In future versions, this behavior will not happen automatically. \n\nInstead, please provide filepaths "
-                              "or URL values like this: gradio_client.File('path/to/file/or/url'). \n\nNote: to disable automatic "
-                              "uploading, set upload_files=False in Client().")
+                warnings.warn(
+                    f"The Client is treating: {d} as a filepath/URL and uploading it to the remote Gradio app. "
+                    "In future versions, this behavior will not happen automatically. \n\nInstead, please provide filepaths "
+                    "or URL values like this: gradio_client.File('path/to/file/or/url'). \n\nNote: to disable automatic "
+                    "uploading, set upload_files=False in Client()."
+                )
                 file_list.append(d)
             return ReplaceMe(len(file_list) - 1)
 
@@ -1156,10 +1158,21 @@ class Endpoint:
                 # file paths are allowed for backwards compatibility
                 # if the Client is used directly, it should be a FileData object
                 d = utils.traverse(
-                    d, get_file, lambda s: utils.is_file_data(s, url_ok=False) or utils.is_file_obj(s, url_ok=False) or (self.client.upload_files and utils.is_filepath(s, url_ok=False))
+                    d,
+                    get_file,
+                    lambda s: utils.is_file_data(s, url_ok=False)
+                    or utils.is_file_obj(s, url_ok=False)
+                    or (
+                        self.client.upload_files and utils.is_filepath(s, url_ok=False)
+                    ),
                 )
                 # Handle URLs here since we don't upload them
-                d = utils.traverse(d, handle_url, lambda s: utils.is_url(s) or (isinstance(s, File) and utils.is_url(s.path)))
+                d = utils.traverse(
+                    d,
+                    handle_url,
+                    lambda s: utils.is_url(s)
+                    or (isinstance(s, File) and utils.is_url(s.path)),
+                )
             new_data.append(d)
         return file_list, new_data
 

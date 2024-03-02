@@ -253,6 +253,7 @@ def move_files_to_cache(
         postprocess: Whether its running from postprocessing
         check_in_upload_folder: If True, instead of moving the file to cache, checks if the file is in already in cache (exception if not).
     """
+
     def _move_to_cache(d: dict):
         payload = FileData(**d)
         # If the gradio app developer is returning a URL from
@@ -292,7 +293,7 @@ def move_files_to_cache(
 
     if isinstance(data, (GradioRootModel, GradioModel)):
         data = data.model_dump()
-    
+
     return client_utils.traverse(data, _move_to_cache, client_utils.is_file_obj)
 
 

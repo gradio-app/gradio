@@ -1004,7 +1004,12 @@ def value_is_file(api_info: dict) -> bool:
 
 
 def is_filepath(s, url_ok=True):
-    return isinstance(s, str) and Path(s).exists() and Path(s).is_file() and (url_ok or not is_url(s))
+    return (
+        isinstance(s, str)
+        and Path(s).exists()
+        and Path(s).is_file()
+        and (url_ok or not is_url(s))
+    )
 
 
 def is_url(s):
