@@ -253,7 +253,9 @@ class TestClientPredictions:
         with connect(video_component) as client:
             job = client.submit(
                 {
-                    "video": File("https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4")
+                    "video": File(
+                        "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
+                    )
                 },
                 fn_index=0,
             )
@@ -267,7 +269,9 @@ class TestClientPredictions:
         with connect(video_component, output_dir=temp_dir) as client:
             job = client.submit(
                 {
-                    "video": File("https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4")
+                    "video": File(
+                        "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
+                    )
                 },
                 fn_index=0,
             )
@@ -362,7 +366,9 @@ class TestClientPredictions:
             assert Path(job1.result()).exists()
 
             job2 = client.submit(
-                File("https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"),
+                File(
+                    "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+                ),
                 api_name="/predict",
             )
             assert Path(job2.result()).exists()
