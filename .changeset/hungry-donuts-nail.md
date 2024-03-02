@@ -4,4 +4,4 @@
 "gradio_client": minor
 ---
 
-feat:Recommends files to be explicitly provided as `File(...)` in the Client, and makes some fixes to `gr.load()` as well
+feat:Files should now be supplied as `File(...)` in the Client, and some fixes to `gr.load()` as well
