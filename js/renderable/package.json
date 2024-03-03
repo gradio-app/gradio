@@ -1,0 +1,17 @@
+{
+	"name": "@gradio/renderable",
+	"version": "0.1.0",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"author": "",
+	"license": "ISC",
+	"private": false,
+	"main_changeset": true,
+	"exports": {
+		".": "./Index.svelte",
+		"./package.json": "./package.json"
+	},
+	"dependencies": {
+		"@gradio/app": "workspace:^"
+	}
+}

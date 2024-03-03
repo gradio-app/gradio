@@ -3,6 +3,9 @@
 	"version": "1.25.2",
 	"private": true,
 	"type": "module",
+	"exports": {
+		".": "./src/Blocks.svelte"
+	},
 	"scripts": {
 		"dev": "vite --port 9876",
 		"dev:lite": "run-p dev:lite:*",
@@ -58,6 +61,7 @@
 		"@gradio/paramviewer": "workspace:^",
 		"@gradio/plot": "workspace:^",
 		"@gradio/radio": "workspace:^",
+		"@gradio/renderable": "workspace:^",
 		"@gradio/row": "workspace:^",
 		"@gradio/simpledropdown": "workspace:^",
 		"@gradio/simpleimage": "workspace:^",

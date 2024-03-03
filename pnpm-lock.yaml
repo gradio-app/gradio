@@ -471,6 +471,9 @@ importers:
       '@gradio/radio':
         specifier: workspace:^
         version: link:../radio
+      '@gradio/renderable':
+        specifier: workspace:^
+        version: link:../renderable
       '@gradio/row':
         specifier: workspace:^
         version: link:../row
@@ -1346,6 +1349,12 @@ importers:
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
+
+  js/renderable:
+    dependencies:
+      '@gradio/app':
+        specifier: workspace:^
+        version: link:../app
 
   js/row: {}
 
