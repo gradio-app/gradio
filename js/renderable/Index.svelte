@@ -1,5 +1,5 @@
 <script lang="ts">
-	import  Blocks from "@gradio/app";
+	import Blocks from "@gradio/app";
 
 	export let value: Record<any, any>;
 	let self: HTMLDivElement;
