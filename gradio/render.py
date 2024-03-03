@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import Any, Callable, Sequence
 
 from gradio.blocks import Blocks
-from gradio.layouts import Column
 from gradio.components import Component
 from gradio.context import Context, LocalContext
 from gradio.events import EventListener, EventListenerMethod
+from gradio.layouts import Column
 
 
 class Renderable(Component):
