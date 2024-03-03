@@ -14,6 +14,7 @@
 
 <div class="py-2 max-h-[750px] overflow-y-scroll">
 {#key name}
+	<div>
 	<button
 	class="bg-gray-200 text-gray-500 font-bold px-2 rounded float-right mx-4 my-2"
 	style="
@@ -29,6 +30,8 @@
 	>
 	Open in 🎢 Playground ↗
 	</button>
+</div>
+
 	<gradio-lite playground>
 		{code}
 	</gradio-lite>
