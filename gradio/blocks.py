@@ -38,7 +38,7 @@ from gradio import (
     wasm_utils,
 )
 from gradio.blocks_events import BlocksEvents, BlocksMeta
-from gradio.context import Context
+from gradio.context import get_root_block, set_root_block, get_block_context, set_block_context, get_next_block_id
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import (
     EventData,
@@ -105,8 +105,7 @@ class Block:
         visible: bool = True,
         proxy_url: str | None = None,
     ):
-        self._id = Context.id
-        Context.id += 1
+        self._id = get_next_block_id()
         self.visible = visible
         self.elem_id = elem_id
         self.elem_classes = (
@@ -148,17 +147,19 @@ class Block:
         """
         Adds self into appropriate BlockContext
         """
-        if Context.root_block is not None and self._id in Context.root_block.blocks:
+        root_block = get_root_block()
+        parent_block = get_block_context()
+        if root_block is not None and self._id in root_block.blocks:
             raise DuplicateBlockError(
                 f"A block with id: {self._id} has already been rendered in the current Blocks."
             )
-        if Context.block is not None:
-            Context.block.add(self)
-        if Context.root_block is not None:
-            Context.root_block.blocks[self._id] = self
+        if parent_block is not None:
+            parent_block.add(self)
+        if root_block is not None:
+            root_block.blocks[self._id] = self
             self.is_rendered = True
             if isinstance(self, components.Component):
-                Context.root_block.temp_file_sets.append(self.temp_files)
+                root_block.temp_file_sets.append(self.temp_files)
         return self
 
     def unrender(self):
@@ -166,14 +167,16 @@ class Block:
         Removes self from BlockContext if it has been rendered (otherwise does nothing).
         Removes self from the layout and collection of blocks, but does not delete any event triggers.
         """
-        if Context.block is not None:
+        root_block = get_root_block()
+        parent_block = get_block_context()
+        if parent_block is not None:
             try:
-                Context.block.children.remove(self)
+                parent_block.children.remove(self)
             except ValueError:
                 pass
-        if Context.root_block is not None:
+        if root_block is not None:
             try:
-                del Context.root_block.blocks[self._id]
+                del root_block.blocks[self._id]
                 self.is_rendered = False
             except KeyError:
                 pass
@@ -329,8 +332,8 @@ class BlockContext(Block):
         self.children.append(child)
 
     def __enter__(self):
-        self.parent = Context.block
-        Context.block = self
+        self.parent = get_block_context()
+        set_block_context(self)
         return self
 
     def add(self, child: Block):
@@ -340,6 +343,7 @@ class BlockContext(Block):
     def fill_expected_parents(self):
         children = []
         pseudo_parent = None
+        root_block = get_root_block()
         for child in self.children:
             expected_parent = child.get_expected_parent()
             if not expected_parent or isinstance(self, expected_parent):
@@ -355,13 +359,13 @@ class BlockContext(Block):
                     pseudo_parent.parent = self
                     children.append(pseudo_parent)
                     pseudo_parent.add_child(child)
-                    if Context.root_block:
-                        Context.root_block.blocks[pseudo_parent._id] = pseudo_parent
+                    if root_block:
+                        root_block.blocks[pseudo_parent._id] = pseudo_parent
                 child.parent = pseudo_parent
         self.children = children
 
     def __exit__(self, exc_type: type[BaseException] | None = None, *args):
-        Context.block = self.parent
+        set_block_context(self.parent)
         if exc_type is not None:
             return
         if getattr(self, "allow_expected_parents", True):
@@ -722,9 +726,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         derived_fields = ["types"]
 
+        root_block = get_root_block()
         with Blocks(theme=theme) as blocks:
             # ID 0 should be the root Blocks component
-            original_mapping[0] = Context.root_block or blocks
+            original_mapping[0] = root_block or blocks
 
             iterate_over_children(config["layout"]["children"])
 
@@ -779,13 +784,13 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     first_dependency = dependency
 
             # Allows some use of Interface-specific methods with loaded Spaces
-            if first_dependency and Context.root_block:
+            if first_dependency and root_block:
                 blocks.predict = [fns[0]]
                 blocks.input_components = [
-                    Context.root_block.blocks[i] for i in first_dependency["inputs"]
+                    root_block.blocks[i] for i in first_dependency["inputs"]
                 ]
                 blocks.output_components = [
-                    Context.root_block.blocks[o] for o in first_dependency["outputs"]
+                    root_block.blocks[o] for o in first_dependency["outputs"]
                 ]
                 blocks.__name__ = "Interface"
                 blocks.api_mode = True
@@ -1012,12 +1017,14 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         return dependency, len(self.dependencies) - 1
 
     def render(self):
-        if Context.root_block is not None:
-            if self._id in Context.root_block.blocks:
+        root_block = get_root_block()
+        parent_block = get_block_context()
+        if root_block is not None:
+            if self._id in root_block.blocks:
                 raise DuplicateBlockError(
                     f"A block with id: {self._id} has already been rendered in the current Blocks."
                 )
-            overlapping_ids = set(Context.root_block.blocks).intersection(self.blocks)
+            overlapping_ids = set(root_block.blocks).intersection(self.blocks)
             for id in overlapping_ids:
                 # State components are allowed to be reused between Blocks
                 if not isinstance(self.blocks[id], components.State):
@@ -1025,15 +1032,15 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         "At least one block in this Blocks has already been rendered."
                     )
 
-            Context.root_block.blocks.update(self.blocks)
-            Context.root_block.fns.extend(self.fns)
-            dependency_offset = len(Context.root_block.dependencies)
+            root_block.blocks.update(self.blocks)
+            root_block.fns.extend(self.fns)
+            dependency_offset = len(root_block.dependencies)
             for i, dependency in enumerate(self.dependencies):
                 api_name = dependency["api_name"]
                 if api_name is not None and api_name is not False:
                     api_name_ = utils.append_unique_suffix(
                         api_name,
-                        [dep["api_name"] for dep in Context.root_block.dependencies],
+                        [dep["api_name"] for dep in root_block.dependencies],
                     )
                     if api_name != api_name_:
                         dependency["api_name"] = api_name_
@@ -1047,7 +1054,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 # events in the backend
                 if dependency["cancels"]:
                     updated_cancels = [
-                        Context.root_block.dependencies[i]
+                        root_block.dependencies[i]
                         for i in dependency["cancels"]
                     ]
                     new_fn = BlockFunction(
@@ -1058,13 +1065,13 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         True,
                         False,
                     )
-                    Context.root_block.fns[dependency_offset + i] = new_fn
-                Context.root_block.dependencies.append(dependency)
-            Context.root_block.temp_file_sets.extend(self.temp_file_sets)
-            Context.root_block.proxy_urls.update(self.proxy_urls)
+                    root_block.fns[dependency_offset + i] = new_fn
+                root_block.dependencies.append(dependency)
+            root_block.temp_file_sets.extend(self.temp_file_sets)
+            root_block.proxy_urls.update(self.proxy_urls)
 
-        if Context.block is not None:
-            Context.block.children.extend(self.children)
+        if parent_block is not None:
+            parent_block.children.extend(self.children)
         return self
 
     def is_callable(self, fn_index: int = 0) -> bool:
@@ -1764,24 +1771,25 @@ Received outputs:
         return config
 
     def __enter__(self):
-        if Context.block is None:
-            Context.root_block = self
-        self.parent = Context.block
-        Context.block = self
+        parent_block = get_block_context()
+        if parent_block is None:
+            set_root_block(self)
+        self.parent = parent_block
+        set_block_context(self)
         self.exited = False
         return self
 
     def __exit__(self, exc_type: type[BaseException] | None = None, *args):
         if exc_type is not None:
-            Context.block = None
-            Context.root_block = None
+            set_block_context(None)
+            set_root_block(None)
             return
         super().fill_expected_parents()
-        Context.block = self.parent
+        set_block_context(self.parent)
         # Configure the load events before root_block is reset
         self.attach_load_events()
         if self.parent is None:
-            Context.root_block = None
+            set_root_block(None)
         else:
             self.parent.children.extend(self.children)
         self.config = self.get_config_file()
@@ -2355,8 +2363,9 @@ Received outputs:
 
     def attach_load_events(self):
         """Add a load event for every component whose initial value should be randomized."""
-        if Context.root_block:
-            for component in Context.root_block.blocks.values():
+        root_block = get_root_block()
+        if root_block:
+            for component in root_block.blocks.values():
                 if (
                     isinstance(component, components.Component)
                     and component.load_event_to_attach
