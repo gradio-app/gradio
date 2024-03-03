@@ -38,7 +38,13 @@ from gradio import (
     wasm_utils,
 )
 from gradio.blocks_events import BlocksEvents, BlocksMeta
-from gradio.context import get_root_block, set_root_block, get_block_context, set_block_context, get_next_block_id
+from gradio.context import (
+    get_block_context,
+    get_next_block_id,
+    get_root_block,
+    set_block_context,
+    set_root_block,
+)
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import (
     EventData,
@@ -1054,8 +1060,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 # events in the backend
                 if dependency["cancels"]:
                     updated_cancels = [
-                        root_block.dependencies[i]
-                        for i in dependency["cancels"]
+                        root_block.dependencies[i] for i in dependency["cancels"]
                     ]
                     new_fn = BlockFunction(
                         get_cancel_function(updated_cancels)[0],
