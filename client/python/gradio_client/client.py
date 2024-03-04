@@ -32,7 +32,7 @@ from packaging import version
 
 from gradio_client import serializing, utils
 from gradio_client.documentation import document
-from gradio_client.exceptions import SerializationSetupError
+from gradio_client.exceptions import AuthenticationError, SerializationSetupError
 from gradio_client.utils import (
     Communicator,
     JobStatus,
@@ -731,7 +731,12 @@ class Client:
             data={"username": auth[0], "password": auth[1]},
         )
         if not resp.is_success:
-            raise ValueError(f"Could not login to {self.src}")
+            if resp.status_code == 401:
+                raise AuthenticationError(
+                    f"Could not login to {self.src}. Invalid credentials."
+                )
+            else:
+                raise ValueError(f"Could not login to {self.src}.")
         self.cookies = {
             name: value for name, value in resp.cookies.items() if value is not None
         }
@@ -745,7 +750,9 @@ class Client:
         if r.is_success:
             return r.json()
         elif r.status_code == 401:
-            raise ValueError(f"Could not load {self.src}. Please login.")
+            raise AuthenticationError(
+                f"Could not load {self.src} as credentials were not provided. Please login."
+            )
         else:  # to support older versions of Gradio
             r = httpx.get(self.src, headers=self.headers, cookies=self.cookies)
             if not r.is_success:
@@ -943,12 +950,7 @@ class Endpoint:
         ]
         self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
         self.is_continuous = dependency.get("types", {}).get("continuous", False)
-        self.download_file = lambda d: self._download_file(
-            d,
-            save_dir=self.client.output_dir,
-            hf_token=self.client.hf_token,
-            root_url=self.root_url,
-        )
+
         # Disallow hitting endpoints that the Gradio app has disabled
         self.is_valid = self.api_name is not False
         self.backend_fn = dependency.get("backend_fn")
@@ -1081,7 +1083,12 @@ class Endpoint:
             for f in fs:
                 files.append(("files", (Path(f).name, open(f, "rb"))))  # noqa: SIM115
                 indices.append(i)
-        r = httpx.post(self.client.upload_url, headers=self.client.headers, files=files)
+        r = httpx.post(
+            self.client.upload_url,
+            headers=self.client.headers,
+            cookies=self.client.cookies,
+            files=files,
+        )
         if r.status_code != 200:
             uploaded = file_paths
         else:
@@ -1170,30 +1177,27 @@ class Endpoint:
         o = tuple(data)
         return o
 
-    @staticmethod
-    def _download_file(
-        x: dict,
-        save_dir: str,
-        root_url: str,
-        hf_token: str | None = None,
-    ) -> str | None:
-        if x is None:
+    def download_file(self, file_data: dict) -> str | None:
+        if file_data is None:
             return None
-        if isinstance(x, str):
-            file_name = utils.decode_base64_to_file(x, dir=save_dir).name
-        elif isinstance(x, dict):
-            filepath = x.get("path")
+        if isinstance(file_data, str):
+            file_name = utils.decode_base64_to_file(
+                file_data, dir=self.client.output_dir
+            ).name
+        elif isinstance(file_data, dict):
+            filepath = file_data.get("path")
             if not filepath:
-                raise ValueError(f"The 'path' field is missing in {x}")
+                raise ValueError(f"The 'path' field is missing in {file_data}")
             file_name = utils.download_file(
-                root_url + "file=" + filepath,
-                hf_token=hf_token,
-                dir=save_dir,
+                self.root_url + "file=" + filepath,
+                save_dir=self.client.output_dir,
+                headers=self.client.headers,
+                cookies=self.client.cookies,
             )
 
         else:
             raise ValueError(
-                f"A FileSerializable component can only deserialize a string or a dict, not a {type(x)}: {x}"
+                f"A FileSerializable component can only deserialize a string or a dict, not a {type(file_name)}: {file_name}"
             )
         return file_name
 
