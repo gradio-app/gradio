@@ -361,7 +361,7 @@ def test_add_root_url():
     new_expected = {
         "file": {
             "path": "path",
-            "url": f"{root_url}/file=path",
+            "url": f"{new_root_url}/file=path",
         },
         "file2": {
             "path": "path2",
@@ -369,5 +369,5 @@ def test_add_root_url():
         },
     }
     assert (
-        processing_utils.add_root_url(expected, root_url, new_root_url) == new_expected
+        processing_utils.add_root_url(expected, new_root_url, root_url) == new_expected
     )

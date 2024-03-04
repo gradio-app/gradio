@@ -299,10 +299,11 @@ def move_files_to_cache(
 
 def add_root_url(data: dict, root_url: str, previous_root_url: str | None) -> dict:
     def _add_root_url(file_dict: dict):
-        if not client_utils.is_http_url_like(file_dict["url"]):
-            if previous_root_url and file_dict["url"].startswith(previous_root_url):
-                file_dict["url"] = file_dict["url"][len(previous_root_url) :]
-            file_dict["url"] = f'{root_url}{file_dict["url"]}'
+        if previous_root_url and file_dict["url"].startswith(previous_root_url):
+            file_dict["url"] = file_dict["url"][len(previous_root_url) :]
+        elif client_utils.is_http_url_like(file_dict["url"]):
+            return file_dict
+        file_dict["url"] = f'{root_url}{file_dict["url"]}'
         return file_dict
 
     return client_utils.traverse(data, _add_root_url, client_utils.is_file_obj_with_url)
