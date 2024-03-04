@@ -14,7 +14,7 @@ inputs:
   skip_build:
     description: 'Skip build'
     default: 'false'
-  build-lite:
+  build_lite:
     description: 'Build lite'
     default: 'false'
   os:
@@ -52,7 +52,7 @@ runs:
       shell: bash
       run: pnpm build
     - name: Build frontend lite
-      if: inputs.build-lite == 'true'
+      if: inputs.build_lite == 'true'
       shell: bash
       run: |
         . venv/bin/activate
