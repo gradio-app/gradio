@@ -731,7 +731,12 @@ class Client:
             data={"username": auth[0], "password": auth[1]},
         )
         if not resp.is_success:
-            raise AuthenticationError(f"Could not login to {self.src}")
+            if resp.status_code == 401:
+                raise AuthenticationError(
+                    f"Could not login to {self.src}. Invalid credentials."
+                )
+            else:
+                raise ValueError(f"Could not login to {self.src}.")
         self.cookies = {
             name: value for name, value in resp.cookies.items() if value is not None
         }
@@ -745,7 +750,9 @@ class Client:
         if r.is_success:
             return r.json()
         elif r.status_code == 401:
-            raise AuthenticationError(f"Could not load {self.src}. Please login.")
+            raise AuthenticationError(
+                f"Could not load {self.src} as credentials were not provided. Please login."
+            )
         else:  # to support older versions of Gradio
             r = httpx.get(self.src, headers=self.headers, cookies=self.cookies)
             if not r.is_success:

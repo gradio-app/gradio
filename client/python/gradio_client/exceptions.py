@@ -5,6 +5,6 @@ class SerializationSetupError(ValueError):
 
 
 class AuthenticationError(ValueError):
-    """Raised when the client is unable to authenticate itself to a Gradio app due to an invalid username/password combination."""
+    """Raised when the client is unable to authenticate itself to a Gradio app due to invalid or missing credentials."""
 
     pass
