@@ -21,6 +21,7 @@ from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
 from gradio_client.client import DEFAULT_TEMP_DIR
+from gradio_client.exceptions import AuthenticationError
 from gradio_client.utils import (
     Communicator,
     ProgressUnit,
@@ -296,6 +297,18 @@ class TestClientPredictions:
                 )
                 count += unit in all_progress_data
             assert count
+
+    def test_upload_and_download_with_auth(self):
+        demo = gr.Interface(lambda x: x, "text", "text")
+        _, url, _ = demo.launch(auth=("user", "pass"), prevent_thread_lock=True)
+        with pytest.raises(AuthenticationError):
+            client = Client(url)
+        client = Client(url, auth=("user", "pass"))
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+            f.write("Hello file!")
+        output = client.predict(f.name, api_name="/predict")
+        with open(output) as f:
+            assert f.read() == "Hello file!"
 
     def test_cancel_from_client_queued(self, cancel_from_client_demo):
         with connect(cancel_from_client_demo) as client:
