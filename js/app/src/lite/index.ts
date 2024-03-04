@@ -258,7 +258,7 @@ export function create(options: Options): GradioAppController {
 // @ts-ignore
 globalThis.createGradioApp = create;
 
-bootstrap_custom_element();
+bootstrap_custom_element(create);
 
 declare let BUILD_MODE: string;
 if (BUILD_MODE === "dev") {

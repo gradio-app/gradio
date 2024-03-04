@@ -37,7 +37,7 @@
 	<Column variant="panel" min_width={480}>
 		<h2>{$_("login.login")}</h2>
 		{#if auth_message}
-			<p class="auth">{auth_message}</p>
+			<p class="auth">{@html auth_message}</p>
 		{/if}
 		{#if space_id}
 			<p class="auth">
