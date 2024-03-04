@@ -37,7 +37,7 @@ const test_normal = base.extend<{ setup: void }>({
 	]
 });
 
-const lite_url = "http://localhost:9876/lite.html";
+const lite_url = "http://localhost:8000/for_e2e.html";
 // LIte taks a long time to initialize, so we share the page across tests, sacrificing the test isolation.
 let shared_page_for_lite: Page;
 const test_lite = base.extend<{ setup: void }>({
