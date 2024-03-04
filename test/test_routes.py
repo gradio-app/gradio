@@ -27,7 +27,12 @@ from gradio import (
     routes,
     wasm_utils,
 )
-from gradio.route_utils import FnIndexInferError, get_root_url
+from gradio.route_utils import (
+    FnIndexInferError,
+    compare_passwords_securely,
+    get_root_url,
+    starts_with_protocol,
+)
 
 
 @pytest.fixture()
@@ -396,9 +401,15 @@ class TestRoutes:
     def test_cannot_access_files_in_working_directory(self, test_client):
         response = test_client.get(r"/file=not-here.js")
         assert response.status_code == 403
+        response = test_client.get(r"/file=subdir/.env")
+        assert response.status_code == 403
 
     def test_cannot_access_directories_in_working_directory(self, test_client):
         response = test_client.get(r"/file=gradio")
+        assert response.status_code == 403
+
+    def test_block_protocols_that_expose_windows_credentials(self, test_client):
+        response = test_client.get(r"/file=//11.0.225.200/share")
         assert response.status_code == 403
 
     def test_do_not_expose_existence_of_files_outside_working_directory(
@@ -453,6 +464,24 @@ class TestRoutes:
         response = client.get("/config/")
         assert response.is_success
 
+    def test_cors_restrictions(self):
+        io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        custom_headers = {
+            "host": "localhost:7860",
+            "origin": "https://example.com",
+        }
+        file_response = client.get("/config", headers=custom_headers)
+        assert "access-control-allow-origin" not in file_response.headers
+        custom_headers = {
+            "host": "localhost:7860",
+            "origin": "127.0.0.1",
+        }
+        file_response = client.get("/config", headers=custom_headers)
+        assert file_response.headers["access-control-allow-origin"] == "127.0.0.1"
+        io.close()
+
 
 class TestApp:
     def test_create_app(self):
@@ -474,17 +503,49 @@ class TestAuthenticatedRoutes:
             data={"username": "test", "password": "correct_password"},
         )
         assert response.status_code == 200
+
         response = client.post(
             "/login",
             data={"username": "test", "password": "incorrect_password"},
         )
         assert response.status_code == 400
 
+        client.post(
+            "/login",
+            data={"username": "test", "password": "correct_password"},
+        )
         response = client.post(
             "/login",
             data={"username": " test ", "password": "correct_password"},
         )
         assert response.status_code == 200
+
+    def test_logout(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(
+            auth=("test", "correct_password"),
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        client.post(
+            "/login",
+            data={"username": "test", "password": "correct_password"},
+        )
+
+        response = client.post(
+            "/run/predict",
+            json={"data": ["test"]},
+        )
+        assert response.status_code == 200
+
+        response = client.get("/logout")
+
+        response = client.post(
+            "/run/predict",
+            json={"data": ["test"]},
+        )
+        assert response.status_code == 401
 
 
 class TestQueueRoutes:
@@ -716,25 +777,6 @@ def test_orjson_serialization():
     response = test_client.get("/")
     assert response.status_code == 200
     demo.close()
-
-
-def test_file_route_does_not_allow_dot_paths(tmp_path):
-    dot_file = tmp_path / ".env"
-    dot_file.write_text("secret=1234")
-    subdir = tmp_path / "subdir"
-    subdir.mkdir()
-    sub_dot_file = subdir / ".env"
-    sub_dot_file.write_text("secret=1234")
-    secret_sub_dir = tmp_path / ".versioncontrol"
-    secret_sub_dir.mkdir()
-    secret_sub_dir_regular_file = secret_sub_dir / "settings"
-    secret_sub_dir_regular_file.write_text("token = 8")
-    with closing(gr.Interface(lambda s: s.name, gr.File(), gr.File())) as io:
-        app, _, _ = io.launch(prevent_thread_lock=True)
-        client = TestClient(app)
-        assert client.get("/file=.env").status_code == 403
-        assert client.get("/file=subdir/.env").status_code == 403
-        assert client.get("/file=.versioncontrol/settings").status_code == 403
 
 
 def test_api_name_set_for_all_events(connect):
@@ -1036,3 +1078,31 @@ class TestSimpleAPIRoutes:
             "event: error",
             "data: null",
         ]
+        
+def test_compare_passwords_securely():
+    password1 = "password"
+    password2 = "pässword"
+    assert compare_passwords_securely(password1, password1)
+    assert not compare_passwords_securely(password1, password2)
+    assert compare_passwords_securely(password2, password2)
+
+
+@pytest.mark.parametrize(
+    "string, expected",
+    [
+        ("http://localhost:7860/", True),
+        ("https://localhost:7860/", True),
+        ("ftp://localhost:7860/", True),
+        ("smb://example.com", True),
+        ("ipfs://QmTzQ1Nj5R9BzF1djVQv8gvzZxVkJb1vhrLcXL1QyJzZE", True),
+        ("usr/local/bin", False),
+        ("localhost:7860", False),
+        ("localhost", False),
+        ("C:/Users/username", False),
+        ("//path", True),
+        ("\\\\path", True),
+        ("/usr/bin//test", False),
+    ],
+)
+def test_starts_with_protocol(string, expected):
+    assert starts_with_protocol(string) == expected

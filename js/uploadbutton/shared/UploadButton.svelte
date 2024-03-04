@@ -5,7 +5,6 @@
 		upload,
 		prepare_files,
 		type FileData,
-		get_fetchable_url_or_file,
 		type upload_files
 	} from "@gradio/client";
 
@@ -18,13 +17,11 @@
 	export let file_types: string[] = [];
 	export let root: string;
 	export let size: "sm" | "lg" = "lg";
-	export let icon: string | null = null;
+	export let icon: FileData | null = null;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let disabled = false;
-	export let proxy_url: string | null = null;
-	$: icon_path = get_fetchable_url_or_file(icon, root, proxy_url);
 
 	const dispatch = createEventDispatcher();
 
@@ -46,12 +43,12 @@
 		accept_file_types = file_types.join(", ");
 	}
 
-	function openFileUpload(): void {
+	function open_file_upload(): void {
 		dispatch("click");
 		hidden_upload.click();
 	}
 
-	async function loadFiles(files: FileList): Promise<void> {
+	async function load_files(files: FileList): Promise<void> {
 		let _files: File[] = Array.from(files);
 		if (!files.length) {
 			return;
@@ -70,14 +67,14 @@
 		dispatch("upload", value);
 	}
 
-	async function loadFilesFromUpload(e: Event): Promise<void> {
+	async function load_files_from_upload(e: Event): Promise<void> {
 		const target = e.target as HTMLInputElement;
 
 		if (!target.files) return;
-		await loadFiles(target.files);
+		await load_files(target.files);
 	}
 
-	function clearInputValue(e: Event): void {
+	function clear_input_value(e: Event): void {
 		const target = e.target as HTMLInputElement;
 		if (target.value) target.value = "";
 	}
@@ -88,8 +85,8 @@
 	accept={accept_file_types}
 	type="file"
 	bind:this={hidden_upload}
-	on:change={loadFilesFromUpload}
-	on:click={clearInputValue}
+	on:change={load_files_from_upload}
+	on:click={clear_input_value}
 	multiple={file_count === "multiple" || undefined}
 	webkitdirectory={file_count === "directory" || undefined}
 	mozdirectory={file_count === "directory" || undefined}
@@ -102,13 +99,13 @@
 	{elem_id}
 	{elem_classes}
 	{visible}
-	on:click={openFileUpload}
+	on:click={open_file_upload}
 	{scale}
 	{min_width}
 	{disabled}
 >
 	{#if icon}
-		<img class="button-icon" src={icon_path} alt={`${value} icon`} />
+		<img class="button-icon" src={icon.url} alt={`${value} icon`} />
 	{/if}
 	<slot />
 </BaseButton>

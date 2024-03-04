@@ -16,7 +16,7 @@
 		"@rollup/plugin-node-resolve": "^15.1.0",
 		"@rollup/plugin-typescript": "^11.1.2",
 		"rollup": "^3.28.0",
-		"svelte-hmr": "^0.15.3"
+		"svelte-hmr": "^0.16.0"
 	},
 	"dependencies": {
 		"@originjs/vite-plugin-commonjs": "^1.0.3",
@@ -25,7 +25,7 @@
 		"@types/which": "^3.0.0",
 		"coffeescript": "^2.7.0",
 		"css-tree": "2.3.1",
-		"esbuild-wasm": "^0.19.0",
+		"esbuild-wasm": "^0.20.0",
 		"lightningcss": "^1.21.7",
 		"pug": "^3.0.2",
 		"rollup-plugin-ignore": "^1.0.10",

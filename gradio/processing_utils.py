@@ -20,7 +20,7 @@ from PIL import Image, ImageOps, PngImagePlugin
 
 from gradio import wasm_utils
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
-from gradio.utils import abspath
+from gradio.utils import abspath, get_upload_folder, is_in_or_equal
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
@@ -29,7 +29,7 @@ with warnings.catch_warnings():
 log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from gradio.components.base import Component
+    from gradio.blocks import Block
 
 #########################
 # GENERAL
@@ -228,7 +228,7 @@ def save_base64_to_cache(
 
 
 def move_resource_to_block_cache(
-    url_or_file_path: str | Path | None, block: Component
+    url_or_file_path: str | Path | None, block: Block
 ) -> str | None:
     """This method has been replaced by Block.move_resource_to_block_cache(), but is
     left here for backwards compatibility for any custom components created in Gradio 4.2.0 or earlier.
@@ -238,9 +238,9 @@ def move_resource_to_block_cache(
 
 def move_files_to_cache(
     data: Any,
-    block: Component,
+    block: Block,
     postprocess: bool = False,
-    add_urls=False,
+    check_in_upload_folder=False,
 ) -> dict:
     """Move any files in `data` to cache and (optionally), adds URL prefixes (/file=...) needed to access the cached file.
     Also handles the case where the file is on an external Gradio app (/proxy=...).
@@ -251,7 +251,7 @@ def move_files_to_cache(
         data: The input or output data for a component. Can be a dictionary or a dataclass
         block: The component whose data is being processed
         postprocess: Whether its running from postprocessing
-        root_url: The root URL of the local server, if applicable
+        check_in_upload_folder: If True, instead of moving the file to cache, checks if the file is in already in cache (exception if not).
     """
 
     def _move_to_cache(d: dict):
@@ -260,26 +260,34 @@ def move_files_to_cache(
         # postprocess, it means the component can display a URL
         # without it being served from the gradio server
         # This makes it so that the URL is not downloaded and speeds up event processing
-        if payload.url and postprocess:
+        if payload.url and postprocess and client_utils.is_http_url_like(payload.url):
             payload.path = payload.url
         elif not block.proxy_url:
             # If the file is on a remote server, do not move it to cache.
-            temp_file_path = move_resource_to_block_cache(payload.path, block)
-            assert temp_file_path is not None
+            if check_in_upload_folder and not client_utils.is_http_url_like(
+                payload.path
+            ):
+                path = os.path.abspath(payload.path)
+                if not is_in_or_equal(path, get_upload_folder()):
+                    raise ValueError(
+                        f"File {path} is not in the upload folder and cannot be accessed."
+                    )
+            temp_file_path = block.move_resource_to_block_cache(payload.path)
+            if temp_file_path is None:
+                raise ValueError("Did not determine a file path for the resource.")
             payload.path = temp_file_path
 
-        if add_urls:
-            url_prefix = "/stream/" if payload.is_stream else "/file="
-            if block.proxy_url:
-                proxy_url = block.proxy_url.rstrip("/")
-                url = f"/proxy={proxy_url}{url_prefix}{payload.path}"
-            elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
-                f"{url_prefix}"
-            ):
-                url = payload.path
-            else:
-                url = f"{url_prefix}{payload.path}"
-            payload.url = url
+        url_prefix = "/stream/" if payload.is_stream else "/file="
+        if block.proxy_url:
+            proxy_url = block.proxy_url.rstrip("/")
+            url = f"/proxy={proxy_url}{url_prefix}{payload.path}"
+        elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
+            f"{url_prefix}"
+        ):
+            url = payload.path
+        else:
+            url = f"{url_prefix}{payload.path}"
+        payload.url = url
 
         return payload.model_dump()
 
@@ -291,10 +299,11 @@ def move_files_to_cache(
 
 def add_root_url(data: dict, root_url: str, previous_root_url: str | None) -> dict:
     def _add_root_url(file_dict: dict):
-        if not client_utils.is_http_url_like(file_dict["url"]):
-            if previous_root_url and file_dict["url"].startswith(previous_root_url):
-                file_dict["url"] = file_dict["url"][len(previous_root_url) :]
-            file_dict["url"] = f'{root_url}{file_dict["url"]}'
+        if previous_root_url and file_dict["url"].startswith(previous_root_url):
+            file_dict["url"] = file_dict["url"][len(previous_root_url) :]
+        elif client_utils.is_http_url_like(file_dict["url"]):
+            return file_dict
+        file_dict["url"] = f'{root_url}{file_dict["url"]}'
         return file_dict
 
     return client_utils.traverse(data, _add_root_url, client_utils.is_file_obj_with_url)

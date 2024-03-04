@@ -1,5 +1,40 @@
 # gradio
 
+## 4.19.2
+
+### Features
+
+- [#7495](https://github.com/gradio-app/gradio/pull/7495) [`ddd4d3e`](https://github.com/gradio-app/gradio/commit/ddd4d3e4d3883fb7540d1df240fb08202fc77705) - Enable Ruff S101.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7443](https://github.com/gradio-app/gradio/pull/7443) [`b7a97f2`](https://github.com/gradio-app/gradio/commit/b7a97f29b84a72678a717db03d2932ed6caae6ce) - Update `httpx` to `httpx>=0.24.1` in `requirements.txt`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7465](https://github.com/gradio-app/gradio/pull/7465) [`16fbe9c`](https://github.com/gradio-app/gradio/commit/16fbe9cd0cffa9f2a824a0165beb43446114eec7) - Prevent components from working with non-uploaded files.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#7503](https://github.com/gradio-app/gradio/pull/7503) [`84802ee`](https://github.com/gradio-app/gradio/commit/84802ee6a4806c25287344dce581f9548a99834a) - Tighten CORS rules.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+### Fixes
+
+- [#7466](https://github.com/gradio-app/gradio/pull/7466) [`98a2719`](https://github.com/gradio-app/gradio/commit/98a2719bfb9c64338caf9009891b6c6b0b33ea89) - Fix z-index layer of orange generating border.  Thanks [@daviirodrig](https://github.com/daviirodrig)!
+- [#7507](https://github.com/gradio-app/gradio/pull/7507) [`9c36572`](https://github.com/gradio-app/gradio/commit/9c36572e32aeec6e6352a861dfea6ee0f9a15e79) - Quick fix: File height overflow.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#7495](https://github.com/gradio-app/gradio/pull/7495) [`ddd4d3e`](https://github.com/gradio-app/gradio/commit/ddd4d3e4d3883fb7540d1df240fb08202fc77705) - ensure Dataframe headers are aligned with content when scrolling.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7470](https://github.com/gradio-app/gradio/pull/7470) [`ba3ec13`](https://github.com/gradio-app/gradio/commit/ba3ec1300e81e64be7389d759b89284c66473158) - Tab select fix.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#7505](https://github.com/gradio-app/gradio/pull/7505) [`b186767`](https://github.com/gradio-app/gradio/commit/b18676774448f44a2ef3a9490224703254cffa7c) - Fix `Gallery` preview overlay and backdrop.  Thanks [@MMP0](https://github.com/MMP0)!
+- [#7511](https://github.com/gradio-app/gradio/pull/7511) [`33f68cb`](https://github.com/gradio-app/gradio/commit/33f68cb6c22897f7996b6c84b0e528c47fae00b5) - Fix Canvas3D/Canvas3DGS async imports.  Thanks [@whitphx](https://github.com/whitphx)!
+
+## 4.19.1
+
+### Features
+
+- [#7453](https://github.com/gradio-app/gradio/pull/7453) [`ba747ad`](https://github.com/gradio-app/gradio/commit/ba747adb87e1937c0a791186eee3997d034363e6) - Make fix in #7444 (Block /file= filepaths that could expose credentials on Windows) more general.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7416](https://github.com/gradio-app/gradio/pull/7416) [`c88290d`](https://github.com/gradio-app/gradio/commit/c88290d90a81811911361e26fa9523c9b13db527) - WIP: Optimize /file route.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#7440](https://github.com/gradio-app/gradio/pull/7440) [`e329f1f`](https://github.com/gradio-app/gradio/commit/e329f1fd38935213fe0e73962e8cbd5d3af6e87b) - Prevent timing attacks to guess Gradio passwords.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7425](https://github.com/gradio-app/gradio/pull/7425) [`3e4e680`](https://github.com/gradio-app/gradio/commit/3e4e680a52ba5a73c108ef1b328dacd7b6e4b566) - Fixes to the `.key_up()` method to make it usable for a dynamic dropdown autocomplete.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+### Fixes
+
+- [#7444](https://github.com/gradio-app/gradio/pull/7444) [`4faf8a7`](https://github.com/gradio-app/gradio/commit/4faf8a7e86bfe811ef3d90ac5abdbd41409fafb1) - Block `/file=` filepaths that could expose credentials on Windows.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7441](https://github.com/gradio-app/gradio/pull/7441) [`f52cab6`](https://github.com/gradio-app/gradio/commit/f52cab634b94638d7f4625d40bf3d9afbe68040b) - Dispatch change event for file explorer.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#7327](https://github.com/gradio-app/gradio/pull/7327) [`fb1f6be`](https://github.com/gradio-app/gradio/commit/fb1f6befad12106faafd94d221c1ed0e50b0a037) - Run pre/post processing in threadpool.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#7431](https://github.com/gradio-app/gradio/pull/7431) [`6b8a7e5`](https://github.com/gradio-app/gradio/commit/6b8a7e5d36887cdfcfbfec1536a915128df0d6b2) - Ensure `gr.Dropdown` can have an empty initial value.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6991](https://github.com/gradio-app/gradio/pull/6991) [`f191786`](https://github.com/gradio-app/gradio/commit/f1917867916647d383b8d7ce15e0c17f2abbdec1) - Improve responsiveness of `gr.Audio()` controls.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 4.19.0
 
 ### Features
