@@ -1572,11 +1572,8 @@ Received outputs:
         event_id: str | None = None,
         event_data: EventData | None = None,
         in_event_listener: bool = True,
-<<<<<<< HEAD
         simple_format: bool = False,
-=======
         explicit_call: bool = False,
->>>>>>> origin
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
