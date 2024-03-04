@@ -19,7 +19,7 @@
 	},
 	"devDependencies": {
 		"@types/ws": "^8.5.4",
-		"esbuild": "^0.19.0"
+		"esbuild": "^0.20.0"
 	},
 	"scripts": {
 		"bundle": "vite build --ssr",

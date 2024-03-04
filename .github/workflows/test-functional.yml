@@ -52,6 +52,7 @@ jobs:
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           always_install_pnpm: true
+          build_lite: true
       - name: install outbreak_forecast dependencies
         run: |
           . venv/bin/activate
@@ -73,7 +74,10 @@ jobs:
         run: |
           . venv/bin/activate
           pnpm run test:ct
-      # - run: pnpm --filter @gradio/app test:browser:lite
+      - name: Run Lite E2E tests
+        run: |
+          . venv/bin/activate
+          pnpm --filter @gradio/app test:browser:lite
       - name: do check
         if: always()
         uses: "gradio-app/github/actions/commit-status@main"
