@@ -56,7 +56,7 @@
 			old_input_text = input_text;
 		}
 		set_input_text();
-	} else if (choices.length > 0) {
+	} else if (choices.length > 0 && value != "") {
 		old_selected_index = 0;
 		selected_index = 0;
 		[input_text, value] = choices[selected_index];
