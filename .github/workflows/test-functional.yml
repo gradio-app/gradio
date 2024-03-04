@@ -73,7 +73,10 @@ jobs:
         run: |
           . venv/bin/activate
           pnpm run test:ct
-      # - run: pnpm --filter @gradio/app test:browser:lite
+      - name: Run Lite E2E tests
+        run: |
+          . venv/bin/activate
+          pnpm --filter @gradio/app test:browser:lite
       - name: do check
         if: always()
         uses: "gradio-app/github/actions/commit-status@main"
