@@ -39,28 +39,28 @@ class LocalContext:
     progress: ContextVar[Progress | None] = ContextVar("progress", default=None)
 
 
-def get_root_block() -> Blocks:
+def get_root_block() -> Blocks | None:
     if LocalContext.in_render_block.get():
         return LocalContext.render_root_block.get()
     else:
         return Context.root_block
 
 
-def set_root_block(blocks: Blocks):
+def set_root_block(blocks: Blocks | None):
     if LocalContext.in_render_block.get():
         return LocalContext.render_root_block.set(blocks)
     else:
         Context.root_block = blocks
 
 
-def get_block_context() -> BlockContext:
+def get_block_context() -> BlockContext | None:
     if LocalContext.in_render_block.get():
         return LocalContext.render_block_context.get()
     else:
         return Context.block_context
 
 
-def set_block_context(block_context: BlockContext):
+def set_block_context(block_context: BlockContext | None):
     if LocalContext.in_render_block.get():
         LocalContext.render_block_context.set(block_context)
     else:
