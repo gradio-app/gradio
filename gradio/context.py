@@ -31,9 +31,7 @@ class LocalContext:
     render_block_context: ContextVar[BlockContext | None] = ContextVar(
         "render_block_context", default=None
     )
-    render_block_id: ContextVar[int] = ContextVar(
-        "render_block_id", default=0
-    )
+    render_block_id: ContextVar[int] = ContextVar("render_block_id", default=0)
     event_id: ContextVar[str | None] = ContextVar("event_id", default=None)
     request: ContextVar[Request | None] = ContextVar("request", default=None)
     progress: ContextVar[Progress | None] = ContextVar("progress", default=None)
