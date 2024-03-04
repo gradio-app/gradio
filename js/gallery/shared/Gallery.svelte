@@ -82,7 +82,7 @@
 
 	function handle_preview_click(event: MouseEvent): void {
 		const element = event.target as HTMLElement;
-		const x = event.clientX;
+		const x = event.offsetX;
 		const width = element.offsetWidth;
 		const centerX = width / 2;
 
