@@ -89,7 +89,7 @@ class Client:
             output_dir: The directory to save files that are downloaded from the remote API. If None, reads from the GRADIO_TEMP_DIR environment variable. Defaults to a temporary directory on your machine.
             verbose: Whether the client should print statements to the console.
             headers: Additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. These headers will override the default headers if they have the same keys.
-            upload_files: Whether the client should treat input string filepath as files and upload them to the remote server. If False, the client will treat input string filepaths as strings always and not modify them, and files should be passed in explicitly using `gradio_client.File("path/to/file/or/url")` instead. False will become the default in a future version.
+            upload_files: Whether the client should treat input string filepath as files and upload them to the remote server. If False, the client will treat input string filepaths as strings always and not modify them, and files should be passed in explicitly using `gradio_client.File("path/to/file/or/url")` instead. This parameter will be deleted and False will become the default in a future version.
             download_files: Whether the client should download output files from the remote API and return them as string filepaths on the local machine. If False, the client will return a FileData dataclass object with the filepath on the remote machine instead.
         """
         self.verbose = verbose
@@ -993,6 +993,7 @@ class Endpoint:
             predictions = _predict(*data)
             if self.client.download_files:
                 predictions = self.process_predictions(*predictions)
+            predictions = self.reduce_singleton_output(*predictions)
             # Append final output only if not already present
             # for consistency between generators and not generators
             if helper:
@@ -1228,7 +1229,6 @@ class Endpoint:
     def process_predictions(self, *predictions):
         predictions = self.deserialize(*predictions)
         predictions = self.remove_skipped_components(*predictions)
-        predictions = self.reduce_singleton_output(*predictions)
         return predictions
 
     async def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
