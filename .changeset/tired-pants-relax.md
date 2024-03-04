@@ -1,9 +1,9 @@
 ---
-"@gradio/app": minor
-"@gradio/lite": minor
-"@gradio/tootils": minor
-"@gradio/wasm": minor
-"gradio": minor
+"@gradio/app": patch
+"@gradio/lite": patch
+"@gradio/tootils": patch
+"@gradio/wasm": patch
+"gradio": patch
 ---
 
 feat:fix-tests
