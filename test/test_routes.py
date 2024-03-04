@@ -1078,7 +1078,8 @@ class TestSimpleAPIRoutes:
             "event: error",
             "data: null",
         ]
-        
+
+
 def test_compare_passwords_securely():
     password1 = "password"
     password2 = "pässword"

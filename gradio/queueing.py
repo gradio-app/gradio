@@ -520,7 +520,8 @@ class Queue:
         )  # Do the same as https://github.com/tiangolo/fastapi/blob/0.87.0/fastapi/routing.py#L264
         # Also, decode the JSON string to a Python object, emulating the HTTP client behavior e.g. the `json()` method of `httpx`.
         response_json = json.loads(http_response.body.decode())
-        assert isinstance(response_json, dict), "Unexpected object."
+        if not isinstance(response_json, dict):
+            raise ValueError("Unexpected object.")
 
         return response_json
 
