@@ -988,6 +988,8 @@ def test_compare_passwords_securely():
         ("//path", True),
         ("\\\\path", True),
         ("/usr/bin//test", False),
+        ("/\\10.0.225.200/share", True),
+        ("\\/10.0.225.200/share", True),
     ],
 )
 def test_starts_with_protocol(string, expected):
