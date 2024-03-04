@@ -523,21 +523,21 @@ class Client:
                         'parameters': [
                             {
                                 'label': 'num1',
-                                'type_python': 'int | float',
+                                'python_type': 'int | float',
                                 'type_description': 'numeric value',
                                 'component': 'Number',
                                 'example_input': '5'
                             },
                             {
                                 'label': 'operation',
-                                'type_python': 'str',
+                                'python_type': 'str',
                                 'type_description': 'string value',
                                 'component': 'Radio',
                                 'example_input': 'add'
                             },
                             {
                                 'label': 'num2',
-                                'type_python': 'int | float',
+                                'python_type': 'int | float',
                                 'type_description': 'numeric value',
                                 'component': 'Number',
                                 'example_input': '5'
@@ -546,7 +546,7 @@ class Client:
                         'returns': [
                             {
                                 'label': 'output',
-                                'type_python': 'int | float',
+                                'python_type': 'int | float',
                                 'type_description': 'numeric value',
                                 'component': 'Number',
                             },

@@ -20,7 +20,7 @@ class UploadButton(Component):
     """
     Used to create an upload button, when clicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
 
-    Demos: upload_button
+    Demos: upload_and_download, upload_button
     """
 
     EVENTS = [Events.click, Events.upload]
@@ -53,6 +53,7 @@ class UploadButton(Component):
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
             size: Size of the button. Can be "sm" or "lg".
+            icon: URL or path to the icon file to display within the button. If None, no icon will be displayed.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: If False, the UploadButton will be in a disabled state.
