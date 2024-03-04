@@ -21,7 +21,9 @@ class Renderable(Component):
 
         self.fn = fn
         self.inputs = [inputs] if isinstance(inputs, Component) else inputs
-        self.initial_values = [input.value for input in self.inputs] if self.inputs else []
+        self.initial_values = (
+            [input.value for input in self.inputs] if self.inputs else []
+        )
         self.triggers: list[EventListenerMethod] = []
         if isinstance(triggers, EventListener):
             triggers = [triggers]
