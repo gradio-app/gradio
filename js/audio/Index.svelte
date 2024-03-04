@@ -109,10 +109,19 @@
 	};
 
 	const trim_region_settings = {
-		color: waveform_options.trim_region_color,
 		drag: true,
-		resize: true
+		resize: true,
+		color: waveform_options.trim_region_color || color_accent
 	};
+
+	function set_trim_region_colour(): void {
+		document.documentElement.style.setProperty(
+			"--trim-region-colour",
+			trim_region_settings.color || color_accent
+		);
+	}
+
+	set_trim_region_colour();
 
 	function handle_error({ detail }: CustomEvent<string>): void {
 		const [level, status] = detail.includes("Invalid file type")

@@ -247,7 +247,20 @@
 		border-radius: var(--radius-md);
 		height: 98% !important;
 		border: 1px solid var(--color-accent);
+		background-color: unset;
 		border-width: 1px 3px;
+	}
+
+	:global(::part(region))::after {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: var(--trim-region-colour);
+		opacity: 0.2;
+		border-radius: var(--radius-md);
 	}
 
 	:global(::part(region-handle)) {
