@@ -22,7 +22,7 @@ const config: StorybookConfig = {
 			}
 		}
 	},
-	staticDirs: ["./public"],
+	staticDirs: ["./public"]
 	// async viteFinal(config, { configType }) {
 	// 	return mergeConfig(config, {
 	// 		plugins:
