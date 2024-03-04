@@ -12,7 +12,6 @@
 <Story
 	name="Image file"
 	args={{
-		samples_dir: "",
 		value: {
 			path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
 			url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",

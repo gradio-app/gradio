@@ -17,6 +17,8 @@ demo = gr.Interface(
         [os.path.join(os.path.dirname(__file__), "files/Fox.gltf")],
         [os.path.join(os.path.dirname(__file__), "files/face.obj")],
         [os.path.join(os.path.dirname(__file__), "files/sofia.stl")],
+        ["https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/bonsai/bonsai-7k-mini.splat"],
+        ["https://huggingface.co/datasets/dylanebert/3dgs/resolve/main/luigi/luigi.ply"],
     ],
     cache_examples=True
 )

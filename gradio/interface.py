@@ -134,7 +134,7 @@ class Interface(Blocks):
             live: Whether the interface should automatically rerun if any of the inputs change.
             title: A title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
             description: A description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
-            article: An expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content.
+            article: An expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content. If it is an HTTP(S) link to a downloadable remote file, the content of this file is displayed.
             thumbnail: String path or url to image to use as display image when the web demo is shared on social media.
             theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             css: Custom css as a string or path to a css file. This css will be included in the demo webpage.
@@ -179,8 +179,14 @@ class Interface(Blocks):
         if additional_inputs is None:
             additional_inputs = []
 
-        assert isinstance(inputs, (str, list, Component))
-        assert isinstance(outputs, (str, list, Component))
+        if not isinstance(inputs, (str, list, Component)):
+            raise TypeError(
+                f"inputs must be a string, list, or Component, not {inputs}"
+            )
+        if not isinstance(outputs, (str, list, Component)):
+            raise TypeError(
+                f"outputs must be a string, list, or Component, not {outputs}"
+            )
 
         if not isinstance(inputs, list):
             inputs = [inputs]
@@ -279,7 +285,10 @@ class Interface(Blocks):
             InterfaceTypes.OUTPUT_ONLY,
         ]:
             for o in self.output_components:
-                assert isinstance(o, Component)
+                if not isinstance(o, Component):
+                    raise TypeError(
+                        f"Output component must be a Component, not {type(o)}"
+                    )
                 if o.interactive is None:
                     # Unless explicitly otherwise specified, force output components to
                     # be non-interactive
@@ -295,7 +304,7 @@ class Interface(Blocks):
         self.simple_description = utils.remove_html_tags(description)
         self.description = description
         if article is not None:
-            article = utils.readme_to_html(article)
+            article = utils.download_if_url(article)
         self.article = article
 
         self.thumbnail = thumbnail
@@ -418,11 +427,17 @@ class Interface(Blocks):
         except (TypeError, ValueError):
             param_names = utils.default_input_labels()
         for component, param_name in zip(self.input_components, param_names):
-            assert isinstance(component, Component)
+            if not isinstance(component, Component):
+                raise TypeError(
+                    f"Input component must be a Component, not {type(component)}"
+                )
             if component.label is None:
                 component.label = param_name
         for i, component in enumerate(self.output_components):
-            assert isinstance(component, Component)
+            if not isinstance(component, Component):
+                raise TypeError(
+                    f"Output component must be a Component, not {type(component)}"
+                )
             if component.label is None:
                 if len(self.output_components) == 1:
                     component.label = "output"
@@ -795,7 +810,10 @@ class Interface(Blocks):
             flag_components = self.input_components + self.output_components
 
         for flag_btn, (label, value) in zip(flag_btns, self.flagging_options):
-            assert isinstance(value, str)
+            if not isinstance(value, str):
+                raise TypeError(
+                    f"Flagging option value must be a string, not {value!r}"
+                )
             flag_method = FlagMethod(self.flagging_callback, label, value)
             flag_btn.click(
                 lambda: Button(value="Saving...", interactive=False),

@@ -8,7 +8,7 @@
 	import { tick } from "svelte";
 
 	import { Download, Image as ImageIcon } from "@gradio/icons";
-	import { normalise_file, type FileData } from "@gradio/client";
+	import { FileData } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
 	import { IconButton } from "@gradio/atoms";
 	import type { I18nFormatter } from "@gradio/utils";
@@ -18,8 +18,6 @@
 
 	export let show_label = true;
 	export let label: string;
-	export let root = "";
-	export let proxy_url: null | string = null;
 	export let value: GalleryData | null = null;
 	export let columns: number | number[] | undefined = [2];
 	export let rows: number | number[] | undefined = undefined;
@@ -49,7 +47,7 @@
 		value == null
 			? null
 			: value.map((data) => ({
-					image: normalise_file(data.image, root, proxy_url) as FileData,
+					image: data.image as FileData,
 					caption: data.caption
 			  }));
 
@@ -340,14 +338,22 @@
 	.preview {
 		display: flex;
 		position: absolute;
-		top: 0px;
-		right: 0px;
-		bottom: 0px;
-		left: 0px;
 		flex-direction: column;
 		z-index: var(--layer-2);
+		border-radius: calc(var(--block-radius) - var(--block-border-width));
+		-webkit-backdrop-filter: blur(8px);
 		backdrop-filter: blur(8px);
+		width: var(--size-full);
+		height: var(--size-full);
+	}
+
+	.preview::before {
+		content: "";
+		position: absolute;
+		z-index: var(--layer-below);
 		background: var(--background-fill-primary);
+		opacity: 0.9;
+		width: var(--size-full);
 		height: var(--size-full);
 	}
 

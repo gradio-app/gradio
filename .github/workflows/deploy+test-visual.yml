@@ -34,11 +34,6 @@ jobs:
           type: "visual"
           token: ${{ secrets.GITHUB_TOKEN }}
           name: "UI Tests"
-      - name: echo github context
-        if: always()
-        run: echo "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
-  
-
   comment-chromatic-start:
     uses: "./.github/workflows/comment-queue.yml"
     needs: changes
@@ -80,7 +75,7 @@ jobs:
         run: pnpm build-storybook --quiet
       - name: publish to chromatic
         id: publish-chromatic
-        uses: chromaui/action@v10
+        uses: chromaui/action@v11
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           token: ${{ secrets.GITHUB_TOKEN }}

@@ -377,7 +377,8 @@ async def get_pred_from_sse_v0(
         except asyncio.CancelledError:
             pass
 
-    assert len(done) == 1
+    if len(done) != 1:
+        raise ValueError(f"Did not expect {len(done)} tasks to be done.")
     for task in done:
         return task.result()
 
@@ -407,7 +408,8 @@ async def get_pred_from_sse_v1_v2(
         except asyncio.CancelledError:
             pass
 
-    assert len(done) == 1
+    if len(done) != 1:
+        raise ValueError(f"Did not expect {len(done)} tasks to be done.")
     for task in done:
         exception = task.exception()
         if exception:
@@ -895,7 +897,8 @@ def get_type(schema: dict):
         raise APIInfoParseError(f"Cannot parse type for {schema}")
 
 
-FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)"
+OLD_FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)"
+FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool)"
 
 
 def json_schema_to_python_type(schema: Any) -> str:
@@ -995,7 +998,7 @@ def traverse(json_obj: Any, func: Callable, is_root: Callable) -> Any:
 
 def value_is_file(api_info: dict) -> bool:
     info = _json_schema_to_python_type(api_info, api_info.get("$defs"))
-    return FILE_DATA in info
+    return FILE_DATA in info or OLD_FILE_DATA in info
 
 
 def is_filepath(s):
@@ -1008,6 +1011,12 @@ def is_url(s):
 
 def is_file_obj(d):
     return isinstance(d, dict) and "path" in d
+
+
+def is_file_obj_with_url(d):
+    return (
+        isinstance(d, dict) and "path" in d and "url" in d and isinstance(d["url"], str)
+    )
 
 
 SKIP_COMPONENTS = {

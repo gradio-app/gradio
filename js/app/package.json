@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/app",
-	"version": "1.23.0",
+	"version": "1.25.2",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -38,6 +38,7 @@
 		"@gradio/column": "workspace:^",
 		"@gradio/dataframe": "workspace:^",
 		"@gradio/dataset": "workspace:^",
+		"@gradio/downloadbutton": "workspace:^",
 		"@gradio/dropdown": "workspace:^",
 		"@gradio/fallback": "workspace:^",
 		"@gradio/file": "workspace:^",

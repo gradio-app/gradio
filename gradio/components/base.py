@@ -195,7 +195,11 @@ class Component(ComponentBase, Block):
         self.load_event_to_attach: None | tuple[Callable, float | None] = None
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         initial_value = self.postprocess(initial_value)
-        self.value = move_files_to_cache(initial_value, self, postprocess=True)  # type: ignore
+        self.value = move_files_to_cache(
+            initial_value,
+            self,  # type: ignore
+            postprocess=True,
+        )
 
         if callable(load_fn):
             self.attach_load_event(load_fn, every)
@@ -325,7 +329,8 @@ def component(cls_name: str, render: bool) -> Component:
     obj = utils.component_or_layout_class(cls_name)(render=render)
     if isinstance(obj, BlockContext):
         raise ValueError(f"Invalid component: {obj.__class__}")
-    assert isinstance(obj, Component)
+    if not isinstance(obj, Component):
+        raise TypeError(f"Expected a Component instance, but got {obj.__class__}")
     return obj
 
 
@@ -358,5 +363,8 @@ def get_component_instance(
         component_obj.render()
     elif unrender and component_obj.is_rendered:
         component_obj.unrender()
-    assert isinstance(component_obj, Component)
+    if not isinstance(component_obj, Component):
+        raise TypeError(
+            f"Expected a Component instance, but got {component_obj.__class__}"
+        )
     return component_obj

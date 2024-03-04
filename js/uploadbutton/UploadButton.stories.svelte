@@ -68,7 +68,10 @@
 	name="Button with external image icon"
 	args={{
 		label: "Upload",
-		icon: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg"
+		icon: {
+			path: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
+			url: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg"
+		}
 	}}
 />
 <Story

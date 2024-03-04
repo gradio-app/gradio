@@ -12,6 +12,11 @@ classes_to_document = defaultdict(list)
 classes_inherit_documentation = {}
 
 
+def set_documentation_group(m):  # noqa: ARG001
+    """A no-op for backwards compatibility of custom components published prior to 4.16.0"""
+    pass
+
+
 def extract_instance_attr_doc(cls, attr):
     code = inspect.getsource(cls.__init__)
     lines = [line.strip() for line in code.split("\n")]
@@ -51,7 +56,7 @@ _module_prefixes = [
     ("gradio.layout", "layout"),
     ("gradio.route", "routes"),
     ("gradio.theme", "themes"),
-    ("gradio_client", "py-client"),
+    ("gradio_client.", "py-client"),
 ]
 
 
@@ -86,7 +91,13 @@ def document(*fns, inherit=False, documentation_group=None):
         if _documentation_group is None:
             try:
                 modname = inspect.getmodule(cls).__name__  # type: ignore
-                documentation_group = _get_module_documentation_group(modname)
+                if modname.startswith("gradio.") or modname.startswith(
+                    "gradio_client."
+                ):
+                    documentation_group = _get_module_documentation_group(modname)
+                else:
+                    # Then this is likely a custom Gradio component that we do not include in the documentation
+                    pass
             except Exception as exc:
                 warnings.warn(f"Could not get documentation group for {cls}: {exc}")
         classes_to_document[documentation_group].append((cls, functions))
@@ -176,9 +187,12 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
             if "args" in parameter_doc["doc"]:
                 parameter_doc["args"] = True
         parameter_docs.append(parameter_doc)
-    assert (
-        len(parameters) == 0
-    ), f"Documentation format for {fn.__name__} documents nonexistent parameters: {', '.join(parameters.keys())}. Valid parameters: {', '.join(signature.parameters.keys())}"
+    if parameters:
+        raise ValueError(
+            f"Documentation format for {fn.__name__} documents "
+            f"nonexistent parameters: {', '.join(parameters.keys())}. "
+            f"Valid parameters: {', '.join(signature.parameters.keys())}"
+        )
     if len(returns) == 0:
         return_docs = {}
     elif len(returns) == 1:
@@ -326,7 +340,7 @@ def generate_documentation():
                             inherited_fn["description"] = extract_instance_attr_doc(
                                 cls, inherited_fn["name"]
                             )
-                        except (ValueError, AssertionError):
+                        except ValueError:
                             pass
                         documentation[mode][i]["fns"].append(inherited_fn)
     return documentation
