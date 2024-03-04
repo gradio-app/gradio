@@ -94,7 +94,7 @@ runs:
         node_auth_token: ${{ inputs.node_auth_token }}
         npm_token: ${{ inputs.npm_token }}
         skip_build: ${{ inputs.skip_build }}
-        build-lite: ${{ inputs.build_lite }}
+        build_lite: ${{ inputs.build_lite }}
     - name: generate json
       shell: bash
       if: inputs.os == 'ubuntu-latest'
