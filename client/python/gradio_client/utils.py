@@ -1029,6 +1029,11 @@ def is_file_obj_with_url(d):
         isinstance(d, dict) and "path" in d and "url" in d and isinstance(d["url"], str)
     )
 
+def is_file_strict(d):
+    return is_file_data(d) or is_file_obj(d)
+
+def is_file_loose(d):
+    return is_file_data(d) or is_file_obj(d) or is_filepath(d)
 
 SKIP_COMPONENTS = {
     "state",
