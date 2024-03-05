@@ -1594,7 +1594,7 @@ Received outputs:
             event_data: data associated with the event trigger itself
             in_event_listener: whether this API call is being made in response to an event listener
             explicit_call: whether this call is being made directly by calling the Blocks function, instead of through an event listener or API route
-            root_path: if provided, the root path of the server. All file URls will be prefixed with this path.
+            root_path: if provided, the root path of the server. All file URLs will be prefixed with this path.
         Returns: None
         """
         block_fn = self.fns[fn_index]
