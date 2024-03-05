@@ -3,7 +3,7 @@
 <script lang="ts">
 	import type { Gradio, ShareData } from "@gradio/utils";
 
-	import { normalise_file, type FileData } from "@gradio/client";
+	import type { FileData } from "@gradio/client";
 	import { Block, UploadText } from "@gradio/atoms";
 	import StaticVideo from "./shared/VideoPreview.svelte";
 	import Video from "./shared/InteractiveVideo.svelte";
@@ -24,7 +24,6 @@
 		| ["webcam", "upload"]
 		| ["upload", "webcam"];
 	export let root: string;
-	export let proxy_url: null | string;
 	export let show_label: boolean;
 	export let loading_status: LoadingStatus;
 	export let height: number | undefined;
@@ -35,6 +34,7 @@
 	export let min_width: number | undefined = undefined;
 	export let autoplay = false;
 	export let show_share_button = true;
+	export let show_download_button: boolean;
 	export let gradio: Gradio<{
 		change: never;
 		clear: never;
@@ -79,8 +79,8 @@
 
 	$: {
 		if (value != null) {
-			_video = normalise_file(value.video, root, proxy_url);
-			_subtitle = normalise_file(value.subtitles, root, proxy_url);
+			_video = value.video;
+			_subtitle = value.subtitles;
 		} else {
 			_video = null;
 			_subtitle = null;
@@ -146,7 +146,7 @@
 			{show_label}
 			{autoplay}
 			{show_share_button}
-			show_download_button={true}
+			{show_download_button}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}
 			on:stop={() => gradio.dispatch("stop")}
@@ -185,6 +185,7 @@
 			on:error={handle_error}
 			{label}
 			{show_label}
+			{show_download_button}
 			{sources}
 			{active_source}
 			{mirror_webcam}

@@ -1,12 +1,24 @@
-<script>
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+<script context="module">
+	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import Video from "./Index.svelte";
 	import { format } from "svelte-i18n";
 	import { get } from "svelte/store";
 	import { userEvent, within } from "@storybook/testing-library";
-</script>
+	import { allModes } from "../storybook/modes";
 
-<Meta title="Components/Video" component={Video} />
+	export const meta = {
+		title: "Components/Video",
+		component: Video,
+		parameters: {
+			chromatic: {
+				modes: {
+					desktop: allModes["desktop"],
+					mobile: allModes["mobile"]
+				}
+			}
+		}
+	};
+</script>
 
 <div>
 	<Template let:args>
@@ -38,6 +50,7 @@
 		},
 		label: "world video",
 		show_label: true,
+		show_download_button: true,
 		interactive: false,
 		height: 200,
 		width: 400
@@ -55,6 +68,7 @@
 		},
 		label: "world video",
 		show_label: true,
+		show_download_button: false,
 		interactive: false,
 		height: 200,
 		width: 400
@@ -71,6 +85,26 @@
 		width: 400,
 		height: 400,
 		value: null
+	}}
+/>
+
+<Story
+	name="Upload video with download button"
+	args={{
+		label: "world video",
+		show_label: true,
+		interactive: true,
+		sources: ["upload", "webcam"],
+		show_download_button: true,
+		width: 400,
+		height: 400,
+		value: {
+			video: {
+				path: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
+				url: "https://gradio-static-files.s3.us-west-2.amazonaws.com/world.mp4",
+				orig_name: "world.mp4"
+			}
+		}
 	}}
 />
 

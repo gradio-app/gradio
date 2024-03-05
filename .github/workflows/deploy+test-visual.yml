@@ -1,0 +1,110 @@
+name: "test / visual"
+
+on:
+  workflow_run:
+    workflows: ["trigger"]
+    types: 
+      - requested
+
+permissions:
+  statuses: write
+
+concurrency:
+
+  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: "changes"
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.changes.outputs.should_run }}
+      sha: ${{ steps.changes.outputs.sha }}
+      pr_number: ${{ steps.changes.outputs.pr_number }}
+      source_branch: ${{ steps.changes.outputs.source_branch }}
+      source_repo: ${{ steps.changes.outputs.source_repo }}
+      labels: ${{ steps.changes.outputs.labels }}
+      mergeable: ${{ steps.changes.outputs.mergeable }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: "gradio-app/gradio/.github/actions/changes@main"
+        id: changes
+        with:
+          type: "visual"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: "UI Tests"
+  comment-chromatic-start:
+    uses: "./.github/workflows/comment-queue.yml"
+    needs: changes
+    if: ${{ needs.changes.outputs.should_run == 'true' }}
+    secrets:
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
+    with:
+      pr_number: ${{ needs.changes.outputs.pr_number }}
+      message: |
+        storybook~pending~null
+  test-visual:
+    name: "test-visual"
+    needs: changes
+    if: ${{ needs.changes.outputs.should_run == 'true' && github.repository == 'gradio-app/gradio' && !contains(needs.changes.outputs.labels, 'no-visual-update') }}
+    runs-on: ubuntu-latest
+    outputs:
+      changes: ${{ steps.publish-chromatic.outputs.changeCount }}
+      errors: ${{ steps.publish-chromatic.outputs.errorCount }}
+      storybook_url: ${{ steps.publish-chromatic.outputs.storybookUrl }}
+      build_url: ${{ steps.publish-chromatic.outputs.buildUrl }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+            fetch-depth: 0
+            ref: ${{ needs.changes.outputs.sha }}
+            repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
+      - name: install dependencies
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        with:
+          always_install_pnpm: true
+          skip_build: 'true'
+      - name: build client
+        run: pnpm --filter @gradio/client build 
+      - name: generate theme.css
+        run: | 
+          . venv/bin/activate
+          python scripts/generate_theme.py --outfile js/storybook/theme.css
+      - name: build storybook
+        run: pnpm build-storybook --quiet
+      - name: publish to chromatic
+        id: publish-chromatic
+        uses: chromaui/action@v11
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          onlyChanged: true
+          exitOnceUploaded: true
+   
+  comment-chromatic-end:
+    uses: "./.github/workflows/comment-queue.yml"
+    needs: [test-visual, changes]
+    secrets:
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
+    with:
+      pr_number: ${{ needs.changes.outputs.pr_number }}
+      message: |
+        storybook~success~${{ needs.test-visual.outputs.storybook_url }}
+       
+  comment-chromatic-fail:
+    uses: "./.github/workflows/comment-queue.yml"
+    needs: [test-visual, changes]
+    if: always() && needs.test-visual.result == 'failure'
+    secrets:
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
+    with:
+      pr_number: ${{ needs.changes.outputs.pr_number }}
+      message: |
+        storybook~failure~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/
+        
+
+
+# visual~success~${{ needs.chromatic-deployment.outputs.changes }}~${{ needs.chromatic-deployment.outputs.errors }}~${{ needs.chromatic-deployment.outputs.build_url }}
+
+# visual~failure~0~0~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/

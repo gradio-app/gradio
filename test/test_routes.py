@@ -3,14 +3,14 @@ import functools
 import os
 import tempfile
 from contextlib import asynccontextmanager, closing
-from unittest import mock as mock
+from unittest.mock import patch
 
 import gradio_client as grc
 import numpy as np
 import pandas as pd
 import pytest
 import starlette.routing
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 from gradio_client import media_data
 
@@ -25,7 +25,12 @@ from gradio import (
     routes,
     wasm_utils,
 )
-from gradio.route_utils import FnIndexInferError
+from gradio.route_utils import (
+    FnIndexInferError,
+    compare_passwords_securely,
+    get_root_url,
+    starts_with_protocol,
+)
 
 
 @pytest.fixture()
@@ -394,9 +399,15 @@ class TestRoutes:
     def test_cannot_access_files_in_working_directory(self, test_client):
         response = test_client.get(r"/file=not-here.js")
         assert response.status_code == 403
+        response = test_client.get(r"/file=subdir/.env")
+        assert response.status_code == 403
 
     def test_cannot_access_directories_in_working_directory(self, test_client):
         response = test_client.get(r"/file=gradio")
+        assert response.status_code == 403
+
+    def test_block_protocols_that_expose_windows_credentials(self, test_client):
+        response = test_client.get(r"/file=//11.0.225.200/share")
         assert response.status_code == 403
 
     def test_do_not_expose_existence_of_files_outside_working_directory(
@@ -439,6 +450,79 @@ class TestRoutes:
         r = app.build_proxy_request("https://google.com")
         assert "authorization" not in dict(r.headers)
 
+    def test_can_get_config_that_includes_non_pickle_able_objects(self):
+        my_dict = {"a": 1, "b": 2, "c": 3}
+        with Blocks() as demo:
+            gr.JSON(my_dict.keys())
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        response = client.get("/")
+        assert response.is_success
+        response = client.get("/config/")
+        assert response.is_success
+
+    def test_cors_restrictions(self):
+        io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        custom_headers = {
+            "host": "localhost:7860",
+            "origin": "https://example.com",
+        }
+        file_response = client.get("/config", headers=custom_headers)
+        assert "access-control-allow-origin" not in file_response.headers
+        custom_headers = {
+            "host": "localhost:7860",
+            "origin": "127.0.0.1",
+        }
+        file_response = client.get("/config", headers=custom_headers)
+        assert file_response.headers["access-control-allow-origin"] == "127.0.0.1"
+        io.close()
+
+    def test_delete_cache(self, connect, gradio_temp_dir, capsys):
+        def check_num_files_exist(blocks: Blocks):
+            num_files = 0
+            for temp_file_set in blocks.temp_file_sets:
+                for temp_file in temp_file_set:
+                    if os.path.exists(temp_file):
+                        num_files += 1
+            return num_files
+
+        demo = gr.Interface(lambda s: s, gr.Textbox(), gr.File(), delete_cache=None)
+        with connect(demo) as client:
+            client.predict("test/test_files/cheetah1.jpg")
+        assert check_num_files_exist(demo) == 1
+
+        demo_delete = gr.Interface(
+            lambda s: s, gr.Textbox(), gr.File(), delete_cache=(60, 30)
+        )
+        with connect(demo_delete) as client:
+            client.predict("test/test_files/alphabet.txt")
+            client.predict("test/test_files/bus.png")
+            assert check_num_files_exist(demo_delete) == 2
+        assert check_num_files_exist(demo_delete) == 0
+        assert check_num_files_exist(demo) == 1
+
+        @asynccontextmanager
+        async def mylifespan(app: FastAPI):
+            print("IN CUSTOM LIFESPAN")
+            yield
+            print("AFTER CUSTOM LIFESPAN")
+
+        demo_custom_lifespan = gr.Interface(
+            lambda s: s, gr.Textbox(), gr.File(), delete_cache=(5, 1)
+        )
+
+        with connect(
+            demo_custom_lifespan, app_kwargs={"lifespan": mylifespan}
+        ) as client:
+            client.predict("test/test_files/alphabet.txt")
+        assert check_num_files_exist(demo_custom_lifespan) == 0
+        captured = capsys.readouterr()
+        assert "IN CUSTOM LIFESPAN" in captured.out
+        assert "AFTER CUSTOM LIFESPAN" in captured.out
+
 
 class TestApp:
     def test_create_app(self):
@@ -460,17 +544,49 @@ class TestAuthenticatedRoutes:
             data={"username": "test", "password": "correct_password"},
         )
         assert response.status_code == 200
+
         response = client.post(
             "/login",
             data={"username": "test", "password": "incorrect_password"},
         )
         assert response.status_code == 400
 
+        client.post(
+            "/login",
+            data={"username": "test", "password": "correct_password"},
+        )
         response = client.post(
             "/login",
             data={"username": " test ", "password": "correct_password"},
         )
         assert response.status_code == 200
+
+    def test_logout(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(
+            auth=("test", "correct_password"),
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        client.post(
+            "/login",
+            data={"username": "test", "password": "correct_password"},
+        )
+
+        response = client.post(
+            "/run/predict",
+            json={"data": ["test"]},
+        )
+        assert response.status_code == 200
+
+        response = client.get("/logout")
+
+        response = client.post(
+            "/run/predict",
+            json={"data": ["test"]},
+        )
+        assert response.status_code == 401
 
 
 class TestQueueRoutes:
@@ -704,25 +820,6 @@ def test_orjson_serialization():
     demo.close()
 
 
-def test_file_route_does_not_allow_dot_paths(tmp_path):
-    dot_file = tmp_path / ".env"
-    dot_file.write_text("secret=1234")
-    subdir = tmp_path / "subdir"
-    subdir.mkdir()
-    sub_dot_file = subdir / ".env"
-    sub_dot_file.write_text("secret=1234")
-    secret_sub_dir = tmp_path / ".versioncontrol"
-    secret_sub_dir.mkdir()
-    secret_sub_dir_regular_file = secret_sub_dir / "settings"
-    secret_sub_dir_regular_file.write_text("token = 8")
-    with closing(gr.Interface(lambda s: s.name, gr.File(), gr.File())) as io:
-        app, _, _ = io.launch(prevent_thread_lock=True)
-        client = TestClient(app)
-        assert client.get("/file=.env").status_code == 403
-        assert client.get("/file=subdir/.env").status_code == 403
-        assert client.get("/file=.versioncontrol/settings").status_code == 403
-
-
 def test_api_name_set_for_all_events(connect):
     with gr.Blocks() as demo:
         i = Textbox()
@@ -818,14 +915,14 @@ def test_api_name_set_for_all_events(connect):
 
 
 class TestShowAPI:
-    @mock.patch.object(wasm_utils, "IS_WASM", True)
+    @patch.object(wasm_utils, "IS_WASM", True)
     def test_show_api_false_when_is_wasm_true(self):
         interface = Interface(lambda x: x, "text", "text", examples=[["hannah"]])
         assert (
             interface.show_api is False
         ), "show_api should be False when IS_WASM is True"
 
-    @mock.patch.object(wasm_utils, "IS_WASM", False)
+    @patch.object(wasm_utils, "IS_WASM", False)
     def test_show_api_true_when_is_wasm_false(self):
         interface = Interface(lambda x: x, "text", "text", examples=[["hannah"]])
         assert (
@@ -862,3 +959,79 @@ def test_component_server_endpoints(connect):
             },
         )
         assert fail_req.status_code == 404
+
+
+@pytest.mark.parametrize(
+    "request_url, route_path, root_path, expected_root_url",
+    [
+        ("http://localhost:7860/", "/", None, "http://localhost:7860"),
+        (
+            "http://localhost:7860/demo/test",
+            "/demo/test",
+            None,
+            "http://localhost:7860",
+        ),
+        (
+            "http://localhost:7860/demo/test/",
+            "/demo/test",
+            None,
+            "http://localhost:7860",
+        ),
+        (
+            "http://localhost:7860/demo/test?query=1",
+            "/demo/test",
+            None,
+            "http://localhost:7860",
+        ),
+        (
+            "http://localhost:7860/demo/test?query=1",
+            "/demo/test/",
+            "/gradio/",
+            "http://localhost:7860/gradio",
+        ),
+        (
+            "http://localhost:7860/demo/test?query=1",
+            "/demo/test",
+            "/gradio/",
+            "http://localhost:7860/gradio",
+        ),
+        (
+            "https://localhost:7860/demo/test?query=1",
+            "/demo/test",
+            "/gradio/",
+            "https://localhost:7860/gradio",
+        ),
+    ],
+)
+def test_get_root_url(request_url, route_path, root_path, expected_root_url):
+    request = Request({"path": request_url, "type": "http", "headers": {}})
+    assert get_root_url(request, route_path, root_path) == expected_root_url
+
+
+def test_compare_passwords_securely():
+    password1 = "password"
+    password2 = "pässword"
+    assert compare_passwords_securely(password1, password1)
+    assert not compare_passwords_securely(password1, password2)
+    assert compare_passwords_securely(password2, password2)
+
+
+@pytest.mark.parametrize(
+    "string, expected",
+    [
+        ("http://localhost:7860/", True),
+        ("https://localhost:7860/", True),
+        ("ftp://localhost:7860/", True),
+        ("smb://example.com", True),
+        ("ipfs://QmTzQ1Nj5R9BzF1djVQv8gvzZxVkJb1vhrLcXL1QyJzZE", True),
+        ("usr/local/bin", False),
+        ("localhost:7860", False),
+        ("localhost", False),
+        ("C:/Users/username", False),
+        ("//path", True),
+        ("\\\\path", True),
+        ("/usr/bin//test", False),
+    ],
+)
+def test_starts_with_protocol(string, expected):
+    assert starts_with_protocol(string) == expected

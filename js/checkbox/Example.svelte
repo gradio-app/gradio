@@ -1,5 +1,5 @@
 <script lang="ts">
-	export let value: boolean;
+	export let value: boolean | null;
 	export let type: "gallery" | "table";
 	export let selected = false;
 </script>
@@ -9,7 +9,7 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	{value.toLocaleString()}
+	{value !== null ? value.toLocaleString() : ""}
 </div>
 
 <style>

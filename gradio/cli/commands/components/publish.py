@@ -5,6 +5,7 @@ import tempfile
 from pathlib import Path
 from typing import List, Optional
 
+import httpx
 import semantic_version
 from huggingface_hub import HfApi
 from rich import print
@@ -31,7 +32,9 @@ license: apache-2.0
 ---
 """
 
-DOCKERFILE = """
+
+def make_dockerfile(demo):
+    return f"""
 FROM python:3.9
 
 WORKDIR /code
@@ -40,7 +43,7 @@ COPY --link --chown=1000 . .
 
 RUN mkdir -p /tmp/cache/
 RUN chmod a+rwx -R /tmp/cache/
-ENV TRANSFORMERS_CACHE=/tmp/cache/ 
+ENV TRANSFORMERS_CACHE=/tmp/cache/
 
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -51,11 +54,11 @@ ENV PYTHONUNBUFFERED=1 \
     GRADIO_SERVER_PORT=7860 \
 	SYSTEM=spaces
 
-CMD ["python", "app.py"]
+CMD ["python", "{demo}"]
 """
 
 
-def _ignore(s, names):
+def _ignore(_src, names):
     ignored = []
     for n in names:
         if "__pycache__" in n or n.startswith("dist") or n.startswith("node_modules"):
@@ -88,9 +91,6 @@ def _publish(
         Path,
         Argument(help=f"Path to the wheel directory. Default is {Path('.') / 'dist'}"),
     ] = Path(".") / "dist",
-    bump_version: Annotated[
-        bool, Option(help="Whether to bump the version number.")
-    ] = True,
     upload_pypi: Annotated[bool, Option(help="Whether to upload to PyPI.")] = True,
     pypi_username: Annotated[str, Option(help="The username for PyPI.")] = "",
     pypi_password: Annotated[str, Option(help="The password for PyPI.")] = "",
@@ -102,9 +102,7 @@ def _publish(
     ] = None,
     source_dir: Annotated[
         Optional[Path],
-        Option(
-            help="Path to the source directory of the custom component. To share with community."
-        ),
+        Option(help="Path to the source directory of the custom component."),
     ] = None,
     hf_token: Annotated[
         Optional[str],
@@ -112,8 +110,19 @@ def _publish(
             help="HuggingFace token for uploading demo. Can be omitted if already logged in via huggingface cli."
         ),
     ] = None,
+    prefer_local: Annotated[
+        bool,
+        Option(
+            help="Install the package from the local wheel in the demo space, even if it exists on PyPi."
+        ),
+    ] = False,
+    upload_source: Annotated[
+        bool,
+        Option(
+            help="Whether to upload the source code of the custom component, to share with the community."
+        ),
+    ] = True,
 ):
-    upload_source = source_dir is not None
     console = Console()
     dist_dir = dist_dir.resolve()
     name = None
@@ -129,7 +138,7 @@ def _publish(
     ]
     wheel_file = max(
         (p for p in distribution_files if p.suffix == ".whl"),
-        key=lambda s: semantic_version.Version(str(s).split("-")[1]),
+        key=lambda s: semantic_version.Version(str(s.name).split("-")[1]),
     )
     if not wheel_file:
         raise ValueError(
@@ -206,7 +215,7 @@ def _publish(
             demo_dir_ = demo_dir_ or str(Path(".") / "demo")
             demo_dir = Path(demo_dir_).resolve()
 
-    if upload_demo and not source_dir:
+    if upload_source and not source_dir:
         panel = Panel(
             "It is recommended that you share your [magenta]source code[/] so that others can learn from and improve your component."
         )
@@ -219,10 +228,33 @@ def _publish(
             source_dir_ = source_dir_ or str(Path("."))
             source_dir = Path(source_dir_).resolve()
     if upload_demo:
-        assert demo_dir
-        if not (demo_dir / "app.py").exists():
-            raise FileNotFoundError("app.py not found in demo directory.")
-        additional_reqs = [wheel_file.name]
+        pyproject_toml_path = (
+            (source_dir / "pyproject.toml")
+            if source_dir
+            else Path(".") / "pyproject.toml"
+        )
+
+        try:
+            pyproject_toml = parse(pyproject_toml_path.read_text())
+            package_name = pyproject_toml["project"]["name"]  # type: ignore
+        except Exception:
+            (package_name, version) = wheel_file.name.split("-")[:2]
+
+        try:
+            latest_release = httpx.get(
+                f"https://pypi.org/pypi/{package_name}/json"
+            ).json()["info"]["version"]
+        except Exception:
+            latest_release = None
+
+        if not demo_dir:
+            raise ValueError("demo_dir must be set")
+        demo_path = resolve_demo(demo_dir)
+
+        if prefer_local or not latest_release:
+            additional_reqs = [wheel_file.name]
+        else:
+            additional_reqs = [f"{package_name}=={latest_release}"]
         if (demo_dir / "requirements.txt").exists():
             reqs = (demo_dir / "requirements.txt").read_text().splitlines()
             reqs += additional_reqs
@@ -276,7 +308,7 @@ def _publish(
 
             readme.write_text(readme_text)
             dockerfile = Path(tempdir) / "Dockerfile"
-            dockerfile.write_text(DOCKERFILE)
+            dockerfile.write_text(make_dockerfile(demo_path.name))
 
             api = HfApi()
             new_space = api.create_repo(
@@ -302,3 +334,15 @@ def _publish(
             )
             print("\n")
             print(f"Demo uploaded to {new_space} !")
+
+
+def resolve_demo(demo_dir: Path) -> Path:
+    _demo_dir = demo_dir.resolve()
+    if (_demo_dir / "space.py").exists():
+        return _demo_dir / "space.py"
+    elif (_demo_dir / "app.py").exists():
+        return _demo_dir / "app.py"
+    else:
+        raise FileNotFoundError(
+            f'Could not find "space.py" or "app.py" in "{demo_dir}".'
+        )

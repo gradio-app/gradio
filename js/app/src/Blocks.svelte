@@ -39,13 +39,14 @@
 	export let space_id: string | null;
 	export let version: string;
 	export let js: string | null;
+	export let fill_height = false;
 
 	let loading_status = create_loading_status_store();
 
 	let rootNode: ComponentMeta = {
 		id: layout.id,
 		type: "column",
-		props: { interactive: false },
+		props: { interactive: false, scale: fill_height ? 1 : null },
 		has_modes: false,
 		instance: null as unknown as ComponentMeta["instance"],
 		component: null as unknown as ComponentMeta["component"],
@@ -199,7 +200,7 @@
 		const _rootNode: typeof rootNode = {
 			id: layout.id,
 			type: "column",
-			props: { interactive: false },
+			props: { interactive: false, scale: fill_height ? 1 : null },
 			has_modes: false,
 			instance: null as unknown as ComponentMeta["instance"],
 			component: null as unknown as ComponentMeta["component"],
@@ -342,11 +343,7 @@
 		rootNode = rootNode;
 	}, 50);
 
-	async function handle_update(
-		data: any,
-		fn_index: number,
-		outputs_set_to_non_interactive: number[]
-	): Promise<void> {
+	async function handle_update(data: any, fn_index: number): Promise<void> {
 		const outputs = dependencies[fn_index].outputs;
 
 		data?.forEach((value: any, i: number) => {
@@ -368,9 +365,6 @@
 						continue;
 					} else {
 						output.props[update_key] = update_value;
-						if (update_key == "interactive" && !update_value) {
-							outputs_set_to_non_interactive.push(outputs[i]);
-						}
 					}
 				}
 			} else {
@@ -484,7 +478,7 @@
 						payload.data = v;
 						make_prediction(payload);
 					} else {
-						handle_update(v, dep_index, []);
+						handle_update(v, dep_index);
 					}
 				});
 		} else {
@@ -504,8 +498,6 @@
 		}
 
 		function make_prediction(payload: Payload): void {
-			const pending_outputs: number[] = [];
-			let outputs_set_to_non_interactive: number[] = [];
 			const submission = app
 				.submit(
 					payload.fn_index,
@@ -519,27 +511,10 @@
 						make_prediction(dep.final_event);
 					}
 					dep.pending_request = false;
-					handle_update(data, fn_index, outputs_set_to_non_interactive);
+					handle_update(data, fn_index);
 				})
 				.on("status", ({ fn_index, ...status }) => {
 					tick().then(() => {
-						const outputs = dependencies[fn_index].outputs;
-						outputs.forEach((id) => {
-							if (
-								instance_map[id].props.interactive &&
-								status.stage === "pending" &&
-								dep.targets[0][1] !== "focus"
-							) {
-								pending_outputs.push(id);
-								instance_map[id].props.interactive = false;
-							} else if (
-								status.stage === "complete" &&
-								pending_outputs.includes(id) &&
-								!outputs_set_to_non_interactive.includes(id)
-							) {
-								instance_map[id].props.interactive = true;
-							}
-						});
 						//@ts-ignore
 						loading_status.update({
 							...status,
@@ -813,6 +788,7 @@
 				{dependencies}
 				{root}
 				{app}
+				{space_id}
 			/>
 		</div>
 	</div>
@@ -830,6 +806,11 @@
 		width: var(--size-full);
 		font-weight: var(--body-text-weight);
 		font-size: var(--body-text-size);
+	}
+
+	.contain {
+		display: flex;
+		flex-direction: column;
 	}
 
 	footer {
@@ -886,6 +867,7 @@
 
 	.backdrop {
 		flex: 1 1 0%;
+		-webkit-backdrop-filter: blur(4px);
 		backdrop-filter: blur(4px);
 	}
 

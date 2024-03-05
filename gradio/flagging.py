@@ -14,15 +14,13 @@ from typing import TYPE_CHECKING, Any
 import filelock
 import huggingface_hub
 from gradio_client import utils as client_utils
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 import gradio as gr
 from gradio import utils
 
 if TYPE_CHECKING:
     from gradio.components import Component
-
-set_documentation_group("flagging")
 
 
 class FlaggingCallback(ABC):
@@ -87,8 +85,8 @@ class SimpleCSVLogger(FlaggingCallback):
     def flag(
         self,
         flag_data: list[Any],
-        flag_option: str = "",
-        username: str | None = None,
+        flag_option: str = "",  # noqa: ARG002
+        username: str | None = None,  # noqa: ARG002
     ) -> int:
         flagging_dir = self.flagging_dir
         log_filepath = Path(flagging_dir) / "log.csv"
@@ -423,9 +421,11 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             # Add deserialized object to row
             features[label] = {"dtype": "string", "_type": "Value"}
             try:
-                assert Path(deserialized).exists()
-                row.append(str(Path(deserialized).relative_to(self.dataset_dir)))
-            except (AssertionError, TypeError, ValueError):
+                deserialized_path = Path(deserialized)
+                if not deserialized_path.exists():
+                    raise FileNotFoundError(f"File {deserialized} not found")
+                row.append(str(deserialized_path.relative_to(self.dataset_dir)))
+            except (FileNotFoundError, TypeError, ValueError):
                 deserialized = "" if deserialized is None else str(deserialized)
                 row.append(deserialized)
 

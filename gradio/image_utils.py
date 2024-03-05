@@ -4,20 +4,20 @@ from pathlib import Path
 from typing import Literal
 
 import numpy as np
-from PIL import Image as _Image  # using _ to minimize namespace pollution
+import PIL.Image
 
 from gradio import processing_utils
 
-_Image.init()
+PIL.Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843 (remove when requiring Pillow 9.4+)
 
 
 def format_image(
-    im: _Image.Image | None,
+    im: PIL.Image.Image | None,
     type: Literal["numpy", "pil", "filepath"],
     cache_dir: str,
     name: str = "image",
     format: str = "png",
-) -> np.ndarray | _Image.Image | str | None:
+) -> np.ndarray | PIL.Image.Image | str | None:
     """Helper method to format an image based on self.type"""
     if im is None:
         return im
@@ -51,12 +51,12 @@ def format_image(
         )
 
 
-def save_image(y: np.ndarray | _Image.Image | str | Path, cache_dir: str):
+def save_image(y: np.ndarray | PIL.Image.Image | str | Path, cache_dir: str):
     # numpy gets saved to png as default format
     # PIL gets saved to its original format if possible
     if isinstance(y, np.ndarray):
         path = processing_utils.save_img_array_to_cache(y, cache_dir=cache_dir)
-    elif isinstance(y, _Image.Image):
+    elif isinstance(y, PIL.Image.Image):
         fmt = y.format
         try:
             path = processing_utils.save_pil_to_cache(
@@ -81,7 +81,7 @@ def save_image(y: np.ndarray | _Image.Image | str | Path, cache_dir: str):
     return path
 
 
-def crop_scale(img: _Image.Image, final_width: int, final_height: int):
+def crop_scale(img: PIL.Image.Image, final_width: int, final_height: int):
     original_width, original_height = img.size
     target_aspect_ratio = final_width / final_height
 

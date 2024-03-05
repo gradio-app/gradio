@@ -117,7 +117,6 @@ That's ok.
     import { StatusTracker } from "@gradio/statustracker";
     import type { LoadingStatus } from "@gradio/statustracker";
     import type { FileData } from "@gradio/client";
-    import { normalise_file } from "@gradio/client";
     import { Upload, ModifyUpload } from "@gradio/upload";
 
 	export let elem_id = "";
@@ -316,10 +315,6 @@ Add the following code to `Index.svelte`:
         });
     }
 
-    // Compute the url to fetch the file from the backend
-    // whenever a new value is passed in.
-    $: _value = normalise_file(value, root, proxy_url);
-
     // If the value changes, render the PDF of the currentPage
     $: if(JSON.stringify(old_value) != JSON.stringify(_value)) {
         if (_value){
@@ -477,7 +472,6 @@ To do so, we're going to add some of the pdf rendering logic in `Index.svelte` t
 ```ts
 <script lang="ts">
 	export let value: string;
-	export let samples_dir: string;
 	export let type: "gallery" | "table";
 	export let selected = false;
 	import pdfjsLib from "pdfjs-dist";
@@ -510,7 +504,7 @@ To do so, we're going to add some of the pdf rendering logic in `Index.svelte` t
 			});
 		}
 	
-	$: get_doc(samples_dir + value);
+	$: get_doc(value);
 </script>
 
 <div
@@ -595,11 +589,6 @@ class PDF(Component):
 
     def example_inputs(self):
         return "https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/fw9.pdf"
-
-    def as_example(self, input_data: str | None) -> str | None:
-        if input_data is None:
-            return None
-        return processing_utils.move_resource_to_block_cache(input_data, self)
 ```
 
 ## Step 10: Add a demo and publish!

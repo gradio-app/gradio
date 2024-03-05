@@ -9,15 +9,13 @@ from typing import Any, Callable, Literal
 import httpx
 import numpy as np
 from gradio_client import utils as client_utils
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio import processing_utils, utils
 from gradio.components.base import Component, StreamingInput, StreamingOutput
 from gradio.data_classes import FileData
 from gradio.events import Events
 from gradio.exceptions import Error
-
-set_documentation_group("component")
 
 
 @dataclasses.dataclass
@@ -33,8 +31,8 @@ class WaveformOptions:
         sample_rate: The output sample rate (in Hz) of the audio after editing. Defaults to 44100.
     """
 
-    waveform_color: str = "#9ca3af"
-    waveform_progress_color: str = "#f97316"
+    waveform_color: str | None = None
+    waveform_progress_color: str | None = None
     show_recording_waveform: bool = True
     show_controls: bool = False
     skip_length: int | float = 5
@@ -49,9 +47,6 @@ class Audio(
 ):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
-    Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a 16-bit int array whose values range from -32768 to 32767), or as a {str} filepath, depending on `type`.
-    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate in Hz, audio data as a float or int numpy array) or as a {str} or {pathlib.Path} filepath or URL to an audio file, or bytes for binary content (recommended for streaming). Note: When converting audio data from float format to WAV, the audio is normalized by its peak value to avoid distortion or clipping in the resulting audio.
-    Examples-format: a {str} filepath to a local file that contains audio.
     Demos: main_note, generate_tone, reverse_audio
     Guides: real-time-speech-recognition
     """
@@ -92,7 +87,7 @@ class Audio(
         render: bool = True,
         format: Literal["wav", "mp3"] = "wav",
         autoplay: bool = False,
-        show_download_button=True,
+        show_download_button: bool | None = None,
         show_share_button: bool | None = None,
         editable: bool = True,
         min_length: int | None = None,
@@ -105,11 +100,11 @@ class Audio(
             sources: A list of sources permitted for audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input. The first element in the list will be used as the default source. If None, defaults to ["upload", "microphone"], or ["microphone"] if `streaming` is True.
             type: The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
-            min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
+            scale: Relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
+            min_width: Minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: If True, will allow users to upload and edit an audio file. If False, can only be used to play audio. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             streaming: If set to True when used in a `live` interface as an input, will automatically stream webcam feed. When used set as an output, takes audio chunks yield from the backend and combines them into one streaming audio output.
@@ -118,9 +113,9 @@ class Audio(
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             format: The file format to save audio files. Either 'wav' or 'mp3'. wav files are lossless but will tend to be larger files. mp3 files tend to be smaller. Default is wav. Applies both when this component is used as an input (when `type` is "format") and when this component is used as an output.
             autoplay: Whether to automatically play the audio when the component is used as an output. Note: browsers will not autoplay audio files if the user has not interacted with the page yet.
-            show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear.
+            show_download_button: If True, will show a download button in the corner of the component for saving audio. If False, icon does not appear. By default, it will be True for output components and False for input components.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
-            editable: If True, allows users to manipulate the audio file (if the component is interactive).
+            editable: If True, allows users to manipulate the audio file if the component is interactive. Defaults to True.
             min_length: The minimum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int). Default is None, which uses the default values for these options.
@@ -189,11 +184,19 @@ class Audio(
 
     def preprocess(
         self, payload: FileData | None
-    ) -> tuple[int, np.ndarray] | str | None:
+    ) -> str | tuple[int, np.ndarray] | None:
+        """
+        Parameters:
+            payload: audio data as a FileData object, or None.
+        Returns:
+            passes audio as one of these formats (depending on `type`): a `str` filepath, or `tuple` of (sample rate in Hz, audio data as numpy array). If the latter, the audio data is a 16-bit `int` array whose values range from -32768 to 32767 and shape of the audio data array is (samples,) for mono audio or (samples, channels) for multi-channel audio.
+        """
         if payload is None:
             return payload
 
-        assert payload.path
+        if not payload.path:
+            raise ValueError("payload path missing")
+
         # Need a unique name for the file to avoid re-using the same audio file if
         # a user submits the same audio file twice
         temp_file_path = Path(payload.path)
@@ -229,13 +232,13 @@ class Audio(
             )
 
     def postprocess(
-        self, value: tuple[int, np.ndarray] | str | Path | bytes | None
+        self, value: str | Path | bytes | tuple[int, np.ndarray] | None
     ) -> FileData | bytes | None:
         """
         Parameters:
-            value: audio data in either of the following formats: a tuple of (sample_rate, data), or a string filepath or URL to an audio file, or None.
+            value: expects audio data in any of these formats: a `str` or `pathlib.Path` filepath or URL to an audio file, or a `bytes` object (recommended for streaming), or a `tuple` of (sample rate in Hz, audio data as numpy array). Note: if audio is supplied as a numpy array, the audio will be normalized by its peak value to avoid distortion or clipping in the resulting audio.
         Returns:
-            base64 url data
+            FileData object, bytes, or None.
         """
         orig_name = None
         if value is None:

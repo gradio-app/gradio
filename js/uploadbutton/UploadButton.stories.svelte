@@ -45,7 +45,7 @@
 		scale: {
 			options: [null, 0.5, 1, 2],
 			description:
-				"relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.",
+				"relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. Only applies in Rows, or top-level Components in Blocks where fill_height=True. ",
 			control: { type: "select" }
 		}
 	}}
@@ -68,7 +68,10 @@
 	name="Button with external image icon"
 	args={{
 		label: "Upload",
-		icon: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg"
+		icon: {
+			path: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
+			url: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg"
+		}
 	}}
 />
 <Story
@@ -76,5 +79,11 @@
 	args={{
 		label: "Upload",
 		visible: false
+	}}
+/>
+<Story
+	name="Button with null label (should be collapsed)"
+	args={{
+		label: null
 	}}
 />

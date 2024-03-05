@@ -15,13 +15,11 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Literal, Optional
 
-import matplotlib.pyplot as plt
 import numpy as np
 import PIL
 import PIL.Image
 from gradio_client import utils as client_utils
-from gradio_client.documentation import document, set_documentation_group
-from matplotlib import animation
+from gradio_client.documentation import document
 
 from gradio import components, oauth, processing_utils, routes, utils, wasm_utils
 from gradio.context import Context, LocalContext
@@ -34,8 +32,6 @@ if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.components import Component
 
 LOG_FILE = "log.csv"
-
-set_documentation_group("helpers")
 
 
 def create_examples(
@@ -214,7 +210,9 @@ class Examples:
                     if isinstance(prediction_value, (GradioRootModel, GradioModel)):
                         prediction_value = prediction_value.model_dump()
                     prediction_value = processing_utils.move_files_to_cache(
-                        prediction_value, component, postprocess=True
+                        prediction_value,
+                        component,
+                        postprocess=True,
                     )
                     sub.append(prediction_value)
                 self.processed_examples.append(sub)
@@ -295,10 +293,9 @@ class Examples:
                 # And `self.cache()` should be waited for to complete before this method returns,
                 # (otherwise, an error "Cannot cache examples if not in a Blocks context" will be raised anyway)
                 # so `eventloop.create_task(self.cache())` is also not an option.
-                raise wasm_utils.WasmUnsupportedError(
-                    "Caching examples is not supported in the Wasm mode."
-                )
-            client_utils.synchronize_async(self.cache)
+                warnings.warn("Caching examples is not supported in the Wasm mode.")
+            else:
+                client_utils.synchronize_async(self.cache)
 
     async def cache(self) -> None:
         """
@@ -351,7 +348,8 @@ class Examples:
                 batch=self.batch,
             )
 
-            assert self.outputs is not None
+            if self.outputs is None:
+                raise ValueError("self.outputs is missing")
             cache_logger.setup(self.outputs, self.cached_folder)
             for example_id, _ in enumerate(self.examples):
                 print(f"Caching example {example_id + 1}/{len(self.examples)}")
@@ -410,7 +408,8 @@ class Examples:
             examples = list(csv.reader(cache))
         example = examples[example_id + 1]  # +1 to adjust for header
         output = []
-        assert self.outputs is not None
+        if self.outputs is None:
+            raise ValueError("self.outputs is missing")
         for component, value in zip(self.outputs, example):
             value_to_use = value
             try:
@@ -422,15 +421,11 @@ class Examples:
                     component, components.File
                 ):
                     value_to_use = value_as_dict
-                assert utils.is_update(value_as_dict)
+                if not utils.is_update(value_as_dict):
+                    raise TypeError("value wasn't an update")  # caught below
                 output.append(value_as_dict)
-            except (ValueError, TypeError, SyntaxError, AssertionError):
-                output.append(
-                    component.read_from_flag(
-                        value_to_use,
-                        self.cached_folder,
-                    )
-                )
+            except (ValueError, TypeError, SyntaxError):
+                output.append(component.read_from_flag(value_to_use))
         return output
 
 
@@ -757,15 +752,15 @@ def special_args(
         elif type_hint == routes.Request:
             if inputs is not None:
                 inputs.insert(i, request)
-        elif (
-            type_hint == Optional[oauth.OAuthProfile]
-            or type_hint == oauth.OAuthProfile
-            or type_hint == Optional[oauth.OAuthToken]
-            or type_hint == oauth.OAuthToken
+        elif type_hint in (
             # Note: "OAuthProfile | None" is equals to Optional[OAuthProfile] in Python
             #       => it is automatically handled as well by the above condition
             #       (adding explicit "OAuthProfile | None" would break in Python3.9)
             #       (same for "OAuthToken")
+            Optional[oauth.OAuthProfile],
+            Optional[oauth.OAuthToken],
+            oauth.OAuthProfile,
+            oauth.OAuthToken,
         ):
             if inputs is not None:
                 # Retrieve session from gr.Request, if it exists (i.e. if user is logged in)
@@ -778,10 +773,7 @@ def special_args(
                 )
 
                 # Inject user profile
-                if (
-                    type_hint == Optional[oauth.OAuthProfile]
-                    or type_hint == oauth.OAuthProfile
-                ):
+                if type_hint in (Optional[oauth.OAuthProfile], oauth.OAuthProfile):
                     oauth_profile = (
                         session["oauth_info"]["userinfo"]
                         if "oauth_info" in session
@@ -796,13 +788,8 @@ def special_args(
                     inputs.insert(i, oauth_profile)
 
                 # Inject user token
-                elif (
-                    type_hint == Optional[oauth.OAuthToken]
-                    or type_hint == oauth.OAuthToken
-                ):
-                    oauth_info = (
-                        session["oauth_info"] if "oauth_info" in session else None
-                    )
+                elif type_hint in (Optional[oauth.OAuthToken], oauth.OAuthToken):
+                    oauth_info = session.get("oauth_info", None)
                     oauth_token = (
                         oauth.OAuthToken(
                             token=oauth_info["access_token"],
@@ -903,6 +890,9 @@ def make_waveform(
     Returns:
         A filepath to the output video in mp4 format.
     """
+    import matplotlib.pyplot as plt
+    from matplotlib.animation import FuncAnimation
+
     if isinstance(audio, str):
         audio_file = audio
         audio = processing_utils.audio_from_file(audio)
@@ -925,7 +915,8 @@ def make_waveform(
         return [int(hex_str[i : i + 2], 16) for i in range(1, 6, 2)]
 
     def get_color_gradient(c1, c2, n):
-        assert n > 1
+        if n < 1:
+            raise ValueError("Must have at least one stop in gradient")
         c1_rgb = np.array(hex_to_rgb(c1)) / 255
         c2_rgb = np.array(hex_to_rgb(c2)) / 255
         mix_pcts = [x / (n - 1) for x in range(n)]
@@ -1024,9 +1015,9 @@ def make_waveform(
                     b.set_y((-rand_height * samples)[idx])
 
             frames = int(duration * 10)
-            anim = animation.FuncAnimation(
+            anim = FuncAnimation(
                 fig,  # type: ignore
-                _animate,
+                _animate,  # type: ignore
                 repeat=False,
                 blit=False,
                 frames=frames,
@@ -1128,10 +1119,7 @@ def log_message(message: str, level: Literal["info", "warning"] = "info"):
     blocks._queue.log_message(event_id=event_id, log=message, level=level)
 
 
-set_documentation_group("modals")
-
-
-@document()
+@document(documentation_group="modals")
 def Warning(message: str = "Warning issued."):  # noqa: N802
     """
     This function allows you to pass custom warning messages to the user. You can do so simply by writing `gr.Warning('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is yellow by default and has the heading: "Warning." Queue must be enabled for this behavior; otherwise, the warning will be printed to the console using the `warnings` library.
@@ -1151,7 +1139,7 @@ def Warning(message: str = "Warning issued."):  # noqa: N802
     log_message(message, level="warning")
 
 
-@document()
+@document(documentation_group="modals")
 def Info(message: str = "Info issued."):  # noqa: N802
     """
     This function allows you to pass custom info messages to the user. You can do so simply by writing `gr.Info('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is gray by default and has the heading: "Info." Queue must be enabled for this behavior; otherwise, the message will be printed to the console.

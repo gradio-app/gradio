@@ -8,7 +8,7 @@
 	import { tick } from "svelte";
 
 	import { Download, Image as ImageIcon } from "@gradio/icons";
-	import { normalise_file, type FileData } from "@gradio/client";
+	import { FileData } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
 	import { IconButton } from "@gradio/atoms";
 	import type { I18nFormatter } from "@gradio/utils";
@@ -18,8 +18,6 @@
 
 	export let show_label = true;
 	export let label: string;
-	export let root = "";
-	export let proxy_url: null | string = null;
 	export let value: GalleryData | null = null;
 	export let columns: number | number[] | undefined = [2];
 	export let rows: number | number[] | undefined = undefined;
@@ -32,6 +30,7 @@
 	export let show_download_button = false;
 	export let i18n: I18nFormatter;
 	export let selected_index: number | null = null;
+	export let interactive: boolean;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -48,7 +47,7 @@
 		value == null
 			? null
 			: value.map((data) => ({
-					image: normalise_file(data.image, root, proxy_url) as FileData,
+					image: data.image as FileData,
 					caption: data.caption
 			  }));
 
@@ -83,7 +82,7 @@
 
 	function handle_preview_click(event: MouseEvent): void {
 		const element = event.target as HTMLElement;
-		const x = event.clientX;
+		const x = event.offsetX;
 		const width = element.offsetWidth;
 		const centerX = width / 2;
 
@@ -290,6 +289,15 @@
 			style="--grid-cols:{columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
 			class:pt-6={show_label}
 		>
+			{#if interactive}
+				<div class="icon-button">
+					<ModifyUpload
+						{i18n}
+						absolute={false}
+						on:clear={() => (value = null)}
+					/>
+				</div>
+			{/if}
 			{#if show_share_button}
 				<div class="icon-button">
 					<ShareButton
@@ -330,14 +338,22 @@
 	.preview {
 		display: flex;
 		position: absolute;
-		top: 0px;
-		right: 0px;
-		bottom: 0px;
-		left: 0px;
 		flex-direction: column;
 		z-index: var(--layer-2);
+		border-radius: calc(var(--block-radius) - var(--block-border-width));
+		-webkit-backdrop-filter: blur(8px);
 		backdrop-filter: blur(8px);
+		width: var(--size-full);
+		height: var(--size-full);
+	}
+
+	.preview::before {
+		content: "";
+		position: absolute;
+		z-index: var(--layer-below);
 		background: var(--background-fill-primary);
+		opacity: 0.9;
+		width: var(--size-full);
 		height: var(--size-full);
 	}
 

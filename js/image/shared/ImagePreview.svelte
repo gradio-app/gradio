@@ -9,7 +9,7 @@
 	import { DownloadLink } from "@gradio/wasm/svelte";
 
 	import { Image as ImageIcon } from "@gradio/icons";
-	import { type FileData, normalise_file } from "@gradio/client";
+	import { type FileData } from "@gradio/client";
 	import type { I18nFormatter } from "@gradio/utils";
 
 	export let value: null | FileData;

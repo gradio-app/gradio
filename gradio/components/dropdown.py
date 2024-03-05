@@ -5,25 +5,28 @@ from __future__ import annotations
 import warnings
 from typing import Any, Callable, Literal
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components.base import FormComponent
 from gradio.events import Events
-
-set_documentation_group("component")
 
 
 @document()
 class Dropdown(FormComponent):
     """
-    Creates a dropdown of choices from which entries can be selected.
-    Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
-    Postprocessing: expects a {str} corresponding to the value of the dropdown entry to be selected.
-    Examples-format: a {str} representing the drop down value to select.
+    Creates a dropdown of choices from which a single entry or multiple entries can be selected (as an input component) or displayed (as an output component).
+
     Demos: sentence_builder, titanic_survival
     """
 
-    EVENTS = [Events.change, Events.input, Events.select, Events.focus, Events.blur]
+    EVENTS = [
+        Events.change,
+        Events.input,
+        Events.select,
+        Events.focus,
+        Events.blur,
+        Events.key_up,
+    ]
 
     def __init__(
         self,
@@ -59,16 +62,16 @@ class Dropdown(FormComponent):
             filterable: If True, user will be able to type into the dropdown and filter the choices by typing. Can only be set to False if `allow_custom_value` is False.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             info: additional component description.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
+            scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, choices in this dropdown will be selectable; if False, selection will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
-            render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            render: If False, component will not be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
         """
         self.choices = (
             # Although we expect choices to be a list of tuples, it can be a list of tuples if the Gradio app
@@ -136,6 +139,12 @@ class Dropdown(FormComponent):
     def preprocess(
         self, payload: str | int | float | list[str | int | float] | None
     ) -> str | int | float | list[str | int | float] | list[int | None] | None:
+        """
+        Parameters:
+            payload: the value of the selected dropdown choice(s)
+        Returns:
+            Passes the value of the selected dropdown choice as a `str | int | float` or its index as an `int` into the function, depending on `type`. Or, if `multiselect` is True, passes the values of the selected dropdown choices as a list of correspoding values/indices instead.
+        """
         if self.type == "value":
             return payload
         elif self.type == "index":
@@ -143,7 +152,8 @@ class Dropdown(FormComponent):
             if payload is None:
                 return None
             elif self.multiselect:
-                assert isinstance(payload, list)
+                if not isinstance(payload, list):
+                    raise TypeError("Multiselect dropdown payload must be a list")
                 return [
                     choice_values.index(choice) if choice in choice_values else None
                     for choice in payload
@@ -167,6 +177,12 @@ class Dropdown(FormComponent):
     def postprocess(
         self, value: str | int | float | list[str | int | float] | None
     ) -> str | int | float | list[str | int | float] | None:
+        """
+        Parameters:
+            value: Expects a `str | int | float` corresponding to the value of the dropdown entry to be selected. Or, if `multiselect` is True, expects a `list` of values corresponding to the selected dropdown entries.
+        Returns:
+            Returns the values of the selected dropdown entry or entries.
+        """
         if value is None:
             return None
         if self.multiselect:

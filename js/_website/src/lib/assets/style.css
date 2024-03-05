@@ -216,3 +216,42 @@ code.language-bash {
 	display: inline-block;
 	margin-right: 5px;
 }
+
+li > p {
+	margin: 0.25rem 0 !important;
+	padding: 0 !important;
+}
+
+ul > li,
+li > ul {
+	margin: 0 !important;
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+}
+
+pre > code {
+	font-weight: 500 !important;
+	border-radius: 0.25rem;
+	font-size: 0.8em !important;
+}
+
+h1 > code,
+h2 > code,
+h3 > code,
+h4 > code,
+h5 > code,
+h6 > code {
+	font-weight: 600 !important;
+	border: none;
+	border-radius: 0;
+	background-color: transparent;
+}
+
+h5,
+h6 {
+	margin-top: 2rem;
+}
+
+.token.table {
+	display: unset;
+}

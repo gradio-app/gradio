@@ -14,12 +14,7 @@
 
 <script lang="ts">
 	import { type I18nFormatter } from "@gradio/utils";
-	import {
-		prepare_files,
-		upload,
-		normalise_file,
-		type FileData
-	} from "@gradio/client";
+	import { prepare_files, upload, type FileData } from "@gradio/client";
 
 	import ImageEditor from "./ImageEditor.svelte";
 	import Layers from "./layers/Layers.svelte";
@@ -29,12 +24,15 @@
 	export let brush: IBrush | null;
 	export let eraser: Eraser | null;
 	import { Tools, Crop, Brush, Sources } from "./tools";
+	import { BlockLabel } from "@gradio/atoms";
+	import { Image as ImageIcon } from "@gradio/icons";
 
 	export let sources: ("clipboard" | "webcam" | "upload")[];
 	export let crop_size: [number, number] | `${string}:${string}` | null = null;
 	export let i18n: I18nFormatter;
 	export let root: string;
-	export let proxy_url: string;
+	export let label: string | undefined = undefined;
+	export let show_label: boolean;
 	export let changeable = false;
 	export let value: EditorData | null = {
 		background: null,
@@ -111,6 +109,11 @@
 			: editor.set_tool("draw"));
 </script>
 
+<BlockLabel
+	{show_label}
+	Icon={ImageIcon}
+	label={label || i18n("image.image")}
+/>
 <ImageEditor
 	bind:this={editor}
 	{changeable}
@@ -127,11 +130,7 @@
 				{root}
 				{sources}
 				bind:bg
-				background_file={normalise_file(
-					value?.background || null,
-					root,
-					proxy_url
-				)}
+				background_file={value?.background || null}
 			></Sources>
 		{/if}
 		{#if transforms.includes("crop")}
@@ -152,9 +151,7 @@
 		{/if}
 	</Tools>
 
-	<Layers
-		layer_files={normalise_file(value?.layers || null, root, proxy_url)}
-	/>
+	<Layers layer_files={value?.layers || null} />
 
 	{#if !bg && !history}
 		<div class="empty wrap">

@@ -5,6 +5,7 @@ Tests for all of the components defined in components.py. Tests are divided into
 """
 
 import filecmp
+import inspect
 import json
 import os
 import shutil
@@ -816,7 +817,7 @@ class TestAudio:
             "autoplay": False,
             "sources": ["upload", "microphone"],
             "name": "audio",
-            "show_download_button": True,
+            "show_download_button": None,
             "show_share_button": False,
             "streaming": False,
             "show_label": True,
@@ -841,8 +842,8 @@ class TestAudio:
                 "show_controls": False,
                 "show_recording_waveform": True,
                 "skip_length": 5,
-                "waveform_color": "#9ca3af",
-                "waveform_progress_color": "#f97316",
+                "waveform_color": None,
+                "waveform_progress_color": None,
             },
             "_selectable": False,
         }
@@ -853,8 +854,9 @@ class TestAudio:
         with pytest.raises(ValueError):
             gr.Audio(type="unknown")
 
+        rng = np.random.default_rng()
         # Confirm Audio can be instantiated with a numpy array
-        gr.Audio((100, np.random.random(size=(1000, 2))), label="Play your audio")
+        gr.Audio((100, rng.random(size=(1000, 2))), label="Play your audio")
 
         # Output functionalities
         y_audio = client_utils.decode_base64_to_file(
@@ -867,7 +869,7 @@ class TestAudio:
         assert audio_output.get_config() == {
             "autoplay": False,
             "name": "audio",
-            "show_download_button": True,
+            "show_download_button": None,
             "show_share_button": False,
             "streaming": False,
             "show_label": True,
@@ -893,8 +895,8 @@ class TestAudio:
                 "show_controls": False,
                 "show_recording_waveform": True,
                 "skip_length": 5,
-                "waveform_color": "#9ca3af",
-                "waveform_progress_color": "#f97316",
+                "waveform_color": None,
+                "waveform_progress_color": None,
             },
             "_selectable": False,
         }
@@ -1111,7 +1113,7 @@ class TestDataframe:
             "headers": ["Name", "Age", "Member"],
             "row_count": (1, "dynamic"),
             "col_count": (3, "dynamic"),
-            "datatype": ["str", "str", "str"],
+            "datatype": "str",
             "type": "pandas",
             "label": "Dataframe Input",
             "show_label": True,
@@ -1154,7 +1156,7 @@ class TestDataframe:
             "headers": ["1", "2", "3"],
             "row_count": (1, "dynamic"),
             "col_count": (3, "dynamic"),
-            "datatype": ["str", "str", "str"],
+            "datatype": "str",
             "type": "pandas",
             "label": None,
             "show_label": True,
@@ -1186,7 +1188,7 @@ class TestDataframe:
         """
         dataframe_output = gr.Dataframe()
         output = dataframe_output.postprocess([]).model_dump()
-        assert output == {"data": [[]], "headers": [], "metadata": None}
+        assert output == {"data": [[]], "headers": ["1", "2", "3"], "metadata": None}
         output = dataframe_output.postprocess(np.zeros((2, 2))).model_dump()
         assert output == {
             "data": [[0, 0], [0, 0]],
@@ -1483,6 +1485,7 @@ class TestVideo:
             "container": True,
             "min_width": 160,
             "scale": None,
+            "show_download_button": None,
             "height": None,
             "width": None,
             "elem_id": None,
@@ -1535,6 +1538,7 @@ class TestVideo:
                 "mime_type": None,
                 "size": None,
                 "url": None,
+                "is_stream": False,
             },
             "subtitles": None,
         }
@@ -1546,6 +1550,7 @@ class TestVideo:
                 "mime_type": None,
                 "size": None,
                 "url": None,
+                "is_stream": False,
             },
             "subtitles": {
                 "path": "s1.srt",
@@ -1553,6 +1558,7 @@ class TestVideo:
                 "orig_name": None,
                 "size": None,
                 "url": None,
+                "is_stream": False,
             },
         }
         postprocessed_video["video"]["path"] = os.path.basename(
@@ -2018,7 +2024,9 @@ class TestChatbot:
     def test_avatar_images_are_moved_to_cache(self):
         chatbot = gr.Chatbot(avatar_images=("test/test_files/bus.png", None))
         assert chatbot.avatar_images[0]
-        assert utils.is_in_or_equal(chatbot.avatar_images[0], chatbot.GRADIO_CACHE)
+        assert utils.is_in_or_equal(
+            chatbot.avatar_images[0]["path"], chatbot.GRADIO_CACHE
+        )
         assert chatbot.avatar_images[1] is None
 
 
@@ -2249,6 +2257,7 @@ class TestGallery:
                     "mime_type": None,
                     "size": None,
                     "url": url,
+                    "is_stream": False,
                 },
                 "caption": None,
             }
@@ -2276,6 +2285,7 @@ class TestGallery:
                     "mime_type": None,
                     "size": None,
                     "url": None,
+                    "is_stream": False,
                 },
                 "caption": "foo_caption",
             },
@@ -2286,6 +2296,7 @@ class TestGallery:
                     "mime_type": None,
                     "size": None,
                     "url": None,
+                    "is_stream": False,
                 },
                 "caption": "bar_caption",
             },
@@ -2296,6 +2307,7 @@ class TestGallery:
                     "mime_type": None,
                     "size": None,
                     "url": None,
+                    "is_stream": False,
                 },
                 "caption": None,
             },
@@ -2306,10 +2318,39 @@ class TestGallery:
                     "mime_type": None,
                     "size": None,
                     "url": None,
+                    "is_stream": False,
                 },
                 "caption": None,
             },
         ]
+
+    def test_gallery_preprocess(self):
+        from gradio.components.gallery import GalleryData, GalleryImage
+
+        gallery = gr.Gallery()
+        img = GalleryImage(image=FileData(path="test/test_files/bus.png"))
+        data = GalleryData(root=[img])
+
+        preprocess = gallery.preprocess(data)
+        assert preprocess[0][0] == "test/test_files/bus.png"
+
+        gallery = gr.Gallery(type="numpy")
+        assert (
+            gallery.preprocess(data)[0][0]
+            == np.array(PIL.Image.open("test/test_files/bus.png"))
+        ).all()
+
+        gallery = gr.Gallery(type="pil")
+        assert gallery.preprocess(data)[0][0] == PIL.Image.open(
+            "test/test_files/bus.png"
+        )
+
+        img_captions = GalleryImage(
+            image=FileData(path="test/test_files/bus.png"), caption="bus"
+        )
+        data = GalleryData(root=[img_captions])
+        preprocess = gr.Gallery().preprocess(data)
+        assert preprocess[0] == ("test/test_files/bus.png", "bus")
 
 
 class TestState:
@@ -2835,7 +2876,7 @@ class TestFileExplorer:
         file_explorer = gr.FileExplorer(file_count="single")
 
         config = file_explorer.get_config()
-        assert config["glob"] == "**/*.*"
+        assert config["glob"] == "**/*"
         assert config["value"] is None
         assert config["file_count"] == "single"
         assert config["server_fns"] == ["ls"]
@@ -2852,7 +2893,7 @@ class TestFileExplorer:
         file_explorer = gr.FileExplorer(file_count="multiple")
 
         config = file_explorer.get_config()
-        assert config["glob"] == "**/*.*"
+        assert config["glob"] == "**/*"
         assert config["value"] is None
         assert config["file_count"] == "multiple"
         assert config["server_fns"] == ["ls"]
@@ -2866,66 +2907,24 @@ class TestFileExplorer:
         preprocessed_data = file_explorer.preprocess(input_data)
         assert preprocessed_data == []
 
-    def test_file_explorer_dir_only_glob(self, tmpdir):
+    def test_file_explorer_txt_only_glob(self, tmpdir):
         tmpdir.mkdir("foo")
-        tmpdir.mkdir("bar")
-        tmpdir.mkdir("baz")
-        (Path(tmpdir) / "baz" / "qux").mkdir()
-        (Path(tmpdir) / "foo" / "abc").mkdir()
-        (Path(tmpdir) / "foo" / "abc" / "def").mkdir()
-        (Path(tmpdir) / "foo" / "abc" / "def" / "file.txt").touch()
+        (Path(tmpdir) / "foo" / "bar").mkdir()
+        (Path(tmpdir) / "foo" / "file.txt").touch()
+        (Path(tmpdir) / "foo" / "file2.txt").touch()
+        (Path(tmpdir) / "foo" / "file3.log").touch()
+        (Path(tmpdir) / "foo" / "img.png").touch()
+        (Path(tmpdir) / "foo" / "bar" / "bar.txt").touch()
 
-        file_explorer = gr.FileExplorer(glob="**/", root=Path(tmpdir))
-        tree = file_explorer.ls()
-
-        def sort_answer(answer):
-            answer = sorted(answer, key=lambda x: x["path"])
-            for item in answer:
-                if item["children"]:
-                    item["children"] = sort_answer(item["children"])
-            return answer
+        file_explorer = gr.FileExplorer(glob="*.txt", root=Path(tmpdir))
+        tree = file_explorer.ls(["foo"])
 
         answer = [
-            {
-                "path": "bar",
-                "type": "folder",
-                "children": [{"path": "", "type": "file", "children": None}],
-            },
-            {
-                "path": "baz",
-                "type": "folder",
-                "children": [
-                    {"path": "", "type": "file", "children": None},
-                    {
-                        "path": "qux",
-                        "type": "folder",
-                        "children": [{"path": "", "type": "file", "children": None}],
-                    },
-                ],
-            },
-            {
-                "path": "foo",
-                "type": "folder",
-                "children": [
-                    {"path": "", "type": "file", "children": None},
-                    {
-                        "path": "abc",
-                        "type": "folder",
-                        "children": [
-                            {"path": "", "type": "file", "children": None},
-                            {
-                                "path": "def",
-                                "type": "folder",
-                                "children": [
-                                    {"path": "", "type": "file", "children": None}
-                                ],
-                            },
-                        ],
-                    },
-                ],
-            },
+            {"name": "bar", "type": "folder", "valid": False},
+            {"name": "file.txt", "type": "file", "valid": True},
+            {"name": "file2.txt", "type": "file", "valid": True},
         ]
-        assert sort_answer(tree) == sort_answer(answer)
+        assert tree == answer
 
 
 def test_component_class_ids():
@@ -2954,3 +2953,12 @@ def test_constructor_args():
         "visible": False,
         "value": "Log in please",
     }
+
+
+def test_template_component_configs(io_components):
+    template_components = [c for c in io_components if getattr(c, "is_template", False)]
+    for component in template_components:
+        component_parent_class = inspect.getmro(component)[1]
+        template_config = component().get_config()
+        parent_config = component_parent_class().get_config()
+        assert set(parent_config.keys()).issubset(set(template_config.keys()))

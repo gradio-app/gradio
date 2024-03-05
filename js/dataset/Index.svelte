@@ -2,7 +2,6 @@
 	import { Block } from "@gradio/atoms";
 	import type { SvelteComponent, ComponentType } from "svelte";
 	import type { Gradio, SelectData } from "@gradio/utils";
-	import { get_fetchable_url_or_file } from "@gradio/client";
 	export let components: string[];
 	export let component_props: Record<string, any>[];
 	export let component_map: Map<
@@ -29,7 +28,11 @@
 		select: SelectData;
 	}>;
 
-	let samples_dir: string = get_fetchable_url_or_file(null, root, proxy_url);
+	// Although the `samples_dir` prop is not used in any of the core Gradio component, it is kept for backward compatibility
+	// with any custom components created with gradio<=4.20.0
+	let samples_dir: string = proxy_url
+		? `/proxy=${proxy_url}file=`
+		: `${root}/file=`;
 	let page = 0;
 	$: gallery = components.length < 2;
 	let paginate = samples.length > samples_per_page;
@@ -129,28 +132,30 @@
 	{#if gallery}
 		<div class="gallery">
 			{#each selected_samples as sample_row, i}
-				<button
-					class="gallery-item"
-					on:click={() => {
-						value = i + page * samples_per_page;
-						gradio.dispatch("click", value);
-						gradio.dispatch("select", { index: value, value: sample_row });
-					}}
-					on:mouseenter={() => handle_mouseenter(i)}
-					on:mouseleave={() => handle_mouseleave()}
-				>
-					{#if component_meta.length && component_map.get(components[0])}
-						<svelte:component
-							this={component_meta[0][0].component}
-							{...component_props[0]}
-							value={sample_row[0]}
-							{samples_dir}
-							type="gallery"
-							selected={current_hover === i}
-							index={i}
-						/>
-					{/if}
-				</button>
+				{#if sample_row[0]}
+					<button
+						class="gallery-item"
+						on:click={() => {
+							value = i + page * samples_per_page;
+							gradio.dispatch("click", value);
+							gradio.dispatch("select", { index: value, value: sample_row });
+						}}
+						on:mouseenter={() => handle_mouseenter(i)}
+						on:mouseleave={() => handle_mouseleave()}
+					>
+						{#if component_meta.length && component_map.get(components[0])}
+							<svelte:component
+								this={component_meta[0][0].component}
+								{...component_props[0]}
+								value={sample_row[0]}
+								{samples_dir}
+								type="gallery"
+								selected={current_hover === i}
+								index={i}
+							/>
+						{/if}
+					</button>
+				{/if}
 			{/each}
 		</div>
 	{:else}

@@ -1,31 +1,40 @@
-<script>
-	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
+<script context="module">
+	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import Chatbot from "./Index.svelte";
-</script>
+	import { allModes } from "../storybook/modes";
 
-<Meta
-	title="Components/Chatbot"
-	component={Chatbot}
-	argTypes={{
-		label: {
-			control: "text",
-			description: "The textbox label",
-			name: "label"
+	export const meta = {
+		title: "Components/Chatbot",
+		component: Chatbot,
+		parameters: {
+			chromatic: {
+				modes: {
+					desktop: allModes["desktop"],
+					mobile: allModes["mobile"]
+				}
+			}
 		},
-		show_label: {
-			options: [true, false],
-			description: "Whether to show the label",
-			control: { type: "boolean" },
-			defaultValue: true
-		},
-		rtl: {
-			options: [true, false],
-			description: "Whether to render right-to-left",
-			control: { type: "boolean" },
-			defaultValue: false
+		argTypes: {
+			label: {
+				control: "text",
+				description: "The textbox label",
+				name: "label"
+			},
+			show_label: {
+				options: [true, false],
+				description: "Whether to show the label",
+				control: { type: "boolean" },
+				defaultValue: true
+			},
+			rtl: {
+				options: [true, false],
+				description: "Whether to render right-to-left",
+				control: { type: "boolean" },
+				defaultValue: false
+			}
 		}
-	}}
-/>
+	};
+</script>
 
 <Template let:args>
 	<Chatbot
@@ -97,8 +106,8 @@
 	args={{
 		layout: "panel",
 		avatar_images: [
-			"https://avatars.githubusercontent.com/u/100000?v=4",
-			"https://avatars.githubusercontent.com/u/100000?v=4"
+			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" },
+			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" }
 		]
 	}}
 />
@@ -109,8 +118,8 @@
 		bubble_full_width: true,
 		layout: "bubble",
 		avatar_images: [
-			"https://avatars.githubusercontent.com/u/100000?v=4",
-			"https://avatars.githubusercontent.com/u/100000?v=4"
+			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" },
+			{ url: "https://avatars.githubusercontent.com/u/100000?v=4" }
 		]
 	}}
 />

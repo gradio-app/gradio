@@ -21,6 +21,7 @@ from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
 from gradio_client.client import DEFAULT_TEMP_DIR
+from gradio_client.exceptions import AuthenticationError
 from gradio_client.utils import (
     Communicator,
     ProgressUnit,
@@ -49,6 +50,27 @@ def connect(
         demo.is_running = False
         demo.server.should_exit = True
         demo.server.thread.join(timeout=1)
+
+
+class TestClientInitialization:
+    def test_headers_constructed_correctly(self):
+        client = Client("gradio-tests/titanic-survival", hf_token=HF_TOKEN)
+        assert {"authorization": f"Bearer {HF_TOKEN}"}.items() <= client.headers.items()
+        client = Client(
+            "gradio-tests/titanic-survival",
+            hf_token=HF_TOKEN,
+            headers={"additional": "value"},
+        )
+        assert {
+            "authorization": f"Bearer {HF_TOKEN}",
+            "additional": "value",
+        }.items() <= client.headers.items()
+        client = Client(
+            "gradio-tests/titanic-survival",
+            hf_token=HF_TOKEN,
+            headers={"authorization": "Bearer abcde"},
+        )
+        assert {"authorization": "Bearer abcde"}.items() <= client.headers.items()
 
 
 class TestClientPredictions:
@@ -111,6 +133,28 @@ class TestClientPredictions:
         )
         output = client.predict("abc", api_name="/predict")
         assert output == "abc"
+
+    @pytest.mark.flaky
+    def test_space_with_files_v4_sse_v2(self):
+        space_id = "gradio-tests/space_with_files_v4_sse_v2"
+        client = Client(space_id)
+        payload = (
+            "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+            {
+                "video": "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4",
+                "subtitle": None,
+            },
+            "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+        )
+        output = client.predict(*payload, api_name="/predict")
+        assert output[0].endswith(".wav")  # Audio files are converted to wav
+        assert output[1]["video"].endswith(
+            "world.mp4"
+        )  # Video files are not converted by default
+        assert (
+            output[2]
+            == "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
+        )  # textbox string should remain exactly the same
 
     def test_state(self, increment_demo):
         with connect(increment_demo) as client:
@@ -253,6 +297,18 @@ class TestClientPredictions:
                 )
                 count += unit in all_progress_data
             assert count
+
+    def test_upload_and_download_with_auth(self):
+        demo = gr.Interface(lambda x: x, "text", "text")
+        _, url, _ = demo.launch(auth=("user", "pass"), prevent_thread_lock=True)
+        with pytest.raises(AuthenticationError):
+            client = Client(url)
+        client = Client(url, auth=("user", "pass"))
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+            f.write("Hello file!")
+        output = client.predict(f.name, api_name="/predict")
+        with open(output) as f:
+            assert f.read() == "Hello file!"
 
     def test_cancel_from_client_queued(self, cancel_from_client_demo):
         with connect(cancel_from_client_demo) as client:

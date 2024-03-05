@@ -31,8 +31,8 @@ from huggingface_hub.utils import (
 from packaging import version
 
 from gradio_client import serializing, utils
-from gradio_client.documentation import document, set_documentation_group
-from gradio_client.exceptions import SerializationSetupError
+from gradio_client.documentation import document
+from gradio_client.exceptions import AuthenticationError, SerializationSetupError
 from gradio_client.utils import (
     Communicator,
     JobStatus,
@@ -42,9 +42,6 @@ from gradio_client.utils import (
     Status,
     StatusUpdate,
 )
-
-set_documentation_group("py-client")
-
 
 DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
     Path(tempfile.gettempdir()) / "gradio"
@@ -74,28 +71,43 @@ class Client:
         src: str,
         hf_token: str | None = None,
         max_workers: int = 40,
-        serialize: bool = True,
+        serialize: bool | None = None,
         output_dir: str | Path = DEFAULT_TEMP_DIR,
         verbose: bool = True,
         auth: tuple[str, str] | None = None,
+        *,
+        headers: dict[str, str] | None = None,
+        upload_files: bool = True,
+        download_files: bool = True,
     ):
         """
         Parameters:
             src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
             hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
-            serialize: Whether the client should serialize the inputs and deserialize the outputs of the remote API. If set to False, the client will pass the inputs and outputs as-is, without serializing/deserializing them. E.g. you if you set this to False, you'd submit an image in base64 format instead of a filepath, and you'd get back an image in base64 format from the remote API instead of a filepath.
+            serialize: Deprecated. Please use the equivalent `upload_files` parameter instead.
             output_dir: The directory to save files that are downloaded from the remote API. If None, reads from the GRADIO_TEMP_DIR environment variable. Defaults to a temporary directory on your machine.
             verbose: Whether the client should print statements to the console.
+            headers: Additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. These headers will override the default headers if they have the same keys.
+            upload_files: Whether the client should treat input string filepath as files and upload them to the remote server. If False, the client will treat input string filepaths as strings always and not modify them.
+            download_files: Whether the client should download output files from the remote API and return them as string filepaths on the local machine. If False, the client will a FileData dataclass object with the filepath on the remote machine instead.
         """
         self.verbose = verbose
         self.hf_token = hf_token
-        self.serialize = serialize
+        if serialize is not None:
+            warnings.warn(
+                "The `serialize` parameter is deprecated and will be removed. Please use the equivalent `upload_files` parameter instead."
+            )
+            upload_files = serialize
+        self.upload_files = upload_files
+        self.download_files = download_files
         self.headers = build_hf_headers(
             token=hf_token,
             library_name="gradio_client",
             library_version=utils.__version__,
         )
+        if headers:
+            self.headers.update(headers)
         self.space_id = None
         self.cookies: dict[str, str] = {}
         self.output_dir = (
@@ -146,7 +158,7 @@ class Client:
         self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
         self.reset_url = urllib.parse.urljoin(self.src, utils.RESET_URL)
         self.app_version = version.parse(self.config.get("version", "2.0"))
-        self._info = self._get_api_info()
+        self._info = None
         self.session_hash = str(uuid.uuid4())
 
         endpoint_class = (
@@ -428,7 +440,12 @@ class Client:
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
 
         helper = None
-        if self.endpoints[inferred_fn_index].protocol in ("ws", "sse", "sse_v1"):
+        if self.endpoints[inferred_fn_index].protocol in (
+            "ws",
+            "sse",
+            "sse_v1",
+            "sse_v2",
+        ):
             helper = self.new_helper(inferred_fn_index)
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
@@ -456,11 +473,10 @@ class Client:
         return job
 
     def _get_api_info(self):
-        if self.serialize:
+        if self.upload_files:
             api_info_url = urllib.parse.urljoin(self.src, utils.API_INFO_URL)
         else:
             api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
-
         if self.app_version > version.Version("3.36.1"):
             r = httpx.get(api_info_url, headers=self.headers, cookies=self.cookies)
             if r.is_success:
@@ -470,7 +486,10 @@ class Client:
         else:
             fetch = httpx.post(
                 utils.SPACE_FETCHER_URL,
-                json={"config": json.dumps(self.config), "serialize": self.serialize},
+                json={
+                    "config": json.dumps(self.config),
+                    "serialize": self.upload_files,
+                },
             )
             if fetch.is_success:
                 info = fetch.json()["api"]
@@ -504,21 +523,21 @@ class Client:
                         'parameters': [
                             {
                                 'label': 'num1',
-                                'type_python': 'int | float',
+                                'python_type': 'int | float',
                                 'type_description': 'numeric value',
                                 'component': 'Number',
                                 'example_input': '5'
                             },
                             {
                                 'label': 'operation',
-                                'type_python': 'str',
+                                'python_type': 'str',
                                 'type_description': 'string value',
                                 'component': 'Radio',
                                 'example_input': 'add'
                             },
                             {
                                 'label': 'num2',
-                                'type_python': 'int | float',
+                                'python_type': 'int | float',
                                 'type_description': 'numeric value',
                                 'component': 'Number',
                                 'example_input': '5'
@@ -527,7 +546,7 @@ class Client:
                         'returns': [
                             {
                                 'label': 'output',
-                                'type_python': 'int | float',
+                                'python_type': 'int | float',
                                 'type_description': 'numeric value',
                                 'component': 'Number',
                             },
@@ -556,6 +575,8 @@ class Client:
             }
 
         """
+        if not self._info:
+            self._info = self._get_api_info()
         num_named_endpoints = len(self._info["named_endpoints"])
         num_unnamed_endpoints = len(self._info["unnamed_endpoints"])
         if num_named_endpoints == 0 and all_endpoints is None:
@@ -573,9 +594,8 @@ class Client:
                 # When loading from json, the fn_indices are read as strings
                 # because json keys can only be strings
                 human_info += self._render_endpoints_info(int(fn_index), endpoint_info)
-        else:
-            if num_unnamed_endpoints > 0:
-                human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}, to view, run Client.view_api(all_endpoints=True)\n"
+        elif num_unnamed_endpoints > 0:
+            human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}, to view, run Client.view_api(all_endpoints=True)\n"
 
         if print_info:
             print(human_info)
@@ -711,7 +731,12 @@ class Client:
             data={"username": auth[0], "password": auth[1]},
         )
         if not resp.is_success:
-            raise ValueError(f"Could not login to {self.src}")
+            if resp.status_code == 401:
+                raise AuthenticationError(
+                    f"Could not login to {self.src}. Invalid credentials."
+                )
+            else:
+                raise ValueError(f"Could not login to {self.src}.")
         self.cookies = {
             name: value for name, value in resp.cookies.items() if value is not None
         }
@@ -725,7 +750,9 @@ class Client:
         if r.is_success:
             return r.json()
         elif r.status_code == 401:
-            raise ValueError(f"Could not load {self.src}. Please login.")
+            raise AuthenticationError(
+                f"Could not load {self.src} as credentials were not provided. Please login."
+            )
         else:  # to support older versions of Gradio
             r = httpx.get(self.src, headers=self.headers, cookies=self.cookies)
             if not r.is_success:
@@ -923,12 +950,7 @@ class Endpoint:
         ]
         self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
         self.is_continuous = dependency.get("types", {}).get("continuous", False)
-        self.download_file = lambda d: self._download_file(
-            d,
-            save_dir=self.client.output_dir,
-            hf_token=self.client.hf_token,
-            root_url=self.root_url,
-        )
+
         # Disallow hitting endpoints that the Gradio app has disabled
         self.is_valid = self.api_name is not False
         self.backend_fn = dependency.get("backend_fn")
@@ -947,7 +969,11 @@ class Endpoint:
 
     @staticmethod
     def value_is_file(component: dict) -> bool:
-        # Hacky for now
+        # This is still hacky as it does not tell us which part of the payload is a file.
+        # If a component has a complex payload, part of which is a file, this will simply
+        # return True, which means that all parts of the payload will be uploaded as files
+        # if they are valid file paths. The better approach would be to traverse the
+        # component's api_info and figure out exactly which part of the payload is a file.
         if "api_info" not in component:
             return False
         return utils.value_is_file(component["api_info"])
@@ -965,7 +991,7 @@ class Endpoint:
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
             data = self.insert_state(*data)
-            if self.client.serialize:
+            if self.client.upload_files:
                 data = self.serialize(*data)
             predictions = _predict(*data)
             predictions = self.process_predictions(*predictions)
@@ -996,13 +1022,15 @@ class Endpoint:
                 result = utils.synchronize_async(
                     self._sse_fn_v0, data, hash_data, helper
                 )
-            elif self.protocol == "sse_v1":
+            elif self.protocol in ("sse_v1", "sse_v2"):
                 event_id = utils.synchronize_async(
                     self.client.send_data, data, hash_data
                 )
                 self.client.pending_event_ids.add(event_id)
                 self.client.pending_messages_per_event[event_id] = []
-                result = utils.synchronize_async(self._sse_fn_v1, helper, event_id)
+                result = utils.synchronize_async(
+                    self._sse_fn_v1_v2, helper, event_id, self.protocol
+                )
             else:
                 raise ValueError(f"Unsupported protocol: {self.protocol}")
 
@@ -1055,7 +1083,12 @@ class Endpoint:
             for f in fs:
                 files.append(("files", (Path(f).name, open(f, "rb"))))  # noqa: SIM115
                 indices.append(i)
-        r = httpx.post(self.client.upload_url, headers=self.client.headers, files=files)
+        r = httpx.post(
+            self.client.upload_url,
+            headers=self.client.headers,
+            cookies=self.client.cookies,
+            files=files,
+        )
         if r.status_code != 200:
             uploaded = file_paths
         else:
@@ -1107,6 +1140,9 @@ class Endpoint:
                 file_list.append(d)
             return ReplaceMe(len(file_list) - 1)
 
+        def handle_url(s):
+            return {"path": s, "orig_name": s.split("/")[-1]}
+
         new_data = []
         for i, d in enumerate(data):
             if self.input_component_types[i].value_is_file:
@@ -1116,6 +1152,8 @@ class Endpoint:
                 d = utils.traverse(
                     d, get_file, lambda s: utils.is_file_obj(s) or utils.is_filepath(s)
                 )
+                # Handle URLs here since we don't upload them
+                d = utils.traverse(d, handle_url, lambda s: utils.is_url(s))
             new_data.append(d)
         return file_list, new_data
 
@@ -1136,48 +1174,41 @@ class Endpoint:
         uploaded_files = self._upload(files)
         data = list(new_data)
         data = self._add_uploaded_files_to_data(data, uploaded_files)
-        data = utils.traverse(
-            data,
-            lambda s: {"path": s},
-            utils.is_url,
-        )
         o = tuple(data)
         return o
 
-    @staticmethod
-    def _download_file(
-        x: dict,
-        save_dir: str,
-        root_url: str,
-        hf_token: str | None = None,
-    ) -> str | None:
-        if x is None:
+    def download_file(self, file_data: dict) -> str | None:
+        if file_data is None:
             return None
-        if isinstance(x, str):
-            file_name = utils.decode_base64_to_file(x, dir=save_dir).name
-        elif isinstance(x, dict):
-            filepath = x.get("path")
-            assert filepath is not None, f"The 'path' field is missing in {x}"
+        if isinstance(file_data, str):
+            file_name = utils.decode_base64_to_file(
+                file_data, dir=self.client.output_dir
+            ).name
+        elif isinstance(file_data, dict):
+            filepath = file_data.get("path")
+            if not filepath:
+                raise ValueError(f"The 'path' field is missing in {file_data}")
             file_name = utils.download_file(
-                root_url + "file=" + filepath,
-                hf_token=hf_token,
-                dir=save_dir,
+                self.root_url + "file=" + filepath,
+                save_dir=self.client.output_dir,
+                headers=self.client.headers,
+                cookies=self.client.cookies,
             )
 
         else:
             raise ValueError(
-                f"A FileSerializable component can only deserialize a string or a dict, not a {type(x)}: {x}"
+                f"A FileSerializable component can only deserialize a string or a dict, not a {type(file_name)}: {file_name}"
             )
         return file_name
 
     def deserialize(self, *data) -> tuple:
         data_ = list(data)
-
         data_: list[Any] = utils.traverse(data_, self.download_file, utils.is_file_obj)
         return tuple(data_)
 
     def process_predictions(self, *predictions):
-        predictions = self.deserialize(*predictions)
+        if self.client.download_files:
+            predictions = self.deserialize(*predictions)
         predictions = self.remove_skipped_components(*predictions)
         predictions = self.reduce_singleton_output(*predictions)
         return predictions
@@ -1195,20 +1226,23 @@ class Endpoint:
                 self.client.cookies,
             )
 
-    async def _sse_fn_v1(self, helper: Communicator, event_id: str):
-        return await utils.get_pred_from_sse_v1(
+    async def _sse_fn_v1_v2(
+        self, helper: Communicator, event_id: str, protocol: Literal["sse_v1", "sse_v2"]
+    ):
+        return await utils.get_pred_from_sse_v1_v2(
             helper,
             self.client.headers,
             self.client.cookies,
             self.client.pending_messages_per_event,
             event_id,
+            protocol,
         )
 
 
 class EndpointV3Compatibility:
     """Endpoint class for connecting to v3 endpoints. Backwards compatibility."""
 
-    def __init__(self, client: Client, fn_index: int, dependency: dict, *args):
+    def __init__(self, client: Client, fn_index: int, dependency: dict, *_args):
         self.client: Client = client
         self.fn_index = fn_index
         self.dependency = dependency
@@ -1245,7 +1279,7 @@ class EndpointV3Compatibility:
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
             data = self.insert_state(*data)
-            if self.client.serialize:
+            if self.client.upload_files:
                 data = self.serialize(*data)
             predictions = _predict(*data)
             predictions = self.process_predictions(*predictions)
@@ -1436,7 +1470,7 @@ class EndpointV3Compatibility:
         return outputs
 
     def process_predictions(self, *predictions):
-        if self.client.serialize:
+        if self.client.download_files:
             predictions = self.deserialize(*predictions)
         predictions = self.remove_skipped_components(*predictions)
         predictions = self.reduce_singleton_output(*predictions)
@@ -1557,7 +1591,10 @@ class Job(Future):
                     o = self.communicator.job.outputs[self._counter]
                     self._counter += 1
                     return o
-                if self.communicator.job.latest_status.code == Status.FINISHED:
+                if (
+                    self.communicator.job.latest_status.code == Status.FINISHED
+                    and self._counter >= len(self.communicator.job.outputs)
+                ):
                     raise StopIteration()
                 time.sleep(0.001)
 
@@ -1658,26 +1695,25 @@ class Job(Future):
                     eta=None,
                     progress_data=None,
                 )
+        elif not self.communicator:
+            return StatusUpdate(
+                code=Status.PROCESSING,
+                rank=0,
+                queue_size=None,
+                success=None,
+                time=time,
+                eta=None,
+                progress_data=None,
+            )
         else:
-            if not self.communicator:
-                return StatusUpdate(
-                    code=Status.PROCESSING,
-                    rank=0,
-                    queue_size=None,
-                    success=None,
-                    time=time,
-                    eta=None,
-                    progress_data=None,
-                )
-            else:
-                with self.communicator.lock:
-                    eta = self.communicator.job.latest_status.eta
-                    if self.verbose and self.space_id and eta and eta > 30:
-                        print(
-                            f"Due to heavy traffic on this app, the prediction will take approximately {int(eta)} seconds."
-                            f"For faster predictions without waiting in queue, you may duplicate the space using: Client.duplicate({self.space_id})"
-                        )
-                    return self.communicator.job.latest_status
+            with self.communicator.lock:
+                eta = self.communicator.job.latest_status.eta
+                if self.verbose and self.space_id and eta and eta > 30:
+                    print(
+                        f"Due to heavy traffic on this app, the prediction will take approximately {int(eta)} seconds."
+                        f"For faster predictions without waiting in queue, you may duplicate the space using: Client.duplicate({self.space_id})"
+                    )
+                return self.communicator.job.latest_status
 
     def __getattr__(self, name):
         """Forwards any properties to the Future class."""

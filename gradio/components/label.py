@@ -7,13 +7,11 @@ import operator
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Union
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.data_classes import GradioModel
 from gradio.events import Events
-
-set_documentation_group("component")
 
 
 class LabelConfidence(GradioModel):
@@ -29,9 +27,8 @@ class LabelData(GradioModel):
 @document()
 class Label(Component):
     """
-    Displays a classification label, along with confidence scores of top categories, if provided.
-    Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs, or a {str} path to a .json file containing a json dictionary in the structure produced by Label.postprocess().
+    Displays a classification label, along with confidence scores of top categories, if provided. As this component does not
+    accept user input, it is rarely used as an input component.
 
     Demos: main_note, titanic_survival
     Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers
@@ -63,10 +60,10 @@ class Label(Component):
             value: Default value to show in the component. If a str or number is provided, simply displays the string or number. If a {Dict[str, float]} of classes and confidences is provided, displays the top class on top and the `num_top_classes` below, along with their confidence bars. If callable, the function will be called whenever the app loads to set the initial value of the component.
             num_top_classes: number of most confident classes to show.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
+            scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -90,9 +87,32 @@ class Label(Component):
             value=value,
         )
 
+    def preprocess(
+        self, payload: LabelData | None
+    ) -> dict[str, float] | str | int | float | None:
+        """
+        Parameters:
+            payload: An instance of `LabelData` containing the label and confidences.
+        Returns:
+            Depending on the value, passes the label as a `str | int | float`, or the labels and confidences as a `dict[str, float]`.
+        """
+        if payload is None:
+            return None
+        if payload.confidences is None:
+            return payload.label
+        return {
+            d["label"]: d["confidence"] for d in payload.model_dump()["confidences"]
+        }
+
     def postprocess(
-        self, value: dict[str, float] | str | float | None
+        self, value: dict[str, float] | str | int | float | None
     ) -> LabelData | dict | None:
+        """
+        Parameters:
+            value: Expects a `dict[str, float]` of classes and confidences, or `str` with just the class or an `int | float` for regression outputs, or a `str` path to a .json file containing a json dictionary in one of the preceding formats.
+        Returns:
+            Returns a `LabelData` object with the label and confidences, or a `dict` of the same format, or a `str` or `int` or `float` if the input was a single label.
+        """
         if value is None or value == {}:
             return {}
         if isinstance(value, str) and value.endswith(".json") and Path(value).exists():
@@ -120,17 +140,6 @@ class Label(Component):
             "float label, or a dictionary whose keys are labels and values are confidences. "
             f"Instead, got a {type(value)}"
         )
-
-    def preprocess(
-        self, payload: LabelData | None
-    ) -> dict[str, float] | str | float | None:
-        if payload is None:
-            return None
-        if payload.confidences is None:
-            return payload.label
-        return {
-            d["label"]: d["confidence"] for d in payload.model_dump()["confidences"]
-        }
 
     def example_inputs(self) -> Any:
         return {

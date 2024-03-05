@@ -4,23 +4,16 @@ from __future__ import annotations
 
 from typing import Any, Callable, Literal
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
-from gradio.components.base import (
-    FormComponent,
-)
+from gradio.components.base import FormComponent
 from gradio.events import Events
-
-set_documentation_group("component")
 
 
 @document()
 class Textbox(FormComponent):
     """
     Creates a textarea for user to enter string input or display string output.
-    Preprocessing: passes textarea value as a {str} into the function.
-    Postprocessing: expects a {str} returned from function and sets textarea value to it.
-    Examples-format: a {str} representing the textbox input.
 
     Demos: hello_world, diff_texts, sentence_builder
     Guides: creating-a-chatbot, real-time-speech-recognition
@@ -69,10 +62,10 @@ class Textbox(FormComponent):
             placeholder: placeholder hint to provide behind textarea.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             info: additional component description.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
+            scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will be rendered as an editable textbox; if False, editing will be disabled. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
@@ -118,9 +111,21 @@ class Textbox(FormComponent):
         self.text_align = text_align
 
     def preprocess(self, payload: str | None) -> str | None:
+        """
+        Parameters:
+            payload: the text entered in the textarea.
+        Returns:
+            Passes text value as a {str} into the function.
+        """
         return None if payload is None else str(payload)
 
     def postprocess(self, value: str | None) -> str | None:
+        """
+        Parameters:
+            value: Expects a {str} returned from function and sets textarea value to it.
+        Returns:
+            The value to display in the textarea.
+        """
         return None if value is None else str(value)
 
     def api_info(self) -> dict[str, Any]:

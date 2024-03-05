@@ -27,6 +27,7 @@
 		stylesheets?: string[];
 		path: string;
 		app_id?: string;
+		fill_height?: boolean;
 	}
 
 	let id = -1;
@@ -61,7 +62,7 @@
 </script>
 
 <script lang="ts">
-	import { onMount, setContext } from "svelte";
+	import { onMount, setContext, createEventDispatcher } from "svelte";
 	import type { api_factory, SpaceStatus } from "@gradio/client";
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./types";
@@ -72,6 +73,8 @@
 	import { setWorkerProxyContext } from "@gradio/wasm/svelte";
 
 	setupi18n();
+
+	const dispatch = createEventDispatcher();
 
 	export let autoscroll: boolean;
 	export let version: string;
@@ -163,12 +166,35 @@
 
 			if (parsed_head_html) {
 				for (let head_element of parsed_head_html) {
-					let newElement = document.createElement(head_element.tagName);
-					Array.from(head_element.attributes).forEach((attr) => {
-						newElement.setAttribute(attr.name, attr.value);
-					});
-					newElement.textContent = head_element.textContent;
-					document.head.appendChild(newElement);
+					for (let head_element of parsed_head_html) {
+						let newElement = document.createElement(head_element.tagName);
+						Array.from(head_element.attributes).forEach((attr) => {
+							newElement.setAttribute(attr.name, attr.value);
+						});
+						newElement.textContent = head_element.textContent;
+
+						if (
+							newElement.tagName == "META" &&
+							newElement.getAttribute("property")
+						) {
+							const domMetaList = Array.from(
+								document.head.getElementsByTagName("meta") ?? []
+							);
+							const matched = domMetaList.find((el) => {
+								return (
+									el.getAttribute("property") ==
+										newElement.getAttribute("property") &&
+									!el.isEqualNode(newElement)
+								);
+							});
+							if (matched) {
+								document.head.replaceChild(newElement, matched);
+								continue;
+							}
+						}
+
+						document.head.appendChild(newElement);
+					}
 				}
 			}
 		}
@@ -249,8 +275,7 @@
 				: host || space || src || location.origin;
 
 		app = await client(api_url, {
-			status_callback: handle_status,
-			normalise_files: false
+			status_callback: handle_status
 		});
 		config = app.config;
 		window.__gradio_space__ = config.space_id;
@@ -267,6 +292,8 @@
 		css_ready = true;
 		window.__is_colab__ = config.is_colab;
 
+		dispatch("loaded");
+
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(api_url);
@@ -275,8 +302,7 @@
 				eventSource.onmessage = async function (event) {
 					if (event.data === "CHANGE") {
 						app = await client(api_url, {
-							status_callback: handle_status,
-							normalise_files: false
+							status_callback: handle_status
 						});
 
 						config = app.config;
@@ -412,6 +438,7 @@
 		<Blocks
 			{app}
 			{...config}
+			fill_height={!is_embed && config.fill_height}
 			theme_mode={active_theme_mode}
 			{control_page_title}
 			target={wrapper}

@@ -1,19 +1,21 @@
 """Predefined button to sign out from Hugging Face in a Gradio Space."""
 from __future__ import annotations
 
+import warnings
 from typing import Literal
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components import Button
-
-set_documentation_group("component")
 
 
 @document()
 class LogoutButton(Button):
     """
-    Button to log out a user from a Space.
+    Creates a Button to log out a user from a Space using OAuth.
+
+    Note: `LogoutButton` component is deprecated. Please use `gr.LoginButton` instead
+          which handles both the login and logout processes.
     """
 
     is_template = True
@@ -37,6 +39,9 @@ class LogoutButton(Button):
         scale: int | None = 0,
         min_width: int | None = None,
     ):
+        warnings.warn(
+            "The `gr.LogoutButton` component is deprecated. Please use `gr.LoginButton` instead which handles both the login and logout processes."
+        )
         super().__init__(
             value,
             every=every,

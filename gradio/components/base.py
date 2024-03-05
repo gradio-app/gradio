@@ -14,8 +14,7 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
-from gradio_client.documentation import set_documentation_group
-from PIL import Image as _Image  # using _ to minimize namespace pollution
+from gradio_client.utils import is_file_obj
 
 from gradio import utils
 from gradio.blocks import Block, BlockContext
@@ -33,10 +32,6 @@ if TYPE_CHECKING:
         data: list[list[str | int | bool]]
 
 
-set_documentation_group("component")
-_Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
-
-
 class _Keywords(Enum):
     NO_VALUE = "NO_VALUE"  # Used as a sentinel to determine if nothing is provided as a argument for `value` in `Component.update()`
     FINISHED_ITERATING = "FINISHED_ITERATING"  # Used to skip processing of a component's value (needed for generators + state)
@@ -49,6 +44,10 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     def preprocess(self, payload: Any) -> Any:
         """
         Any preprocessing needed to be performed on function input.
+        Parameters:
+            payload: The input data received by the component from the frontend.
+        Returns:
+            The preprocessed input data sent to the user's function in the backend.
         """
         return payload
 
@@ -56,6 +55,10 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     def postprocess(self, value):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+            value: The output data received by the component from the user's function in the backend.
+        Returns:
+            The postprocessed output data sent to the frontend.
         """
         return value
 
@@ -93,11 +96,7 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
         pass
 
     @abstractmethod
-    def read_from_flag(
-        self,
-        payload: Any,
-        flag_dir: str | Path | None = None,
-    ) -> GradioDataModel | Any:
+    def read_from_flag(self, payload: Any) -> GradioDataModel | Any:
         """
         Convert the data from the csv or jsonl file into the component state.
         """
@@ -192,13 +191,22 @@ class Component(ComponentBase, Block):
         self.scale = scale
         self.min_width = min_width
         self.interactive = interactive
+        # Keep tracks of files that should not be deleted when the delete_cache parmaeter is set
+        # These files are the default value of the component and files that are used in examples
+        self.keep_in_cache = set()
 
         # load_event is set in the Blocks.attach_load_events method
         self.load_event: None | dict[str, Any] = None
         self.load_event_to_attach: None | tuple[Callable, float | None] = None
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         initial_value = self.postprocess(initial_value)
-        self.value = move_files_to_cache(initial_value, self, postprocess=True)  # type: ignore
+        self.value = move_files_to_cache(
+            initial_value,
+            self,  # type: ignore
+            postprocess=True,
+        )
+        if is_file_obj(self.value):
+            self.keep_in_cache.add(self.value["path"])
 
         if callable(load_fn):
             self.attach_load_event(load_fn, every)
@@ -280,11 +288,7 @@ class Component(ComponentBase, Block):
             return payload.copy_to_dir(flag_dir).model_dump_json()
         return payload
 
-    def read_from_flag(
-        self,
-        payload: Any,
-        flag_dir: str | Path | None = None,
-    ):
+    def read_from_flag(self, payload: Any):
         """
         Convert the data from the csv or jsonl file into the component state.
         """
@@ -332,7 +336,8 @@ def component(cls_name: str, render: bool) -> Component:
     obj = utils.component_or_layout_class(cls_name)(render=render)
     if isinstance(obj, BlockContext):
         raise ValueError(f"Invalid component: {obj.__class__}")
-    assert isinstance(obj, Component)
+    if not isinstance(obj, Component):
+        raise TypeError(f"Expected a Component instance, but got {obj.__class__}")
     return obj
 
 
@@ -365,5 +370,8 @@ def get_component_instance(
         component_obj.render()
     elif unrender and component_obj.is_rendered:
         component_obj.unrender()
-    assert isinstance(component_obj, Component)
+    if not isinstance(component_obj, Component):
+        raise TypeError(
+            f"Expected a Component instance, but got {component_obj.__class__}"
+        )
     return component_obj

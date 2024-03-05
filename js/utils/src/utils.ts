@@ -11,6 +11,11 @@ export interface LikeData {
 	liked?: boolean;
 }
 
+export interface KeyUpData {
+	key: string;
+	input_value: string;
+}
+
 export interface ShareData {
 	description: string;
 	title?: string;
@@ -151,10 +156,20 @@ async function copy_to_clipboard(value: string): Promise<boolean> {
 	return copied;
 }
 
-// import { format } from "svelte-i18n";
-import { get } from "svelte/store";
+export const format_time = (seconds: number): string => {
+	const hours = Math.floor(seconds / 3600);
+	const minutes = Math.floor((seconds % 3600) / 60);
+	const seconds_remainder = Math.round(seconds) % 60;
+	const padded_minutes = `${minutes < 10 ? "0" : ""}${minutes}`;
+	const padded_seconds = `${
+		seconds_remainder < 10 ? "0" : ""
+	}${seconds_remainder}`;
 
-// const x = get(format);
+	if (hours > 0) {
+		return `${hours}:${padded_minutes}:${padded_seconds}`;
+	}
+	return `${minutes}:${padded_seconds}`;
+};
 
 export type I18nFormatter = any;
 export class Gradio<T extends Record<string, any> = Record<string, any>> {

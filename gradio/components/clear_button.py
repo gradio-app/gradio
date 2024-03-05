@@ -6,14 +6,12 @@ import copy
 import json
 from typing import Any, Literal
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components import Button, Component
 from gradio.context import Context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.utils import resolve_singleton
-
-set_documentation_group("component")
 
 
 @document("add")
@@ -111,11 +109,23 @@ class ClearButton(Button):
             )
         return self
 
-    def postprocess(self, value: str | None) -> str | None:
-        return value
-
     def preprocess(self, payload: str | None) -> str | None:
+        """
+        Parameters:
+            payload: string corresponding to the button label
+        Returns:
+            (Rarely used) the `str` corresponding to the button label when the button is clicked
+        """
         return payload
+
+    def postprocess(self, value: str | None) -> str | None:
+        """
+        Parameters:
+            value: string corresponding to the button label
+        Returns:
+            Expects a `str` value that is set as the button label
+        """
+        return value
 
     def example_inputs(self) -> Any:
         return None

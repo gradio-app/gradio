@@ -69,6 +69,7 @@
 					<button
 						on:click={() => (show_desc[i] = !show_desc[i])}
 						class="arrow"
+						class:disabled={!description && !_default}
 						class:hidden={!show_desc[i]}>▲</button
 					>
 				</div>
@@ -94,13 +95,17 @@
 		display: inline-block;
 	}
 
+	.disbaled {
+		opacity: 0;
+	}
+
 	.wrap :global(pre),
 	.wrap :global(.highlight) {
-		margin: 0;
+		margin: 0 !important;
 		background: transparent !important;
 		font-family: var(--font-mono);
 		font-weight: 400;
-		padding: 0;
+		padding: 0 !important;
 	}
 
 	.wrap :global(pre a) {
@@ -137,7 +142,7 @@
 		border-width: var(--block-border-width);
 		border-color: var(--block-border-color);
 		border-radius: var(--block-radius);
-		background: #fff;
+		background: var(--table-odd-background-fill);
 		width: 100%;
 		line-height: var(--line-sm);
 		color: var(--body-text-color);
@@ -146,10 +151,8 @@
 	.type {
 		position: relative;
 		padding: 0.7rem 1rem;
-		background: var(--neutral-900);
-		background: var(--neutral-50);
-		border-bottom: 1px solid var(--neutral-700);
-		border-bottom: 0px solid var(--neutral-200);
+		background: var(--table-odd-background-fill);
+		border-bottom: 0px solid var(--table-border-color);
 	}
 
 	.arrow {
@@ -170,7 +173,8 @@
 
 	.default {
 		padding: 0.2rem 1rem 0.3rem 1rem;
-		border-bottom: 1px solid var(--neutral-200);
+		border-bottom: 1px solid var(--table-border-color);
+		background: var(--block-background-fill);
 	}
 
 	.default.last {
@@ -181,10 +185,15 @@
 		padding: 0.7rem 1rem;
 		font-size: var(--scale-00);
 		font-family: var(--font-sans);
+		background: var(--block-background-fill);
 	}
 
 	.param {
-		border-bottom: 1px solid var(--neutral-200);
+		border-bottom: 1px solid var(--table-border-color);
+	}
+
+	.param:last-child {
+		border-bottom: none;
 	}
 
 	.param:last-child .description {
@@ -197,32 +206,5 @@
 
 	.param.md code {
 		background: none;
-	}
-
-	@media (prefers-color-scheme: dark) {
-		.wrap {
-			background: var(--neutral-800);
-		}
-
-		.default {
-			border-bottom: 1px solid var(--neutral-700);
-		}
-
-		.type {
-			background: var(--neutral-900);
-			border-bottom: 0px solid var(--neutral-700);
-		}
-
-		.arrow {
-			color: var(--neutral-200);
-		}
-
-		.param {
-			border-bottom: 1px solid var(--neutral-700);
-		}
-
-		.param:last-child {
-			border-bottom: none;
-		}
 	}
 </style>

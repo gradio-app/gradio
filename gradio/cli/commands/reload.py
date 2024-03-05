@@ -10,6 +10,7 @@ from __future__ import annotations
 import inspect
 import os
 import re
+import site
 import subprocess
 import sys
 import threading
@@ -63,9 +64,14 @@ def _setup_config(
 
     watching_dirs = []
     if str(gradio_folder).strip():
-        watching_dirs.append(gradio_folder)
-        message += f" '{gradio_folder}'"
-        message_change_count += 1
+        package_install = any(
+            utils.is_in_or_equal(gradio_folder, d) for d in site.getsitepackages()
+        )
+        if not package_install:
+            # This is a source install
+            watching_dirs.append(gradio_folder)
+            message += f" '{gradio_folder}'"
+            message_change_count += 1
 
     abs_parent = abs_original_path.parent
     if str(abs_parent).strip():

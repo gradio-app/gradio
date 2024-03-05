@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Callable, Iterable, Literal
 
 import numpy as np
-from PIL import Image as _Image  # using _ to minimize namespace pollution
+import PIL.Image
 
 from gradio import components
+from gradio.components.audio import WaveformOptions
 from gradio.components.image_editor import Brush, Eraser
 
 
@@ -24,11 +26,23 @@ class TextArea(components.Textbox):
         max_lines: int = 20,
         placeholder: str | None = None,
         label: str | None = None,
-        show_label: bool = True,
+        info: str | None = None,
+        every: float | None = None,
+        show_label: bool | None = None,
+        container: bool = True,
+        scale: int | None = None,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
-        **kwargs,
+        autofocus: bool = False,
+        autoscroll: bool = True,
+        elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        type: Literal["text", "password", "email"] = "text",
+        text_align: Literal["left", "right"] | None = None,
+        rtl: bool = False,
+        show_copy_button: bool = False,
     ):
         super().__init__(
             value=value,
@@ -36,11 +50,23 @@ class TextArea(components.Textbox):
             max_lines=max_lines,
             placeholder=placeholder,
             label=label,
+            info=info,
+            every=every,
             show_label=show_label,
+            container=container,
+            scale=scale,
+            min_width=min_width,
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
-            **kwargs,
+            autofocus=autofocus,
+            autoscroll=autoscroll,
+            elem_classes=elem_classes,
+            render=render,
+            type=type,
+            text_align=text_align,
+            rtl=rtl,
+            show_copy_button=show_copy_button,
         )
 
 
@@ -53,7 +79,7 @@ class Sketchpad(components.ImageEditor):
 
     def __init__(
         self,
-        value: str | _Image.Image | np.ndarray | None = None,
+        value: str | PIL.Image.Image | np.ndarray | None = None,
         *,
         height: int | str | None = None,
         width: int | str | None = None,
@@ -122,7 +148,7 @@ class Paint(components.ImageEditor):
 
     def __init__(
         self,
-        value: str | _Image.Image | np.ndarray | None = None,
+        value: str | PIL.Image.Image | np.ndarray | None = None,
         *,
         height: int | str | None = None,
         width: int | str | None = None,
@@ -189,7 +215,7 @@ class ImageMask(components.ImageEditor):
 
     def __init__(
         self,
-        value: str | _Image.Image | np.ndarray | None = None,
+        value: str | PIL.Image.Image | np.ndarray | None = None,
         *,
         height: int | None = None,
         width: int | str | None = None,
@@ -262,31 +288,60 @@ class PlayableVideo(components.Video):
 
     def __init__(
         self,
-        value: str | Callable | None = None,
+        value: str
+        | Path
+        | tuple[str | Path, str | Path | None]
+        | Callable
+        | None = None,
         *,
-        format: Literal["mp4"] | None = "mp4",
-        sources: list[Literal["upload", "webcam"]] = ["upload"],  # noqa: B006
+        format: Literal["mp4"] = "mp4",
+        sources: list[Literal["upload", "webcam"]] | None = None,
+        height: int | str | None = None,
+        width: int | str | None = None,
         label: str | None = None,
-        show_label: bool = True,
+        every: float | None = None,
+        show_label: bool | None = None,
+        container: bool = True,
+        scale: int | None = None,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: list[str] | str | None = None,
+        render: bool = True,
         mirror_webcam: bool = True,
         include_audio: bool | None = None,
-        **kwargs,
+        autoplay: bool = False,
+        show_share_button: bool | None = None,
+        show_download_button: bool | None = None,
+        min_length: int | None = None,
+        max_length: int | None = None,
     ):
+        sources = ["upload"]
         super().__init__(
             value=value,
             format=format,
-            sources=sources,
+            sources=sources,  # type: ignore
+            height=height,
+            width=width,
             label=label,
+            every=every,
             show_label=show_label,
+            container=container,
+            scale=scale,
+            min_width=min_width,
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
+            elem_classes=elem_classes,
+            render=render,
             mirror_webcam=mirror_webcam,
             include_audio=include_audio,
-            **kwargs,
+            autoplay=autoplay,
+            show_share_button=show_share_button,
+            show_download_button=show_download_button,
+            min_length=min_length,
+            max_length=max_length,
         )
 
 
@@ -299,29 +354,56 @@ class Microphone(components.Audio):
 
     def __init__(
         self,
-        value: str | tuple[int, np.ndarray] | Callable | None = None,
+        value: str | Path | tuple[int, np.ndarray] | Callable | None = None,
         *,
-        sources: list[Literal["upload", "microphone"]] | None = ["microphone"],  # noqa: B006
+        sources: list[Literal["upload", "microphone"]] | None = None,
         type: Literal["numpy", "filepath"] = "numpy",
         label: str | None = None,
-        show_label: bool = True,
+        every: float | None = None,
+        show_label: bool | None = None,
+        container: bool = True,
+        scale: int | None = None,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         streaming: bool = False,
         elem_id: str | None = None,
-        **kwargs,
+        elem_classes: list[str] | str | None = None,
+        render: bool = True,
+        format: Literal["wav", "mp3"] = "wav",
+        autoplay: bool = False,
+        show_download_button: bool | None = None,
+        show_share_button: bool | None = None,
+        editable: bool = True,
+        min_length: int | None = None,
+        max_length: int | None = None,
+        waveform_options: WaveformOptions | dict | None = None,
     ):
+        sources = ["microphone"]
         super().__init__(
-            value=value,
+            value,
             sources=sources,
             type=type,
             label=label,
+            every=every,
             show_label=show_label,
+            container=container,
+            scale=scale,
+            min_width=min_width,
             interactive=interactive,
             visible=visible,
             streaming=streaming,
             elem_id=elem_id,
-            **kwargs,
+            elem_classes=elem_classes,
+            render=render,
+            format=format,
+            autoplay=autoplay,
+            show_download_button=show_download_button,
+            show_share_button=show_share_button,
+            editable=editable,
+            min_length=min_length,
+            max_length=max_length,
+            waveform_options=waveform_options,
         )
 
 
@@ -337,24 +419,38 @@ class Files(components.File):
         value: str | list[str] | Callable | None = None,
         *,
         file_count: Literal["multiple"] = "multiple",
+        file_types: list[str] | None = None,
         type: Literal["filepath", "binary"] = "filepath",
         label: str | None = None,
-        show_label: bool = True,
+        every: float | None = None,
+        show_label: bool | None = None,
+        container: bool = True,
+        scale: int | None = None,
+        min_width: int = 160,
+        height: int | float | None = None,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
-        **kwargs,
+        elem_classes: list[str] | str | None = None,
+        render: bool = True,
     ):
         super().__init__(
-            value=value,
+            value,
             file_count=file_count,
+            file_types=file_types,
             type=type,
             label=label,
+            every=every,
             show_label=show_label,
+            container=container,
+            scale=scale,
+            min_width=min_width,
+            height=height,
             interactive=interactive,
             visible=visible,
             elem_id=elem_id,
-            **kwargs,
+            elem_classes=elem_classes,
+            render=render,
         )
 
 
@@ -374,13 +470,21 @@ class Numpy(components.Dataframe):
         col_count: int | tuple[int, str] | None = None,
         datatype: str | list[str] = "str",
         type: Literal["numpy"] = "numpy",
+        latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
-        show_label: bool = True,
+        show_label: bool | None = None,
+        every: float | None = None,
+        height: int = 500,
+        scale: int | None = None,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: list[str] | str | None = None,
+        render: bool = True,
         wrap: bool = False,
-        **kwargs,
+        line_breaks: bool = True,
+        column_widths: list[str | int] | None = None,
     ):
         super().__init__(
             value=value,
@@ -395,7 +499,15 @@ class Numpy(components.Dataframe):
             visible=visible,
             elem_id=elem_id,
             wrap=wrap,
-            **kwargs,
+            elem_classes=elem_classes,
+            render=render,
+            line_breaks=line_breaks,
+            column_widths=column_widths,
+            every=every,
+            height=height,
+            scale=scale,
+            latex_delimiters=latex_delimiters,
+            min_width=min_width,
         )
 
 
@@ -415,13 +527,21 @@ class Matrix(components.Dataframe):
         col_count: int | tuple[int, str] | None = None,
         datatype: str | list[str] = "str",
         type: Literal["array"] = "array",
+        latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
-        show_label: bool = True,
+        show_label: bool | None = None,
+        every: float | None = None,
+        height: int = 500,
+        scale: int | None = None,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: list[str] | str | None = None,
+        render: bool = True,
         wrap: bool = False,
-        **kwargs,
+        line_breaks: bool = True,
+        column_widths: list[str | int] | None = None,
     ):
         super().__init__(
             value=value,
@@ -436,7 +556,15 @@ class Matrix(components.Dataframe):
             visible=visible,
             elem_id=elem_id,
             wrap=wrap,
-            **kwargs,
+            elem_classes=elem_classes,
+            render=render,
+            line_breaks=line_breaks,
+            column_widths=column_widths,
+            every=every,
+            height=height,
+            scale=scale,
+            latex_delimiters=latex_delimiters,
+            min_width=min_width,
         )
 
 
@@ -456,13 +584,21 @@ class List(components.Dataframe):
         col_count: Literal[1] = 1,
         datatype: str | list[str] = "str",
         type: Literal["array"] = "array",
+        latex_delimiters: list[dict[str, str | bool]] | None = None,
         label: str | None = None,
-        show_label: bool = True,
+        show_label: bool | None = None,
+        every: float | None = None,
+        height: int = 500,
+        scale: int | None = None,
+        min_width: int = 160,
         interactive: bool | None = None,
         visible: bool = True,
         elem_id: str | None = None,
+        elem_classes: list[str] | str | None = None,
+        render: bool = True,
         wrap: bool = False,
-        **kwargs,
+        line_breaks: bool = True,
+        column_widths: list[str | int] | None = None,
     ):
         super().__init__(
             value=value,
@@ -477,7 +613,15 @@ class List(components.Dataframe):
             visible=visible,
             elem_id=elem_id,
             wrap=wrap,
-            **kwargs,
+            elem_classes=elem_classes,
+            render=render,
+            line_breaks=line_breaks,
+            column_widths=column_widths,
+            every=every,
+            height=height,
+            scale=scale,
+            latex_delimiters=latex_delimiters,
+            min_width=min_width,
         )
 
 

@@ -2,15 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.blocks import BlockContext
 from gradio.component_meta import ComponentMeta
 
 if TYPE_CHECKING:
     pass
-
-set_documentation_group("layout")
 
 
 @document()

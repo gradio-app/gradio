@@ -11,7 +11,8 @@ import {
 	set_space_hardware,
 	set_space_timeout,
 	hardware_types,
-	resolve_root
+	resolve_root,
+	apply_diff
 } from "./utils.js";
 
 import type {
@@ -27,7 +28,7 @@ import type {
 	SpaceStatusCallback
 } from "./types.js";
 
-import { FileData, normalise_file } from "./upload";
+import { FileData } from "./upload";
 
 import type { Config } from "./types.js";
 
@@ -165,7 +166,6 @@ interface Client {
 		options: {
 			hf_token?: `hf_${string}`;
 			status_callback?: SpaceStatusCallback;
-			normalise_files?: boolean;
 		}
 	) => Promise<client_return>;
 	handle_blob: (
@@ -258,11 +258,10 @@ export function api_factory(
 		options: {
 			hf_token?: `hf_${string}`;
 			status_callback?: SpaceStatusCallback;
-			normalise_files?: boolean;
-		} = { normalise_files: true }
+		} = {}
 	): Promise<client_return> {
 		return new Promise(async (res) => {
-			const { status_callback, hf_token, normalise_files } = options;
+			const { status_callback, hf_token } = options;
 			const return_obj = {
 				predict,
 				submit,
@@ -270,7 +269,6 @@ export function api_factory(
 				component_server
 			};
 
-			const transform_files = normalise_files ?? true;
 			if (
 				(typeof window === "undefined" || !("WebSocket" in window)) &&
 				!global.Websocket
@@ -288,6 +286,7 @@ export function api_factory(
 			const last_status: Record<string, Status["stage"]> = {};
 			let stream_open = false;
 			let pending_stream_messages: Record<string, any[]> = {}; // Event messages may be received by the SSE stream before the initial data POST request is complete. To resolve this race condition, we store the messages in a dictionary and process them when the POST request is complete.
+			let pending_diff_streams: Record<string, any[][]> = {};
 			let event_stream: EventSource | null = null;
 			const event_callbacks: Record<string, () => Promise<void>> = {};
 			const unclosed_events: Set<string> = new Set();
@@ -302,6 +301,9 @@ export function api_factory(
 
 			async function config_success(_config: Config): Promise<client_return> {
 				config = _config;
+				if (window.location.protocol === "https:") {
+					config.root = config.root.replace("http://", "https://");
+				}
 				api_map = map_names_to_ids(_config?.dependencies || []);
 				if (config.auth_required) {
 					return {
@@ -491,14 +493,7 @@ export function api_factory(
 								hf_token
 							)
 								.then(([output, status_code]) => {
-									const data = transform_files
-										? transform_output(
-												output.data,
-												api_info,
-												config.root,
-												config.root_url
-										  )
-										: output.data;
+									const data = output.data;
 									if (status_code == 200) {
 										fire_event({
 											type: "data",
@@ -626,14 +621,7 @@ export function api_factory(
 									fire_event({
 										type: "data",
 										time: new Date(),
-										data: transform_files
-											? transform_output(
-													data.data,
-													api_info,
-													config.root,
-													config.root_url
-											  )
-											: data.data,
+										data: data.data,
 										endpoint: _endpoint,
 										fn_index
 									});
@@ -748,14 +736,7 @@ export function api_factory(
 									fire_event({
 										type: "data",
 										time: new Date(),
-										data: transform_files
-											? transform_output(
-													data.data,
-													api_info,
-													config.root,
-													config.root_url
-											  )
-											: data.data,
+										data: data.data,
 										endpoint: _endpoint,
 										fn_index
 									});
@@ -774,7 +755,8 @@ export function api_factory(
 									}
 								}
 							};
-						} else if (protocol == "sse_v1") {
+						} else if (protocol == "sse_v1" || protocol == "sse_v2") {
+							// latest API format. v2 introduces sending diffs for intermediate outputs in generative functions, which makes payloads lighter.
 							fire_event({
 								type: "status",
 								stage: "pending",
@@ -867,19 +849,15 @@ export function api_factory(
 													endpoint: _endpoint,
 													fn_index
 												});
+												if (data && protocol === "sse_v2") {
+													apply_diff_stream(event_id!, data);
+												}
 											}
 											if (data) {
 												fire_event({
 													type: "data",
 													time: new Date(),
-													data: transform_files
-														? transform_output(
-																data.data,
-																api_info,
-																config.root,
-																config.root_url
-														  )
-														: data.data,
+													data: data.data,
 													endpoint: _endpoint,
 													fn_index
 												});
@@ -903,6 +881,9 @@ export function api_factory(
 											) {
 												if (event_callbacks[event_id]) {
 													delete event_callbacks[event_id];
+												}
+												if (event_id in pending_diff_streams) {
+													delete pending_diff_streams[event_id];
 												}
 											}
 										} catch (e) {
@@ -935,6 +916,25 @@ export function api_factory(
 						}
 					}
 				);
+
+				function apply_diff_stream(event_id: string, data: any): void {
+					let is_first_generation = !pending_diff_streams[event_id];
+					if (is_first_generation) {
+						pending_diff_streams[event_id] = [];
+						data.data.forEach((value: any, i: number) => {
+							pending_diff_streams[event_id][i] = value;
+						});
+					} else {
+						data.data.forEach((value: any, i: number) => {
+							let new_data = apply_diff(
+								pending_diff_streams[event_id][i],
+								value
+							);
+							pending_diff_streams[event_id][i] = new_data;
+							data.data[i] = new_data;
+						});
+					}
+				}
 
 				function fire_event<K extends EventType>(event: Event<K>): void {
 					const narrowed_listener_map: ListenerMap<K> = listener_map;
@@ -1215,28 +1215,6 @@ export const { post_data, upload_files, client, handle_blob } = api_factory(
 	fetch,
 	(...args) => new EventSource(...args)
 );
-
-function transform_output(
-	data: any[],
-	api_info: any,
-	root_url: string,
-	remote_url?: string
-): unknown[] {
-	return data.map((d, i) => {
-		if (api_info?.returns?.[i]?.component === "File") {
-			return normalise_file(d, root_url, remote_url);
-		} else if (api_info?.returns?.[i]?.component === "Gallery") {
-			return d.map((img) => {
-				return Array.isArray(img)
-					? [normalise_file(img[0], root_url, remote_url), img[1]]
-					: [normalise_file(img, root_url, remote_url), null];
-			});
-		} else if (typeof d === "object" && d.path) {
-			return normalise_file(d, root_url, remote_url);
-		}
-		return d;
-	});
-}
 
 interface ApiData {
 	label: string;

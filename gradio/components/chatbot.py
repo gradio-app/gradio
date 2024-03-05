@@ -7,14 +7,12 @@ from pathlib import Path
 from typing import Any, Callable, List, Literal, Optional, Tuple, Union
 
 from gradio_client import utils as client_utils
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
-from gradio import processing_utils, utils
+from gradio import utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
-
-set_documentation_group("component")
 
 
 class FileMessage(GradioModel):
@@ -29,9 +27,9 @@ class ChatbotData(GradioRootModel):
 @document()
 class Chatbot(Component):
     """
-    Displays a chatbot output showing both user submitted messages and responses. Supports a subset of Markdown including bold, italics, code, tables. Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links.
-    Preprocessing: passes the messages in the Chatbot as a {List[List[str | None | Tuple]]}, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. See `Postprocessing` for the format of these messages.
-    Postprocessing: expects function to return a {List[List[str | None | Tuple]]}, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message. The individual messages can be (1) strings in valid Markdown, (2) tuples if sending files: (a filepath or URL to a file, [optional string alt text]) -- if the file is image/video/audio, it is displayed in the Chatbot, or (3) None, in which case the message is not displayed.
+    Creates a chatbot that displays user-submitted messages and responses. Supports a subset of Markdown including bold, italics, code, tables.
+    Also supports audio/video/image files, which are displayed in the Chatbot, and other kinds of files which are displayed as links. This
+    component is usually used as an output component.
 
     Demos: chatbot_simple, chatbot_multimodal
     Guides: creating-a-chatbot
@@ -73,10 +71,10 @@ class Chatbot(Component):
         Parameters:
             value: Default value to show in chatbot. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
+            scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -125,13 +123,13 @@ class Chatbot(Component):
             render=render,
             value=value,
         )
-        self.avatar_images: list[str | None] = [None, None]
+        self.avatar_images: list[dict | None] = [None, None]
         if avatar_images is None:
             pass
         else:
             self.avatar_images = [
-                processing_utils.move_resource_to_block_cache(avatar_images[0], self),
-                processing_utils.move_resource_to_block_cache(avatar_images[1], self),
+                self.serve_static_file(avatar_images[0]),
+                self.serve_static_file(avatar_images[1]),
             ]
 
     def _preprocess_chat_messages(
@@ -151,8 +149,14 @@ class Chatbot(Component):
 
     def preprocess(
         self,
-        payload: ChatbotData,
-    ) -> list[list[str | tuple[str] | tuple[str, str] | None]]:
+        payload: ChatbotData | None,
+    ) -> list[list[str | tuple[str] | tuple[str, str] | None]] | None:
+        """
+        Parameters:
+            payload: data as a ChatbotData object
+        Returns:
+            Passes the messages in the chatbot as a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. Each message can be (1) a string in valid Markdown, (2) a tuple if there are displayed files: (a filepath or URL to a file, [optional string alt text]), or (3) None, if there is no message displayed.
+        """
         if payload is None:
             return payload
         processed_messages = []
@@ -194,8 +198,14 @@ class Chatbot(Component):
 
     def postprocess(
         self,
-        value: list[list[str | tuple[str] | tuple[str, str] | None] | tuple],
+        value: list[list[str | tuple[str] | tuple[str, str] | None] | tuple] | None,
     ) -> ChatbotData:
+        """
+        Parameters:
+            value: expects a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list should have 2 elements: the user message and the response message. The individual messages can be (1) strings in valid Markdown, (2) tuples if sending files: (a filepath or URL to a file, [optional string alt text]) -- if the file is image/video/audio, it is displayed in the Chatbot, or (3) None, in which case the message is not displayed.
+        Returns:
+            an object of type ChatbotData
+        """
         if value is None:
             return ChatbotData(root=[])
         processed_messages = []

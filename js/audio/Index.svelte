@@ -11,7 +11,6 @@
 	import { StatusTracker } from "@gradio/statustracker";
 	import { Block, UploadText } from "@gradio/atoms";
 	import type { WaveformOptions } from "./shared/types";
-	import { normalise_file } from "@gradio/client";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -26,13 +25,12 @@
 	export let label: string;
 	export let root: string;
 	export let show_label: boolean;
-	export let proxy_url: null | string;
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
 	export let autoplay = false;
-	export let show_download_button = true;
+	export let show_download_button: boolean;
 	export let show_share_button = false;
 	export let editable = true;
 	export let waveform_options: WaveformOptions = {};
@@ -56,9 +54,7 @@
 		share: ShareData;
 	}>;
 
-	let old_value: null | FileData | string = null;
-	let _value: null | FileData;
-	$: _value = normalise_file(value, root, proxy_url);
+	let old_value: null | FileData = null;
 
 	let active_source: "microphone" | "upload";
 
@@ -91,10 +87,14 @@
 
 	let waveform_settings: Record<string, any>;
 
+	let color_accent = getComputedStyle(
+		document.documentElement
+	).getPropertyValue("--color-accent");
+
 	$: waveform_settings = {
 		height: 50,
 		waveColor: waveform_options.waveform_color || "#9ca3af",
-		progressColor: waveform_options.waveform_progress_color || "#f97316",
+		progressColor: waveform_options.waveform_progress_color || color_accent,
 		barWidth: 2,
 		barGap: 3,
 		cursorWidth: 2,
@@ -109,7 +109,7 @@
 	};
 
 	const trim_region_settings = {
-		color: waveform_options.trim_region_color || "hsla(15, 85%, 40%, 0.4)",
+		color: waveform_options.trim_region_color,
 		drag: true,
 		resize: true
 	};
@@ -130,6 +130,7 @@
 		variant={"solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
+		allow_overflow={false}
 		{elem_id}
 		{elem_classes}
 		{visible}
@@ -148,10 +149,11 @@
 			{show_label}
 			{show_download_button}
 			{show_share_button}
-			value={_value}
+			{value}
 			{label}
 			{waveform_settings}
 			{waveform_options}
+			{editable}
 			on:share={(e) => gradio.dispatch("share", e.detail)}
 			on:error={(e) => gradio.dispatch("error", e.detail)}
 			on:play={() => gradio.dispatch("play")}
@@ -164,6 +166,7 @@
 		variant={value === null && active_source === "upload" ? "dashed" : "solid"}
 		border_mode={dragging ? "focus" : "base"}
 		padding={false}
+		allow_overflow={false}
 		{elem_id}
 		{elem_classes}
 		{visible}
@@ -179,7 +182,8 @@
 		<InteractiveAudio
 			{label}
 			{show_label}
-			value={_value}
+			{show_download_button}
+			{value}
 			on:change={({ detail }) => (value = detail)}
 			on:stream={({ detail }) => {
 				value = detail;
@@ -200,7 +204,7 @@
 			on:stop={() => gradio.dispatch("stop")}
 			on:start_recording={() => gradio.dispatch("start_recording")}
 			on:pause_recording={() => gradio.dispatch("pause_recording")}
-			on:stop_recording={(e) => gradio.dispatch("stop_recording", e.detail)}
+			on:stop_recording={(e) => gradio.dispatch("stop_recording")}
 			on:upload={() => gradio.dispatch("upload")}
 			on:clear={() => gradio.dispatch("clear")}
 			on:error={handle_error}

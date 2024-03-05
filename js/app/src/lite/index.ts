@@ -129,7 +129,7 @@ export function create(options: Options): GradioAppController {
 			}
 		});
 	}
-	function launchNewApp(): void {
+	function launchNewApp(): Promise<void> {
 		if (app != null) {
 			app.$destroy();
 		}
@@ -164,6 +164,12 @@ export function create(options: Options): GradioAppController {
 				fetch_implementation: overridden_fetch,
 				EventSource_factory
 			}
+		});
+
+		return new Promise((resolve) => {
+			app.$on("loaded", () => {
+				resolve();
+			});
 		});
 	}
 
@@ -252,7 +258,7 @@ export function create(options: Options): GradioAppController {
 // @ts-ignore
 globalThis.createGradioApp = create;
 
-bootstrap_custom_element();
+bootstrap_custom_element(create);
 
 declare let BUILD_MODE: string;
 if (BUILD_MODE === "dev") {

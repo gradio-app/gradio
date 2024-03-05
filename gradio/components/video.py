@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Callable, Literal, Optional
 
 from gradio_client import utils as client_utils
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 import gradio as gr
 from gradio import processing_utils, utils, wasm_utils
@@ -19,8 +19,6 @@ from gradio.events import Events
 if not wasm_utils.IS_WASM:
     # TODO: Support ffmpeg on Wasm
     from ffmpy import FFmpeg
-
-set_documentation_group("component")
 
 
 class VideoData(GradioModel):
@@ -36,9 +34,7 @@ class Video(Component):
     combinations are .mp4 with h264 codec, .ogg with theora codec, and .webm with vp9 codec. If the component detects
     that the output video would not be playable in the browser it will attempt to convert it to a playable mp4 video.
     If the conversion fails, the original video is returned.
-    Preprocessing: passes the uploaded video as a {str} filepath or URL whose extension can be modified by `format`.
-    Postprocessing: expects a {str} or {pathlib.Path} filepath to a video which is displayed, or a {Tuple[str | pathlib.Path, str | pathlib.Path | None]} where the first element is a filepath to a video and the second element is an optional filepath to a subtitle file.
-    Examples-format: a {str} filepath to a local file that contains the video, or a {Tuple[str, str]} where the first element is a filepath to a video file and the second element is a filepath to a subtitle file.
+
     Demos: video_identity, video_subtitle
     """
 
@@ -83,6 +79,7 @@ class Video(Component):
         include_audio: bool | None = None,
         autoplay: bool = False,
         show_share_button: bool | None = None,
+        show_download_button: bool | None = None,
         min_length: int | None = None,
         max_length: int | None = None,
     ):
@@ -94,10 +91,10 @@ class Video(Component):
             height: The height of the displayed video, specified in pixels if a number is passed, or in CSS units if a string is passed.
             width: The width of the displayed video, specified in pixels if a number is passed, or in CSS units if a string is passed.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
+            scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: if True, will allow users to upload a video; if False, can only be used to display videos. If not provided, this is inferred based on whether the component is used as an input or output.
             visible: If False, component will be hidden.
@@ -108,6 +105,7 @@ class Video(Component):
             include_audio: Whether the component should record/retain the audio track for a video. By default, audio is excluded for webcam videos and included for uploaded videos.
             autoplay: Whether to automatically play the video when the component is used as an output. Note: browsers will not autoplay video files if the user has not interacted with the page yet.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
+            show_download_button: If True, will show a download icon in the corner of the component that allows user to download the output. If False, icon does not appear. By default, it will be True for output components and False for input components.
             min_length: The minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
         """
@@ -140,6 +138,7 @@ class Video(Component):
             if show_share_button is None
             else show_share_button
         )
+        self.show_download_button = show_download_button
         self.min_length = min_length
         self.max_length = max_length
         super().__init__(
@@ -158,9 +157,16 @@ class Video(Component):
         )
 
     def preprocess(self, payload: VideoData | None) -> str | None:
+        """
+        Parameters:
+            payload: An instance of VideoData containing the video and subtitle files.
+        Returns:
+            Passes the uploaded video as a `str` filepath or URL whose extension can be modified by `format`.
+        """
         if payload is None:
             return None
-        assert payload.video.path
+        if not payload.video.path:
+            raise ValueError("Payload path missing")
         file_name = Path(payload.video.path)
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
@@ -218,33 +224,42 @@ class Video(Component):
             return str(file_name)
 
     def postprocess(
-        self, y: str | Path | tuple[str | Path, str | Path | None] | None
+        self, value: str | Path | tuple[str | Path, str | Path | None] | None
     ) -> VideoData | None:
-        if y is None or y == [None, None] or y == (None, None):
+        """
+        Parameters:
+            value: Expects a {str} or {pathlib.Path} filepath to a video which is displayed, or a {Tuple[str | pathlib.Path, str | pathlib.Path | None]} where the first element is a filepath to a video and the second element is an optional filepath to a subtitle file.
+        Returns:
+            VideoData object containing the video and subtitle files.
+        """
+        if value is None or value == [None, None] or value == (None, None):
             return None
-        if isinstance(y, (str, Path)):
-            processed_files = (self._format_video(y), None)
+        if isinstance(value, (str, Path)):
+            processed_files = (self._format_video(value), None)
 
-        elif isinstance(y, (tuple, list)):
-            if len(y) != 2:
+        elif isinstance(value, (tuple, list)):
+            if len(value) != 2:
                 raise ValueError(
-                    f"Expected lists of length 2 or tuples of length 2. Received: {y}"
+                    f"Expected lists of length 2 or tuples of length 2. Received: {value}"
                 )
 
-            if not (isinstance(y[0], (str, Path)) and isinstance(y[1], (str, Path))):
+            if not (
+                isinstance(value[0], (str, Path)) and isinstance(value[1], (str, Path))
+            ):
                 raise TypeError(
-                    f"If a tuple is provided, both elements must be strings or Path objects. Received: {y}"
+                    f"If a tuple is provided, both elements must be strings or Path objects. Received: {value}"
                 )
-            video = y[0]
-            subtitle = y[1]
+            video = value[0]
+            subtitle = value[1]
             processed_files = (
                 self._format_video(video),
                 self._format_subtitle(subtitle),
             )
 
         else:
-            raise Exception(f"Cannot process type as video: {type(y)}")
-        assert processed_files[0]
+            raise Exception(f"Cannot process type as video: {type(value)}")
+        if not processed_files[0]:
+            raise ValueError("Video data missing")
         return VideoData(video=processed_files[0], subtitles=processed_files[1])
 
     def _format_video(self, video: str | Path | None) -> FileData | None:
@@ -337,4 +352,7 @@ class Video(Component):
         return FileData(path=str(subtitle))
 
     def example_inputs(self) -> Any:
-        return "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+        return {
+            "video": "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4",
+            "subtitles": None,
+        }

@@ -1,0 +1,78 @@
+name: "test / js"
+
+on:
+  workflow_run:
+    workflows: ["trigger"]
+    types: 
+      - requested
+
+permissions:
+  statuses: write
+
+env:
+  CI: true
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+  NODE_OPTIONS: "--max-old-space-size=4096"
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+concurrency:
+  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: "changes"
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.changes.outputs.should_run }}
+      sha: ${{ steps.changes.outputs.sha }}
+      merge_sha: ${{ steps.changes.outputs.merge_sha }}
+      pr_number: ${{ steps.changes.outputs.pr_number }}
+      source_branch: ${{ steps.changes.outputs.source_branch }}
+      source_repo: ${{ steps.changes.outputs.source_repo }}
+      mergeable: ${{ steps.changes.outputs.mergeable }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: "gradio-app/gradio/.github/actions/changes@main"
+        id: changes
+        with:
+          type: "js"
+          token: ${{ secrets.GITHUB_TOKEN }}
+  test-js:
+    needs: changes
+    if: needs.changes.outputs.should_run == 'true'
+    name: test-js
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.changes.outputs.merge_sha }}
+          repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
+      - name: install dependencies
+        uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
+        with:
+          always_install_pnpm: true
+      - name: build client
+        run: pnpm --filter @gradio/client build
+      - name: build the wasm module
+        run: pnpm --filter @gradio/wasm build
+      - name: format check
+        run: pnpm format:check
+      - name: lint
+        run: pnpm lint
+      - name: typecheck
+        run: pnpm ts:check
+      - name: unit tests
+        run: pnpm test:run
+      - name: do check
+        if: always()
+        uses: "gradio-app/github/actions/commit-status@main"
+        with:
+          type: "js"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pr: ${{ needs.changes.outputs.pr_number }}
+          sha: ${{ needs.changes.outputs.sha }}
+          name: "test / js"
+          result: ${{ job.status }}
+          job_id: "test-js"  

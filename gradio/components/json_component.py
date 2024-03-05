@@ -6,20 +6,16 @@ import json
 from pathlib import Path
 from typing import Any, Callable
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components.base import Component
 from gradio.events import Events
-
-set_documentation_group("component")
 
 
 @document()
 class JSON(Component):
     """
-    Used to display arbitrary JSON output prettily.
-    Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a {str} filepath to a file containing valid JSON -- or a {list} or {dict} that is valid JSON
+    Used to display arbitrary JSON output prettily. As this component does not accept user input, it is rarely used as an input component.
 
     Demos: zip_to_json, blocks_xray
     """
@@ -45,10 +41,10 @@ class JSON(Component):
         Parameters:
             value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
+            scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             visible: If False, component will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -69,7 +65,22 @@ class JSON(Component):
             value=value,
         )
 
+    def preprocess(self, payload: dict | list | None) -> dict | list | None:
+        """
+        Parameters:
+            payload: JSON value as a `dict` or `list`
+        Returns:
+            Passes the JSON value as a `dict` or `list` depending on the value.
+        """
+        return payload
+
     def postprocess(self, value: dict | list | str | None) -> dict | list | None:
+        """
+        Parameters:
+            value: Expects a `str` filepath to a file containing valid JSON -- or a `list` or `dict` that is valid JSON
+        Returns:
+            Returns the JSON as a `list` or `dict`.
+        """
         if value is None:
             return None
         if isinstance(value, str):
@@ -77,16 +88,17 @@ class JSON(Component):
         else:
             return value
 
-    def preprocess(self, payload: dict | list | str | None) -> dict | list | str | None:
-        return payload
-
     def example_inputs(self) -> Any:
         return {"foo": "bar"}
 
-    def flag(self, payload: Any, flag_dir: str | Path = "") -> str:
+    def flag(
+        self,
+        payload: Any,
+        flag_dir: str | Path = "",  # noqa: ARG002
+    ) -> str:
         return json.dumps(payload)
 
-    def read_from_flag(self, payload: Any, flag_dir: str | Path | None = None):
+    def read_from_flag(self, payload: Any):
         return json.loads(payload)
 
     def api_info(self) -> dict[str, Any]:

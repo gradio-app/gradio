@@ -32,7 +32,7 @@ LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v2/tunnel-request"
 GRADIO_SHARE_SERVER_ADDRESS = os.getenv("GRADIO_SHARE_SERVER_ADDRESS")
 
-should_watch = bool(os.getenv("GRADIO_WATCH_DIRS", False))
+should_watch = bool(os.getenv("GRADIO_WATCH_DIRS", ""))
 GRADIO_WATCH_DIRS = (
     os.getenv("GRADIO_WATCH_DIRS", "").split(",") if should_watch else []
 )

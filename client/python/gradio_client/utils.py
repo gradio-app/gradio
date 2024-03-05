@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import copy
 import hashlib
 import json
 import mimetypes
@@ -17,7 +18,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Optional, TypedDict
+from typing import Any, Callable, Literal, Optional, TypedDict
 
 import fsspec.asyn
 import httpx
@@ -376,27 +377,25 @@ async def get_pred_from_sse_v0(
         except asyncio.CancelledError:
             pass
 
-    assert len(done) == 1
+    if len(done) != 1:
+        raise ValueError(f"Did not expect {len(done)} tasks to be done.")
     for task in done:
         return task.result()
 
 
-async def get_pred_from_sse_v1(
+async def get_pred_from_sse_v1_v2(
     helper: Communicator,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
     pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
+    protocol: Literal["sse_v1", "sse_v2"],
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
             asyncio.create_task(check_for_cancel(helper, headers, cookies)),
             asyncio.create_task(
-                stream_sse_v1(
-                    helper,
-                    pending_messages_per_event,
-                    event_id,
-                )
+                stream_sse_v1_v2(helper, pending_messages_per_event, event_id, protocol)
             ),
         ],
         return_when=asyncio.FIRST_COMPLETED,
@@ -409,8 +408,12 @@ async def get_pred_from_sse_v1(
         except asyncio.CancelledError:
             pass
 
-    assert len(done) == 1
+    if len(done) != 1:
+        raise ValueError(f"Did not expect {len(done)} tasks to be done.")
     for task in done:
+        exception = task.exception()
+        if exception:
+            raise exception
         return task.result()
 
 
@@ -502,13 +505,15 @@ async def stream_sse_v0(
         raise
 
 
-async def stream_sse_v1(
+async def stream_sse_v1_v2(
     helper: Communicator,
     pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
+    protocol: Literal["sse_v1", "sse_v2"],
 ) -> dict[str, Any]:
     try:
         pending_messages = pending_messages_per_event[event_id]
+        pending_responses_for_diffs = None
 
         while True:
             if len(pending_messages) > 0:
@@ -540,6 +545,19 @@ async def stream_sse_v1(
                     log=log_message,
                 )
                 output = msg.get("output", {}).get("data", [])
+                if (
+                    msg["msg"] == ServerMessage.process_generating
+                    and protocol == "sse_v2"
+                ):
+                    if pending_responses_for_diffs is None:
+                        pending_responses_for_diffs = list(output)
+                    else:
+                        for i, value in enumerate(output):
+                            prev_output = pending_responses_for_diffs[i]
+                            new_output = apply_diff(prev_output, value)
+                            pending_responses_for_diffs[i] = new_output
+                            output[i] = new_output
+
                 if output and status_update.code != Status.FINISHED:
                     try:
                         result = helper.prediction_processor(*output)
@@ -557,6 +575,48 @@ async def stream_sse_v1(
         raise
 
 
+def apply_diff(obj, diff):
+    obj = copy.deepcopy(obj)
+
+    def apply_edit(target, path, action, value):
+        if len(path) == 0:
+            if action == "replace":
+                return value
+            elif action == "append":
+                return target + value
+            else:
+                raise ValueError(f"Unsupported action: {action}")
+
+        current = target
+        for i in range(len(path) - 1):
+            current = current[path[i]]
+
+        last_path = path[-1]
+        if action == "replace":
+            current[last_path] = value
+        elif action == "append":
+            current[last_path] += value
+        elif action == "add":
+            if isinstance(current, list):
+                current.insert(int(last_path), value)
+            else:
+                current[last_path] = value
+        elif action == "delete":
+            if isinstance(current, list):
+                del current[int(last_path)]
+            else:
+                del current[last_path]
+        else:
+            raise ValueError(f"Unknown action: {action}")
+
+        return target
+
+    for action, path, value in diff:
+        obj = apply_edit(obj, path, action, value)
+
+    return obj
+
+
 ########################
 # Data processing utils
 ########################
@@ -564,25 +624,27 @@ async def stream_sse_v1(
 
 def download_file(
     url_path: str,
-    dir: str,
-    hf_token: str | None = None,
+    save_dir: str,
+    headers: dict[str, str] | None = None,
+    cookies: dict[str, str] | None = None,
 ) -> str:
-    if dir is not None:
-        os.makedirs(dir, exist_ok=True)
-    headers = {"Authorization": "Bearer " + hf_token} if hf_token else {}
+    if save_dir is not None:
+        os.makedirs(save_dir, exist_ok=True)
 
     sha1 = hashlib.sha1()
     temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
     temp_dir.mkdir(exist_ok=True, parents=True)
 
-    with httpx.stream("GET", url_path, headers=headers) as response:
+    with httpx.stream(
+        "GET", url_path, headers=headers, cookies=cookies, follow_redirects=True
+    ) as response:
         response.raise_for_status()
         with open(temp_dir / Path(url_path).name, "wb") as f:
             for chunk in response.iter_bytes(chunk_size=128 * sha1.block_size):
                 sha1.update(chunk)
                 f.write(chunk)
 
-    directory = Path(dir) / sha1.hexdigest()
+    directory = Path(save_dir) / sha1.hexdigest()
     directory.mkdir(exist_ok=True, parents=True)
     dest = directory / Path(url_path).name
     shutil.move(temp_dir / Path(url_path).name, dest)
@@ -608,7 +670,9 @@ def download_tmp_copy_of_file(
     directory.mkdir(exist_ok=True, parents=True)
     file_path = directory / Path(url_path).name
 
-    with httpx.stream("GET", url_path, headers=headers) as response:
+    with httpx.stream(
+        "GET", url_path, headers=headers, follow_redirects=True
+    ) as response:
         response.raise_for_status()
         with open(file_path, "wb") as f:
             for chunk in response.iter_raw():
@@ -833,7 +897,8 @@ def get_type(schema: dict):
         raise APIInfoParseError(f"Cannot parse type for {schema}")
 
 
-FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)"
+OLD_FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)"
+FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool)"
 
 
 def json_schema_to_python_type(schema: Any) -> str:
@@ -933,7 +998,7 @@ def traverse(json_obj: Any, func: Callable, is_root: Callable) -> Any:
 
 def value_is_file(api_info: dict) -> bool:
     info = _json_schema_to_python_type(api_info, api_info.get("$defs"))
-    return FILE_DATA in info
+    return FILE_DATA in info or OLD_FILE_DATA in info
 
 
 def is_filepath(s):
@@ -946,6 +1011,12 @@ def is_url(s):
 
 def is_file_obj(d):
     return isinstance(d, dict) and "path" in d
+
+
+def is_file_obj_with_url(d):
+    return (
+        isinstance(d, dict) and "path" in d and "url" in d and isinstance(d["url"], str)
+    )
 
 
 SKIP_COMPONENTS = {

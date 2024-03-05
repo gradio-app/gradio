@@ -13,7 +13,9 @@ import json.decoder
 import os
 import pkgutil
 import re
+import tempfile
 import threading
+import time
 import traceback
 import typing
 import urllib.parse
@@ -38,7 +40,6 @@ from typing import (
 
 import anyio
 import httpx
-import matplotlib
 from typing_extensions import ParamSpec
 
 import gradio
@@ -95,7 +96,7 @@ class BaseReloader(ABC):
         )
 
     def swap_blocks(self, demo: Blocks):
-        assert self.running_app.blocks
+        assert self.running_app.blocks  # noqa: S101
         # Copy over the blocks to get new components and events but
         # not a new queue
         self.running_app.blocks._queue.block_fns = demo.fns
@@ -223,6 +224,7 @@ def watchfn(reloader: SourceFileReloader):
             else:
                 reloader.swap_blocks(demo)
             mtimes = {}
+        time.sleep(0.05)
 
 
 def colab_check() -> bool:
@@ -285,13 +287,24 @@ def is_zero_gpu_space() -> bool:
     return os.getenv("SPACES_ZERO_GPU") == "true"
 
 
-def readme_to_html(article: str) -> str:
+def download_if_url(article: str) -> str:
+    try:
+        result = urllib.parse.urlparse(article)
+        is_url = all([result.scheme, result.netloc, result.path])
+        is_url = is_url and result.scheme in ["http", "https"]
+    except ValueError:
+        is_url = False
+
+    if not is_url:
+        return article
+
     try:
         response = httpx.get(article, timeout=3)
         if response.status_code == httpx.codes.OK:  # pylint: disable=no-member
             article = response.text
-    except httpx.RequestError:
+    except (httpx.InvalidURL, httpx.RequestError):
         pass
+
     return article
 
 
@@ -383,24 +396,6 @@ def assert_configs_are_equivalent_besides_ids(
             raise ValueError(f"{d1} does not match {d2}")
 
     return True
-
-
-def format_ner_list(input_string: str, ner_groups: list[dict[str, str | int]]):
-    if len(ner_groups) == 0:
-        return [(input_string, None)]
-
-    output = []
-    end = 0
-    prev_end = 0
-
-    for group in ner_groups:
-        entity, start, end = group["entity_group"], group["start"], group["end"]
-        output.append((input_string[prev_end:start], None))
-        output.append((input_string[start:end], entity))
-        prev_end = end
-
-    output.append((input_string[end:], None))
-    return output
 
 
 def delete_none(_dict: dict, skip_value: bool = False) -> dict:
@@ -590,8 +585,10 @@ def validate_url(possible_url: str) -> bool:
     try:
         head_request = httpx.head(possible_url, headers=headers, follow_redirects=True)
         # some URLs, such as AWS S3 presigned URLs, return a 405 or a 403 for HEAD requests
-        if head_request.status_code == 405 or head_request.status_code == 403:
-            return httpx.get(possible_url, headers=headers).is_success
+        if head_request.status_code in (403, 405):
+            return httpx.get(
+                possible_url, headers=headers, follow_redirects=True
+            ).is_success
         return head_request.is_success
     except Exception:
         return False
@@ -879,14 +876,18 @@ class TupleNoPrint(tuple):
 
 class MatplotlibBackendMananger:
     def __enter__(self):
+        import matplotlib
+
         self._original_backend = matplotlib.get_backend()
         matplotlib.use("agg")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        import matplotlib
+
         matplotlib.use(self._original_backend)
 
 
-def tex2svg(formula, *args):
+def tex2svg(formula, *_args):
     with MatplotlibBackendMananger():
         import matplotlib.pyplot as plt
 
@@ -1038,3 +1039,53 @@ class LRUCache(OrderedDict, Generic[K, V]):
 
 def get_cache_folder() -> Path:
     return Path(os.environ.get("GRADIO_EXAMPLES_CACHE", "gradio_cached_examples"))
+
+
+def diff(old, new):
+    def compare_objects(obj1, obj2, path=None):
+        if path is None:
+            path = []
+        edits = []
+
+        if obj1 == obj2:
+            return edits
+
+        if type(obj1) != type(obj2):
+            edits.append(("replace", path, obj2))
+            return edits
+
+        if isinstance(obj1, str) and obj2.startswith(obj1):
+            edits.append(("append", path, obj2[len(obj1) :]))
+            return edits
+
+        if isinstance(obj1, list):
+            common_length = min(len(obj1), len(obj2))
+            for i in range(common_length):
+                edits.extend(compare_objects(obj1[i], obj2[i], path + [i]))
+            for i in range(common_length, len(obj1)):
+                edits.append(("delete", path + [i], None))
+            for i in range(common_length, len(obj2)):
+                edits.append(("add", path + [i], obj2[i]))
+            return edits
+
+        if isinstance(obj1, dict):
+            for key in obj1:
+                if key in obj2:
+                    edits.extend(compare_objects(obj1[key], obj2[key], path + [key]))
+                else:
+                    edits.append(("delete", path + [key], None))
+            for key in obj2:
+                if key not in obj1:
+                    edits.append(("add", path + [key], obj2[key]))
+            return edits
+
+        edits.append(("replace", path, obj2))
+        return edits
+
+    return compare_objects(old, new)
+
+
+def get_upload_folder() -> str:
+    return os.environ.get("GRADIO_TEMP_DIR") or str(
+        (Path(tempfile.gettempdir()) / "gradio").resolve()
+    )

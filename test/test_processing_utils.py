@@ -101,6 +101,11 @@ class TestTempFileManagement:
         processing_utils.save_url_to_cache(url, cache_dir=gradio_temp_dir)
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
 
+    def test_save_url_to_cache_with_redirect(self, gradio_temp_dir):
+        url = "https://huggingface.co/datasets/Xenova/transformers.js-docs/resolve/main/bread_small.png"
+        processing_utils.save_url_to_cache(url, cache_dir=gradio_temp_dir)
+        assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 1
+
 
 class TestImagePreprocessing:
     def test_encode_plot_to_base64(self):
@@ -327,3 +332,42 @@ class TestVideoProcessing:
             )
             # If the conversion succeeded it'd be .mp4
             assert Path(playable_vid).suffix == ".avi"
+
+
+def test_add_root_url():
+    data = {
+        "file": {
+            "path": "path",
+            "url": "/file=path",
+        },
+        "file2": {
+            "path": "path2",
+            "url": "https://www.gradio.app",
+        },
+    }
+    root_url = "http://localhost:7860"
+    expected = {
+        "file": {
+            "path": "path",
+            "url": f"{root_url}/file=path",
+        },
+        "file2": {
+            "path": "path2",
+            "url": "https://www.gradio.app",
+        },
+    }
+    assert processing_utils.add_root_url(data, root_url, None) == expected
+    new_root_url = "https://1234.gradio.live"
+    new_expected = {
+        "file": {
+            "path": "path",
+            "url": f"{new_root_url}/file=path",
+        },
+        "file2": {
+            "path": "path2",
+            "url": "https://www.gradio.app",
+        },
+    }
+    assert (
+        processing_utils.add_root_url(expected, new_root_url, root_url) == new_expected
+    )
