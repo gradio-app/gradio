@@ -258,6 +258,7 @@ async def call_process_api(
                 event_id=event_id,
                 event_data=event_data,
                 in_event_listener=True,
+                simple_format=body.simple_format,
             )
         iterator = output.pop("iterator", None)
         if event_id is not None:
@@ -597,9 +598,9 @@ def compare_passwords_securely(input_password: str, correct_password: str) -> bo
 
 def starts_with_protocol(string: str) -> bool:
     """This regex matches strings that start with a scheme (one or more characters not including colon, slash, or space)
-    followed by ://, or start with just // or \\ as they are interpreted as SMB paths on Windows.
+    followed by ://, or start with just //, \\/, /\\, or \\ as they are interpreted as SMB paths on Windows.
     """
-    pattern = r"^(?:[a-zA-Z][a-zA-Z0-9+\-.]*://|//|\\\\)"
+    pattern = r"^(?:[a-zA-Z][a-zA-Z0-9+\-.]*://|//|\\\\|\\/|/\\)"
     return re.match(pattern, string) is not None
 
 
