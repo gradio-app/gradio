@@ -25,21 +25,24 @@ const base = defineConfig({
 const normal = defineConfig(base, {
 	globalSetup: "./playwright-setup.js"
 });
+
 normal.projects = undefined; // Explicitly unset this field due to https://github.com/microsoft/playwright/issues/28795
 
 const lite = defineConfig(base, {
 	webServer: {
-		command: "pnpm --filter @gradio/app dev:lite",
-		url: "http://localhost:9876/lite.html",
+		command: "python -m http.server 8000 --directory ../js/lite",
+		url: "http://localhost:8000/",
 		reuseExistingServer: !process.env.CI
 	},
 	testMatch: [
 		"**/file_component_events.spec.ts",
 		"**/chatbot_multimodal.spec.ts",
-		"**/kitchen_sink.spec.ts"
+		"**/kitchen_sink.spec.ts",
+		"**/gallery_component_events.spec.ts"
 	],
 	workers: 1
 });
+
 lite.projects = undefined; // Explicitly unset this field due to https://github.com/microsoft/playwright/issues/28795
 
 export default !!process.env.GRADIO_E2E_TEST_LITE ? lite : normal;
