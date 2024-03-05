@@ -57,7 +57,5 @@ test("File component properly handles drag and drop of pdf file.", async ({
 	await uploader.setInputFiles(["./test/files/sample_pdf.pdf"]);
 
 	// Check that the pdf file was uploaded
-	await expect(
-		page.getByLabel("# Load Upload PDF File")
-	).toHaveValue("1");
+	await expect(page.getByLabel("# Load Upload PDF File")).toHaveValue("1");
 });
