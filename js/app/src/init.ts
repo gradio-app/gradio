@@ -44,12 +44,15 @@ export function create_components(
 	update_value: (updates: UpdateTransaction[]) => void;
 	get_data: (id: number) => any | Promise<any>;
 	loading_status: ReturnType<typeof create_loading_status_store>;
+	scheduled_updates: Writable<unknown>;
 } {
 	const _component_map = new Map();
 
 	const target_map: TargetMap = {};
 	const inputs = new Set<number>();
 	const outputs = new Set<number>();
+
+	const scheduled_updates = writable();
 
 	const _rootNode: ComponentMeta = {
 		id: layout.id,
@@ -139,6 +142,8 @@ export function create_components(
 
 	let update_scheduled = false;
 
+	let r: (value?: unknown) => void;
+
 	function flush(): void {
 		layout_store.update((layout) => {
 			for (let i = 0; i < pending_updates.length; i++) {
@@ -154,14 +159,18 @@ export function create_components(
 					instance.props[update.prop] = new_value;
 				}
 			}
-
 			return layout;
 		});
+
 		pending_updates = [];
 		update_scheduled = false;
+
+		r();
+		scheduled_updates.update((s) => s);
 	}
 
 	function update_value(updates: UpdateTransaction[]): void {
+		scheduled_updates.set(new Promise((resolve) => (r = resolve)));
 		pending_updates.push(updates);
 
 		if (!update_scheduled) {
@@ -183,7 +192,8 @@ export function create_components(
 		targets: target_map,
 		update_value,
 		get_data,
-		loading_status
+		loading_status,
+		scheduled_updates
 	};
 }
 

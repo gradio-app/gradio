@@ -76,6 +76,15 @@
 			metadata: null
 		};
 	}
+
+	async function handle_value_change(data: {
+		data: Data;
+		headers: Headers;
+		metadata: Metadata;
+	}): Promise<void> {
+		value = { ...data };
+		headers = [...data.headers];
+	}
 </script>
 
 <Block
@@ -101,7 +110,7 @@
 		{col_count}
 		{value}
 		{headers}
-		on:change={interactive ? (e) => (value = e.detail) : () => {}}
+		on:change={(e) => handle_value_change(e.detail)}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		{wrap}
 		{datatype}

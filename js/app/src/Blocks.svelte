@@ -46,7 +46,8 @@
 		targets,
 		update_value,
 		get_data,
-		loading_status
+		loading_status,
+		scheduled_updates
 	} = create_components(components, layout, dependencies, root, app, {
 		fill_height
 	});
@@ -160,6 +161,7 @@
 		trigger_id: number | null = null,
 		event_data: unknown = null
 	): Promise<void> {
+		await $scheduled_updates;
 		let dep = dependencies[dep_index];
 		const current_status = loading_status.get_status_for_fn(dep_index);
 		messages = messages.filter(({ fn_index }) => fn_index !== dep_index);
@@ -214,7 +216,7 @@
 			}
 		}
 
-		function make_prediction(payload: Payload): void {
+		async function make_prediction(payload: Payload): Promise<void> {
 			const submission = app
 				.submit(
 					payload.fn_index,
