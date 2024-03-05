@@ -3,4 +3,4 @@
 "gradio_client": minor
 ---
 
-feat:Support simplified event api for event only updates
+feat:Fix server_messages.py to use the patched BaseModel class for Wasm env

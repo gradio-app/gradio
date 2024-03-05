@@ -1,7 +1,12 @@
 from typing import List, Literal, Optional, Union
 
 from gradio_client.utils import ServerMessage
-from pydantic import BaseModel
+
+# In the data_classes.py file, the BaseModel class is patched
+# so that it can be used in both Pyodide and non-Pyodide environments.
+# So we import it from the data_classes.py file
+# instead of the original Pydantic BaseModel class.
+from gradio.data_classes import BaseModel
 
 
 class BaseMessage(BaseModel):
