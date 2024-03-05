@@ -492,4 +492,24 @@ describe("Dropdown", () => {
 		) as HTMLInputElement;
 		await expect(item.value).toBe("");
 	});
+
+	test("ensure dropdown works when initial value is undefined and allow custom value is set", async () => {
+		const { getByLabelText } = await render(Dropdown, {
+			show_label: true,
+			loading_status,
+			value: undefined,
+			allow_custom_value: true,
+			label: "Dropdown",
+			choices: [
+				["apple_choice", "apple_internal_value"],
+				["zebra_choice", "zebra_internal_value"]
+			],
+			filterable: true,
+			interactive: true
+		});
+		const item: HTMLInputElement = getByLabelText(
+			"Dropdown"
+		) as HTMLInputElement;
+		await expect(item.value).toBe("");
+	});
 });
