@@ -41,7 +41,6 @@ from typing import (
 import anyio
 import httpx
 from typing_extensions import ParamSpec
-from gradio_client import utils as client_utils
 
 import gradio
 from gradio.context import Context

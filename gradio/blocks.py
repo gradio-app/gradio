@@ -1578,7 +1578,7 @@ Received outputs:
         in_event_listener: bool = True,
         simple_format: bool = False,
         explicit_call: bool = False,
-        root_path: str | None = None
+        root_path: str | None = None,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,

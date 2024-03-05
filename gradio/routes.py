@@ -65,7 +65,6 @@ from gradio.data_classes import (
 )
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
-from gradio.processing_utils import add_root_url
 from gradio.route_utils import (  # noqa: F401
     CustomCORSMiddleware,
     FileUploadProgress,
@@ -605,7 +604,7 @@ class App(FastAPI):
                     body=body,
                     gr_request=gr_request,
                     fn_index_inferred=fn_index_inferred,
-                    root_path=root_path
+                    root_path=root_path,
                 )
             except BaseException as error:
                 show_error = app.get_blocks().show_error or isinstance(error, Error)
@@ -660,7 +659,9 @@ class App(FastAPI):
                     detail="Queue is stopped.",
                 )
 
-            success, event_id = await blocks._queue.push(body=body, request=request, username=username)
+            success, event_id = await blocks._queue.push(
+                body=body, request=request, username=username
+            )
             if not success:
                 status_code = (
                     status.HTTP_503_SERVICE_UNAVAILABLE
@@ -752,11 +753,6 @@ class App(FastAPI):
                                 success=False,
                             )
                         if message:
-                            if isinstance(
-                                message,
-                                (ProcessGeneratingMessage, ProcessCompletedMessage),
-                            ):
-                                add_root_url(message.output, root_path, None)
                             response = process_msg(message)
                             if response is not None:
                                 yield response
