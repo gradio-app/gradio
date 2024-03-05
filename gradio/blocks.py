@@ -1579,6 +1579,7 @@ Received outputs:
         in_event_listener: bool = True,
         simple_format: bool = False,
         explicit_call: bool = False,
+        root_path: str | None = None,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -1593,6 +1594,7 @@ Received outputs:
             event_data: data associated with the event trigger itself
             in_event_listener: whether this API call is being made in response to an event listener
             explicit_call: whether this call is being made directly by calling the Blocks function, instead of through an event listener or API route
+            root_path: if provided, the root path of the server. All file URLs will be prefixed with this path.
         Returns: None
         """
         block_fn = self.fns[fn_index]
@@ -1641,6 +1643,8 @@ Received outputs:
                 state,
                 limiter=self.limiter,
             )
+            if root_path is not None:
+                data = processing_utils.add_root_url(data, root_path, None)
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
@@ -1673,6 +1677,8 @@ Received outputs:
                 state,
                 limiter=self.limiter,
             )
+            if root_path is not None:
+                data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
                 run = id(old_iterator) if was_generating else id(iterator)
