@@ -242,7 +242,7 @@
 			{handle_trim_audio}
 			bind:trimDuration
 			bind:mode
-			showRedo
+			show_redo
 			{handle_reset_value}
 			{waveform_options}
 		/>
