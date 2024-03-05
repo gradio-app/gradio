@@ -6,9 +6,9 @@ How to share your Gradio app:
 2. [Hosting on HF Spaces](#hosting-on-hf-spaces)
 3. [Embedding hosted spaces](#embedding-hosted-spaces)
 4. [Using the API page](#api-page)
-5. [Authentication](#authentication)
-6. [Accessing network requests](#accessing-the-network-request-directly)
-7. [Mounting within FastAPI](#mounting-within-another-fast-api-app)
+5. [Accessing network requests](#accessing-the-network-request-directly)
+6. [Mounting within FastAPI](#mounting-within-another-fast-api-app)
+7. [Authentication](#authentication)
 8. [Security and file access](#security-and-file-access)
 
 ## Sharing Demos
@@ -168,6 +168,39 @@ btn.click(add, [num1, num2], output, api_name="addition")
 
 This will add and document the endpoint `/api/addition/` to the automatically generated API page. Otherwise, your API endpoints will appear as "unnamed" endpoints.
 
+## Accessing the Network Request Directly
+
+When a user makes a prediction to your app, you may need the underlying network request, in order to get the request headers (e.g. for advanced authentication), log the client's IP address, getting the query parameters, or for other reasons. Gradio supports this in a similar manner to FastAPI: simply add a function parameter whose type hint is `gr.Request` and Gradio will pass in the network request as that parameter. Here is an example:
+
+```python
+import gradio as gr
+
+def echo(text, request: gr.Request):
+    if request:
+        print("Request headers dictionary:", request.headers)
+        print("IP address:", request.client.host)
+        print("Query parameters:", dict(request.query_params))
+    return text
+
+io = gr.Interface(echo, "textbox", "textbox").launch()
+```
+
+Note: if your function is called directly instead of through the UI (this happens, for
+example, when examples are cached, or when the Gradio app is called via API), then `request` will be `None`. 
+You should handle this case explicitly to ensure that your app does not throw any errors. That is why
+we have the explicit check `if request`.
+
+## Mounting Within Another FastAPI App
+
+In some cases, you might have an existing FastAPI app, and you'd like to add a path for a Gradio demo.
+You can easily do this with `gradio.mount_gradio_app()`.
+
+Here's a complete example:
+
+$code_custom_path
+
+Note that this approach also allows you run your Gradio apps on custom paths (`http://localhost:8000/gradio` in the example above).
+
 
 ## Authentication
 
@@ -179,7 +212,7 @@ You may wish to put an authentication page in front of your app to limit who can
 demo.launch(auth=("admin", "pass1234"))
 ```
 
-For more complex authentication handling, you can even pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise. This can be used for, among other things, making requests to 3rd-party authentication services.
+For more complex authentication handling, you can even pass a function that takes a username and password as arguments, and returns `True` to allow access, `False` otherwise.
 
 Here's an example of a function that accepts any login where the username and password are the same:
 
@@ -189,7 +222,7 @@ def same_auth(username, password):
 demo.launch(auth=same_auth)
 ```
 
-If you have multiple users, you may wish to customize the content that is shown depending on the user that is logged in. You can retrieve the logged in user by [accessing the network request directly](#accessing-the-network-request-directly) and then reading the `.username` attribute of the request. Here's an example:
+If you have multiple users, you may wish to customize the content that is shown depending on the user that is logged in. You can retrieve the logged in user by [accessing the network request directly](#accessing-the-network-request-directly) as discussed above, and then reading the `.username` attribute of the request. Here's an example:
 
 
 ```python
@@ -227,8 +260,7 @@ Note: Gradio's built-in authentication provides a straightforward and basic laye
 
 ### OAuth (Login via Hugging Face)
 
-Gradio supports OAuth login via Hugging Face. This feature is currently **experimental** and only available on Spaces.
-It allows you to add a _"Sign in with Hugging Face"_ button to your demo. Check out [this Space](https://huggingface.co/spaces/Wauplin/gradio-oauth-demo) for a live demo.
+Gradio natively supports OAuth login via Hugging Face. In other words, you can easily add a _"Sign in with Hugging Face"_ button to your demo, which allows you to get a user's HF username as well as other information from their HF profile. Check out [this Space](https://huggingface.co/spaces/Wauplin/gradio-oauth-demo) for a live demo.
 
 To enable OAuth, you must set `hf_oauth: true` as a Space metadata in your README.md file. This will register your Space
 as an OAuth application on Hugging Face. Next, you can use `gr.LoginButton` and `gr.LogoutButton` to add login and logout buttons to
@@ -275,38 +307,119 @@ Users can revoke access to their profile at any time in their [settings](https:/
 As seen above, OAuth features are available only when your app runs in a Space. However, you often need to test your app
 locally before deploying it. To test OAuth features locally, your machine must be logged in to Hugging Face. Please run `huggingface-cli login` or set `HF_TOKEN` as environment variable with one of your access token. You can generate a new token in your settings page (https://huggingface.co/settings/tokens). Then, clicking on the `gr.LoginButton` will login your local Hugging Face profile, allowing you to debug your app with your Hugging Face account before deploying it to a Space.
 
-## Accessing the Network Request Directly
 
-When a user makes a prediction to your app, you may need the underlying network request, in order to get the request headers (e.g. for advanced authentication), log the client's IP address, getting the query parameters, or for other reasons. Gradio supports this in a similar manner to FastAPI: simply add a function parameter whose type hint is `gr.Request` and Gradio will pass in the network request as that parameter. Here is an example:
+### OAuth (with external providers)
+
+It is also possible to authenticate with external OAuth providers (e.g. Google OAuth) in your Gradio apps. To do this, first mount your Gradio app within a FastAPI app ([as discussed above](#mounting-within-another-fast-api-app)). Then, you must write an *authentication function*, which gets the user's username from the OAuth provider and returns it. This function should be passed to the `auth_dependency` parameter in `gr.mount_gradio_app`. 
+
+Similar to [FastAPI dependency functions](https://fastapi.tiangolo.com/tutorial/dependencies/), the function specified by `auth_dependency` will run before any Gradio-related route in your FastAPI app. The function should accept a single parameter: the FastAPI `Request` and return either a string (representing a user's username) or `None`. If a string is returned, the user will be able to access the Gradio-related routes in your FastAPI app. 
+
+First, let's show a simplistic example to illustrate the `auth_dependency` parameter:
 
 ```python
+from fastapi import FastAPI, Request
 import gradio as gr
 
-def echo(text, request: gr.Request):
-    if request:
-        print("Request headers dictionary:", request.headers)
-        print("IP address:", request.client.host)
-        print("Query parameters:", dict(request.query_params))
-    return text
+app = FastAPI()
 
-io = gr.Interface(echo, "textbox", "textbox").launch()
+def get_user(request: Request):
+    return request.headers.get("user")
+
+demo = gr.Interface(lambda s: f"Hello {s}!", "textbox", "textbox")
+
+app = gr.mount_gradio_app(app, demo, path="/demo", auth_dependency=get_user)
+
+if __name__ == '__main__':
+    uvicorn.run(app)
 ```
 
-Note: if your function is called directly instead of through the UI (this happens, for
-example, when examples are cached, or when the Gradio app is called via API), then `request` will be `None`. 
-You should handle this case explicitly to ensure that your app does not throw any errors. That is why
-we have the explicit check `if request`.
+In this example, only requests that include a "user" header will be allowed to access the Gradio app. Of course, this does not add much security, since any user can add this header in their request.
 
-## Mounting Within Another FastAPI App
+Here's a more complete example showing how to add Google OAuth to a Gradio app (assuming you've already created OAuth Credentials on the [Google Developer Console](https://console.cloud.google.com/project)):
 
-In some cases, you might have an existing FastAPI app, and you'd like to add a path for a Gradio demo.
-You can easily do this with `gradio.mount_gradio_app()`.
+```python
+import os
+from authlib.integrations.starlette_client import OAuth, OAuthError
+from fastapi import FastAPI, Depends, Request
+from starlette.config import Config
+from starlette.responses import RedirectResponse
+from starlette.middleware.sessions import SessionMiddleware
+import uvicorn
+import gradio as gr
 
-Here's a complete example:
+app = FastAPI()
 
-$code_custom_path
+# Replace these with your own OAuth settings
+GOOGLE_CLIENT_ID = "..."
+GOOGLE_CLIENT_SECRET = "..."
+SECRET_KEY = "..."
 
-Note that this approach also allows you run your Gradio apps on custom paths (`http://localhost:8000/gradio` in the example above).
+config_data = {'GOOGLE_CLIENT_ID': GOOGLE_CLIENT_ID, 'GOOGLE_CLIENT_SECRET': GOOGLE_CLIENT_SECRET}
+starlette_config = Config(environ=config_data)
+oauth = OAuth(starlette_config)
+oauth.register(
+    name='google',
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={'scope': 'openid email profile'},
+)
+
+SECRET_KEY = os.environ.get('SECRET_KEY') or "a_very_secret_key"
+app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
+
+# Dependency to get the current user
+def get_user(request: Request):
+    user = request.session.get('user')
+    if user:
+        return user['name']
+    return None
+
+@app.get('/')
+def public(user: dict = Depends(get_user)):
+    if user:
+        return RedirectResponse(url='/gradio')
+    else:
+        return RedirectResponse(url='/login-demo')
+
+@app.route('/logout')
+async def logout(request: Request):
+    request.session.pop('user', None)
+    return RedirectResponse(url='/')
+
+@app.route('/login')
+async def login(request: Request):
+    redirect_uri = request.url_for('auth')
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+@app.route('/auth')
+async def auth(request: Request):
+    try:
+        access_token = await oauth.google.authorize_access_token(request)
+    except OAuthError:
+        return RedirectResponse(url='/')
+    request.session['user'] = dict(access_token)["userinfo"]
+    return RedirectResponse(url='/')
+
+with gr.Blocks() as login_demo:
+    gr.Button("Login", link="/login")
+
+app = gr.mount_gradio_app(app, login_demo, path="/login-demo")
+
+def greet(request: gr.Request):
+    return f"Welcome to Gradio, {request.username}"
+
+with gr.Blocks() as main_demo:
+    m = gr.Markdown("Welcome to Gradio!")
+    gr.Button("Logout", link="/logout")
+    main_demo.load(greet, None, m)
+
+app = gr.mount_gradio_app(app, main_demo, path="/gradio", auth_dependency=get_user)
+
+if __name__ == '__main__':
+    uvicorn.run(app)
+```
+
+There are actually two separate Gradio apps in this example! One that simply displays a log in button (this demo is accessible to any user), while the other main demo is only accessible to users that are logged in. You can try this example out on [this Space](https://huggingface.co/spaces/gradio/oauth-example).
+
 
 
 ## Security and File Access

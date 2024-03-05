@@ -26,7 +26,12 @@ def io_components():
 
     while classes_to_check:
         subclass = classes_to_check.pop()
-        if subclass in [gr.components.FormComponent, gr.State]:
+        if subclass in [
+            gr.components.FormComponent,
+            gr.State,
+            gr.LoginButton,
+            gr.LogoutButton,
+        ]:
             continue
         children = subclass.__subclasses__()
 
