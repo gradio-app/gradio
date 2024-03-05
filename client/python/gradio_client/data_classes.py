@@ -18,7 +18,3 @@ class FileData(TypedDict):
     mime_type: NotRequired[str]
     is_stream: NotRequired[bool]
 
-
-@dataclass
-class File:
-    path: str | Path | None

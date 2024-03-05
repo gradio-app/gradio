@@ -26,8 +26,6 @@ import huggingface_hub
 from huggingface_hub import SpaceStage
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
-from gradio_client.data_classes import File
-
 API_URL = "api/predict/"
 SSE_URL_V0 = "queue/join"
 SSE_DATA_URL_V0 = "queue/data"
@@ -1012,14 +1010,6 @@ def is_filepath(s, url_ok=True):
     )
 
 
-def is_url(s):
-    return isinstance(s, str) and is_http_url_like(s)
-
-
-def is_file_data(d, url_ok=True):
-    return isinstance(d, File) and (url_ok or not is_url(d.path))
-
-
 def is_file_obj(d, url_ok=True):
     return isinstance(d, dict) and "path" in d and (url_ok or not is_url(d["path"]))
 
@@ -1029,11 +1019,6 @@ def is_file_obj_with_url(d):
         isinstance(d, dict) and "path" in d and "url" in d and isinstance(d["url"], str)
     )
 
-def is_file_strict(d):
-    return is_file_data(d) or is_file_obj(d)
-
-def is_file_loose(d):
-    return is_file_data(d) or is_file_obj(d) or is_filepath(d)
 
 SKIP_COMPONENTS = {
     "state",
@@ -1049,3 +1034,13 @@ SKIP_COMPONENTS = {
     "interpretation",
     "dataset",
 }
+
+
+def file(filepath_or_url: str | Path):
+    s = str(filepath_or_url)
+    if is_http_url_like(s):
+        return {"path": s, "orig_name": s.split("/")[-1], "url": s}
+    elif Path(s).exists():
+        return {"path": s, "orig_name": Path(s).name}
+    else:
+        raise ValueError(f"File {s} does not exist on local filesystem.")
