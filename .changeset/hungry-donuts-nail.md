@@ -4,4 +4,4 @@
 "gradio_client": minor
 ---
 
-feat:Files should now be supplied as `File(...)` in the Client, and some fixes to `gr.load()` as well
+feat:Files should now be supplied as `file(...)` in the Client, and some fixes to `gr.load()` as well
