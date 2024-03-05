@@ -498,7 +498,6 @@ class TestComponentsInBlocks:
         assert all(dep["queue"] is False for dep in demo.config["dependencies"])
 
     def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
-        io_components = [comp for comp in io_components if comp not in [gr.State]]
         interface = gr.Interface(
             lambda *args: None,
             inputs=[comp(value=lambda: None, every=1) for comp in io_components],
