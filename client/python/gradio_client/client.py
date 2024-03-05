@@ -31,7 +31,6 @@ from packaging import version
 
 from gradio_client import utils
 from gradio_client.compatibility import EndpointV3Compatibility
-from gradio_client.data_classes import File
 from gradio_client.documentation import document
 from gradio_client.exceptions import AuthenticationError
 from gradio_client.utils import (
@@ -1098,7 +1097,7 @@ class Endpoint:
             return data
 
     def _upload_file(self, *data):
-        
+        pass
 
     def _upload(
         self, file_paths: list[str | list[str]]
