@@ -839,6 +839,7 @@ class App(FastAPI):
                 )
             return output_files
 
+        @app.on_event("startup")
         @app.get("/startup-events")
         async def startup_events():
             if not app.startup_events_triggered:
