@@ -493,13 +493,17 @@ class Queue:
             username=username,
             request=None,
         )
-
+        assert body.request is not None  # noqa: S101
+        root_path = route_utils.get_root_url(
+            request=body.request, route_path="/queue/join", root_path=app.root_path
+        )
         try:
             output = await route_utils.call_process_api(
                 app=app,
                 body=body,
                 gr_request=gr_request,
                 fn_index_inferred=fn_index_inferred,
+                root_path=root_path,
             )
         except Exception as error:
             show_error = app.get_blocks().show_error or isinstance(error, Error)

@@ -232,6 +232,7 @@ async def call_process_api(
     body: PredictBody,
     gr_request: Union[Request, list[Request]],
     fn_index_inferred: int,
+    root_path: str,
 ):
     session_state, iterator = restore_session_state(app=app, body=body)
 
@@ -259,6 +260,7 @@ async def call_process_api(
                 event_data=event_data,
                 in_event_listener=True,
                 simple_format=body.simple_format,
+                root_path=root_path,
             )
         iterator = output.pop("iterator", None)
         if event_id is not None:
