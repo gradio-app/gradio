@@ -260,6 +260,7 @@ async def call_process_api(
                 event_data=event_data,
                 in_event_listener=True,
                 simple_format=body.simple_format,
+                root_path=root_path,
             )
         iterator = output.pop("iterator", None)
         if event_id is not None:

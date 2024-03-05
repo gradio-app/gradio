@@ -1674,6 +1674,8 @@ Received outputs:
                 state,
                 limiter=self.limiter,
             )
+            if root_path is not None:
+                data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
                 run = id(old_iterator) if was_generating else id(iterator)

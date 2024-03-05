@@ -599,7 +599,6 @@ class App(FastAPI):
             root_path = route_utils.get_root_url(
                 request=request, route_path=f"/api/{api_name}", root_path=app.root_path
             )
-
             try:
                 output = await route_utils.call_process_api(
                     app=app,
@@ -711,9 +710,6 @@ class App(FastAPI):
             process_msg: Callable[[EventMessage], str | None],
         ):
             blocks = app.get_blocks()
-            root_path = route_utils.get_root_url(
-                request=request, route_path="/queue/data", root_path=app.root_path
-            )
 
             async def sse_stream(request: fastapi.Request):
                 try:
