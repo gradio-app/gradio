@@ -1964,6 +1964,10 @@ Received outputs:
         if not self.exited:
             self.__exit__()
 
+        if auth is not None and auth_dependency is not None:
+            raise ValueError(
+                "You cannot provide both `auth` and `auth_dependency` in launch(). Please choose one."
+            )
         if (
             auth
             and not callable(auth)
