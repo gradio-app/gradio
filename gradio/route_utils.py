@@ -232,6 +232,7 @@ async def call_process_api(
     body: PredictBody,
     gr_request: Union[Request, list[Request]],
     fn_index_inferred: int,
+    root_path: str,
 ):
     session_state, iterator = restore_session_state(app=app, body=body)
 

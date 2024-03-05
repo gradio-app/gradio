@@ -596,6 +596,9 @@ class App(FastAPI):
                 username=username,
                 request=request,
             )
+            root_path = route_utils.get_root_url(
+                request=request, route_path=f"/api/{api_name}", root_path=app.root_path
+            )
 
             try:
                 output = await route_utils.call_process_api(
@@ -603,6 +606,7 @@ class App(FastAPI):
                     body=body,
                     gr_request=gr_request,
                     fn_index_inferred=fn_index_inferred,
+                    root_path=root_path
                 )
             except BaseException as error:
                 show_error = app.get_blocks().show_error or isinstance(error, Error)
@@ -611,10 +615,6 @@ class App(FastAPI):
                     content={"error": str(error) if show_error else None},
                     status_code=500,
                 )
-            root_path = route_utils.get_root_url(
-                request=request, route_path=f"/api/{api_name}", root_path=app.root_path
-            )
-            output = add_root_url(output, root_path, None)
             return output
 
         @app.post("/call/{api_name}", dependencies=[Depends(login_check)])
@@ -661,7 +661,7 @@ class App(FastAPI):
                     detail="Queue is stopped.",
                 )
 
-            success, event_id = await blocks._queue.push(body, request, username)
+            success, event_id = await blocks._queue.push(body=body, request=request, username=username)
             if not success:
                 status_code = (
                     status.HTTP_503_SERVICE_UNAVAILABLE

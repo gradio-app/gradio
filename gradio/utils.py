@@ -1047,9 +1047,6 @@ def get_cache_folder() -> Path:
 
 def diff(old, new):
     def compare_objects(obj1, obj2, path=None):
-        if client_utils.is_file_obj_with_url(obj2):
-            return obj2
-
         if path is None:
             path = []
         edits = []
