@@ -246,7 +246,7 @@
 	:global(::part(region)) {
 		border-radius: var(--radius-md);
 		height: 98% !important;
-		border: 1px solid var(--color-accent);
+		border: 1px solid var(--trim-region-color);
 		background-color: unset;
 		border-width: 1px 3px;
 	}
@@ -258,7 +258,7 @@
 		left: 0;
 		width: 100%;
 		height: 100%;
-		background: var(--trim-region-colour);
+		background: var(--trim-region-color);
 		opacity: 0.2;
 		border-radius: var(--radius-md);
 	}

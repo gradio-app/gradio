@@ -109,14 +109,14 @@
 	};
 
 	const trim_region_settings = {
+		color: waveform_options.trim_region_color,
 		drag: true,
-		resize: true,
-		color: waveform_options.trim_region_color || color_accent
+		resize: true
 	};
 
 	function set_trim_region_colour(): void {
 		document.documentElement.style.setProperty(
-			"--trim-region-colour",
+			"--trim-region-color",
 			trim_region_settings.color || color_accent
 		);
 	}
