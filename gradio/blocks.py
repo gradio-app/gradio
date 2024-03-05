@@ -528,6 +528,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         head: str | None = None,
         fill_height: bool = False,
         delete_cache: tuple[int, int] | None = None,
+        static_files: list[str] | None = None,
         **kwargs,
     ):
         """
@@ -626,7 +627,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         self.progress_tracking = None
         self.ssl_verify = True
-
+        self.static_files = [Path(f).resolve() for f in static_files] if static_files else []
         self.allowed_paths = []
         self.blocked_paths = []
         self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")

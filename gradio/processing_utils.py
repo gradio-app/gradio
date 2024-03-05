@@ -15,6 +15,8 @@ from typing import TYPE_CHECKING, Any, Literal
 
 import httpx
 import numpy as np
+from gradio import utils
+from gradio.context import Context
 from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, PngImagePlugin
 
@@ -262,6 +264,8 @@ def move_files_to_cache(
         # This makes it so that the URL is not downloaded and speeds up event processing
         if payload.url and postprocess and client_utils.is_http_url_like(payload.url):
             payload.path = payload.url
+        elif utils.is_static_file(payload, Context.root_block):
+            payload.path = payload.path
         elif not block.proxy_url:
             # If the file is on a remote server, do not move it to cache.
             if check_in_upload_folder and not client_utils.is_http_url_like(

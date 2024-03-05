@@ -44,6 +44,7 @@ from typing_extensions import ParamSpec
 
 import gradio
 from gradio.context import Context
+from gradio.data_classes import FileData
 from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -956,6 +957,32 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path):
     except ValueError:
         return False
     return True
+
+def is_static_file(file_path: Any, blocks: Blocks | None):
+    if blocks:
+        static_files = blocks.static_files
+    else: 
+        static_files = Context.root_block.static_files if Context.root_block else []
+    return _is_static_file(file_path, static_files)
+
+
+def _is_static_file(file_path: Any, static_files: list[Path]) -> bool:
+    """
+    Returns True if the file is a static file (i.e. is is in the static files list).
+    """
+    if not isinstance(file_path, (str, Path, FileData)):
+        return False
+    if isinstance(file_path, FileData):
+        file_path = file_path.path
+    if isinstance(file_path, str):
+        file_path = Path(file_path)
+        if not file_path.exists():
+            return False
+    for static_file in static_files:
+        if is_in_or_equal(file_path, static_file):
+            return True
+    return False
+
 
 
 HTML_TAG_RE = re.compile("<.*?>")
