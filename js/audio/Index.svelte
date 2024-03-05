@@ -114,6 +114,15 @@
 		resize: true
 	};
 
+	function set_trim_region_colour(): void {
+		document.documentElement.style.setProperty(
+			"--trim-region-color",
+			trim_region_settings.color || color_accent
+		);
+	}
+
+	set_trim_region_colour();
+
 	function handle_error({ detail }: CustomEvent<string>): void {
 		const [level, status] = detail.includes("Invalid file type")
 			? ["warning", "complete"]

@@ -181,7 +181,7 @@
 				bind:mode
 				bind:trimDuration
 				bind:show_volume_slider
-				showRedo={interactive}
+				show_redo={interactive}
 				{handle_reset_value}
 				{waveform_options}
 				{trim_region_settings}
