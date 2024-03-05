@@ -41,8 +41,8 @@ def io_components():
 @pytest.fixture
 def connect():
     @contextmanager
-    def _connect(demo: gr.Blocks, serialize=True):
-        _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    def _connect(demo: gr.Blocks, serialize=True, **kwargs):
+        _, local_url, _ = demo.launch(prevent_thread_lock=True, **kwargs)
         try:
             yield Client(local_url, serialize=serialize)
         finally:
