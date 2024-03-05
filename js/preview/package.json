@@ -16,7 +16,7 @@
 		"@rollup/plugin-node-resolve": "^15.1.0",
 		"@rollup/plugin-typescript": "^11.1.2",
 		"rollup": "^3.28.0",
-		"svelte-hmr": "^0.15.3"
+		"svelte-hmr": "^0.16.0"
 	},
 	"dependencies": {
 		"@originjs/vite-plugin-commonjs": "^1.0.3",

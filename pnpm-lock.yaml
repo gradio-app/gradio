@@ -1332,8 +1332,8 @@ importers:
         specifier: ^3.28.0
         version: 3.28.0
       svelte-hmr:
-        specifier: ^0.15.3
-        version: 0.15.3(svelte@4.2.12)
+        specifier: ^0.16.0
+        version: 0.16.0(svelte@4.2.12)
 
   js/preview/test/test/frontend:
     dependencies:
@@ -14984,6 +14984,15 @@ packages:
       svelte: ^3.19.0 || ^4.0.0
     dependencies:
       svelte: 4.2.2
+
+  /svelte-hmr@0.16.0(svelte@4.2.12):
+    resolution: {integrity: sha512-Gyc7cOS3VJzLlfj7wKS0ZnzDVdv3Pn2IuVeJPk9m2skfhcu5bq3wtIZyQGggr7/Iim5rH5cncyQft/kRLupcnA==}
+    engines: {node: ^12.20 || ^14.13.1 || >= 16}
+    peerDependencies:
+      svelte: ^3.19.0 || ^4.0.0
+    dependencies:
+      svelte: 4.2.12
+    dev: true
 
   /svelte-i18n@3.6.0(svelte@3.59.2):
     resolution: {integrity: sha512-qvvcMqHVCXJ5pHoQR5uGzWAW5vS3qB9mBq+W6veLZ6jkrzZGOziR+wyOUJsc59BupMh+Ae30qjOndFrRU6v5jA==}
