@@ -25,19 +25,27 @@
 	const upload_fn = getContext<typeof upload_files>("upload_files");
 
 	let hidden_upload: HTMLInputElement;
-
 	const dispatch = createEventDispatcher();
-	$: if (filetype == null || typeof filetype === "string") {
-		accept_file_types = filetype;
+	const validFileTypes = ["image", "video", "audio", "text", "file"];
+	const processFileType = (type: string): string => {
+		if (type.startsWith(".")) {
+			return type;
+		}
+		if (validFileTypes.includes(type)) {
+			return type + "/*";
+		}
+		return "." + type;
+	};
+
+	$: if (filetype == null) {
+		accept_file_types = null;
+	} else if (typeof filetype === "string") {
+		accept_file_types = processFileType(filetype);
 	} else {
-		filetype = filetype.map((x) => {
-			if (x.startsWith(".")) {
-				return x;
-			}
-			return x + "/*";
-		});
+		filetype = filetype.map(processFileType);
 		accept_file_types = filetype.join(", ");
 	}
+
 	function updateDragging(): void {
 		dragging = !dragging;
 	}
