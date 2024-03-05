@@ -53,9 +53,19 @@ test("File component properly handles drag and drop of image and video files.", 
 test("File component properly handles drag and drop of pdf file.", async ({
 	page
 }) => {
-	const uploader = await page.locator("input[type=file]").last();
+	const uploader = await page.locator("input[type=file]").nth(3);
 	await uploader.setInputFiles(["./test/files/contract.pdf"]);
 
 	// Check that the pdf file was uploaded
 	await expect(page.getByLabel("# Load Upload PDF File")).toHaveValue("1");
+});
+
+test("File component properly handles invalid file_types.", async ({
+	page
+}) => {
+	const uploader = await page.locator("input[type=file]").last();
+	await uploader.setInputFiles(["./test/files/cheetah1.jpg"]);
+
+	// Check that the pdf file was uploaded
+	await expect(page.getByLabel("# Load Upload File with Invalid file_types")).toHaveValue("1");
 });
