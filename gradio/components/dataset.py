@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from gradio_client.documentation import document
+from gradio_client.utils import is_file_obj
 
 from gradio import processing_utils
 from gradio.components.base import (
@@ -98,6 +99,8 @@ class Dataset(Component):
                         example[i],
                         component,
                     )
+                    if is_file_obj(example[i]):
+                        self.keep_in_cache.add(example[i]["path"])
         self.type = type
         self.label = label
         if headers is not None:

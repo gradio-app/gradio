@@ -63,6 +63,7 @@ from gradio.route_utils import (  # noqa: F401
     MultiPartException,
     Request,
     compare_passwords_securely,
+    create_lifespan_handler,
     move_uploaded_files_to_cache,
 )
 from gradio.state_holder import StateHolder
@@ -192,6 +193,10 @@ class App(FastAPI):
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
+        if blocks.delete_cache is not None:
+            app_kwargs["lifespan"] = create_lifespan_handler(
+                app_kwargs.get("lifespan", None), *blocks.delete_cache
+            )
         app = App(**app_kwargs)
         app.configure_app(blocks)
 
@@ -827,6 +832,7 @@ class App(FastAPI):
                     files_to_copy.append(temp_file.file.name)
                     locations.append(str(dest))
                 output_files.append(dest)
+                blocks.upload_file_set.add(str(dest))
             if files_to_copy:
                 bg_tasks.add_task(
                     move_uploaded_files_to_cache, files_to_copy, locations

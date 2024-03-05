@@ -1584,8 +1584,12 @@ def test_temp_file_sets_get_extended():
     with gr.Blocks() as demo3:
         demo1.render()
         demo2.render()
-
-    assert demo3.temp_file_sets == demo1.temp_file_sets + demo2.temp_file_sets
+    # The upload_set is empty so we remove it from the check
+    demo_3_no_empty = [s for s in demo3.temp_file_sets if len(s)]
+    demo_1_and_2_no_empty = [
+        s for s in demo1.temp_file_sets + demo2.temp_file_sets if len(s)
+    ]
+    assert demo_3_no_empty == demo_1_and_2_no_empty
 
 
 def test_recover_kwargs():
