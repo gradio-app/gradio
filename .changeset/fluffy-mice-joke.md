@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-feat:Fix url diffing
+feat:Fix the `root_url` logic for streaming files
