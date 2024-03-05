@@ -32,7 +32,7 @@ test("File component drag-and-drop uploads a file to the server correctly.", asy
 test("File component properly handles drag and drop of image and video files.", async ({
 	page
 }) => {
-	const uploader = await page.locator("input[type=file]").last();
+	const uploader = await page.locator("input[type=file]").nth(2);
 	await uploader.setInputFiles(["./test/files/cheetah1.jpg"]);
 
 	// Check that the image file was uploaded
