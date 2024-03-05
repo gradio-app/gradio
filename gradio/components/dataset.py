@@ -86,8 +86,6 @@ class Dataset(Component):
         for component in self._components:
             component.proxy_url = proxy_url
         self.samples = [[]] if samples is None else samples
-        # Keep track of which files are used in examples so we don't delete them when delete_cache is set
-        self.dataset_cache = set()
         for example in self.samples:
             for i, (component, ex) in enumerate(zip(self._components, example)):
                 # If proxy_url is set, that means it is being loaded from an external Gradio app
@@ -102,7 +100,7 @@ class Dataset(Component):
                         component,
                     )
                     if is_file_obj(example[i]):
-                        self.dataset_cache.add(example[i]["path"])
+                        self.keep_in_cache.add(example[i]["path"])
         self.type = type
         self.label = label
         if headers is not None:
