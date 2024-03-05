@@ -1643,6 +1643,8 @@ Received outputs:
                 state,
                 limiter=self.limiter,
             )
+            if root_path is not None:
+                data = processing_utils.add_root_url(data, root_path, None)
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
