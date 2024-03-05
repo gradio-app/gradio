@@ -33,6 +33,7 @@ from gradio_client import utils
 from gradio_client.compatibility import EndpointV3Compatibility
 from gradio_client.data_classes import File
 from gradio_client.documentation import document
+from gradio_client.exceptions import AuthenticationError
 from gradio_client.utils import (
     Communicator,
     JobStatus,
@@ -523,21 +524,21 @@ class Client:
                         'parameters': [
                             {
                                 'label': 'num1',
-                                'type_python': 'int | float',
+                                'python_type': 'int | float',
                                 'type_description': 'numeric value',
                                 'component': 'Number',
                                 'example_input': '5'
                             },
                             {
                                 'label': 'operation',
-                                'type_python': 'str',
+                                'python_type': 'str',
                                 'type_description': 'string value',
                                 'component': 'Radio',
                                 'example_input': 'add'
                             },
                             {
                                 'label': 'num2',
-                                'type_python': 'int | float',
+                                'python_type': 'int | float',
                                 'type_description': 'numeric value',
                                 'component': 'Number',
                                 'example_input': '5'
@@ -546,7 +547,7 @@ class Client:
                         'returns': [
                             {
                                 'label': 'output',
-                                'type_python': 'int | float',
+                                'python_type': 'int | float',
                                 'type_description': 'numeric value',
                                 'component': 'Number',
                             },
@@ -731,7 +732,12 @@ class Client:
             data={"username": auth[0], "password": auth[1]},
         )
         if not resp.is_success:
-            raise ValueError(f"Could not login to {self.src}")
+            if resp.status_code == 401:
+                raise AuthenticationError(
+                    f"Could not login to {self.src}. Invalid credentials."
+                )
+            else:
+                raise ValueError(f"Could not login to {self.src}.")
         self.cookies = {
             name: value for name, value in resp.cookies.items() if value is not None
         }
@@ -745,7 +751,9 @@ class Client:
         if r.is_success:
             return r.json()
         elif r.status_code == 401:
-            raise ValueError(f"Could not load {self.src}. Please login.")
+            raise AuthenticationError(
+                f"Could not load {self.src} as credentials were not provided. Please login."
+            )
         else:  # to support older versions of Gradio
             r = httpx.get(self.src, headers=self.headers, cookies=self.cookies)
             if not r.is_success:
@@ -1109,7 +1117,12 @@ class Endpoint:
             for f in fs:
                 files.append(("files", (Path(f).name, open(f, "rb"))))  # noqa: SIM115
                 indices.append(i)
-        r = httpx.post(self.client.upload_url, headers=self.client.headers, files=files)
+        r = httpx.post(
+            self.client.upload_url,
+            headers=self.client.headers,
+            cookies=self.client.cookies,
+            files=files,
+        )
         if r.status_code != 200:
             uploaded = file_paths
         else:
@@ -1204,16 +1217,18 @@ class Endpoint:
         elif isinstance(x, dict):
             filepath = x.get("path")
             if not filepath:
-                raise ValueError(f"The 'path' field is missing in {x}")
+                raise ValueError(f"The 'path' field is missing in {file_data}")
             file_name = utils.download_file(
                 self.root_url + "file=" + filepath,
                 hf_token=self.client.hf_token,
-                dir=self.client.output_dir,
+                save_dir=self.client.output_dir,
+                headers=self.client.headers,
+                cookies=self.client.cookies,
             )
 
         else:
             raise ValueError(
-                f"A FileSerializable component can only deserialize a string or a dict, not a {type(x)}: {x}"
+                f"A FileSerializable component can only deserialize a string or a dict, not a {type(file_name)}: {file_name}"
             )
         return file_name
 

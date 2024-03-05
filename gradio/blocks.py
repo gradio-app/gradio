@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, Sequenc
 from urllib.parse import urlparse, urlunparse
 
 import anyio
+import fastapi
 import httpx
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
@@ -533,6 +534,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         js: str | None = None,
         head: str | None = None,
         fill_height: bool = False,
+        delete_cache: tuple[int, int] | None = None,
         **kwargs,
     ):
         """
@@ -545,6 +547,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             js: Custom js or path to js file to run when demo is first loaded. This javascript will be included in the demo webpage.
             head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
             fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
+            delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
         """
         self.limiter = None
         if theme is None:
@@ -573,6 +576,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.show_error = True
         self.head = head
         self.fill_height = fill_height
+        self.delete_cache = delete_cache
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -615,7 +619,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.auth = None
         self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", ""))
         self.app_id = random.getrandbits(64)
-        self.temp_file_sets = []
+        self.upload_file_set = set()
+        self.temp_file_sets = [self.upload_file_set]
         self.title = title
         self.show_api = not wasm_utils.IS_WASM
 
@@ -1553,6 +1558,7 @@ Received outputs:
         session_hash: str | None,
         run: int | None,
         final: bool,
+        simple_format: bool = False,
     ) -> list:
         if session_hash is None or run is None:
             return data
@@ -1571,7 +1577,8 @@ Received outputs:
             else:
                 prev_chunk = last_diffs[i]
                 last_diffs[i] = data[i]
-                data[i] = utils.diff(prev_chunk, data[i])
+                if not simple_format:
+                    data[i] = utils.diff(prev_chunk, data[i])
 
         if final:
             del self.pending_diff_streams[session_hash][run]
@@ -1598,6 +1605,7 @@ Received outputs:
         event_id: str | None = None,
         event_data: EventData | None = None,
         in_event_listener: bool = True,
+        simple_format: bool = False,
         explicit_call: bool = False,
     ) -> dict[str, Any]:
         """
@@ -1708,6 +1716,7 @@ Received outputs:
                     session_hash=session_hash,
                     run=run,
                     final=not is_generating,
+                    simple_format=simple_format,
                 )
 
         block_fn.total_runtime += result["duration"]
@@ -1921,6 +1930,7 @@ Received outputs:
         state_session_capacity: int = 10000,
         share_server_address: str | None = None,
         share_server_protocol: Literal["http", "https"] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         _frontend: bool = True,
     ) -> tuple[FastAPI, str, str]:
         """
@@ -1955,6 +1965,7 @@ Received outputs:
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
             share_server_address: Use this to specify a custom FRP server and port for sharing Gradio apps (only applies if share=True). If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
             share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
+            auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1981,6 +1992,10 @@ Received outputs:
         if not self.exited:
             self.__exit__()
 
+        if auth is not None and auth_dependency is not None:
+            raise ValueError(
+                "You cannot provide both `auth` and `auth_dependency` in launch(). Please choose one."
+            )
         if (
             auth
             and not callable(auth)
@@ -2039,7 +2054,9 @@ Received outputs:
                 # and avoid using `networking.start_server` that would start a server that don't work in the Wasm env.
                 from gradio.routes import App
 
-                app = App.create_app(self, app_kwargs=app_kwargs)
+                app = App.create_app(
+                    self, auth_dependency=auth_dependency, app_kwargs=app_kwargs
+                )
                 wasm_utils.register_app(app)
             else:
                 (

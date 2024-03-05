@@ -86,7 +86,7 @@ def test_download_tmp_copy_of_file_does_not_save_errors(monkeypatch, gradio_temp
     error_response = httpx.Response(status_code=404)
     monkeypatch.setattr(httpx, "get", lambda *args, **kwargs: error_response)
     with pytest.raises(httpx.HTTPStatusError):
-        utils.download_file("https://example.com/foo", dir=str(gradio_temp_dir))
+        utils.download_file("https://example.com/foo", save_dir=str(gradio_temp_dir))
 
 
 @pytest.mark.parametrize(
