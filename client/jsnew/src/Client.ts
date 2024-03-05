@@ -80,10 +80,12 @@ export class Client {
 	async initialize_client_vars(): Promise<void> {
 		const { hf_token } = this.options;
 
-		const { http_protocol, host } = await process_endpoint(
-			this.app_reference,
-			hf_token ?? undefined
-		);
+		const { http_protocol, host } =
+			(await process_endpoint(this.app_reference, hf_token ?? undefined)) || {};
+
+		if (!http_protocol || !host) {
+			console.error("Could not get host");
+		}
 
 		this.config = await resolve_config(
 			fetch,

@@ -13,10 +13,12 @@ export async function view_api(this: Client, config?: Config): Promise<any> {
 	const { hf_token } = this.options;
 	let api_map: Record<string, number> = {};
 
-	const { http_protocol, host } = await process_endpoint(
-		this.app_reference,
-		hf_token ?? undefined
-	);
+	const { http_protocol, host } =
+		(await process_endpoint(this.app_reference, hf_token ?? undefined)) || {};
+
+	if (!http_protocol || !host) {
+		return null;
+	}
 
 	const headers: {
 		Authorization?: string;
@@ -67,6 +69,6 @@ export async function view_api(this: Client, config?: Config): Promise<any> {
 			return transform_api_info(api_info, config, api_map);
 		}
 	} catch (e) {
-		throw new Error("Could not get API info. " + (e as Error).message);
+		"Could not get API info. " + (e as Error).message;
 	}
 }

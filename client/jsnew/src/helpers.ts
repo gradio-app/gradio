@@ -1,4 +1,4 @@
-import { QUEUE_FULL_MSG } from "./constants";
+import { CONFIG_URL, QUEUE_FULL_MSG } from "./constants";
 import { Config, ApiInfo, ApiData, Status } from "./types";
 
 export async function resolve_config(
@@ -6,37 +6,45 @@ export async function resolve_config(
 	endpoint: string,
 	token?: `hf_${string}`
 ): Promise<Config | undefined> {
-	try {
-		const headers: Record<string, string> = token
-			? { Authorization: `Bearer ${token}` }
-			: {};
+	const headers: Record<string, string> = token
+		? { Authorization: `Bearer ${token}` }
+		: {};
 
-		headers["Content-Type"] = "application/json";
+	headers["Content-Type"] = "application/json";
 
-		if (
-			typeof window !== "undefined" &&
-			window.gradio_config &&
-			location.origin !== "http://localhost:9876" &&
-			!window.gradio_config.dev_mode
-		) {
-			const path = window.gradio_config.root;
-			const config = window.gradio_config;
-			config.root = resolve_root(endpoint, config.root, false);
+	if (
+		typeof window !== "undefined" &&
+		window.gradio_config &&
+		location.origin !== "http://localhost:9876" &&
+		!window.gradio_config.dev_mode
+	) {
+		const path = window.gradio_config.root;
+		const config = window.gradio_config;
+
+		let config_root = resolve_root(endpoint, config.root, false);
+
+		if (config_root === null) {
+			throw new Error("Could not resolve root");
+		} else {
+			config.root = config_root;
 			return { ...config, path };
 		}
+	}
 
-		if (endpoint) {
-			const response = await fetch_implementation(`${endpoint}/config`, {
-				headers
-			});
+	if (endpoint) {
+		const response = await fetch_implementation(`${endpoint}/${CONFIG_URL}`, {
+			headers
+		});
 
-			if (response?.status === 200) {
-				let config = await response.json();
-				return { ...config, path: config.path ?? "", root: endpoint };
+		if (response?.status === 200) {
+			let config = await response.json();
+
+			if (!config.root) {
+				console.error("Could not resolve root");
 			}
+
+			return { ...config, path: config.path ?? "", root: endpoint };
 		}
-	} catch (e) {
-		throw new Error("Could not get config. " + (e as Error).message);
 	}
 }
 
@@ -131,38 +139,46 @@ export async function process_endpoint(
 	space_id: string | false;
 	host: string;
 	http_protocol: "http:" | "https:";
-}> {
+} | null> {
 	const headers: Record<string, string> = token
 		? { Authorization: `Bearer ${token}` }
 		: {};
 	const _app_reference = app_reference.trim();
 
 	if (RE_SPACE_NAME.test(_app_reference)) {
-		try {
-			const res = await fetch(
-				`https://huggingface.co/api/spaces/${_app_reference}/host`,
-				{ headers }
-			);
+		const res = await fetch(
+			`https://huggingface.co/api/spaces/${_app_reference}/host`,
+			{ headers }
+		);
 
-			if (res?.status !== 200) {
-				throw new Error(res.statusText);
-			}
-
-			const _host = (await res.json()).host;
-
-			return {
-				space_id: app_reference,
-				...determine_protocol(_host)
-			};
-		} catch (e: unknown) {
-			throw new Error(
-				"Space metadata could not be loaded. " + (e as Error).message
-			);
+		if (res?.status !== 200) {
+			throw new Error(res.statusText);
 		}
+
+		const _host = (await res.json()).host;
+
+		if (!_host) {
+			throw new Error("Could not get space metadata");
+		}
+
+		let protocol = determine_protocol(_host);
+
+		if (!protocol) {
+			throw new Error("Could not get space metadata");
+		}
+
+		return {
+			space_id: app_reference,
+			...protocol
+		};
 	}
 
 	if (RE_SPACE_DOMAIN.test(_app_reference)) {
 		const { http_protocol, host } = determine_protocol(_app_reference);
+
+		if (!http_protocol || !host) {
+			throw new Error("Could not get space metadata");
+		}
 
 		return {
 			space_id: host.replace(".hf.space", ""),

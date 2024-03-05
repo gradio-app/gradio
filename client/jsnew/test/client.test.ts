@@ -4,7 +4,7 @@ import fetchMock from "fetch-mock";
 import { test_api_info, test_config } from "../test_data.js";
 import { CONFIG_URL, HOST_URL } from "../src/constants.js";
 
-describe.only("client", () => {
+describe("client", () => {
 	beforeEach(() => {
 		fetchMock.restore();
 	});
@@ -21,7 +21,7 @@ describe.only("client", () => {
 	let secret_host = "https://abidlabs-secret_space.hf.space";
 
 	describe("view_api", async () => {
-		test.skip("view_api()", async () => {
+		test("view_api()", async () => {
 			fetchMock.mock(`${host}/${CONFIG_URL}`, {
 				status: 200,
 				body: JSON.stringify(test_config)
@@ -117,6 +117,10 @@ describe.only("client", () => {
 			const app = new Client("abidlabs/secret_space", {
 				hf_token: "hf_invalid_token"
 			});
+
+			await expect(app.view_api()).rejects.toThrowError(
+				"Could not get space metadata"
+			);
 		});
 	});
 });

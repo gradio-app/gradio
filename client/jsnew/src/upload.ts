@@ -1,30 +1,5 @@
 import { upload_files } from "./utils/upload_files";
 
-function is_url(str: string): boolean {
-	try {
-		const url = new URL(str);
-		return url.protocol === "http:" || url.protocol === "https:";
-	} catch {
-		return false;
-	}
-}
-
-export function get_fetchable_url_or_file(
-	path: string | null,
-	server_url: string,
-	proxy_url: string | null
-): string {
-	if (path == null) {
-		return proxy_url ? `/proxy=${proxy_url}file=` : `${server_url}/file=`;
-	}
-	if (is_url(path)) {
-		return path;
-	}
-	return proxy_url
-		? `/proxy=${proxy_url}file=${path}`
-		: `${server_url}/file=${path}`;
-}
-
 export async function upload(
 	file_data: FileData[],
 	root: string,
