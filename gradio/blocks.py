@@ -526,6 +526,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         js: str | None = None,
         head: str | None = None,
         fill_height: bool = False,
+        delete_cache: tuple[int, int] | None = None,
         **kwargs,
     ):
         """
@@ -538,6 +539,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             js: Custom js or path to js file to run when demo is first loaded. This javascript will be included in the demo webpage.
             head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
             fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
+            delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
         """
         self.limiter = None
         if theme is None:
@@ -566,6 +568,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.show_error = True
         self.head = head
         self.fill_height = fill_height
+        self.delete_cache = delete_cache
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -608,7 +611,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.auth = None
         self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", ""))
         self.app_id = random.getrandbits(64)
-        self.temp_file_sets = []
+        self.upload_file_set = set()
+        self.temp_file_sets = [self.upload_file_set]
         self.title = title
         self.show_api = not wasm_utils.IS_WASM
 

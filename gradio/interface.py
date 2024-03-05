@@ -121,6 +121,7 @@ class Interface(Blocks):
         submit_btn: str | Button = "Submit",
         stop_btn: str | Button = "Stop",
         clear_btn: str | Button = "Clear",
+        delete_cache: tuple[int, int] | None = None,
         **kwargs,
     ):
         """
@@ -155,6 +156,7 @@ class Interface(Blocks):
             submit_btn: The button to use for submitting inputs. Defaults to a `gr.Button("Submit", variant="primary")`. This parameter does not apply if the Interface is output-only, in which case the submit button always displays "Generate". Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization).
             stop_btn: The button to use for stopping the interface. Defaults to a `gr.Button("Stop", variant="stop", visible=False)`. Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization).
             clear_btn: The button to use for clearing the inputs. Defaults to a `gr.Button("Clear", variant="secondary")`. Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization).
+            delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -164,6 +166,7 @@ class Interface(Blocks):
             theme=theme,
             js=js,
             head=head,
+            delete_cache=delete_cache,
             **kwargs,
         )
         self.api_name: str | Literal[False] | None = api_name
