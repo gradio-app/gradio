@@ -844,6 +844,7 @@ class TestAudio:
                 "skip_length": 5,
                 "waveform_color": None,
                 "waveform_progress_color": None,
+                "trim_region_color": None,
             },
             "_selectable": False,
         }
@@ -897,6 +898,7 @@ class TestAudio:
                 "skip_length": 5,
                 "waveform_color": None,
                 "waveform_progress_color": None,
+                "trim_region_color": None,
             },
             "_selectable": False,
         }
