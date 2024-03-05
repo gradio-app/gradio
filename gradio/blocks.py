@@ -1529,6 +1529,7 @@ Received outputs:
         session_hash: str | None,
         run: int | None,
         final: bool,
+        simple_format: bool = False,
     ) -> list:
         if session_hash is None or run is None:
             return data
@@ -1547,7 +1548,8 @@ Received outputs:
             else:
                 prev_chunk = last_diffs[i]
                 last_diffs[i] = data[i]
-                data[i] = utils.diff(prev_chunk, data[i])
+                if not simple_format:
+                    data[i] = utils.diff(prev_chunk, data[i])
 
         if final:
             del self.pending_diff_streams[session_hash][run]
@@ -1574,6 +1576,7 @@ Received outputs:
         event_id: str | None = None,
         event_data: EventData | None = None,
         in_event_listener: bool = True,
+        simple_format: bool = False,
         explicit_call: bool = False,
     ) -> dict[str, Any]:
         """
@@ -1684,6 +1687,7 @@ Received outputs:
                     session_hash=session_hash,
                     run=run,
                     final=not is_generating,
+                    simple_format=simple_format,
                 )
 
         block_fn.total_runtime += result["duration"]
