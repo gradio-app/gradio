@@ -67,5 +67,7 @@ test("File component properly handles invalid file_types.", async ({
 	await uploader.setInputFiles(["./test/files/cheetah1.jpg"]);
 
 	// Check that the pdf file was uploaded
-	await expect(page.getByLabel("# Load Upload File with Invalid file_types")).toHaveValue("1");
+	await expect(
+		page.getByLabel("# Load Upload File with Invalid file_types")
+	).toHaveValue("1");
 });
