@@ -1011,7 +1011,7 @@ def is_url(s):
 
 
 def is_file_obj(d):
-    return isinstance(d, dict) and "path" in d
+    return isinstance(d, dict) and "path" in d and isinstance(d["path"], str)
 
 
 def is_file_obj_with_url(d):
