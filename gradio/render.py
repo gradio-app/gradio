@@ -36,7 +36,7 @@ class Renderable(Component):
                 for t in triggers
             ]
             Context.root_block.set_event_trigger(
-                self.triggers, lambda *args: args, inputs, self
+                self.triggers, lambda *args: args, inputs, self, show_api=False
             )
 
     def __call__(self, *args, **kwargs):
