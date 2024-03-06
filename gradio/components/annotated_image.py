@@ -103,7 +103,7 @@ class AnnotatedImage(Component):
     ) -> tuple[str, list[tuple[str, str]]] | None:
         """
         Parameters:
-            payload: Tuple of base image and list of annotations.
+            payload: Dict of base image and list of annotations.
         Returns:
             Passes its value as a `tuple` consisting of a `str` filepath to a base image and `list` of annotations. Each annotation itself is `tuple` of a mask (as a `str` filepath to image) and a `str` label.
         """
@@ -198,5 +198,8 @@ class AnnotatedImage(Component):
             annotations=sections,
         )
 
-    def example_inputs(self) -> Any:
-        return {}
+    def example_payload(self) -> Any:
+        return {"image": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png", "annotations": []}
+
+    def example_value(self) -> Any:
+        return ("https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png", [([0, 0, 100, 100], "bus")])

@@ -331,5 +331,8 @@ class LinePlot(Plot):
 
         return AltairPlotData(type="altair", plot=chart.to_json(), chart="line")
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
         return None
+
+    def example_value(self) -> Any:
+        return {self.x: [1, 2, 3, 4, 5], self.y: [1, 2, 3, 4, 5]}
