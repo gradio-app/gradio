@@ -252,11 +252,11 @@ class TestLoadInterface:
         client = TestClient(app)
         response = client.post(
             "/api/predict/",
-            json={"session_hash": "foo", "data": ["Hi!", None], "fn_index": 0},
+            json={"session_hash": "foo", "data": ["Hi!"], "fn_index": 0},
         )
         output = response.json()
         assert isinstance(output["data"], list)
-        assert isinstance(output["data"][0], list)
+        assert isinstance(output["data"][0], str)
         assert "foo" in app.state_holder
 
     def test_speech_recognition_model(self):
