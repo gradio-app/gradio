@@ -83,7 +83,7 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     @abstractmethod
     def example_inputs(self) -> Any:
         """
-        Deprecated and replaced by `example_payload()`.
+        Deprecated and replaced by `example_payload()` and `example_value()`.
         """
         pass
 
