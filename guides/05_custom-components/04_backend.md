@@ -40,14 +40,12 @@ Explained in the [Key Concepts](./key-component-concepts#the-value-and-how-it-is
 They handle the conversion from the data sent by the frontend to the format expected by the python function.
 
 ```python
-    @abstractmethod
     def preprocess(self, x: Any) -> Any:
         """
         Convert from the web-friendly (typically JSON) value in the frontend to the format expected by the python function.
         """
         return x
 
-    @abstractmethod
     def postprocess(self, y):
         """
         Convert from the data returned by the python function to the web-friendly (typically JSON) value expected by the frontend.
@@ -67,11 +65,6 @@ def process_example(self, input_data):
 
 Since `self.choices` is a list of tuples corresponding to (`display_name`, `value`), this converts the value that a user provides to the display value (or if the value is not present in `self.choices`, it is converted to `None`).
 
-```python
-@abstractmethod
-def process_example(self, y):
-    pass
-```
 
 ### `api_info`
 
@@ -81,7 +74,6 @@ You do **not** need to implement this yourself if you components specifies a `da
 The `data_model` in the following section.
 
 ```python
-@abstractmethod
 def api_info(self) -> dict[str, list[str]]:
     """
     A JSON-schema representation of the value that the `preprocess` expects and the `postprocess` returns.
@@ -89,15 +81,27 @@ def api_info(self) -> dict[str, list[str]]:
     pass
 ```
 
-### `example_inputs`
+### `example_payload`
 
-The example inputs for this component displayed in the `View API` page. 
-Must be JSON-serializable.
-If your component expects a file, it is best to use a publicly accessible URL.
+An example payload for your component, e.g. something that can be passed into the `.preprocess()` method
+of your component. The example input is displayed in the `View API` page of a Gradio app that uses your custom component. 
+Must be JSON-serializable. If your component expects a file, it is best to use a publicly accessible URL.
 
 ```python
-@abstractmethod
-def example_inputs(self) -> Any:
+def example_payload(self) -> Any:
+    """
+    The example inputs for this component for API usage. Must be JSON-serializable.
+    """
+    pass
+```
+
+### `example_value`
+
+An example value for your component, e.g. something that can be passed into the `.postprocess()` method
+of your component. This is used as the example value in the default app that is created in custom component development.
+
+```python
+def example_payload(self) -> Any:
     """
     The example inputs for this component for API usage. Must be JSON-serializable.
     """
@@ -111,7 +115,6 @@ You do **not** need to implement this yourself if you components specifies a `da
 The `data_model` in the following section.
 
 ```python
-@abstractmethod
 def flag(self, x: Any | GradioDataModel, flag_dir: str | Path = "") -> str:
     pass
 ```
@@ -122,7 +125,6 @@ You do **not** need to implement this yourself if you components specifies a `da
 The `data_model` in the following section.
 
 ```python
-@abstractmethod
 def read_from_flag(
     self,
     x: Any,
@@ -138,7 +140,7 @@ def read_from_flag(
 The `data_model` is how you define the expected data format your component's value will be stored in the frontend.
 It specifies the data format your `preprocess` method expects and the format the `postprocess` method returns.
 It is not necessary to define a `data_model` for your component but it greatly simplifies the process of creating a custom component.
-If you define a custom component you only need to implement three methods - `preprocess`, `postprocess`, and `example_inputs`!
+If you define a custom component you only need to implement four methods - `preprocess`, `postprocess`, `example_payload`, and `example_value`!
 
 You define a `data_model` by defining a [pydantic model](https://docs.pydantic.dev/latest/concepts/models/#basic-model-usage) that inherits from either `GradioModel` or `GradioRootModel`.
 

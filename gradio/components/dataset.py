@@ -152,5 +152,8 @@ class Dataset(Component):
             "__type__": "update",
         }
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
         return 0
+
+    def example_value(self) -> Any:
+        return []

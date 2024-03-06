@@ -83,8 +83,7 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     @abstractmethod
     def example_inputs(self) -> Any:
         """
-        The example inputs for this component as a dictionary whose values are example inputs compatible with this component.
-        Keys of the dictionary are: raw, serialized
+        Deprecated and replaced by `example_payload()` and `example_value()`.
         """
         pass
 
@@ -266,6 +265,24 @@ class Component(ComponentBase, Block):
     def as_example(self, value):
         """Deprecated and replaced by `process_example()`."""
         return self.process_example(value)
+
+    def example_inputs(self) -> Any:
+        """Deprecated and replaced by `example_payload()` and `example_value()`."""
+        return self.example_payload()
+
+    def example_payload(self) -> Any:
+        """
+        An example input data for this component, e.g. what is passed to this component's preprocess() method.
+        This is used to generate the docs for the View API page for Gradio apps using this component.
+        """
+        raise NotImplementedError()
+
+    def example_value(self) -> Any:
+        """
+        An example output data for this component, e.g. what is passed to this component's postprocess() method.
+        This is used to generate an example value if this component is used as a template for a custom component.
+        """
+        raise NotImplementedError()
 
     def api_info(self) -> dict[str, Any]:
         """

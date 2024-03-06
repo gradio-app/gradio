@@ -587,7 +587,10 @@ class PDF(Component):
             return None
         return FileData(path=value)
 
-    def example_inputs(self):
+    def example_payload(self):
+        return "https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/fw9.pdf"
+
+    def example_value(self):
         return "https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/fw9.pdf"
 ```
 
