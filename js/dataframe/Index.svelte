@@ -82,6 +82,8 @@
 		headers: Headers;
 		metadata: Metadata;
 	}): Promise<void> {
+		if (!interactive) return;
+
 		value = { ...data };
 		headers = [...data.headers];
 	}
