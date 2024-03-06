@@ -1,4 +1,15 @@
-import "@ungap/custom-elements";
+let supports_adopted_stylesheets = false;
+
+if (
+	"attachShadow" in Element.prototype &&
+	"adoptedStyleSheets" in Document.prototype
+) {
+	// Both Shadow DOM and adoptedStyleSheets are supported
+	const shadowRootTest = document
+		.createElement("div")
+		.attachShadow({ mode: "open" });
+	supports_adopted_stylesheets = "adoptedStyleSheets" in shadowRootTest;
+}
 
 export function mount_css(url: string, target: HTMLElement): Promise<void> {
 	const base = new URL(import.meta.url).origin;
@@ -26,6 +37,7 @@ export function prefix_css(
 	version: string,
 	style_element = document.createElement("style")
 ): HTMLStyleElement | null {
+	if (!supports_adopted_stylesheets) return null;
 	style_element.remove();
 
 	const stylesheet = new CSSStyleSheet();
