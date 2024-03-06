@@ -1,3 +1,5 @@
+import "@ungap/custom-elements";
+
 export function mount_css(url: string, target: HTMLElement): Promise<void> {
 	const base = new URL(import.meta.url).origin;
 	const _url = new URL(url, base).href;
@@ -24,16 +26,6 @@ export function prefix_css(
 	version: string,
 	style_element = document.createElement("style")
 ): HTMLStyleElement | null {
-	console.log(
-		"window.CSSStyleSheet: ",
-		window.CSSStyleSheet,
-		"CSSStyleSheet: ",
-		CSSStyleSheet
-	);
-	if (typeof CSSStyleSheet === "undefined") {
-		return null;
-	}
-
 	style_element.remove();
 
 	const stylesheet = new CSSStyleSheet();

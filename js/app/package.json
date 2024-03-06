@@ -75,6 +75,7 @@
 		"@gradio/utils": "workspace:^",
 		"@gradio/video": "workspace:^",
 		"@gradio/wasm": "workspace:^",
+		"@ungap/custom-elements": "^1.3.0",
 		"cross-env": "^7.0.3",
 		"d3-dsv": "^3.0.1",
 		"mime-types": "^2.1.34",
