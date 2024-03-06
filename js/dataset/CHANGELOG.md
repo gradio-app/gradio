@@ -1,10 +1,17 @@
 # @gradio/dataset
 
+## 0.1.24
+
+### Patch Changes
+
+- Updated dependencies [[`8181695`](https://github.com/gradio-app/gradio/commit/8181695e70187e8bc2bf7518697098c8d1b9843d)]:
+  - @gradio/upload@0.7.6
+
 ## 0.1.23
 
 ### Features
 
-- [#7528](https://github.com/gradio-app/gradio/pull/7528) [`eda33b3`](https://github.com/gradio-app/gradio/commit/eda33b3763897a542acf298e523fa493dc655aee) - Refactors `get_fetchable_url_or_file()` to remove it from the frontend.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7528](https://github.com/gradio-app/gradio/pull/7528) [`eda33b3`](https://github.com/gradio-app/gradio/commit/eda33b3763897a542acf298e523fa493dc655aee) - Refactors `get_fetchable_url_or_file()` to remove it from the frontend. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 0.1.22
 
