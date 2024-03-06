@@ -26,7 +26,7 @@ class DownloadButton(Component):
     def __init__(
         self,
         label: str = "Download",
-        value: str | list[str] | Callable | None = None,
+        value: str | Path | Callable | None = None,
         *,
         every: float | None = None,
         variant: Literal["primary", "secondary", "stop"] = "secondary",
@@ -42,8 +42,8 @@ class DownloadButton(Component):
     ):
         """
         Parameters:
-            label: Text to display on the button. Defaults to "Upload a File".
-            value: File or list of files to upload by default.
+            label: Text to display on the button. Defaults to "Download".
+            value: A str or pathlib.Path filepath or URL to download, or a Callable that returns a str or pathlib.Path filepath or URL to download.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
@@ -88,16 +88,16 @@ class DownloadButton(Component):
         file.name = file_name
         return file_name
 
-    def postprocess(self, value: str | None) -> FileData | None:
+    def postprocess(self, value: str | Path | None) -> FileData | None:
         """
         Parameters:
-            value: Expects a `str` filepath
+            value: Expects a `str` or `pathlib.Path` filepath
         Returns:
             File information as a FileData object
         """
         if value is None:
             return None
-        return FileData(path=value)
+        return FileData(path=str(value))
 
     def example_inputs(self) -> str:
         return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"

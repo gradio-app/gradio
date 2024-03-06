@@ -14,7 +14,7 @@
 	export let audio_duration: number;
 	export let i18n: I18nFormatter;
 	export let playing: boolean;
-	export let showRedo = false;
+	export let show_redo = false;
 	export let interactive = false;
 	export let handle_trim_audio: (start: number, end: number) => void;
 	export let mode = "";
@@ -240,7 +240,7 @@
 
 	<div class="settings-wrapper">
 		{#if editable && interactive}
-			{#if showRedo && mode === ""}
+			{#if show_redo && mode === ""}
 				<button
 					class="action icon"
 					aria-label="Reset audio"

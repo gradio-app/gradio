@@ -53,6 +53,7 @@ def connect(
 
 
 class TestClientInitialization:
+    @pytest.mark.flaky
     def test_headers_constructed_correctly(self):
         client = Client("gradio-tests/titanic-survival", hf_token=HF_TOKEN)
         assert {"authorization": f"Bearer {HF_TOKEN}"}.items() <= client.headers.items()
@@ -527,6 +528,7 @@ class TestClientPredictions:
         finally:
             server.thread.join(timeout=1)
 
+    @pytest.mark.flaky
     def test_predict_with_space_with_api_name_false(self):
         client = Client("gradio-tests/client-bool-api-name-error")
         assert client.predict("Hello!", api_name="/run") == "Hello!"

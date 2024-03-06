@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from fastapi import Request
 from gradio_client.utils import traverse
-from typing_extensions import Literal
 
 from . import wasm_utils
 
@@ -75,6 +74,11 @@ else:
     RootModel.model_json_schema = RootModel.schema  # type: ignore
 
 
+class SimplePredictBody(BaseModel):
+    data: List[Any]
+    session_hash: Optional[str] = None
+
+
 class PredictBody(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
 
@@ -84,6 +88,7 @@ class PredictBody(BaseModel):
     event_data: Optional[Any] = None
     fn_index: Optional[int] = None
     trigger_id: Optional[int] = None
+    simple_format: bool = False
     batched: Optional[
         bool
     ] = False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
@@ -108,29 +113,6 @@ class InterfaceTypes(Enum):
     INPUT_ONLY = auto()
     OUTPUT_ONLY = auto()
     UNIFIED = auto()
-
-
-class Estimation(BaseModel):
-    rank: Optional[int] = None
-    queue_size: int
-    rank_eta: Optional[float] = None
-
-
-class ProgressUnit(BaseModel):
-    index: Optional[int] = None
-    length: Optional[int] = None
-    unit: Optional[str] = None
-    progress: Optional[float] = None
-    desc: Optional[str] = None
-
-
-class Progress(BaseModel):
-    progress_data: List[ProgressUnit] = []
-
-
-class LogMessage(BaseModel):
-    log: str
-    level: Literal["info", "warning"]
 
 
 class GradioBaseModel(ABC):

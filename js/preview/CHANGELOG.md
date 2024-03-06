@@ -1,5 +1,13 @@
 # @gradio/preview
 
+## 0.7.1
+
+### Features
+
+- [#7340](https://github.com/gradio-app/gradio/pull/7340) [`4b0d589`](https://github.com/gradio-app/gradio/commit/4b0d58933057432758a54169a360eb352903d6b4) - chore(deps): update all non-major dependencies.  Thanks [@renovate](https://github.com/apps/renovate)!
+- [#7604](https://github.com/gradio-app/gradio/pull/7604) [`0eea27a`](https://github.com/gradio-app/gradio/commit/0eea27a984d5f230a0186f418ddc20992d49888f) - chore(deps): update dependency stylus to ^0.63.0.  Thanks [@renovate](https://github.com/apps/renovate)!
+- [#7594](https://github.com/gradio-app/gradio/pull/7594) [`3940490`](https://github.com/gradio-app/gradio/commit/3940490fc018d8e5b28a16bc7e0fd95f7e440e72) - chore(deps): update dependency svelte-hmr to ^0.16.0.  Thanks [@renovate](https://github.com/apps/renovate)!
+
 ## 0.7.0
 
 ### Features

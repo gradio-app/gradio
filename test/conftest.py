@@ -26,7 +26,12 @@ def io_components():
 
     while classes_to_check:
         subclass = classes_to_check.pop()
-        if subclass in [gr.components.FormComponent, gr.State]:
+        if subclass in [
+            gr.components.FormComponent,
+            gr.State,
+            gr.LoginButton,
+            gr.LogoutButton,
+        ]:
             continue
         children = subclass.__subclasses__()
 
@@ -41,8 +46,8 @@ def io_components():
 @pytest.fixture
 def connect():
     @contextmanager
-    def _connect(demo: gr.Blocks, serialize=True):
-        _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    def _connect(demo: gr.Blocks, serialize=True, **kwargs):
+        _, local_url, _ = demo.launch(prevent_thread_lock=True, **kwargs)
         try:
             yield Client(local_url, serialize=serialize)
         finally:
