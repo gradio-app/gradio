@@ -303,4 +303,4 @@ class BarPlot(Plot):
         return None
 
     def example_value(self) -> Any:
-        return {self.x: [1, 2, 3, 4], self.y: [10, 20, 30, 40]}
+        return pd.DataFrame({self.x: [1, 2, 3], self.y: [4, 5, 6]})

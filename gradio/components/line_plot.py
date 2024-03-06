@@ -335,4 +335,4 @@ class LinePlot(Plot):
         return None
 
     def example_value(self) -> Any:
-        return {self.x: [1, 2, 3, 4, 5], self.y: [1, 2, 3, 4, 5]}
+        return pd.DataFrame({self.x: [1, 2, 3], self.y: [4, 5, 6]})

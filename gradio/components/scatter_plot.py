@@ -360,4 +360,4 @@ class ScatterPlot(Plot):
         return None
 
     def example_value(self) -> Any:
-        return {self.x: [1, 2, 3], self.y: [4, 5, 6]}
+        return pd.DataFrame({self.x: [1, 2, 3], self.y: [4, 5, 6]})
