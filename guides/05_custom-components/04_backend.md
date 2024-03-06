@@ -98,7 +98,7 @@ def example_payload(self) -> Any:
 ### `example_value`
 
 An example value for your component, e.g. something that can be passed into the `.postprocess()` method
-of your component. This lets users know what values work with your custom component
+of your component. This is used as the example value in the default app that is created in custom component development.
 
 ```python
 def example_payload(self) -> Any:
