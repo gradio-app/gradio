@@ -117,6 +117,8 @@ class Model3D(Component):
     def process_example(self, input_data: str | Path | None) -> str:
         return Path(input_data).name if input_data else ""
 
-    def example_inputs(self):
-        # TODO: Use permanent link
+    def example_payload(self):
+        return "https://raw.githubusercontent.com/gradio-app/gradio/main/demo/model3D/files/Fox.gltf"
+
+    def example_value(self):
         return "https://raw.githubusercontent.com/gradio-app/gradio/main/demo/model3D/files/Fox.gltf"

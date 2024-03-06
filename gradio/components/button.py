@@ -89,5 +89,8 @@ class Button(Component):
         """
         return value
 
-    def example_inputs(self) -> Any:
-        return None
+    def example_payload(self) -> Any:
+        return "Run"
+
+    def example_value(self) -> Any:
+        return "Run"

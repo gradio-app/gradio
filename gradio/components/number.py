@@ -134,5 +134,8 @@ class Number(FormComponent):
     def api_info(self) -> dict[str, str]:
         return {"type": "number"}
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return 3
+
+    def example_value(self) -> Any:
         return 3
