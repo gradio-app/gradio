@@ -292,6 +292,7 @@ def get_root_url(
     Also ensures that the root url is https if the request is https. If root_path is provided, it is appended to the root url.
     The final root url will not have a trailing slash.
     """
+    print(request.url)
     root_url = str(request.url)
     root_url = httpx.URL(root_url)
     root_url = root_url.copy_with(query=None)
