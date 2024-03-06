@@ -28,7 +28,7 @@
 	const dispatch = createEventDispatcher();
 	const validFileTypes = ["image", "video", "audio", "text", "file"];
 	const processFileType = (type: string): string => {
-		if (type.startsWith(".")) {
+		if (type.startsWith(".") || type.endsWith("/*")) {
 			return type;
 		}
 		if (validFileTypes.includes(type)) {
@@ -206,7 +206,7 @@
 			type="file"
 			bind:this={hidden_upload}
 			on:change={load_files_from_upload}
-			accept={accept_file_types}
+			accept={accept_file_types || undefined}
 			multiple={file_count === "multiple" || undefined}
 			webkitdirectory={file_count === "directory" || undefined}
 			mozdirectory={file_count === "directory" || undefined}
