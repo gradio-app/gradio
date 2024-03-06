@@ -5,10 +5,10 @@ if (
 	"adoptedStyleSheets" in Document.prototype
 ) {
 	// Both Shadow DOM and adoptedStyleSheets are supported
-	const shadowRootTest = document
+	const shadow_root_test = document
 		.createElement("div")
 		.attachShadow({ mode: "open" });
-	supports_adopted_stylesheets = "adoptedStyleSheets" in shadowRootTest;
+	supports_adopted_stylesheets = "adoptedStyleSheets" in shadow_root_test;
 }
 
 export function mount_css(url: string, target: HTMLElement): Promise<void> {
