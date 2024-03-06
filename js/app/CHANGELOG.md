@@ -1,22 +1,46 @@
 # @gradio/app
 
+## 1.26.1
+
+### Patch Changes
+
+- Updated dependencies [[`8181695`](https://github.com/gradio-app/gradio/commit/8181695e70187e8bc2bf7518697098c8d1b9843d)]:
+  - @gradio/upload@0.7.6
+  - @gradio/annotatedimage@0.5.5
+  - @gradio/audio@0.9.5
+  - @gradio/button@0.2.24
+  - @gradio/chatbot@0.7.5
+  - @gradio/code@0.5.5
+  - @gradio/dataframe@0.6.6
+  - @gradio/dataset@0.1.24
+  - @gradio/file@0.5.5
+  - @gradio/fileexplorer@0.3.25
+  - @gradio/gallery@0.8.1
+  - @gradio/image@0.9.5
+  - @gradio/imageeditor@0.4.5
+  - @gradio/model3d@0.8.4
+  - @gradio/simpleimage@0.3.5
+  - @gradio/uploadbutton@0.5.1
+  - @gradio/video@0.6.5
+  - @gradio/downloadbutton@0.1.1
+
 ## 1.26.0
 
 ### Features
 
-- [#7345](https://github.com/gradio-app/gradio/pull/7345) [`561579d`](https://github.com/gradio-app/gradio/commit/561579d9b7b860c5cb3f8131e0dced0c8114463f) - fix-tests.  Thanks [@pngwn](https://github.com/pngwn)!
-- [#7518](https://github.com/gradio-app/gradio/pull/7518) [`bd2c695`](https://github.com/gradio-app/gradio/commit/bd2c69532801f9a0626cd1192de158bde6068b9a) - Adds a `gr.DownloadButton` component.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7345](https://github.com/gradio-app/gradio/pull/7345) [`561579d`](https://github.com/gradio-app/gradio/commit/561579d9b7b860c5cb3f8131e0dced0c8114463f) - fix-tests. Thanks [@pngwn](https://github.com/pngwn)!
+- [#7518](https://github.com/gradio-app/gradio/pull/7518) [`bd2c695`](https://github.com/gradio-app/gradio/commit/bd2c69532801f9a0626cd1192de158bde6068b9a) - Adds a `gr.DownloadButton` component. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ### Fixes
 
-- [#7510](https://github.com/gradio-app/gradio/pull/7510) [`08c2d49`](https://github.com/gradio-app/gradio/commit/08c2d491ecac83268ad20f05769ef7e1335089e2) - when adding custom head html, ensure there are no duplicate meta tags.  Thanks [@qkdxorjs1002](https://github.com/qkdxorjs1002)!
-- [#7545](https://github.com/gradio-app/gradio/pull/7545) [`1fa2e91`](https://github.com/gradio-app/gradio/commit/1fa2e914ca4663a47743cc34acdf98c7fcc469c8) - Fixes `auth_message` so that it correctly renders HTML.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7510](https://github.com/gradio-app/gradio/pull/7510) [`08c2d49`](https://github.com/gradio-app/gradio/commit/08c2d491ecac83268ad20f05769ef7e1335089e2) - when adding custom head html, ensure there are no duplicate meta tags. Thanks [@qkdxorjs1002](https://github.com/qkdxorjs1002)!
+- [#7545](https://github.com/gradio-app/gradio/pull/7545) [`1fa2e91`](https://github.com/gradio-app/gradio/commit/1fa2e914ca4663a47743cc34acdf98c7fcc469c8) - Fixes `auth_message` so that it correctly renders HTML. Thanks [@abidlabs](https://github.com/abidlabs)!
 
 ## 1.25.2
 
 ### Fixes
 
-- [#7505](https://github.com/gradio-app/gradio/pull/7505) [`b186767`](https://github.com/gradio-app/gradio/commit/b18676774448f44a2ef3a9490224703254cffa7c) - Fix `Gallery` preview overlay and backdrop.  Thanks [@MMP0](https://github.com/MMP0)!
+- [#7505](https://github.com/gradio-app/gradio/pull/7505) [`b186767`](https://github.com/gradio-app/gradio/commit/b18676774448f44a2ef3a9490224703254cffa7c) - Fix `Gallery` preview overlay and backdrop. Thanks [@MMP0](https://github.com/MMP0)!
 
 ## 1.25.1
 

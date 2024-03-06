@@ -1,16 +1,25 @@
 # @gradio/gallery
 
+## 0.8.1
+
+### Patch Changes
+
+- Updated dependencies [[`8181695`](https://github.com/gradio-app/gradio/commit/8181695e70187e8bc2bf7518697098c8d1b9843d)]:
+  - @gradio/upload@0.7.6
+  - @gradio/file@0.5.5
+  - @gradio/image@0.9.5
+
 ## 0.8.0
 
 ### Features
 
-- [#7516](https://github.com/gradio-app/gradio/pull/7516) [`3645da5`](https://github.com/gradio-app/gradio/commit/3645da5f1e5539668cad75071a82fdd78f50263c) - Fix incorrect relative mouse coordinates for `Gallery` preview overlay.  Thanks [@MMP0](https://github.com/MMP0)!
+- [#7516](https://github.com/gradio-app/gradio/pull/7516) [`3645da5`](https://github.com/gradio-app/gradio/commit/3645da5f1e5539668cad75071a82fdd78f50263c) - Fix incorrect relative mouse coordinates for `Gallery` preview overlay. Thanks [@MMP0](https://github.com/MMP0)!
 
 ## 0.7.3
 
 ### Fixes
 
-- [#7505](https://github.com/gradio-app/gradio/pull/7505) [`b186767`](https://github.com/gradio-app/gradio/commit/b18676774448f44a2ef3a9490224703254cffa7c) - Fix `Gallery` preview overlay and backdrop.  Thanks [@MMP0](https://github.com/MMP0)!
+- [#7505](https://github.com/gradio-app/gradio/pull/7505) [`b186767`](https://github.com/gradio-app/gradio/commit/b18676774448f44a2ef3a9490224703254cffa7c) - Fix `Gallery` preview overlay and backdrop. Thanks [@MMP0](https://github.com/MMP0)!
 
 ## 0.7.2
 
