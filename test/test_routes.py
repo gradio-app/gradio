@@ -1029,6 +1029,12 @@ def test_component_server_endpoints(connect):
             "/playground",
             "https://www.gradio.app/playground",
         ),
+        (
+            "https://www.gradio.app/playground/",
+            "/",
+            "",
+            "https://www.gradio.app/playground",
+        ),
     ],
 )
 def test_get_root_url(request_url, route_path, root_path, expected_root_url):
