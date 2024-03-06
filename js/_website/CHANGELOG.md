@@ -1,10 +1,17 @@
 # website
 
+## 0.24.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/code@0.5.5
+
 ## 0.24.0
 
 ### Features
 
-- [#7451](https://github.com/gradio-app/gradio/pull/7451) [`65f114a`](https://github.com/gradio-app/gradio/commit/65f114a117b351f5935424fa78c830a58bafc44f) - Add error handling for missing `js/_website/version.json`.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#7451](https://github.com/gradio-app/gradio/pull/7451) [`65f114a`](https://github.com/gradio-app/gradio/commit/65f114a117b351f5935424fa78c830a58bafc44f) - Add error handling for missing `js/_website/version.json`. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ## 0.23.4
 
