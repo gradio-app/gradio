@@ -99,7 +99,10 @@ class DownloadButton(Component):
             return None
         return FileData(path=str(value))
 
-    def example_inputs(self) -> str:
+    def example_payload(self) -> str:
+        return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+
+    def example_value(self) -> str:
         return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
 
     @property

@@ -88,7 +88,10 @@ class JSON(Component):
         else:
             return value
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return {"foo": "bar"}
+
+    def example_value(self) -> Any:
         return {"foo": "bar"}
 
     def flag(

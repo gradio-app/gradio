@@ -86,7 +86,10 @@ class Radio(FormComponent):
             value=value,
         )
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return self.choices[0][1] if self.choices else None
+
+    def example_value(self) -> Any:
         return self.choices[0][1] if self.choices else None
 
     def preprocess(self, payload: str | int | float | None) -> str | int | float | None:

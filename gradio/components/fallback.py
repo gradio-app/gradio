@@ -22,7 +22,10 @@ class Fallback(Component):
         """
         return value
 
-    def example_inputs(self):
+    def example_payload(self):
+        return {"foo": "bar"}
+
+    def example_value(self):
         return {"foo": "bar"}
 
     def api_info(self):

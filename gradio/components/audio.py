@@ -181,7 +181,10 @@ class Audio(
             value=value,
         )
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+
+    def example_value(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
 
     def preprocess(
