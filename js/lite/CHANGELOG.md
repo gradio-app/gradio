@@ -1,5 +1,11 @@
 # @gradio/lite
 
+## 4.14.2
+
+### Features
+
+- [#7345](https://github.com/gradio-app/gradio/pull/7345) [`561579d`](https://github.com/gradio-app/gradio/commit/561579d9b7b860c5cb3f8131e0dced0c8114463f) - fix-tests.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 4.14.1
 
 ### Features
