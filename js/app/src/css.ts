@@ -23,7 +23,11 @@ export function prefix_css(
 	string: string,
 	version: string,
 	style_element = document.createElement("style")
-): HTMLStyleElement {
+): HTMLStyleElement | null {
+	if (typeof CSSStyleSheet === "undefined") {
+		return null;
+	}
+
 	style_element.remove();
 
 	const stylesheet = new CSSStyleSheet();
