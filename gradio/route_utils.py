@@ -289,8 +289,8 @@ def get_root_url(
 ) -> str:
     """
     Gets the root url of the request, stripping off any query parameters, the route_path, and trailing slashes.
-    Also ensures that the root url is https if the request is https. If root_path is provided, it is appended to the root url.
-    The final root url will not have a trailing slash.
+    Also ensures that the root url is https if the request is https. If root_path is provided, and it is not already
+    the subpath of the URL, it is appended to the root url. The final root url will not have a trailing slash.
     """
     root_url = str(request.url)
     root_url = httpx.URL(root_url)
@@ -298,10 +298,17 @@ def get_root_url(
     root_url = str(root_url).rstrip("/")
     if request.headers.get("x-forwarded-proto") == "https":
         root_url = root_url.replace("http://", "https://")
+
     route_path = route_path.rstrip("/")
     if len(route_path) > 0:
         root_url = root_url[: -len(route_path)]
-    return (root_url.rstrip("/") + (root_path or "")).rstrip("/")
+    root_url = root_url.rstrip("/")
+
+    root_url = httpx.URL(root_url)
+    if root_path and root_url.path != root_path:
+        root_url = root_url.copy_with(path=root_path)
+
+    return str(root_url).rstrip("/")
 
 
 def _user_safe_decode(src: bytes, codec: str) -> str:
