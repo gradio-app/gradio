@@ -24,6 +24,12 @@ export function prefix_css(
 	version: string,
 	style_element = document.createElement("style")
 ): HTMLStyleElement | null {
+	console.log(
+		"window.CSSStyleSheet: ",
+		window.CSSStyleSheet,
+		"CSSStyleSheet: ",
+		CSSStyleSheet
+	);
 	if (typeof CSSStyleSheet === "undefined") {
 		return null;
 	}
