@@ -73,7 +73,7 @@ class Renderable(Component):
 
 def render(
     inputs: list[Component] | None = None,
-    triggers: list[EventListenerMethod] | None = None,
+    triggers: list[EventListener] | None = None,
 ):
     def wrapper_function(fn):
         block = Renderable(fn, inputs, triggers)
