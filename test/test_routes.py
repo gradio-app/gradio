@@ -1017,6 +1017,18 @@ def test_component_server_endpoints(connect):
             "/gradio/",
             "https://localhost:7860/gradio",
         ),
+        (
+            "https://chat.lmsys.org/testground/",
+            "/",
+            "/testground",
+            "https://chat.lmsys.org/testground/",
+        ),
+        (
+            "https://chat.lmsys.org/",
+            "/",
+            "/testground",
+            "https://chat.lmsys.org/testground/",
+        ),
     ],
 )
 def test_get_root_url(request_url, route_path, root_path, expected_root_url):
