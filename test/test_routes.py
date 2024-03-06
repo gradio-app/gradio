@@ -1018,16 +1018,16 @@ def test_component_server_endpoints(connect):
             "https://localhost:7860/gradio",
         ),
         (
-            "https://chat.lmsys.org/testground/",
+            "https://www.gradio.app/playground/",
             "/",
-            "/testground",
-            "https://chat.lmsys.org/testground/",
+            "/playground",
+            "https://www.gradio.app/playground",
         ),
         (
-            "https://chat.lmsys.org/",
+            "https://www.gradio.app/playground/",
             "/",
-            "/testground",
-            "https://chat.lmsys.org/testground/",
+            "/playground",
+            "https://www.gradio.app/playground",
         ),
     ],
 )
