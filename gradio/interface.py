@@ -122,7 +122,6 @@ class Interface(Blocks):
         stop_btn: str | Button = "Stop",
         clear_btn: str | Button = "Clear",
         delete_cache: tuple[int, int] | None = None,
-        static_files: list[str] | None = None,
         **kwargs,
     ):
         """
@@ -168,7 +167,6 @@ class Interface(Blocks):
             js=js,
             head=head,
             delete_cache=delete_cache,
-            static_files=static_files,
             **kwargs,
         )
         self.api_name: str | Literal[False] | None = api_name
@@ -237,6 +235,68 @@ class Interface(Blocks):
                 )
             self.cache_examples = False
 
+        self.main_input_components = [
+            get_component_instance(i, unrender=True)
+            for i in inputs  # type: ignore
+        ]
+        self.additional_input_components = [
+            get_component_instance(i, unrender=True)
+            for i in additional_inputs  # type: ignore
+        ]
+        if additional_inputs_accordion is None:
+            self.additional_inputs_accordion_params = {
+                "label": "Additional Inputs",
+                "open": False,
+            }
+        elif isinstance(additional_inputs_accordion, str):
+            self.additional_inputs_accordion_params = {
+                "label": additional_inputs_accordion
+            }
+        elif isinstance(additional_inputs_accordion, Accordion):
+            self.additional_inputs_accordion_params = (
+                additional_inputs_accordion.recover_kwargs(
+                    additional_inputs_accordion.get_config()
+                )
+            )
+        else:
+            raise ValueError(
+                f"The `additional_inputs_accordion` parameter must be a string or gr.Accordion, not {type(additional_inputs_accordion)}"
+            )
+        self.input_components = (
+            self.main_input_components + self.additional_input_components
+        )
+        self.output_components = [
+            get_component_instance(o, unrender=True)
+            for o in outputs  # type: ignore
+        ]
+
+        for component in self.input_components + self.output_components:
+            if not (isinstance(component, Component)):
+                raise ValueError(
+                    f"{component} is not a valid input/output component for Interface."
+                )
+
+        if len(self.input_components) == len(self.output_components):
+            same_components = [
+                i is o for i, o in zip(self.input_components, self.output_components)
+            ]
+            if all(same_components):
+                self.interface_type = InterfaceTypes.UNIFIED
+
+        if self.interface_type in [
+            InterfaceTypes.STANDARD,
+            InterfaceTypes.OUTPUT_ONLY,
+        ]:
+            for o in self.output_components:
+                if not isinstance(o, Component):
+                    raise TypeError(
+                        f"Output component must be a Component, not {type(o)}"
+                    )
+                if o.interactive is None:
+                    # Unless explicitly otherwise specified, force output components to
+                    # be non-interactive
+                    o.interactive = False
+
         self.api_mode = _api_mode
         self.fn = fn
         self.fn_durations = [0, 0]
@@ -254,6 +314,43 @@ class Interface(Blocks):
 
         self.examples = examples
         self.examples_per_page = examples_per_page
+
+        if isinstance(submit_btn, Button):
+            self.submit_btn_parms = submit_btn.recover_kwargs(submit_btn.get_config())
+        elif isinstance(submit_btn, str):
+            self.submit_btn_parms = {
+                "value": submit_btn,
+                "variant": "primary",
+            }
+        else:
+            raise ValueError(
+                f"The submit_btn parameter must be a gr.Button or string, not {type(submit_btn)}"
+            )
+
+        if isinstance(stop_btn, Button):
+            self.stop_btn_parms = stop_btn.recover_kwargs(stop_btn.get_config())
+        elif isinstance(stop_btn, str):
+            self.stop_btn_parms = {
+                "value": stop_btn,
+                "variant": "stop",
+                "visible": False,
+            }
+        else:
+            raise ValueError(
+                f"The stop_btn parameter must be a gr.Button or string, not {type(stop_btn)}"
+            )
+
+        if isinstance(clear_btn, Button):
+            self.clear_btn_params = clear_btn.recover_kwargs(clear_btn.get_config())
+        elif isinstance(clear_btn, str):
+            self.clear_btn_params = {
+                "value": clear_btn,
+                "variant": "secondary",
+            }
+        else:
+            raise ValueError(
+                f"The clear_btn parameter must be a gr.Button or string, not {type(clear_btn)}"
+            )
 
         self.simple_server = None
 
@@ -320,9 +417,52 @@ class Interface(Blocks):
         self.favicon_path = None
         Interface.instances.add(self)
 
+        param_types = utils.get_type_hints(self.fn)
+        # param_names = inspect.getfullargspec(self.fn)[0]
+        param_names = []
+        try:
+            param_names = inspect.getfullargspec(self.fn)[0]
+            if len(param_names) > 0 and inspect.ismethod(self.fn):
+                param_names = param_names[1:]
+            for param_name in param_names.copy():
+                if utils.is_special_typed_parameter(param_name, param_types):
+                    param_names.remove(param_name)
+        except (TypeError, ValueError):
+            param_names = utils.default_input_labels()
+        for component, param_name in zip(self.input_components, param_names):
+            if not isinstance(component, Component):
+                raise TypeError(
+                    f"Input component must be a Component, not {type(component)}"
+                )
+            if component.label is None:
+                component.label = param_name
+        for i, component in enumerate(self.output_components):
+            if not isinstance(component, Component):
+                raise TypeError(
+                    f"Output component must be a Component, not {type(component)}"
+                )
+            if component.label is None:
+                if len(self.output_components) == 1:
+                    component.label = "output"
+                else:
+                    component.label = f"output {i}"
+
+        if self.allow_flagging != "never":
+            if (
+                self.interface_type == InterfaceTypes.UNIFIED
+                or self.allow_flagging == "auto"
+            ):
+                self.flagging_callback.setup(self.input_components, self.flagging_dir)  # type: ignore
+            elif self.interface_type == InterfaceTypes.INPUT_ONLY:
+                pass
+            else:
+                self.flagging_callback.setup(
+                    self.input_components + self.output_components,
+                    self.flagging_dir,  # type: ignore
+                )
+
         # Render the Gradio UI
         with self:
-            self._get_components(inputs, outputs, additional_inputs_accordion, additional_inputs, submit_btn, stop_btn, clear_btn)
             self.render_title_description()
 
             _submit_btn, _clear_btn, _stop_btn, flag_btns, duplicate_btn = (
@@ -363,164 +503,19 @@ class Interface(Blocks):
                     _stop_btn = _stop_btn or _stop_btn_2_out
                     flag_btns = flag_btns or flag_btns_out
 
-                if _clear_btn is None:
-                    raise RenderError("Clear button not rendered")
+            if _clear_btn is None:
+                raise RenderError("Clear button not rendered")
 
-                self.attach_submit_events(_submit_btn, _stop_btn)
-                self.attach_clear_events(_clear_btn, input_component_column)
-                if duplicate_btn is not None:
-                    duplicate_btn.activate()
+            self.attach_submit_events(_submit_btn, _stop_btn)
+            self.attach_clear_events(_clear_btn, input_component_column)
+            if duplicate_btn is not None:
+                duplicate_btn.activate()
 
-                self.attach_flagging_events(flag_btns, _clear_btn)
-                self.render_examples()
-                self.render_article()
+            self.attach_flagging_events(flag_btns, _clear_btn)
+            self.render_examples()
+            self.render_article()
 
         self.config = self.get_config_file()
-        if self.allow_flagging != "never":
-            if (
-                self.interface_type == InterfaceTypes.UNIFIED
-                or self.allow_flagging == "auto"
-            ):
-                self.flagging_callback.setup(self.input_components, self.flagging_dir)  # type: ignore
-            elif self.interface_type == InterfaceTypes.INPUT_ONLY:
-                pass
-            else:
-                self.flagging_callback.setup(
-                    self.input_components + self.output_components,
-                    self.flagging_dir,  # type: ignore
-                )
-
-    def _get_components(self, inputs, outputs, additional_inputs_accordion, additional_inputs, submit_btn, stop_btn, clear_btn):
-        self.main_input_components = [
-            get_component_instance(i, unrender=True)
-            for i in inputs  # type: ignore
-        ]
-        self.additional_input_components = [
-            get_component_instance(i, unrender=True)
-            for i in additional_inputs  # type: ignore
-        ]
-        if additional_inputs_accordion is None:
-            self.additional_inputs_accordion_params = {
-                "label": "Additional Inputs",
-                "open": False,
-            }
-        elif isinstance(additional_inputs_accordion, str):
-            self.additional_inputs_accordion_params = {
-                "label": additional_inputs_accordion
-            }
-        elif isinstance(additional_inputs_accordion, Accordion):
-            self.additional_inputs_accordion_params = (
-                additional_inputs_accordion.recover_kwargs(
-                    additional_inputs_accordion.get_config()
-                )
-            )
-        else:
-            raise ValueError(
-                f"The `additional_inputs_accordion` parameter must be a string or gr.Accordion, not {type(additional_inputs_accordion)}"
-            )
-        self.input_components = (
-            self.main_input_components + self.additional_input_components
-        )
-        self.output_components = [
-            get_component_instance(o, unrender=True)
-            for o in outputs  # type: ignore
-        ]
-
-        for component in self.input_components + self.output_components:
-            if not (isinstance(component, Component)):
-                raise ValueError(
-                    f"{component} is not a valid input/output component for Interface."
-                )
-
-        if len(self.input_components) == len(self.output_components):
-            same_components = [
-                i is o for i, o in zip(self.input_components, self.output_components)
-            ]
-            if all(same_components):
-                self.interface_type = InterfaceTypes.UNIFIED
-
-        if self.interface_type in [
-            InterfaceTypes.STANDARD,
-            InterfaceTypes.OUTPUT_ONLY,
-        ]:
-            for o in self.output_components:
-                if not isinstance(o, Component):
-                    raise TypeError(
-                        f"Output component must be a Component, not {type(o)}"
-                    )
-                if o.interactive is None:
-                    # Unless explicitly otherwise specified, force output components to
-                    # be non-interactive
-                    o.interactive = False
-
-
-        if isinstance(submit_btn, Button):
-            self.submit_btn_parms = submit_btn.recover_kwargs(submit_btn.get_config())
-        elif isinstance(submit_btn, str):
-            self.submit_btn_parms = {
-                "value": submit_btn,
-                "variant": "primary",
-            }
-        else:
-            raise ValueError(
-                f"The submit_btn parameter must be a gr.Button or string, not {type(submit_btn)}"
-            )
-
-        if isinstance(stop_btn, Button):
-            self.stop_btn_parms = stop_btn.recover_kwargs(stop_btn.get_config())
-        elif isinstance(stop_btn, str):
-            self.stop_btn_parms = {
-                "value": stop_btn,
-                "variant": "stop",
-                "visible": False,
-            }
-        else:
-            raise ValueError(
-                f"The stop_btn parameter must be a gr.Button or string, not {type(stop_btn)}"
-            )
-
-        if isinstance(clear_btn, Button):
-            self.clear_btn_params = clear_btn.recover_kwargs(clear_btn.get_config())
-        elif isinstance(clear_btn, str):
-            self.clear_btn_params = {
-                "value": clear_btn,
-                "variant": "secondary",
-            }
-        else:
-            raise ValueError(
-                f"The clear_btn parameter must be a gr.Button or string, not {type(clear_btn)}"
-            )
-
-        param_types = utils.get_type_hints(self.fn)
-        # param_names = inspect.getfullargspec(self.fn)[0]
-        param_names = []
-        try:
-            param_names = inspect.getfullargspec(self.fn)[0]
-            if len(param_names) > 0 and inspect.ismethod(self.fn):
-                param_names = param_names[1:]
-            for param_name in param_names.copy():
-                if utils.is_special_typed_parameter(param_name, param_types):
-                    param_names.remove(param_name)
-        except (TypeError, ValueError):
-            param_names = utils.default_input_labels()
-        for component, param_name in zip(self.input_components, param_names):
-            if not isinstance(component, Component):
-                raise TypeError(
-                    f"Input component must be a Component, not {type(component)}"
-                )
-            if component.label is None:
-                component.label = param_name
-        for i, component in enumerate(self.output_components):
-            if not isinstance(component, Component):
-                raise TypeError(
-                    f"Output component must be a Component, not {type(component)}"
-                )
-            if component.label is None:
-                if len(self.output_components) == 1:
-                    component.label = "output"
-                else:
-                    component.label = f"output {i}"
-
 
     def render_title_description(self) -> None:
         if self.title:

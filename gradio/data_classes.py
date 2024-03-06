@@ -210,3 +210,11 @@ class ListFiles(GradioRootModel):
 
     def __iter__(self):
         return iter(self.root)
+
+
+class StaticFiles:
+    all_paths = []
+
+    def __init__(self, paths: list[str | pathlib.Path]) -> None:
+        self.paths = paths
+        self.all_paths.extend([pathlib.Path(p).resolve() for p in paths])

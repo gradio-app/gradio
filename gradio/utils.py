@@ -958,12 +958,12 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path):
         return False
     return True
 
-def is_static_file(file_path: Any, blocks: Blocks | None):
-    if blocks:
-        static_files = blocks.static_files
-    else: 
-        static_files = Context.root_block.static_files if Context.root_block else []
-    return _is_static_file(file_path, static_files)
+
+def is_static_file(file_path: Any):
+    """Returns True if the file is a static file (and not moved to cache)"""
+    from gradio.data_classes import StaticFiles
+
+    return _is_static_file(file_path, StaticFiles.all_paths)
 
 
 def _is_static_file(file_path: Any, static_files: list[Path]) -> bool:
@@ -978,11 +978,7 @@ def _is_static_file(file_path: Any, static_files: list[Path]) -> bool:
         file_path = Path(file_path)
         if not file_path.exists():
             return False
-    for static_file in static_files:
-        if is_in_or_equal(file_path, static_file):
-            return True
-    return False
-
+    return any(is_in_or_equal(file_path, static_file) for static_file in static_files)
 
 
 HTML_TAG_RE = re.compile("<.*?>")
