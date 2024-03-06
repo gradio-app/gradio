@@ -116,7 +116,13 @@
 		uploaded_file_extension: string,
 		uploaded_file_type: string
 	): boolean {
-		if (!file_accept || file_accept === "*" || file_accept === "file/*") {
+		if (
+			!file_accept ||
+			file_accept === "*" ||
+			file_accept === "file/*" ||
+			(Array.isArray(file_accept) &&
+				file_accept.some((accept) => accept === "*" || accept === "file/*"))
+		) {
 			return true;
 		}
 		let acceptArray: string[];
@@ -145,7 +151,7 @@
 			const file_extension = "." + file.name.split(".").pop();
 			if (
 				file_extension &&
-				is_valid_mimetype(filetype, file_extension, file.type)
+				is_valid_mimetype(accept_file_types, file_extension, file.type)
 			) {
 				return true;
 			}
