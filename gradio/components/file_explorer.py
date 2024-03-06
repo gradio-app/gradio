@@ -104,7 +104,10 @@ class FileExplorer(Component):
             value=value,
         )
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return [["Users", "gradio", "app.py"]]
+
+    def example_value(self) -> Any:
         return ["Users", "gradio", "app.py"]
 
     def preprocess(self, payload: FileExplorerData | None) -> list[str] | str | None:
