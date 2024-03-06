@@ -281,9 +281,8 @@ class Component(ComponentBase, Block):
     def as_example(self, value):
         """Deprecated and replaced by `process_example()`."""
         return self.process_example(value)
-    
-    def example_payload(self) -> Any:
-    def example_value(self) -> Any:
+
+    def example_inputs(self) -> Any:
         return self.example_payload()
 
     def api_info(self) -> dict[str, Any]:

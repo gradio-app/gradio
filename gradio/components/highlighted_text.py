@@ -92,7 +92,10 @@ class HighlightedText(Component):
         )
 
     def example_payload(self) -> Any:
-        return [{"token": "The", "class_or_confidence": None}, {"token": "quick", "class_or_confidence": "adj"}]
+        return [
+            {"token": "The", "class_or_confidence": None},
+            {"token": "quick", "class_or_confidence": "adj"},
+        ]
 
     def example_value(self) -> Any:
         return [("The", None), ("quick", "adj"), ("brown", "adj"), ("fox", "noun")]

@@ -199,7 +199,13 @@ class AnnotatedImage(Component):
         )
 
     def example_payload(self) -> Any:
-        return {"image": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png", "annotations": []}
+        return {
+            "image": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+            "annotations": [],
+        }
 
     def example_value(self) -> Any:
-        return ("https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png", [([0, 0, 100, 100], "bus")])
+        return (
+            "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+            [([0, 0, 100, 100], "bus")],
+        )
