@@ -32,7 +32,10 @@ class Renderable(Component):
 
         if triggers:
             self.triggers = [
-                EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name)
+                EventListenerMethod(
+                    getattr(t, "__self__", None) if t.has_trigger else None,
+                    t.event_name,
+                )
                 for t in triggers
             ]
             Context.root_block.set_event_trigger(
