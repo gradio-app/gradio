@@ -3,4 +3,4 @@
 "gradio_client": patch
 ---
 
-fix:Control which files get moved to cache with gr.StaticFiles
+fix:Control which files get moved to cache with gr.set_static_paths
