@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any, List
 
+import gradio_client.utils as client_utils
 import numpy as np
 import PIL.Image
 from gradio_client.documentation import document
@@ -131,6 +132,10 @@ class AnnotatedImage(Component):
             return None
         base_img = value[0]
         if isinstance(base_img, str):
+            if client_utils.is_http_url_like(base_img):
+                base_img = processing_utils.save_url_to_cache(
+                    base_img, cache_dir=self.GRADIO_CACHE
+                )
             base_img_path = base_img
             base_img = np.array(PIL.Image.open(base_img))
         elif isinstance(base_img, np.ndarray):
