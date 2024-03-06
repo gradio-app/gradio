@@ -18,7 +18,7 @@ def _in_test_dir():
 
 
 default_demo_code = """
-example = {name}().example_inputs()
+example = {name}().example_value()
 
 demo = gr.Interface(
     lambda x:x,
@@ -29,7 +29,7 @@ demo = gr.Interface(
 """
 
 static_only_demo_code = """
-example = {name}().example_inputs()
+example = {name}().example_value()
 
 with gr.Blocks() as demo:
     with gr.Row():
