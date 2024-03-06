@@ -970,7 +970,7 @@ def set_static_paths(paths: list[str | Path]) -> None:
     By setting static paths, your app will launch faster and it will consume less disk space.
 
     Parameters:
-        paths (List[str or Path]): List of filepaths or directory names to be served by the gradio app. If it is a directory name, ALL files located within that directory will be considered static and not moved to the gradio cache. This also means that ALL files in that directory will be accessible over the network.
+        paths: List of filepaths or directory names to be served by the gradio app. If it is a directory name, ALL files located within that directory will be considered static and not moved to the gradio cache. This also means that ALL files in that directory will be accessible over the network.
     Example:
         import gradio as gr
 
