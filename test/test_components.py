@@ -22,6 +22,7 @@ import pytest
 import vega_datasets
 from gradio_client import media_data
 from gradio_client import utils as client_utils
+from gradio_pdf import PDF
 from scipy.io import wavfile
 
 try:
@@ -31,6 +32,7 @@ except ImportError:
 
 import gradio as gr
 from gradio import processing_utils, utils
+from gradio.components.base import Component
 from gradio.components.dataframe import DataframeData
 from gradio.components.file_explorer import FileExplorerData
 from gradio.components.image_editor import EditorData
@@ -2964,3 +2966,14 @@ def test_template_component_configs(io_components):
         template_config = component().get_config()
         parent_config = component_parent_class().get_config()
         assert set(parent_config.keys()).issubset(set(template_config.keys()))
+
+
+def test_component_example_values(io_components):
+    for component in io_components:
+        if component == PDF:
+            continue
+        elif component in [gr.BarPlot, gr.LinePlot, gr.ScatterPlot]:
+            c: Component = component(x="x", y="y")
+        else:
+            c: Component = component()
+        c.postprocess(c.example_value())

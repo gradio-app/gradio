@@ -371,5 +371,8 @@ class Dataframe(Component):
         value_df = pd.DataFrame(value_df_data.data, columns=value_df_data.headers)
         return value_df.head(n=5).to_dict(orient="split")["data"]
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return {"headers": ["a", "b"], "data": [["foo", "bar"]]}
+
+    def example_value(self) -> Any:
         return {"headers": ["a", "b"], "data": [["foo", "bar"]]}
