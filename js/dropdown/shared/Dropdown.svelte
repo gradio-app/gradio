@@ -123,7 +123,7 @@
 
 	function set_input_text(): void {
 		set_choice_names_values();
-		if (value === undefined) {
+		if (value === undefined || (Array.isArray(value) && value.length === 0)) {
 			input_text = "";
 			selected_index = null;
 		} else if (choices_values.includes(value as string)) {

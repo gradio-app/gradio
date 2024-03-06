@@ -102,10 +102,13 @@ def _postprocess_chat_messages(
     return chat_message
 ```
 
-Before we wrap up with the backend code, let's modify the `example_inputs` method to return a valid dictionary representation of the `ChatbotData`:
+Before we wrap up with the backend code, let's modify the `example_value` and `example_payload` method to return a valid dictionary representation of the `ChatbotData`:
 
 ```python
-def example_inputs(self) -> Any:
+def example_value(self) -> Any:
+    return [[{"text": "Hello!", "files": []}, None]]
+
+def example_payload(self) -> Any:
     return [[{"text": "Hello!", "files": []}, None]]
 ```
 

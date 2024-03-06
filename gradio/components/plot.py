@@ -102,7 +102,10 @@ class Plot(Component):
         """
         return payload
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return None
+
+    def example_value(self) -> Any:
         return None
 
     def postprocess(self, value: Any) -> PlotData | None:
