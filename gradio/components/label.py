@@ -141,7 +141,7 @@ class Label(Component):
             f"Instead, got a {type(value)}"
         )
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
         return {
             "label": "Cat",
             "confidences": [
@@ -149,3 +149,6 @@ class Label(Component):
                 {"label": "dog", "confidence": 0.1},
             ],
         }
+
+    def example_value(self) -> Any:
+        return {"cat": 0.9, "dog": 0.1}

@@ -68,7 +68,10 @@ class ColorPicker(Component):
             value=value,
         )
 
-    def example_inputs(self) -> str:
+    def example_payload(self) -> str:
+        return "#000000"
+
+    def example_value(self) -> str:
         return "#000000"
 
     def api_info(self) -> dict[str, Any]:

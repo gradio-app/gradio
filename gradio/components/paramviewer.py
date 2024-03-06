@@ -71,7 +71,16 @@ class ParamViewer(Component):
         """
         return value
 
-    def example_inputs(self):
+    def example_payload(self):
+        return {
+            "array": {
+                "type": "numpy",
+                "description": "any valid json",
+                "default": "None",
+            }
+        }
+
+    def example_value(self):
         return {
             "array": {
                 "type": "numpy",

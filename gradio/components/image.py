@@ -208,5 +208,8 @@ class Image(StreamingInput, Component):
                 "Image streaming only available if sources is ['webcam']. Streaming not supported with multiple sources."
             )
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+
+    def example_value(self) -> Any:
         return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"

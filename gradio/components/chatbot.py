@@ -226,5 +226,8 @@ class Chatbot(Component):
             )
         return ChatbotData(root=processed_messages)
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return [["Hello!", None]]
+
+    def example_value(self) -> Any:
         return [["Hello!", None]]

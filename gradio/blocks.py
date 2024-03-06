@@ -1776,6 +1776,9 @@ Received outputs:
 
             if not block.skip_api:
                 block_config["api_info"] = block.api_info()  # type: ignore
+                # .example_inputs() has been renamed .example_payload() but
+                # we use the old name for backwards compatibility with custom components
+                # created on Gradio 4.20.0 or earlier
                 block_config["example_inputs"] = block.example_inputs()  # type: ignore
             config["components"].append(block_config)
         config["dependencies"] = self.dependencies

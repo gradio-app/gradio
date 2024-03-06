@@ -97,5 +97,8 @@ class SimpleImage(Component):
             return None
         return FileData(path=str(value), orig_name=Path(value).name)
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+
+    def example_value(self) -> Any:
         return "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"

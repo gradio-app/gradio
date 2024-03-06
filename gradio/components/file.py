@@ -7,8 +7,10 @@ import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal
 
+import gradio_client.utils as client_utils
 from gradio_client.documentation import document
 
+from gradio import processing_utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
@@ -18,7 +20,7 @@ from gradio.utils import NamedString
 @document()
 class File(Component):
     """
-    Creates a file component that allows uploading one or more generic files (when used as an input) or displaying generic files (as output).
+    Creates a file component that allows uploading one or more generic files (when used as an input) or displaying generic files or URLs for download (as output).
 
     Demo: zip_files, zip_to_json
     """
@@ -47,7 +49,7 @@ class File(Component):
     ):
         """
         Parameters:
-            value: Default file to display, given as str file path. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default file(s) to display, given as a str file path or URL, or a list of str file paths / URLs. If callable, the function will be called whenever the app loads to set the initial value of the component.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.json', '.mp4']). "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             type: Type of value to be returned by component. "file" returns a temporary file object with the same base name as the uploaded file, whose full path can be retrieved by file_obj.name, "binary" returns an bytes object.
@@ -139,15 +141,36 @@ class File(Component):
             return [self._process_single_file(f) for f in payload]  # type: ignore
         return [self._process_single_file(payload)]  # type: ignore
 
+    def _download_files(self, value: str | list[str]) -> str | list[str]:
+        downloaded_files = []
+        if isinstance(value, list):
+            for file in value:
+                if client_utils.is_http_url_like(file):
+                    downloaded_file = processing_utils.save_url_to_cache(
+                        file, self.GRADIO_CACHE
+                    )
+                    downloaded_files.append(downloaded_file)
+                else:
+                    downloaded_files.append(file)
+            return downloaded_files
+        if client_utils.is_http_url_like(value):
+            downloaded_file = processing_utils.save_url_to_cache(
+                value, self.GRADIO_CACHE
+            )
+            return downloaded_file
+        else:
+            return value
+
     def postprocess(self, value: str | list[str] | None) -> ListFiles | FileData | None:
         """
         Parameters:
-            value: Expects a `str` filepath, or a `list[str]` of filepaths.
+            value: Expects a `str` filepath or URL, or a `list[str]` of filepaths/URLs.
         Returns:
             File information as a FileData object, or a list of FileData objects.
         """
         if value is None:
             return None
+        value = self._download_files(value)
         if isinstance(value, list):
             return ListFiles(
                 root=[
@@ -174,7 +197,15 @@ class File(Component):
         else:
             return Path(input_data).name
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        if self.file_count == "single":
+            return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+        else:
+            return [
+                "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+            ]
+
+    def example_value(self) -> Any:
         if self.file_count == "single":
             return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
         else:
