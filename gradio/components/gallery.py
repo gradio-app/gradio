@@ -222,7 +222,9 @@ class Gallery(Component):
 
     def example_payload(self) -> Any:
         return [
-            {"image": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"},
+            {
+                "image": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+            },
         ]
 
     def example_value(self) -> Any:
