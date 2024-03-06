@@ -77,7 +77,9 @@ def test_download_private_file(gradio_temp_dir):
         "https://gradio-tests-not-actually-private-spacev4-sse.hf.space/file=lion.jpg"
     )
     file = utils.download_file(
-        url_path=url_path, hf_token=HF_TOKEN, dir=str(gradio_temp_dir)
+        url_path=url_path,
+        headers={"Authorization": f"Bearer {HF_TOKEN}"},
+        save_dir=str(gradio_temp_dir),
     )
     assert Path(file).name.endswith(".jpg")
 

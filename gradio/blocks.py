@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, Sequenc
 from urllib.parse import urlparse, urlunparse
 
 import anyio
+import fastapi
 import httpx
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
@@ -1578,6 +1579,7 @@ Received outputs:
         in_event_listener: bool = True,
         simple_format: bool = False,
         explicit_call: bool = False,
+        root_path: str | None = None,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -1592,6 +1594,7 @@ Received outputs:
             event_data: data associated with the event trigger itself
             in_event_listener: whether this API call is being made in response to an event listener
             explicit_call: whether this call is being made directly by calling the Blocks function, instead of through an event listener or API route
+            root_path: if provided, the root path of the server. All file URLs will be prefixed with this path.
         Returns: None
         """
         block_fn = self.fns[fn_index]
@@ -1640,6 +1643,8 @@ Received outputs:
                 state,
                 limiter=self.limiter,
             )
+            if root_path is not None:
+                data = processing_utils.add_root_url(data, root_path, None)
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
@@ -1672,6 +1677,8 @@ Received outputs:
                 state,
                 limiter=self.limiter,
             )
+            if root_path is not None:
+                data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
                 run = id(old_iterator) if was_generating else id(iterator)
@@ -1901,6 +1908,7 @@ Received outputs:
         state_session_capacity: int = 10000,
         share_server_address: str | None = None,
         share_server_protocol: Literal["http", "https"] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         _frontend: bool = True,
     ) -> tuple[FastAPI, str, str]:
         """
@@ -1935,6 +1943,7 @@ Received outputs:
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
             share_server_address: Use this to specify a custom FRP server and port for sharing Gradio apps (only applies if share=True). If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
             share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
+            auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1961,6 +1970,10 @@ Received outputs:
         if not self.exited:
             self.__exit__()
 
+        if auth is not None and auth_dependency is not None:
+            raise ValueError(
+                "You cannot provide both `auth` and `auth_dependency` in launch(). Please choose one."
+            )
         if (
             auth
             and not callable(auth)
@@ -2019,7 +2032,9 @@ Received outputs:
                 # and avoid using `networking.start_server` that would start a server that don't work in the Wasm env.
                 from gradio.routes import App
 
-                app = App.create_app(self, app_kwargs=app_kwargs)
+                app = App.create_app(
+                    self, auth_dependency=auth_dependency, app_kwargs=app_kwargs
+                )
                 wasm_utils.register_app(app)
             else:
                 (

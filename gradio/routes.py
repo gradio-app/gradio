@@ -65,7 +65,6 @@ from gradio.data_classes import (
 )
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
-from gradio.processing_utils import add_root_url
 from gradio.route_utils import (  # noqa: F401
     CustomCORSMiddleware,
     FileUploadProgress,
@@ -144,7 +143,11 @@ class App(FastAPI):
     FastAPI App Wrapper
     """
 
-    def __init__(self, **kwargs):
+    def __init__(
+        self,
+        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        **kwargs,
+    ):
         self.tokens = {}
         self.auth = None
         self.blocks: gradio.Blocks | None = None
@@ -158,6 +161,7 @@ class App(FastAPI):
         self.uploaded_file_dir = get_upload_folder()
         self.change_event: None | threading.Event = None
         self._asyncio_tasks: list[asyncio.Task] = []
+        self.auth_dependency = auth_dependency
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
@@ -210,7 +214,9 @@ class App(FastAPI):
 
     @staticmethod
     def create_app(
-        blocks: gradio.Blocks, app_kwargs: Dict[str, Any] | None = None
+        blocks: gradio.Blocks,
+        app_kwargs: Dict[str, Any] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
@@ -218,7 +224,7 @@ class App(FastAPI):
             app_kwargs["lifespan"] = create_lifespan_handler(
                 app_kwargs.get("lifespan", None), *blocks.delete_cache
             )
-        app = App(**app_kwargs)
+        app = App(auth_dependency=auth_dependency, **app_kwargs)
         app.configure_app(blocks)
 
         if not wasm_utils.IS_WASM:
@@ -227,6 +233,8 @@ class App(FastAPI):
         @app.get("/user")
         @app.get("/user/")
         def get_current_user(request: fastapi.Request) -> Optional[str]:
+            if app.auth_dependency is not None:
+                return app.auth_dependency(request)
             token = request.cookies.get(
                 f"access-token-{app.cookie_id}"
             ) or request.cookies.get(f"access-token-unsecure-{app.cookie_id}")
@@ -235,7 +243,7 @@ class App(FastAPI):
         @app.get("/login_check")
         @app.get("/login_check/")
         def login_check(user: str = Depends(get_current_user)):
-            if app.auth is None or user is not None:
+            if (app.auth is None and app.auth_dependency is None) or user is not None:
                 return
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
@@ -344,9 +352,13 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request, route_path="/", root_path=app.root_path
             )
-            if app.auth is None or user is not None:
+            if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = app.get_blocks().config
                 config = route_utils.update_root_in_config(config, root)
+            elif app.auth_dependency:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
+                )
             else:
                 config = {
                     "auth_required": True,
@@ -596,13 +608,16 @@ class App(FastAPI):
                 username=username,
                 request=request,
             )
-
+            root_path = route_utils.get_root_url(
+                request=request, route_path=f"/api/{api_name}", root_path=app.root_path
+            )
             try:
                 output = await route_utils.call_process_api(
                     app=app,
                     body=body,
                     gr_request=gr_request,
                     fn_index_inferred=fn_index_inferred,
+                    root_path=root_path,
                 )
             except BaseException as error:
                 show_error = app.get_blocks().show_error or isinstance(error, Error)
@@ -611,10 +626,6 @@ class App(FastAPI):
                     content={"error": str(error) if show_error else None},
                     status_code=500,
                 )
-            root_path = route_utils.get_root_url(
-                request=request, route_path=f"/api/{api_name}", root_path=app.root_path
-            )
-            output = add_root_url(output, root_path, None)
             return output
 
         @app.post("/call/{api_name}", dependencies=[Depends(login_check)])
@@ -661,7 +672,9 @@ class App(FastAPI):
                     detail="Queue is stopped.",
                 )
 
-            success, event_id = await blocks._queue.push(body, request, username)
+            success, event_id = await blocks._queue.push(
+                body=body, request=request, username=username
+            )
             if not success:
                 status_code = (
                     status.HTTP_503_SERVICE_UNAVAILABLE
@@ -711,9 +724,6 @@ class App(FastAPI):
             process_msg: Callable[[EventMessage], str | None],
         ):
             blocks = app.get_blocks()
-            root_path = route_utils.get_root_url(
-                request=request, route_path="/queue/data", root_path=app.root_path
-            )
 
             async def sse_stream(request: fastapi.Request):
                 try:
@@ -756,11 +766,6 @@ class App(FastAPI):
                                 success=False,
                             )
                         if message:
-                            if isinstance(
-                                message,
-                                (ProcessGeneratingMessage, ProcessCompletedMessage),
-                            ):
-                                add_root_url(message.output, root_path, None)
                             response = process_msg(message)
                             if response is not None:
                                 yield response
@@ -1002,6 +1007,8 @@ def mount_gradio_app(
     blocks: gradio.Blocks,
     path: str,
     app_kwargs: dict[str, Any] | None = None,
+    *,
+    auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -1010,6 +1017,7 @@ def mount_gradio_app(
         blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted.
         app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
+        auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth.
     Example:
         from fastapi import FastAPI
         import gradio as gr
@@ -1024,7 +1032,9 @@ def mount_gradio_app(
     blocks.dev_mode = False
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
-    gradio_app = App.create_app(blocks, app_kwargs=app_kwargs)
+    gradio_app = App.create_app(
+        blocks, app_kwargs=app_kwargs, auth_dependency=auth_dependency
+    )
 
     old_lifespan = app.router.lifespan_context
 

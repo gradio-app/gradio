@@ -408,7 +408,7 @@ class TestTempFile:
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 3
 
     def test_no_empty_image_files(self, gradio_temp_dir, connect):
-        file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        file_dir = pathlib.Path(__file__).parent / "test_files"
         image = str(file_dir / "bus.png")
 
         demo = gr.Interface(
@@ -498,7 +498,6 @@ class TestComponentsInBlocks:
         assert all(dep["queue"] is False for dep in demo.config["dependencies"])
 
     def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
-        io_components = [comp for comp in io_components if comp not in [gr.State]]
         interface = gr.Interface(
             lambda *args: None,
             inputs=[comp(value=lambda: None, every=1) for comp in io_components],
@@ -1151,6 +1150,23 @@ class TestUpdate:
             "label": "Closed Accordion",
             "__type__": "update",
         }
+
+
+@pytest.mark.asyncio
+async def test_root_path():
+    image_file = pathlib.Path(__file__).parent / "test_files" / "bus.png"
+    demo = gr.Interface(lambda x: image_file, "textbox", "image")
+    result = await demo.process_api(fn_index=0, inputs=[""], request=None, state=None)
+    result_url = result["data"][0]["url"]
+    assert result_url.startswith("/file=")
+    assert result_url.endswith("bus.png")
+
+    result = await demo.process_api(
+        fn_index=0, inputs=[""], request=None, state=None, root_path="abidlabs.hf.space"
+    )
+    result_url = result["data"][0]["url"]
+    assert result_url.startswith("abidlabs.hf.space/file=")
+    assert result_url.endswith("bus.png")
 
 
 class TestRender:
