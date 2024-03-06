@@ -156,13 +156,35 @@
 	let showed_duplicate_message = false;
 	let showed_mobile_warning = false;
 
+	// as state updates are not synchronous, we need to ensure updates are flushed before triggering any requests
+	function wait_then_trigger_api_call(
+		dep_index: number,
+		trigger_id: number | null = null,
+		event_data: unknown = null
+	): void {
+		let _unsub = (): void => {};
+		function unsub(): void {
+			_unsub();
+		}
+		if ($scheduled_updates) {
+			_unsub = scheduled_updates.subscribe((updating) => {
+				if (!updating) {
+					trigger_api_call(dep_index, trigger_id, event_data);
+					unsub();
+				}
+			});
+		} else {
+			trigger_api_call(dep_index, trigger_id, event_data);
+		}
+	}
+
 	async function trigger_api_call(
 		dep_index: number,
 		trigger_id: number | null = null,
 		event_data: unknown = null
 	): Promise<void> {
-		await $scheduled_updates;
 		let dep = dependencies[dep_index];
+
 		const current_status = loading_status.get_status_for_fn(dep_index);
 		messages = messages.filter(({ fn_index }) => fn_index !== dep_index);
 		if (dep.cancels) {
@@ -271,7 +293,7 @@
 						if (status.stage === "complete") {
 							dependencies.map(async (dep, i) => {
 								if (dep.trigger_after === fn_index) {
-									trigger_api_call(i, payload.trigger_id);
+									wait_then_trigger_api_call(i, payload.trigger_id);
 								}
 							});
 
@@ -284,7 +306,11 @@
 									...messages
 								];
 							}, 0);
-							trigger_api_call(dep_index, payload.trigger_id, event_data);
+							wait_then_trigger_api_call(
+								dep_index,
+								payload.trigger_id,
+								event_data
+							);
 							user_left_page = false;
 						} else if (status.stage === "error") {
 							if (status.message) {
@@ -302,7 +328,7 @@
 									dep.trigger_after === fn_index &&
 									!dep.trigger_only_on_success
 								) {
-									trigger_api_call(i, payload.trigger_id);
+									wait_then_trigger_api_call(i, payload.trigger_id);
 								}
 							});
 
@@ -365,7 +391,7 @@
 		// handle load triggers
 		dependencies.forEach((dep, i) => {
 			if (dep.targets[0][1] === "load") {
-				trigger_api_call(i);
+				wait_then_trigger_api_call(i);
 			}
 		});
 
@@ -390,7 +416,7 @@
 				const deps = targets[id]?.[event];
 
 				deps?.forEach((dep_id) => {
-					trigger_api_call(dep_id, id, data);
+					wait_then_trigger_api_call(dep_id, id, data);
 				});
 			}
 		});

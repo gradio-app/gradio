@@ -1,5 +1,4 @@
 import { writable, type Writable } from "svelte/store";
-import { tick } from "svelte";
 import type {
 	ComponentMeta,
 	Dependency,
@@ -44,15 +43,13 @@ export function create_components(
 	update_value: (updates: UpdateTransaction[]) => void;
 	get_data: (id: number) => any | Promise<any>;
 	loading_status: ReturnType<typeof create_loading_status_store>;
-	scheduled_updates: Writable<unknown>;
+	scheduled_updates: Writable<boolean>;
 } {
 	const _component_map = new Map();
 
 	const target_map: TargetMap = {};
 	const inputs = new Set<number>();
 	const outputs = new Set<number>();
-
-	const scheduled_updates = writable();
 
 	const _rootNode: ComponentMeta = {
 		id: layout.id,
@@ -141,8 +138,7 @@ export function create_components(
 	});
 
 	let update_scheduled = false;
-
-	let r: (value?: unknown) => void;
+	let update_scheduled_store = writable(false);
 
 	function flush(): void {
 		layout_store.update((layout) => {
@@ -164,17 +160,15 @@ export function create_components(
 
 		pending_updates = [];
 		update_scheduled = false;
-
-		r();
-		scheduled_updates.update((s) => s);
+		update_scheduled_store.set(false);
 	}
 
 	function update_value(updates: UpdateTransaction[]): void {
-		scheduled_updates.set(new Promise((resolve) => (r = resolve)));
 		pending_updates.push(updates);
 
 		if (!update_scheduled) {
 			update_scheduled = true;
+			update_scheduled_store.set(true);
 			requestAnimationFrame(flush);
 		}
 	}
@@ -193,7 +187,7 @@ export function create_components(
 		update_value,
 		get_data,
 		loading_status,
-		scheduled_updates
+		scheduled_updates: update_scheduled_store
 	};
 }
 
