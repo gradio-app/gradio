@@ -10,7 +10,6 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from fastapi import Request
-from gradio_client.documentation import document
 from gradio_client.utils import traverse
 
 from . import wasm_utils
@@ -213,32 +212,9 @@ class ListFiles(GradioRootModel):
         return iter(self.root)
 
 
-@document()
-class StaticFiles:
+class _StaticFiles:
     """
-    Static files to be served by the gradio app.
-
-    Static files are not moved to the gradio cache and are served directly from the file system.
-    This class is useful when you want to serve files that you know will not be modified during the lifetime of the gradio app (like examples).
-    By using StaticFilesm your app will launch faster and it will consume less disk space.
-
-    Example:
-        import gradio as gr
-
-        # Paths can be a list of strings or pathlib.Path objects
-        # corresponding to filenames or directories.
-        gr.StaticFiles(paths=["test/test_files/"])
-
-        # The example files and the default value of the input
-        # will not be copied to the gradio cache and will be served directly.
-        demo = gr.Interface(
-            lambda s: s.rotate(45),
-            gr.Image(value="test/test_files/cheetah1.jpg", type="pil"),
-            gr.Image(),
-            examples=["test/test_files/bus.png"],
-        )
-
-        demo.launch()
+    Class to hold all static files for an app
     """
 
     all_paths = []
@@ -246,3 +222,7 @@ class StaticFiles:
     def __init__(self, paths: list[str | pathlib.Path]) -> None:
         self.paths = paths
         self.all_paths.extend([pathlib.Path(p).resolve() for p in paths])
+
+    @classmethod
+    def clear(cls):
+        cls.all_paths = []

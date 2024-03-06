@@ -1710,7 +1710,9 @@ def test_blocks_postprocessing_with_copies_of_component_instance():
 
 
 def test_static_files_single_app(connect, gradio_temp_dir):
-    gr.StaticFiles(paths=["test/test_files/cheetah1.jpg", "test/test_files/bus.png"])
+    gr.set_static_paths(
+        paths=["test/test_files/cheetah1.jpg", "test/test_files/bus.png"]
+    )
     demo = gr.Interface(
         lambda s: s.rotate(45),
         gr.Image(value="test/test_files/cheetah1.jpg", type="pil"),
@@ -1729,14 +1731,14 @@ def test_static_files_single_app(connect, gradio_temp_dir):
 
 
 def test_static_files_multiple_apps(gradio_temp_dir):
-    gr.StaticFiles(paths=["test/test_files/cheetah1.jpg"])
+    gr.set_static_paths(paths=["test/test_files/cheetah1.jpg"])
     demo = gr.Interface(
         lambda s: s.rotate(45),
         gr.Image(value="test/test_files/cheetah1.jpg"),
         gr.Image(),
     )
 
-    gr.StaticFiles(paths=["test/test_files/images"])
+    gr.set_static_paths(paths=["test/test_files/images"])
     demo_2 = gr.Interface(
         lambda s: s.rotate(45),
         gr.Image(value="test/test_files/images/bus.png"),
