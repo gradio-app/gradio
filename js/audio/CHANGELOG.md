@@ -1,5 +1,11 @@
 # @gradio/audio
 
+## 0.9.4
+
+### Fixes
+
+- [#7599](https://github.com/gradio-app/gradio/pull/7599) [`f26aba0`](https://github.com/gradio-app/gradio/commit/f26aba00a71a5b4eff60c37580c8d25f9bc048da) - Prevent audio speeding up when trimming.  Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.9.3
 
 ### Patch Changes

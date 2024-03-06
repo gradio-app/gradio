@@ -1,5 +1,11 @@
 # @gradio/gallery
 
+## 0.8.0
+
+### Features
+
+- [#7516](https://github.com/gradio-app/gradio/pull/7516) [`3645da5`](https://github.com/gradio-app/gradio/commit/3645da5f1e5539668cad75071a82fdd78f50263c) - Fix incorrect relative mouse coordinates for `Gallery` preview overlay.  Thanks [@MMP0](https://github.com/MMP0)!
+
 ## 0.7.3
 
 ### Fixes
