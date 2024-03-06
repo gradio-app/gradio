@@ -1,5 +1,11 @@
 # @gradio/upload
 
+## 0.7.5
+
+### Fixes
+
+- [#7559](https://github.com/gradio-app/gradio/pull/7559) [`26356a6`](https://github.com/gradio-app/gradio/commit/26356a623c4196f48ca236d973a597831743cdb8) - Fixes: Invalid file_type breaks drag and drop.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.7.4
 
 ### Patch Changes

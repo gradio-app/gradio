@@ -43,19 +43,6 @@
 		error: string;
 	}>();
 
-	let accept_file_types: string | null;
-	if (file_types == null) {
-		accept_file_types = null;
-	} else {
-		file_types = file_types.map((x) => {
-			if (x.startsWith(".")) {
-				return x;
-			}
-			return x + "/*";
-		});
-		accept_file_types = file_types.join(", ");
-	}
-
 	let dragging = false;
 	$: dispatch("drag", dragging);
 </script>
@@ -73,7 +60,7 @@
 {:else}
 	<Upload
 		on:load={handle_upload}
-		filetype={accept_file_types}
+		filetype={file_types}
 		{file_count}
 		{root}
 		bind:dragging

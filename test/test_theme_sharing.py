@@ -297,6 +297,7 @@ class TestThemeUploadDownload:
     #     assert demo.theme.to_dict() == dracula.to_dict()
     #     assert demo.theme.name == "gradio/dracula_test"
 
+    @pytest.mark.flaky
     def test_theme_download_raises_error_if_theme_does_not_exist(self):
         with pytest.raises(
             ValueError, match="The space freddyaboulton/nonexistent does not exist"
