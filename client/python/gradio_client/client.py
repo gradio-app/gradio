@@ -1078,7 +1078,9 @@ class Endpoint:
                 d = utils.traverse(
                     d,
                     self._upload_file,
-                    lambda f: utils.is_filepath(f) or utils.is_file_obj_with_meta(f) or utils.is_http_url_like(f),
+                    lambda f: utils.is_filepath(f)
+                    or utils.is_file_obj_with_meta(f)
+                    or utils.is_http_url_like(f),
                 )
             elif not self.client.upload_files:
                 d = utils.traverse(d, self._upload_file, utils.is_file_obj_with_meta)

@@ -354,7 +354,9 @@ class Video(Component):
 
     def example_payload(self) -> Any:
         return {
-            "video": file("https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"),
+            "video": file(
+                "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+            ),
         }
 
     def example_value(self) -> Any:

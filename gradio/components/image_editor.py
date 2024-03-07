@@ -318,7 +318,9 @@ class ImageEditor(Component):
 
     def example_payload(self) -> Any:
         return {
-            "background": file("https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"),
+            "background": file(
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+            ),
             "layers": [],
             "composite": None,
         }

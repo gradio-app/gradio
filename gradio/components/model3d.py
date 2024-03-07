@@ -119,7 +119,9 @@ class Model3D(Component):
         return Path(input_data).name if input_data else ""
 
     def example_payload(self):
-        return file("https://raw.githubusercontent.com/gradio-app/gradio/main/demo/model3D/files/Fox.gltf")
+        return file(
+            "https://raw.githubusercontent.com/gradio-app/gradio/main/demo/model3D/files/Fox.gltf"
+        )
 
     def example_value(self):
         return "https://raw.githubusercontent.com/gradio-app/gradio/main/demo/model3D/files/Fox.gltf"

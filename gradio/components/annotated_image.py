@@ -206,7 +206,9 @@ class AnnotatedImage(Component):
 
     def example_payload(self) -> Any:
         return {
-            "image": file("https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"),
+            "image": file(
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+            ),
             "annotations": [],
         }
 

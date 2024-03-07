@@ -115,10 +115,14 @@ class UploadButton(Component):
 
     def example_payload(self) -> Any:
         if self.file_count == "single":
-            return file("https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf")
+            return file(
+                "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+            )
         else:
             return [
-                file("https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf")
+                file(
+                    "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+                )
             ]
 
     def example_value(self) -> Any:

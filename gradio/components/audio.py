@@ -183,7 +183,9 @@ class Audio(
         )
 
     def example_payload(self) -> Any:
-        return file("https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav")
+        return file(
+            "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+        )
 
     def example_value(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
