@@ -4,7 +4,6 @@ export function represent_value(
 	type: string | undefined,
 	lang: "js" | "py" | null = null
 ): string | null | number | boolean | Record<string, unknown> {
-	console.log("value", value, "type", type, "lang", lang);
 	if (type === undefined) {
 		return lang === "py" ? "None" : null;
 	}
@@ -91,7 +90,7 @@ function replace_file_data_with_file_function(obj: any): any {
 	return obj;
 }
 
-function stringify_except_file_function(obj) {
+function stringify_except_file_function(obj: any): string {
 	const jsonString = JSON.stringify(obj, (key, value) => {
 		if (
 			typeof value === "string" &&
