@@ -1017,13 +1017,13 @@ class TestAPIInfo:
                 "description": "",
             }
             assert isinstance(inputs[0]["example_input"], list)
-            assert isinstance(inputs[0]["example_input"][0], str)
+            assert isinstance(inputs[0]["example_input"][0], dict)
 
             assert inputs[1]["python_type"] == {
                 "type": "filepath",
                 "description": "",
             }
-            assert isinstance(inputs[1]["example_input"], str)
+            assert isinstance(inputs[1]["example_input"], dict)
 
             assert outputs[0]["python_type"] == {
                 "type": "List[filepath]",
@@ -1170,44 +1170,6 @@ class TestEndpoints:
             ["file5", "file6"],
             "file7",
         ]
-
-    @pytest.mark.flaky
-    def test_upload_v4(self):
-        client = Client(
-            src="gradio-tests/not-actually-private-file-uploadv4-sse",
-        )
-        response = MagicMock(status_code=200)
-        response.json.return_value = [
-            "file1",
-            "file2",
-            "file3",
-            "file4",
-            "file5",
-            "file6",
-            "file7",
-        ]
-        with patch("httpx.post", MagicMock(return_value=response)):
-            with patch("builtins.open", MagicMock()):
-                with patch.object(pathlib.Path, "name") as mock_name:
-                    mock_name.side_effect = lambda x: x
-                    results = client.endpoints[0]._upload(
-                        ["pre1", ["pre2", "pre3", "pre4"], ["pre5", "pre6"], "pre7"]
-                    )
-
-        res = []
-        for re in results:
-            if isinstance(re, list):
-                res.append([r["path"] for r in re])
-            else:
-                res.append(re["path"])
-
-        assert res == [
-            "file1",
-            ["file2", "file3", "file4"],
-            ["file5", "file6"],
-            "file7",
-        ]
-
 
 cpu = huggingface_hub.SpaceHardware.CPU_BASIC
 
