@@ -122,7 +122,7 @@ function generate_imports(
 		return examine_module(component, root, python_path, "dev");
 	});
 	if (component_entries.length === 0) {
-		console.log(
+		console.info(
 			`No custom components were found in ${component_dir}. It is likely that dev mode does not work properly. Please pass the --gradio-path and --python-path CLI arguments so that gradio uses the right executables.`
 		);
 	}

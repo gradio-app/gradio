@@ -185,7 +185,7 @@ export function examine_module(
 		})
 		.filter(is_truthy);
 	if (exceptions.length > 0) {
-		console.log(
+		console.info(
 			`While searching for gradio custom component source directories in ${component_dir}, the following exceptions were raised. If dev mode does not work properly please pass the --gradio-path and --python-path CLI arguments so that gradio uses the right executables: ${exceptions.join(
 				"\n"
 			)}`

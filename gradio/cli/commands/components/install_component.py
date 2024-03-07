@@ -1,6 +1,7 @@
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Optional
 
 from rich.markup import escape
 from typer import Argument, Option
@@ -82,7 +83,13 @@ def _install(
     npm_install: Annotated[
         str, Option(help="NPM install command to use. Default is 'npm install'.")
     ] = "npm install",
+    pip_path: Annotated[
+        Optional[str],
+        Option(
+            help="Path to pip executable. If None, will use the default path found by `shutil.which`."
+        ),
+    ] = None,
 ):
     npm_install = _get_npm(npm_install)
     with LivePanelDisplay() as live:
-        _install_command(directory, live, npm_install)
+        _install_command(directory, live, npm_install, pip_path)
