@@ -61,7 +61,7 @@
 		let _data = data || value;
 
 		_headers = [...(_data.headers || headers)];
-		values = [..._data.data];
+		values = _data.data ? [..._data.data] : [];
 		display_value = _data?.metadata?.display_value
 			? [..._data?.metadata?.display_value]
 			: null;
