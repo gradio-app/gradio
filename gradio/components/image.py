@@ -6,13 +6,14 @@ import warnings
 from pathlib import Path
 from typing import Any, Literal, cast
 
+import gradio_client.utils as client_utils
 import numpy as np
 import PIL.Image
 from gradio_client import file
 from gradio_client.documentation import document
 from PIL import ImageOps
 
-from gradio import image_utils, utils
+from gradio import image_utils, processing_utils, utils
 from gradio.components.base import Component, StreamingInput
 from gradio.data_classes import FileData
 from gradio.events import Events
@@ -151,6 +152,10 @@ class Image(StreamingInput, Component):
         """
         if payload is None:
             return payload
+        if client_utils.is_http_url_like(payload.path):
+            payload.path = processing_utils.save_url_to_cache(
+                payload.path, cache_dir=self.GRADIO_CACHE
+            )
         file_path = Path(payload.path)
         if payload.orig_name:
             p = Path(payload.orig_name)
