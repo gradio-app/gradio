@@ -151,11 +151,14 @@ const changelogFunctions = {
 			};
 		})();
 
+		const user_link = /\[(@[^]+)\]/.exec(links.user);
 		const users =
 			usersFromSummary && usersFromSummary.length
 				? usersFromSummary
 						.map((userFromSummary) => `@${userFromSummary}`)
 						.join(", ")
+				: user_link
+				? user_link[1]
 				: links.user;
 
 		const prefix = [
