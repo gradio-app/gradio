@@ -1076,9 +1076,9 @@ class Endpoint:
     def process_input_files(self, *data) -> tuple:
         data_ = list(data)
         if self.client.upload_files:
-            data_ = utils.traverse(data_, self._upload_file, utils.is_file_strict)
+            data_ = utils.traverse(data_, self._upload_file, lambda f: utils.is_filepath(f) or utils.is_file_obj_with_meta(f))
         else:
-            data = utils.traverse(data, self._upload_file, utils.is_file_loose)
+            data = utils.traverse(data, self._upload_file, utils.is_file_obj_with_meta)
         return tuple(data_)
 
     def download_files(self, *data) -> tuple:
