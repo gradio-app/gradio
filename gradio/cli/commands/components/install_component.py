@@ -24,8 +24,31 @@ def _get_npm(npm_install: str):
     return npm_install
 
 
-def _install_command(directory: Path, live: LivePanelDisplay, npm_install: str):
-    cmds = [shutil.which("pip"), "install", "-e", f"{str(directory)}[dev]"]
+def _get_executable_path(
+    executable: str, executable_path: str | None, cli_arg_name: str
+) -> str:
+    """Get the path to an executable, either from the provided path or from the PATH environment variable.
+
+    The value of executable_path takes precedence in case the value in PATH is incorrect.
+    This should give more control to the developer in case their envrinment is not set up correctly.
+    """
+    if executable_path:
+        return executable_path
+    path = shutil.which(executable)
+    if not path:
+        raise ValueError(
+            f"Could not find {executable}. Please ensure it is installed and in your PATH or pass the {cli_arg_name} parameter."
+        )
+    return path
+
+
+def _install_command(
+    directory: Path, live: LivePanelDisplay, npm_install: str, pip_path: str | None
+):
+    pip_executable_path = _get_executable_path(
+        "pip", executable_path=pip_path, cli_arg_name="--pip-path"
+    )
+    cmds = [pip_executable_path, "install", "-e", f"{str(directory)}[dev]"]
     live.update(
         f":construction_worker: Installing python... [grey37]({escape(' '.join(cmds))})[/]"
     )

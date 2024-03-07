@@ -7,6 +7,7 @@ import pytest
 from gradio.cli.commands.components._create_utils import OVERRIDES
 from gradio.cli.commands.components.build import _build
 from gradio.cli.commands.components.create import _create
+from gradio.cli.commands.components.install_component import _get_executable_path
 from gradio.cli.commands.components.publish import _get_version_from_file
 from gradio.cli.commands.components.show import _show
 
@@ -62,6 +63,16 @@ if __name__ == "__main__":
         tmp_path / "backend" / "gradio_mycomponent" / "mycomponent.py"
     ).read_text()
     assert "@document()" not in source_code
+
+
+def test_get_executable_path():
+    assert _get_executable_path("pip", None, "--pip-path") == shutil.which("pip")
+    assert _get_executable_path("pip", "/usr/bin/pip", "--pip-path") == "/usr/bin/pip"
+    with pytest.raises(
+        ValueError,
+        match=r"Could not find foo. Please ensure it is installed and in your PATH or pass the --foo-path parameter.",
+    ):
+        _get_executable_path("foo", None, "--foo-path")
 
 
 def test_raise_error_component_template_does_not_exist(tmp_path):
