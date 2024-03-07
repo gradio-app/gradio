@@ -622,6 +622,115 @@ def apply_diff(obj, diff):
 # Data processing utils
 ########################
 
+def upload_file():
+    def _upload(
+        self, file_paths: list[str | list[str]]
+    ) -> list[str | list[str]] | list[dict[str, Any] | list[dict[str, Any]]]:
+        if not file_paths:
+            return []
+        # Put all the filepaths in one file
+        # but then keep track of which index in the
+        # original list they came from so we can recreate
+        # the original structure
+        files = []
+        indices = []
+        for i, fs in enumerate(file_paths):
+            if not isinstance(fs, list):
+                fs = [fs]
+            for f in fs:
+                files.append(("files", (Path(f).name, open(f, "rb"))))  # noqa: SIM115
+                indices.append(i)
+        r = httpx.post(
+            self.client.upload_url,
+            headers=self.client.headers,
+            cookies=self.client.cookies,
+            files=files,
+        )
+        if r.status_code != 200:
+            uploaded = file_paths
+        else:
+            uploaded = []
+            result = r.json()
+            for i, fs in enumerate(file_paths):
+                if isinstance(fs, list):
+                    output = [o for ix, o in enumerate(result) if indices[ix] == i]
+                    res = [
+                        {
+                            "path": o,
+                            "orig_name": Path(f).name,
+                        }
+                        for f, o in zip(fs, output)
+                    ]
+                else:
+                    o = next(o for ix, o in enumerate(result) if indices[ix] == i)
+                    res = {
+                        "path": o,
+                        "orig_name": Path(fs).name,
+                    }
+                uploaded.append(res)
+        return uploaded
+
+    def _gather_files(self, *data):
+        file_list = []
+
+        def get_file(d):
+            if utils.is_file_obj(d):
+                file_list.append(d["path"])
+            elif isinstance(d, File):
+                file_list.append(d.path)
+            else:
+                warnings.warn(
+                    f"The Client is treating: {d} as a filepath/URL and uploading it to the remote Gradio app. "
+                    "In future versions, this behavior will not happen automatically. \n\nInstead, please provide filepaths "
+                    "or URL values like this: gradio_client.File('path/to/file/or/url'). \n\nNote: to disable automatic "
+                    "uploading, set upload_files=False in Client()."
+                )
+                file_list.append(d)
+            return ReplaceMe(len(file_list) - 1)
+
+        def handle_url(s: str | File) -> dict[str, str]:
+            if isinstance(s, File):
+                s = s.path
+            # print({"path": s, "orig_name": s.split("/")[-1]}, "url": s)
+            return {"path": s, "orig_name": s.split("/")[-1], "url": s}
+
+        new_data = []
+        for i, d in enumerate(data):
+            if self.input_component_types[i].value_is_file:
+                # Check files to upload
+                # file dict is a corner case but still needed for completeness
+                # file paths are allowed for backwards compatibility
+                # if the Client is used directly, it should be a FileData object
+                d = utils.traverse(
+                    d,
+                    get_file,
+                    lambda s: utils.is_file_data(s, url_ok=False)
+                    or utils.is_file_obj(s, url_ok=False)
+                    or (
+                        self.client.upload_files and utils.is_filepath(s, url_ok=False)
+                    ),
+                )
+                # Handle URLs here since we don't upload them
+                d = utils.traverse(
+                    d,
+                    handle_url,
+                    lambda s: utils.is_url(s)
+                    or (isinstance(s, File) and utils.is_url(s.path)),
+                )
+            new_data.append(d)
+        return file_list, new_data
+
+    def _add_uploaded_files_to_data(self, data: list[Any], files: list[Any]):
+        def replace(d: ReplaceMe) -> dict:
+            return files[d.index]
+
+        new_data = []
+        for d in data:
+            d = utils.traverse(
+                d, replace, is_root=lambda node: isinstance(node, ReplaceMe)
+            )
+            new_data.append(d)
+        return new_data    
 
 def download_file(
     url_path: str,
