@@ -7,8 +7,10 @@ import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal
 
+import gradio_client.utils as client_utils
 from gradio_client.documentation import document
 
+from gradio import processing_utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
@@ -110,7 +112,15 @@ class UploadButton(Component):
         else:
             return ListFiles.model_json_schema()
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        if self.file_count == "single":
+            return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+        else:
+            return [
+                "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+            ]
+
+    def example_value(self) -> Any:
         if self.file_count == "single":
             return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
         else:
@@ -155,15 +165,36 @@ class UploadButton(Component):
             return [self._process_single_file(f) for f in payload]  # type: ignore
         return [self._process_single_file(payload)]  # type: ignore
 
+    def _download_files(self, value: str | list[str]) -> str | list[str]:
+        downloaded_files = []
+        if isinstance(value, list):
+            for file in value:
+                if client_utils.is_http_url_like(file):
+                    downloaded_file = processing_utils.save_url_to_cache(
+                        file, self.GRADIO_CACHE
+                    )
+                    downloaded_files.append(downloaded_file)
+                else:
+                    downloaded_files.append(file)
+            return downloaded_files
+        if client_utils.is_http_url_like(value):
+            downloaded_file = processing_utils.save_url_to_cache(
+                value, self.GRADIO_CACHE
+            )
+            return downloaded_file
+        else:
+            return value
+
     def postprocess(self, value: str | list[str] | None) -> ListFiles | FileData | None:
         """
         Parameters:
-            value: Expects a `str` filepath, or a `list[str]` of filepaths.
+            value: Expects a `str` filepath or URL, or a `list[str]` of filepaths/URLs.
         Returns:
             File information as a FileData object, or a list of FileData objects.
         """
         if value is None:
             return None
+        value = self._download_files(value)
         if isinstance(value, list):
             return ListFiles(
                 root=[

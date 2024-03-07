@@ -220,7 +220,14 @@ class Gallery(Component):
                 converted_image = np.array(converted_image)
             return converted_image
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return [
+            {
+                "image": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+            },
+        ]
+
+    def example_value(self) -> Any:
         return [
             "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
         ]

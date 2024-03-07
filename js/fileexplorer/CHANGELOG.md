@@ -1,5 +1,13 @@
 # @gradio/fileexplorer
 
+## 0.3.25
+
+### Patch Changes
+
+- Updated dependencies [[`8181695`](https://github.com/gradio-app/gradio/commit/8181695e70187e8bc2bf7518697098c8d1b9843d)]:
+  - @gradio/upload@0.7.6
+  - @gradio/file@0.5.5
+
 ## 0.3.24
 
 ### Patch Changes
