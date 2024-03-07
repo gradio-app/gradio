@@ -7,13 +7,12 @@ import warnings
 from pathlib import Path
 from typing import Any, Iterable, List, Literal, Optional, TypedDict, Union, cast
 
-import gradio_client.utils as client_utils
 import numpy as np
 import PIL.Image
 from gradio_client import file
 from gradio_client.documentation import document
 
-from gradio import image_utils, processing_utils, utils
+from gradio import image_utils, utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
@@ -218,13 +217,7 @@ class ImageEditor(Component):
     ) -> np.ndarray | PIL.Image.Image | str | None:
         if file is None:
             return None
-
-        if client_utils.is_http_url_like(file.path):
-            file.path = processing_utils.save_url_to_cache(
-                file.path, cache_dir=self.GRADIO_CACHE
-            )
         im = PIL.Image.open(file.path)
-
         if file.orig_name:
             p = Path(file.orig_name)
             name = p.stem
