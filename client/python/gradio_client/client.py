@@ -1103,8 +1103,20 @@ class Endpoint:
             return data
 
     def _upload_file(self, f: str | dict):
+        if isinstance(f, str):
+            warnings.warn(
+                f"The Client is treating: {f} as a file path. In future versions, this behavior will not happen automatically. "
+                f"\n\nInstead, please provide file path or URLs like this: gradio_client.file({f}). "
+                "\n\nNote: to stop treating strings as filepaths unless file() is used, set upload_files=False in Client()."
+            )
+            file_path = f
+        else:
+            file_path = f["path"]
+        if utils.is_http_url_like(file_path):
+            return {"path": file_path, "url": file_path}
         return utils.upload_file(
-            self.root_url + "file=" + x["path"],
+            file_path=file_path,
+            upload_url=self.client.upload_url,
             headers=self.client.headers,
             cookies=self.client.cookies,
         )
