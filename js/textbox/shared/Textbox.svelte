@@ -184,6 +184,7 @@
 
 	{#if lines === 1 && max_lines === 1}
 		{#if type === "text"}
+			test
 			<input
 				data-testid="textbox"
 				type="text"
