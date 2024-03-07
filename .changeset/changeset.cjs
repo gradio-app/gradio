@@ -194,14 +194,18 @@ const changelogFunctions = {
 		lines._handled.push(changeset.id);
 
 		changeset.releases.forEach((release) => {
-			if (!lines[release.name])
+			if (!lines[release.name]) {
 				lines[release.name] = {
 					dirs: find_packages_dirs(release.name),
 					current_changelog: "",
 					feat: [],
 					fix: [],
-					highlight: []
+					highlight: [],
+					previous_version: packages.find(
+						(p) => p.packageJson.name === release.name
+					).version
 				};
+			}
 
 			const changelog_path = join(
 				//@ts-ignore
