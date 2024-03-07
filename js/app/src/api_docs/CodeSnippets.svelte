@@ -87,7 +87,7 @@ print(result)</pre>
 					<pre>import &lbrace; client &rbrace; from "@gradio/client";
 {#each blob_examples as { label, type, python_type, component, example_input, serializer }, i}<!--
 -->
-const response_{i} = await fetch("{example_input}");
+const response_{i} = await fetch("{example_input.url}");
 const example{component} = await response_{i}.blob();
 						{/each}<!--
 -->
