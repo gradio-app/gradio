@@ -1543,7 +1543,7 @@ class TestVideo:
                 "size": None,
                 "url": None,
                 "is_stream": False,
-                "meta": {"_type": "gradio.FileData"}
+                "meta": {"_type": "gradio.FileData"},
             },
             "subtitles": None,
         }
@@ -1556,7 +1556,7 @@ class TestVideo:
                 "size": None,
                 "url": None,
                 "is_stream": False,
-                "meta": {"_type": "gradio.FileData"}
+                "meta": {"_type": "gradio.FileData"},
             },
             "subtitles": {
                 "path": "s1.srt",
@@ -1565,7 +1565,7 @@ class TestVideo:
                 "size": None,
                 "url": None,
                 "is_stream": False,
-                "meta": {"_type": "gradio.FileData"}
+                "meta": {"_type": "gradio.FileData"},
             },
         }
         postprocessed_video["video"]["path"] = os.path.basename(
@@ -2265,7 +2265,7 @@ class TestGallery:
                     "size": None,
                     "url": url,
                     "is_stream": False,
-                    "meta": {"_type": "gradio.FileData"}
+                    "meta": {"_type": "gradio.FileData"},
                 },
                 "caption": None,
             }
@@ -2294,7 +2294,7 @@ class TestGallery:
                     "size": None,
                     "url": None,
                     "is_stream": False,
-                    "meta": {"_type": "gradio.FileData"}
+                    "meta": {"_type": "gradio.FileData"},
                 },
                 "caption": "foo_caption",
             },
@@ -2306,7 +2306,7 @@ class TestGallery:
                     "size": None,
                     "url": None,
                     "is_stream": False,
-                    "meta": {"_type": "gradio.FileData"}
+                    "meta": {"_type": "gradio.FileData"},
                 },
                 "caption": "bar_caption",
             },
@@ -2318,7 +2318,7 @@ class TestGallery:
                     "size": None,
                     "url": None,
                     "is_stream": False,
-                    "meta": {"_type": "gradio.FileData"}
+                    "meta": {"_type": "gradio.FileData"},
                 },
                 "caption": None,
             },
@@ -2330,7 +2330,7 @@ class TestGallery:
                     "size": None,
                     "url": None,
                     "is_stream": False,
-                    "meta": {"_type": "gradio.FileData"}
+                    "meta": {"_type": "gradio.FileData"},
                 },
                 "caption": None,
             },
