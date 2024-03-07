@@ -1078,7 +1078,7 @@ class Endpoint:
                 d = utils.traverse(
                     d,
                     self._upload_file,
-                    lambda f: utils.is_filepath(f) or utils.is_file_obj_with_meta(f),
+                    lambda f: utils.is_filepath(f) or utils.is_file_obj_with_meta(f) or utils.is_http_url_like(f),
                 )
             elif not self.client.upload_files:
                 d = utils.traverse(d, self._upload_file, utils.is_file_obj_with_meta)
@@ -1127,17 +1127,18 @@ class Endpoint:
         else:
             file_path = f["path"]
         if utils.is_http_url_like(file_path):
-            return {"path": file_path, "url": file_path}
-        uploaded_path = (
-            self.root_url
-            + "file="
-            + utils.upload_file(
-                file_path=file_path,
-                upload_url=self.client.upload_url,
-                headers=self.client.headers,
-                cookies=self.client.cookies,
+            uploaded_path = file_path
+        else:
+            uploaded_path = (
+                self.root_url
+                + "file="
+                + utils.upload_file(
+                    file_path=file_path,
+                    upload_url=self.client.upload_url,
+                    headers=self.client.headers,
+                    cookies=self.client.cookies,
+                )
             )
-        )
         return utils.file(uploaded_path)
 
     def _download_file(self, x: dict) -> str | None:
