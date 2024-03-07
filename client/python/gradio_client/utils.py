@@ -629,15 +629,12 @@ def upload_file(
     headers: dict[str, str] | None = None,
     cookies: dict[str, str] | None = None,
 ):
-    r = httpx.post(
-        upload_url,
-        headers=headers,
-        cookies=cookies,
-        files=file_path,
-    )
+    with open(file_path, "rb") as f:
+        files = [("files", (Path(file_path).name, f))]
+        r = httpx.post(upload_url, headers=headers, cookies=cookies, files=files)
     r.raise_for_status()
     result = r.json()
-    print("result", result)
+    return result[0]
 
 
 def download_file(
@@ -915,8 +912,8 @@ def get_type(schema: dict):
         raise APIInfoParseError(f"Cannot parse type for {schema}")
 
 
-OLD_FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)"
-FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool)"
+OLD_FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None"
+FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool"
 
 
 def json_schema_to_python_type(schema: Any) -> str:

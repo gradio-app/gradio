@@ -1285,7 +1285,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 serialized_input = client_utils.traverse(
                     inputs[i],
                     format_file,
-                    lambda s: client_utils.is_filepath(s) or client_utils.is_http_url_like(s),
+                    lambda s: client_utils.is_filepath(s)
+                    or client_utils.is_http_url_like(s),
                 )
             else:
                 serialized_input = inputs[i]
