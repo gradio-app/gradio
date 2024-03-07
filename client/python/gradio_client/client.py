@@ -445,6 +445,7 @@ class Client:
             "sse",
             "sse_v1",
             "sse_v2",
+            "sse_v2.1"
         ):
             helper = self.new_helper(inferred_fn_index)
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
@@ -1028,7 +1029,7 @@ class Endpoint:
                 result = utils.synchronize_async(
                     self._sse_fn_v0, data, hash_data, helper
                 )
-            elif self.protocol in ("sse_v1", "sse_v2"):
+            elif self.protocol in ("sse_v1", "sse_v2", "sse_v2.1"):
                 event_id = utils.synchronize_async(
                     self.client.send_data, data, hash_data
                 )
@@ -1246,7 +1247,7 @@ class Endpoint:
             )
 
     async def _sse_fn_v1_v2(
-        self, helper: Communicator, event_id: str, protocol: Literal["sse_v1", "sse_v2"]
+        self, helper: Communicator, event_id: str, protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"]
     ):
         return await utils.get_pred_from_sse_v1_v2(
             helper,

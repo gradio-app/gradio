@@ -390,7 +390,7 @@ async def get_pred_from_sse_v1_v2(
     cookies: dict[str, str] | None,
     pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
-    protocol: Literal["sse_v1", "sse_v2"],
+    protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
@@ -510,7 +510,7 @@ async def stream_sse_v1_v2(
     helper: Communicator,
     pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
-    protocol: Literal["sse_v1", "sse_v2"],
+    protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
 ) -> dict[str, Any]:
     try:
         pending_messages = pending_messages_per_event[event_id]
@@ -548,7 +548,7 @@ async def stream_sse_v1_v2(
                 output = msg.get("output", {}).get("data", [])
                 if (
                     msg["msg"] == ServerMessage.process_generating
-                    and protocol == "sse_v2"
+                    and protocol in ["sse_v2", "sse_v2.1"]
                 ):
                     if pending_responses_for_diffs is None:
                         pending_responses_for_diffs = list(output)

@@ -1764,7 +1764,7 @@ Received outputs:
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
-            "protocol": "sse_v2",
+            "protocol": "sse_v2.1",
             "body_css": {
                 "body_background_fill": self.theme._get_computed_value(
                     "body_background_fill"
