@@ -11,10 +11,10 @@ Using the `gradio_client` library, we can easily use the Gradio as an API to tra
 Here's the entire code to do it:
 
 ```python
-from gradio_client import Client, File
+from gradio_client import Client, file
 
 client = Client("abidlabs/whisper")
-client.predict(File("audio_sample.wav"))
+client.predict(file("audio_sample.wav"))
 
 >> "This is a test of the whisper speech recognition model."
 ```
@@ -62,12 +62,12 @@ The `gradio_client` includes a class method: `Client.duplicate()` to make this p
 
 ```python
 import os
-from gradio_client import Client, File
+from gradio_client import Client, file
 
 HF_TOKEN = os.environ.get("HF_TOKEN")
 
 client = Client.duplicate("abidlabs/whisper", hf_token=HF_TOKEN)
-client.predict(File("audio_sample.wav"))
+client.predict(file("audio_sample.wav"))
 
 >> "This is a test of the whisper speech recognition model."
 ```
@@ -130,13 +130,13 @@ client.predict(4, "add", 5)
 >> 9.0
 ```
 
-For when working with files (e.g. image files), you should pass in the filepath or URL to the file enclosed as a `gradio_client.File()` class. 
+For when working with files (e.g. image files), you should pass in the filepath or URL to the file enclosed within `gradio_client.file()`. 
 
 ```python
-from gradio_client import Client, File
+from gradio_client import Client, file
 
 client = Client("abidlabs/whisper")
-client.predict(File("https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"))
+client.predict(file("https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"))
 
 >> "My thought I have nobody by a beauty and will as you poured. Mr. Rochester is serve in that so don't find simpus, and devoted abode, to at might in a r—"
 ```
@@ -202,8 +202,8 @@ The `Job` class also has a `.cancel()` instance method that cancels jobs that ha
 
 ```py
 client = Client("abidlabs/whisper")
-job1 = client.submit(File("audio_sample1.wav"))
-job2 = client.submit(File("audio_sample2.wav"))
+job1 = client.submit(file("audio_sample1.wav"))
+job2 = client.submit(file("audio_sample2.wav"))
 job1.cancel()  # will return False, assuming the job has started
 job2.cancel()  # will return True, indicating that the job has been canceled
 ```
