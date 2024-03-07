@@ -48,7 +48,7 @@ function run() {
 	 * @returns {{package_name: string, version: string}} Package name and version
 	 */
 	function get_bound_version(name_and_version) {
-		const [package_name, version = "major"] = name_and_version.split("@");
+		const [package_name, version = "patch"] = name_and_version.split("@");
 
 		return {
 			package_name,
@@ -62,19 +62,23 @@ function run() {
 		const { dirs, highlight, feat, fix, current_changelog } =
 			/**@type {ChangesetMeta} */ (packages[pkg_name]);
 
-		const { bind_version } = all_packages[pkg_name].packageJson;
+		if (pkg_name === "@gradio/lite") {
+			const target = all_packages.gradio.version.split(".");
 
-		if (bind_version) {
-			const { package_name: package_to_bind, version: version_to_bind } =
-				get_bound_version(bind_version);
-			const current = all_packages[pkg_name].version.split(".");
+			const current_version = packages[pkg_name].current_version.split(".");
 
-			if (!packages[package_to_bind] || version_to_bind === "major") {
-				const new_version = "";
-				if (version_to_bind === "minor") {
-					// new_version = current.map((v, i) => i === 2 ?   )
-				}
+			if (!packages.gradio) {
+				const patch = parseInt(current_version[2]) + 1;
+				const new_version = [target[0], target[1], patch];
+				all_packages[pkg_name].packageJson.version = new_version.join(".");
 			} else {
+				if (parseInt(target[1]) > parseInt(current_version[1])) {
+					all_packages[pkg_name].packageJson.version = target.join(".");
+				} else if (parseInt(target[1]) === parseInt(current_version[1])) {
+					const patch = parseInt(current_version[2]) + 1;
+					const new_version = [target[0], target[1], patch];
+					all_packages[pkg_name].packageJson.version = new_version.join(".");
+				}
 			}
 		}
 

@@ -203,7 +203,7 @@ const changelogFunctions = {
 					highlight: [],
 					previous_version: packages.find(
 						(p) => p.packageJson.name === release.name
-					).version
+					).packageJson.version
 				};
 			}
 
