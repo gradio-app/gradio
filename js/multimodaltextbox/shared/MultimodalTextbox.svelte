@@ -277,7 +277,7 @@
 			disable_click={true}
 			bind:hidden_upload
 		>
-			<button class="submit-button" on:click={handle_submit}>↑</button>
+			<button class="submit-button" on:click={handle_submit}>⌲</button>
 			<button class="plus-button" on:click={handle_upload_click}>+</button>
 			{#if file_count > 0}
 				<div
@@ -344,10 +344,9 @@
 	textarea {
 		align-self: flex-start;
 		outline: none !important;
-		box-shadow: var(--input-shadow);
 		background: var(--input-background-fill);
 		padding: var(--input-padding);
-		width: 95%;
+		width: 90%;
 		max-height: 100%;
 		height: 25px;
 		color: var(--body-text-color);
@@ -373,9 +372,9 @@
 	.plus-button,
 	.submit-button {
 		position: absolute;
-		background-color: var(--input-border-color-focus);
+		background: var(--button-secondary-background-fill);
+		color: var(--button-secondary-text-color);
 		border: none;
-		color: white;
 		text-align: center;
 		text-decoration: none;
 		font-size: 20px;
@@ -386,13 +385,21 @@
 		bottom: 15px;
 	}
 
+	.plus-button:hover,
+	.submit-button:hover {
+		background: var(--button-secondary-background-fill-hover);
+	}
+
+	.plus-button:active,
 	.submit-button:active {
-		background-color: var(--color-grey-500);
+		box-shadow: var(--button-shadow-active);
 	}
 
 	.submit-button {
 		right: 10px;
 		margin-left: 5px;
+		padding-bottom: 5px;
+		padding-left: 2px;
 	}
 
 	.plus-button {
@@ -403,7 +410,7 @@
 	.thumbnails :global(img) {
 		width: var(--size-full);
 		height: var(--size-full);
-		object-fit: var(--object-fit);
+		object-fit: cover;
 		border-radius: var(--radius-lg);
 	}
 

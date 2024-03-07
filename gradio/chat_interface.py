@@ -211,7 +211,7 @@ class ChatInterface(Blocks):
                                 f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {type(textbox_)}"
                             )
                         self.textbox = textbox_
-                    elif multimodal:
+                    elif self.multimodal:
                         submit_btn = None
                         self.textbox = MultimodalTextbox(
                             show_label=False,
@@ -458,12 +458,19 @@ class ChatInterface(Blocks):
         else:
             return "", message
 
+    def _append_multimodal_history(self, message: list[dict[str, str]], history: list[list[str | None]]):
+        for x in message:
+            if x["type"] == "file" and x["file"]["path"] is not None:  
+                history.append(((x["file"]["path"],), None))  
+            elif x["type"] == "text" and x["text"] is not None:
+                history.append((x["text"], None))
+
     def _display_input(
-        self, message: str, history: list[list[str | None]]
+        self, message: str | list[dict[str, str]], history: list[list[str | None]]
     ) -> tuple[list[list[str | None]], list[list[str | None]]]:
-        if self.multimodal:
-            pass
-        else:
+        if self.multimodal and isinstance(message, list):
+            self._append_multimodal_history(message, history)
+        elif isinstance(message, str):
             history.append([message, None])
         return history, history
 
@@ -486,12 +493,8 @@ class ChatInterface(Blocks):
                 self.fn, *inputs, limiter=self.limiter
             )
 
-        if self.multimodal:
-            for x in message:
-                if x["type"] == "file" and x["file"]["path"] is not None:  
-                    history.append(((x["file"]["path"],), None))  
-                elif x["type"] == "text" and x["text"] is not None:
-                    history.append((x["text"], None))
+        if self.multimodal and isinstance(message, list):
+            self._append_multimodal_history(message, history)
         else:
             history.append([message, response])
         return history, history
@@ -600,3 +603,4 @@ class ChatInterface(Blocks):
         except IndexError:
             message = ""
         return history, message or "", history
+
