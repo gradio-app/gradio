@@ -19,7 +19,7 @@ from gradio.networking import Server
 from huggingface_hub import HfFolder
 from huggingface_hub.utils import RepositoryNotFoundError
 
-from gradio_client import Client, File
+from gradio_client import Client, file
 from gradio_client.client import DEFAULT_TEMP_DIR
 from gradio_client.exceptions import AuthenticationError
 from gradio_client.utils import (
@@ -255,7 +255,7 @@ class TestClientPredictions:
         with connect(video_component) as client:
             job = client.submit(
                 {
-                    "video": File(
+                    "video": file(
                         "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
                     )
                 },
@@ -271,7 +271,7 @@ class TestClientPredictions:
         with connect(video_component, output_dir=temp_dir) as client:
             job = client.submit(
                 {
-                    "video": File(
+                    "video": file(
                         "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
                     )
                 },
@@ -374,13 +374,13 @@ class TestClientPredictions:
     def test_stream_audio(self, stream_audio):
         with connect(stream_audio) as client:
             job1 = client.submit(
-                File("https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4"),
+                file("https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4"),
                 api_name="/predict",
             )
             assert Path(job1.result()).exists()
 
             job2 = client.submit(
-                File(
+                file(
                     "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
                 ),
                 api_name="/predict",
