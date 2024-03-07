@@ -43,55 +43,65 @@ export function represent_value(
 }
 
 export function is_potentially_nested_file_data(obj: any): boolean {
-    if (typeof obj === 'object' && obj !== null) {
-        if (obj.hasOwnProperty('path') && obj.hasOwnProperty('meta')) {
-            if (typeof obj.meta === 'object' && obj.meta !== null && obj.meta._type === 'gradio.FileData') {
-                return true;
-            }
-        }
-    }
-    if (typeof obj === 'object' && obj !== null) {
-        for (let key in obj) {
-            if (typeof obj[key] === 'object') {
-                let result = is_potentially_nested_file_data(obj[key]);
-                if (result) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
+	if (typeof obj === "object" && obj !== null) {
+		if (obj.hasOwnProperty("path") && obj.hasOwnProperty("meta")) {
+			if (
+				typeof obj.meta === "object" &&
+				obj.meta !== null &&
+				obj.meta._type === "gradio.FileData"
+			) {
+				return true;
+			}
+		}
+	}
+	if (typeof obj === "object" && obj !== null) {
+		for (let key in obj) {
+			if (typeof obj[key] === "object") {
+				let result = is_potentially_nested_file_data(obj[key]);
+				if (result) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }
-
 
 function replace_file_data_with_file_function(obj: any): any {
-    if (typeof obj === 'object' && obj !== null && !Array.isArray(obj)) {
-        if ('path' in obj && 'meta' in obj && obj.meta?._type === 'gradio.FileData') {
-            return `file('${obj.path}')`;
-        }
-    }
-    if (Array.isArray(obj)) {
-        obj.forEach((item, index) => {
-            if (typeof item === 'object' && item !== null) {
-                obj[index] = replace_file_data_with_file_function(item); // Recurse and update array elements
-            }
-        });
-    } else if (typeof obj === 'object' && obj !== null) {
-        Object.keys(obj).forEach(key => {
-            obj[key] = replace_file_data_with_file_function(obj[key]); // Recurse and update object properties
-        });
-    }
-    return obj;
+	if (typeof obj === "object" && obj !== null && !Array.isArray(obj)) {
+		if (
+			"path" in obj &&
+			"meta" in obj &&
+			obj.meta?._type === "gradio.FileData"
+		) {
+			return `file('${obj.path}')`;
+		}
+	}
+	if (Array.isArray(obj)) {
+		obj.forEach((item, index) => {
+			if (typeof item === "object" && item !== null) {
+				obj[index] = replace_file_data_with_file_function(item); // Recurse and update array elements
+			}
+		});
+	} else if (typeof obj === "object" && obj !== null) {
+		Object.keys(obj).forEach((key) => {
+			obj[key] = replace_file_data_with_file_function(obj[key]); // Recurse and update object properties
+		});
+	}
+	return obj;
 }
 
-
 function stringify_except_file_function(obj) {
-    const jsonString = JSON.stringify(obj, (key, value) => {
-        if (typeof value === 'string' && value.startsWith('file(') && value.endsWith(')')) {
-            return `UNQUOTED${value}`; // Flag the special strings
-        }
-        return value;
-    });
-    const regex = /"UNQUOTEDfile\(([^)]*)\)"/g;
-    return jsonString.replace(regex, (match, p1) => `file(${p1})`);
+	const jsonString = JSON.stringify(obj, (key, value) => {
+		if (
+			typeof value === "string" &&
+			value.startsWith("file(") &&
+			value.endsWith(")")
+		) {
+			return `UNQUOTED${value}`; // Flag the special strings
+		}
+		return value;
+	});
+	const regex = /"UNQUOTEDfile\(([^)]*)\)"/g;
+	return jsonString.replace(regex, (match, p1) => `file(${p1})`);
 }

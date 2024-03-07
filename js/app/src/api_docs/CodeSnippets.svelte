@@ -27,8 +27,8 @@
 	let python_code: HTMLElement;
 	let js_code: HTMLElement;
 
-	let has_file_path = endpoint_parameters.some(
-		(param: EndpointParameter) => is_potentially_nested_file_data(param.example_input)
+	let has_file_path = endpoint_parameters.some((param: EndpointParameter) =>
+		is_potentially_nested_file_data(param.example_input)
 	);
 	let blob_components = ["Audio", "File", "Image", "Video"];
 	let blob_examples: any[] = endpoint_parameters.filter(
