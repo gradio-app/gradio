@@ -626,7 +626,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         self.progress_tracking = None
         self.ssl_verify = True
-
         self.allowed_paths = []
         self.blocked_paths = []
         self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
