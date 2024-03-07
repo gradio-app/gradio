@@ -246,10 +246,12 @@ class Communicator:
 ########################
 
 
-def is_http_url_like(possible_url: str) -> bool:
+def is_http_url_like(possible_url) -> bool:
     """
-    Check if the given string looks like an HTTP(S) URL.
+    Check if the given value is a string that looks like an HTTP(S) URL.
     """
+    if not isinstance(possible_url, str):
+        return False
     return possible_url.startswith(("http://", "https://"))
 
 

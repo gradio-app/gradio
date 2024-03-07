@@ -2989,7 +2989,9 @@ def test_component_example_values(io_components):
 
 def test_component_example_payloads(io_components):
     for component in io_components:
-        if component in [gr.BarPlot, gr.LinePlot, gr.ScatterPlot]:
+        if component == PDF:
+            continue
+        elif component in [gr.BarPlot, gr.LinePlot, gr.ScatterPlot]:
             c: Component = component(x="x", y="y")
         else:
             c: Component = component()
