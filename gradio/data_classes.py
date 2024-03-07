@@ -221,7 +221,7 @@ class _StaticFiles:
 
     def __init__(self, paths: list[str | pathlib.Path]) -> None:
         self.paths = paths
-        self.all_paths.extend([pathlib.Path(p).resolve() for p in paths])
+        self.all_paths = [pathlib.Path(p).resolve() for p in paths]
 
     @classmethod
     def clear(cls):

@@ -263,7 +263,7 @@ def move_files_to_cache(
         if payload.url and postprocess and client_utils.is_http_url_like(payload.url):
             payload.path = payload.url
         elif utils.is_static_file(payload):
-            payload.path = payload.path
+            pass
         elif not block.proxy_url:
             # If the file is on a remote server, do not move it to cache.
             if check_in_upload_folder and not client_utils.is_http_url_like(
