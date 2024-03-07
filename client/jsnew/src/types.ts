@@ -61,8 +61,7 @@ export type client_return = {
 	submit: (
 		endpoint: string | number,
 		data?: unknown[],
-		event_data?: unknown,
-		trigger_id?: number | null
+		event_data?: unknown
 	) => SubmitReturn;
 	component_server: (
 		component_id: number,

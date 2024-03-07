@@ -1,4 +1,4 @@
-import { Config, ApiInfo, ApiData } from "../types";
+import { ApiInfo, ApiData, Config } from "../types";
 import {
 	process_endpoint,
 	resolve_config,
@@ -9,9 +9,10 @@ import semiver from "semiver";
 import { API_INFO_URL, SPACE_FETCHER_URL } from "../constants";
 import { Client } from "../Client";
 
-export async function view_api(this: Client, config?: Config): Promise<any> {
+export async function view_api(this: Client): Promise<any> {
 	const { hf_token } = this.options;
 	let api_map: Record<string, number> = {};
+	let config;
 
 	const { http_protocol, host } =
 		(await process_endpoint(this.app_reference, hf_token ?? undefined)) || {};
@@ -31,11 +32,11 @@ export async function view_api(this: Client, config?: Config): Promise<any> {
 
 	try {
 		if (!config) {
-			config = await resolve_config(
+			config = (await resolve_config(
 				fetch,
 				`${http_protocol}//${host}`,
 				hf_token
-			);
+			)) as Config;
 		}
 
 		let response: Response;

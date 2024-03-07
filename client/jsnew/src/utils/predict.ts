@@ -1,34 +1,49 @@
 import { Client } from "..";
-import { SubmitReturn } from "../types";
+import { process_endpoint, resolve_config } from "../helpers";
+import { Dependency, SubmitReturn } from "../types";
 
 export async function predict(
 	this: Client,
 	endpoint: string | number,
-	data: unknown[],
+	data?: unknown[],
 	event_data?: unknown
 ): Promise<SubmitReturn> {
-	let api_map = this.api_map;
+	const { hf_token } = this.options;
 
-	if (!this.config) {
+	const { http_protocol, host } =
+		(await process_endpoint(this.app_reference, hf_token ?? undefined)) || {};
+
+	if (!http_protocol || !host) {
+		throw new Error("Could not get host");
+	}
+
+	let config = await resolve_config(
+		fetch,
+		`${http_protocol}//${host}`,
+		hf_token
+	);
+
+	if (!config) {
 		throw new Error("No config or app_id set");
 	}
 
-	let dependency;
+	let dependency: Dependency;
+
 	if (typeof endpoint === "number") {
-		dependency = this.config.dependencies[endpoint];
+		dependency = config.dependencies[endpoint];
 	} else {
 		const trimmed_endpoint = endpoint.replace(/^\//, "");
-		dependency = this.config.dependencies[api_map[trimmed_endpoint]];
+		dependency = config.dependencies[this.api_map[trimmed_endpoint]];
 	}
 
-	if (dependency.types.continuous) {
+	if (dependency?.types.continuous) {
 		throw new Error(
 			"Cannot call predict on this function as it may run forever. Use submit instead"
 		);
 	}
 
 	return new Promise(async (resolve, reject) => {
-		const app = await this.submit(endpoint, data, event_data, null);
+		const app = await this.submit(endpoint, data || [], event_data);
 		let result: unknown;
 		let data_returned = false;
 		let status_complete = false;

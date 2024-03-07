@@ -13,7 +13,6 @@ import { handle_blob } from "./utils/handle_blob";
 import { post_data } from "./utils/post_data";
 import { predict } from "./utils/predict";
 import { submit } from "./utils/submit";
-import { map_names_to_ids, process_endpoint, resolve_config } from "./helpers";
 
 export class NodeBlob extends Blob {
 	constructor(blobParts?: BlobPart[], options?: BlobPropertyBag) {
@@ -53,13 +52,12 @@ export class Client {
 	) => Promise<unknown[]>;
 	submit: (
 		endpoint: string | number,
-		data: unknown[],
-		event_data: unknown,
-		trigger_id: number | null
+		data?: unknown[],
+		event_data?: unknown
 	) => Promise<SubmitReturn>;
 	predict: (
 		endpoint: string | number,
-		data: unknown[],
+		data?: unknown[],
 		event_data?: unknown
 	) => Promise<any>;
 
@@ -73,28 +71,5 @@ export class Client {
 		this.post_data = post_data.bind(this);
 		this.submit = submit.bind(this);
 		this.predict = predict.bind(this);
-
-		this.initialize_client_vars();
-	}
-
-	async initialize_client_vars(): Promise<void> {
-		const { hf_token } = this.options;
-
-		const { http_protocol, host } =
-			(await process_endpoint(this.app_reference, hf_token ?? undefined)) || {};
-
-		if (!http_protocol || !host) {
-			console.error("Could not get host");
-		}
-
-		this.config = await resolve_config(
-			fetch,
-			`${http_protocol}//${host}`,
-			this.options.hf_token
-		);
-
-		this.session_hash = Math.random().toString(36).substring(2);
-		this.api_map = map_names_to_ids(this.config?.dependencies || []);
-		this.last_status = {};
 	}
 }

@@ -5,6 +5,7 @@ export async function resolve_config(
 	fetch_implementation: typeof fetch,
 	endpoint: string,
 	token?: `hf_${string}`
+	// protocol?: string
 ): Promise<Config | undefined> {
 	const headers: Record<string, string> = token
 		? { Authorization: `Bearer ${token}` }
@@ -23,12 +24,8 @@ export async function resolve_config(
 
 		let config_root = resolve_root(endpoint, config.root, false);
 
-		if (config_root === null) {
-			throw new Error("Could not resolve root");
-		} else {
-			config.root = config_root;
-			return { ...config, path };
-		}
+		config.root = config_root;
+		return { ...config, path };
 	}
 
 	if (endpoint) {
@@ -38,10 +35,6 @@ export async function resolve_config(
 
 		if (response?.status === 200) {
 			let config = await response.json();
-
-			if (!config.root) {
-				console.error("Could not resolve root");
-			}
 
 			return { ...config, path: config.path ?? "", root: endpoint };
 		}
@@ -151,7 +144,7 @@ export async function process_endpoint(
 			{ headers }
 		);
 
-		if (res?.status !== 200) {
+		if (res.status !== 200) {
 			throw new Error(res.statusText);
 		}
 
@@ -244,7 +237,7 @@ export function transform_api_info(
 				new_data[endpoint_category][endpoint] = {
 					parameters: parameters,
 					returns: returns,
-					type: config.dependencies[temp_index]?.types
+					type: config.dependencies[temp_index].types
 				};
 			}
 		}

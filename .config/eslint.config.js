@@ -123,6 +123,15 @@ export default [
 			}
 		}
 	},
+	// TODO: remove when renamed jsnew to js
+	{
+		files: ["**/client/jsnew/**"],
+		languageOptions: {
+			parserOptions: {
+				project: "./client/jsnew/tsconfig.json"
+			}
+		}
+	},
 	{
 		files: ["**/*.svelte"],
 		languageOptions: {
