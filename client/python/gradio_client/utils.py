@@ -1002,23 +1002,50 @@ def value_is_file(api_info: dict) -> bool:
     return FILE_DATA in info or OLD_FILE_DATA in info
 
 
-def is_filepath(s, url_ok=True):
+def is_filepath(s) -> bool:
+    """
+    Check if the given value is a valid str or Path filepath on the local filesystem, e.g. "path/to/file".
+    """
     return (
-        isinstance(s, str)
+        isinstance(s, (str, Path))
         and Path(s).exists()
         and Path(s).is_file()
-        and (url_ok or not is_url(s))
     )
 
 
-def is_file_obj(d, url_ok=True):
-    return isinstance(d, dict) and "path" in d and (url_ok or not is_url(d["path"]))
+def is_file_obj(d) -> bool:
+    """
+    Check if the given value is a valid FileData object dictionary in versions of Gradio<=4.20, e.g.
+    {
+        "path": "path/to/file",
+    }
+    """
+    return isinstance(d, dict) and "path" in d and isinstance(d["path"], str)
 
 
-def is_file_obj_with_url(d):
-    return (
-        isinstance(d, dict) and "path" in d and "url" in d and isinstance(d["url"], str)
-    )
+def is_file_obj_with_meta(d) -> bool:
+    """
+    Check if the given value is a valid FileData object dictionary in newer versions of Gradio
+    where the file objects include a specific "meta" key, e.g.
+    {
+        "path": "path/to/file",
+        "meta": {"_type: "gradio.FileData"}
+    }
+    """
+    return isinstance(d, dict) and "path" in d and isinstance(d["path"], str) and "meta" in d and d["meta"].get("_type", "") == "gradio.FileData"
+
+
+def is_file_obj_with_url(d) -> bool:
+    """
+    Check if the given value is a valid FileData object dictionary in newer versions of Gradio
+    where the file objects include a specific "meta" key, and ALSO include a "url" key, e.g.
+    {
+        "path": "path/to/file",
+        "url": "/file=path/to/file",
+        "meta": {"_type: "gradio.FileData"}
+    }
+    """
+    return is_file_obj_with_meta(d) and "url" in d and isinstance(d["url"], str)
 
 
 SKIP_COMPONENTS = {

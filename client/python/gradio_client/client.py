@@ -143,7 +143,7 @@ class Client:
             self._login(auth)
 
         self.config = self._get_config()
-        self.protocol: str = self.config.get("protocol", "ws")
+        self.protocol: Literal["ws", "sse", "sse_v1", "sse_v2", "sse_v2.1"] = self.config.get("protocol", "ws")
         self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
         self.sse_url = urllib.parse.urljoin(
             self.src, utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL
@@ -1083,7 +1083,10 @@ class Endpoint:
 
     def download_files(self, *data) -> tuple:
         data_ = list(data)
-        data_ = utils.traverse(data_, self._download_file, utils.is_file_obj)
+        if self.client.protocol == "sse_v2.1":
+            data_ = utils.traverse(data_, self._download_file, utils.is_file_obj_with_meta)
+        else:
+            data_ = utils.traverse(data_, self._download_file, utils.is_file_obj)
         return tuple(data_)
 
     def remove_skipped_components(self, *data) -> tuple:
