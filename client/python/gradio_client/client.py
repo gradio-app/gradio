@@ -143,7 +143,9 @@ class Client:
             self._login(auth)
 
         self.config = self._get_config()
-        self.protocol: Literal["ws", "sse", "sse_v1", "sse_v2", "sse_v2.1"] = self.config.get("protocol", "ws")
+        self.protocol: Literal[
+            "ws", "sse", "sse_v1", "sse_v2", "sse_v2.1"
+        ] = self.config.get("protocol", "ws")
         self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
         self.sse_url = urllib.parse.urljoin(
             self.src, utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL
@@ -445,7 +447,7 @@ class Client:
             "sse",
             "sse_v1",
             "sse_v2",
-            "sse_v2.1"
+            "sse_v2.1",
         ):
             helper = self.new_helper(inferred_fn_index)
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
@@ -1077,7 +1079,11 @@ class Endpoint:
         data_ = []
         for i, d in enumerate(data):
             if self.client.upload_files and self.input_component_types[i].value_is_file:
-                d = utils.traverse(d, self._upload_file, lambda f: utils.is_filepath(f) or utils.is_file_obj_with_meta(f))
+                d = utils.traverse(
+                    d,
+                    self._upload_file,
+                    lambda f: utils.is_filepath(f) or utils.is_file_obj_with_meta(f),
+                )
             elif not self.client.upload_files:
                 d = utils.traverse(d, self._upload_file, utils.is_file_obj_with_meta)
             data_.append(d)
@@ -1086,7 +1092,9 @@ class Endpoint:
     def download_files(self, *data) -> tuple:
         data_ = list(data)
         if self.client.protocol == "sse_v2.1":
-            data_ = utils.traverse(data_, self._download_file, utils.is_file_obj_with_meta)
+            data_ = utils.traverse(
+                data_, self._download_file, utils.is_file_obj_with_meta
+            )
         else:
             data_ = utils.traverse(data_, self._download_file, utils.is_file_obj)
         return tuple(data_)
@@ -1129,7 +1137,6 @@ class Endpoint:
             cookies=self.client.cookies,
         )
 
-
     async def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
         async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
             return await utils.get_pred_from_sse_v0(
@@ -1144,7 +1151,10 @@ class Endpoint:
             )
 
     async def _sse_fn_v1_v2(
-        self, helper: Communicator, event_id: str, protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"]
+        self,
+        helper: Communicator,
+        event_id: str,
+        protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
     ):
         return await utils.get_pred_from_sse_v1_v2(
             helper,

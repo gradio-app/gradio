@@ -546,10 +546,10 @@ async def stream_sse_v1_v2(
                     log=log_message,
                 )
                 output = msg.get("output", {}).get("data", [])
-                if (
-                    msg["msg"] == ServerMessage.process_generating
-                    and protocol in ["sse_v2", "sse_v2.1"]
-                ):
+                if msg["msg"] == ServerMessage.process_generating and protocol in [
+                    "sse_v2",
+                    "sse_v2.1",
+                ]:
                     if pending_responses_for_diffs is None:
                         pending_responses_for_diffs = list(output)
                     else:
@@ -622,11 +622,12 @@ def apply_diff(obj, diff):
 # Data processing utils
 ########################
 
+
 def upload_file(
     file_path: str,
     upload_url: str,
     headers: dict[str, str] | None = None,
-    cookies: dict[str, str] | None = None,        
+    cookies: dict[str, str] | None = None,
 ):
     r = httpx.post(
         upload_url,
@@ -637,6 +638,7 @@ def upload_file(
     r.raise_for_status()
     result = r.json()
     print("result", result)
+
 
 def download_file(
     url_path: str,
@@ -1021,11 +1023,7 @@ def is_filepath(s) -> bool:
     """
     Check if the given value is a valid str or Path filepath on the local filesystem, e.g. "path/to/file".
     """
-    return (
-        isinstance(s, (str, Path))
-        and Path(s).exists()
-        and Path(s).is_file()
-    )
+    return isinstance(s, (str, Path)) and Path(s).exists() and Path(s).is_file()
 
 
 def is_file_obj(d) -> bool:
@@ -1047,7 +1045,13 @@ def is_file_obj_with_meta(d) -> bool:
         "meta": {"_type: "gradio.FileData"}
     }
     """
-    return isinstance(d, dict) and "path" in d and isinstance(d["path"], str) and "meta" in d and d["meta"].get("_type", "") == "gradio.FileData"
+    return (
+        isinstance(d, dict)
+        and "path" in d
+        and isinstance(d["path"], str)
+        and "meta" in d
+        and d["meta"].get("_type", "") == "gradio.FileData"
+    )
 
 
 def is_file_obj_with_url(d) -> bool:
@@ -1087,4 +1091,6 @@ def file(filepath_or_url: str | Path):
     elif Path(s).exists():
         return {**data, "orig_name": Path(s).name}
     else:
-        raise ValueError(f"File {s} does not exist on local filesystem and is not a valid URL.")
+        raise ValueError(
+            f"File {s} does not exist on local filesystem and is not a valid URL."
+        )
