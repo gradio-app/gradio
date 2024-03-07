@@ -1171,6 +1171,7 @@ class TestEndpoints:
             "file7",
         ]
 
+
 cpu = huggingface_hub.SpaceHardware.CPU_BASIC
 
 
