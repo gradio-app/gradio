@@ -1109,6 +1109,10 @@ importers:
         version: link:../utils
 
   js/lite:
+    dependencies:
+      gradio:
+        specifier: workspace:^
+        version: link:../../gradio
     devDependencies:
       '@gradio/app':
         specifier: workspace:^
@@ -1116,9 +1120,6 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
-      gradio:
-        specifier: workspace:^
-        version: link:../../gradio
 
   js/markdown:
     dependencies:
