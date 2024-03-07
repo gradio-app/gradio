@@ -1707,3 +1707,47 @@ def test_blocks_postprocessing_with_copies_of_component_instance():
             demo.postprocess_data(0, [gr.Chatbot(value=[])] * 3, None)
             == [{"value": [], "__type__": "update"}] * 3
         )
+
+
+def test_static_files_single_app(connect, gradio_temp_dir):
+    gr.set_static_paths(
+        paths=["test/test_files/cheetah1.jpg", "test/test_files/bus.png"]
+    )
+    demo = gr.Interface(
+        lambda s: s.rotate(45),
+        gr.Image(value="test/test_files/cheetah1.jpg", type="pil"),
+        gr.Image(),
+        examples=["test/test_files/bus.png"],
+    )
+
+    # Nothing got saved to cache
+    assert len(list(gradio_temp_dir.glob("**/*.*"))) == 0
+
+    with connect(demo) as client:
+        client.predict("test/test_files/bus.png")
+
+    # Input/Output got saved to cache
+    assert len(list(gradio_temp_dir.glob("**/*.*"))) == 2
+
+
+def test_static_files_multiple_apps(gradio_temp_dir):
+    gr.set_static_paths(paths=["test/test_files/cheetah1.jpg"])
+    demo = gr.Interface(
+        lambda s: s.rotate(45),
+        gr.Image(value="test/test_files/cheetah1.jpg"),
+        gr.Image(),
+    )
+
+    gr.set_static_paths(paths=["test/test_files/images"])
+    demo_2 = gr.Interface(
+        lambda s: s.rotate(45),
+        gr.Image(value="test/test_files/images/bus.png"),
+        gr.Image(),
+    )
+
+    with gr.Blocks():
+        demo.render()
+        demo_2.render()
+
+    # Input/Output got saved to cache
+    assert len(list(gradio_temp_dir.glob("**/*.*"))) == 0

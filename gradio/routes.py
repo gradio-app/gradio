@@ -495,13 +495,18 @@ class App(FastAPI):
                 utils.is_in_or_equal(abs_path, allowed_path)
                 for allowed_path in blocks.allowed_paths
             )
+            is_static_file = utils.is_static_file(abs_path)
             was_uploaded = utils.is_in_or_equal(abs_path, app.uploaded_file_dir)
             is_cached_example = utils.is_in_or_equal(
                 abs_path, utils.abspath(utils.get_cache_folder())
             )
 
             if not (
-                created_by_app or in_allowlist or was_uploaded or is_cached_example
+                created_by_app
+                or in_allowlist
+                or was_uploaded
+                or is_cached_example
+                or is_static_file
             ):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
