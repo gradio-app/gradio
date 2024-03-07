@@ -1126,20 +1126,14 @@ class Endpoint:
             file_path = f
         else:
             file_path = f["path"]
-        if utils.is_http_url_like(file_path):
-            uploaded_path = file_path
-        else:
-            uploaded_path = (
-                self.root_url
-                + "file="
-                + utils.upload_file(
-                    file_path=file_path,
-                    upload_url=self.client.upload_url,
-                    headers=self.client.headers,
-                    cookies=self.client.cookies,
-                )
+        if not utils.is_http_url_like(file_path):
+            file_path = utils.upload_file(
+                file_path=file_path,
+                upload_url=self.client.upload_url,
+                headers=self.client.headers,
+                cookies=self.client.cookies,
             )
-        return utils.file(uploaded_path)
+        return {"path": file_path}
 
     def _download_file(self, x: dict) -> str | None:
         return utils.download_file(
