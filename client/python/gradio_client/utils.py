@@ -912,13 +912,18 @@ def get_type(schema: dict):
         raise APIInfoParseError(f"Cannot parse type for {schema}")
 
 
-OLD_FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)"
-FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool, meta: Dict())"
+FILE_DATA_FORMATS = [
+    "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)",
+    "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool)",
+    "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool, meta: Dict())",
+]
+
+CURRENT_FILE_DATA_FORMAT = FILE_DATA_FORMATS[-1]
 
 
 def json_schema_to_python_type(schema: Any) -> str:
     type_ = _json_schema_to_python_type(schema, schema.get("$defs"))
-    return type_.replace(FILE_DATA, "filepath")
+    return type_.replace(CURRENT_FILE_DATA_FORMAT, "filepath")
 
 
 def _json_schema_to_python_type(schema: Any, defs) -> str:
@@ -1013,7 +1018,7 @@ def traverse(json_obj: Any, func: Callable, is_root: Callable[..., bool]) -> Any
 
 def value_is_file(api_info: dict) -> bool:
     info = _json_schema_to_python_type(api_info, api_info.get("$defs"))
-    return FILE_DATA in info or OLD_FILE_DATA in info
+    return any(file_data_format in info for file_data_format in FILE_DATA_FORMATS)
 
 
 def is_filepath(s) -> bool:

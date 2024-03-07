@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ComponentMeta, Dependency } from "../types";
 	import CopyButton from "./CopyButton.svelte";
-	import { represent_value } from "./utils";
+	import { represent_value, is_potentially_nested_file_data } from "./utils";
 	import { Block } from "@gradio/atoms";
 	import EndpointDetail from "./EndpointDetail.svelte";
 
@@ -28,7 +28,7 @@
 	let js_code: HTMLElement;
 
 	let has_file_path = endpoint_parameters.some(
-		(param: EndpointParameter) => param.python_type.type === "filepath"
+		(param: EndpointParameter) => is_potentially_nested_file_data(param.example_input)
 	);
 	let blob_components = ["Audio", "File", "Image", "Video"];
 	let blob_examples: any[] = endpoint_parameters.filter(
@@ -49,7 +49,7 @@
 					<CopyButton code={python_code?.innerText} />
 				</div>
 				<div bind:this={python_code}>
-					<pre>from gradio_client import Client{#if has_file_path}, File{/if}
+					<pre>from gradio_client import Client{#if has_file_path}, file{/if}
 
 client = Client(<span class="token string">"{root}"</span>)
 result = client.predict(<!--

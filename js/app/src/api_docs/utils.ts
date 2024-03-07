@@ -4,10 +4,11 @@ export function represent_value(
 	type: string | undefined,
 	lang: "js" | "py" | null = null
 ): string | null | number | boolean | Record<string, unknown> {
+	console.log("value", value, "type", type, "lang", lang);
 	if (type === undefined) {
 		return lang === "py" ? "None" : null;
 	}
-	if (type === "string" || type === "str" || type === "filepath") {
+	if (type === "string" || type === "str") {
 		return lang === null ? value : '"' + value + '"';
 	} else if (type === "number") {
 		return lang === null ? parseFloat(value) : value;
