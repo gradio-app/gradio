@@ -200,6 +200,7 @@ class Component(ComponentBase, Block):
             initial_value,
             self,  # type: ignore
             postprocess=True,
+            keep_in_cache=True,
         )
         if is_file_obj(self.value):
             self.keep_in_cache.add(self.value["path"])
