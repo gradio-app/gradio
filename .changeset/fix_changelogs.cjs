@@ -77,7 +77,7 @@ function run() {
 		const highlights = highlight?.map((h) => `${h.summary}`) || [];
 		const features = feat?.map((f) => `- ${f.summary}`) || [];
 		const fixes = fix?.map((f) => `- ${f.summary}`) || [];
-		const deps = dependencies?.map((d) => d.trim()) || [];
+		const deps = Array.from(new Set(dependencies?.map((d) => d.trim()))) || [];
 
 		const release_notes = /** @type {[string[], string][]} */ ([
 			[highlights, "### Highlights"],
