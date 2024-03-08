@@ -102,21 +102,27 @@ const changelogFunctions = {
 			 * @returns {string} The formatted dependency
 			 */
 			(dependency) => {
-				if (!lines[dependency.name]) {
-					lines[dependency.name] = {
-						dirs: find_packages_dirs(dependency.name),
-						current_changelog: "",
-						feat: [],
-						fix: [],
-						highlight: [],
-						previous_version: packages.find(
-							(p) => p.packageJson.name === dependency.name
-						).packageJson.version,
-						dependencies: dependents.get(dependency.name) || []
-					};
-				} else {
-					lines[dependency.name].dependencies =
-						dependents.get(dependency.name) || [];
+				const updates = dependents.get(dependency.name);
+
+				if (updates && updates.length > 0) {
+					updates.forEach((update) => {
+						if (!lines[update]) {
+							lines[update] = {
+								dirs: find_packages_dirs(dependency.name),
+								current_changelog: "",
+								feat: [],
+								fix: [],
+								highlight: [],
+								previous_version: packages.find(
+									(p) => p.packageJson.name === dependency.name
+								).packageJson.version,
+								dependencies: []
+							};
+						}
+						lines[dependency.name].dependencies.push(
+							`- ${dependency.name}@${dependency.newVersion}`
+						);
+					});
 				}
 
 				return `  - ${dependency.name}@${dependency.newVersion}`;
