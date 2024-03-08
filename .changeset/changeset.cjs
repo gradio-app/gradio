@@ -114,7 +114,7 @@ const changelogFunctions = {
 								fix: [],
 								highlight: [],
 								previous_version: packages.find(
-									(p) => p.packageJson.name === dependency.name
+									(p) => p.packageJson.name === update
 								).packageJson.version,
 								dependencies: []
 							};
