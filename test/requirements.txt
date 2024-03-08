@@ -55,8 +55,8 @@ cycler==0.12.1
     # via matplotlib
 decorator==5.1.1
     # via ipython
-diffusers==0.26.3
-    # via -r requirements.in
+# diffusers==0.26.3
+#     # via -r requirements.in
 dnspython==2.6.1
     # via email-validator
 email-validator==2.1.0.post1
