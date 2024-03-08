@@ -68,7 +68,7 @@ function run() {
 
 			writeFileSync(
 				join(all_packages[pkg_name].dir, "package.json"),
-				JSON.stringify(all_packages[pkg_name].packageJson, null, "\t")
+				JSON.stringify(all_packages[pkg_name].packageJson, null, "\t") + "\n"
 			);
 		}
 
