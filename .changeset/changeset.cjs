@@ -119,8 +119,8 @@ const changelogFunctions = {
 								dependencies: []
 							};
 						}
-						lines[dependency.name].dependencies.push(
-							`- ${dependency.name}@${dependency.newVersion}`
+						lines[update].dependencies.push(
+							`  - ${dependency.name}@${dependency.newVersion}`
 						);
 					});
 				}
