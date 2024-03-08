@@ -80,6 +80,7 @@ class Client:
         headers: dict[str, str] | None = None,
         upload_files: bool = True,  # TODO: remove and hardcode to False in 1.0
         download_files: bool = True,  # TODO: consider setting to False in 1.0
+        _skip_components: bool = True,  # internal parameter to skip values certain components (e.g. State) that do not need to be displayed to users.
     ):
         """
         Parameters:
@@ -102,6 +103,7 @@ class Client:
             upload_files = serialize
         self.upload_files = upload_files
         self.download_files = download_files
+        self._skip_components = _skip_components
         self.headers = build_hf_headers(
             token=hf_token,
             library_name="gradio_client",
@@ -1092,6 +1094,7 @@ class Endpoint:
         # components that the user likely does not want to see (e.g. gr.State, gr.Tab).
         if self.client.download_files:
             predictions = self.download_files(*predictions)
+        if self.client._skip_components:
             predictions = self.remove_skipped_components(*predictions)
         predictions = self.reduce_singleton_output(*predictions)
         return predictions
