@@ -9,12 +9,11 @@ def print_like_dislike(x: gr.LikeData):
     print(x.index, x.value, x.liked)
 
 def add_message(history, message):
-    for x in message:
-        if x["type"] == "file" and x["file"]["path"] is not None:  
-            history.append(((x["file"]["path"],), None))  
-        elif x["type"] == "text" and x["text"] is not None:
-            history.append((x["text"], None))
-    return history, gr.MultimodalTextbox(value=[], interactive=False, file_types=["image"])
+    for x in message["files"]:
+        history.append(((x["path"],), None))  
+    if message["text"] is not None:
+        history.append((message["text"], None))
+    return history, gr.MultimodalTextbox(value=None, interactive=False, file_types=["image"])
 
 def bot(history):
     response = "**That's cool!**"

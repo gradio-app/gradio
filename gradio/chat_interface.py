@@ -452,36 +452,39 @@ class ChatInterface(Blocks):
             ),
         )
 
-    def _clear_and_save_textbox(self, message: str) -> tuple[str | list, str]:
+    def _clear_and_save_textbox(self, message: str) -> tuple[str | dict, str]:
         if self.multimodal:
-            return [], message
+            return {"text": "", "files": []}, message
         else:
             return "", message
 
-    def _append_multimodal_history(self, message: list[dict[str, str]], history: list[list[str | None]]):
-        for x in message:
-            if x["type"] == "file" and x["file"]["path"] is not None:  
-                history.append(((x["file"]["path"],), None))  
-            elif x["type"] == "text" and x["text"] is not None:
-                history.append((x["text"], None))
+    def _append_multimodal_history(self, message: dict[str, list], response: str | None, history: list[list[str | None]]):
+        for x in message["files"]:
+            history.append(((x["path"],), None))  
+        if message["text"] is not None:
+            history.append((message["text"], response))
 
     def _display_input(
-        self, message: str | list[dict[str, str]], history: list[list[str | None]]
+        self, message: str | dict[str, list], history: list[list[str | None]]
     ) -> tuple[list[list[str | None]], list[list[str | None]]]:
-        if self.multimodal and isinstance(message, list):
-            self._append_multimodal_history(message, history)
+        if self.multimodal and isinstance(message, dict):
+            self._append_multimodal_history(message, None, history)
         elif isinstance(message, str):
             history.append([message, None])
         return history, history
 
     async def _submit_fn(
         self,
-        message: str | list[dict[str, str]],
+        message: str | dict[str, list],
         history_with_input: list[list[str | None]],
         request: Request,
         *args,
     ) -> tuple[list[list[str | None]], list[list[str | None]]]:
-        history = history_with_input[:-1]
+        if self.multimodal and isinstance(message, dict):
+            remove_input = len(message["files"]) + 1 if message["text"] is not None else len(message["files"])      
+            history = history_with_input[:-remove_input]
+        else:          
+            history = history_with_input[:-1]
         inputs, _, _ = special_args(
             self.fn, inputs=[message, history, *args], request=request
         )
@@ -493,8 +496,8 @@ class ChatInterface(Blocks):
                 self.fn, *inputs, limiter=self.limiter
             )
 
-        if self.multimodal and isinstance(message, list):
-            self._append_multimodal_history(message, history)
+        if self.multimodal and isinstance(message, dict):
+            self._append_multimodal_history(message, response, history)
         else:
             history.append([message, response])
         return history, history

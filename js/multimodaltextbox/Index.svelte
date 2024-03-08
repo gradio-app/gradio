@@ -15,7 +15,7 @@
 
 	export let gradio: Gradio<{
 		change: typeof value;
-		submit: typeof value;
+		submit: never;
 		blur: never;
 		select: SelectData;
 		input: never;
@@ -24,10 +24,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: (
-		| { type: string; text: string }
-		| { type: string; file: FileData | null }
-	)[] = [];
+	export let value: { text: string; files: FileData[] } = { text: '', files: [] };
 	export let file_types: string[] | null = null;
 	export let lines: number;
 	export let placeholder = "";

@@ -12,8 +12,8 @@
 	import { fade } from "svelte/transition";
 	import type { SelectData } from "@gradio/utils";
 
-	export let value: { type: string; text?: string; file?: FileData | null }[] =
-		[];
+	export let value: { text: string; files: FileData[] } = { text: '', files: [] };
+
 	export let value_is_output = false;
 	export let lines = 1;
 	export let placeholder = "Type here...";
@@ -35,8 +35,6 @@
 	let can_scroll: boolean;
 	let previous_scroll_top = 0;
 	let user_has_scrolled_up = false;
-
-	let text = "";
 	let dragging = false;
 	$: dispatch("drag", dragging);
 
@@ -53,12 +51,12 @@
 		accept_file_types = file_types.join(", ");
 	}
 
+	$: if (value === null) value = { text: '', files: [] };
 	$: value, el && lines !== max_lines && resize({ target: el });
-	$: file_count = Array.isArray(value) ? value.filter((item) => item.type === "file").length : 0;
 
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
-		submit: typeof value;
+		submit: undefined;
 		blur: undefined;
 		select: SelectData;
 		input: undefined;
@@ -100,11 +98,8 @@
 
 	async function handle_copy(): Promise<void> {
 		if ("clipboard" in navigator) {
-			const text = value.find((item) => item && "text" in item);
-			if (text && "text" in text && typeof text["text"] === "string") {
-				await navigator.clipboard.writeText(text["text"]);
-				copy_feedback();
-			}
+			await navigator.clipboard.writeText(value.text);
+			copy_feedback();
 		}
 	}
 
@@ -132,11 +127,7 @@
 		await tick();
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
-			value.push({ type: "text", text: text });
-			dispatch("submit", value);
-			text = "";
-			await tick();
-			value = [];
+			dispatch("submit");
 		} else if (
 			e.key === "Enter" &&
 			!e.shiftKey &&
@@ -144,11 +135,7 @@
 			max_lines >= 1
 		) {
 			e.preventDefault();
-			value.push({ type: "text", text: text });
-			dispatch("submit", value);
-			text = "";
-			await tick();
-			value = [];
+			dispatch("submit");
 		}
 	}
 
@@ -217,10 +204,10 @@
 	}: CustomEvent<FileData | FileData[]>): Promise<void> {
 		if (Array.isArray(detail)) {
 			for (let file of detail) {
-				value = [...value, { type: "file", file: file }];
+				value.files.push(file);
 			}
 		} else {
-			value.push({ type: "file", file: detail });
+			value.files.push(detail);
 			value = value;
 		}
 		await tick();
@@ -230,7 +217,7 @@
 
 	function remove_thumbnail(event: MouseEvent, index: number): void {
 		event.stopPropagation();
-		value.splice(index, 1);
+		value.files.splice(index, 1);
 		value = value;
 	}
 
@@ -243,11 +230,7 @@
 	}
 
 	async function handle_submit(): Promise<void> {
-		value.push({ type: "text", text: text });
-		dispatch("submit", value);
-		text = "";
-		await tick();
-		value = [];
+		dispatch("submit");
 	}
 </script>
 
@@ -279,30 +262,30 @@
 		>
 			<button class="submit-button" on:click={handle_submit}>⌲</button>
 			<button class="plus-button" on:click={handle_upload_click}>+</button>
-			{#if file_count > 0}
+			{#if value.files.length > 0}
 				<div
 					class="thumbnails scroll-hide"
 					data-testid="container_el"
-					style="display: {file_count > 0 ? 'flex' : 'none'};"
+					style="display: {value.files.length > 0 ? 'flex' : 'none'};"
 				>
-					{#each value.filter((item) => item.type === "file") as file, index}
+				{#each value.files as file, index}
 						<button class="thumbnail-item thumbnail-small">
 							<button
 								class="delete-button"
 								on:click={(event) => remove_thumbnail(event, index)}
 								><Clear /></button
 							>
-							{#if file.file?.mime_type && file.file.mime_type.includes("image")}
+							{#if file.mime_type && file.mime_type.includes("image")}
 								<Image
-									src={file.file.url}
+									src={file.url}
 									title={null}
 									alt=""
 									loading="lazy"
 									class={"thumbnail-image"}
 								/>
-							{:else if file.file?.mime_type && file.file.mime_type.includes("audio")}
+							{:else if file.mime_type && file.mime_type.includes("audio")}
 								<Music />
-							{:else if file.file?.mime_type && file.file.mime_type.includes("video")}
+							{:else if file.mime_type && file.mime_type.includes("video")}
 								<Video />
 							{:else}
 								<File />
@@ -313,10 +296,10 @@
 			{/if}
 			<textarea
 				data-testid="textbox"
-				use:text_area_resize={text}
+				use:text_area_resize={value.text}
 				class="scroll-hide"
 				dir={rtl ? "rtl" : "ltr"}
-				bind:value={text}
+				bind:value={value.text}
 				bind:this={el}
 				{placeholder}
 				rows={lines}
@@ -473,8 +456,8 @@
 	}
 
 	.delete-button :global(svg) {
-		width: 15px;
-		height: 15px;
+		width: 12px;
+		height: 12px;
 	}
 
 	.delete-button:hover {

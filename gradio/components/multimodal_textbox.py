@@ -30,7 +30,7 @@ class MultimodalTextbox(FormComponent):
 
     def __init__(
         self,
-        value: list[dict[str, str]] | Callable | None = None,
+        value: dict[str, str | list] | Callable | None = None,
         *,
         file_types: list[str] | None = None,
         lines: int = 1,
@@ -56,7 +56,7 @@ class MultimodalTextbox(FormComponent):
     ):
         """
         Parameters:
-            value: Default value to show in MultimodalTextbox. List of dictionaries of the form [{"type": "text", "text": "Sample Text"}, {"type": "file", "file": {path: "files/file.jpg", orig_name: "file.jpg", url: "http://image_url.jpg", size: 100}}]. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default value to show in MultimodalTextbox. A dictionary of the form {"text": "sample text", "files": [{path: "files/file.jpg", orig_name: "file.jpg", url: "http://image_url.jpg", size: 100}]}. If callable, the function will be called whenever the app loads to set the initial value of the component.
             file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.json', '.mp4']). "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             lines: minimum number of line rows to provide in textarea.
             max_lines: maximum number of line rows to provide in textarea.
@@ -109,8 +109,8 @@ class MultimodalTextbox(FormComponent):
         self.text_align = text_align
 
     def preprocess(
-        self, payload: list[dict[str, str]] | None
-    ) -> list[dict[str, str]] | None:
+        self, payload: dict[str, str | list] | None
+    ) -> dict[str, str | list] | None:
         """
         Parameters:
             payload: the text entered in the textarea.
@@ -121,19 +121,22 @@ class MultimodalTextbox(FormComponent):
 
     def api_info(self) -> dict[str, Any]:
         return {
-            "type": "array",
-            "items": {
                 "type": "object",
                 "properties": {
-                    "type": {"type": "string", "enum": ["text", "file"]},
-                    "text": {"type": "string"},
-                    "file": {
+                    "text": {
+                        "type": "string"
+                    },
+                    "files": {
                         "type": "object",
-                        "properties": {"path": {"type": "string"}},
+                        "properties": {
+                            "path": {
+                                "type": "string"
+                            }
+                        },
                     },
                 },
-            },
-        }
+            }
 
     def example_inputs(self) -> Any:
-        return [{"type": "text", "text": "Hello!!"}]
+        return {"text": "sample text", "files": []}
+
