@@ -1,4 +1,10 @@
-import { create, type Options, type GradioAppController } from "..";
+// NOTE: We should only import the types from ".." to avoid the circular dependency of implementations,
+// which causes repeated executions of the ".." module in †he dev mode and can lead to multiple instances of the dev app.
+import type {
+	create as createLiteAppFunc,
+	Options,
+	GradioAppController
+} from "..";
 
 interface GradioComponentOptions {
 	info: Options["info"];
@@ -28,7 +34,9 @@ function parseRequirementsTxt(content: string): string[] {
 		.filter((r) => r !== "");
 }
 
-export function bootstrap_custom_element(): void {
+export function bootstrap_custom_element(
+	create: typeof createLiteAppFunc
+): void {
 	const CUSTOM_ELEMENT_NAME = "gradio-lite";
 
 	if (customElements.get(CUSTOM_ELEMENT_NAME)) {

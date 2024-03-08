@@ -1,5 +1,13 @@
 # @gradio/wasm
 
+## 0.7.0
+
+### Features
+
+- [#7119](https://github.com/gradio-app/gradio/pull/7119) [`9c6de6d`](https://github.com/gradio-app/gradio/commit/9c6de6d85092c1c9378d7f81e5ec734221536812) - Upgrade Pyodide to 0.25.0.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#7340](https://github.com/gradio-app/gradio/pull/7340) [`4b0d589`](https://github.com/gradio-app/gradio/commit/4b0d58933057432758a54169a360eb352903d6b4) - chore(deps): update all non-major dependencies.  Thanks [@renovate](https://github.com/apps/renovate)!
+- [#7345](https://github.com/gradio-app/gradio/pull/7345) [`561579d`](https://github.com/gradio-app/gradio/commit/561579d9b7b860c5cb3f8131e0dced0c8114463f) - fix-tests.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.6.0
 
 ### Features

@@ -22,7 +22,16 @@ import time
 import traceback
 from pathlib import Path
 from queue import Empty as EmptyQueue
-from typing import TYPE_CHECKING, Any, AsyncIterator, Dict, List, Optional, Type
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    AsyncIterator,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Type,
+)
 
 import fastapi
 import httpx
@@ -48,11 +57,14 @@ from starlette.responses import RedirectResponse, StreamingResponse
 import gradio
 from gradio import ranged_response, route_utils, utils, wasm_utils
 from gradio.context import Context
-from gradio.data_classes import ComponentServerBody, PredictBody, ResetBody
+from gradio.data_classes import (
+    ComponentServerBody,
+    PredictBody,
+    ResetBody,
+    SimplePredictBody,
+)
 from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
-from gradio.processing_utils import add_root_url
-from gradio.queueing import Estimation
 from gradio.route_utils import (  # noqa: F401
     CustomCORSMiddleware,
     FileUploadProgress,
@@ -63,7 +75,16 @@ from gradio.route_utils import (  # noqa: F401
     MultiPartException,
     Request,
     compare_passwords_securely,
+    create_lifespan_handler,
     move_uploaded_files_to_cache,
+)
+from gradio.server_messages import (
+    EstimationMessage,
+    EventMessage,
+    HeartbeatMessage,
+    ProcessCompletedMessage,
+    ProcessGeneratingMessage,
+    UnexpectedErrorMessage,
 )
 from gradio.state_holder import StateHolder
 from gradio.utils import get_package_version, get_upload_folder
@@ -122,7 +143,11 @@ class App(FastAPI):
     FastAPI App Wrapper
     """
 
-    def __init__(self, **kwargs):
+    def __init__(
+        self,
+        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        **kwargs,
+    ):
         self.tokens = {}
         self.auth = None
         self.blocks: gradio.Blocks | None = None
@@ -136,6 +161,7 @@ class App(FastAPI):
         self.uploaded_file_dir = get_upload_folder()
         self.change_event: None | threading.Event = None
         self._asyncio_tasks: list[asyncio.Task] = []
+        self.auth_dependency = auth_dependency
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
@@ -188,11 +214,17 @@ class App(FastAPI):
 
     @staticmethod
     def create_app(
-        blocks: gradio.Blocks, app_kwargs: Dict[str, Any] | None = None
+        blocks: gradio.Blocks,
+        app_kwargs: Dict[str, Any] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
-        app = App(**app_kwargs)
+        if blocks.delete_cache is not None:
+            app_kwargs["lifespan"] = create_lifespan_handler(
+                app_kwargs.get("lifespan", None), *blocks.delete_cache
+            )
+        app = App(auth_dependency=auth_dependency, **app_kwargs)
         app.configure_app(blocks)
 
         if not wasm_utils.IS_WASM:
@@ -201,6 +233,8 @@ class App(FastAPI):
         @app.get("/user")
         @app.get("/user/")
         def get_current_user(request: fastapi.Request) -> Optional[str]:
+            if app.auth_dependency is not None:
+                return app.auth_dependency(request)
             token = request.cookies.get(
                 f"access-token-{app.cookie_id}"
             ) or request.cookies.get(f"access-token-unsecure-{app.cookie_id}")
@@ -209,7 +243,7 @@ class App(FastAPI):
         @app.get("/login_check")
         @app.get("/login_check/")
         def login_check(user: str = Depends(get_current_user)):
-            if app.auth is None or user is not None:
+            if (app.auth is None and app.auth_dependency is None) or user is not None:
                 return
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
@@ -318,9 +352,13 @@ class App(FastAPI):
             root = route_utils.get_root_url(
                 request=request, route_path="/", root_path=app.root_path
             )
-            if app.auth is None or user is not None:
+            if (app.auth is None and app.auth_dependency is None) or user is not None:
                 config = app.get_blocks().config
                 config = route_utils.update_root_in_config(config, root)
+            elif app.auth_dependency:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
+                )
             else:
                 config = {
                     "auth_required": True,
@@ -457,13 +495,18 @@ class App(FastAPI):
                 utils.is_in_or_equal(abs_path, allowed_path)
                 for allowed_path in blocks.allowed_paths
             )
+            is_static_file = utils.is_static_file(abs_path)
             was_uploaded = utils.is_in_or_equal(abs_path, app.uploaded_file_dir)
             is_cached_example = utils.is_in_or_equal(
                 abs_path, utils.abspath(utils.get_cache_folder())
             )
 
             if not (
-                created_by_app or in_allowlist or was_uploaded or is_cached_example
+                created_by_app
+                or in_allowlist
+                or was_uploaded
+                or is_cached_example
+                or is_static_file
             ):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
@@ -570,13 +613,16 @@ class App(FastAPI):
                 username=username,
                 request=request,
             )
-
+            root_path = route_utils.get_root_url(
+                request=request, route_path=f"/api/{api_name}", root_path=app.root_path
+            )
             try:
                 output = await route_utils.call_process_api(
                     app=app,
                     body=body,
                     gr_request=gr_request,
                     fn_index_inferred=fn_index_inferred,
+                    root_path=root_path,
                 )
             except BaseException as error:
                 show_error = app.get_blocks().show_error or isinstance(error, Error)
@@ -585,21 +631,104 @@ class App(FastAPI):
                     content={"error": str(error) if show_error else None},
                     status_code=500,
                 )
-            root_path = route_utils.get_root_url(
-                request=request, route_path=f"/api/{api_name}", root_path=app.root_path
-            )
-            output = add_root_url(output, root_path, None)
             return output
+
+        @app.post("/call/{api_name}", dependencies=[Depends(login_check)])
+        @app.post("/call/{api_name}/", dependencies=[Depends(login_check)])
+        async def simple_predict_post(
+            api_name: str,
+            body: SimplePredictBody,
+            request: fastapi.Request,
+            username: str = Depends(get_current_user),
+        ):
+            full_body = PredictBody(**body.model_dump(), simple_format=True)
+            inferred_fn_index = route_utils.infer_fn_index(
+                app=app, api_name=api_name, body=full_body
+            )
+            full_body.fn_index = inferred_fn_index
+            return await queue_join_helper(full_body, request, username)
+
+        @app.post("/queue/join", dependencies=[Depends(login_check)])
+        async def queue_join(
+            body: PredictBody,
+            request: fastapi.Request,
+            username: str = Depends(get_current_user),
+        ):
+            if body.session_hash is None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Session hash not found.",
+                )
+            return await queue_join_helper(body, request, username)
+
+        async def queue_join_helper(
+            body: PredictBody,
+            request: fastapi.Request,
+            username: str,
+        ):
+            blocks = app.get_blocks()
+
+            if blocks._queue.server_app is None:
+                blocks._queue.set_server_app(app)
+
+            if blocks._queue.stopped:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Queue is stopped.",
+                )
+
+            success, event_id = await blocks._queue.push(
+                body=body, request=request, username=username
+            )
+            if not success:
+                status_code = (
+                    status.HTTP_503_SERVICE_UNAVAILABLE
+                    if "Queue is full." in event_id
+                    else status.HTTP_400_BAD_REQUEST
+                )
+                raise HTTPException(status_code=status_code, detail=event_id)
+            return {"event_id": event_id}
+
+        @app.get("/call/{api_name}/{event_id}", dependencies=[Depends(login_check)])
+        async def simple_predict_get(
+            request: fastapi.Request,
+            event_id: str,
+        ):
+            def process_msg(message: EventMessage) -> str | None:
+                if isinstance(message, ProcessCompletedMessage):
+                    event = "complete" if message.success else "error"
+                    data = message.output.get("data")
+                elif isinstance(message, ProcessGeneratingMessage):
+                    event = "generating" if message.success else "error"
+                    data = message.output.get("data")
+                elif isinstance(message, HeartbeatMessage):
+                    event = "heartbeat"
+                    data = None
+                elif isinstance(message, UnexpectedErrorMessage):
+                    event = "error"
+                    data = message.message
+                else:
+                    return None
+                return f"event: {event}\ndata: {json.dumps(data)}\n\n"
+
+            return await queue_data_helper(request, event_id, process_msg)
 
         @app.get("/queue/data", dependencies=[Depends(login_check)])
         async def queue_data(
             request: fastapi.Request,
             session_hash: str,
         ):
+            def process_msg(message: EventMessage) -> str:
+                return f"data: {json.dumps(message.model_dump())}\n\n"
+
+            return await queue_data_helper(request, session_hash, process_msg)
+
+        async def queue_data_helper(
+            request: fastapi.Request,
+            session_hash: str,
+            process_msg: Callable[[EventMessage], str | None],
+        ):
             blocks = app.get_blocks()
-            root_path = route_utils.get_root_url(
-                request=request, route_path="/queue/data", root_path=app.root_path
-            )
 
             async def sse_stream(request: fastapi.Request):
                 try:
@@ -630,29 +759,30 @@ class App(FastAPI):
                             await asyncio.sleep(check_rate)
                             if time.perf_counter() - last_heartbeat > heartbeat_rate:
                                 # Fix this
-                                message = {
-                                    "msg": ServerMessage.heartbeat,
-                                }
+                                message = HeartbeatMessage()
                                 # Need to reset last_heartbeat with perf_counter
                                 # otherwise only a single hearbeat msg will be sent
                                 # and then the stream will retry leading to infinite queue 😬
                                 last_heartbeat = time.perf_counter()
 
                         if blocks._queue.stopped:
-                            message = {
-                                "msg": "unexpected_error",
-                                "message": "Server stopped unexpectedly.",
-                                "success": False,
-                            }
+                            message = UnexpectedErrorMessage(
+                                message="Server stopped unexpectedly.",
+                                success=False,
+                            )
                         if message:
-                            add_root_url(message, root_path, None)
-                            yield f"data: {json.dumps(message)}\n\n"
-                            if message["msg"] == ServerMessage.process_completed:
+                            response = process_msg(message)
+                            if response is not None:
+                                yield response
+                            if (
+                                isinstance(message, ProcessCompletedMessage)
+                                and message.event_id
+                            ):
                                 blocks._queue.pending_event_ids_session[
                                     session_hash
-                                ].remove(message["event_id"])
-                                if message["msg"] == ServerMessage.server_stopped or (
-                                    message["msg"] == ServerMessage.process_completed
+                                ].remove(message.event_id)
+                                if message.msg == ServerMessage.server_stopped or (
+                                    message.msg == ServerMessage.process_completed
                                     and (
                                         len(
                                             blocks._queue.pending_event_ids_session[
@@ -664,12 +794,12 @@ class App(FastAPI):
                                 ):
                                     return
                 except BaseException as e:
-                    message = {
-                        "msg": "unexpected_error",
-                        "success": False,
-                        "message": str(e),
-                    }
-                    yield f"data: {json.dumps(message)}\n\n"
+                    message = UnexpectedErrorMessage(
+                        message=str(e),
+                    )
+                    response = process_msg(message)
+                    if response is not None:
+                        yield response
                     if isinstance(e, asyncio.CancelledError):
                         del blocks._queue.pending_messages_per_session[session_hash]
                         await blocks._queue.clean_events(session_hash=session_hash)
@@ -679,33 +809,6 @@ class App(FastAPI):
                 sse_stream(request),
                 media_type="text/event-stream",
             )
-
-        @app.post("/queue/join", dependencies=[Depends(login_check)])
-        async def queue_join(
-            body: PredictBody,
-            request: fastapi.Request,
-            username: str = Depends(get_current_user),
-        ):
-            blocks = app.get_blocks()
-
-            if blocks._queue.server_app is None:
-                blocks._queue.set_server_app(app)
-
-            if blocks._queue.stopped:
-                raise HTTPException(
-                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                    detail="Queue is stopped.",
-                )
-
-            success, event_id = await blocks._queue.push(body, request, username)
-            if not success:
-                status_code = (
-                    status.HTTP_503_SERVICE_UNAVAILABLE
-                    if "Queue is full." in event_id
-                    else status.HTTP_400_BAD_REQUEST
-                )
-                raise HTTPException(status_code=status_code, detail=event_id)
-            return {"event_id": event_id}
 
         @app.post("/component_server", dependencies=[Depends(login_check)])
         @app.post("/component_server/", dependencies=[Depends(login_check)])
@@ -728,7 +831,7 @@ class App(FastAPI):
         @app.get(
             "/queue/status",
             dependencies=[Depends(login_check)],
-            response_model=Estimation,
+            response_model=EstimationMessage,
         )
         async def get_queue_status():
             return app.get_blocks()._queue.get_status()
@@ -827,6 +930,7 @@ class App(FastAPI):
                     files_to_copy.append(temp_file.file.name)
                     locations.append(str(dest))
                 output_files.append(dest)
+                blocks.upload_file_set.add(str(dest))
             if files_to_copy:
                 bg_tasks.add_task(
                     move_uploaded_files_to_cache, files_to_copy, locations
@@ -908,6 +1012,8 @@ def mount_gradio_app(
     blocks: gradio.Blocks,
     path: str,
     app_kwargs: dict[str, Any] | None = None,
+    *,
+    auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -916,6 +1022,7 @@ def mount_gradio_app(
         blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted.
         app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
+        auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth.
     Example:
         from fastapi import FastAPI
         import gradio as gr
@@ -930,7 +1037,9 @@ def mount_gradio_app(
     blocks.dev_mode = False
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
-    gradio_app = App.create_app(blocks, app_kwargs=app_kwargs)
+    gradio_app = App.create_app(
+        blocks, app_kwargs=app_kwargs, auth_dependency=auth_dependency
+    )
 
     old_lifespan = app.router.lifespan_context
 

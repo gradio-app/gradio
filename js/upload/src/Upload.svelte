@@ -25,19 +25,27 @@
 	const upload_fn = getContext<typeof upload_files>("upload_files");
 
 	let hidden_upload: HTMLInputElement;
-
 	const dispatch = createEventDispatcher();
-	$: if (filetype == null || typeof filetype === "string") {
-		accept_file_types = filetype;
+	const validFileTypes = ["image", "video", "audio", "text", "file"];
+	const processFileType = (type: string): string => {
+		if (type.startsWith(".") || type.endsWith("/*")) {
+			return type;
+		}
+		if (validFileTypes.includes(type)) {
+			return type + "/*";
+		}
+		return "." + type;
+	};
+
+	$: if (filetype == null) {
+		accept_file_types = null;
+	} else if (typeof filetype === "string") {
+		accept_file_types = processFileType(filetype);
 	} else {
-		filetype = filetype.map((x) => {
-			if (x.startsWith(".")) {
-				return x;
-			}
-			return x + "/*";
-		});
+		filetype = filetype.map(processFileType);
 		accept_file_types = filetype.join(", ");
 	}
+
 	function updateDragging(): void {
 		dragging = !dragging;
 	}
@@ -108,7 +116,13 @@
 		uploaded_file_extension: string,
 		uploaded_file_type: string
 	): boolean {
-		if (!file_accept || file_accept === "*" || file_accept === "file/*") {
+		if (
+			!file_accept ||
+			file_accept === "*" ||
+			file_accept === "file/*" ||
+			(Array.isArray(file_accept) &&
+				file_accept.some((accept) => accept === "*" || accept === "file/*"))
+		) {
 			return true;
 		}
 		let acceptArray: string[];
@@ -137,7 +151,7 @@
 			const file_extension = "." + file.name.split(".").pop();
 			if (
 				file_extension &&
-				is_valid_mimetype(filetype, file_extension, file.type)
+				is_valid_mimetype(accept_file_types, file_extension, file.type)
 			) {
 				return true;
 			}
