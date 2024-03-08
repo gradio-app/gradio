@@ -10,7 +10,7 @@
 	import { Video } from "@gradio/video/shared";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
-	import { get_fetchable_url_or_file, type FileData } from "@gradio/client";
+	import { type FileData } from "@gradio/client";
 	import Copy from "./Copy.svelte";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import LikeDislike from "./LikeDislike.svelte";
@@ -39,13 +39,11 @@
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
-	export let avatar_images: [string | null, string | null] = [null, null];
+	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
 	export let render_markdown = true;
 	export let line_breaks = true;
-	export let root: string;
-	export let proxy_url: null | string;
 	export let i18n: I18nFormatter;
 	export let layout: "bubble" | "panel" = "bubble";
 
@@ -168,11 +166,7 @@
 								<div class="avatar-container">
 									<Image
 										class="avatar-image"
-										src={get_fetchable_url_or_file(
-											avatar_images[j],
-											root,
-											proxy_url
-										)}
+										src={avatar_images[j]?.url}
 										alt="{j == 0 ? 'user' : 'bot'} avatar"
 									/>
 								</div>

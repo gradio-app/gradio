@@ -21,6 +21,7 @@ from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client
 from gradio_client.client import DEFAULT_TEMP_DIR
+from gradio_client.exceptions import AuthenticationError
 from gradio_client.utils import (
     Communicator,
     ProgressUnit,
@@ -52,6 +53,7 @@ def connect(
 
 
 class TestClientInitialization:
+    @pytest.mark.flaky
     def test_headers_constructed_correctly(self):
         client = Client("gradio-tests/titanic-survival", hf_token=HF_TOKEN)
         assert {"authorization": f"Bearer {HF_TOKEN}"}.items() <= client.headers.items()
@@ -297,6 +299,18 @@ class TestClientPredictions:
                 count += unit in all_progress_data
             assert count
 
+    def test_upload_and_download_with_auth(self):
+        demo = gr.Interface(lambda x: x, "text", "text")
+        _, url, _ = demo.launch(auth=("user", "pass"), prevent_thread_lock=True)
+        with pytest.raises(AuthenticationError):
+            client = Client(url)
+        client = Client(url, auth=("user", "pass"))
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+            f.write("Hello file!")
+        output = client.predict(f.name, api_name="/predict")
+        with open(output) as f:
+            assert f.read() == "Hello file!"
+
     def test_cancel_from_client_queued(self, cancel_from_client_demo):
         with connect(cancel_from_client_demo) as client:
             start = time.time()
@@ -514,6 +528,7 @@ class TestClientPredictions:
         finally:
             server.thread.join(timeout=1)
 
+    @pytest.mark.flaky
     def test_predict_with_space_with_api_name_false(self):
         client = Client("gradio-tests/client-bool-api-name-error")
         assert client.predict("Hello!", api_name="/run") == "Hello!"

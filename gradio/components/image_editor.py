@@ -315,7 +315,14 @@ class ImageEditor(Component):
             else None,
         )
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return {
+            "background": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+            "layers": [],
+            "composite": None,
+        }
+
+    def example_value(self) -> Any:
         return {
             "background": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
             "layers": [],

@@ -7,8 +7,10 @@ import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal
 
+import gradio_client.utils as client_utils
 from gradio_client.documentation import document
 
+from gradio import processing_utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
@@ -20,7 +22,7 @@ class UploadButton(Component):
     """
     Used to create an upload button, when clicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
 
-    Demos: upload_button
+    Demos: upload_and_download, upload_button
     """
 
     EVENTS = [Events.click, Events.upload]
@@ -53,6 +55,7 @@ class UploadButton(Component):
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
             size: Size of the button. Can be "sm" or "lg".
+            icon: URL or path to the icon file to display within the button. If None, no icon will be displayed.
             scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: If False, the UploadButton will be in a disabled state.
@@ -101,7 +104,7 @@ class UploadButton(Component):
             min_width=min_width,
             interactive=interactive,
         )
-        self.icon = self.move_resource_to_block_cache(icon)
+        self.icon = self.serve_static_file(icon)
 
     def api_info(self) -> dict[str, list[str]]:
         if self.file_count == "single":
@@ -109,7 +112,15 @@ class UploadButton(Component):
         else:
             return ListFiles.model_json_schema()
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        if self.file_count == "single":
+            return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+        else:
+            return [
+                "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+            ]
+
+    def example_value(self) -> Any:
         if self.file_count == "single":
             return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
         else:
@@ -154,15 +165,36 @@ class UploadButton(Component):
             return [self._process_single_file(f) for f in payload]  # type: ignore
         return [self._process_single_file(payload)]  # type: ignore
 
+    def _download_files(self, value: str | list[str]) -> str | list[str]:
+        downloaded_files = []
+        if isinstance(value, list):
+            for file in value:
+                if client_utils.is_http_url_like(file):
+                    downloaded_file = processing_utils.save_url_to_cache(
+                        file, self.GRADIO_CACHE
+                    )
+                    downloaded_files.append(downloaded_file)
+                else:
+                    downloaded_files.append(file)
+            return downloaded_files
+        if client_utils.is_http_url_like(value):
+            downloaded_file = processing_utils.save_url_to_cache(
+                value, self.GRADIO_CACHE
+            )
+            return downloaded_file
+        else:
+            return value
+
     def postprocess(self, value: str | list[str] | None) -> ListFiles | FileData | None:
         """
         Parameters:
-            value: Expects a `str` filepath, or a `list[str]` of filepaths.
+            value: Expects a `str` filepath or URL, or a `list[str]` of filepaths/URLs.
         Returns:
             File information as a FileData object, or a list of FileData objects.
         """
         if value is None:
             return None
+        value = self._download_files(value)
         if isinstance(value, list):
             return ListFiles(
                 root=[

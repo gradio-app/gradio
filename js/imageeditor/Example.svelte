@@ -3,7 +3,6 @@
 	import type { EditorData } from "./shared/InteractiveImageEditor.svelte";
 
 	export let value: EditorData;
-	export let samples_dir: string;
 	export let type: "gallery" | "table";
 	export let selected = false;
 </script>
@@ -14,10 +13,7 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	<Image
-		src={samples_dir + (value.composite?.path || value.background?.path)}
-		alt=""
-	/>
+	<Image src={value.composite?.url || value.background?.url} alt="" />
 </div>
 
 <style>
