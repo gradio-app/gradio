@@ -15,6 +15,8 @@ This is like when you run `python <app-file>.py`, however the `gradio` command w
 ## The development server didn't work for me 
 Make sure you have your package installed along with any dependencies you have added by running `gradio cc install`.
 Make sure there aren't any syntax or import errors in the Python or JavaScript code.
+If the development server is still not working for you, please use the `--python-path` and `gradio-path` CLI arguments to specify the path of the python and gradio executables for the environment your component is installed in.
+It is likely that the wrong envrironment is being used. For example, if you are using a virtualenv located at `/Users/mary/venv`, pass in `/Users/mary/bin/python` and `/Users/mary/bin/gradio` respectively.
 
 ## Do I need to host my custom component on HuggingFace Spaces?
 You can develop and build your custom component without hosting or connecting to HuggingFace.

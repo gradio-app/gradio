@@ -36,7 +36,8 @@ async function run(): Promise<void> {
 	if (parsed_args.mode === "build") {
 		await make_build({
 			component_dir: parsed_args["component-directory"],
-			root_dir: parsed_args.root
+			root_dir: parsed_args.root,
+			python_path: parsed_args["python-path"]
 		});
 	} else {
 		const [backend_port, frontend_port] = await find_free_ports(7860, 8860);
@@ -51,7 +52,7 @@ async function run(): Promise<void> {
 		process.env.GRADIO_BACKEND_PORT = backend_port.toString();
 
 		const _process = spawn(
-			which.sync("gradio"),
+			parsed_args["gradio-path"],
 			[parsed_args.app, "--watch-dirs", options.component_dir],
 			{
 				shell: true,
@@ -78,7 +79,8 @@ async function run(): Promise<void> {
 						root_dir: options.root_dir,
 						frontend_port,
 						backend_port,
-						host: options.host
+						host: options.host,
+						python_path: parsed_args["python-path"]
 					});
 				}
 
@@ -148,22 +150,27 @@ function is_truthy<T>(value: T | null | undefined | false): value is T {
 export function examine_module(
 	component_dir: string,
 	root: string,
+	python_path: string,
 	mode: "build" | "dev"
 ): ComponentMeta[] {
 	const _process = spawnSync(
-		which.sync("python"),
+		python_path,
 		[join(root, "..", "..", "node", "examine.py"), "-m", mode],
 		{
 			cwd: join(component_dir, "backend"),
 			stdio: "pipe"
 		}
 	);
+	const exceptions: string[] = [];
 
-	return _process.stdout
+	const components = _process.stdout
 		.toString()
 		.trim()
 		.split("\n")
 		.map((line) => {
+			if (line.startsWith("|EXCEPTION|")) {
+				exceptions.push(line.slice("|EXCEPTION|:".length));
+			}
 			const [name, template_dir, frontend_dir, component_class_id] =
 				line.split("~|~|~|~");
 			if (name && template_dir && frontend_dir && component_class_id) {
@@ -177,4 +184,12 @@ export function examine_module(
 			return false;
 		})
 		.filter(is_truthy);
+	if (exceptions.length > 0) {
+		console.info(
+			`While searching for gradio custom component source directories in ${component_dir}, the following exceptions were raised. If dev mode does not work properly please pass the --gradio-path and --python-path CLI arguments so that gradio uses the right executables: ${exceptions.join(
+				"\n"
+			)}`
+		);
+	}
+	return components;
 }
