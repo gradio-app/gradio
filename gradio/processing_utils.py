@@ -264,8 +264,9 @@ def move_files_to_cache(
             payload.path = payload.url
         elif not block.proxy_url:
             # If the file is on a remote server, do not move it to cache.
-            temp_file_path = move_resource_to_block_cache(payload.path, block)
-            assert temp_file_path is not None
+            temp_file_path = block.move_resource_to_block_cache(payload.path)
+            if temp_file_path is None:
+                raise ValueError("Did not determine a file path for the resource.")
             payload.path = temp_file_path
 
         if add_urls:

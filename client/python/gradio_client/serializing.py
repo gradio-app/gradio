@@ -318,7 +318,10 @@ class FileSerializable(Serializable):
                 else:
                     file_name = utils.create_tmp_copy_of_file(filepath, dir=save_dir)
             elif x.get("is_stream"):
-                assert x["name"] and root_url and save_dir
+                if not (x["name"] and root_url and save_dir):
+                    raise ValueError(
+                        "name and root_url and save_dir must all be present"
+                    )
                 if not self.stream or self.stream_name != x["name"]:
                     self.stream = self._setup_stream(
                         root_url + "stream/" + x["name"], hf_token=hf_token

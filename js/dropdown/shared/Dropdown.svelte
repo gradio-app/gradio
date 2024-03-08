@@ -55,6 +55,7 @@
 			[input_text, old_value] = choices[selected_index];
 			old_input_text = input_text;
 		}
+		set_input_text();
 	} else if (choices.length > 0) {
 		old_selected_index = 0;
 		selected_index = 0;
@@ -87,18 +88,25 @@
 		}
 	}
 
-	$: {
+	function set_choice_names_values(): void {
 		choices_names = choices.map((c) => c[0]);
 		choices_values = choices.map((c) => c[1]);
 	}
 
+	$: choices, set_choice_names_values();
+
 	$: {
 		if (choices !== old_choices) {
-			set_input_text();
+			if (!allow_custom_value) {
+				set_input_text();
+			}
 			old_choices = choices;
 			filtered_indices = handle_filter(choices, input_text);
 			if (!allow_custom_value && filtered_indices.length > 0) {
 				active_index = filtered_indices[0];
+			}
+			if (filter_input == document.activeElement) {
+				show_options = true;
 			}
 		}
 	}
@@ -114,6 +122,7 @@
 	}
 
 	function set_input_text(): void {
+		set_choice_names_values();
 		if (value === undefined) {
 			input_text = "";
 			selected_index = null;

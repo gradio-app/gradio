@@ -171,7 +171,7 @@ class App(FastAPI):
 
     def build_proxy_request(self, url_path):
         url = httpx.URL(url_path)
-        assert self.blocks
+        assert self.blocks  # noqa: S101
         # Don't proxy a URL unless it's a URL specifically loaded by the user using
         # gr.load() to prevent SSRF or harvesting of HF tokens by malicious Spaces.
         is_safe_url = any(
@@ -429,8 +429,7 @@ class App(FastAPI):
                     url=path_or_url, status_code=status.HTTP_302_FOUND
                 )
 
-            invalid_prefixes = ["//", "file://", "ftp://", "sftp://", "smb://"]
-            if any(path_or_url.startswith(prefix) for prefix in invalid_prefixes):
+            if route_utils.starts_with_protocol(path_or_url):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
             abs_path = utils.abspath(path_or_url)
@@ -779,7 +778,7 @@ class App(FastAPI):
         ):
             content_type_header = request.headers.get("Content-Type")
             content_type: bytes
-            content_type, _ = parse_options_header(content_type_header)
+            content_type, _ = parse_options_header(content_type_header or "")
             if content_type != b"multipart/form-data":
                 raise HTTPException(status_code=400, detail="Invalid content type.")
 
@@ -802,7 +801,8 @@ class App(FastAPI):
             files_to_copy = []
             locations: list[str] = []
             for temp_file in form.getlist("files"):
-                assert isinstance(temp_file, GradioUploadFile)
+                if not isinstance(temp_file, GradioUploadFile):
+                    raise TypeError("File is not an instance of GradioUploadFile")
                 if temp_file.filename:
                     file_name = Path(temp_file.filename).name
                     name = client_utils.strip_invalid_filename_characters(file_name)

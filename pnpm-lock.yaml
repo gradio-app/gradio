@@ -78,8 +78,8 @@ importers:
         specifier: ^2.32.4
         version: 2.35.1(eslint@8.56.0)(svelte@4.2.11)
       globals:
-        specifier: ^13.20.0
-        version: 13.24.0
+        specifier: ^14.0.0
+        version: 14.0.0
       happy-dom:
         specifier: ^13.3.8
         version: 13.3.8
@@ -307,7 +307,7 @@ importers:
   js/_website:
     dependencies:
       '@gradio/code':
-        specifier: 0.5.1
+        specifier: 0.5.2
         version: link:../code
       '@sindresorhus/slugify':
         specifier: ^2.2.0
@@ -1348,10 +1348,10 @@ importers:
   js/preview/test/test/frontend:
     dependencies:
       '@gradio/atoms':
-        specifier: 0.5.2
+        specifier: 0.5.3
         version: link:../../../../atoms
       '@gradio/statustracker':
-        specifier: 0.4.6
+        specifier: 0.4.7
         version: link:../../../../statustracker
       '@gradio/utils':
         specifier: 0.3.0
@@ -10240,6 +10240,11 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       type-fest: 0.20.2
+
+  /globals@14.0.0:
+    resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
+    engines: {node: '>=18'}
+    dev: false
 
   /globalthis@1.0.3:
     resolution: {integrity: sha512-sFdI5LyBiNTHjRd7cGPWapiHWMOXKyuBNX/cWJ3NfzrZQVa8GI/8cofCl74AOVqq9W5kNmguTIzJ/1s2gyI9wA==}

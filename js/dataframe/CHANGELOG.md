@@ -1,5 +1,16 @@
 # @gradio/dataframe
 
+## 0.6.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/atoms@0.5.3
+  - @gradio/statustracker@0.4.7
+  - @gradio/upload@0.7.4
+  - @gradio/markdown@0.6.4
+  - @gradio/button@0.2.22
+
 ## 0.6.2
 
 ### Patch Changes
