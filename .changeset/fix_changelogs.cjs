@@ -113,7 +113,7 @@ ${current_changelog.replace(`# ${pkg_name}`, "").trim()}
 		}
 	}
 
-	// unlinkSync(join(pkg_meta.rootDir, ".changeset", "_changelog.json"));
+	unlinkSync(join(pkg_meta.rootDir, ".changeset", "_changelog.json"));
 
 	/**
 	 * @param {string} pkg_to_bump The name of the package to bump
