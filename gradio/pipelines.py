@@ -3,37 +3,37 @@ please use the `gr.Interface.from_pipeline()` function."""
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING
 
-from gradio.pipelines_helpers import (
-    _handle_diffusers_pipeline,
-    _handle_transformers_pipeline,
+from gradio.pipelines_utils import (
+    handle_diffusers_pipeline,
+    handle_transformers_pipeline,
 )
 
+if TYPE_CHECKING:
+    import diffusers
+    import transformers
 
-def load_from_pipeline(pipeline: Any) -> dict:
+
+def load_from_pipeline(
+    pipeline: transformers.Pipeline | diffusers.DiffusionPipeline,  # type: ignore
+) -> dict:
     """
-    Gets the appropriate Interface kwargs for a given Hugging Face transformers.Pipeline.
+    Gets the appropriate Interface kwargs for a given Hugging Face transformers.Pipeline or diffusers.DiffusionPipeline.
     pipeline (transformers.Pipeline): the transformers.Pipeline from which to create an interface
     Returns:
     (dict): a dictionary of kwargs that can be used to construct an Interface object
     """
 
-    # module of pipeline will look like this:
-    # for transformers.pipelines: transformers.pipelines.xxxxxx.xxxx
-    # for diffusers.pipelines: diffusers.pipelines.xxxxx.xxxx
-    if str(type(pipeline).__module__).startswith("transformers.pipelines"):
-        pipeline_info = _handle_transformers_pipeline(pipeline)
-
-    elif str(type(pipeline).__module__).startswith("diffusers.pipelines"):
-        pipeline_info = _handle_diffusers_pipeline(pipeline)
-
+    if str(type(pipeline).__module__).startswith("transformers.pipelines."):
+        pipeline_info = handle_transformers_pipeline(pipeline)
+    elif str(type(pipeline).__module__).startswith("diffusers.pipelines."):
+        pipeline_info = handle_diffusers_pipeline(pipeline)
     else:
         raise ValueError(
             "pipeline must be a transformers.pipeline or diffusers.pipeline"
         )
 
-    # define the function that will be called by the Interface
     def fn(*params):
         if pipeline_info:
             data = pipeline_info["preprocess"](*params)
@@ -51,7 +51,7 @@ def load_from_pipeline(pipeline: Any) -> dict:
                 ):
                     data = pipeline(*data)
                 else:
-                    data = pipeline(**data)
+                    data = pipeline(**data)  # type: ignore
                 # special case for object-detection
                 # original input image sent to postprocess function
                 if isinstance(
@@ -64,7 +64,7 @@ def load_from_pipeline(pipeline: Any) -> dict:
                 return output
 
             elif str(type(pipeline).__module__).startswith("diffusers.pipelines"):
-                data = pipeline(**data)
+                data = pipeline(**data)  # type: ignore
                 output = pipeline_info["postprocess"](data)
                 return output
         else:

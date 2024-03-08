@@ -10,11 +10,9 @@ from PIL import Image
 from gradio import components
 
 
-def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
+def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
     try:
         import transformers
-        from transformers import pipelines
-
     except ImportError as ie:
         raise ImportError(
             "transformers not installed. Please try `pip install transformers`"
@@ -210,11 +208,9 @@ def _handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
     raise ValueError(f"Unsupported pipeline type: {type(pipeline)}")
 
 
-def _handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
+def handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
     try:
         import diffusers
-        from diffusers import pipelines as diffuser_pipelines
-
     except ImportError as ie:
         raise ImportError(
             "diffusers not installed. Please try `pip install diffusers`"
