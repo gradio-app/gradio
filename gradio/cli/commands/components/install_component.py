@@ -39,6 +39,10 @@ def _get_executable_path(
     If check_3 is True, we append 3 to the executable name to give python3 priority over python (same for pip).
     """
     if executable_path:
+        if not Path(executable_path).exists() or not Path(executable_path).is_file():
+            raise ValueError(
+                f"The provided {executable} path ({executable_path}) does not exist or is not a file."
+            )
         return executable_path
     path = shutil.which(executable)
     if check_3:

@@ -70,7 +70,9 @@ def test_get_executable_path():
         "pip", None, "--pip-path", check_3=True
     ) == shutil.which("pip3")
     assert _get_executable_path("pip", None, "--pip-path") == shutil.which("pip")
-    assert _get_executable_path("pip", "/usr/bin/pip", "--pip-path") == "/usr/bin/pip"
+    assert _get_executable_path(
+        "pip", shutil.which("pip"), "--pip-path"
+    ) == shutil.which("pip")
     assert _get_executable_path(
         "gradio", None, "--pip-path", check_3=True
     ) == shutil.which("gradio")
@@ -79,6 +81,11 @@ def test_get_executable_path():
         match=r"Could not find foo. Please ensure it is installed and in your PATH or pass the --foo-path parameter.",
     ):
         _get_executable_path("foo", None, "--foo-path")
+    with pytest.raises(
+        ValueError,
+        match=r"The provided foo path \(/foo/bar/fum\) does not exist or is not a file.",
+    ):
+        _get_executable_path("foo", "/foo/bar/fum", "--foo-path")
 
 
 def test_raise_error_component_template_does_not_exist(tmp_path):
