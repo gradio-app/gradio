@@ -43,21 +43,6 @@ function run() {
 		return acc;
 	}, /** @type {{[key:string] : PackageMeta}} */ ({}));
 
-	/**
-	 * @param {string} name_and_version Name and version of the package
-	 * @returns {{package_name: string, version: string}} Package name and version
-	 */
-	function get_bound_version(name_and_version) {
-		const [package_name, version = "patch"] = name_and_version.split("@");
-
-		return {
-			package_name,
-			version
-		};
-	}
-
-	console.log(packages);
-
 	for (const pkg_name in packages) {
 		const { dirs, highlight, feat, fix, current_changelog } =
 			/**@type {ChangesetMeta} */ (packages[pkg_name]);
