@@ -33,6 +33,7 @@ from gradio.pipelines import load_from_pipeline
 from gradio.themes import ThemeClass as Theme
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
+    from diffusers import DiffusionPipeline  # type: ignore
     from transformers.pipelines.base import Pipeline
 
 
@@ -68,9 +69,11 @@ class Interface(Blocks):
         return list(Interface.instances)
 
     @classmethod
-    def from_pipeline(cls, pipeline: Pipeline, **kwargs) -> Interface:
+    def from_pipeline(
+        cls, pipeline: Pipeline | DiffusionPipeline, **kwargs
+    ) -> Interface:
         """
-        Class method that constructs an Interface from a Hugging Face transformers.Pipeline object.
+        Class method that constructs an Interface from a Hugging Face transformers.Pipeline or diffusers.DiffusionPipeline object.
         The input and output components are automatically determined from the pipeline.
         Parameters:
             pipeline: the pipeline object to use.
