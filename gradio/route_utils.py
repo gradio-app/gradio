@@ -292,6 +292,9 @@ def get_root_url(
     Also ensures that the root url is https if the request is https. If root_path is provided, and it is not already
     the subpath of the URL, it is appended to the root url. The final root url will not have a trailing slash.
     """
+    x_forwarded_host = request.headers.get('X-Forwarded-Host')
+    print("request.url", request.url)
+    print("x_forwarded_host", x_forwarded_host)
     root_url = str(request.url)
     root_url = httpx.URL(root_url)
     root_url = root_url.copy_with(query=None)
