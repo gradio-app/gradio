@@ -9,7 +9,6 @@ import random
 import secrets
 import string
 import sys
-import tempfile
 import threading
 import time
 import warnings
@@ -21,6 +20,7 @@ from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, Sequenc
 from urllib.parse import urlparse, urlunparse
 
 import anyio
+import fastapi
 import httpx
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
@@ -70,6 +70,7 @@ from gradio.utils import (
     get_cancel_function,
     get_continuous_fn,
     get_package_version,
+    get_upload_folder,
 )
 
 try:
@@ -119,12 +120,7 @@ class Block:
         self._constructor_args: list[dict]
         self.state_session_capacity = 10000
         self.temp_files: set[str] = set()
-        self.GRADIO_CACHE = str(
-            Path(
-                os.environ.get("GRADIO_TEMP_DIR")
-                or str(Path(tempfile.gettempdir()) / "gradio")
-            ).resolve()
-        )
+        self.GRADIO_CACHE = get_upload_folder()
 
         if render:
             self.render()
@@ -239,6 +235,9 @@ class Block:
         """Moves a file or downloads a file from a url to a block's cache directory, adds
         to to the block's temp_files, and returns the path to the file in cache. This
         ensures that the file is accessible to the Block and can be served to users.
+
+        Note: this method is not used in any core Gradio components, but is kept here
+        for backwards compatibility with custom components created with gradio<=4.20.0.
         """
         if url_or_file_path is None:
             return None
@@ -262,6 +261,30 @@ class Block:
             self.temp_files.add(temp_file_path)
 
         return temp_file_path
+
+    def serve_static_file(self, url_or_file_path: str | Path | None) -> dict | None:
+        """If a file is a local file, moves it to the block's cache directory and returns
+        a FileData-type dictionary corresponding to the file. If the file is a URL, returns a
+        FileData-type dictionary corresponding to the URL. This ensures that the file is
+        accessible in the frontend and can be served to users.
+
+        Examples:
+        >>> block.serve_static_file("https://gradio.app/logo.png") -> {"path": "https://gradio.app/logo.png", "url": "https://gradio.app/logo.png"}
+        >>> block.serve_static_file("logo.png") -> {"path": "logo.png", "url": "/file=logo.png"}
+        """
+        if url_or_file_path is None:
+            return None
+        if isinstance(url_or_file_path, Path):
+            url_or_file_path = str(url_or_file_path)
+
+        if client_utils.is_http_url_like(url_or_file_path):
+            return FileData(path=url_or_file_path, url=url_or_file_path).model_dump()
+        else:
+            data = {"path": url_or_file_path}
+            try:
+                return processing_utils.move_files_to_cache(data, self)
+            except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
+                return data
 
 
 class BlockContext(Block):
@@ -504,6 +527,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         js: str | None = None,
         head: str | None = None,
         fill_height: bool = False,
+        delete_cache: tuple[int, int] | None = None,
         **kwargs,
     ):
         """
@@ -516,6 +540,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             js: Custom js or path to js file to run when demo is first loaded. This javascript will be included in the demo webpage.
             head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
             fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
+            delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
         """
         self.limiter = None
         if theme is None:
@@ -544,6 +569,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.show_error = True
         self.head = head
         self.fill_height = fill_height
+        self.delete_cache = delete_cache
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -586,7 +612,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.auth = None
         self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", ""))
         self.app_id = random.getrandbits(64)
-        self.temp_file_sets = []
+        self.upload_file_set = set()
+        self.temp_file_sets = [self.upload_file_set]
         self.title = title
         self.show_api = not wasm_utils.IS_WASM
 
@@ -599,7 +626,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         self.progress_tracking = None
         self.ssl_verify = True
-
         self.allowed_paths = []
         self.blocked_paths = []
         self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
@@ -1110,6 +1136,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             inputs=processed_inputs,
             request=None,
             state={},
+            explicit_call=True,
         )
         outputs = outputs["data"]
 
@@ -1299,7 +1326,11 @@ Received inputs:
             )
 
     def preprocess_data(
-        self, fn_index: int, inputs: list[Any], state: SessionState | None
+        self,
+        fn_index: int,
+        inputs: list[Any],
+        state: SessionState | None,
+        explicit_call: bool = False,
     ):
         state = state or SessionState(self)
         block_fn = self.fns[fn_index]
@@ -1326,7 +1357,9 @@ Received inputs:
                     if input_id in state:
                         block = state[input_id]
                     inputs_cached = processing_utils.move_files_to_cache(
-                        inputs[i], block, add_urls=True
+                        inputs[i],
+                        block,
+                        check_in_upload_folder=not explicit_call,
                     )
                     if getattr(block, "data_model", None) and inputs_cached is not None:
                         if issubclass(block.data_model, GradioModel):  # type: ignore
@@ -1456,9 +1489,8 @@ Received outputs:
 
                 outputs_cached = processing_utils.move_files_to_cache(
                     prediction_value,
-                    block,  # type: ignore
+                    block,
                     postprocess=True,
-                    add_urls=True,
                 )
                 output.append(outputs_cached)
 
@@ -1497,6 +1529,7 @@ Received outputs:
         session_hash: str | None,
         run: int | None,
         final: bool,
+        simple_format: bool = False,
     ) -> list:
         if session_hash is None or run is None:
             return data
@@ -1515,15 +1548,22 @@ Received outputs:
             else:
                 prev_chunk = last_diffs[i]
                 last_diffs[i] = data[i]
-                data[i] = utils.diff(prev_chunk, data[i])
+                if not simple_format:
+                    data[i] = utils.diff(prev_chunk, data[i])
 
         if final:
             del self.pending_diff_streams[session_hash][run]
 
         return data
 
-    def run_fn_batch(self, fn, batch, fn_index, state):
-        return [fn(fn_index, list(i), state) for i in zip(*batch)]
+    def run_fn_batch(self, fn, batch, fn_index, state, explicit_call=None):
+        output = []
+        for i in zip(*batch):
+            args = [fn_index, list(i), state]
+            if explicit_call is not None:
+                args.append(explicit_call)
+            output.append(fn(*args))
+        return output
 
     async def process_api(
         self,
@@ -1536,6 +1576,9 @@ Received outputs:
         event_id: str | None = None,
         event_data: EventData | None = None,
         in_event_listener: bool = True,
+        simple_format: bool = False,
+        explicit_call: bool = False,
+        root_path: str | None = None,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -1548,6 +1591,9 @@ Received outputs:
             iterators: the in-progress iterators for each generator function (key is function index)
             event_id: id of event that triggered this API call
             event_data: data associated with the event trigger itself
+            in_event_listener: whether this API call is being made in response to an event listener
+            explicit_call: whether this call is being made directly by calling the Blocks function, instead of through an event listener or API route
+            root_path: if provided, the root path of the server. All file URLs will be prefixed with this path.
         Returns: None
         """
         block_fn = self.fns[fn_index]
@@ -1575,6 +1621,7 @@ Received outputs:
                 inputs,
                 fn_index,
                 state,
+                explicit_call,
                 limiter=self.limiter,
             )
             result = await self.call_function(
@@ -1595,6 +1642,8 @@ Received outputs:
                 state,
                 limiter=self.limiter,
             )
+            if root_path is not None:
+                data = processing_utils.add_root_url(data, root_path, None)
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
@@ -1603,7 +1652,12 @@ Received outputs:
                 inputs = []
             else:
                 inputs = await anyio.to_thread.run_sync(
-                    self.preprocess_data, fn_index, inputs, state, limiter=self.limiter
+                    self.preprocess_data,
+                    fn_index,
+                    inputs,
+                    state,
+                    explicit_call,
+                    limiter=self.limiter,
                 )
             was_generating = old_iterator is not None
             result = await self.call_function(
@@ -1622,6 +1676,8 @@ Received outputs:
                 state,
                 limiter=self.limiter,
             )
+            if root_path is not None:
+                data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
                 run = id(old_iterator) if was_generating else id(iterator)
@@ -1637,6 +1693,7 @@ Received outputs:
                     session_hash=session_hash,
                     run=run,
                     final=not is_generating,
+                    simple_format=simple_format,
                 )
 
         block_fn.total_runtime += result["duration"]
@@ -1718,6 +1775,9 @@ Received outputs:
 
             if not block.skip_api:
                 block_config["api_info"] = block.api_info()  # type: ignore
+                # .example_inputs() has been renamed .example_payload() but
+                # we use the old name for backwards compatibility with custom components
+                # created on Gradio 4.20.0 or earlier
                 block_config["example_inputs"] = block.example_inputs()  # type: ignore
             config["components"].append(block_config)
         config["dependencies"] = self.dependencies
@@ -1850,6 +1910,7 @@ Received outputs:
         state_session_capacity: int = 10000,
         share_server_address: str | None = None,
         share_server_protocol: Literal["http", "https"] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         _frontend: bool = True,
     ) -> tuple[FastAPI, str, str]:
         """
@@ -1884,6 +1945,7 @@ Received outputs:
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
             share_server_address: Use this to specify a custom FRP server and port for sharing Gradio apps (only applies if share=True). If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
             share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
+            auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1910,6 +1972,10 @@ Received outputs:
         if not self.exited:
             self.__exit__()
 
+        if auth is not None and auth_dependency is not None:
+            raise ValueError(
+                "You cannot provide both `auth` and `auth_dependency` in launch(). Please choose one."
+            )
         if (
             auth
             and not callable(auth)
@@ -1968,7 +2034,9 @@ Received outputs:
                 # and avoid using `networking.start_server` that would start a server that don't work in the Wasm env.
                 from gradio.routes import App
 
-                app = App.create_app(self, app_kwargs=app_kwargs)
+                app = App.create_app(
+                    self, auth_dependency=auth_dependency, app_kwargs=app_kwargs
+                )
                 wasm_utils.register_app(app)
             else:
                 (

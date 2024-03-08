@@ -41,7 +41,7 @@ class Button(Component):
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             size: Size of the button. Can be "sm" or "lg".
-            icon: URL or path to the icon file to display within the button. If None, no icon will be displayed. Must be within the working directory of the Gradio app or an external URL.
+            icon: URL or path to the icon file to display within the button. If None, no icon will be displayed.
             link: URL to open when the button is clicked. If None, no link will be used.
             visible: If False, component will be hidden.
             interactive: If False, the Button will be in a disabled state.
@@ -62,7 +62,7 @@ class Button(Component):
             scale=scale,
             min_width=min_width,
         )
-        self.icon = self.move_resource_to_block_cache(icon)
+        self.icon = self.serve_static_file(icon)
         self.variant = variant
         self.size = size
         self.link = link
@@ -89,5 +89,8 @@ class Button(Component):
         """
         return value
 
-    def example_inputs(self) -> Any:
-        return None
+    def example_payload(self) -> Any:
+        return "Run"
+
+    def example_value(self) -> Any:
+        return "Run"

@@ -19,6 +19,7 @@ from gradio.utils import (
     check_function_inputs_match,
     colab_check,
     delete_none,
+    diff,
     download_if_url,
     get_continuous_fn,
     get_extension_from_file_path_or_url,
@@ -439,3 +440,16 @@ def test_is_in_or_equal():
 )
 def test_get_extension_from_file_path_or_url(path_or_url, extension):
     assert get_extension_from_file_path_or_url(path_or_url) == extension
+
+
+@pytest.mark.parametrize(
+    "old, new, expected_diff",
+    [
+        ({"a": 1, "b": 2}, {"a": 1, "b": 2}, []),
+        ({}, {"a": 1, "b": 2}, [("add", ["a"], 1), ("add", ["b"], 2)]),
+        (["a", "b"], {"a": 1, "b": 2}, [("replace", [], {"a": 1, "b": 2})]),
+        ("abc", "abcdef", [("append", [], "def")]),
+    ],
+)
+def test_diff(old, new, expected_diff):
+    assert diff(old, new) == expected_diff

@@ -1,16 +1,42 @@
 # @gradio/fileexplorer
 
+## 0.3.25
+
+### Patch Changes
+
+- Updated dependencies [[`8181695`](https://github.com/gradio-app/gradio/commit/8181695e70187e8bc2bf7518697098c8d1b9843d)]:
+  - @gradio/upload@0.7.6
+  - @gradio/file@0.5.5
+
+## 0.3.24
+
+### Patch Changes
+
+- Updated dependencies [[`26356a6`](https://github.com/gradio-app/gradio/commit/26356a623c4196f48ca236d973a597831743cdb8), [`eda33b3`](https://github.com/gradio-app/gradio/commit/eda33b3763897a542acf298e523fa493dc655aee), [`4b0d589`](https://github.com/gradio-app/gradio/commit/4b0d58933057432758a54169a360eb352903d6b4)]:
+  - @gradio/file@0.5.4
+  - @gradio/upload@0.7.5
+  - @gradio/client@0.12.2
+
+## 0.3.23
+
+### Patch Changes
+
+- Updated dependencies [[`98a2719`](https://github.com/gradio-app/gradio/commit/98a2719bfb9c64338caf9009891b6c6b0b33ea89), [`9c36572`](https://github.com/gradio-app/gradio/commit/9c36572e32aeec6e6352a861dfea6ee0f9a15e79)]:
+  - @gradio/statustracker@0.4.8
+  - @gradio/file@0.5.3
+  - @gradio/checkbox@0.2.11
+
 ## 0.3.22
 
 ### Fixes
 
-- [#7441](https://github.com/gradio-app/gradio/pull/7441) [`f52cab6`](https://github.com/gradio-app/gradio/commit/f52cab634b94638d7f4625d40bf3d9afbe68040b) - Dispatch change event for file explorer.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#7441](https://github.com/gradio-app/gradio/pull/7441) [`f52cab6`](https://github.com/gradio-app/gradio/commit/f52cab634b94638d7f4625d40bf3d9afbe68040b) - Dispatch change event for file explorer. Thanks [@aliabid94](https://github.com/aliabid94)!
 
 ## 0.3.21
 
 ### Fixes
 
-- [#7337](https://github.com/gradio-app/gradio/pull/7337) [`65437ce`](https://github.com/gradio-app/gradio/commit/65437ce832f806da316aa074539b6263e1d8b7ac) - Improve File Explorer performance.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#7337](https://github.com/gradio-app/gradio/pull/7337) [`65437ce`](https://github.com/gradio-app/gradio/commit/65437ce832f806da316aa074539b6263e1d8b7ac) - Improve File Explorer performance. Thanks [@aliabid94](https://github.com/aliabid94)!
 
 ## 0.3.20
 
