@@ -7,6 +7,7 @@ from typing import Any, List
 import gradio_client.utils as client_utils
 import numpy as np
 import PIL.Image
+from gradio_client import file
 from gradio_client.documentation import document
 
 from gradio import processing_utils, utils
@@ -205,7 +206,9 @@ class AnnotatedImage(Component):
 
     def example_payload(self) -> Any:
         return {
-            "image": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+            "image": file(
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+            ),
             "annotations": [],
         }
 
