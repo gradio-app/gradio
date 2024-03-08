@@ -28,6 +28,7 @@ from urllib.parse import urlparse
 
 import anyio
 import fastapi
+import gradio_client.utils as client_utils
 import httpx
 import multipart
 from gradio_client.documentation import document
@@ -289,15 +290,15 @@ def get_root_url(
 ) -> str:
     """
     Gets the root url of the request, stripping off any query parameters, the route_path, and trailing slashes.
-    Also ensures that the root url is https if the request is https. If root_path is provided, and it is not already
-    the subpath of the URL, it is appended to the root url. The final root url will not have a trailing slash.
+    Also ensures that the root url is https if the request is https. If an absolute root_path is provided,
+    it is returned directly. If a relative root_path is provided, and it is not already the subpath of the URL,
+    it is appended to the root url. The final root url will not have a trailing slash.
     """
-    x_forwarded_host = request.headers.get('X-Forwarded-Host')
-    x_forwarded_host_lower = request.headers.get('x-forwarded-host')
-    print("request.url", request.url)
-    print("x_forwarded_host", x_forwarded_host)
-    print("x_forwarded_host_lower", x_forwarded_host_lower)
-    root_url = str(request.url)
+    if root_path and client_utils.is_http_url_like(root_path):
+        return root_path.rstrip("/")
+
+    x_forwarded_host = request.headers.get("x-forwarded-host")
+    root_url = f"http://{x_forwarded_host}" if x_forwarded_host else str(request.url)
     root_url = httpx.URL(root_url)
     root_url = root_url.copy_with(query=None)
     root_url = str(root_url).rstrip("/")
