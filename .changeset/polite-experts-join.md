@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Use `x-forwarded-host` header, and let users provide a full `root_url` to override the automatically determined root url
+fix:Use `x-forwarded-host` header to determine the root url, and let users provide a full `root_path` to override the automatically determined root url
