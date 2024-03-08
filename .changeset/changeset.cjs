@@ -7,14 +7,12 @@ const { join } = require("path");
 
 const { getInfo, getInfoFromPullRequest } = gh;
 const pkg_data = getPackagesSync(process.cwd());
-console.log(pkg_data);
 const { packages, rootDir } = pkg_data;
 const dependents = dependents_graph.getDependentsGraph({
 	packages,
 	root: pkg_data.rootPackage
 });
 
-console.log("dependents ", dependents);
 /**
  * @typedef {{packageJson: {name: string, python?: boolean}, dir: string}} Package
  */
@@ -60,7 +58,6 @@ const changelogFunctions = {
 		dependenciesUpdated,
 		options
 	) => {
-		console.log("BEGINNING");
 		if (!options.repo) {
 			throw new Error(
 				'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]'
@@ -145,17 +142,11 @@ const changelogFunctions = {
 			}
 		);
 
-		// console.log("changesets ", changesets);
-		// console.log("dependenciesUpdated ", dependenciesUpdated);
-		// console.log("changesetLink ", changesetLink);
-
 		writeFileSync(
 			join(rootDir, ".changeset", "_changelog.json"),
 			JSON.stringify(lines, null, 2)
 		);
 
-		console.log("ENDING");
-		console.log("\n");
 		return [changesetLink, ...updatedDepenenciesList].join("\n");
 	},
 	/**
@@ -254,16 +245,6 @@ const changelogFunctions = {
 		/**
 		 * @type { ChangesetMeta & { _handled: string[] } }}
 		 */
-		// let lines;
-		// if (existsSync(join(rootDir, ".changeset", "_changelog.json"))) {
-		// 	lines = JSON.parse(
-		// 		readFileSync(join(rootDir, ".changeset", "_changelog.json"), "utf-8")
-		// 	);
-		// } else {
-		// 	lines = {
-		// 		_handled: []
-		// 	};
-		// }
 
 		if (lines._handled.includes(changeset.id)) {
 			return "done";
@@ -332,8 +313,6 @@ const changelogFunctions = {
 			JSON.stringify(lines, null, 2)
 		);
 
-		console.log("ENDING");
-		console.log("\n");
 		return `\n\n-${prefix ? `${prefix} -` : ""} ${firstLine}\n${futureLines
 			.map((l) => `  ${l}`)
 			.join("\n")}`;
