@@ -47,6 +47,14 @@ def test_text_to_text_model_from_pipeline():
 
 
 @pytest.mark.flaky
+def test_stable_diffusion_pipeline():
+    pipe = StableDiffusionPipeline.from_pretrained("hf-internal-testing/tiny-sd-pipe")
+    io = gr.Interface.from_pipeline(pipe)
+    output = io("An astronaut", "low quality", 3, 7.5)
+    assert isinstance(output, str)
+
+
+@pytest.mark.flaky
 def test_interface_in_blocks():
     pipe1 = transformers.pipeline(model="sshleifer/bart-tiny-random")
     pipe2 = transformers.pipeline(model="sshleifer/bart-tiny-random")
