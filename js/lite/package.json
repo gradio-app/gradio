@@ -12,6 +12,9 @@
 	"scripts": {
 		"build": "pnpm --filter @gradio/app build:lite"
 	},
+	"dependencies": {
+		"gradio": "workspace:^"
+	},
 	"devDependencies": {
 		"@gradio/app": "workspace:^",
 		"@gradio/wasm": "workspace:^",
