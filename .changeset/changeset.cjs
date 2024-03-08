@@ -1,11 +1,16 @@
 const { getPackagesSync } = require("@manypkg/get-packages");
+import dependents_graph = require("@changesets/get-dependents-graph");
+
 const gh = require("@changesets/get-github-info");
 const { existsSync, readFileSync, writeFileSync } = require("fs");
 const { join } = require("path");
 
 const { getInfo, getInfoFromPullRequest } = gh;
-const { packages, rootDir } = getPackagesSync(process.cwd());
+const pkg_data = getPackagesSync(process.cwd());
+const { packages, rootDir } = pkg_data;
+const dependents = dependents_graph.getDependentsGraph(pkg_data);
 
+console.log("dependents ", dependents);
 /**
  * @typedef {{packageJson: {name: string, python?: boolean}, dir: string}} Package
  */
