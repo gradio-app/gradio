@@ -56,6 +56,7 @@ const changelogFunctions = {
 		dependenciesUpdated,
 		options
 	) => {
+		console.log("BEGINNING");
 		if (!options.repo) {
 			throw new Error(
 				'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]'
@@ -118,15 +119,17 @@ const changelogFunctions = {
 			}
 		);
 
-		console.log("changesets ", changesets);
-		console.log("dependenciesUpdated ", dependenciesUpdated);
-		console.log("changesetLink ", changesetLink);
+		// console.log("changesets ", changesets);
+		// console.log("dependenciesUpdated ", dependenciesUpdated);
+		// console.log("changesetLink ", changesetLink);
 
 		writeFileSync(
 			join(rootDir, ".changeset", "_changelog.json"),
 			JSON.stringify(lines, null, 2)
 		);
 
+		console.log("ENDING");
+		console.log("\n");
 		return [changesetLink, ...updatedDepenenciesList].join("\n");
 	},
 	/**
@@ -137,6 +140,7 @@ const changelogFunctions = {
 	 * @returns {Promise<string>} The release line for the changeset
 	 */
 	getReleaseLine: async (changeset, type, options) => {
+		console.log("BEGINNING");
 		if (!options || !options.repo) {
 			throw new Error(
 				'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]'
@@ -302,6 +306,8 @@ const changelogFunctions = {
 			JSON.stringify(lines, null, 2)
 		);
 
+		console.log("ENDING");
+		console.log("\n");
 		return `\n\n-${prefix ? `${prefix} -` : ""} ${firstLine}\n${futureLines
 			.map((l) => `  ${l}`)
 			.join("\n")}`;
