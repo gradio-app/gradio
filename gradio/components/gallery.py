@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 
 import numpy as np
 import PIL.Image
+from gradio_client import file
 from gradio_client.documentation import document
 from gradio_client.utils import is_http_url_like
 
@@ -223,7 +224,9 @@ class Gallery(Component):
     def example_payload(self) -> Any:
         return [
             {
-                "image": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+                "image": file(
+                    "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+                )
             },
         ]
 

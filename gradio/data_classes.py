@@ -164,6 +164,7 @@ class FileData(GradioModel):
     orig_name: Optional[str] = None  # original filename
     mime_type: Optional[str] = None
     is_stream: bool = False
+    meta: dict = {"_type": "gradio.FileData"}
 
     @property
     def is_none(self):

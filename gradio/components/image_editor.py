@@ -9,6 +9,7 @@ from typing import Any, Iterable, List, Literal, Optional, TypedDict, Union, cas
 
 import numpy as np
 import PIL.Image
+from gradio_client import file
 from gradio_client.documentation import document
 
 from gradio import image_utils, utils
@@ -216,9 +217,7 @@ class ImageEditor(Component):
     ) -> np.ndarray | PIL.Image.Image | str | None:
         if file is None:
             return None
-
         im = PIL.Image.open(file.path)
-
         if file.orig_name:
             p = Path(file.orig_name)
             name = p.stem
@@ -317,7 +316,9 @@ class ImageEditor(Component):
 
     def example_payload(self) -> Any:
         return {
-            "background": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+            "background": file(
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+            ),
             "layers": [],
             "composite": None,
         }

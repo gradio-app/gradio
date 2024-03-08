@@ -190,9 +190,6 @@ class Component(ComponentBase, Block):
         self.scale = scale
         self.min_width = min_width
         self.interactive = interactive
-        # Keep tracks of files that should not be deleted when the delete_cache parmaeter is set
-        # These files are the default value of the component and files that are used in examples
-        self.keep_in_cache = set()
 
         # load_event is set in the Blocks.attach_load_events method
         self.load_event: None | dict[str, Any] = None
@@ -203,6 +200,7 @@ class Component(ComponentBase, Block):
             initial_value,
             self,  # type: ignore
             postprocess=True,
+            keep_in_cache=True,
         )
         if is_file_obj(self.value):
             self.keep_in_cache.add(self.value["path"])

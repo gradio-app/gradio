@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Callable
 
+from gradio_client import file
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
@@ -118,7 +119,9 @@ class Model3D(Component):
         return Path(input_data).name if input_data else ""
 
     def example_payload(self):
-        return "https://raw.githubusercontent.com/gradio-app/gradio/main/demo/model3D/files/Fox.gltf"
+        return file(
+            "https://raw.githubusercontent.com/gradio-app/gradio/main/demo/model3D/files/Fox.gltf"
+        )
 
     def example_value(self):
         return "https://raw.githubusercontent.com/gradio-app/gradio/main/demo/model3D/files/Fox.gltf"

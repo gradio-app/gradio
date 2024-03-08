@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from gradio_client.documentation import document
-from gradio_client.utils import is_file_obj
 
 from gradio import processing_utils
 from gradio.components.base import (
@@ -95,12 +94,9 @@ class Dataset(Component):
                     # use the previous name to be backwards-compatible with previously-created
                     # custom components
                     example[i] = component.as_example(ex)
-                    example[i] = processing_utils.move_files_to_cache(
-                        example[i],
-                        component,
-                    )
-                    if is_file_obj(example[i]):
-                        self.keep_in_cache.add(example[i]["path"])
+                example[i] = processing_utils.move_files_to_cache(
+                    example[i], component, keep_in_cache=True
+                )
         self.type = type
         self.label = label
         if headers is not None:

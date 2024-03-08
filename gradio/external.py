@@ -418,7 +418,13 @@ def from_spaces(
 
 
 def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
-    client = Client(space, hf_token=hf_token, download_files=False)
+    client = Client(
+        space,
+        hf_token=hf_token,
+        upload_files=False,
+        download_files=False,
+        _skip_components=False,
+    )
     # We set deserialize to False to avoid downloading output files from the server.
     # Instead, we serve them as URLs using the /proxy/ endpoint directly from the server.
 

@@ -19,7 +19,7 @@ from gradio.networking import Server
 from huggingface_hub import HfFolder
 from huggingface_hub.utils import RepositoryNotFoundError
 
-from gradio_client import Client
+from gradio_client import Client, file
 from gradio_client.client import DEFAULT_TEMP_DIR
 from gradio_client.exceptions import AuthenticationError
 from gradio_client.utils import (
@@ -255,7 +255,9 @@ class TestClientPredictions:
         with connect(video_component) as client:
             job = client.submit(
                 {
-                    "video": "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
+                    "video": file(
+                        "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
+                    )
                 },
                 fn_index=0,
             )
@@ -269,7 +271,9 @@ class TestClientPredictions:
         with connect(video_component, output_dir=temp_dir) as client:
             job = client.submit(
                 {
-                    "video": "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
+                    "video": file(
+                        "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
+                    )
                 },
                 fn_index=0,
             )
@@ -370,13 +374,15 @@ class TestClientPredictions:
     def test_stream_audio(self, stream_audio):
         with connect(stream_audio) as client:
             job1 = client.submit(
-                "https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4",
+                file("https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4"),
                 api_name="/predict",
             )
             assert Path(job1.result()).exists()
 
             job2 = client.submit(
-                "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
+                file(
+                    "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+                ),
                 api_name="/predict",
             )
             assert Path(job2.result()).exists()
@@ -492,6 +498,13 @@ class TestClientPredictions:
 
     def test_state_without_serialize(self, stateful_chatbot):
         with connect(stateful_chatbot, serialize=False) as client:
+            initial_history = [["", None]]
+            message = "Hello"
+            ret = client.predict(message, initial_history, api_name="/submit")
+            assert ret == ("", [["", None], ["Hello", "I love you"]])
+
+    def test_does_not_upload_dir(self, stateful_chatbot):
+        with connect(stateful_chatbot) as client:
             initial_history = [["", None]]
             message = "Hello"
             ret = client.predict(message, initial_history, api_name="/submit")
@@ -1004,13 +1017,13 @@ class TestAPIInfo:
                 "description": "",
             }
             assert isinstance(inputs[0]["example_input"], list)
-            assert isinstance(inputs[0]["example_input"][0], str)
+            assert isinstance(inputs[0]["example_input"][0], dict)
 
             assert inputs[1]["python_type"] == {
                 "type": "filepath",
                 "description": "",
             }
-            assert isinstance(inputs[1]["example_input"], str)
+            assert isinstance(inputs[1]["example_input"], dict)
 
             assert outputs[0]["python_type"] == {
                 "type": "List[filepath]",
@@ -1150,43 +1163,6 @@ class TestEndpoints:
                 res.append([r["name"] for r in re])
             else:
                 res.append(re["name"])
-
-        assert res == [
-            "file1",
-            ["file2", "file3", "file4"],
-            ["file5", "file6"],
-            "file7",
-        ]
-
-    @pytest.mark.flaky
-    def test_upload_v4(self):
-        client = Client(
-            src="gradio-tests/not-actually-private-file-uploadv4-sse",
-        )
-        response = MagicMock(status_code=200)
-        response.json.return_value = [
-            "file1",
-            "file2",
-            "file3",
-            "file4",
-            "file5",
-            "file6",
-            "file7",
-        ]
-        with patch("httpx.post", MagicMock(return_value=response)):
-            with patch("builtins.open", MagicMock()):
-                with patch.object(pathlib.Path, "name") as mock_name:
-                    mock_name.side_effect = lambda x: x
-                    results = client.endpoints[0]._upload(
-                        ["pre1", ["pre2", "pre3", "pre4"], ["pre5", "pre6"], "pre7"]
-                    )
-
-        res = []
-        for re in results:
-            if isinstance(re, list):
-                res.append([r["path"] for r in re])
-            else:
-                res.append(re["path"])
 
         assert res == [
             "file1",

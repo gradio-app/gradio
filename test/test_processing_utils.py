@@ -339,10 +339,12 @@ def test_add_root_url():
         "file": {
             "path": "path",
             "url": "/file=path",
+            "meta": {"_type": "gradio.FileData"},
         },
         "file2": {
             "path": "path2",
             "url": "https://www.gradio.app",
+            "meta": {"_type": "gradio.FileData"},
         },
     }
     root_url = "http://localhost:7860"
@@ -350,10 +352,12 @@ def test_add_root_url():
         "file": {
             "path": "path",
             "url": f"{root_url}/file=path",
+            "meta": {"_type": "gradio.FileData"},
         },
         "file2": {
             "path": "path2",
             "url": "https://www.gradio.app",
+            "meta": {"_type": "gradio.FileData"},
         },
     }
     assert processing_utils.add_root_url(data, root_url, None) == expected
@@ -362,10 +366,12 @@ def test_add_root_url():
         "file": {
             "path": "path",
             "url": f"{new_root_url}/file=path",
+            "meta": {"_type": "gradio.FileData"},
         },
         "file2": {
             "path": "path2",
             "url": "https://www.gradio.app",
+            "meta": {"_type": "gradio.FileData"},
         },
     }
     assert (

@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Callable, Literal
 
 import gradio_client.utils as client_utils
+from gradio_client import file
 from gradio_client.documentation import document
 
 from gradio import processing_utils
@@ -199,10 +200,14 @@ class File(Component):
 
     def example_payload(self) -> Any:
         if self.file_count == "single":
-            return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+            return file(
+                "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+            )
         else:
             return [
-                "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+                file(
+                    "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+                )
             ]
 
     def example_value(self) -> Any:

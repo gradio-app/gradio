@@ -241,6 +241,7 @@ def move_files_to_cache(
     block: Block,
     postprocess: bool = False,
     check_in_upload_folder=False,
+    keep_in_cache=False,
 ) -> dict:
     """Move any files in `data` to cache and (optionally), adds URL prefixes (/file=...) needed to access the cached file.
     Also handles the case where the file is on an external Gradio app (/proxy=...).
@@ -252,6 +253,7 @@ def move_files_to_cache(
         block: The component whose data is being processed
         postprocess: Whether its running from postprocessing
         check_in_upload_folder: If True, instead of moving the file to cache, checks if the file is in already in cache (exception if not).
+        keep_in_cache: If True, the file will not be deleted from cache when the server is shut down.
     """
 
     def _move_to_cache(d: dict):
@@ -278,6 +280,8 @@ def move_files_to_cache(
             if temp_file_path is None:
                 raise ValueError("Did not determine a file path for the resource.")
             payload.path = temp_file_path
+            if keep_in_cache:
+                block.keep_in_cache.add(payload.path)
 
         url_prefix = "/stream/" if payload.is_stream else "/file="
         if block.proxy_url:

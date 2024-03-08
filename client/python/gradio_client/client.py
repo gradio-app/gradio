@@ -21,7 +21,6 @@ from typing import Any, Callable, Literal
 
 import httpx
 import huggingface_hub
-import websockets
 from huggingface_hub import CommitOperationAdd, SpaceHardware, SpaceStage
 from huggingface_hub.utils import (
     RepositoryNotFoundError,
@@ -30,9 +29,10 @@ from huggingface_hub.utils import (
 )
 from packaging import version
 
-from gradio_client import serializing, utils
+from gradio_client import utils
+from gradio_client.compatibility import EndpointV3Compatibility
 from gradio_client.documentation import document
-from gradio_client.exceptions import AuthenticationError, SerializationSetupError
+from gradio_client.exceptions import AuthenticationError
 from gradio_client.utils import (
     Communicator,
     JobStatus,
@@ -71,14 +71,16 @@ class Client:
         src: str,
         hf_token: str | None = None,
         max_workers: int = 40,
-        serialize: bool | None = None,
-        output_dir: str | Path = DEFAULT_TEMP_DIR,
+        serialize: bool | None = None,  # TODO: remove in 1.0
+        output_dir: str
+        | Path = DEFAULT_TEMP_DIR,  # Maybe this can be combined with `download_files` in 1.0
         verbose: bool = True,
         auth: tuple[str, str] | None = None,
         *,
         headers: dict[str, str] | None = None,
-        upload_files: bool = True,
-        download_files: bool = True,
+        upload_files: bool = True,  # TODO: remove and hardcode to False in 1.0
+        download_files: bool = True,  # TODO: consider setting to False in 1.0
+        _skip_components: bool = True,  # internal parameter to skip values certain components (e.g. State) that do not need to be displayed to users.
     ):
         """
         Parameters:
@@ -89,8 +91,8 @@ class Client:
             output_dir: The directory to save files that are downloaded from the remote API. If None, reads from the GRADIO_TEMP_DIR environment variable. Defaults to a temporary directory on your machine.
             verbose: Whether the client should print statements to the console.
             headers: Additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. These headers will override the default headers if they have the same keys.
-            upload_files: Whether the client should treat input string filepath as files and upload them to the remote server. If False, the client will treat input string filepaths as strings always and not modify them.
-            download_files: Whether the client should download output files from the remote API and return them as string filepaths on the local machine. If False, the client will a FileData dataclass object with the filepath on the remote machine instead.
+            upload_files: Whether the client should treat input string filepath as files and upload them to the remote server. If False, the client will treat input string filepaths as strings always and not modify them, and files should be passed in explicitly using `gradio_client.file("path/to/file/or/url")` instead. This parameter will be deleted and False will become the default in a future version.
+            download_files: Whether the client should download output files from the remote API and return them as string filepaths on the local machine. If False, the client will return a FileData dataclass object with the filepath on the remote machine instead.
         """
         self.verbose = verbose
         self.hf_token = hf_token
@@ -101,6 +103,7 @@ class Client:
             upload_files = serialize
         self.upload_files = upload_files
         self.download_files = download_files
+        self._skip_components = _skip_components
         self.headers = build_hf_headers(
             token=hf_token,
             library_name="gradio_client",
@@ -143,7 +146,9 @@ class Client:
             self._login(auth)
 
         self.config = self._get_config()
-        self.protocol: str = self.config.get("protocol", "ws")
+        self.protocol: Literal[
+            "ws", "sse", "sse_v1", "sse_v2", "sse_v2.1"
+        ] = self.config.get("protocol", "ws")
         self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
         self.sse_url = urllib.parse.urljoin(
             self.src, utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL
@@ -445,6 +450,7 @@ class Client:
             "sse",
             "sse_v1",
             "sse_v2",
+            "sse_v2.1",
         ):
             helper = self.new_helper(inferred_fn_index)
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
@@ -972,8 +978,7 @@ class Endpoint:
         # This is still hacky as it does not tell us which part of the payload is a file.
         # If a component has a complex payload, part of which is a file, this will simply
         # return True, which means that all parts of the payload will be uploaded as files
-        # if they are valid file paths. The better approach would be to traverse the
-        # component's api_info and figure out exactly which part of the payload is a file.
+        # if they are valid file paths. We will deprecate this 1.0.
         if "api_info" not in component:
             return False
         return utils.value_is_file(component["api_info"])
@@ -990,11 +995,12 @@ class Endpoint:
         def _inner(*data):
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
-            data = self.insert_state(*data)
-            if self.client.upload_files:
-                data = self.serialize(*data)
+
+            data = self.insert_empty_state(*data)
+            data = self.process_input_files(*data)
             predictions = _predict(*data)
             predictions = self.process_predictions(*predictions)
+
             # Append final output only if not already present
             # for consistency between generators and not generators
             if helper:
@@ -1022,7 +1028,7 @@ class Endpoint:
                 result = utils.synchronize_async(
                     self._sse_fn_v0, data, hash_data, helper
                 )
-            elif self.protocol in ("sse_v1", "sse_v2"):
+            elif self.protocol in ("sse_v1", "sse_v2", "sse_v2.1"):
                 event_id = utils.synchronize_async(
                     self.client.send_data, data, hash_data
                 )
@@ -1059,68 +1065,52 @@ class Endpoint:
 
         return _predict
 
-    def _predict_resolve(self, *data) -> Any:
-        """Needed for gradio.load(), which has a slightly different signature for serializing/deserializing"""
-        outputs = self.make_predict()(*data)
-        if len(self.dependency["outputs"]) == 1:
-            return outputs[0]
-        return outputs
-
-    def _upload(
-        self, file_paths: list[str | list[str]]
-    ) -> list[str | list[str]] | list[dict[str, Any] | list[dict[str, Any]]]:
-        if not file_paths:
-            return []
-        # Put all the filepaths in one file
-        # but then keep track of which index in the
-        # original list they came from so we can recreate
-        # the original structure
-        files = []
-        indices = []
-        for i, fs in enumerate(file_paths):
-            if not isinstance(fs, list):
-                fs = [fs]
-            for f in fs:
-                files.append(("files", (Path(f).name, open(f, "rb"))))  # noqa: SIM115
-                indices.append(i)
-        r = httpx.post(
-            self.client.upload_url,
-            headers=self.client.headers,
-            cookies=self.client.cookies,
-            files=files,
-        )
-        if r.status_code != 200:
-            uploaded = file_paths
-        else:
-            uploaded = []
-            result = r.json()
-            for i, fs in enumerate(file_paths):
-                if isinstance(fs, list):
-                    output = [o for ix, o in enumerate(result) if indices[ix] == i]
-                    res = [
-                        {
-                            "path": o,
-                            "orig_name": Path(f).name,
-                        }
-                        for f, o in zip(fs, output)
-                    ]
-                else:
-                    o = next(o for ix, o in enumerate(result) if indices[ix] == i)
-                    res = {
-                        "path": o,
-                        "orig_name": Path(fs).name,
-                    }
-                uploaded.append(res)
-        return uploaded
-
-    def insert_state(self, *data) -> tuple:
+    def insert_empty_state(self, *data) -> tuple:
         data = list(data)
         for i, input_component_type in enumerate(self.input_component_types):
             if input_component_type.is_state:
                 data.insert(i, None)
         return tuple(data)
 
+    def process_input_files(self, *data) -> tuple:
+        data_ = []
+        for i, d in enumerate(data):
+            if self.client.upload_files and self.input_component_types[i].value_is_file:
+                d = utils.traverse(
+                    d,
+                    self._upload_file,
+                    lambda f: utils.is_filepath(f)
+                    or utils.is_file_obj_with_meta(f)
+                    or utils.is_http_url_like(f),
+                )
+            elif not self.client.upload_files:
+                d = utils.traverse(d, self._upload_file, utils.is_file_obj_with_meta)
+            data_.append(d)
+        return tuple(data_)
+
+    def process_predictions(self, *predictions):
+        # If self.download_file is True, we assume that that the user is using the Client directly (as opposed
+        # within gr.load) and therefore, download any files generated by the server and skip values for
+        # components that the user likely does not want to see (e.g. gr.State, gr.Tab).
+        if self.client.download_files:
+            predictions = self.download_files(*predictions)
+        if self.client._skip_components:
+            predictions = self.remove_skipped_components(*predictions)
+        predictions = self.reduce_singleton_output(*predictions)
+        return predictions
+
+    def download_files(self, *data) -> tuple:
+        data_ = list(data)
+        if self.client.protocol == "sse_v2.1":
+            data_ = utils.traverse(
+                data_, self._download_file, utils.is_file_obj_with_meta
+            )
+        else:
+            data_ = utils.traverse(data_, self._download_file, utils.is_file_obj)
+        return tuple(data_)
+
     def remove_skipped_components(self, *data) -> tuple:
+        """"""
         data = [d for d, oct in zip(data, self.output_component_types) if not oct.skip]
         return tuple(data)
 
@@ -1130,88 +1120,32 @@ class Endpoint:
         else:
             return data
 
-    def _gather_files(self, *data):
-        file_list = []
-
-        def get_file(d):
-            if utils.is_file_obj(d):
-                file_list.append(d["path"])
-            else:
-                file_list.append(d)
-            return ReplaceMe(len(file_list) - 1)
-
-        def handle_url(s):
-            return {"path": s, "orig_name": s.split("/")[-1]}
-
-        new_data = []
-        for i, d in enumerate(data):
-            if self.input_component_types[i].value_is_file:
-                # Check file dicts and filepaths to upload
-                # file dict is a corner case but still needed for completeness
-                # most users should be using filepaths
-                d = utils.traverse(
-                    d, get_file, lambda s: utils.is_file_obj(s) or utils.is_filepath(s)
-                )
-                # Handle URLs here since we don't upload them
-                d = utils.traverse(d, handle_url, lambda s: utils.is_url(s))
-            new_data.append(d)
-        return file_list, new_data
-
-    def _add_uploaded_files_to_data(self, data: list[Any], files: list[Any]):
-        def replace(d: ReplaceMe) -> dict:
-            return files[d.index]
-
-        new_data = []
-        for d in data:
-            d = utils.traverse(
-                d, replace, is_root=lambda node: isinstance(node, ReplaceMe)
+    def _upload_file(self, f: str | dict):
+        if isinstance(f, str):
+            warnings.warn(
+                f'The Client is treating: "{f}" as a file path. In future versions, this behavior will not happen automatically. '
+                f'\n\nInstead, please provide file path or URLs like this: gradio_client.file("{f}"). '
+                "\n\nNote: to stop treating strings as filepaths unless file() is used, set upload_files=False in Client()."
             )
-            new_data.append(d)
-        return new_data
-
-    def serialize(self, *data) -> tuple:
-        files, new_data = self._gather_files(*data)
-        uploaded_files = self._upload(files)
-        data = list(new_data)
-        data = self._add_uploaded_files_to_data(data, uploaded_files)
-        o = tuple(data)
-        return o
-
-    def download_file(self, file_data: dict) -> str | None:
-        if file_data is None:
-            return None
-        if isinstance(file_data, str):
-            file_name = utils.decode_base64_to_file(
-                file_data, dir=self.client.output_dir
-            ).name
-        elif isinstance(file_data, dict):
-            filepath = file_data.get("path")
-            if not filepath:
-                raise ValueError(f"The 'path' field is missing in {file_data}")
-            file_name = utils.download_file(
-                self.root_url + "file=" + filepath,
-                save_dir=self.client.output_dir,
+            file_path = f
+        else:
+            file_path = f["path"]
+        if not utils.is_http_url_like(file_path):
+            file_path = utils.upload_file(
+                file_path=file_path,
+                upload_url=self.client.upload_url,
                 headers=self.client.headers,
                 cookies=self.client.cookies,
             )
+        return {"path": file_path}
 
-        else:
-            raise ValueError(
-                f"A FileSerializable component can only deserialize a string or a dict, not a {type(file_name)}: {file_name}"
-            )
-        return file_name
-
-    def deserialize(self, *data) -> tuple:
-        data_ = list(data)
-        data_: list[Any] = utils.traverse(data_, self.download_file, utils.is_file_obj)
-        return tuple(data_)
-
-    def process_predictions(self, *predictions):
-        if self.client.download_files:
-            predictions = self.deserialize(*predictions)
-        predictions = self.remove_skipped_components(*predictions)
-        predictions = self.reduce_singleton_output(*predictions)
-        return predictions
+    def _download_file(self, x: dict) -> str | None:
+        return utils.download_file(
+            self.root_url + "file=" + x["path"],
+            save_dir=self.client.output_dir,
+            headers=self.client.headers,
+            cookies=self.client.cookies,
+        )
 
     async def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
         async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
@@ -1227,7 +1161,10 @@ class Endpoint:
             )
 
     async def _sse_fn_v1_v2(
-        self, helper: Communicator, event_id: str, protocol: Literal["sse_v1", "sse_v2"]
+        self,
+        helper: Communicator,
+        event_id: str,
+        protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
     ):
         return await utils.get_pred_from_sse_v1_v2(
             helper,
@@ -1237,313 +1174,6 @@ class Endpoint:
             event_id,
             protocol,
         )
-
-
-class EndpointV3Compatibility:
-    """Endpoint class for connecting to v3 endpoints. Backwards compatibility."""
-
-    def __init__(self, client: Client, fn_index: int, dependency: dict, *_args):
-        self.client: Client = client
-        self.fn_index = fn_index
-        self.dependency = dependency
-        api_name = dependency.get("api_name")
-        self.api_name: str | Literal[False] | None = (
-            "/" + api_name if isinstance(api_name, str) else api_name
-        )
-        self.use_ws = self._use_websocket(self.dependency)
-        self.protocol = "ws" if self.use_ws else "http"
-        self.input_component_types = []
-        self.output_component_types = []
-        self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
-        self.is_continuous = dependency.get("types", {}).get("continuous", False)
-        try:
-            # Only a real API endpoint if backend_fn is True (so not just a frontend function), serializers are valid,
-            # and api_name is not False (meaning that the developer has explicitly disabled the API endpoint)
-            self.serializers, self.deserializers = self._setup_serializers()
-            self.is_valid = self.dependency["backend_fn"] and self.api_name is not False
-        except SerializationSetupError:
-            self.is_valid = False
-        self.backend_fn = dependency.get("backend_fn")
-        self.show_api = True
-
-    def __repr__(self):
-        return f"Endpoint src: {self.client.src}, api_name: {self.api_name}, fn_index: {self.fn_index}"
-
-    def __str__(self):
-        return self.__repr__()
-
-    def make_end_to_end_fn(self, helper: Communicator | None = None):
-        _predict = self.make_predict(helper)
-
-        def _inner(*data):
-            if not self.is_valid:
-                raise utils.InvalidAPIEndpointError()
-            data = self.insert_state(*data)
-            if self.client.upload_files:
-                data = self.serialize(*data)
-            predictions = _predict(*data)
-            predictions = self.process_predictions(*predictions)
-            # Append final output only if not already present
-            # for consistency between generators and not generators
-            if helper:
-                with helper.lock:
-                    if not helper.job.outputs:
-                        helper.job.outputs.append(predictions)
-            return predictions
-
-        return _inner
-
-    def make_predict(self, helper: Communicator | None = None):
-        def _predict(*data) -> tuple:
-            data = json.dumps(
-                {
-                    "data": data,
-                    "fn_index": self.fn_index,
-                    "session_hash": self.client.session_hash,
-                }
-            )
-            hash_data = json.dumps(
-                {
-                    "fn_index": self.fn_index,
-                    "session_hash": self.client.session_hash,
-                }
-            )
-            if self.use_ws:
-                result = utils.synchronize_async(self._ws_fn, data, hash_data, helper)
-                if "error" in result:
-                    raise ValueError(result["error"])
-            else:
-                response = httpx.post(
-                    self.client.api_url, headers=self.client.headers, json=data
-                )
-                result = json.loads(response.content.decode("utf-8"))
-            try:
-                output = result["data"]
-            except KeyError as ke:
-                is_public_space = (
-                    self.client.space_id
-                    and not huggingface_hub.space_info(self.client.space_id).private
-                )
-                if "error" in result and "429" in result["error"] and is_public_space:
-                    raise utils.TooManyRequestsError(
-                        f"Too many requests to the API, please try again later. To avoid being rate-limited, "
-                        f"please duplicate the Space using Client.duplicate({self.client.space_id}) "
-                        f"and pass in your Hugging Face token."
-                    ) from None
-                elif "error" in result:
-                    raise ValueError(result["error"]) from None
-                raise KeyError(
-                    f"Could not find 'data' key in response. Response received: {result}"
-                ) from ke
-            return tuple(output)
-
-        return _predict
-
-    def _predict_resolve(self, *data) -> Any:
-        """Needed for gradio.load(), which has a slightly different signature for serializing/deserializing"""
-        outputs = self.make_predict()(*data)
-        if len(self.dependency["outputs"]) == 1:
-            return outputs[0]
-        return outputs
-
-    def _upload(
-        self, file_paths: list[str | list[str]]
-    ) -> list[str | list[str]] | list[dict[str, Any] | list[dict[str, Any]]]:
-        if not file_paths:
-            return []
-        # Put all the filepaths in one file
-        # but then keep track of which index in the
-        # original list they came from so we can recreate
-        # the original structure
-        files = []
-        indices = []
-        for i, fs in enumerate(file_paths):
-            if not isinstance(fs, list):
-                fs = [fs]
-            for f in fs:
-                files.append(("files", (Path(f).name, open(f, "rb"))))  # noqa: SIM115
-                indices.append(i)
-        r = httpx.post(self.client.upload_url, headers=self.client.headers, files=files)
-        if r.status_code != 200:
-            uploaded = file_paths
-        else:
-            uploaded = []
-            result = r.json()
-            for i, fs in enumerate(file_paths):
-                if isinstance(fs, list):
-                    output = [o for ix, o in enumerate(result) if indices[ix] == i]
-                    res = [
-                        {
-                            "is_file": True,
-                            "name": o,
-                            "orig_name": Path(f).name,
-                            "data": None,
-                        }
-                        for f, o in zip(fs, output)
-                    ]
-                else:
-                    o = next(o for ix, o in enumerate(result) if indices[ix] == i)
-                    res = {
-                        "is_file": True,
-                        "name": o,
-                        "orig_name": Path(fs).name,
-                        "data": None,
-                    }
-                uploaded.append(res)
-        return uploaded
-
-    def _add_uploaded_files_to_data(
-        self,
-        files: list[str | list[str]] | list[dict[str, Any] | list[dict[str, Any]]],
-        data: list[Any],
-    ) -> None:
-        """Helper function to modify the input data with the uploaded files."""
-        file_counter = 0
-        for i, t in enumerate(self.input_component_types):
-            if t in ["file", "uploadbutton"]:
-                data[i] = files[file_counter]
-                file_counter += 1
-
-    def insert_state(self, *data) -> tuple:
-        data = list(data)
-        for i, input_component_type in enumerate(self.input_component_types):
-            if input_component_type == utils.STATE_COMPONENT:
-                data.insert(i, None)
-        return tuple(data)
-
-    def remove_skipped_components(self, *data) -> tuple:
-        data = [
-            d
-            for d, oct in zip(data, self.output_component_types)
-            if oct not in utils.SKIP_COMPONENTS
-        ]
-        return tuple(data)
-
-    def reduce_singleton_output(self, *data) -> Any:
-        if (
-            len(
-                [
-                    oct
-                    for oct in self.output_component_types
-                    if oct not in utils.SKIP_COMPONENTS
-                ]
-            )
-            == 1
-        ):
-            return data[0]
-        else:
-            return data
-
-    def serialize(self, *data) -> tuple:
-        if len(data) != len(self.serializers):
-            raise ValueError(
-                f"Expected {len(self.serializers)} arguments, got {len(data)}"
-            )
-
-        files = [
-            f
-            for f, t in zip(data, self.input_component_types)
-            if t in ["file", "uploadbutton"]
-        ]
-        uploaded_files = self._upload(files)
-        data = list(data)
-        self._add_uploaded_files_to_data(uploaded_files, data)
-        o = tuple([s.serialize(d) for s, d in zip(self.serializers, data)])
-        return o
-
-    def deserialize(self, *data) -> tuple:
-        if len(data) != len(self.deserializers):
-            raise ValueError(
-                f"Expected {len(self.deserializers)} outputs, got {len(data)}"
-            )
-        outputs = tuple(
-            [
-                s.deserialize(
-                    d,
-                    save_dir=self.client.output_dir,
-                    hf_token=self.client.hf_token,
-                    root_url=self.root_url,
-                )
-                for s, d in zip(self.deserializers, data)
-            ]
-        )
-        return outputs
-
-    def process_predictions(self, *predictions):
-        if self.client.download_files:
-            predictions = self.deserialize(*predictions)
-        predictions = self.remove_skipped_components(*predictions)
-        predictions = self.reduce_singleton_output(*predictions)
-        return predictions
-
-    def _setup_serializers(
-        self,
-    ) -> tuple[list[serializing.Serializable], list[serializing.Serializable]]:
-        inputs = self.dependency["inputs"]
-        serializers = []
-
-        for i in inputs:
-            for component in self.client.config["components"]:
-                if component["id"] == i:
-                    component_name = component["type"]
-                    self.input_component_types.append(component_name)
-                    if component.get("serializer"):
-                        serializer_name = component["serializer"]
-                        if serializer_name not in serializing.SERIALIZER_MAPPING:
-                            raise SerializationSetupError(
-                                f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
-                            )
-                        serializer = serializing.SERIALIZER_MAPPING[serializer_name]
-                    elif component_name in serializing.COMPONENT_MAPPING:
-                        serializer = serializing.COMPONENT_MAPPING[component_name]
-                    else:
-                        raise SerializationSetupError(
-                            f"Unknown component: {component_name}, you may need to update your gradio_client version."
-                        )
-                    serializers.append(serializer())  # type: ignore
-
-        outputs = self.dependency["outputs"]
-        deserializers = []
-        for i in outputs:
-            for component in self.client.config["components"]:
-                if component["id"] == i:
-                    component_name = component["type"]
-                    self.output_component_types.append(component_name)
-                    if component.get("serializer"):
-                        serializer_name = component["serializer"]
-                        if serializer_name not in serializing.SERIALIZER_MAPPING:
-                            raise SerializationSetupError(
-                                f"Unknown serializer: {serializer_name}, you may need to update your gradio_client version."
-                            )
-                        deserializer = serializing.SERIALIZER_MAPPING[serializer_name]
-                    elif component_name in utils.SKIP_COMPONENTS:
-                        deserializer = serializing.SimpleSerializable
-                    elif component_name in serializing.COMPONENT_MAPPING:
-                        deserializer = serializing.COMPONENT_MAPPING[component_name]
-                    else:
-                        raise SerializationSetupError(
-                            f"Unknown component: {component_name}, you may need to update your gradio_client version."
-                        )
-                    deserializers.append(deserializer())  # type: ignore
-
-        return serializers, deserializers
-
-    def _use_websocket(self, dependency: dict) -> bool:
-        queue_enabled = self.client.config.get("enable_queue", False)
-        queue_uses_websocket = version.parse(
-            self.client.config.get("version", "2.0")
-        ) >= version.Version("3.2")
-        dependency_uses_queue = dependency.get("queue", False) is not False
-        return queue_enabled and queue_uses_websocket and dependency_uses_queue
-
-    async def _ws_fn(self, data, hash_data, helper: Communicator):
-        async with websockets.connect(  # type: ignore
-            self.client.ws_url,
-            open_timeout=10,
-            extra_headers=self.client.headers,
-            max_size=1024 * 1024 * 1024,
-        ) as websocket:
-            return await utils.get_pred_from_ws(websocket, data, hash_data, helper)
 
 
 @document("result", "outputs", "status")
