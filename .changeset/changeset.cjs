@@ -81,6 +81,7 @@ const changelogFunctions = {
 
 		console.log("changesets ", changesets);
 		console.log("dependenciesUpdated ", dependenciesUpdated);
+		console.log("changesetLink ", changesetLink);
 
 		return [changesetLink, ...updatedDepenenciesList].join("\n");
 	},
