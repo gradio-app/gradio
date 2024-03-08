@@ -300,7 +300,7 @@ def move_files_to_cache(
     if isinstance(data, (GradioRootModel, GradioModel)):
         data = data.model_dump()
 
-    return client_utils.traverse(data, _move_to_cache, client_utils.is_file_obj)
+    return client_utils.traverse(data, _move_to_cache, client_utils.is_file_obj_with_meta)
 
 
 def add_root_url(data: dict | list, root_url: str, previous_root_url: str | None):
