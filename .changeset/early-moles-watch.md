@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:fix: redundant meta tag duplicates that are unwanted
+fix:fix: redundant meta tags that are unwanted
