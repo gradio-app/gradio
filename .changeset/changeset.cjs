@@ -43,6 +43,10 @@ function find_packages_dirs(package_name) {
 	return package_dirs;
 }
 
+let lines = {
+	_handled: []
+};
+
 const changelogFunctions = {
 	/**
 	 *
@@ -64,16 +68,16 @@ const changelogFunctions = {
 		}
 		if (dependenciesUpdated.length === 0) return "";
 
-		let lines;
-		if (existsSync(join(rootDir, ".changeset", "_changelog.json"))) {
-			lines = JSON.parse(
-				readFileSync(join(rootDir, ".changeset", "_changelog.json"), "utf-8")
-			);
-		} else {
-			lines = {
-				_handled: []
-			};
-		}
+		// let lines;
+		// if (existsSync(join(rootDir, ".changeset", "_changelog.json"))) {
+		// 	lines = JSON.parse(
+		// 		readFileSync(join(rootDir, ".changeset", "_changelog.json"), "utf-8")
+		// 	);
+		// } else {
+		// 	lines = {
+		// 		_handled: []
+		// 	};
+		// }
 
 		const changesetLink = `- Updated dependencies [${(
 			await Promise.all(
@@ -229,16 +233,16 @@ const changelogFunctions = {
 		/**
 		 * @type { ChangesetMeta & { _handled: string[] } }}
 		 */
-		let lines;
-		if (existsSync(join(rootDir, ".changeset", "_changelog.json"))) {
-			lines = JSON.parse(
-				readFileSync(join(rootDir, ".changeset", "_changelog.json"), "utf-8")
-			);
-		} else {
-			lines = {
-				_handled: []
-			};
-		}
+		// let lines;
+		// if (existsSync(join(rootDir, ".changeset", "_changelog.json"))) {
+		// 	lines = JSON.parse(
+		// 		readFileSync(join(rootDir, ".changeset", "_changelog.json"), "utf-8")
+		// 	);
+		// } else {
+		// 	lines = {
+		// 		_handled: []
+		// 	};
+		// }
 
 		if (lines._handled.includes(changeset.id)) {
 			return "done";
