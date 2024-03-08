@@ -45,7 +45,7 @@ click==8.1.7
     #   uvicorn
 colorama==0.4.6
     # via typer
-contourpy==1.2.0
+contourpy==1.0.7
     # via matplotlib
 coverage[toml]==7.4.2
     # via
