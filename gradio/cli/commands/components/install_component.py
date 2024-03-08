@@ -93,7 +93,7 @@ def _install(
     pip_path: Annotated[
         Optional[str],
         Option(
-            help="Path to pip executable. If None, will use the default path found by `shutil.which`."
+            help="Path to pip executable. If None, will use the default path found by `which pip3`. If pip3 is not found, `which pip` will be tried. If both fail an error will be raised."
         ),
     ] = None,
 ):

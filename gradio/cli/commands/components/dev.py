@@ -36,7 +36,7 @@ def _dev(
     python_path: Annotated[
         Optional[str],
         typer.Option(
-            help="Path to the python executable. If None, will use the default path found by `shutil.which`."
+            help="Path to python executable. If None, will use the default path found by `which python3`. If python3 is not found, `which python` will be tried. If both fail an error will be raised."
         ),
     ] = None,
     gradio_path: Annotated[
