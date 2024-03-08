@@ -52,7 +52,9 @@ def _build(
         pyproject_toml = parse((path / "pyproject.toml").read_text())
         package_name = get_deep(pyproject_toml, ["project", "name"])
 
-        python_path = _get_executable_path("python", None, "--python-path")
+        python_path = _get_executable_path(
+            "python", None, "--python-path", check_3=True
+        )
 
         if not isinstance(package_name, str):
             raise ValueError(

@@ -66,8 +66,14 @@ if __name__ == "__main__":
 
 
 def test_get_executable_path():
+    assert _get_executable_path(
+        "pip", None, "--pip-path", check_3=True
+    ) == shutil.which("pip3")
     assert _get_executable_path("pip", None, "--pip-path") == shutil.which("pip")
     assert _get_executable_path("pip", "/usr/bin/pip", "--pip-path") == "/usr/bin/pip"
+    assert _get_executable_path(
+        "gradio", None, "--pip-path", check_3=True
+    ) == shutil.which("gradio")
     with pytest.raises(
         ValueError,
         match=r"Could not find foo. Please ensure it is installed and in your PATH or pass the --foo-path parameter.",

@@ -55,7 +55,7 @@ def _dev(
         raise ValueError("node must be installed in order to run dev mode.")
 
     python_path = _get_executable_path(
-        "python", python_path, cli_arg_name="--python-path"
+        "python", python_path, cli_arg_name="--python-path", check_3=True
     )
     gradio_path = _get_executable_path(
         "gradio", gradio_path, cli_arg_name="--gradio-path"

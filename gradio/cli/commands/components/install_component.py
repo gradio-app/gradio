@@ -26,16 +26,23 @@ def _get_npm(npm_install: str):
 
 
 def _get_executable_path(
-    executable: str, executable_path: str | None, cli_arg_name: str
+    executable: str,
+    executable_path: str | None,
+    cli_arg_name: str,
+    check_3: bool = False,
 ) -> str:
     """Get the path to an executable, either from the provided path or from the PATH environment variable.
 
     The value of executable_path takes precedence in case the value in PATH is incorrect.
     This should give more control to the developer in case their envrinment is not set up correctly.
+
+    If check_3 is True, we append 3 to the executable name to give python3 priority over python (same for pip).
     """
     if executable_path:
         return executable_path
     path = shutil.which(executable)
+    if check_3:
+        path = shutil.which(f"{executable}3") or path
     if not path:
         raise ValueError(
             f"Could not find {executable}. Please ensure it is installed and in your PATH or pass the {cli_arg_name} parameter."
@@ -47,7 +54,7 @@ def _install_command(
     directory: Path, live: LivePanelDisplay, npm_install: str, pip_path: str | None
 ):
     pip_executable_path = _get_executable_path(
-        "pip", executable_path=pip_path, cli_arg_name="--pip-path"
+        "pip", executable_path=pip_path, cli_arg_name="--pip-path", check_3=True
     )
     cmds = [pip_executable_path, "install", "-e", f"{str(directory)}[dev]"]
     live.update(
