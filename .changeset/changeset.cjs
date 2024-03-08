@@ -108,7 +108,7 @@ const changelogFunctions = {
 					updates.forEach((update) => {
 						if (!lines[update]) {
 							lines[update] = {
-								dirs: find_packages_dirs(dependency.name),
+								dirs: find_packages_dirs(update),
 								current_changelog: "",
 								feat: [],
 								fix: [],
