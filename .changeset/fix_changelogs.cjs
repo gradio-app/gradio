@@ -44,7 +44,7 @@ function run() {
 	}, /** @type {{[key:string] : PackageMeta}} */ ({}));
 
 	for (const pkg_name in packages) {
-		const { dirs, highlight, feat, fix, current_changelog } =
+		const { dirs, highlight, feat, fix, current_changelog, dependencies } =
 			/**@type {ChangesetMeta} */ (packages[pkg_name]);
 
 		if (pkg_name === "@gradio/lite") {
@@ -65,13 +65,17 @@ function run() {
 					all_packages[pkg_name].packageJson.version = new_version.join(".");
 				}
 			}
+
+			// feat.push({
+			// 	summary: `Bump version to ${all_packages[pkg_name].packageJson.version}`
+			// });
 		}
 
 		const { version, python } = all_packages[pkg_name].packageJson;
 
-		const highlights = highlight.map((h) => `${h.summary}`);
-		const features = feat.map((f) => `- ${f.summary}`);
-		const fixes = fix.map((f) => `- ${f.summary}`);
+		const highlights = highlight?.map((h) => `${h.summary}`) || [];
+		const features = feat?.map((f) => `- ${f.summary}`) || [];
+		const fixes = fix?.map((f) => `- ${f.summary}`) || [];
 
 		const release_notes = /** @type {[string[], string][]} */ ([
 			[highlights, "### Highlights"],
