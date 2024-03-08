@@ -69,12 +69,8 @@ function run() {
 
 			writeFileSync(
 				join(all_packages[pkg_name].dir, "package.json"),
-				JSON.stringify(all_packages[pkg_name].packageJson, null, 2)
+				JSON.stringify(all_packages[pkg_name].packageJson, null, "\t")
 			);
-
-			// feat.push({
-			// 	summary: `Bump version to ${all_packages[pkg_name].packageJson.version}`
-			// });
 		}
 
 		const { version, python } = all_packages[pkg_name].packageJson;

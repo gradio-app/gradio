@@ -118,6 +118,22 @@ const changelogFunctions = {
 								).packageJson.version,
 								dependencies: []
 							};
+
+							const changelog_path = join(
+								//@ts-ignore
+								lines[update].dirs[1] || lines[update].dirs[0],
+								"CHANGELOG.md"
+							);
+
+							if (existsSync(changelog_path)) {
+								//@ts-ignore
+								lines[update].current_changelog = readFileSync(
+									changelog_path,
+									"utf-8"
+								)
+									.replace(`# ${update}`, "")
+									.trim();
+							}
 						}
 						lines[update].dependencies.push(
 							`  - ${dependency.name}@${dependency.newVersion}`
@@ -150,7 +166,6 @@ const changelogFunctions = {
 	 * @returns {Promise<string>} The release line for the changeset
 	 */
 	getReleaseLine: async (changeset, type, options) => {
-		console.log("BEGINNING");
 		if (!options || !options.repo) {
 			throw new Error(
 				'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]'
