@@ -49,7 +49,7 @@ function run() {
 
 		if (pkg_name === "@gradio/lite") {
 			console.log(all_packages);
-			const target = all_packages.gradio.version.split(".");
+			const target = all_packages.gradio.packageJson.version.split(".");
 
 			const current_version = packages[pkg_name].current_version.split(".");
 
