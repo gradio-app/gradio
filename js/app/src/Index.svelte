@@ -166,35 +166,33 @@
 
 			if (parsed_head_html) {
 				for (let head_element of parsed_head_html) {
-					for (let head_element of parsed_head_html) {
-						let newElement = document.createElement(head_element.tagName);
-						Array.from(head_element.attributes).forEach((attr) => {
-							newElement.setAttribute(attr.name, attr.value);
-						});
-						newElement.textContent = head_element.textContent;
+					let newElement = document.createElement(head_element.tagName);
+					Array.from(head_element.attributes).forEach((attr) => {
+						newElement.setAttribute(attr.name, attr.value);
+					});
+					newElement.textContent = head_element.textContent;
 
-						if (
-							newElement.tagName == "META" &&
-							newElement.getAttribute("property")
-						) {
-							const domMetaList = Array.from(
-								document.head.getElementsByTagName("meta") ?? []
+					if (
+						newElement.tagName == "META" &&
+						newElement.getAttribute("property")
+					) {
+						const domMetaList = Array.from(
+							document.head.getElementsByTagName("meta") ?? []
+						);
+						const matched = domMetaList.find((el) => {
+							return (
+								el.getAttribute("property") ==
+									newElement.getAttribute("property") &&
+								!el.isEqualNode(newElement)
 							);
-							const matched = domMetaList.find((el) => {
-								return (
-									el.getAttribute("property") ==
-										newElement.getAttribute("property") &&
-									!el.isEqualNode(newElement)
-								);
-							});
-							if (matched) {
-								document.head.replaceChild(newElement, matched);
-								continue;
-							}
+						});
+						if (matched) {
+							document.head.replaceChild(newElement, matched);
+							continue;
 						}
-
-						document.head.appendChild(newElement);
 					}
+
+					document.head.appendChild(newElement);
 				}
 			}
 		}
