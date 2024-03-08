@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any, List
 
+import gradio_client.utils as client_utils
 import numpy as np
 import PIL.Image
 from gradio_client.documentation import document
@@ -103,7 +104,7 @@ class AnnotatedImage(Component):
     ) -> tuple[str, list[tuple[str, str]]] | None:
         """
         Parameters:
-            payload: Tuple of base image and list of annotations.
+            payload: Dict of base image and list of annotations.
         Returns:
             Passes its value as a `tuple` consisting of a `str` filepath to a base image and `list` of annotations. Each annotation itself is `tuple` of a mask (as a `str` filepath to image) and a `str` label.
         """
@@ -131,6 +132,10 @@ class AnnotatedImage(Component):
             return None
         base_img = value[0]
         if isinstance(base_img, str):
+            if client_utils.is_http_url_like(base_img):
+                base_img = processing_utils.save_url_to_cache(
+                    base_img, cache_dir=self.GRADIO_CACHE
+                )
             base_img_path = base_img
             base_img = np.array(PIL.Image.open(base_img))
         elif isinstance(base_img, np.ndarray):
@@ -198,5 +203,14 @@ class AnnotatedImage(Component):
             annotations=sections,
         )
 
-    def example_inputs(self) -> Any:
-        return {}
+    def example_payload(self) -> Any:
+        return {
+            "image": "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+            "annotations": [],
+        }
+
+    def example_value(self) -> Any:
+        return (
+            "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+            [([0, 0, 100, 100], "bus")],
+        )

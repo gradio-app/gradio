@@ -43,6 +43,7 @@ demo/all_demos/demos/*
 demo/all_demos/requirements.txt
 demo/*/config.json
 demo/annotatedimage_component/*.png
+demo/fake_diffusion_with_gif/*.gif
 
 # Etc
 .idea/*

@@ -96,7 +96,10 @@ class Markdown(Component):
         unindented_y = inspect.cleandoc(value)
         return unindented_y
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return "# Hello!"
+
+    def example_value(self) -> Any:
         return "# Hello!"
 
     def api_info(self) -> dict[str, Any]:
