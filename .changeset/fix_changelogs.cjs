@@ -76,11 +76,13 @@ function run() {
 		const highlights = highlight?.map((h) => `${h.summary}`) || [];
 		const features = feat?.map((f) => `- ${f.summary}`) || [];
 		const fixes = fix?.map((f) => `- ${f.summary}`) || [];
+		const deps = dependencies?.map((d) => d.trim()) || [];
 
 		const release_notes = /** @type {[string[], string][]} */ ([
 			[highlights, "### Highlights"],
 			[features, "### Features"],
-			[fixes, "### Fixes"]
+			[fixes, "### Fixes"],
+			[deps, "### Dependency updates"]
 		])
 			.filter(([s], i) => s.length > 0)
 			.map(([lines, title]) => {

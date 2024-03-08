@@ -1,5 +1,5 @@
 const { getPackagesSync } = require("@manypkg/get-packages");
-import dependents_graph = require("@changesets/get-dependents-graph");
+const dependents_graph = require("@changesets/get-dependents-graph");
 
 const gh = require("@changesets/get-github-info");
 const { existsSync, readFileSync, writeFileSync } = require("fs");
@@ -7,8 +7,12 @@ const { join } = require("path");
 
 const { getInfo, getInfoFromPullRequest } = gh;
 const pkg_data = getPackagesSync(process.cwd());
+console.log(pkg_data);
 const { packages, rootDir } = pkg_data;
-const dependents = dependents_graph.getDependentsGraph(pkg_data);
+const dependents = dependents_graph.getDependentsGraph({
+	packages,
+	root: pkg_data.rootPackage
+});
 
 console.log("dependents ", dependents);
 /**
@@ -59,6 +63,17 @@ const changelogFunctions = {
 		}
 		if (dependenciesUpdated.length === 0) return "";
 
+		let lines;
+		if (existsSync(join(rootDir, ".changeset", "_changelog.json"))) {
+			lines = JSON.parse(
+				readFileSync(join(rootDir, ".changeset", "_changelog.json"), "utf-8")
+			);
+		} else {
+			lines = {
+				_handled: []
+			};
+		}
+
 		const changesetLink = `- Updated dependencies [${(
 			await Promise.all(
 				changesets.map(async (cs) => {
@@ -81,12 +96,36 @@ const changelogFunctions = {
 			 * @param {any} dependency The dependency that has been updated
 			 * @returns {string} The formatted dependency
 			 */
-			(dependency) => `  - ${dependency.name}@${dependency.newVersion}`
+			(dependency) => {
+				if (!lines[dependency.name]) {
+					lines[dependency.name] = {
+						dirs: find_packages_dirs(dependency.name),
+						current_changelog: "",
+						feat: [],
+						fix: [],
+						highlight: [],
+						previous_version: packages.find(
+							(p) => p.packageJson.name === dependency.name
+						).packageJson.version,
+						dependencies: dependents.get(dependency.name) || []
+					};
+				} else {
+					lines[dependency.name].dependencies =
+						dependents.get(dependency.name) || [];
+				}
+
+				return `  - ${dependency.name}@${dependency.newVersion}`;
+			}
 		);
 
 		console.log("changesets ", changesets);
 		console.log("dependenciesUpdated ", dependenciesUpdated);
 		console.log("changesetLink ", changesetLink);
+
+		writeFileSync(
+			join(rootDir, ".changeset", "_changelog.json"),
+			JSON.stringify(lines, null, 2)
+		);
 
 		return [changesetLink, ...updatedDepenenciesList].join("\n");
 	},
