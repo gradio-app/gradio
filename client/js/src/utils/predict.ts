@@ -1,5 +1,5 @@
-import { Client } from "..";
-import { process_endpoint, resolve_config } from "../helpers";
+import { Client } from "../client";
+import { map_names_to_ids, process_endpoint, resolve_config } from "../helpers";
 import { Dependency, SubmitReturn } from "../types";
 
 export async function predict(
@@ -27,13 +27,15 @@ export async function predict(
 		throw new Error("No config or app_id set");
 	}
 
+	let api_map = map_names_to_ids(config?.dependencies || []);
+
 	let dependency: Dependency;
 
 	if (typeof endpoint === "number") {
 		dependency = config.dependencies[endpoint];
 	} else {
 		const trimmed_endpoint = endpoint.replace(/^\//, "");
-		dependency = config.dependencies[this.api_map[trimmed_endpoint]];
+		dependency = config.dependencies[api_map[trimmed_endpoint]];
 	}
 
 	if (dependency?.types.continuous) {
@@ -43,7 +45,7 @@ export async function predict(
 	}
 
 	return new Promise(async (resolve, reject) => {
-		const app = await this.submit(endpoint, data || [], event_data);
+		const app = this.submit(endpoint, data || [], event_data);
 		let result: unknown;
 		let data_returned = false;
 		let status_complete = false;

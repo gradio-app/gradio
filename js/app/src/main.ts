@@ -2,7 +2,7 @@ import "@gradio/theme/src/reset.css";
 import "@gradio/theme/src/global.css";
 import "@gradio/theme/src/pollen.css";
 import "@gradio/theme/src/typography.css";
-import { client, upload_files } from "@gradio/client";
+import { Client, upload_files } from "@gradio/client";
 import { mount_css } from "./css";
 import type Index from "./Index.svelte";
 
@@ -126,7 +126,7 @@ function create_custom_element(): void {
 					autoscroll: this.autoscroll === "true" ? true : false,
 					control_page_title: this.control_page_title === "true" ? true : false,
 					// injectables
-					client,
+					Client,
 					upload_files,
 					// for gradio docs
 					// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
@@ -195,7 +195,7 @@ function create_custom_element(): void {
 						control_page_title:
 							this.control_page_title === "true" ? true : false,
 						// injectables
-						client,
+						Client,
 						upload_files,
 						// for gradio docs
 						// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds

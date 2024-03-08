@@ -1,9 +1,8 @@
-export {
-	client,
-	post_data,
-	upload_files,
-	duplicate,
-	api_factory
-} from "./client.js";
-export type { SpaceStatus } from "./types.js";
+export { duplicate } from "./utils/duplicate.ts";
+export { predict } from "./utils/predict.ts";
+export { upload_files } from "./utils/upload_files.ts";
+export type { SpaceStatus, Status } from "./types";
+export { submit } from "./utils/submit.ts";
 export { FileData, upload, prepare_files } from "./upload.js";
+export { Client } from "./client.js";
+export { post_data } from "./utils/post_data.ts";

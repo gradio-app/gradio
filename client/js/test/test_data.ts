@@ -1,4 +1,4 @@
-import type { ApiData, ApiInfo, Config, EndpointInfo } from "./src/types";
+import type { ApiData, ApiInfo, Config, EndpointInfo } from "../src/types";
 
 export const test_endpoint_info: EndpointInfo<ApiData> = {
 	parameters: [

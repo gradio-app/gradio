@@ -1,4 +1,4 @@
-import { NodeBlob } from "../Client";
+import { NodeBlob } from "../client";
 import { ApiData, BlobRef, EndpointInfo, JsApiData, ParamType } from "../types";
 
 export function update_object(

@@ -9,32 +9,27 @@ import {
 	Event,
 	JsApiData,
 	EndpointInfo,
-	Config,
-	ApiInfo
+	ApiInfo,
+	Config
 } from "../types";
 
 import { post_data } from "./post_data";
-import { handle_blob } from "./handle_blob";
-import { Client } from "..";
-import {
-	process_endpoint,
-	resolve_config,
-	map_names_to_ids,
-	skip_queue,
-	handle_message
-} from "../helpers";
+// import { handle_blob } from "./handle_blob";
+
+import { skip_queue, handle_message } from "../helpers";
 import { BROKEN_CONNECTION_MSG, QUEUE_FULL_MSG } from "../constants";
 import { apply_diff_stream, close_stream, open_stream } from "./stream";
 
-export async function submit(
-	this: Client,
+export function submit(
+	this: any,
 	endpoint: string | number,
 	data?: unknown[],
-	event_data?: unknown
-): Promise<SubmitReturn> {
+	event_data?: unknown,
+	trigger_id?: any
+): SubmitReturn {
 	try {
 		const { hf_token } = this.options;
-		const config = await validate_and_resolve_config(this, hf_token);
+		const config: Config = this.config;
 		const session_hash = Math.random().toString(36).substring(2);
 		const event_callbacks: Record<string, () => Promise<void>> = {};
 
@@ -46,16 +41,16 @@ export async function submit(
 		const unclosed_events: Set<string> = new Set();
 
 		// API variables
-		const api = await this.view_api(config);
+		const api = this.api;
 		if (!api) throw new Error("No API found");
-		const api_map = map_names_to_ids(config.dependencies);
-		const { fn_index, api_info } = get_endpoint_info(api, endpoint, api_map);
+		const api_map = this.api_map;
+		const { fn_index } = get_endpoint_info(api, endpoint, api_map);
 
 		let payload: Payload;
 		let event_id: string | null = null;
 		let last_status = {};
 
-		payload = { data: data || [], event_data, fn_index };
+		payload = { data: data || [], event_data, fn_index, trigger_id };
 
 		const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
 
@@ -73,9 +68,9 @@ export async function submit(
 
 		// event subscription methods
 		function fire_event<K extends EventType>(event: Event<K>): void {
-			(listener_map[event.type] || []).forEach((listener) =>
-				listener(event as Event<EventType>)
-			);
+			const narrowed_listener_map: ListenerMap<K> = listener_map;
+			const listeners = narrowed_listener_map[event.type] || [];
+			listeners?.forEach((l) => l(event));
 		}
 
 		function on<K extends EventType>(
@@ -143,15 +138,17 @@ export async function submit(
 			}
 		}
 
-		if (data) {
-			data = await handle_blob(`${config.root}`, data, api_info, hf_token);
-		}
+		// todo: determine how to handle_blob in this function
 
-		payload = {
-			data: data || [],
-			event_data,
-			fn_index
-		};
+		// if (data) {
+		// 	data = await handle_blob(`${config.root}`, data, api_info, hf_token);
+		// }
+
+		// payload = {
+		// 	data: data || [],
+		// 	event_data,
+		// 	fn_index
+		// };
 
 		if (config && skip_queue(fn_index, config)) {
 			fire_event({
@@ -175,6 +172,7 @@ export async function submit(
 			)
 				.then(([output, status_code]) => {
 					const data = output.data;
+
 					if (status_code == 200) {
 						fire_event({
 							type: "data",
@@ -326,16 +324,13 @@ export async function submit(
 					}
 				}
 			};
-		} else if (protocol === "sse_v1" || protocol === "sse_v2") {
-			fire_event({
-				type: "status",
-				stage: "pending",
-				queue: true,
-				endpoint: _endpoint,
-				fn_index,
-				time: new Date()
-			});
-
+		} else if (
+			protocol == "sse_v1" ||
+			protocol == "sse_v2" ||
+			protocol == "sse_v2.1"
+		) {
+			// latest API format. v2 introduces sending diffs for intermediate outputs in generative functions,
+			// which makes payloads lighter.
 			fire_event({
 				type: "status",
 				stage: "pending",
@@ -375,7 +370,7 @@ export async function submit(
 					});
 				} else {
 					event_id = response.event_id as string;
-					let callback = async function (_data: object): Promise<void> {
+					let callback = function (_data: object): void {
 						try {
 							const { type, status, data } = handle_message(
 								_data,
@@ -428,6 +423,7 @@ export async function submit(
 									endpoint: _endpoint,
 									fn_index
 								});
+
 								if (event_id && data && protocol === "sse_v2") {
 									apply_diff_stream(pending_diff_streams, event_id, data); // Example function to apply diffs
 								}
@@ -508,23 +504,6 @@ export async function submit(
 		console.error("Submit function encountered an error:", error);
 		throw error;
 	}
-}
-
-async function validate_and_resolve_config(
-	client: Client,
-	hf_token?: `hf_${string}`
-): Promise<Config> {
-	const { http_protocol, host } =
-		(await process_endpoint(client.app_reference, hf_token ?? undefined)) || {};
-
-	if (!http_protocol || !host) throw new Error("Could not get host");
-	const config = await resolve_config(
-		fetch,
-		`${http_protocol}//${host}`,
-		hf_token
-	);
-	if (!config) throw new Error("No config or app_id set");
-	return config;
 }
 
 function get_endpoint_info(

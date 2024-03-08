@@ -3,7 +3,7 @@
 
 	import { tick } from "svelte";
 	import { _ } from "svelte-i18n";
-	import type { client } from "@gradio/client";
+	import { Client } from "@gradio/client";
 
 	import { create_loading_status_store } from "./stores";
 	import type { LoadingStatusCollection } from "./stores";
@@ -35,7 +35,7 @@
 	export let control_page_title = false;
 	export let app_mode: boolean;
 	export let theme_mode: ThemeMode;
-	export let app: Awaited<ReturnType<typeof client>>;
+	export let app: Awaited<ReturnType<typeof Client.create>>;
 	export let space_id: string | null;
 	export let version: string;
 	export let js: string | null;

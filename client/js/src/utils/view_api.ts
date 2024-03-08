@@ -1,25 +1,12 @@
 import { ApiInfo, ApiData, Config } from "../types";
-import {
-	process_endpoint,
-	resolve_config,
-	map_names_to_ids,
-	transform_api_info
-} from "../helpers";
+import { transform_api_info } from "../helpers";
 import semiver from "semiver";
-import { API_INFO_URL, SPACE_FETCHER_URL } from "../constants";
-import { Client } from "../Client";
+import { API_INFO_URL } from "../constants";
+import { Client } from "../client";
+import { SPACE_FETCHER_URL } from "../constants";
 
-export async function view_api(this: Client): Promise<any> {
+export async function view_api(this: Client, config?: Config): Promise<any> {
 	const { hf_token } = this.options;
-	let api_map: Record<string, number> = {};
-	let config;
-
-	const { http_protocol, host } =
-		(await process_endpoint(this.app_reference, hf_token ?? undefined)) || {};
-
-	if (!http_protocol || !host) {
-		return null;
-	}
 
 	const headers: {
 		Authorization?: string;
@@ -31,14 +18,6 @@ export async function view_api(this: Client): Promise<any> {
 	}
 
 	try {
-		if (!config) {
-			config = (await resolve_config(
-				fetch,
-				`${http_protocol}//${host}`,
-				hf_token
-			)) as Config;
-		}
-
 		let response: Response;
 
 		if (semiver(config?.version || "2.0.0", "3.30") < 0) {
@@ -56,8 +35,6 @@ export async function view_api(this: Client): Promise<any> {
 			});
 		}
 
-		api_map = map_names_to_ids(config?.dependencies || []);
-
 		if (!response.ok) {
 			throw new Error("Error fetching API info");
 		}
@@ -67,7 +44,7 @@ export async function view_api(this: Client): Promise<any> {
 			| { api: ApiInfo<ApiData> };
 
 		if (config) {
-			return transform_api_info(api_info, config, api_map);
+			return transform_api_info(api_info, config, this.api_map);
 		}
 	} catch (e) {
 		"Could not get API info. " + (e as Error).message;

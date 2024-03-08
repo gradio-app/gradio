@@ -1,13 +1,4 @@
-import { upload_files } from "./client";
-
-function is_url(str: string): boolean {
-	try {
-		const url = new URL(str);
-		return url.protocol === "http:" || url.protocol === "https:";
-	} catch {
-		return false;
-	}
-}
+import { upload_files } from ".";
 
 export async function upload(
 	file_data: FileData[],
@@ -48,7 +39,7 @@ export async function prepare_files(
 	is_stream?: boolean
 ): Promise<FileData[]> {
 	return files.map(
-		(f, i) =>
+		(f) =>
 			new FileData({
 				path: f.name,
 				orig_name: f.name,

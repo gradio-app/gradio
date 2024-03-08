@@ -4,7 +4,7 @@
 	import type { ComponentMeta, Dependency } from "../types";
 	import { post_data } from "@gradio/client";
 	import NoApi from "./NoApi.svelte";
-	import type { client } from "@gradio/client";
+	import type { Client } from "@gradio/client";
 
 	import { represent_value } from "./utils";
 
@@ -21,7 +21,7 @@
 	};
 	export let dependencies: Dependency[];
 	export let root: string;
-	export let app: Awaited<ReturnType<typeof client>>;
+	export let app: Awaited<ReturnType<typeof Client.create>>;
 	export let space_id: string | null;
 
 	const js_docs =

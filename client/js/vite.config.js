@@ -1,14 +1,14 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
-import { fileURLToPath } from "url";
-import path from "path";
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
+import dts from "vite-plugin-dts";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
 	build: {
 		lib: {
 			entry: "src/index.ts",
-			formats: ["es"]
+			formats: ["es", "umd"],
+			name: "client"
 		},
 		rollupOptions: {
 			input: "src/index.ts",
@@ -18,16 +18,11 @@ export default defineConfig({
 		}
 	},
 	plugins: [
-		svelte()
-		// {
-		// 	name: "resolve-gradio-client",
-		// 	enforce: "pre",
-		// 	resolveId(id) {
-		// 		if (id === "@gradio/client") {
-		// 			return path.join(__dirname, "src", "index.ts");
-		// 		}
-		// 	}
-		// }
+		svelte(),
+		tsconfigPaths(),
+		dts({
+			insertTypesEntry: true
+		})
 	],
 
 	ssr: {
