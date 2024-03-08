@@ -79,6 +79,9 @@ const changelogFunctions = {
 			(dependency) => `  - ${dependency.name}@${dependency.newVersion}`
 		);
 
+		console.log("changesets ", changesets);
+		console.log("dependenciesUpdated ", dependenciesUpdated);
+
 		return [changesetLink, ...updatedDepenenciesList].join("\n");
 	},
 	/**
