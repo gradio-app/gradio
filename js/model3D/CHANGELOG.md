@@ -1,5 +1,13 @@
 # @gradio/model3d
 
+## 0.8.5
+
+### Dependency updates
+
+- @gradio/upload@0.7.7
+- @gradio/client@0.13.0
+- @gradio/wasm@0.8.0
+
 ## 0.8.4
 
 ### Patch Changes
