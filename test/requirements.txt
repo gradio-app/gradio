@@ -45,7 +45,7 @@ click==8.1.7
     #   uvicorn
 colorama==0.4.6
     # via typer
-contourpy==1.2.0
+contourpy==1.0.7
     # via matplotlib
 coverage[toml]==7.4.2
     # via
@@ -145,7 +145,7 @@ markupsafe==2.1.1
     # via
     #   gradio
     #   jinja2
-matplotlib==3.8.3
+matplotlib==3.7.5
     # via gradio
 matplotlib-inline==0.1.3
     # via ipython
