@@ -4,6 +4,7 @@
 "@gradio/theme": minor
 "@gradio/wasm": minor
 "gradio": minor
+"gradio_client": minor
 "website": minor
 ---
 
