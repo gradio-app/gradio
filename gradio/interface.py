@@ -57,7 +57,7 @@ class Interface(Blocks):
     Demos: hello_world, hello_world_2, hello_world_3
     Guides: quickstart, key-features, sharing-your-app, interface-state, reactive-interfaces, advanced-interface-features, setting-up-a-gradio-demo-for-maximum-performance
     """
-    
+
     # stores references to all currently existing Interface instances
     instances: weakref.WeakSet = weakref.WeakSet()
 

@@ -178,6 +178,6 @@ export function bootstrap_custom_element(
 			return options;
 		}
 	}
-	
+
 	customElements.define(CUSTOM_ELEMENT_NAME, GradioLiteAppElement);
 }

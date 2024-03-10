@@ -9,8 +9,6 @@
 	import { page } from "$app/stores";
 	import { afterNavigate } from "$app/navigation";
 
-
-
 	export let data: any = {};
 
 	let name: string = data.name;
@@ -68,7 +66,6 @@
 	$: routes = data.routes;
 	$: py_client = data.py_client;
 	$: url_version = data.url_version;
-
 </script>
 
 <MetaTags
@@ -453,9 +450,7 @@
 														class:selected-demo-window={current_selection == i}
 														class="demo-content px-4"
 													>
-														<Demos
-															name={demo[0]}
-															code={demo[1]}														/>
+														<Demos name={demo[0]} code={demo[1]} />
 													</div>
 												{/each}
 											</div>

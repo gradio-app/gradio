@@ -665,12 +665,12 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
 
         if allow_origin_header:
             response.headers["Access-Control-Allow-Origin"] = allow_origin_header
-        response.headers[
-            "Access-Control-Allow-Methods"
-        ] = "GET, POST, PUT, DELETE, OPTIONS"
-        response.headers[
-            "Access-Control-Allow-Headers"
-        ] = "Origin, Content-Type, Accept"
+        response.headers["Access-Control-Allow-Methods"] = (
+            "GET, POST, PUT, DELETE, OPTIONS"
+        )
+        response.headers["Access-Control-Allow-Headers"] = (
+            "Origin, Content-Type, Accept"
+        )
         return response
 
 
