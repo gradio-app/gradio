@@ -1,4 +1,5 @@
 """Predefined button to sign in with Hugging Face in a Gradio Space."""
+
 from __future__ import annotations
 
 import json

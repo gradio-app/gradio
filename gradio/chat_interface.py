@@ -2,7 +2,6 @@
 This file defines a useful high-level abstraction to build Gradio chatbots: ChatInterface.
 """
 
-
 from __future__ import annotations
 
 import inspect

@@ -295,10 +295,10 @@ class Audio(
                 # strip length information from first chunk header, remove headers entirely from subsequent chunks
                 if first_chunk:
                     binary_data = (
-                        binary_data[:4] + b"\xFF\xFF\xFF\xFF" + binary_data[8:]
+                        binary_data[:4] + b"\xff\xff\xff\xff" + binary_data[8:]
                     )
                     binary_data = (
-                        binary_data[:40] + b"\xFF\xFF\xFF\xFF" + binary_data[44:]
+                        binary_data[:40] + b"\xff\xff\xff\xff" + binary_data[44:]
                     )
                 else:
                     binary_data = binary_data[44:]

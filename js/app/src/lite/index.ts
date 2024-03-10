@@ -127,34 +127,34 @@ export function create(options: Options): GradioAppController {
 			app = new Playground({
 				target: options.target,
 				props: {
-					...app_props, 
-					code: options.code, 
+					...app_props,
+					code: options.code,
 					error_display: {
-							is_embed: !options.isEmbed,
-							error
-						},
+						is_embed: !options.isEmbed,
+						error
+					},
 					loaded: true
 				}
 			});
 			app.$on("code", (code) => {
 				options.code = code.detail.code;
 				worker_proxy
-				.runPythonCode(options.code)
-				.then(launchNewApp(true))
-				.catch((e) => {
-					showError(e);
-					throw e;
-				});
+					.runPythonCode(options.code)
+					.then(launchNewApp(true))
+					.catch((e) => {
+						showError(e);
+						throw e;
+					});
 			});
 		} else {
-		app = new ErrorDisplay({
-			target: options.target,
-			props: {
-				is_embed: !options.isEmbed,
-				error
-			}
-		});
-	}
+			app = new ErrorDisplay({
+				target: options.target,
+				props: {
+					is_embed: !options.isEmbed,
+					error
+				}
+			});
+		}
 	}
 	function launchNewApp(loaded: Boolean = false): Promise<void> {
 		if (app != null) {
@@ -188,29 +188,34 @@ export function create(options: Options): GradioAppController {
 			mount_css: overridden_mount_css,
 			fetch_implementation: overridden_fetch,
 			EventSource_factory
-		}
+		};
 
 		if (options.playground) {
 			app = new Playground({
 				target: options.target,
-				props: {...app_props, code: options.code, error_display: null, loaded: loaded}
+				props: {
+					...app_props,
+					code: options.code,
+					error_display: null,
+					loaded: loaded
+				}
 			});
 			app.$on("code", (code) => {
 				options.code = code.detail.code;
 				worker_proxy
-				.runPythonCode(options.code)
-				.then(launchNewApp(true))
-				.catch((e) => {
-					showError(e);
-					throw e;
-				});
+					.runPythonCode(options.code)
+					.then(launchNewApp(true))
+					.catch((e) => {
+						showError(e);
+						throw e;
+					});
 			});
 		} else {
-		app = new Index({
-			target: options.target,
-			props: app_props
-		});
-	}
+			app = new Index({
+				target: options.target,
+				props: app_props
+			});
+		}
 
 		return new Promise((resolve) => {
 			app.$on("loaded", () => {

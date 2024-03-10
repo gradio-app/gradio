@@ -1,4 +1,5 @@
 """Predefined button to sign out from Hugging Face in a Gradio Space."""
+
 from __future__ import annotations
 
 import warnings

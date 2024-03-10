@@ -1,4 +1,5 @@
 """Included for backwards compatibility with 3.x spaces/apps."""
+
 from __future__ import annotations
 
 import json

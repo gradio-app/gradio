@@ -20,14 +20,10 @@
 		<link rel="stylesheet" href="./dist/lite.css" />
 	</head>
 
-	<body style="margin: auto; padding: 0; height: 100%; width: 100%; ">
-<gradio-lite playground>import gradio as gr
-gr.Interface(
-	fn=lambda x: x,
-	inputs=gr.Textbox(),
-	outputs=gr.Textbox()
-).launch()
-</gradio-lite>
-
+	<body style="margin: auto; padding: 0; height: 100%; width: 100%">
+		<gradio-lite playground
+			>import gradio as gr gr.Interface( fn=lambda x: x, inputs=gr.Textbox(),
+			outputs=gr.Textbox() ).launch()
+		</gradio-lite>
 	</body>
 </html>

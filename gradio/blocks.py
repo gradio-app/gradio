@@ -2089,9 +2089,9 @@ Received outputs:
             self.server_name = server_name
             self.local_url = local_url
             self.server_port = server_port
-            self.server_app = (
-                self.app
-            ) = app  # server_app is included for backwards compatibility
+            self.server_app = self.app = (
+                app  # server_app is included for backwards compatibility
+            )
             self.server = server
             self.is_running = True
             self.is_colab = utils.colab_check()
@@ -2529,8 +2529,8 @@ Received outputs:
                 )
 
             if not skip_endpoint:
-                api_info["named_endpoints"][
-                    f"/{dependency['api_name']}"
-                ] = dependency_info
+                api_info["named_endpoints"][f"/{dependency['api_name']}"] = (
+                    dependency_info
+                )
 
         return api_info
