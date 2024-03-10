@@ -14,6 +14,8 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
+from gradio_client.utils import is_file_obj
+
 from gradio import utils
 from gradio.blocks import Block, BlockContext
 from gradio.component_meta import ComponentMeta
@@ -81,8 +83,7 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     @abstractmethod
     def example_inputs(self) -> Any:
         """
-        The example inputs for this component as a dictionary whose values are example inputs compatible with this component.
-        Keys of the dictionary are: raw, serialized
+        Deprecated and replaced by `example_payload()` and `example_value()`.
         """
         pass
 
@@ -199,8 +200,10 @@ class Component(ComponentBase, Block):
             initial_value,
             self,  # type: ignore
             postprocess=True,
-            add_urls=True,
+            keep_in_cache=True,
         )
+        if is_file_obj(self.value):
+            self.keep_in_cache.add(self.value["path"])
 
         if callable(load_fn):
             self.attach_load_event(load_fn, every)
@@ -260,6 +263,24 @@ class Component(ComponentBase, Block):
     def as_example(self, value):
         """Deprecated and replaced by `process_example()`."""
         return self.process_example(value)
+
+    def example_inputs(self) -> Any:
+        """Deprecated and replaced by `example_payload()` and `example_value()`."""
+        return self.example_payload()
+
+    def example_payload(self) -> Any:
+        """
+        An example input data for this component, e.g. what is passed to this component's preprocess() method.
+        This is used to generate the docs for the View API page for Gradio apps using this component.
+        """
+        raise NotImplementedError()
+
+    def example_value(self) -> Any:
+        """
+        An example output data for this component, e.g. what is passed to this component's postprocess() method.
+        This is used to generate an example value if this component is used as a template for a custom component.
+        """
+        raise NotImplementedError()
 
     def api_info(self) -> dict[str, Any]:
         """
@@ -330,7 +351,8 @@ def component(cls_name: str, render: bool) -> Component:
     obj = utils.component_or_layout_class(cls_name)(render=render)
     if isinstance(obj, BlockContext):
         raise ValueError(f"Invalid component: {obj.__class__}")
-    assert isinstance(obj, Component)
+    if not isinstance(obj, Component):
+        raise TypeError(f"Expected a Component instance, but got {obj.__class__}")
     return obj
 
 
@@ -363,5 +385,8 @@ def get_component_instance(
         component_obj.render()
     elif unrender and component_obj.is_rendered:
         component_obj.unrender()
-    assert isinstance(component_obj, Component)
+    if not isinstance(component_obj, Component):
+        raise TypeError(
+            f"Expected a Component instance, but got {component_obj.__class__}"
+        )
     return component_obj

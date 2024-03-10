@@ -314,6 +314,7 @@
 		animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 		border: 2px solid var(--color-accent);
 		background: transparent;
+		z-index: var(--layer-1);
 	}
 
 	.translucent {

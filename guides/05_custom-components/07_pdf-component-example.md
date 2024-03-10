@@ -472,7 +472,6 @@ To do so, we're going to add some of the pdf rendering logic in `Index.svelte` t
 ```ts
 <script lang="ts">
 	export let value: string;
-	export let samples_dir: string;
 	export let type: "gallery" | "table";
 	export let selected = false;
 	import pdfjsLib from "pdfjs-dist";
@@ -505,7 +504,7 @@ To do so, we're going to add some of the pdf rendering logic in `Index.svelte` t
 			});
 		}
 	
-	$: get_doc(samples_dir + value);
+	$: get_doc(value);
 </script>
 
 <div
@@ -588,13 +587,11 @@ class PDF(Component):
             return None
         return FileData(path=value)
 
-    def example_inputs(self):
+    def example_payload(self):
         return "https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/fw9.pdf"
 
-    def as_example(self, input_data: str | None) -> str | None:
-        if input_data is None:
-            return None
-        return processing_utils.move_resource_to_block_cache(input_data, self)
+    def example_value(self):
+        return "https://gradio-builds.s3.amazonaws.com/assets/pdf-guide/fw9.pdf"
 ```
 
 ## Step 10: Add a demo and publish!

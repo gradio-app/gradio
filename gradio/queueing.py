@@ -13,19 +13,24 @@ from queue import Queue as ThreadQueue
 from typing import TYPE_CHECKING
 
 import fastapi
-from gradio_client.utils import ServerMessage
 from typing_extensions import Literal
 
 from gradio import route_utils, routes
 from gradio.data_classes import (
-    Estimation,
-    LogMessage,
     PredictBody,
-    Progress,
-    ProgressUnit,
 )
 from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
+from gradio.server_messages import (
+    EstimationMessage,
+    EventMessage,
+    LogMessage,
+    ProcessCompletedMessage,
+    ProcessGeneratingMessage,
+    ProcessStartsMessage,
+    ProgressMessage,
+    ProgressUnit,
+)
 from gradio.utils import LRUCache, run_coro_in_background, safe_get_lock, set_task_name
 
 if TYPE_CHECKING:
@@ -35,20 +40,20 @@ if TYPE_CHECKING:
 class Event:
     def __init__(
         self,
-        session_hash: str,
+        session_hash: str | None,
         fn_index: int,
         request: fastapi.Request,
         username: str | None,
         concurrency_id: str,
     ):
-        self.session_hash = session_hash
+        self._id = uuid.uuid4().hex
+        self.session_hash: str = session_hash or self._id
         self.fn_index = fn_index
         self.request = request
         self.username = username
         self.concurrency_id = concurrency_id
-        self._id = uuid.uuid4().hex
         self.data: PredictBody | None = None
-        self.progress: Progress | None = None
+        self.progress: ProgressMessage | None = None
         self.progress_pending: bool = False
         self.alive = True
 
@@ -84,7 +89,9 @@ class Queue:
         block_fns: list[BlockFunction],
         default_concurrency_limit: int | None | Literal["not_set"] = "not_set",
     ):
-        self.pending_messages_per_session: LRUCache[str, ThreadQueue] = LRUCache(2000)
+        self.pending_messages_per_session: LRUCache[
+            str, ThreadQueue[EventMessage]
+        ] = LRUCache(2000)
         self.pending_event_ids_session: dict[str, set[str]] = {}
         self.pending_message_lock = safe_get_lock()
         self.event_queue_per_concurrency_id: dict[str, EventQueue] = {}
@@ -150,14 +157,13 @@ class Queue:
     def send_message(
         self,
         event: Event,
-        message_type: str,
-        data: dict | None = None,
+        event_message: EventMessage,
     ):
         if not event.alive:
             return
-        data = {} if data is None else data
+        event_message.event_id = event._id
         messages = self.pending_messages_per_session[event.session_hash]
-        messages.put_nowait({"msg": message_type, "event_id": event._id, **data})
+        messages.put_nowait(event_message)
 
     def _resolve_concurrency_limit(
         self, default_concurrency_limit: int | None | Literal["not_set"]
@@ -190,8 +196,6 @@ class Queue:
     async def push(
         self, body: PredictBody, request: fastapi.Request, username: str | None
     ) -> tuple[bool, str]:
-        if body.session_hash is None:
-            return False, "No session hash provided."
         if body.fn_index is None:
             return False, "No function index provided."
         if self.max_size is not None and len(self) >= self.max_size:
@@ -208,6 +212,8 @@ class Queue:
             self.block_fns[body.fn_index].concurrency_id,
         )
         event.data = body
+        if body.session_hash is None:
+            body.session_hash = event.session_hash
         async with self.pending_message_lock:
             if body.session_hash not in self.pending_messages_per_session:
                 self.pending_messages_per_session[body.session_hash] = ThreadQueue()
@@ -322,9 +328,7 @@ class Queue:
             for event in events:
                 if event.progress_pending and event.progress:
                     event.progress_pending = False
-                    self.send_message(
-                        event, ServerMessage.progress, event.progress.model_dump()
-                    )
+                    self.send_message(event, event.progress)
 
             await asyncio.sleep(self.progress_update_sleep_when_free)
 
@@ -350,7 +354,7 @@ class Queue:
                             desc=iterable.desc,
                         )
                         progress_data.append(progress_unit)
-                    evt.progress = Progress(progress_data=progress_data)
+                    evt.progress = ProgressMessage(progress_data=progress_data)
                     evt.progress_pending = True
 
     def log_message(
@@ -368,7 +372,7 @@ class Queue:
                     log=log,
                     level=level,
                 )
-                self.send_message(event, ServerMessage.log, log_message.model_dump())
+                self.send_message(event, log_message)
 
     async def clean_events(
         self, *, session_hash: str | None = None, event_id: str | None = None
@@ -441,10 +445,9 @@ class Queue:
             if after is None or rank >= after:
                 self.send_message(
                     event,
-                    ServerMessage.estimation,
-                    Estimation(
+                    EstimationMessage(
                         rank=rank, rank_eta=rank_eta, queue_size=len(event_queue.queue)
-                    ).model_dump(),
+                    ),
                 )
             if event_queue.concurrency_limit is None:
                 wait_so_far = 0
@@ -453,12 +456,12 @@ class Queue:
             else:
                 wait_so_far = None
 
-    def get_status(self) -> Estimation:
-        return Estimation(
+    def get_status(self) -> EstimationMessage:
+        return EstimationMessage(
             queue_size=len(self),
         )
 
-    async def call_prediction(self, events: list[Event], batch: bool):
+    async def call_prediction(self, events: list[Event], batch: bool) -> dict:
         body = events[0].data
         if body is None:
             raise ValueError("No event data")
@@ -490,13 +493,17 @@ class Queue:
             username=username,
             request=None,
         )
-
+        assert body.request is not None  # noqa: S101
+        root_path = route_utils.get_root_url(
+            request=body.request, route_path="/queue/join", root_path=app.root_path
+        )
         try:
             output = await route_utils.call_process_api(
                 app=app,
                 body=body,
                 gr_request=gr_request,
                 fn_index_inferred=fn_index_inferred,
+                root_path=root_path,
             )
         except Exception as error:
             show_error = app.get_blocks().show_error or isinstance(error, Error)
@@ -517,6 +524,8 @@ class Queue:
         )  # Do the same as https://github.com/tiangolo/fastapi/blob/0.87.0/fastapi/routing.py#L264
         # Also, decode the JSON string to a Python object, emulating the HTTP client behavior e.g. the `json()` method of `httpx`.
         response_json = json.loads(http_response.body.decode())
+        if not isinstance(response_json, dict):
+            raise ValueError("Unexpected object.")
 
         return response_json
 
@@ -530,12 +539,11 @@ class Queue:
                 if event.alive:
                     self.send_message(
                         event,
-                        ServerMessage.process_starts,
-                        {
-                            "eta": self.process_time_per_fn_index[fn_index].avg_time
+                        ProcessStartsMessage(
+                            eta=self.process_time_per_fn_index[fn_index].avg_time
                             if fn_index in self.process_time_per_fn_index
                             else None
-                        },
+                        ),
                     )
                     awake_events.append(event)
             if not awake_events:
@@ -549,15 +557,14 @@ class Queue:
                 for event in awake_events:
                     self.send_message(
                         event,
-                        ServerMessage.process_completed,
-                        {
-                            "output": {
+                        ProcessCompletedMessage(
+                            output={
                                 "error": None
                                 if len(e.args) and e.args[0] is None
                                 else str(e)
                             },
-                            "success": False,
-                        },
+                            success=False,
+                        ),
                     )
             if response and response.get("is_generating", False):
                 old_response = response
@@ -568,11 +575,10 @@ class Queue:
                     for event in awake_events:
                         self.send_message(
                             event,
-                            ServerMessage.process_generating,
-                            {
-                                "output": old_response,
-                                "success": old_response is not None,
-                            },
+                            ProcessGeneratingMessage(
+                                output=old_response,
+                                success=old_response is not None,
+                            ),
                         )
                     awake_events = [event for event in awake_events if event.alive]
                     if not awake_events:
@@ -587,14 +593,15 @@ class Queue:
                     relevant_response = response or err or old_err
                     self.send_message(
                         event,
-                        ServerMessage.process_completed,
-                        {
-                            "output": {"error": str(relevant_response)}
+                        ProcessCompletedMessage(
+                            output={"error": str(relevant_response)}
                             if isinstance(relevant_response, Exception)
-                            else relevant_response,
-                            "success": relevant_response
-                            and not isinstance(relevant_response, Exception),
-                        },
+                            else relevant_response or {},
+                            success=(
+                                relevant_response is not None
+                                and not isinstance(relevant_response, Exception)
+                            ),
+                        ),
                     )
             elif response:
                 output = copy.deepcopy(response)
@@ -603,11 +610,10 @@ class Queue:
                         output["data"] = list(zip(*response.get("data")))[e]
                     self.send_message(
                         event,
-                        ServerMessage.process_completed,
-                        {
-                            "output": output,
-                            "success": response is not None,
-                        },
+                        ProcessCompletedMessage(
+                            output=output,
+                            success=response is not None,
+                        ),
                     )
             end_time = time.time()
             if response is not None:

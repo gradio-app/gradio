@@ -76,9 +76,10 @@ class Dataset(Component):
         ]
 
         # Narrow type to Component
-        assert all(
-            isinstance(c, Component) for c in self._components
-        ), "All components in a `Dataset` must be subclasses of `Component`"
+        if not all(isinstance(c, Component) for c in self._components):
+            raise TypeError(
+                "All components in a `Dataset` must be subclasses of `Component`"
+            )
         self._components = [c for c in self._components if isinstance(c, Component)]
         self.proxy_url = proxy_url
         for component in self._components:
@@ -93,9 +94,9 @@ class Dataset(Component):
                     # use the previous name to be backwards-compatible with previously-created
                     # custom components
                     example[i] = component.as_example(ex)
-                    example[i] = processing_utils.move_files_to_cache(
-                        example[i], component
-                    )
+                example[i] = processing_utils.move_files_to_cache(
+                    example[i], component, keep_in_cache=True
+                )
         self.type = type
         self.label = label
         if headers is not None:
@@ -147,5 +148,8 @@ class Dataset(Component):
             "__type__": "update",
         }
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
         return 0
+
+    def example_value(self) -> Any:
+        return []

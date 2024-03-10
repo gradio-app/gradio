@@ -286,7 +286,6 @@
 			on:edit
 		/>
 	{/if}
-
 	<SelectSource {sources} bind:active_source handle_clear={clear} />
 </div>
 

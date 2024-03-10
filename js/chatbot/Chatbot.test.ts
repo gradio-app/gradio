@@ -23,8 +23,6 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: [["user message one", "bot message one"]],
-			root: "",
-			proxy_url: "",
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
@@ -40,8 +38,6 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: [[null, null]],
-			root: "",
-			proxy_url: "",
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
@@ -61,8 +57,6 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: [["", ""]],
-			root: "",
-			proxy_url: "",
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
@@ -78,8 +72,6 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: [["user message one", "bot message one"]],
-			root: "",
-			proxy_url: "",
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
@@ -105,8 +97,6 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: undefined,
-			root: "",
-			proxy_url: "",
 			latex_delimiters: []
 		});
 
@@ -137,8 +127,6 @@ describe("Chatbot", () => {
 		const { component, getAllByTestId } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
-			root: "",
-			proxy_url: "",
 			latex_delimiters: [],
 			theme_mode: "dark"
 		});
@@ -166,8 +154,6 @@ describe("Chatbot", () => {
 		const { component, getAllByTestId } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
-			root: "",
-			proxy_url: "",
 			latex_delimiters: [],
 			theme_mode: "dark"
 		});
@@ -196,8 +182,6 @@ describe("Chatbot", () => {
 		const { component, getAllByTestId } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
-			root: "",
-			proxy_url: "",
 			latex_delimiters: []
 		});
 

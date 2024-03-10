@@ -1,12 +1,16 @@
+from __future__ import annotations
+
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Optional
 
 import typer
 from rich import print
 from typing_extensions import Annotated
 
 import gradio
+from gradio.cli.commands.components.install_component import _get_executable_path
 
 gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"
 gradio_node_path = Path(gradio.__file__).parent / "node" / "dev" / "files" / "index.js"
@@ -31,6 +35,18 @@ def _dev(
             help="The host to run the front end server on. Defaults to localhost.",
         ),
     ] = "localhost",
+    python_path: Annotated[
+        Optional[str],
+        typer.Option(
+            help="Path to python executable. If None, will use the default path found by `which python3`. If python3 is not found, `which python` will be tried. If both fail an error will be raised."
+        ),
+    ] = None,
+    gradio_path: Annotated[
+        Optional[str],
+        typer.Option(
+            help="Path to gradio executable. If None, will use the default path found by `shutil.which`."
+        ),
+    ] = None,
 ):
     component_directory = component_directory.resolve()
 
@@ -39,6 +55,13 @@ def _dev(
     node = shutil.which("node")
     if not node:
         raise ValueError("node must be installed in order to run dev mode.")
+
+    python_path = _get_executable_path(
+        "python", python_path, cli_arg_name="--python-path", check_3=True
+    )
+    gradio_path = _get_executable_path(
+        "gradio", gradio_path, cli_arg_name="--gradio-path"
+    )
 
     proc = subprocess.Popen(
         [
@@ -54,6 +77,10 @@ def _dev(
             "dev",
             "--host",
             host,
+            "--python-path",
+            python_path,
+            "--gradio-path",
+            gradio_path,
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,

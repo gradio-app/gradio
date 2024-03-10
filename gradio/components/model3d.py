@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Callable
 
+from gradio_client import file
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
@@ -15,7 +16,7 @@ from gradio.events import Events
 @document()
 class Model3D(Component):
     """
-    Creates a component allows users to upload or view 3D Model files (.obj, .glb, .stl, or .gltf).
+    Creates a component allows users to upload or view 3D Model files (.obj, .glb, .stl, .gltf, .splat, or .ply).
 
     Guides: how-to-use-3D-model-component
     """
@@ -53,7 +54,7 @@ class Model3D(Component):
     ):
         """
         Parameters:
-            value: path to (.obj, .glb, .stl, or .gltf) file to show in model3D viewer. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: path to (.obj, .glb, .stl, .gltf, .splat, or .ply) file to show in model3D viewer. If callable, the function will be called whenever the app loads to set the initial value of the component.
             clear_color: background color of scene, should be a tuple of 4 floats between 0 and 1 representing RGBA values.
             camera_position: initial camera position of scene, provided as a tuple of `(alpha, beta, radius)`. Each value is optional. If provided, `alpha` and `beta` should be in degrees reflecting the angular position along the longitudinal and latitudinal axes, respectively. Radius corresponds to the distance from the center of the object to the camera.
             zoom_speed: the speed of zooming in and out of the scene when the cursor wheel is rotated or when screen is pinched on a mobile device. Should be a positive float, increase this value to make zooming faster, decrease to make it slower. Affects the wheelPrecision property of the camera.
@@ -116,6 +117,10 @@ class Model3D(Component):
     def process_example(self, input_data: str | Path | None) -> str:
         return Path(input_data).name if input_data else ""
 
-    def example_inputs(self):
-        # TODO: Use permanent link
+    def example_payload(self):
+        return file(
+            "https://raw.githubusercontent.com/gradio-app/gradio/main/demo/model3D/files/Fox.gltf"
+        )
+
+    def example_value(self):
         return "https://raw.githubusercontent.com/gradio-app/gradio/main/demo/model3D/files/Fox.gltf"

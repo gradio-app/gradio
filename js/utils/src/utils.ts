@@ -11,6 +11,11 @@ export interface LikeData {
 	liked?: boolean;
 }
 
+export interface KeyUpData {
+	key: string;
+	input_value: string;
+}
+
 export interface ShareData {
 	description: string;
 	title?: string;

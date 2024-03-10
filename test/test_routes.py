@@ -2,15 +2,18 @@
 import functools
 import os
 import tempfile
+import time
 from contextlib import asynccontextmanager, closing
+from typing import Dict
 from unittest.mock import patch
 
 import gradio_client as grc
 import numpy as np
 import pandas as pd
 import pytest
+import requests
 import starlette.routing
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 from gradio_client import media_data
 
@@ -25,7 +28,12 @@ from gradio import (
     routes,
     wasm_utils,
 )
-from gradio.route_utils import FnIndexInferError
+from gradio.route_utils import (
+    FnIndexInferError,
+    compare_passwords_securely,
+    get_root_url,
+    starts_with_protocol,
+)
 
 
 @pytest.fixture()
@@ -383,6 +391,20 @@ class TestRoutes:
             assert client.get("/ps").is_success
             assert client.get("/py").is_success
 
+    def test_mount_gradio_app_with_auth_dependency(self):
+        app = FastAPI()
+
+        def get_user(request: Request):
+            return request.headers.get("user")
+
+        demo = gr.Interface(lambda s: f"Hello from ps, {s}!", "textbox", "textbox")
+
+        app = gr.mount_gradio_app(app, demo, path="/demo", auth_dependency=get_user)
+
+        with TestClient(app) as client:
+            assert client.get("/demo", headers={"user": "abubakar"}).is_success
+            assert not client.get("/demo").is_success
+
     def test_static_file_missing(self, test_client):
         response = test_client.get(r"/static/not-here.js")
         assert response.status_code == 404
@@ -394,9 +416,15 @@ class TestRoutes:
     def test_cannot_access_files_in_working_directory(self, test_client):
         response = test_client.get(r"/file=not-here.js")
         assert response.status_code == 403
+        response = test_client.get(r"/file=subdir/.env")
+        assert response.status_code == 403
 
     def test_cannot_access_directories_in_working_directory(self, test_client):
         response = test_client.get(r"/file=gradio")
+        assert response.status_code == 403
+
+    def test_block_protocols_that_expose_windows_credentials(self, test_client):
+        response = test_client.get(r"/file=//11.0.225.200/share")
         assert response.status_code == 403
 
     def test_do_not_expose_existence_of_files_outside_working_directory(
@@ -439,6 +467,79 @@ class TestRoutes:
         r = app.build_proxy_request("https://google.com")
         assert "authorization" not in dict(r.headers)
 
+    def test_can_get_config_that_includes_non_pickle_able_objects(self):
+        my_dict = {"a": 1, "b": 2, "c": 3}
+        with Blocks() as demo:
+            gr.JSON(my_dict.keys())
+
+        app, _, _ = demo.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        response = client.get("/")
+        assert response.is_success
+        response = client.get("/config/")
+        assert response.is_success
+
+    def test_cors_restrictions(self):
+        io = gr.Interface(lambda s: s.name, gr.File(), gr.File())
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        custom_headers = {
+            "host": "localhost:7860",
+            "origin": "https://example.com",
+        }
+        file_response = client.get("/config", headers=custom_headers)
+        assert "access-control-allow-origin" not in file_response.headers
+        custom_headers = {
+            "host": "localhost:7860",
+            "origin": "127.0.0.1",
+        }
+        file_response = client.get("/config", headers=custom_headers)
+        assert file_response.headers["access-control-allow-origin"] == "127.0.0.1"
+        io.close()
+
+    def test_delete_cache(self, connect, gradio_temp_dir, capsys):
+        def check_num_files_exist(blocks: Blocks):
+            num_files = 0
+            for temp_file_set in blocks.temp_file_sets:
+                for temp_file in temp_file_set:
+                    if os.path.exists(temp_file):
+                        num_files += 1
+            return num_files
+
+        demo = gr.Interface(lambda s: s, gr.Textbox(), gr.File(), delete_cache=None)
+        with connect(demo) as client:
+            client.predict("test/test_files/cheetah1.jpg")
+        assert check_num_files_exist(demo) == 1
+
+        demo_delete = gr.Interface(
+            lambda s: s, gr.Textbox(), gr.File(), delete_cache=(60, 30)
+        )
+        with connect(demo_delete) as client:
+            client.predict("test/test_files/alphabet.txt")
+            client.predict("test/test_files/bus.png")
+            assert check_num_files_exist(demo_delete) == 2
+        assert check_num_files_exist(demo_delete) == 0
+        assert check_num_files_exist(demo) == 1
+
+        @asynccontextmanager
+        async def mylifespan(app: FastAPI):
+            print("IN CUSTOM LIFESPAN")
+            yield
+            print("AFTER CUSTOM LIFESPAN")
+
+        demo_custom_lifespan = gr.Interface(
+            lambda s: s, gr.Textbox(), gr.File(), delete_cache=(5, 1)
+        )
+
+        with connect(
+            demo_custom_lifespan, app_kwargs={"lifespan": mylifespan}
+        ) as client:
+            client.predict("test/test_files/alphabet.txt")
+        assert check_num_files_exist(demo_custom_lifespan) == 0
+        captured = capsys.readouterr()
+        assert "IN CUSTOM LIFESPAN" in captured.out
+        assert "AFTER CUSTOM LIFESPAN" in captured.out
+
 
 class TestApp:
     def test_create_app(self):
@@ -460,17 +561,49 @@ class TestAuthenticatedRoutes:
             data={"username": "test", "password": "correct_password"},
         )
         assert response.status_code == 200
+
         response = client.post(
             "/login",
             data={"username": "test", "password": "incorrect_password"},
         )
         assert response.status_code == 400
 
+        client.post(
+            "/login",
+            data={"username": "test", "password": "correct_password"},
+        )
         response = client.post(
             "/login",
             data={"username": " test ", "password": "correct_password"},
         )
         assert response.status_code == 200
+
+    def test_logout(self):
+        io = Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(
+            auth=("test", "correct_password"),
+            prevent_thread_lock=True,
+        )
+        client = TestClient(app)
+
+        client.post(
+            "/login",
+            data={"username": "test", "password": "correct_password"},
+        )
+
+        response = client.post(
+            "/run/predict",
+            json={"data": ["test"]},
+        )
+        assert response.status_code == 200
+
+        response = client.get("/logout")
+
+        response = client.post(
+            "/run/predict",
+            json={"data": ["test"]},
+        )
+        assert response.status_code == 401
 
 
 class TestQueueRoutes:
@@ -704,25 +837,6 @@ def test_orjson_serialization():
     demo.close()
 
 
-def test_file_route_does_not_allow_dot_paths(tmp_path):
-    dot_file = tmp_path / ".env"
-    dot_file.write_text("secret=1234")
-    subdir = tmp_path / "subdir"
-    subdir.mkdir()
-    sub_dot_file = subdir / ".env"
-    sub_dot_file.write_text("secret=1234")
-    secret_sub_dir = tmp_path / ".versioncontrol"
-    secret_sub_dir.mkdir()
-    secret_sub_dir_regular_file = secret_sub_dir / "settings"
-    secret_sub_dir_regular_file.write_text("token = 8")
-    with closing(gr.Interface(lambda s: s.name, gr.File(), gr.File())) as io:
-        app, _, _ = io.launch(prevent_thread_lock=True)
-        client = TestClient(app)
-        assert client.get("/file=.env").status_code == 403
-        assert client.get("/file=subdir/.env").status_code == 403
-        assert client.get("/file=.versioncontrol/settings").status_code == 403
-
-
 def test_api_name_set_for_all_events(connect):
     with gr.Blocks() as demo:
         i = Textbox()
@@ -862,3 +976,258 @@ def test_component_server_endpoints(connect):
             },
         )
         assert fail_req.status_code == 404
+
+
+@pytest.mark.parametrize(
+    "request_url, route_path, root_path, expected_root_url",
+    [
+        ("http://localhost:7860/", "/", None, "http://localhost:7860"),
+        (
+            "http://localhost:7860/demo/test",
+            "/demo/test",
+            None,
+            "http://localhost:7860",
+        ),
+        (
+            "http://localhost:7860/demo/test/",
+            "/demo/test",
+            None,
+            "http://localhost:7860",
+        ),
+        (
+            "http://localhost:7860/demo/test?query=1",
+            "/demo/test",
+            None,
+            "http://localhost:7860",
+        ),
+        (
+            "http://localhost:7860/demo/test?query=1",
+            "/demo/test/",
+            "/gradio/",
+            "http://localhost:7860/gradio",
+        ),
+        (
+            "http://localhost:7860/demo/test?query=1",
+            "/demo/test",
+            "/gradio/",
+            "http://localhost:7860/gradio",
+        ),
+        (
+            "https://localhost:7860/demo/test?query=1",
+            "/demo/test",
+            "/gradio/",
+            "https://localhost:7860/gradio",
+        ),
+        (
+            "https://www.gradio.app/playground/",
+            "/",
+            "/playground",
+            "https://www.gradio.app/playground",
+        ),
+        (
+            "https://www.gradio.app/playground/",
+            "/",
+            "/playground",
+            "https://www.gradio.app/playground",
+        ),
+        (
+            "https://www.gradio.app/playground/",
+            "/",
+            "",
+            "https://www.gradio.app/playground",
+        ),
+        (
+            "https://www.gradio.app/playground/",
+            "/",
+            "http://www.gradio.app/",
+            "http://www.gradio.app",
+        ),
+    ],
+)
+def test_get_root_url(
+    request_url: str, route_path: str, root_path: str, expected_root_url: str
+):
+    scope = {
+        "type": "http",
+        "headers": [],
+        "path": request_url,
+    }
+    request = Request(scope)
+    assert get_root_url(request, route_path, root_path) == expected_root_url
+
+
+@pytest.mark.parametrize(
+    "headers, root_path, expected_root_url",
+    [
+        ({}, "/gradio/", "http://gradio.app/gradio"),
+        ({"x-forwarded-proto": "http"}, "/gradio/", "http://gradio.app/gradio"),
+        ({"x-forwarded-proto": "https"}, "/gradio/", "https://gradio.app/gradio"),
+        ({"x-forwarded-host": "gradio.dev"}, "/gradio/", "http://gradio.dev/gradio"),
+        (
+            {"x-forwarded-host": "gradio.dev", "x-forwarded-proto": "https"},
+            "/",
+            "https://gradio.dev",
+        ),
+        (
+            {"x-forwarded-host": "gradio.dev", "x-forwarded-proto": "https"},
+            "http://google.com",
+            "http://google.com",
+        ),
+    ],
+)
+def test_get_root_url_headers(
+    headers: Dict[str, str], root_path: str, expected_root_url: str
+):
+    scope = {
+        "type": "http",
+        "headers": [(k.encode(), v.encode()) for k, v in headers.items()],
+        "path": "http://gradio.app",
+    }
+    request = Request(scope)
+    assert get_root_url(request, "/", root_path) == expected_root_url
+
+
+class TestSimpleAPIRoutes:
+    def get_demo(self):
+        with Blocks() as demo:
+            input = Textbox()
+            output = Textbox()
+            output2 = Textbox()
+
+            def fn_1(x):
+                return f"Hello, {x}!"
+
+            def fn_2(x):
+                for i in range(len(x)):
+                    time.sleep(0.5)
+                    yield f"Hello, {x[:i+1]}!"
+                if len(x) < 3:
+                    raise ValueError("Small input")
+
+            def fn_3():
+                return "a", "b"
+
+            btn1, btn2, btn3 = Button(), Button(), Button()
+            btn1.click(fn_1, input, output, api_name="fn1")
+            btn2.click(fn_2, input, output2, api_name="fn2")
+            btn3.click(fn_3, None, [output, output2], api_name="fn3")
+        return demo
+
+    def test_successful_simple_route(self):
+        demo = self.get_demo()
+        demo.launch(prevent_thread_lock=True)
+
+        response = requests.post(f"{demo.local_url}call/fn1", json={"data": ["world"]})
+
+        assert response.status_code == 200, "Failed to call fn1"
+        response = response.json()
+        event_id = response["event_id"]
+
+        output = []
+        response = requests.get(f"{demo.local_url}call/fn1/{event_id}", stream=True)
+
+        for line in response.iter_lines():
+            if line:
+                output.append(line.decode("utf-8"))
+
+        assert output == ["event: complete", 'data: ["Hello, world!"]']
+
+        response = requests.post(f"{demo.local_url}call/fn3", json={"data": []})
+
+        assert response.status_code == 200, "Failed to call fn3"
+        response = response.json()
+        event_id = response["event_id"]
+
+        output = []
+        response = requests.get(f"{demo.local_url}call/fn3/{event_id}", stream=True)
+
+        for line in response.iter_lines():
+            if line:
+                output.append(line.decode("utf-8"))
+
+        assert output == ["event: complete", 'data: ["a", "b"]']
+
+    def test_generative_simple_route(self):
+        demo = self.get_demo()
+        demo.launch(prevent_thread_lock=True)
+
+        response = requests.post(f"{demo.local_url}call/fn2", json={"data": ["world"]})
+
+        assert response.status_code == 200, "Failed to call fn2"
+        response = response.json()
+        event_id = response["event_id"]
+
+        output = []
+        response = requests.get(f"{demo.local_url}call/fn2/{event_id}", stream=True)
+
+        for line in response.iter_lines():
+            if line:
+                output.append(line.decode("utf-8"))
+
+        assert output == [
+            "event: generating",
+            'data: ["Hello, w!"]',
+            "event: generating",
+            'data: ["Hello, wo!"]',
+            "event: generating",
+            'data: ["Hello, wor!"]',
+            "event: generating",
+            'data: ["Hello, worl!"]',
+            "event: generating",
+            'data: ["Hello, world!"]',
+            "event: complete",
+            'data: ["Hello, world!"]',
+        ]
+
+        response = requests.post(f"{demo.local_url}call/fn2", json={"data": ["w"]})
+
+        assert response.status_code == 200, "Failed to call fn2"
+        response = response.json()
+        event_id = response["event_id"]
+
+        output = []
+        response = requests.get(f"{demo.local_url}call/fn2/{event_id}", stream=True)
+
+        for line in response.iter_lines():
+            if line:
+                output.append(line.decode("utf-8"))
+
+        assert output == [
+            "event: generating",
+            'data: ["Hello, w!"]',
+            "event: error",
+            "data: null",
+        ]
+
+
+def test_compare_passwords_securely():
+    password1 = "password"
+    password2 = "pässword"
+    assert compare_passwords_securely(password1, password1)
+    assert not compare_passwords_securely(password1, password2)
+    assert compare_passwords_securely(password2, password2)
+
+
+@pytest.mark.parametrize(
+    "string, expected",
+    [
+        ("http://localhost:7860/", True),
+        ("https://localhost:7860/", True),
+        ("ftp://localhost:7860/", True),
+        ("smb://example.com", True),
+        ("ipfs://QmTzQ1Nj5R9BzF1djVQv8gvzZxVkJb1vhrLcXL1QyJzZE", True),
+        ("usr/local/bin", False),
+        ("localhost:7860", False),
+        ("localhost", False),
+        ("C:/Users/username", False),
+        ("//path", True),
+        ("\\\\path", True),
+        ("/usr/bin//test", False),
+        ("/\\10.0.225.200/share", True),
+        ("\\/10.0.225.200/share", True),
+        ("/home//user", False),
+        ("C:\\folder\\file", False),
+    ],
+)
+def test_starts_with_protocol(string, expected):
+    assert starts_with_protocol(string) == expected

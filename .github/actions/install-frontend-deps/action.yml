@@ -14,6 +14,9 @@ inputs:
   skip_build:
     description: 'Skip build'
     default: 'false'
+  build_lite:
+    description: 'Build lite'
+    default: 'false'
   os:
     description: 'OS'
     default: 'ubuntu-latest'
@@ -48,3 +51,10 @@ runs:
       if: inputs.skip_build == 'false' && steps.frontend-cache.outputs.cache-hit != 'true'
       shell: bash
       run: pnpm build
+    - name: Build frontend lite
+      if: inputs.build_lite == 'true'
+      shell: bash
+      run: |
+        . venv/bin/activate
+        python -m pip install build
+        pnpm --filter @gradio/app build:lite

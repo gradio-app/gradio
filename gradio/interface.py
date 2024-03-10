@@ -33,6 +33,7 @@ from gradio.pipelines import load_from_pipeline
 from gradio.themes import ThemeClass as Theme
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
+    from diffusers import DiffusionPipeline  # type: ignore
     from transformers.pipelines.base import Pipeline
 
 
@@ -68,9 +69,11 @@ class Interface(Blocks):
         return list(Interface.instances)
 
     @classmethod
-    def from_pipeline(cls, pipeline: Pipeline, **kwargs) -> Interface:
+    def from_pipeline(
+        cls, pipeline: Pipeline | DiffusionPipeline, **kwargs
+    ) -> Interface:
         """
-        Class method that constructs an Interface from a Hugging Face transformers.Pipeline object.
+        Class method that constructs an Interface from a Hugging Face transformers.Pipeline or diffusers.DiffusionPipeline object.
         The input and output components are automatically determined from the pipeline.
         Parameters:
             pipeline: the pipeline object to use.
@@ -121,6 +124,7 @@ class Interface(Blocks):
         submit_btn: str | Button = "Submit",
         stop_btn: str | Button = "Stop",
         clear_btn: str | Button = "Clear",
+        delete_cache: tuple[int, int] | None = None,
         **kwargs,
     ):
         """
@@ -155,6 +159,7 @@ class Interface(Blocks):
             submit_btn: The button to use for submitting inputs. Defaults to a `gr.Button("Submit", variant="primary")`. This parameter does not apply if the Interface is output-only, in which case the submit button always displays "Generate". Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization).
             stop_btn: The button to use for stopping the interface. Defaults to a `gr.Button("Stop", variant="stop", visible=False)`. Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization).
             clear_btn: The button to use for clearing the inputs. Defaults to a `gr.Button("Clear", variant="secondary")`. Can be set to a string (which becomes the button label) or a `gr.Button` object (which allows for more customization).
+            delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
         """
         super().__init__(
             analytics_enabled=analytics_enabled,
@@ -164,6 +169,7 @@ class Interface(Blocks):
             theme=theme,
             js=js,
             head=head,
+            delete_cache=delete_cache,
             **kwargs,
         )
         self.api_name: str | Literal[False] | None = api_name
@@ -179,8 +185,14 @@ class Interface(Blocks):
         if additional_inputs is None:
             additional_inputs = []
 
-        assert isinstance(inputs, (str, list, Component))
-        assert isinstance(outputs, (str, list, Component))
+        if not isinstance(inputs, (str, list, Component)):
+            raise TypeError(
+                f"inputs must be a string, list, or Component, not {inputs}"
+            )
+        if not isinstance(outputs, (str, list, Component)):
+            raise TypeError(
+                f"outputs must be a string, list, or Component, not {outputs}"
+            )
 
         if not isinstance(inputs, list):
             inputs = [inputs]
@@ -279,7 +291,10 @@ class Interface(Blocks):
             InterfaceTypes.OUTPUT_ONLY,
         ]:
             for o in self.output_components:
-                assert isinstance(o, Component)
+                if not isinstance(o, Component):
+                    raise TypeError(
+                        f"Output component must be a Component, not {type(o)}"
+                    )
                 if o.interactive is None:
                     # Unless explicitly otherwise specified, force output components to
                     # be non-interactive
@@ -418,11 +433,17 @@ class Interface(Blocks):
         except (TypeError, ValueError):
             param_names = utils.default_input_labels()
         for component, param_name in zip(self.input_components, param_names):
-            assert isinstance(component, Component)
+            if not isinstance(component, Component):
+                raise TypeError(
+                    f"Input component must be a Component, not {type(component)}"
+                )
             if component.label is None:
                 component.label = param_name
         for i, component in enumerate(self.output_components):
-            assert isinstance(component, Component)
+            if not isinstance(component, Component):
+                raise TypeError(
+                    f"Output component must be a Component, not {type(component)}"
+                )
             if component.label is None:
                 if len(self.output_components) == 1:
                     component.label = "output"
@@ -795,7 +816,10 @@ class Interface(Blocks):
             flag_components = self.input_components + self.output_components
 
         for flag_btn, (label, value) in zip(flag_btns, self.flagging_options):
-            assert isinstance(value, str)
+            if not isinstance(value, str):
+                raise TypeError(
+                    f"Flagging option value must be a string, not {value!r}"
+                )
             flag_method = FlagMethod(self.flagging_callback, label, value)
             flag_btn.click(
                 lambda: Button(value="Saving...", interactive=False),

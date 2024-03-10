@@ -26,7 +26,12 @@ def io_components():
 
     while classes_to_check:
         subclass = classes_to_check.pop()
-        if subclass in [gr.components.FormComponent, gr.State]:
+        if subclass in [
+            gr.components.FormComponent,
+            gr.State,
+            gr.LoginButton,
+            gr.LogoutButton,
+        ]:
             continue
         children = subclass.__subclasses__()
 
@@ -41,8 +46,8 @@ def io_components():
 @pytest.fixture
 def connect():
     @contextmanager
-    def _connect(demo: gr.Blocks, serialize=True):
-        _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    def _connect(demo: gr.Blocks, serialize=True, **kwargs):
+        _, local_url, _ = demo.launch(prevent_thread_lock=True, **kwargs)
         try:
             yield Client(local_url, serialize=serialize)
         finally:
@@ -65,3 +70,15 @@ def gradio_temp_dir(monkeypatch, tmp_path):
     """
     monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
     return tmp_path
+
+
+@pytest.fixture(autouse=True)
+def clear_static_files():
+    """Clears all static files from the _StaticFiles class.
+
+    This is necessary because the tests should be independent of one another.
+    """
+    yield
+    from gradio import data_classes
+
+    data_classes._StaticFiles.clear()

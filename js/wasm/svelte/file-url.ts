@@ -9,7 +9,7 @@ export function should_proxy_wasm_src(src: MediaSrc): boolean {
 		return false;
 	}
 
-	const url = new URL(src);
+	const url = new URL(src, window.location.href);
 	if (!is_self_host(url)) {
 		// `src` is not accessing a local server resource, so we don't need to proxy this request to the Wasm worker.
 		return false;
@@ -33,7 +33,7 @@ export async function resolve_wasm_src(src: MediaSrc): Promise<MediaSrc> {
 		return src;
 	}
 
-	const url = new URL(src);
+	const url = new URL(src, window.location.href);
 	const path = url.pathname;
 	return maybeWorkerProxy
 		.httpRequest({

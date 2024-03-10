@@ -408,7 +408,7 @@ class TestTempFile:
         assert len([f for f in gradio_temp_dir.glob("**/*") if f.is_file()]) == 3
 
     def test_no_empty_image_files(self, gradio_temp_dir, connect):
-        file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
+        file_dir = pathlib.Path(__file__).parent / "test_files"
         image = str(file_dir / "bus.png")
 
         demo = gr.Interface(
@@ -498,7 +498,6 @@ class TestComponentsInBlocks:
         assert all(dep["queue"] is False for dep in demo.config["dependencies"])
 
     def test_io_components_attach_load_events_when_value_is_fn(self, io_components):
-        io_components = [comp for comp in io_components if comp not in [gr.State]]
         interface = gr.Interface(
             lambda *args: None,
             inputs=[comp(value=lambda: None, every=1) for comp in io_components],
@@ -1153,6 +1152,23 @@ class TestUpdate:
         }
 
 
+@pytest.mark.asyncio
+async def test_root_path():
+    image_file = pathlib.Path(__file__).parent / "test_files" / "bus.png"
+    demo = gr.Interface(lambda x: image_file, "textbox", "image")
+    result = await demo.process_api(fn_index=0, inputs=[""], request=None, state=None)
+    result_url = result["data"][0]["url"]
+    assert result_url.startswith("/file=")
+    assert result_url.endswith("bus.png")
+
+    result = await demo.process_api(
+        fn_index=0, inputs=[""], request=None, state=None, root_path="abidlabs.hf.space"
+    )
+    result_url = result["data"][0]["url"]
+    assert result_url.startswith("abidlabs.hf.space/file=")
+    assert result_url.endswith("bus.png")
+
+
 class TestRender:
     def test_duplicate_error(self):
         with pytest.raises(DuplicateBlockError):
@@ -1584,8 +1600,12 @@ def test_temp_file_sets_get_extended():
     with gr.Blocks() as demo3:
         demo1.render()
         demo2.render()
-
-    assert demo3.temp_file_sets == demo1.temp_file_sets + demo2.temp_file_sets
+    # The upload_set is empty so we remove it from the check
+    demo_3_no_empty = [s for s in demo3.temp_file_sets if len(s)]
+    demo_1_and_2_no_empty = [
+        s for s in demo1.temp_file_sets + demo2.temp_file_sets if len(s)
+    ]
+    assert demo_3_no_empty == demo_1_and_2_no_empty
 
 
 def test_recover_kwargs():
@@ -1687,3 +1707,47 @@ def test_blocks_postprocessing_with_copies_of_component_instance():
             demo.postprocess_data(0, [gr.Chatbot(value=[])] * 3, None)
             == [{"value": [], "__type__": "update"}] * 3
         )
+
+
+def test_static_files_single_app(connect, gradio_temp_dir):
+    gr.set_static_paths(
+        paths=["test/test_files/cheetah1.jpg", "test/test_files/bus.png"]
+    )
+    demo = gr.Interface(
+        lambda s: s.rotate(45),
+        gr.Image(value="test/test_files/cheetah1.jpg", type="pil"),
+        gr.Image(),
+        examples=["test/test_files/bus.png"],
+    )
+
+    # Nothing got saved to cache
+    assert len(list(gradio_temp_dir.glob("**/*.*"))) == 0
+
+    with connect(demo) as client:
+        client.predict("test/test_files/bus.png")
+
+    # Input/Output got saved to cache
+    assert len(list(gradio_temp_dir.glob("**/*.*"))) == 2
+
+
+def test_static_files_multiple_apps(gradio_temp_dir):
+    gr.set_static_paths(paths=["test/test_files/cheetah1.jpg"])
+    demo = gr.Interface(
+        lambda s: s.rotate(45),
+        gr.Image(value="test/test_files/cheetah1.jpg"),
+        gr.Image(),
+    )
+
+    gr.set_static_paths(paths=["test/test_files/images"])
+    demo_2 = gr.Interface(
+        lambda s: s.rotate(45),
+        gr.Image(value="test/test_files/images/bus.png"),
+        gr.Image(),
+    )
+
+    with gr.Blocks():
+        demo.render()
+        demo_2.render()
+
+    # Input/Output got saved to cache
+    assert len(list(gradio_temp_dir.glob("**/*.*"))) == 0

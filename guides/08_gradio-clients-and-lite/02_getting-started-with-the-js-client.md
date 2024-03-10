@@ -178,7 +178,7 @@ const response = await fetch(
 const audio_file = await response.blob();
 
 const app = await client("abidlabs/whisper");
-const result = await client.predict("/predict", [audio_file]);
+const result = await app.predict("/predict", [audio_file]);
 ```
 
 ## Using events

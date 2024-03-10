@@ -44,19 +44,46 @@ function run() {
 	}, /** @type {{[key:string] : PackageMeta}} */ ({}));
 
 	for (const pkg_name in packages) {
-		const { dirs, highlight, feat, fix, current_changelog } =
+		const { dirs, highlight, feat, fix, current_changelog, dependencies } =
 			/**@type {ChangesetMeta} */ (packages[pkg_name]);
+
+		if (pkg_name === "@gradio/lite") {
+			const target = all_packages.gradio.packageJson.version.split(".");
+
+			const current_version = packages[pkg_name].previous_version.split(".");
+
+			if (!packages.gradio) {
+				const patch = parseInt(current_version[2]) + 1;
+				const new_version = [target[0], target[1], patch];
+				all_packages[pkg_name].packageJson.version = new_version.join(".");
+			} else {
+				if (parseInt(target[1]) > parseInt(current_version[1])) {
+					all_packages[pkg_name].packageJson.version = target.join(".");
+				} else if (parseInt(target[1]) === parseInt(current_version[1])) {
+					const patch = parseInt(current_version[2]) + 1;
+					const new_version = [target[0], target[1], patch];
+					all_packages[pkg_name].packageJson.version = new_version.join(".");
+				}
+			}
+
+			writeFileSync(
+				join(all_packages[pkg_name].dir, "package.json"),
+				JSON.stringify(all_packages[pkg_name].packageJson, null, "\t") + "\n"
+			);
+		}
 
 		const { version, python } = all_packages[pkg_name].packageJson;
 
-		const highlights = highlight.map((h) => `${h.summary}`);
-		const features = feat.map((f) => `- ${f.summary}`);
-		const fixes = fix.map((f) => `- ${f.summary}`);
+		const highlights = highlight?.map((h) => `${h.summary}`) || [];
+		const features = feat?.map((f) => `- ${f.summary}`) || [];
+		const fixes = fix?.map((f) => `- ${f.summary}`) || [];
+		const deps = Array.from(new Set(dependencies?.map((d) => d.trim()))) || [];
 
 		const release_notes = /** @type {[string[], string][]} */ ([
 			[highlights, "### Highlights"],
 			[features, "### Features"],
-			[fixes, "### Fixes"]
+			[fixes, "### Fixes"],
+			[deps, "### Dependency updates"]
 		])
 			.filter(([s], i) => s.length > 0)
 			.map(([lines, title]) => {

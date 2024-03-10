@@ -9,7 +9,6 @@ import random
 import secrets
 import string
 import sys
-import tempfile
 import threading
 import time
 import warnings
@@ -21,6 +20,7 @@ from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Literal, Sequenc
 from urllib.parse import urlparse, urlunparse
 
 import anyio
+import fastapi
 import httpx
 from anyio import CapacityLimiter
 from gradio_client import utils as client_utils
@@ -70,6 +70,7 @@ from gradio.utils import (
     get_cancel_function,
     get_continuous_fn,
     get_package_version,
+    get_upload_folder,
 )
 
 try:
@@ -119,12 +120,10 @@ class Block:
         self._constructor_args: list[dict]
         self.state_session_capacity = 10000
         self.temp_files: set[str] = set()
-        self.GRADIO_CACHE = str(
-            Path(
-                os.environ.get("GRADIO_TEMP_DIR")
-                or str(Path(tempfile.gettempdir()) / "gradio")
-            ).resolve()
-        )
+        self.GRADIO_CACHE = get_upload_folder()
+        # Keep tracks of files that should not be deleted when the delete_cache parmaeter is set
+        # These files are the default value of the component and files that are used in examples
+        self.keep_in_cache = set()
 
         if render:
             self.render()
@@ -239,6 +238,9 @@ class Block:
         """Moves a file or downloads a file from a url to a block's cache directory, adds
         to to the block's temp_files, and returns the path to the file in cache. This
         ensures that the file is accessible to the Block and can be served to users.
+
+        Note: this method is not used in any core Gradio components, but is kept here
+        for backwards compatibility with custom components created with gradio<=4.20.0.
         """
         if url_or_file_path is None:
             return None
@@ -254,14 +256,45 @@ class Block:
         else:
             url_or_file_path = str(utils.abspath(url_or_file_path))
             if not utils.is_in_or_equal(url_or_file_path, self.GRADIO_CACHE):
-                temp_file_path = processing_utils.save_file_to_cache(
-                    url_or_file_path, cache_dir=self.GRADIO_CACHE
-                )
+                try:
+                    temp_file_path = processing_utils.save_file_to_cache(
+                        url_or_file_path, cache_dir=self.GRADIO_CACHE
+                    )
+                except FileNotFoundError:
+                    # This can happen if when using gr.load() and the file is on a remote Space
+                    # but the file is not the `value` of the component. For example, if the file
+                    # is the `avatar_image` of the `Chatbot` component. In this case, we skip
+                    # copying the file to the cache and just use the remote file path.
+                    return url_or_file_path
             else:
                 temp_file_path = url_or_file_path
             self.temp_files.add(temp_file_path)
 
         return temp_file_path
+
+    def serve_static_file(self, url_or_file_path: str | Path | None) -> dict | None:
+        """If a file is a local file, moves it to the block's cache directory and returns
+        a FileData-type dictionary corresponding to the file. If the file is a URL, returns a
+        FileData-type dictionary corresponding to the URL. This ensures that the file is
+        accessible in the frontend and can be served to users.
+
+        Examples:
+        >>> block.serve_static_file("https://gradio.app/logo.png") -> {"path": "https://gradio.app/logo.png", "url": "https://gradio.app/logo.png"}
+        >>> block.serve_static_file("logo.png") -> {"path": "logo.png", "url": "/file=logo.png"}
+        """
+        if url_or_file_path is None:
+            return None
+        if isinstance(url_or_file_path, Path):
+            url_or_file_path = str(url_or_file_path)
+
+        if client_utils.is_http_url_like(url_or_file_path):
+            return FileData(path=url_or_file_path, url=url_or_file_path).model_dump()
+        else:
+            data = {"path": url_or_file_path}
+            try:
+                return processing_utils.move_files_to_cache(data, self)
+            except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
+                return data
 
 
 class BlockContext(Block):
@@ -504,6 +537,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         js: str | None = None,
         head: str | None = None,
         fill_height: bool = False,
+        delete_cache: tuple[int, int] | None = None,
         **kwargs,
     ):
         """
@@ -516,6 +550,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             js: Custom js or path to js file to run when demo is first loaded. This javascript will be included in the demo webpage.
             head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
             fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
+            delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
         """
         self.limiter = None
         if theme is None:
@@ -544,6 +579,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.show_error = True
         self.head = head
         self.fill_height = fill_height
+        self.delete_cache = delete_cache
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -586,7 +622,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.auth = None
         self.dev_mode = bool(os.getenv("GRADIO_WATCH_DIRS", ""))
         self.app_id = random.getrandbits(64)
-        self.temp_file_sets = []
+        self.upload_file_set = set()
+        self.temp_file_sets = [self.upload_file_set]
         self.title = title
         self.show_api = not wasm_utils.IS_WASM
 
@@ -599,7 +636,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         self.progress_tracking = None
         self.ssl_verify = True
-
         self.allowed_paths = []
         self.blocked_paths = []
         self.root_path = os.environ.get("GRADIO_ROOT_PATH", "")
@@ -623,7 +659,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
     def get_component(self, id: int) -> Component | BlockContext:
         comp = self.blocks[id]
-        assert isinstance(comp, (components.Component, BlockContext)), f"{comp}"
+        if not isinstance(comp, (components.Component, BlockContext)):
+            raise TypeError(f"Block with id {id} is not a Component or BlockContext")
         return comp
 
     @property
@@ -726,15 +763,18 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 # targets field
                 _targets = dependency.pop("targets")
                 trigger = dependency.pop("trigger", None)
-                targets = [
-                    getattr(
-                        original_mapping[
-                            target if isinstance(target, int) else target[0]
-                        ],
-                        trigger if isinstance(target, int) else target[1],
-                    )
-                    for target in _targets
-                ]
+                is_then_event = False
+
+                # This assumes that you cannot combine multiple .then() events in a single
+                # gr.on() event, which is true for now. If this changes, we will need to
+                # update this code.
+                if not isinstance(_targets[0], int) and _targets[0][1] == "then":
+                    if len(_targets) != 1:
+                        raise ValueError(
+                            "This logic assumes that .then() events are not combined with other events in a single gr.on() event"
+                        )
+                    is_then_event = True
+
                 dependency.pop("backend_fn")
                 dependency.pop("documentation", None)
                 dependency["inputs"] = [
@@ -746,12 +786,30 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 dependency.pop("status_tracker", None)
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
-                targets = [
-                    EventListenerMethod(
-                        t.__self__ if t.has_trigger else None, t.event_name
+                if is_then_event:
+                    targets = [EventListenerMethod(None, "then")]
+                    dependency["trigger_after"] = dependency.pop("trigger_after")
+                    dependency["trigger_only_on_success"] = dependency.pop(
+                        "trigger_only_on_success"
                     )
-                    for t in targets
-                ]
+                    dependency["no_target"] = True
+                else:
+                    targets = [
+                        getattr(
+                            original_mapping[
+                                target if isinstance(target, int) else target[0]
+                            ],
+                            trigger if isinstance(target, int) else target[1],
+                        )
+                        for target in _targets
+                    ]
+                    targets = [
+                        EventListenerMethod(
+                            t.__self__ if t.has_trigger else None,
+                            t.event_name,  # type: ignore
+                        )
+                        for t in targets
+                    ]
                 dependency = blocks.set_event_trigger(
                     targets=targets, fn=fn, **dependency
                 )[0]
@@ -839,7 +897,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             show_progress: whether to show progress animation while running.
             api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
-            no_target: if True, sets "targets" to [], used for Blocks "load" event
+            no_target: if True, sets "targets" to [], used for the Blocks.load() event and .then() events
             queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
@@ -848,7 +906,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             collects_event_data: whether to collect event data for this event
             trigger_after: if set, this event will be triggered after 'trigger_after' function index
             trigger_only_on_success: if True, this event will only be triggered if the previous event was successful (only applies if `trigger_after` is set)
-            trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` event) would allow a second submission after the pending event is complete.
+            trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` and `.key_up()` events) would allow a second submission after the pending event is complete.
             concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `queue()`, which itself is 1 by default).
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
             show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps to use this event. If fn is None, show_api will automatically be set to False.
@@ -857,7 +915,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         # Support for singular parameter
         _targets = [
             (
-                target.block._id if target.block and not no_target else None,
+                target.block._id if not no_target and target.block else None,
                 target.event_name,
             )
             for target in targets
@@ -901,7 +959,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     "Cannot set a value for `concurrency_limit` with `every`."
                 )
 
-        if _targets[0][1] == "change" and trigger_mode is None:
+        if _targets[0][1] in ["change", "key_up"] and trigger_mode is None:
             trigger_mode = "always_last"
         elif trigger_mode is None:
             trigger_mode = "once"
@@ -1109,6 +1167,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             inputs=processed_inputs,
             request=None,
             state={},
+            explicit_call=True,
         )
         outputs = outputs["data"]
 
@@ -1228,7 +1287,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 serialized_input = client_utils.traverse(
                     inputs[i],
                     format_file,
-                    lambda s: client_utils.is_filepath(s) or client_utils.is_url(s),
+                    lambda s: client_utils.is_filepath(s)
+                    or client_utils.is_http_url_like(s),
                 )
             else:
                 serialized_input = inputs[i]
@@ -1298,7 +1358,11 @@ Received inputs:
             )
 
     def preprocess_data(
-        self, fn_index: int, inputs: list[Any], state: SessionState | None
+        self,
+        fn_index: int,
+        inputs: list[Any],
+        state: SessionState | None,
+        explicit_call: bool = False,
     ):
         state = state or SessionState(self)
         block_fn = self.fns[fn_index]
@@ -1325,7 +1389,9 @@ Received inputs:
                     if input_id in state:
                         block = state[input_id]
                     inputs_cached = processing_utils.move_files_to_cache(
-                        inputs[i], block, add_urls=True
+                        inputs[i],
+                        block,
+                        check_in_upload_folder=not explicit_call,
                     )
                     if getattr(block, "data_model", None) and inputs_cached is not None:
                         if issubclass(block.data_model, GradioModel):  # type: ignore
@@ -1455,9 +1521,8 @@ Received outputs:
 
                 outputs_cached = processing_utils.move_files_to_cache(
                     prediction_value,
-                    block,  # type: ignore
+                    block,
                     postprocess=True,
-                    add_urls=True,
                 )
                 output.append(outputs_cached)
 
@@ -1496,6 +1561,7 @@ Received outputs:
         session_hash: str | None,
         run: int | None,
         final: bool,
+        simple_format: bool = False,
     ) -> list:
         if session_hash is None or run is None:
             return data
@@ -1514,12 +1580,22 @@ Received outputs:
             else:
                 prev_chunk = last_diffs[i]
                 last_diffs[i] = data[i]
-                data[i] = utils.diff(prev_chunk, data[i])
+                if not simple_format:
+                    data[i] = utils.diff(prev_chunk, data[i])
 
         if final:
             del self.pending_diff_streams[session_hash][run]
 
         return data
+
+    def run_fn_batch(self, fn, batch, fn_index, state, explicit_call=None):
+        output = []
+        for i in zip(*batch):
+            args = [fn_index, list(i), state]
+            if explicit_call is not None:
+                args.append(explicit_call)
+            output.append(fn(*args))
+        return output
 
     async def process_api(
         self,
@@ -1532,6 +1608,9 @@ Received outputs:
         event_id: str | None = None,
         event_data: EventData | None = None,
         in_event_listener: bool = True,
+        simple_format: bool = False,
+        explicit_call: bool = False,
+        root_path: str | None = None,
     ) -> dict[str, Any]:
         """
         Processes API calls from the frontend. First preprocesses the data,
@@ -1544,6 +1623,9 @@ Received outputs:
             iterators: the in-progress iterators for each generator function (key is function index)
             event_id: id of event that triggered this API call
             event_data: data associated with the event trigger itself
+            in_event_listener: whether this API call is being made in response to an event listener
+            explicit_call: whether this call is being made directly by calling the Blocks function, instead of through an event listener or API route
+            root_path: if provided, the root path of the server. All file URLs will be prefixed with this path.
         Returns: None
         """
         block_fn = self.fns[fn_index]
@@ -1565,10 +1647,15 @@ Received outputs:
                 raise ValueError(
                     f"Batch size ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
                 )
-
-            inputs = [
-                self.preprocess_data(fn_index, list(i), state) for i in zip(*inputs)
-            ]
+            inputs = await anyio.to_thread.run_sync(
+                self.run_fn_batch,
+                self.preprocess_data,
+                inputs,
+                fn_index,
+                state,
+                explicit_call,
+                limiter=self.limiter,
+            )
             result = await self.call_function(
                 fn_index,
                 list(zip(*inputs)),
@@ -1579,9 +1666,16 @@ Received outputs:
                 in_event_listener,
             )
             preds = result["prediction"]
-            data = [
-                self.postprocess_data(fn_index, list(o), state) for o in zip(*preds)
-            ]
+            data = await anyio.to_thread.run_sync(
+                self.run_fn_batch,
+                self.postprocess_data,
+                preds,
+                fn_index,
+                state,
+                limiter=self.limiter,
+            )
+            if root_path is not None:
+                data = processing_utils.add_root_url(data, root_path, None)
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
@@ -1589,7 +1683,14 @@ Received outputs:
             if old_iterator:
                 inputs = []
             else:
-                inputs = self.preprocess_data(fn_index, inputs, state)
+                inputs = await anyio.to_thread.run_sync(
+                    self.preprocess_data,
+                    fn_index,
+                    inputs,
+                    state,
+                    explicit_call,
+                    limiter=self.limiter,
+                )
             was_generating = old_iterator is not None
             result = await self.call_function(
                 fn_index,
@@ -1600,7 +1701,15 @@ Received outputs:
                 event_data,
                 in_event_listener,
             )
-            data = self.postprocess_data(fn_index, result["prediction"], state)
+            data = await anyio.to_thread.run_sync(
+                self.postprocess_data,
+                fn_index,  # type: ignore
+                result["prediction"],
+                state,
+                limiter=self.limiter,
+            )
+            if root_path is not None:
+                data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
                 run = id(old_iterator) if was_generating else id(iterator)
@@ -1616,6 +1725,7 @@ Received outputs:
                     session_hash=session_hash,
                     run=run,
                     final=not is_generating,
+                    simple_format=simple_format,
                 )
 
         block_fn.total_runtime += result["duration"]
@@ -1657,7 +1767,7 @@ Received outputs:
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
-            "protocol": "sse_v2",
+            "protocol": "sse_v2.1",
             "body_css": {
                 "body_background_fill": self.theme._get_computed_value(
                     "body_background_fill"
@@ -1697,6 +1807,9 @@ Received outputs:
 
             if not block.skip_api:
                 block_config["api_info"] = block.api_info()  # type: ignore
+                # .example_inputs() has been renamed .example_payload() but
+                # we use the old name for backwards compatibility with custom components
+                # created on Gradio 4.20.0 or earlier
                 block_config["example_inputs"] = block.example_inputs()  # type: ignore
             config["components"].append(block_config)
         config["dependencies"] = self.dependencies
@@ -1829,6 +1942,7 @@ Received outputs:
         state_session_capacity: int = 10000,
         share_server_address: str | None = None,
         share_server_protocol: Literal["http", "https"] | None = None,
+        auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         _frontend: bool = True,
     ) -> tuple[FastAPI, str, str]:
         """
@@ -1858,11 +1972,12 @@ Received outputs:
             show_api: If True, shows the api docs in the footer of the app. Default True.
             allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
-            root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
+            root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used as the root path in its entirety. Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
             app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
             share_server_address: Use this to specify a custom FRP server and port for sharing Gradio apps (only applies if share=True). If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
             share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
+            auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -1889,6 +2004,10 @@ Received outputs:
         if not self.exited:
             self.__exit__()
 
+        if auth is not None and auth_dependency is not None:
+            raise ValueError(
+                "You cannot provide both `auth` and `auth_dependency` in launch(). Please choose one."
+            )
         if (
             auth
             and not callable(auth)
@@ -1947,7 +2066,9 @@ Received outputs:
                 # and avoid using `networking.start_server` that would start a server that don't work in the Wasm env.
                 from gradio.routes import App
 
-                app = App.create_app(self, app_kwargs=app_kwargs)
+                app = App.create_app(
+                    self, auth_dependency=auth_dependency, app_kwargs=app_kwargs
+                )
                 wasm_utils.register_app(app)
             else:
                 (
@@ -2359,7 +2480,8 @@ Received outputs:
                     continue
                 label = component["props"].get("label", f"parameter_{i}")
                 comp = self.get_component(component["id"])
-                assert isinstance(comp, components.Component)
+                if not isinstance(comp, components.Component):
+                    raise TypeError(f"{comp!r} is not a Component")
                 info = component["api_info"]
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
@@ -2389,7 +2511,8 @@ Received outputs:
                     continue
                 label = component["props"].get("label", f"value_{o}")
                 comp = self.get_component(component["id"])
-                assert isinstance(comp, components.Component)
+                if not isinstance(comp, components.Component):
+                    raise TypeError(f"{comp!r} is not a Component")
                 info = component["api_info"]
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)

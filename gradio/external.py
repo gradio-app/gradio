@@ -418,7 +418,13 @@ def from_spaces(
 
 
 def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
-    client = Client(space, hf_token=hf_token, download_files=False)
+    client = Client(
+        space,
+        hf_token=hf_token,
+        upload_files=False,
+        download_files=False,
+        _skip_components=False,
+    )
     # We set deserialize to False to avoid downloading output files from the server.
     # Instead, we serve them as URLs using the /proxy/ endpoint directly from the server.
 
@@ -431,7 +437,10 @@ def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
     # Use end_to_end_fn here to properly upload/download all files
     predict_fns = []
     for fn_index, endpoint in enumerate(client.endpoints):
-        assert isinstance(endpoint, Endpoint)
+        if not isinstance(endpoint, Endpoint):
+            raise TypeError(
+                f"Expected endpoint to be an Endpoint, but got {type(endpoint)}"
+            )
         helper = client.new_helper(fn_index)
         if endpoint.backend_fn:
             predict_fns.append(endpoint.make_end_to_end_fn(helper))

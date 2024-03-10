@@ -301,6 +301,9 @@ export function api_factory(
 
 			async function config_success(_config: Config): Promise<client_return> {
 				config = _config;
+				if (window.location.protocol === "https:") {
+					config.root = config.root.replace("http://", "https://");
+				}
 				api_map = map_names_to_ids(_config?.dependencies || []);
 				if (config.auth_required) {
 					return {
@@ -752,7 +755,11 @@ export function api_factory(
 									}
 								}
 							};
-						} else if (protocol == "sse_v1" || protocol == "sse_v2") {
+						} else if (
+							protocol == "sse_v1" ||
+							protocol == "sse_v2" ||
+							protocol == "sse_v2.1"
+						) {
 							// latest API format. v2 introduces sending diffs for intermediate outputs in generative functions, which makes payloads lighter.
 							fire_event({
 								type: "status",
@@ -846,7 +853,10 @@ export function api_factory(
 													endpoint: _endpoint,
 													fn_index
 												});
-												if (data && protocol === "sse_v2") {
+												if (
+													data &&
+													(protocol === "sse_v2" || protocol === "sse_v2.1")
+												) {
 													apply_diff_stream(event_id!, data);
 												}
 											}

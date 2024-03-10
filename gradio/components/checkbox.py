@@ -73,7 +73,10 @@ class Checkbox(FormComponent):
     def api_info(self) -> dict[str, Any]:
         return {"type": "boolean"}
 
-    def example_inputs(self) -> bool:
+    def example_payload(self) -> bool:
+        return True
+
+    def example_value(self) -> bool:
         return True
 
     def preprocess(self, payload: bool | None) -> bool | None:

@@ -44,11 +44,12 @@ export function audioBufferToWav(audioBuffer: AudioBuffer): Uint8Array {
 	offset += 4;
 
 	// Write PCM audio data
-	for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
-		const channel = audioBuffer.getChannelData(i);
-		for (let j = 0; j < channel.length; j++) {
-			// Scaling Float32 to Int16
-			const sample = Math.max(-1, Math.min(1, channel[j]));
+	for (let i = 0; i < audioBuffer.length; i++) {
+		for (let channel = 0; channel < numOfChan; channel++) {
+			const sample = Math.max(
+				-1,
+				Math.min(1, audioBuffer.getChannelData(channel)[i])
+			);
 			view.setInt16(offset, sample * 0x7fff, true);
 			offset += 2;
 		}

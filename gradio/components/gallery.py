@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Callable, List, Literal, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import numpy as np
 import PIL.Image
+from gradio_client import file
 from gradio_client.documentation import document
 from gradio_client.utils import is_http_url_like
 
-from gradio import processing_utils, utils
+from gradio import processing_utils, utils, wasm_utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
@@ -165,7 +167,8 @@ class Gallery(Component):
         if value is None:
             return GalleryData(root=[])
         output = []
-        for img in value:
+
+        def _save(img):
             url = None
             caption = None
             orig_name = None
@@ -194,11 +197,18 @@ class Gallery(Component):
                 orig_name = img.name
             else:
                 raise ValueError(f"Cannot process type as image: {type(img)}")
-            entry = GalleryImage(
+            return GalleryImage(
                 image=FileData(path=file_path, url=url, orig_name=orig_name),
                 caption=caption,
             )
-            output.append(entry)
+
+        if wasm_utils.IS_WASM:
+            for img in value:
+                output.append(_save(img))
+        else:
+            with ThreadPoolExecutor() as executor:
+                for o in executor.map(_save, value):
+                    output.append(o)
         return GalleryData(root=output)
 
     @staticmethod
@@ -211,7 +221,16 @@ class Gallery(Component):
                 converted_image = np.array(converted_image)
             return converted_image
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return [
+            {
+                "image": file(
+                    "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+                )
+            },
+        ]
+
+    def example_value(self) -> Any:
         return [
             "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
         ]

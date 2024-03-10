@@ -6,9 +6,4 @@ export {
 	api_factory
 } from "./client.js";
 export type { SpaceStatus } from "./types.js";
-export {
-	FileData,
-	upload,
-	get_fetchable_url_or_file,
-	prepare_files
-} from "./upload.js";
+export { FileData, upload, prepare_files } from "./upload.js";

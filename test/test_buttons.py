@@ -29,11 +29,13 @@ class TestClearButton:
 
 
 class TestOAuthButtons:
+    @pytest.mark.flaky
     def test_login_button_warns_when_not_on_spaces(self):
         with pytest.warns(UserWarning):
             with gr.Blocks():
                 gr.LoginButton()
 
+    @pytest.mark.flaky
     def test_logout_button_warns_when_not_on_spaces(self):
         with pytest.warns(UserWarning):
             with gr.Blocks():

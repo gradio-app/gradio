@@ -162,5 +162,8 @@ class Code(Component):
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return "print('Hello World')"
+
+    def example_value(self) -> Any:
         return "print('Hello World')"

@@ -1,22 +1,43 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
+import hmac
 import json
+import os
+import re
 import shutil
 from collections import deque
+from contextlib import asynccontextmanager
 from dataclasses import dataclass as python_dataclass
+from datetime import datetime
+from pathlib import Path
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
-from typing import TYPE_CHECKING, AsyncGenerator, BinaryIO, List, Optional, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    AsyncContextManager,
+    AsyncGenerator,
+    BinaryIO,
+    Callable,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
+from urllib.parse import urlparse
 
+import anyio
 import fastapi
+import gradio_client.utils as client_utils
 import httpx
 import multipart
 from gradio_client.documentation import document
 from multipart.multipart import parse_options_header
 from starlette.datastructures import FormData, Headers, UploadFile
 from starlette.formparsers import MultiPartException, MultipartPart
+from starlette.middleware.base import BaseHTTPMiddleware
 
-from gradio import utils
+from gradio import processing_utils, utils
 from gradio.data_classes import PredictBody
 from gradio.exceptions import Error
 from gradio.helpers import EventData
@@ -212,6 +233,7 @@ async def call_process_api(
     body: PredictBody,
     gr_request: Union[Request, list[Request]],
     fn_index_inferred: int,
+    root_path: str,
 ):
     session_state, iterator = restore_session_state(app=app, body=body)
 
@@ -238,6 +260,8 @@ async def call_process_api(
                 event_id=event_id,
                 event_data=event_data,
                 in_event_listener=True,
+                simple_format=body.simple_format,
+                root_path=root_path,
             )
         iterator = output.pop("iterator", None)
         if event_id is not None:
@@ -261,18 +285,36 @@ async def call_process_api(
     return output
 
 
-def get_root_url(request: fastapi.Request) -> str:
+def get_root_url(
+    request: fastapi.Request, route_path: str, root_path: str | None
+) -> str:
     """
-    Gets the root url of the request, stripping off any query parameters and trailing slashes.
-    Also ensures that the root url is https if the request is https.
+    Gets the root url of the request, stripping off any query parameters, the route_path, and trailing slashes.
+    Also ensures that the root url is https if the request is https. If an absolute root_path is provided,
+    it is returned directly. If a relative root_path is provided, and it is not already the subpath of the URL,
+    it is appended to the root url. The final root url will not have a trailing slash.
     """
-    root_url = str(request.url)
+    if root_path and client_utils.is_http_url_like(root_path):
+        return root_path.rstrip("/")
+
+    x_forwarded_host = request.headers.get("x-forwarded-host")
+    root_url = f"http://{x_forwarded_host}" if x_forwarded_host else str(request.url)
     root_url = httpx.URL(root_url)
     root_url = root_url.copy_with(query=None)
-    root_url = str(root_url)
+    root_url = str(root_url).rstrip("/")
     if request.headers.get("x-forwarded-proto") == "https":
         root_url = root_url.replace("http://", "https://")
-    return root_url.rstrip("/")
+
+    route_path = route_path.rstrip("/")
+    if len(route_path) > 0:
+        root_url = root_url[: -len(route_path)]
+    root_url = root_url.rstrip("/")
+
+    root_url = httpx.URL(root_url)
+    if root_path and root_url.path != root_path:
+        root_url = root_url.copy_with(path=root_path)
+
+    return str(root_url).rstrip("/")
 
 
 def _user_safe_decode(src: bytes, codec: str) -> str:
@@ -391,9 +433,6 @@ class GradioMultiPartParser:
         upload_id: str | None = None,
         upload_progress: FileUploadProgress | None = None,
     ) -> None:
-        assert (
-            multipart is not None
-        ), "The `python-multipart` library must be installed to use form parsing."
         self.headers = headers
         self.stream = stream
         self.max_files = max_files
@@ -459,12 +498,10 @@ class GradioMultiPartParser:
         self._current_partial_header_value = b""
 
     def on_headers_finished(self) -> None:
-        disposition, options = parse_options_header(
-            self._current_part.content_disposition
-        )
+        _, options = parse_options_header(self._current_part.content_disposition or b"")
         try:
             self._current_part.field_name = _user_safe_decode(
-                options[b"name"], self._charset
+                options[b"name"], str(self._charset)
             )
         except KeyError as e:
             raise MultiPartException(
@@ -476,7 +513,7 @@ class GradioMultiPartParser:
                 raise MultiPartException(
                     f"Too many files. Maximum number of files is {self.max_files}."
                 )
-            filename = _user_safe_decode(options[b"filename"], self._charset)
+            filename = _user_safe_decode(options[b"filename"], str(self._charset))
             tempfile = NamedTemporaryFile(delete=False)
             self._files_to_close_on_error.append(tempfile)
             self._current_part.file = GradioUploadFile(
@@ -509,7 +546,7 @@ class GradioMultiPartParser:
             raise MultiPartException("Missing boundary in multipart.") from e
 
         # Callbacks dictionary.
-        callbacks = {
+        callbacks: multipart.multipart.MultipartCallbacks = {
             "on_part_begin": self.on_part_begin,
             "on_part_data": self.on_part_data,
             "on_part_end": self.on_part_end,
@@ -532,11 +569,11 @@ class GradioMultiPartParser:
                 # (regular, non-async functions), that would block the event loop in
                 # the main thread.
                 for part, data in self._file_parts_to_write:
-                    assert part.file  # for type checkers
+                    assert part.file  # for type checkers  # noqa: S101
                     await part.file.write(data)
                     part.file.sha.update(data)  # type: ignore
                 for part in self._file_parts_to_finish:
-                    assert part.file  # for type checkers
+                    assert part.file  # for type checkers  # noqa: S101
                     await part.file.seek(0)
                 self._file_parts_to_write.clear()
                 self._file_parts_to_finish.clear()
@@ -555,3 +592,147 @@ class GradioMultiPartParser:
 def move_uploaded_files_to_cache(files: list[str], destinations: list[str]) -> None:
     for file, dest in zip(files, destinations):
         shutil.move(file, dest)
+
+
+def update_root_in_config(config: dict, root: str) -> dict:
+    """
+    Updates the root "key" in the config dictionary to the new root url. If the
+    root url has changed, all of the urls in the config that correspond to component
+    file urls are updated to use the new root url.
+    """
+    previous_root = config.get("root")
+    if previous_root is None or previous_root != root:
+        config["root"] = root
+        config = processing_utils.add_root_url(config, root, previous_root)
+    return config
+
+
+def compare_passwords_securely(input_password: str, correct_password: str) -> bool:
+    return hmac.compare_digest(input_password.encode(), correct_password.encode())
+
+
+def starts_with_protocol(string: str) -> bool:
+    """This regex matches strings that start with a scheme (one or more characters not including colon, slash, or space)
+    followed by ://, or start with just //, \\/, /\\, or \\ as they are interpreted as SMB paths on Windows.
+    """
+    pattern = r"^(?:[a-zA-Z][a-zA-Z0-9+\-.]*://|//|\\\\|\\/|/\\)"
+    return re.match(pattern, string) is not None
+
+
+def get_hostname(url: str) -> str:
+    """
+    Returns the hostname of a given url, or an empty string if the url cannot be parsed.
+    Examples:
+        get_hostname("https://www.gradio.app") -> "www.gradio.app"
+        get_hostname("localhost:7860") -> "localhost"
+        get_hostname("127.0.0.1") -> "127.0.0.1"
+    """
+    if not url:
+        return ""
+    if "://" not in url:
+        url = "http://" + url
+    try:
+        return urlparse(url).hostname or ""
+    except Exception:
+        return ""
+
+
+class CustomCORSMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: fastapi.Request, call_next):
+        host: str = request.headers.get("host", "")
+        origin: str = request.headers.get("origin", "")
+        host_name = get_hostname(host)
+        origin_name = get_hostname(origin)
+
+        # Any of these hosts suggests that the Gradio app is running locally.
+        # Note: "null" is a special case that happens if a Gradio app is running
+        # as an embedded web component in a local static webpage.
+        localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0", "null"]
+        is_preflight = (
+            request.method == "OPTIONS"
+            and "access-control-request-method" in request.headers
+        )
+
+        if host_name in localhost_aliases and origin_name not in localhost_aliases:
+            allow_origin_header = None
+        else:
+            allow_origin_header = origin
+
+        if is_preflight:
+            response = fastapi.Response()
+        else:
+            response = await call_next(request)
+
+        if allow_origin_header:
+            response.headers["Access-Control-Allow-Origin"] = allow_origin_header
+        response.headers[
+            "Access-Control-Allow-Methods"
+        ] = "GET, POST, PUT, DELETE, OPTIONS"
+        response.headers[
+            "Access-Control-Allow-Headers"
+        ] = "Origin, Content-Type, Accept"
+        return response
+
+
+def delete_files_created_by_app(blocks: Blocks, age: int | None) -> None:
+    """Delete files that are older than age. If age is None, delete all files."""
+
+    dont_delete = set()
+    for component in blocks.blocks.values():
+        dont_delete.update(getattr(component, "keep_in_cache", set()))
+    for temp_set in blocks.temp_file_sets:
+        # We use a copy of the set to avoid modifying the set while iterating over it
+        # otherwise we would get an exception: Set changed size during iteration
+        to_remove = set()
+        for file in temp_set:
+            if file in dont_delete:
+                continue
+            try:
+                file_path = Path(file)
+                modified_time = datetime.fromtimestamp(file_path.lstat().st_ctime)
+                if age is None or (datetime.now() - modified_time).seconds > age:
+                    os.remove(file)
+                    to_remove.add(file)
+            except FileNotFoundError:
+                continue
+        temp_set -= to_remove
+
+
+async def delete_files_on_schedule(app: App, frequency: int, age: int) -> None:
+    """Startup task to delete files created by the app based on time since last modification."""
+    while True:
+        await asyncio.sleep(frequency)
+        await anyio.to_thread.run_sync(
+            delete_files_created_by_app, app.get_blocks(), age
+        )
+
+
+@asynccontextmanager
+async def _lifespan_handler(
+    app: App, frequency: int = 1, age: int = 1
+) -> AsyncGenerator:
+    """A context manager that triggers the startup and shutdown events of the app."""
+    app.get_blocks().startup_events()
+    app.startup_events_triggered = True
+    asyncio.create_task(delete_files_on_schedule(app, frequency, age))
+    yield
+    delete_files_created_by_app(app.get_blocks(), age=None)
+
+
+def create_lifespan_handler(
+    user_lifespan: Callable[[App], AsyncContextManager] | None,
+    frequency: int = 1,
+    age: int = 1,
+) -> Callable[[App], AsyncContextManager]:
+    """Return a context manager that applies _lifespan_handler and user_lifespan if it exists."""
+
+    @asynccontextmanager
+    async def _handler(app: App):
+        async with _lifespan_handler(app, frequency, age):
+            if user_lifespan is not None:
+                async with user_lifespan(app):
+                    yield
+            else:
+                yield
+
+    return _handler
