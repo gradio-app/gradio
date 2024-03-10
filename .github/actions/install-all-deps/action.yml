@@ -14,6 +14,9 @@ inputs:
   skip_build:
     description: 'Skip build'
     default: 'false'
+  build_lite:
+    description: 'Build lite'
+    default: 'false'
   test:
     description: 'Test'
     default: 'false'
@@ -69,12 +72,6 @@ runs:
         restore-keys: |
           gradio-lib-${{inputs.os}}-latest-pip-
         key: "gradio-lib-${{inputs.os}}-latest-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}${{ inputs.test == 'true' && '-test' || ''}}"
-    - name: Install Gradio and Client Libraries Locally (Linux)
-      shell: bash
-      run: |
-        . ${{ env.VENV_ACTIVATE }}
-        python -m pip install -e client/python  
-        python -m pip install -e ".[oauth]"
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
     - name: Install test dependencies
@@ -84,6 +81,12 @@ runs:
         . ${{ env.VENV_ACTIVATE }}
         python -m pip install -r test/requirements.txt
         python -m pip install -r client/python/test/requirements.txt
+    - name: Install Gradio and Client Libraries Locally (Linux)
+      shell: bash
+      run: |
+        . ${{ env.VENV_ACTIVATE }}
+        python -m pip install -e client/python  
+        python -m pip install -e ".[oauth]"
     - name: install-frontend
       uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
       with:
@@ -91,6 +94,7 @@ runs:
         node_auth_token: ${{ inputs.node_auth_token }}
         npm_token: ${{ inputs.npm_token }}
         skip_build: ${{ inputs.skip_build }}
+        build_lite: ${{ inputs.build_lite }}
     - name: generate json
       shell: bash
       if: inputs.os == 'ubuntu-latest'

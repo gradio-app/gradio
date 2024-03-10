@@ -55,7 +55,10 @@ class HTML(Component):
             value=value,
         )
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return "<p>Hello</p>"
+
+    def example_value(self) -> Any:
         return "<p>Hello</p>"
 
     def preprocess(self, payload: str | None) -> str | None:

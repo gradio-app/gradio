@@ -1,0 +1,50 @@
+<!doctype html>
+<!-- A demo HTML file to test the bundled JS and CSS files -->
+<html style="margin: 0; padding: 0; height: 100%">
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1"
+		/>
+
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link
+			rel="preconnect"
+			href="https://fonts.gstatic.com"
+			crossorigin="anonymous"
+		/>
+
+		<script type="module" crossorigin src="./dist/lite.js"></script>
+		<link rel="stylesheet" href="./dist/lite.css" />
+	</head>
+
+	<body style="margin: 0; padding: 0; height: 100%">
+		<div id="gradio-app"></div>
+
+		<script type="module">
+			// type="module" is necessary to use `createGradioApp()`, which is loaded with <script type="module" /> tag above.
+			// For the Playwright tests, set the controller to the global scope.
+			window.controller = createGradioApp({
+				target: document.getElementById("gradio-app"),
+				code: `
+import gradio as gr
+
+def greet(name):
+		return "Hello, " + name + "!"
+
+gr.Interface(fn=greet, inputs="text", outputs="text").launch()
+`,
+				info: true,
+				container: true,
+				isEmbed: false,
+				initialHeight: "300px",
+				eager: false,
+				themeMode: null,
+				autoScroll: false,
+				controlPageTitle: false,
+				appMode: true
+			});
+		</script>
+	</body>
+</html>

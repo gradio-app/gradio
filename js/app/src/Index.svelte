@@ -171,6 +171,27 @@
 						newElement.setAttribute(attr.name, attr.value);
 					});
 					newElement.textContent = head_element.textContent;
+
+					if (
+						newElement.tagName == "META" &&
+						newElement.getAttribute("property")
+					) {
+						const domMetaList = Array.from(
+							document.head.getElementsByTagName("meta") ?? []
+						);
+						const matched = domMetaList.find((el) => {
+							return (
+								el.getAttribute("property") ==
+									newElement.getAttribute("property") &&
+								!el.isEqualNode(newElement)
+							);
+						});
+						if (matched) {
+							document.head.replaceChild(newElement, matched);
+							continue;
+						}
+					}
+
 					document.head.appendChild(newElement);
 				}
 			}

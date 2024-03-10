@@ -33,7 +33,7 @@
 			throw new Error("Wasm worker proxy is not available.");
 		}
 
-		const url = new URL(href);
+		const url = new URL(href, window.location.href);
 		const path = url.pathname;
 
 		is_downloading = true;

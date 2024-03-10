@@ -45,3 +45,16 @@
 		label: "Single-select Dropdown"
 	}}
 />
+
+<Story
+	name="Empty initial value"
+	args={{
+		interactive: true,
+		choices: [
+			["run", "run"],
+			["swim", "swim"],
+			["jump", "jump"]
+		],
+		label: "Empty Dropdown"
+	}}
+/>

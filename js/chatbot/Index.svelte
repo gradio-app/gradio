@@ -24,7 +24,6 @@
 	export let label: string;
 	export let show_label = true;
 	export let root: string;
-	export let proxy_url: null | string;
 	export let _selectable = false;
 	export let likeable = false;
 	export let show_share_button = false;
@@ -47,7 +46,7 @@
 		error: string;
 		like: LikeData;
 	}>;
-	export let avatar_images: [string | null, string | null] = [null, null];
+	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 
 	let _value: [
 		string | { file: FileData; alt_text: string | null } | null,
@@ -134,8 +133,6 @@
 			{bubble_full_width}
 			{line_breaks}
 			{layout}
-			{proxy_url}
-			{root}
 		/>
 	</div>
 </Block>

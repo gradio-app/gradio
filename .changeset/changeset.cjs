@@ -1,10 +1,17 @@
 const { getPackagesSync } = require("@manypkg/get-packages");
+const dependents_graph = require("@changesets/get-dependents-graph");
+
 const gh = require("@changesets/get-github-info");
 const { existsSync, readFileSync, writeFileSync } = require("fs");
 const { join } = require("path");
 
 const { getInfo, getInfoFromPullRequest } = gh;
-const { packages, rootDir } = getPackagesSync(process.cwd());
+const pkg_data = getPackagesSync(process.cwd());
+const { packages, rootDir } = pkg_data;
+const dependents = dependents_graph.getDependentsGraph({
+	packages,
+	root: pkg_data.rootPackage
+});
 
 /**
  * @typedef {{packageJson: {name: string, python?: boolean}, dir: string}} Package
@@ -33,6 +40,10 @@ function find_packages_dirs(package_name) {
 	}
 	return package_dirs;
 }
+
+let lines = {
+	_handled: []
+};
 
 const changelogFunctions = {
 	/**
@@ -76,7 +87,53 @@ const changelogFunctions = {
 			 * @param {any} dependency The dependency that has been updated
 			 * @returns {string} The formatted dependency
 			 */
-			(dependency) => `  - ${dependency.name}@${dependency.newVersion}`
+			(dependency) => {
+				const updates = dependents.get(dependency.name);
+
+				if (updates && updates.length > 0) {
+					updates.forEach((update) => {
+						if (!lines[update]) {
+							lines[update] = {
+								dirs: find_packages_dirs(update),
+								current_changelog: "",
+								feat: [],
+								fix: [],
+								highlight: [],
+								previous_version: packages.find(
+									(p) => p.packageJson.name === update
+								).packageJson.version,
+								dependencies: []
+							};
+
+							const changelog_path = join(
+								//@ts-ignore
+								lines[update].dirs[1] || lines[update].dirs[0],
+								"CHANGELOG.md"
+							);
+
+							if (existsSync(changelog_path)) {
+								//@ts-ignore
+								lines[update].current_changelog = readFileSync(
+									changelog_path,
+									"utf-8"
+								)
+									.replace(`# ${update}`, "")
+									.trim();
+							}
+						}
+						lines[update].dependencies.push(
+							`  - ${dependency.name}@${dependency.newVersion}`
+						);
+					});
+				}
+
+				return `  - ${dependency.name}@${dependency.newVersion}`;
+			}
+		);
+
+		writeFileSync(
+			join(rootDir, ".changeset", "_changelog.json"),
+			JSON.stringify(lines, null, 2)
 		);
 
 		return [changesetLink, ...updatedDepenenciesList].join("\n");
@@ -151,11 +208,14 @@ const changelogFunctions = {
 			};
 		})();
 
+		const user_link = /\[(@[^]+)\]/.exec(links.user);
 		const users =
 			usersFromSummary && usersFromSummary.length
 				? usersFromSummary
 						.map((userFromSummary) => `@${userFromSummary}`)
 						.join(", ")
+				: user_link
+				? user_link[1]
 				: links.user;
 
 		const prefix = [
@@ -174,16 +234,6 @@ const changelogFunctions = {
 		/**
 		 * @type { ChangesetMeta & { _handled: string[] } }}
 		 */
-		let lines;
-		if (existsSync(join(rootDir, ".changeset", "_changelog.json"))) {
-			lines = JSON.parse(
-				readFileSync(join(rootDir, ".changeset", "_changelog.json"), "utf-8")
-			);
-		} else {
-			lines = {
-				_handled: []
-			};
-		}
 
 		if (lines._handled.includes(changeset.id)) {
 			return "done";
@@ -191,14 +241,19 @@ const changelogFunctions = {
 		lines._handled.push(changeset.id);
 
 		changeset.releases.forEach((release) => {
-			if (!lines[release.name])
+			if (!lines[release.name]) {
 				lines[release.name] = {
 					dirs: find_packages_dirs(release.name),
 					current_changelog: "",
 					feat: [],
 					fix: [],
-					highlight: []
+					highlight: [],
+					previous_version: packages.find(
+						(p) => p.packageJson.name === release.name
+					).packageJson.version,
+					dependencies: []
 				};
+			}
 
 			const changelog_path = join(
 				//@ts-ignore

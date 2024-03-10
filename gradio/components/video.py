@@ -7,6 +7,7 @@ import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal, Optional
 
+from gradio_client import file
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
@@ -165,7 +166,8 @@ class Video(Component):
         """
         if payload is None:
             return None
-        assert payload.video.path
+        if not payload.video.path:
+            raise ValueError("Payload path missing")
         file_name = Path(payload.video.path)
         uploaded_format = file_name.suffix.replace(".", "")
         needs_formatting = self.format is not None and uploaded_format != self.format
@@ -257,7 +259,8 @@ class Video(Component):
 
         else:
             raise Exception(f"Cannot process type as video: {type(value)}")
-        assert processed_files[0]
+        if not processed_files[0]:
+            raise ValueError("Video data missing")
         return VideoData(video=processed_files[0], subtitles=processed_files[1])
 
     def _format_video(self, video: str | Path | None) -> FileData | None:
@@ -349,8 +352,12 @@ class Video(Component):
 
         return FileData(path=str(subtitle))
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
         return {
-            "video": "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4",
-            "subtitles": None,
+            "video": file(
+                "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+            ),
         }
+
+    def example_value(self) -> Any:
+        return "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"

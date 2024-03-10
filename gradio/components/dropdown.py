@@ -19,7 +19,14 @@ class Dropdown(FormComponent):
     Demos: sentence_builder
     """
 
-    EVENTS = [Events.change, Events.input, Events.select, Events.focus, Events.blur]
+    EVENTS = [
+        Events.change,
+        Events.input,
+        Events.select,
+        Events.focus,
+        Events.blur,
+        Events.key_up,
+    ]
 
     def __init__(
         self,
@@ -123,7 +130,13 @@ class Dropdown(FormComponent):
             }
         return json_type
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        if self.multiselect:
+            return [self.choices[0][1]] if self.choices else []
+        else:
+            return self.choices[0][1] if self.choices else None
+
+    def example_value(self) -> Any:
         if self.multiselect:
             return [self.choices[0][1]] if self.choices else []
         else:
@@ -145,7 +158,8 @@ class Dropdown(FormComponent):
             if payload is None:
                 return None
             elif self.multiselect:
-                assert isinstance(payload, list)
+                if not isinstance(payload, list):
+                    raise TypeError("Multiselect dropdown payload must be a list")
                 return [
                     choice_values.index(choice) if choice in choice_values else None
                     for choice in payload

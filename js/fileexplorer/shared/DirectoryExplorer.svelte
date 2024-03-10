@@ -1,72 +1,65 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	import { dequal } from "dequal";
 	import FileTree from "./FileTree.svelte";
-	import { make_fs_store } from "./utils";
-	import { File } from "@gradio/icons";
-	import { Empty } from "@gradio/atoms";
+	import type { FileNode } from "./types";
 
-	export let glob: string;
-	export let ignore_glob: string;
-	export let root_dir: string;
 	export let interactive: boolean;
-	export let server: any;
 	export let file_count: "single" | "multiple" = "multiple";
-
 	export let value: string[][] = [];
+	export let ls_fn: (path: string[]) => Promise<FileNode[]>;
+	let selected_folders: string[][] = [];
 
-	const dispatch = createEventDispatcher<{
-		change: typeof value;
-	}>();
-	const tree = make_fs_store();
-
-	const render_tree = (): void => {
-		server.ls().then((v: any) => {
-			tree.create_fs_graph(v);
-		});
+	const paths_equal = (path: string[], path_2: string[]): boolean => {
+		return path.join("/") === path_2.join("/");
 	};
 
-	$: glob, ignore_glob, root_dir, render_tree();
+	const path_in_set = (path: string[], set: string[][]): boolean => {
+		return set.some((x) => paths_equal(x, path));
+	};
 
-	$: value.length && $tree && set_checked_from_paths();
-
-	function set_checked_from_paths(): void {
-		value = file_count === "single" ? [value[0] || []] : value;
-		value = tree.set_checked_from_paths(value);
-		if (!dequal(value, old_value)) {
-			old_value = value;
-			dispatch("change", value);
-		}
-	}
-
-	let old_value: typeof value = [];
-	function handle_select({
-		node_indices,
-		checked
-	}: {
-		node_indices: number[];
-		checked: boolean;
-	}): void {
-		value = tree.set_checked(node_indices, checked, value, file_count);
-		if (!dequal(value, old_value)) {
-			old_value = value;
-			dispatch("change", value);
-		}
-	}
+	const path_inside = (path: string[], path_2: string[]): boolean => {
+		return path.join("/").startsWith(path_2.join("/"));
+	};
 </script>
 
-{#if $tree && $tree.length}
-	<div class="file-wrap">
-		<FileTree
-			tree={$tree}
-			{interactive}
-			on:check={({ detail }) => handle_select(detail)}
-			{file_count}
-		/>
-	</div>
-{:else}
-	<Empty size="large"><File /></Empty>
-{/if}
+<div class="file-wrap">
+	<FileTree
+		path={[]}
+		selected_files={value}
+		{selected_folders}
+		{interactive}
+		{ls_fn}
+		{file_count}
+		valid_for_selection={false}
+		on:check={(e) => {
+			const { path, checked, type } = e.detail;
+			if (checked) {
+				if (file_count === "single") {
+					value = [path];
+				} else if (type === "folder") {
+					if (!path_in_set(path, selected_folders)) {
+						selected_folders = [...selected_folders, path];
+					}
+				} else {
+					if (!path_in_set(path, value)) {
+						value = [...value, path];
+					}
+				}
+			} else {
+				selected_folders = selected_folders.filter(
+					(folder) => !path_inside(path, folder)
+				); // deselect all parent folders
+				if (type === "folder") {
+					selected_folders = selected_folders.filter(
+						(folder) => !path_inside(folder, path)
+					); // deselect all children folders
+					value = value.filter((file) => !path_inside(file, path)); // deselect all children files
+				} else {
+					value = value.filter((x) => !paths_equal(x, path));
+				}
+			}
+		}}
+	/>
+</div>
 
 <style>
 	.file-wrap {
