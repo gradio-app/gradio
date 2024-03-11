@@ -4,6 +4,7 @@ import os
 import tempfile
 import time
 from contextlib import asynccontextmanager, closing
+from typing import Dict
 from unittest.mock import patch
 
 import gradio_client as grc
@@ -1035,11 +1036,55 @@ def test_component_server_endpoints(connect):
             "",
             "https://www.gradio.app/playground",
         ),
+        (
+            "https://www.gradio.app/playground/",
+            "/",
+            "http://www.gradio.app/",
+            "http://www.gradio.app",
+        ),
     ],
 )
-def test_get_root_url(request_url, route_path, root_path, expected_root_url):
-    request = Request({"path": request_url, "type": "http", "headers": {}})
+def test_get_root_url(
+    request_url: str, route_path: str, root_path: str, expected_root_url: str
+):
+    scope = {
+        "type": "http",
+        "headers": [],
+        "path": request_url,
+    }
+    request = Request(scope)
     assert get_root_url(request, route_path, root_path) == expected_root_url
+
+
+@pytest.mark.parametrize(
+    "headers, root_path, expected_root_url",
+    [
+        ({}, "/gradio/", "http://gradio.app/gradio"),
+        ({"x-forwarded-proto": "http"}, "/gradio/", "http://gradio.app/gradio"),
+        ({"x-forwarded-proto": "https"}, "/gradio/", "https://gradio.app/gradio"),
+        ({"x-forwarded-host": "gradio.dev"}, "/gradio/", "http://gradio.dev/gradio"),
+        (
+            {"x-forwarded-host": "gradio.dev", "x-forwarded-proto": "https"},
+            "/",
+            "https://gradio.dev",
+        ),
+        (
+            {"x-forwarded-host": "gradio.dev", "x-forwarded-proto": "https"},
+            "http://google.com",
+            "http://google.com",
+        ),
+    ],
+)
+def test_get_root_url_headers(
+    headers: Dict[str, str], root_path: str, expected_root_url: str
+):
+    scope = {
+        "type": "http",
+        "headers": [(k.encode(), v.encode()) for k, v in headers.items()],
+        "path": "http://gradio.app",
+    }
+    request = Request(scope)
+    assert get_root_url(request, "/", root_path) == expected_root_url
 
 
 class TestSimpleAPIRoutes:

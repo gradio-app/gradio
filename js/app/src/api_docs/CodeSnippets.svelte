@@ -1,9 +1,18 @@
 <script lang="ts">
 	import type { ComponentMeta, Dependency } from "../types";
 	import CopyButton from "./CopyButton.svelte";
-	import { represent_value } from "./utils";
+	import { represent_value, is_potentially_nested_file_data } from "./utils";
 	import { Block } from "@gradio/atoms";
 	import EndpointDetail from "./EndpointDetail.svelte";
+
+	interface EndpointParameter {
+		label: string;
+		type: string;
+		python_type: { type: string };
+		component: string;
+		example_input: string;
+		serializer: string;
+	}
 
 	export let dependency: Dependency;
 	export let dependency_index: number;
@@ -18,19 +27,12 @@
 	let python_code: HTMLElement;
 	let js_code: HTMLElement;
 
+	let has_file_path = endpoint_parameters.some((param: EndpointParameter) =>
+		is_potentially_nested_file_data(param.example_input)
+	);
 	let blob_components = ["Audio", "File", "Image", "Video"];
 	let blob_examples: any[] = endpoint_parameters.filter(
-		(param: {
-			label: string;
-			type: string;
-			python_type: {
-				type: string;
-				description: string;
-			};
-			component: string;
-			example_input: string;
-			serializer: string;
-		}) => blob_components.includes(param.component)
+		(param: EndpointParameter) => blob_components.includes(param.component)
 	);
 </script>
 
@@ -47,7 +49,7 @@
 					<CopyButton code={python_code?.innerText} />
 				</div>
 				<div bind:this={python_code}>
-					<pre>from gradio_client import Client
+					<pre>from gradio_client import Client{#if has_file_path}, file{/if}
 
 client = Client(<span class="token string">"{root}"</span>)
 result = client.predict(<!--
@@ -64,7 +66,8 @@ result = client.predict(<!--
 				-->{/if}<!--
 			--><span class="desc"
 								><!--
-			-->	# {python_type.type} {#if python_type.description}({python_type.description}){/if}<!----> in '{label}' <!--
+			-->	# {python_type.type} {#if python_type.description}({python_type.description})
+								{/if}<!---->in '{label}' <!--
 			-->{component} component<!--
 			--></span
 							><!--
@@ -84,7 +87,7 @@ print(result)</pre>
 					<pre>import &lbrace; client &rbrace; from "@gradio/client";
 {#each blob_examples as { label, type, python_type, component, example_input, serializer }, i}<!--
 -->
-const response_{i} = await fetch("{example_input}");
+const response_{i} = await fetch("{example_input.url}");
 const example{component} = await response_{i}.blob();
 						{/each}<!--
 -->

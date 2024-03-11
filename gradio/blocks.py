@@ -121,6 +121,9 @@ class Block:
         self.state_session_capacity = 10000
         self.temp_files: set[str] = set()
         self.GRADIO_CACHE = get_upload_folder()
+        # Keep tracks of files that should not be deleted when the delete_cache parmaeter is set
+        # These files are the default value of the component and files that are used in examples
+        self.keep_in_cache = set()
 
         if render:
             self.render()
@@ -253,9 +256,16 @@ class Block:
         else:
             url_or_file_path = str(utils.abspath(url_or_file_path))
             if not utils.is_in_or_equal(url_or_file_path, self.GRADIO_CACHE):
-                temp_file_path = processing_utils.save_file_to_cache(
-                    url_or_file_path, cache_dir=self.GRADIO_CACHE
-                )
+                try:
+                    temp_file_path = processing_utils.save_file_to_cache(
+                        url_or_file_path, cache_dir=self.GRADIO_CACHE
+                    )
+                except FileNotFoundError:
+                    # This can happen if when using gr.load() and the file is on a remote Space
+                    # but the file is not the `value` of the component. For example, if the file
+                    # is the `avatar_image` of the `Chatbot` component. In this case, we skip
+                    # copying the file to the cache and just use the remote file path.
+                    return url_or_file_path
             else:
                 temp_file_path = url_or_file_path
             self.temp_files.add(temp_file_path)
@@ -753,15 +763,18 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 # targets field
                 _targets = dependency.pop("targets")
                 trigger = dependency.pop("trigger", None)
-                targets = [
-                    getattr(
-                        original_mapping[
-                            target if isinstance(target, int) else target[0]
-                        ],
-                        trigger if isinstance(target, int) else target[1],
-                    )
-                    for target in _targets
-                ]
+                is_then_event = False
+
+                # This assumes that you cannot combine multiple .then() events in a single
+                # gr.on() event, which is true for now. If this changes, we will need to
+                # update this code.
+                if not isinstance(_targets[0], int) and _targets[0][1] == "then":
+                    if len(_targets) != 1:
+                        raise ValueError(
+                            "This logic assumes that .then() events are not combined with other events in a single gr.on() event"
+                        )
+                    is_then_event = True
+
                 dependency.pop("backend_fn")
                 dependency.pop("documentation", None)
                 dependency["inputs"] = [
@@ -773,12 +786,30 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 dependency.pop("status_tracker", None)
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
-                targets = [
-                    EventListenerMethod(
-                        t.__self__ if t.has_trigger else None, t.event_name
+                if is_then_event:
+                    targets = [EventListenerMethod(None, "then")]
+                    dependency["trigger_after"] = dependency.pop("trigger_after")
+                    dependency["trigger_only_on_success"] = dependency.pop(
+                        "trigger_only_on_success"
                     )
-                    for t in targets
-                ]
+                    dependency["no_target"] = True
+                else:
+                    targets = [
+                        getattr(
+                            original_mapping[
+                                target if isinstance(target, int) else target[0]
+                            ],
+                            trigger if isinstance(target, int) else target[1],
+                        )
+                        for target in _targets
+                    ]
+                    targets = [
+                        EventListenerMethod(
+                            t.__self__ if t.has_trigger else None,
+                            t.event_name,  # type: ignore
+                        )
+                        for t in targets
+                    ]
                 dependency = blocks.set_event_trigger(
                     targets=targets, fn=fn, **dependency
                 )[0]
@@ -866,7 +897,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             show_progress: whether to show progress animation while running.
             api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
-            no_target: if True, sets "targets" to [], used for Blocks "load" event
+            no_target: if True, sets "targets" to [], used for the Blocks.load() event and .then() events
             queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
@@ -884,7 +915,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         # Support for singular parameter
         _targets = [
             (
-                target.block._id if target.block and not no_target else None,
+                target.block._id if not no_target and target.block else None,
                 target.event_name,
             )
             for target in targets
@@ -1256,7 +1287,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 serialized_input = client_utils.traverse(
                     inputs[i],
                     format_file,
-                    lambda s: client_utils.is_filepath(s) or client_utils.is_url(s),
+                    lambda s: client_utils.is_filepath(s)
+                    or client_utils.is_http_url_like(s),
                 )
             else:
                 serialized_input = inputs[i]
@@ -1735,7 +1767,7 @@ Received outputs:
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
-            "protocol": "sse_v2",
+            "protocol": "sse_v2.1",
             "body_css": {
                 "body_background_fill": self.theme._get_computed_value(
                     "body_background_fill"
@@ -1940,7 +1972,7 @@ Received outputs:
             show_api: If True, shows the api docs in the footer of the app. Default True.
             allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
-            root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
+            root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used as the root path in its entirety. Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
             app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
             share_server_address: Use this to specify a custom FRP server and port for sharing Gradio apps (only applies if share=True). If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
