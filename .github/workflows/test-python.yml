@@ -77,7 +77,7 @@ jobs:
     - name: Run tests
       run: |
         . ${{steps.install_deps.outputs.venv_activate}}
-        python -m pytest -m "${{ matrix.test-type }}"
+        python3.8 -m pytest -m "${{ matrix.test-type }}"
     - name: do check
       if: always()
       uses: "gradio-app/github/actions/commit-status@main"
