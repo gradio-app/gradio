@@ -65,6 +65,7 @@ def encode_plot_to_base64(plt):
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
     return "data:image/png;base64," + base64_str
 
+
 def get_pil_metadata(pil_image):
     # Copy any text-only metadata
     metadata = PngImagePlugin.PngInfo()
@@ -78,9 +79,9 @@ def get_pil_metadata(pil_image):
 def encode_pil_to_bytes(pil_image, format="png"):
     with BytesIO() as output_bytes:
         if format == "png":
-            save_params['pnginfo'] = get_pil_metadata(pil_image)
+            save_params["pnginfo"] = get_pil_metadata(pil_image)
         else:
-            save_params['exif'] = pil_image.info.get('exif', None)
+            save_params["exif"] = pil_image.info.get("exif", None)
         pil_image.save(output_bytes, format, **save_params)
         return output_bytes.getvalue()
 
