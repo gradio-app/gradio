@@ -15,7 +15,7 @@ class Radio(FormComponent):
     """
     Creates a set of (string or numeric type) radio buttons of which only one can be selected.
 
-    Demos: sentence_builder, titanic_survival, blocks_essay
+    Demos: sentence_builder, blocks_essay
     """
 
     EVENTS = [Events.select, Events.change, Events.input]
