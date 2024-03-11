@@ -53,6 +53,7 @@ class MultimodalTextbox(FormComponent):
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
         show_copy_button: bool = False,
+        show_submit_button: bool = True,
     ):
         """
         Parameters:
@@ -78,6 +79,7 @@ class MultimodalTextbox(FormComponent):
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
+            show_submit_button: If False, will not show the submit button. Only applies if `interactive` is True.
         """
         self.file_types = file_types
         if file_types is not None and not isinstance(file_types, list):
@@ -88,6 +90,7 @@ class MultimodalTextbox(FormComponent):
         self.max_lines = max(lines, max_lines)
         self.placeholder = placeholder
         self.show_copy_button = show_copy_button
+        self.show_submit_button = show_submit_button
         self.autofocus = autofocus
         self.autoscroll = autoscroll
         super().__init__(
@@ -121,22 +124,15 @@ class MultimodalTextbox(FormComponent):
 
     def api_info(self) -> dict[str, Any]:
         return {
-                "type": "object",
-                "properties": {
-                    "text": {
-                        "type": "string"
-                    },
-                    "files": {
-                        "type": "object",
-                        "properties": {
-                            "path": {
-                                "type": "string"
-                            }
-                        },
-                    },
+            "type": "object",
+            "properties": {
+                "text": {"type": "string"},
+                "files": {
+                    "type": "object",
+                    "properties": {"path": {"type": "string"}},
                 },
-            }
+            },
+        }
 
     def example_inputs(self) -> Any:
         return {"text": "sample text", "files": []}
-

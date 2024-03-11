@@ -24,7 +24,10 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: { text: string; files: FileData[] } = { text: '', files: [] };
+	export let value: { text: string; files: FileData[] } = {
+		text: "",
+		files: []
+	};
 	export let file_types: string[] | null = null;
 	export let lines: number;
 	export let placeholder = "";
@@ -34,6 +37,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let show_copy_button = false;
+	export let show_submit_button = true;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let value_is_output = false;
 	export let rtl = false;
@@ -73,6 +77,7 @@
 		max_lines={!max_lines ? lines + 1 : max_lines}
 		{placeholder}
 		{show_copy_button}
+		{show_submit_button}
 		{autofocus}
 		{container}
 		{autoscroll}

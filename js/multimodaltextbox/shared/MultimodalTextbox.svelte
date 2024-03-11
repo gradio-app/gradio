@@ -12,7 +12,10 @@
 	import { fade } from "svelte/transition";
 	import type { SelectData } from "@gradio/utils";
 
-	export let value: { text: string; files: FileData[] } = { text: '', files: [] };
+	export let value: { text: string; files: FileData[] } = {
+		text: "",
+		files: []
+	};
 
 	export let value_is_output = false;
 	export let lines = 1;
@@ -22,6 +25,7 @@
 	export let container = true;
 	export let max_lines: number;
 	export let show_copy_button = false;
+	export let show_submit_button = true;
 	export let rtl = false;
 	export let autofocus = false;
 	export let text_align: "left" | "right" | undefined = undefined;
@@ -51,7 +55,7 @@
 		accept_file_types = file_types.join(", ");
 	}
 
-	$: if (value === null) value = { text: '', files: [] };
+	$: if (value === null) value = { text: "", files: [] };
 	$: value, el && lines !== max_lines && resize({ target: el });
 
 	const dispatch = createEventDispatcher<{
@@ -260,7 +264,9 @@
 			disable_click={true}
 			bind:hidden_upload
 		>
-			<button class="submit-button" on:click={handle_submit}>⌲</button>
+			{#if show_submit_button}
+				<button class="submit-button" on:click={handle_submit}>⌲</button>
+			{/if}
 			<button class="plus-button" on:click={handle_upload_click}>+</button>
 			{#if value.files.length > 0}
 				<div
@@ -268,7 +274,7 @@
 					data-testid="container_el"
 					style="display: {value.files.length > 0 ? 'flex' : 'none'};"
 				>
-				{#each value.files as file, index}
+					{#each value.files as file, index}
 						<button class="thumbnail-item thumbnail-small">
 							<button
 								class="delete-button"
