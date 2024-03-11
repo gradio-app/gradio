@@ -70,8 +70,10 @@
 
 	export function open_file_upload(): void {
 		if (disable_click) return;
-		hidden_upload.value = "";
-		hidden_upload.click();
+		if (hidden_upload) {
+			hidden_upload.value = "";
+			hidden_upload.click();
+		}
 	}
 
 	async function handle_upload(
