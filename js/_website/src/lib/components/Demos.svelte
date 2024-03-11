@@ -1,32 +1,37 @@
 <script lang="ts">
 	export let name: string;
 	export let code: string;
-	export let highlighted_code: string;
-	export let url_version: string;
-	$: url_version;
 </script>
 
-<div class="codeblock" id="{name}_code">
-	<a
-		class="clipboard-button m-2"
-		href="https://colab.research.google.com/github/gradio-app/gradio/blob/main/demo/{name}/run.ipynb"
-		target="_blank"
-		style="right:30px"
-	>
-		<img src="https://colab.research.google.com/assets/colab-badge.svg" />
-	</a>
-	<pre class=" max-h-80 overflow-auto"><code class="code language-python"
-			>{@html highlighted_code}</code
-		>
-</pre>
-</div>
+<svelte:head>
+	<link rel="stylesheet" href="http://localhost:8000/dist/lite.css" />
 
-{#key name}
-	{#if url_version === "main"}
-		<gradio-app space={"gradio/" + name + "_main"} />
-	{:else if url_version === "3.50.2"}
-		<gradio-app space={"gradio/" + name + "_3-x"} />
-	{:else}
-		<gradio-app space={"gradio/" + name} />
-	{/if}
-{/key}
+	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
+</svelte:head>
+
+<div class="py-2 max-h-[750px] overflow-y-scroll">
+	{#key name}
+		<div class="flex flex-row">
+			<div class="flex-grow"></div>
+			<button
+				class="bg-gray-200 text-gray-500 font-bold px-2 rounded mx-4 my-2"
+				style="
+	background: #eaecef;
+	color: #374151;
+	font-weight: 500;
+
+	"
+				on:click={() => {
+					let code_b64 = btoa(code);
+					window.open("/playground?demo=Blank&code=" + code_b64, "_blank");
+				}}
+			>
+				Open in 🎢 Playground ↗
+			</button>
+		</div>
+
+		<gradio-lite playground>
+			{code}
+		</gradio-lite>
+	{/key}
+</div>
