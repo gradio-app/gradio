@@ -1013,7 +1013,10 @@ def mount_gradio_app(
     path: str,
     app_kwargs: dict[str, Any] | None = None,
     *,
+    auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
+    auth_message: str | None = None,
     auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+    root_path: str | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -1022,7 +1025,10 @@ def mount_gradio_app(
         blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted.
         app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
-        auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth.
+        auth: If provided, username and password (or list of username-password tuples) required to access the gradio app. Can also provide function that takes username and password and returns True if valid login.
+        auth_message: If provided, HTML message provided on login page for this gradio app.
+        auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the gradio app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth. Cannot be used with `auth`.
+        root_path: The subpath corresponding to the public deployment of this FastAPI application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used in its entirety. Normally, this does not need to provided (even if you are using a custom `path`). However, if you are serving the FastAPI app behind a proxy, the proxy may not provide the full path to the Gradio app in the request headers. In which case, you can provide the root path here.
     Example:
         from fastapi import FastAPI
         import gradio as gr
@@ -1037,10 +1043,27 @@ def mount_gradio_app(
     blocks.dev_mode = False
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
+    if auth is not None and auth_dependency is not None:
+        raise ValueError(
+            "You cannot provide both `auth` and `auth_dependency` in mount_gradio_app(). Please choose one."
+        )
+    if (
+        auth
+        and not callable(auth)
+        and not isinstance(auth[0], tuple)
+        and not isinstance(auth[0], list)
+    ):
+        blocks.auth = [auth]
+    else:
+        blocks.auth = auth
+    blocks.auth_message = auth_message
+
+    if root_path is not None:
+        blocks.root_path = root_path
+
     gradio_app = App.create_app(
         blocks, app_kwargs=app_kwargs, auth_dependency=auth_dependency
     )
-
     old_lifespan = app.router.lifespan_context
 
     @contextlib.asynccontextmanager
