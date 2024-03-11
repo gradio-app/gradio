@@ -41,6 +41,7 @@ class Image(StreamingInput, Component):
 
     def __init__(
         self,
+        format: str | None = None,
         value: str | PIL.Image.Image | np.ndarray | None = None,
         *,
         height: int | str | None = None,
@@ -69,6 +70,7 @@ class Image(StreamingInput, Component):
         """
         Parameters:
             value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            format: Format of to be returned by component, such as 'jpg' or 'png'. If set to None, image will keep uploaded format.
             height: The height of the displayed image, specified in pixels if a number is passed, or in CSS units if a string is passed.
             width: The width of the displayed image, specified in pixels if a number is passed, or in CSS units if a string is passed.
             image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning.
@@ -90,6 +92,7 @@ class Image(StreamingInput, Component):
             mirror_webcam: If True webcam will be mirrored. Default is True.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
         """
+        self.format = format
         self.mirror_webcam = mirror_webcam
         valid_types = ["numpy", "pil", "filepath"]
         if type not in valid_types:
