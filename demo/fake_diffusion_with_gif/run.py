@@ -1,31 +1,49 @@
-"""
-app.py
-"""
-import os
-
 import gradio as gr
-#from groq import Groq
+import numpy as np
+import time
+import os
+from PIL import Image
+import requests
+from io import BytesIO
 
-#client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 
-def autocomplete(text):  
-    for word in text.split():
-        yield word
-              
-# Create the Gradio interface with live updates
-iface = gr.Interface(
-    fn=autocomplete,
-    inputs=gr.Textbox(lines=2,
-                      placeholder="Hello 👋",
-                      label="Input Sentence"),
-    outputs=gr.Markdown(),
-    title="Catch me if you can 🐰",
-    description="Powered by Groq & Gemma",
-    live=True,  # Set live to True for real-time feedback
-    allow_flagging="never"  # Disable flagging
-)
-iface.dependencies[0]['show_progress'] = "hidden"
-iface.dependencies[2]['show_progress'] = "hidden"
+def create_gif(images):
+    pil_images = []
+    for image in images:
+        if isinstance(image, str):
+            response = requests.get(image)
+            image = Image.open(BytesIO(response.content))
+        else:
+            image = Image.fromarray((image * 255).astype(np.uint8))
+        pil_images.append(image)
+    fp_out = os.path.join(os.path.dirname(__file__), "image.gif")
+    img = pil_images.pop(0)
+    img.save(fp=fp_out, format='GIF', append_images=pil_images,
+            save_all=True, duration=400, loop=0)
+    return fp_out
 
-# Launch the app
-iface.launch()
+
+def fake_diffusion(steps):
+    rng = np.random.default_rng()
+    images = []
+    for _ in range(steps):
+        time.sleep(1)
+        image = rng.random((600, 600, 3))
+        images.append(image)
+        yield image, gr.Image(visible=False)
+
+    time.sleep(1)
+    image = "https://gradio-builds.s3.amazonaws.com/diffusion_image/cute_dog.jpg"
+    images.append(image)
+    gif_path = create_gif(images)
+
+    yield image, gr.Image(value=gif_path, visible=True)
+
+
+demo = gr.Interface(fake_diffusion,
+                    inputs=gr.Slider(1, 10, 3, step=1),
+                    outputs=["image", gr.Image(label="All Images", visible=False)])
+demo.queue()
+
+if __name__ == "__main__":
+    demo.launch()

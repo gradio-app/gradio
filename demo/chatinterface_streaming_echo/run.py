@@ -11,4 +11,4 @@ def slow_echo(message, history):
 demo = gr.ChatInterface(slow_echo).queue()
 
 if __name__ == "__main__":
-    demo.launch(state_session_capacity=2000)
+    demo.launch()
