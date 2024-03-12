@@ -51,13 +51,13 @@ def format_image(
         )
 
 
-def save_image(y: np.ndarray | PIL.Image.Image | str | Path, cache_dir: str):
+def save_image(y: np.ndarray | PIL.Image.Image | str | Path, cache_dir: str, format: str=None):
     # numpy gets saved to png as default format
     # PIL gets saved to its original format if possible
     if isinstance(y, np.ndarray):
-        path = processing_utils.save_img_array_to_cache(y, cache_dir=cache_dir)
+        path = processing_utils.save_img_array_to_cache(y, cache_dir=cache_dir, format=format)
     elif isinstance(y, PIL.Image.Image):
-        fmt = y.format
+        fmt = format or y.format
         try:
             path = processing_utils.save_pil_to_cache(
                 y,
@@ -67,7 +67,7 @@ def save_image(y: np.ndarray | PIL.Image.Image | str | Path, cache_dir: str):
         # Catch error if format is not supported by PIL
         except (KeyError, ValueError):
             path = processing_utils.save_pil_to_cache(
-                y, cache_dir=cache_dir, format="png"
+                y, cache_dir=cache_dir, format=format or "png"
             )
     elif isinstance(y, Path):
         path = str(y)
