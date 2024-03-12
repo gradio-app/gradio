@@ -48,7 +48,6 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
-from gradio_client.utils import ServerMessage
 from jinja2.exceptions import TemplateNotFound
 from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
@@ -781,28 +780,17 @@ class App(FastAPI):
                                 blocks._queue.pending_event_ids_session[
                                     session_hash
                                 ].remove(message.event_id)
-                                if message.msg == ServerMessage.server_stopped or (
-                                    message.msg == ServerMessage.process_completed
-                                    and (
-                                        len(
-                                            blocks._queue.pending_event_ids_session[
-                                                session_hash
-                                            ]
-                                        )
-                                        == 0
-                                    )
-                                ):
-                                    return
                 except BaseException as e:
+                    if isinstance(e, asyncio.CancelledError):
+                        del blocks._queue.pending_messages_per_session[session_hash]
+                        await blocks._queue.clean_events(session_hash=session_hash)
+                        raise e
                     message = UnexpectedErrorMessage(
                         message=str(e),
                     )
                     response = process_msg(message)
                     if response is not None:
                         yield response
-                    if isinstance(e, asyncio.CancelledError):
-                        del blocks._queue.pending_messages_per_session[session_hash]
-                        await blocks._queue.clean_events(session_hash=session_hash)
                     raise e
 
             return StreamingResponse(
