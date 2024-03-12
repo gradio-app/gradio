@@ -16,12 +16,14 @@ import sys
 import threading
 from pathlib import Path
 from typing import List, Optional
+import shutil
 
 import typer
 from rich import print
 
 import gradio
 from gradio import utils
+import tempfile
 
 reload_thread = threading.local()
 
@@ -96,10 +98,15 @@ def _setup_config(
             message += f" '{wd}'"
 
     print(message + "\n")
+    reload_sources: dict[str, str] = {}
+    for s in watching_dirs:
+        temp_dir = tempfile.mkdtemp()
+        shutil.copytree(s, temp_dir, dirs_exist_ok=True)
+        reload_sources[str(s)] = temp_dir
 
     # guaranty access to the module of an app
     sys.path.insert(0, os.getcwd())
-    return module_name, abs_original_path, [str(s) for s in watching_dirs], demo_name
+    return module_name, abs_original_path, reload_sources, demo_name
 
 
 def main(
@@ -109,15 +116,16 @@ def main(
     encoding: str = "utf-8",
 ):
     # default execution pattern to start the server and watch changes
-    module_name, path, watch_dirs, demo_name = _setup_config(
+    module_name, path, watch_sources, demo_name = _setup_config(
         demo_path, demo_name, watch_dirs, encoding
     )
+    import json
     # extra_args = args[1:] if len(args) == 1 or args[1].startswith("--") else args[2:]
     popen = subprocess.Popen(
         [sys.executable, "-u", path],
         env=dict(
             os.environ,
-            GRADIO_WATCH_DIRS=",".join(watch_dirs),
+            GRADIO_WATCH_DIRS=json.dumps(watch_sources),
             GRADIO_WATCH_MODULE_NAME=module_name,
             GRADIO_WATCH_DEMO_NAME=demo_name,
         ),

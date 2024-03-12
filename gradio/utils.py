@@ -115,6 +115,7 @@ class SourceFileReloader(BaseReloader):
         self,
         app: App,
         watch_dirs: list[str],
+        watch_sources: dict[str, str],
         watch_module_name: str,
         stop_event: threading.Event,
         change_event: threading.Event,
@@ -127,6 +128,7 @@ class SourceFileReloader(BaseReloader):
         self.stop_event = stop_event
         self.change_event = change_event
         self.demo_name = demo_name
+        self.watch_sources = watch_sources
 
     @property
     def running_app(self) -> App:
@@ -149,9 +151,12 @@ class SourceFileReloader(BaseReloader):
 import ast
 import importlib.util
 import sys
+import contextlib
 
-class NoReload:
-    pass
+
+@contextlib.contextmanager
+def no_reload():
+    yield
 
 
 def remove_sections(string: str, sections: list[tuple[int, int]]) -> str:
@@ -166,77 +171,40 @@ def remove_sections(string: str, sections: list[tuple[int, int]]) -> str:
     return '\n'.join(new_lines)
 
 
-def load_code_except_no_reload(file_path):
+
+
+def load_code_except_no_reload(file_path: str):
+
+    # if not module_name:
+    #     print(f"Cannot find module for {file_path}")
+    #     return
+    
+    # if not any(is_in_or_equal(file_path, d) for d in watch_dirs):
+    #     return
+
     with open(file_path, 'r') as file:
         code = file.read()
 
-    try:
-        tree = ast.parse(code)
-    except:
-        breakpoint()
-        2 + 2
-    
+    tree = ast.parse(code)
+
     # Find the positions of the code blocks to load
     skip_indices = []
     for node in ast.walk(tree):
         if isinstance(node, ast.With):
             ctx_manager = node.items[0].context_expr
-            if isinstance(ctx_manager, ast.Call) and isinstance(ctx_manager.func, ast.Attribute) and ctx_manager.func.attr == 'NoReload':
+            if isinstance(ctx_manager, ast.Call) and isinstance(ctx_manager.func, ast.Attribute) and ctx_manager.func.attr == 'no_reload':
                 start_index = node.lineno - 1
                 end_index = node.body[-1].lineno
                 skip_indices.append((start_index, end_index))
     
     code_removed = remove_sections(code, skip_indices)
-    
-    nodes = []
-    for node in ast.walk(ast.parse(code_removed)):
-        nodes.append(node)
-        # if isinstance(node, ast.Import):
-        #     for alias in node.names:
-        #         module_path = sys.modules.get(alias.name, None)
-        #         if module_path and hasattr(module_path, "__file__"):
-        #             load_code_except_no_reload(module_path.__file__)
-        # elif isinstance(node, ast.ImportFrom):
-        #     if node.module:
-        #         module_path = sys.modules.get(node.module, None)
-        #         if module_path and hasattr(module_path, "__file__"):
-        #             load_code_except_no_reload(module_path.__file__)
-        # else:
-        #     nodes.append(node)
-    #breakpoint()
-    exec(code_removed, globals())
-    # # Remove import statements from code_to_load
-    # import_lines = []
-    # new_lines = []
-    # for line in code_removed.split('\n'):
-    #     if line.strip().startswith(('import ', 'from ')):
-    #         import_lines.append(line)
-    #     else:
-    #         new_lines.append(line)
-
-    # Load any imported modules
-    #module_names = set()
-    # for node in ast.walk(ast.parse('\n'.join(import_lines))):
-    #     if isinstance(node, ast.Import):
-    #         for alias in node.names:
-    #             module_names.add(alias.name.split('.')[0])
-    #     elif isinstance(node, ast.ImportFrom):
-    #         if node.module:
-    #             module_names.add(node.module.split('.')[0])
-
-    # for module_name in module_names:
-    #     module_path = sys.modules.get(module_name, None)
-    #     if module_path:
-    #         load_code_except_no_reload(module_path.__file__)
-
-    # # Execute the code in the current interpreter
-    # exec('\n'.join(new_lines), globals())
-
-# Example usage:
-if __name__ == "__main__":
-    load_code_except_no_reload("example.py")
-
-
+    with open(file_path, 'w') as file:
+        file.write(code_removed)
+    # breakpoint()
+    # module = sys.modules[module_name]
+    # exec(code_removed, module.__dict__)
+    # sys.modules.pop(module_name)
+    # sys.modules[module_name] = module
 
 
 def watchfn(reloader: SourceFileReloader):
@@ -274,7 +242,6 @@ def watchfn(reloader: SourceFileReloader):
             for path in list(reload_dir.rglob("*.css")):
                 yield path.resolve()
 
-    module = None
     reload_dirs = [Path(dir_) for dir_ in reloader.watch_dirs]
     import sys
 
@@ -282,31 +249,46 @@ def watchfn(reloader: SourceFileReloader):
         sys.path.insert(0, str(dir_))
 
     mtimes = {}
-    _ = importlib.import_module(reloader.watch_module_name)
+    module = None
     while reloader.should_watch():
         changed = get_changes()
         if changed:
             print(f"Changes detected in: {changed}")
             # To simulate a fresh reload, delete all module references from sys.modules
             # for the modules in the package the change came from.
-            # dir_ = next(d for d in reload_dirs if is_in_or_equal(changed, d))
-            # modules = list(sys.modules)
-            # for k in modules:
-            #     v = sys.modules[k]
-            #     sourcefile = getattr(v, "__file__", None)
-            #     # Do not reload `reload.py` to keep thread data
-            #     if (
-            #         sourcefile
-            #         and dir_ == Path(inspect.getfile(gradio)).parent
-            #         and sourcefile.endswith("reload.py")
-            #     ):
-            #         continue
-            #     if sourcefile and is_in_or_equal(sourcefile, dir_):
-            #         del sys.modules[k]
+            dir_ = next(d for d in reload_dirs if is_in_or_equal(changed, d))
+            modules = list(sys.modules)
+            for k in modules:
+                v = sys.modules[k]
+                sourcefile = getattr(v, "__file__", None)
+                # Do not reload `reload.py` to keep thread data
+                if (
+                    sourcefile
+                    and dir_ == Path(inspect.getfile(gradio)).parent
+                    and sourcefile.endswith("reload.py")
+                ):
+                    continue
+                if sourcefile and is_in_or_equal(sourcefile, dir_):
+                    del sys.modules[k]
             try:
-                load_code_except_no_reload(changed)
+                # iterate over every file in reload_dir and remove the no_reload sections
+                copied_dir = Path(reloader.watch_sources["/Users/freddy/sources/gradio/demo/calculator"])
+                for file in copied_dir.rglob("*.py"):
+                    load_code_except_no_reload(str(file))
+                print("module_file", str(Path(reloader.watch_sources["/Users/freddy/sources/gradio/demo/calculator"]) / "run.py"))
+                spec = importlib.util.spec_from_file_location(reloader.watch_module_name,
+                                                              str(Path(reloader.watch_sources["/Users/freddy/sources/gradio/demo/calculator"]) / "run.py"))
+                assert spec
+                assert spec.loader
+                module = importlib.util.module_from_spec(spec)
+                assert module
+                spec.loader.exec_module(module)
+                breakpoint()
+                2 + 2
+                # sys.modules[reloader.watch_module_name] = module
+                # breakpoint()
                 # module = importlib.import_module(reloader.watch_module_name)
-                # module = importlib.reload(module)
+                # importlib.reload(module)
             except Exception:
                 print(
                     f"Reloading {reloader.watch_module_name} failed with the following exception: "
@@ -315,7 +297,7 @@ def watchfn(reloader: SourceFileReloader):
                 mtimes = {}
                 continue
 
-            demo = globals()[reloader.demo_name]
+            demo = getattr(module, reloader.demo_name)
             if reloader.queue_changed(demo):
                 print(
                     "Reloading failed. The new demo has a queue and the old one doesn't (or vice versa). "

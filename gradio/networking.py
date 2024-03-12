@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING
 import httpx
 import uvicorn
 from uvicorn.config import Config
+import json
 
 from gradio.exceptions import ServerFailedToStartError
 from gradio.routes import App
@@ -34,7 +35,7 @@ GRADIO_SHARE_SERVER_ADDRESS = os.getenv("GRADIO_SHARE_SERVER_ADDRESS")
 
 should_watch = bool(os.getenv("GRADIO_WATCH_DIRS", ""))
 GRADIO_WATCH_DIRS = (
-    os.getenv("GRADIO_WATCH_DIRS", "").split(",") if should_watch else []
+    json.loads(os.getenv("GRADIO_WATCH_DIRS", "")) if should_watch else {}
 )
 GRADIO_WATCH_MODULE_NAME = os.getenv("GRADIO_WATCH_MODULE_NAME", "app")
 GRADIO_WATCH_DEMO_NAME = os.getenv("GRADIO_WATCH_DEMO_NAME", "demo")
@@ -188,14 +189,17 @@ def start_server(
             )
             reloader = None
             if GRADIO_WATCH_DIRS:
+                watch_dirs = list(GRADIO_WATCH_DIRS.keys())
+                watch_sources = GRADIO_WATCH_DIRS
                 change_event = threading.Event()
                 app.change_event = change_event
                 reloader = SourceFileReloader(
                     app=app,
-                    watch_dirs=GRADIO_WATCH_DIRS,
+                    watch_dirs=watch_dirs,
                     watch_module_name=GRADIO_WATCH_MODULE_NAME,
                     demo_name=GRADIO_WATCH_DEMO_NAME,
                     stop_event=threading.Event(),
+                    watch_sources=watch_sources,
                     change_event=change_event,
                 )
             server = Server(config=config, reloader=reloader)
