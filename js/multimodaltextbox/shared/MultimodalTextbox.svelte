@@ -240,9 +240,13 @@
 			bind:hidden_upload
 		>
 			{#if show_submit_button}
-				<button class:disabled={disabled} class="submit-button" on:click={handle_submit}>⌲</button>
+				<button class:disabled class="submit-button" on:click={handle_submit}
+					>⌲</button
+				>
 			{/if}
-			<button class:disabled={disabled} class="plus-button" on:click={handle_upload_click}>+</button>
+			<button class:disabled class="plus-button" on:click={handle_upload_click}
+				>+</button
+			>
 			{#if value.files.length > 0}
 				<div
 					class="thumbnails scroll-hide"
@@ -252,7 +256,7 @@
 					{#each value.files as file, index}
 						<button class="thumbnail-item thumbnail-small">
 							<button
-								class:disabled={disabled}
+								class:disabled
 								class="delete-button"
 								on:click={(event) => remove_thumbnail(event, index)}
 								><Clear /></button
