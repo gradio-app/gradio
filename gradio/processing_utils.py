@@ -58,12 +58,13 @@ def extract_base64_data(x: str) -> str:
 #########################
 
 
-def encode_plot_to_base64(plt, format="png"):
+def encode_plot_to_base64(plt, format=None):
+    fmt = format or "png"
     with BytesIO() as output_bytes:
-        plt.savefig(output_bytes, format)
+        plt.savefig(output_bytes, fmt)
         bytes_data = output_bytes.getvalue()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
-    return output_base64(base64_str, format)
+    return output_base64(base64_str, fmt)
 
 
 def get_pil_exif_bytes(pil_image):
