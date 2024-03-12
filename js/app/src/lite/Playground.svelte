@@ -47,8 +47,6 @@
 		}
 	});
 
-	$: console.log("loading_text", loading_text);
-	$: console.log("loaded", loaded);
 	$: loading_text;
 	$: loaded;
 </script>
@@ -192,10 +190,6 @@
 	.code-editor :global(.cm-scroller) {
 		height: 100% !important;
 	}
-	.lite-demo :global(.embed-container) {
-		border: none !important;
-	}
-
 	h3 {
 		font-size: medium;
 		font-family: "Source Sans Pro";
