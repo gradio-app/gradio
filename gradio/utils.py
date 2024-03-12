@@ -13,6 +13,7 @@ import json.decoder
 import os
 import pkgutil
 import re
+import shutil
 import tempfile
 import threading
 import time
@@ -117,6 +118,7 @@ class SourceFileReloader(BaseReloader):
         watch_dirs: list[str],
         watch_sources: dict[str, str],
         watch_module_name: str,
+        demo_file: str,
         stop_event: threading.Event,
         change_event: threading.Event,
         demo_name: str = "demo",
@@ -129,6 +131,7 @@ class SourceFileReloader(BaseReloader):
         self.change_event = change_event
         self.demo_name = demo_name
         self.watch_sources = watch_sources
+        self.demo_file = Path(demo_file)
 
     @property
     def running_app(self) -> App:
@@ -249,42 +252,53 @@ def watchfn(reloader: SourceFileReloader):
         sys.path.insert(0, str(dir_))
 
     mtimes = {}
-    module = None
+    module = importlib.import_module(reloader.watch_module_name)
     while reloader.should_watch():
         changed = get_changes()
         if changed:
             print(f"Changes detected in: {changed}")
             # To simulate a fresh reload, delete all module references from sys.modules
             # for the modules in the package the change came from.
-            dir_ = next(d for d in reload_dirs if is_in_or_equal(changed, d))
-            modules = list(sys.modules)
-            for k in modules:
-                v = sys.modules[k]
-                sourcefile = getattr(v, "__file__", None)
-                # Do not reload `reload.py` to keep thread data
-                if (
-                    sourcefile
-                    and dir_ == Path(inspect.getfile(gradio)).parent
-                    and sourcefile.endswith("reload.py")
-                ):
-                    continue
-                if sourcefile and is_in_or_equal(sourcefile, dir_):
-                    del sys.modules[k]
+            # dir_ = next(d for d in reload_dirs if is_in_or_equal(changed, d))
+            # modules = list(sys.modules)
+            # for k in modules:
+            #     v = sys.modules[k]
+            #     sourcefile = getattr(v, "__file__", None)
+            #     # Do not reload `reload.py` to keep thread data
+            #     if (
+            #         sourcefile
+            #         and dir_ == Path(inspect.getfile(gradio)).parent
+            #         and sourcefile.endswith("reload.py")
+            #     ):
+            #         continue
+            #     if sourcefile and is_in_or_equal(sourcefile, dir_):
+            #         del sys.modules[k]
             try:
                 # iterate over every file in reload_dir and remove the no_reload sections
-                copied_dir = Path(reloader.watch_sources["/Users/freddy/sources/gradio/demo/calculator"])
+                copied_dir = Path(reloader.watch_sources[str(dir_)])
+                changed_in_copy = copied_dir / changed.relative_to(dir_)
+                shutil.copy(changed, changed_in_copy)
                 for file in copied_dir.rglob("*.py"):
                     load_code_except_no_reload(str(file))
-                print("module_file", str(Path(reloader.watch_sources["/Users/freddy/sources/gradio/demo/calculator"]) / "run.py"))
-                spec = importlib.util.spec_from_file_location(reloader.watch_module_name,
-                                                              str(Path(reloader.watch_sources["/Users/freddy/sources/gradio/demo/calculator"]) / "run.py"))
-                assert spec
-                assert spec.loader
-                module = importlib.util.module_from_spec(spec)
-                assert module
-                spec.loader.exec_module(module)
-                breakpoint()
-                2 + 2
+                print("module_file", str(changed_in_copy))
+                #load_code_except_no_reload(str(changed_in_copy))
+                if changed != reloader.demo_file:
+                    for s,v in sys.modules.items():
+                        if s not in {"__main__", "__mp_main__"} and getattr(v, "__file__", None) == str(changed):
+                            changed_module = sys.modules[s]
+                            exec(Path(changed_in_copy).read_text(), changed_module.__dict__)
+
+                # for file in copied_dir.rglob("*.py"):
+                #     load_code_except_no_reload(str(file))
+                #spec = importlib.util.spec_from_file_location(reloader.watch_module_name,
+                                                              #str(changed_in_copy))
+                # assert spec
+                # assert spec.loader
+                #module = importlib.util.module_from_spec(spec)
+                # assert module
+                # spec.loader.exec_module(module)
+                changed_demo_file = copied_dir / reloader.demo_file.relative_to(dir_)
+                exec(Path(changed_demo_file).read_text(), module.__dict__)
                 # sys.modules[reloader.watch_module_name] = module
                 # breakpoint()
                 # module = importlib.import_module(reloader.watch_module_name)
@@ -296,7 +310,6 @@ def watchfn(reloader: SourceFileReloader):
                 traceback.print_exc()
                 mtimes = {}
                 continue
-
             demo = getattr(module, reloader.demo_name)
             if reloader.queue_changed(demo):
                 print(

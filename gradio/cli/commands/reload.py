@@ -120,7 +120,6 @@ def main(
         demo_path, demo_name, watch_dirs, encoding
     )
     import json
-    # extra_args = args[1:] if len(args) == 1 or args[1].startswith("--") else args[2:]
     popen = subprocess.Popen(
         [sys.executable, "-u", path],
         env=dict(
@@ -128,6 +127,7 @@ def main(
             GRADIO_WATCH_DIRS=json.dumps(watch_sources),
             GRADIO_WATCH_MODULE_NAME=module_name,
             GRADIO_WATCH_DEMO_NAME=demo_name,
+            GRADIO_WATCH_DEMO_PATH=str(path),
         ),
     )
     popen.wait()

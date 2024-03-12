@@ -39,6 +39,7 @@ GRADIO_WATCH_DIRS = (
 )
 GRADIO_WATCH_MODULE_NAME = os.getenv("GRADIO_WATCH_MODULE_NAME", "app")
 GRADIO_WATCH_DEMO_NAME = os.getenv("GRADIO_WATCH_DEMO_NAME", "demo")
+GRADIO_WATCH_DEMO_PATH = os.getenv("GRADIO_WATCH_DEMO_PATH", "")
 
 
 class Server(uvicorn.Server):
@@ -201,6 +202,7 @@ def start_server(
                     stop_event=threading.Event(),
                     watch_sources=watch_sources,
                     change_event=change_event,
+                    demo_file=GRADIO_WATCH_DEMO_PATH,
                 )
             server = Server(config=config, reloader=reloader)
             server.run_in_thread()
