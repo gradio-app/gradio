@@ -31,12 +31,13 @@
 	export let file_types: string[] | null = null;
 	export let lines: number;
 	export let placeholder = "";
+	export let label = "MultimodalTextbox";
+	export let info: string | undefined = undefined;
 	export let show_label: boolean;
 	export let max_lines: number;
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let show_copy_button = false;
 	export let show_submit_button = true;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let value_is_output = false;
@@ -70,13 +71,14 @@
 		bind:value_is_output
 		{file_types}
 		{root}
+		{label}
+		{info}
 		{show_label}
 		{lines}
 		{rtl}
 		{text_align}
 		max_lines={!max_lines ? lines + 1 : max_lines}
 		{placeholder}
-		{show_copy_button}
 		{show_submit_button}
 		{autofocus}
 		{container}

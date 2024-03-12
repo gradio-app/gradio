@@ -5,10 +5,11 @@
 		createEventDispatcher,
 		tick
 	} from "svelte";
+	import { BlockTitle } from "@gradio/atoms";
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
 	import type { FileData } from "@gradio/client";
-	import { Copy, Check, Clear, File, Music, Video } from "@gradio/icons";
+	import { Check, Clear, File, Music, Video } from "@gradio/icons";
 	import { fade } from "svelte/transition";
 	import type { SelectData } from "@gradio/utils";
 
@@ -21,10 +22,11 @@
 	export let lines = 1;
 	export let placeholder = "Type here...";
 	export let disabled = false;
+	export let label: string;
+	export let info: string | undefined = undefined;
 	export let show_label = true;
 	export let container = true;
 	export let max_lines: number;
-	export let show_copy_button = false;
 	export let show_submit_button = true;
 	export let rtl = false;
 	export let autofocus = false;
@@ -82,7 +84,7 @@
 		}
 	};
 
-	function handle_change(): void {
+	async function handle_change(): void {
 		dispatch("change", value);
 		if (!value_is_output) {
 			dispatch("input");
@@ -98,22 +100,6 @@
 		}
 		value_is_output = false;
 	});
-	$: value, handle_change();
-
-	async function handle_copy(): Promise<void> {
-		if ("clipboard" in navigator) {
-			await navigator.clipboard.writeText(value.text);
-			copy_feedback();
-		}
-	}
-
-	function copy_feedback(): void {
-		copied = true;
-		if (timer) clearTimeout(timer);
-		timer = setTimeout(() => {
-			copied = false;
-		}, 1000);
-	}
 
 	function handle_select(event: Event): void {
 		const target: HTMLTextAreaElement | HTMLInputElement = event.target as
@@ -129,6 +115,7 @@
 
 	async function handle_keypress(e: KeyboardEvent): Promise<void> {
 		await tick();
+		handle_change();
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
 			dispatch("submit");
@@ -206,6 +193,7 @@
 	async function handle_upload({
 		detail
 	}: CustomEvent<FileData | FileData[]>): Promise<void> {
+		handle_change();
 		if (Array.isArray(detail)) {
 			for (let file of detail) {
 				value.files.push(file);
@@ -220,6 +208,7 @@
 	}
 
 	function remove_thumbnail(event: MouseEvent, index: number): void {
+		handle_change();
 		event.stopPropagation();
 		value.files.splice(index, 1);
 		value = value;
@@ -240,21 +229,7 @@
 
 <!-- svelte-ignore a11y-autofocus -->
 <label class:container>
-	{#if show_label && show_copy_button}
-		{#if copied}
-			<button
-				in:fade={{ duration: 300 }}
-				aria-label="Copied"
-				aria-roledescription="Text copied"><Check /></button
-			>
-		{:else}
-			<button
-				on:click={handle_copy}
-				aria-label="Copy"
-				aria-roledescription="Copy text"><Copy /></button
-			>
-		{/if}
-	{/if}
+	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 	<div class="input-container">
 		<Upload
 			on:load={handle_upload}
@@ -265,9 +240,9 @@
 			bind:hidden_upload
 		>
 			{#if show_submit_button}
-				<button class="submit-button" on:click={handle_submit}>⌲</button>
+				<button class:disabled={disabled} class="submit-button" on:click={handle_submit}>⌲</button>
 			{/if}
-			<button class="plus-button" on:click={handle_upload_click}>+</button>
+			<button class:disabled={disabled} class="plus-button" on:click={handle_upload_click}>+</button>
 			{#if value.files.length > 0}
 				<div
 					class="thumbnails scroll-hide"
@@ -277,6 +252,7 @@
 					{#each value.files as file, index}
 						<button class="thumbnail-item thumbnail-small">
 							<button
+								class:disabled={disabled}
 								class="delete-button"
 								on:click={(event) => remove_thumbnail(event, index)}
 								><Clear /></button
@@ -352,6 +328,8 @@
 		-webkit-text-fill-color: var(--body-text-color);
 		-webkit-opacity: 1;
 		opacity: 1;
+		width: 100%;
+		margin-left: 0px;
 	}
 
 	textarea::placeholder {
@@ -459,6 +437,10 @@
 		border-radius: 50%;
 		width: 20px;
 		height: 20px;
+	}
+
+	.disabled {
+		display: none;
 	}
 
 	.delete-button :global(svg) {

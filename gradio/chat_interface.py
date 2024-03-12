@@ -458,15 +458,15 @@ class ChatInterface(Blocks):
         else:
             return "", message
 
-    def _append_multimodal_history(self, message: dict[str, list], response: str | None, history: list[list[str | None]]):
+    def _append_multimodal_history(self, message: dict[str, list], response: str | None, history: list[list[str | tuple | None]]):
         for x in message["files"]:
-            history.append(((x["path"],), None))  
-        if message["text"] is not None:
-            history.append((message["text"], response))
+            history.append([(x["path"],), None])  
+        if message["text"] is not None and isinstance(message["text"], str):
+            history.append([message["text"], response])
 
     def _display_input(
-        self, message: str | dict[str, list], history: list[list[str | None]]
-    ) -> tuple[list[list[str | None]], list[list[str | None]]]:
+        self, message: str | dict[str, list], history: list[list[str | tuple | None]]
+    ) -> tuple[list[list[str | tuple | None]], list[list[str | tuple | None]]]:
         if self.multimodal and isinstance(message, dict):
             self._append_multimodal_history(message, None, history)
         elif isinstance(message, str):
@@ -476,10 +476,10 @@ class ChatInterface(Blocks):
     async def _submit_fn(
         self,
         message: str | dict[str, list],
-        history_with_input: list[list[str | None]],
+        history_with_input: list[list[str | tuple | None]],
         request: Request,
         *args,
-    ) -> tuple[list[list[str | None]], list[list[str | None]]]:
+    ) -> tuple[list[list[str | tuple | None]], list[list[str | tuple | None]]]:
         if self.multimodal and isinstance(message, dict):
             remove_input = len(message["files"]) + 1 if message["text"] is not None else len(message["files"])      
             history = history_with_input[:-remove_input]
@@ -498,7 +498,7 @@ class ChatInterface(Blocks):
 
         if self.multimodal and isinstance(message, dict):
             self._append_multimodal_history(message, response, history)
-        else:
+        elif isinstance(message, str):
             history.append([message, response])
         return history, history
 
