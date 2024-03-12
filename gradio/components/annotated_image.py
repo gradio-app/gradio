@@ -68,7 +68,7 @@ class AnnotatedImage(Component):
         """
         Parameters:
             value: Tuple of base image and list of (annotation, label) pairs.
-            format: Format to be returned by component, such as 'jpg' or 'png'. If set to None, image will keep uploaded format.
+            format: Format to be returned by component, such as 'jpg' or 'png'. If set to None, image will keep default to 'png'.
             show_legend: If True, will show a legend of the annotations.
             height: The height of the image, specified in pixels if a number is passed, or in CSS units if a string is passed.
             width: The width of the image, specified in pixels if a number is passed, or in CSS units if a string is passed.

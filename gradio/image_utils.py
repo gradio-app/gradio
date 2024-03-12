@@ -51,11 +51,15 @@ def format_image(
         )
 
 
-def save_image(y: np.ndarray | PIL.Image.Image | str | Path, cache_dir: str, format: str=None):
+def save_image(
+    y: np.ndarray | PIL.Image.Image | str | Path, cache_dir: str, format: str = None
+):
     # numpy gets saved to png as default format
     # PIL gets saved to its original format if possible
     if isinstance(y, np.ndarray):
-        path = processing_utils.save_img_array_to_cache(y, cache_dir=cache_dir, format=format)
+        path = processing_utils.save_img_array_to_cache(
+            y, cache_dir=cache_dir, format=format
+        )
     elif isinstance(y, PIL.Image.Image):
         fmt = format or y.format
         try:
