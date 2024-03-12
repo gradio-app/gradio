@@ -202,7 +202,7 @@ class Image(StreamingInput, Component):
             return None
         if isinstance(value, str) and value.lower().endswith(".svg"):
             return FileData(path=value, orig_name=Path(value).name)
-        saved = image_utils.save_image(value, self.GRADIO_CACHE, self.format)
+        saved = image_utils.save_image(value, self.GRADIO_CACHE, self.format or "png")
         orig_name = Path(saved).name if Path(saved).exists() else None
         return FileData(path=saved, orig_name=orig_name)
 
