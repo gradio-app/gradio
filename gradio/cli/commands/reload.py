@@ -7,23 +7,25 @@ $ gradio app.py my_demo, to use variable names other than "demo"
 """
 from __future__ import annotations
 
+import atexit
 import inspect
+import json
 import os
 import re
+import shutil
 import site
 import subprocess
 import sys
+import tempfile
 import threading
 from pathlib import Path
 from typing import List, Optional
-import shutil
 
 import typer
 from rich import print
 
 import gradio
 from gradio import utils
-import tempfile
 
 reload_thread = threading.local()
 
@@ -99,9 +101,17 @@ def _setup_config(
 
     print(message + "\n")
     reload_sources: dict[str, str] = {}
+
+    # copy the watched directories to temp directories
+    # so that we can reload the modules after parsing out
+    # the gr.no_reload contexts
     for s in watching_dirs:
         temp_dir = tempfile.mkdtemp()
-        shutil.copytree(s, temp_dir, dirs_exist_ok=True)
+        for file in Path(s).rglob("*.py"):
+            src = file
+            dst = Path(temp_dir) / file.relative_to(s)
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(src, dst)
         reload_sources[str(s)] = temp_dir
 
     # guaranty access to the module of an app
@@ -119,7 +129,15 @@ def main(
     module_name, path, watch_sources, demo_name = _setup_config(
         demo_path, demo_name, watch_dirs, encoding
     )
-    import json
+
+    def delete_temp_dirs():
+        for temp_dir in watch_sources.values():
+            shutil.rmtree(temp_dir, ignore_errors=True)
+
+    atexit.register(delete_temp_dirs)
+
+    # Pass the following data as environment variables
+    # so that we can set up reload mode correctly in the networking.py module
     popen = subprocess.Popen(
         [sys.executable, "-u", path],
         env=dict(

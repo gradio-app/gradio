@@ -97,6 +97,6 @@ from gradio.templates import (
     TextArea,
 )
 from gradio.themes import Base as Theme
-from gradio.utils import get_package_version, set_static_paths, no_reload
+from gradio.utils import get_package_version, no_reload, set_static_paths
 
 __version__ = get_package_version()
