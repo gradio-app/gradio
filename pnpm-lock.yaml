@@ -282,7 +282,7 @@ importers:
   js/_website:
     dependencies:
       '@gradio/code':
-        specifier: 0.5.5
+        specifier: 0.5.6
         version: link:../code
       '@sindresorhus/slugify':
         specifier: ^2.2.0
@@ -1109,6 +1109,10 @@ importers:
         version: link:../utils
 
   js/lite:
+    dependencies:
+      gradio:
+        specifier: workspace:^
+        version: link:../../gradio
     devDependencies:
       '@gradio/app':
         specifier: workspace:^
@@ -1116,9 +1120,6 @@ importers:
       '@gradio/wasm':
         specifier: workspace:^
         version: link:../wasm
-      gradio:
-        specifier: workspace:^
-        version: link:../../gradio
 
   js/markdown:
     dependencies:

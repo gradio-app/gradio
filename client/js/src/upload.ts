@@ -69,6 +69,7 @@ export class FileData {
 	is_stream?: boolean;
 	mime_type?: string;
 	alt_text?: string;
+	readonly meta = { _type: "gradio.FileData" };
 
 	constructor({
 		path,
