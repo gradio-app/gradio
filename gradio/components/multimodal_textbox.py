@@ -122,7 +122,9 @@ class MultimodalTextbox(FormComponent):
         """
         return None if payload is None else payload
 
-    def postprocess(self, value: dict[str, str | list] | None) -> dict[str, str | list] | None:
+    def postprocess(
+        self, value: dict[str, str | list] | None
+    ) -> dict[str, str | list] | None:
         """
         Parameters:
             value: Expects a {dict} returned from function and sets multimodal textbox value to it.
