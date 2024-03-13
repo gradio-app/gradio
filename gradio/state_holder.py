@@ -18,6 +18,10 @@ class StateHolder:
     def set_blocks(self, blocks: Blocks):
         self.blocks = blocks
         self.capacity = blocks.state_session_capacity
+    
+    def reset(self, blocks: Blocks):
+        self.session_data = OrderedDict()
+        self.set_blocks(blocks)
 
     def __getitem__(self, session_id: str) -> SessionState:
         if session_id not in self.session_data:

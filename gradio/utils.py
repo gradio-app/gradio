@@ -107,6 +107,7 @@ class BaseReloader(ABC):
         # not a new queue
         self.running_app.blocks._queue.block_fns = demo.fns
         demo._queue = self.running_app.blocks._queue
+        self.running_app.state_holder.reset(demo)
         self.running_app.blocks = demo
         demo._queue.reload()
 
