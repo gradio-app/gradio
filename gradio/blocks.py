@@ -2456,7 +2456,7 @@ Received outputs:
         config = self.config
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
-        for dependency in config["dependencies"]:
+        for (dependency, fn) in zip(config["dependencies"], self.fns):
             if (
                 not dependency["backend_fn"]
                 or not dependency["show_api"]
@@ -2468,9 +2468,9 @@ Received outputs:
             skip_endpoint = False
 
             inputs = dependency["inputs"]
-            for i in inputs:
+            for index, input_id in enumerate(inputs):
                 for component in config["components"]:
-                    if component["id"] == i:
+                    if component["id"] == input_id:
                         break
                 else:
                     skip_endpoint = True  # if component not found, skip endpoint
@@ -2478,13 +2478,19 @@ Received outputs:
                 type = component["type"]
                 if self.blocks[component["id"]].skip_api:
                     continue
-                label = component["props"].get("label", f"parameter_{i}")
+                label = component["props"].get("label", f"parameter_{input_id}")
                 comp = self.get_component(component["id"])
                 if not isinstance(comp, components.Component):
                     raise TypeError(f"{comp!r} is not a Component")
                 info = component["api_info"]
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
+
+                if dependency["backend_fn"]:
+                    parameter_name = "x_{index}"
+                else:
+                    parameter_name = None
+
                 dependency_info["parameters"].append(
                     {
                         "label": label,
