@@ -73,7 +73,7 @@ export function generate_dev_entry({ enable }: { enable: boolean }): Plugin {
 
 			const new_code = code.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
 				return `const ${$1.replace(
-					" as ",
+					/ as /g,
 					": "
 				)} = window.__gradio__svelte__internal;`;
 			});
@@ -255,17 +255,35 @@ function generate_component_imports(): string {
 	return imports;
 }
 
-function load_virtual_component_loader(): string {
+function load_virtual_component_loader(mode: string): string {
 	const loader_path = join(__dirname, "component_loader.js");
-	const component_map = `
-const component_map = {
-	${generate_component_imports()}
-};
-`;
+	let component_map = "";
+
+	if (mode === "test") {
+		component_map = `
+		const component_map = {
+			"test-component-one": {
+				component: () => import("@gradio-test/test-one"),
+				example: () => import("@gradio-test/test-one/example")
+			},
+			"dataset": {
+				component: () => import("@gradio-test/test-two"),
+				example: () => import("@gradio-test/test-two/example")
+			}
+		};
+		`;
+	} else {
+		component_map = `
+		const component_map = {
+			${generate_component_imports()}
+		};
+		`;
+	}
+
 	return `${component_map}\n\n${readFileSync(loader_path, "utf8")}`;
 }
 
-export function inject_component_loader(): Plugin {
+export function inject_component_loader({ mode }: { mode: string }): Plugin {
 	const v_id = "virtual:component-loader";
 	const resolved_v_id = "\0" + v_id;
 
@@ -276,8 +294,9 @@ export function inject_component_loader(): Plugin {
 			if (id === v_id) return resolved_v_id;
 		},
 		load(id: string) {
+			this.addWatchFile(join(__dirname, "component_loader.js"));
 			if (id === resolved_v_id) {
-				return load_virtual_component_loader();
+				return load_virtual_component_loader(mode);
 			}
 		}
 	};
@@ -307,6 +326,42 @@ export function resolve_svelte(enable: boolean): Plugin {
 					"svelte.js"
 				);
 				return { id: mod, external: "absolute" };
+			}
+		}
+	};
+}
+
+export function mock_modules(): Plugin {
+	const v_id_1 = "@gradio-test/test-one";
+	const v_id_2 = "@gradio-test/test-two";
+	const v_id_1_example = "@gradio-test/test-one/example";
+	const v_id_2_example = "@gradio-test/test-two/example";
+	const resolved_v_id = "\0" + v_id_1;
+	const resolved_v_id_2 = "\0" + v_id_2;
+	const resolved_v_id_1_example = "\0" + v_id_1_example;
+	const resolved_v_id_2_example = "\0" + v_id_2_example;
+	const fallback_example = "@gradio/fallback/example";
+	const resolved_fallback_example = "\0" + fallback_example;
+
+	return {
+		name: "mock-modules",
+		enforce: "pre",
+		resolveId(id: string) {
+			if (id === v_id_1) return resolved_v_id;
+			if (id === v_id_2) return resolved_v_id_2;
+			if (id === v_id_1_example) return resolved_v_id_1_example;
+			if (id === v_id_2_example) return resolved_v_id_2_example;
+			if (id === fallback_example) return resolved_fallback_example;
+		},
+		load(id: string) {
+			if (
+				id === resolved_v_id ||
+				id === resolved_v_id_2 ||
+				id === resolved_v_id_1_example ||
+				id === resolved_v_id_2_example ||
+				id === resolved_fallback_example
+			) {
+				return `export default {}`;
 			}
 		}
 	};
