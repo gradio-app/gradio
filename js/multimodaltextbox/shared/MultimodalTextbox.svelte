@@ -5,6 +5,7 @@
 		createEventDispatcher,
 		tick
 	} from "svelte";
+	import { text_area_resize, resize } from "../shared/utils";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
@@ -36,7 +37,6 @@
 	export let file_types: string[] | null = null;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
-	let copied = false;
 	let timer: NodeJS.Timeout;
 	let can_scroll: boolean;
 	let previous_scroll_top = 0;
@@ -58,7 +58,7 @@
 	}
 
 	$: if (value === null) value = { text: "", files: [] };
-	$: value, el && lines !== max_lines && resize({ target: el });
+	$: value, el && lines !== max_lines && resize(el, lines, max_lines);
 
 	const dispatch = createEventDispatcher<{
 		change: typeof value;
@@ -143,51 +143,6 @@
 		if (user_has_scrolled_to_bottom) {
 			user_has_scrolled_up = false;
 		}
-	}
-
-	async function resize(
-		event: Event | { target: HTMLTextAreaElement | HTMLInputElement }
-	): Promise<void> {
-		await tick();
-		if (lines === max_lines) return;
-
-		let max =
-			max_lines === undefined
-				? false
-				: max_lines === undefined // default
-				? 21 * 11
-				: 21 * (max_lines + 1);
-		let min = 21 * (lines + 1);
-
-		const target = event.target as HTMLTextAreaElement;
-		target.style.height = "1px";
-
-		let scroll_height;
-		if (max && target.scrollHeight > max) {
-			scroll_height = max;
-		} else if (target.scrollHeight < min) {
-			scroll_height = min;
-		} else {
-			scroll_height = target.scrollHeight;
-		}
-
-		target.style.height = `${scroll_height}px`;
-	}
-
-	function text_area_resize(
-		_el: HTMLTextAreaElement,
-		_value: string
-	): any | undefined {
-		if (lines === max_lines) return;
-		_el.style.overflowY = "scroll";
-		_el.addEventListener("input", resize);
-
-		if (!_value.trim()) return;
-		resize({ target: _el });
-
-		return {
-			destroy: () => _el.removeEventListener("input", resize)
-		};
 	}
 
 	async function handle_upload({
@@ -282,7 +237,11 @@
 			{/if}
 			<textarea
 				data-testid="textbox"
-				use:text_area_resize={value.text}
+				use:text_area_resize={{
+					text: value.text,
+					lines: lines,
+					max_lines: max_lines
+				}}
 				class="scroll-hide"
 				dir={rtl ? "rtl" : "ltr"}
 				bind:value={value.text}
@@ -326,6 +285,7 @@
 		margin-top: 0px;
 		margin-bottom: 0px;
 		margin-left: 30px;
+		padding-top: 12px;
 	}
 
 	textarea:disabled {

@@ -18,9 +18,9 @@ from gradio.components import (
     Chatbot,
     Component,
     Markdown,
+    MultimodalTextbox,
     State,
     Textbox,
-    MultimodalTextbox,
     get_component_instance,
 )
 from gradio.events import Dependency, on
@@ -206,7 +206,9 @@ class ChatInterface(Blocks):
                         textbox.container = False
                         textbox.show_label = False
                         textbox_ = textbox.render()
-                        if not isinstance(textbox_, Textbox) or not isinstance(textbox_, MultimodalTextbox) :
+                        if not isinstance(textbox_, Textbox) or not isinstance(
+                            textbox_, MultimodalTextbox
+                        ):
                             raise TypeError(
                                 f"Expected a gr.Textbox or gr.MultimodalTextbox component, but got {type(textbox_)}"
                             )
@@ -458,9 +460,14 @@ class ChatInterface(Blocks):
         else:
             return "", message
 
-    def _append_multimodal_history(self, message: dict[str, list], response: str | None, history: list[list[str | tuple | None]]):
+    def _append_multimodal_history(
+        self,
+        message: dict[str, list],
+        response: str | None,
+        history: list[list[str | tuple | None]],
+    ):
         for x in message["files"]:
-            history.append([(x["path"],), None])  
+            history.append([(x["path"],), None])
         if message["text"] is not None and isinstance(message["text"], str):
             history.append([message["text"], response])
 
@@ -481,9 +488,13 @@ class ChatInterface(Blocks):
         *args,
     ) -> tuple[list[list[str | tuple | None]], list[list[str | tuple | None]]]:
         if self.multimodal and isinstance(message, dict):
-            remove_input = len(message["files"]) + 1 if message["text"] is not None else len(message["files"])      
+            remove_input = (
+                len(message["files"]) + 1
+                if message["text"] is not None
+                else len(message["files"])
+            )
             history = history_with_input[:-remove_input]
-        else:          
+        else:
             history = history_with_input[:-1]
         inputs, _, _ = special_args(
             self.fn, inputs=[message, history, *args], request=request
@@ -504,12 +515,20 @@ class ChatInterface(Blocks):
 
     async def _stream_fn(
         self,
-        message: str,
-        history_with_input: list[list[str | None]],
+        message: str | dict[str, list],
+        history_with_input: list[list[str | tuple | None]],
         request: Request,
         *args,
     ) -> AsyncGenerator:
-        history = history_with_input[:-1]
+        if self.multimodal and isinstance(message, dict):
+            remove_input = (
+                len(message["files"]) + 1
+                if message["text"] is not None
+                else len(message["files"])
+            )
+            history = history_with_input[:-remove_input]
+        else:
+            history = history_with_input[:-1]
         inputs, _, _ = special_args(
             self.fn, inputs=[message, history, *args], request=request
         )
@@ -523,14 +542,26 @@ class ChatInterface(Blocks):
             generator = SyncToAsyncIterator(generator, self.limiter)
         try:
             first_response = await async_iteration(generator)
-            update = history + [[message, first_response]]
-            yield update, update
+            if self.multimodal and isinstance(message, dict):
+                self._append_multimodal_history(message, first_response, history)
+                yield history, history
+            else:
+                update = history + [[message, first_response]]
+                yield update, update
         except StopIteration:
-            update = history + [[message, None]]
-            yield update, update
+            if self.multimodal and isinstance(message, dict):
+                self._append_multimodal_history(message, None, history)
+                yield history, history
+            else:
+                update = history + [[message, None]]
+                yield update, update
         async for response in generator:
-            update = history + [[message, response]]
-            yield update, update
+            if self.multimodal and isinstance(message, dict):
+                self._append_multimodal_history(message, response, history)
+                yield history, history
+            else:
+                update = history + [[message, response]]
+                yield update, update
 
     async def _api_submit_fn(
         self, message: str, history: list[list[str | None]], request: Request, *args
@@ -606,4 +637,3 @@ class ChatInterface(Blocks):
         except IndexError:
             message = ""
         return history, message or "", history
-
