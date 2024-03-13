@@ -7,16 +7,12 @@ $ gradio app.py my_demo, to use variable names other than "demo"
 """
 from __future__ import annotations
 
-import atexit
 import inspect
-import json
 import os
 import re
-import shutil
 import site
 import subprocess
 import sys
-import tempfile
 import threading
 from pathlib import Path
 from typing import List, Optional
@@ -100,23 +96,10 @@ def _setup_config(
             message += f" '{wd}'"
 
     print(message + "\n")
-    reload_sources: dict[str, str] = {}
 
-    # copy the watched directories to temp directories
-    # so that we can reload the modules after parsing out
-    # the gr.no_reload contexts
-    for s in watching_dirs:
-        temp_dir = tempfile.mkdtemp()
-        for file in Path(s).rglob("*.py"):
-            src = file
-            dst = Path(temp_dir) / file.relative_to(s)
-            dst.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy(src, dst)
-        reload_sources[str(s)] = temp_dir
-
-    # guaranty access to the module of an app
+    # guarantee access to the module of an app
     sys.path.insert(0, os.getcwd())
-    return module_name, abs_original_path, reload_sources, demo_name
+    return module_name, abs_original_path, [str(s) for s in watching_dirs], demo_name
 
 
 def main(
@@ -130,19 +113,13 @@ def main(
         demo_path, demo_name, watch_dirs, encoding
     )
 
-    def delete_temp_dirs():
-        for temp_dir in watch_sources.values():
-            shutil.rmtree(temp_dir, ignore_errors=True)
-
-    atexit.register(delete_temp_dirs)
-
     # Pass the following data as environment variables
     # so that we can set up reload mode correctly in the networking.py module
     popen = subprocess.Popen(
         [sys.executable, "-u", path],
         env=dict(
             os.environ,
-            GRADIO_WATCH_DIRS=json.dumps(watch_sources),
+            GRADIO_WATCH_DIRS=",".join(watch_sources),
             GRADIO_WATCH_MODULE_NAME=module_name,
             GRADIO_WATCH_DEMO_NAME=demo_name,
             GRADIO_WATCH_DEMO_PATH=str(path),

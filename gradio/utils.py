@@ -16,7 +16,6 @@ import json.decoder
 import os
 import pkgutil
 import re
-import shutil
 import sys
 import tempfile
 import threading
@@ -117,7 +116,6 @@ class SourceFileReloader(BaseReloader):
         self,
         app: App,
         watch_dirs: list[str],
-        watch_sources: dict[str, str],
         watch_module_name: str,
         demo_file: str,
         stop_event: threading.Event,
@@ -131,7 +129,6 @@ class SourceFileReloader(BaseReloader):
         self.stop_event = stop_event
         self.change_event = change_event
         self.demo_name = demo_name
-        self.watch_sources = watch_sources
         self.demo_file = Path(demo_file)
 
     @property
@@ -218,8 +215,7 @@ def _remove_no_reload_codeblocks(file_path: str):
                 skip_indices.append((start_index, end_index))
 
     code_removed = _remove_sections(code, skip_indices)
-    with open(file_path, "w") as file:
-        file.write(code_removed)
+    return code_removed
 
 
 def _find_module(source_file: Path) -> ModuleType:
@@ -282,35 +278,21 @@ def watchfn(reloader: SourceFileReloader):
             print(f"Changes detected in: {changed}")
             try:
                 # How source file reloading works
-                # 1. Copy the changed source file to a temp directory
-                # 2. Remove the gr.no_reload code blocks from the temp file
-                # 3. Execute the changed source code in the original module's namespace
-                # 4. Do 2-3 for the main demo file even if it did not change.
+                # 1. Remove the gr.no_reload code blocks from the temp file
+                # 2. Execute the changed source code in the original module's namespace
+                # 4. Do 1-2 for the main demo file even if it did not change.
                 # This is because the main demo file may import the changed file and we need the
                 # changes to be reflected in the main demo file.
 
-                changed_dir = next(
-                    dir_ for dir_ in reload_dirs if is_in_or_equal(changed, dir_)
-                )
-                temp_dir = Path(reloader.watch_sources[str(changed_dir)])
-                changed_in_copy = temp_dir / changed.relative_to(changed_dir)
-
-                shutil.copy(changed, changed_in_copy)
-                _remove_no_reload_codeblocks(str(changed_in_copy))
-
+                changed_in_copy = _remove_no_reload_codeblocks(str(changed))
                 if changed != reloader.demo_file:
                     changed_module = _find_module(changed)
-                    exec(Path(changed_in_copy).read_text(), changed_module.__dict__)
+                    exec(changed_in_copy, changed_module.__dict__)
 
-                demo_dir = next(
-                    dir_
-                    for dir_ in reload_dirs
-                    if is_in_or_equal(reloader.demo_file, dir_)
+                changed_demo_file = _remove_no_reload_codeblocks(
+                    str(reloader.demo_file)
                 )
-
-                changed_demo_file = temp_dir / reloader.demo_file.relative_to(demo_dir)
-                _remove_no_reload_codeblocks(str(changed_demo_file))
-                exec(Path(changed_demo_file).read_text(), module.__dict__)
+                exec(changed_demo_file, module.__dict__)
             except Exception:
                 print(
                     f"Reloading {reloader.watch_module_name} failed with the following exception: "
