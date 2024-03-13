@@ -7,7 +7,7 @@ interface Value {
 }
 
 export async function resize(
-	target: HTMLTextAreaElement,
+	target: HTMLTextAreaElement | HTMLInputElement,
 	lines: number,
 	max_lines: number
 ): Promise<void> {

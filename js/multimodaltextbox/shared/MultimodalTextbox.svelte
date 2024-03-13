@@ -84,7 +84,7 @@
 		}
 	};
 
-	async function handle_change(): void {
+	async function handle_change(): Promise<void> {
 		dispatch("change", value);
 		if (!value_is_output) {
 			dispatch("input");

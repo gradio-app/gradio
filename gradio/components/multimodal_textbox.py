@@ -116,15 +116,24 @@ class MultimodalTextbox(FormComponent):
     ) -> dict[str, str | list] | None:
         """
         Parameters:
-            payload: the text entered in the textarea.
+            payload: the text and list of file(s) entered in the multimodal textbox.
         Returns:
-            Passes text value as a {str} into the function.
+            Passes text value and list of file(s) as a {dict} into the function.
         """
         return None if payload is None else payload
 
+    def postprocess(self, value: dict[str, str | list] | None) -> dict[str, str | list] | None:
+        """
+        Parameters:
+            value: Expects a {dict} returned from function and sets multimodal textbox value to it.
+        Returns:
+            The value to display in the multimodal textbox.
+        """
+        return None if value is None else value
+
     def api_info(self) -> dict[str, Any]:
         return {
-            "type": "object",
+            "type": "string",
             "properties": {
                 "text": {"type": "string"},
                 "files": {
