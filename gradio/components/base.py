@@ -293,7 +293,7 @@ class Component(ComponentBase, Block):
             f"The api_info method has not been implemented for {self.get_block_name()}"
         )
 
-    def flag(self, payload: Any, flag_dir: str | Path = "") -> str:
+    def flag(self, payload: Any, flag_dir: str | Path = "", simplify_files=False) -> str:
         """
         Write the component's value to a format that can be stored in a csv or jsonl format for flagging.
         """
@@ -301,11 +301,12 @@ class Component(ComponentBase, Block):
             payload = self.data_model.from_json(payload)
             Path(flag_dir).mkdir(exist_ok=True)
             payload = payload.copy_to_dir(flag_dir).model_dump()
-            payload = client_utils.traverse(
-                payload, lambda x: x["path"], client_utils.is_file_obj_with_meta
-            )
-            if not isinstance(payload, str):
-                payload = json.dumps(payload)
+            if simplify_files:
+                payload = client_utils.traverse(
+                    payload, lambda x: x["path"], client_utils.is_file_obj_with_meta
+                )
+        if not isinstance(payload, str):
+            payload = json.dumps(payload)
         return payload
 
     def read_from_flag(self, payload: Any):

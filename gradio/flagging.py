@@ -101,6 +101,7 @@ class SimpleCSVLogger(FlaggingCallback):
                 component.flag(
                     sample,
                     save_dir,
+                    simplify_files=True,
                 )
             )
 
