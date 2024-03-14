@@ -2118,7 +2118,9 @@ Received outputs:
             if not wasm_utils.IS_WASM:
                 # Cannot run async functions in background other than app's scope.
                 # Workaround by triggering the app endpoint
-                httpx.get(f"{self.local_url}startup-events", verify=ssl_verify)
+                httpx.get(
+                    f"{self.local_url}startup-events", verify=ssl_verify, timeout=None
+                )
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
                 # that `self._queue.start()` is called in another thread which is managed by the HTTP server, `uvicorn`
