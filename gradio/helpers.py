@@ -309,7 +309,7 @@ class Examples:
             )
         else:
             print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
-            cache_logger = CSVLogger()
+            cache_logger = CSVLogger(simplify_file_data=False)
 
             generated_values = []
             if inspect.isgeneratorfunction(self.fn):
