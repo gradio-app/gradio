@@ -105,7 +105,10 @@ class Interface(Blocks):
         thumbnail: str | None = None,
         theme: Theme | str | None = None,
         css: str | None = None,
-        allow_flagging: Literal["never"] | Literal["auto"] | Literal["manual"] | None = None,
+        allow_flagging: Literal["never"]
+        | Literal["auto"]
+        | Literal["manual"]
+        | None = None,
         flagging_options: list[str] | list[tuple[str, str]] | None = None,
         flagging_dir: str = "flagged",
         flagging_callback: FlaggingCallback | None = None,
@@ -784,7 +787,10 @@ class Interface(Blocks):
         )
 
     def attach_flagging_events(
-        self, flag_btns: list[Button] | None, _clear_btn: ClearButton, _submit_event: Dependency
+        self,
+        flag_btns: list[Button] | None,
+        _clear_btn: ClearButton,
+        _submit_event: Dependency,
     ):
         if not (
             flag_btns
