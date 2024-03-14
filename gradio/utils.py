@@ -39,8 +39,8 @@ from typing import (
 )
 
 import anyio
-import httpx
 import gradio_client.utils as client_utils
+import httpx
 from gradio_client.documentation import document
 from typing_extensions import ParamSpec
 
