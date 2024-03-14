@@ -8,7 +8,7 @@ export function kill_process(process: ChildProcess) {
 
 type LaunchAppBackgroundReturn = {
 	port: number;
-	process: ChildProcess;
+	_process: ChildProcess;
 };
 
 export const launch_app_background = async (
@@ -57,5 +57,5 @@ export const launch_app_background = async (
 	while (!port) {
 		await new Promise((r) => setTimeout(r, 1000));
 	}
-	return { port: port, process: _process };
+	return { port: port, _process: _process };
 };

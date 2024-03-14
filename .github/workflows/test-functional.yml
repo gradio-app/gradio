@@ -77,7 +77,7 @@ jobs:
       - name: run reload mode test
         run: |
           . venv/bin/activate
-          CUSTOM_TEST=1 pnpm --filter @gradio/app test:browser:reload
+          pnpm test:browser:reload
       - name: Run Lite E2E tests
         run: |
           . venv/bin/activate

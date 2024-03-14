@@ -17,6 +17,7 @@
 		"test:run": "pnpm --filter @gradio/client build && vitest run --config .config/vitest.config.ts --reporter=verbose",
 		"test:node": "TEST_MODE=node pnpm  vitest run --config .config/vitest.config.ts",
 		"test:browser": "pnpm --filter @gradio/app test:browser",
+		"test:browser:reload": "CUSTOM_TEST=1 pnpm --filter @gradio/app test:browser:reload",
 		"test:browser:full": "run-s build test:browser",
 		"test:browser:verbose": "pnpm test:browser",
 		"test:browser:dev": "pnpm --filter @gradio/app test:browser:dev",
