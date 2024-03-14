@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Several fixes to `gr.load`
+fix:Several fixes to `gr.load`
