@@ -1116,7 +1116,9 @@ class Endpoint:
 
     def reduce_singleton_output(self, *data) -> Any:
         if self.client._skip_components:
-            effective_output_components = [o for o in self.output_component_types if not o.skip]
+            effective_output_components = [
+                o for o in self.output_component_types if not o.skip
+            ]
         else:
             effective_output_components = self.output_component_types
         if len(effective_output_components) == 1:

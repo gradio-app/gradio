@@ -272,7 +272,9 @@ class Block:
 
         return temp_file_path
 
-    def serve_static_file(self, url_or_file_path: str | Path | dict | None) -> dict | None:
+    def serve_static_file(
+        self, url_or_file_path: str | Path | dict | None
+    ) -> dict | None:
         """If a file is a local file, moves it to the block's cache directory and returns
         a FileData-type dictionary corresponding to the file. If the file is a URL, returns a
         FileData-type dictionary corresponding to the URL. This ensures that the file is
