@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { onMount } from "svelte";
+	import { Image } from "@gradio/image/shared";
+	import type { FileData } from "@gradio/client";
 
-	export let value: string | null;
+	export let value: { text: string; files: FileData[] } = {
+		text: "",
+		files: []
+	};
 	export let type: "gallery" | "table";
 	export let selected = false;
 
@@ -29,7 +34,14 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	{value ? value : ""}
+	{value.text ? value.text : ""}
+	{#each value.files as file}
+		{#if file.mime_type && file.mime_type.includes("image")}
+			<Image src={file.path} alt="" />
+		{:else}
+			{file.path}
+		{/if}
+	{/each}
 </div>
 
 <style>

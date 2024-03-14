@@ -4,10 +4,14 @@ from __future__ import annotations
 
 from typing import Any, Callable, Literal
 
+from pathlib import Path
+import gradio_client.utils as client_utils
 from gradio_client.documentation import document
 
+from gradio import processing_utils
 from gradio.components.base import FormComponent
 from gradio.events import Events
+from gradio.data_classes import FileData
 
 
 @document()
@@ -52,7 +56,6 @@ class MultimodalTextbox(FormComponent):
         render: bool = True,
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
-        show_copy_button: bool = False,
         show_submit_button: bool = True,
     ):
         """
@@ -77,7 +80,6 @@ class MultimodalTextbox(FormComponent):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             text_align: How to align the text in the textbox, can be: "left", "right", or None (default). If None, the alignment is left if `rtl` is False, or right if `rtl` is True. Can only be changed if `type` is "text".
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
-            show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
             show_submit_button: If False, will not show the submit button. Only applies if `interactive` is True.
         """
@@ -89,7 +91,6 @@ class MultimodalTextbox(FormComponent):
         self.lines = lines
         self.max_lines = max(lines, max_lines)
         self.placeholder = placeholder
-        self.show_copy_button = show_copy_button
         self.show_submit_button = show_submit_button
         self.autofocus = autofocus
         self.autoscroll = autoscroll
@@ -122,16 +123,45 @@ class MultimodalTextbox(FormComponent):
         """
         return None if payload is None else payload
 
+    def _download_files(self, value: str | list[str]) -> str | list[str]:
+        downloaded_files = []
+        if isinstance(value, list):
+            for file in value:
+                if client_utils.is_http_url_like(file):
+                    downloaded_file = processing_utils.save_url_to_cache(
+                        file, self.GRADIO_CACHE
+                    )
+                    downloaded_files.append(downloaded_file)
+                else:
+                    downloaded_files.append(file)
+            return downloaded_files
+        if client_utils.is_http_url_like(value):
+            downloaded_file = processing_utils.save_url_to_cache(
+                value, self.GRADIO_CACHE
+            )
+            return downloaded_file
+        else:
+            return value
+    
     def postprocess(
         self, value: dict[str, str | list] | None
     ) -> dict[str, str | list] | None:
         """
         Parameters:
-            value: Expects a {dict} returned from function and sets multimodal textbox value to it.
+            value: Expects a {dict} with "text" and "files", both optional. The files array is a list of file paths or URLs.
         Returns:
-            The value to display in the multimodal textbox.
+            The value to display in the multimodal textbox. Files information as a list of FileData objects.
         """
-        return None if value is None else value
+        if value is None:
+            return None
+        value["files"] = self._download_files(value["files"])
+        value["files"] = [FileData(
+                    path=file,
+                    orig_name=Path(file).name,
+                    size=Path(file).stat().st_size,
+                )
+                for file in value["files"]]
+        return value
 
     def api_info(self) -> dict[str, Any]:
         return {

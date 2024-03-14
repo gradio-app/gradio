@@ -543,8 +543,10 @@ class ChatInterface(Blocks):
         try:
             first_response = await async_iteration(generator)
             if self.multimodal and isinstance(message, dict):
-                self._append_multimodal_history(message, first_response, history)
-                yield history, history
+                for x in message["files"]:
+                    history.append([(x["path"],), None])
+                update = history + [[message["text"], first_response]]
+                yield update, update
             else:
                 update = history + [[message, first_response]]
                 yield update, update
@@ -557,8 +559,8 @@ class ChatInterface(Blocks):
                 yield update, update
         async for response in generator:
             if self.multimodal and isinstance(message, dict):
-                self._append_multimodal_history(message, response, history)
-                yield history, history
+                update = history + [[message["text"], response]]
+                yield update, update
             else:
                 update = history + [[message, response]]
                 yield update, update

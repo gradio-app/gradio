@@ -10,8 +10,7 @@
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
 	import type { FileData } from "@gradio/client";
-	import { Check, Clear, File, Music, Video } from "@gradio/icons";
-	import { fade } from "svelte/transition";
+	import { Clear, File, Music, Video } from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 
 	export let value: { text: string; files: FileData[] } = {
@@ -37,13 +36,17 @@
 	export let file_types: string[] | null = null;
 
 	let el: HTMLTextAreaElement | HTMLInputElement;
-	let timer: NodeJS.Timeout;
 	let can_scroll: boolean;
 	let previous_scroll_top = 0;
 	let user_has_scrolled_up = false;
 	let dragging = false;
+	let oldValue = value.text;
 	$: dispatch("drag", dragging);
 
+	$: if (oldValue !== value.text) {
+		dispatch("change", value);
+		oldValue = value.text;
+	}
 	let accept_file_types: string | null;
 	if (file_types == null) {
 		accept_file_types = null;
@@ -115,7 +118,6 @@
 
 	async function handle_keypress(e: KeyboardEvent): Promise<void> {
 		await tick();
-		handle_change();
 		if (e.key === "Enter" && e.shiftKey && lines > 1) {
 			e.preventDefault();
 			dispatch("submit");
@@ -391,9 +393,9 @@
 		position: absolute;
 		right: -7px;
 		top: -7px;
-		background-color: var(--input-border-color-focus);
+		color: var(--button-secondary-text-color);
+		background: var(--button-secondary-background-fill);
 		border: none;
-		color: white;
 		text-align: center;
 		text-decoration: none;
 		font-size: 10px;

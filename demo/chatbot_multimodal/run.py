@@ -29,15 +29,16 @@ with gr.Blocks() as demo:
         [],
         elem_id="chatbot",
         bubble_full_width=False,
-        avatar_images=(None, (os.path.join(os.path.dirname(__file__), "avatar.png"))),
+        avatar_images=(None, (os.path.join(os.path.dirname(__file__), "files/avatar.png"))),
     )
 
-    chat_input = gr.MultimodalTextbox(label="Name", interactive=True, file_types=["image"], placeholder="Enter message or upload file...")
+    chat_input = gr.MultimodalTextbox(interactive=True, file_types=["image"], placeholder="Enter message or upload file...")
     chat_msg = chat_input.submit(add_message, [chatbot, chat_input], [chatbot, chat_input], queue=False).then(
         bot, chatbot, chatbot, api_name="bot_response"
     )
     chat_msg.then(lambda: gr.Textbox(interactive=True), None, [chat_input], queue=False)
     chatbot.like(print_like_dislike, None, None)
+    gr.Examples([[{"text": "Hello", "files": "files/avatar.png"}]], [chat_input])
 
 demo.queue()
 if __name__ == "__main__":
