@@ -98,11 +98,10 @@ class SimpleCSVLogger(FlaggingCallback):
             ) / client_utils.strip_invalid_filename_characters(component.label or "")
             save_dir.mkdir(exist_ok=True)
             csv_data.append(
-
-                    component.flag(
-                        sample,
-                        save_dir,
-                    )
+                component.flag(
+                    sample,
+                    save_dir,
+                )
             )
 
         with open(log_filepath, "a", newline="") as csvfile:
@@ -169,7 +168,7 @@ class CSVLogger(FlaggingCallback):
                 csv_data.append(str(sample))
             else:
                 csv_data.append(
-                        component.flag(sample, flag_dir=save_dir)
+                    component.flag(sample, flag_dir=save_dir)
                     if sample is not None
                     else ""
                 )

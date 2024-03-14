@@ -39,7 +39,6 @@ from typing import (
 )
 
 import anyio
-import gradio_client.utils as client_utils
 import httpx
 from gradio_client.documentation import document
 from typing_extensions import ParamSpec
@@ -1153,4 +1152,3 @@ def get_upload_folder() -> str:
     return os.environ.get("GRADIO_TEMP_DIR") or str(
         (Path(tempfile.gettempdir()) / "gradio").resolve()
     )
-
