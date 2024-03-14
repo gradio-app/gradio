@@ -47,9 +47,19 @@
 		update_value,
 		get_data,
 		loading_status,
-		scheduled_updates
-	} = create_components(components, layout, dependencies, root, app, {
-		fill_height
+		scheduled_updates,
+		create_layout
+	} = create_components();
+
+	$: create_layout({
+		components,
+		layout,
+		dependencies,
+		root,
+		app,
+		options: {
+			fill_height
+		}
 	});
 
 	$: {
@@ -413,7 +423,7 @@
 			} else if (event === "error" || event === "warning") {
 				messages = [new_message(data, -1, event), ...messages];
 			} else {
-				const deps = targets[id]?.[event];
+				const deps = $targets[id]?.[event];
 
 				deps?.forEach((dep_id) => {
 					wait_then_trigger_api_call(dep_id, id, data);
