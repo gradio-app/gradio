@@ -20,71 +20,108 @@ let pending_updates: UpdateTransaction[][] = [];
 
 /**
  * Create a store with the layout and a map of targets
- * @param components An array of component metadata
- * @param layout The layout tree
- * @param dependencies The events, triggers, inputs, and outputs
- * @param root The root url of the app
- * @param app The client instance
- * @param options Options for the layout
  * @returns A store with the layout and a map of targets
  */
-export function create_components(
-	components: ComponentMeta[],
-	layout: LayoutNode,
-	dependencies: Dependency[],
-	root: string,
-	app: client_return,
-	options: {
-		fill_height: boolean;
-	}
-): {
+export function create_components(): {
 	layout: Writable<ComponentMeta>;
-	targets: TargetMap;
+	targets: Writable<TargetMap>;
 	update_value: (updates: UpdateTransaction[]) => void;
 	get_data: (id: number) => any | Promise<any>;
 	loading_status: ReturnType<typeof create_loading_status_store>;
 	scheduled_updates: Writable<boolean>;
+	create_layout: (args: {
+		app: client_return;
+		components: ComponentMeta[];
+		layout: LayoutNode;
+		dependencies: Dependency[];
+		root: string;
+		options: {
+			fill_height: boolean;
+		};
+	}) => void;
 } {
-	const _component_map = new Map();
+	let _component_map: Map<number, ComponentMeta>;
 
-	const target_map: TargetMap = {};
-	const inputs = new Set<number>();
-	const outputs = new Set<number>();
+	let target_map: Writable<TargetMap> = writable({});
+	let _target_map: TargetMap = {};
+	let inputs: Set<number>;
+	let outputs: Set<number>;
+	let constructor_map: Map<ComponentMeta["type"], LoadingComponent>;
+	let instance_map: { [id: number]: ComponentMeta };
+	let loading_status: ReturnType<typeof create_loading_status_store> =
+		create_loading_status_store();
+	const layout_store: Writable<ComponentMeta> = writable();
+	let root: string;
+	let _components: ComponentMeta[];
+	let app: client_return;
 
-	const _rootNode: ComponentMeta = {
-		id: layout.id,
-		type: "column",
-		props: { interactive: false, scale: options.fill_height ? 1 : null },
-		has_modes: false,
-		instance: null as unknown as ComponentMeta["instance"],
-		component: null as unknown as ComponentMeta["component"],
-		component_class_id: ""
-	};
+	function create_layout({
+		app: _app,
+		components,
+		layout,
+		dependencies,
+		root,
+		options
+	}: {
+		app: client_return;
+		components: ComponentMeta[];
+		layout: LayoutNode;
+		dependencies: Dependency[];
+		root: string;
+		options: {
+			fill_height: boolean;
+		};
+	}): void {
+		app = _app;
+		_components = components;
+		inputs = new Set();
+		outputs = new Set();
+		pending_updates = [];
+		constructor_map = new Map();
+		_component_map = new Map();
 
-	components.push(_rootNode);
-	const loading_status = create_loading_status_store();
+		instance_map = {};
 
-	dependencies.forEach((dep, fn_index) => {
-		loading_status.register(fn_index, dep.inputs, dep.outputs);
-		dep.frontend_fn = process_frontend_fn(
-			dep.js,
-			!!dep.backend_fn,
-			dep.inputs.length,
-			dep.outputs.length
+		const _rootNode: ComponentMeta = {
+			id: layout.id,
+			type: "column",
+			props: { interactive: false, scale: options.fill_height ? 1 : null },
+			has_modes: false,
+			instance: null as unknown as ComponentMeta["instance"],
+			component: null as unknown as ComponentMeta["component"],
+			component_class_id: ""
+		};
+
+		components.push(_rootNode);
+		// loading_status = create_loading_status_store();
+		dependencies.forEach((dep, fn_index) => {
+			loading_status.register(fn_index, dep.inputs, dep.outputs);
+			dep.frontend_fn = process_frontend_fn(
+				dep.js,
+				!!dep.backend_fn,
+				dep.inputs.length,
+				dep.outputs.length
+			);
+			create_target_meta(dep.targets, fn_index, _target_map);
+			get_inputs_outputs(dep, inputs, outputs);
+		});
+
+		target_map.set(_target_map);
+
+		constructor_map = preload_all_components(components, root);
+
+		instance_map = components.reduce(
+			(acc, c) => {
+				acc[c.id] = c;
+				return acc;
+			},
+			{} as { [id: number]: ComponentMeta }
 		);
-		create_target_meta(dep.targets, fn_index, target_map);
-		get_inputs_outputs(dep, inputs, outputs);
-	});
 
-	const constructor_map = preload_all_components(components, root);
-
-	let instance_map: { [id: number]: ComponentMeta } = components.reduce(
-		(acc, c) => {
-			acc[c.id] = c;
-			return acc;
-		},
-		{} as { [id: number]: ComponentMeta }
-	);
+		walk_layout(layout).then(() => {
+			layout_store.set(_rootNode);
+		});
+	}
 
 	async function walk_layout(node: LayoutNode): Promise<ComponentMeta> {
 		const instance = instance_map[node.id];
@@ -98,13 +135,13 @@ export function create_components(
 				instance.type,
 				instance.component_class_id,
 				root,
-				components,
+				_components,
 				instance.props.components
 			).example_components;
 		}
 
-		if (target_map[instance.id]) {
-			instance.props.attached_events = Object.keys(target_map[instance.id]);
+		if (_target_map[instance.id]) {
+			instance.props.attached_events = Object.keys(_target_map[instance.id]);
 		}
 
 		instance.props.interactive = determine_interactivity(
@@ -132,11 +169,6 @@ export function create_components(
 		return instance;
 	}
 
-	const layout_store: Writable<ComponentMeta> = writable();
-	walk_layout(layout).then(() => {
-		layout_store.set(_rootNode);
-	});
-
 	let update_scheduled = false;
 	let update_scheduled_store = writable(false);
 
@@ -146,6 +178,7 @@ export function create_components(
 				for (let j = 0; j < pending_updates[i].length; j++) {
 					const update = pending_updates[i][j];
 					const instance = instance_map[update.id];
+					if (!instance) continue;
 					let new_value;
 					if (Array.isArray(update.value)) new_value = [...update.value];
 					else if (update.value === null) new_value = null;
@@ -175,6 +208,9 @@ export function create_components(
 
 	function get_data(id: number): any | Promise<any> {
 		const comp = _component_map.get(id);
+		if (!comp) {
+			return null;
+		}
 		if (comp.instance.get_value) {
 			return comp.instance.get_value() as Promise<any>;
 		}
@@ -187,7 +223,9 @@ export function create_components(
 		update_value,
 		get_data,
 		loading_status,
-		scheduled_updates: update_scheduled_store
+		scheduled_updates: update_scheduled_store,
+		create_layout: (...args) =>
+			requestAnimationFrame(() => create_layout(...args))
 	};
 }
 
