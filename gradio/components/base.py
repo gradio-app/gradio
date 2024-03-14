@@ -304,7 +304,7 @@ class Component(ComponentBase, Block):
             payload = client_utils.traverse(
                 payload, lambda x: x["path"], client_utils.is_file_obj_with_meta
             )
-            if isinstance(payload, dict):
+            if not isinstance(payload, str):
                 payload = json.dumps(payload)
         return payload
 

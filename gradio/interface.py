@@ -807,7 +807,7 @@ class Interface(Blocks):
             flag_method = FlagMethod(
                 self.flagging_callback, "", "", visual_feedback=False
             )
-            _submit_event.then(
+            _submit_event.success(
                 flag_method,
                 inputs=self.input_components + self.output_components,
                 outputs=None,
