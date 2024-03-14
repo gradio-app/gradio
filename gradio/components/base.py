@@ -294,7 +294,7 @@ class Component(ComponentBase, Block):
         )
 
     def flag(
-        self, payload: Any, flag_dir: str | Path = "", simplify_files=False
+        self, payload: Any, flag_dir: str | Path = ""
     ) -> str:
         """
         Write the component's value to a format that can be stored in a csv or jsonl format for flagging.
@@ -303,10 +303,6 @@ class Component(ComponentBase, Block):
             payload = self.data_model.from_json(payload)
             Path(flag_dir).mkdir(exist_ok=True)
             payload = payload.copy_to_dir(flag_dir).model_dump()
-            if simplify_files:
-                payload = client_utils.traverse(
-                    payload, lambda x: x["path"], client_utils.is_file_obj_with_meta
-                )
         if not isinstance(payload, str):
             payload = json.dumps(payload)
         return payload
