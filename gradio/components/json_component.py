@@ -94,13 +94,6 @@ class JSON(Component):
     def example_value(self) -> Any:
         return {"foo": "bar"}
 
-    def flag(
-        self,
-        payload: Any,
-        flag_dir: str | Path = "",  # noqa: ARG002
-    ) -> str:
-        return json.dumps(payload)
-
     def read_from_flag(self, payload: Any):
         return json.loads(payload)
 

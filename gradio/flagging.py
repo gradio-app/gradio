@@ -98,11 +98,10 @@ class SimpleCSVLogger(FlaggingCallback):
             ) / client_utils.strip_invalid_filename_characters(component.label or "")
             save_dir.mkdir(exist_ok=True)
             csv_data.append(
-                component.flag(
+                utils.simplify_file_data_in_str(component.flag(
                     sample,
                     save_dir,
-                    simplify_files=True,
-                )
+                ))
             )
 
         with open(log_filepath, "a", newline="") as csvfile:
@@ -169,7 +168,7 @@ class CSVLogger(FlaggingCallback):
                 csv_data.append(str(sample))
             else:
                 csv_data.append(
-                    component.flag(sample, flag_dir=save_dir, simplify_files=True)
+                    utils.simplify_file_data_in_str(component.flag(sample, flag_dir=save_dir))
                     if sample is not None
                     else ""
                 )
@@ -417,7 +416,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             label = component.label or ""
             save_dir = data_dir / client_utils.strip_invalid_filename_characters(label)
             save_dir.mkdir(exist_ok=True, parents=True)
-            deserialized = component.flag(sample, save_dir, simplify_files=True)
+            deserialized = utils.simplify_file_data_in_str(component.flag(component.flag(sample, save_dir)))
 
             # Add deserialized object to row
             features[label] = {"dtype": "string", "_type": "Value"}

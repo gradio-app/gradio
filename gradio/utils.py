@@ -40,6 +40,7 @@ from typing import (
 
 import anyio
 import httpx
+import gradio_client.utils as client_utils
 from gradio_client.documentation import document
 from typing_extensions import ParamSpec
 
@@ -1152,3 +1153,17 @@ def get_upload_folder() -> str:
     return os.environ.get("GRADIO_TEMP_DIR") or str(
         (Path(tempfile.gettempdir()) / "gradio").resolve()
     )
+
+
+def simplify_file_data_in_str(s):
+    """
+    If a FileData dictionary has been dumped as part of a string, this function will replace the dict with just the str filepath
+    """
+    try:
+        payload = json.loads(s)
+    except json.JSONDecodeError:
+        return s
+    payload = client_utils.traverse(
+        payload, lambda x: x["path"], client_utils.is_file_obj_with_meta
+    )
+    return json.dumps(payload)
