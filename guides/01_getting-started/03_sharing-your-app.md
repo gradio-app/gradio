@@ -274,7 +274,7 @@ Here is a short example:
 
 ```py
 import gradio as gr
-
+from huggingface_hub import whoami
 
 def hello(profile: gr.OAuthProfile | None) -> str:
     if profile is None:
@@ -293,6 +293,8 @@ with gr.Blocks() as demo:
     m2 = gr.Markdown()
     demo.load(hello, inputs=None, outputs=m1)
     demo.load(list_organizations, inputs=None, outputs=m2)
+
+demo.launch()
 ```
 
 When the user clicks on the login button, they get redirected in a new page to authorize your Space.
