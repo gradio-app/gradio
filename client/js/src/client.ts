@@ -1069,9 +1069,9 @@ export function api_factory(
 							pending_stream_messages[event_id] = [];
 						}
 						pending_stream_messages[event_id].push(_data);
-						if (_data.msg === "close_stream") {
-							close_stream();
-						}
+					}
+					if (_data.msg === "close_stream") {
+						close_stream();
 					}
 				};
 				event_stream.onerror = async function (event) {
