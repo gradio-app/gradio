@@ -363,7 +363,7 @@ class Interface(Blocks):
         # For allow_flagging: (1) first check for parameter,
         # (2) check for env variable, (3) default to True/"manual"
         if allow_flagging is None:
-            allow_flagging = os.getenv("GRADIO_ALLOW_FLAGGING", "manual")
+            allow_flagging = os.getenv("GRADIO_ALLOW_FLAGGING", "manual")  # type: ignore
         if allow_flagging is True:
             warnings.warn(
                 "The `allow_flagging` parameter in `Interface` now"
@@ -454,10 +454,7 @@ class Interface(Blocks):
                     component.label = f"output {i}"
 
         if self.allow_flagging != "never":
-            if (
-                self.interface_type == InterfaceTypes.UNIFIED
-                or self.allow_flagging == "auto"
-            ):
+            if self.interface_type == InterfaceTypes.UNIFIED:
                 self.flagging_callback.setup(self.input_components, self.flagging_dir)  # type: ignore
             elif self.interface_type == InterfaceTypes.INPUT_ONLY:
                 pass
