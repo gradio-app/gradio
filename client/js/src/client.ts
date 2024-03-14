@@ -858,9 +858,7 @@ export function api_factory(
 												});
 												if (
 													data &&
-													(protocol === "sse_v2" ||
-														protocol === "sse_v2.1" ||
-														protocol === "sse_v3")
+													["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)
 												) {
 													apply_diff_stream(event_id!, data);
 												}
@@ -909,7 +907,7 @@ export function api_factory(
 												fn_index,
 												time: new Date()
 											});
-											if (protocol === "sse_v2" || protocol === "sse_v2.1") {
+											if (["sse_v2", "sse_v2.1"].includes(protocol)) {
 												close_stream();
 											}
 										}
