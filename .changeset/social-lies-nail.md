@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Fix flagged files
+fix:Fix flagged files
