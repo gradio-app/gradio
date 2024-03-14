@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import ast
 import asyncio
-import contextlib
 import copy
 import dataclasses
 import functools
@@ -150,11 +149,7 @@ class SourceFileReloader(BaseReloader):
         self.alert_change()
 
 
-@document()
-@contextlib.contextmanager
-def no_reload():
-    """Context manager to prevent a code block from being reloaded in reload mode."""
-    yield
+NO_RELOAD = True
 
 
 def _remove_sections(string: str, sections: list[tuple[int, int]]) -> str:
@@ -187,33 +182,24 @@ def _remove_no_reload_codeblocks(file_path: str):
 
     tree = ast.parse(code)
 
-    def _is_gr_no_reload(expr: ast.expr) -> bool:
+    def _is_gr_no_reload(expr: ast.AST) -> bool:
         """Find with gr.no_reload context managers."""
         return (
-            isinstance(expr, ast.Call)
-            and isinstance(expr.func, ast.Attribute)
-            and isinstance(expr.func.value, ast.Name)
-            and expr.func.value.id == "gr"
-            and expr.func.attr == "no_reload"
-        )
-
-    def _is_no_reload(expr: ast.expr):
-        """Find with no_reload context managers."""
-        return (
-            isinstance(expr, ast.Call)
-            and isinstance(expr.func, ast.Name)
-            and expr.func.id == "no_reload"
+            isinstance(expr, ast.If)
+            and isinstance(expr.test, ast.Attribute)
+            and isinstance(expr.test.value, ast.Name)
+            and expr.test.value.id == "gr"
+            and expr.test.attr == "NO_RELOAD"
         )
 
     # Find the positions of the code blocks to load
     skip_indices = []
     for node in ast.walk(tree):
-        if isinstance(node, ast.With):
-            ctx_manager = node.items[0].context_expr
-            if _is_gr_no_reload(ctx_manager) or _is_no_reload(ctx_manager):
-                start_index = node.lineno - 1
-                end_index = node.body[-1].lineno
-                skip_indices.append((start_index, end_index))
+        if _is_gr_no_reload(node):
+            assert isinstance(node, ast.If)  # noqa: S101
+            start_index = node.lineno - 1
+            end_index = node.body[-1].lineno
+            skip_indices.append((start_index, end_index))
 
     code_removed = _remove_sections(code, skip_indices)
     return code_removed
