@@ -80,4 +80,5 @@ EventMessage = Union[
     ProcessGeneratingMessage,
     HeartbeatMessage,
     UnexpectedErrorMessage,
+    CloseStreamMessage,
 ]
