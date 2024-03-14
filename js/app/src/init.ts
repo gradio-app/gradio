@@ -178,6 +178,7 @@ export function create_components(): {
 				for (let j = 0; j < pending_updates[i].length; j++) {
 					const update = pending_updates[i][j];
 					const instance = instance_map[update.id];
+					if (!instance) continue;
 					let new_value;
 					if (Array.isArray(update.value)) new_value = [...update.value];
 					else if (update.value === null) new_value = null;
