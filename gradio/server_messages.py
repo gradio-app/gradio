@@ -61,6 +61,10 @@ class HeartbeatMessage(BaseModel):
     msg: Literal[ServerMessage.heartbeat] = ServerMessage.heartbeat
 
 
+class CloseStreamMessage(BaseModel):
+    msg: Literal[ServerMessage.close_stream] = ServerMessage.close_stream
+
+
 class UnexpectedErrorMessage(BaseModel):
     msg: Literal[ServerMessage.unexpected_error] = ServerMessage.unexpected_error
     message: str

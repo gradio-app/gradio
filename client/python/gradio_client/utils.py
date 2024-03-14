@@ -116,6 +116,7 @@ class ServerMessage(str, Enum):
     heartbeat = "heartbeat"
     server_stopped = "server_stopped"
     unexpected_error = "unexpected_error"
+    close_stream = "close_stream"
 
 
 class Status(Enum):

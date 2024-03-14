@@ -289,7 +289,6 @@ export function api_factory(
 			let pending_diff_streams: Record<string, any[][]> = {};
 			let event_stream: EventSource | null = null;
 			const event_callbacks: Record<string, () => Promise<void>> = {};
-			const unclosed_events: Set<string> = new Set();
 			let config: Config;
 			let api_map: Record<string, number> = {};
 
@@ -904,7 +903,6 @@ export function api_factory(
 												fn_index,
 												time: new Date()
 											});
-											close_stream();
 										}
 									};
 									if (event_id in pending_stream_messages) {
@@ -914,7 +912,6 @@ export function api_factory(
 										delete pending_stream_messages[event_id];
 									}
 									event_callbacks[event_id] = callback;
-									unclosed_events.add(event_id);
 									if (!stream_open) {
 										open_stream();
 									}
@@ -1048,12 +1045,6 @@ export function api_factory(
 							)
 						);
 					} else if (event_callbacks[event_id]) {
-						if (_data.msg === "process_completed") {
-							unclosed_events.delete(event_id);
-							if (unclosed_events.size === 0) {
-								close_stream();
-							}
-						}
 						let fn = event_callbacks[event_id];
 						window.setTimeout(fn, 0, _data); // need to do this to put the event on the end of the event loop, so the browser can refresh between callbacks and not freeze in case of quick generations. See https://github.com/gradio-app/gradio/pull/7055
 					} else {
@@ -1061,6 +1052,9 @@ export function api_factory(
 							pending_stream_messages[event_id] = [];
 						}
 						pending_stream_messages[event_id].push(_data);
+					}
+					if (_data.msg === "close_stream") {
+						close_stream();
 					}
 				};
 				event_stream.onerror = async function (event) {
