@@ -2494,6 +2494,7 @@ Received outputs:
                 dependency_info["parameters"].append(
                     {
                         "label": label,
+                        "parameter_name": parameter_name,
                         "type": info,
                         "python_type": {
                             "type": python_type,
