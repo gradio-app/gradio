@@ -14,7 +14,7 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
-from gradio_client.utils import is_file_obj
+import gradio_client.utils as client_utils
 
 from gradio import utils
 from gradio.blocks import Block, BlockContext
@@ -202,7 +202,7 @@ class Component(ComponentBase, Block):
             postprocess=True,
             keep_in_cache=True,
         )
-        if is_file_obj(self.value):
+        if client_utils.is_file_obj(self.value):
             self.keep_in_cache.add(self.value["path"])
 
         if callable(load_fn):
@@ -300,7 +300,9 @@ class Component(ComponentBase, Block):
         if self.data_model:
             payload = self.data_model.from_json(payload)
             Path(flag_dir).mkdir(exist_ok=True)
-            return payload.copy_to_dir(flag_dir).model_dump_json()
+            payload = payload.copy_to_dir(flag_dir).model_dump()
+        if not isinstance(payload, str):
+            payload = json.dumps(payload)
         return payload
 
     def read_from_flag(self, payload: Any):
