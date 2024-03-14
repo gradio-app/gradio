@@ -263,7 +263,7 @@ Note: Gradio's built-in authentication provides a straightforward and basic laye
 Gradio natively supports OAuth login via Hugging Face. In other words, you can easily add a _"Sign in with Hugging Face"_ button to your demo, which allows you to get a user's HF username as well as other information from their HF profile. Check out [this Space](https://huggingface.co/spaces/Wauplin/gradio-oauth-demo) for a live demo.
 
 To enable OAuth, you must set `hf_oauth: true` as a Space metadata in your README.md file. This will register your Space
-as an OAuth application on Hugging Face. Next, you can use `gr.LoginButton` and `gr.LogoutButton` to add login and logout buttons to
+as an OAuth application on Hugging Face. Next, you can use `gr.LoginButton` to add a login button to
 your Gradio app. Once a user is logged in with their HF account, you can retrieve their profile by adding a parameter of type
 `gr.OAuthProfile` to any Gradio function. The user profile will be automatically injected as a parameter value. If you want
 to perform actions on behalf of the user (e.g. list user's private repos, create repo, etc.), you can retrieve the user
@@ -274,7 +274,7 @@ Here is a short example:
 
 ```py
 import gradio as gr
-
+from huggingface_hub import whoami
 
 def hello(profile: gr.OAuthProfile | None) -> str:
     if profile is None:
@@ -289,11 +289,12 @@ def list_organizations(oauth_token: gr.OAuthToken | None) -> str:
 
 with gr.Blocks() as demo:
     gr.LoginButton()
-    gr.LogoutButton()
     m1 = gr.Markdown()
     m2 = gr.Markdown()
     demo.load(hello, inputs=None, outputs=m1)
     demo.load(list_organizations, inputs=None, outputs=m2)
+
+demo.launch()
 ```
 
 When the user clicks on the login button, they get redirected in a new page to authorize your Space.
