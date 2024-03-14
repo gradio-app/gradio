@@ -289,6 +289,7 @@ export function api_factory(
 			let pending_diff_streams: Record<string, any[][]> = {};
 			let event_stream: EventSource | null = null;
 			const event_callbacks: Record<string, () => Promise<void>> = {};
+			const unclosed_events: Set<string> = new Set();
 			let config: Config;
 			let api_map: Record<string, number> = {};
 
@@ -757,9 +758,11 @@ export function api_factory(
 						} else if (
 							protocol == "sse_v1" ||
 							protocol == "sse_v2" ||
-							protocol == "sse_v2.1"
+							protocol == "sse_v2.1" ||
+							protocol == "sse_v3"
 						) {
 							// latest API format. v2 introduces sending diffs for intermediate outputs in generative functions, which makes payloads lighter.
+							// v3 only closes the stream when the backend sends the close stream message.
 							fire_event({
 								type: "status",
 								stage: "pending",
@@ -854,7 +857,9 @@ export function api_factory(
 												});
 												if (
 													data &&
-													(protocol === "sse_v2" || protocol === "sse_v2.1")
+													(protocol === "sse_v2" ||
+														protocol === "sse_v2.1" ||
+														protocol === "sse_v3")
 												) {
 													apply_diff_stream(event_id!, data);
 												}
@@ -903,6 +908,9 @@ export function api_factory(
 												fn_index,
 												time: new Date()
 											});
+											if (protocol === "sse_v2" || protocol === "sse_v2.1") {
+												close_stream();
+											}
 										}
 									};
 									if (event_id in pending_stream_messages) {
@@ -912,6 +920,7 @@ export function api_factory(
 										delete pending_stream_messages[event_id];
 									}
 									event_callbacks[event_id] = callback;
+									unclosed_events.add(event_id);
 									if (!stream_open) {
 										open_stream();
 									}
@@ -1045,6 +1054,15 @@ export function api_factory(
 							)
 						);
 					} else if (event_callbacks[event_id]) {
+						if (
+							_data.msg === "process_completed" &&
+							["sse", "sse_v1", "sse_v2", "sse_v2.1"].includes(config.protocol)
+						) {
+							unclosed_events.delete(event_id);
+							if (unclosed_events.size === 0) {
+								close_stream();
+							}
+						}
 						let fn = event_callbacks[event_id];
 						window.setTimeout(fn, 0, _data); // need to do this to put the event on the end of the event loop, so the browser can refresh between callbacks and not freeze in case of quick generations. See https://github.com/gradio-app/gradio/pull/7055
 					} else {
@@ -1052,9 +1070,9 @@ export function api_factory(
 							pending_stream_messages[event_id] = [];
 						}
 						pending_stream_messages[event_id].push(_data);
-					}
-					if (_data.msg === "close_stream") {
-						close_stream();
+						if (_data.msg === "close_stream") {
+							close_stream();
+						}
 					}
 				};
 				event_stream.onerror = async function (event) {

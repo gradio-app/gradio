@@ -387,7 +387,7 @@ async def get_pred_from_sse_v0(
         return task.result()
 
 
-async def get_pred_from_sse_v1_v2(
+async def get_pred_from_sse_v1plus(
     helper: Communicator,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
@@ -399,7 +399,9 @@ async def get_pred_from_sse_v1_v2(
         [
             asyncio.create_task(check_for_cancel(helper, headers, cookies)),
             asyncio.create_task(
-                stream_sse_v1_v2(helper, pending_messages_per_event, event_id, protocol)
+                stream_sse_v1plus(
+                    helper, pending_messages_per_event, event_id, protocol
+                )
             ),
         ],
         return_when=asyncio.FIRST_COMPLETED,
@@ -509,11 +511,11 @@ async def stream_sse_v0(
         raise
 
 
-async def stream_sse_v1_v2(
+async def stream_sse_v1plus(
     helper: Communicator,
     pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
-    protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
+    protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
 ) -> dict[str, Any]:
     try:
         pending_messages = pending_messages_per_event[event_id]
