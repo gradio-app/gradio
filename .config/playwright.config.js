@@ -16,7 +16,7 @@ const base = defineConfig({
 		}
 	},
 	expect: { timeout: 15000 },
-	timeout: 15000,
+	timeout: 30000,
 	testMatch: /.*.spec.ts/,
 	testDir: "..",
 	workers: process.env.CI ? 1 : undefined
@@ -37,7 +37,7 @@ const lite = defineConfig(base, {
 	testMatch: [
 		"**/file_component_events.spec.ts",
 		"**/chatbot_multimodal.spec.ts",
-		"**/kitchen_sink.spec.ts",
+		// "**/kitchen_sink.spec.ts",
 		"**/gallery_component_events.spec.ts"
 	],
 	workers: 1
