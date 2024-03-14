@@ -127,8 +127,8 @@ class CSVLogger(FlaggingCallback):
     Guides: using-flagging
     """
 
-    def __init__(self, simplify_files: bool = True):
-        self.simplify_files = simplify_files
+    def __init__(self, simplify_file_data: bool = True):
+        self.simplify_file_data = simplify_file_data
 
     def setup(
         self,
@@ -172,7 +172,7 @@ class CSVLogger(FlaggingCallback):
                     if sample is not None
                     else ""
                 )
-                if self.simplify_files:
+                if self.simplify_file_data:
                     data = utils.simplify_file_data_in_str(data)
                 csv_data.append(data)
         csv_data.append(flag_option)
@@ -482,9 +482,8 @@ class FlagMethod:
 
     def __call__(self, request: gr.Request, *flag_data):
         try:
-            flag_data = list(flag_data)
             self.flagging_callback.flag(
-                flag_data, flag_option=self.value, username=request.username
+                list(flag_data), flag_option=self.value, username=request.username
             )
         except Exception as e:
             print(f"Error while flagging: {e}")
