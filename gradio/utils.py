@@ -1166,4 +1166,6 @@ def simplify_file_data_in_str(s):
     payload = client_utils.traverse(
         payload, lambda x: x["path"], client_utils.is_file_obj_with_meta
     )
+    if isinstance(payload, str):
+        return payload
     return json.dumps(payload)
