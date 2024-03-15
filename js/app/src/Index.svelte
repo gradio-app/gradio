@@ -205,8 +205,8 @@
 		if (force_light) {
 			new_theme_mode = "light";
 		} else {
-			let url = new URL(window.location.toString());
-			let url_color_mode: ThemeMode | null = url.searchParams.get(
+			const url = new URL(window.location.toString());
+			const url_color_mode: ThemeMode | null = url.searchParams.get(
 				"__theme"
 			) as ThemeMode | null;
 			new_theme_mode = theme_mode || url_color_mode || "system";
