@@ -163,10 +163,10 @@ class MultimodalTextbox(FormComponent):
             raise ValueError(
                 f"MultimodalTextbox expects a dictionary with optional keys 'text' and 'files'. Received {value.__class__.__name__}"
             )
-        if "files" in value:
+        if "files" in value and isinstance(value["files"], list):
             value["files"] = self._download_files(value["files"])
             value["files"] = [
-                FileData(
+                file if isinstance(file, FileData) else FileData(
                     path=file,
                     mime_type=client_utils.get_mimetype(file),
                     orig_name=Path(file).name,

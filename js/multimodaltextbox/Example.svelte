@@ -34,10 +34,10 @@
 	class:gallery={type === "gallery"}
 	class:selected
 >
-	{value.text ? value.text : ""}
+	<p>{value.text ? value.text : ""}</p>
 	{#each value.files as file}
 		{#if file.mime_type && file.mime_type.includes("image")}
-			<Image src={file.path} alt="" />
+			<Image src={file.url} alt="" />
 		{:else}
 			{file.path}
 		{/if}
@@ -47,6 +47,9 @@
 <style>
 	.gallery {
 		padding: var(--size-1) var(--size-2);
+		display: flex;
+		align-items: center;
+		gap: 20px;
 	}
 
 	div {
@@ -54,5 +57,14 @@
 		min-width: var(--local-text-width);
 
 		white-space: nowrap;
+	}
+	
+	:global(img) {
+		width: 100px;
+		height: 100px;
+	}
+
+	div > :global(p) {
+		font-size: var(--text-lg);
 	}
 </style>

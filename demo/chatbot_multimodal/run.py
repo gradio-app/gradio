@@ -38,7 +38,7 @@ with gr.Blocks() as demo:
     )
     chat_msg.then(lambda: gr.Textbox(interactive=True), None, [chat_input], queue=False)
     chatbot.like(print_like_dislike, None, None)
-    gr.Examples([[{"text": "Hello", "files": "files/avatar.png"}]], [chat_input])
+    gr.Examples([{"text": "Hello", "files": ["files/avatar.png", "files/lion.jpg"]}], [chat_input])
 
 demo.queue()
 if __name__ == "__main__":
