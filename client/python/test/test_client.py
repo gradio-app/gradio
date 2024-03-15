@@ -11,6 +11,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import gradio as gr
+import httpx
 import huggingface_hub
 import pytest
 import uvicorn
@@ -1170,6 +1171,27 @@ class TestEndpoints:
             ["file5", "file6"],
             "file7",
         ]
+
+    @pytest.mark.flaky
+    def test_download_private_file(self, gradio_temp_dir):
+        client = Client(
+            src="gradio/zip_files",
+        )
+        url_path = "https://gradio-tests-not-actually-private-spacev4-sse.hf.space/file=lion.jpg"
+        file = client.endpoints[0]._upload_file(url_path)  # type: ignore
+        assert file["path"].endswith(".jpg")
+
+    @pytest.mark.flaky
+    def test_download_tmp_copy_of_file_does_not_save_errors(
+        self, monkeypatch, gradio_temp_dir
+    ):
+        client = Client(
+            src="gradio/zip_files",
+        )
+        error_response = httpx.Response(status_code=404)
+        monkeypatch.setattr(httpx, "get", lambda *args, **kwargs: error_response)
+        with pytest.raises(httpx.HTTPStatusError):
+            client.endpoints[0]._download_file({"path": "https://example.com/foo"})  # type: ignore
 
 
 cpu = huggingface_hub.SpaceHardware.CPU_BASIC
