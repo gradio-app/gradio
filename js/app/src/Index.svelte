@@ -215,12 +215,12 @@
 		if (new_theme_mode === "dark" || new_theme_mode === "light") {
 			apply_theme(target, new_theme_mode);
 		} else {
-			new_theme_mode = use_system_theme(target);
+			new_theme_mode = sync_system_theme(target);
 		}
 		return new_theme_mode;
 	}
 
-	function use_system_theme(target: HTMLDivElement): "light" | "dark" {
+	function sync_system_theme(target: HTMLDivElement): "light" | "dark" {
 		const theme = update_scheme();
 		window
 			?.matchMedia("(prefers-color-scheme: dark)")
