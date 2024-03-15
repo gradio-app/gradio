@@ -236,12 +236,6 @@ class Component(ComponentBase, Block):
             load_fn = None
         return load_fn, initial_value
 
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self):
-        return f"{self.get_block_name()}"
-
     def attach_load_event(self, callable: Callable, every: float | None):
         """Add a load event that runs `callable`, optionally every `every` seconds."""
         self.load_event_to_attach = (callable, every)
