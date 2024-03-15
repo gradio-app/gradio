@@ -2492,7 +2492,7 @@ Received outputs:
                 else:
                     skip_endpoint = True  # if component not found, skip endpoint
                     break
-                type = component["props"].get("name")
+                type = component["props"]["name"]
                 if self.blocks[component["id"]].skip_api:
                     continue
                 label = component["props"].get("label", f"parameter_{i}")
@@ -2523,7 +2523,7 @@ Received outputs:
                 else:
                     skip_endpoint = True  # if component not found, skip endpoint
                     break
-                type = component["props"].get("name")
+                type = component["props"]["name"]
                 if self.blocks[component["id"]].skip_api:
                     continue
                 label = component["props"].get("label", f"value_{o}")
