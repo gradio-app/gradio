@@ -185,14 +185,25 @@ class Block:
 
     def get_block_name(self) -> str:
         """
-        Gets block's class name.
-
-        If it is template component it gets the parent's class name.
-
-        @return: class name
+        Gets block's class name. If it is template component it gets the parent's class name.
+        This is used to identify the Svelte file to use in the frontend. Override this method
+        if a component should use a different Svelte file than the default naming convention.
         """
         return (
-            self.__class__.__base__.__name__.lower()
+            self.__class__.__base__.__name__.lower()  # type: ignore
+            if hasattr(self, "is_template")
+            else self.__class__.__name__.lower()
+        )
+
+    def get_block_class(self) -> str:
+        """
+        Gets block's class name. If it is template component it gets the parent's class name.
+        Very similar to the get_block_name method, but this method is used to reconstruct a
+        Gradio app that is loaded from a Space using gr.load(). This should generally
+        NOT be overridden.
+        """
+        return (
+            self.__class__.__base__.__name__.lower()  # type: ignore
             if hasattr(self, "is_template")
             else self.__class__.__name__.lower()
         )
@@ -212,7 +223,7 @@ class Block:
             if to_add:
                 config = {**to_add, **config}
         config.pop("render", None)
-        config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_name()}
+        config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_class()}
         if (_selectable := getattr(self, "_selectable", None)) is not None:
             config["_selectable"] = _selectable
         return config
@@ -701,7 +712,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     break
             else:
                 raise ValueError(f"Cannot find block with id {id}")
-            cls = component_or_layout_class(block_config["type"])
+            cls = component_or_layout_class(block_config["props"]["name"])
 
             # If a Gradio app B is loaded into a Gradio app A, and B itself loads a
             # Gradio app C, then the proxy_urls of the components in A need to be the
@@ -2481,7 +2492,7 @@ Received outputs:
                 else:
                     skip_endpoint = True  # if component not found, skip endpoint
                     break
-                type = component["type"]
+                type = component["props"]["name"]
                 if self.blocks[component["id"]].skip_api:
                     continue
                 label = component["props"].get("label", f"parameter_{i}")
@@ -2512,7 +2523,7 @@ Received outputs:
                 else:
                     skip_endpoint = True  # if component not found, skip endpoint
                     break
-                type = component["type"]
+                type = component["props"]["name"]
                 if self.blocks[component["id"]].skip_api:
                     continue
                 label = component["props"].get("label", f"value_{o}")

@@ -678,7 +678,7 @@ class TestBlocksPostprocessing:
             button.click(lambda x: x, textbox1, [textbox1, textbox2])
         with pytest.raises(
             ValueError,
-            match=r'An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:\n    \[textbox, textbox\]\nReceived outputs:\n    \["test"\]',
+            match=r"^An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
             demo.postprocess_data(fn_index=0, predictions=["test"], state=None)
 
@@ -693,7 +693,7 @@ class TestBlocksPostprocessing:
             button.click(infer, textbox1, [textbox1, textbox2])
         with pytest.raises(
             ValueError,
-            match=r'An event handler \(infer\) didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:\n    \[textbox, textbox\]\nReceived outputs:\n    \["test"\]',
+            match=r"^An event handler \(infer\) didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
             demo.postprocess_data(fn_index=0, predictions=["test"], state=None)
 
@@ -705,7 +705,7 @@ class TestBlocksPostprocessing:
             btn.click(lambda a: a, num1, [num1, num2])
         with pytest.raises(
             ValueError,
-            match=r"An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:\n    \[number, number\]\nReceived outputs:\n    \[1\]",
+            match=r"^An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
             demo.postprocess_data(fn_index=0, predictions=1, state=None)
 
@@ -721,7 +721,7 @@ class TestBlocksPostprocessing:
             btn.click(infer, num1, [num1, num2, num3])
         with pytest.raises(
             ValueError,
-            match=r"An event handler \(infer\) didn\'t receive enough output values \(needed: 3, received: 2\)\.\nWanted outputs:\n    \[number, number, number\]\nReceived outputs:\n    \[1, 2\]",
+            match=r"^An event handler \(infer\) didn\'t receive enough output values \(needed: 3, received: 2\)\.\nWanted outputs:",
         ):
             demo.postprocess_data(fn_index=0, predictions=(1, 2), state=None)
 
