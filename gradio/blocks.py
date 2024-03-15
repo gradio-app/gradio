@@ -272,7 +272,9 @@ class Block:
 
         return temp_file_path
 
-    def serve_static_file(self, url_or_file_path: str | Path | None) -> dict | None:
+    def serve_static_file(
+        self, url_or_file_path: str | Path | dict | None
+    ) -> dict | None:
         """If a file is a local file, moves it to the block's cache directory and returns
         a FileData-type dictionary corresponding to the file. If the file is a URL, returns a
         FileData-type dictionary corresponding to the URL. This ensures that the file is
@@ -281,12 +283,14 @@ class Block:
         Examples:
         >>> block.serve_static_file("https://gradio.app/logo.png") -> {"path": "https://gradio.app/logo.png", "url": "https://gradio.app/logo.png"}
         >>> block.serve_static_file("logo.png") -> {"path": "logo.png", "url": "/file=logo.png"}
+        >>> block.serve_static_file({"path": "logo.png", "url": "/file=logo.png"}) -> {"path": "logo.png", "url": "/file=logo.png"}
         """
         if url_or_file_path is None:
             return None
+        if isinstance(url_or_file_path, dict):
+            return url_or_file_path
         if isinstance(url_or_file_path, Path):
             url_or_file_path = str(url_or_file_path)
-
         if client_utils.is_http_url_like(url_or_file_path):
             return FileData(path=url_or_file_path, url=url_or_file_path).model_dump()
         else:

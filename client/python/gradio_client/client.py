@@ -1115,7 +1115,13 @@ class Endpoint:
         return tuple(data)
 
     def reduce_singleton_output(self, *data) -> Any:
-        if len([oct for oct in self.output_component_types if not oct.skip]) == 1:
+        if self.client._skip_components:
+            effective_output_components = [
+                o for o in self.output_component_types if not o.skip
+            ]
+        else:
+            effective_output_components = self.output_component_types
+        if len(effective_output_components) == 1:
             return data[0]
         else:
             return data
