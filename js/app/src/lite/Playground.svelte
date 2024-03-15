@@ -33,7 +33,6 @@
 	export let error_display: SvelteComponent | null;
 
 	const dispatch = createEventDispatcher();
-	// $: dispatch("code", { code });
 
 	let dummy_elem: any = { classList: { contains: () => false } };
 	let dummy_gradio: any = { dispatch: (_) => {} };
@@ -42,18 +41,15 @@
 	export let loaded = false;
 	worker_proxy?.addEventListener("progress-update", (event) => {
 		loading_text = (event as CustomEvent).detail + "...";
-		if (loading_text === "Initialization completed...") {
-			loaded = true;
-		}
+	});
+	worker_proxy?.addEventListener("initialization-completed", (_) => {
+		loaded = true;
 	});
 
 	$: loading_text;
 	$: loaded;
 </script>
 
-<svelte:head>
-	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
-</svelte:head>
 
 <div class="p-4 w-full h-full">
 	<div
@@ -107,7 +103,7 @@
 					target={dummy_elem}
 					gradio={dummy_gradio}
 					lines={10}
-					interactive={false}
+					interactive={loaded}
 				/>
 			{/if}
 		</div>

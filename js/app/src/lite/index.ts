@@ -89,6 +89,7 @@ export function create(options: Options): GradioAppController {
 		showError((event as CustomEvent).detail);
 	});
 
+
 	// Internally, the execution of `runPythonCode()` or `runPythonFile()` is queued
 	// and its promise will be resolved after the Pyodide is loaded and the worker initialization is done
 	// (see the await in the `onmessage` callback in the webworker code)
