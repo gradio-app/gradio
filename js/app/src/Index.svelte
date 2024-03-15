@@ -199,11 +199,17 @@
 	}
 
 	function handle_darkmode(target: HTMLDivElement): "light" | "dark" {
-		let url = new URL(window.location.toString());
-		let url_color_mode: ThemeMode | null = url.searchParams.get(
-			"__theme"
-		) as ThemeMode | null;
-		active_theme_mode = theme_mode || url_color_mode || "system";
+		const force_light = window.__gradio_mode__ === "website";
+
+		if (force_light) {
+			active_theme_mode = "light";
+		} else {
+			let url = new URL(window.location.toString());
+			let url_color_mode: ThemeMode | null = url.searchParams.get(
+				"__theme"
+			) as ThemeMode | null;
+			active_theme_mode = theme_mode || url_color_mode || "system";
+		}
 
 		if (active_theme_mode === "dark" || active_theme_mode === "light") {
 			darkmode(target, active_theme_mode);
@@ -256,9 +262,7 @@
 		status = _status;
 	}
 	onMount(async () => {
-		if (window.__gradio_mode__ !== "website") {
-			active_theme_mode = handle_darkmode(wrapper);
-		}
+		active_theme_mode = handle_darkmode(wrapper);
 
 		//@ts-ignore
 		const gradio_dev_mode = window.__GRADIO_DEV__;
