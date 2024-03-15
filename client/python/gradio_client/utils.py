@@ -367,7 +367,6 @@ async def get_pred_from_sse_v0(
                     sse_data_url,
                     headers,
                     cookies,
-                    ssl_verify,
                 )
             ),
         ],

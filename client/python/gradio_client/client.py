@@ -747,7 +747,7 @@ class Client:
         resp = httpx.post(
             urllib.parse.urljoin(self.src, utils.LOGIN_URL),
             data={"username": auth[0], "password": auth[1]},
-            ssl=self.ssl_verify,
+            verify=self.ssl_verify,
         )
         if not resp.is_success:
             if resp.status_code == 401:
@@ -1200,7 +1200,7 @@ class Endpoint:
         return str(dest.resolve())
 
     async def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
-        async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None), verify=self.client.ssl_verify) as client:
             return await utils.get_pred_from_sse_v0(
                 client,
                 data,
