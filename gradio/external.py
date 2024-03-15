@@ -343,6 +343,11 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             label="Predictions", type="array", headers=["prediction"]
         )
         fn = external_utils.tabular_wrapper
+    # example model: microsoft/table-transformer-detection
+    elif p == "object-detection":
+        inputs = components.Image(type="filepath", label="Input Image")
+        outputs = components.AnnotatedImage(label="Annotations")
+        fn = external_utils.object_detection_wrapper(client)
     else:
         raise ValueError(f"Unsupported pipeline type: {p}")
 
