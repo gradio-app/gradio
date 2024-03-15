@@ -1144,7 +1144,7 @@ class Endpoint:
         else:
             return data
 
-    def _upload_file(self, f: str | dict):
+    def _upload_file(self, f: str | dict) -> dict[str, str]:
         if isinstance(f, str):
             warnings.warn(
                 f'The Client is treating: "{f}" as a file path. In future versions, this behavior will not happen automatically. '
@@ -1169,7 +1169,7 @@ class Endpoint:
             file_path = result[0]
         return {"path": file_path}
 
-    def _download_file(self, x: dict) -> str | None:
+    def _download_file(self, x: dict) -> str:
         url_path = self.root_url + "file=" + x["path"]
         if self.client.output_dir is not None:
             os.makedirs(self.client.output_dir, exist_ok=True)
