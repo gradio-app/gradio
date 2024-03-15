@@ -123,6 +123,8 @@
 			}
 		});
 		update_value(updates);
+
+		await tick();
 	}
 
 	let submit_map: Map<number, ReturnType<typeof app.submit>> = new Map();
