@@ -126,7 +126,7 @@ gr.ChatInterface(
 
 ## Add Multimodal Capability to your chatbot
 
-You may want to add multimodal capability to your chatbot. For example, you may wantusers to be able to easily upload images or files to your chatbot and ask questions about it. This is supported by the `gr.MultimodalTextbox()` component, which supports both text and file inputs. Here's an example of how to use it:
+You may want to add multimodal capability to your chatbot. For example, you may want users to be able to easily upload images or files to your chatbot and ask questions about it. You can make your chatbot "multimodal" by passing in a single parameter (`multimodal=True`) to the `gr.ChatInterface` class.
 
 ```python
 import gradio as gr
