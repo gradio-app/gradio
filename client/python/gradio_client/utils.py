@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import base64
 import copy
-import hashlib
 import json
 import mimetypes
 import os
@@ -353,10 +352,11 @@ async def get_pred_from_sse_v0(
     sse_data_url: str,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
+    ssl_verify: bool,
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
-            asyncio.create_task(check_for_cancel(helper, headers, cookies)),
+            asyncio.create_task(check_for_cancel(helper, headers, cookies, ssl_verify)),
             asyncio.create_task(
                 stream_sse_v0(
                     client,
@@ -393,10 +393,11 @@ async def get_pred_from_sse_v1_v2(
     pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
     protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
+    ssl_verify: bool,
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
-            asyncio.create_task(check_for_cancel(helper, headers, cookies)),
+            asyncio.create_task(check_for_cancel(helper, headers, cookies, ssl_verify)),
             asyncio.create_task(
                 stream_sse_v1_v2(helper, pending_messages_per_event, event_id, protocol)
             ),
@@ -421,7 +422,10 @@ async def get_pred_from_sse_v1_v2(
 
 
 async def check_for_cancel(
-    helper: Communicator, headers: dict[str, str], cookies: dict[str, str] | None
+    helper: Communicator,
+    headers: dict[str, str],
+    cookies: dict[str, str] | None,
+    ssl_verify: bool,
 ):
     while True:
         await asyncio.sleep(0.05)
@@ -429,7 +433,7 @@ async def check_for_cancel(
             if helper.should_cancel:
                 break
     if helper.event_id:
-        async with httpx.AsyncClient() as http:
+        async with httpx.AsyncClient(ssl_verify=ssl_verify) as http:
             await http.post(
                 helper.reset_url,
                 json={"event_id": helper.event_id},
@@ -623,49 +627,6 @@ def apply_diff(obj, diff):
 ########################
 # Data processing utils
 ########################
-
-
-def upload_file(
-    file_path: str,
-    upload_url: str,
-    headers: dict[str, str] | None = None,
-    cookies: dict[str, str] | None = None,
-):
-    with open(file_path, "rb") as f:
-        files = [("files", (Path(file_path).name, f))]
-        r = httpx.post(upload_url, headers=headers, cookies=cookies, files=files)
-    r.raise_for_status()
-    result = r.json()
-    return result[0]
-
-
-def download_file(
-    url_path: str,
-    save_dir: str,
-    headers: dict[str, str] | None = None,
-    cookies: dict[str, str] | None = None,
-) -> str:
-    if save_dir is not None:
-        os.makedirs(save_dir, exist_ok=True)
-
-    sha1 = hashlib.sha1()
-    temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
-    temp_dir.mkdir(exist_ok=True, parents=True)
-
-    with httpx.stream(
-        "GET", url_path, headers=headers, cookies=cookies, follow_redirects=True
-    ) as response:
-        response.raise_for_status()
-        with open(temp_dir / Path(url_path).name, "wb") as f:
-            for chunk in response.iter_bytes(chunk_size=128 * sha1.block_size):
-                sha1.update(chunk)
-                f.write(chunk)
-
-    directory = Path(save_dir) / sha1.hexdigest()
-    directory.mkdir(exist_ok=True, parents=True)
-    dest = directory / Path(url_path).name
-    shutil.move(temp_dir / Path(url_path).name, dest)
-    return str(dest.resolve())
 
 
 def create_tmp_copy_of_file(file_path: str, dir: str | None = None) -> str:
