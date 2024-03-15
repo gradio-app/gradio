@@ -198,7 +198,7 @@
 		}
 	}
 
-	function handle_darkmode(target: HTMLDivElement): "light" | "dark" {
+	function handle_theme_mode(target: HTMLDivElement): "light" | "dark" {
 		const force_light = window.__gradio_mode__ === "website";
 
 		if (force_light) {
@@ -212,7 +212,7 @@
 		}
 
 		if (active_theme_mode === "dark" || active_theme_mode === "light") {
-			darkmode(target, active_theme_mode);
+			apply_theme(target, active_theme_mode);
 		} else {
 			active_theme_mode = use_system_theme(target);
 		}
@@ -232,13 +232,13 @@
 				? "dark"
 				: "light";
 
-			darkmode(target, _theme);
+			apply_theme(target, _theme);
 			return _theme;
 		}
 		return theme;
 	}
 
-	function darkmode(target: HTMLDivElement, theme: "dark" | "light"): void {
+	function apply_theme(target: HTMLDivElement, theme: "dark" | "light"): void {
 		const dark_class_element = is_embed ? target.parentElement! : document.body;
 		const bg_element = is_embed ? target : target.parentElement!;
 		bg_element.style.background = "var(--body-background-fill)";
@@ -262,7 +262,7 @@
 		status = _status;
 	}
 	onMount(async () => {
-		active_theme_mode = handle_darkmode(wrapper);
+		active_theme_mode = handle_theme_mode(wrapper);
 
 		//@ts-ignore
 		const gradio_dev_mode = window.__GRADIO_DEV__;
