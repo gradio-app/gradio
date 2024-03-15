@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Literal
-
 from pathlib import Path
+from typing import Any, Callable, Dict, List, Literal
+
 import gradio_client.utils as client_utils
 from gradio_client.documentation import document
 
 from gradio import processing_utils
 from gradio.components.base import FormComponent
+from gradio.data_classes import FileData, GradioRootModel
 from gradio.events import Events
-from gradio.data_classes import FileData
+
+
+class MultimodalData(GradioRootModel):
+    root: Dict[str, str | List[FileData]]
 
 
 @document()
@@ -84,6 +88,8 @@ class MultimodalTextbox(FormComponent):
             show_submit_button: If False, will not show the submit button. Only applies if `interactive` is True.
         """
         self.file_types = file_types
+        if value is None:
+            value = {"text": "", "files": []}
         if file_types is not None and not isinstance(file_types, list):
             raise ValueError(
                 f"Parameter file_types must be a list. Received {file_types.__class__.__name__}"
@@ -94,6 +100,7 @@ class MultimodalTextbox(FormComponent):
         self.show_submit_button = show_submit_button
         self.autofocus = autofocus
         self.autoscroll = autoscroll
+
         super().__init__(
             label=label,
             info=info,
@@ -142,10 +149,8 @@ class MultimodalTextbox(FormComponent):
             return downloaded_file
         else:
             return value
-    
-    def postprocess(
-        self, value: dict[str, str | list] | None
-    ) -> dict[str, str | list] | None:
+
+    def postprocess(self, value: dict[str, str | list] | None) -> MultimodalData:
         """
         Parameters:
             value: Expects a {dict} with "text" and "files", both optional. The files array is a list of file paths or URLs.
@@ -153,15 +158,25 @@ class MultimodalTextbox(FormComponent):
             The value to display in the multimodal textbox. Files information as a list of FileData objects.
         """
         if value is None:
-            return None
-        value["files"] = self._download_files(value["files"])
-        value["files"] = [FileData(
+            return MultimodalData(root={"text": "", "files": []})
+        if not isinstance(value, dict):
+            raise ValueError(
+                f"MultimodalTextbox expects a dictionary with optional keys 'text' and 'files'. Received {value.__class__.__name__}"
+            )
+        if "files" in value:
+            value["files"] = self._download_files(value["files"])
+            value["files"] = [
+                FileData(
                     path=file,
+                    mime_type=client_utils.get_mimetype(file),
                     orig_name=Path(file).name,
                     size=Path(file).stat().st_size,
                 )
-                for file in value["files"]]
-        return value
+                for file in value["files"]
+            ]
+        return MultimodalData(
+            root={"text": value.get("text", ""), "files": value.get("files", [])}
+        )
 
     def api_info(self) -> dict[str, Any]:
         return {
