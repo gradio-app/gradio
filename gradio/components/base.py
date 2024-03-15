@@ -240,7 +240,7 @@ class Component(ComponentBase, Block):
         return self.__repr__()
 
     def __repr__(self):
-        return f"{self.get_block_name()}"
+        return f"<{self.__class__.__name__} object> with config: {self.get_config()}"
 
     def attach_load_event(self, callable: Callable, every: float | None):
         """Add a load event that runs `callable`, optionally every `every` seconds."""
