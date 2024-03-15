@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 import concurrent.futures
+import hashlib
 import json
 import os
 import re
 import secrets
+import shutil
 import tempfile
 import threading
 import time
@@ -81,6 +83,7 @@ class Client:
         upload_files: bool = True,  # TODO: remove and hardcode to False in 1.0
         download_files: bool = True,  # TODO: consider setting to False in 1.0
         _skip_components: bool = True,  # internal parameter to skip values certain components (e.g. State) that do not need to be displayed to users.
+        ssl_verify: bool = True,
     ):
         """
         Parameters:
@@ -93,6 +96,7 @@ class Client:
             headers: Additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. These headers will override the default headers if they have the same keys.
             upload_files: Whether the client should treat input string filepath as files and upload them to the remote server. If False, the client will treat input string filepaths as strings always and not modify them, and files should be passed in explicitly using `gradio_client.file("path/to/file/or/url")` instead. This parameter will be deleted and False will become the default in a future version.
             download_files: Whether the client should download output files from the remote API and return them as string filepaths on the local machine. If False, the client will return a FileData dataclass object with the filepath on the remote machine instead.
+            ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
         """
         self.verbose = verbose
         self.hf_token = hf_token
@@ -111,6 +115,7 @@ class Client:
         )
         if headers:
             self.headers.update(headers)
+        self.ssl_verify = ssl_verify
         self.space_id = None
         self.cookies: dict[str, str] = {}
         self.output_dir = (
@@ -187,7 +192,9 @@ class Client:
 
     async def stream_messages(self) -> None:
         try:
-            async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:
+            async with httpx.AsyncClient(
+                timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify
+            ) as client:
                 async with client.stream(
                     "GET",
                     self.sse_url,
@@ -227,7 +234,7 @@ class Client:
             raise e
 
     async def send_data(self, data, hash_data):
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(verify=self.ssl_verify) as client:
             req = await client.post(
                 self.sse_data_url,
                 json={**data, **hash_data},
@@ -484,7 +491,12 @@ class Client:
         else:
             api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
         if self.app_version > version.Version("3.36.1"):
-            r = httpx.get(api_info_url, headers=self.headers, cookies=self.cookies)
+            r = httpx.get(
+                api_info_url,
+                headers=self.headers,
+                cookies=self.cookies,
+                verify=self.ssl_verify,
+            )
             if r.is_success:
                 info = r.json()
             else:
@@ -752,6 +764,7 @@ class Client:
             urllib.parse.urljoin(self.src, utils.CONFIG_URL),
             headers=self.headers,
             cookies=self.cookies,
+            verify=self.ssl_verify,
         )
         if r.is_success:
             return r.json()
@@ -760,7 +773,12 @@ class Client:
                 f"Could not load {self.src} as credentials were not provided. Please login."
             )
         else:  # to support older versions of Gradio
-            r = httpx.get(self.src, headers=self.headers, cookies=self.cookies)
+            r = httpx.get(
+                self.src,
+                headers=self.headers,
+                cookies=self.cookies,
+                verify=self.ssl_verify,
+            )
             if not r.is_success:
                 raise ValueError(f"Could not fetch config for {self.src}")
             # some basic regex to extract the config
@@ -1137,21 +1155,48 @@ class Endpoint:
         else:
             file_path = f["path"]
         if not utils.is_http_url_like(file_path):
-            file_path = utils.upload_file(
-                file_path=file_path,
-                upload_url=self.client.upload_url,
-                headers=self.client.headers,
-                cookies=self.client.cookies,
-            )
+            with open(file_path, "rb") as f:
+                files = [("files", (Path(file_path).name, f))]
+                r = httpx.post(
+                    self.client.upload_url,
+                    headers=self.client.headers,
+                    cookies=self.client.cookies,
+                    verify=self.client.ssl_verify,
+                    files=files,
+                )
+            r.raise_for_status()
+            result = r.json()
+            file_path = result[0]
         return {"path": file_path}
 
     def _download_file(self, x: dict) -> str | None:
-        return utils.download_file(
-            self.root_url + "file=" + x["path"],
-            save_dir=self.client.output_dir,
+        url_path = self.root_url + "file=" + x["path"]
+        if self.client.output_dir is not None:
+            os.makedirs(self.client.output_dir, exist_ok=True)
+
+        sha1 = hashlib.sha1()
+        temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
+        temp_dir.mkdir(exist_ok=True, parents=True)
+
+        with httpx.stream(
+            "GET",
+            url_path,
             headers=self.client.headers,
             cookies=self.client.cookies,
-        )
+            verify=self.client.ssl_verify,
+            follow_redirects=True,
+        ) as response:
+            response.raise_for_status()
+            with open(temp_dir / Path(url_path).name, "wb") as f:
+                for chunk in response.iter_bytes(chunk_size=128 * sha1.block_size):
+                    sha1.update(chunk)
+                    f.write(chunk)
+
+        directory = Path(self.client.output_dir) / sha1.hexdigest()
+        directory.mkdir(exist_ok=True, parents=True)
+        dest = directory / Path(url_path).name
+        shutil.move(temp_dir / Path(url_path).name, dest)
+        return str(dest.resolve())
 
     async def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
         async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None)) as client:

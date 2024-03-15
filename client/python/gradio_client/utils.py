@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import base64
 import copy
-import hashlib
 import json
 import mimetypes
 import os
@@ -623,49 +622,6 @@ def apply_diff(obj, diff):
 ########################
 # Data processing utils
 ########################
-
-
-def upload_file(
-    file_path: str,
-    upload_url: str,
-    headers: dict[str, str] | None = None,
-    cookies: dict[str, str] | None = None,
-):
-    with open(file_path, "rb") as f:
-        files = [("files", (Path(file_path).name, f))]
-        r = httpx.post(upload_url, headers=headers, cookies=cookies, files=files)
-    r.raise_for_status()
-    result = r.json()
-    return result[0]
-
-
-def download_file(
-    url_path: str,
-    save_dir: str,
-    headers: dict[str, str] | None = None,
-    cookies: dict[str, str] | None = None,
-) -> str:
-    if save_dir is not None:
-        os.makedirs(save_dir, exist_ok=True)
-
-    sha1 = hashlib.sha1()
-    temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
-    temp_dir.mkdir(exist_ok=True, parents=True)
-
-    with httpx.stream(
-        "GET", url_path, headers=headers, cookies=cookies, follow_redirects=True
-    ) as response:
-        response.raise_for_status()
-        with open(temp_dir / Path(url_path).name, "wb") as f:
-            for chunk in response.iter_bytes(chunk_size=128 * sha1.block_size):
-                sha1.update(chunk)
-                f.write(chunk)
-
-    directory = Path(save_dir) / sha1.hexdigest()
-    directory.mkdir(exist_ok=True, parents=True)
-    dest = directory / Path(url_path).name
-    shutil.move(temp_dir / Path(url_path).name, dest)
-    return str(dest.resolve())
 
 
 def create_tmp_copy_of_file(file_path: str, dir: str | None = None) -> str:
