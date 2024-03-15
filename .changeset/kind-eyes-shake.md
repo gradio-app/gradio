@@ -1,6 +1,6 @@
 ---
-"gradio": minor
-"gradio_client": minor
+"gradio": patch
+"gradio_client": patch
 ---
 
-feat:Add support for python client connecting to gradio apps running with self-signed SSL certificates
+fix:Add support for python client connecting to gradio apps running with self-signed SSL certificates
