@@ -3,4 +3,4 @@
 "@gradio/app": patch
 ---
 
-Fix race condition between state updates and loading_status updates.
+fix: Fix race condition between state updates and loading_status updates.
