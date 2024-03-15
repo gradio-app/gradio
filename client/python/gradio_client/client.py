@@ -1200,7 +1200,9 @@ class Endpoint:
         return str(dest.resolve())
 
     async def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
-        async with httpx.AsyncClient(timeout=httpx.Timeout(timeout=None), verify=self.client.ssl_verify) as client:
+        async with httpx.AsyncClient(
+            timeout=httpx.Timeout(timeout=None), verify=self.client.ssl_verify
+        ) as client:
             return await utils.get_pred_from_sse_v0(
                 client,
                 data,
