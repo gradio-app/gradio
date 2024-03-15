@@ -25,7 +25,7 @@ from gradio.components import (
     get_component_instance,
 )
 from gradio.data_classes import InterfaceTypes
-from gradio.events import Events, on
+from gradio.events import Dependency, Events, on
 from gradio.exceptions import RenderError
 from gradio.flagging import CSVLogger, FlaggingCallback, FlagMethod
 from gradio.layouts import Accordion, Column, Row, Tab, Tabs
@@ -105,7 +105,10 @@ class Interface(Blocks):
         thumbnail: str | None = None,
         theme: Theme | str | None = None,
         css: str | None = None,
-        allow_flagging: str | None = None,
+        allow_flagging: Literal["never"]
+        | Literal["auto"]
+        | Literal["manual"]
+        | None = None,
         flagging_options: list[str] | list[tuple[str, str]] | None = None,
         flagging_dir: str = "flagged",
         flagging_callback: FlaggingCallback | None = None,
@@ -142,7 +145,7 @@ class Interface(Blocks):
             thumbnail: String path or url to image to use as display image when the web demo is shared on social media.
             theme: A Theme object or a string representing a theme. If a string, will look for a built-in theme with that name (e.g. "soft" or "default"), or will attempt to load a theme from the Hugging Face Hub (e.g. "gradio/monochrome"). If None, will use the Default theme.
             css: Custom css as a string or path to a css file. This css will be included in the demo webpage.
-            allow_flagging: One of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged (outputs are not flagged). If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
+            allow_flagging: One of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every input the user submits will be automatically flagged, along with the generated output. If "manual", both the input and outputs are flagged when the user clicks flag button. This parameter can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
             flagging_options: If provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual". Can either be a list of tuples of the form (label, value), where label is the string that will be displayed on the button and value is the string that will be stored in the flagging CSV; or it can be a list of strings ["X", "Y"], in which case the values will be the list of strings and the labels will ["Flag as X", "Flag as Y"], etc.
             flagging_dir: What to name the directory where flagged data is stored.
             flagging_callback: None or an instance of a subclass of FlaggingCallback which will be called when a sample is flagged. If set to None, an instance of gradio.flagging.CSVLogger will be created and logs will be saved to a local CSV file in flagging_dir. Default to None.
@@ -360,7 +363,7 @@ class Interface(Blocks):
         # For allow_flagging: (1) first check for parameter,
         # (2) check for env variable, (3) default to True/"manual"
         if allow_flagging is None:
-            allow_flagging = os.getenv("GRADIO_ALLOW_FLAGGING", "manual")
+            allow_flagging = os.getenv("GRADIO_ALLOW_FLAGGING", "manual")  # type: ignore
         if allow_flagging is True:
             warnings.warn(
                 "The `allow_flagging` parameter in `Interface` now"
@@ -451,10 +454,7 @@ class Interface(Blocks):
                     component.label = f"output {i}"
 
         if self.allow_flagging != "never":
-            if (
-                self.interface_type == InterfaceTypes.UNIFIED
-                or self.allow_flagging == "auto"
-            ):
+            if self.interface_type == InterfaceTypes.UNIFIED:
                 self.flagging_callback.setup(self.input_components, self.flagging_dir)  # type: ignore
             elif self.interface_type == InterfaceTypes.INPUT_ONLY:
                 pass
@@ -509,12 +509,12 @@ class Interface(Blocks):
             if _clear_btn is None:
                 raise RenderError("Clear button not rendered")
 
-            self.attach_submit_events(_submit_btn, _stop_btn)
+            _submit_event = self.attach_submit_events(_submit_btn, _stop_btn)
             self.attach_clear_events(_clear_btn, input_component_column)
             if duplicate_btn is not None:
                 duplicate_btn.activate()
 
-            self.attach_flagging_events(flag_btns, _clear_btn)
+            self.attach_flagging_events(flag_btns, _clear_btn, _submit_event)
             self.render_examples()
             self.render_article()
 
@@ -648,7 +648,7 @@ class Interface(Blocks):
 
     def attach_submit_events(
         self, _submit_btn: Button | None, _stop_btn: Button | None
-    ):
+    ) -> Dependency:
         if self.live:
             if self.interface_type == InterfaceTypes.OUTPUT_ONLY:
                 if _submit_btn is None:
@@ -656,7 +656,7 @@ class Interface(Blocks):
                 super().load(self.fn, None, self.output_components)
                 # For output-only interfaces, the user probably still want a "generate"
                 # button even if the Interface is live
-                _submit_btn.click(
+                return _submit_btn.click(
                     self.fn,
                     None,
                     self.output_components,
@@ -675,7 +675,7 @@ class Interface(Blocks):
                         streaming_event = True
                     elif component.has_event("change"):
                         events.append(component.change)  # type: ignore
-                on(
+                return on(
                     events,
                     self.fn,
                     self.input_components,
@@ -726,7 +726,7 @@ class Interface(Blocks):
                     concurrency_limit=self.concurrency_limit,
                 )
 
-                predict_event.then(
+                final_event = predict_event.then(
                     cleanup,
                     inputs=None,
                     outputs=extra_output,  # type: ignore
@@ -742,8 +742,9 @@ class Interface(Blocks):
                     queue=False,
                     show_api=False,
                 )
+                return final_event
             else:
-                on(
+                return on(
                     triggers,
                     fn,
                     self.input_components,
@@ -783,7 +784,10 @@ class Interface(Blocks):
         )
 
     def attach_flagging_events(
-        self, flag_btns: list[Button] | None, _clear_btn: ClearButton
+        self,
+        flag_btns: list[Button] | None,
+        _clear_btn: ClearButton,
+        _submit_event: Dependency,
     ):
         if not (
             flag_btns
@@ -800,9 +804,9 @@ class Interface(Blocks):
             flag_method = FlagMethod(
                 self.flagging_callback, "", "", visual_feedback=False
             )
-            flag_btns[0].click(  # flag_btns[0] is just the "Submit" button
+            _submit_event.success(
                 flag_method,
-                inputs=self.input_components,
+                inputs=self.input_components + self.output_components,
                 outputs=None,
                 preprocess=False,
                 queue=False,
