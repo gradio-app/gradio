@@ -144,7 +144,7 @@ demo = gr.ChatInterface(fn=echo, examples=["hello", "hola", "merhaba"], title="E
 demo.launch()
 ```
 
-The `MultimodalTextbox` returns a dictionary of the form `{"text": "user input", "file": FileData}`. The FileData object contains the file name, file type, and file data. You can access the file path using the `file.path` attribute of the FileData object.
+When `multimodal=True`, the first parameter of your function should receives a dictionary consisting of the submitted text and uploaded files that looks like this: `{"text": "user input", "file": ["file_path1", "file_path2", ...]}`.
 
 ## Additional Inputs
 
