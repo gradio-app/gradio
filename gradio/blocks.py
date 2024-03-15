@@ -272,7 +272,9 @@ class Block:
 
         return temp_file_path
 
-    def serve_static_file(self, url_or_file_path: str | Path | None) -> dict | None:
+    def serve_static_file(
+        self, url_or_file_path: str | Path | dict | None
+    ) -> dict | None:
         """If a file is a local file, moves it to the block's cache directory and returns
         a FileData-type dictionary corresponding to the file. If the file is a URL, returns a
         FileData-type dictionary corresponding to the URL. This ensures that the file is
@@ -281,12 +283,14 @@ class Block:
         Examples:
         >>> block.serve_static_file("https://gradio.app/logo.png") -> {"path": "https://gradio.app/logo.png", "url": "https://gradio.app/logo.png"}
         >>> block.serve_static_file("logo.png") -> {"path": "logo.png", "url": "/file=logo.png"}
+        >>> block.serve_static_file({"path": "logo.png", "url": "/file=logo.png"}) -> {"path": "logo.png", "url": "/file=logo.png"}
         """
         if url_or_file_path is None:
             return None
+        if isinstance(url_or_file_path, dict):
+            return url_or_file_path
         if isinstance(url_or_file_path, Path):
             url_or_file_path = str(url_or_file_path)
-
         if client_utils.is_http_url_like(url_or_file_path):
             return FileData(path=url_or_file_path, url=url_or_file_path).model_dump()
         else:
@@ -2118,7 +2122,9 @@ Received outputs:
             if not wasm_utils.IS_WASM:
                 # Cannot run async functions in background other than app's scope.
                 # Workaround by triggering the app endpoint
-                httpx.get(f"{self.local_url}startup-events", verify=ssl_verify)
+                httpx.get(
+                    f"{self.local_url}startup-events", verify=ssl_verify, timeout=None
+                )
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
                 # that `self._queue.start()` is called in another thread which is managed by the HTTP server, `uvicorn`
