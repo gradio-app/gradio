@@ -96,7 +96,7 @@ class Client:
             headers: Additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. These headers will override the default headers if they have the same keys.
             upload_files: Whether the client should treat input string filepath as files and upload them to the remote server. If False, the client will treat input string filepaths as strings always and not modify them, and files should be passed in explicitly using `gradio_client.file("path/to/file/or/url")` instead. This parameter will be deleted and False will become the default in a future version.
             download_files: Whether the client should download output files from the remote API and return them as string filepaths on the local machine. If False, the client will return a FileData dataclass object with the filepath on the remote machine instead.
-            ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
+            ssl_verify: If False, skips certificate validation which allows the client to connect to Gradio apps that are using self-signed certificates.
         """
         self.verbose = verbose
         self.hf_token = hf_token
