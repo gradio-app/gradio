@@ -201,22 +201,23 @@
 	function handle_theme_mode(target: HTMLDivElement): "light" | "dark" {
 		const force_light = window.__gradio_mode__ === "website";
 
+		let new_theme_mode: ThemeMode;
 		if (force_light) {
-			active_theme_mode = "light";
+			new_theme_mode = "light";
 		} else {
 			let url = new URL(window.location.toString());
 			let url_color_mode: ThemeMode | null = url.searchParams.get(
 				"__theme"
 			) as ThemeMode | null;
-			active_theme_mode = theme_mode || url_color_mode || "system";
+			new_theme_mode = theme_mode || url_color_mode || "system";
 		}
 
-		if (active_theme_mode === "dark" || active_theme_mode === "light") {
-			apply_theme(target, active_theme_mode);
+		if (new_theme_mode === "dark" || new_theme_mode === "light") {
+			apply_theme(target, new_theme_mode);
 		} else {
-			active_theme_mode = use_system_theme(target);
+			new_theme_mode = use_system_theme(target);
 		}
-		return active_theme_mode;
+		return new_theme_mode;
 	}
 
 	function use_system_theme(target: HTMLDivElement): "light" | "dark" {
