@@ -558,6 +558,7 @@ async def stream_sse_v1plus(
                 if msg["msg"] == ServerMessage.process_generating and protocol in [
                     "sse_v2",
                     "sse_v2.1",
+                    "sse_v3",
                 ]:
                     if pending_responses_for_diffs is None:
                         pending_responses_for_diffs = list(output)
