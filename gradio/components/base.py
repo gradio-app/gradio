@@ -237,7 +237,7 @@ class Component(ComponentBase, Block):
         return load_fn, initial_value
 
     def __str__(self):
-        return self.__repr__()
+        return f"<{self.__class__.__name__} object>"
 
     def __repr__(self):
         return f"<{self.__class__.__name__} object> with config: {self.get_config()}"
