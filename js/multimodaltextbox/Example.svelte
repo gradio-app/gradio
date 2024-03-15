@@ -50,6 +50,7 @@
 		display: flex;
 		align-items: center;
 		gap: 20px;
+		overflow-x: auto;
 	}
 
 	div {
@@ -66,5 +67,6 @@
 
 	div > :global(p) {
 		font-size: var(--text-lg);
+		white-space: normal;
 	}
 </style>
