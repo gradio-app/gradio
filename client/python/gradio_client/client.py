@@ -747,6 +747,7 @@ class Client:
         resp = httpx.post(
             urllib.parse.urljoin(self.src, utils.LOGIN_URL),
             data={"username": auth[0], "password": auth[1]},
+            ssl=self.ssl_verify,
         )
         if not resp.is_success:
             if resp.status_code == 401:
@@ -1209,6 +1210,7 @@ class Endpoint:
                 self.client.sse_data_url,
                 self.client.headers,
                 self.client.cookies,
+                self.client.ssl_verify,
             )
 
     async def _sse_fn_v1_v2(
@@ -1224,6 +1226,7 @@ class Endpoint:
             self.client.pending_messages_per_event,
             event_id,
             protocol,
+            self.client.ssl_verify,
         )
 
 

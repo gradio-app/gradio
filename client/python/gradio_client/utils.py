@@ -352,10 +352,11 @@ async def get_pred_from_sse_v0(
     sse_data_url: str,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
+    ssl_verify: bool,
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
-            asyncio.create_task(check_for_cancel(helper, headers, cookies)),
+            asyncio.create_task(check_for_cancel(helper, headers, cookies, ssl_verify)),
             asyncio.create_task(
                 stream_sse_v0(
                     client,
@@ -366,6 +367,7 @@ async def get_pred_from_sse_v0(
                     sse_data_url,
                     headers,
                     cookies,
+                    ssl_verify,
                 )
             ),
         ],
@@ -392,10 +394,11 @@ async def get_pred_from_sse_v1_v2(
     pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
     protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
+    ssl_verify: bool,
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
-            asyncio.create_task(check_for_cancel(helper, headers, cookies)),
+            asyncio.create_task(check_for_cancel(helper, headers, cookies, ssl_verify)),
             asyncio.create_task(
                 stream_sse_v1_v2(helper, pending_messages_per_event, event_id, protocol)
             ),
@@ -420,7 +423,10 @@ async def get_pred_from_sse_v1_v2(
 
 
 async def check_for_cancel(
-    helper: Communicator, headers: dict[str, str], cookies: dict[str, str] | None
+    helper: Communicator,
+    headers: dict[str, str],
+    cookies: dict[str, str] | None,
+    ssl_verify: bool,
 ):
     while True:
         await asyncio.sleep(0.05)
@@ -428,7 +434,7 @@ async def check_for_cancel(
             if helper.should_cancel:
                 break
     if helper.event_id:
-        async with httpx.AsyncClient() as http:
+        async with httpx.AsyncClient(ssl_verify=ssl_verify) as http:
             await http.post(
                 helper.reset_url,
                 json={"event_id": helper.event_id},
