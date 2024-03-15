@@ -138,6 +138,13 @@ chat_input = gr.MultimodalTextbox(file_types=["image"], placeholder="Enter messa
 
 ```python
 import gradio as gr
+import time
+
+def echo(message, history):
+    t = x['text']
+    for i in range(len(t)):
+        time.sleep(0.5)
+        yield t[:i+1]
 
 demo = gr.ChatInterface(fn=echo, examples=["hello", "hola", "merhaba"], title="Echo Bot", multimodal=True)
 
