@@ -49,35 +49,20 @@
 					<CopyButton code={python_code?.innerText} />
 				</div>
 				<div bind:this={python_code}>
-					<pre>from gradio_client import Client{#if has_file_path}, file{/if}
+					<pre><span class="highlight">from</span> gradio_client <span class="highlight">import</span> Client{#if has_file_path}, file{/if}
 
 client = Client(<span class="token string">"{root}"</span>)
-result = client.predict(<!--
+result = client.<span class="highlight">predict</span>(<!--
 -->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
         -->
 		<span
-								class="example-inputs"
-								>{represent_value(example_input, python_type.type, "py")}</span
-							>,<!--
-			-->{#if dependency_failures[dependency_index][i]}<!--
-			--><span
-									class="error">ERROR</span
-								><!--
-				-->{/if}<!--
-			--><span class="desc"
-								><!--
-			-->	# {python_type.type} {#if python_type.description}({python_type.description})
-								{/if}<!---->in '{label}' <!--
-			-->{component} component<!--
-			--></span
-							><!--
-		-->{/each}<!--
+								class="example-inputs">{represent_value(example_input, python_type.type, "py")}</span>,{/each}<!--
 
 		-->
-		api_name="/{dependency.api_name}"<!--
+		api_name=<span class="api-name">"/{dependency.api_name}"</span><!--
 		-->
 )
-print(result)</pre>
+<span class="highlight">print</span>(result)</pre>
 				</div>
 			{:else if current_language === "javascript"}
 				<div class="copy">
@@ -170,20 +155,19 @@ console.log(result.data);
 		margin-bottom: var(--size-3);
 	}
 
-	.error {
-		color: var(--error-text-color);
+	.highlight{
+		color: var(--color-blue-400);
 	}
-
 	.desc {
 		color: var(--body-text-color-subdued);
 	}
 
 	.example-inputs {
-		border: 1px solid var(--border-color-accent);
-		border-radius: var(--radius-sm);
-		background: var(--color-accent-soft);
 		padding-right: var(--size-1);
-		padding-left: var(--size-1);
 		color: var(--color-accent);
 	}
+	.api-name {
+		color: var(--color-accent);
+	}
+	
 </style>
