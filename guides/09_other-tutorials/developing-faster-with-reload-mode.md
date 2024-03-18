@@ -105,12 +105,12 @@ As a small aside, this auto-reloading happens if you change your `run.py` source
 ## Controlling the Reload 🎛️
 
 By default, reload mode will re-run your entire script for every change you make.
-But there are some cases where you may not want gradio to re-run all of your code.
-For example, loading a machine learning model should probably only happen once to save time. There are also some python libraries tht use C or Rust extensions that throw errors when they are reloaded, like `numpy` and `tiktoken`.
+But there are some cases where this is not desireable.
+For example, loading a machine learning model should probably only happen once to save time. There are also some python libraries that use C or Rust extensions that throw errors when they are reloaded, like `numpy` and `tiktoken`.
 
-In these situations, you can place code that you do not want to be re-run inside an `if gr.NO_RELOAD:`  codeblock. Here's an example of how you an use it to only load a transformers model once during the development process.
+In these situations, you can place code that you do not want to be re-run inside an `if gr.NO_RELOAD:`  codeblock. Here's an example of how you can use it to only load a transformers model once during the development process.
 
-Tip: `if gr.NO_RELOAD` always evaluates to `True`. So you don't have to change your script when you are done developing and want to run it in production. Simply run the file with `python` instead of `gradio`.
+Tip: The value of `gr.NO_RELOAD` is `True`. So you don't have to change your script when you are done developing and want to run it in production. Simply run the file with `python` instead of `gradio`.
 
 ```python
 import gradio as gr
