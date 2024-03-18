@@ -1,10 +1,6 @@
 name: "test / visual"
 
-on:
-  workflow_run:
-    workflows: ["trigger"]
-    types: 
-      - requested
+on: push
 
 permissions:
   statuses: write
