@@ -2,9 +2,6 @@ name: "test / visual"
 
 on: push
 
-permissions:
-  statuses: write
-
 jobs:
   changes:
     name: "changes"
@@ -25,16 +22,7 @@ jobs:
           type: "visual"
           token: ${{ secrets.GITHUB_TOKEN }}
           name: "UI Tests"
-  comment-chromatic-start:
-    uses: "./.github/workflows/comment-queue.yml"
-    needs: changes
-    if: ${{ needs.changes.outputs.should_run == 'true' }}
-    secrets:
-      gh_token: ${{ secrets.COMMENT_TOKEN }}
-    with:
-      pr_number: ${{ needs.changes.outputs.pr_number }}
-      message: |
-        storybook~pending~null
+  
   test-visual:
     name: "test-visual"
     needs: changes
@@ -72,22 +60,5 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           onlyChanged: true
           exitOnceUploaded: true
-  comment-chromatic-end:
-        uses: "./.github/workflows/comment-queue.yml"
-        needs: [test-visual, changes]
-        secrets:
-          gh_token: ${{ secrets.COMMENT_TOKEN }}
-        with:
-          pr_number: ${{ needs.changes.outputs.pr_number }}
-          message: |
-            storybook~success~${{ needs.test-visual.outputs.storybook_url }}
-  comment-chromatic-fail:
-    uses: "./.github/workflows/comment-queue.yml"
-    needs: [test-visual, changes]
-    if: always() && needs.test-visual.result == 'failure'
-    secrets:
-      gh_token: ${{ secrets.COMMENT_TOKEN }}
-    with:
-      pr_number: ${{ needs.changes.outputs.pr_number }}
-      message: |
-        storybook~failure~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/
+   
+  
