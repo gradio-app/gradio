@@ -70,3 +70,15 @@ def gradio_temp_dir(monkeypatch, tmp_path):
     """
     monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
     return tmp_path
+
+
+@pytest.fixture(autouse=True)
+def clear_static_files():
+    """Clears all static files from the _StaticFiles class.
+
+    This is necessary because the tests should be independent of one another.
+    """
+    yield
+    from gradio import data_classes
+
+    data_classes._StaticFiles.clear()

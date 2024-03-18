@@ -7,6 +7,7 @@ import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal, Optional
 
+from gradio_client import file
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
@@ -353,7 +354,9 @@ class Video(Component):
 
     def example_payload(self) -> Any:
         return {
-            "video": "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4",
+            "video": file(
+                "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+            ),
         }
 
     def example_value(self) -> Any:

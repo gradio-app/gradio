@@ -127,8 +127,8 @@ class CSVLogger(FlaggingCallback):
     Guides: using-flagging
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, simplify_file_data: bool = True):
+        self.simplify_file_data = simplify_file_data
 
     def setup(
         self,
@@ -167,11 +167,14 @@ class CSVLogger(FlaggingCallback):
             if utils.is_update(sample):
                 csv_data.append(str(sample))
             else:
-                csv_data.append(
+                data = (
                     component.flag(sample, flag_dir=save_dir)
                     if sample is not None
                     else ""
                 )
+                if self.simplify_file_data:
+                    data = utils.simplify_file_data_in_str(data)
+                csv_data.append(data)
         csv_data.append(flag_option)
         csv_data.append(username if username is not None else "")
         csv_data.append(str(datetime.datetime.now()))
@@ -416,7 +419,9 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             label = component.label or ""
             save_dir = data_dir / client_utils.strip_invalid_filename_characters(label)
             save_dir.mkdir(exist_ok=True, parents=True)
-            deserialized = component.flag(sample, save_dir)
+            deserialized = utils.simplify_file_data_in_str(
+                component.flag(sample, save_dir)
+            )
 
             # Add deserialized object to row
             features[label] = {"dtype": "string", "_type": "Value"}

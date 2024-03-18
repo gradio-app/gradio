@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/lite",
-	"version": "4.14.2",
+	"version": "4.21.0",
 	"description": "Serverless Gradio",
 	"type": "module",
 	"main": "dist/lite.js",
@@ -11,6 +11,9 @@
 	],
 	"scripts": {
 		"build": "pnpm --filter @gradio/app build:lite"
+	},
+	"dependencies": {
+		"gradio": "workspace:^"
 	},
 	"devDependencies": {
 		"@gradio/app": "workspace:^",

@@ -4,6 +4,7 @@ import os
 import tempfile
 import time
 from contextlib import asynccontextmanager, closing
+from typing import Dict
 from unittest.mock import patch
 
 import gradio_client as grc
@@ -335,16 +336,24 @@ class TestRoutes:
 
     def test_mount_gradio_app_with_app_kwargs(self):
         app = FastAPI()
-
         demo = gr.Interface(lambda s: f"You said {s}!", "textbox", "textbox").queue()
-
         app = gr.mount_gradio_app(
             app, demo, path="/echo", app_kwargs={"docs_url": "/docs-custom"}
         )
-
         # Use context manager to trigger start up events
         with TestClient(app) as client:
             assert client.get("/echo/docs-custom").is_success
+
+    def test_mount_gradio_app_with_auth_and_root_path(self):
+        app = FastAPI()
+        demo = gr.Interface(lambda s: f"You said {s}!", "textbox", "textbox").queue()
+        app = gr.mount_gradio_app(
+            app, demo, path="/echo", auth=("a", "b"), root_path="/echo"
+        )
+        # Use context manager to trigger start up events
+        with TestClient(app) as client:
+            assert client.get("/echo/config").status_code == 401
+        assert demo.root_path == "/echo"
 
     def test_mount_gradio_app_with_lifespan(self):
         @asynccontextmanager
@@ -1035,11 +1044,55 @@ def test_component_server_endpoints(connect):
             "",
             "https://www.gradio.app/playground",
         ),
+        (
+            "https://www.gradio.app/playground/",
+            "/",
+            "http://www.gradio.app/",
+            "http://www.gradio.app",
+        ),
     ],
 )
-def test_get_root_url(request_url, route_path, root_path, expected_root_url):
-    request = Request({"path": request_url, "type": "http", "headers": {}})
+def test_get_root_url(
+    request_url: str, route_path: str, root_path: str, expected_root_url: str
+):
+    scope = {
+        "type": "http",
+        "headers": [],
+        "path": request_url,
+    }
+    request = Request(scope)
     assert get_root_url(request, route_path, root_path) == expected_root_url
+
+
+@pytest.mark.parametrize(
+    "headers, root_path, expected_root_url",
+    [
+        ({}, "/gradio/", "http://gradio.app/gradio"),
+        ({"x-forwarded-proto": "http"}, "/gradio/", "http://gradio.app/gradio"),
+        ({"x-forwarded-proto": "https"}, "/gradio/", "https://gradio.app/gradio"),
+        ({"x-forwarded-host": "gradio.dev"}, "/gradio/", "http://gradio.dev/gradio"),
+        (
+            {"x-forwarded-host": "gradio.dev", "x-forwarded-proto": "https"},
+            "/",
+            "https://gradio.dev",
+        ),
+        (
+            {"x-forwarded-host": "gradio.dev", "x-forwarded-proto": "https"},
+            "http://google.com",
+            "http://google.com",
+        ),
+    ],
+)
+def test_get_root_url_headers(
+    headers: Dict[str, str], root_path: str, expected_root_url: str
+):
+    scope = {
+        "type": "http",
+        "headers": [(k.encode(), v.encode()) for k, v in headers.items()],
+        "path": "http://gradio.app",
+    }
+    request = Request(scope)
+    assert get_root_url(request, "/", root_path) == expected_root_url
 
 
 class TestSimpleAPIRoutes:
