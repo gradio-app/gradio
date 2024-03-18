@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document
@@ -155,9 +154,6 @@ class Code(Component):
                 return file_data.read()
         else:
             return value.strip()
-
-    def flag(self, payload: Any, flag_dir: str | Path = "") -> str:
-        return super().flag(payload, flag_dir)
 
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
