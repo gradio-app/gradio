@@ -56,9 +56,9 @@
 client = Client(<span class="token string">"{root}"</span>)
 result = client.<span class="highlight">predict</span
 						>(<!--
--->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
+-->{#each endpoint_parameters as { python_type, example_input, parameter_name }, i}<!--
         -->
-		<span
+		{parameter_name ? parameter_name + "=" : ""}<span
 								class="example-inputs"
 								>{represent_value(example_input, python_type.type, "py")}</span
 							>,{/each}<!--
