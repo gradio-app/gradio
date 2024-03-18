@@ -155,9 +155,6 @@ console.log(result.data);
 		margin-bottom: var(--size-3);
 	}
 
-	.highlight{
-		color: var(--color-blue-400);
-	}
 	.desc {
 		color: var(--body-text-color-subdued);
 	}

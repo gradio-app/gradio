@@ -8,12 +8,6 @@
 	export let current_language: "python" | "javascript";
 </script>
 
-<h4>
-	<div class="toggle-icon">
-		<div class="toggle-dot" />
-	</div>
-	Returns a {#if endpoint_returns.length > 1} tuple of {endpoint_returns.length} elements{:else} single element{/if}
-</h4>
 
 	<div class:hide={is_running}>
 
@@ -21,7 +15,7 @@
 	<hr class="hr" />
 	<div style="margin:10px;">
 		<p>
-			<span class="code" style="margin-right: 10px;">{label}</span>
+			<span class="code">[{i}]</span>
 			<span class="code highlight">{#if current_language === "python"}{python_type.type}{:else}{js_returns[i].type}{/if}</span>
 		</p>
 		<p class="desc">					
@@ -46,35 +40,9 @@
 		background: var(--color-accent-soft);
 	
 	}
-	h4 {
-		display: flex;
-		align-items: center;
-		margin-top: var(--size-6);
-		margin-bottom: var(--size-3);
-		color: var(--body-text-color);
-		font-weight: var(--weight-bold);
-	}
-
-	.toggle-icon {
-		display: flex;
-		align-items: center;
-		margin-right: var(--size-2);
-		border-radius: var(--radius-full);
-		background: var(--color-grey-300);
-		width: 12px;
-		height: 4px;
-	}
-
-	.toggle-dot {
-		margin-left: auto;
-		border-radius: var(--radius-full);
-		background: var(--color-grey-700);
-		width: 6px;
-		height: 6px;
-	}
-
 	.code {
 		font-family: var(--font-mono);
+		margin-right: 10px;
 	}
 
 	.highlight {

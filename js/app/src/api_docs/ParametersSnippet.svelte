@@ -8,16 +8,9 @@
 	export let current_language: "python" | "javascript";
 </script>
 
-<h4>
-	<div class="toggle-icon">
-		<div class="toggle-dot" />
-	</div>
-	Parameters:
-</h4>
-
 	<div class:hide={is_running}>
 
-	{#each endpoint_returns as { label, type, python_type, component, serializer }, i}
+	{#each endpoint_returns as {label, type, python_type, component }}
 	<hr class="hr" />
 	<div style="margin:10px;">
 		<p>
@@ -26,7 +19,7 @@
 			<span style="font-weight:bold">Required</span>
 		</p>
 		<p class="desc">					
-	The output value that appears in the "{label}" <!--
+	The input value that is provided in the "{label}" <!--
 	-->{component}
 		component<!--
 	-->
@@ -46,32 +39,6 @@
 		height: 1px;
 		background: var(--color-accent-soft);
 	
-	}
-	h4 {
-		display: flex;
-		align-items: center;
-		margin-top: var(--size-6);
-		margin-bottom: var(--size-3);
-		color: var(--body-text-color);
-		font-weight: var(--weight-bold);
-	}
-
-	.toggle-icon {
-		display: flex;
-		align-items: center;
-		margin-right: var(--size-2);
-		border-radius: var(--radius-full);
-		background: var(--color-grey-300);
-		width: 12px;
-		height: 4px;
-	}
-
-	.toggle-dot {
-		margin-right: auto;
-		border-radius: var(--radius-full);
-		background: var(--color-grey-700);
-		width: 6px;
-		height: 6px;
 	}
 
 	.code {
