@@ -1965,7 +1965,7 @@ Received outputs:
         public link used by anyone to access the demo from their browser by setting share=True.
 
         Parameters:
-            inline: whether to display in the gradip app inline in an iframe. Defaults to True in python notebooks; False otherwise.
+            inline: whether to display in the gradio app inline in an iframe. Defaults to True in python notebooks; False otherwise.
             inbrowser: whether to automatically launch the gradio app in a new tab on the default browser.
             share: whether to create a publicly shareable link for the gradio app. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab. When localhost is not accessible (e.g. Google Colab), setting share=False is not supported.
             debug: if True, blocks the main thread from running. If running in Google Colab, this is needed to print the errors in the cell output.
