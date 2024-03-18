@@ -1,6 +1,8 @@
 """ This file is the part of 'gradio/cli.py' for printing the environment info
 for the cli command 'gradio environment'
 """
+from __future__ import annotations
+
 import platform
 from importlib import metadata
 

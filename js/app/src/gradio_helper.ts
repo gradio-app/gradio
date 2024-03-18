@@ -35,6 +35,7 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 			bubbles: true,
 			detail: { data, id: this.#id, event: event_name }
 		});
+
 		this.#el.dispatchEvent(e);
 	}
 }

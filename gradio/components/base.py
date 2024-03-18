@@ -14,7 +14,7 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
-from gradio_client.utils import is_file_obj
+import gradio_client.utils as client_utils
 
 from gradio import utils
 from gradio.blocks import Block, BlockContext
@@ -190,9 +190,6 @@ class Component(ComponentBase, Block):
         self.scale = scale
         self.min_width = min_width
         self.interactive = interactive
-        # Keep tracks of files that should not be deleted when the delete_cache parmaeter is set
-        # These files are the default value of the component and files that are used in examples
-        self.keep_in_cache = set()
 
         # load_event is set in the Blocks.attach_load_events method
         self.load_event: None | dict[str, Any] = None
@@ -203,8 +200,9 @@ class Component(ComponentBase, Block):
             initial_value,
             self,  # type: ignore
             postprocess=True,
+            keep_in_cache=True,
         )
-        if is_file_obj(self.value):
+        if client_utils.is_file_obj(self.value):
             self.keep_in_cache.add(self.value["path"])
 
         if callable(load_fn):
@@ -237,12 +235,6 @@ class Component(ComponentBase, Block):
             initial_value = value
             load_fn = None
         return load_fn, initial_value
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self):
-        return f"{self.get_block_name()}"
 
     def attach_load_event(self, callable: Callable, every: float | None):
         """Add a load event that runs `callable`, optionally every `every` seconds."""
@@ -302,7 +294,9 @@ class Component(ComponentBase, Block):
         if self.data_model:
             payload = self.data_model.from_json(payload)
             Path(flag_dir).mkdir(exist_ok=True)
-            return payload.copy_to_dir(flag_dir).model_dump_json()
+            payload = payload.copy_to_dir(flag_dir).model_dump()
+        if not isinstance(payload, str):
+            payload = json.dumps(payload)
         return payload
 
     def read_from_flag(self, payload: Any):

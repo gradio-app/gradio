@@ -1,5 +1,40 @@
 # @gradio/app
 
+## 1.27.0
+
+### Features
+
+- [#7577](https://github.com/gradio-app/gradio/pull/7577) [`7c66a29`](https://github.com/gradio-app/gradio/commit/7c66a29dea0e4e56106d95d93972225b886a9df3) - Fix the Lite custom element to initialize the app in the connected callback and dispose the app in the disconnected callback.  Thanks @whitphx!
+
+### Fixes
+
+- [#7643](https://github.com/gradio-app/gradio/pull/7643) [`9482c7a`](https://github.com/gradio-app/gradio/commit/9482c7a3d2d7b6abd81b786100ddc385133095a5) - fix: redundant meta tags that are unwanted.  Thanks @qkdxorjs1002!
+- [#7628](https://github.com/gradio-app/gradio/pull/7628) [`ba8cc48`](https://github.com/gradio-app/gradio/commit/ba8cc48b136e701717c0c5d15ce410b4f8bf6a21) - feature detect CSSStylesheet.  Thanks @pngwn!
+- [#7575](https://github.com/gradio-app/gradio/pull/7575) [`d0688b3`](https://github.com/gradio-app/gradio/commit/d0688b3c25feabb4fc7dfa0ab86086b3af7eb337) - Files should now be supplied as `file(...)` in the Client, and some fixes to `gr.load()` as well.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/button@0.2.25
+- @gradio/upload@0.7.7
+- @gradio/code@0.5.6
+- @gradio/client@0.13.0
+- @gradio/wasm@0.8.0
+- @gradio/annotatedimage@0.5.6
+- @gradio/audio@0.9.6
+- @gradio/chatbot@0.7.6
+- @gradio/dataset@0.1.25
+- @gradio/downloadbutton@0.1.2
+- @gradio/file@0.5.6
+- @gradio/fileexplorer@0.3.26
+- @gradio/gallery@0.8.2
+- @gradio/image@0.9.6
+- @gradio/imageeditor@0.4.6
+- @gradio/model3d@0.8.5
+- @gradio/simpleimage@0.3.6
+- @gradio/uploadbutton@0.5.2
+- @gradio/video@0.6.6
+- @gradio/dataframe@0.6.7
+
 ## 1.26.1
 
 ### Patch Changes

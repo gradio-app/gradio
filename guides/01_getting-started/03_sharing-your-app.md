@@ -263,7 +263,7 @@ Note: Gradio's built-in authentication provides a straightforward and basic laye
 Gradio natively supports OAuth login via Hugging Face. In other words, you can easily add a _"Sign in with Hugging Face"_ button to your demo, which allows you to get a user's HF username as well as other information from their HF profile. Check out [this Space](https://huggingface.co/spaces/Wauplin/gradio-oauth-demo) for a live demo.
 
 To enable OAuth, you must set `hf_oauth: true` as a Space metadata in your README.md file. This will register your Space
-as an OAuth application on Hugging Face. Next, you can use `gr.LoginButton` and `gr.LogoutButton` to add login and logout buttons to
+as an OAuth application on Hugging Face. Next, you can use `gr.LoginButton` to add a login button to
 your Gradio app. Once a user is logged in with their HF account, you can retrieve their profile by adding a parameter of type
 `gr.OAuthProfile` to any Gradio function. The user profile will be automatically injected as a parameter value. If you want
 to perform actions on behalf of the user (e.g. list user's private repos, create repo, etc.), you can retrieve the user
@@ -274,7 +274,7 @@ Here is a short example:
 
 ```py
 import gradio as gr
-
+from huggingface_hub import whoami
 
 def hello(profile: gr.OAuthProfile | None) -> str:
     if profile is None:
@@ -289,11 +289,12 @@ def list_organizations(oauth_token: gr.OAuthToken | None) -> str:
 
 with gr.Blocks() as demo:
     gr.LoginButton()
-    gr.LogoutButton()
     m1 = gr.Markdown()
     m2 = gr.Markdown()
     demo.load(hello, inputs=None, outputs=m1)
     demo.load(list_organizations, inputs=None, outputs=m2)
+
+demo.launch()
 ```
 
 When the user clicks on the login button, they get redirected in a new page to authorize your Space.
@@ -426,7 +427,7 @@ There are actually two separate Gradio apps in this example! One that simply dis
 
 Sharing your Gradio app with others (by hosting it on Spaces, on your own server, or through temporary share links) **exposes** certain files on the host machine to users of your Gradio app.
 
-In particular, Gradio apps ALLOW users to access to three kinds of files:
+In particular, Gradio apps ALLOW users to access to four kinds of files:
 
 - **Temporary files created by Gradio.** These are files that are created by Gradio as part of running your prediction function. For example, if your prediction function returns a video file, then Gradio will save that video to a temporary cache on your device and then send the path to the file to the front end. You can customize the location of temporary cache files created by Gradio by setting the environment variable `GRADIO_TEMP_DIR` to an absolute path, such as `/home/usr/scripts/project/temp/`. You can delete the files created by your app when it shuts down with the `delete_cache` parameter of `gradio.Blocks`, `gradio.Interface`, and `gradio.ChatInterface`. This parameter is a tuple of integers of the form `[frequency, age]` where `frequency` is how often to delete files and `age` is the time in seconds since the file was last modified.
 
@@ -434,6 +435,8 @@ In particular, Gradio apps ALLOW users to access to three kinds of files:
 - **Cached examples created by Gradio.** These are files that are created by Gradio as part of caching examples for faster runtimes, if you set `cache_examples=True` in `gr.Interface()` or in `gr.Examples()`. By default, these files are saved in the `gradio_cached_examples/` subdirectory within your app's working directory. You can customize the location of cached example files created by Gradio by setting the environment variable `GRADIO_EXAMPLES_CACHE` to an absolute path or a path relative to your working directory.
 
 - **Files that you explicitly allow via the `allowed_paths` parameter in `launch()`**. This parameter allows you to pass in a list of additional directories or exact filepaths you'd like to allow users to have access to. (By default, this parameter is an empty list).
+
+- **Static files that you explicitly set via the `gr.set_static_paths` function. This parameter allows you to pass in a list of directories or filenames that will be considered static. This means that they will not be copied to the cache and will be served directly from your computer. This can help save disk space and reduce the time your app takes to launch but be mindful of possible security implications.
 
 Gradio DOES NOT ALLOW access to:
 

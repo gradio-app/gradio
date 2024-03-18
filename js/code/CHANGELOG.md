@@ -1,5 +1,12 @@
 # @gradio/code
 
+## 0.5.6
+
+### Dependency updates
+
+- @gradio/upload@0.7.7
+- @gradio/wasm@0.8.0
+
 ## 0.5.5
 
 ### Patch Changes
