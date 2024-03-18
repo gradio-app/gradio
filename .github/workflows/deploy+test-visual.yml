@@ -9,11 +9,6 @@ on:
 permissions:
   statuses: write
 
-concurrency:
-
-  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
-  cancel-in-progress: true
-
 jobs:
   changes:
     name: "changes"
@@ -47,7 +42,7 @@ jobs:
   test-visual:
     name: "test-visual"
     needs: changes
-    if: ${{ needs.changes.outputs.should_run == 'true' && github.repository == 'gradio-app/gradio' && !contains(needs.changes.outputs.labels, 'no-visual-update') }}
+    if: true
     runs-on: ubuntu-latest
     outputs:
       changes: ${{ steps.publish-chromatic.outputs.changeCount }}
@@ -78,20 +73,18 @@ jobs:
         uses: chromaui/action@v11
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
-          storybookBaseDir: js/storybook
           token: ${{ secrets.GITHUB_TOKEN }}
+          onlyChanged: true
           exitOnceUploaded: true
-   
   comment-chromatic-end:
-    uses: "./.github/workflows/comment-queue.yml"
-    needs: [test-visual, changes]
-    secrets:
-      gh_token: ${{ secrets.COMMENT_TOKEN }}
-    with:
-      pr_number: ${{ needs.changes.outputs.pr_number }}
-      message: |
-        storybook~success~${{ needs.test-visual.outputs.storybook_url }}
-       
+        uses: "./.github/workflows/comment-queue.yml"
+        needs: [test-visual, changes]
+        secrets:
+          gh_token: ${{ secrets.COMMENT_TOKEN }}
+        with:
+          pr_number: ${{ needs.changes.outputs.pr_number }}
+          message: |
+            storybook~success~${{ needs.test-visual.outputs.storybook_url }}
   comment-chromatic-fail:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [test-visual, changes]
@@ -102,9 +95,3 @@ jobs:
       pr_number: ${{ needs.changes.outputs.pr_number }}
       message: |
         storybook~failure~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/
-        
-
-
-# visual~success~${{ needs.chromatic-deployment.outputs.changes }}~${{ needs.chromatic-deployment.outputs.errors }}~${{ needs.chromatic-deployment.outputs.build_url }}
-
-# visual~failure~0~0~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/
