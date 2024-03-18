@@ -1971,7 +1971,7 @@ Received outputs:
             debug: if True, blocks the main thread from running. If running in Google Colab, this is needed to print the errors in the cell output.
             auth: If provided, username and password (or list of username-password tuples) required to access app. Can also provide function that takes username and password and returns True if valid login.
             auth_message: If provided, HTML message provided on login page.
-            prevent_thread_lock: If True, the gradio app will block the main thread while the server is running.
+            prevent_thread_lock: By default, the Gradio app blocks the main thread while the server is running. If set to True, the gradio app will not block and the Gradio server will terminate as soon as the script finishes.
             show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
