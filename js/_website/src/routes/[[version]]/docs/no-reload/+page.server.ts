@@ -33,26 +33,28 @@ export async function load({ parent }) {
 	const get_slug = make_slug_processor();
 	let obj = {
 		name: "NO_RELOAD",
-		description: "Any code in a `if gr.NO_RELOAD` code-block will not be re-evaluated when the source file is reloaded. This is helpful for importing modules that do not like to be reloaded (tiktoken, numpy) as well as database connections and long running set up code.",
+		description:
+			"When launching Any code in a `if gr.NO_RELOAD` code-block will not be re-evaluated when the source file is reloaded. This is helpful for importing modules that do not like to be reloaded (tiktoken, numpy) as well as database connections and long running set up code.",
 		example: `if gr.NO_RELOAD:
 	print("IMPORTING")
 	import tiktoken
-	import numpy as np`,
-		override_signature: "if gr.NO_RELOAD:",
+	import numpy as np
+	from transformers import pipeline
+	pipe = pipeline("text-classification", model="cardiffnlp/twitter-roberta-base-sentiment-latest")
+	`,
+		override_signature: "if gr.NO_RELOAD:"
+	};
+
+	if (obj.name) {
+		obj.slug = get_slug(obj.name);
 	}
-
-		if (obj.name) {
-			obj.slug = get_slug(obj.name);
-		}
-		if (obj.example) {
-			obj.highlighted_example = Prism.highlight(
-				obj.example,
-				Prism.languages[language],
-				"python"
-			);
-		}
-
-
+	if (obj.example) {
+		obj.highlighted_example = Prism.highlight(
+			obj.example,
+			Prism.languages[language],
+			"python"
+		);
+	}
 
 	return {
 		obj,

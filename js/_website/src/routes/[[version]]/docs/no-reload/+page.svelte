@@ -55,7 +55,7 @@
 	title={"Gradio No Reload Docs"}
 	url={$page.url.pathname}
 	canonical={$page.url.pathname}
-	description = {obj.description}
+	description={obj.description}
 />
 
 <svelte:window bind:scrollY={y} />
@@ -127,61 +127,53 @@
 
 			<div class="flex flex-row">
 				<div class="lg:ml-10">
-						<div class="obj" id={obj.slug}>
-							<div class="flex flex-row items-center justify-between">
-								<h3
-									id="{obj.slug}-header"
-									class="group text-3xl font-light py-4"
-								>
-									{obj.name}
-									<a
-										href="#{obj.slug}-header"
-										class="invisible group-hover-visible"
-										><img class="anchor-img" src={anchor} /></a
-									>
-								</h3>
-							</div>
-								<div class="codeblock">
-									<pre><code class="code language-python"
-											>{obj.override_signature}</code
-										></pre>
-								</div>
-							
-							<h4
-								class="mt-8 text-xl text-orange-500 font-light group"
-								id="description"
-							>
-								Description
+					<div class="obj" id={obj.slug}>
+						<div class="flex flex-row items-center justify-between">
+							<h3 id="{obj.slug}-header" class="group text-3xl font-light py-4">
+								{obj.name}
 								<a
-									href="#description"
+									href="#{obj.slug}-header"
 									class="invisible group-hover-visible"
+									><img class="anchor-img" src={anchor} /></a
+								>
+							</h3>
+						</div>
+						<div class="codeblock">
+							<pre><code class="code language-python"
+									>{obj.override_signature}</code
+								></pre>
+						</div>
+
+						<h4
+							class="mt-8 text-xl text-orange-500 font-light group"
+							id="description"
+						>
+							Description
+							<a href="#description" class="invisible group-hover-visible"
+								><img class="anchor-img-small" src={anchor} /></a
+							>
+						</h4>
+						<p class="mb-2 text-lg text-gray-600">{@html obj.description}</p>
+
+						{#if obj.example}
+							<h4
+								class="mt-4 text-xl text-orange-500 font-light group"
+								id="example-usage"
+							>
+								Example Usage
+								<a href="#example-usage" class="invisible group-hover-visible"
 									><img class="anchor-img-small" src={anchor} /></a
 								>
 							</h4>
-							<p class="mb-2 text-lg text-gray-600">{@html obj.description}</p>
-
-
-							{#if obj.example}
-								<h4
-									class="mt-4 text-xl text-orange-500 font-light group"
-									id="example-usage"
-								>
-									Example Usage
-									<a
-										href="#example-usage"
-										class="invisible group-hover-visible"
-										><img class="anchor-img-small" src={anchor} /></a
-									>
-								</h4>
-								<div class="codeblock">
-									<pre><code class="code language-python"
-											>{@html obj.highlighted_example}</code
-										></pre>
-								</div>
-							{/if}
+							<div class="codeblock">
+								<pre><code class="code language-python"
+										>{@html obj.highlighted_example}</code
+									></pre>
+							</div>
+						{/if}
+					</div>
 				</div>
 			</div>
-</div>
 			<div class="lg:ml-10 flex justify-between my-4">
 				<a
 					href="./themes"
@@ -232,6 +224,6 @@
 					</ul>
 				{/if}
 			</div>
-			</div>
 		</div>
+	</div>
 </main>
