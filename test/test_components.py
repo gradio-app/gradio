@@ -2400,6 +2400,13 @@ class TestGallery:
         preprocess = gr.Gallery().preprocess(data)
         assert preprocess[0] == ("test/test_files/bus.png", "bus")
 
+    def test_gallery_format(self):
+        gallery = gr.Gallery(format="jpeg")
+        output = gallery.postprocess(
+            [np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)]
+        )
+        assert output.root[0].image.path.endswith(".jpeg")
+
 
 class TestState:
     def test_as_component(self):
