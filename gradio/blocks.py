@@ -185,14 +185,25 @@ class Block:
 
     def get_block_name(self) -> str:
         """
-        Gets block's class name.
-
-        If it is template component it gets the parent's class name.
-
-        @return: class name
+        Gets block's class name. If it is template component it gets the parent's class name.
+        This is used to identify the Svelte file to use in the frontend. Override this method
+        if a component should use a different Svelte file than the default naming convention.
         """
         return (
-            self.__class__.__base__.__name__.lower()
+            self.__class__.__base__.__name__.lower()  # type: ignore
+            if hasattr(self, "is_template")
+            else self.__class__.__name__.lower()
+        )
+
+    def get_block_class(self) -> str:
+        """
+        Gets block's class name. If it is template component it gets the parent's class name.
+        Very similar to the get_block_name method, but this method is used to reconstruct a
+        Gradio app that is loaded from a Space using gr.load(). This should generally
+        NOT be overridden.
+        """
+        return (
+            self.__class__.__base__.__name__.lower()  # type: ignore
             if hasattr(self, "is_template")
             else self.__class__.__name__.lower()
         )
@@ -212,7 +223,7 @@ class Block:
             if to_add:
                 config = {**to_add, **config}
         config.pop("render", None)
-        config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_name()}
+        config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_class()}
         if (_selectable := getattr(self, "_selectable", None)) is not None:
             config["_selectable"] = _selectable
         return config
@@ -272,7 +283,9 @@ class Block:
 
         return temp_file_path
 
-    def serve_static_file(self, url_or_file_path: str | Path | None) -> dict | None:
+    def serve_static_file(
+        self, url_or_file_path: str | Path | dict | None
+    ) -> dict | None:
         """If a file is a local file, moves it to the block's cache directory and returns
         a FileData-type dictionary corresponding to the file. If the file is a URL, returns a
         FileData-type dictionary corresponding to the URL. This ensures that the file is
@@ -281,12 +294,14 @@ class Block:
         Examples:
         >>> block.serve_static_file("https://gradio.app/logo.png") -> {"path": "https://gradio.app/logo.png", "url": "https://gradio.app/logo.png"}
         >>> block.serve_static_file("logo.png") -> {"path": "logo.png", "url": "/file=logo.png"}
+        >>> block.serve_static_file({"path": "logo.png", "url": "/file=logo.png"}) -> {"path": "logo.png", "url": "/file=logo.png"}
         """
         if url_or_file_path is None:
             return None
+        if isinstance(url_or_file_path, dict):
+            return url_or_file_path
         if isinstance(url_or_file_path, Path):
             url_or_file_path = str(url_or_file_path)
-
         if client_utils.is_http_url_like(url_or_file_path):
             return FileData(path=url_or_file_path, url=url_or_file_path).model_dump()
         else:
@@ -697,7 +712,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     break
             else:
                 raise ValueError(f"Cannot find block with id {id}")
-            cls = component_or_layout_class(block_config["type"])
+            cls = component_or_layout_class(block_config["props"]["name"])
 
             # If a Gradio app B is loaded into a Gradio app A, and B itself loads a
             # Gradio app C, then the proxy_urls of the components in A need to be the
@@ -1767,7 +1782,7 @@ Received outputs:
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
-            "protocol": "sse_v2.1",
+            "protocol": "sse_v3",
             "body_css": {
                 "body_background_fill": self.theme._get_computed_value(
                     "body_background_fill"
@@ -2118,7 +2133,9 @@ Received outputs:
             if not wasm_utils.IS_WASM:
                 # Cannot run async functions in background other than app's scope.
                 # Workaround by triggering the app endpoint
-                httpx.get(f"{self.local_url}startup-events", verify=ssl_verify)
+                httpx.get(
+                    f"{self.local_url}startup-events", verify=ssl_verify, timeout=None
+                )
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
                 # that `self._queue.start()` is called in another thread which is managed by the HTTP server, `uvicorn`
@@ -2475,7 +2492,7 @@ Received outputs:
                 else:
                     skip_endpoint = True  # if component not found, skip endpoint
                     break
-                type = component["type"]
+                type = component["props"]["name"]
                 if self.blocks[component["id"]].skip_api:
                     continue
                 label = component["props"].get("label", f"parameter_{input_id}")
@@ -2513,7 +2530,7 @@ Received outputs:
                 else:
                     skip_endpoint = True  # if component not found, skip endpoint
                     break
-                type = component["type"]
+                type = component["props"]["name"]
                 if self.blocks[component["id"]].skip_api:
                     continue
                 label = component["props"].get("label", f"value_{o}")
