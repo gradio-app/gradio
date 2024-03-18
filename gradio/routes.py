@@ -1072,7 +1072,6 @@ def mount_gradio_app(
     if not isinstance(blocks.blocked_paths, list):
         raise ValueError("`blocked_paths` must be a list of directories.")
 
-
     if root_path is not None:
         blocks.root_path = root_path
 
