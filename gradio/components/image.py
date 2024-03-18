@@ -70,7 +70,7 @@ class Image(StreamingInput, Component):
         """
         Parameters:
             value: A PIL Image, numpy array, path or URL for the default value that Image component is going to take. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            format: Format used to save images, such as 'jpeg' or 'png'. The jpeg format uses less memory at the cost of image quality. If set to None, image will keep uploaded format.
+            format: Format used to save images, such as 'jpeg' or 'png'. The jpeg format uses less memory at the cost of image quality. This parameter has no effect on SVG files. If set to None, image will keep uploaded format.
             height: The height of the displayed image, specified in pixels if a number is passed, or in CSS units if a string is passed.
             width: The width of the displayed image, specified in pixels if a number is passed, or in CSS units if a string is passed.
             image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning.
