@@ -153,24 +153,6 @@ class SourceFileReloader(BaseReloader):
 NO_RELOAD = True
 
 
-def _remove_sections(string: str, sections: list[tuple[int, int]]) -> str:
-    """Helper functions to remove lines from a string.
-
-    Parameters:
-        string (str): The string to remove lines from.
-        sections (list[tuple[int, int]]): A list of tuples, where each tuple is a start and end index of a section to remove.
-    """
-    lines = string.split("\n")
-    removed_lines = set()
-
-    for start, end in sections:
-        for i in range(start, end + 1):
-            removed_lines.add(i)
-
-    new_lines = [line for i, line in enumerate(lines) if i not in removed_lines]
-    return "\n".join(new_lines)
-
-
 def _remove_no_reload_codeblocks(file_path: str):
     """Parse the file, remove the gr.no_reload code blocks, and write the file back to disk.
 
@@ -194,15 +176,13 @@ def _remove_no_reload_codeblocks(file_path: str):
         )
 
     # Find the positions of the code blocks to load
-    skip_indices = []
     for node in ast.walk(tree):
         if _is_gr_no_reload(node):
             assert isinstance(node, ast.If)  # noqa: S101
-            start_index = node.lineno - 1
-            end_index = node.body[-1].lineno
-            skip_indices.append((start_index, end_index))
+            node.body = [ast.Pass()]
 
-    code_removed = _remove_sections(code, skip_indices)
+    # convert tree to string
+    code_removed = ast.unparse(tree)
     return code_removed
 
 
