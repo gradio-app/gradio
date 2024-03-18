@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Loader } from "@gradio/statustracker";
-	import { Block } from "@gradio/atoms";
 
 	export let is_running: boolean;
 	export let endpoint_returns: any;
@@ -36,7 +35,7 @@
 				The output value that appears in the "{label}" <!--
 	-->{component}
 				component<!--
-	-->
+	-->.
 			</p>
 		</div>
 	{/each}

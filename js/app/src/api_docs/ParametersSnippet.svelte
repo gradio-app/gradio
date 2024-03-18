@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Loader } from "@gradio/statustracker";
-	import { Block } from "@gradio/atoms";
+	import { represent_value } from "./utils";
 
 	export let is_running: boolean;
 	export let endpoint_returns: any;
@@ -16,23 +16,23 @@
 </h4>
 
 <div class:hide={is_running}>
-	{#each endpoint_returns as { label, type, python_type, component }, i}
+	{#each endpoint_returns as { label, python_type, component, parameter_name, parameter_has_default, parameter_default}, i}
 		<hr class="hr" />
 		<div style="margin:10px;">
 			<p>
-				<span class="code" style="margin-right: 10px;">{label}</span>
+				<span class="code" style="margin-right: 10px;">{parameter_name && current_language == "python" ? parameter_name : "[" + i + "]"}</span>
 				<span class="code highlight" style="margin-right: 10px;"
 					>{#if current_language === "python"}{python_type.type}{:else}{js_returns[
 							i
 						].type}{/if}</span
 				>
-				<span style="font-weight:bold">Required</span>
+				{#if !parameter_has_default}<span style="font-weight:bold">Required</span>{/if}
 			</p>
 			<p class="desc">
 				The input value that is provided in the "{label}" <!--
 	-->{component}
 				component<!--
-	-->
+	-->. {#if parameter_has_default}Defaults to <span class="code highlight" style="font-size: var(--text-md);">{represent_value(parameter_default, python_type.type, "py")}</span>{/if}
 			</p>
 		</div>
 	{/each}
@@ -92,4 +92,5 @@
 		height: 6px;
 		margin-right: auto;
 	}
+
 </style>

@@ -1152,3 +1152,19 @@ def get_upload_folder() -> str:
     return os.environ.get("GRADIO_TEMP_DIR") or str(
         (Path(tempfile.gettempdir()) / "gradio").resolve()
     )
+
+
+def get_function_params(func: Callable) -> list[tuple[str, bool, Any]]:
+    params_info = []
+    signature = inspect.signature(func)
+    for name, parameter in signature.parameters.items():
+        if parameter.kind in (
+            inspect.Parameter.VAR_POSITIONAL,
+            inspect.Parameter.VAR_KEYWORD,
+        ):
+            break
+        if parameter.default is inspect.Parameter.empty:
+            params_info.append((name, False, None))
+        else:
+            params_info.append((name, True, parameter.default))
+    return params_info

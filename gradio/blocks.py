@@ -2456,7 +2456,7 @@ Received outputs:
         config = self.config
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
-        for (dependency, fn) in zip(config["dependencies"], self.fns):
+        for dependency, fn in zip(config["dependencies"], self.fns):
             if (
                 not dependency["backend_fn"]
                 or not dependency["show_api"]
@@ -2465,6 +2465,7 @@ Received outputs:
                 continue
 
             dependency_info = {"parameters": [], "returns": []}
+            fn_info = utils.get_function_params(fn.fn)  # type: ignore
             skip_endpoint = False
 
             inputs = dependency["inputs"]
@@ -2486,15 +2487,21 @@ Received outputs:
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
 
-                if dependency["backend_fn"]:
-                    parameter_name = "x_{index}"
+                if dependency["backend_fn"] and index < len(fn_info):
+                    parameter_name = fn_info[index][0]
+                    parameter_has_default = fn_info[index][1]
+                    parameter_default = fn_info[index][2]
                 else:
                     parameter_name = None
+                    parameter_has_default = False
+                    parameter_default = None
 
                 dependency_info["parameters"].append(
                     {
                         "label": label,
                         "parameter_name": parameter_name,
+                        "parameter_has_default": parameter_has_default,
+                        "parameter_default": str(parameter_default),
                         "type": info,
                         "python_type": {
                             "type": python_type,
