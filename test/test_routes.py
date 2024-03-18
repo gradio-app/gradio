@@ -336,16 +336,24 @@ class TestRoutes:
 
     def test_mount_gradio_app_with_app_kwargs(self):
         app = FastAPI()
-
         demo = gr.Interface(lambda s: f"You said {s}!", "textbox", "textbox").queue()
-
         app = gr.mount_gradio_app(
             app, demo, path="/echo", app_kwargs={"docs_url": "/docs-custom"}
         )
-
         # Use context manager to trigger start up events
         with TestClient(app) as client:
             assert client.get("/echo/docs-custom").is_success
+
+    def test_mount_gradio_app_with_auth_and_root_path(self):
+        app = FastAPI()
+        demo = gr.Interface(lambda s: f"You said {s}!", "textbox", "textbox").queue()
+        app = gr.mount_gradio_app(
+            app, demo, path="/echo", auth=("a", "b"), root_path="/echo"
+        )
+        # Use context manager to trigger start up events
+        with TestClient(app) as client:
+            assert client.get("/echo/config").status_code == 401
+        assert demo.root_path == "/echo"
 
     def test_mount_gradio_app_with_lifespan(self):
         @asynccontextmanager
