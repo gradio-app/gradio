@@ -90,20 +90,21 @@ export function create(options: Options): GradioAppController {
 	});
 
 	function clean_indent(code: string): string {
-		const lines = code.split('\n');
+		const lines = code.split("\n");
 		let minIndent = null;
-		lines.forEach(line => {
+		lines.forEach((line) => {
 			const currentIndent = line.match(/^(\s*)\S/);
 			if (currentIndent) {
 				const indentLength = currentIndent[1].length;
-				minIndent = minIndent !== null ? Math.min(minIndent, indentLength) : indentLength;
+				minIndent =
+					minIndent !== null ? Math.min(minIndent, indentLength) : indentLength;
 			}
 		});
 		if (minIndent === null || minIndent === 0) {
 			return code.trim();
 		}
-		const normalizedLines = lines.map(line => line.substring(minIndent));
-		return normalizedLines.join('\n').trim();
+		const normalizedLines = lines.map((line) => line.substring(minIndent));
+		return normalizedLines.join("\n").trim();
 	}
 
 	options.code = options.code ? clean_indent(options.code) : options.code;

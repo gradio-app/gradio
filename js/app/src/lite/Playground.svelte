@@ -52,7 +52,6 @@
 	$: loaded;
 </script>
 
-
 <div class="w-full h-full">
 	<div
 		class="flex flex-col md:flex-row w-full h-full border border-gray-200 rounded-md"
