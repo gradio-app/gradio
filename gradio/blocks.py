@@ -185,14 +185,25 @@ class Block:
 
     def get_block_name(self) -> str:
         """
-        Gets block's class name.
-
-        If it is template component it gets the parent's class name.
-
-        @return: class name
+        Gets block's class name. If it is template component it gets the parent's class name.
+        This is used to identify the Svelte file to use in the frontend. Override this method
+        if a component should use a different Svelte file than the default naming convention.
         """
         return (
-            self.__class__.__base__.__name__.lower()
+            self.__class__.__base__.__name__.lower()  # type: ignore
+            if hasattr(self, "is_template")
+            else self.__class__.__name__.lower()
+        )
+
+    def get_block_class(self) -> str:
+        """
+        Gets block's class name. If it is template component it gets the parent's class name.
+        Very similar to the get_block_name method, but this method is used to reconstruct a
+        Gradio app that is loaded from a Space using gr.load(). This should generally
+        NOT be overridden.
+        """
+        return (
+            self.__class__.__base__.__name__.lower()  # type: ignore
             if hasattr(self, "is_template")
             else self.__class__.__name__.lower()
         )
@@ -212,7 +223,7 @@ class Block:
             if to_add:
                 config = {**to_add, **config}
         config.pop("render", None)
-        config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_name()}
+        config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_class()}
         if (_selectable := getattr(self, "_selectable", None)) is not None:
             config["_selectable"] = _selectable
         return config
@@ -272,7 +283,9 @@ class Block:
 
         return temp_file_path
 
-    def serve_static_file(self, url_or_file_path: str | Path | None) -> dict | None:
+    def serve_static_file(
+        self, url_or_file_path: str | Path | dict | None
+    ) -> dict | None:
         """If a file is a local file, moves it to the block's cache directory and returns
         a FileData-type dictionary corresponding to the file. If the file is a URL, returns a
         FileData-type dictionary corresponding to the URL. This ensures that the file is
@@ -281,12 +294,14 @@ class Block:
         Examples:
         >>> block.serve_static_file("https://gradio.app/logo.png") -> {"path": "https://gradio.app/logo.png", "url": "https://gradio.app/logo.png"}
         >>> block.serve_static_file("logo.png") -> {"path": "logo.png", "url": "/file=logo.png"}
+        >>> block.serve_static_file({"path": "logo.png", "url": "/file=logo.png"}) -> {"path": "logo.png", "url": "/file=logo.png"}
         """
         if url_or_file_path is None:
             return None
+        if isinstance(url_or_file_path, dict):
+            return url_or_file_path
         if isinstance(url_or_file_path, Path):
             url_or_file_path = str(url_or_file_path)
-
         if client_utils.is_http_url_like(url_or_file_path):
             return FileData(path=url_or_file_path, url=url_or_file_path).model_dump()
         else:
@@ -697,7 +712,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     break
             else:
                 raise ValueError(f"Cannot find block with id {id}")
-            cls = component_or_layout_class(block_config["type"])
+            cls = component_or_layout_class(block_config["props"]["name"])
 
             # If a Gradio app B is loaded into a Gradio app A, and B itself loads a
             # Gradio app C, then the proxy_urls of the components in A need to be the
@@ -1954,7 +1969,7 @@ Received outputs:
             inbrowser: whether to automatically launch the interface in a new tab on the default browser.
             share: whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab. When localhost is not accessible (e.g. Google Colab), setting share=False is not supported.
             debug: if True, blocks the main thread from running. If running in Google Colab, this is needed to print the errors in the cell output.
-            auth: If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
+            auth: If provided, username and password (or list of username-password tuples) required to access app. Can also provide function that takes username and password and returns True if valid login.
             auth_message: If provided, HTML message provided on login page.
             prevent_thread_lock: If True, the interface will block the main thread while the server is running.
             show_error: If True, any errors in the interface will be displayed in an alert modal and printed in the browser console log
@@ -1977,7 +1992,7 @@ Received outputs:
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
             share_server_address: Use this to specify a custom FRP server and port for sharing Gradio apps (only applies if share=True). If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
             share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
-            auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth.
+            auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth. Cannot be used with `auth`.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2118,7 +2133,9 @@ Received outputs:
             if not wasm_utils.IS_WASM:
                 # Cannot run async functions in background other than app's scope.
                 # Workaround by triggering the app endpoint
-                httpx.get(f"{self.local_url}startup-events", verify=ssl_verify)
+                httpx.get(
+                    f"{self.local_url}startup-events", verify=ssl_verify, timeout=None
+                )
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
                 # that `self._queue.start()` is called in another thread which is managed by the HTTP server, `uvicorn`
@@ -2475,7 +2492,7 @@ Received outputs:
                 else:
                     skip_endpoint = True  # if component not found, skip endpoint
                     break
-                type = component["type"]
+                type = component["props"]["name"]
                 if self.blocks[component["id"]].skip_api:
                     continue
                 label = component["props"].get("label", f"parameter_{i}")
@@ -2506,7 +2523,7 @@ Received outputs:
                 else:
                     skip_endpoint = True  # if component not found, skip endpoint
                     break
-                type = component["type"]
+                type = component["props"]["name"]
                 if self.blocks[component["id"]].skip_api:
                     continue
                 label = component["props"].get("label", f"value_{o}")

@@ -196,7 +196,6 @@ class OAuthProfile(typing.Dict):  # inherit from Dict for backward compatibility
 
         with gr.Blocks() as demo:
             gr.LoginButton()
-            gr.LogoutButton()
             gr.Markdown().attach_load_event(hello, None)
     """
 
@@ -242,7 +241,6 @@ class OAuthToken:
 
         with gr.Blocks() as demo:
             gr.LoginButton()
-            gr.LogoutButton()
             gr.Markdown().attach_load_event(list_organizations, None)
     """
 

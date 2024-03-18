@@ -258,10 +258,11 @@ class Examples:
             processed_example = self.non_none_processed_examples[example_id]
             if len(self.inputs_with_examples) == 1:
                 return update(
-                    value=processed_example[0], **self.dataset.component_props[0]
+                    value=processed_example[0],
+                    **self.dataset.component_props[0],  # type: ignore
                 )
             return [
-                update(value=processed_example[i], **self.dataset.component_props[i])
+                update(value=processed_example[i], **self.dataset.component_props[i])  # type: ignore
                 for i in range(len(self.inputs_with_examples))
             ]
 
@@ -309,7 +310,7 @@ class Examples:
             )
         else:
             print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
-            cache_logger = CSVLogger()
+            cache_logger = CSVLogger(simplify_file_data=False)
 
             generated_values = []
             if inspect.isgeneratorfunction(self.fn):

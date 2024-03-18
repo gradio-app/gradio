@@ -27,6 +27,7 @@ class Dataset(Component):
         *,
         label: str | None = None,
         components: list[Component] | list[str],
+        component_props: list[dict[str, Any]] | None = None,
         samples: list[list[Any]] | None = None,
         headers: list[str] | None = None,
         type: Literal["values", "index"] = "values",
@@ -67,13 +68,16 @@ class Dataset(Component):
         self.scale = scale
         self.min_width = min_width
         self._components = [get_component_instance(c) for c in components]
-        self.component_props = [
-            component.recover_kwargs(
-                component.get_config(),
-                ["value"],
-            )
-            for component in self._components
-        ]
+        if component_props is None:
+            self.component_props = [
+                component.recover_kwargs(
+                    component.get_config(),
+                    ["value"],
+                )
+                for component in self._components
+            ]
+        else:
+            self.component_props = component_props
 
         # Narrow type to Component
         if not all(isinstance(c, Component) for c in self._components):
