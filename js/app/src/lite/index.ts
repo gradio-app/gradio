@@ -89,6 +89,24 @@ export function create(options: Options): GradioAppController {
 		showError((event as CustomEvent).detail);
 	});
 
+	function clean_indent(code: string): string {
+		const lines = code.split('\n');
+		let minIndent = null;
+		lines.forEach(line => {
+			const currentIndent = line.match(/^(\s*)\S/);
+			if (currentIndent) {
+				const indentLength = currentIndent[1].length;
+				minIndent = minIndent !== null ? Math.min(minIndent, indentLength) : indentLength;
+			}
+		});
+		if (minIndent === null || minIndent === 0) {
+			return code.trim();
+		}
+		const normalizedLines = lines.map(line => line.substring(minIndent));
+		return normalizedLines.join('\n').trim();
+	}
+
+	options.code = options.code ? clean_indent(options.code) : options.code;
 
 	// Internally, the execution of `runPythonCode()` or `runPythonFile()` is queued
 	// and its promise will be resolved after the Pyodide is loaded and the worker initialization is done
@@ -138,7 +156,7 @@ export function create(options: Options): GradioAppController {
 				}
 			});
 			app.$on("code", (code) => {
-				options.code = code.detail.code;
+				options.code = clean_indent(code.detail.code);
 				worker_proxy
 					.runPythonCode(options.code)
 					.then(launchNewApp(true))
@@ -202,7 +220,7 @@ export function create(options: Options): GradioAppController {
 				}
 			});
 			app.$on("code", (code) => {
-				options.code = code.detail.code;
+				options.code = clean_indent(code.detail.code);
 				worker_proxy
 					.runPythonCode(options.code)
 					.then(launchNewApp(true))
@@ -229,6 +247,7 @@ export function create(options: Options): GradioAppController {
 
 	return {
 		run_code: (code: string) => {
+			code = clean_indent(code);
 			return worker_proxy
 				.runPythonCode(code)
 				.then(launchNewApp)
