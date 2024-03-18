@@ -7,6 +7,8 @@
 	import { SvelteComponent, createEventDispatcher } from "svelte";
 	import Code from "@gradio/code";
 	import ErrorDisplay from "./ErrorDisplay.svelte";
+	import lightning from "../images/lightning.svg";
+	import play from "../images/play.svg";
 
 	export let autoscroll: boolean;
 	export let version: string;
@@ -51,38 +53,25 @@
 </script>
 
 
-<div class="p-4 w-full h-full">
+<div class="w-full h-full">
 	<div
 		class="flex flex-col md:flex-row w-full h-full border border-gray-200 rounded-md"
 	>
 		<div class:md:border-r={loaded} class="code-editor grow flex-1">
-			<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
-				<h3 class="pt-1 grow">Code</h3>
+			<div class="flex justify-between align-middle h-8 border-b px-2">
+				<h3 class="pt-1 grow">app.py</h3>
 				{#if !loaded}
 					<div class="flex"></div>
-					<div class="flex float-right items-center" style="color:#68696b">
+					<div class="flex float-right items-center" style="color:#999b9e">
 						<div class="loading-dot mx-2"></div>
 						{loading_text}
 					</div>
 				{:else}
-					<div class="flex items-center mx-2" style="color:#68696b">
-						<div class="loaded-dot mx-2"></div>
+					<div class="flex"></div>
+					<div class="flex items-center mx-2" style="color:#999b9e">
+						<img src={lightning} class="w-4 h-4 m-0.5" />
 						Interactive
 					</div>
-					<button
-						class="bg-gray-200 text-gray-500 font-bold px-2 rounded float-right m-1"
-						style="
-                        background: #eaecef;
-                        color: #374151;
-                        font-weight: 500;
-
-                        "
-						on:click={() => {
-							dispatch("code", { code });
-						}}
-					>
-						Update →
-					</button>
 				{/if}
 			</div>
 			{#if loaded}
@@ -109,8 +98,21 @@
 		</div>
 		{#if loaded}
 			<div class="preview flex flex-1 flex-col">
-				<div class="flex justify-between align-middle h-8 border-b pl-4 pr-2">
-					<h3 class="pt-1 my-0.5">Preview</h3>
+				<div class="flex justify-between align-middle h-8 border-b px-2">
+					<button
+						class="text-gray-500 font-bold px-2 pr-1 rounded float-right m-1 flex items-center"
+						style="
+                        background: #eff1f3;
+                        font-weight: 500;
+
+                        "
+						on:click={() => {
+							dispatch("code", { code });
+						}}
+					>
+						Run
+						<img src={play} class="w-3 h-3 m-0.5" />
+					</button>
 					<div class="flex float-right"></div>
 				</div>
 				{#if !error_display}
@@ -188,8 +190,7 @@
 	}
 	h3 {
 		font-size: medium;
-		font-family: "Source Sans Pro";
-		font-weight: 500;
+		font-weight: 400;
 	}
 
 	.loading-dot {
@@ -203,16 +204,6 @@
 		box-shadow: 9999px 0 0 -1px;
 		animation: loading-dot 2s infinite linear;
 		animation-delay: 0.25s;
-	}
-	.loaded-dot {
-		position: relative;
-		left: -9999px;
-		width: 10px;
-		height: 10px;
-		border-radius: 5px;
-		background-color: #04de04;
-		color: #04de04;
-		box-shadow: 9999px 0 0 2px;
 	}
 	@keyframes loading-dot {
 		0% {
