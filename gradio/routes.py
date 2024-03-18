@@ -1019,7 +1019,7 @@ def mount_gradio_app(
     root_path: str | None = None,
     allowed_paths: list[str] | None = None,
     blocked_paths: list[str] | None = None,
-    prevent_thread_lock: bool = False,
+    favicon_path: str | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -1034,7 +1034,7 @@ def mount_gradio_app(
         root_path: The subpath corresponding to the public deployment of this FastAPI application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used in its entirety. Normally, this does not need to provided (even if you are using a custom `path`). However, if you are serving the FastAPI app behind a proxy, the proxy may not provide the full path to the Gradio app in the request headers. In which case, you can provide the root path here.
         allowed_paths: List of complete filepaths or parent directories that this gradio app is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
         blocked_paths: List of complete filepaths or parent directories that this gradio app is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
-        prevent_thread_lock: If True, the gradio app will block the main thread while the server is running.
+        favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for this gradio app's page.
     Example:
         from fastapi import FastAPI
         import gradio as gr
@@ -1063,7 +1063,7 @@ def mount_gradio_app(
     else:
         blocks.auth = auth
     blocks.auth_message = auth_message
-
+    blocks.favicon_path = favicon_path
     blocks.allowed_paths = allowed_paths or []
     blocks.blocked_paths = blocked_paths or []
 
