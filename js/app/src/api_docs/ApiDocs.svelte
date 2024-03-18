@@ -9,12 +9,13 @@
 	import { represent_value } from "./utils";
 
 	import ApiBanner from "./ApiBanner.svelte";
-	import ResponseObject from "./ResponseObject.svelte";
+	import ParametersSnippet from "./ParametersSnippet.svelte";
 	import InstallSnippet from "./InstallSnippet.svelte";
-	import CodeSnippets from "./CodeSnippets.svelte";
+	import CodeSnippet from "./CodeSnippet.svelte";
 
 	import python from "./img/python.svg";
 	import javascript from "./img/javascript.svg";
+	import ResponseSnippet from "./ResponseSnippet.svelte";
 
 	export let dependencies: Dependency[];
 	export let root: string;
@@ -223,7 +224,7 @@
 				{#each dependencies as dependency, dependency_index}
 					{#if dependency.show_api}
 						<div class="endpoint-container">
-							<CodeSnippets
+							<CodeSnippet
 								named={true}
 								endpoint_parameters={info.named_endpoints[
 									"/" + dependency.api_name
@@ -244,7 +245,17 @@
 							{run}
 						/> -->
 
-							<ResponseObject
+							<ParametersSnippet
+								endpoint_returns={info.named_endpoints[
+									"/" + dependency.api_name
+								].returns}
+								js_returns={js_info.named_endpoints["/" + dependency.api_name]
+									.returns}
+								{is_running}
+								{current_language}
+							/>
+						
+							<ResponseSnippet
 								endpoint_returns={info.named_endpoints[
 									"/" + dependency.api_name
 								].returns}
