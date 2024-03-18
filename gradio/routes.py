@@ -1020,6 +1020,7 @@ def mount_gradio_app(
     allowed_paths: list[str] | None = None,
     blocked_paths: list[str] | None = None,
     favicon_path: str | None = None,
+    show_error: bool = False,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -1035,6 +1036,7 @@ def mount_gradio_app(
         allowed_paths: List of complete filepaths or parent directories that this gradio app is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
         blocked_paths: List of complete filepaths or parent directories that this gradio app is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
         favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for this gradio app's page.
+        show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log
     Example:
         from fastapi import FastAPI
         import gradio as gr
@@ -1066,6 +1068,7 @@ def mount_gradio_app(
     blocks.favicon_path = favicon_path
     blocks.allowed_paths = allowed_paths or []
     blocks.blocked_paths = blocked_paths or []
+    blocks.show_error = show_error
 
     if not isinstance(blocks.allowed_paths, list):
         raise ValueError("`allowed_paths` must be a list of directories.")
