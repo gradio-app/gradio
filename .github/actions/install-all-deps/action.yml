@@ -14,12 +14,15 @@ inputs:
   skip_build:
     description: 'Skip build'
     default: 'false'
+  build_lite:
+    description: 'Build lite'
+    default: 'false'
   test:
     description: 'Test'
     default: 'false'
   python_version:
     description: 'Python version'
-    default: '3.10'
+    default: '3.8'
   os:
     description: 'OS'
     default: 'ubuntu-latest'
@@ -91,6 +94,7 @@ runs:
         node_auth_token: ${{ inputs.node_auth_token }}
         npm_token: ${{ inputs.npm_token }}
         skip_build: ${{ inputs.skip_build }}
+        build_lite: ${{ inputs.build_lite }}
     - name: generate json
       shell: bash
       if: inputs.os == 'ubuntu-latest'

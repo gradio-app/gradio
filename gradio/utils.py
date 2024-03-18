@@ -39,11 +39,14 @@ from typing import (
 )
 
 import anyio
+import gradio_client.utils as client_utils
 import httpx
+from gradio_client.documentation import document
 from typing_extensions import ParamSpec
 
 import gradio
 from gradio.context import Context
+from gradio.data_classes import FileData
 from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -302,7 +305,7 @@ def download_if_url(article: str) -> str:
         response = httpx.get(article, timeout=3)
         if response.status_code == httpx.codes.OK:  # pylint: disable=no-member
             article = response.text
-    except (httpx.InvalidURL, httpx.RequestError):
+    except (httpx.InvalidURL, httpx.RequestError, httpx.TimeoutException):
         pass
 
     return article
@@ -958,6 +961,64 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path):
     return True
 
 
+@document()
+def set_static_paths(paths: list[str | Path]) -> None:
+    """
+    Set the static paths to be served by the gradio app.
+
+    Static files are not moved to the gradio cache and are served directly from the file system.
+    This function is useful when you want to serve files that you know will not be modified during the lifetime of the gradio app (like files used in gr.Examples).
+    By setting static paths, your app will launch faster and it will consume less disk space.
+    Calling this function will set the static paths for all gradio applications defined in the same interpreter session until it is called again or the session ends.
+    To clear out the static paths, call this function with an empty list.
+
+    Parameters:
+        paths: List of filepaths or directory names to be served by the gradio app. If it is a directory name, ALL files located within that directory will be considered static and not moved to the gradio cache. This also means that ALL files in that directory will be accessible over the network.
+    Example:
+        import gradio as gr
+
+        # Paths can be a list of strings or pathlib.Path objects
+        # corresponding to filenames or directories.
+        gr.set_static_paths(paths=["test/test_files/"])
+
+        # The example files and the default value of the input
+        # will not be copied to the gradio cache and will be served directly.
+        demo = gr.Interface(
+            lambda s: s.rotate(45),
+            gr.Image(value="test/test_files/cheetah1.jpg", type="pil"),
+            gr.Image(),
+            examples=["test/test_files/bus.png"],
+        )
+
+        demo.launch()
+    """
+    from gradio.data_classes import _StaticFiles
+
+    _StaticFiles.all_paths.extend([Path(p).resolve() for p in paths])
+
+
+def is_static_file(file_path: Any):
+    """Returns True if the file is a static file (and not moved to cache)"""
+    from gradio.data_classes import _StaticFiles
+
+    return _is_static_file(file_path, _StaticFiles.all_paths)
+
+
+def _is_static_file(file_path: Any, static_files: list[Path]) -> bool:
+    """
+    Returns True if the file is a static file (i.e. is is in the static files list).
+    """
+    if not isinstance(file_path, (str, Path, FileData)):
+        return False
+    if isinstance(file_path, FileData):
+        file_path = file_path.path
+    if isinstance(file_path, str):
+        file_path = Path(file_path)
+        if not file_path.exists():
+            return False
+    return any(is_in_or_equal(file_path, static_file) for static_file in static_files)
+
+
 HTML_TAG_RE = re.compile("<.*?>")
 
 
@@ -1036,6 +1097,9 @@ class LRUCache(OrderedDict, Generic[K, V]):
             self.popitem(last=False)
         super().__setitem__(key, value)
 
+    def __getitem__(self, key: K) -> V:
+        return super().__getitem__(key)
+
 
 def get_cache_folder() -> Path:
     return Path(os.environ.get("GRADIO_EXAMPLES_CACHE", "gradio_cached_examples"))
@@ -1089,3 +1153,19 @@ def get_upload_folder() -> str:
     return os.environ.get("GRADIO_TEMP_DIR") or str(
         (Path(tempfile.gettempdir()) / "gradio").resolve()
     )
+
+
+def simplify_file_data_in_str(s):
+    """
+    If a FileData dictionary has been dumped as part of a string, this function will replace the dict with just the str filepath
+    """
+    try:
+        payload = json.loads(s)
+    except json.JSONDecodeError:
+        return s
+    payload = client_utils.traverse(
+        payload, lambda x: x["path"], client_utils.is_file_obj_with_meta
+    )
+    if isinstance(payload, str):
+        return payload
+    return json.dumps(payload)

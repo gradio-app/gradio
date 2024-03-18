@@ -22,6 +22,7 @@ import pytest
 import vega_datasets
 from gradio_client import media_data
 from gradio_client import utils as client_utils
+from gradio_pdf import PDF
 from scipy.io import wavfile
 
 try:
@@ -31,11 +32,12 @@ except ImportError:
 
 import gradio as gr
 from gradio import processing_utils, utils
+from gradio.components.base import Component
 from gradio.components.dataframe import DataframeData
 from gradio.components.file_explorer import FileExplorerData
 from gradio.components.image_editor import EditorData
 from gradio.components.video import VideoData
-from gradio.data_classes import FileData, ListFiles
+from gradio.data_classes import FileData, GradioModel, GradioRootModel, ListFiles
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -844,6 +846,7 @@ class TestAudio:
                 "skip_length": 5,
                 "waveform_color": None,
                 "waveform_progress_color": None,
+                "trim_region_color": None,
             },
             "_selectable": False,
         }
@@ -897,6 +900,7 @@ class TestAudio:
                 "skip_length": 5,
                 "waveform_color": None,
                 "waveform_progress_color": None,
+                "trim_region_color": None,
             },
             "_selectable": False,
         }
@@ -1539,6 +1543,7 @@ class TestVideo:
                 "size": None,
                 "url": None,
                 "is_stream": False,
+                "meta": {"_type": "gradio.FileData"},
             },
             "subtitles": None,
         }
@@ -1551,6 +1556,7 @@ class TestVideo:
                 "size": None,
                 "url": None,
                 "is_stream": False,
+                "meta": {"_type": "gradio.FileData"},
             },
             "subtitles": {
                 "path": "s1.srt",
@@ -1559,6 +1565,7 @@ class TestVideo:
                 "size": None,
                 "url": None,
                 "is_stream": False,
+                "meta": {"_type": "gradio.FileData"},
             },
         }
         postprocessed_video["video"]["path"] = os.path.basename(
@@ -2258,6 +2265,7 @@ class TestGallery:
                     "size": None,
                     "url": url,
                     "is_stream": False,
+                    "meta": {"_type": "gradio.FileData"},
                 },
                 "caption": None,
             }
@@ -2286,6 +2294,7 @@ class TestGallery:
                     "size": None,
                     "url": None,
                     "is_stream": False,
+                    "meta": {"_type": "gradio.FileData"},
                 },
                 "caption": "foo_caption",
             },
@@ -2297,6 +2306,7 @@ class TestGallery:
                     "size": None,
                     "url": None,
                     "is_stream": False,
+                    "meta": {"_type": "gradio.FileData"},
                 },
                 "caption": "bar_caption",
             },
@@ -2308,6 +2318,7 @@ class TestGallery:
                     "size": None,
                     "url": None,
                     "is_stream": False,
+                    "meta": {"_type": "gradio.FileData"},
                 },
                 "caption": None,
             },
@@ -2319,6 +2330,7 @@ class TestGallery:
                     "size": None,
                     "url": None,
                     "is_stream": False,
+                    "meta": {"_type": "gradio.FileData"},
                 },
                 "caption": None,
             },
@@ -2458,7 +2470,7 @@ class TestScatterPlot:
             "elem_classes": [],
             "interactive": None,
             "label": None,
-            "name": "plot",
+            "name": "scatterplot",
             "bokeh_version": "3.0.3",
             "show_actions_button": False,
             "proxy_url": None,
@@ -2618,7 +2630,7 @@ class TestLinePlot:
             "elem_classes": [],
             "interactive": None,
             "label": None,
-            "name": "plot",
+            "name": "lineplot",
             "bokeh_version": "3.0.3",
             "show_actions_button": False,
             "proxy_url": None,
@@ -2723,7 +2735,7 @@ class TestBarPlot:
             "elem_classes": [],
             "interactive": None,
             "label": None,
-            "name": "plot",
+            "name": "barplot",
             "bokeh_version": "3.0.3",
             "show_actions_button": False,
             "proxy_url": None,
@@ -2962,3 +2974,36 @@ def test_template_component_configs(io_components):
         template_config = component().get_config()
         parent_config = component_parent_class().get_config()
         assert set(parent_config.keys()).issubset(set(template_config.keys()))
+
+
+def test_component_example_values(io_components):
+    for component in io_components:
+        if component == PDF:
+            continue
+        elif component in [gr.BarPlot, gr.LinePlot, gr.ScatterPlot]:
+            c: Component = component(x="x", y="y")
+        else:
+            c: Component = component()
+        c.postprocess(c.example_value())
+
+
+def test_component_example_payloads(io_components):
+    for component in io_components:
+        if component == PDF:
+            continue
+        elif component in [gr.BarPlot, gr.LinePlot, gr.ScatterPlot]:
+            c: Component = component(x="x", y="y")
+        else:
+            c: Component = component()
+        data = c.example_payload()
+        data = processing_utils.move_files_to_cache(
+            data,
+            c,
+            check_in_upload_folder=False,
+        )
+        if getattr(c, "data_model", None) and data is not None:
+            if issubclass(c.data_model, GradioModel):  # type: ignore
+                data = c.data_model(**data)  # type: ignore
+            elif issubclass(c.data_model, GradioRootModel):  # type: ignore
+                data = c.data_model(root=data)  # type: ignore
+        c.preprocess(data)

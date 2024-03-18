@@ -1,5 +1,22 @@
 # gradio_client
 
+## 0.12.0
+
+### Fixes
+
+- [#7575](https://github.com/gradio-app/gradio/pull/7575) [`d0688b3`](https://github.com/gradio-app/gradio/commit/d0688b3c25feabb4fc7dfa0ab86086b3af7eb337) - Files should now be supplied as `file(...)` in the Client, and some fixes to `gr.load()` as well.  Thanks @abidlabs!
+- [#7618](https://github.com/gradio-app/gradio/pull/7618) [`0ae1e44`](https://github.com/gradio-app/gradio/commit/0ae1e4486c06e06bb7a4bad45d58d14f1f8d1b94) - Control which files get moved to cache with gr.set_static_paths.  Thanks @freddyaboulton!
+
+## 0.11.0
+
+### Features
+
+- [#7407](https://github.com/gradio-app/gradio/pull/7407) [`375bfd2`](https://github.com/gradio-app/gradio/commit/375bfd28d2def576b4e1c12e0a60127b7419e826) - Fix server_messages.py to use the patched BaseModel class for Wasm env.  Thanks [@aliabid94](https://github.com/aliabid94)!
+
+### Fixes
+
+- [#7555](https://github.com/gradio-app/gradio/pull/7555) [`fc4c2db`](https://github.com/gradio-app/gradio/commit/fc4c2dbd994c49e37296978da1cb85e424080d1c) - Allow Python Client to upload/download files when connecting to Gradio apps with auth enabled.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
 ## 0.10.1
 
 ### Features

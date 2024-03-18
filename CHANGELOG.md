@@ -1,5 +1,59 @@
 # gradio
 
+## 4.21.0
+
+### Features
+
+- [#7577](https://github.com/gradio-app/gradio/pull/7577) [`7c66a29`](https://github.com/gradio-app/gradio/commit/7c66a29dea0e4e56106d95d93972225b886a9df3) - Fix the Lite custom element to initialize the app in the connected callback and dispose the app in the disconnected callback.  Thanks @whitphx!
+- [#7620](https://github.com/gradio-app/gradio/pull/7620) [`1a4b089`](https://github.com/gradio-app/gradio/commit/1a4b089e78d1efff47b4606daebde02e9b246ed4) - Refactor `example_inputs()`, separating its logic into two separate methods: `example_payload()` and `example_value()`.  Thanks @abidlabs!
+- [#7265](https://github.com/gradio-app/gradio/pull/7265) [`6ebf0ce`](https://github.com/gradio-app/gradio/commit/6ebf0cedf5b357a14a8f5a0a9add849924f59ab0) - Add support for diffuser pipelines in gr.Interface.from_pipeline().  Thanks @shubhamofbce!
+- [#7650](https://github.com/gradio-app/gradio/pull/7650) [`048364c`](https://github.com/gradio-app/gradio/commit/048364c6b0ffe790086c5e2fee5fab1c63c167a0) - downgrade contourpy.  Thanks @abidlabs!
+- [#7571](https://github.com/gradio-app/gradio/pull/7571) [`2edba13`](https://github.com/gradio-app/gradio/commit/2edba133e2a3b58b953ac0894d486faf2819beeb) - Fix `CrossOriginWorkerMaker` to cache the blob URL.  Thanks @whitphx!
+
+### Fixes
+
+- [#7643](https://github.com/gradio-app/gradio/pull/7643) [`9482c7a`](https://github.com/gradio-app/gradio/commit/9482c7a3d2d7b6abd81b786100ddc385133095a5) - fix: redundant meta tags that are unwanted.  Thanks @qkdxorjs1002!
+- [#7628](https://github.com/gradio-app/gradio/pull/7628) [`ba8cc48`](https://github.com/gradio-app/gradio/commit/ba8cc48b136e701717c0c5d15ce410b4f8bf6a21) - feature detect CSSStylesheet.  Thanks @pngwn!
+- [#7575](https://github.com/gradio-app/gradio/pull/7575) [`d0688b3`](https://github.com/gradio-app/gradio/commit/d0688b3c25feabb4fc7dfa0ab86086b3af7eb337) - Files should now be supplied as `file(...)` in the Client, and some fixes to `gr.load()` as well.  Thanks @abidlabs!
+- [#7624](https://github.com/gradio-app/gradio/pull/7624) [`a22f3e0`](https://github.com/gradio-app/gradio/commit/a22f3e062d8d30f630e0cf8e373ad7cb0f99330f) - Fixing root path issue with subpath being repeated twice.  Thanks @abidlabs!
+- [#7638](https://github.com/gradio-app/gradio/pull/7638) [`b3b0ea3`](https://github.com/gradio-app/gradio/commit/b3b0ea3e111ef8a3cdd82ecc310a4accc6af6120) - Add --python-path, --pip-path, --gradio-path CLI arguments to let custom component developers control which executable is used.  Thanks @freddyaboulton!
+- [#7618](https://github.com/gradio-app/gradio/pull/7618) [`0ae1e44`](https://github.com/gradio-app/gradio/commit/0ae1e4486c06e06bb7a4bad45d58d14f1f8d1b94) - Control which files get moved to cache with gr.set_static_paths.  Thanks @freddyaboulton!
+- [#7641](https://github.com/gradio-app/gradio/pull/7641) [`cb3999e`](https://github.com/gradio-app/gradio/commit/cb3999eec707609d5371ef3bad1152f55ed35b2f) - Use `x-forwarded-host` header to determine the root url, and let users provide a full `root_path` to override the automatically determined root url.  Thanks @abidlabs!
+
+## 4.20.1
+
+### Features
+
+- [#7625](https://github.com/gradio-app/gradio/pull/7625) [`8181695`](https://github.com/gradio-app/gradio/commit/8181695e70187e8bc2bf7518697098c8d1b9843d) - image upload fix.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
+## 4.20.0
+
+### Features
+
+- [#7557](https://github.com/gradio-app/gradio/pull/7557) [`4d5789e`](https://github.com/gradio-app/gradio/commit/4d5789e905b5915f3d03fae2ac1d38a54c3e67ea) - Allow mounted Gradio apps to work with external / arbitrary authentication providers.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7614](https://github.com/gradio-app/gradio/pull/7614) [`355ed66`](https://github.com/gradio-app/gradio/commit/355ed666d9f6da018e8a03cdc6e367d00e6b10fb) - Fix the `root_url` logic for streaming files.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7119](https://github.com/gradio-app/gradio/pull/7119) [`9c6de6d`](https://github.com/gradio-app/gradio/commit/9c6de6d85092c1c9378d7f81e5ec734221536812) - Upgrade Pyodide to 0.25.0.  Thanks [@whitphx](https://github.com/whitphx)!
+- [#7447](https://github.com/gradio-app/gradio/pull/7447) [`a57e34e`](https://github.com/gradio-app/gradio/commit/a57e34ef87d24f40f09380b7b71a052f120a19fe) - Add delete_cache parameter to gr.Blocks to delete files created by app on shutdown.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#7547](https://github.com/gradio-app/gradio/pull/7547) [`98aa808`](https://github.com/gradio-app/gradio/commit/98aa8082dd228dd481e05c888adb2e91b04f8f48) - Add `/logout` functionality for Gradio auth.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7407](https://github.com/gradio-app/gradio/pull/7407) [`375bfd2`](https://github.com/gradio-app/gradio/commit/375bfd28d2def576b4e1c12e0a60127b7419e826) - Fix server_messages.py to use the patched BaseModel class for Wasm env.  Thanks [@aliabid94](https://github.com/aliabid94)!
+- [#7516](https://github.com/gradio-app/gradio/pull/7516) [`3645da5`](https://github.com/gradio-app/gradio/commit/3645da5f1e5539668cad75071a82fdd78f50263c) - Fix incorrect relative mouse coordinates for `Gallery` preview overlay.  Thanks [@MMP0](https://github.com/MMP0)!
+- [#7528](https://github.com/gradio-app/gradio/pull/7528) [`eda33b3`](https://github.com/gradio-app/gradio/commit/eda33b3763897a542acf298e523fa493dc655aee) - Refactors `get_fetchable_url_or_file()` to remove it from the frontend.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7340](https://github.com/gradio-app/gradio/pull/7340) [`4b0d589`](https://github.com/gradio-app/gradio/commit/4b0d58933057432758a54169a360eb352903d6b4) - chore(deps): update all non-major dependencies.  Thanks [@renovate](https://github.com/apps/renovate)!
+- [#7345](https://github.com/gradio-app/gradio/pull/7345) [`561579d`](https://github.com/gradio-app/gradio/commit/561579d9b7b860c5cb3f8131e0dced0c8114463f) - fix-tests.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#7518](https://github.com/gradio-app/gradio/pull/7518) [`bd2c695`](https://github.com/gradio-app/gradio/commit/bd2c69532801f9a0626cd1192de158bde6068b9a) - Adds a `gr.DownloadButton` component.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7598](https://github.com/gradio-app/gradio/pull/7598) [`d3384cb`](https://github.com/gradio-app/gradio/commit/d3384cb926ca9bab7ccbf910547ec8a0c361531f) - Prevent additional paths that can trigger credential leakage on Windows.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7544](https://github.com/gradio-app/gradio/pull/7544) [`f84720c`](https://github.com/gradio-app/gradio/commit/f84720cd76e5bf3321f06383642bdb246a9a36e2) - Prevent paths beginning with `//` or `\\`.  Thanks [@abidlabs](https://github.com/abidlabs)!
+
+### Fixes
+
+- [#7565](https://github.com/gradio-app/gradio/pull/7565) [`1c22123`](https://github.com/gradio-app/gradio/commit/1c22123268da5f7fcf6e7c74ee0bf6b225c7aa11) - Fixes method to resolve the `root` URLs.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7559](https://github.com/gradio-app/gradio/pull/7559) [`26356a6`](https://github.com/gradio-app/gradio/commit/26356a623c4196f48ca236d973a597831743cdb8) - Fixes: Invalid file_type breaks drag and drop.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#7555](https://github.com/gradio-app/gradio/pull/7555) [`fc4c2db`](https://github.com/gradio-app/gradio/commit/fc4c2dbd994c49e37296978da1cb85e424080d1c) - Allow Python Client to upload/download files when connecting to Gradio apps with auth enabled.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7510](https://github.com/gradio-app/gradio/pull/7510) [`08c2d49`](https://github.com/gradio-app/gradio/commit/08c2d491ecac83268ad20f05769ef7e1335089e2) - when adding custom head html, ensure there are no duplicate meta tags.  Thanks [@qkdxorjs1002](https://github.com/qkdxorjs1002)!
+- [#7545](https://github.com/gradio-app/gradio/pull/7545) [`1fa2e91`](https://github.com/gradio-app/gradio/commit/1fa2e914ca4663a47743cc34acdf98c7fcc469c8) - Fixes `auth_message` so that it correctly renders HTML.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7599](https://github.com/gradio-app/gradio/pull/7599) [`f26aba0`](https://github.com/gradio-app/gradio/commit/f26aba00a71a5b4eff60c37580c8d25f9bc048da) - Prevent audio speeding up when trimming.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#7567](https://github.com/gradio-app/gradio/pull/7567) [`e340894`](https://github.com/gradio-app/gradio/commit/e340894b1cf2f44dd45e597fd8d9e547f408fbb3) - Quick fix: custom dropdown value.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 4.19.2
 
 ### Features

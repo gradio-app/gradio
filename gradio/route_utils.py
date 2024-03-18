@@ -1,17 +1,34 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import hmac
 import json
+import os
 import re
 import shutil
 from collections import deque
+from contextlib import asynccontextmanager
 from dataclasses import dataclass as python_dataclass
+from datetime import datetime
+from pathlib import Path
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
-from typing import TYPE_CHECKING, AsyncGenerator, BinaryIO, List, Optional, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    AsyncContextManager,
+    AsyncGenerator,
+    BinaryIO,
+    Callable,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 from urllib.parse import urlparse
 
+import anyio
 import fastapi
+import gradio_client.utils as client_utils
 import httpx
 import multipart
 from gradio_client.documentation import document
@@ -64,6 +81,11 @@ class Obj:
             if isinstance(value, Obj) and item in value:
                 return True
         return False
+
+    def get(self, item, default=None):
+        if item in self:
+            return self.__dict__[item]
+        return default
 
     def keys(self):
         return self.__dict__.keys()
@@ -216,6 +238,7 @@ async def call_process_api(
     body: PredictBody,
     gr_request: Union[Request, list[Request]],
     fn_index_inferred: int,
+    root_path: str,
 ):
     session_state, iterator = restore_session_state(app=app, body=body)
 
@@ -242,6 +265,8 @@ async def call_process_api(
                 event_id=event_id,
                 event_data=event_data,
                 in_event_listener=True,
+                simple_format=body.simple_format,
+                root_path=root_path,
             )
         iterator = output.pop("iterator", None)
         if event_id is not None:
@@ -270,19 +295,31 @@ def get_root_url(
 ) -> str:
     """
     Gets the root url of the request, stripping off any query parameters, the route_path, and trailing slashes.
-    Also ensures that the root url is https if the request is https. If root_path is provided, it is appended to the root url.
-    The final root url will not have a trailing slash.
+    Also ensures that the root url is https if the request is https. If an absolute root_path is provided,
+    it is returned directly. If a relative root_path is provided, and it is not already the subpath of the URL,
+    it is appended to the root url. The final root url will not have a trailing slash.
     """
-    root_url = str(request.url)
+    if root_path and client_utils.is_http_url_like(root_path):
+        return root_path.rstrip("/")
+
+    x_forwarded_host = request.headers.get("x-forwarded-host")
+    root_url = f"http://{x_forwarded_host}" if x_forwarded_host else str(request.url)
     root_url = httpx.URL(root_url)
     root_url = root_url.copy_with(query=None)
     root_url = str(root_url).rstrip("/")
     if request.headers.get("x-forwarded-proto") == "https":
         root_url = root_url.replace("http://", "https://")
+
     route_path = route_path.rstrip("/")
     if len(route_path) > 0:
         root_url = root_url[: -len(route_path)]
-    return (root_url.rstrip("/") + (root_path or "")).rstrip("/")
+    root_url = root_url.rstrip("/")
+
+    root_url = httpx.URL(root_url)
+    if root_path and root_url.path != root_path:
+        root_url = root_url.copy_with(path=root_path)
+
+    return str(root_url).rstrip("/")
 
 
 def _user_safe_decode(src: bytes, codec: str) -> str:
@@ -581,9 +618,9 @@ def compare_passwords_securely(input_password: str, correct_password: str) -> bo
 
 def starts_with_protocol(string: str) -> bool:
     """This regex matches strings that start with a scheme (one or more characters not including colon, slash, or space)
-    followed by ://, or start with just // or \\ as they are interpreted as SMB paths on Windows.
+    followed by ://, or start with just //, \\/, /\\, or \\ as they are interpreted as SMB paths on Windows.
     """
-    pattern = r"^(?:[a-zA-Z][a-zA-Z0-9+\-.]*://|//|\\\\)"
+    pattern = r"^(?:[a-zA-Z][a-zA-Z0-9+\-.]*://|//|\\\\|\\/|/\\)"
     return re.match(pattern, string) is not None
 
 
@@ -640,3 +677,67 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
             "Access-Control-Allow-Headers"
         ] = "Origin, Content-Type, Accept"
         return response
+
+
+def delete_files_created_by_app(blocks: Blocks, age: int | None) -> None:
+    """Delete files that are older than age. If age is None, delete all files."""
+
+    dont_delete = set()
+    for component in blocks.blocks.values():
+        dont_delete.update(getattr(component, "keep_in_cache", set()))
+    for temp_set in blocks.temp_file_sets:
+        # We use a copy of the set to avoid modifying the set while iterating over it
+        # otherwise we would get an exception: Set changed size during iteration
+        to_remove = set()
+        for file in temp_set:
+            if file in dont_delete:
+                continue
+            try:
+                file_path = Path(file)
+                modified_time = datetime.fromtimestamp(file_path.lstat().st_ctime)
+                if age is None or (datetime.now() - modified_time).seconds > age:
+                    os.remove(file)
+                    to_remove.add(file)
+            except FileNotFoundError:
+                continue
+        temp_set -= to_remove
+
+
+async def delete_files_on_schedule(app: App, frequency: int, age: int) -> None:
+    """Startup task to delete files created by the app based on time since last modification."""
+    while True:
+        await asyncio.sleep(frequency)
+        await anyio.to_thread.run_sync(
+            delete_files_created_by_app, app.get_blocks(), age
+        )
+
+
+@asynccontextmanager
+async def _lifespan_handler(
+    app: App, frequency: int = 1, age: int = 1
+) -> AsyncGenerator:
+    """A context manager that triggers the startup and shutdown events of the app."""
+    app.get_blocks().startup_events()
+    app.startup_events_triggered = True
+    asyncio.create_task(delete_files_on_schedule(app, frequency, age))
+    yield
+    delete_files_created_by_app(app.get_blocks(), age=None)
+
+
+def create_lifespan_handler(
+    user_lifespan: Callable[[App], AsyncContextManager] | None,
+    frequency: int = 1,
+    age: int = 1,
+) -> Callable[[App], AsyncContextManager]:
+    """Return a context manager that applies _lifespan_handler and user_lifespan if it exists."""
+
+    @asynccontextmanager
+    async def _handler(app: App):
+        async with _lifespan_handler(app, frequency, age):
+            if user_lifespan is not None:
+                async with user_lifespan(app):
+                    yield
+            else:
+                yield
+
+    return _handler

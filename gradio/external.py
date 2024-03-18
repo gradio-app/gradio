@@ -343,6 +343,11 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
             label="Predictions", type="array", headers=["prediction"]
         )
         fn = external_utils.tabular_wrapper
+    # example model: microsoft/table-transformer-detection
+    elif p == "object-detection":
+        inputs = components.Image(type="filepath", label="Input Image")
+        outputs = components.AnnotatedImage(label="Annotations")
+        fn = external_utils.object_detection_wrapper(client)
     else:
         raise ValueError(f"Unsupported pipeline type: {p}")
 
@@ -418,7 +423,13 @@ def from_spaces(
 
 
 def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
-    client = Client(space, hf_token=hf_token, download_files=False)
+    client = Client(
+        space,
+        hf_token=hf_token,
+        upload_files=False,
+        download_files=False,
+        _skip_components=False,
+    )
     # We set deserialize to False to avoid downloading output files from the server.
     # Instead, we serve them as URLs using the /proxy/ endpoint directly from the server.
 

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from typing import Any, Callable
 
 from gradio_client.documentation import document
@@ -88,15 +87,11 @@ class JSON(Component):
         else:
             return value
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
         return {"foo": "bar"}
 
-    def flag(
-        self,
-        payload: Any,
-        flag_dir: str | Path = "",  # noqa: ARG002
-    ) -> str:
-        return json.dumps(payload)
+    def example_value(self) -> Any:
+        return {"foo": "bar"}
 
     def read_from_flag(self, payload: Any):
         return json.loads(payload)

@@ -252,11 +252,11 @@ class TestLoadInterface:
         client = TestClient(app)
         response = client.post(
             "/api/predict/",
-            json={"session_hash": "foo", "data": ["Hi!", None], "fn_index": 0},
+            json={"session_hash": "foo", "data": ["Hi!"], "fn_index": 0},
         )
         output = response.json()
         assert isinstance(output["data"], list)
-        assert isinstance(output["data"][0], list)
+        assert isinstance(output["data"][0], str)
         assert "foo" in app.state_holder
 
     def test_speech_recognition_model(self):
@@ -396,6 +396,9 @@ class TestLoadInterfaceWithExamples:
         # This demo still has the "fake_event". both should work
         demo = gr.load("spaces/gradio-tests/test-calculator-2v4-sse")
         assert demo(2, "add", 4) == 6
+
+    def test_loading_chatbot_with_avatar_images_does_not_raise_errors(self):
+        gr.load("gradio/chatbot_multimodal", src="spaces")
 
 
 def test_get_tabular_examples_replaces_nan_with_str_nan():

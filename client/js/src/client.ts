@@ -42,7 +42,7 @@ type predict = (
 	event_data?: unknown
 ) => Promise<unknown>;
 
-type client_return = {
+export type client_return = {
 	predict: predict;
 	config: Config;
 	submit: (
@@ -194,6 +194,7 @@ export function api_factory(
 		if (token) {
 			headers.Authorization = `Bearer ${token}`;
 		}
+
 		try {
 			var response = await fetch_implementation(url, {
 				method: "POST",
@@ -755,7 +756,11 @@ export function api_factory(
 									}
 								}
 							};
-						} else if (protocol == "sse_v1" || protocol == "sse_v2") {
+						} else if (
+							protocol == "sse_v1" ||
+							protocol == "sse_v2" ||
+							protocol == "sse_v2.1"
+						) {
 							// latest API format. v2 introduces sending diffs for intermediate outputs in generative functions, which makes payloads lighter.
 							fire_event({
 								type: "status",
@@ -849,7 +854,10 @@ export function api_factory(
 													endpoint: _endpoint,
 													fn_index
 												});
-												if (data && protocol === "sse_v2") {
+												if (
+													data &&
+													(protocol === "sse_v2" || protocol === "sse_v2.1")
+												) {
 													apply_diff_stream(event_id!, data);
 												}
 											}

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document
@@ -156,11 +155,11 @@ class Code(Component):
         else:
             return value.strip()
 
-    def flag(self, payload: Any, flag_dir: str | Path = "") -> str:
-        return super().flag(payload, flag_dir)
-
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return "print('Hello World')"
+
+    def example_value(self) -> Any:
         return "print('Hello World')"

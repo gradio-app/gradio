@@ -27,6 +27,7 @@ class Dataset(Component):
         *,
         label: str | None = None,
         components: list[Component] | list[str],
+        component_props: list[dict[str, Any]] | None = None,
         samples: list[list[Any]] | None = None,
         headers: list[str] | None = None,
         type: Literal["values", "index"] = "values",
@@ -67,13 +68,16 @@ class Dataset(Component):
         self.scale = scale
         self.min_width = min_width
         self._components = [get_component_instance(c) for c in components]
-        self.component_props = [
-            component.recover_kwargs(
-                component.get_config(),
-                ["value"],
-            )
-            for component in self._components
-        ]
+        if component_props is None:
+            self.component_props = [
+                component.recover_kwargs(
+                    component.get_config(),
+                    ["value"],
+                )
+                for component in self._components
+            ]
+        else:
+            self.component_props = component_props
 
         # Narrow type to Component
         if not all(isinstance(c, Component) for c in self._components):
@@ -94,10 +98,9 @@ class Dataset(Component):
                     # use the previous name to be backwards-compatible with previously-created
                     # custom components
                     example[i] = component.as_example(ex)
-                    example[i] = processing_utils.move_files_to_cache(
-                        example[i],
-                        component,
-                    )
+                example[i] = processing_utils.move_files_to_cache(
+                    example[i], component, keep_in_cache=True
+                )
         self.type = type
         self.label = label
         if headers is not None:
@@ -149,5 +152,8 @@ class Dataset(Component):
             "__type__": "update",
         }
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
         return 0
+
+    def example_value(self) -> Any:
+        return []

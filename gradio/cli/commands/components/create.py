@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import shutil
 from pathlib import Path
 from typing import Optional
@@ -48,6 +50,12 @@ def _create(
         str,
         typer.Option(help="NPM install command to use. Default is 'npm install'."),
     ] = "npm install",
+    pip_path: Annotated[
+        Optional[str],
+        typer.Option(
+            help="Path to pip executable. If None, will use the default path found by `which pip3`. If pip3 is not found, `which pip` will be tried. If both fail an error will be raised."
+        ),
+    ] = None,
     overwrite: Annotated[
         bool,
         typer.Option(help="Whether to overwrite the existing component if it exists."),
@@ -101,7 +109,7 @@ def _create(
         live.update(":art: Created frontend code", add_sleep=0.2)
 
         if install:
-            _install_command(directory, live, npm_install)
+            _install_command(directory, live, npm_install, pip_path)
 
         live._panel.stop()
 
