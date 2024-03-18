@@ -21,7 +21,6 @@ def format_image(
     """Helper method to format an image based on self.type"""
     if im is None:
         return im
-    fmt = im.format
     if type == "pil":
         return im
     elif type == "numpy":
@@ -29,10 +28,7 @@ def format_image(
     elif type == "filepath":
         try:
             path = processing_utils.save_pil_to_cache(
-                im,
-                cache_dir=cache_dir,
-                name=name,
-                format=fmt or format,  # type: ignore
+                im, cache_dir=cache_dir, name=name, format=format
             )
         # Catch error if format is not supported by PIL
         except (KeyError, ValueError):
@@ -52,7 +48,7 @@ def format_image(
 
 
 def save_image(
-    y: np.ndarray | PIL.Image.Image | str | Path, cache_dir: str, format: str = None
+    y: np.ndarray | PIL.Image.Image | str | Path, cache_dir: str, format: str = "png"
 ):
     # numpy gets saved to png as default format
     # PIL gets saved to its original format if possible
@@ -61,17 +57,14 @@ def save_image(
             y, cache_dir=cache_dir, format=format
         )
     elif isinstance(y, PIL.Image.Image):
-        fmt = format or y.format
         try:
             path = processing_utils.save_pil_to_cache(
-                y,
-                cache_dir=cache_dir,
-                format=fmt,  # type: ignore
+                y, cache_dir=cache_dir, format=format
             )
         # Catch error if format is not supported by PIL
         except (KeyError, ValueError):
             path = processing_utils.save_pil_to_cache(
-                y, cache_dir=cache_dir, format=format or "png"
+                y, cache_dir=cache_dir, format="png"
             )
     elif isinstance(y, Path):
         path = str(y)
