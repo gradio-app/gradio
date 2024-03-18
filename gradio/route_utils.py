@@ -82,6 +82,11 @@ class Obj:
                 return True
         return False
 
+    def get(self, item, default=None):
+        if item in self:
+            return self.__dict__[item]
+        return default
+
     def keys(self):
         return self.__dict__.keys()
 

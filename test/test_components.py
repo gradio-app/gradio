@@ -2470,7 +2470,7 @@ class TestScatterPlot:
             "elem_classes": [],
             "interactive": None,
             "label": None,
-            "name": "plot",
+            "name": "scatterplot",
             "bokeh_version": "3.0.3",
             "show_actions_button": False,
             "proxy_url": None,
@@ -2630,7 +2630,7 @@ class TestLinePlot:
             "elem_classes": [],
             "interactive": None,
             "label": None,
-            "name": "plot",
+            "name": "lineplot",
             "bokeh_version": "3.0.3",
             "show_actions_button": False,
             "proxy_url": None,
@@ -2735,7 +2735,7 @@ class TestBarPlot:
             "elem_classes": [],
             "interactive": None,
             "label": None,
-            "name": "plot",
+            "name": "barplot",
             "bokeh_version": "3.0.3",
             "show_actions_button": False,
             "proxy_url": None,
@@ -2937,6 +2937,12 @@ class TestFileExplorer:
             {"name": "file2.txt", "type": "file", "valid": True},
         ]
         assert tree == answer
+
+
+class TestButton:
+    def test_postprocess(self):
+        assert gr.Button().postprocess("5") == "5"
+        assert gr.Button().postprocess(5) == "5"
 
 
 def test_component_class_ids():
