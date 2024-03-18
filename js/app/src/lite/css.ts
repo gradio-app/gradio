@@ -35,10 +35,11 @@ export async function wasm_proxied_mount_css(
 	});
 	const css = new TextDecoder().decode(response.body);
 
-	const existing_link = document.querySelector(
+	// Gradio Lite can be reloaded without refreshing the page, so we need to remove the existing style element if it exists.
+	const existing_style = document.querySelector(
 		`style[data-wasm-path='${url_string}']`
 	);
-	if (existing_link) return;
+	existing_style?.remove();
 
 	if (url.pathname === DYNAMIC_THEME_CSS_URL_PATH) {
 		console.debug(
