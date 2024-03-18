@@ -2939,6 +2939,12 @@ class TestFileExplorer:
         assert tree == answer
 
 
+class TestButton:
+    def test_postprocess(self):
+        assert gr.Button().postprocess("5") == "5"
+        assert gr.Button().postprocess(5) == "5"
+
+
 def test_component_class_ids():
     button_id = gr.Button().component_class_id
     textbox_id = gr.Textbox().component_class_id
