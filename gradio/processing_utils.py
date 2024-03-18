@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
 import numpy as np
-import requests
+import urllib3
 from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, PngImagePlugin
 
@@ -190,9 +190,10 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
     full_temp_file_path = str(abspath(temp_dir / name))
 
     if not Path(full_temp_file_path).exists():
-        response = requests.get(url, stream=True)
+        # NOTE: We use urllib3 instead of httpx because it works in the Wasm environment. See https://github.com/gradio-app/gradio/issues/6837.
+        response = urllib3.request("GET", url, preload_content=False)
         with open(full_temp_file_path, "wb") as f:
-            for chunk in response.iter_content(chunk_size=256):
+            for chunk in response.stream():
                 f.write(chunk)
 
     return full_temp_file_path
