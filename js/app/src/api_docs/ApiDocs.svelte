@@ -239,13 +239,6 @@
 								{dependency_failures}
 							/>
 
-							<h4>
-								<div class="toggle-icon">
-									<div class="toggle-dot" />
-								</div>
-								Parameters:
-							</h4>
-						
 							<ParametersSnippet
 								endpoint_returns={info.named_endpoints[
 									"/" + dependency.api_name
@@ -255,18 +248,7 @@
 								{is_running}
 								{current_language}
 							/>
-						
-							<h4>
-								<div class="toggle-icon">
-									<div class="toggle-dot toggle-right" />
-								</div>
-								Returns a {#if info.named_endpoints[
-									"/" + dependency.api_name
-								].returns.length > 1} {current_language == "python" ? "tuple" : "list"} of {info.named_endpoints[
-									"/" + dependency.api_name
-								].returns.length} elements{:else} single element{/if}
-							</h4>
-							
+
 							<ResponseSnippet
 								endpoint_returns={info.named_endpoints[
 									"/" + dependency.api_name
@@ -383,7 +365,7 @@
 	.endpoint-container {
 		margin-top: var(--size-3);
 		margin-bottom: var(--size-3);
-		border: 1px solid var(--border-color-primary);
+		border: 1px solid var(--body-text-color);
 		border-radius: var(--radius-xl);
 		padding: var(--size-3);
 		padding-top: 0;
@@ -397,39 +379,4 @@
 		padding: 15px 0px;
 		font-size: var(--text-lg);
 	}
-
-	h4 {
-		display: flex;
-		align-items: center;
-		margin-top: var(--size-6);
-		margin-bottom: var(--size-3);
-		color: var(--body-text-color);
-		font-weight: var(--weight-bold);
-	}
-
-	.toggle-icon {
-		display: flex;
-		align-items: center;
-		margin-right: var(--size-2);
-		border-radius: var(--radius-full);
-		background: var(--color-grey-300);
-		width: 12px;
-		height: 4px;
-	}
-
-	.toggle-dot {
-		border-radius: var(--radius-full);
-		background: var(--color-grey-700);
-		width: 6px;
-		height: 6px;
-	}
-
-	.toggle-left {
-		margin-right: auto;
-	}
-
-	.toggle-right {
-		margin-left: auto;
-	}
-
 </style>

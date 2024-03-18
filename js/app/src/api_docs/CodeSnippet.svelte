@@ -49,14 +49,19 @@
 					<CopyButton code={python_code?.innerText} />
 				</div>
 				<div bind:this={python_code}>
-					<pre><span class="highlight">from</span> gradio_client <span class="highlight">import</span> Client{#if has_file_path}, file{/if}
+					<pre><span class="highlight">from</span> gradio_client <span
+							class="highlight">import</span
+						> Client{#if has_file_path}, file{/if}
 
 client = Client(<span class="token string">"{root}"</span>)
-result = client.<span class="highlight">predict</span>(<!--
+result = client.<span class="highlight">predict</span
+						>(<!--
 -->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
         -->
 		<span
-								class="example-inputs">{represent_value(example_input, python_type.type, "py")}</span>,{/each}<!--
+								class="example-inputs"
+								>{represent_value(example_input, python_type.type, "py")}</span
+							>,{/each}<!--
 
 		-->
 		api_name=<span class="api-name">"/{dependency.api_name}"</span><!--
@@ -166,5 +171,4 @@ console.log(result.data);
 	.api-name {
 		color: var(--color-accent);
 	}
-	
 </style>
