@@ -49,7 +49,7 @@
 		loaded = true;
 	});
 
-	function shortcut_run(e: KeyboardEvent) : void {
+	function shortcut_run(e: KeyboardEvent): void {
 		if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
 			e.preventDefault();
 			dispatch("code", { code });
