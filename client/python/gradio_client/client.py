@@ -464,7 +464,9 @@ class Client:
         """
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
 
-        args = utils.construct_args(self.endpoints[inferred_fn_index], args, kwargs)
+        args = utils.construct_args(
+            self.endpoints[inferred_fn_index].parameters_info, args, kwargs
+        )
 
         helper = None
         if self.endpoints[inferred_fn_index].protocol in (

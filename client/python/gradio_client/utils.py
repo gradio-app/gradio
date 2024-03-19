@@ -26,7 +26,6 @@ from huggingface_hub import SpaceStage
 from websockets.legacy.protocol import WebSocketCommonProtocol
 
 if TYPE_CHECKING:
-    from gradio_client.client import Endpoint
     from gradio_client.data_classes import ParameterInfo
 
 API_URL = "api/predict/"
@@ -1069,7 +1068,9 @@ def file(filepath_or_url: str | Path):
         )
 
 
-def construct_args(parameters_info: list[ParameterInfo], args: tuple, kwargs: dict) -> list:
+def construct_args(
+    parameters_info: list[ParameterInfo] | None, args: tuple, kwargs: dict
+) -> list:
     class _Keywords(Enum):
         NO_VALUE = "NO_VALUE"  # Used as a sentinel to determine if nothing is provided as a parameter for an argument
 
