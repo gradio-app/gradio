@@ -207,6 +207,12 @@ importers:
       chromatic:
         specifier: ^11.0.0
         version: 11.0.0
+      react:
+        specifier: ^18.2.0
+        version: 18.2.0
+      react-dom:
+        specifier: ^18.2.0
+        version: 18.2.0(react@18.2.0)
       storybook:
         specifier: ^8.0.2
         version: 8.0.2(react-dom@18.2.0)(react@18.2.0)
