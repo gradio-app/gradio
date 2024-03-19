@@ -17,7 +17,7 @@
 !test-strategy.md
 **/js/_space-test/**
 ../js/app/src/lite/theme.css
-../storybook/theme.css
+../.storybook/theme.css
 **/gradio_cached_examples/**
 **/storybook-static/**  
 **/.vscode/**
