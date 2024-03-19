@@ -988,7 +988,7 @@ class Endpoint:
         self.output_component_types = [
             self._get_component_type(id_) for id_ in dependency["outputs"]
         ]
-        self.parameters_info = self._get_parameters_info(self, dependency)
+        self.parameters_info = self._get_parameters_info()
 
         self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
         self.is_continuous = dependency.get("types", {}).get("continuous", False)
@@ -1009,10 +1009,12 @@ class Endpoint:
             component["type"] == "state",
         )
 
-    def _get_parameters_info(self):
+    def _get_parameters_info(self) -> dict | None:
         if not self.client._info:
             self._info = self.client._get_api_info()
-        return self._info["named_endpoints"][self.api_name]["parameters"]
+        if self.api_name in self._info["named_endpoints"]:
+            return self._info["named_endpoints"][self.api_name]["parameters"]
+        return None
 
     @staticmethod
     def value_is_file(component: dict) -> bool:
