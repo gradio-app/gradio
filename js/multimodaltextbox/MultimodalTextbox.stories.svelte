@@ -1,7 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import MultimodalTextbox from "./Index.svelte";
-	import Accordion from "js/accordion/shared/Accordion.svelte";
 </script>
 
 <Meta
