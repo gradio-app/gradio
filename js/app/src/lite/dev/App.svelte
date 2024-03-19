@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { f } from "@storybook/theming/dist/create-3ae9aa71";
 	import type { create as createType } from "..";
 	// @ts-ignore
 	const create: typeof createType = globalThis.createGradioApp;
