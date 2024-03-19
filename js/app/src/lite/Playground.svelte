@@ -9,6 +9,7 @@
 	import ErrorDisplay from "./ErrorDisplay.svelte";
 	import lightning from "../images/lightning.svg";
 	import play from "../images/play.svg";
+	import { n } from "@storybook/theming/dist/create-3ae9aa71";
 
 	export let autoscroll: boolean;
 	export let version: string;
@@ -48,7 +49,7 @@
 		loaded = true;
 	});
 
-	function shortcut_run(e: KeyboardEvent) {
+	function shortcut_run(e: KeyboardEvent) : void {
 		if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
 			e.preventDefault();
 			dispatch("code", { code });
@@ -75,7 +76,7 @@
 				{:else}
 					<div style="display: flex;"></div>
 					<div class="loading-section">
-						<img src={lightning} class="lightning-logo" />
+						<img src={lightning} alt="lightning icon" class="lightning-logo" />
 						Interactive
 					</div>
 				{/if}
@@ -115,7 +116,7 @@
 							}}
 						>
 							Run
-							<img src={play} class="play-logo" />
+							<img src={play} alt="play icon" class="play-logo" />
 						</button>
 						<div class="shortcut">⌘+↵</div>
 					</div>
@@ -311,10 +312,6 @@
 	}
 	:global(.code-editor button) {
 		display: none;
-	}
-	h3 {
-		font-size: medium;
-		font-weight: 400;
 	}
 
 	.loading-dot {

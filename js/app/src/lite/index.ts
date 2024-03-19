@@ -176,7 +176,7 @@ export function create(options: Options): GradioAppController {
 			});
 		}
 	}
-	function launchNewApp(loaded: boolean = false): Promise<void> {
+	function launchNewApp(loaded = false): Promise<void> {
 		if (app != null) {
 			app.$destroy();
 		}
