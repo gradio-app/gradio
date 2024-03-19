@@ -1,5 +1,47 @@
 # @gradio/app
 
+## 1.28.0
+
+### Features
+
+- [#7420](https://github.com/gradio-app/gradio/pull/7420) [`15da39f`](https://github.com/gradio-app/gradio/commit/15da39fca01d09a30cf47e7e72d7efa5052f61f8) - Multimodal Textbox (Chat Input Component).  Thanks @dawoodkhan82!
+- [#7660](https://github.com/gradio-app/gradio/pull/7660) [`f739bef`](https://github.com/gradio-app/gradio/commit/f739bef6c70a2b012dd896456709eae5ee4de7d5) - Add Playground to Lite Custom Element.  Thanks @aliabd!
+- [#7710](https://github.com/gradio-app/gradio/pull/7710) [`0a3870d`](https://github.com/gradio-app/gradio/commit/0a3870d52b5efc64b2d1f9a8c7314a3a8b48b90a) - Call handle_darkmode() even if `window.__gradio_mode__ === "website"` but enforce the light theme.  Thanks @whitphx!
+
+### Fixes
+
+- [#7564](https://github.com/gradio-app/gradio/pull/7564) [`5d1e8da`](https://github.com/gradio-app/gradio/commit/5d1e8dae5ac23f605c3b5f41dbe18751dff380a0) - batch UI updates on a per frame basis.  Thanks @pngwn!
+- [#7691](https://github.com/gradio-app/gradio/pull/7691) [`84f81fe`](https://github.com/gradio-app/gradio/commit/84f81fec9287b041203a141bbf2852720f7d199c) - Fix race condition between state updates and loading_status updates.  Thanks @aliabid94!
+- [#7709](https://github.com/gradio-app/gradio/pull/7709) [`f67759d`](https://github.com/gradio-app/gradio/commit/f67759dcee665cfd7c44f102f36ab23128ee2c2c) - Fix wasm_proxied_mount_css to not reuse an existing style element.  Thanks @whitphx!
+- [#7703](https://github.com/gradio-app/gradio/pull/7703) [`598ad7b`](https://github.com/gradio-app/gradio/commit/598ad7baf722181a25200e9a8ba858bae39c7d82) - fix dev mode.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/code@0.5.7
+- @gradio/radio@0.4.6
+- @gradio/client@0.14.0
+- @gradio/multimodaltextbox@0.2.0
+- @gradio/upload@0.8.0
+- @gradio/wasm@0.9.0
+- @gradio/accordion@0.3.5
+- @gradio/dataframe@0.6.8
+- @gradio/dataset@0.1.26
+- @gradio/markdown@0.6.6
+- @gradio/annotatedimage@0.5.7
+- @gradio/audio@0.9.7
+- @gradio/button@0.2.26
+- @gradio/chatbot@0.7.7
+- @gradio/downloadbutton@0.1.3
+- @gradio/file@0.5.7
+- @gradio/fileexplorer@0.3.27
+- @gradio/gallery@0.8.3
+- @gradio/image@0.9.7
+- @gradio/imageeditor@0.4.7
+- @gradio/model3d@0.8.6
+- @gradio/simpleimage@0.3.7
+- @gradio/uploadbutton@0.5.3
+- @gradio/video@0.6.7
+
 ## 1.27.0
 
 ### Features
