@@ -15,7 +15,7 @@
 <Story
 	name="Text value"
 	args={{
-		value: {text: "the quick brown fox"}
+		value: { text: "the quick brown fox" }
 	}}
 />
 
