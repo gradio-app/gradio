@@ -15,13 +15,13 @@
 <Story
 	name="Text value"
 	args={{
-		value: { text: "the quick brown fox" }
+		value: { text: "the quick brown fox", files: [] }
 	}}
 />
 
 <Story
-	name="Null"
+	name="Empty Value"
 	args={{
-		value: null
+		value: { text: "", files: [] }
 	}}
 />
