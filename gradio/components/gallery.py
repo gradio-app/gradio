@@ -77,7 +77,7 @@ class Gallery(Component):
         """
         Parameters:
             value: List of images to display in the gallery by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            format: Format used to save images, such as 'jpeg' or 'png'. The jpeg format uses less memory at the cost of image quality. If set to None, will use "png".
+            format: Format used to save images, such as 'jpeg' or 'png'. The jpeg format uses less memory at the cost of image quality. If set to None, will use "png". This parameter only takes effect when numpy arrays or PIL Images are returned from the prediction function.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
