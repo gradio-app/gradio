@@ -54,7 +54,8 @@
 	name="MultimodalTextbox with file and label"
 	args={{
 		value: [
-			{ text: "sample text",
+			{
+				text: "sample text",
 				files: [
 					{
 						file: {
