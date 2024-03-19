@@ -1068,17 +1068,19 @@ def file(filepath_or_url: str | Path):
         )
 
 
-def construct_args(endpoint: Endpoint, args: list, kwargs: dict):
+def construct_args(endpoint: Endpoint, args: list, kwargs: dict) -> list:
     num_args = len(args)
+    args = args + [None] * (len(endpoint.parameters_info) - num_args)
     kwarg_arg_mapping = {}
     for param_info, index in endpoint.parameters_info:
         if "parameter_name" in param_info:
             kwarg_arg_mapping[param_info["parameter_name"]] = index
     for key, value in kwargs.items():
         if key in kwarg_arg_mapping:
-            value = kwargs[key]
+            if kwarg_arg_mapping[key] < num_args:
+                raise ValueError(f"Parameter `{key}` is already set as a positional argument.")
+            else:
+                args[kwarg_arg_mapping[key]] = value
         else:
-            raise ValueError("Invalid parameter name: " + key)
-
-
-    return endpoint, args, kwargs, _args
+            raise ValueError(f"Parameter `{key}` is not a valid parameter.")
+    return args
