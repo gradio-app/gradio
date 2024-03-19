@@ -49,7 +49,7 @@
 	});
 
 	function shortcut_run(e: KeyboardEvent) {
-		if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+		if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
 			e.preventDefault();
 			dispatch("code", { code });
 		}
@@ -61,11 +61,8 @@
 
 <svelte:window on:keydown={shortcut_run} />
 
-
 <div class="parent-container">
-	<div
-		class="child-container"
-	>
+	<div class="child-container">
 		<div class:code-editor-border={loaded} class="code-editor">
 			<div class="loading-panel">
 				<div class="code-header">app.py</div>
@@ -84,77 +81,77 @@
 				{/if}
 			</div>
 			<div style="flex-grow: 1;">
-			{#if loaded}
-				<Code
-					bind:value={code}
-					label=""
-					language="python"
-					target={dummy_elem}
-					gradio={dummy_gradio}
-					lines={10}
-					interactive={true}
-				/>
-			{:else}
-				<Code
-					bind:value={code}
-					label=""
-					language="python"
-					target={dummy_elem}
-					gradio={dummy_gradio}
-					lines={10}
-					interactive={loaded}
-				/>
-			{/if}
+				{#if loaded}
+					<Code
+						bind:value={code}
+						label=""
+						language="python"
+						target={dummy_elem}
+						gradio={dummy_gradio}
+						lines={10}
+						interactive={true}
+					/>
+				{:else}
+					<Code
+						bind:value={code}
+						label=""
+						language="python"
+						target={dummy_elem}
+						gradio={dummy_gradio}
+						lines={10}
+						interactive={loaded}
+					/>
+				{/if}
 			</div>
 		</div>
 		{#if loaded}
 			<div class="preview">
 				<div class="buttons">
 					<div class="run">
-					<button
-						class="button"
-						on:click={() => {
-							dispatch("code", { code });
-						}}
-					>
-						Run
-						<img src={play} class="play-logo" />
-					</button>
-					<div class="shortcut">⌘+↵</div>
+						<button
+							class="button"
+							on:click={() => {
+								dispatch("code", { code });
+							}}
+						>
+							Run
+							<img src={play} class="play-logo" />
+						</button>
+						<div class="shortcut">⌘+↵</div>
 					</div>
 
 					<div style="display: flex; float: right;"></div>
 				</div>
 				<div>
-				{#if !error_display}
-					<Index
-						{autoscroll}
-						{version}
-						{initial_height}
-						{app_mode}
-						{is_embed}
-						{theme_mode}
-						{control_page_title}
-						{container}
-						{info}
-						{eager}
-						{mount_css}
-						{client}
-						{upload_files}
-						bind:worker_proxy
-						{fetch_implementation}
-						{EventSource_factory}
-						{space}
-						{host}
-						{src}
-					/>
-				{:else}
-					<ErrorDisplay
-						is_embed={error_display.is_embed}
-						error={error_display.error}
-					/>
-				{/if}
-			</div>
+					{#if !error_display}
+						<Index
+							{autoscroll}
+							{version}
+							{initial_height}
+							{app_mode}
+							{is_embed}
+							{theme_mode}
+							{control_page_title}
+							{container}
+							{info}
+							{eager}
+							{mount_css}
+							{client}
+							{upload_files}
+							bind:worker_proxy
+							{fetch_implementation}
+							{EventSource_factory}
+							{space}
+							{host}
+							{src}
+						/>
+					{:else}
+						<ErrorDisplay
+							is_embed={error_display.is_embed}
+							error={error_display.error}
+						/>
+					{/if}
+				</div>
 			</div>
 		{/if}
 	</div>
@@ -181,7 +178,6 @@
 		}
 		.code-editor-border {
 			border-right: 1px solid rgb(229 231 235);
-
 		}
 	}
 
@@ -189,7 +185,7 @@
 		flex-grow: 1;
 		flex: 1 1 0%;
 		display: flex;
-		flex-direction: column;		
+		flex-direction: column;
 	}
 
 	.loading-panel {
@@ -198,7 +194,7 @@
 		vertical-align: middle;
 		height: 2rem;
 		padding-left: 0.5rem;
-    	padding-right: 0.5rem;
+		padding-right: 0.5rem;
 		border-bottom: 1px solid rgb(229 231 235);
 	}
 
@@ -213,7 +209,7 @@
 		align-items: center;
 		display: flex;
 		margin-left: 0.5rem;
-    	margin-right: 0.5rem;
+		margin-right: 0.5rem;
 		color: #999b9e;
 		font-family: sans-serif;
 	}
@@ -247,7 +243,7 @@
 
 	.button {
 		display: flex;
-    	align-items: center;
+		align-items: center;
 		font-weight: 500;
 		padding-left: 0.5rem;
 		padding-right: 0.25rem;
@@ -333,7 +329,7 @@
 		animation: loading-dot 2s infinite linear;
 		animation-delay: 0.25s;
 		margin-left: 0.5rem;
-    	margin-right: 0.5rem;
+		margin-right: 0.5rem;
 	}
 	@keyframes loading-dot {
 		0% {
