@@ -21,6 +21,6 @@ with gr.Blocks() as demo:
 
 if __name__ == "__main__":
     if version == "3":
-        demo.queue(concurrency_limit=None).launch(max_threads=250)
+        demo.queue(concurrency_count=250).launch(max_threads=250)
     else:
         demo.launch(max_threads=250)
