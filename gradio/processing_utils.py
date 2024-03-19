@@ -58,7 +58,7 @@ def extract_base64_data(x: str) -> str:
 #########################
 
 
-def encode_plot_to_base64(plt, format=None):
+def encode_plot_to_base64(plt, format: str = "png"):
     fmt = format or "png"
     with BytesIO() as output_bytes:
         plt.savefig(output_bytes, format=fmt)

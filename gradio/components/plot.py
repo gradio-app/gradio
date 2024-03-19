@@ -42,7 +42,7 @@ class Plot(Component):
         self,
         value: Any | None = None,
         *,
-        format: str | None = None,
+        format: str = "png",
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
@@ -57,7 +57,7 @@ class Plot(Component):
         """
         Parameters:
             value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, altair, or bokeh figure, or a callable. If callable, the function will be called whenever the app loads to set the initial value of the component.
-            format: File format to save matplotlib plots as, such as 'jpg' or 'png'. If set to None, will default to 'png'.
+            format: File format in which to send matplotlib plots to the front end, such as 'jpg' or 'png'.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.

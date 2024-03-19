@@ -49,7 +49,7 @@ class AnnotatedImage(Component):
         ]
         | None = None,
         *,
-        format: str | None = None,
+        format: str = "png",
         show_legend: bool = True,
         height: int | str | None = None,
         width: int | str | None = None,
@@ -68,7 +68,7 @@ class AnnotatedImage(Component):
         """
         Parameters:
             value: Tuple of base image and list of (annotation, label) pairs.
-            format: Format used to save images, such as 'jpeg' or 'png'. The jpeg format uses less memory at the cost of image quality. If set to None, will use "png". This parameter only takes effect when numpy arrays or PIL Images are returned from the prediction function.
+            format: Format used to save images before it is returned to the front end, such as 'jpeg' or 'png'. This parameter only takes effect when the base image is returned from the prediction function as a numpy array or a PIL Image. The format should be supported by the PIL library.
             show_legend: If True, will show a legend of the annotations.
             height: The height of the image, specified in pixels if a number is passed, or in CSS units if a string is passed.
             width: The width of the image, specified in pixels if a number is passed, or in CSS units if a string is passed.
@@ -144,12 +144,12 @@ class AnnotatedImage(Component):
             base_img = np.array(PIL.Image.open(base_img))
         elif isinstance(base_img, np.ndarray):
             base_file = processing_utils.save_img_array_to_cache(
-                base_img, cache_dir=self.GRADIO_CACHE, format=self.format or "png"
+                base_img, cache_dir=self.GRADIO_CACHE, format=self.format
             )
             base_img_path = str(utils.abspath(base_file))
         elif isinstance(base_img, PIL.Image.Image):
             base_file = processing_utils.save_pil_to_cache(
-                base_img, cache_dir=self.GRADIO_CACHE, format=self.format or "png"
+                base_img, cache_dir=self.GRADIO_CACHE, format=self.format
             )
             base_img_path = str(utils.abspath(base_file))
             base_img = np.array(base_img)
