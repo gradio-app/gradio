@@ -49,7 +49,7 @@ jobs:
       - name: generate theme.css
         run: | 
           . venv/bin/activate
-          python scripts/generate_theme.py --outfile storybook/theme.css
+          python scripts/generate_theme.py --outfile .storybook/theme.css
       - name: build storybook
         run: pnpm build-storybook --quiet
       - name: publish to chromatic
