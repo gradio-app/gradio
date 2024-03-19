@@ -748,11 +748,17 @@ class TestImage:
         file_path = "test/test_files/bus.png"
         image = component.postprocess(file_path)
         assert image.path.endswith("png")
+        image = component.postprocess(
+            np.random.randint(0, 256, (100, 100, 3), dtype=np.uint8)
+        )
+        assert image.path.endswith("jpeg")
 
         image_pre = component.preprocess(FileData(path=file_path))
-        assert image_pre.endswith("jpeg")
+        assert image_pre.endswith("png")
 
-        image_pre = component.preprocess(FileData(path="test/test_files/cheetah1.jpg"))
+        image_pre = component.preprocess(
+            FileData(path="test/test_files/cheetah1.jpg", orig_name="cheetah1.jpg")
+        )
         assert image_pre.endswith("jpeg")
 
 

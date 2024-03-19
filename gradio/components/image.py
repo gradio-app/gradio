@@ -186,7 +186,7 @@ class Image(StreamingInput, Component):
             cast(Literal["numpy", "pil", "filepath"], self.type),
             self.GRADIO_CACHE,
             name=name,
-            format=self.format or suffix,
+            format=suffix,
         )
 
     def postprocess(
