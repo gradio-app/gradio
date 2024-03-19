@@ -27,6 +27,7 @@ from websockets.legacy.protocol import WebSocketCommonProtocol
 
 if TYPE_CHECKING:
     from gradio_client.client import Endpoint
+    from gradio_client.data_classes import ParameterInfo
 
 API_URL = "api/predict/"
 SSE_URL_V0 = "queue/join"
@@ -1068,23 +1069,23 @@ def file(filepath_or_url: str | Path):
         )
 
 
-def construct_args(endpoint: Endpoint, args: tuple, kwargs: dict) -> list:
+def construct_args(parameters_info: list[ParameterInfo], args: tuple, kwargs: dict) -> list:
     class _Keywords(Enum):
         NO_VALUE = "NO_VALUE"  # Used as a sentinel to determine if nothing is provided as a parameter for an argument
 
     _args = list(args)
-    if endpoint.parameters_info is None:
+    if parameters_info is None:
         if kwargs:
             raise ValueError(
                 "This endpoint does not support key-word arguments Please run Client.view_api() to see usage."
             )
         return _args
     num_args = len(args)
-    _args = _args + [_Keywords.NO_VALUE] * (len(endpoint.parameters_info) - num_args)
+    _args = _args + [_Keywords.NO_VALUE] * (len(parameters_info) - num_args)
 
     kwarg_arg_mapping = {}
     kwarg_names = []
-    for index, param_info in enumerate(endpoint.parameters_info):
+    for index, param_info in enumerate(parameters_info):
         if "parameter_name" in param_info:
             kwarg_arg_mapping[param_info["parameter_name"]] = index
             kwarg_names.append(param_info["parameter_name"])
