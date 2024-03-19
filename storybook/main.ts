@@ -18,7 +18,7 @@ const config: StorybookConfig = {
 		name: "@storybook/svelte-vite",
 		options: {
 			builder: {
-				viteConfigPath: "js/storybook/vite.config.js"
+				viteConfigPath: "storybook/vite.config.js"
 			}
 		}
 	},
@@ -29,7 +29,7 @@ const config: StorybookConfig = {
 				configType === "PRODUCTION"
 					? [
 							turbosnap({
-								rootDir: `${process.cwd()}/js/storybook`
+								rootDir: `${process.cwd()}/storybook`
 							})
 					  ]
 					: []
