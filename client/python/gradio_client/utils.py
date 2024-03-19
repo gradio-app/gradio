@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import base64
 import copy
-import hashlib
 import json
 import mimetypes
 import os
@@ -116,6 +115,7 @@ class ServerMessage(str, Enum):
     heartbeat = "heartbeat"
     server_stopped = "server_stopped"
     unexpected_error = "unexpected_error"
+    close_stream = "close_stream"
 
 
 class Status(Enum):
@@ -246,10 +246,12 @@ class Communicator:
 ########################
 
 
-def is_http_url_like(possible_url: str) -> bool:
+def is_http_url_like(possible_url) -> bool:
     """
-    Check if the given string looks like an HTTP(S) URL.
+    Check if the given value is a string that looks like an HTTP(S) URL.
     """
+    if not isinstance(possible_url, str):
+        return False
     return possible_url.startswith(("http://", "https://"))
 
 
@@ -351,10 +353,11 @@ async def get_pred_from_sse_v0(
     sse_data_url: str,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
+    ssl_verify: bool,
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
-            asyncio.create_task(check_for_cancel(helper, headers, cookies)),
+            asyncio.create_task(check_for_cancel(helper, headers, cookies, ssl_verify)),
             asyncio.create_task(
                 stream_sse_v0(
                     client,
@@ -384,19 +387,22 @@ async def get_pred_from_sse_v0(
         return task.result()
 
 
-async def get_pred_from_sse_v1_v2(
+async def get_pred_from_sse_v1plus(
     helper: Communicator,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
     pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
-    protocol: Literal["sse_v1", "sse_v2"],
+    protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
+    ssl_verify: bool,
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
-            asyncio.create_task(check_for_cancel(helper, headers, cookies)),
+            asyncio.create_task(check_for_cancel(helper, headers, cookies, ssl_verify)),
             asyncio.create_task(
-                stream_sse_v1_v2(helper, pending_messages_per_event, event_id, protocol)
+                stream_sse_v1plus(
+                    helper, pending_messages_per_event, event_id, protocol
+                )
             ),
         ],
         return_when=asyncio.FIRST_COMPLETED,
@@ -419,7 +425,10 @@ async def get_pred_from_sse_v1_v2(
 
 
 async def check_for_cancel(
-    helper: Communicator, headers: dict[str, str], cookies: dict[str, str] | None
+    helper: Communicator,
+    headers: dict[str, str],
+    cookies: dict[str, str] | None,
+    ssl_verify: bool,
 ):
     while True:
         await asyncio.sleep(0.05)
@@ -427,7 +436,7 @@ async def check_for_cancel(
             if helper.should_cancel:
                 break
     if helper.event_id:
-        async with httpx.AsyncClient() as http:
+        async with httpx.AsyncClient(ssl_verify=ssl_verify) as http:
             await http.post(
                 helper.reset_url,
                 json={"event_id": helper.event_id},
@@ -506,11 +515,11 @@ async def stream_sse_v0(
         raise
 
 
-async def stream_sse_v1_v2(
+async def stream_sse_v1plus(
     helper: Communicator,
     pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
-    protocol: Literal["sse_v1", "sse_v2"],
+    protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
 ) -> dict[str, Any]:
     try:
         pending_messages = pending_messages_per_event[event_id]
@@ -546,10 +555,11 @@ async def stream_sse_v1_v2(
                     log=log_message,
                 )
                 output = msg.get("output", {}).get("data", [])
-                if (
-                    msg["msg"] == ServerMessage.process_generating
-                    and protocol == "sse_v2"
-                ):
+                if msg["msg"] == ServerMessage.process_generating and protocol in [
+                    "sse_v2",
+                    "sse_v2.1",
+                    "sse_v3",
+                ]:
                     if pending_responses_for_diffs is None:
                         pending_responses_for_diffs = list(output)
                     else:
@@ -621,35 +631,6 @@ def apply_diff(obj, diff):
 ########################
 # Data processing utils
 ########################
-
-
-def download_file(
-    url_path: str,
-    save_dir: str,
-    headers: dict[str, str] | None = None,
-    cookies: dict[str, str] | None = None,
-) -> str:
-    if save_dir is not None:
-        os.makedirs(save_dir, exist_ok=True)
-
-    sha1 = hashlib.sha1()
-    temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
-    temp_dir.mkdir(exist_ok=True, parents=True)
-
-    with httpx.stream(
-        "GET", url_path, headers=headers, cookies=cookies, follow_redirects=True
-    ) as response:
-        response.raise_for_status()
-        with open(temp_dir / Path(url_path).name, "wb") as f:
-            for chunk in response.iter_bytes(chunk_size=128 * sha1.block_size):
-                sha1.update(chunk)
-                f.write(chunk)
-
-    directory = Path(save_dir) / sha1.hexdigest()
-    directory.mkdir(exist_ok=True, parents=True)
-    dest = directory / Path(url_path).name
-    shutil.move(temp_dir / Path(url_path).name, dest)
-    return str(dest.resolve())
 
 
 def create_tmp_copy_of_file(file_path: str, dir: str | None = None) -> str:
@@ -898,13 +879,18 @@ def get_type(schema: dict):
         raise APIInfoParseError(f"Cannot parse type for {schema}")
 
 
-OLD_FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)"
-FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool)"
+FILE_DATA_FORMATS = [
+    "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)",
+    "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool)",
+    "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool, meta: Dict())",
+]
+
+CURRENT_FILE_DATA_FORMAT = FILE_DATA_FORMATS[-1]
 
 
 def json_schema_to_python_type(schema: Any) -> str:
     type_ = _json_schema_to_python_type(schema, schema.get("$defs"))
-    return type_.replace(FILE_DATA, "filepath")
+    return type_.replace(CURRENT_FILE_DATA_FORMAT, "filepath")
 
 
 def _json_schema_to_python_type(schema: Any, defs) -> str:
@@ -980,7 +966,7 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
         raise APIInfoParseError(f"Cannot parse schema {schema}")
 
 
-def traverse(json_obj: Any, func: Callable, is_root: Callable) -> Any:
+def traverse(json_obj: Any, func: Callable, is_root: Callable[..., bool]) -> Any:
     if is_root(json_obj):
         return func(json_obj)
     elif isinstance(json_obj, dict):
@@ -999,25 +985,55 @@ def traverse(json_obj: Any, func: Callable, is_root: Callable) -> Any:
 
 def value_is_file(api_info: dict) -> bool:
     info = _json_schema_to_python_type(api_info, api_info.get("$defs"))
-    return FILE_DATA in info or OLD_FILE_DATA in info
+    return any(file_data_format in info for file_data_format in FILE_DATA_FORMATS)
 
 
-def is_filepath(s):
-    return isinstance(s, str) and Path(s).exists()
+def is_filepath(s) -> bool:
+    """
+    Check if the given value is a valid str or Path filepath on the local filesystem, e.g. "path/to/file".
+    """
+    return isinstance(s, (str, Path)) and Path(s).exists() and Path(s).is_file()
 
 
-def is_url(s):
-    return isinstance(s, str) and is_http_url_like(s)
+def is_file_obj(d) -> bool:
+    """
+    Check if the given value is a valid FileData object dictionary in versions of Gradio<=4.20, e.g.
+    {
+        "path": "path/to/file",
+    }
+    """
+    return isinstance(d, dict) and "path" in d and isinstance(d["path"], str)
 
 
-def is_file_obj(d):
-    return isinstance(d, dict) and "path" in d
-
-
-def is_file_obj_with_url(d):
+def is_file_obj_with_meta(d) -> bool:
+    """
+    Check if the given value is a valid FileData object dictionary in newer versions of Gradio
+    where the file objects include a specific "meta" key, e.g.
+    {
+        "path": "path/to/file",
+        "meta": {"_type: "gradio.FileData"}
+    }
+    """
     return (
-        isinstance(d, dict) and "path" in d and "url" in d and isinstance(d["url"], str)
+        isinstance(d, dict)
+        and "path" in d
+        and isinstance(d["path"], str)
+        and "meta" in d
+        and d["meta"].get("_type", "") == "gradio.FileData"
     )
+
+
+def is_file_obj_with_url(d) -> bool:
+    """
+    Check if the given value is a valid FileData object dictionary in newer versions of Gradio
+    where the file objects include a specific "meta" key, and ALSO include a "url" key, e.g.
+    {
+        "path": "path/to/file",
+        "url": "/file=path/to/file",
+        "meta": {"_type: "gradio.FileData"}
+    }
+    """
+    return is_file_obj_with_meta(d) and "url" in d and isinstance(d["url"], str)
 
 
 SKIP_COMPONENTS = {
@@ -1034,3 +1050,16 @@ SKIP_COMPONENTS = {
     "interpretation",
     "dataset",
 }
+
+
+def file(filepath_or_url: str | Path):
+    s = str(filepath_or_url)
+    data = {"path": s, "meta": {"_type": "gradio.FileData"}}
+    if is_http_url_like(s):
+        return {**data, "orig_name": s.split("/")[-1], "url": s}
+    elif Path(s).exists():
+        return {**data, "orig_name": Path(s).name}
+    else:
+        raise ValueError(
+            f"File {s} does not exist on local filesystem and is not a valid URL."
+        )

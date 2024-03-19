@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:feature detect CSSStylesheet
+fix:fix dev mode

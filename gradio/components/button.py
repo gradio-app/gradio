@@ -87,7 +87,7 @@ class Button(Component):
         Returns:
             Expects a `str` value that is set as the button label
         """
-        return value
+        return str(value)
 
     def example_payload(self) -> Any:
         return "Run"
