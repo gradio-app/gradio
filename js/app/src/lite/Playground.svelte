@@ -9,6 +9,7 @@
 	import ErrorDisplay from "./ErrorDisplay.svelte";
 	import lightning from "../images/lightning.svg";
 	import play from "../images/play.svg";
+	import type { LoadingStatus } from "js/statustracker";
 
 	export let autoscroll: boolean;
 	export let version: string;
@@ -37,7 +38,17 @@
 	const dispatch = createEventDispatcher();
 
 	let dummy_elem: any = { classList: { contains: () => false } };
-	let dummy_gradio: any = { dispatch: (_) => {} };
+	let dummy_gradio: any = { dispatch: (_: any) => {} };
+	let dummy_loading_status: LoadingStatus = {
+		eta: 0,
+		queue_position: 0,
+		queue_size: 0,
+		status: "complete",
+		show_progress: "hidden",
+		scroll_to_output: false,
+		visible: false,
+		fn_index: 0
+	};
 
 	let loading_text = "";
 	export let loaded = false;
@@ -90,6 +101,7 @@
 						gradio={dummy_gradio}
 						lines={10}
 						interactive={true}
+						loading_status={dummy_loading_status}
 					/>
 				{:else}
 					<Code
@@ -99,7 +111,8 @@
 						target={dummy_elem}
 						gradio={dummy_gradio}
 						lines={10}
-						interactive={loaded}
+						interactive={false}
+						loading_status={dummy_loading_status}
 					/>
 				{/if}
 			</div>

@@ -91,13 +91,15 @@ export function create(options: Options): GradioAppController {
 
 	function clean_indent(code: string): string {
 		const lines = code.split("\n");
-		let min_indent = null;
+		let min_indent: any = null;
 		lines.forEach((line) => {
 			const current_indent = line.match(/^(\s*)\S/);
 			if (current_indent) {
 				const indent_length = current_indent[1].length;
 				min_indent =
-					min_indent !== null ? Math.min(min_indent, indent_length) : indent_length;
+					min_indent !== null
+						? Math.min(min_indent, indent_length)
+						: indent_length;
 			}
 		});
 		if (min_indent === null || min_indent === 0) {
@@ -139,6 +141,9 @@ export function create(options: Options): GradioAppController {
 
 	let app: SvelteComponent;
 	let app_props: any;
+
+	let loaded = false;
+
 	function showError(error: Error): void {
 		if (app != null) {
 			app.$destroy();
@@ -158,9 +163,10 @@ export function create(options: Options): GradioAppController {
 			});
 			app.$on("code", (code) => {
 				options.code = clean_indent(code.detail.code);
+				loaded = true;
 				worker_proxy
 					.runPythonCode(options.code)
-					.then(launchNewApp(true))
+					.then(launchNewApp)
 					.catch((e) => {
 						showError(e);
 						throw e;
@@ -176,7 +182,7 @@ export function create(options: Options): GradioAppController {
 			});
 		}
 	}
-	function launchNewApp(loaded = false): Promise<void> {
+	function launchNewApp(): Promise<void> {
 		if (app != null) {
 			app.$destroy();
 		}
@@ -222,9 +228,10 @@ export function create(options: Options): GradioAppController {
 			});
 			app.$on("code", (code) => {
 				options.code = clean_indent(code.detail.code);
+				loaded = true;
 				worker_proxy
 					.runPythonCode(options.code)
-					.then(launchNewApp(true))
+					.then(launchNewApp)
 					.catch((e) => {
 						showError(e);
 						throw e;

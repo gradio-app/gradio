@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { f } from "@storybook/theming/dist/create-3ae9aa71";
 	import type { create as createType } from "..";
 	// @ts-ignore
 	const create: typeof createType = globalThis.createGradioApp;
@@ -77,7 +78,8 @@ def hi(name):
 			themeMode: null,
 			autoScroll: false,
 			controlPageTitle: false,
-			appMode: true
+			appMode: true,
+			playground: false
 		});
 	});
 	onDestroy(() => {
