@@ -44,6 +44,7 @@ from gradio.components import (
     LogoutButton,
     Markdown,
     Model3D,
+    MultimodalTextbox,
     Number,
     ParamViewer,
     Plot,

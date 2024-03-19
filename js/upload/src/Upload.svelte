@@ -16,6 +16,7 @@
 	export let hidden = false;
 	export let format: "blob" | "file" = "file";
 	export let uploading = false;
+	export let hidden_upload: HTMLInputElement | null = null;
 
 	let upload_id: string;
 	let file_data: FileData[];
@@ -24,7 +25,6 @@
 	// Needed for wasm support
 	const upload_fn = getContext<typeof upload_files>("upload_files");
 
-	let hidden_upload: HTMLInputElement;
 	const dispatch = createEventDispatcher();
 	const validFileTypes = ["image", "video", "audio", "text", "file"];
 	const processFileType = (type: string): string => {
@@ -70,8 +70,10 @@
 
 	export function open_file_upload(): void {
 		if (disable_click) return;
-		hidden_upload.value = "";
-		hidden_upload.click();
+		if (hidden_upload) {
+			hidden_upload.value = "";
+			hidden_upload.click();
+		}
 	}
 
 	async function handle_upload(
@@ -92,7 +94,9 @@
 		if (!files.length) {
 			return;
 		}
-		let _files: File[] = files.map((f) => new File([f], f.name));
+		let _files: File[] = files.map(
+			(f) => new File([f], f.name, { type: f.type })
+		);
 		file_data = await prepare_files(_files);
 		return await handle_upload(file_data);
 	}
@@ -191,6 +195,7 @@
 		class:center
 		class:boundedheight
 		class:flex
+		class:disable_click
 		style:height="100%"
 		tabindex={hidden ? -1 : 0}
 		on:drag|preventDefault|stopPropagation
@@ -212,7 +217,7 @@
 			type="file"
 			bind:this={hidden_upload}
 			on:change={load_files_from_upload}
-			accept={accept_file_types}
+			accept={accept_file_types || undefined}
 			multiple={file_count === "multiple" || undefined}
 			webkitdirectory={file_count === "directory" || undefined}
 			mozdirectory={file_count === "directory" || undefined}
@@ -240,8 +245,12 @@
 	}
 	.flex {
 		display: flex;
+		flex-direction: column;
 		justify-content: center;
 		align-items: center;
+	}
+	.disable_click {
+		cursor: default;
 	}
 
 	input {
