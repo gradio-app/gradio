@@ -26,7 +26,7 @@ jobs:
   test-visual:
     name: "test-visual"
     needs: changes
-    if: true
+    if: ${{ needs.changes.outputs.should_run == 'true' && github.repository == 'gradio-app/gradio' && !contains(needs.changes.outputs.labels, 'no-visual-update') }}
     runs-on: ubuntu-latest
     outputs:
       changes: ${{ steps.publish-chromatic.outputs.changeCount }}
