@@ -5,7 +5,7 @@ import turbosnap from "vite-plugin-turbosnap";
 const config: StorybookConfig = {
 	stories: [
 		"../../js/**/*.mdx",
-		"../../js/**/*.stories.@(js|jsx|ts|tsx|svelte|mdx)"
+		"../../js/**/*.@(mdx|stories.@(js|jsx|ts|tsx|svelte))"
 	],
 	addons: [
 		"@storybook/addon-links",

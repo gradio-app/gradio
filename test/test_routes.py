@@ -344,16 +344,23 @@ class TestRoutes:
         with TestClient(app) as client:
             assert client.get("/echo/docs-custom").is_success
 
-    def test_mount_gradio_app_with_auth_and_root_path(self):
+    def test_mount_gradio_app_with_auth_and_params(self):
         app = FastAPI()
         demo = gr.Interface(lambda s: f"You said {s}!", "textbox", "textbox").queue()
         app = gr.mount_gradio_app(
-            app, demo, path="/echo", auth=("a", "b"), root_path="/echo"
+            app,
+            demo,
+            path="/echo",
+            auth=("a", "b"),
+            root_path="/echo",
+            allowed_paths=["test/test_files/bus.png"],
         )
         # Use context manager to trigger start up events
         with TestClient(app) as client:
             assert client.get("/echo/config").status_code == 401
         assert demo.root_path == "/echo"
+        assert demo.allowed_paths == ["test/test_files/bus.png"]
+        assert demo.show_error
 
     def test_mount_gradio_app_with_lifespan(self):
         @asynccontextmanager
