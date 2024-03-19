@@ -1078,7 +1078,7 @@ def construct_args(
     if parameters_info is None:
         if kwargs:
             raise ValueError(
-                "This endpoint does not support key-word arguments Please run Client.view_api() to see usage."
+                "This endpoint does not support key-word arguments Please click on 'view API' in the footer of the Gradio app to see usage."
             )
         return _args
     num_args = len(args)
@@ -1102,13 +1102,13 @@ def construct_args(
         if key in kwarg_arg_mapping:
             if kwarg_arg_mapping[key] < num_args:
                 raise ValueError(
-                    f"Parameter `{key}` is already set as a positional argument. Please run Client.view_api() to see usage."
+                    f"Parameter `{key}` is already set as a positional argument. Please click on 'view API' in the footer of the Gradio app to see usage."
                 )
             else:
                 _args[kwarg_arg_mapping[key]] = value
         else:
             raise ValueError(
-                f"Parameter `{key}` is not a valid key-word argument. Please run Client.view_api() to see usage."
+                f"Parameter `{key}` is not a valid key-word argument. Please click on 'view API' in the footer of the Gradio app to see usage."
             )
 
     if _Keywords.NO_VALUE in _args:

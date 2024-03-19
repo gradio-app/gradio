@@ -952,6 +952,9 @@ class TestAPIInfo:
                 "parameters": [
                     {
                         "label": "num1",
+                        "parameter_name": "num1",
+                        "parameter_has_default": False,
+                        "parameter_default": "None",
                         "type": {"type": "number"},
                         "python_type": {"type": "float", "description": ""},
                         "component": "Number",
@@ -959,6 +962,9 @@ class TestAPIInfo:
                     },
                     {
                         "label": "operation",
+                        "parameter_name": "operation",
+                        "parameter_has_default": False,
+                        "parameter_default": "None",
                         "type": {
                             "enum": ["add", "subtract", "multiply", "divide"],
                             "title": "Radio",
@@ -973,6 +979,9 @@ class TestAPIInfo:
                     },
                     {
                         "label": "num2",
+                        "parameter_name": "num2",
+                        "parameter_has_default": False,
+                        "parameter_default": "None",
                         "type": {"type": "number"},
                         "python_type": {"type": "float", "description": ""},
                         "component": "Number",
@@ -1046,6 +1055,9 @@ class TestAPIInfo:
                         "parameters": [
                             {
                                 "label": "name",
+                                "parameter_name": "name",
+                                "parameter_has_default": False,
+                                "parameter_default": "None",
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
@@ -1077,6 +1089,9 @@ class TestAPIInfo:
                         "parameters": [
                             {
                                 "label": "name",
+                                "parameter_name": "name",
+                                "parameter_has_default": False,
+                                "parameter_default": "None",
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
@@ -1093,10 +1108,7 @@ class TestAPIInfo:
                             {
                                 "label": "count",
                                 "type": {"type": "number"},
-                                "python_type": {
-                                    "type": "float",
-                                    "description": "",
-                                },
+                                "python_type": {"type": "float", "description": ""},
                                 "component": "Number",
                             },
                         ],
@@ -1107,10 +1119,7 @@ class TestAPIInfo:
                             {
                                 "label": "count",
                                 "type": {"type": "number"},
-                                "python_type": {
-                                    "type": "float",
-                                    "description": "",
-                                },
+                                "python_type": {"type": "float", "description": ""},
                                 "component": "Number",
                             }
                         ],
@@ -1121,10 +1130,7 @@ class TestAPIInfo:
                             {
                                 "label": "count",
                                 "type": {"type": "number"},
-                                "python_type": {
-                                    "type": "float",
-                                    "description": "",
-                                },
+                                "python_type": {"type": "float", "description": ""},
                                 "component": "Number",
                             }
                         ],

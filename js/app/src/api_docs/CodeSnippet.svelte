@@ -61,7 +61,11 @@ result = client.<span class="highlight">predict</span
 		{parameter_name
 								? parameter_name + "="
 								: ""}<span class="example-inputs"
-								>{represent_value(parameter_has_default ? parameter_default : example_input, python_type.type, "py")}</span
+								>{represent_value(
+									parameter_has_default ? parameter_default : example_input,
+									python_type.type,
+									"py"
+								)}</span
 							>,{/each}<!--
 
 		-->
