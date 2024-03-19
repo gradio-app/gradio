@@ -1965,19 +1965,19 @@ Received outputs:
         public link used by anyone to access the demo from their browser by setting share=True.
 
         Parameters:
-            inline: whether to display in the interface inline in an iframe. Defaults to True in python notebooks; False otherwise.
-            inbrowser: whether to automatically launch the interface in a new tab on the default browser.
-            share: whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab. When localhost is not accessible (e.g. Google Colab), setting share=False is not supported.
+            inline: whether to display in the gradio app inline in an iframe. Defaults to True in python notebooks; False otherwise.
+            inbrowser: whether to automatically launch the gradio app in a new tab on the default browser.
+            share: whether to create a publicly shareable link for the gradio app. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab. When localhost is not accessible (e.g. Google Colab), setting share=False is not supported.
             debug: if True, blocks the main thread from running. If running in Google Colab, this is needed to print the errors in the cell output.
             auth: If provided, username and password (or list of username-password tuples) required to access app. Can also provide function that takes username and password and returns True if valid login.
             auth_message: If provided, HTML message provided on login page.
-            prevent_thread_lock: If True, the interface will block the main thread while the server is running.
-            show_error: If True, any errors in the interface will be displayed in an alert modal and printed in the browser console log
+            prevent_thread_lock: By default, the gradio app blocks the main thread while the server is running. If set to True, the gradio app will not block and the gradio server will terminate as soon as the script finishes.
+            show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
             max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40).
-            width: The width in pixels of the iframe element containing the interface (used if inline=True)
-            height: The height in pixels of the iframe element containing the interface (used if inline=True)
+            width: The width in pixels of the iframe element containing the gradio app (used if inline=True)
+            height: The height in pixels of the iframe element containing the gradio app (used if inline=True)
             favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
             ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
@@ -1985,7 +1985,7 @@ Received outputs:
             ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
             show_api: If True, shows the api docs in the footer of the app. Default True.
-            allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
+            allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used as the root path in its entirety. Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
             app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
