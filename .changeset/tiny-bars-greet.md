@@ -5,4 +5,4 @@
 "gradio_client": minor
 ---
 
-feat:Add support for kwargs in python client
+feat:Adds support for kwargs and default arguments in the python client, and improves how parameter information is displayed in the "view API" page
