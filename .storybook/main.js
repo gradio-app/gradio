@@ -2,15 +2,18 @@ import { mergeConfig } from "vite";
 import turbosnap from "vite-plugin-turbosnap";
 
 const config = {
-	stories: ["./Introduction.mdx", "../js/**/*.@(mdx|stories.@(js|jsx|ts|tsx|svelte))"],
+	stories: [
+		"./Introduction.mdx",
+		"../js/**/*.@(mdx|stories.@(js|jsx|ts|tsx|svelte))"
+	],
 	addons: [
-        "@storybook/addon-links",
-        "@storybook/addon-essentials",
-        "@storybook/addon-interactions",
-        "@storybook/addon-svelte-csf",
-        "@storybook/addon-a11y",
-        "@storybook/addon-mdx-gfm"
-    ],
+		"@storybook/addon-links",
+		"@storybook/addon-essentials",
+		"@storybook/addon-interactions",
+		"@storybook/addon-svelte-csf",
+		"@storybook/addon-a11y",
+		"@storybook/addon-mdx-gfm"
+	],
 	framework: {
 		name: "@storybook/svelte-vite",
 		options: {
@@ -26,7 +29,8 @@ const config = {
 				configType === "PRODUCTION"
 					? [
 							turbosnap({
-								rootDir: `${process.cwd()}/storybook`
+								// rootDir: `${process.cwd()}/storybook`
+								rootDir: ".storybook"
 							})
 						]
 					: []
