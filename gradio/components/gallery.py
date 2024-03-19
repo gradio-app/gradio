@@ -50,6 +50,7 @@ class Gallery(Component):
         | Callable
         | None = None,
         *,
+        format: str = "png",
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
@@ -76,6 +77,7 @@ class Gallery(Component):
         """
         Parameters:
             value: List of images to display in the gallery by default. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            format: Format to save images before they are returned to the frontend, such as 'jpeg' or 'png'. This parameter only applies to images that are returned from the prediction function as numpy arrays or PIL Images. The format should be supported by the PIL library.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -98,6 +100,7 @@ class Gallery(Component):
             interactive: If True, the gallery will be interactive, allowing the user to upload images. If False, the gallery will be static. Default is True.
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. If the image is SVG, the `type` is ignored and the filepath of the SVG is returned.
         """
+        self.format = format
         self.columns = columns
         self.rows = rows
         self.height = height
@@ -176,12 +179,12 @@ class Gallery(Component):
                 img, caption = img
             if isinstance(img, np.ndarray):
                 file = processing_utils.save_img_array_to_cache(
-                    img, cache_dir=self.GRADIO_CACHE
+                    img, cache_dir=self.GRADIO_CACHE, format=self.format
                 )
                 file_path = str(utils.abspath(file))
             elif isinstance(img, PIL.Image.Image):
                 file = processing_utils.save_pil_to_cache(
-                    img, cache_dir=self.GRADIO_CACHE
+                    img, cache_dir=self.GRADIO_CACHE, format=self.format
                 )
                 file_path = str(utils.abspath(file))
             elif isinstance(img, str):
