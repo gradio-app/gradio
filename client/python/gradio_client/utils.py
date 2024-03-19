@@ -17,13 +17,16 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Literal, Optional, TypedDict
+from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, TypedDict
 
 import fsspec.asyn
 import httpx
 import huggingface_hub
 from huggingface_hub import SpaceStage
 from websockets.legacy.protocol import WebSocketCommonProtocol
+
+if TYPE_CHECKING:
+    from gradio_client.client import Endpoint
 
 API_URL = "api/predict/"
 SSE_URL_V0 = "queue/join"
@@ -1063,3 +1066,19 @@ def file(filepath_or_url: str | Path):
         raise ValueError(
             f"File {s} does not exist on local filesystem and is not a valid URL."
         )
+
+
+def construct_args(endpoint: Endpoint, args: list, kwargs: dict):
+    num_args = len(args)
+    kwarg_arg_mapping = {}
+    for param_info, index in endpoint.parameters_info:
+        if "parameter_name" in param_info:
+            kwarg_arg_mapping[param_info["parameter_name"]] = index
+    for key, value in kwargs.items():
+        if key in kwarg_arg_mapping:
+            value = kwargs[key]
+        else:
+            raise ValueError("Invalid parameter name: " + key)
+
+
+    return endpoint, args, kwargs, _args

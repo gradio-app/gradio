@@ -400,6 +400,7 @@ class Client:
         *args,
         api_name: str | None = None,
         fn_index: int | None = None,
+        **kwargs,
     ) -> Any:
         """
         Calls the Gradio API and returns the result (this is a blocking call).
@@ -421,7 +422,9 @@ class Client:
             raise ValueError(
                 "Cannot call predict on this function as it may run forever. Use submit instead."
             )
-        return self.submit(*args, api_name=api_name, fn_index=fn_index).result()
+        return self.submit(
+            *args, api_name=api_name, fn_index=fn_index, **kwargs
+        ).result()
 
     def new_helper(self, fn_index: int) -> Communicator:
         return Communicator(
@@ -437,6 +440,7 @@ class Client:
         api_name: str | None = None,
         fn_index: int | None = None,
         result_callbacks: Callable | list[Callable] | None = None,
+        **kwargs,
     ) -> Job:
         """
         Creates and returns a Job object which calls the Gradio API in a background thread. The job can be used to retrieve the status and result of the remote API call.
@@ -458,6 +462,8 @@ class Client:
             >> 9.0
         """
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
+
+        args = utils.construct_args(self.endpoints[inferred_fn_index], args, kwargs)
 
         helper = None
         if self.endpoints[inferred_fn_index].protocol in (
@@ -982,6 +988,8 @@ class Endpoint:
         self.output_component_types = [
             self._get_component_type(id_) for id_ in dependency["outputs"]
         ]
+        self.parameters_info = self._get_parameters_info(self, dependency)
+
         self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
         self.is_continuous = dependency.get("types", {}).get("continuous", False)
 
@@ -1000,6 +1008,11 @@ class Endpoint:
             self.value_is_file(component),
             component["type"] == "state",
         )
+
+    def _get_parameters_info(self):
+        if not self.client._info:
+            self._info = self.client._get_api_info()
+        return self._info["named_endpoints"][self.api_name]["parameters"]
 
     @staticmethod
     def value_is_file(component: dict) -> bool:

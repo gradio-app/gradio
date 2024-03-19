@@ -56,11 +56,12 @@
 client = Client(<span class="token string">"{root}"</span>)
 result = client.<span class="highlight">predict</span
 						>(<!--
--->{#each endpoint_parameters as { python_type, example_input, parameter_name }, i}<!--
+-->{#each endpoint_parameters as { python_type, example_input, parameter_name, parameter_has_default, parameter_default }, i}<!--
         -->
-		{parameter_name ? parameter_name + "=" : ""}<span
-								class="example-inputs"
-								>{represent_value(example_input, python_type.type, "py")}</span
+		{parameter_name
+								? parameter_name + "="
+								: ""}<span class="example-inputs"
+								>{represent_value(parameter_has_default ? parameter_default : example_input, python_type.type, "py")}</span
 							>,{/each}<!--
 
 		-->

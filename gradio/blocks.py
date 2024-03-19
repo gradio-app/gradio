@@ -2504,12 +2504,20 @@ Received outputs:
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
 
-                if dependency["backend_fn"] and index < len(fn_info):
+                # Since the clients use "api_name" and "fn_index" to designate the endpoint and
+                # "result_callbacks" to specify the callbacks, we need to make sure that no parameters
+                # have those names. Hence the final checks.
+                if (
+                    dependency["backend_fn"]
+                    and index < len(fn_info)
+                    and fn_info[index][0]
+                    not in ["api_name", "fn_index", "result_callbacks"]
+                ):
                     parameter_name = fn_info[index][0]
                     parameter_has_default = fn_info[index][1]
                     parameter_default = fn_info[index][2]
                 else:
-                    parameter_name = None
+                    parameter_name = f"param_{index}"
                     parameter_has_default = False
                     parameter_default = None
 
