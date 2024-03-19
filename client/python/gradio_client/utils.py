@@ -1078,7 +1078,9 @@ def construct_args(endpoint: Endpoint, args: list, kwargs: dict) -> list:
     for key, value in kwargs.items():
         if key in kwarg_arg_mapping:
             if kwarg_arg_mapping[key] < num_args:
-                raise ValueError(f"Parameter `{key}` is already set as a positional argument.")
+                raise ValueError(
+                    f"Parameter `{key}` is already set as a positional argument."
+                )
             else:
                 args[kwarg_arg_mapping[key]] = value
         else:
