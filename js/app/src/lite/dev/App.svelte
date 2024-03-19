@@ -77,7 +77,8 @@ def hi(name):
 			themeMode: null,
 			autoScroll: false,
 			controlPageTitle: false,
-			appMode: true
+			appMode: true,
+			playground: false
 		});
 	});
 	onDestroy(() => {
