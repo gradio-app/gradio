@@ -53,19 +53,16 @@
 <Story
 	name="MultimodalTextbox with file and label"
 	args={{
-		value: [
-			{
-				text: "sample text",
-				files: [
-					{
-						path: "cheetah.jpg",
-						orig_name: "cheetah.jpg",
-						url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-						size: 10000
-					}
-				]
-			}
-		],
+		value: {
+			text: "sample text",
+			files: [
+				{
+					path: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+					url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+					orig_name: "cheetah.jpg"
+				}
+			]
+		},
 		label: "My simple label",
 		show_label: true
 	}}
