@@ -190,7 +190,9 @@ class Client:
         self.pending_messages_per_event: dict[str, list[Message | None]] = {}
         self.pending_event_ids: set[str] = set()
 
-    async def stream_messages(self) -> None:
+    async def stream_messages(
+        self, protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]
+    ) -> None:
         try:
             async with httpx.AsyncClient(
                 timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify
@@ -216,13 +218,19 @@ class Client:
                                 ) in self.pending_messages_per_event.values():
                                     pending_messages.append(resp)
                                 return
+                            elif resp["msg"] == ServerMessage.close_stream:
+                                self.stream_open = False
+                                return
                             event_id = resp["event_id"]
                             if event_id not in self.pending_messages_per_event:
                                 self.pending_messages_per_event[event_id] = []
                             self.pending_messages_per_event[event_id].append(resp)
                             if resp["msg"] == ServerMessage.process_completed:
                                 self.pending_event_ids.remove(event_id)
-                            if len(self.pending_event_ids) == 0:
+                            if (
+                                len(self.pending_event_ids) == 0
+                                and protocol != "sse_v3"
+                            ):
                                 self.stream_open = False
                                 return
                         else:
@@ -233,7 +241,7 @@ class Client:
             traceback.print_exc()
             raise e
 
-    async def send_data(self, data, hash_data):
+    async def send_data(self, data, hash_data, protocol):
         async with httpx.AsyncClient(verify=self.ssl_verify) as client:
             req = await client.post(
                 self.sse_data_url,
@@ -251,7 +259,7 @@ class Client:
             self.stream_open = True
 
             def open_stream():
-                return utils.synchronize_async(self.stream_messages)
+                return utils.synchronize_async(self.stream_messages, protocol)
 
             def close_stream(_):
                 self.stream_open = False
@@ -458,6 +466,7 @@ class Client:
             "sse_v1",
             "sse_v2",
             "sse_v2.1",
+            "sse_v3",
         ):
             helper = self.new_helper(inferred_fn_index)
         end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
@@ -1047,14 +1056,14 @@ class Endpoint:
                 result = utils.synchronize_async(
                     self._sse_fn_v0, data, hash_data, helper
                 )
-            elif self.protocol in ("sse_v1", "sse_v2", "sse_v2.1"):
+            elif self.protocol in ("sse_v1", "sse_v2", "sse_v2.1", "sse_v3"):
                 event_id = utils.synchronize_async(
-                    self.client.send_data, data, hash_data
+                    self.client.send_data, data, hash_data, self.protocol
                 )
                 self.client.pending_event_ids.add(event_id)
                 self.client.pending_messages_per_event[event_id] = []
                 result = utils.synchronize_async(
-                    self._sse_fn_v1_v2, helper, event_id, self.protocol
+                    self._sse_fn_v1plus, helper, event_id, self.protocol
                 )
             else:
                 raise ValueError(f"Unsupported protocol: {self.protocol}")
@@ -1215,13 +1224,13 @@ class Endpoint:
                 self.client.ssl_verify,
             )
 
-    async def _sse_fn_v1_v2(
+    async def _sse_fn_v1plus(
         self,
         helper: Communicator,
         event_id: str,
-        protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
+        protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
     ):
-        return await utils.get_pred_from_sse_v1_v2(
+        return await utils.get_pred_from_sse_v1plus(
             helper,
             self.client.headers,
             self.client.cookies,
