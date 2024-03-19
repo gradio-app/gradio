@@ -9,7 +9,6 @@
 	import ErrorDisplay from "./ErrorDisplay.svelte";
 	import lightning from "../images/lightning.svg";
 	import play from "../images/play.svg";
-	import { n } from "@storybook/theming/dist/create-3ae9aa71";
 
 	export let autoscroll: boolean;
 	export let version: string;
