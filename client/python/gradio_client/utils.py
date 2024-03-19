@@ -1069,18 +1069,33 @@ def file(filepath_or_url: str | Path):
 
 
 def construct_args(endpoint: Endpoint, args: tuple, kwargs: dict) -> list:
+    class _Keywords(Enum):
+        NO_VALUE = "NO_VALUE"  # Used as a sentinel to determine if nothing is provided as a parameter for an argument
+
     _args = list(args)
     if endpoint.parameters_info is None:
         if kwargs:
-            raise ValueError("This endpoint does not support key-word arguments Please run Client.view_api() to see usage.")
+            raise ValueError(
+                "This endpoint does not support key-word arguments Please run Client.view_api() to see usage."
+            )
         return _args
     num_args = len(args)
-    _args = _args + [None] * (len(endpoint.parameters_info) - num_args)
+    _args = _args + [_Keywords.NO_VALUE] * (len(endpoint.parameters_info) - num_args)
+
     kwarg_arg_mapping = {}
-    
+    kwarg_names = []
     for index, param_info in enumerate(endpoint.parameters_info):
         if "parameter_name" in param_info:
             kwarg_arg_mapping[param_info["parameter_name"]] = index
+            kwarg_names.append(param_info["parameter_name"])
+        else:
+            kwarg_names.append("argument {index}")
+        if (
+            param_info.get("parameter_has_default", False)
+            and _args[index] == _Keywords.NO_VALUE
+        ):
+            _args[index] = param_info.get("parameter_default")
+
     for key, value in kwargs.items():
         if key in kwarg_arg_mapping:
             if kwarg_arg_mapping[key] < num_args:
@@ -1090,5 +1105,13 @@ def construct_args(endpoint: Endpoint, args: tuple, kwargs: dict) -> list:
             else:
                 _args[kwarg_arg_mapping[key]] = value
         else:
-            raise ValueError(f"Parameter `{key}` is not a valid key-word argument. Please run Client.view_api() to see usage.")
+            raise ValueError(
+                f"Parameter `{key}` is not a valid key-word argument. Please run Client.view_api() to see usage."
+            )
+
+    if _Keywords.NO_VALUE in _args:
+        raise ValueError(
+            f"No value provided for required argument: {kwarg_names[_args.index(_Keywords.NO_VALUE)]}"
+        )
+
     return _args
