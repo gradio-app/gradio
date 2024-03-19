@@ -54,15 +54,17 @@
 	name="MultimodalTextbox with file and label"
 	args={{
 		value: [
-			{ type: "text", text: "This is a text" },
-			{
-				type: "file",
-				file: {
-					path: "cheetah.jpg",
-					orig_name: "cheetah.jpg",
-					url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
-					size: 10000
-				}
+			{ text: "sample text",
+				files: [
+					{
+						file: {
+							path: "cheetah.jpg",
+							orig_name: "cheetah.jpg",
+							url: "https://gradio-builds.s3.amazonaws.com/demo-files/ghepardo-primo-piano.jpg",
+							size: 10000
+						}
+					}
+				]
 			}
 		],
 		label: "My simple label",
