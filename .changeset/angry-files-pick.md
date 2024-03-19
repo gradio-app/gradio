@@ -1,7 +1,7 @@
 ---
-"@gradio/radio": minor
-"@gradio/storybook": minor
-"gradio": minor
+"@gradio/radio": patch
+"@gradio/storybook": patch
+"gradio": patch
 ---
 
 feat:Migrate to Storybook 8
