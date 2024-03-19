@@ -190,7 +190,6 @@ describe("Dropdown", () => {
 	});
 
 	test("deselecting and reselcting a filtered dropdown should show all options again", async () => {
-		vi.useFakeTimers();
 		const { getByLabelText, getAllByTestId } = await render(Dropdown, {
 			show_label: true,
 			loading_status,
@@ -219,7 +218,6 @@ describe("Dropdown", () => {
 
 		await item.blur();
 		// Mock 100ms delay between interactions.
-		vi.runAllTimers();
 		await item.focus();
 		const options_new = getAllByTestId("dropdown-option");
 
