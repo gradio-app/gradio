@@ -236,7 +236,6 @@
 								{dependency_index}
 								{current_language}
 								root={space_id || root}
-								{dependency_failures}
 							/>
 
 							<ParametersSnippet

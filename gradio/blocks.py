@@ -2526,7 +2526,7 @@ Received outputs:
                         "label": label,
                         "parameter_name": parameter_name,
                         "parameter_has_default": parameter_has_default,
-                        "parameter_default": str(parameter_default),
+                        "parameter_default": parameter_default,
                         "type": info,
                         "python_type": {
                             "type": python_type,
