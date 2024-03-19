@@ -52,27 +52,28 @@
 	$: loaded;
 </script>
 
-<div class="w-full h-full">
+<div class="parent-container">
 	<div
-		class="flex flex-col md:flex-row w-full h-full border border-gray-200 rounded-md"
+		class="child-container"
 	>
-		<div class:md:border-r={loaded} class="code-editor grow flex-1">
-			<div class="flex justify-between align-middle h-8 border-b px-2">
-				<h3 class="pt-1 grow">app.py</h3>
+		<div class:code-editor-border={loaded} class="code-editor">
+			<div class="loading-panel">
+				<div class="code-header">app.py</div>
 				{#if !loaded}
-					<div class="flex"></div>
-					<div class="flex float-right items-center" style="color:#999b9e">
-						<div class="loading-dot mx-2"></div>
+					<div style="display: flex;"></div>
+					<div class="loading-section">
+						<div class="loading-dot"></div>
 						{loading_text}
 					</div>
 				{:else}
-					<div class="flex"></div>
-					<div class="flex items-center mx-2" style="color:#999b9e">
-						<img src={lightning} class="w-4 h-4 m-0.5" />
+					<div style="display: flex;"></div>
+					<div class="loading-section">
+						<img src={lightning} class="lightning-logo" />
 						Interactive
 					</div>
 				{/if}
 			</div>
+			<div style="flex-grow: 1;">
 			{#if loaded}
 				<Code
 					bind:value={code}
@@ -94,26 +95,23 @@
 					interactive={loaded}
 				/>
 			{/if}
+			</div>
 		</div>
 		{#if loaded}
-			<div class="preview flex flex-1 flex-col">
-				<div class="flex justify-between align-middle h-8 border-b px-2">
+			<div class="preview">
+				<div class="buttons">
 					<button
-						class="text-gray-500 font-bold px-2 pr-1 rounded float-right m-1 flex items-center"
-						style="
-                        background: #eff1f3;
-                        font-weight: 500;
-
-                        "
+						class="button"
 						on:click={() => {
 							dispatch("code", { code });
 						}}
 					>
 						Run
-						<img src={play} class="w-3 h-3 m-0.5" />
+						<img src={play} class="play-logo" />
 					</button>
-					<div class="flex float-right"></div>
+					<div style="display: flex; float: right;"></div>
 				</div>
+				<div>
 				{#if !error_display}
 					<Index
 						{autoscroll}
@@ -143,13 +141,114 @@
 					/>
 				{/if}
 			</div>
+			</div>
 		{/if}
 	</div>
 </div>
 
 <style>
+	.parent-container {
+		width: 100%;
+		height: 100%;
+	}
+
+	.child-container {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+		height: 100%;
+		border: 1px solid rgb(229 231 235);
+		border-radius: 0.375rem;
+	}
+
+	@media (min-width: 768px) {
+		.child-container {
+			flex-direction: row;
+		}
+		.code-editor-border {
+			border-right: 1px solid rgb(229 231 235);
+
+		}
+	}
+
+	.code-editor {
+		flex-grow: 1;
+		flex: 1 1 0%;
+		display: flex;
+		flex-direction: column;		
+	}
+
+	.loading-panel {
+		display: flex;
+		justify-content: space-between;
+		vertical-align: middle;
+		height: 2rem;
+		padding-left: 0.5rem;
+    	padding-right: 0.5rem;
+		border-bottom: 1px solid rgb(229 231 235);
+	}
+
+	.code-header {
+		padding-top: 0.25rem;
+		flex-grow: 1;
+		font-family: monospace;
+		margin-top: 4px;
+	}
+
+	.loading-section {
+		align-items: center;
+		display: flex;
+		margin-left: 0.5rem;
+    	margin-right: 0.5rem;
+		color: #999b9e;
+		font-family: sans-serif;
+	}
+	.lightning-logo {
+		width: 1rem;
+		height: 1rem;
+		margin: 0.125rem;
+	}
+
+	.preview {
+		flex: 1 1 0%;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.buttons {
+		display: flex;
+		justify-content: space-between;
+		align-items: middle;
+		height: 2rem;
+		padding-left: 0.5rem;
+		padding-right: 0.5rem;
+		border-bottom: 1px solid rgb(229 231 235);
+	}
+
+	.button {
+		display: flex;
+		align-items: center;
+		font-weight: 500;
+		padding-left: 0.5rem;
+		padding-right: 0.25rem;
+		border-radius: 0.375rem;
+		float: right;
+		margin: 0.25rem;
+		color: rgb(107 114 128);
+		background: #eff1f3;
+		border: none;
+		font-size: 100%;
+		cursor: pointer;
+		font-family: sans-serif;
+	}
+
+	.play-logo {
+		width: 0.75rem;
+		height: 0.75rem;
+		margin: 0.125rem;
+	}
+
 	:global(div.code-editor div.block) {
-		height: calc(100% - 2rem);
 		border-radius: 0;
 		border: none;
 	}
@@ -187,6 +286,16 @@
 	.code-editor :global(.cm-scroller) {
 		height: 100% !important;
 	}
+	:global(.code-editor .block) {
+		border-style: none !important;
+		height: 100%;
+	}
+	:global(.code-editor .container) {
+		display: none;
+	}
+	:global(.code-editor button) {
+		display: none;
+	}
 	h3 {
 		font-size: medium;
 		font-weight: 400;
@@ -203,6 +312,8 @@
 		box-shadow: 9999px 0 0 -1px;
 		animation: loading-dot 2s infinite linear;
 		animation-delay: 0.25s;
+		margin-left: 0.5rem;
+    	margin-right: 0.5rem;
 	}
 	@keyframes loading-dot {
 		0% {

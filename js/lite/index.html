@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <!-- A demo HTML file to test the bundled JS and CSS files -->
 <html>
 	<head>
@@ -14,7 +14,6 @@
 			href="https://fonts.gstatic.com"
 			crossorigin="anonymous"
 		/>
-		<script src="https://cdn.tailwindcss.com"></script>
 		<script type="module" crossorigin src="./dist/lite.js"></script>
 		<link rel="stylesheet" href="./dist/lite.css" />
 	</head>
@@ -75,7 +74,8 @@ helloWorld();
 		</p>
 
 		<gradio-lite playground>
-			import gradio as gr gr.Interface(fn=lambda x: x, inputs=gr.Textbox(),
+			import gradio as gr 
+			gr.Interface(fn=lambda x: x, inputs=gr.Textbox(),
 			outputs=gr.Textbox()).launch()
 		</gradio-lite>
 
@@ -117,7 +117,8 @@ helloWorld();
 		</p>
 
 		<gradio-lite playground>
-			import gradio as gr gr.ChatInterface(lambda x,y:x).launch()
+			import gradio as gr 
+			gr.ChatInterface(lambda x,y:x).launch()
 		</gradio-lite>
 	</body>
 </html>
