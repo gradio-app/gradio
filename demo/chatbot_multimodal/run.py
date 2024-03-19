@@ -32,7 +32,7 @@ with gr.Blocks() as demo:
         avatar_images=(None, (os.path.join(os.path.dirname(__file__), "files/avatar.png"))),
     )
 
-    chat_input = gr.MultimodalTextbox(interactive=True, file_types=["image"], placeholder="Enter message or upload file...")
+    chat_input = gr.MultimodalTextbox(interactive=True, file_types=["image"], placeholder="Enter message or upload file...", show_label=False)
     chat_msg = chat_input.submit(add_message, [chatbot, chat_input], [chatbot, chat_input], queue=False).then(
         bot, chatbot, chatbot, api_name="bot_response"
     )

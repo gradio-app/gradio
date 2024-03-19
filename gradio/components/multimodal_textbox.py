@@ -3,19 +3,25 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Literal
+from typing import Any, Callable, List, Literal, Optional, TypedDict
 
 import gradio_client.utils as client_utils
 from gradio_client.documentation import document
+from pydantic import Field
 
-from gradio import processing_utils
 from gradio.components.base import FormComponent
-from gradio.data_classes import FileData, GradioRootModel
+from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
 
 
-class MultimodalData(GradioRootModel):
-    root: Dict[str, str | List[FileData]]
+class MultimodalData(GradioModel):
+    text: Optional[str] = None
+    files: Optional[List[FileData]] = Field(default_factory=list)
+
+
+class MultimodalPostprocess(TypedDict):
+    text: str
+    files: List[FileData]
 
 
 @document()
@@ -26,6 +32,8 @@ class MultimodalTextbox(FormComponent):
     Demos: chatbot_multimodal
     Guides: creating-a-chatbot
     """
+
+    data_model = MultimodalData
 
     EVENTS = [
         Events.change,
@@ -60,7 +68,7 @@ class MultimodalTextbox(FormComponent):
         render: bool = True,
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
-        show_submit_button: bool = True,
+        submit_btn: str | Literal[False] = "⌲",
     ):
         """
         Parameters:
@@ -85,7 +93,7 @@ class MultimodalTextbox(FormComponent):
             text_align: How to align the text in the textbox, can be: "left", "right", or None (default). If None, the alignment is left if `rtl` is False, or right if `rtl` is True. Can only be changed if `type` is "text".
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
-            show_submit_button: If False, will not show the submit button. Only applies if `interactive` is True.
+            submit_btn: If False, will not show a submit button. If a string, will use that string as the submit button text. Only applies if `interactive` is True.
         """
         self.file_types = file_types
         if value is None:
@@ -97,7 +105,7 @@ class MultimodalTextbox(FormComponent):
         self.lines = lines
         self.max_lines = max(lines, max_lines)
         self.placeholder = placeholder
-        self.show_submit_button = show_submit_button
+        self.submit_btn = submit_btn
         self.autofocus = autofocus
         self.autoscroll = autoscroll
 
@@ -120,7 +128,7 @@ class MultimodalTextbox(FormComponent):
         self.text_align = text_align
 
     def preprocess(
-        self, payload: dict[str, str | list] | None
+        self, payload: MultimodalData | None
     ) -> dict[str, str | list] | None:
         """
         Parameters:
@@ -128,27 +136,7 @@ class MultimodalTextbox(FormComponent):
         Returns:
             Passes text value and list of file(s) as a {dict} into the function.
         """
-        return None if payload is None else payload
-
-    def _download_files(self, value: str | list[str]) -> str | list[str]:
-        downloaded_files = []
-        if isinstance(value, list):
-            for file in value:
-                if client_utils.is_http_url_like(file):
-                    downloaded_file = processing_utils.save_url_to_cache(
-                        file, self.GRADIO_CACHE
-                    )
-                    downloaded_files.append(downloaded_file)
-                else:
-                    downloaded_files.append(file)
-            return downloaded_files
-        if client_utils.is_http_url_like(value):
-            downloaded_file = processing_utils.save_url_to_cache(
-                value, self.GRADIO_CACHE
-            )
-            return downloaded_file
-        else:
-            return value
+        return None if payload is None else payload.model_dump()
 
     def postprocess(self, value: dict[str, str | list] | None) -> MultimodalData:
         """
@@ -158,39 +146,38 @@ class MultimodalTextbox(FormComponent):
             The value to display in the multimodal textbox. Files information as a list of FileData objects.
         """
         if value is None:
-            return MultimodalData(root={"text": "", "files": []})
+            return MultimodalData(text="", files=[])
         if not isinstance(value, dict):
             raise ValueError(
                 f"MultimodalTextbox expects a dictionary with optional keys 'text' and 'files'. Received {value.__class__.__name__}"
             )
         if "files" in value and isinstance(value["files"], list):
-            value["files"] = self._download_files(value["files"])
             value["files"] = [
                 file
                 if isinstance(file, FileData)
                 else FileData(
-                    path=file,
-                    mime_type=client_utils.get_mimetype(file),
-                    orig_name=Path(file).name,
-                    size=Path(file).stat().st_size,
+                    path=file["path"] if "path" in file else file,
+                    mime_type=file["mime_type"]
+                    if "mime_type" in file
+                    else client_utils.get_mimetype(file),
+                    orig_name=file["orig_name"]
+                    if "orig_name" in file
+                    else Path(file).name,
+                    size=file["size"] if "size" in file else Path(file).stat().st_size,
                 )
                 for file in value["files"]
             ]
-        return MultimodalData(
-            root={"text": value.get("text", ""), "files": value.get("files", [])}
-        )
-
-    def api_info(self) -> dict[str, Any]:
-        return {
-            "type": "string",
-            "properties": {
-                "text": {"type": "string"},
-                "files": {
-                    "type": "object",
-                    "properties": {"path": {"type": "string"}},
-                },
-            },
-        }
+        text = value.get("text", "")
+        files = value.get("files", [])
+        if not isinstance(text, str):
+            raise TypeError(
+                f"Expected 'text' to be a string, but got {type(text).__name__}"
+            )
+        if not isinstance(files, list):
+            raise TypeError(
+                f"Expected 'files' to be a list, but got {type(files).__name__}"
+            )
+        return MultimodalData(text=text, files=files)
 
     def example_inputs(self) -> Any:
         return {"text": "sample text", "files": []}

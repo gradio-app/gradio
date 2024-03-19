@@ -27,7 +27,7 @@
 	export let show_label = true;
 	export let container = true;
 	export let max_lines: number;
-	export let show_submit_button = true;
+	export let submit_btn = "⌲";
 	export let rtl = false;
 	export let autofocus = false;
 	export let text_align: "left" | "right" | undefined = undefined;
@@ -196,9 +196,9 @@
 			disable_click={true}
 			bind:hidden_upload
 		>
-			{#if show_submit_button}
+			{#if submit_btn}
 				<button class:disabled class="submit-button" on:click={handle_submit}
-					>⌲</button
+					>{submit_btn}</button
 				>
 			{/if}
 			<button class:disabled class="plus-button" on:click={handle_upload_click}

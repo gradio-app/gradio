@@ -62,7 +62,7 @@ class ChatInterface(Blocks):
         additional_inputs: str | Component | list[str | Component] | None = None,
         additional_inputs_accordion_name: str | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
-        examples: list[str] | None = None,
+        examples: list[str] | list[dict[str, str | list]] | None = None,
         cache_examples: bool | None = None,
         title: str | None = None,
         description: str | None = None,
@@ -346,7 +346,7 @@ class ChatInterface(Blocks):
             retry_event = (
                 self.retry_btn.click(
                     self._delete_prev_fn,
-                    [self.chatbot_state],
+                    [self.saved_input, self.chatbot_state],
                     [self.chatbot, self.saved_input, self.chatbot_state],
                     show_api=False,
                     queue=False,
@@ -373,7 +373,7 @@ class ChatInterface(Blocks):
         if self.undo_btn:
             self.undo_btn.click(
                 self._delete_prev_fn,
-                [self.chatbot_state],
+                [self.saved_input, self.chatbot_state],
                 [self.chatbot, self.saved_input, self.chatbot_state],
                 show_api=False,
                 queue=False,
@@ -632,10 +632,21 @@ class ChatInterface(Blocks):
             yield [[message, response]]
 
     def _delete_prev_fn(
-        self, history: list[list[str | None]]
-    ) -> tuple[list[list[str | None]], str, list[list[str | None]]]:
-        try:
-            message, _ = history.pop()
-        except IndexError:
-            message = ""
+        self,
+        message: str | dict[str, list],
+        history: list[list[str | tuple | None]],
+    ) -> tuple[
+        list[list[str | tuple | None]],
+        str | dict[str, list],
+        list[list[str | tuple | None]],
+    ]:
+        if self.multimodal and isinstance(message, dict):
+            remove_input = (
+                len(message["files"]) + 1
+                if message["text"] is not None
+                else len(message["files"])
+            )
+            history = history[:-remove_input]
+        else:
+            history = history[:-1]
         return history, message or "", history
