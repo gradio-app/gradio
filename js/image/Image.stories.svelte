@@ -2,7 +2,7 @@
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import StaticImage from "./Index.svelte";
 	import { userEvent, within } from "@storybook/testing-library";
-	import { allModes } from "../storybook/modes";
+	import { allModes } from "../../.storybook/modes";
 
 	export const meta = {
 		title: "Components/Image",

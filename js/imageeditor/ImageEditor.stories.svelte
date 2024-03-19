@@ -4,7 +4,7 @@
 	import { format } from "svelte-i18n";
 	import { get } from "svelte/store";
 	import { userEvent, within } from "@storybook/testing-library";
-	import { allModes } from "../storybook/modes";
+	import { allModes } from "../../.storybook/modes";
 
 	export const meta = {
 		title: "Components/Image Editor",

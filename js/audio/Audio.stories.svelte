@@ -1,7 +1,7 @@
 <script context="module">
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import Audio from "./Index.svelte";
-	import { allModes } from "../storybook/modes";
+	import { allModes } from "../../.storybook/modes";
 
 	export const meta = {
 		title: "Components/Audio",

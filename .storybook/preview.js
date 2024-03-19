@@ -1,17 +1,16 @@
-import type { Preview } from "@storybook/svelte";
 import "./theme.css";
-import { setupi18n } from "../app/src/i18n";
-import { Gradio } from "../app/src/gradio_helper";
-import "../theme/src/reset.css";
-import "../theme/src/global.css";
+import { setupi18n } from "../js/app/src/i18n";
+import { Gradio } from "../js/app/src/gradio_helper";
+import "../js/theme/src/reset.css";
+import "../js/theme/src/global.css";
 
-import "../theme/src/pollen.css";
-// import "../theme/src/tokens.css";
-import "../theme/src/typography.css";
+import "../js/theme/src/pollen.css";
+import "../js/theme/src/tokens.css";
+import "../js/theme/src/typography.css";
 
 setupi18n();
 
-const preview: Preview = {
+const preview = {
 	args: {
 		gradio: new Gradio(
 			0,
@@ -30,7 +29,6 @@ const preview: Preview = {
 		}
 	},
 	parameters: {
-		actions: { argTypesRegex: "^on[A-Z].*" },
 		controls: {
 			matchers: {
 				color: /(background|color)$/i,

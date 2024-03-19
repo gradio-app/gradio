@@ -1,7 +1,7 @@
 <script context="module">
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import Chatbot from "./Index.svelte";
-	import { allModes } from "../storybook/modes";
+	import { allModes } from "../../.storybook/modes";
 
 	export const meta = {
 		title: "Components/Chatbot",

@@ -4,12 +4,12 @@ import sveltePreprocess from "svelte-preprocess";
 import autoprefixer from "autoprefixer";
 
 export default defineConfig({
-	base: "",
-	server: {
-		fs: {
-			allow: [".."]
-		}
-	},
+	// base: "",
+	// server: {
+	// 	fs: {
+	// 		allow: [".."]
+	// 	}
+	// },
 
 	plugins: [
 		svelte({

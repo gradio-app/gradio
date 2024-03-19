@@ -1,7 +1,7 @@
 <script context="module">
 	import { Template, Story } from "@storybook/addon-svelte-csf";
 	import PlotComponent from "./Index.svelte";
-	import { allModes } from "../storybook/modes";
+	import { allModes } from "../../.storybook/modes";
 	import { test_plot } from "./testplot";
 
 	export const meta = {
