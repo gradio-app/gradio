@@ -17,7 +17,6 @@
 	export let dependency: Dependency;
 	export let dependency_index: number;
 	export let root: string;
-	export let dependency_failures: boolean[][];
 	export let endpoint_parameters: any;
 	export let js_parameters: any;
 	export let named: boolean;
