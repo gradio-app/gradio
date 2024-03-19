@@ -274,7 +274,7 @@
 			BUILD_MODE === "dev" || gradio_dev_mode === "dev"
 				? `http://localhost:${
 						typeof server_port === "number" ? server_port : 7860
-				  }`
+					}`
 				: host || space || src || location.origin;
 
 		app = await client(api_url, {
@@ -323,8 +323,8 @@
 		!ready && status.load_status !== "error"
 			? "pending"
 			: !ready && status.load_status === "error"
-			? "error"
-			: status.load_status;
+				? "error"
+				: status.load_status;
 
 	$: config && (eager || $intersecting[_id]) && load_demo();
 

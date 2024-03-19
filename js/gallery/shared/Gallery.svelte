@@ -49,7 +49,7 @@
 			: value.map((data) => ({
 					image: data.image as FileData,
 					caption: data.caption
-			  }));
+				}));
 
 	let prev_value: GalleryData | null = value;
 	if (selected_index == null && preview && value?.length) {

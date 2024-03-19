@@ -60,6 +60,6 @@
 		"**/*.ts",
 		"**/*.svelte",
 		"client/js/**/*",
-		"**/.storybook/*.ts",
+		"**/.storybook/*.ts"
 	]
 }

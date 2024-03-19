@@ -157,7 +157,7 @@
 							? null
 							: `filter: hue-rotate(${Math.round(
 									(i * 360) / _value?.annotations.length
-							  )}deg);`}
+								)}deg);`}
 					/>
 				{/each}
 			</div>
@@ -170,7 +170,7 @@
 								? color_map[ann.label] + '88'
 								: `hsla(${Math.round(
 										(i * 360) / _value.annotations.length
-								  )}, 100%, 50%, 0.3)`}"
+									)}, 100%, 50%, 0.3)`}"
 							on:mouseover={() => handle_mouseover(ann.label)}
 							on:focus={() => handle_mouseover(ann.label)}
 							on:mouseout={() => handle_mouseout()}

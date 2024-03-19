@@ -34,7 +34,7 @@ function highlight(code: string, lang: string | undefined) {
 				code,
 				Prism.languages[_lang],
 				_lang
-		  )}</code></pre>`
+			)}</code></pre>`
 		: code;
 
 	return highlighted;

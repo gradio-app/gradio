@@ -129,9 +129,8 @@
 		}
 		if (stream == null) return;
 		if (streaming) {
-			const [{ MediaRecorder, register }, { connect }] = await Promise.all(
-				module_promises
-			);
+			const [{ MediaRecorder, register }, { connect }] =
+				await Promise.all(module_promises);
 			await register(await connect());
 			recorder = new MediaRecorder(stream, { mimeType: "audio/wav" });
 			recorder.addEventListener("dataavailable", handle_chunk);

@@ -113,8 +113,8 @@
 			row_count[1] === "fixed"
 				? row_count[0]
 				: data_row_length < row_count[0]
-				? row_count[0]
-				: data_row_length
+					? row_count[0]
+					: data_row_length
 		)
 			.fill(0)
 			.map((_, i) =>
@@ -122,8 +122,8 @@
 					col_count[1] === "fixed"
 						? col_count[0]
 						: data_row_length > 0
-						? _values[0].length
-						: headers.length
+							? _values[0].length
+							: headers.length
 				)
 					.fill(0)
 					.map((_, j) => {

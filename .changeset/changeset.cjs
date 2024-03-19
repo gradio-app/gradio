@@ -215,8 +215,8 @@ const changelogFunctions = {
 						.map((userFromSummary) => `@${userFromSummary}`)
 						.join(", ")
 				: user_link
-				? user_link[1]
-				: links.user;
+					? user_link[1]
+					: links.user;
 
 		const prefix = [
 			links.pull === null ? "" : `${links.pull}`,

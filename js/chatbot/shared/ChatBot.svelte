@@ -202,7 +202,7 @@
 													message.file?.alt_text ??
 													message.file?.orig_name ??
 													""
-											  }`)}
+												}`)}
 								>
 									{#if typeof message === "string"}
 										<Markdown

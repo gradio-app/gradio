@@ -105,7 +105,7 @@ export function make_gradio_plugin({
         window.__GRADIO__SERVER_PORT__ = ${backend_port};
         window.__GRADIO__CC__ = ${imports};`
 						}
-				  ]
+					]
 				: undefined;
 		}
 	};
