@@ -48,9 +48,19 @@
 		loaded = true;
 	});
 
+	function shortcut_run(e: KeyboardEvent) {
+		if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+			e.preventDefault();
+			dispatch("code", { code });
+		}
+	}
+
 	$: loading_text;
 	$: loaded;
 </script>
+
+<svelte:window on:keydown={shortcut_run} />
+
 
 <div class="parent-container">
 	<div
@@ -100,6 +110,7 @@
 		{#if loaded}
 			<div class="preview">
 				<div class="buttons">
+					<div class="run">
 					<button
 						class="button"
 						on:click={() => {
@@ -109,6 +120,9 @@
 						Run
 						<img src={play} class="play-logo" />
 					</button>
+					<div class="shortcut">⌘+↵</div>
+					</div>
+
 					<div style="display: flex; float: right;"></div>
 				</div>
 				<div>
@@ -225,9 +239,15 @@
 		border-bottom: 1px solid rgb(229 231 235);
 	}
 
-	.button {
+	.run {
 		display: flex;
 		align-items: center;
+		color: #999b9e;
+	}
+
+	.button {
+		display: flex;
+    	align-items: center;
 		font-weight: 500;
 		padding-left: 0.5rem;
 		padding-right: 0.25rem;
