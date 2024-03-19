@@ -1,5 +1,6 @@
 """Pydantic data models and other dataclasses. This is the only file that uses Optional[]
 typing syntax instead of | None syntax to work with pydantic"""
+
 from __future__ import annotations
 
 import pathlib
@@ -9,7 +10,7 @@ from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, List, Optional, Union
 
-from fastapi import Request
+from fastapi import Request, UploadFile, Form, File
 from gradio_client.utils import traverse
 
 from . import wasm_utils
@@ -89,23 +90,35 @@ class PredictBody(BaseModel):
     fn_index: Optional[int] = None
     trigger_id: Optional[int] = None
     simple_format: bool = False
-    batched: Optional[
-        bool
-    ] = False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
-    request: Optional[
-        Request
-    ] = None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
+    batched: Optional[bool] = (
+        False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
+    )
+    request: Optional[Request] = (
+        None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
+    )
 
 
 class ResetBody(BaseModel):
     event_id: str
 
 
-class ComponentServerBody(BaseModel):
+class ComponentServerJSONBody(BaseModel):
     session_hash: str
     component_id: int
     fn_name: str
     data: Any
+
+
+class DataWithFiles(BaseModel):
+    data: Any
+    files: List[tuple[str, bytes]]
+
+
+class ComponentServerBlobBody(BaseModel):
+    session_hash: str
+    component_id: int
+    fn_name: str
+    data: DataWithFiles
 
 
 class InterfaceTypes(Enum):

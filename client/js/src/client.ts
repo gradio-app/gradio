@@ -1085,12 +1085,17 @@ export function api_factory(
 			async function component_server(
 				component_id: number,
 				fn_name: string,
-				data: unknown[]
+				data: unknown[] | [{ form: FormData; [key: string]: unknown }]
 			): Promise<any> {
+				console.log(data);
 				const headers: {
 					Authorization?: string;
 					"Content-Type": "application/json";
-				} = { "Content-Type": "application/json" };
+				} = {};
+				// if (!(data instanceof FormData)) {
+				// 	headers["Content-Type"] = "application/json";
+				// }
+				// headers["Content-Type"] = "multipart/form-data";
 				if (hf_token) {
 					headers.Authorization = `Bearer ${hf_token}`;
 				}
@@ -1103,24 +1108,49 @@ export function api_factory(
 				} else {
 					root_url = config.root;
 				}
-				const response = await fetch_implementation(
-					`${root_url}/component_server/`,
-					{
-						method: "POST",
-						body: JSON.stringify({
-							data: data,
-							component_id: component_id,
-							fn_name: fn_name,
-							session_hash: session_hash
-						}),
-						headers
-					}
-				);
 
-				if (!response.ok) {
-					throw new Error(
-						"Could not connect to component server: " + response.statusText
+				if (data[0].form instanceof FormData) {
+					const { form, ...rest } = data[0];
+
+					form.set("component_id", component_id);
+					form.set("fn_name", fn_name);
+					form.set("session_hash", session_hash);
+					data = form;
+
+					// for (const key in rest) {
+					// 	form.append(key, rest[key]);
+					// }
+				}
+
+				data.forEach(console.log);
+
+				const body =
+					data instanceof FormData
+						? data
+						: JSON.stringify({
+								data: data,
+								component_id: component_id,
+								fn_name: fn_name,
+								session_hash: session_hash
+						  });
+				try {
+					const response = await fetch_implementation(
+						`${root_url}/component_server/`,
+						{
+							method: "POST",
+							body: body,
+							headers
+						}
 					);
+
+					if (!response.ok) {
+						console.warn(await response.text());
+						// throw new Error(
+						// 	"Could not connect to component server: " + response.statusText
+						// );
+					}
+				} catch (e) {
+					console.warn(e);
 				}
 
 				const output = await response.json();

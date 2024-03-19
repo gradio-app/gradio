@@ -41,6 +41,9 @@
 	};
 	export let transforms: "crop"[] = ["crop"];
 
+	export let accept_blobs: (a: any, n: number) => void;
+	export let live: boolean;
+
 	let editor: ImageEditor;
 
 	function is_not_null(o: Blob | null): o is Blob {
@@ -107,6 +110,25 @@
 		(sources && sources.length
 			? editor.set_tool("bg")
 			: editor.set_tool("draw"));
+
+	async function handle_change(e: CustomEvent<Blob | any>): void {
+		// console.log("boo", live);
+		// if (live) {
+		console.log("loaded");
+		const blobs = await editor.get_blobs();
+		console.log(blobs);
+		const f = new FormData();
+		if (blobs.background)
+			f.append("data", new File([blobs.background], "background.png"));
+		if (blobs.composite)
+			f.append("data", new File([blobs.composite], "composite.png"));
+		blobs.layers.forEach((layer, i) => {
+			if (layer) f.append("data", new File([layer], `layer_${i}.png`));
+		});
+
+		accept_blobs({ form: f, id: Math.round(Math.random() * 1000) }, 0);
+		// }
+	}
 </script>
 
 <BlockLabel
@@ -118,6 +140,7 @@
 	bind:this={editor}
 	{changeable}
 	on:save
+	on:change={handle_change}
 	bind:history
 	bind:bg
 	{sources}

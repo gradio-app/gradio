@@ -49,6 +49,10 @@
 	export let transforms: "crop"[] = ["crop"];
 
 	export let attached_events: string[] = [];
+	export let server: {
+		accept_blobs: (a: any, n: number) => void;
+	};
+	export let live: boolean = true;
 
 	export let gradio: Gradio<{
 		change: never;
@@ -175,6 +179,8 @@
 			changeable={attached_events.includes("change")}
 			i18n={gradio.i18n}
 			{transforms}
+			accept_blobs={server.accept_blobs}
+			{live}
 		></InteractiveImageEditor>
 	</Block>
 {/if}
