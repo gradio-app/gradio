@@ -92,7 +92,11 @@ export class WorkerProxy extends EventTarget {
 			}
 		})
 			.then(() => {
-				console.debug("WorkerProxy.constructor(): App initialization is done.");
+				this.dispatchEvent(
+					new CustomEvent("initialization-completed", {
+						detail: null
+					})
+				);
 			})
 			.catch((error) => {
 				console.error(

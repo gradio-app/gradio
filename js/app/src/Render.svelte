@@ -2,16 +2,11 @@
 	import { Gradio } from "./gradio_helper";
 	import { onMount, createEventDispatcher, setContext } from "svelte";
 	import type { ComponentMeta, ThemeMode } from "./types";
+	import RenderComponent from "./RenderComponent.svelte";
 
 	export let root: string;
-	export let component: ComponentMeta["component"];
-	export let instance_map: Record<number, ComponentMeta>;
 
-	export let id: number;
-	export let props: ComponentMeta["props"];
-
-	export let children: ComponentMeta["children"];
-	export let dynamic_ids: Set<number>;
+	export let node: ComponentMeta;
 	export let parent: string | null = null;
 	export let target: HTMLElement;
 	export let theme_mode: ThemeMode;
@@ -22,14 +17,14 @@
 	let filtered_children: ComponentMeta[] = [];
 
 	onMount(() => {
-		dispatch("mount", id);
+		dispatch("mount", node.id);
 
 		for (const child of filtered_children) {
 			dispatch("mount", child.id);
 		}
 
 		return () => {
-			dispatch("destroy", id);
+			dispatch("destroy", node.id);
 
 			for (const child of filtered_children) {
 				dispatch("mount", child.id);
@@ -37,10 +32,10 @@
 		};
 	});
 
-	$: children =
-		children &&
-		children.filter((v) => {
-			const valid_node = instance_map[v.id].type !== "statustracker";
+	$: node.children =
+		node.children &&
+		node.children.filter((v) => {
+			const valid_node = node.type !== "statustracker";
 			if (!valid_node) {
 				filtered_children.push(v);
 			}
@@ -50,51 +45,49 @@
 	setContext("BLOCK_KEY", parent);
 
 	function handle_prop_change(e: { detail: Record<string, any> }): void {
-		for (const k in e.detail) {
-			instance_map[id].props[k] = e.detail[k];
-		}
+		// for (const k in e.detail) {
+		// 	instance_map[id].props[k] = e.detail[k];
+		// }
 	}
 
 	$: {
-		if (instance_map[id].type === "form") {
-			if (children?.every((c) => !c.props.visible)) {
-				props.visible = false;
+		if (node.type === "form") {
+			if (node.children?.every((c) => !c.props.visible)) {
+				node.props.visible = false;
 			} else {
-				props.visible = true;
+				node.props.visible = true;
 			}
 		}
 	}
 </script>
 
-<svelte:component
-	this={component}
-	bind:this={instance_map[id].instance}
-	bind:value={instance_map[id].props.value}
-	elem_id={("elem_id" in props && props.elem_id) || `component-${id}`}
-	elem_classes={("elem_classes" in props && props.elem_classes) || []}
+<RenderComponent
+	id={node.id}
+	component={node.component}
+	bind:instance={node.instance}
+	bind:value={node.props.value}
+	elem_id={("elem_id" in node.props && node.props.elem_id) ||
+		`component-${node.id}`}
+	elem_classes={("elem_classes" in node.props && node.props.elem_classes) || []}
 	on:prop_change={handle_prop_change}
 	{target}
-	{...props}
+	{...node.props}
 	{theme_mode}
 	{root}
-	gradio={new Gradio(id, target, theme_mode, version, root, autoscroll)}
+	gradio={new Gradio(node.id, target, theme_mode, version, root, autoscroll)}
 >
-	{#if children && children.length}
-		{#each children as { component, id: each_id, props, children: _children, has_modes } (each_id)}
+	{#if node.children && node.children.length}
+		{#each node.children as _node (_node.id)}
 			<svelte:self
-				{component}
+				node={_node}
+				component={_node.component}
 				{target}
-				id={each_id}
-				{props}
+				id={_node.id}
 				{root}
-				{instance_map}
-				children={_children}
-				{dynamic_ids}
-				{has_modes}
 				{theme_mode}
 				on:destroy
 				on:mount
 			/>
 		{/each}
 	{/if}
-</svelte:component>
+</RenderComponent>

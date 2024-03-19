@@ -11,7 +11,7 @@ import tempfile
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any
 
 import httpx
 import numpy as np
@@ -58,12 +58,18 @@ def extract_base64_data(x: str) -> str:
 #########################
 
 
-def encode_plot_to_base64(plt):
+def encode_plot_to_base64(plt, format: str = "png"):
+    fmt = format or "png"
     with BytesIO() as output_bytes:
-        plt.savefig(output_bytes, format="png")
+        plt.savefig(output_bytes, format=fmt)
         bytes_data = output_bytes.getvalue()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
-    return "data:image/png;base64," + base64_str
+    return output_base64(base64_str, fmt)
+
+
+def get_pil_exif_bytes(pil_image):
+    if "exif" in pil_image.info:
+        return pil_image.info["exif"]
 
 
 def get_pil_metadata(pil_image):
@@ -78,23 +84,32 @@ def get_pil_metadata(pil_image):
 
 def encode_pil_to_bytes(pil_image, format="png"):
     with BytesIO() as output_bytes:
-        pil_image.save(output_bytes, format, pnginfo=get_pil_metadata(pil_image))
+        if format == "png":
+            params = {"pnginfo": get_pil_metadata(pil_image)}
+        else:
+            exif = get_pil_exif_bytes(pil_image)
+            params = {"exif": exif} if exif else {}
+        pil_image.save(output_bytes, format, **params)
         return output_bytes.getvalue()
 
 
-def encode_pil_to_base64(pil_image):
-    bytes_data = encode_pil_to_bytes(pil_image)
+def encode_pil_to_base64(pil_image, format="png"):
+    bytes_data = encode_pil_to_bytes(pil_image, format)
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
-    return "data:image/png;base64," + base64_str
+    return output_base64(base64_str, format)
 
 
-def encode_array_to_base64(image_array):
+def encode_array_to_base64(image_array, format="png"):
     with BytesIO() as output_bytes:
         pil_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
-        pil_image.save(output_bytes, "PNG")
+        pil_image.save(output_bytes, format)
         bytes_data = output_bytes.getvalue()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
-    return "data:image/png;base64," + base64_str
+    return output_base64(base64_str, format)
+
+
+def output_base64(data, format=None) -> str:
+    return f"data:image/{format or 'png'};base64,{data}"
 
 
 def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
@@ -129,7 +144,7 @@ def save_pil_to_cache(
     img: Image.Image,
     cache_dir: str,
     name: str = "image",
-    format: Literal["png", "jpeg"] = "png",
+    format: str = "png",
 ) -> str:
     bytes_data = encode_pil_to_bytes(img, format)
     temp_dir = Path(cache_dir) / hash_bytes(bytes_data)
@@ -140,7 +155,7 @@ def save_pil_to_cache(
 
 
 def save_img_array_to_cache(
-    arr: np.ndarray, cache_dir: str, format: Literal["png", "jpeg"] = "png"
+    arr: np.ndarray, cache_dir: str, format: str = "png"
 ) -> str:
     pil_image = Image.fromarray(_convert(arr, np.uint8, force_copy=False))
     return save_pil_to_cache(pil_image, cache_dir, format=format)
