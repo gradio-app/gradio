@@ -389,6 +389,11 @@ async def logout(request: Request):
 @app.route('/login')
 async def login(request: Request):
     redirect_uri = request.url_for('auth')
+    # If your app is running on https, you should ensure that the
+    # `redirect_uri` is https, e.g. uncomment the following lines:
+    # 
+    # from urllib.parse import urlparse, urlunparse
+    # redirect_uri = urlunparse(urlparse(str(redirect_uri))._replace(scheme='https'))
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 @app.route('/auth')
