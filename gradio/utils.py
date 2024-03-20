@@ -179,10 +179,10 @@ def _remove_no_reload_codeblocks(file_path: str):
     for node in ast.walk(tree):
         if _is_gr_no_reload(node):
             assert isinstance(node, ast.If)  # noqa: S101
-            node.body = [ast.Pass()]
+            node.body = [ast.Pass(lineno=node.lineno, col_offset=node.col_offset)]
 
     # convert tree to string
-    code_removed = ast.unparse(tree)
+    code_removed = compile(tree, filename=file_path, mode="exec")
     return code_removed
 
 
