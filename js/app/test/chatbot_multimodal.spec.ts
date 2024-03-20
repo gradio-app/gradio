@@ -23,6 +23,7 @@ test("text input by a user should be shown in the chatbot as a paragraph", async
 test("images uploaded by a user should be shown in the chat", async ({
 	page
 }) => {
+	expect(false);
 	const fileChooserPromise = page.waitForEvent("filechooser");
 	await page.getByRole("button", { name: "+", exact: true }).click();
 	const fileChooser = await fileChooserPromise;
