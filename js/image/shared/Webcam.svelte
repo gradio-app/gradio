@@ -1,12 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from "svelte";
-	import {
-		Camera,
-		Circle,
-		Square,
-		DropdownArrow,
-		Webcam as WebcamIcon
-	} from "@gradio/icons";
+	import { Camera, Circle, Square, DropdownArrow } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import type { FileData } from "@gradio/client";
 	import { prepare_files, upload } from "@gradio/client";
@@ -24,6 +18,8 @@
 	export let include_audio: boolean;
 	export let i18n: I18nFormatter;
 
+	let selected_video_source: MediaDeviceInfo;
+
 	const dispatch = createEventDispatcher<{
 		stream: undefined;
 		capture: FileData | Blob | null;
@@ -33,6 +29,18 @@
 	}>();
 
 	onMount(() => (canvas = document.createElement("canvas")));
+	onMount(async () => {
+		if (!selected_video_source) {
+			await initialise_video_sources();
+		}
+	});
+
+	const initialise_video_sources = async (): Promise<void> => {
+		const devices = await navigator.mediaDevices.enumerateDevices();
+		video_sources = devices.filter((device) => device.kind === "videoinput");
+		selected_video_source = video_sources[0];
+	};
+
 	const size = {
 		width: { ideal: 1920 },
 		height: { ideal: 1440 }
@@ -169,15 +177,9 @@
 		}, 500);
 	}
 
-	async function select_source(): Promise<void> {
-		const devices = await navigator.mediaDevices.enumerateDevices();
-		video_sources = devices.filter((device) => device.kind === "videoinput");
-		options_open = true;
-	}
-
 	let video_sources: MediaDeviceInfo[] = [];
-	async function selectVideoSource(device_id: string): Promise<void> {
-		await access_webcam(device_id);
+	async function select_video_source(): Promise<void> {
+		await access_webcam(selected_video_source.deviceId);
 		options_open = false;
 	}
 
@@ -247,7 +249,7 @@
 			{#if !recording}
 				<button
 					class="icon"
-					on:click={select_source}
+					on:click={() => (options_open = true)}
 					aria-label="select input source"
 				>
 					<DropdownArrow />
@@ -259,6 +261,8 @@
 				class="select-wrap"
 				aria-label="select source"
 				use:click_outside={handle_click_outside}
+				bind:value={selected_video_source}
+				on:change={select_video_source}
 			>
 				<button
 					class="inset-icon"
@@ -270,7 +274,7 @@
 					<option value="">{i18n("common.no_devices")}</option>
 				{:else}
 					{#each video_sources as source}
-						<option on:click={() => selectVideoSource(source.deviceId)}>
+						<option value={source}>
 							{source.label}
 						</option>
 					{/each}
