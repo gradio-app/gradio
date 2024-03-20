@@ -619,7 +619,21 @@ with gr.Blocks(  # noqa: SIM117
                     if getattr(source_obj, attr) != final_attr_values[final_theme_attr]:
                         diff = True
                 if diff:
-                    specific_core_diffs[value_name] = (source_class, final_attr_values)
+                    new_final_attr_values = {}
+                    # We need to update the theme keys to match the color and size attribute names
+                    for key, val in final_attr_values.items():
+                        if key.startswith(("primary_", "secondary_", "neutral_")):
+                            color_key = "c" + key.split("_")[-1]
+                            new_final_attr_values[color_key] = val
+                        elif key.startswith(("text_", "spacing_", "radius_")):
+                            size_key = key.split("_")[-1]
+                            new_final_attr_values[size_key] = val
+                        else:
+                            new_final_attr_values[key] = val
+                    specific_core_diffs[value_name] = (
+                        source_class,
+                        new_final_attr_values,
+                    )
 
             font_diffs = {}
 
