@@ -95,7 +95,10 @@ class EndpointV3Compatibility:
                     raise ValueError(result["error"])
             else:
                 response = httpx.post(
-                    self.client.api_url, headers=self.client.headers, json=data
+                    self.client.api_url,
+                    headers=self.client.headers,
+                    json=data,
+                    verify=self.client.ssl_verify,
                 )
                 result = json.loads(response.content.decode("utf-8"))
             try:
@@ -144,7 +147,12 @@ class EndpointV3Compatibility:
             for f in fs:
                 files.append(("files", (Path(f).name, open(f, "rb"))))  # noqa: SIM115
                 indices.append(i)
-        r = httpx.post(self.client.upload_url, headers=self.client.headers, files=files)
+        r = httpx.post(
+            self.client.upload_url,
+            headers=self.client.headers,
+            files=files,
+            verify=self.client.ssl_verify,
+        )
         if r.status_code != 200:
             uploaded = file_paths
         else:

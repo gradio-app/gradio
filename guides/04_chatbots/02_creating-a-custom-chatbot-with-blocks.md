@@ -91,15 +91,18 @@ def bot(history):
     return history
 ```
 
-In addition, it can handle media files, such as images, audio, and video. To pass in a media file, we must pass in the file as a tuple of two strings, like this: `(filepath, alt_text)`. The `alt_text` is optional, so you can also just pass in a tuple with a single element `(filepath,)`, like this:
+In addition, it can handle media files, such as images, audio, and video. You can use the `MultimodalTextbox` component to easily upload all types of media files to your chatbot. To pass in a media file, we must pass in the file as a tuple of two strings, like this: `(filepath, alt_text)`. The `alt_text` is optional, so you can also just pass in a tuple with a single element `(filepath,)`, like this:
 
 ```python
-def add_file(history, file):
-    history = history + [((file.name,), None)]
-    return history
+def add_message(history, message):
+    for x in message["files"]:
+        history.append(((x["path"],), None))  
+    if message["text"] is not None:
+        history.append((message["text"], None))
+    return history, gr.MultimodalTextbox(value=None, interactive=False, file_types=["image"])
 ```
 
-Putting this together, we can create a _multimodal_ chatbot with a textbox for a user to submit text and an file upload button to submit images / audio / video files. The rest of the code looks pretty much the same as before:
+Putting this together, we can create a _multimodal_ chatbot with a multimodal textbox for a user to submit text and media files. The rest of the code looks pretty much the same as before:
 
 $code_chatbot_multimodal
 $demo_chatbot_multimodal

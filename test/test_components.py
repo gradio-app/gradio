@@ -684,6 +684,7 @@ class TestImage:
             "visible": True,
             "value": None,
             "interactive": None,
+            "format": "png",
             "proxy_url": None,
             "mirror_webcam": True,
             "_selectable": False,
@@ -742,6 +743,24 @@ class TestImage:
         image = component.preprocess(FileData(path=file_path))
         assert image == PIL.ImageOps.exif_transpose(im)
 
+    def test_image_format_parameter(self):
+        component = gr.Image(type="filepath", format="jpeg")
+        file_path = "test/test_files/bus.png"
+        image = component.postprocess(file_path)
+        assert image.path.endswith("png")
+        image = component.postprocess(
+            np.random.randint(0, 256, (100, 100, 3), dtype=np.uint8)
+        )
+        assert image.path.endswith("jpeg")
+
+        image_pre = component.preprocess(FileData(path=file_path))
+        assert image_pre.endswith("png")
+
+        image_pre = component.preprocess(
+            FileData(path="test/test_files/cheetah1.jpg", orig_name="cheetah1.jpg")
+        )
+        assert image_pre.endswith("jpeg")
+
 
 class TestPlot:
     @pytest.mark.asyncio
@@ -795,6 +814,19 @@ class TestPlot:
         out = gr.Plot().postprocess(chart).model_dump()
         assert isinstance(out["plot"], str)
         assert out["plot"] == chart.to_json()
+
+    def test_plot_format_parameter(self):
+        """
+        postprocess
+        """
+        with utils.MatplotlibBackendMananger():
+            import matplotlib.pyplot as plt
+
+            fig = plt.figure()
+            plt.plot([1, 2, 3], [1, 2, 3])
+
+        component = gr.Plot(format="jpeg")
+        assert component.postprocess(fig).plot.startswith("data:image/jpeg")
 
 
 class TestAudio:
@@ -1937,6 +1969,15 @@ class TestAnnotatedImage:
         assert np.max(mask1_array_out[40:50, 40:50]) == 255
         assert np.max(mask1_array_out[50:60, 50:60]) == 0
 
+    def test_annotated_image_format_parameter(self):
+        component = gr.AnnotatedImage(format="jpeg")
+        img = np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
+        mask1 = [40, 40, 50, 50]
+        data = (img, [(mask1, "mask1"), (mask1, "mask2")])
+        output = component.postprocess(data)
+        assert output.image.path.endswith(".jpeg")
+        assert output.annotations[0].image.path.endswith(".png")
+
     def test_component_functions(self):
         ht_output = gr.AnnotatedImage(label="sections", show_legend=False)
         assert ht_output.get_config() == {
@@ -1947,6 +1988,7 @@ class TestAnnotatedImage:
             "container": True,
             "min_width": 160,
             "scale": None,
+            "format": "png",
             "color_map": None,
             "height": None,
             "width": None,
@@ -2364,6 +2406,13 @@ class TestGallery:
         preprocess = gr.Gallery().preprocess(data)
         assert preprocess[0] == ("test/test_files/bus.png", "bus")
 
+    def test_gallery_format(self):
+        gallery = gr.Gallery(format="jpeg")
+        output = gallery.postprocess(
+            [np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)]
+        )
+        assert output.root[0].image.path.endswith(".jpeg")
+
 
 class TestState:
     def test_as_component(self):
@@ -2470,7 +2519,7 @@ class TestScatterPlot:
             "elem_classes": [],
             "interactive": None,
             "label": None,
-            "name": "plot",
+            "name": "scatterplot",
             "bokeh_version": "3.0.3",
             "show_actions_button": False,
             "proxy_url": None,
@@ -2630,7 +2679,7 @@ class TestLinePlot:
             "elem_classes": [],
             "interactive": None,
             "label": None,
-            "name": "plot",
+            "name": "lineplot",
             "bokeh_version": "3.0.3",
             "show_actions_button": False,
             "proxy_url": None,
@@ -2735,7 +2784,7 @@ class TestBarPlot:
             "elem_classes": [],
             "interactive": None,
             "label": None,
-            "name": "plot",
+            "name": "barplot",
             "bokeh_version": "3.0.3",
             "show_actions_button": False,
             "proxy_url": None,
@@ -2937,6 +2986,12 @@ class TestFileExplorer:
             {"name": "file2.txt", "type": "file", "valid": True},
         ]
         assert tree == answer
+
+
+class TestButton:
+    def test_postprocess(self):
+        assert gr.Button().postprocess("5") == "5"
+        assert gr.Button().postprocess(5) == "5"
 
 
 def test_component_class_ids():

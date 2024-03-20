@@ -16,14 +16,11 @@
 	import python from "./img/python.svg";
 	import javascript from "./img/javascript.svg";
 
-	export let instance_map: {
-		[id: number]: ComponentMeta;
-	};
 	export let dependencies: Dependency[];
 	export let root: string;
 	export let app: Awaited<ReturnType<typeof client>>;
 	export let space_id: string | null;
-
+	export let root_node: ComponentMeta;
 	const js_docs =
 		"https://www.gradio.app/guides/getting-started-with-the-js-client";
 	const py_docs =
@@ -50,9 +47,27 @@
 
 	let is_running = false;
 
+	function find_recursive(
+		node: ComponentMeta,
+		id: number
+	): ComponentMeta | null {
+		if (node.id === id) {
+			return node;
+		}
+		if (node.children) {
+			for (let child of node.children) {
+				let result = find_recursive(child, id);
+				if (result) {
+					return result;
+				}
+			}
+		}
+		return null;
+	}
+
 	let dependency_inputs = dependencies.map((dependency) =>
 		dependency.inputs.map((_id) => {
-			let default_data = instance_map[_id].documentation?.example_data;
+			let default_data = find_recursive(root_node, _id)?.props?.default;
 			if (default_data === undefined) {
 				default_data = "";
 			} else if (typeof default_data === "object") {
@@ -103,10 +118,9 @@
 		let dependency = dependencies[index];
 		let attempted_component_index = 0;
 		try {
-			var inputs = dependency_inputs[index].map((input_val, i) => {
+			var inputs = dependency_inputs[index].map((input_val: any, i: number) => {
 				attempted_component_index = i;
-				let component = instance_map[dependency.inputs[i]];
-				// @ts-ignore
+				let component = find_recursive(root_node, dependency.inputs[i])!;
 				input_val = represent_value(
 					input_val,
 					component.documentation?.type?.input_payload ||
@@ -130,7 +144,7 @@
 		if (status_code == 200) {
 			dependency_outputs[index] = response.data.map(
 				(output_val: any, i: number) => {
-					let component = instance_map[dependency.outputs[i]];
+					let component = find_recursive(root_node, dependency.outputs[i])!;
 
 					return represent_value(
 						output_val,

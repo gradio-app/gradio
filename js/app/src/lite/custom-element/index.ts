@@ -62,6 +62,7 @@ export function bootstrap_custom_element(
 					requirements: gradioLiteAppOptions.requirements,
 					files: gradioLiteAppOptions.files,
 					entrypoint: gradioLiteAppOptions.entrypoint,
+					playground: this.hasAttribute("playground"),
 					...gradioComponentOptions
 				});
 			});
@@ -174,7 +175,6 @@ export function bootstrap_custom_element(
 			const firstRequirementsElement = requirementsElements[0];
 			const requirementsTxt = firstRequirementsElement?.textContent ?? "";
 			options.requirements = parseRequirementsTxt(requirementsTxt);
-
 			return options;
 		}
 	}
