@@ -134,12 +134,6 @@ class MultimodalTextbox(FormComponent):
         self.rtl = rtl
         self.text_align = text_align
 
-    def _preprocess_file(self, path: str) -> str:
-        file_name = path
-        file = tempfile.NamedTemporaryFile(delete=False, dir=self.GRADIO_CACHE)
-        file.name = file_name
-        return file_name
-
     def preprocess(self, payload: MultimodalData | None) -> MultimodalValue | None:
         """
         Parameters:
@@ -151,7 +145,7 @@ class MultimodalTextbox(FormComponent):
             return None
         return {
             "text": payload.text,
-            "files": [self._preprocess_file(f.path) for f in payload.files],
+            "files": [f.path for f in payload.files],
         }
 
     def postprocess(self, value: MultimodalValue | None) -> MultimodalData:
