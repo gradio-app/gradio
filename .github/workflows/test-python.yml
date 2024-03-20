@@ -68,7 +68,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         . venv/bin/activate
-        bash scripts/lint_backend.sh
+        ./scripts/lint_backend.sh
     - name: Typecheck
       if: runner.os == 'Linux'
       run: |
