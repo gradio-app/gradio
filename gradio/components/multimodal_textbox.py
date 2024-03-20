@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, List, Literal, Optional, TypedDict
+from typing import Any, Callable, List, Literal, NotRequired, Optional, TypedDict
 
 import gradio_client.utils as client_utils
 from gradio_client.documentation import document
@@ -23,6 +23,10 @@ class MultimodalPostprocess(TypedDict):
     text: str
     files: List[FileData]
 
+
+class MultimodalValue(TypedDict):
+    text: NotRequired[str]
+    files: NotRequired[list[str | FileData]]
 
 @document()
 class MultimodalTextbox(FormComponent):
@@ -138,7 +142,7 @@ class MultimodalTextbox(FormComponent):
         """
         return None if payload is None else payload.model_dump()
 
-    def postprocess(self, value: dict[str, str | list] | None) -> MultimodalData:
+    def postprocess(self, value: MultimodalValue | None) -> MultimodalData:
         """
         Parameters:
             value: Expects a {dict} with "text" and "files", both optional. The files array is a list of file paths or URLs.
@@ -151,24 +155,19 @@ class MultimodalTextbox(FormComponent):
             raise ValueError(
                 f"MultimodalTextbox expects a dictionary with optional keys 'text' and 'files'. Received {value.__class__.__name__}"
             )
+        text = value.get("text", "")
         if "files" in value and isinstance(value["files"], list):
-            value["files"] = [
+            files = [
                 file
                 if isinstance(file, FileData)
                 else FileData(
-                    path=file["path"] if "path" in file else file,
-                    mime_type=file["mime_type"]
-                    if "mime_type" in file
-                    else client_utils.get_mimetype(file),
-                    orig_name=file["orig_name"]
-                    if "orig_name" in file
-                    else Path(file).name,
-                    size=file["size"] if "size" in file else Path(file).stat().st_size,
+                    path=file,
+                    orig_name=Path(file).name,
                 )
                 for file in value["files"]
             ]
-        text = value.get("text", "")
-        files = value.get("files", [])
+        else:
+            files = []
         if not isinstance(text, str):
             raise TypeError(
                 f"Expected 'text' to be a string, but got {type(text).__name__}"
