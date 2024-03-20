@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import tempfile
 from pathlib import Path
-from typing import Any, Callable, List, Literal, NotRequired, Optional, TypedDict
+from typing import Any, Callable, List, Literal, NotRequired, TypedDict
 
 from gradio_client.documentation import document
 from pydantic import Field
@@ -14,8 +15,8 @@ from gradio.events import Events
 
 
 class MultimodalData(GradioModel):
-    text: Optional[str] = None
-    files: Optional[List[FileData]] = Field(default_factory=list)
+    text: str
+    files: List[FileData] = Field(default_factory=list)
 
 
 class MultimodalPostprocess(TypedDict):
@@ -25,7 +26,7 @@ class MultimodalPostprocess(TypedDict):
 
 class MultimodalValue(TypedDict):
     text: NotRequired[str]
-    files: NotRequired[list[str | FileData]]
+    files: NotRequired[list[str]]
 
 
 @document()
@@ -131,16 +132,25 @@ class MultimodalTextbox(FormComponent):
         self.rtl = rtl
         self.text_align = text_align
 
-    def preprocess(
-        self, payload: MultimodalData | None
-    ) -> dict[str, str | list] | None:
+    def _preprocess_file(self, path: str) -> str:
+        file_name = path
+        file = tempfile.NamedTemporaryFile(delete=False, dir=self.GRADIO_CACHE)
+        file.name = file_name
+        return file_name
+
+    def preprocess(self, payload: MultimodalData | None) -> MultimodalValue | None:
         """
         Parameters:
             payload: the text and list of file(s) entered in the multimodal textbox.
         Returns:
             Passes text value and list of file(s) as a {dict} into the function.
         """
-        return None if payload is None else payload.model_dump()
+        if payload is None:
+            return None
+        return {
+            "text": payload.text,
+            "files": [self._preprocess_file(f.path) for f in payload.files],
+        }
 
     def postprocess(self, value: MultimodalValue | None) -> MultimodalData:
         """
