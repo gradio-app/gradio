@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Callable, List, Literal, NotRequired, TypedDict
 
+import gradio_client.utils as client_utils
 from gradio_client.documentation import document
 from pydantic import Field
 
@@ -173,6 +174,7 @@ class MultimodalTextbox(FormComponent):
                 else FileData(
                     path=file,
                     orig_name=Path(file).name,
+                    mime_type=client_utils.get_mimetype(file),
                 )
                 for file in value["files"]
             ]
