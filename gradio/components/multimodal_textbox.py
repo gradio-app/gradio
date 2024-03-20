@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Callable, List, Literal, NotRequired, Optional, TypedDict
 
-import gradio_client.utils as client_utils
 from gradio_client.documentation import document
 from pydantic import Field
 
@@ -27,6 +26,7 @@ class MultimodalPostprocess(TypedDict):
 class MultimodalValue(TypedDict):
     text: NotRequired[str]
     files: NotRequired[list[str | FileData]]
+
 
 @document()
 class MultimodalTextbox(FormComponent):
