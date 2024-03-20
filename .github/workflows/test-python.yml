@@ -73,7 +73,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         . venv/bin/activate
-        bash scripts/type_check_backend.sh
+        ./scripts/type_check_backend.sh
     - name: Run tests
       run: |
         . ${{steps.install_deps.outputs.venv_activate}}
