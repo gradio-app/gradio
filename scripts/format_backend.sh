@@ -1,5 +1,4 @@
 #!/bin/bash -eu
-set -e
 
 cd "$(dirname ${0})/.."
 
