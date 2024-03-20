@@ -14,11 +14,15 @@
 	},
 	"dependencies": {
 		"bufferutil": "^4.0.7",
+		"eventsource": "^2.0.2",
 		"semiver": "^1.1.0",
 		"ws": "^8.13.0"
 	},
 	"devDependencies": {
+		"@sveltejs/vite-plugin-svelte": "^3.0.2",
 		"@types/ws": "^8.5.4",
+		"typescript": "^5.4.3",
+		"vite": "^5.2.2",
 		"esbuild": "^0.20.0"
 	},
 	"scripts": {

@@ -1,6 +1,7 @@
 //@ts-nocheck
 
 import semiver from "semiver";
+import EventSource from 'eventsource';
 
 import {
 	process_endpoint,
@@ -302,7 +303,7 @@ export function api_factory(
 
 			async function config_success(_config: Config): Promise<client_return> {
 				config = _config;
-				if (window.location.protocol === "https:") {
+				if (typeof window !== "undefined" && window.location.protocol === "https:") {
 					config.root = config.root.replace("http://", "https://");
 				}
 				api_map = map_names_to_ids(_config?.dependencies || []);
@@ -668,7 +669,7 @@ export function api_factory(
 								}${params}`
 							);
 
-							eventSource = EventSource_factory(url);
+							eventSource = EventSource_factory(String(url));
 
 							eventSource.onmessage = async function (event) {
 								const _data = JSON.parse(event.data);
@@ -1042,7 +1043,7 @@ export function api_factory(
 					session_hash: session_hash
 				}).toString();
 				let url = new URL(`${config.root}/queue/data?${params}`);
-				event_stream = EventSource_factory(url);
+				event_stream = EventSource_factory(String(url));
 				event_stream.onmessage = async function (event) {
 					let _data = JSON.parse(event.data);
 					const event_id = _data.event_id;
@@ -1063,7 +1064,7 @@ export function api_factory(
 							}
 						}
 						let fn = event_callbacks[event_id];
-						window.setTimeout(fn, 0, _data); // need to do this to put the event on the end of the event loop, so the browser can refresh between callbacks and not freeze in case of quick generations. See https://github.com/gradio-app/gradio/pull/7055
+						setTimeout(fn, 0, _data); // need to do this to put the event on the end of the event loop, so the browser can refresh between callbacks and not freeze in case of quick generations. See https://github.com/gradio-app/gradio/pull/7055
 					} else {
 						if (!pending_stream_messages[event_id]) {
 							pending_stream_messages[event_id] = [];
