@@ -2527,6 +2527,7 @@ Received outputs:
                 elif (
                     dependency["backend_fn"]
                     and index < len(fn_info)
+                    and fn_info[index][1]
                     and fn_info[index][2] is None
                 ):
                     parameter_has_default = True
