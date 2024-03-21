@@ -121,6 +121,9 @@ class Block:
         self.state_session_capacity = 10000
         self.temp_files: set[str] = set()
         self.GRADIO_CACHE = get_upload_folder()
+        # Keep tracks of files that should not be deleted when the delete_cache parmaeter is set
+        # These files are the default value of the component and files that are used in examples
+        self.keep_in_cache = set()
 
         if render:
             self.render()
@@ -182,14 +185,25 @@ class Block:
 
     def get_block_name(self) -> str:
         """
-        Gets block's class name.
-
-        If it is template component it gets the parent's class name.
-
-        @return: class name
+        Gets block's class name. If it is template component it gets the parent's class name.
+        This is used to identify the Svelte file to use in the frontend. Override this method
+        if a component should use a different Svelte file than the default naming convention.
         """
         return (
-            self.__class__.__base__.__name__.lower()
+            self.__class__.__base__.__name__.lower()  # type: ignore
+            if hasattr(self, "is_template")
+            else self.__class__.__name__.lower()
+        )
+
+    def get_block_class(self) -> str:
+        """
+        Gets block's class name. If it is template component it gets the parent's class name.
+        Very similar to the get_block_name method, but this method is used to reconstruct a
+        Gradio app that is loaded from a Space using gr.load(). This should generally
+        NOT be overridden.
+        """
+        return (
+            self.__class__.__base__.__name__.lower()  # type: ignore
             if hasattr(self, "is_template")
             else self.__class__.__name__.lower()
         )
@@ -209,7 +223,7 @@ class Block:
             if to_add:
                 config = {**to_add, **config}
         config.pop("render", None)
-        config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_name()}
+        config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_class()}
         if (_selectable := getattr(self, "_selectable", None)) is not None:
             config["_selectable"] = _selectable
         return config
@@ -253,16 +267,25 @@ class Block:
         else:
             url_or_file_path = str(utils.abspath(url_or_file_path))
             if not utils.is_in_or_equal(url_or_file_path, self.GRADIO_CACHE):
-                temp_file_path = processing_utils.save_file_to_cache(
-                    url_or_file_path, cache_dir=self.GRADIO_CACHE
-                )
+                try:
+                    temp_file_path = processing_utils.save_file_to_cache(
+                        url_or_file_path, cache_dir=self.GRADIO_CACHE
+                    )
+                except FileNotFoundError:
+                    # This can happen if when using gr.load() and the file is on a remote Space
+                    # but the file is not the `value` of the component. For example, if the file
+                    # is the `avatar_image` of the `Chatbot` component. In this case, we skip
+                    # copying the file to the cache and just use the remote file path.
+                    return url_or_file_path
             else:
                 temp_file_path = url_or_file_path
             self.temp_files.add(temp_file_path)
 
         return temp_file_path
 
-    def serve_static_file(self, url_or_file_path: str | Path | None) -> dict | None:
+    def serve_static_file(
+        self, url_or_file_path: str | Path | dict | None
+    ) -> dict | None:
         """If a file is a local file, moves it to the block's cache directory and returns
         a FileData-type dictionary corresponding to the file. If the file is a URL, returns a
         FileData-type dictionary corresponding to the URL. This ensures that the file is
@@ -271,12 +294,14 @@ class Block:
         Examples:
         >>> block.serve_static_file("https://gradio.app/logo.png") -> {"path": "https://gradio.app/logo.png", "url": "https://gradio.app/logo.png"}
         >>> block.serve_static_file("logo.png") -> {"path": "logo.png", "url": "/file=logo.png"}
+        >>> block.serve_static_file({"path": "logo.png", "url": "/file=logo.png"}) -> {"path": "logo.png", "url": "/file=logo.png"}
         """
         if url_or_file_path is None:
             return None
+        if isinstance(url_or_file_path, dict):
+            return url_or_file_path
         if isinstance(url_or_file_path, Path):
             url_or_file_path = str(url_or_file_path)
-
         if client_utils.is_http_url_like(url_or_file_path):
             return FileData(path=url_or_file_path, url=url_or_file_path).model_dump()
         else:
@@ -687,7 +712,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     break
             else:
                 raise ValueError(f"Cannot find block with id {id}")
-            cls = component_or_layout_class(block_config["type"])
+            cls = component_or_layout_class(block_config["props"]["name"])
 
             # If a Gradio app B is loaded into a Gradio app A, and B itself loads a
             # Gradio app C, then the proxy_urls of the components in A need to be the
@@ -753,15 +778,18 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 # targets field
                 _targets = dependency.pop("targets")
                 trigger = dependency.pop("trigger", None)
-                targets = [
-                    getattr(
-                        original_mapping[
-                            target if isinstance(target, int) else target[0]
-                        ],
-                        trigger if isinstance(target, int) else target[1],
-                    )
-                    for target in _targets
-                ]
+                is_then_event = False
+
+                # This assumes that you cannot combine multiple .then() events in a single
+                # gr.on() event, which is true for now. If this changes, we will need to
+                # update this code.
+                if not isinstance(_targets[0], int) and _targets[0][1] == "then":
+                    if len(_targets) != 1:
+                        raise ValueError(
+                            "This logic assumes that .then() events are not combined with other events in a single gr.on() event"
+                        )
+                    is_then_event = True
+
                 dependency.pop("backend_fn")
                 dependency.pop("documentation", None)
                 dependency["inputs"] = [
@@ -773,12 +801,30 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 dependency.pop("status_tracker", None)
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
-                targets = [
-                    EventListenerMethod(
-                        t.__self__ if t.has_trigger else None, t.event_name
+                if is_then_event:
+                    targets = [EventListenerMethod(None, "then")]
+                    dependency["trigger_after"] = dependency.pop("trigger_after")
+                    dependency["trigger_only_on_success"] = dependency.pop(
+                        "trigger_only_on_success"
                     )
-                    for t in targets
-                ]
+                    dependency["no_target"] = True
+                else:
+                    targets = [
+                        getattr(
+                            original_mapping[
+                                target if isinstance(target, int) else target[0]
+                            ],
+                            trigger if isinstance(target, int) else target[1],
+                        )
+                        for target in _targets
+                    ]
+                    targets = [
+                        EventListenerMethod(
+                            t.__self__ if t.has_trigger else None,
+                            t.event_name,  # type: ignore
+                        )
+                        for t in targets
+                    ]
                 dependency = blocks.set_event_trigger(
                     targets=targets, fn=fn, **dependency
                 )[0]
@@ -866,7 +912,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             show_progress: whether to show progress animation while running.
             api_name: defines how the endpoint appears in the API docs. Can be a string, None, or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If None (default), the name of the function will be used as the API endpoint. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use this event.
             js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
-            no_target: if True, sets "targets" to [], used for Blocks "load" event
+            no_target: if True, sets "targets" to [], used for the Blocks.load() event and .then() events
             queue: If True, will place the request on the queue, if the queue has been enabled. If False, will not put this event on the queue, even if the queue has been enabled. If None, will use the queue setting of the gradio app.
             batch: whether this function takes in a batch of inputs
             max_batch_size: the maximum batch size to send to the function
@@ -884,7 +930,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         # Support for singular parameter
         _targets = [
             (
-                target.block._id if target.block and not no_target else None,
+                target.block._id if not no_target and target.block else None,
                 target.event_name,
             )
             for target in targets
@@ -1256,7 +1302,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 serialized_input = client_utils.traverse(
                     inputs[i],
                     format_file,
-                    lambda s: client_utils.is_filepath(s) or client_utils.is_url(s),
+                    lambda s: client_utils.is_filepath(s)
+                    or client_utils.is_http_url_like(s),
                 )
             else:
                 serialized_input = inputs[i]
@@ -1735,7 +1782,7 @@ Received outputs:
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
-            "protocol": "sse_v2",
+            "protocol": "sse_v3",
             "body_css": {
                 "body_background_fill": self.theme._get_computed_value(
                     "body_background_fill"
@@ -1918,19 +1965,19 @@ Received outputs:
         public link used by anyone to access the demo from their browser by setting share=True.
 
         Parameters:
-            inline: whether to display in the interface inline in an iframe. Defaults to True in python notebooks; False otherwise.
-            inbrowser: whether to automatically launch the interface in a new tab on the default browser.
-            share: whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab. When localhost is not accessible (e.g. Google Colab), setting share=False is not supported.
+            inline: whether to display in the gradio app inline in an iframe. Defaults to True in python notebooks; False otherwise.
+            inbrowser: whether to automatically launch the gradio app in a new tab on the default browser.
+            share: whether to create a publicly shareable link for the gradio app. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab. When localhost is not accessible (e.g. Google Colab), setting share=False is not supported.
             debug: if True, blocks the main thread from running. If running in Google Colab, this is needed to print the errors in the cell output.
-            auth: If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
+            auth: If provided, username and password (or list of username-password tuples) required to access app. Can also provide function that takes username and password and returns True if valid login.
             auth_message: If provided, HTML message provided on login page.
-            prevent_thread_lock: If True, the interface will block the main thread while the server is running.
-            show_error: If True, any errors in the interface will be displayed in an alert modal and printed in the browser console log
+            prevent_thread_lock: By default, the gradio app blocks the main thread while the server is running. If set to True, the gradio app will not block and the gradio server will terminate as soon as the script finishes.
+            show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
             max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40).
-            width: The width in pixels of the iframe element containing the interface (used if inline=True)
-            height: The height in pixels of the iframe element containing the interface (used if inline=True)
+            width: The width in pixels of the iframe element containing the gradio app (used if inline=True)
+            height: The height in pixels of the iframe element containing the gradio app (used if inline=True)
             favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
             ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
@@ -1938,14 +1985,14 @@ Received outputs:
             ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
             show_api: If True, shows the api docs in the footer of the app. Default True.
-            allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
+            allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
-            root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
+            root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used as the root path in its entirety. Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
             app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
             state_session_capacity: The maximum number of sessions whose information to store in memory. If the number of sessions exceeds this number, the oldest sessions will be removed. Reduce capacity to reduce memory usage when using gradio.State or returning updated components from functions. Defaults to 10000.
             share_server_address: Use this to specify a custom FRP server and port for sharing Gradio apps (only applies if share=True). If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
             share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
-            auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth.
+            auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth. Cannot be used with `auth`.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2086,7 +2133,9 @@ Received outputs:
             if not wasm_utils.IS_WASM:
                 # Cannot run async functions in background other than app's scope.
                 # Workaround by triggering the app endpoint
-                httpx.get(f"{self.local_url}startup-events", verify=ssl_verify)
+                httpx.get(
+                    f"{self.local_url}startup-events", verify=ssl_verify, timeout=None
+                )
             else:
                 # NOTE: One benefit of the code above dispatching `startup_events()` via a self HTTP request is
                 # that `self._queue.start()` is called in another thread which is managed by the HTTP server, `uvicorn`
@@ -2443,7 +2492,7 @@ Received outputs:
                 else:
                     skip_endpoint = True  # if component not found, skip endpoint
                     break
-                type = component["type"]
+                type = component["props"]["name"]
                 if self.blocks[component["id"]].skip_api:
                     continue
                 label = component["props"].get("label", f"parameter_{i}")
@@ -2474,7 +2523,7 @@ Received outputs:
                 else:
                     skip_endpoint = True  # if component not found, skip endpoint
                     break
-                type = component["type"]
+                type = component["props"]["name"]
                 if self.blocks[component["id"]].skip_api:
                     continue
                 label = component["props"].get("label", f"value_{o}")

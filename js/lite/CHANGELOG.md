@@ -1,5 +1,27 @@
 # @gradio/lite
 
+## 4.22.0
+
+### Features
+
+- [#7660](https://github.com/gradio-app/gradio/pull/7660) [`f739bef`](https://github.com/gradio-app/gradio/commit/f739bef6c70a2b012dd896456709eae5ee4de7d5) - Add Playground to Lite Custom Element.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/wasm@0.9.0
+- gradio@4.22.0
+
+## 4.21.0
+
+### Features
+
+- [#7647](https://github.com/gradio-app/gradio/pull/7647) [`57510f9`](https://github.com/gradio-app/gradio/commit/57510f9ce0b38d473cc90800a05e769f1a47be9b) - Lite version.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/wasm@0.8.0
+- gradio@4.21.0
+
 ## 4.14.2
 
 ### Features
