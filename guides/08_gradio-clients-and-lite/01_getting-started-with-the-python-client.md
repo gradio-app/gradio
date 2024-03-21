@@ -30,17 +30,15 @@ The Gradio client works with any hosted Gradio app! Although the Client is mostl
 
 If you already have a recent version of `gradio`, then the `gradio_client` is included as a dependency. But note that this documentation reflects the latest version of the `gradio_client`, so upgrade if you're not sure!
 
-The lightweight `gradio_client` package can be installed from pip (or pip3) and is tested to work with Python versions 3.9 or higher:
+The lightweight `gradio_client` package can be installed from pip (or pip3) and is tested to work with **Python versions 3.9 or higher**:
 
 ```bash
 $ pip install --upgrade gradio_client
 ```
 
-## Connecting to a running Gradio App
+## Connecting to a Gradio App on Hugging Face Spaces
 
-Start by connecting instantiating a `Client` object and connecting it to a Gradio app that is running on Hugging Face Spaces or generally anywhere on the web.
-
-## Connecting to a Hugging Face Space
+Start by connecting instantiating a `Client` object and connecting it to a Gradio app that is running on Hugging Face Spaces.
 
 ```python
 from gradio_client import Client
@@ -55,6 +53,7 @@ from gradio_client import Client
 
 client = Client("abidlabs/my-private-space", hf_token="...")
 ```
+
 
 ## Duplicating a Space for private use
 
