@@ -4,6 +4,7 @@ import io
 import os
 import pathlib
 import random
+import socket
 import sys
 import time
 import uuid
@@ -25,7 +26,7 @@ import gradio as gr
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
-from gradio.networking import Server, get_first_available_port
+from gradio.http_server import Server
 from gradio.utils import assert_configs_are_equivalent_besides_ids
 
 pytest_plugins = ("pytest_asyncio",)
@@ -351,18 +352,19 @@ class TestBlocksMethods:
 
         This is essentially what the 'gradio' reload mode does
         """
-
-        port = get_first_available_port(7860, 7870)
-
         io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox()).queue()
 
-        config = uvicorn.Config(app=io.app, port=port, log_level="warning")
+        sock = socket.socket()
+        sock.bind(('', 0))
+        available_port = sock.getsockname()[1]
+
+        config = uvicorn.Config(app=io.app, port=available_port, log_level="warning")
 
         server = Server(config=config)
         server.run_in_thread()
 
         try:
-            client = grc.Client(f"http://localhost:{port}")
+            client = grc.Client(f"http://localhost:{available_port}")
             result = client.predict("Victor", api_name="/predict")
             assert result == "Victor"
         finally:

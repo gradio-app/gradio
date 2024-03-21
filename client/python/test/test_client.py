@@ -16,7 +16,7 @@ import huggingface_hub
 import pytest
 import uvicorn
 from fastapi import FastAPI
-from gradio.networking import Server
+from gradio.http_server import Server
 from huggingface_hub import HfFolder
 from huggingface_hub.utils import RepositoryNotFoundError
 
