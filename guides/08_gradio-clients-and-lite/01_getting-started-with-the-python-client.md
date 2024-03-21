@@ -98,14 +98,17 @@ Client.predict() Usage Info
 ---------------------------
 Named API endpoints: 1
 
- - predict(input_audio, api_name="/predict") -> value_0
+ - predict(audio, api_name="/predict") -> output
     Parameters:
-     - [Audio] input_audio: str (filepath or URL)
+     - [Audio] audio: filepath (required)  
     Returns:
-     - [Textbox] value_0: str (value)
+     - [Textbox] output: str 
 ```
 
-Alternatively, you can click on the "view API" link in the footer of the Gradio app, which shows us the same information, along with example usage.
+
+Alternatively, you can click on the "Use via API" link in the footer of the Gradio app, which shows us the same information, along with example usage.
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api.png)
 
 We see  that we have 1 API endpoint in this space, and shows us how to use the API endpoint to make a prediction: we should call the `.predict()` method (which we will explore below), providing a parameter `input_audio` of type `str`, which is a `filepath or URL`.
 
@@ -152,10 +155,8 @@ This allows you to take advantage of default arguments. For example, this Space 
 ```python
 from gradio_client import Client
 
-client = Client("gradio/calculator")
-client.predict(num1=4, operation="add", num2=5)
-
->> 9.0
+client = Client("abidlabs/image_generator")
+client.predict(text="an astronaut riding a camel")
 ```
 
 The default value is the initial value of the corresponding Gradio component. If the component does not have an initial value, but if the corresponding argument in the predict function has a default value of `None``, then that parameter is also optional in the client. Of course, if you'd like to override it, you can include it as well:
@@ -163,21 +164,19 @@ The default value is the initial value of the corresponding Gradio component. If
 ```python
 from gradio_client import Client
 
-client = Client("gradio/calculator")
-client.predict(num1=4, operation="add", num2=5)
-
->> 9.0
+client = Client("abidlabs/image_generator")
+client.predict(text="an astronaut riding a camel", steps=25)
 ```
 
-
-For when working with files (e.g. image files), you should pass in the filepath or URL to the file enclosed within `gradio_client.file()`. 
+For providing files or URLs as inputs, you should pass in the filepath or URL to the file enclosed within `gradio_client.file()`. This takes care of uploading the file to the Gradio server and ensures that the file is preprocessed correctly:
 
 ```python
 from gradio_client import Client, file
 
 client = Client("abidlabs/whisper")
 client.predict(
-    audio=file("https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"))
+    audio=file("https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3")
+)
 
 >> "My thought I have nobody by a beauty and will as you poured. Mr. Rochester is serve in that so don't find simpus, and devoted abode, to at might in a r—"
 ```
