@@ -1,8 +1,8 @@
 ---
-"@gradio/checkbox": minor
-"@gradio/number": minor
-"@gradio/slider": minor
-"gradio": minor
+"@gradio/checkbox": patch
+"@gradio/number": patch
+"@gradio/slider": patch
+"gradio": patch
 ---
 
-feat:Fix input events for some components
+feat:Fix input event for Number, Slider, Checkbox
