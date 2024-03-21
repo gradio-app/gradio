@@ -15,6 +15,7 @@ def copy_js_code(root: str | pathlib.Path):
         "playwright-report",
         "workbench",
         "tooltils",
+        "lite"
     ]
     for entry in (pathlib.Path(root) / "js").iterdir():
         if (
