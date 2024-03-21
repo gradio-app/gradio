@@ -14,12 +14,15 @@ Here's the entire code to do it:
 from gradio_client import Client, file
 
 client = Client("abidlabs/whisper")
-client.predict(file("audio_sample.wav"))
+
+client.predict(
+    audio=file("audio_sample.wav")
+)
 
 >> "This is a test of the whisper speech recognition model."
 ```
 
-The Gradio client works with any hosted Gradio app, whether it be an image generator, a text summarizer, a stateful chatbot, a tax calculator, or anything else! The Gradio Client is mostly used with apps hosted on [Hugging Face Spaces](https://hf.space), but your app can be hosted anywhere, such as your own server.
+The Gradio client works with any hosted Gradio app! Although the Client is mostly used with apps hosted on [Hugging Face Spaces](https://hf.space), your app can be hosted anywhere, such as your own server.
 
 **Prerequisites**: To use the Gradio client, you do _not_ need to know the `gradio` library in great detail. However, it is helpful to have general familiarity with Gradio's concepts of input and output components.
 
@@ -102,9 +105,11 @@ Named API endpoints: 1
      - [Textbox] value_0: str (value)
 ```
 
-This shows us that we have 1 API endpoint in this space, and shows us how to use the API endpoint to make a prediction: we should call the `.predict()` method (which we will explore below), providing a parameter `input_audio` of type `str`, which is a `filepath or URL`.
+Alternatively, you can click on the "view API" link in the footer of the Gradio app, which shows us the same information, along with example usage.
 
-We should also provide the `api_name='/predict'` argument to the `predict()` method. Although this isn't necessary if a Gradio app has only 1 named endpoint, it does allow us to call different endpoints in a single app if they are available. If an app has unnamed API endpoints, these can also be displayed by running `.view_api(all_endpoints=True)`.
+We see  that we have 1 API endpoint in this space, and shows us how to use the API endpoint to make a prediction: we should call the `.predict()` method (which we will explore below), providing a parameter `input_audio` of type `str`, which is a `filepath or URL`.
+
+We should also provide the `api_name='/predict'` argument to the `predict()` method. Although this isn't necessary if a Gradio app has only 1 named endpoint, it does allow us to call different endpoints in a single app if they are available.
 
 ## Making a prediction
 
@@ -129,6 +134,21 @@ client.predict(4, "add", 5)
 
 >> 9.0
 ```
+
+It is recommended to provide key-word arguments instead of positional arguments:
+
+
+```python
+from gradio_client import Client
+
+client = Client("gradio/calculator")
+client.predict(num1=4, operation="add", num2=5)
+
+>> 9.0
+```
+
+This allows you to take advantage of default arguments. For example, this Space includes the default value for the Slider component so you do not need to provide it when accessing it with the client.
+
 
 For when working with files (e.g. image files), you should pass in the filepath or URL to the file enclosed within `gradio_client.file()`. 
 
