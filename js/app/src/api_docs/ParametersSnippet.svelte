@@ -19,7 +19,7 @@
 	{#each endpoint_returns as { label, python_type, component, parameter_name, parameter_has_default, parameter_default }, i}
 		<hr class="hr" />
 		<div style="margin:10px;">
-			<p>
+			<p style="white-space: nowrap; overflow-x: auto;">
 				<span class="code" style="margin-right: 10px;"
 					>{parameter_name && current_language == "python"
 						? parameter_name
@@ -31,16 +31,17 @@
 				>
 				{#if !parameter_has_default || current_language == "javascript"}<span
 						style="font-weight:bold">Required</span
+					>{:else}<span> Default: </span><span
+						class="code"
+						style="font-size: var(--text-sm);"
+						>{represent_value(parameter_default, python_type.type, "py")}</span
 					>{/if}
 			</p>
 			<p class="desc">
 				The input value that is provided in the "{label}" <!--
 	-->{component}
 				component<!--
-	-->. {#if parameter_has_default && current_language === "python"}Defaults
-					to <span class="code highlight" style="font-size: var(--text-md);"
-						>{represent_value(parameter_default, python_type.type, "py")}</span
-					>{/if}
+	-->.
 			</p>
 		</div>
 	{/each}
@@ -56,10 +57,12 @@
 		border: 0;
 		height: 1px;
 		background: var(--color-accent-soft);
+		margin-bottom: 12px;
 	}
 
 	.code {
 		font-family: var(--font-mono);
+		display: inline;
 	}
 
 	.highlight {
@@ -72,7 +75,6 @@
 		color: var(--body-text-color-subdued);
 		font-size: var(--text-lg);
 		margin-top: var(--size-1);
-		overflow-x: auto;
 	}
 
 	h4 {
