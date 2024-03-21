@@ -34,13 +34,15 @@ export async function load({ parent }) {
 	let obj = {
 		name: "NO_RELOAD",
 		description:
-			"When launching Any code in a `if gr.NO_RELOAD` code-block will not be re-evaluated when the source file is reloaded. This is helpful for importing modules that do not like to be reloaded (tiktoken, numpy) as well as database connections and long running set up code.",
-		example: `if gr.NO_RELOAD:
-	print("IMPORTING")
-	import tiktoken
-	import numpy as np
+			"Any code in a `if gr.NO_RELOAD` code-block will not be re-evaluated when the source file is reloaded. This is helpful for importing modules that do not like to be reloaded (tiktoken, numpy) as well as database connections and long running set up code.",
+		example: `
+import gradio as gr
+
+if gr.NO_RELOAD:
 	from transformers import pipeline
 	pipe = pipeline("text-classification", model="cardiffnlp/twitter-roberta-base-sentiment-latest")
+
+gr.Interface.from_pipeline(pipe).launch()
 	`,
 		override_signature: "if gr.NO_RELOAD:"
 	};
