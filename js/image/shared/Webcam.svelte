@@ -40,22 +40,25 @@
 		const target = event.target as HTMLInputElement;
 		const device_id = target.value;
 
-		await get_video_stream(include_audio, video_source, device_id).then(() => {
-			selected_device =
-				available_video_devices.find(
-					(device) => device.deviceId === device_id
-				) || null;
-
-			options_open = false;
-		});
+		await get_video_stream(include_audio, video_source, device_id).then(
+			async (local_stream) => {
+				stream = local_stream;
+				selected_device =
+					available_video_devices.find(
+						(device) => device.deviceId === device_id
+					) || null;
+				options_open = false;
+			}
+		);
 	};
 
 	async function access_webcam(): Promise<void> {
 		try {
 			get_video_stream(include_audio, video_source)
-				.then(async () => {
+				.then(async (local_stream) => {
 					webcam_accessed = true;
 					available_video_devices = await get_devices();
+					stream = local_stream;
 				})
 				.then(() => set_available_devices(available_video_devices))
 				.then((devices) => {

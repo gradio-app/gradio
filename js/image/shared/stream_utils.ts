@@ -7,13 +7,10 @@ export function handle_error(error: string): void {
 }
 
 export function set_local_stream(
-	local_stream: MediaStream,
-	stream: MediaStream | null,
+	local_stream: MediaStream | null,
 	video_source: HTMLVideoElement
 ): void {
-	stream = local_stream;
-
-	video_source.srcObject = stream;
+	video_source.srcObject = local_stream;
 	video_source.muted = true;
 	video_source.play();
 }
@@ -22,7 +19,7 @@ export async function get_video_stream(
 	include_audio: boolean,
 	video_source: HTMLVideoElement,
 	device_id?: string
-): Promise<void> {
+): Promise<MediaStream> {
 	const size = {
 		width: { ideal: 1920 },
 		height: { ideal: 1440 }
@@ -35,10 +32,10 @@ export async function get_video_stream(
 
 	return navigator.mediaDevices
 		.getUserMedia(constraints)
-		.then((stream) => {
-			set_local_stream(stream, stream, video_source);
-		})
-		.catch(handle_error);
+		.then((local_stream: MediaStream) => {
+			set_local_stream(local_stream, video_source);
+			return local_stream;
+		});
 }
 
 export function set_available_devices(
