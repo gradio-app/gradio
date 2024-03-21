@@ -29,7 +29,7 @@
 	export let show_label: boolean;
 	export let interactive: boolean;
 	export let loading_status: LoadingStatus;
-	export let value_is_output = false;
+	let old_value = value;
 
 	let rangeInput: HTMLInputElement;
 	let numberInput: HTMLInputElement;
@@ -38,12 +38,8 @@
 
 	function handle_change(): void {
 		gradio.dispatch("change");
-		if (!value_is_output) {
-			gradio.dispatch("input");
-		}
 	}
 	afterUpdate(() => {
-		value_is_output = false;
 		setSlider();
 	});
 
@@ -99,6 +95,7 @@
 				on:blur={clamp}
 				{step}
 				{disabled}
+				on:input={() => gradio.dispatch("input")}
 				on:pointerup={handle_release}
 			/>
 		</div>
@@ -110,6 +107,7 @@
 		name="cowbell"
 		bind:value
 		bind:this={rangeInput}
+		on:input={() => gradio.dispatch("input")}
 		min={minimum}
 		max={maximum}
 		{step}

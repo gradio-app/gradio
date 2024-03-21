@@ -15,7 +15,6 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value = false;
-	export let value_is_output = false;
 	export let label = "Checkbox";
 	export let info: string | undefined = undefined;
 	export let container = true;
@@ -28,16 +27,6 @@
 		input: never;
 	}>;
 	export let interactive: boolean;
-
-	function handle_change(): void {
-		gradio.dispatch("change");
-		if (!value_is_output) {
-			gradio.dispatch("input");
-		}
-	}
-	afterUpdate(() => {
-		value_is_output = false;
-	});
 
 	// When the value changes, dispatch the change event via handle_change()
 	// See the docs for an explanation: https://svelte.dev/docs/svelte-components#script-3-$-marks-a-statement-as-reactive
@@ -58,7 +47,10 @@
 		bind:value
 		{label}
 		{interactive}
-		on:change={handle_change}
-		on:select={(e) => gradio.dispatch("select", e.detail)}
+		on:change={() => gradio.dispatch("change")}
+		on:select={(e) => {
+			gradio.dispatch("select", e.detail);
+			gradio.dispatch("input")
+		}}
 	/>
 </Block>
