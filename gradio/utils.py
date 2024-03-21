@@ -195,26 +195,6 @@ def _find_module(source_file: Path) -> ModuleType:
     raise ValueError(f"Cannot find module for source file: {source_file}")
 
 
-def _delete_modules(reload_dirs: list[Path], changed: str):
-    # To simulate a fresh reload, delete all module references from sys.modules
-    # for the modules in the package the change came from.
-    dir_ = next(d for d in reload_dirs if is_in_or_equal(changed, d))
-    modules = list(sys.modules)
-    for k in modules:
-        v = sys.modules[k]
-        sourcefile = getattr(v, "__file__", None)
-        # Do not reload `reload.py` to keep thread data
-        if (
-            sourcefile
-            and dir_ == Path(inspect.getfile(gradio)).parent
-            and sourcefile.endswith("reload.py")
-            and sourcefile != changed
-        ):
-            continue
-        if sourcefile and is_in_or_equal(sourcefile, dir_):
-            del sys.modules[k]
-
-
 def watchfn(reloader: SourceFileReloader):
     """Watch python files in a given module.
 
@@ -278,8 +258,11 @@ def watchfn(reloader: SourceFileReloader):
                 if changed != reloader.demo_file:
                     changed_module = _find_module(changed)
                     exec(changed_in_copy, changed_module.__dict__)
-
-                _delete_modules(reload_dirs, str(changed))
+                    top_level_parent = sys.modules[
+                        changed_module.__name__.split(".")[0]
+                    ]
+                    if top_level_parent != changed_module:
+                        importlib.reload(top_level_parent)
 
                 changed_demo_file = _remove_no_reload_codeblocks(
                     str(reloader.demo_file)
