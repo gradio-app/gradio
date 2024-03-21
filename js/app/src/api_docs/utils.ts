@@ -46,7 +46,7 @@ export function represent_value(
 
 export function is_potentially_nested_file_data(obj: any): boolean {
 	if (typeof obj === "object" && obj !== null) {
-		if (obj.hasOwnProperty("path") && obj.hasOwnProperty("meta")) {
+		if (obj.hasOwnProperty("url") && obj.hasOwnProperty("meta")) {
 			if (
 				typeof obj.meta === "object" &&
 				obj.meta !== null &&
@@ -72,11 +72,11 @@ export function is_potentially_nested_file_data(obj: any): boolean {
 function replace_file_data_with_file_function(obj: any): any {
 	if (typeof obj === "object" && obj !== null && !Array.isArray(obj)) {
 		if (
-			"path" in obj &&
+			"url" in obj &&
 			"meta" in obj &&
 			obj.meta?._type === "gradio.FileData"
 		) {
-			return `file('${obj.path}')`;
+			return `file('${obj.url}')`;
 		}
 	}
 	if (Array.isArray(obj)) {

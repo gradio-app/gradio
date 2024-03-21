@@ -169,7 +169,6 @@ console.log(result.data);
 	}
 
 	.example-inputs {
-		padding-right: var(--size-1);
 		color: var(--color-accent);
 	}
 	.api-name {

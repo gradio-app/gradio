@@ -72,6 +72,7 @@
 		color: var(--body-text-color-subdued);
 		font-size: var(--text-lg);
 		margin-top: var(--size-1);
+		overflow-x: auto;
 	}
 
 	h4 {
