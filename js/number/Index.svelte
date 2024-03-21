@@ -3,7 +3,7 @@
 	import { Block, BlockTitle } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
-	import { afterUpdate, tick } from "svelte";
+	import { tick } from "svelte";
 
 	export let gradio: Gradio<{
 		change: never;
@@ -25,21 +25,14 @@
 	export let minimum: number | undefined = undefined;
 	export let maximum: number | undefined = undefined;
 	export let loading_status: LoadingStatus;
-	export let value_is_output = false;
 	export let step: number | null = null;
 	export let interactive: boolean;
 
 	function handle_change(): void {
 		if (!isNaN(value) && value !== null) {
 			gradio.dispatch("change");
-			if (!value_is_output) {
-				gradio.dispatch("input");
-			}
 		}
 	}
-	afterUpdate(() => {
-		value_is_output = false;
-	});
 
 	async function handle_keypress(e: KeyboardEvent): Promise<void> {
 		await tick();
@@ -79,6 +72,7 @@
 			on:keypress={handle_keypress}
 			on:blur={() => gradio.dispatch("blur")}
 			on:focus={() => gradio.dispatch("focus")}
+			on:input={() => gradio.dispatch("input")}
 			{disabled}
 		/>
 	</label>
