@@ -105,7 +105,7 @@ As a small aside, this auto-reloading happens if you change your `run.py` source
 ## Controlling the Reload 🎛️
 
 By default, reload mode will re-run your entire script for every change you make.
-But there are some cases where this is not desireable.
+But there are some cases where this is not desirable.
 For example, loading a machine learning model should probably only happen once to save time. There are also some Python libraries that use C or Rust extensions that throw errors when they are reloaded, like `numpy` and `tiktoken`.
 
 In these situations, you can place code that you do not want to be re-run inside an `if gr.NO_RELOAD:`  codeblock. Here's an example of how you can use it to only load a transformers model once during the development process.
