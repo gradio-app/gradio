@@ -48,7 +48,7 @@ Running on local URL:  http://127.0.0.1:7860
 
 The important part here is the line that says `Watching...` What's happening here is that Gradio will be observing the directory where `run.py` file lives, and if the file changes, it will automatically rerun the file for you. So you can focus on writing your code, and your Gradio demo will refresh automatically 🥳
 
-⚠️ Warning: the `gradio` command does not detect the parameters passed to the `launch()` methods because the `launch()` method is never called in reload mode. For example, setting `auth`, or `show_error` in `launch()` will not be reflected in the app.
+Tip: the `gradio` command does not detect the parameters passed to the `launch()` methods because the `launch()` method is never called in reload mode. For example, setting `auth`, or `show_error` in `launch()` will not be reflected in the app.
 
 There is one important thing to keep in mind when using the reload mode: Gradio specifically looks for a Gradio Blocks/Interface demo called `demo` in your code. If you have named your demo something else, you will need to pass in the name of your demo as the 2nd parameter in your code. So if your `run.py` file looked like this:
 
@@ -100,6 +100,31 @@ if __name__ == "__main__":
 Which you could run like this: `gradio run.py --name Gretel`
 
 As a small aside, this auto-reloading happens if you change your `run.py` source code or the Gradio source code. Meaning that this can be useful if you decide to [contribute to Gradio itself](https://github.com/gradio-app/gradio/blob/main/CONTRIBUTING.md) ✅
+
+
+## Controlling the Reload 🎛️
+
+By default, reload mode will re-run your entire script for every change you make.
+But there are some cases where this is not desirable.
+For example, loading a machine learning model should probably only happen once to save time. There are also some Python libraries that use C or Rust extensions that throw errors when they are reloaded, like `numpy` and `tiktoken`.
+
+In these situations, you can place code that you do not want to be re-run inside an `if gr.NO_RELOAD:`  codeblock. Here's an example of how you can use it to only load a transformers model once during the development process.
+
+Tip: The value of `gr.NO_RELOAD` is `True`. So you don't have to change your script when you are done developing and want to run it in production. Simply run the file with `python` instead of `gradio`.
+
+```python
+import gradio as gr
+
+if gr.NO_RELOAD:
+	from transformers import pipeline
+	pipe = pipeline("text-classification", model="cardiffnlp/twitter-roberta-base-sentiment-latest")
+
+demo = gr.Interface(lambda s: pipe(s), gr.Textbox(), gr.Label())
+
+if __name__ == "__main__":
+    demo.launch()
+```
+
 
 ## Jupyter Notebook Magic 🔮
 

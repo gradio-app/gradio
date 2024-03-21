@@ -19,6 +19,12 @@ class StateHolder:
         self.blocks = blocks
         self.capacity = blocks.state_session_capacity
 
+    def reset(self, blocks: Blocks):
+        """Reset the state holder with new blocks. Used during reload mode."""
+        self.session_data = OrderedDict()
+        # Call set blocks again to set new ids
+        self.set_blocks(blocks)
+
     def __getitem__(self, session_id: str) -> SessionState:
         if session_id not in self.session_data:
             self.session_data[session_id] = SessionState(self.blocks)

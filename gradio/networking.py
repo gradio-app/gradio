@@ -38,6 +38,7 @@ GRADIO_WATCH_DIRS = (
 )
 GRADIO_WATCH_MODULE_NAME = os.getenv("GRADIO_WATCH_MODULE_NAME", "app")
 GRADIO_WATCH_DEMO_NAME = os.getenv("GRADIO_WATCH_DEMO_NAME", "demo")
+GRADIO_WATCH_DEMO_PATH = os.getenv("GRADIO_WATCH_DEMO_PATH", "")
 
 
 class Server(uvicorn.Server):
@@ -197,6 +198,7 @@ def start_server(
                     demo_name=GRADIO_WATCH_DEMO_NAME,
                     stop_event=threading.Event(),
                     change_event=change_event,
+                    demo_file=GRADIO_WATCH_DEMO_PATH,
                 )
             server = Server(config=config, reloader=reloader)
             server.run_in_thread()
@@ -253,6 +255,6 @@ def url_ok(url: str) -> bool:
             if r.status_code in (200, 401, 302):  # 401 or 302 if auth is set
                 return True
             time.sleep(0.500)
-    except (ConnectionError, httpx.ConnectError, httpx.TimeoutException):
+    except (ConnectionError, httpx.ConnectError):
         return False
     return False

@@ -118,11 +118,11 @@
 					</div>
 				</a>
 				<a
-					href="./python-client"
+					href="./no-reload"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						Python Client <span class="text-orange-500">&#8594;</span>
+						NO RELOAD <span class="text-orange-500">&#8594;</span>
 					</div>
 				</a>
 			</div>
@@ -469,11 +469,11 @@
 					</div>
 				</a>
 				<a
-					href="./python-client"
+					href="./no-reload"
 					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 				>
 					<div class="text-lg">
-						Python Client <span class="text-orange-500">&#8594;</span>
+						NO RELOAD <span class="text-orange-500">&#8594;</span>
 					</div>
 				</a>
 			</div>

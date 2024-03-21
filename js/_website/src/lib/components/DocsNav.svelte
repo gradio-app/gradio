@@ -221,6 +221,11 @@
 		class="thin-link px-4 block"
 		href="./themes/">Themes</a
 	>
+	<a
+		class:current-nav-link={current_nav_link == "no-reload"}
+		class="thin-link px-4 block"
+		href="./no-reload/">NO_RELOAD</a
+	>
 
 	<a
 		class:current-nav-link={current_nav_link == "python-client"}

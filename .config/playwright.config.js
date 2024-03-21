@@ -24,7 +24,7 @@ const base = defineConfig({
 });
 
 const normal = defineConfig(base, {
-	globalSetup: "./playwright-setup.js"
+	globalSetup: process.env.CUSTOM_TEST ? undefined : "./playwright-setup.js"
 });
 
 normal.projects = undefined; // Explicitly unset this field due to https://github.com/microsoft/playwright/issues/28795
