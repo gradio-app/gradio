@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/app",
-	"version": "1.27.0",
+	"version": "1.28.0",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -55,6 +55,7 @@
 		"@gradio/label": "workspace:^",
 		"@gradio/markdown": "workspace:^",
 		"@gradio/model3d": "workspace:^",
+		"@gradio/multimodaltextbox": "workspace:^",
 		"@gradio/number": "workspace:^",
 		"@gradio/paramviewer": "workspace:^",
 		"@gradio/plot": "workspace:^",
