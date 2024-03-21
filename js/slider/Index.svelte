@@ -29,7 +29,6 @@
 	export let show_label: boolean;
 	export let interactive: boolean;
 	export let loading_status: LoadingStatus;
-	let old_value = value;
 
 	let rangeInput: HTMLInputElement;
 	let numberInput: HTMLInputElement;

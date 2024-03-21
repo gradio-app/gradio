@@ -50,7 +50,7 @@
 		on:change={() => gradio.dispatch("change")}
 		on:select={(e) => {
 			gradio.dispatch("select", e.detail);
-			gradio.dispatch("input")
+			gradio.dispatch("input");
 		}}
 	/>
 </Block>
