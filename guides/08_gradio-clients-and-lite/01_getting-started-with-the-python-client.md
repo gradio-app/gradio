@@ -149,6 +149,26 @@ client.predict(num1=4, operation="add", num2=5)
 
 This allows you to take advantage of default arguments. For example, this Space includes the default value for the Slider component so you do not need to provide it when accessing it with the client.
 
+```python
+from gradio_client import Client
+
+client = Client("gradio/calculator")
+client.predict(num1=4, operation="add", num2=5)
+
+>> 9.0
+```
+
+The default value is the initial value of the corresponding Gradio component. If the component does not have an initial value, but if the corresponding argument in the predict function has a default value of `None``, then that parameter is also optional in the client. Of course, if you'd like to override it, you can include it as well:
+
+```python
+from gradio_client import Client
+
+client = Client("gradio/calculator")
+client.predict(num1=4, operation="add", num2=5)
+
+>> 9.0
+```
+
 
 For when working with files (e.g. image files), you should pass in the filepath or URL to the file enclosed within `gradio_client.file()`. 
 
@@ -156,7 +176,8 @@ For when working with files (e.g. image files), you should pass in the filepath 
 from gradio_client import Client, file
 
 client = Client("abidlabs/whisper")
-client.predict(file("https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"))
+client.predict(
+    audio=file("https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"))
 
 >> "My thought I have nobody by a beauty and will as you poured. Mr. Rochester is serve in that so don't find simpus, and devoted abode, to at might in a r—"
 ```
