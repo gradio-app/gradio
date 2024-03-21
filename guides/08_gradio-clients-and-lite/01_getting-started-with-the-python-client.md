@@ -159,7 +159,7 @@ client = Client("abidlabs/image_generator")
 client.predict(text="an astronaut riding a camel")
 ```
 
-The default value is the initial value of the corresponding Gradio component. If the component does not have an initial value, but if the corresponding argument in the predict function has a default value of `None``, then that parameter is also optional in the client. Of course, if you'd like to override it, you can include it as well:
+The default value is the initial value of the corresponding Gradio component. If the component does not have an initial value, but if the corresponding argument in the predict function has a default value of `None`, then that parameter is also optional in the client. Of course, if you'd like to override it, you can include it as well:
 
 ```python
 from gradio_client import Client
