@@ -2514,10 +2514,24 @@ Received outputs:
                     not in ["api_name", "fn_index", "result_callbacks"]
                 ):
                     parameter_name = fn_info[index][0]
-                    parameter_has_default = fn_info[index][1]
-                    parameter_default = fn_info[index][2]
                 else:
                     parameter_name = f"param_{index}"
+
+                # How default values are set for the client: if a component has an initial value, then that parameter
+                # is optional in the client and the initial value from the config is used as default in the client.
+                # If the component does not have an initial value, but if the corresponding argument in the predict function has
+                # a default value of None, then that parameter is also optional in the client and the None is used as default in the client.
+                if component["props"].get("value") is not None:
+                    parameter_has_default = True
+                    parameter_default = component["props"]["value"]
+                elif (
+                    dependency["backend_fn"]
+                    and index < len(fn_info)
+                    and fn_info[index][2] is None
+                ):
+                    parameter_has_default = True
+                    parameter_default = None
+                else:
                     parameter_has_default = False
                     parameter_default = None
 
