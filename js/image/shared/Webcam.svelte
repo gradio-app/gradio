@@ -14,6 +14,8 @@
 
 	let video_source: HTMLVideoElement;
 	let available_video_devices: MediaDeviceInfo[] = [];
+	let selected_device: MediaDeviceInfo | null = null;
+
 	let canvas: HTMLCanvasElement;
 	export let streaming = false;
 	export let pending = false;
@@ -34,11 +36,18 @@
 
 	onMount(() => (canvas = document.createElement("canvas")));
 
-	const handle_device_change = (event: InputEvent): void => {
-		const target = event.target as HTMLSelectElement;
-		const value = target.value;
-		get_video_stream(include_audio, video_source, value);
-		options_open = false;
+	const handle_device_change = async (event: InputEvent): Promise<void> => {
+		const target = event.target as HTMLInputElement;
+		const device_id = target.value;
+
+		await get_video_stream(include_audio, video_source, device_id).then(() => {
+			selected_device =
+				available_video_devices.find(
+					(device) => device.deviceId === device_id
+				) || null;
+
+			options_open = false;
+		});
 	};
 
 	async function access_webcam(): Promise<void> {
@@ -51,6 +60,7 @@
 				.then(() => set_available_devices(available_video_devices))
 				.then((devices) => {
 					available_video_devices = devices;
+					selected_device = devices[0];
 				});
 
 			if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -247,7 +257,7 @@
 				</button>
 			{/if}
 		</div>
-		{#if options_open}
+		{#if options_open && selected_device}
 			<select
 				class="select-wrap"
 				aria-label="select source"
@@ -264,7 +274,10 @@
 					<option value="">{i18n("common.no_devices")}</option>
 				{:else}
 					{#each available_video_devices as device}
-						<option value={device.deviceId}>
+						<option
+							value={device.deviceId}
+							selected={selected_device.deviceId === device.deviceId}
+						>
 							{device.label}
 						</option>
 					{/each}
