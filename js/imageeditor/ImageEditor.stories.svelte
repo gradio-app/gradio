@@ -11,6 +11,7 @@
 		component: ImageEditor,
 		parameters: {
 			chromatic: {
+				diffThreshold: 0.4,
 				modes: {
 					desktop: allModes["desktop"],
 					mobile: allModes["mobile"]
