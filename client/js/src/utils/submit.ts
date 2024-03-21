@@ -327,7 +327,8 @@ export function submit(
 		} else if (
 			protocol == "sse_v1" ||
 			protocol == "sse_v2" ||
-			protocol == "sse_v2.1"
+			protocol == "sse_v2.1" ||
+			protocol == "sse_v3"
 		) {
 			// latest API format. v2 introduces sending diffs for intermediate outputs in generative functions,
 			// which makes payloads lighter.
@@ -424,7 +425,11 @@ export function submit(
 									fn_index
 								});
 
-								if (event_id && data && protocol === "sse_v2") {
+								if (
+									event_id &&
+									data &&
+									["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)
+								) {
 									apply_diff_stream(pending_diff_streams, event_id, data); // Example function to apply diffs
 								}
 								if (data) {
@@ -472,7 +477,9 @@ export function submit(
 								fn_index,
 								time: new Date()
 							});
-							close_stream(stream_open, event_stream);
+							if (["sse_v2", "sse_v2.1"].includes(protocol)) {
+								close_stream(stream_open, event_stream);
+							}
 						}
 					};
 					if (event_id in pending_stream_messages) {

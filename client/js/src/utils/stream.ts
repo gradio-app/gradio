@@ -30,7 +30,10 @@ export function open_stream(
 				)
 			);
 		} else if (event_callbacks[event_id]) {
-			if (_data.msg === "process_completed") {
+			if (
+				_data.msg === "process_completed" &&
+				["sse", "sse_v1", "sse_v2", "sse_v2.1"].includes(config.protocol)
+			) {
 				unclosed_events.delete(event_id);
 				if (unclosed_events.size === 0) {
 					close_stream(stream_open, event_stream);
@@ -43,6 +46,9 @@ export function open_stream(
 				pending_stream_messages[event_id] = [];
 			}
 			pending_stream_messages[event_id].push(_data);
+			if (_data.msg === "close_stream") {
+				close_stream(stream_open, event_stream);
+			}
 		}
 	};
 	event_stream.onerror = async function () {

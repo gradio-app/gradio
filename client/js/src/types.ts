@@ -133,8 +133,8 @@ export interface Config {
 	is_colab: boolean;
 	show_api: boolean;
 	stylesheets: string[];
-	// path?: string;
-	// protocol?: "sse_v2" | "sse_v1" | "sse";
+	path?: string;
+	protocol: "sse_v3" | "sse_v2.1" | "sse_v2" | "sse_v1" | "sse" | "ws";
 }
 
 export interface Dependency {
@@ -167,8 +167,6 @@ export interface Dependency {
 export interface DependencyType {
 	continuous: boolean;
 	generator: boolean;
-	path: string;
-	protocol?: "sse_v2.1" | "sse_v2" | "sse_v1" | "sse" | "ws";
 }
 
 export interface Payload {
