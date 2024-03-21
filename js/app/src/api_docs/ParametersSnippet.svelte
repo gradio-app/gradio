@@ -26,21 +26,19 @@
 						: "[" + i + "]"}</span
 				>
 				<span class="code highlight" style="margin-right: 10px;"
-					>{#if current_language === "python"}{python_type.type}{:else}{js_returns[
-							i
-						].type}{/if}</span
+					>{#if current_language === "python"}{python_type.type}{#if parameter_has_default && parameter_default === null}&nbsp;|
+							None{/if}{:else}{js_returns[i].type}{/if}</span
 				>
-				{#if !parameter_has_default}<span style="font-weight:bold"
-						>Required</span
+				{#if !parameter_has_default || current_language == "javascript"}<span
+						style="font-weight:bold">Required</span
 					>{/if}
 			</p>
 			<p class="desc">
 				The input value that is provided in the "{label}" <!--
 	-->{component}
 				component<!--
-	-->. {#if parameter_has_default}Defaults to <span
-						class="code highlight"
-						style="font-size: var(--text-md);"
+	-->. {#if parameter_has_default && current_language === "python"}Defaults
+					to <span class="code highlight" style="font-size: var(--text-md);"
 						>{represent_value(parameter_default, python_type.type, "py")}</span
 					>{/if}
 			</p>

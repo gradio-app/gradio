@@ -7,6 +7,9 @@ export function represent_value(
 	if (type === undefined) {
 		return lang === "py" ? "None" : null;
 	}
+	if (value === null && lang === "py") {
+		return "None";
+	}
 	if (type === "string" || type === "str") {
 		return lang === null ? value : '"' + value + '"';
 	} else if (type === "number") {
