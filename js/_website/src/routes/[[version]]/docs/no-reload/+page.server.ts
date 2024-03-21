@@ -35,8 +35,7 @@ export async function load({ parent }) {
 		name: "NO_RELOAD",
 		description:
 			"Any code in a `if gr.NO_RELOAD` code-block will not be re-evaluated when the source file is reloaded. This is helpful for importing modules that do not like to be reloaded (tiktoken, numpy) as well as database connections and long running set up code.",
-		example: `
-import gradio as gr
+		example: `import gradio as gr
 
 if gr.NO_RELOAD:
 	from transformers import pipeline
