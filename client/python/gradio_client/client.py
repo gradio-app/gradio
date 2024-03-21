@@ -463,13 +463,13 @@ class Client:
             >> 9.0
         """
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
+        endpoint = self.endpoints[inferred_fn_index]
 
-        args = utils.construct_args(
-            self.endpoints[inferred_fn_index].parameters_info, args, kwargs
-        )
+        if isinstance(endpoint, Endpoint):
+            args = utils.construct_args(endpoint.parameters_info, args, kwargs)
 
         helper = None
-        if self.endpoints[inferred_fn_index].protocol in (
+        if endpoint.protocol in (
             "ws",
             "sse",
             "sse_v1",
@@ -478,7 +478,7 @@ class Client:
             "sse_v3",
         ):
             helper = self.new_helper(inferred_fn_index)
-        end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
+        end_to_end_fn = endpoint.make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
 
         job = Job(

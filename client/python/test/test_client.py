@@ -614,10 +614,10 @@ class TestClientPredictionsWithKwargs:
 
     def test_default_params(self, calculator_demo_with_defaults):
         with connect(calculator_demo_with_defaults) as client:
-            result = client.predict(num1=3, api_name="/predict")
-            assert result == 13
+            result = client.predict(num2=10, api_name="/predict")
+            assert result == 20
 
-            result = client.predict(33, operation="multiply", api_name="/predict")
+            result = client.predict(num2=33, operation="multiply", api_name="/predict")
             assert result == 330
 
     def test_missing_params(self, calculator_demo):
@@ -1083,8 +1083,8 @@ class TestAPIInfo:
                             {
                                 "label": "name",
                                 "parameter_name": "name",
-                                "parameter_has_default": False,
-                                "parameter_default": None,
+                                "parameter_has_default": True,
+                                "parameter_default": "",
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
@@ -1117,8 +1117,8 @@ class TestAPIInfo:
                             {
                                 "label": "name",
                                 "parameter_name": "name",
-                                "parameter_has_default": False,
-                                "parameter_default": None,
+                                "parameter_has_default": True,
+                                "parameter_default": "",
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",

@@ -43,8 +43,8 @@ def calculator_demo():
 
 @pytest.fixture
 def calculator_demo_with_defaults():
-    def calculator(num1, operation="add", num2=10):
-        if operation == "add":
+    def calculator(num1, operation=None, num2=100):
+        if operation is None or operation == "add":
             return num1 + num2
         elif operation == "subtract":
             return num1 - num2
@@ -57,7 +57,11 @@ def calculator_demo_with_defaults():
 
     demo = gr.Interface(
         calculator,
-        ["number", gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
+        [
+            gr.Number(value=10),
+            gr.Radio(["add", "subtract", "multiply", "divide"]),
+            gr.Number(),
+        ],
         "number",
         examples=[
             [5, "add", 3],
