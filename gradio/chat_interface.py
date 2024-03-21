@@ -206,7 +206,7 @@ class ChatInterface(Blocks):
                         textbox.container = False
                         textbox.show_label = False
                         textbox_ = textbox.render()
-                        if not isinstance(textbox_, Textbox) or not isinstance(
+                        if not isinstance(textbox_, Textbox) and not isinstance(
                             textbox_, MultimodalTextbox
                         ):
                             raise TypeError(
