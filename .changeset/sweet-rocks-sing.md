@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Remove some required packages for Wasm env
+feat:Remove Ruff and Uvicorn in Wasm env
