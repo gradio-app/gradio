@@ -646,9 +646,12 @@ class Client:
     def _render_endpoints_info(
         self,
         name_or_index: str | int,
-        endpoints_info: dict[str, list[dict[str, Any]]],
+        endpoints_info: dict[str, list[ParameterInfo]],
     ) -> str:
-        parameter_names = [p["label"] for p in endpoints_info["parameters"]]
+        parameter_info = endpoints_info["parameters"]
+        parameter_names = [
+            p.get("parameter_name") or p["label"] for p in parameter_info
+        ]
         parameter_names = [utils.sanitize_parameter_names(p) for p in parameter_names]
         rendered_parameters = ", ".join(parameter_names)
         if rendered_parameters:
@@ -668,15 +671,23 @@ class Client:
 
         human_info = f"\n - predict({rendered_parameters}{final_param}) -> {rendered_return_values}\n"
         human_info += "    Parameters:\n"
-        if endpoints_info["parameters"]:
-            for info in endpoints_info["parameters"]:
+        if parameter_info:
+            for info in parameter_info:
                 desc = (
                     f" ({info['python_type']['description']})"
                     if info["python_type"].get("description")
                     else ""
                 )
+                default_value = info.get("parameter_default")
+                default_info = (
+                    "(required)"
+                    if not info.get("parameter_has_default", False)
+                    else f"(not required, defaults to {default_value})"
+                )
                 type_ = info["python_type"]["type"]
-                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {type_}{desc} \n"
+                if info.get("parameter_has_default", False) and default_value is None:
+                    type_ += " | None"
+                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info.get('parameter_name') or info['label'])}: {type_} {default_info} {desc} \n"
         else:
             human_info += "     - None\n"
         human_info += "    Returns:\n"
