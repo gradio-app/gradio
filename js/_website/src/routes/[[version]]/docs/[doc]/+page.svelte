@@ -34,12 +34,12 @@
 	let header_targets: { [key: string]: HTMLElement } = {};
 	let target_elem: HTMLElement;
 
-	afterNavigate(() => {
-		const script = document.createElement("script");
-		script.src = "http://localhost:8000/dist/lite.js";
-		script.type = "module";
-		document.head.appendChild(script);
-	});
+	// afterNavigate(() => {
+	// 	const script = document.createElement("script");
+	// 	script.src = "https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js";
+	// 	script.type = "module";
+	// 	document.head.appendChild(script);
+	// });
 
 	onDestroy(() => {
 		header_targets = {};

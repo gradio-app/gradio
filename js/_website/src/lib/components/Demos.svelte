@@ -4,9 +4,9 @@
 </script>
 
 <svelte:head>
-	<link rel="stylesheet" href="http://localhost:8000/dist/lite.css" />
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.css" />
 
-	<link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" />
+	<!-- <link rel="stylesheet" href="https://gradio-hello-world.hf.space/theme.css" /> -->
 </svelte:head>
 
 <div class="py-2 max-h-[750px] overflow-y-scroll">
