@@ -679,7 +679,11 @@ class Client:
                     else ""
                 )
                 default_value = info.get("parameter_default")
-                default_value = utils.traverse(default_value, lambda x: f"file(\"{x['url']}\")", utils.is_file_obj_with_meta)
+                default_value = utils.traverse(
+                    default_value,
+                    lambda x: f"file(\"{x['url']}\")",
+                    utils.is_file_obj_with_meta,
+                )
                 default_info = (
                     "(required)"
                     if not info.get("parameter_has_default", False)
