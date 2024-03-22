@@ -16,7 +16,8 @@ const test_files = readdirSync(TEST_FILES_PATH)
 		(f) =>
 			f.endsWith("spec.ts") &&
 			!f.endsWith(".skip.spec.ts") &&
-			!f.endsWith(".component.spec.ts")
+			!f.endsWith(".component.spec.ts") &&
+			!f.endsWith(".reload.spec.ts")
 	)
 	.map((f) => basename(f, ".spec.ts"));
 
