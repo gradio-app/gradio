@@ -20,7 +20,7 @@ pydub
 pyyaml>=5.0,<7.0
 semantic_version~=2.0
 typing_extensions~=4.0
-uvicorn>=0.14.0
+uvicorn>=0.14.0; sys.platform != 'emscripten'
 typer[all]>=0.9,<1.0
 tomlkit==0.12.0
-ruff>=0.2.2
+ruff>=0.2.2; sys.platform != 'emscripten'
