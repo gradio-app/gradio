@@ -281,7 +281,7 @@ class Audio(
         if value is None:
             return None, output_file
         if isinstance(value, bytes):
-            output_file["url"]=f"stream/{output_id}"
+            output_file["url"] = f"stream/{output_id}"
             return value, output_file
         if client_utils.is_http_url_like(value["path"]):
             response = httpx.get(value["path"])
@@ -303,7 +303,7 @@ class Audio(
                     )
                 else:
                     binary_data = binary_data[44:]
-            output_file["url"]=f"stream/{output_id}"
+            output_file["url"] = f"stream/{output_id}"
         return binary_data, output_file
 
     def process_example(
