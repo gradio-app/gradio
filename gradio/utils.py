@@ -2,17 +2,20 @@
 
 from __future__ import annotations
 
+import ast
 import asyncio
 import copy
 import dataclasses
 import functools
 import importlib
+import importlib.util
 import inspect
 import json
 import json.decoder
 import os
 import pkgutil
 import re
+import sys
 import tempfile
 import threading
 import time
@@ -26,7 +29,7 @@ from contextlib import contextmanager
 from io import BytesIO
 from numbers import Number
 from pathlib import Path
-from types import AsyncGeneratorType, GeneratorType
+from types import AsyncGeneratorType, GeneratorType, ModuleType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -104,6 +107,7 @@ class BaseReloader(ABC):
         # not a new queue
         self.running_app.blocks._queue.block_fns = demo.fns
         demo._queue = self.running_app.blocks._queue
+        self.running_app.state_holder.reset(demo)
         self.running_app.blocks = demo
         demo._queue.reload()
 
@@ -114,6 +118,7 @@ class SourceFileReloader(BaseReloader):
         app: App,
         watch_dirs: list[str],
         watch_module_name: str,
+        demo_file: str,
         stop_event: threading.Event,
         change_event: threading.Event,
         demo_name: str = "demo",
@@ -125,6 +130,7 @@ class SourceFileReloader(BaseReloader):
         self.stop_event = stop_event
         self.change_event = change_event
         self.demo_name = demo_name
+        self.demo_file = Path(demo_file)
 
     @property
     def running_app(self) -> App:
@@ -142,6 +148,51 @@ class SourceFileReloader(BaseReloader):
     def swap_blocks(self, demo: Blocks):
         super().swap_blocks(demo)
         self.alert_change()
+
+
+NO_RELOAD = True
+
+
+def _remove_no_reload_codeblocks(file_path: str):
+    """Parse the file, remove the gr.no_reload code blocks, and write the file back to disk.
+
+    Parameters:
+        file_path (str): The path to the file to remove the no_reload code blocks from.
+    """
+
+    with open(file_path) as file:
+        code = file.read()
+
+    tree = ast.parse(code)
+
+    def _is_gr_no_reload(expr: ast.AST) -> bool:
+        """Find with gr.no_reload context managers."""
+        return (
+            isinstance(expr, ast.If)
+            and isinstance(expr.test, ast.Attribute)
+            and isinstance(expr.test.value, ast.Name)
+            and expr.test.value.id == "gr"
+            and expr.test.attr == "NO_RELOAD"
+        )
+
+    # Find the positions of the code blocks to load
+    for node in ast.walk(tree):
+        if _is_gr_no_reload(node):
+            assert isinstance(node, ast.If)  # noqa: S101
+            node.body = [ast.Pass(lineno=node.lineno, col_offset=node.col_offset)]
+
+    # convert tree to string
+    code_removed = compile(tree, filename=file_path, mode="exec")
+    return code_removed
+
+
+def _find_module(source_file: Path) -> ModuleType:
+    for s, v in sys.modules.items():
+        if s not in {"__main__", "__mp_main__"} and getattr(v, "__file__", None) == str(
+            source_file
+        ):
+            return v
+    raise ValueError(f"Cannot find module for source file: {source_file}")
 
 
 def watchfn(reloader: SourceFileReloader):
@@ -179,7 +230,6 @@ def watchfn(reloader: SourceFileReloader):
             for path in list(reload_dir.rglob("*.css")):
                 yield path.resolve()
 
-    module = None
     reload_dirs = [Path(dir_) for dir_ in reloader.watch_dirs]
     import sys
 
@@ -187,29 +237,37 @@ def watchfn(reloader: SourceFileReloader):
         sys.path.insert(0, str(dir_))
 
     mtimes = {}
+    # Need to import the module in this thread so that the
+    # module is available in the namespace of this thread
+    module = importlib.import_module(reloader.watch_module_name)
     while reloader.should_watch():
         changed = get_changes()
         if changed:
             print(f"Changes detected in: {changed}")
-            # To simulate a fresh reload, delete all module references from sys.modules
-            # for the modules in the package the change came from.
-            dir_ = next(d for d in reload_dirs if is_in_or_equal(changed, d))
-            modules = list(sys.modules)
-            for k in modules:
-                v = sys.modules[k]
-                sourcefile = getattr(v, "__file__", None)
-                # Do not reload `reload.py` to keep thread data
-                if (
-                    sourcefile
-                    and dir_ == Path(inspect.getfile(gradio)).parent
-                    and sourcefile.endswith("reload.py")
-                ):
-                    continue
-                if sourcefile and is_in_or_equal(sourcefile, dir_):
-                    del sys.modules[k]
             try:
-                module = importlib.import_module(reloader.watch_module_name)
-                module = importlib.reload(module)
+                # How source file reloading works
+                # 1. Remove the gr.no_reload code blocks from the temp file
+                # 2. Execute the changed source code in the original module's namespac
+                # 3. Delete the package the module is in from sys.modules.
+                # This is so that the updated module is available in the entire package
+                # 4. Do 1-2 for the main demo file even if it did not change.
+                # This is because the main demo file may import the changed file and we need the
+                # changes to be reflected in the main demo file.
+
+                changed_in_copy = _remove_no_reload_codeblocks(str(changed))
+                if changed != reloader.demo_file:
+                    changed_module = _find_module(changed)
+                    exec(changed_in_copy, changed_module.__dict__)
+                    top_level_parent = sys.modules[
+                        changed_module.__name__.split(".")[0]
+                    ]
+                    if top_level_parent != changed_module:
+                        importlib.reload(top_level_parent)
+
+                changed_demo_file = _remove_no_reload_codeblocks(
+                    str(reloader.demo_file)
+                )
+                exec(changed_demo_file, module.__dict__)
             except Exception:
                 print(
                     f"Reloading {reloader.watch_module_name} failed with the following exception: "
@@ -217,7 +275,6 @@ def watchfn(reloader: SourceFileReloader):
                 traceback.print_exc()
                 mtimes = {}
                 continue
-
             demo = getattr(module, reloader.demo_name)
             if reloader.queue_changed(demo):
                 print(
@@ -1153,6 +1210,22 @@ def get_upload_folder() -> str:
     return os.environ.get("GRADIO_TEMP_DIR") or str(
         (Path(tempfile.gettempdir()) / "gradio").resolve()
     )
+
+
+def get_function_params(func: Callable) -> list[tuple[str, bool, Any]]:
+    params_info = []
+    signature = inspect.signature(func)
+    for name, parameter in signature.parameters.items():
+        if parameter.kind in (
+            inspect.Parameter.VAR_POSITIONAL,
+            inspect.Parameter.VAR_KEYWORD,
+        ):
+            break
+        if parameter.default is inspect.Parameter.empty:
+            params_info.append((name, False, None))
+        else:
+            params_info.append((name, True, parameter.default))
+    return params_info
 
 
 def simplify_file_data_in_str(s):

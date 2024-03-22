@@ -10,7 +10,7 @@ import warnings
 
 import httpx
 
-from gradio.routes import App  # HACK: to avoid circular import  # noqa: F401
+from gradio.routes import App  # HACK: to avoid circular import # noqa: F401
 from gradio.tunneling import Tunnel
 
 GRADIO_API_SERVER = "https://api.gradio.app/v2/tunnel-request"
@@ -54,6 +54,6 @@ def url_ok(url: str) -> bool:
             if r.status_code in (200, 401, 302):  # 401 or 302 if auth is set
                 return True
             time.sleep(0.500)
-    except (ConnectionError, httpx.ConnectError, httpx.TimeoutException):
+    except (ConnectionError, httpx.ConnectError):
         return False
     return False
