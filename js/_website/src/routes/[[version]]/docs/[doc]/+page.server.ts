@@ -73,6 +73,14 @@ export async function load({ params, parent }) {
 					obj.description = style_formatted_text(obj.description);
 				}
 
+				if ("demos" in obj) {
+					obj.demos.forEach((demo: string[]) => {
+						demo.push(
+							Prism.highlight(demo[1], Prism.languages[language], "python")
+						);
+					});
+				}
+
 				if ("preprocess" in obj && "postprocess" in obj) {
 					obj.preprocess.return_doc.doc = style_formatted_text(
 						obj.preprocess.return_doc.doc

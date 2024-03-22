@@ -443,7 +443,12 @@
 														class:selected-demo-window={current_selection == i}
 														class="demo-content px-4"
 													>
-														<Demos name={demo[0]} code={demo[1]} />
+														<Demos
+															name={demo[0]}
+															code={demo[1]}
+															highlighted_code={demo[2]}
+															{url_version}
+														/>
 													</div>
 												{/each}
 											</div>
