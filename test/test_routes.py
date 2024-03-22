@@ -1072,26 +1072,39 @@ def test_get_root_url(
 
 
 @pytest.mark.parametrize(
-    "headers, root_path, expected_root_url",
+    "headers, root_path, route_path, expected_root_url",
     [
-        ({}, "/gradio/", "http://gradio.app/gradio"),
-        ({"x-forwarded-proto": "http"}, "/gradio/", "http://gradio.app/gradio"),
-        ({"x-forwarded-proto": "https"}, "/gradio/", "https://gradio.app/gradio"),
-        ({"x-forwarded-host": "gradio.dev"}, "/gradio/", "http://gradio.dev/gradio"),
+        ({}, "/gradio/", "/", "http://gradio.app/gradio"),
+        ({"x-forwarded-proto": "http"}, "/gradio/", "/", "http://gradio.app/gradio"),
+        ({"x-forwarded-proto": "https"}, "/gradio/", "/", "https://gradio.app/gradio"),
+        (
+            {"x-forwarded-host": "gradio.dev"},
+            "/gradio/",
+            "/",
+            "http://gradio.dev/gradio",
+        ),
+        (
+            {"x-forwarded-host": "gradio.dev"},
+            "/gradio/",
+            "/config",
+            "http://gradio.dev/gradio",
+        ),
         (
             {"x-forwarded-host": "gradio.dev", "x-forwarded-proto": "https"},
+            "/",
             "/",
             "https://gradio.dev",
         ),
         (
             {"x-forwarded-host": "gradio.dev", "x-forwarded-proto": "https"},
             "http://google.com",
+            "/",
             "http://google.com",
         ),
     ],
 )
 def test_get_root_url_headers(
-    headers: Dict[str, str], root_path: str, expected_root_url: str
+    headers: Dict[str, str], root_path: str, route_path: str, expected_root_url: str
 ):
     scope = {
         "type": "http",
@@ -1099,7 +1112,7 @@ def test_get_root_url_headers(
         "path": "http://gradio.app",
     }
     request = Request(scope)
-    assert get_root_url(request, "/", root_path) == expected_root_url
+    assert get_root_url(request, route_path, root_path) == expected_root_url
 
 
 class TestSimpleAPIRoutes:
