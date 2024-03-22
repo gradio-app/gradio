@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Exclude filename while preventing path traversal
+fix:Bugfix: `..` in filename throwing error while loading in output.
