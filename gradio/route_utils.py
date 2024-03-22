@@ -311,9 +311,6 @@ def get_root_url(
         root_url = root_url.replace("http://", "https://")
 
     route_path = route_path.rstrip("/")
-    print("x_forwarded_host", x_forwarded_host)
-    print("route_path", route_path)
-    print("root_url", root_url)
     if len(route_path) > 0 and not x_forwarded_host:
         root_url = root_url[: -len(route_path)]
     root_url = root_url.rstrip("/")
