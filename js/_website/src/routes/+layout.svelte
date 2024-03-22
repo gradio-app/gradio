@@ -56,11 +56,6 @@
 		rel="stylesheet"
 	/>
 
-	<!-- <script
-		type="module"
-		src="https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js"
-	></script> -->
-
 	<script
 		async
 		src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
