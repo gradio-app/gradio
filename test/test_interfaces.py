@@ -248,3 +248,18 @@ def test_interface_adds_stop_button(interface_type, live, use_generator):
         assert has_stop
     else:
         assert not has_stop
+
+
+def test_live_interface_sets_always_last():
+    iface = gradio.Interface(
+        fn=lambda s: s,
+        inputs=gradio.Textbox(lines=2, placeholder="Hello 👋", label="Input Sentence"),
+        outputs=gradio.Markdown(),
+        live=True,  # Set live to True for real-time feedback
+    )
+    config = iface.get_config_file()
+    for dep in config["dependencies"]:
+        if dep["targets"][0][1] == "change":
+            assert dep["trigger_mode"] == "always_last"
+            return
+    raise AssertionError("No change dependency found")

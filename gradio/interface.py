@@ -684,6 +684,7 @@ class Interface(Blocks):
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
                     show_progress="hidden" if streaming_event else "full",
+                    trigger_mode="always_last",
                 )
         else:
             if _submit_btn is None:
