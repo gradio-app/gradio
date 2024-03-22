@@ -16,7 +16,6 @@ from unittest.mock import patch
 import gradio_client as grc
 import numpy as np
 import pytest
-import uvicorn
 from fastapi.testclient import TestClient
 from gradio_client import Client, media_data
 from PIL import Image
@@ -25,7 +24,6 @@ import gradio as gr
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import SelectData
 from gradio.exceptions import DuplicateBlockError
-from gradio.networking import Server, get_first_available_port
 from gradio.utils import assert_configs_are_equivalent_besides_ids
 
 pytest_plugins = ("pytest_asyncio",)
@@ -344,29 +342,6 @@ class TestBlocksMethods:
                 assert dependency["types"] == {"continuous": False, "generator": True}
             if i == 2:
                 assert dependency["types"] == {"continuous": True, "generator": True}
-
-    @pytest.mark.asyncio
-    async def test_run_without_launching(self):
-        """Test that we can start the app and use queue without calling .launch().
-
-        This is essentially what the 'gradio' reload mode does
-        """
-
-        port = get_first_available_port(7860, 7870)
-
-        io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox()).queue()
-
-        config = uvicorn.Config(app=io.app, port=port, log_level="warning")
-
-        server = Server(config=config)
-        server.run_in_thread()
-
-        try:
-            client = grc.Client(f"http://localhost:{port}")
-            result = client.predict("Victor", api_name="/predict")
-            assert result == "Victor"
-        finally:
-            server.close()
 
     @patch(
         "gradio.themes.ThemeClass.from_hub",

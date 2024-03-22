@@ -2086,13 +2086,15 @@ Received outputs:
                 )
                 wasm_utils.register_app(app)
             else:
+                from gradio import http_server
+
                 (
                     server_name,
                     server_port,
                     local_url,
                     app,
                     server,
-                ) = networking.start_server(
+                ) = http_server.start_server(
                     self,
                     server_name,
                     server_port,
