@@ -43,9 +43,9 @@
 				node.appendChild(child);
 			}
 		}
-		const script = document.createElement('script');
-		script.src = 'https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js';
-		script.type = 'module';
+		const script = document.createElement("script");
+		script.src = "https://cdn.jsdelivr.net/npm/@gradio/lite/dist/lite.js";
+		script.type = "module";
 		document.head.appendChild(script);
 	});
 </script>
