@@ -355,7 +355,7 @@ class TestBlocksMethods:
         io = gr.Interface(lambda s: s, gr.Textbox(), gr.Textbox()).queue()
 
         sock = socket.socket()
-        sock.bind(('', 0))
+        sock.bind(("", 0))
         available_port = sock.getsockname()[1]
 
         config = uvicorn.Config(app=io.app, port=available_port, log_level="warning")
