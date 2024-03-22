@@ -1182,7 +1182,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             inputs=processed_inputs,
             request=None,
             state={},
-            explicit_call=True,
         )
         outputs = outputs["data"]
 
@@ -1615,7 +1614,6 @@ Received outputs:
         event_data: EventData | None = None,
         in_event_listener: bool = True,
         simple_format: bool = False,
-        explicit_call: bool = False,
         root_path: str | None = None,
     ) -> dict[str, Any]:
         """
@@ -1630,7 +1628,6 @@ Received outputs:
             event_id: id of event that triggered this API call
             event_data: data associated with the event trigger itself
             in_event_listener: whether this API call is being made in response to an event listener
-            explicit_call: whether this call is being made directly by calling the Blocks function, instead of through an event listener or API route
             root_path: if provided, the root path of the server. All file URLs will be prefixed with this path.
         Returns: None
         """
