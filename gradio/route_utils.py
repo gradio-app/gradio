@@ -294,10 +294,16 @@ def get_root_url(
     request: fastapi.Request, route_path: str, root_path: str | None
 ) -> str:
     """
-    Gets the root url of the request, stripping off any query parameters, the route_path, and trailing slashes.
-    Also ensures that the root url is https if the request is https. If an absolute root_path is provided,
-    it is returned directly. If a relative root_path is provided, and it is not already the subpath of the URL,
-    it is appended to the root url. The final root url will not have a trailing slash.
+    Gets the root url of the Gradio app (i.e. the public url of the app) without a trailing slash.
+
+    This is how the root_url is resolved:
+    1. If a user provides a `root_path` manually that is a full URL, it is returned directly.
+    2. If the request has an x-forwarded-host header (e.g. because it is behind a proxy), the root url is
+    constructed from the x-forwarded-host header. In this case, `route_path` is not used to construct the root url.
+    3. Otherwise, the root url is constructed from the request url. The query parameters and `route_path` are stripped off.
+    And if a relative `root_path` is provided, and it is not already the subpath of the URL, it is appended to the root url.
+
+    In cases (2) and (3), We also check to see if the x-forwarded-proto header is present, and if so, convert the root url to https.
     """
     if root_path and client_utils.is_http_url_like(root_path):
         return root_path.rstrip("/")
@@ -311,7 +317,7 @@ def get_root_url(
         root_url = root_url.replace("http://", "https://")
 
     route_path = route_path.rstrip("/")
-    if len(route_path) > 0:
+    if len(route_path) > 0 and not x_forwarded_host:
         root_url = root_url[: -len(route_path)]
     root_url = root_url.rstrip("/")
 
