@@ -23,6 +23,7 @@ from gradio.utils import (
     download_if_url,
     get_continuous_fn,
     get_extension_from_file_path_or_url,
+    get_function_params,
     get_type_hints,
     ipython_check,
     is_in_or_equal,
@@ -453,3 +454,74 @@ def test_get_extension_from_file_path_or_url(path_or_url, extension):
 )
 def test_diff(old, new, expected_diff):
     assert diff(old, new) == expected_diff
+
+
+class TestFunctionParams:
+    def test_regular_function(self):
+        def func(a, b=10, c="default", d=None):
+            pass
+
+        assert get_function_params(func) == [
+            ("a", False, None),
+            ("b", True, 10),
+            ("c", True, "default"),
+            ("d", True, None),
+        ]
+
+    def test_function_no_params(self):
+        def func():
+            pass
+
+        assert get_function_params(func) == []
+
+    def test_lambda_function(self):
+        assert get_function_params(lambda x, y: x + y) == [
+            ("x", False, None),
+            ("y", False, None),
+        ]
+
+    def test_function_with_args(self):
+        def func(a, *args):
+            pass
+
+        assert get_function_params(func) == [("a", False, None)]
+
+    def test_function_with_kwargs(self):
+        def func(a, **kwargs):
+            pass
+
+        assert get_function_params(func) == [("a", False, None)]
+
+    def test_class_method_skip_first_param(self):
+        class MyClass:
+            def method(self, arg1, arg2=42):
+                pass
+
+        assert get_function_params(MyClass().method) == [
+            ("arg1", False, None),
+            ("arg2", True, 42),
+        ]
+
+    def test_static_method_no_skip(self):
+        class MyClass:
+            @staticmethod
+            def method(arg1, arg2=42):
+                pass
+
+        assert get_function_params(MyClass.method) == [
+            ("arg1", False, None),
+            ("arg2", True, 42),
+        ]
+
+    def test_class_method_with_args(self):
+        class MyClass:
+            def method(self, a, *args, b=42):
+                pass
+
+        assert get_function_params(MyClass().method) == [("a", False, None)]
+
+    def test_lambda_with_args(self):
+        assert get_function_params(lambda x, *args: x) == [("x", False, None)]
+
+    def test_lambda_with_kwargs(self):
+        assert get_function_params(lambda x, **kwargs: x) == [("x", False, None)]

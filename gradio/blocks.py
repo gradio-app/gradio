@@ -2473,7 +2473,7 @@ Received outputs:
         config = self.config
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
-        for dependency in config["dependencies"]:
+        for dependency, fn in zip(config["dependencies"], self.fns):
             if (
                 not dependency["backend_fn"]
                 or not dependency["show_api"]
@@ -2482,12 +2482,13 @@ Received outputs:
                 continue
 
             dependency_info = {"parameters": [], "returns": []}
+            fn_info = utils.get_function_params(fn.fn)  # type: ignore
             skip_endpoint = False
 
             inputs = dependency["inputs"]
-            for i in inputs:
+            for index, input_id in enumerate(inputs):
                 for component in config["components"]:
-                    if component["id"] == i:
+                    if component["id"] == input_id:
                         break
                 else:
                     skip_endpoint = True  # if component not found, skip endpoint
@@ -2495,16 +2496,52 @@ Received outputs:
                 type = component["props"]["name"]
                 if self.blocks[component["id"]].skip_api:
                     continue
-                label = component["props"].get("label", f"parameter_{i}")
+                label = component["props"].get("label", f"parameter_{input_id}")
                 comp = self.get_component(component["id"])
                 if not isinstance(comp, components.Component):
                     raise TypeError(f"{comp!r} is not a Component")
                 info = component["api_info"]
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
+
+                # Since the clients use "api_name" and "fn_index" to designate the endpoint and
+                # "result_callbacks" to specify the callbacks, we need to make sure that no parameters
+                # have those names. Hence the final checks.
+                if (
+                    dependency["backend_fn"]
+                    and index < len(fn_info)
+                    and fn_info[index][0]
+                    not in ["api_name", "fn_index", "result_callbacks"]
+                ):
+                    parameter_name = fn_info[index][0]
+                else:
+                    parameter_name = f"param_{index}"
+
+                # How default values are set for the client: if a component has an initial value, then that parameter
+                # is optional in the client and the initial value from the config is used as default in the client.
+                # If the component does not have an initial value, but if the corresponding argument in the predict function has
+                # a default value of None, then that parameter is also optional in the client and the None is used as default in the client.
+                if component["props"].get("value") is not None:
+                    parameter_has_default = True
+                    parameter_default = component["props"]["value"]
+                elif (
+                    dependency["backend_fn"]
+                    and index < len(fn_info)
+                    and fn_info[index][1]
+                    and fn_info[index][2] is None
+                ):
+                    parameter_has_default = True
+                    parameter_default = None
+                else:
+                    parameter_has_default = False
+                    parameter_default = None
+
                 dependency_info["parameters"].append(
                     {
                         "label": label,
+                        "parameter_name": parameter_name,
+                        "parameter_has_default": parameter_has_default,
+                        "parameter_default": parameter_default,
                         "type": info,
                         "python_type": {
                             "type": python_type,

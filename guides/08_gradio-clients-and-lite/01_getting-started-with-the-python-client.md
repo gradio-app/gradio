@@ -14,12 +14,15 @@ Here's the entire code to do it:
 from gradio_client import Client, file
 
 client = Client("abidlabs/whisper")
-client.predict(file("audio_sample.wav"))
+
+client.predict(
+    audio=file("audio_sample.wav")
+)
 
 >> "This is a test of the whisper speech recognition model."
 ```
 
-The Gradio client works with any hosted Gradio app, whether it be an image generator, a text summarizer, a stateful chatbot, a tax calculator, or anything else! The Gradio Client is mostly used with apps hosted on [Hugging Face Spaces](https://hf.space), but your app can be hosted anywhere, such as your own server.
+The Gradio client works with any hosted Gradio app! Although the Client is mostly used with apps hosted on [Hugging Face Spaces](https://hf.space), your app can be hosted anywhere, such as your own server.
 
 **Prerequisites**: To use the Gradio client, you do _not_ need to know the `gradio` library in great detail. However, it is helpful to have general familiarity with Gradio's concepts of input and output components.
 
@@ -27,17 +30,15 @@ The Gradio client works with any hosted Gradio app, whether it be an image gener
 
 If you already have a recent version of `gradio`, then the `gradio_client` is included as a dependency. But note that this documentation reflects the latest version of the `gradio_client`, so upgrade if you're not sure!
 
-The lightweight `gradio_client` package can be installed from pip (or pip3) and is tested to work with Python versions 3.9 or higher:
+The lightweight `gradio_client` package can be installed from pip (or pip3) and is tested to work with **Python versions 3.9 or higher**:
 
 ```bash
 $ pip install --upgrade gradio_client
 ```
 
-## Connecting to a running Gradio App
+## Connecting to a Gradio App on Hugging Face Spaces
 
-Start by connecting instantiating a `Client` object and connecting it to a Gradio app that is running on Hugging Face Spaces or generally anywhere on the web.
-
-## Connecting to a Hugging Face Space
+Start by connecting instantiating a `Client` object and connecting it to a Gradio app that is running on Hugging Face Spaces.
 
 ```python
 from gradio_client import Client
@@ -52,6 +53,7 @@ from gradio_client import Client
 
 client = Client("abidlabs/my-private-space", hf_token="...")
 ```
+
 
 ## Duplicating a Space for private use
 
@@ -95,16 +97,21 @@ Client.predict() Usage Info
 ---------------------------
 Named API endpoints: 1
 
- - predict(input_audio, api_name="/predict") -> value_0
+ - predict(audio, api_name="/predict") -> output
     Parameters:
-     - [Audio] input_audio: str (filepath or URL)
+     - [Audio] audio: filepath (required)  
     Returns:
-     - [Textbox] value_0: str (value)
+     - [Textbox] output: str 
 ```
 
-This shows us that we have 1 API endpoint in this space, and shows us how to use the API endpoint to make a prediction: we should call the `.predict()` method (which we will explore below), providing a parameter `input_audio` of type `str`, which is a `filepath or URL`.
 
-We should also provide the `api_name='/predict'` argument to the `predict()` method. Although this isn't necessary if a Gradio app has only 1 named endpoint, it does allow us to call different endpoints in a single app if they are available. If an app has unnamed API endpoints, these can also be displayed by running `.view_api(all_endpoints=True)`.
+Alternatively, you can click on the "Use via API" link in the footer of the Gradio app, which shows us the same information, along with example usage.
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api.png)
+
+We see  that we have 1 API endpoint in this space, and shows us how to use the API endpoint to make a prediction: we should call the `.predict()` method (which we will explore below), providing a parameter `input_audio` of type `str`, which is a `filepath or URL`.
+
+We should also provide the `api_name='/predict'` argument to the `predict()` method. Although this isn't necessary if a Gradio app has only 1 named endpoint, it does allow us to call different endpoints in a single app if they are available.
 
 ## Making a prediction
 
@@ -130,13 +137,45 @@ client.predict(4, "add", 5)
 >> 9.0
 ```
 
-For when working with files (e.g. image files), you should pass in the filepath or URL to the file enclosed within `gradio_client.file()`. 
+It is recommended to provide key-word arguments instead of positional arguments:
+
+
+```python
+from gradio_client import Client
+
+client = Client("gradio/calculator")
+client.predict(num1=4, operation="add", num2=5)
+
+>> 9.0
+```
+
+This allows you to take advantage of default arguments. For example, this Space includes the default value for the Slider component so you do not need to provide it when accessing it with the client.
+
+```python
+from gradio_client import Client
+
+client = Client("abidlabs/image_generator")
+client.predict(text="an astronaut riding a camel")
+```
+
+The default value is the initial value of the corresponding Gradio component. If the component does not have an initial value, but if the corresponding argument in the predict function has a default value of `None`, then that parameter is also optional in the client. Of course, if you'd like to override it, you can include it as well:
+
+```python
+from gradio_client import Client
+
+client = Client("abidlabs/image_generator")
+client.predict(text="an astronaut riding a camel", steps=25)
+```
+
+For providing files or URLs as inputs, you should pass in the filepath or URL to the file enclosed within `gradio_client.file()`. This takes care of uploading the file to the Gradio server and ensures that the file is preprocessed correctly:
 
 ```python
 from gradio_client import Client, file
 
 client = Client("abidlabs/whisper")
-client.predict(file("https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"))
+client.predict(
+    audio=file("https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3")
+)
 
 >> "My thought I have nobody by a beauty and will as you poured. Mr. Rochester is serve in that so don't find simpus, and devoted abode, to at might in a r—"
 ```

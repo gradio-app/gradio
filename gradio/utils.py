@@ -1212,6 +1212,22 @@ def get_upload_folder() -> str:
     )
 
 
+def get_function_params(func: Callable) -> list[tuple[str, bool, Any]]:
+    params_info = []
+    signature = inspect.signature(func)
+    for name, parameter in signature.parameters.items():
+        if parameter.kind in (
+            inspect.Parameter.VAR_POSITIONAL,
+            inspect.Parameter.VAR_KEYWORD,
+        ):
+            break
+        if parameter.default is inspect.Parameter.empty:
+            params_info.append((name, False, None))
+        else:
+            params_info.append((name, True, parameter.default))
+    return params_info
+
+
 def simplify_file_data_in_str(s):
     """
     If a FileData dictionary has been dumped as part of a string, this function will replace the dict with just the str filepath

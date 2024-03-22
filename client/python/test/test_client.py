@@ -601,6 +601,33 @@ class TestClientPredictions:
             assert pred[0] == data[0]
 
 
+class TestClientPredictionsWithKwargs:
+    def test_no_default_params(self, calculator_demo):
+        with connect(calculator_demo) as client:
+            result = client.predict(
+                num1=3, operation="add", num2=3, api_name="/predict"
+            )
+            assert result == 6
+
+            result = client.predict(33, operation="add", num2=3, api_name="/predict")
+            assert result == 36
+
+    def test_default_params(self, calculator_demo_with_defaults):
+        with connect(calculator_demo_with_defaults) as client:
+            result = client.predict(num2=10, api_name="/predict")
+            assert result == 20
+
+            result = client.predict(num2=33, operation="multiply", api_name="/predict")
+            assert result == 330
+
+    def test_missing_params(self, calculator_demo):
+        with connect(calculator_demo) as client:
+            with pytest.raises(
+                ValueError, match="No value provided for required argument: num2"
+            ):
+                client.predict(num1=3, operation="add", api_name="/predict")
+
+
 class TestStatusUpdates:
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
     def test_messages_passed_correctly(self, mock_make_end_to_end_fn, calculator_demo):
@@ -952,6 +979,9 @@ class TestAPIInfo:
                 "parameters": [
                     {
                         "label": "num1",
+                        "parameter_name": "num1",
+                        "parameter_has_default": False,
+                        "parameter_default": None,
                         "type": {"type": "number"},
                         "python_type": {"type": "float", "description": ""},
                         "component": "Number",
@@ -959,6 +989,9 @@ class TestAPIInfo:
                     },
                     {
                         "label": "operation",
+                        "parameter_name": "operation",
+                        "parameter_has_default": False,
+                        "parameter_default": None,
                         "type": {
                             "enum": ["add", "subtract", "multiply", "divide"],
                             "title": "Radio",
@@ -973,6 +1006,9 @@ class TestAPIInfo:
                     },
                     {
                         "label": "num2",
+                        "parameter_name": "num2",
+                        "parameter_has_default": False,
+                        "parameter_default": None,
                         "type": {"type": "number"},
                         "python_type": {"type": "float", "description": ""},
                         "component": "Number",
@@ -1046,6 +1082,9 @@ class TestAPIInfo:
                         "parameters": [
                             {
                                 "label": "name",
+                                "parameter_name": "name",
+                                "parameter_has_default": True,
+                                "parameter_default": "",
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
@@ -1077,6 +1116,9 @@ class TestAPIInfo:
                         "parameters": [
                             {
                                 "label": "name",
+                                "parameter_name": "name",
+                                "parameter_has_default": True,
+                                "parameter_default": "",
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
@@ -1093,10 +1135,7 @@ class TestAPIInfo:
                             {
                                 "label": "count",
                                 "type": {"type": "number"},
-                                "python_type": {
-                                    "type": "float",
-                                    "description": "",
-                                },
+                                "python_type": {"type": "float", "description": ""},
                                 "component": "Number",
                             },
                         ],
@@ -1107,10 +1146,7 @@ class TestAPIInfo:
                             {
                                 "label": "count",
                                 "type": {"type": "number"},
-                                "python_type": {
-                                    "type": "float",
-                                    "description": "",
-                                },
+                                "python_type": {"type": "float", "description": ""},
                                 "component": "Number",
                             }
                         ],
@@ -1121,10 +1157,7 @@ class TestAPIInfo:
                             {
                                 "label": "count",
                                 "type": {"type": "number"},
-                                "python_type": {
-                                    "type": "float",
-                                    "description": "",
-                                },
+                                "python_type": {"type": "float", "description": ""},
                                 "component": "Number",
                             }
                         ],

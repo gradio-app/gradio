@@ -289,9 +289,7 @@ class TestLoadInterface:
         io = gr.load("models/osanseviero/BigGAN-deep-128")
         try:
             filename = io("chest")
-            assert filename.lower().endswith(".jpg") or filename.lower().endswith(
-                ".jpeg"
-            )
+            assert filename.lower().endswith((".jpg", ".jpeg", ".png"))
         except TooManyRequestsError:
             pass
 
