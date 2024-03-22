@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-feat:logging root url
+fix:logging root url
