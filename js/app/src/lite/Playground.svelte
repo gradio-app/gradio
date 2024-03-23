@@ -78,14 +78,13 @@
 		<div class:code-editor-border={loaded} class="code-editor">
 			<div class="loading-panel">
 				<div class="code-header">app.py</div>
+				<div style="display: flex;"></div>
 				{#if !loaded}
-					<div style="display: flex;"></div>
 					<div class="loading-section">
 						<div class="loading-dot"></div>
 						{loading_text}
 					</div>
 				{:else}
-					<div style="display: flex;"></div>
 					<div class="loading-section">
 						<img src={lightning} alt="lightning icon" class="lightning-logo" />
 						Interactive
@@ -323,8 +322,15 @@
 	:global(.code-editor .container) {
 		display: none;
 	}
-	:global(.code-editor button) {
-		display: none;
+	:global(.code-editor .block button) {
+		background-color: transparent;
+		border: none;
+		color: #9095a0;
+	}
+
+	:global(.code-editor .block .check) { 
+		width: 50%;
+		color: #ff7c00;
 	}
 
 	.loading-dot {
