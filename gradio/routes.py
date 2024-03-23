@@ -38,6 +38,7 @@ import httpx
 import markupsafe
 import orjson
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Response, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
@@ -230,6 +231,12 @@ class App(FastAPI):
 
         if not wasm_utils.IS_WASM:
             app.add_middleware(CustomCORSMiddleware)
+            # app.add_middleware(
+            #     CORSMiddleware,
+            #     allow_origins=["*"],
+            #     allow_methods=["*"],
+            #     allow_headers=["*"],
+            # )
 
         @app.get("/user")
         @app.get("/user/")

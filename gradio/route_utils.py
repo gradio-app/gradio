@@ -48,6 +48,18 @@ if TYPE_CHECKING:
     from gradio.routes import App
 
 
+import functools
+import re
+import typing
+
+from starlette.datastructures import Headers, MutableHeaders
+from starlette.responses import PlainTextResponse, Response
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
+
+ALL_METHODS = ("DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT")
+SAFELISTED_HEADERS = {"Accept", "Accept-Language", "Content-Language", "Content-Type"}
+
+
 class Obj:
     """
     Using a class to convert dictionaries into objects. Used by the `Request` class.
@@ -648,7 +660,7 @@ def get_hostname(url: str) -> str:
         return ""
 
 
-class CustomCORSMiddleware(BaseHTTPMiddleware):
+class CustomCORSMiddlewareOld(BaseHTTPMiddleware):
     async def dispatch(self, request: fastapi.Request, call_next):
         host: str = request.headers.get("host", "")
         origin: str = request.headers.get("origin", "")
@@ -683,6 +695,97 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
             "Access-Control-Allow-Headers"
         ] = "Origin, Content-Type, Accept"
         return response
+
+class CustomCORSMiddleware:
+    def __init__(
+        self,
+        app: ASGIApp,
+    ) -> None:
+        simple_headers = {}
+        simple_headers["Access-Control-Allow-Credentials"] = "true"
+
+        preflight_headers = {}
+        preflight_headers.update(
+            {
+                "Access-Control-Allow-Methods": ", ".join(ALL_METHODS),
+                "Access-Control-Max-Age": str(600),
+            }
+        )
+
+        self.app = app
+        self.simple_headers = simple_headers
+        self.preflight_headers = preflight_headers
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":  # pragma: no cover
+            await self.app(scope, receive, send)
+            return
+
+        method = scope["method"]
+        headers = Headers(scope=scope)
+        origin = headers.get("origin")
+
+        if origin is None:
+            await self.app(scope, receive, send)
+            return
+
+        if method == "OPTIONS" and "access-control-request-method" in headers:
+            response = self.preflight_response(request_headers=headers)
+            await response(scope, receive, send)
+            return
+
+        await self.simple_response(scope, receive, send, request_headers=headers)
+
+    def preflight_response(self, request_headers: Headers) -> Response:
+
+        host: str = request_headers.get("host", "")
+        origin: str = request_headers.get("origin", "")
+        host_name = get_hostname(host)
+        origin_name = get_hostname(origin)
+
+        localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0", "null"]
+
+        if host_name in localhost_aliases and origin_name not in localhost_aliases:
+            allow_origin_header = None
+        else:
+            allow_origin_header = origin
+
+        requested_headers = request_headers.get("access-control-request-headers")
+        headers = dict(self.preflight_headers)
+        if requested_headers is not None:
+            headers["Access-Control-Allow-Headers"] = requested_headers
+        if allow_origin_header:
+            headers["Access-Control-Allow-Origin"] = allow_origin_header
+        return PlainTextResponse("OK", status_code=200, headers=headers)
+
+    async def simple_response(
+        self, scope: Scope, receive: Receive, send: Send, request_headers: Headers
+    ) -> None:
+        send = functools.partial(self.send, send=send, request_headers=request_headers)
+        await self.app(scope, receive, send)
+
+    async def send(
+        self, message: Message, send: Send, request_headers: Headers
+    ) -> None:
+        if message["type"] != "http.response.start":
+            await send(message)
+            return
+
+        message.setdefault("headers", [])
+        headers = MutableHeaders(scope=message)
+        headers.update(self.simple_headers)
+        origin = request_headers["Origin"]
+        has_cookie = "cookie" in request_headers
+
+        if has_cookie:
+            self.allow_explicit_origin(headers, origin)
+
+        await send(message)
+
+    @staticmethod
+    def allow_explicit_origin(headers: MutableHeaders, origin: str) -> None:
+        headers["Access-Control-Allow-Origin"] = origin
+        headers.add_vary_header("Origin")
 
 
 def delete_files_created_by_app(blocks: Blocks, age: int | None) -> None:
