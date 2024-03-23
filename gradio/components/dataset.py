@@ -147,6 +147,7 @@ class Dataset(Component):
         Returns:
             Returns the updated dataset data as a `dict` with the key "samples".
         """
+        self.samples = samples
         return {
             "samples": samples,
             "__type__": "update",
