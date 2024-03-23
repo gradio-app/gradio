@@ -18,7 +18,6 @@ class Model3D(Component):
     """
     Creates a component allows users to upload or view 3D Model files (.obj, .glb, .stl, .gltf, .splat, or .ply).
 
-    Demos: model3D
     Guides: how-to-use-3D-model-component
     """
 

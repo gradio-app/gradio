@@ -36,7 +36,7 @@ class Video(Component):
     that the output video would not be playable in the browser it will attempt to convert it to a playable mp4 video.
     If the conversion fails, the original video is returned.
 
-    Demos: video_identity, video_subtitle
+    Demos: video_identity_2
     """
 
     data_model = VideoData
