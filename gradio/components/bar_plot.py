@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any, Callable, Literal
 
-import altair as alt
 import pandas as pd
 from gradio_client.documentation import document
 
@@ -175,6 +174,8 @@ class BarPlot(Plot):
         sort: Literal["x", "y", "-x", "-y"] | None = None,
     ):
         """Helper for creating the bar plot."""
+        import altair as alt
+
         interactive = True if interactive is None else interactive
         orientation = (
             {"field": group, "title": group_title if group_title is not None else group}
