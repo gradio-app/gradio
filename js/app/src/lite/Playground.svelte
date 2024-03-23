@@ -58,19 +58,20 @@
 	worker_proxy?.addEventListener("initialization-completed", (_) => {
 		loaded = true;
 	});
-
+	
 	function shortcut_run(e: KeyboardEvent): void {
-		if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-			e.preventDefault();
+		if (e.key == "Enter" && (e.metaKey || e.ctrlKey)) {
 			dispatch("code", { code });
+			e.preventDefault();
 		}
 	}
 
+	window.addEventListener("keydown", shortcut_run, true);
+
 	$: loading_text;
 	$: loaded;
+	$: code;
 </script>
-
-<svelte:window on:keydown={shortcut_run} />
 
 <div class="parent-container">
 	<div class="child-container">
