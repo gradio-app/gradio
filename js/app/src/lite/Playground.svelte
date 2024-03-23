@@ -320,8 +320,16 @@
 		height: 100%;
 	}
 	:global(.code-editor .container) {
-		display: none;
+		padding-right: 0;
 	}
+
+	:global(.code-editor .container a) {
+		display: block;
+		width: 65%;
+		color: #9095a0;
+		margin: auto;
+	}
+
 	:global(.code-editor .block button) {
 		background-color: transparent;
 		border: none;
@@ -331,6 +339,7 @@
 	:global(.code-editor .block .check) { 
 		width: 50%;
 		color: #ff7c00;
+		margin: auto;
 	}
 
 	.loading-dot {
