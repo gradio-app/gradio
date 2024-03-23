@@ -743,12 +743,14 @@ class CustomCORSMiddleware:
         host_name = get_hostname(host)
         origin_name = get_hostname(origin)
 
+        print("host_name", host_name, "origin_name", origin_name)
+
         localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0", "null"]
 
         if host_name in localhost_aliases and origin_name not in localhost_aliases:
             allow_origin_header = None
         else:
-            allow_origin_header = origin
+            allow_origin_header = "*"
 
         requested_headers = request_headers.get("access-control-request-headers")
         headers = dict(self.preflight_headers)
