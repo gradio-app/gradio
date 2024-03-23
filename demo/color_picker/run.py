@@ -33,11 +33,7 @@ outputs = gr.Image(label="colored icon")
 demo = gr.Interface(
     fn=change_color,
     inputs=inputs,
-    outputs=outputs,
-    examples=[
-        [os.path.join(os.path.dirname(__file__), "rabbit.png"), "#ff0000"],
-        [os.path.join(os.path.dirname(__file__), "rabbit.png"), "#0000FF"],
-    ],
+    outputs=outputs
 )
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ class Dropdown(FormComponent):
     """
     Creates a dropdown of choices from which a single entry or multiple entries can be selected (as an input component) or displayed (as an output component).
 
-    Demos: sentence_builder, titanic_survival
+    Demos: sentence_builder
     """
 
     EVENTS = [
