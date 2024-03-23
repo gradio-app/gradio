@@ -26,7 +26,7 @@
 				Open in 🎢 ↗
 			</button>
 
-			<gradio-lite playground class="p-2">
+			<gradio-lite playground shared-worker class="p-2">
 				{code}
 			</gradio-lite>
 		{/key}
