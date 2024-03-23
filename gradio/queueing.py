@@ -32,6 +32,7 @@ from gradio.server_messages import (
     ProgressUnit,
 )
 from gradio.utils import LRUCache, run_coro_in_background, safe_get_lock, set_task_name
+from gradio.utils import print_time, times_per_message
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction
@@ -462,6 +463,7 @@ class Queue:
         )
 
     async def call_prediction(self, events: list[Event], batch: bool) -> dict:
+        print_time("Start queueing.call_prediction")
         body = events[0].data
         if body is None:
             raise ValueError("No event data")
@@ -527,6 +529,7 @@ class Queue:
         if not isinstance(response_json, dict):
             raise ValueError("Unexpected object.")
 
+        print_time("End queueing.call_prediction")
         return response_json
 
     async def process_events(
@@ -566,10 +569,12 @@ class Queue:
                             success=False,
                         ),
                     )
+            i = 0
             if response and response.get("is_generating", False):
                 old_response = response
                 old_err = err
                 while response and response.get("is_generating", False):
+                    print_time("Start is_generating loop")
                     old_response = response
                     old_err = err
                     for event in awake_events:
@@ -585,10 +590,17 @@ class Queue:
                         return
                     try:
                         response = await self.call_prediction(awake_events, batch)
-                        err = None
+                        # if i == 500:
+                        #     response = {'data': [[['test', 'Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem']]], 'is_generating': False, 'duration': 0.01275014877319336, 'average_duration': 0.07169854723789777}
+                        # else:
+                        #     response = {'data': [[['append', [0, 1], 'Lorem']]], 'is_generating': True, 'duration': 0.01172184944152832, 'average_duration': 0.007006247838338216}
+                        # i += 1
+                        # await asyncio.sleep(0.01)
+                        # err = None
                     except Exception as e:
                         response = None
                         err = e
+                    print_time("Complete is_generating loop")
                 for event in awake_events:
                     relevant_response = response or err or old_err
                     self.send_message(
@@ -623,6 +635,9 @@ class Queue:
         except Exception as e:
             traceback.print_exc()
         finally:
+            print("----")
+            for msgt in sorted(times_per_message, key=lambda x: times_per_message[x]):
+                print(msgt, times_per_message[msgt])
             event_queue = self.event_queue_per_concurrency_id[events[0].concurrency_id]
             event_queue.current_concurrency -= 1
             start_times = event_queue.start_times_per_fn_index[fn_index]

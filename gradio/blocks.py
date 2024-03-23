@@ -78,6 +78,7 @@ try:
 except Exception:
     spaces = None
 
+from gradio.utils import print_time
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
@@ -1214,6 +1215,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             event_id: id of event in queue
             event_data: data associated with event trigger
         """
+        print_time("Start blocks.call_function")
+
         block_fn = self.fns[fn_index]
         if not block_fn.fn:
             raise IndexError(f"function with index {fn_index} not defined.")
@@ -1221,13 +1224,14 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         request = requests[0] if isinstance(requests, list) else requests
         start = time.time()
 
-        fn = utils.get_function_with_locals(
-            fn=block_fn.fn,
-            blocks=self,
-            event_id=event_id,
-            in_event_listener=in_event_listener,
-            request=request,
-        )
+        # fn = utils.get_function_with_locals(
+        #     fn=block_fn.fn,
+        #     blocks=self,
+        #     event_id=event_id,
+        #     in_event_listener=in_event_listener,
+        #     request=request,
+        # )
+        fn = block_fn.fn
 
         if iterator is None:  # If not a generator function that has already run
             if block_fn.inputs_as_dict:
@@ -1258,8 +1262,11 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 if iterator is None:
                     iterator = cast(AsyncIterator[Any], prediction)
                 if inspect.isgenerator(iterator):
+                    print("casting..")
                     iterator = utils.SyncToAsyncIterator(iterator, self.limiter)
+                print_time("Call iterator")
                 prediction = await utils.async_iteration(iterator)
+                print_time("Finish iterator")
                 is_generating = True
             except StopAsyncIteration:
                 n_outputs = len(self.dependencies[fn_index].get("outputs"))
@@ -1272,12 +1279,14 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         duration = time.time() - start
 
-        return {
+        r = {
             "prediction": prediction,
             "duration": duration,
             "is_generating": is_generating,
             "iterator": iterator,
         }
+        print_time("End blocks.call_function")
+        return r
 
     def serialize_data(self, fn_index: int, inputs: list[Any]) -> list[Any]:
         dependency = self.dependencies[fn_index]
@@ -1457,6 +1466,7 @@ Received outputs:
     def postprocess_data(
         self, fn_index: int, predictions: list | dict, state: SessionState | None
     ):
+        print_time("Start blocks.process_api postprocess_data")
         state = state or SessionState(self)
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
@@ -1532,8 +1542,10 @@ Received outputs:
                         )
                     if output_id in state:
                         block = state[output_id]
+                    print_time("Start blocks.process_api postprocess_data ACTUAL")
                     prediction_value = block.postprocess(prediction_value)
 
+                print_time("Start blocks.process_api postprocess_data move_files_to_cache")
                 outputs_cached = processing_utils.move_files_to_cache(
                     prediction_value,
                     block,
@@ -1634,6 +1646,8 @@ Received outputs:
             root_path: if provided, the root path of the server. All file URLs will be prefixed with this path.
         Returns: None
         """
+        print_time("Start blocks.process_api")
+
         block_fn = self.fns[fn_index]
         batch = self.dependencies[fn_index]["batch"]
 
@@ -1695,6 +1709,7 @@ Received outputs:
                 data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
+                print_time("Start blocks.process_api streaming_stuff")
                 run = id(old_iterator) if was_generating else id(iterator)
                 data = self.handle_streaming_outputs(
                     fn_index,
@@ -1713,13 +1728,15 @@ Received outputs:
 
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
-        return {
+        r = {
             "data": data,
             "is_generating": is_generating,
             "iterator": iterator,
             "duration": result["duration"],
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }
+        print_time("End blocks.process_api")
+        return r
 
     def create_limiter(self):
         self.limiter = (

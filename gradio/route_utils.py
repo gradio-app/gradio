@@ -47,6 +47,7 @@ if TYPE_CHECKING:
     from gradio.blocks import Blocks
     from gradio.routes import App
 
+from gradio.utils import print_time
 
 class Obj:
     """
@@ -240,6 +241,7 @@ async def call_process_api(
     fn_index_inferred: int,
     root_path: str,
 ):
+    print_time("Start route_utils.call_process_api")
     session_state, iterator = restore_session_state(app=app, body=body)
 
     dependency = app.get_blocks().dependencies[fn_index_inferred]
@@ -268,6 +270,7 @@ async def call_process_api(
                 simple_format=body.simple_format,
                 root_path=root_path,
             )
+        print_time("Return blocks.process_api")
         iterator = output.pop("iterator", None)
         if event_id is not None:
             app.iterators[event_id] = iterator  # type: ignore
@@ -287,6 +290,7 @@ async def call_process_api(
     if batch_in_single_out:
         output["data"] = output["data"][0]
 
+    print_time("End route_utils.call_process_api")
     return output
 
 
