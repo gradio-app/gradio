@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any, Callable, Literal
 
-import altair as alt
 import pandas as pd
 from gradio_client.documentation import document
 from pandas.api.types import is_numeric_dtype
@@ -231,6 +230,8 @@ class ScatterPlot(Plot):
         interactive: bool | None = True,
     ):
         """Helper for creating the scatter plot."""
+        import altair as alt
+
         interactive = True if interactive is None else interactive
         encodings = {
             "x": alt.X(
