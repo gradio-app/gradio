@@ -50,7 +50,7 @@ class Audio(
 ):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
-    Demos: main_note, generate_tone, reverse_audio
+    Demos: generate_tone, reverse_audio
     Guides: real-time-speech-recognition
     """
 

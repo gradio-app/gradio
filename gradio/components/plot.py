@@ -31,7 +31,7 @@ class Plot(Component):
     Creates a plot component to display various kinds of plots (matplotlib, plotly, altair, or bokeh plots are supported). As this component does
     not accept user input, it is rarely used as an input component.
 
-    Demos: altair_plot, outbreak_forecast, blocks_kinematics, stock_forecast, map_airbnb
+    Demos: blocks_kinematics, stock_forecast
     Guides: plot-component-for-maps
     """
 

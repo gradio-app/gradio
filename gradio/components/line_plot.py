@@ -17,7 +17,7 @@ class LinePlot(Plot):
     Creates a line plot component to display data from a pandas DataFrame (as output). As this component does
     not accept user input, it is rarely used as an input component.
 
-    Demos: line_plot, live_dashboard
+    Demos: live_dashboard
     """
 
     data_model = AltairPlotData

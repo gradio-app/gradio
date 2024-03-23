@@ -54,7 +54,7 @@ class Interface(Blocks):
 
         demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label")
         demo.launch()
-    Demos: hello_world, hello_world_3, gpt2_xl
+    Demos: hello_world, hello_world_2, hello_world_3
     Guides: quickstart, key-features, sharing-your-app, interface-state, reactive-interfaces, advanced-interface-features, setting-up-a-gradio-demo-for-maximum-performance
     """
 
@@ -684,6 +684,7 @@ class Interface(Blocks):
                     preprocess=not (self.api_mode),
                     postprocess=not (self.api_mode),
                     show_progress="hidden" if streaming_event else "full",
+                    trigger_mode="always_last",
                 )
         else:
             if _submit_btn is None:
@@ -885,7 +886,7 @@ class TabbedInterface(Blocks):
     rendered in a separate tab. Only the components from the Interface/Blocks will be rendered in the tab.
     Certain high-level attributes of the Blocks (e.g. custom `css`, `js`, and `head` attributes) will not be loaded.
 
-    Demos: stt_or_tts
+    Demos: tabbed_interface_lite
     """
 
     def __init__(
