@@ -571,9 +571,7 @@ class SyncToAsyncIterator:
 
 async def async_iteration(iterator):
     # anext not introduced until 3.10 :(
-    print_time("Start async iteration")
     n = await iterator.__anext__()
-    print_time("End async iteration")
     return n
 
 
@@ -1247,21 +1245,3 @@ def simplify_file_data_in_str(s):
     if isinstance(payload, str):
         return payload
     return json.dumps(payload)
-
-
-last_time = None
-last_msg = None
-times_per_message = {}
-from time import perf_counter
-
-def print_time(msg):
-    global last_time
-    global last_msg
-    if last_time is None:
-        last_time = perf_counter()
-    else:
-        duration = (perf_counter() - last_time) * 1000
-        # print(last_msg, duration)
-        times_per_message[last_msg] = times_per_message.get(last_msg, 0) + duration
-        last_msg = msg
-        last_time = perf_counter()

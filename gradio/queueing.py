@@ -32,7 +32,6 @@ from gradio.server_messages import (
     ProgressUnit,
 )
 from gradio.utils import LRUCache, run_coro_in_background, safe_get_lock, set_task_name
-from gradio.utils import print_time, times_per_message
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction
@@ -546,7 +545,6 @@ class Queue:
                 old_response = response
                 old_err = err
                 while response and response.get("is_generating", False):
-                    print_time("Start is_generating loop")
                     old_response = response
                     old_err = err
                     for event in awake_events:                        
@@ -571,7 +569,6 @@ class Queue:
                     except Exception as e:
                         response = None
                         err = e
-                    print_time("Complete is_generating loop")
                 for event in awake_events:
                     relevant_response = response or err or old_err
                     self.send_message(
