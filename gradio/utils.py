@@ -572,8 +572,7 @@ class SyncToAsyncIterator:
 
 async def async_iteration(iterator):
     # anext not introduced until 3.10 :(
-    n = await iterator.__anext__()
-    return n
+    return await iterator.__anext__()
 
 
 @contextmanager
