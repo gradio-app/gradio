@@ -462,76 +462,6 @@ class Queue:
             queue_size=len(self),
         )
 
-    async def call_prediction(self, events: list[Event], batch: bool) -> dict:
-        print_time("Start queueing.call_prediction")
-        body = events[0].data
-        if body is None:
-            raise ValueError("No event data")
-        username = events[0].username
-        body.event_id = events[0]._id if not batch else None
-        try:
-            body.request = events[0].request
-        except ValueError:
-            pass
-
-        if batch:
-            body.data = list(zip(*[event.data.data for event in events if event.data]))
-            body.request = events[0].request
-            body.batched = True
-
-        app = self.server_app
-        if app is None:
-            raise Exception("Server app has not been set.")
-        api_name = "predict"
-
-        fn_index_inferred = route_utils.infer_fn_index(
-            app=app, api_name=api_name, body=body
-        )
-
-        gr_request = route_utils.compile_gr_request(
-            app=app,
-            body=body,
-            fn_index_inferred=fn_index_inferred,
-            username=username,
-            request=None,
-        )
-        assert body.request is not None  # noqa: S101
-        root_path = route_utils.get_root_url(
-            request=body.request, route_path="/queue/join", root_path=app.root_path
-        )
-        try:
-            output = await route_utils.call_process_api(
-                app=app,
-                body=body,
-                gr_request=gr_request,
-                fn_index_inferred=fn_index_inferred,
-                root_path=root_path,
-            )
-        except Exception as error:
-            show_error = app.get_blocks().show_error or isinstance(error, Error)
-            traceback.print_exc()
-            raise Exception(str(error) if show_error else None) from error
-
-        # To emulate the HTTP response from the predict API,
-        # convert the output to a JSON response string.
-        # This is done by FastAPI automatically in the HTTP endpoint handlers,
-        # but we need to do it manually here.
-        response_class = app.router.default_response_class
-        if isinstance(response_class, fastapi.datastructures.DefaultPlaceholder):
-            actual_response_class = response_class.value
-        else:
-            actual_response_class = response_class
-        http_response = actual_response_class(
-            output
-        )  # Do the same as https://github.com/tiangolo/fastapi/blob/0.87.0/fastapi/routing.py#L264
-        # Also, decode the JSON string to a Python object, emulating the HTTP client behavior e.g. the `json()` method of `httpx`.
-        response_json = json.loads(http_response.body.decode())
-        if not isinstance(response_json, dict):
-            raise ValueError("Unexpected object.")
-
-        print_time("End queueing.call_prediction")
-        return response_json
-
     async def process_events(
         self, events: list[Event], batch: bool, begin_time: float
     ) -> None:
@@ -551,8 +481,51 @@ class Queue:
                     awake_events.append(event)
             if not awake_events:
                 return
+            
+            events = awake_events            
+            body = events[0].data
+            if body is None:
+                raise ValueError("No event data")
+            username = events[0].username
+            body.event_id = events[0]._id if not batch else None
             try:
-                response = await self.call_prediction(awake_events, batch)
+                body.request = events[0].request
+            except ValueError:
+                pass
+
+            if batch:
+                body.data = list(zip(*[event.data.data for event in events if event.data]))
+                body.request = events[0].request
+                body.batched = True
+
+            app = self.server_app
+            if app is None:
+                raise Exception("Server app has not been set.")
+            api_name = "predict"
+
+            fn_index_inferred = route_utils.infer_fn_index(
+                app=app, api_name=api_name, body=body
+            )
+
+            gr_request = route_utils.compile_gr_request(
+                app=app,
+                body=body,
+                fn_index_inferred=fn_index_inferred,
+                username=username,
+                request=None,
+            )
+            assert body.request is not None  # noqa: S101
+            root_path = route_utils.get_root_url(
+                request=body.request, route_path="/queue/join", root_path=app.root_path
+            )
+            try:
+                response = await route_utils.call_process_api(
+                    app=app,
+                    body=body,
+                    gr_request=gr_request,
+                    fn_index_inferred=fn_index_inferred,
+                    root_path=root_path,
+                )
                 err = None
             except Exception as e:
                 response = None
@@ -569,7 +542,6 @@ class Queue:
                             success=False,
                         ),
                     )
-            i = 0
             if response and response.get("is_generating", False):
                 old_response = response
                 old_err = err
@@ -577,7 +549,7 @@ class Queue:
                     print_time("Start is_generating loop")
                     old_response = response
                     old_err = err
-                    for event in awake_events:
+                    for event in awake_events:                        
                         self.send_message(
                             event,
                             ProcessGeneratingMessage(
@@ -589,14 +561,13 @@ class Queue:
                     if not awake_events:
                         return
                     try:
-                        response = await self.call_prediction(awake_events, batch)
-                        # if i == 500:
-                        #     response = {'data': [[['test', 'Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem Lorem']]], 'is_generating': False, 'duration': 0.01275014877319336, 'average_duration': 0.07169854723789777}
-                        # else:
-                        #     response = {'data': [[['append', [0, 1], 'Lorem']]], 'is_generating': True, 'duration': 0.01172184944152832, 'average_duration': 0.007006247838338216}
-                        # i += 1
-                        # await asyncio.sleep(0.01)
-                        # err = None
+                        response = await route_utils.call_process_api(
+                            app=app,
+                            body=body,
+                            gr_request=gr_request,
+                            fn_index_inferred=fn_index_inferred,
+                            root_path=root_path,
+                        )
                     except Exception as e:
                         response = None
                         err = e

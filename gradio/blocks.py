@@ -1553,6 +1553,7 @@ Received outputs:
                 )
                 output.append(outputs_cached)
 
+        print_time("End blocks.process_api postprocess_data")
         return output
 
     def handle_streaming_outputs(
@@ -1706,6 +1707,7 @@ Received outputs:
             )
             data = self.postprocess_data(fn_index, result["prediction"], state)
             if root_path is not None:
+                print_time("Start blocks.process_api add_root_url")
                 data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
