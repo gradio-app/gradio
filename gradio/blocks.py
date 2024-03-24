@@ -78,6 +78,7 @@ try:
 except Exception:
     spaces = None
 
+
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
 
@@ -1227,7 +1228,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             in_event_listener=in_event_listener,
             request=request,
         )
-        fn = block_fn.fn
 
         if iterator is None:  # If not a generator function that has already run
             if block_fn.inputs_as_dict:
