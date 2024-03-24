@@ -603,9 +603,6 @@ class Queue:
         except Exception as e:
             traceback.print_exc()
         finally:
-            print("----")
-            for msgt in sorted(times_per_message, key=lambda x: times_per_message[x]):
-                print(msgt, times_per_message[msgt])
             event_queue = self.event_queue_per_concurrency_id[events[0].concurrency_id]
             event_queue.current_concurrency -= 1
             start_times = event_queue.start_times_per_fn_index[fn_index]

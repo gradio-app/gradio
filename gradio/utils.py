@@ -27,6 +27,7 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict
 from contextlib import contextmanager
 from io import BytesIO
+import matplotlib
 from numbers import Number
 from pathlib import Path
 from types import AsyncGeneratorType, GeneratorType, ModuleType
@@ -937,16 +938,10 @@ class TupleNoPrint(tuple):
 
 class MatplotlibBackendMananger:
     def __enter__(self):
-        return
-        import matplotlib
-
         self._original_backend = matplotlib.get_backend()
         matplotlib.use("agg")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        return
-        import matplotlib
-
         matplotlib.use(self._original_backend)
 
 

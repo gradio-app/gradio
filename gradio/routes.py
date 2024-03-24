@@ -228,8 +228,8 @@ class App(FastAPI):
         app = App(auth_dependency=auth_dependency, **app_kwargs)
         app.configure_app(blocks)
 
-        # if not wasm_utils.IS_WASM:
-        #     app.add_middleware(CustomCORSMiddleware)
+        if not wasm_utils.IS_WASM:
+            app.add_middleware(CustomCORSMiddleware)
 
         @app.get("/user")
         @app.get("/user/")

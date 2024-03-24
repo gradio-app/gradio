@@ -1220,13 +1220,13 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         request = requests[0] if isinstance(requests, list) else requests
         start = time.time()
 
-        # fn = utils.get_function_with_locals(
-        #     fn=block_fn.fn,
-        #     blocks=self,
-        #     event_id=event_id,
-        #     in_event_listener=in_event_listener,
-        #     request=request,
-        # )
+        fn = utils.get_function_with_locals(
+            fn=block_fn.fn,
+            blocks=self,
+            event_id=event_id,
+            in_event_listener=in_event_listener,
+            request=request,
+        )
         fn = block_fn.fn
 
         if iterator is None:  # If not a generator function that has already run
@@ -1258,7 +1258,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 if iterator is None:
                     iterator = cast(AsyncIterator[Any], prediction)
                 if inspect.isgenerator(iterator):
-                    print("casting..")
                     iterator = utils.SyncToAsyncIterator(iterator, self.limiter)
                 prediction = await utils.async_iteration(iterator)
                 is_generating = True
@@ -1273,13 +1272,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         duration = time.time() - start
 
-        r = {
+        return {
             "prediction": prediction,
             "duration": duration,
             "is_generating": is_generating,
             "iterator": iterator,
         }
-        return r
 
     def serialize_data(self, fn_index: int, inputs: list[Any]) -> list[Any]:
         dependency = self.dependencies[fn_index]
@@ -1715,14 +1713,13 @@ Received outputs:
 
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
-        r = {
+        return {
             "data": data,
             "is_generating": is_generating,
             "iterator": iterator,
             "duration": result["duration"],
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }
-        return r
 
     def create_limiter(self):
         self.limiter = (
