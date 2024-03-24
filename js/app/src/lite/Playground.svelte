@@ -189,10 +189,15 @@
 
 	.horizontal {
 		flex-direction: row !important;
+		height: 300px;
 	}
 
 	.vertical {
 		flex-direction: column !important;
+	}
+
+	.vertical .code-editor {
+		height: 300px;
 	}
 
 	@media (min-width: 768px) {
