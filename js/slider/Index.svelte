@@ -130,6 +130,7 @@
 		display: flex;
 		justify-content: space-between;
 	}
+
 	input[type="number"] {
 		display: block;
 		position: relative;
@@ -145,6 +146,7 @@
 		line-height: var(--line-sm);
 		text-align: center;
 	}
+
 	input:disabled {
 		-webkit-text-fill-color: var(--body-text-color);
 		-webkit-opacity: 1;
@@ -192,6 +194,28 @@
 
 	input[type="range"]::-webkit-slider-thumb:hover {
 		background: var(--neutral-50);
+	}
+
+	input[type="range"][disabled] {
+		background: var(--body-text-color-subdued);
+	}
+
+	input[type="range"][disabled]::-webkit-slider-thumb {
+		cursor: not-allowed;
+		background-color: var(--body-text-color-subdued);
+	}
+
+	input[type="range"][disabled]::-moz-range-track {
+		cursor: not-allowed;
+		background-color: var(--body-text-color-subdued);
+	}
+
+	input[type="range"][disabled]::-webkit-slider-thumb:hover {
+		background-color: var(--body-text-color-subdued);
+	}
+
+	input[type="range"][disabled]::-moz-range-track:hover {
+		background-color: var(--body-text-color-subdued);
 	}
 
 	input[type="range"]::-webkit-slider-runnable-track {
