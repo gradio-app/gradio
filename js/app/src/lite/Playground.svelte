@@ -8,7 +8,6 @@
 	import Code from "@gradio/code";
 	import ErrorDisplay from "./ErrorDisplay.svelte";
 	import lightning from "../images/lightning.svg";
-	import play from "../images/play.svg";
 	import type { LoadingStatus } from "js/statustracker";
 
 	export let autoscroll: boolean;
@@ -59,7 +58,7 @@
 	worker_proxy?.addEventListener("initialization-completed", (_) => {
 		loaded = true;
 	});
-	
+
 	function shortcut_run(e: KeyboardEvent): void {
 		if (e.key == "Enter" && (e.metaKey || e.ctrlKey)) {
 			dispatch("code", { code });
@@ -96,18 +95,19 @@
 						<div class="shortcut">⌘+↵</div>
 					</button>
 				</div>
-			</div>	
-			<div style="flex-grow: 1"></div>	
+			</div>
+			<div style="flex-grow: 1"></div>
 			<div class="loading-section">
 				<img src={lightning} alt="lightning icon" class="lightning-logo" />
 				Interactive
 			</div>
 		{/if}
 	</div>
-	<div 
-	class:horizontal={layout === "horizontal"}
-	class:vertical={layout === "vertical"}
-	class="child-container">
+	<div
+		class:horizontal={layout === "horizontal"}
+		class:vertical={layout === "vertical"}
+		class="child-container"
+	>
 		<div class:code-editor-border={loaded} class="code-editor">
 			<div style="flex-grow: 1;">
 				{#if loaded}
@@ -209,7 +209,6 @@
 		border-bottom: none;
 	}
 
-
 	@media (min-width: 768px) {
 		.child-container {
 			flex-direction: row;
@@ -307,12 +306,6 @@
 		color: #374151;
 	}
 
-	.play-logo {
-		width: 0.75rem;
-		height: 0.75rem;
-		margin: 0.125rem;
-	}
-
 	:global(div.code-editor div.block) {
 		border-radius: 0;
 		border: none;
@@ -374,7 +367,7 @@
 		height: 100%;
 	}
 
-	:global(.code-editor .block .check) { 
+	:global(.code-editor .block .check) {
 		width: 50%;
 		color: #ff7c00;
 		margin: auto;
