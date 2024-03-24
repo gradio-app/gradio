@@ -74,23 +74,37 @@
 </script>
 
 <div class="parent-container">
+	<div class="loading-panel">
+		<div class="code-header">app.py</div>
+		{#if !loaded}
+			<div style="display: flex;"></div>
+			<div class="loading-section">
+				<div class="loading-dot"></div>
+				{loading_text}
+			</div>
+		{:else}
+			<div class="buttons">
+				<div class="run">
+					<button
+						class="button"
+						on:click={() => {
+							dispatch("code", { code });
+						}}
+					>
+						Run
+						<div class="shortcut">⌘+↵</div>
+					</button>
+				</div>
+			</div>	
+			<div style="flex-grow: 1"></div>	
+			<div class="loading-section">
+				<img src={lightning} alt="lightning icon" class="lightning-logo" />
+				Interactive
+			</div>
+		{/if}
+	</div>
 	<div class="child-container">
 		<div class:code-editor-border={loaded} class="code-editor">
-			<div class="loading-panel">
-				<div class="code-header">app.py</div>
-				<div style="display: flex;"></div>
-				{#if !loaded}
-					<div class="loading-section">
-						<div class="loading-dot"></div>
-						{loading_text}
-					</div>
-				{:else}
-					<div class="loading-section">
-						<img src={lightning} alt="lightning icon" class="lightning-logo" />
-						Interactive
-					</div>
-				{/if}
-			</div>
 			<div style="flex-grow: 1;">
 				{#if loaded}
 					<Code
@@ -119,22 +133,6 @@
 		</div>
 		{#if loaded}
 			<div class="preview">
-				<div class="buttons">
-					<div class="run">
-						<button
-							class="button"
-							on:click={() => {
-								dispatch("code", { code });
-							}}
-						>
-							Run
-							<img src={play} alt="play icon" class="play-logo" />
-						</button>
-						<div class="shortcut">⌘+↵</div>
-					</div>
-
-					<div style="display: flex; float: right;"></div>
-				</div>
 				<div>
 					{#if !error_display}
 						<Index
@@ -174,6 +172,8 @@
 	.parent-container {
 		width: 100%;
 		height: 100%;
+		border: 1px solid rgb(229 231 235);
+		border-radius: 0.375rem;
 	}
 
 	.child-container {
@@ -181,8 +181,6 @@
 		flex-direction: column;
 		width: 100%;
 		height: 100%;
-		border: 1px solid rgb(229 231 235);
-		border-radius: 0.375rem;
 	}
 
 	@media (min-width: 768px) {
@@ -196,9 +194,10 @@
 
 	.code-editor {
 		flex-grow: 1;
-		flex: 1 1 0%;
 		display: flex;
 		flex-direction: column;
+		border-bottom: 1px solid rgb(229 231 235);
+		overflow-y: scroll;
 	}
 
 	.loading-panel {
@@ -213,10 +212,12 @@
 
 	.code-header {
 		padding-top: 0.25rem;
-		flex-grow: 1;
 		font-family: monospace;
 		margin-top: 4px;
 		font-size: 14px;
+		font-weight: lighter;
+		margin-right: 4px;
+		color: #535d6d;
 	}
 
 	.loading-section {
@@ -245,8 +246,6 @@
 		justify-content: space-between;
 		align-items: middle;
 		height: 2rem;
-		padding-left: 0.5rem;
-		padding-right: 0.5rem;
 		border-bottom: 1px solid rgb(229 231 235);
 	}
 
@@ -259,18 +258,25 @@
 
 	.button {
 		display: flex;
+		height: 80%;
 		align-items: center;
-		font-weight: 500;
-		padding-left: 0.5rem;
-		padding-right: 0.25rem;
+		font-weight: 600;
+		padding-left: 0.8rem;
+		padding-right: 0.8rem;
 		border-radius: 0.375rem;
 		float: right;
 		margin: 0.25rem;
-		color: rgb(107 114 128);
-		background: #eff1f3;
-		border: none;
+		border: 1px solid #e5e7eb;
+		background: linear-gradient(to bottom right, #f3f4f6, #e5e7eb);
+		color: #374151;
 		cursor: pointer;
 		font-family: sans-serif;
+	}
+	.shortcut {
+		font-size: 10px;
+		font-weight: lighter;
+		padding-left: 0.15rem;
+		color: #374151;
 	}
 
 	.play-logo {
