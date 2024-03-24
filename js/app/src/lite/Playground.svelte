@@ -34,6 +34,7 @@
 
 	export let code: string | undefined;
 	export let error_display: SvelteComponent | null;
+	export let layout: string | null = null;
 
 	const dispatch = createEventDispatcher();
 
@@ -103,7 +104,10 @@
 			</div>
 		{/if}
 	</div>
-	<div class="child-container">
+	<div 
+	class:horizontal={layout === "horizontal"}
+	class:vertical={layout === "vertical"}
+	class="child-container">
 		<div class:code-editor-border={loaded} class="code-editor">
 			<div style="flex-grow: 1;">
 				{#if loaded}
@@ -181,6 +185,14 @@
 		flex-direction: column;
 		width: 100%;
 		height: 100%;
+	}
+
+	.horizontal {
+		flex-direction: row !important;
+	}
+
+	.vertical {
+		flex-direction: column !important;
 	}
 
 	@media (min-width: 768px) {
