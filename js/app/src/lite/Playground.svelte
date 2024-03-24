@@ -216,6 +216,7 @@
 		flex-grow: 1;
 		font-family: monospace;
 		margin-top: 4px;
+		font-size: 14px;
 	}
 
 	.loading-section {
@@ -225,6 +226,7 @@
 		margin-right: 0.5rem;
 		color: #999b9e;
 		font-family: sans-serif;
+		font-size: 15px;
 	}
 	.lightning-logo {
 		width: 1rem;
@@ -252,6 +254,7 @@
 		display: flex;
 		align-items: center;
 		color: #999b9e;
+		font-size: 15px;
 	}
 
 	.button {
@@ -266,7 +269,6 @@
 		color: rgb(107 114 128);
 		background: #eff1f3;
 		border: none;
-		font-size: 100%;
 		cursor: pointer;
 		font-family: sans-serif;
 	}
@@ -321,6 +323,7 @@
 	}
 	:global(.code-editor .container) {
 		padding-right: 0;
+		height: 100%;
 	}
 
 	:global(.code-editor .container a) {
@@ -334,6 +337,7 @@
 		background-color: transparent;
 		border: none;
 		color: #9095a0;
+		height: 100%;
 	}
 
 	:global(.code-editor .block .check) { 
