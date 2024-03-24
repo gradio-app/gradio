@@ -200,6 +200,16 @@
 		height: 300px;
 	}
 
+	.vertical .code-editor-border {
+		border-right: none !important;
+	}
+
+	.horizontal .code-editor-border {
+		border-right: 1px solid rgb(229 231 235);
+		border-bottom: none;
+	}
+
+
 	@media (min-width: 768px) {
 		.child-container {
 			flex-direction: row;
