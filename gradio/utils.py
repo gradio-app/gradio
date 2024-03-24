@@ -27,7 +27,6 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict
 from contextlib import contextmanager
 from io import BytesIO
-import matplotlib
 from numbers import Number
 from pathlib import Path
 from types import AsyncGeneratorType, GeneratorType, ModuleType
@@ -45,6 +44,7 @@ from typing import (
 import anyio
 import gradio_client.utils as client_utils
 import httpx
+import matplotlib
 from gradio_client.documentation import document
 from typing_extensions import ParamSpec
 

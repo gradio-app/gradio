@@ -47,6 +47,7 @@ if TYPE_CHECKING:
     from gradio.blocks import Blocks
     from gradio.routes import App
 
+
 class Obj:
     """
     Using a class to convert dictionaries into objects. Used by the `Request` class.

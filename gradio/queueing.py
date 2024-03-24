@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import copy
-import json
 import os
 import random
 import time
@@ -19,7 +18,6 @@ from gradio import route_utils, routes
 from gradio.data_classes import (
     PredictBody,
 )
-from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
 from gradio.server_messages import (
     EstimationMessage,
@@ -480,8 +478,8 @@ class Queue:
                     awake_events.append(event)
             if not awake_events:
                 return
-            
-            events = awake_events            
+
+            events = awake_events
             body = events[0].data
             if body is None:
                 raise ValueError("No event data")
@@ -493,7 +491,9 @@ class Queue:
                 pass
 
             if batch:
-                body.data = list(zip(*[event.data.data for event in events if event.data]))
+                body.data = list(
+                    zip(*[event.data.data for event in events if event.data])
+                )
                 body.request = events[0].request
                 body.batched = True
 
@@ -547,7 +547,7 @@ class Queue:
                 while response and response.get("is_generating", False):
                     old_response = response
                     old_err = err
-                    for event in awake_events:                        
+                    for event in awake_events:
                         self.send_message(
                             event,
                             ProcessGeneratingMessage(
