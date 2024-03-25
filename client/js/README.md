@@ -55,7 +55,7 @@ const app = await client("user/space-name", { hf_token: "hf_..." });
 
 ##### `status_callback`
 
-This should be a function which will notify your of the status of a space if it is not running. If the gradio API you are connecting to is awake and running or is not hosted on Hugging Face space then this function will do nothing.
+This should be a function which will notify you of the status of a space if it is not running. If the gradio API you are connecting to is not awake and running or is not hosted on Hugging Face space then this function will do nothing.
 
 **Additional context**
 
