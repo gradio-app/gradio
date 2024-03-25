@@ -1,4 +1,4 @@
-<svelte:options accessors={true} />
+<svelte:options accessors={true} immutable={true} />
 
 <script lang="ts">
 	import type { Brush, Eraser } from "./shared/tools/Brush.svelte";
@@ -52,7 +52,6 @@
 	export let server: {
 		accept_blobs: (a: any, n: number) => void;
 	};
-	export let live: boolean = true;
 
 	export let gradio: Gradio<{
 		change: never;
@@ -67,9 +66,31 @@
 		share: ShareData;
 	}>;
 
-	let editor_instance: InteractiveImageEditor;
+	$: console.log("interactive", interactive);
+	$: console.log("value", value);
+	$: console.log("elem_id", elem_id);
+	$: console.log("elem_classes", elem_classes);
+	$: console.log("visible", visible);
+	$: console.log("label", label);
+	$: console.log("show_label", show_label);
+	$: console.log("show_download_button", show_download_button);
+	$: console.log("root", root);
+	$: console.log("height", height);
+	$: console.log("width", width);
+	$: console.log("_selectable", _selectable);
+	$: console.log("brush", brush);
+	$: console.log("eraser", eraser);
+	$: console.log("cropt_size", crop_size);
 
-	export async function get_value(): Promise<ImageBlobs> {
+	let editor_instance: InteractiveImageEditor;
+	let image_id: null | string = null;
+
+	export async function get_value(): Promise<ImageBlobs | { id: string }> {
+		if (image_id) {
+			const val = { id: image_id };
+			image_id = null;
+			return val;
+		}
 		// @ts-ignore
 		loading_status = { status: "pending" };
 		const blobs = await editor_instance.get_data();
@@ -153,6 +174,8 @@
 		/>
 
 		<InteractiveImageEditor
+			on:change={() => gradio.dispatch("change")}
+			bind:image_id
 			{crop_size}
 			{value}
 			bind:this={editor_instance}
@@ -160,6 +183,7 @@
 			{sources}
 			{label}
 			{show_label}
+			on:change={handle_change}
 			on:save={(e) => handle_save()}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => gradio.dispatch("clear")}
@@ -180,7 +204,6 @@
 			i18n={gradio.i18n}
 			{transforms}
 			accept_blobs={server.accept_blobs}
-			{live}
 		></InteractiveImageEditor>
 	</Block>
 {/if}

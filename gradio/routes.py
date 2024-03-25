@@ -44,7 +44,6 @@ from fastapi import (
     FastAPI,
     HTTPException,
     Response,
-    UploadFile,
     status,
 )
 from fastapi.responses import (
@@ -53,9 +52,6 @@ from fastapi.responses import (
     JSONResponse,
     PlainTextResponse,
 )
-
-from starlette.datastructures import UploadFile as StarletteUploadFile
-
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from gradio_client import utils as client_utils
@@ -64,6 +60,7 @@ from gradio_client.utils import ServerMessage
 from jinja2.exceptions import TemplateNotFound
 from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
+from starlette.datastructures import UploadFile as StarletteUploadFile
 from starlette.responses import RedirectResponse, StreamingResponse
 
 import gradio
@@ -829,9 +826,6 @@ class App(FastAPI):
         ) -> Union[ComponentServerJSONBody, ComponentServerBlobBody]:
 
             content_type = request.headers.get("Content-Type")
-            print(content_type)
-            print(isinstance(content_type, str))
-            print(content_type.startswith("multipart/form-data"))
 
             if isinstance(content_type, str) and content_type.startswith(
                 "multipart/form-data"
@@ -845,10 +839,7 @@ class App(FastAPI):
                             and len(value) > 1
                             and isinstance(value[0], StarletteUploadFile)
                         ):
-                            print("list of files")
-
                             for i, v in enumerate(value):
-                                print("file", v, i)
                                 if isinstance(v, StarletteUploadFile):
                                     filename = v.filename
                                     contents = await v.read()
@@ -856,19 +847,11 @@ class App(FastAPI):
                                 else:
                                     data[f"{key}-{i}"] = v
                         elif isinstance(value, StarletteUploadFile):
-                            print("single file")
                             filename = value.filename
                             contents = await value.read()
                             files.append((filename, contents))
                         else:
-                            print("single value")
                             data[key] = value
-                        print(
-                            key,
-                            value,
-                            type(value),
-                            isinstance(value, StarletteUploadFile),
-                        )
 
                 return ComponentServerBlobBody(
                     data=DataWithFiles(data=data, files=files),
@@ -905,7 +888,6 @@ class App(FastAPI):
         ):
 
             body = await get_item_or_file(request)
-
             state = app.state_holder[body.session_hash]
             component_id = body.component_id
             block: Block

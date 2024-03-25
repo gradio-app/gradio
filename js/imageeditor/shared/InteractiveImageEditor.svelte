@@ -26,6 +26,7 @@
 	import { Tools, Crop, Brush, Sources } from "./tools";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image as ImageIcon } from "@gradio/icons";
+	import { createEventDispatcher } from "svelte";
 
 	export let sources: ("clipboard" | "webcam" | "upload")[];
 	export let crop_size: [number, number] | `${string}:${string}` | null = null;
@@ -41,7 +42,7 @@
 	};
 	export let transforms: "crop"[] = ["crop"];
 
-	export let accept_blobs: (a: any, n: number) => void;
+	export let accept_blobs: (a: any) => void;
 	export let live: boolean;
 
 	let editor: ImageEditor;
@@ -105,28 +106,62 @@
 	let bg = false;
 	let history = false;
 
+	export let image_id: null | string = null;
+
 	$: editor &&
 		editor.set_tool &&
 		(sources && sources.length
 			? editor.set_tool("bg")
 			: editor.set_tool("draw"));
-
+	const dispatch = createEventDispatcher();
+	type BinaryImages = [string, string, File, number | null][];
 	async function handle_change(e: CustomEvent<Blob | any>): void {
 		// console.log("boo", live);
 		// if (live) {
 		console.log("loaded");
 		const blobs = await editor.get_blobs();
 		console.log(blobs);
-		const f = new FormData();
+		const images: BinaryImages = [];
+
+		image_id = Math.random().toString(36).substring(2);
+		console.log("image_id", image_id);
 		if (blobs.background)
-			f.append("data", new File([blobs.background], "background.png"));
+			images.push([
+				image_id,
+				"background",
+				new File([blobs.background], "background.png"),
+				null
+			]);
+		// f.append("data", new File([blobs.background], "background.png"));
 		if (blobs.composite)
-			f.append("data", new File([blobs.composite], "composite.png"));
+			images.push([
+				image_id,
+				"composite",
+				new File([blobs.composite], "composite.png"),
+				null
+			]);
 		blobs.layers.forEach((layer, i) => {
-			if (layer) f.append("data", new File([layer], `layer_${i}.png`));
+			if (layer)
+				images.push([
+					image_id as string,
+					`layer`,
+					new File([layer], `layer_${i}.png`),
+					i
+				]);
 		});
 
-		accept_blobs({ form: f, id: Math.round(Math.random() * 1000) }, 0);
+		await Promise.all(
+			images.map(async ([image_id, type, data, index]) => {
+				return accept_blobs({
+					binary: true,
+					data: { file: data, id: image_id, type, index }
+				});
+			})
+		);
+		console.log("done");
+		dispatch("change");
+		console.log("dispatched");
+		// accept_blobs({ binary: true, data: f, id: Math.round(Math.random() * 1000),  });
 		// }
 	}
 </script>

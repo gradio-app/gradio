@@ -13,10 +13,11 @@ from typing import (
     List,
     Literal,
     Optional,
-    TypedDict,
     Union,
     cast,
 )
+
+from typing_extensions import TypedDict
 
 import numpy as np
 import PIL.Image
@@ -48,12 +49,25 @@ class EditorData(GradioModel):
     background: Optional[FileData] = None
     layers: List[FileData] = []
     composite: Optional[FileData] = None
+    id: Optional[str] = None
 
 
 class EditorDataBlobs(GradioModel):
-    background: Optional[UploadFile]
-    layers: list[UploadFile]
-    composite: Optional[UploadFile]
+    background: Optional[bytes]
+    layers: list[bytes | None]
+    composite: Optional[bytes]
+
+
+class BlobData(TypedDict):
+    type: str
+    index: int | None
+    file: bytes
+    id: str
+
+
+class AcceptBlobs(GradioModel):
+    data: BlobData
+    files: List[tuple[str, bytes]]
 
 
 @dataclasses.dataclass
@@ -99,6 +113,13 @@ class Brush(Eraser):
             self.default_color = (
                 self.colors[0] if isinstance(self.colors, list) else self.colors
             )
+
+
+from io import BytesIO
+
+
+class EditorId(GradioModel):
+    id: str
 
 
 @document()
@@ -216,10 +237,6 @@ class ImageEditor(Component):
         self.brush = Brush() if brush is None else brush
         self.blob_storage: dict[str, EditorDataBlobs] = {}
 
-        self.running = False
-        self.thread = None
-        self.live = live
-
         super().__init__(
             label=label,
             every=every,
@@ -237,18 +254,18 @@ class ImageEditor(Component):
 
     def convert_and_format_image(
         self,
-        file: FileData | None | BinaryIO,
+        file: FileData | None | bytes,
     ) -> np.ndarray | PIL.Image.Image | str | None:
         if file is None:
             return None
         im = (
             PIL.Image.open(file.path)
             if isinstance(file, FileData)
-            else PIL.Image.open(file)
+            else PIL.Image.open(BytesIO(file))
         )
-        if isinstance(file, BinaryIO):
+        if isinstance(file, (bytes, bytearray, memoryview)):
             name = "image"
-            suffix = "png"
+            suffix = "webp"
         elif file.orig_name:
             p = Path(file.orig_name)
             name = p.stem
@@ -257,7 +274,7 @@ class ImageEditor(Component):
                 suffix = "jpeg"
         else:
             name = "image"
-            suffix = "png"
+            suffix = "webp"
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
@@ -273,46 +290,40 @@ class ImageEditor(Component):
             name=name,
         )
 
-    def create_and_start_thread(self, id: str):
-        if self.thread is None:  # Ensure the thread is created only once
-            self.running = True
-            self.thread = threading.Thread(target=self.wait_and_process, args=id)
-            self.thread.start()
-            self.storage_lock = threading.Condition()
-
-    def wait_and_process(self, id: str):
-        with self.storage_lock:
-            while self.running and id not in self.blob_storage:
-                self.storage_lock.wait()  # Wait for the image to be added to the storage
-
-    def preprocess(
-        self, payload: EditorData | EditorDataBlobs | str | None
-    ) -> EditorValue | None:
+    def preprocess(self, payload: EditorData | None) -> EditorValue | None:
         """
         Parameters:
             payload: An instance of `EditorData` consisting of the background image, layers, and composite image.
         Returns:
             Passes the uploaded images as an instance of EditorValue, which is just a `dict` with keys: 'background', 'layers', and 'composite'. The values corresponding to 'background' and 'composite' are images, while 'layers' is a `list` of images. The images are of type `PIL.Image`, `np.array`, or `str` filepath, depending on the `type` parameter.
         """
-        if payload is None:
-            return payload
+        _payload = payload
 
-        if payload is not None and isinstance(payload, str):
-            if payload in self.blob_storage:
-                payload = self.blob_storage[payload]
-            elif self.live and self.running and self.thread is not None:
-                self.create_and_start_thread(payload)
-                self.thread.join()
-                payload = self.blob_storage[payload]
-
-        if not isinstance(payload, str):
-            bg = self.convert_and_format_image(payload.background)
-            layers = (
-                [self.convert_and_format_image(layer) for layer in payload.layers]
-                if payload.layers
+        if payload is not None and payload.id is not None:
+            cached = self.blob_storage.get(payload.id)
+            _payload = (
+                EditorDataBlobs(
+                    background=cached.background,
+                    layers=cached.layers,
+                    composite=cached.composite,
+                )
+                if cached
                 else None
             )
-            composite = self.convert_and_format_image(payload.composite)
+
+        elif _payload is None:
+            return _payload
+        else:
+            _payload = payload
+
+        if _payload is not None:
+            bg = self.convert_and_format_image(_payload.background)
+            layers = (
+                [self.convert_and_format_image(layer) for layer in _payload.layers]
+                if _payload.layers
+                else None
+            )
+            composite = self.convert_and_format_image(_payload.composite)
             return {
                 "background": bg,
                 "layers": [x for x in layers if x is not None] if layers else [],
@@ -391,15 +402,32 @@ class ImageEditor(Component):
         }
 
     @server
-    def accept_blobs(self, data):
+    def accept_blobs(self, data: AcceptBlobs):
         """
         Accepts a dictionary of image blobs, where the keys are 'background', 'layers', and 'composite', and the values are binary file-like objects.
         """
-        print("accept_blobs")
-        print(data)
-        # if self.running:
-        #     with self.storage_lock:
-        #         self.blob_storage[id] = images
-        #         self.storage_lock.notify_all()
-        # else:
-        #     self.blob_storage[id] = images
+        # data.data["file"] = data.data
+
+        type = data.data["type"]
+        index = (
+            int(data.data["index"])
+            if data.data["index"] and data.data["index"] != "null"
+            else None
+        )
+        file = data.files[0][1]
+        id = data.data["id"]
+
+        current = self.blob_storage.get(
+            id, EditorDataBlobs(background=None, layers=[], composite=None)
+        )
+
+        if type == "layer" and index is not None:
+            if index >= len(current.layers):
+                current.layers.extend([None] * (index + 1 - len(current.layers)))
+            current.layers[index] = file
+        elif type == "background":
+            current.background = file
+        elif type == "composite":
+            current.composite = file
+
+        self.blob_storage[id] = current

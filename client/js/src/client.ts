@@ -1085,20 +1085,13 @@ export function api_factory(
 			async function component_server(
 				component_id: number,
 				fn_name: string,
-				data: unknown[] | [{ form: FormData; [key: string]: unknown }]
+				data: unknown[] | { binary: boolean; data: Record<string, any> }
 			): Promise<any> {
-				console.log(data);
 				const headers: {
 					Authorization?: string;
 					"Content-Type": "application/json";
 				} = {};
-				// if (!(data instanceof FormData)) {
-				// 	headers["Content-Type"] = "application/json";
-				// }
-				// headers["Content-Type"] = "multipart/form-data";
-				if (hf_token) {
-					headers.Authorization = `Bearer ${hf_token}`;
-				}
+
 				let root_url: string;
 				let component = config.components.find(
 					(comp) => comp.id === component_id
@@ -1109,30 +1102,30 @@ export function api_factory(
 					root_url = config.root;
 				}
 
-				if (data[0].form instanceof FormData) {
-					const { form, ...rest } = data[0];
+				let body: FormData | string;
+				if (data.binary) {
+					body = new FormData();
+					for (const key in data.data) {
+						if (key === "binary") continue;
+						body.append(key, data.data[key]);
+					}
+					body.set("component_id", component_id);
+					body.set("fn_name", fn_name);
+					body.set("session_hash", session_hash);
+				} else {
+					body = JSON.stringify({
+						data: data,
+						component_id,
+						fn_name,
+						session_hash
+					});
 
-					form.set("component_id", component_id);
-					form.set("fn_name", fn_name);
-					form.set("session_hash", session_hash);
-					data = form;
-
-					// for (const key in rest) {
-					// 	form.append(key, rest[key]);
-					// }
+					headers["Content-Type"] = "application/json";
+				}
+				if (hf_token) {
+					headers.Authorization = `Bearer ${hf_token}`;
 				}
 
-				data.forEach(console.log);
-
-				const body =
-					data instanceof FormData
-						? data
-						: JSON.stringify({
-								data: data,
-								component_id: component_id,
-								fn_name: fn_name,
-								session_hash: session_hash
-						  });
 				try {
 					const response = await fetch_implementation(
 						`${root_url}/component_server/`,
@@ -1144,17 +1137,17 @@ export function api_factory(
 					);
 
 					if (!response.ok) {
-						console.warn(await response.text());
-						// throw new Error(
-						// 	"Could not connect to component server: " + response.statusText
-						// );
+						// console.warn(await response.text());
+						throw new Error(
+							"Could not connect to component server: " + response.statusText
+						);
 					}
+
+					const output = await response.json();
+					return output;
 				} catch (e) {
 					console.warn(e);
 				}
-
-				const output = await response.json();
-				return output;
 			}
 
 			async function view_api(config?: Config): Promise<ApiInfo<JsApiData>> {

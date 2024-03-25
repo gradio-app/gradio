@@ -79,6 +79,7 @@ def get_pil_metadata(pil_image):
 def encode_pil_to_bytes(pil_image, format="png"):
     with BytesIO() as output_bytes:
         pil_image.save(output_bytes, format, pnginfo=get_pil_metadata(pil_image))
+        # pil_image.save(output_bytes, "webp", quality=0, method=0, lossless=True)
         return output_bytes.getvalue()
 
 
@@ -129,7 +130,7 @@ def save_pil_to_cache(
     img: Image.Image,
     cache_dir: str,
     name: str = "image",
-    format: Literal["png", "jpeg"] = "png",
+    format: Literal["png", "jpeg", "webp"] = "webp",
 ) -> str:
     bytes_data = encode_pil_to_bytes(img, format)
     temp_dir = Path(cache_dir) / hash_bytes(bytes_data)
@@ -140,8 +141,9 @@ def save_pil_to_cache(
 
 
 def save_img_array_to_cache(
-    arr: np.ndarray, cache_dir: str, format: Literal["png", "jpeg"] = "png"
+    arr: np.ndarray, cache_dir: str, format: Literal["png", "jpeg", "webp"] = "webp"
 ) -> str:
+
     pil_image = Image.fromarray(_convert(arr, np.uint8, force_copy=False))
     return save_pil_to_cache(pil_image, cache_dir, format=format)
 
