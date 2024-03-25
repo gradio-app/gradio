@@ -24,7 +24,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let minimum: number;
-	export let maximum: number;
+	export let maximum = 100;
 	export let step: number;
 	export let show_label: boolean;
 	export let interactive: boolean;
@@ -61,11 +61,10 @@
 		numberInput.addEventListener("input", setSliderRange);
 	}
 	function setSliderRange(): void {
-		rangeInput.style.backgroundSize =
-			((Number(rangeInput.value) - Number(rangeInput.min)) /
-				(Number(rangeInput.max) - Number(rangeInput.min))) *
-				100 +
-			"% 100%";
+		const dividend = Number(rangeInput.value) - Number(rangeInput.min);
+		const divisor = Number(rangeInput.max) - Number(rangeInput.min);
+		const h = divisor === 0 ? 0 : dividend / divisor;
+		rangeInput.style.backgroundSize = h * 100 + "% 100%";
 	}
 
 	$: disabled = !interactive;
