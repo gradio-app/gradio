@@ -56,9 +56,6 @@ from starlette.datastructures import Headers, MutableHeaders
 from starlette.responses import PlainTextResponse, Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-ALL_METHODS = ("DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT")
-SAFELISTED_HEADERS = {"Accept", "Accept-Language", "Content-Language", "Content-Type"}
-
 
 class Obj:
     """
@@ -667,9 +664,6 @@ class CustomCORSMiddlewareOld(BaseHTTPMiddleware):
         host_name = get_hostname(host)
         origin_name = get_hostname(origin)
 
-        # Any of these hosts suggests that the Gradio app is running locally.
-        # Note: "null" is a special case that happens if a Gradio app is running
-        # as an embedded web component in a local static webpage.
         localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0", "null"]
         is_preflight = (
             request.method == "OPTIONS"
@@ -697,31 +691,29 @@ class CustomCORSMiddlewareOld(BaseHTTPMiddleware):
         return response
 
 class CustomCORSMiddleware:
+    # Any of these hosts suggests that the Gradio app is running locally.
+    # Note: "null" is a special case that happens if a Gradio app is running
+    # as an embedded web component in a local static webpage.
+    LOCALHOST_ALIASES = ["localhost", "127.0.0.1", "0.0.0.0", "null"]
+    ALL_METHODS = ("DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT")
+    SAFELISTED_HEADERS = {"Accept", "Accept-Language", "Content-Language", "Content-Type"}
+
     def __init__(
         self,
         app: ASGIApp,
     ) -> None:
-        simple_headers = {}
-        simple_headers["Access-Control-Allow-Credentials"] = "true"
-
-        preflight_headers = {}
-        preflight_headers.update(
-            {
-                "Access-Control-Allow-Methods": ", ".join(ALL_METHODS),
-                "Access-Control-Max-Age": str(600),
-            }
-        )
-
         self.app = app
-        self.simple_headers = simple_headers
-        self.preflight_headers = preflight_headers
+        self.preflight_headers = {
+                "Access-Control-Allow-Methods": ", ".join(CustomCORSMiddleware.ALL_METHODS),
+                "Access-Control-Max-Age": str(600),
+        }
+        self.simple_headers = {"Access-Control-Allow-Credentials": "true"}
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        if scope["type"] != "http":  # pragma: no cover
+        if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
 
-        method = scope["method"]
         headers = Headers(scope=scope)
         origin = headers.get("origin")
 
@@ -729,7 +721,7 @@ class CustomCORSMiddleware:
             await self.app(scope, receive, send)
             return
 
-        if method == "OPTIONS" and "access-control-request-method" in headers:
+        if scope["method"] == "OPTIONS" and "access-control-request-method" in headers:
             response = self.preflight_response(request_headers=headers)
             await response(scope, receive, send)
             return
@@ -737,17 +729,12 @@ class CustomCORSMiddleware:
         await self.simple_response(scope, receive, send, request_headers=headers)
 
     def preflight_response(self, request_headers: Headers) -> Response:
-
-        host: str = request_headers.get("host", "")
-        origin: str = request_headers.get("origin", "")
+        host = request_headers.get("host", "")
+        origin = request_headers.get("origin", "")
         host_name = get_hostname(host)
         origin_name = get_hostname(origin)
 
-        print("host_name", host_name, "origin_name", origin_name)
-
-        localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0", "null"]
-
-        if host_name in localhost_aliases and origin_name not in localhost_aliases:
+        if host_name in CustomCORSMiddleware.LOCALHOST_ALIASES and origin_name not in CustomCORSMiddleware.LOCALHOST_ALIASES:
             allow_origin_header = None
         else:
             allow_origin_header = "*"

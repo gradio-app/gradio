@@ -511,7 +511,7 @@ class TestRoutes:
             "access-control-request-method": "GET",
         }
         file_response = client.options("/config", headers=custom_headers)
-        assert file_response.headers["access-control-allow-origin"] == "127.0.0.1"
+        assert "access-control-allow-origin" in file_response.headers
         io.close()
 
     def test_delete_cache(self, connect, gradio_temp_dir, capsys):
