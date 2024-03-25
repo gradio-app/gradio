@@ -1,4 +1,4 @@
-""" Handy utility functions. """
+"""Handy utility functions."""
 
 from __future__ import annotations
 
@@ -1006,13 +1006,16 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path):
     True if path_1 is a descendant (i.e. located within) path_2 or if the paths are the
     same, returns False otherwise.
     Parameters:
-        path_1: str or Path (should be a file)
-        path_2: str or Path (can be a file or directory)
+        path_1: str or Path (to file or directory)
+        path_2: str or Path (to file or directory)
     """
     path_1, path_2 = abspath(path_1), abspath(path_2)
     try:
-        if ".." in str(path_1.relative_to(path_2)):  # prevent path traversal
-            return False
+        relative_path = path_1.relative_to(path_2)
+        if str(relative_path) == ".":
+            return True
+        relative_path = path_1.parent.relative_to(path_2)
+        return ".." not in str(relative_path)
     except ValueError:
         return False
     return True
