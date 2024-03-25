@@ -655,53 +655,44 @@ def get_hostname(url: str) -> str:
 
 
 class CustomCORSMiddleware:
-    # Any of these hosts suggests that the Gradio app is running locally.
-    # Note: "null" is a special case that happens if a Gradio app is running
-    # as an embedded web component in a local static webpage.
-    LOCALHOST_ALIASES = ["localhost", "127.0.0.1", "0.0.0.0", "null"]
-    ALL_METHODS = ("DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT")
-
     def __init__(
         self,
         app: ASGIApp,
     ) -> None:
         self.app = app
+        self.all_methods = ("DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT")
         self.preflight_headers = {
-            "Access-Control-Allow-Methods": ", ".join(CustomCORSMiddleware.ALL_METHODS),
+            "Access-Control-Allow-Methods": ", ".join(self.all_methods),
             "Access-Control-Max-Age": str(600),
         }
         self.simple_headers = {"Access-Control-Allow-Credentials": "true"}
+        # Any of these hosts suggests that the Gradio app is running locally.
+        # Note: "null" is a special case that happens if a Gradio app is running
+        # as an embedded web component in a local static webpage.
+        self.localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0", "null"]
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
-
         headers = Headers(scope=scope)
         origin = headers.get("origin")
         if origin is None:
             await self.app(scope, receive, send)
             return
-
         if scope["method"] == "OPTIONS" and "access-control-request-method" in headers:
             response = self.preflight_response(request_headers=headers)
             await response(scope, receive, send)
             return
-
         await self.simple_response(scope, receive, send, request_headers=headers)
 
     def preflight_response(self, request_headers: Headers) -> Response:
         host = get_hostname(request_headers.get("host", ""))
         origin = get_hostname(request_headers.get("origin", ""))
-
-        if (
-            host in CustomCORSMiddleware.LOCALHOST_ALIASES
-            and origin not in CustomCORSMiddleware.LOCALHOST_ALIASES
-        ):
+        if host in self.localhost_aliases and origin not in self.localhost_aliases:
             allow_origin_header = None
         else:
             allow_origin_header = "*"
-
         requested_headers = request_headers.get("access-control-request-headers")
         headers = dict(self.preflight_headers)
         if requested_headers is not None:
@@ -722,16 +713,13 @@ class CustomCORSMiddleware:
         if message["type"] != "http.response.start":
             await send(message)
             return
-
         message.setdefault("headers", [])
         headers = MutableHeaders(scope=message)
         headers.update(self.simple_headers)
         origin = request_headers["Origin"]
         has_cookie = "cookie" in request_headers
-
         if has_cookie:
             self.allow_explicit_origin(headers, origin)
-
         await send(message)
 
     @staticmethod
