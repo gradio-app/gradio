@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Fix disabled slider appearance
+feat:Improve UX of non-interactive slider
