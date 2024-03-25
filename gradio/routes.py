@@ -230,12 +230,6 @@ class App(FastAPI):
 
         if not wasm_utils.IS_WASM:
             app.add_middleware(CustomCORSMiddleware)
-            # app.add_middleware(
-            #     CORSMiddleware,
-            #     allow_origins=["*"],
-            #     allow_methods=["*"],
-            #     allow_headers=["*"],
-            # )
 
         @app.get("/user")
         @app.get("/user/")
