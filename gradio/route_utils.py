@@ -676,13 +676,6 @@ class CustomCORSMiddleware:
             return
         headers = Headers(scope=scope)
         origin = headers.get("origin")
-        print(
-            "headers",
-            headers.get("origin", "-----"),
-            headers.get("host", "-----"),
-            scope["method"] == "OPTIONS",
-            "access-control-request-method" in headers,
-        )
         if origin is None:
             await self.app(scope, receive, send)
             return
