@@ -49,10 +49,8 @@ if TYPE_CHECKING:
 
 
 import functools
-import re
-import typing
 
-from starlette.datastructures import Headers, MutableHeaders
+from starlette.datastructures import MutableHeaders
 from starlette.responses import PlainTextResponse, Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
@@ -690,13 +688,19 @@ class CustomCORSMiddlewareOld(BaseHTTPMiddleware):
         ] = "Origin, Content-Type, Accept"
         return response
 
+
 class CustomCORSMiddleware:
     # Any of these hosts suggests that the Gradio app is running locally.
     # Note: "null" is a special case that happens if a Gradio app is running
     # as an embedded web component in a local static webpage.
     LOCALHOST_ALIASES = ["localhost", "127.0.0.1", "0.0.0.0", "null"]
     ALL_METHODS = ("DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT")
-    SAFELISTED_HEADERS = {"Accept", "Accept-Language", "Content-Language", "Content-Type"}
+    SAFELISTED_HEADERS = {
+        "Accept",
+        "Accept-Language",
+        "Content-Language",
+        "Content-Type",
+    }
 
     def __init__(
         self,
@@ -704,8 +708,8 @@ class CustomCORSMiddleware:
     ) -> None:
         self.app = app
         self.preflight_headers = {
-                "Access-Control-Allow-Methods": ", ".join(CustomCORSMiddleware.ALL_METHODS),
-                "Access-Control-Max-Age": str(600),
+            "Access-Control-Allow-Methods": ", ".join(CustomCORSMiddleware.ALL_METHODS),
+            "Access-Control-Max-Age": str(600),
         }
         self.simple_headers = {"Access-Control-Allow-Credentials": "true"}
 
@@ -731,7 +735,10 @@ class CustomCORSMiddleware:
         host = get_hostname(request_headers.get("host", ""))
         origin = get_hostname(request_headers.get("origin", ""))
 
-        if host in CustomCORSMiddleware.LOCALHOST_ALIASES and origin not in CustomCORSMiddleware.LOCALHOST_ALIASES:
+        if (
+            host in CustomCORSMiddleware.LOCALHOST_ALIASES
+            and origin not in CustomCORSMiddleware.LOCALHOST_ALIASES
+        ):
             allow_origin_header = None
         else:
             allow_origin_header = "*"
