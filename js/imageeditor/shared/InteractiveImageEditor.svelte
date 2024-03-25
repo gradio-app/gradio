@@ -13,6 +13,7 @@
 </script>
 
 <script lang="ts">
+	import { createEventDispatcher } from "svelte";
 	import { type I18nFormatter } from "@gradio/utils";
 	import { prepare_files, upload, type FileData } from "@gradio/client";
 
@@ -40,6 +41,10 @@
 		composite: null
 	};
 	export let transforms: "crop"[] = ["crop"];
+
+	const dispatch = createEventDispatcher<{
+		clear?: never;
+	}>();
 
 	let editor: ImageEditor;
 
@@ -118,6 +123,7 @@
 	bind:this={editor}
 	{changeable}
 	on:save
+	on:clear={() => dispatch("clear")}
 	bind:history
 	bind:bg
 	{sources}
