@@ -1,5 +1,16 @@
 # @gradio/slider
 
+## 0.3.0
+
+### Features
+
+- [#7814](https://github.com/gradio-app/gradio/pull/7814) [`f7df92f`](https://github.com/gradio-app/gradio/commit/f7df92f3f3ff4bb1300ed6d6eb1828615a728acd) - Improve UX of non-interactive slider.  Thanks @Pythongor!
+
+### Dependency updates
+
+- @gradio/statustracker@0.4.9
+- @gradio/atoms@0.6.0
+
 ## 0.2.11
 
 ### Patch Changes
