@@ -651,9 +651,8 @@ def get_hostname(url: str) -> str:
 
 
 class CustomCORSMiddleware:
-    # This is a simplified and modified version of the Starlette CORSMiddleware found here:
-    # https://github.com/encode/starlette/blob/89fae174a1ea10f59ae248fe030d9b7e83d0b8a0/starlette/middleware/cors.py
-    # The key modification is that this only enables CORS for Gradio apps running on localhost.
+    # This is a simplified and modified version of the Starlette CORSMiddleware that only enables CORS when running on localhost.
+    # Adapted from: https://github.com/encode/starlette/blob/89fae174a1ea10f59ae248fe030d9b7e83d0b8a0/starlette/middleware/cors.py
 
     def __init__(
         self,
