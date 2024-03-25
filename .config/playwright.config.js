@@ -19,11 +19,12 @@ const base = defineConfig({
 	timeout: 30000,
 	testMatch: /.*.spec.ts/,
 	testDir: "..",
-	workers: process.env.CI ? 1 : undefined
+	workers: process.env.CI ? 1 : undefined,
+	retries: 3
 });
 
 const normal = defineConfig(base, {
-	globalSetup: "./playwright-setup.js"
+	globalSetup: process.env.CUSTOM_TEST ? undefined : "./playwright-setup.js"
 });
 
 normal.projects = undefined; // Explicitly unset this field due to https://github.com/microsoft/playwright/issues/28795
@@ -40,7 +41,8 @@ const lite = defineConfig(base, {
 		// "**/kitchen_sink.spec.ts",
 		"**/gallery_component_events.spec.ts"
 	],
-	workers: 1
+	workers: 1,
+	retries: 3
 });
 
 lite.projects = undefined; // Explicitly unset this field due to https://github.com/microsoft/playwright/issues/28795

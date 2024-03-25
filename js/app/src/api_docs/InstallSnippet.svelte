@@ -8,7 +8,7 @@
 	let js_install = "npm i -D @gradio/client";
 </script>
 
-<Block>
+<Block border_mode="contrast">
 	<code>
 		{#if current_language === "python"}
 			<div class="copy">

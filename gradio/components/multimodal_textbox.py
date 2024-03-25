@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, List, Literal, Optional, TypedDict
+from typing import Any, Callable, List, Literal, TypedDict
 
 import gradio_client.utils as client_utils
 from gradio_client.documentation import document
 from pydantic import Field
+from typing_extensions import NotRequired
 
 from gradio.components.base import FormComponent
 from gradio.data_classes import FileData, GradioModel
@@ -15,13 +16,18 @@ from gradio.events import Events
 
 
 class MultimodalData(GradioModel):
-    text: Optional[str] = None
-    files: Optional[List[FileData]] = Field(default_factory=list)
+    text: str
+    files: List[FileData] = Field(default_factory=list)
 
 
 class MultimodalPostprocess(TypedDict):
     text: str
     files: List[FileData]
+
+
+class MultimodalValue(TypedDict):
+    text: NotRequired[str]
+    files: NotRequired[list[str]]
 
 
 @document()
@@ -127,18 +133,21 @@ class MultimodalTextbox(FormComponent):
         self.rtl = rtl
         self.text_align = text_align
 
-    def preprocess(
-        self, payload: MultimodalData | None
-    ) -> dict[str, str | list] | None:
+    def preprocess(self, payload: MultimodalData | None) -> MultimodalValue | None:
         """
         Parameters:
             payload: the text and list of file(s) entered in the multimodal textbox.
         Returns:
             Passes text value and list of file(s) as a {dict} into the function.
         """
-        return None if payload is None else payload.model_dump()
+        if payload is None:
+            return None
+        return {
+            "text": payload.text,
+            "files": [f.path for f in payload.files],
+        }
 
-    def postprocess(self, value: dict[str, str | list] | None) -> MultimodalData:
+    def postprocess(self, value: MultimodalValue | None) -> MultimodalData:
         """
         Parameters:
             value: Expects a {dict} with "text" and "files", both optional. The files array is a list of file paths or URLs.
@@ -151,24 +160,20 @@ class MultimodalTextbox(FormComponent):
             raise ValueError(
                 f"MultimodalTextbox expects a dictionary with optional keys 'text' and 'files'. Received {value.__class__.__name__}"
             )
+        text = value.get("text", "")
         if "files" in value and isinstance(value["files"], list):
-            value["files"] = [
+            files = [
                 file
                 if isinstance(file, FileData)
                 else FileData(
-                    path=file["path"] if "path" in file else file,
-                    mime_type=file["mime_type"]
-                    if "mime_type" in file
-                    else client_utils.get_mimetype(file),
-                    orig_name=file["orig_name"]
-                    if "orig_name" in file
-                    else Path(file).name,
-                    size=file["size"] if "size" in file else Path(file).stat().st_size,
+                    path=file,
+                    orig_name=Path(file).name,
+                    mime_type=client_utils.get_mimetype(file),
                 )
                 for file in value["files"]
             ]
-        text = value.get("text", "")
-        files = value.get("files", [])
+        else:
+            files = []
         if not isinstance(text, str):
             raise TypeError(
                 f"Expected 'text' to be a string, but got {type(text).__name__}"

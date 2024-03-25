@@ -538,7 +538,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             btn.click(fn=update, inputs=inp, outputs=out)
 
         demo.launch()
-    Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german
+    Demos: blocks_hello, blocks_flipper, blocks_kinematics
     Guides: blocks-and-event-listeners, controlling-layout, state-in-blocks, custom-CSS-and-JS, using-blocks-like-functions
     """
 
@@ -680,6 +680,11 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
     @property
     def _is_running_in_reload_thread(self):
+        if wasm_utils.IS_WASM:
+            # Wasm (Pyodide) doesn't support threading,
+            # so the return value is always False.
+            return False
+
         from gradio.cli.commands.reload import reload_thread
 
         return getattr(reload_thread, "running_reload", False)
@@ -1603,15 +1608,6 @@ Received outputs:
 
         return data
 
-    def run_fn_batch(self, fn, batch, fn_index, state, explicit_call=None):
-        output = []
-        for i in zip(*batch):
-            args = [fn_index, list(i), state]
-            if explicit_call is not None:
-                args.append(explicit_call)
-            output.append(fn(*args))
-        return output
-
     async def process_api(
         self,
         fn_index: int,
@@ -1662,15 +1658,10 @@ Received outputs:
                 raise ValueError(
                     f"Batch size ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
                 )
-            inputs = await anyio.to_thread.run_sync(
-                self.run_fn_batch,
-                self.preprocess_data,
-                inputs,
-                fn_index,
-                state,
-                explicit_call,
-                limiter=self.limiter,
-            )
+            inputs = [
+                self.preprocess_data(fn_index, list(i), state, explicit_call)
+                for i in zip(*inputs)
+            ]
             result = await self.call_function(
                 fn_index,
                 list(zip(*inputs)),
@@ -1681,14 +1672,9 @@ Received outputs:
                 in_event_listener,
             )
             preds = result["prediction"]
-            data = await anyio.to_thread.run_sync(
-                self.run_fn_batch,
-                self.postprocess_data,
-                preds,
-                fn_index,
-                state,
-                limiter=self.limiter,
-            )
+            data = [
+                self.postprocess_data(fn_index, list(o), state) for o in zip(*preds)
+            ]
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)
             data = list(zip(*data))
@@ -1698,14 +1684,7 @@ Received outputs:
             if old_iterator:
                 inputs = []
             else:
-                inputs = await anyio.to_thread.run_sync(
-                    self.preprocess_data,
-                    fn_index,
-                    inputs,
-                    state,
-                    explicit_call,
-                    limiter=self.limiter,
-                )
+                inputs = self.preprocess_data(fn_index, inputs, state, explicit_call)
             was_generating = old_iterator is not None
             result = await self.call_function(
                 fn_index,
@@ -1716,13 +1695,7 @@ Received outputs:
                 event_data,
                 in_event_listener,
             )
-            data = await anyio.to_thread.run_sync(
-                self.postprocess_data,
-                fn_index,  # type: ignore
-                result["prediction"],
-                state,
-                limiter=self.limiter,
-            )
+            data = self.postprocess_data(fn_index, result["prediction"], state)
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
@@ -2086,13 +2059,15 @@ Received outputs:
                 )
                 wasm_utils.register_app(app)
             else:
+                from gradio import http_server
+
                 (
                     server_name,
                     server_port,
                     local_url,
                     app,
                     server,
-                ) = networking.start_server(
+                ) = http_server.start_server(
                     self,
                     server_name,
                     server_port,
@@ -2473,7 +2448,7 @@ Received outputs:
         config = self.config
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
-        for dependency in config["dependencies"]:
+        for dependency, fn in zip(config["dependencies"], self.fns):
             if (
                 not dependency["backend_fn"]
                 or not dependency["show_api"]
@@ -2482,12 +2457,13 @@ Received outputs:
                 continue
 
             dependency_info = {"parameters": [], "returns": []}
+            fn_info = utils.get_function_params(fn.fn)  # type: ignore
             skip_endpoint = False
 
             inputs = dependency["inputs"]
-            for i in inputs:
+            for index, input_id in enumerate(inputs):
                 for component in config["components"]:
-                    if component["id"] == i:
+                    if component["id"] == input_id:
                         break
                 else:
                     skip_endpoint = True  # if component not found, skip endpoint
@@ -2495,16 +2471,52 @@ Received outputs:
                 type = component["props"]["name"]
                 if self.blocks[component["id"]].skip_api:
                     continue
-                label = component["props"].get("label", f"parameter_{i}")
+                label = component["props"].get("label", f"parameter_{input_id}")
                 comp = self.get_component(component["id"])
                 if not isinstance(comp, components.Component):
                     raise TypeError(f"{comp!r} is not a Component")
                 info = component["api_info"]
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
+
+                # Since the clients use "api_name" and "fn_index" to designate the endpoint and
+                # "result_callbacks" to specify the callbacks, we need to make sure that no parameters
+                # have those names. Hence the final checks.
+                if (
+                    dependency["backend_fn"]
+                    and index < len(fn_info)
+                    and fn_info[index][0]
+                    not in ["api_name", "fn_index", "result_callbacks"]
+                ):
+                    parameter_name = fn_info[index][0]
+                else:
+                    parameter_name = f"param_{index}"
+
+                # How default values are set for the client: if a component has an initial value, then that parameter
+                # is optional in the client and the initial value from the config is used as default in the client.
+                # If the component does not have an initial value, but if the corresponding argument in the predict function has
+                # a default value of None, then that parameter is also optional in the client and the None is used as default in the client.
+                if component["props"].get("value") is not None:
+                    parameter_has_default = True
+                    parameter_default = component["props"]["value"]
+                elif (
+                    dependency["backend_fn"]
+                    and index < len(fn_info)
+                    and fn_info[index][1]
+                    and fn_info[index][2] is None
+                ):
+                    parameter_has_default = True
+                    parameter_default = None
+                else:
+                    parameter_has_default = False
+                    parameter_default = None
+
                 dependency_info["parameters"].append(
                     {
                         "label": label,
+                        "parameter_name": parameter_name,
+                        "parameter_has_default": parameter_has_default,
+                        "parameter_default": parameter_default,
                         "type": info,
                         "python_type": {
                             "type": python_type,

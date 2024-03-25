@@ -4,7 +4,7 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let variant: "solid" | "dashed" | "none" = "solid";
-	export let border_mode: "base" | "focus" = "base";
+	export let border_mode: "base" | "focus" | "contrast" = "base";
 	export let padding = true;
 	export let type: "normal" | "fieldset" = "normal";
 	export let test_id: string | undefined = undefined;
@@ -39,6 +39,7 @@
 	class="block {elem_classes.join(' ')}"
 	class:padded={padding}
 	class:border_focus={border_mode === "focus"}
+	class:border_contrast={border_mode === "contrast"}
 	class:hide-container={!explicit_call && !container}
 	style:height={get_dimension(height)}
 	style:width={typeof width === "number"
@@ -68,6 +69,10 @@
 
 	.block.border_focus {
 		border-color: var(--color-accent);
+	}
+
+	.block.border_contrast {
+		border-color: var(--body-text-color);
 	}
 
 	.padded {

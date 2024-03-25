@@ -6,7 +6,6 @@ import json
 from types import ModuleType
 from typing import Any, Literal
 
-import altair as alt
 from gradio_client.documentation import document
 
 from gradio import processing_utils
@@ -31,7 +30,7 @@ class Plot(Component):
     Creates a plot component to display various kinds of plots (matplotlib, plotly, altair, or bokeh plots are supported). As this component does
     not accept user input, it is rarely used as an input component.
 
-    Demos: altair_plot, outbreak_forecast, blocks_kinematics, stock_forecast, map_airbnb
+    Demos: blocks_kinematics, stock_forecast
     Guides: plot-component-for-maps
     """
 
@@ -150,4 +149,6 @@ class AltairPlot:
 
     @staticmethod
     def create_scale(limit):
+        import altair as alt
+
         return alt.Scale(domain=limit) if limit else alt.Undefined
