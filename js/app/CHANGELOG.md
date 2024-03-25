@@ -1,5 +1,58 @@
 # @gradio/app
 
+## 1.29.0
+
+### Features
+
+- [#7684](https://github.com/gradio-app/gradio/pull/7684) [`755157f`](https://github.com/gradio-app/gradio/commit/755157f99c2961f2e5caeaa9b76d248b4225ea8f) - Do not reload code inside gr.NO_RELOAD context.  Thanks @freddyaboulton!
+- [#7732](https://github.com/gradio-app/gradio/pull/7732) [`2efb05e`](https://github.com/gradio-app/gradio/commit/2efb05ed99a8a3575aab0a6c14a8d8b91f4e9ed7) - Adds support for kwargs and default arguments in the python client, and improves how parameter information is displayed in the "view API" page.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/code@0.5.8
+- @gradio/upload@0.8.1
+- @gradio/button@0.2.27
+- @gradio/statustracker@0.4.9
+- @gradio/radio@0.4.7
+- @gradio/wasm@0.10.0
+- @gradio/atoms@0.6.0
+- @gradio/slider@0.3.0
+- @gradio/dataset@0.1.27
+- @gradio/annotatedimage@0.5.8
+- @gradio/audio@0.9.8
+- @gradio/file@0.5.8
+- @gradio/image@0.9.8
+- @gradio/imageeditor@0.4.8
+- @gradio/model3d@0.8.7
+- @gradio/simpleimage@0.3.8
+- @gradio/video@0.6.8
+- @gradio/accordion@0.3.6
+- @gradio/box@0.1.11
+- @gradio/chatbot@0.7.8
+- @gradio/checkbox@0.2.12
+- @gradio/checkboxgroup@0.4.6
+- @gradio/colorpicker@0.2.12
+- @gradio/dataframe@0.6.9
+- @gradio/dropdown@0.6.4
+- @gradio/fallback@0.2.12
+- @gradio/fileexplorer@0.3.28
+- @gradio/form@0.1.11
+- @gradio/gallery@0.8.4
+- @gradio/highlightedtext@0.4.12
+- @gradio/html@0.1.12
+- @gradio/json@0.1.12
+- @gradio/label@0.2.12
+- @gradio/markdown@0.6.7
+- @gradio/multimodaltextbox@0.2.1
+- @gradio/number@0.3.12
+- @gradio/paramviewer@0.4.5
+- @gradio/plot@0.3.4
+- @gradio/simpledropdown@0.1.12
+- @gradio/simpletextbox@0.1.12
+- @gradio/textbox@0.4.13
+- @gradio/uploadbutton@0.5.4
+- @gradio/downloadbutton@0.1.4
+
 ## 1.28.0
 
 ### Features

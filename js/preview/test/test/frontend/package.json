@@ -1,6 +1,6 @@
 {
 	"name": "gradio_test",
-	"version": "0.3.8",
+	"version": "0.3.9",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -13,8 +13,8 @@
 		"./package.json": "./package.json"
 	},
 	"dependencies": {
-		"@gradio/atoms": "0.5.3",
-		"@gradio/statustracker": "0.4.8",
+		"@gradio/atoms": "0.6.0",
+		"@gradio/statustracker": "0.4.9",
 		"@gradio/utils": "0.3.0",
 		"@zerodevx/svelte-json-view": "^1.0.7"
 	}
