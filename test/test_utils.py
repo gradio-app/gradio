@@ -423,6 +423,7 @@ def test_tex2svg_preserves_matplotlib_backend():
 def test_is_in_or_equal():
     assert is_in_or_equal("files/lion.jpg", "files/lion.jpg")
     assert is_in_or_equal("files/lion.jpg", "files")
+    assert is_in_or_equal("files/lion.._M.jpg", "files")
     assert not is_in_or_equal("files", "files/lion.jpg")
     assert is_in_or_equal("/home/usr/notes.txt", "/home/usr/")
     assert not is_in_or_equal("/home/usr/subdirectory", "/home/usr/notes.txt")
