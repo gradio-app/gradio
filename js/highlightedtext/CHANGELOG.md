@@ -1,5 +1,12 @@
 # @gradio/highlightedtext
 
+## 0.4.12
+
+### Dependency updates
+
+- @gradio/statustracker@0.4.9
+- @gradio/atoms@0.6.0
+
 ## 0.4.11
 
 ### Patch Changes
