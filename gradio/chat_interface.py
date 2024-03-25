@@ -184,7 +184,7 @@ class ChatInterface(Blocks):
                 self.chatbot = chatbot.render()
             else:
                 self.chatbot = Chatbot(
-                    label="Chatbot", scale=1, height=200 if fill_height else None
+                    label="Chatbot", scale=1, height=None if fill_height else 200
                 )
 
             with Row():
