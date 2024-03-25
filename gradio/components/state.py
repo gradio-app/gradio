@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any
+from typing import Any, Callable
 
 from gradio_client.documentation import document
 
@@ -27,6 +27,8 @@ class State(Component):
         self,
         value: Any = None,
         render: bool = True,
+        *,
+        reset_callback: Callable[[None], None] | None = None,
     ):
         """
         Parameters:
@@ -34,6 +36,7 @@ class State(Component):
             render: has no effect, but is included for consistency with other components.
         """
         self.stateful = True
+        self.reset_callback = reset_callback or (lambda: None)
         try:
             self.value = deepcopy(value)
         except TypeError as err:
