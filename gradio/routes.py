@@ -222,10 +222,10 @@ class App(FastAPI):
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
-        if blocks.delete_cache is not None:
-            app_kwargs["lifespan"] = create_lifespan_handler(
-                app_kwargs.get("lifespan", None), *blocks.delete_cache
-            )
+        delete_cache = blocks.delete_cache or (None, None)
+        app_kwargs["lifespan"] = create_lifespan_handler(
+            app_kwargs.get("lifespan", None), *delete_cache, blocks.state_age
+        )
         app = App(auth_dependency=auth_dependency, **app_kwargs)
         app.configure_app(blocks)
 
@@ -740,6 +740,7 @@ class App(FastAPI):
                 try:
                     last_heartbeat = time.perf_counter()
                     while True:
+                        print("disconnected", await request.is_disconnected())
                         if await request.is_disconnected():
                             await blocks._queue.clean_events(session_hash=session_hash)
                             return

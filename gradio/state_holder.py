@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import datetime
 import threading
 from collections import OrderedDict
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -13,6 +14,7 @@ class StateHolder:
     def __init__(self):
         self.capacity = 10000
         self.session_data = OrderedDict()
+        self.time_last_used: dict[str, datetime.datetime] = {}
         self.lock = threading.Lock()
 
     def set_blocks(self, blocks: Blocks):
@@ -29,6 +31,7 @@ class StateHolder:
         if session_id not in self.session_data:
             self.session_data[session_id] = SessionState(self.blocks)
         self.update(session_id)
+        self.time_last_used[session_id] = datetime.datetime.now()
         return self.session_data[session_id]
 
     def __contains__(self, session_id: str):
@@ -40,6 +43,30 @@ class StateHolder:
                 self.session_data.move_to_end(session_id)
             if len(self.session_data) > self.capacity:
                 self.session_data.popitem(last=False)
+
+    def delete_older_than_seconds(self, seconds: int):
+        current_time = datetime.datetime.now()
+        to_delete = []
+        for session_id, time_last_used in self.time_last_used.items():
+            print(session_id, time_last_used)
+            if (current_time - time_last_used).seconds > seconds:
+                with self.lock:
+                    for component in self.session_data[session_id]:
+                        if hasattr(component, "reset_callback") and isinstance(
+                            component.reset_callback, Callable
+                        ):
+                            component.reset_callback()
+                    print(
+                        "Deleting session",
+                        session_id,
+                        "as it is older than",
+                        seconds,
+                        "seconds",
+                    )
+                    self.session_data.pop(session_id, None)
+                    to_delete.append(session_id)
+        for session_id in to_delete:
+            self.time_last_used.pop(session_id, None)
 
 
 class SessionState:
@@ -61,3 +88,6 @@ class SessionState:
 
     def __contains__(self, key: int):
         return key in self._data
+
+    def __iter__(self):
+        return iter(self._data.values())
