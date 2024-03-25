@@ -80,7 +80,7 @@ class Examples:
     assigns event listener so that clicking on an example populates the input/output
     components. Optionally handles example caching for fast inference.
 
-    Demos: blocks_inputs, fake_gan
+    Demos: fake_gan
     Guides: more-on-examples-and-flagging, using-hugging-face-integrations, image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers, create-your-own-friends-with-a-gan
     """
 
@@ -500,7 +500,6 @@ class Progress(Iterable):
                 time.sleep(0.1)
             return x
         gr.Interface(my_function, gr.Textbox(), gr.Textbox()).queue().launch()
-    Demos: progress
     """
 
     def __init__(
