@@ -1,5 +1,13 @@
 # @gradio/upload
 
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/upload@0.8.1
+- @gradio/wasm@0.10.0
+- @gradio/atoms@0.6.0
+
 ## 0.8.0
 
 ### Features

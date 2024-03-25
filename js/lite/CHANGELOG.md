@@ -1,5 +1,12 @@
 # @gradio/lite
 
+## 4.23.0
+
+### Dependency updates
+
+- @gradio/wasm@0.10.0
+- gradio@4.23.0
+
 ## 4.22.0
 
 ### Features
