@@ -716,7 +716,6 @@ class CustomCORSMiddleware:
 
         headers = Headers(scope=scope)
         origin = headers.get("origin")
-
         if origin is None:
             await self.app(scope, receive, send)
             return
@@ -729,12 +728,10 @@ class CustomCORSMiddleware:
         await self.simple_response(scope, receive, send, request_headers=headers)
 
     def preflight_response(self, request_headers: Headers) -> Response:
-        host = request_headers.get("host", "")
-        origin = request_headers.get("origin", "")
-        host_name = get_hostname(host)
-        origin_name = get_hostname(origin)
+        host = get_hostname(request_headers.get("host", ""))
+        origin = get_hostname(request_headers.get("origin", ""))
 
-        if host_name in CustomCORSMiddleware.LOCALHOST_ALIASES and origin_name not in CustomCORSMiddleware.LOCALHOST_ALIASES:
+        if host in CustomCORSMiddleware.LOCALHOST_ALIASES and origin not in CustomCORSMiddleware.LOCALHOST_ALIASES:
             allow_origin_header = None
         else:
             allow_origin_header = "*"
