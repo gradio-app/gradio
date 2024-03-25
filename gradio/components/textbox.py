@@ -30,7 +30,7 @@ class Textbox(FormComponent):
 
     def __init__(
         self,
-        value: str | Callable | None = "",
+        value: str | Callable | None = None,
         *,
         lines: int = 1,
         max_lines: int = 20,

@@ -295,3 +295,28 @@ job = client.submit("abcdef")
 time.sleep(3)
 job.cancel()  # job cancels after 2 iterations
 ```
+
+## Demos with Session State
+
+Gradio demos can include [session state](https://www.gradio.app/guides/state-in-blocks), which provides a way for demos to persist information from user interactions within a page session.
+
+For example, consider the following demo, which maintains a list of words that a user has submitted in a `gr.State` component. When a user submits a new word, it is added to the state, and the number of previous occurrences of that word is displayed:
+
+```python
+import gradio as gr
+
+def count(word, list_of_words):
+    return list_of_words.count(word), list_of_words + [word]
+
+with gr.Blocks() as demo:
+    words = gr.State([])
+    textbox = gr.Textbox()
+    number = gr.Number()
+    textbox.submit(count, inputs=[textbox, words], outputs=[number, words])
+    
+demo.launch()
+```
+
+If you were to connect this this Gradio app using the Python Client, you would notice something interesting:
+
+
