@@ -677,6 +677,13 @@ class CustomCORSMiddleware:
             return
         headers = Headers(scope=scope)
         origin = headers.get("origin")
+        print(
+            "headers",
+            headers.get("origin", "-----"),
+            headers.get("host", "-----"),
+            scope["method"] == "OPTIONS",
+            "access-control-request-method" in headers,
+        )
         if origin is None:
             await self.app(scope, receive, send)
             return
@@ -687,18 +694,13 @@ class CustomCORSMiddleware:
         await self.simple_response(scope, receive, send, request_headers=headers)
 
     def preflight_response(self, request_headers: Headers) -> Response:
-        host = get_hostname(request_headers.get("host", ""))
-        origin = get_hostname(request_headers.get("origin", ""))
-        if host in self.localhost_aliases and origin not in self.localhost_aliases:
-            allow_origin_header = None
-        else:
-            allow_origin_header = "*"
-        requested_headers = request_headers.get("access-control-request-headers")
         headers = dict(self.preflight_headers)
+        origin = request_headers["Origin"]
+        if self.is_valid_origin(request_headers):
+            headers["Access-Control-Allow-Origin"] = origin
+        requested_headers = request_headers.get("access-control-request-headers")
         if requested_headers is not None:
             headers["Access-Control-Allow-Headers"] = requested_headers
-        if allow_origin_header:
-            headers["Access-Control-Allow-Origin"] = allow_origin_header
         return PlainTextResponse("OK", status_code=200, headers=headers)
 
     async def simple_response(
@@ -716,11 +718,21 @@ class CustomCORSMiddleware:
         message.setdefault("headers", [])
         headers = MutableHeaders(scope=message)
         headers.update(self.simple_headers)
-        origin = request_headers["Origin"]
         has_cookie = "cookie" in request_headers
-        if has_cookie:
+        origin = request_headers["Origin"]
+        if has_cookie or self.is_valid_origin(request_headers):
             self.allow_explicit_origin(headers, origin)
         await send(message)
+
+    def is_valid_origin(self, request_headers: Headers) -> bool:
+        origin = request_headers["Origin"]
+        host = request_headers["Host"]
+        host_name = get_hostname(host)
+        origin_name = get_hostname(origin)
+        return (
+            host_name not in self.localhost_aliases
+            or origin_name in self.localhost_aliases
+        )
 
     @staticmethod
     def allow_explicit_origin(headers: MutableHeaders, origin: str) -> None:
