@@ -319,4 +319,18 @@ demo.launch()
 
 If you were to connect this this Gradio app using the Python Client, you would notice something interesting:
 
+The API information only shows a single input and output:
 
+```text
+Client.predict() Usage Info
+---------------------------
+Named API endpoints: 1
+
+ - predict(word, api_name="/count") -> value_31
+    Parameters:
+     - [Textbox] word: str (required)  
+    Returns:
+     - [Number] value_31: float 
+```
+
+That is because the Python client handles state automatically for you -- as you make a series of requests, the returned state from one request is stored internally and automatically supplied for the subsequent request. If you'd like to reset the state, you can do that by calling `Client.reset_session()`.
