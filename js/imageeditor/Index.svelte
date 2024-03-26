@@ -58,29 +58,13 @@
 		error: string;
 		input: never;
 		edit: never;
-		stream: never;
 		drag: never;
+		apply: never;
 		upload: never;
 		clear: never;
 		select: SelectData;
 		share: ShareData;
 	}>;
-
-	$: console.log("interactive", interactive);
-	$: console.log("value", value);
-	$: console.log("elem_id", elem_id);
-	$: console.log("elem_classes", elem_classes);
-	$: console.log("visible", visible);
-	$: console.log("label", label);
-	$: console.log("show_label", show_label);
-	$: console.log("show_download_button", show_download_button);
-	$: console.log("root", root);
-	$: console.log("height", height);
-	$: console.log("width", width);
-	$: console.log("_selectable", _selectable);
-	$: console.log("brush", brush);
-	$: console.log("eraser", eraser);
-	$: console.log("cropt_size", crop_size);
 
 	let editor_instance: InteractiveImageEditor;
 	let image_id: null | string = null;
@@ -114,8 +98,8 @@
 	}
 
 	function handle_save(): void {
-		gradio.dispatch("change");
-		gradio.dispatch("input");
+		gradio.dispatch("apply");
+		// gradio.dispatch("input");
 	}
 </script>
 
@@ -174,7 +158,7 @@
 		/>
 
 		<InteractiveImageEditor
-			on:change={() => gradio.dispatch("change")}
+			on:change={() => (gradio.dispatch("change"), gradio.dispatch("input"))}
 			bind:image_id
 			{crop_size}
 			{value}
@@ -187,10 +171,8 @@
 			on:save={(e) => handle_save()}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => gradio.dispatch("clear")}
-			on:stream={() => gradio.dispatch("stream")}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload={() => gradio.dispatch("upload")}
-			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => {
 				loading_status = loading_status || {};
@@ -200,7 +182,7 @@
 			on:error
 			{brush}
 			{eraser}
-			changeable={attached_events.includes("change")}
+			changeable={attached_events.includes("apply")}
 			i18n={gradio.i18n}
 			{transforms}
 			accept_blobs={server.accept_blobs}

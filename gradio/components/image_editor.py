@@ -134,8 +134,10 @@ class ImageEditor(Component):
     EVENTS = [
         Events.clear,
         Events.change,
+        Events.input,
         Events.select,
         Events.upload,
+        Events.apply,
     ]
     data_model = EditorData
 
