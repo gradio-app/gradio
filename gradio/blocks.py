@@ -553,7 +553,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         head: str | None = None,
         fill_height: bool = False,
         delete_cache: tuple[int, int] | None = None,
-        state_age: int = 10,
         **kwargs,
     ):
         """
@@ -596,7 +595,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.head = head
         self.fill_height = fill_height
         self.delete_cache = delete_cache
-        self.state_age = state_age
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()

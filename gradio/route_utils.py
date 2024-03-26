@@ -9,7 +9,7 @@ import os
 import re
 import shutil
 from collections import deque
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass as python_dataclass
 from datetime import datetime
 from pathlib import Path
@@ -775,9 +775,6 @@ async def _lifespan_handler(
     asyncio.create_task(delete_files_on_schedule(app, frequency, age))
     yield
     delete_files_created_by_app(app.get_blocks(), age=None)
-
-
-from contextlib import AsyncExitStack
 
 
 async def _delete_state(app: App, age: int):
