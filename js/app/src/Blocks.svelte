@@ -8,7 +8,7 @@
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import type { UpdateTransaction } from "./init";
 	import { setupi18n } from "./i18n";
-	import { ApiDocs } from "./api_docs/";
+	import { ApiDocs, APIRecorder } from "./api_docs/";
 	import type { ThemeMode, Payload } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
@@ -68,6 +68,7 @@
 
 	let params = new URLSearchParams(window.location.search);
 	let api_docs_visible = params.get("view") === "api" && show_api;
+	let api_recorder_visible = params.get("view") === "api_recorder";
 	function set_api_docs_visible(visible: boolean): void {
 		api_docs_visible = visible;
 		let params = new URLSearchParams(window.location.search);
@@ -542,6 +543,13 @@
 		</footer>
 	{/if}
 </div>
+
+{#if api_recorder_visible}
+	<ApiRecorder on:close={() => {
+		api_recorder_visible = false;
+		api_docs_visible = true;
+	}} />
+{/if}
 
 {#if api_docs_visible && $_layout}
 	<div class="api-docs">

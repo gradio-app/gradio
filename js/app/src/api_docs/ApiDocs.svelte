@@ -162,6 +162,15 @@
 		}
 	}
 
+	const dispatch = createEventDispatcher();
+
+	function show_api_recorder() {
+		dispatch("close");
+		let params = new URLSearchParams(window.location.search);
+		params.set("view", "api-recorder");		
+		history.replaceState(null, "", "?" + params.toString());
+	}
+
 	onMount(() => {
 		document.body.style.overflow = "hidden";
 		if ("parentIFrame" in window) {
@@ -218,7 +227,7 @@
 								spaces_docs_suffix}
 							class="underline"
 							target="_blank">read more</a
-						>).{/if} Run the code, that's it!
+						>).{/if} Or try the <span id="api-recorder" on:click={show_api_recorder}>🪄 API Recorder</span> to automatically generate your API requests!
 				</p>
 
 				{#each dependencies as dependency, dependency_index}
@@ -377,5 +386,13 @@
 	p.padded {
 		padding: 15px 0px;
 		font-size: var(--text-lg);
+	}
+
+	#api-recorder {
+		border: 1px solid var(--color-accent);
+		background-color: var(--color-accent-soft);
+		padding: 0px var(--size-2);
+		border-radius: var(--size-1);
+		cursor: pointer;
 	}
 </style>
