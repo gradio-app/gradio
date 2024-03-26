@@ -42,15 +42,22 @@ server {
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
 ```
+
+
+Tip: Setting the `X-Forwarded-Host` and `X-Forwarded-Proto` headers is important as Gradio uses these, in conjunction with the `root_path` parameter discussed below, to construct the public URL that your app is being served on. Gradio uses the public URL to fetch various static assets. If these headers are not set, your Gradio app may load in a broken state.
 
 ## Run your Gradio app on your web server
 
 1. Before you launch your Gradio app, you'll need to set the `root_path` to be the same as the subpath that you specified in your nginx configuration. This is necessary for Gradio to run on any subpath besides the root of the domain.
 
-Here's a simple example of a Gradio app with a custom `root_path`:
+Tip: You can also provide a complete URL for `root_path` (beginning with `http` or `https`) in which case the `root_path` is treated as an absolute URL instead of a URL suffix (but in this case, you'll need to update the `root_path` if the domain changes).
+
+Here's a simple example of a Gradio app with a custom `root_path` corresponding to the Nginx configuration above.
 
 ```python
 import gradio as gr
@@ -76,3 +83,4 @@ It's recommended that you run your Gradio app in a `tmux` session so that you ca
 2. Finally, restart nginx by running `sudo systemctl restart nginx`.
 
 And that's it! If you visit `https://example.com/gradio-demo` on your browser, you should see your Gradio app running there
+
