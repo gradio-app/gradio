@@ -317,9 +317,7 @@ with gr.Blocks() as demo:
 demo.launch()
 ```
 
-If you were to connect this this Gradio app using the Python Client, you would notice something interesting:
-
-The API information only shows a single input and output:
+If you were to connect this this Gradio app using the Python Client, you would notice that the API information only shows a single input and output:
 
 ```text
 Client.predict() Usage Info
