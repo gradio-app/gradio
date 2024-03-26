@@ -84,7 +84,7 @@ class TestTextbox:
             "lines": 1,
             "max_lines": 20,
             "placeholder": None,
-            "value": "",
+            "value": None,
             "name": "textbox",
             "show_copy_button": False,
             "show_label": True,
