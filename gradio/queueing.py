@@ -18,6 +18,7 @@ from gradio import route_utils, routes
 from gradio.data_classes import (
     PredictBody,
 )
+from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
 from gradio.server_messages import (
     EstimationMessage,
@@ -527,17 +528,15 @@ class Queue:
                 )
                 err = None
             except Exception as e:
+                show_error = app.get_blocks().show_error or isinstance(e, Error)
+                traceback.print_exc()
                 response = None
                 err = e
                 for event in awake_events:
                     self.send_message(
                         event,
                         ProcessCompletedMessage(
-                            output={
-                                "error": None
-                                if len(e.args) and e.args[0] is None
-                                else str(e)
-                            },
+                            output={"error": str(e) if show_error else None},
                             success=False,
                         ),
                     )
@@ -567,22 +566,23 @@ class Queue:
                             root_path=root_path,
                         )
                     except Exception as e:
+                        traceback.print_exc()
                         response = None
                         err = e
+
+                if response:
+                    success = True
+                    output = response
+                else:
+                    success = False
+                    error = err or old_err
+                    show_error = app.get_blocks().show_error or isinstance(error, Error)
+                    output = {"error": str(error) if show_error else None}
                 for event in awake_events:
-                    relevant_response = response or err or old_err
                     self.send_message(
-                        event,
-                        ProcessCompletedMessage(
-                            output={"error": str(relevant_response)}
-                            if isinstance(relevant_response, Exception)
-                            else relevant_response or {},
-                            success=(
-                                relevant_response is not None
-                                and not isinstance(relevant_response, Exception)
-                            ),
-                        ),
+                        event, ProcessCompletedMessage(output=output, success=success)
                     )
+
             elif response:
                 output = copy.deepcopy(response)
                 for e, event in enumerate(awake_events):
