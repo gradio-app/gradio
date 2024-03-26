@@ -56,7 +56,7 @@
 		"babylonjs-loaders": "^5.17.1",
 		"eslint": "^8.46.0",
 		"eslint-plugin-svelte": "^2.32.4",
-		"globals": "^14.0.0",
+		"globals": "^15.0.0",
 		"happy-dom": "^14.0.0",
 		"jsdom": "^24.0.0",
 		"kleur": "^4.1.5",
