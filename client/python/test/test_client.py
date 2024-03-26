@@ -1083,8 +1083,8 @@ class TestAPIInfo:
                             {
                                 "label": "name",
                                 "parameter_name": "name",
-                                "parameter_has_default": True,
-                                "parameter_default": "",
+                                "parameter_has_default": False,
+                                "parameter_default": None,
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
@@ -1117,8 +1117,8 @@ class TestAPIInfo:
                             {
                                 "label": "name",
                                 "parameter_name": "name",
-                                "parameter_has_default": True,
-                                "parameter_default": "",
+                                "parameter_has_default": False,
+                                "parameter_default": None,
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
