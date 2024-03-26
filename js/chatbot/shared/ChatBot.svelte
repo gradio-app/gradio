@@ -47,7 +47,6 @@
 	export let i18n: I18nFormatter;
 	export let layout: "bubble" | "panel" = "bubble";
 	export let placeholder: string | null = null;
-	console.log("value", value);
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
