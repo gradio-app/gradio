@@ -651,7 +651,7 @@ def get_hostname(url: str) -> str:
 
 
 class CustomCORSMiddleware:
-    # This is a simplified and modified version of the Starlette CORSMiddleware that only enables CORS when running on localhost.
+    # This is a modified version of the Starlette CORSMiddleware that restricts the allowed origins when the host is localhost.
     # Adapted from: https://github.com/encode/starlette/blob/89fae174a1ea10f59ae248fe030d9b7e83d0b8a0/starlette/middleware/cors.py
 
     def __init__(
@@ -698,10 +698,10 @@ class CustomCORSMiddleware:
     async def simple_response(
         self, scope: Scope, receive: Receive, send: Send, request_headers: Headers
     ) -> None:
-        send = functools.partial(self.send, send=send, request_headers=request_headers)
+        send = functools.partial(self._send, send=send, request_headers=request_headers)
         await self.app(scope, receive, send)
 
-    async def send(
+    async def _send(
         self, message: Message, send: Send, request_headers: Headers
     ) -> None:
         if message["type"] != "http.response.start":
