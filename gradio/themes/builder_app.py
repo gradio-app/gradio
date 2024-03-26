@@ -1,6 +1,6 @@
 import inspect
 import time
-from typing import Iterable
+from typing import Iterable, Optional
 
 from gradio_client.documentation import document_fn
 
@@ -99,6 +99,20 @@ with gr.Blocks(  # noqa: SIM117
                         show_label=False,
                     )
                     load_theme_btn = gr.Button("Load Theme", elem_id="load_theme")
+                    gr.Markdown(
+                        """
+                        Load a custom theme. Just copy any theme name from [Theme Gallery](https://huggingface.co/spaces/gradio/theme-gallery)
+                        """
+                    )
+
+                    custom_theme_name = gr.Textbox(
+                        label="THeme Name",
+                        placeholder="gradio/seafoam",
+                        interactive=True,
+                    )
+                    load_custom_theme_btn = gr.Button(
+                        "Load Custom Theme",
+                    )
                 with gr.TabItem("Core Colors"):
                     gr.Markdown(
                         """Set the three hues of the theme: `primary_hue`, `secondary_hue`, and `neutral_hue`.
@@ -492,8 +506,22 @@ with gr.Blocks(  # noqa: SIM117
             + theme_var_input
         )
 
-        def load_theme(theme_name):
-            theme = [theme for theme in themes if theme.__name__ == theme_name][0]
+        def load_theme(
+            theme_name: Optional[str],
+            custom_theme: Optional[gr.themes.ThemeClass] = None,
+        ):
+            """
+            Load a theme based on the theme name or theme object.
+
+            Parameters:
+                theme_name (str): The name of the theme to load.
+                custom_theme (gr.themes.Base, optional): Custom theme object to load. Defaults to None if loading a default theme.
+            """
+            if custom_theme:
+                theme = custom_theme
+            else:
+                theme = [theme for theme in themes if theme.__name__ == theme_name][0]
+                theme = theme()
 
             parameters = inspect.signature(theme.__init__).parameters
             primary_hue = parameters["primary_hue"].default
@@ -502,8 +530,6 @@ with gr.Blocks(  # noqa: SIM117
             text_size = parameters["text_size"].default
             spacing_size = parameters["spacing_size"].default
             radius_size = parameters["radius_size"].default
-
-            theme = theme()
 
             font = theme._font[:4]
             font_mono = theme._font_mono[:4]
@@ -537,6 +563,13 @@ with gr.Blocks(  # noqa: SIM117
                 + pad_to_4(font_mono_is_google)
                 + var_output
             )
+
+        def load_custom_theme(custom_theme_name):
+            try:
+                theme = gr.Theme.from_hub(custom_theme_name)
+            except Exception as e:
+                raise gr.Error(f"Error loading custom theme: {e}")
+            return load_theme(theme.name, theme)
 
         def generate_theme_code(
             base_theme, final_theme, core_variables, final_main_fonts, final_mono_fonts
@@ -884,6 +917,12 @@ with gr.Blocks(theme=theme) as demo:
         attach_rerender(
             load_theme_btn.click(
                 load_theme, base_theme_dropdown, theme_inputs, show_api=False
+            ).then
+        )
+
+        attach_rerender(
+            load_custom_theme_btn.click(
+                load_custom_theme, custom_theme_name, theme_inputs, show_api=False
             ).then
         )
 
