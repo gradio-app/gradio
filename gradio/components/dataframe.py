@@ -236,6 +236,8 @@ class Dataframe(Component):
         Returns:
             the uploaded spreadsheet data as an object with `headers` and `data` attributes
         """
+        from pandas.io.formats.style import Styler
+
         if value is None:
             return self.postprocess(self.empty_input)
         if isinstance(value, dict):
