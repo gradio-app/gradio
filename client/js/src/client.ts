@@ -12,7 +12,8 @@ import {
 	set_space_timeout,
 	hardware_types,
 	resolve_root,
-	apply_diff
+	apply_diff,
+	postMessage
 } from "./utils.js";
 
 import type {
@@ -185,12 +186,13 @@ export function api_factory(
 	async function post_data(
 		url: string,
 		body: unknown,
-		token?: `hf_${string}`
+		token?: `hf_${string}`,
+		headers?: Record<string, string>,
 	): Promise<[PostResponse, number]> {
 		const headers: {
 			Authorization?: string;
 			"Content-Type": "application/json";
-		} = { "Content-Type": "application/json" };
+		} = { "Content-Type": "application/json", ...headers};
 		if (token) {
 			headers.Authorization = `Bearer ${token}`;
 		}
@@ -434,15 +436,18 @@ export function api_factory(
 			): SubmitReturn {
 				let fn_index: number;
 				let api_info;
+				let dependency;
 
 				if (typeof endpoint === "number") {
 					fn_index = endpoint;
 					api_info = api.unnamed_endpoints[fn_index];
+					dependency = config.dependencies[endpoint];
 				} else {
 					const trimmed_endpoint = endpoint.replace(/^\//, "");
 
 					fn_index = api_map[trimmed_endpoint];
 					api_info = api.named_endpoints[endpoint.trim()];
+					dependency = config.dependencies[api_map[trimmed_endpoint]];
 				}
 
 				if (typeof fn_index !== "number") {
@@ -772,15 +777,20 @@ export function api_factory(
 								fn_index,
 								time: new Date()
 							});
-
-							post_data(
-								`${config.root}/queue/join?${url_params}`,
-								{
-									...payload,
-									session_hash
-								},
-								hf_token
-							).then(([response, status]) => {
+							const zerogpu_auth_promise = dependency.zerogpu
+								? postMessage<string>("whoami", "https://moon-sp-zerogpu-login-b6.dev.spaces.huggingface.tech")
+								: Promise.resolve(null);
+							zerogpu_auth_promise.then((zerogpu_auth) => {
+								return post_data(
+									`${config.root}/queue/join?${url_params}`,
+									{
+										...payload,
+										session_hash
+									},
+									hf_token,
+									zerogpu_auth ? {'X-Visitor-Token': zerogpu_auth} : null,
+								)
+							}).then(([response, status]) => {
 								if (status === 503) {
 									fire_event({
 										type: "status",
