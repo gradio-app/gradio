@@ -680,6 +680,11 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
     @property
     def _is_running_in_reload_thread(self):
+        if wasm_utils.IS_WASM:
+            # Wasm (Pyodide) doesn't support threading,
+            # so the return value is always False.
+            return False
+
         from gradio.cli.commands.reload import reload_thread
 
         return getattr(reload_thread, "running_reload", False)

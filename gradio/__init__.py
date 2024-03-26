@@ -7,7 +7,6 @@ import gradio.templates
 from gradio import components, layouts, themes
 from gradio.blocks import Blocks
 from gradio.chat_interface import ChatInterface
-from gradio.cli import deploy
 from gradio.components import (
     HTML,
     JSON,
@@ -101,7 +100,7 @@ from gradio.utils import NO_RELOAD, get_package_version, set_static_paths
 from gradio.wasm_utils import IS_WASM
 
 if not IS_WASM:
+    from gradio.cli import deploy
     from gradio.ipython_ext import load_ipython_extension
-
 
 __version__ = get_package_version()
