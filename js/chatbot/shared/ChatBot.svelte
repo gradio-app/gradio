@@ -288,15 +288,10 @@
 			{#if pending_message}
 				<Pending {layout} />
 			{/if}
-		{:else}
-			{#if placeholder !== null}
+		{:else if placeholder !== null}
 			<center>
-				<Markdown
-					message={placeholder}
-					{latex_delimiters}
-				/>
+				<Markdown message={placeholder} {latex_delimiters} />
 			</center>
-			{/if}
 		{/if}
 	</div>
 </div>
