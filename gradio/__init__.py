@@ -79,7 +79,6 @@ from gradio.helpers import (
 )
 from gradio.helpers import create_examples as Examples  # noqa: N812
 from gradio.interface import Interface, TabbedInterface, close_all
-from gradio.ipython_ext import load_ipython_extension
 from gradio.layouts import Accordion, Column, Group, Row, Tab, TabItem, Tabs
 from gradio.oauth import OAuthProfile, OAuthToken
 from gradio.routes import Request, mount_gradio_app
@@ -102,5 +101,6 @@ from gradio.wasm_utils import IS_WASM
 
 if not IS_WASM:
     from gradio.cli import deploy
+    from gradio.ipython_ext import load_ipython_extension
 
 __version__ = get_package_version()
