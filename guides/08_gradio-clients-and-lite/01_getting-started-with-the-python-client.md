@@ -319,7 +319,7 @@ demo.launch()
 
 If you were to connect this this Gradio app using the Python Client, you would notice that the API information only shows a single input and output:
 
-```text
+```csv
 Client.predict() Usage Info
 ---------------------------
 Named API endpoints: 1
