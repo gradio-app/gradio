@@ -720,7 +720,7 @@ class App(FastAPI):
             session_hash: str,
         ):
             def process_msg(message: EventMessage) -> str:
-                return f"data: {json.dumps(message.model_dump())}\n\n"
+                return f"data: {orjson.dumps(message.model_dump()).decode('utf-8')}\n\n"
 
             return await queue_data_helper(request, session_hash, process_msg)
 
