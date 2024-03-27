@@ -23,7 +23,7 @@ jobs:
       - name: "[tmp] show files"
         run: tree gradio
       - name: install dependencies
-        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        uses: "./.github/actions/install-all-deps"
         with:
           always_install_pnpm: true
           node_auth_token: ${{ secrets.NPM_TOKEN }}
