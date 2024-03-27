@@ -1,6 +1,6 @@
 ---
-"@gradio/app": minor
-"gradio": minor
+"@gradio/app": patch
+"gradio": patch
 ---
 
-feat:JS functions break entire app if there's no input, fixed
+fix:JS functions break entire app if there's no input, fixed
