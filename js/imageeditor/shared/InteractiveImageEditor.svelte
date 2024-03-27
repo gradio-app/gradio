@@ -122,7 +122,7 @@
 	}
 
 	async function handle_change(e: CustomEvent<Blob | any>): Promise<void> {
-		await nextframe();
+		// await nextframe();
 		const blobs = await editor.get_blobs();
 
 		const images: BinaryImages = [];
