@@ -81,6 +81,7 @@
 
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;
+	export let placeholder: string | null = null;
 </script>
 
 <Block
@@ -133,6 +134,7 @@
 			{bubble_full_width}
 			{line_breaks}
 			{layout}
+			{placeholder}
 		/>
 	</div>
 </Block>
