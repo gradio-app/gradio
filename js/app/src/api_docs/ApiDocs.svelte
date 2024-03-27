@@ -167,9 +167,9 @@
 	const dispatch = createEventDispatcher();
 
 	function show_api_recorder() {
-		dispatch("close");
+		dispatch("close", { api_recorder_visible: true });
 		let params = new URLSearchParams(window.location.search);
-		params.set("view", "api-recorder");		
+		params.set("view", "api-recorder");
 		history.replaceState(null, "", "?" + params.toString());
 	}
 
@@ -192,121 +192,126 @@
 
 		<div class="docs-wrap">
 			{#if api_calls.length}
-			<div class="client-doc">
-				<p style="font-size: var(--text-lg); font-weight:bold; padding-bottom:15px;">
-					🪄 Recorded API Calls ({api_calls.length})
-				</p>
-				<div class="snippets">
-					{#each langs as [language, img]}
-						<li
-							class="snippet
+				<div class="client-doc">
+					<p
+						style="font-size: var(--text-lg); font-weight:bold; padding-bottom:15px;"
+					>
+						🪄 Recorded API Calls ({api_calls.length})
+					</p>
+					<div class="snippets">
+						{#each langs as [language, img]}
+							<li
+								class="snippet
 							{current_language === language ? 'current-lang' : 'inactive-lang'}"
-							on:click={() => (current_language = language)}
-						>
-							<img src={img} alt="" />
-							{language}
-						</li>
-					{/each}
+								on:click={() => (current_language = language)}
+							>
+								<img src={img} alt="" />
+								{language}
+							</li>
+						{/each}
+					</div>
+					<p>
+						Here is the code snippet to replay the recorded API calls using the {current_language}
+						client library.
+					</p>
+
+					<RecordingSnippet
+						{current_language}
+						{api_calls}
+						{dependencies}
+						root={space_id || root}
+					/>
+					<p>
+						Note: the above list may include extra API calls that affect the UI,
+						but are not necessary for downstream clients.
+					</p>
 				</div>
-				<p>
-					Here is the code snippet to replay the recorded API calls using the {current_language}	client library.
-				</p>
-
-				<RecordingSnippet 
-					{current_language}
-					{api_calls}
-					{dependencies}
-					root={space_id || root}
-				/>
-				<p>
-					Note: the above list may include extra API calls that affect the UI, but are not necessary for downstream clients.
-				</p>
-
-			</div>
 			{:else}
-
-			<div class="client-doc">
-				<p>
-					Use the <code class="library">gradio_client</code>
-					Python library (<a href={py_docs} target="_blank">docs</a>) or the
-					<code class="library">@gradio/client</code>
-					Javascript package (<a href={js_docs} target="_blank">docs</a>) to
-					query the app via API.
-				</p>
-			</div>
-			<div class="endpoint">
-				<div class="snippets">
-					{#each langs as [language, img]}
-						<li
-							class="snippet
+				<div class="client-doc">
+					<p>
+						Use the <code class="library">gradio_client</code>
+						Python library (<a href={py_docs} target="_blank">docs</a>) or the
+						<code class="library">@gradio/client</code>
+						Javascript package (<a href={js_docs} target="_blank">docs</a>) to
+						query the app via API.
+					</p>
+				</div>
+				<div class="endpoint">
+					<div class="snippets">
+						{#each langs as [language, img]}
+							<li
+								class="snippet
 							{current_language === language ? 'current-lang' : 'inactive-lang'}"
-							on:click={() => (current_language = language)}
-						>
-							<img src={img} alt="" />
-							{language}
-						</li>
+								on:click={() => (current_language = language)}
+							>
+								<img src={img} alt="" />
+								{language}
+							</li>
+						{/each}
+					</div>
+
+					<p class="padded">
+						1. Install the client if you don't already have it installed.
+					</p>
+
+					<InstallSnippet {current_language} />
+
+					<p class="padded">
+						2. Find the API endpoint below corresponding to your desired
+						function in the app. Copy the code snippet, replacing the
+						placeholder values with your own input data.
+						{#if space_id}If this is a private Space, you may need to pass your
+							Hugging Face token as well (<a
+								href={(current_language == "python" ? py_docs : js_docs) +
+									spaces_docs_suffix}
+								class="underline"
+								target="_blank">read more</a
+							>).{/if} Or try the
+						<span id="api-recorder" on:click={show_api_recorder}
+							>🪄 API Recorder</span
+						> to automatically generate your API requests!
+					</p>
+
+					{#each dependencies as dependency, dependency_index}
+						{#if dependency.show_api}
+							<div class="endpoint-container">
+								<CodeSnippet
+									named={true}
+									endpoint_parameters={info.named_endpoints[
+										"/" + dependency.api_name
+									].parameters}
+									js_parameters={js_info.named_endpoints[
+										"/" + dependency.api_name
+									].parameters}
+									{dependency}
+									{dependency_index}
+									{current_language}
+									root={space_id || root}
+								/>
+
+								<ParametersSnippet
+									endpoint_returns={info.named_endpoints[
+										"/" + dependency.api_name
+									].parameters}
+									js_returns={js_info.named_endpoints["/" + dependency.api_name]
+										.parameters}
+									{is_running}
+									{current_language}
+								/>
+
+								<ResponseSnippet
+									endpoint_returns={info.named_endpoints[
+										"/" + dependency.api_name
+									].returns}
+									js_returns={js_info.named_endpoints["/" + dependency.api_name]
+										.returns}
+									{is_running}
+									{current_language}
+								/>
+							</div>
+						{/if}
 					{/each}
 				</div>
-
-				<p class="padded">
-					1. Install the client if you don't already have it installed.
-				</p>
-
-				<InstallSnippet {current_language} />
-
-				<p class="padded">
-					2. Find the API endpoint below corresponding to your desired function
-					in the app. Copy the code snippet, replacing the placeholder values
-					with your own input data.
-					{#if space_id}If this is a private Space, you may need to pass your
-						Hugging Face token as well (<a
-							href={(current_language == "python" ? py_docs : js_docs) +
-								spaces_docs_suffix}
-							class="underline"
-							target="_blank">read more</a
-						>).{/if} Or try the <span id="api-recorder" on:click={show_api_recorder}>🪄 API Recorder</span> to automatically generate your API requests!
-				</p>
-
-				{#each dependencies as dependency, dependency_index}
-					{#if dependency.show_api}
-						<div class="endpoint-container">
-							<CodeSnippet
-								named={true}
-								endpoint_parameters={info.named_endpoints[
-									"/" + dependency.api_name
-								].parameters}
-								js_parameters={js_info.named_endpoints[
-									"/" + dependency.api_name
-								].parameters}
-								{dependency}
-								{dependency_index}
-								{current_language}
-								root={space_id || root}
-							/>
-
-							<ParametersSnippet
-								endpoint_returns={info.named_endpoints[
-									"/" + dependency.api_name
-								].parameters}
-								js_returns={js_info.named_endpoints["/" + dependency.api_name]
-									.parameters}
-								{is_running}
-								{current_language}
-							/>
-
-							<ResponseSnippet
-								endpoint_returns={info.named_endpoints[
-									"/" + dependency.api_name
-								].returns}
-								js_returns={js_info.named_endpoints["/" + dependency.api_name]
-									.returns}
-								{is_running}
-								{current_language}
-							/>
-						</div>
-					{/if}
-				{/each}
-			</div>
 			{/if}
 		</div>
 	{:else}

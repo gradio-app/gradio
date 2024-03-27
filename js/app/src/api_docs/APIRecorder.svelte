@@ -1,9 +1,10 @@
 <script lang="ts">
-    export let api_calls = [];  
+	export let api_calls = [];
 </script>
 
 <div id="api-recorder">
-    🟥 <span style="font-style: italic;">Recording API Calls...</span> ({api_calls.length})
+	🟥 <span style="font-style: italic;">Recording API Calls...</span>
+	({api_calls.length})
 </div>
 
 <style>
@@ -12,6 +13,6 @@
 		background-color: var(--color-accent-soft);
 		padding: 0px var(--size-2);
 		border-radius: var(--size-1);
-		cursor: pointer;        
-	}    
+		cursor: pointer;
+	}
 </style>

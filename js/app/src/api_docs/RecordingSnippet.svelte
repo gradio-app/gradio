@@ -39,8 +39,11 @@ result = client.<span class="highlight">predict</span>
 const app = await client(<span class="token string">"{root}"</span>);
 {#each api_calls as call}<!--
 -->
-{#if dependencies[call.fn_index].backend_fn}client.predict("<span class="api-name">{dependencies[call.fn_index].api_name}</span>", {JSON.stringify(call.data, null, 2)});{/if}
-{/each}</pre></div>{/if}
+{#if dependencies[call.fn_index].backend_fn}client.predict("<span
+									class="api-name">{dependencies[call.fn_index].api_name}</span
+								>", {JSON.stringify(call.data, null, 2)});{/if}
+						{/each}</pre>
+				</div>{/if}
 		</code>
 	</Block>
 </div>

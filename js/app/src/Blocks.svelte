@@ -79,7 +79,7 @@
 		}
 		history.replaceState(null, "", "?" + params.toString());
 	}
-	let api_calls: any[] = []
+	let api_calls: any[] = [];
 
 	export let render_complete = false;
 	async function handle_update(data: any, fn_index: number): Promise<void> {
@@ -547,11 +547,14 @@
 </div>
 
 {#if api_recorder_visible}
-	<div id="api-recorder-container">
-	<ApiRecorder {api_calls} on:close={() => {
-		api_recorder_visible = false;
-		api_docs_visible = true;
-	}} />
+	<div
+		id="api-recorder-container"
+		on:click={() => {
+			set_api_docs_visible(true);
+			api_recorder_visible = false;
+		}}
+	>
+		<ApiRecorder {api_calls} />
 	</div>
 {/if}
 
@@ -569,8 +572,9 @@
 		<div class="api-docs-wrap">
 			<ApiDocs
 				root_node={$_layout}
-				on:close={() => {
+				on:close={(event) => {
 					set_api_docs_visible(false);
+					api_recorder_visible = event.detail.api_recorder_visible;
 				}}
 				{dependencies}
 				{root}
