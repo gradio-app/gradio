@@ -245,6 +245,7 @@ class Examples:
                 elem_id=elem_id,
             )
 
+        self.cache_logger = CSVLogger(simplify_file_data=False)
         self.cached_folder = utils.get_cache_folder() / str(self.dataset._id)
         self.cached_file = Path(self.cached_folder) / "log.csv"
         self.cached_indices_file = Path(self.cached_folder) / "indices.csv"        
@@ -287,13 +288,15 @@ class Examples:
                     outputs=self.outputs,  # type: ignore
                     show_api=False,
                 )
-            if self.cache_examples == "lazy" and not wasm_utils.IS_WASM:
+            if self.cache_examples == "lazy":
+                print("Will cache examples in '{utils.abspath(self.cached_folder)}' directory at first use. ")
                 if Path(self.cached_file).exists():
                     print(
-                        f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to reset cache.\n"
+                        "If method or examples have changed since last caching, delete this folder to reset cache."
                     )
+                print("\n")
                 self.load_input_event.then(
-                    self.load_lazy_cache,
+                    self.lazy_cache,
                     inputs=[self.dataset],
                     outputs=self.outputs,
                     postprocess=False,
@@ -317,7 +320,7 @@ class Examples:
                 print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
                 client_utils.synchronize_async(self.cache)
 
-    def load_lazy_cache(self, example_index):
+    def lazy_cache(self, example_index):
         if Path(self.cached_indices_file).exists():
             with open(self.cached_indices_file) as f:
                 cached_indices = [int(line.strip()) for line in f]
@@ -326,7 +329,9 @@ class Examples:
                 return self.load_from_cache(cached_index)
         if self.fn is None:
             raise ValueError("Cannot lazy-cache examples if no function is provided")
-        return self.fn(*self.examples[example_index])
+        output = self.fn(*self.examples[example_index])
+        self.write_to_cache(output)
+        return output
 
     async def cache(self) -> None:
         """
@@ -335,7 +340,6 @@ class Examples:
         if Context.root_block is None:
             raise ValueError("Cannot cache examples if not in a Blocks context")
         else:
-            cache_logger = CSVLogger(simplify_file_data=False)
 
             generated_values = []
             if inspect.isgeneratorfunction(self.fn):
@@ -376,9 +380,7 @@ class Examples:
 
             if self.outputs is None:
                 raise ValueError("self.outputs is missing")
-            cache_logger.setup(self.outputs, self.cached_folder)
-            examples_ids_to_cache = range(len(self.examples)) if example_index is None else [example_index]
-            for example_id in examples_ids_to_cache:
+            for example_id in range(len(self.examples)):
                 print(f"Caching example {example_id + 1}/{len(self.examples)}")
                 processed_input = self.processed_examples[example_id]
                 if self.batch:
@@ -394,10 +396,9 @@ class Examples:
                     output = merge_generated_values_into_output(
                         self.outputs, generated_values, output
                     )
-
                 if self.batch:
                     output = [value[0] for value in output]
-                cache_logger.flag(output)
+                self.write_to_cache(output)
             # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
             Context.root_block.dependencies.remove(dependency)
             Context.root_block.fns.pop(fn_index)
@@ -426,6 +427,10 @@ class Examples:
                 api_name=self.api_name,
                 show_api=False,
             )
+
+    def write_to_cache(self, value):
+        self.cache_logger.setup(self.outputs, self.cached_folder)
+        self.cache_logger.flag(value)
 
     def load_from_cache(self, example_id: int) -> list[Any]:
         """Loads a particular cached example for the interface.
