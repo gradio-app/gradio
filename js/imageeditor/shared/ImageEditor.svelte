@@ -308,7 +308,6 @@
 	}
 
 	export function set_tool(tool: tool): void {
-		// console.log("SET_TOOL");
 		$active_tool = tool;
 	}
 </script>
@@ -364,9 +363,6 @@
 	.stage-wrap {
 		margin: var(--size-8);
 		margin-bottom: var(--size-1);
-	}
-
-	.bg {
 	}
 
 	.image-container {

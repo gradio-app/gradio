@@ -26,7 +26,7 @@
 	import { Tools, Crop, Brush, Sources } from "./tools";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image as ImageIcon } from "@gradio/icons";
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, tick } from "svelte";
 
 	export let sources: ("clipboard" | "webcam" | "upload")[];
 	export let crop_size: [number, number] | `${string}:${string}` | null = null;
@@ -43,7 +43,6 @@
 	export let transforms: "crop"[] = ["crop"];
 
 	export let accept_blobs: (a: any) => void;
-	export let live: boolean;
 
 	let editor: ImageEditor;
 
@@ -113,18 +112,23 @@
 		(sources && sources.length
 			? editor.set_tool("bg")
 			: editor.set_tool("draw"));
+
 	const dispatch = createEventDispatcher();
+
 	type BinaryImages = [string, string, File, number | null][];
-	async function handle_change(e: CustomEvent<Blob | any>): void {
-		// console.log("boo", live);
-		// if (live) {
-		console.log("loaded");
+
+	function nextframe(): Promise<void> {
+		return new Promise((resolve) => setTimeout(() => resolve(), 30));
+	}
+
+	async function handle_change(e: CustomEvent<Blob | any>): Promise<void> {
+		await nextframe();
 		const blobs = await editor.get_blobs();
-		console.log(blobs);
+
 		const images: BinaryImages = [];
 
 		image_id = Math.random().toString(36).substring(2);
-		console.log("image_id", image_id);
+
 		if (blobs.background)
 			images.push([
 				image_id,
@@ -132,7 +136,6 @@
 				new File([blobs.background], "background.png"),
 				null
 			]);
-		// f.append("data", new File([blobs.background], "background.png"));
 		if (blobs.composite)
 			images.push([
 				image_id,
@@ -158,11 +161,7 @@
 				});
 			})
 		);
-		console.log("done");
 		dispatch("change");
-		console.log("dispatched");
-		// accept_blobs({ binary: true, data: f, id: Math.round(Math.random() * 1000),  });
-		// }
 	}
 </script>
 
