@@ -1,10 +1,14 @@
 from __future__ import annotations
 
-import shutil
+import os
 import pathlib
+import shutil
 from typing import Any
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
+
+
+SKIP_THIS_HATCH_HOOK = os.environ.get("BUILD_GRADIO_LITE", False)
 
 
 def copy_js_code(root: str | pathlib.Path):
@@ -53,6 +57,8 @@ def copy_js_code(root: str | pathlib.Path):
 
 class BuildHook(BuildHookInterface):
     def initialize(self, version: str, build_data: dict[str, Any]) -> None:
+        if SKIP_THIS_HATCH_HOOK:
+            return
         copy_js_code(self.root)
 
 
