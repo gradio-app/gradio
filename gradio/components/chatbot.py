@@ -66,6 +66,7 @@ class Chatbot(Component):
         line_breaks: bool = True,
         likeable: bool = False,
         layout: Literal["panel", "bubble"] | None = None,
+        placeholder: str | None = None,
     ):
         """
         Parameters:
@@ -92,6 +93,7 @@ class Chatbot(Component):
             line_breaks: If True (default), will enable Github-flavored Markdown line breaks in chatbot messages. If False, single new lines will be ignored. Only applies if `render_markdown` is True.
             likeable: Whether the chat messages display a like or dislike button. Set automatically by the .like method but has to be present in the signature for it to show up in the config.
             layout: If "panel", will display the chatbot in a llm style layout. If "bubble", will display the chatbot with message bubbles, with the user and bot messages on alterating sides. Will default to "bubble".
+            placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
         """
         self.likeable = likeable
         self.height = height
@@ -131,6 +133,7 @@ class Chatbot(Component):
                 self.serve_static_file(avatar_images[0]),
                 self.serve_static_file(avatar_images[1]),
             ]
+        self.placeholder = placeholder
 
     def _preprocess_chat_messages(
         self, chat_message: str | FileMessage | None

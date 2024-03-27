@@ -2055,6 +2055,7 @@ class TestChatbot:
             "container": True,
             "min_width": 160,
             "scale": None,
+            "placeholder": None,
             "height": None,
             "proxy_url": None,
             "_selectable": False,
