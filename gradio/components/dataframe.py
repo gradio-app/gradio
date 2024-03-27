@@ -19,7 +19,6 @@ import numpy as np
 import pandas as pd
 import semantic_version
 from gradio_client.documentation import document
-from pandas.io.formats.style import Styler
 
 from gradio.components import Component
 from gradio.data_classes import GradioModel
@@ -27,6 +26,7 @@ from gradio.events import Events
 
 if TYPE_CHECKING:
     import polars as pl  # type: ignore
+    from pandas.io.formats.style import Styler
 
 
 def _is_polars_available():
@@ -236,6 +236,8 @@ class Dataframe(Component):
         Returns:
             the uploaded spreadsheet data as an object with `headers` and `data` attributes
         """
+        from pandas.io.formats.style import Styler
+
         if value is None:
             return self.postprocess(self.empty_input)
         if isinstance(value, dict):
