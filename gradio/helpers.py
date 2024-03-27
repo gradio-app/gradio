@@ -247,6 +247,7 @@ class Examples:
 
         self.cached_folder = utils.get_cache_folder() / str(self.dataset._id)
         self.cached_file = Path(self.cached_folder) / "log.csv"
+        self.cached_indices_file = Path(self.cached_folder) / "indices.csv"        
         self.cache_examples = cache_examples
         self.run_on_click = run_on_click
 
@@ -286,8 +287,21 @@ class Examples:
                     outputs=self.outputs,  # type: ignore
                     show_api=False,
                 )
+            if self.cache_examples == "lazy" and not wasm_utils.IS_WASM:
+                if Path(self.cached_file).exists():
+                    print(
+                        f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to reset cache.\n"
+                    )
+                self.load_input_event.then(
+                    self.lazy_cache,
+                    inputs=[self.dataset],
+                    outputs=self.outputs,
+                    postprocess=False,
+                    api_name=self.api_name,
+                    show_api=False,
+                )
 
-        if self.cache_examples:
+        if self.cache_examples is True:
             if wasm_utils.IS_WASM:
                 # In the Wasm mode, the `threading` module is not supported,
                 # so `client_utils.synchronize_async` is also not available.
@@ -295,21 +309,38 @@ class Examples:
                 # (otherwise, an error "Cannot cache examples if not in a Blocks context" will be raised anyway)
                 # so `eventloop.create_task(self.cache())` is also not an option.
                 warnings.warn("Caching examples is not supported in the Wasm mode.")
+            elif Path(self.cached_file).exists():
+                print(
+                    f"Using cache from '{utils.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache.\n"
+                )
             else:
+                print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
                 client_utils.synchronize_async(self.cache)
 
-    async def cache(self) -> None:
+    def lazy_cache(self, example_index):
+        if not Path(self.cached_indices_file).exists():
+            to_cache = True
+            cached_index = 0
+        else:
+            with open(self.cached_indices_file) as f:
+                cached_indices = [int(line.strip()) for line in f]
+            to_cache = example_index not in cached_indices
+            cached_index = len(cached_indices) if to_cache else cached_indices.index(example_index)
+        if to_cache:
+            with open(self.cached_indices_file, "a") as f:
+                f.write(f"{example_index}\n")
+            client_utils.synchronize_async(self.cache, example_index)
+        return self.load_from_cache(cached_index)
+
+    async def cache(self, example_index=None) -> None:
         """
-        Caches all of the examples so that their predictions can be shown immediately.
+        Caches examples so that their predictions can be shown immediately.
+        Parameters:
+            example_index: The id of the example to process (zero-indexed). If None, all examples are cached.
         """
         if Context.root_block is None:
             raise ValueError("Cannot cache examples if not in a Blocks context")
-        if Path(self.cached_file).exists():
-            print(
-                f"Using cache from '{utils.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache.\n"
-            )
         else:
-            print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
             cache_logger = CSVLogger(simplify_file_data=False)
 
             generated_values = []
@@ -352,7 +383,8 @@ class Examples:
             if self.outputs is None:
                 raise ValueError("self.outputs is missing")
             cache_logger.setup(self.outputs, self.cached_folder)
-            for example_id, _ in enumerate(self.examples):
+            examples_ids_to_cache = range(len(self.examples)) if example_index is None else [example_index]
+            for example_id in examples_ids_to_cache:
                 print(f"Caching example {example_id + 1}/{len(self.examples)}")
                 processed_input = self.processed_examples[example_id]
                 if self.batch:
@@ -376,29 +408,30 @@ class Examples:
             Context.root_block.dependencies.remove(dependency)
             Context.root_block.fns.pop(fn_index)
 
-        # Remove the original load_input_event and replace it with one that
-        # also populates the input. We do it this way to to allow the cache()
-        # method to be called independently of the create() method
-        index = Context.root_block.dependencies.index(self.load_input_event)
-        Context.root_block.dependencies.pop(index)
-        Context.root_block.fns.pop(index)
+        if self.cache_examples is True:
+            # Remove the original load_input_event and replace it with one that
+            # also populates the input. We do it this way to to allow the cache()
+            # method to be called independently of the create() method
+            index = Context.root_block.dependencies.index(self.load_input_event)
+            Context.root_block.dependencies.pop(index)
+            Context.root_block.fns.pop(index)
 
-        def load_example(example_id):
-            processed_example = self.non_none_processed_examples[
-                example_id
-            ] + self.load_from_cache(example_id)
-            return utils.resolve_singleton(processed_example)
+            def load_example(example_id):
+                processed_example = self.non_none_processed_examples[
+                    example_id
+                ] + self.load_from_cache(example_id)
+                return utils.resolve_singleton(processed_example)
 
-        self.load_input_event = self.dataset.click(
-            load_example,
-            inputs=[self.dataset],
-            outputs=self.inputs_with_examples + self.outputs,  # type: ignore
-            show_progress="hidden",
-            postprocess=False,
-            queue=False,
-            api_name=self.api_name,
-            show_api=False,
-        )
+            self.load_input_event = self.dataset.click(
+                load_example,
+                inputs=[self.dataset],
+                outputs=self.inputs_with_examples + self.outputs,  # type: ignore
+                show_progress="hidden",
+                postprocess=False,
+                queue=False,
+                api_name=self.api_name,
+                show_api=False,
+            )
 
     def load_from_cache(self, example_id: int) -> list[Any]:
         """Loads a particular cached example for the interface.
