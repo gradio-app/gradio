@@ -4,7 +4,7 @@
 	import { mount_css as default_mount_css } from "../css";
 	import type { api_factory } from "@gradio/client";
 	import type { WorkerProxy } from "@gradio/wasm";
-	import { SvelteComponent, createEventDispatcher } from "svelte";
+	import { SvelteComponent, createEventDispatcher, onMount } from "svelte";
 	import Code from "@gradio/code";
 	import ErrorDisplay from "./ErrorDisplay.svelte";
 	import lightning from "../images/lightning.svg";
@@ -66,7 +66,12 @@
 		}
 	}
 
-	window.addEventListener("keydown", shortcut_run, true);
+	onMount(() => {
+		var code_editors = document.getElementsByClassName("code-editor");
+		for (var i = 0; i < code_editors.length; i++) {
+			code_editors[i].addEventListener("keydown", shortcut_run as EventListener, true);
+		}
+	});
 
 	$: loading_text;
 	$: loaded;
