@@ -185,7 +185,7 @@
 	>
 		<slot />
 	</button>
-{:else if uploading}
+{:else if uploading && !hidden_upload}
 	{#if !hidden}
 		<UploadProgress {root} {upload_id} files={file_data} />
 	{/if}

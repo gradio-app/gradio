@@ -9,8 +9,8 @@
 	import { BlockTitle } from "@gradio/atoms";
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
-	import type { FileData } from "@gradio/client";
-	import { Clear, File, Music, Video } from "@gradio/icons";
+	import type { FileData, upload } from "@gradio/client";
+	import { Clear, File, Music, Video, Send } from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 
 	export let value: { text: string; files: FileData[] } = {
@@ -27,7 +27,7 @@
 	export let show_label = true;
 	export let container = true;
 	export let max_lines: number;
-	export let submit_btn = "⌲";
+	export let submit_btn: string | null = null;
 	export let rtl = false;
 	export let autofocus = false;
 	export let text_align: "left" | "right" | undefined = undefined;
@@ -40,6 +40,7 @@
 	let previous_scroll_top = 0;
 	let user_has_scrolled_up = false;
 	let dragging = false;
+	let uploading = false;
 	let oldValue = value.text;
 	$: dispatch("drag", dragging);
 
@@ -193,22 +194,29 @@
 			filetype={accept_file_types}
 			{root}
 			bind:dragging
+			bind:uploading
 			disable_click={true}
 			bind:hidden_upload
 		>
-			{#if submit_btn}
+			{#if submit_btn !== null}
 				<button class:disabled class="submit-button" on:click={handle_submit}
 					>{submit_btn}</button
+				>
+			{:else}
+				<button class:disabled class="submit-button" on:click={handle_submit}
+					><Send /></button
 				>
 			{/if}
 			<button class:disabled class="plus-button" on:click={handle_upload_click}
 				>+</button
 			>
-			{#if value.files.length > 0}
+			{#if value.files.length > 0 || uploading}
 				<div
 					class="thumbnails scroll-hide"
 					data-testid="container_el"
-					style="display: {value.files.length > 0 ? 'flex' : 'none'};"
+					style="display: {value.files.length > 0 || uploading
+						? 'flex'
+						: 'none'};"
 				>
 					{#each value.files as file, index}
 						<button class="thumbnail-item thumbnail-small">
@@ -235,6 +243,9 @@
 							{/if}
 						</button>
 					{/each}
+					{#if uploading}
+						<div class="loader"></div>
+					{/if}
 				</div>
 			{/if}
 			<textarea
@@ -288,6 +299,7 @@
 		margin-bottom: 0px;
 		margin-left: 30px;
 		padding-top: 12px;
+		resize: none;
 	}
 
 	textarea:disabled {
@@ -335,9 +347,39 @@
 		padding-left: 2px;
 	}
 
+	.submit-button :global(svg) {
+		height: 23px;
+		width: 23px;
+		padding-left: 4px;
+		padding-top: 2px;
+	}
+
 	.plus-button {
 		left: 10px;
 		margin-right: 5px;
+	}
+
+	.loader {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		--ring-color: transparent;
+		position: relative;
+		border: 5px solid #f3f3f3;
+		border-top: 5px solid var(--color-accent);
+		border-radius: 50%;
+		width: 25px;
+		height: 25px;
+		animation: spin 2s linear infinite;
+	}
+
+	@keyframes spin {
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
 	}
 
 	.thumbnails :global(img) {
