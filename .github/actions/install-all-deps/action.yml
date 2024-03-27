@@ -98,7 +98,7 @@ runs:
       run: |
         . ${{ env.VENV_ACTIVATE }}
         python -m pip install -e client/python
-        # python -m pip install -e ".[oauth]"
+        python -m pip install -e ".[oauth]"
     - name: "[tmp] show files"
       run: tree gradio
       shell: bash
