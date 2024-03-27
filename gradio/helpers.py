@@ -39,7 +39,7 @@ def create_examples(
     inputs: Component | list[Component],
     outputs: Component | list[Component] | None = None,
     fn: Callable | None = None,
-    cache_examples: bool = False,
+    cache_examples: bool | Literal["lazy"] = False,
     examples_per_page: int = 10,
     _api_mode: bool = False,
     label: str | None = None,
@@ -90,7 +90,7 @@ class Examples:
         inputs: Component | list[Component],
         outputs: Component | list[Component] | None = None,
         fn: Callable | None = None,
-        cache_examples: bool = False,
+        cache_examples: bool | Literal["lazy"] = False,
         examples_per_page: int = 10,
         _api_mode: bool = False,
         label: str | None = "Examples",
@@ -106,17 +106,17 @@ class Examples:
         Parameters:
             examples: example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
             inputs: the component or list of components corresponding to the examples
-            outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache_examples` is True.
-            fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache_examples` is True.
-            cache_examples: if True, caches examples for fast runtime. If True, then `fn` and `outputs` must be provided. If `fn` is a generator function, then the last yielded value will be used as the output.
+            outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache_examples` is not False.
+            fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache_examples` is not False. Also required if `run_on_click` is True.
+            cache_examples: if True, caches examples for fast runtime. If "lazy", then examples are cached after their first use. If True or "lazy", then `fn` and `outputs` must be provided. If `fn` is a generator function, then the last yielded value will be used as the output.
             examples_per_page: how many examples to show per page.
             label: the label to use for the examples component (by default, "Examples")
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM.
             run_on_click: if cache_examples is False, clicking on an example does not run the function when an example is clicked. Set this to True to run the function when an example is clicked. Has no effect if cache_examples is True.
-            preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if `cache_examples` is True.
-            postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if `cache_examples` is True.
+            preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if `cache_examples` is not False.
+            postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if `cache_examples` is not False.
             api_name: Defines how the event associated with clicking on the examples appears in the API docs. Can be a string or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use the example function.
-            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is True.
+            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is not False.
         """
         if _initiated_directly:
             warnings.warn(
@@ -225,7 +225,7 @@ class Examples:
             for example in self.examples:
                 if len([ex for ex in example if ex is not None]) != len(self.inputs):
                     warnings.warn(
-                        "Examples are being cached but not all input components have "
+                        "Examples will be cached but not all input components have "
                         "example values. This may result in an exception being thrown by "
                         "your function. If you do get an error while caching examples, make "
                         "sure all of your inputs have example values for all of your examples "
