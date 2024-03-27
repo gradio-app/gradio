@@ -8,6 +8,7 @@ def sleep(im):
 
 
 def predict(im):
+    # print(im)
     return im["composite"]
 
 
@@ -16,7 +17,6 @@ with gr.Blocks() as demo:
         im = gr.ImageEditor(
             type="numpy",
             crop_size="1:1",
-            live=True,
         )
         im_preview = gr.Image()
     n_upload = gr.Number(0, label="Number of upload events", step=1)
