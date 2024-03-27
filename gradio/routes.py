@@ -224,7 +224,7 @@ class App(FastAPI):
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
         delete_cache = blocks.delete_cache or (None, None)
         app_kwargs["lifespan"] = create_lifespan_handler(
-            app_kwargs.get("lifespan", None), *delete_cache, blocks.state_ttl
+            app_kwargs.get("lifespan", None), *delete_cache
         )
         app = App(auth_dependency=auth_dependency, **app_kwargs)
         app.configure_app(blocks)
@@ -588,6 +588,37 @@ class App(FastAPI):
                 app.iterators_to_reset.add(body.event_id)
                 await app.get_blocks()._queue.clean_events(event_id=body.event_id)
             return {"success": True}
+        
+        @app.get("/heartbeat/{session_hash}")
+        def heartbeat(session_hash: str,
+                      request: fastapi.Request,
+                      username: str = Depends(get_current_user)):
+            async def iterator():
+                while True:
+                    try:
+                        yield "data: ALIVE\n\n"
+                        await asyncio.sleep(1)
+                    except asyncio.CancelledError:
+                        req = Request(request, username)
+                        root_path = route_utils.get_root_url(
+                            request=request, route_path=f"/hearbeat/{session_hash}", root_path=app.root_path
+                        )
+                        body = PredictBody(session_hash=session_hash, data=[], request=request)
+                        unload_fn_indices = [i for i, dep in enumerate(app.get_blocks().dependencies) if dep['targets'][1] == "unload"]
+                        for fn_index in unload_fn_indices:
+                            try:
+                                await route_utils.call_process_api(
+                                    app=app,
+                                    body=body,
+                                    gr_request=req,
+                                    fn_index_inferred=fn_index,
+                                    root_path=root_path,
+                                )
+                            except:
+                                pass
+                        app.state_holder.delete_state(session_hash, expired_only=False)
+                        app.state_holder.session_data.pop(session_hash, None)
+            return StreamingResponse(iterator(), media_type="text/event-stream")
 
         # had to use '/run' endpoint for Colab compatibility, '/api' supported for backwards compatibility
         @app.post("/run/{api_name}", dependencies=[Depends(login_check)])

@@ -10,7 +10,7 @@ def calculator(num1, operation, num2):
         return num1 * num2
     elif operation == "divide":
         if num2 == 0:
-            raise gr.Error("Cannot divide by zero!")
+            raise ValueError("Cannot divide by zero!")
         return num1 / num2
 
 demo = gr.Interface(
@@ -32,4 +32,6 @@ demo = gr.Interface(
 )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(prevent_thread_lock=True)
+    breakpoint()
+    2 + 2

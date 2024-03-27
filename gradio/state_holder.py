@@ -4,7 +4,7 @@ import datetime
 import threading
 from collections import OrderedDict
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
@@ -44,29 +44,20 @@ class StateHolder:
             if len(self.session_data) > self.capacity:
                 self.session_data.popitem(last=False)
 
-    def delete_older_than_seconds(self, seconds: int):
-        current_time = datetime.datetime.now()
+    def delete_all_expired_state(self,):
+        for session_id in self.session_data:
+            self.delete_state(session_id, expired_only=True)
+    
+    def delete_state(self, session_id: str, expired_only: bool = False):
+        from gradio.components import State
         to_delete = []
-        for session_id, time_last_used in self.time_last_used.items():
-            print(session_id, time_last_used)
-            if (current_time - time_last_used).seconds > seconds:
-                with self.lock:
-                    for component in self.session_data[session_id]:
-                        if hasattr(component, "reset_callback") and isinstance(
-                            component.reset_callback, Callable
-                        ):
-                            component.reset_callback()
-                    print(
-                        "Deleting session",
-                        session_id,
-                        "as it is older than",
-                        seconds,
-                        "seconds",
-                    )
-                    self.session_data.pop(session_id, None)
-                    to_delete.append(session_id)
+        session_state = self.session_data[session_id]
+        for component in session_state:
+            if (isinstance(component, State) and (not expired_only or component.expired)):
+                component.delete_callback()
+                to_delete.append(component._id)
         for session_id in to_delete:
-            self.time_last_used.pop(session_id, None)
+            del session_state[session_id]
 
 
 class SessionState:

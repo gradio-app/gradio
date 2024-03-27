@@ -777,15 +777,15 @@ async def _lifespan_handler(
     delete_files_created_by_app(app.get_blocks(), age=None)
 
 
-async def _delete_state(app: App, age: int):
+async def _delete_state(app: App):
     while True:
-        app.state_holder.delete_older_than_seconds(age)
+        app.state_holder.delete_all_expired_state()
         await asyncio.sleep(1)
 
 
 @asynccontextmanager
-async def _delete_state_handler(app: App, age: int):
-    asyncio.create_task(_delete_state(app, age))
+async def _delete_state_handler(app: App):
+    asyncio.create_task(_delete_state(app))
     yield
 
 
@@ -793,17 +793,15 @@ def create_lifespan_handler(
     user_lifespan: Callable[[App], AsyncContextManager] | None,
     frequency: int | None = 1,
     age: int | None = 1,
-    state_age: int | None = None,
 ) -> Callable[[App], AsyncContextManager]:
     """Return a context manager that applies _lifespan_handler and user_lifespan if it exists."""
 
     @asynccontextmanager
     async def _handler(app: App):
         async with AsyncExitStack() as stack:
+            await stack.enter_async_context(_delete_state_handler(app))
             if frequency and age:
                 await stack.enter_async_context(_lifespan_handler(app, frequency, age))
-            if state_age:
-                await stack.enter_async_context(_delete_state_handler(app, state_age))
             if user_lifespan is not None:
                 await stack.enter_async_context(user_lifespan(app))
             yield

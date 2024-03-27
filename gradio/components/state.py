@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import datetime
+import math
 from typing import Any, Callable
 
 from gradio_client.documentation import document
@@ -28,15 +30,17 @@ class State(Component):
         value: Any = None,
         render: bool = True,
         *,
-        reset_callback: Callable[[None], None] | None = None,
+        time_to_live: int | None = None,
+        delete_callback: Callable[[None], None] | None = None,
     ):
         """
         Parameters:
             value: the initial value (of arbitrary type) of the state. The provided argument is deepcopied. If a callable is provided, the function will be called whenever the app loads to set the initial value of the state.
             render: has no effect, but is included for consistency with other components.
         """
-        self.stateful = True
-        self.reset_callback = reset_callback or (lambda: None)
+        self.time_to_live = time_to_live or math.inf
+        self.delete_callback = delete_callback or (lambda: None)
+        self._created_at: datetime.datetime = datetime.datetime.now()
         try:
             self.value = deepcopy(value)
         except TypeError as err:
@@ -44,6 +48,14 @@ class State(Component):
                 f"The initial value of `gr.State` must be able to be deepcopied. The initial value of type {type(value)} cannot be deepcopied."
             ) from err
         super().__init__(value=self.value, render=render)
+    
+    @property
+    def stateful(self):
+        return True
+
+    @property
+    def expired(self):
+        return (datetime.datetime.now() - self._created_at).seconds > self.time_to_live
 
     def preprocess(self, payload: Any) -> Any:
         """

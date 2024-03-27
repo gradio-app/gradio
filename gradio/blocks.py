@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import datetime
 import hashlib
 import inspect
 import json
@@ -127,6 +128,10 @@ class Block:
 
         if render:
             self.render()
+
+    @property
+    def stateful(self):
+        return False
 
     @property
     def skip_api(self):
@@ -1498,7 +1503,9 @@ Received outputs:
                     f"Output component with id {output_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
                 ) from e
 
-            if getattr(block, "stateful", False):
+            if block.stateful:
+                assert isinstance(block, components.State)
+                block._created_at = datetime.datetime.now()
                 if not utils.is_update(predictions[i]):
                     state[output_id] = predictions[i]
                 output.append(None)
