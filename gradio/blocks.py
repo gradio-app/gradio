@@ -1539,7 +1539,10 @@ Received outputs:
 
             if block.stateful:
                 if isinstance(block, components.State):
-                    block._created_at = datetime.datetime.now()
+                    state._state_ttl[output_id] = (
+                        block.time_to_live,
+                        datetime.datetime.now(),
+                    )
                 if not utils.is_update(predictions[i]):
                     state[output_id] = predictions[i]
                 output.append(None)

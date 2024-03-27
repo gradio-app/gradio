@@ -242,7 +242,6 @@ async def call_process_api(
     fn_index_inferred: int,
     root_path: str,
 ):
-    print("HEREHREH")
     session_state, iterator = restore_session_state(app=app, body=body)
 
     dependency = app.get_blocks().dependencies[fn_index_inferred]

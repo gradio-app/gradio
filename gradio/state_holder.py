@@ -53,22 +53,21 @@ class StateHolder:
     def delete_state(self, session_id: str, expired_only: bool = False):
         if session_id not in self.session_data:
             return
-        from gradio.components import State
-
         to_delete = []
         session_state = self.session_data[session_id]
-        for component in session_state:
-            if isinstance(component, State) and (not expired_only or component.expired):
-                component.delete_callback()
-                to_delete.append(component._id)
-        for session_id in to_delete:
-            del session_state[session_id]
+        for id_, value, expired in session_state.state_components:
+            if not expired_only or expired:
+                self.blocks.blocks[id_].delete_callback(value)
+                to_delete.append(id_)
+        for component in to_delete:
+            del session_state._data[component]
 
 
 class SessionState:
     def __init__(self, blocks: Blocks):
         self.blocks = blocks
         self._data = {}
+        self._state_ttl = {}
 
     def __getitem__(self, key: int) -> Any:
         if key not in self._data:
@@ -80,10 +79,22 @@ class SessionState:
         return self._data[key]
 
     def __setitem__(self, key: int, value: Any):
+        print(key, value)
         self._data[key] = value
 
     def __contains__(self, key: int):
         return key in self._data
 
-    def __iter__(self):
-        return iter(self._data.values())
+    @property
+    def state_components(self):
+        from gradio.components import State
+
+        for id in self._data:
+            if isinstance(self.blocks.blocks[id], State) and id in self._state_ttl:
+                time_to_live, created_at = self._state_ttl.get(id, None)
+                value = self._data[id]
+                yield (
+                    id,
+                    value,
+                    (datetime.datetime.now() - created_at).seconds > time_to_live,
+                )
