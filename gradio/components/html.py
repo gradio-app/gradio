@@ -23,7 +23,7 @@ class HTML(Component):
 
     def __init__(
         self,
-        value: str | Callable = "",
+        value: str | Callable | None = None,
         *,
         label: str | None = None,
         every: float | None = None,

@@ -1,5 +1,11 @@
 # @gradio/atoms
 
+## 0.6.0
+
+### Features
+
+- [#7732](https://github.com/gradio-app/gradio/pull/7732) [`2efb05e`](https://github.com/gradio-app/gradio/commit/2efb05ed99a8a3575aab0a6c14a8d8b91f4e9ed7) - Adds support for kwargs and default arguments in the python client, and improves how parameter information is displayed in the "view API" page.  Thanks @abidlabs!
+
 ## 0.5.3
 
 ### Patch Changes
