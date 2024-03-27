@@ -1,5 +1,57 @@
 # @gradio/app
 
+## 1.30.0
+
+### Features
+
+- [#7852](https://github.com/gradio-app/gradio/pull/7852) [`72661e3`](https://github.com/gradio-app/gradio/commit/72661e3391a432ccd77fb3100e69fbdf95093931) - Revert the minify setting in vite.config.js which was mistakingly introduced in #6261.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/button@0.2.28
+- @gradio/atoms@0.6.1
+- @gradio/statustracker@0.4.10
+- @gradio/code@0.5.9
+- @gradio/icons@0.3.4
+- @gradio/upload@0.8.2
+- @gradio/audio@0.9.9
+- @gradio/image@0.9.9
+- @gradio/video@0.6.9
+- @gradio/markdown@0.6.8
+- @gradio/chatbot@0.8.0
+- @gradio/downloadbutton@0.1.5
+- @gradio/multimodaltextbox@0.2.2
+- @gradio/annotatedimage@0.5.9
+- @gradio/dropdown@0.6.5
+- @gradio/file@0.5.9
+- @gradio/fileexplorer@0.3.29
+- @gradio/form@0.1.12
+- @gradio/gallery@0.8.5
+- @gradio/highlightedtext@0.4.13
+- @gradio/imageeditor@0.4.9
+- @gradio/json@0.1.13
+- @gradio/label@0.2.13
+- @gradio/model3d@0.8.8
+- @gradio/plot@0.3.5
+- @gradio/simpledropdown@0.1.13
+- @gradio/simpleimage@0.3.9
+- @gradio/simpletextbox@0.1.13
+- @gradio/textbox@0.4.14
+- @gradio/dataframe@0.6.10
+- @gradio/dataset@0.1.28
+- @gradio/uploadbutton@0.5.5
+- @gradio/accordion@0.3.7
+- @gradio/box@0.1.12
+- @gradio/checkbox@0.2.13
+- @gradio/checkboxgroup@0.4.7
+- @gradio/colorpicker@0.2.13
+- @gradio/fallback@0.2.13
+- @gradio/html@0.1.13
+- @gradio/number@0.3.13
+- @gradio/paramviewer@0.4.6
+- @gradio/radio@0.4.8
+- @gradio/slider@0.3.1
+
 ## 1.29.0
 
 ### Features
