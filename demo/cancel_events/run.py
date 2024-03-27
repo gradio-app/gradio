@@ -9,8 +9,9 @@ def fake_diffusion(steps):
     log_file.write_text("")
     for i in range(steps):
         print(f"Current step: {i}")
-        log_file.write_text(f"Current step: {i}\n")
-        time.sleep(0.5)
+        with log_file.open("a") as f:
+            f.write(f"Current step: {i}\n")
+        time.sleep(0.2)
         yield str(i)
 
 

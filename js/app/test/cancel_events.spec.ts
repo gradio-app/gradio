@@ -54,17 +54,18 @@ test("when using an iterative function and the user closes the page, the python 
 	});
 
 	await start_button.click();
-	await page.waitForTimeout(1000);
+	await page.waitForTimeout(300);
 	await page.close();
 
 	// wait for the duration of the entire iteration
 	// check that the final value did not get written
 	// to the log file. That's our proof python stopped
 	// running
-	await new Promise((resolve) => setTimeout(resolve, 5000));
+	await new Promise((resolve) => setTimeout(resolve, 2000));
 	const data = readFileSync(
 		"../../demo/cancel_events/cancel_events_output_log.txt",
 		"utf-8"
 	);
+	expect(data).toContain("Current step: 0");
 	expect(data).not.toContain("Current step: 8");
 });
