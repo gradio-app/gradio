@@ -93,12 +93,12 @@ runs:
     - name: "[tmp] show files"
       run: tree gradio
       shell: bash
-    # - name: Install Gradio and Client Libraries Locally (Linux)
-    #   shell: bash
-    #   run: |
-    #     . ${{ env.VENV_ACTIVATE }}
-    #     python -m pip install -e client/python
-    #     python -m pip install -e ".[oauth]"
+    - name: Install Gradio and Client Libraries Locally (Linux)
+      shell: bash
+      run: |
+        . ${{ env.VENV_ACTIVATE }}
+        python -m pip install -e client/python
+        # python -m pip install -e ".[oauth]"
     - name: "[tmp] show files"
       run: tree gradio
       shell: bash
