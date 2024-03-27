@@ -1,0 +1,92 @@
+<script lang="ts">
+	import type { Dependency, Payload } from "../types";
+	import CopyButton from "./CopyButton.svelte";
+	import { Block } from "@gradio/atoms";
+
+	export let dependencies: Dependency[];
+	export let root: string;
+	export let current_language: "python" | "javascript";
+
+	let python_code: HTMLElement;
+	let js_code: HTMLElement;
+	export let api_calls: Payload[] = [];
+</script>
+
+<div class="container">
+	<!-- <EndpointDetail {named} api_name={dependency.api_name} /> -->
+	<Block>
+		<code>
+			{#if current_language === "python"}
+				<div class="copy">
+					<CopyButton code={python_code?.innerText} />
+				</div>
+				<div bind:this={python_code}>
+					<pre><span class="highlight">from</span> gradio_client <span
+							class="highlight">import</span
+						> Client, file
+
+client = Client(<span class="token string">"{root}"</span>)
+result = client.<span class="highlight">predict</span>
+<span class="highlight">print</span>(result)</pre>
+				</div>
+			{:else if current_language === "javascript"}
+				<div class="copy">
+					<CopyButton code={js_code?.innerText} />
+				</div>
+				<div bind:this={js_code}>
+					<pre>import &lbrace; client &rbrace; from "@gradio/client";
+
+const app = await client(<span class="token string">"{root}"</span>);
+{#each api_calls as call}<!--
+-->
+{#if dependencies[call.fn_index].backend_fn}client.predict("<span class="api-name">{dependencies[call.fn_index].api_name}</span>", {JSON.stringify(call.data, null, 2)});{/if}
+{/each}</pre></div>{/if}
+		</code>
+	</Block>
+</div>
+
+<style>
+	code pre {
+		overflow-x: auto;
+		color: var(--body-text-color);
+		font-family: var(--font-mono);
+		tab-size: 2;
+	}
+
+	.token.string {
+		display: contents;
+		color: var(--color-accent-base);
+	}
+
+	code {
+		position: relative;
+		display: block;
+	}
+
+	.copy {
+		position: absolute;
+		top: 0;
+		right: 0;
+		margin-top: -5px;
+		margin-right: -5px;
+	}
+
+	.container {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xxl);
+		margin-top: var(--size-3);
+		margin-bottom: var(--size-3);
+	}
+
+	.desc {
+		color: var(--body-text-color-subdued);
+	}
+
+	.example-inputs {
+		color: var(--color-accent);
+	}
+	.api-name {
+		color: var(--color-accent);
+	}
+</style>

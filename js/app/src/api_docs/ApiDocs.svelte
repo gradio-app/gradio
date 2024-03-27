@@ -5,13 +5,14 @@
 	import { post_data } from "@gradio/client";
 	import NoApi from "./NoApi.svelte";
 	import type { client } from "@gradio/client";
-
+	import type { Payload } from "../types";
 	import { represent_value } from "./utils";
 
 	import ApiBanner from "./ApiBanner.svelte";
 	import ParametersSnippet from "./ParametersSnippet.svelte";
 	import InstallSnippet from "./InstallSnippet.svelte";
 	import CodeSnippet from "./CodeSnippet.svelte";
+	import RecordingSnippet from "./RecordingSnippet.svelte";
 
 	import python from "./img/python.svg";
 	import javascript from "./img/javascript.svg";
@@ -39,7 +40,8 @@
 		root += "/";
 	}
 
-	let current_language: "python" | "javascript" = "python";
+	export let api_calls: Payload[] = [];
+	let current_language: "python" | "javascript" = "javascript";
 
 	const langs = [
 		["python", python],
@@ -187,7 +189,42 @@
 		<div class="banner-wrap">
 			<ApiBanner on:close root={space_id || root} {api_count} />
 		</div>
+
 		<div class="docs-wrap">
+			{#if api_calls.length}
+			<div class="client-doc">
+				<p style="font-size: var(--text-lg); font-weight:bold; padding-bottom:15px;">
+					🪄 Recorded API Calls ({api_calls.length})
+				</p>
+				<div class="snippets">
+					{#each langs as [language, img]}
+						<li
+							class="snippet
+							{current_language === language ? 'current-lang' : 'inactive-lang'}"
+							on:click={() => (current_language = language)}
+						>
+							<img src={img} alt="" />
+							{language}
+						</li>
+					{/each}
+				</div>
+				<p>
+					Here is the code snippet to replay the recorded API calls using the {current_language}	client library.
+				</p>
+
+				<RecordingSnippet 
+					{current_language}
+					{api_calls}
+					{dependencies}
+					root={space_id || root}
+				/>
+				<p>
+					Note: the above list may include extra API calls that affect the UI, but are not necessary for downstream clients.
+				</p>
+
+			</div>
+			{:else}
+
 			<div class="client-doc">
 				<p>
 					Use the <code class="library">gradio_client</code>
@@ -270,6 +307,7 @@
 					{/if}
 				{/each}
 			</div>
+			{/if}
 		</div>
 	{:else}
 		<NoApi {root} on:close />

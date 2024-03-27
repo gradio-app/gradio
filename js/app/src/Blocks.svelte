@@ -8,7 +8,7 @@
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import type { UpdateTransaction } from "./init";
 	import { setupi18n } from "./i18n";
-	import { ApiDocs, APIRecorder } from "./api_docs/";
+	import { ApiDocs, ApiRecorder } from "./api_docs/";
 	import type { ThemeMode, Payload } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
@@ -68,7 +68,7 @@
 
 	let params = new URLSearchParams(window.location.search);
 	let api_docs_visible = params.get("view") === "api" && show_api;
-	let api_recorder_visible = params.get("view") === "api_recorder";
+	let api_recorder_visible = params.get("view") === "api-recorder" && show_api;
 	function set_api_docs_visible(visible: boolean): void {
 		api_docs_visible = visible;
 		let params = new URLSearchParams(window.location.search);
@@ -79,6 +79,7 @@
 		}
 		history.replaceState(null, "", "?" + params.toString());
 	}
+	let api_calls: any[] = []
 
 	export let render_complete = false;
 	async function handle_update(data: any, fn_index: number): Promise<void> {
@@ -252,6 +253,7 @@
 		}
 
 		async function make_prediction(payload: Payload): Promise<void> {
+			api_calls = [...api_calls, payload];
 			const submission = app
 				.submit(
 					payload.fn_index,
@@ -545,10 +547,12 @@
 </div>
 
 {#if api_recorder_visible}
-	<ApiRecorder on:close={() => {
+	<div id="api-recorder-container">
+	<ApiRecorder {api_calls} on:close={() => {
 		api_recorder_visible = false;
 		api_docs_visible = true;
 	}} />
+	</div>
 {/if}
 
 {#if api_docs_visible && $_layout}
@@ -572,6 +576,7 @@
 				{root}
 				{app}
 				{space_id}
+				{api_calls}
 			/>
 		</div>
 	</div>
@@ -673,5 +678,12 @@
 		.api-docs-wrap {
 			width: 1150px;
 		}
+	}
+
+	#api-recorder-container {
+		position: fixed;
+		left: 0;
+		bottom: 0;
+		z-index: 1000;
 	}
 </style>
