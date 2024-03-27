@@ -359,6 +359,7 @@
 		height: 100%;
 	}
 	:global(.code-editor .container) {
+		padding: 2px;
 		padding-right: 0;
 		height: 100%;
 	}
@@ -375,10 +376,12 @@
 		border: none;
 		color: #9095a0;
 		height: 100%;
+		padding: 5px;
+		padding-left: 0;
 	}
 
 	:global(.code-editor .block .check) {
-		width: 50%;
+		width: 65%;
 		color: #ff7c00;
 		margin: auto;
 	}
