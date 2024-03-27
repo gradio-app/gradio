@@ -567,8 +567,8 @@ with gr.Blocks(  # noqa: SIM117
         def load_custom_theme(custom_theme_name):
             try:
                 theme = gr.Theme.from_hub(custom_theme_name)
-            except Exception as e:
-                raise gr.Error(f"Error loading custom theme: {e}")
+            except Exception as err:
+                raise gr.Error(f"Error loading custom theme: {err}") from err
             return load_theme(theme.name, theme)
 
         def generate_theme_code(
