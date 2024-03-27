@@ -293,7 +293,7 @@ class Examples:
                         f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to reset cache.\n"
                     )
                 self.load_input_event.then(
-                    self.lazy_cache,
+                    self.load_lazy_cache,
                     inputs=[self.dataset],
                     outputs=self.outputs,
                     postprocess=False,
@@ -317,26 +317,20 @@ class Examples:
                 print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
                 client_utils.synchronize_async(self.cache)
 
-    def lazy_cache(self, example_index):
-        if not Path(self.cached_indices_file).exists():
-            to_cache = True
-            cached_index = 0
-        else:
+    def load_lazy_cache(self, example_index):
+        if Path(self.cached_indices_file).exists():
             with open(self.cached_indices_file) as f:
                 cached_indices = [int(line.strip()) for line in f]
-            to_cache = example_index not in cached_indices
-            cached_index = len(cached_indices) if to_cache else cached_indices.index(example_index)
-        if to_cache:
-            with open(self.cached_indices_file, "a") as f:
-                f.write(f"{example_index}\n")
-            client_utils.synchronize_async(self.cache, example_index)
-        return self.load_from_cache(cached_index)
+            if example_index in cached_indices:
+                cached_index = cached_indices.index(example_index)
+                return self.load_from_cache(cached_index)
+        if self.fn is None:
+            raise ValueError("Cannot lazy-cache examples if no function is provided")
+        return self.fn(*self.examples[example_index])
 
-    async def cache(self, example_index=None) -> None:
+    async def cache(self) -> None:
         """
         Caches examples so that their predictions can be shown immediately.
-        Parameters:
-            example_index: The id of the example to process (zero-indexed). If None, all examples are cached.
         """
         if Context.root_block is None:
             raise ValueError("Cannot cache examples if not in a Blocks context")
