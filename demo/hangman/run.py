@@ -32,4 +32,6 @@ with gr.Blocks() as demo:
         [used_letters_var, used_letters_box, hangman]
         )
 if __name__ == "__main__":
-    demo.launch()
+    app, _, _ = demo.launch(prevent_thread_lock=True)
+    breakpoint()
+    2 + 2
