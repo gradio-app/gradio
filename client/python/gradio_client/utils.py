@@ -17,13 +17,16 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Literal, Optional, TypedDict
+from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, TypedDict
 
 import fsspec.asyn
 import httpx
 import huggingface_hub
 from huggingface_hub import SpaceStage
 from websockets.legacy.protocol import WebSocketCommonProtocol
+
+if TYPE_CHECKING:
+    from gradio_client.data_classes import ParameterInfo
 
 API_URL = "api/predict/"
 SSE_URL_V0 = "queue/join"
@@ -115,6 +118,7 @@ class ServerMessage(str, Enum):
     heartbeat = "heartbeat"
     server_stopped = "server_stopped"
     unexpected_error = "unexpected_error"
+    close_stream = "close_stream"
 
 
 class Status(Enum):
@@ -386,7 +390,7 @@ async def get_pred_from_sse_v0(
         return task.result()
 
 
-async def get_pred_from_sse_v1_v2(
+async def get_pred_from_sse_v1plus(
     helper: Communicator,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
@@ -399,7 +403,9 @@ async def get_pred_from_sse_v1_v2(
         [
             asyncio.create_task(check_for_cancel(helper, headers, cookies, ssl_verify)),
             asyncio.create_task(
-                stream_sse_v1_v2(helper, pending_messages_per_event, event_id, protocol)
+                stream_sse_v1plus(
+                    helper, pending_messages_per_event, event_id, protocol
+                )
             ),
         ],
         return_when=asyncio.FIRST_COMPLETED,
@@ -512,11 +518,11 @@ async def stream_sse_v0(
         raise
 
 
-async def stream_sse_v1_v2(
+async def stream_sse_v1plus(
     helper: Communicator,
     pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
-    protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
+    protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
 ) -> dict[str, Any]:
     try:
         pending_messages = pending_messages_per_event[event_id]
@@ -555,6 +561,7 @@ async def stream_sse_v1_v2(
                 if msg["msg"] == ServerMessage.process_generating and protocol in [
                     "sse_v2",
                     "sse_v2.1",
+                    "sse_v3",
                 ]:
                     if pending_responses_for_diffs is None:
                         pending_responses_for_diffs = list(output)
@@ -1059,3 +1066,54 @@ def file(filepath_or_url: str | Path):
         raise ValueError(
             f"File {s} does not exist on local filesystem and is not a valid URL."
         )
+
+
+def construct_args(
+    parameters_info: list[ParameterInfo] | None, args: tuple, kwargs: dict
+) -> list:
+    class _Keywords(Enum):
+        NO_VALUE = "NO_VALUE"  # Used as a sentinel to determine if nothing is provided as a parameter for an argument
+
+    _args = list(args)
+    if parameters_info is None:
+        if kwargs:
+            raise ValueError(
+                "This endpoint does not support key-word arguments Please click on 'view API' in the footer of the Gradio app to see usage."
+            )
+        return _args
+    num_args = len(args)
+    _args = _args + [_Keywords.NO_VALUE] * (len(parameters_info) - num_args)
+
+    kwarg_arg_mapping = {}
+    kwarg_names = []
+    for index, param_info in enumerate(parameters_info):
+        if "parameter_name" in param_info:
+            kwarg_arg_mapping[param_info["parameter_name"]] = index
+            kwarg_names.append(param_info["parameter_name"])
+        else:
+            kwarg_names.append("argument {index}")
+        if (
+            param_info.get("parameter_has_default", False)
+            and _args[index] == _Keywords.NO_VALUE
+        ):
+            _args[index] = param_info.get("parameter_default")
+
+    for key, value in kwargs.items():
+        if key in kwarg_arg_mapping:
+            if kwarg_arg_mapping[key] < num_args:
+                raise ValueError(
+                    f"Parameter `{key}` is already set as a positional argument. Please click on 'view API' in the footer of the Gradio app to see usage."
+                )
+            else:
+                _args[kwarg_arg_mapping[key]] = value
+        else:
+            raise ValueError(
+                f"Parameter `{key}` is not a valid key-word argument. Please click on 'view API' in the footer of the Gradio app to see usage."
+            )
+
+    if _Keywords.NO_VALUE in _args:
+        raise ValueError(
+            f"No value provided for required argument: {kwarg_names[_args.index(_Keywords.NO_VALUE)]}"
+        )
+
+    return _args

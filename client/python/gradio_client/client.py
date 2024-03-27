@@ -33,6 +33,7 @@ from packaging import version
 
 from gradio_client import utils
 from gradio_client.compatibility import EndpointV3Compatibility
+from gradio_client.data_classes import ParameterInfo
 from gradio_client.documentation import document
 from gradio_client.exceptions import AuthenticationError
 from gradio_client.utils import (
@@ -190,7 +191,9 @@ class Client:
         self.pending_messages_per_event: dict[str, list[Message | None]] = {}
         self.pending_event_ids: set[str] = set()
 
-    async def stream_messages(self) -> None:
+    async def stream_messages(
+        self, protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]
+    ) -> None:
         try:
             async with httpx.AsyncClient(
                 timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify
@@ -216,13 +219,19 @@ class Client:
                                 ) in self.pending_messages_per_event.values():
                                     pending_messages.append(resp)
                                 return
+                            elif resp["msg"] == ServerMessage.close_stream:
+                                self.stream_open = False
+                                return
                             event_id = resp["event_id"]
                             if event_id not in self.pending_messages_per_event:
                                 self.pending_messages_per_event[event_id] = []
                             self.pending_messages_per_event[event_id].append(resp)
                             if resp["msg"] == ServerMessage.process_completed:
                                 self.pending_event_ids.remove(event_id)
-                            if len(self.pending_event_ids) == 0:
+                            if (
+                                len(self.pending_event_ids) == 0
+                                and protocol != "sse_v3"
+                            ):
                                 self.stream_open = False
                                 return
                         else:
@@ -233,7 +242,7 @@ class Client:
             traceback.print_exc()
             raise e
 
-    async def send_data(self, data, hash_data):
+    async def send_data(self, data, hash_data, protocol):
         async with httpx.AsyncClient(verify=self.ssl_verify) as client:
             req = await client.post(
                 self.sse_data_url,
@@ -251,7 +260,7 @@ class Client:
             self.stream_open = True
 
             def open_stream():
-                return utils.synchronize_async(self.stream_messages)
+                return utils.synchronize_async(self.stream_messages, protocol)
 
             def close_stream(_):
                 self.stream_open = False
@@ -392,6 +401,7 @@ class Client:
         *args,
         api_name: str | None = None,
         fn_index: int | None = None,
+        **kwargs,
     ) -> Any:
         """
         Calls the Gradio API and returns the result (this is a blocking call).
@@ -413,7 +423,9 @@ class Client:
             raise ValueError(
                 "Cannot call predict on this function as it may run forever. Use submit instead."
             )
-        return self.submit(*args, api_name=api_name, fn_index=fn_index).result()
+        return self.submit(
+            *args, api_name=api_name, fn_index=fn_index, **kwargs
+        ).result()
 
     def new_helper(self, fn_index: int) -> Communicator:
         return Communicator(
@@ -429,6 +441,7 @@ class Client:
         api_name: str | None = None,
         fn_index: int | None = None,
         result_callbacks: Callable | list[Callable] | None = None,
+        **kwargs,
     ) -> Job:
         """
         Creates and returns a Job object which calls the Gradio API in a background thread. The job can be used to retrieve the status and result of the remote API call.
@@ -450,17 +463,22 @@ class Client:
             >> 9.0
         """
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
+        endpoint = self.endpoints[inferred_fn_index]
+
+        if isinstance(endpoint, Endpoint):
+            args = utils.construct_args(endpoint.parameters_info, args, kwargs)
 
         helper = None
-        if self.endpoints[inferred_fn_index].protocol in (
+        if endpoint.protocol in (
             "ws",
             "sse",
             "sse_v1",
             "sse_v2",
             "sse_v2.1",
+            "sse_v3",
         ):
             helper = self.new_helper(inferred_fn_index)
-        end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
+        end_to_end_fn = endpoint.make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
 
         job = Job(
@@ -628,9 +646,12 @@ class Client:
     def _render_endpoints_info(
         self,
         name_or_index: str | int,
-        endpoints_info: dict[str, list[dict[str, Any]]],
+        endpoints_info: dict[str, list[ParameterInfo]],
     ) -> str:
-        parameter_names = [p["label"] for p in endpoints_info["parameters"]]
+        parameter_info = endpoints_info["parameters"]
+        parameter_names = [
+            p.get("parameter_name") or p["label"] for p in parameter_info
+        ]
         parameter_names = [utils.sanitize_parameter_names(p) for p in parameter_names]
         rendered_parameters = ", ".join(parameter_names)
         if rendered_parameters:
@@ -650,15 +671,28 @@ class Client:
 
         human_info = f"\n - predict({rendered_parameters}{final_param}) -> {rendered_return_values}\n"
         human_info += "    Parameters:\n"
-        if endpoints_info["parameters"]:
-            for info in endpoints_info["parameters"]:
+        if parameter_info:
+            for info in parameter_info:
                 desc = (
                     f" ({info['python_type']['description']})"
                     if info["python_type"].get("description")
                     else ""
                 )
+                default_value = info.get("parameter_default")
+                default_value = utils.traverse(
+                    default_value,
+                    lambda x: f"file(\"{x['url']}\")",
+                    utils.is_file_obj_with_meta,
+                )
+                default_info = (
+                    "(required)"
+                    if not info.get("parameter_has_default", False)
+                    else f"(not required, defaults to:   {default_value})"
+                )
                 type_ = info["python_type"]["type"]
-                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {type_}{desc} \n"
+                if info.get("parameter_has_default", False) and default_value is None:
+                    type_ += " | None"
+                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info.get('parameter_name') or info['label'])}: {type_} {default_info} {desc} \n"
         else:
             human_info += "     - None\n"
         human_info += "    Returns:\n"
@@ -973,6 +1007,8 @@ class Endpoint:
         self.output_component_types = [
             self._get_component_type(id_) for id_ in dependency["outputs"]
         ]
+        self.parameters_info = self._get_parameters_info()
+
         self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
         self.is_continuous = dependency.get("types", {}).get("continuous", False)
 
@@ -991,6 +1027,13 @@ class Endpoint:
             self.value_is_file(component),
             component["type"] == "state",
         )
+
+    def _get_parameters_info(self) -> list[ParameterInfo] | None:
+        if not self.client._info:
+            self._info = self.client._get_api_info()
+        if self.api_name in self._info["named_endpoints"]:
+            return self._info["named_endpoints"][self.api_name]["parameters"]
+        return None
 
     @staticmethod
     def value_is_file(component: dict) -> bool:
@@ -1047,14 +1090,14 @@ class Endpoint:
                 result = utils.synchronize_async(
                     self._sse_fn_v0, data, hash_data, helper
                 )
-            elif self.protocol in ("sse_v1", "sse_v2", "sse_v2.1"):
+            elif self.protocol in ("sse_v1", "sse_v2", "sse_v2.1", "sse_v3"):
                 event_id = utils.synchronize_async(
-                    self.client.send_data, data, hash_data
+                    self.client.send_data, data, hash_data, self.protocol
                 )
                 self.client.pending_event_ids.add(event_id)
                 self.client.pending_messages_per_event[event_id] = []
                 result = utils.synchronize_async(
-                    self._sse_fn_v1_v2, helper, event_id, self.protocol
+                    self._sse_fn_v1plus, helper, event_id, self.protocol
                 )
             else:
                 raise ValueError(f"Unsupported protocol: {self.protocol}")
@@ -1215,13 +1258,13 @@ class Endpoint:
                 self.client.ssl_verify,
             )
 
-    async def _sse_fn_v1_v2(
+    async def _sse_fn_v1plus(
         self,
         helper: Communicator,
         event_id: str,
-        protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
+        protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
     ):
-        return await utils.get_pred_from_sse_v1_v2(
+        return await utils.get_pred_from_sse_v1plus(
             helper,
             self.client.headers,
             self.client.cookies,

@@ -538,7 +538,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             btn.click(fn=update, inputs=inp, outputs=out)
 
         demo.launch()
-    Demos: blocks_hello, blocks_flipper, blocks_speech_text_sentiment, generate_english_german
+    Demos: blocks_hello, blocks_flipper, blocks_kinematics
     Guides: blocks-and-event-listeners, controlling-layout, state-in-blocks, custom-CSS-and-JS, using-blocks-like-functions
     """
 
@@ -680,6 +680,11 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
     @property
     def _is_running_in_reload_thread(self):
+        if wasm_utils.IS_WASM:
+            # Wasm (Pyodide) doesn't support threading,
+            # so the return value is always False.
+            return False
+
         from gradio.cli.commands.reload import reload_thread
 
         return getattr(reload_thread, "running_reload", False)
@@ -1603,15 +1608,6 @@ Received outputs:
 
         return data
 
-    def run_fn_batch(self, fn, batch, fn_index, state, explicit_call=None):
-        output = []
-        for i in zip(*batch):
-            args = [fn_index, list(i), state]
-            if explicit_call is not None:
-                args.append(explicit_call)
-            output.append(fn(*args))
-        return output
-
     async def process_api(
         self,
         fn_index: int,
@@ -1662,15 +1658,10 @@ Received outputs:
                 raise ValueError(
                     f"Batch size ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
                 )
-            inputs = await anyio.to_thread.run_sync(
-                self.run_fn_batch,
-                self.preprocess_data,
-                inputs,
-                fn_index,
-                state,
-                explicit_call,
-                limiter=self.limiter,
-            )
+            inputs = [
+                self.preprocess_data(fn_index, list(i), state, explicit_call)
+                for i in zip(*inputs)
+            ]
             result = await self.call_function(
                 fn_index,
                 list(zip(*inputs)),
@@ -1681,14 +1672,9 @@ Received outputs:
                 in_event_listener,
             )
             preds = result["prediction"]
-            data = await anyio.to_thread.run_sync(
-                self.run_fn_batch,
-                self.postprocess_data,
-                preds,
-                fn_index,
-                state,
-                limiter=self.limiter,
-            )
+            data = [
+                self.postprocess_data(fn_index, list(o), state) for o in zip(*preds)
+            ]
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)
             data = list(zip(*data))
@@ -1698,14 +1684,7 @@ Received outputs:
             if old_iterator:
                 inputs = []
             else:
-                inputs = await anyio.to_thread.run_sync(
-                    self.preprocess_data,
-                    fn_index,
-                    inputs,
-                    state,
-                    explicit_call,
-                    limiter=self.limiter,
-                )
+                inputs = self.preprocess_data(fn_index, inputs, state, explicit_call)
             was_generating = old_iterator is not None
             result = await self.call_function(
                 fn_index,
@@ -1716,13 +1695,7 @@ Received outputs:
                 event_data,
                 in_event_listener,
             )
-            data = await anyio.to_thread.run_sync(
-                self.postprocess_data,
-                fn_index,  # type: ignore
-                result["prediction"],
-                state,
-                limiter=self.limiter,
-            )
+            data = self.postprocess_data(fn_index, result["prediction"], state)
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
@@ -1782,7 +1755,7 @@ Received outputs:
             "is_colab": utils.colab_check(),
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
-            "protocol": "sse_v2.1",
+            "protocol": "sse_v3",
             "body_css": {
                 "body_background_fill": self.theme._get_computed_value(
                     "body_background_fill"
@@ -1965,19 +1938,19 @@ Received outputs:
         public link used by anyone to access the demo from their browser by setting share=True.
 
         Parameters:
-            inline: whether to display in the interface inline in an iframe. Defaults to True in python notebooks; False otherwise.
-            inbrowser: whether to automatically launch the interface in a new tab on the default browser.
-            share: whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab. When localhost is not accessible (e.g. Google Colab), setting share=False is not supported.
+            inline: whether to display in the gradio app inline in an iframe. Defaults to True in python notebooks; False otherwise.
+            inbrowser: whether to automatically launch the gradio app in a new tab on the default browser.
+            share: whether to create a publicly shareable link for the gradio app. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab. When localhost is not accessible (e.g. Google Colab), setting share=False is not supported.
             debug: if True, blocks the main thread from running. If running in Google Colab, this is needed to print the errors in the cell output.
             auth: If provided, username and password (or list of username-password tuples) required to access app. Can also provide function that takes username and password and returns True if valid login.
             auth_message: If provided, HTML message provided on login page.
-            prevent_thread_lock: If True, the interface will block the main thread while the server is running.
-            show_error: If True, any errors in the interface will be displayed in an alert modal and printed in the browser console log
+            prevent_thread_lock: By default, the gradio app blocks the main thread while the server is running. If set to True, the gradio app will not block and the gradio server will terminate as soon as the script finishes.
+            show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log
             server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
             server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
             max_threads: the maximum number of total threads that the Gradio app can generate in parallel. The default is inherited from the starlette library (currently 40).
-            width: The width in pixels of the iframe element containing the interface (used if inline=True)
-            height: The height in pixels of the iframe element containing the interface (used if inline=True)
+            width: The width in pixels of the iframe element containing the gradio app (used if inline=True)
+            height: The height in pixels of the iframe element containing the gradio app (used if inline=True)
             favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
             ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
             ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
@@ -1985,7 +1958,7 @@ Received outputs:
             ssl_verify: If False, skips certificate validation which allows self-signed certificates to be used.
             quiet: If True, suppresses most print statements.
             show_api: If True, shows the api docs in the footer of the app. Default True.
-            allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve (in addition to the directory containing the gradio python file). Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
+            allowed_paths: List of complete filepaths or parent directories that gradio is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
             blocked_paths: List of complete filepaths or parent directories that gradio is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
             root_path: The root path (or "mount point") of the application, if it's not served from the root ("/") of the domain. Often used when the application is behind a reverse proxy that forwards requests to the application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used as the root path in its entirety. Can be set by environment variable GRADIO_ROOT_PATH. Defaults to "".
             app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
@@ -2086,13 +2059,15 @@ Received outputs:
                 )
                 wasm_utils.register_app(app)
             else:
+                from gradio import http_server
+
                 (
                     server_name,
                     server_port,
                     local_url,
                     app,
                     server,
-                ) = networking.start_server(
+                ) = http_server.start_server(
                     self,
                     server_name,
                     server_port,
@@ -2473,7 +2448,7 @@ Received outputs:
         config = self.config
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
-        for dependency in config["dependencies"]:
+        for dependency, fn in zip(config["dependencies"], self.fns):
             if (
                 not dependency["backend_fn"]
                 or not dependency["show_api"]
@@ -2482,12 +2457,13 @@ Received outputs:
                 continue
 
             dependency_info = {"parameters": [], "returns": []}
+            fn_info = utils.get_function_params(fn.fn)  # type: ignore
             skip_endpoint = False
 
             inputs = dependency["inputs"]
-            for i in inputs:
+            for index, input_id in enumerate(inputs):
                 for component in config["components"]:
-                    if component["id"] == i:
+                    if component["id"] == input_id:
                         break
                 else:
                     skip_endpoint = True  # if component not found, skip endpoint
@@ -2495,16 +2471,52 @@ Received outputs:
                 type = component["props"]["name"]
                 if self.blocks[component["id"]].skip_api:
                     continue
-                label = component["props"].get("label", f"parameter_{i}")
+                label = component["props"].get("label", f"parameter_{input_id}")
                 comp = self.get_component(component["id"])
                 if not isinstance(comp, components.Component):
                     raise TypeError(f"{comp!r} is not a Component")
                 info = component["api_info"]
                 example = comp.example_inputs()
                 python_type = client_utils.json_schema_to_python_type(info)
+
+                # Since the clients use "api_name" and "fn_index" to designate the endpoint and
+                # "result_callbacks" to specify the callbacks, we need to make sure that no parameters
+                # have those names. Hence the final checks.
+                if (
+                    dependency["backend_fn"]
+                    and index < len(fn_info)
+                    and fn_info[index][0]
+                    not in ["api_name", "fn_index", "result_callbacks"]
+                ):
+                    parameter_name = fn_info[index][0]
+                else:
+                    parameter_name = f"param_{index}"
+
+                # How default values are set for the client: if a component has an initial value, then that parameter
+                # is optional in the client and the initial value from the config is used as default in the client.
+                # If the component does not have an initial value, but if the corresponding argument in the predict function has
+                # a default value of None, then that parameter is also optional in the client and the None is used as default in the client.
+                if component["props"].get("value") is not None:
+                    parameter_has_default = True
+                    parameter_default = component["props"]["value"]
+                elif (
+                    dependency["backend_fn"]
+                    and index < len(fn_info)
+                    and fn_info[index][1]
+                    and fn_info[index][2] is None
+                ):
+                    parameter_has_default = True
+                    parameter_default = None
+                else:
+                    parameter_has_default = False
+                    parameter_default = None
+
                 dependency_info["parameters"].append(
                     {
                         "label": label,
+                        "parameter_name": parameter_name,
+                        "parameter_has_default": parameter_has_default,
+                        "parameter_default": parameter_default,
                         "type": info,
                         "python_type": {
                             "type": python_type,

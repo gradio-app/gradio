@@ -356,6 +356,7 @@ class ImageEditor(Component):
                     path=image_utils.save_image(
                         cast(Union[np.ndarray, PIL.Image.Image, str], layer),
                         self.GRADIO_CACHE,
+                        format="png",
                     )
                 )
                 for layer in value["layers"]

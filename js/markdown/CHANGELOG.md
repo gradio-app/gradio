@@ -1,5 +1,18 @@
 # @gradio/markdown
 
+## 0.6.7
+
+### Dependency updates
+
+- @gradio/statustracker@0.4.9
+- @gradio/atoms@0.6.0
+
+## 0.6.6
+
+### Fixes
+
+- [#7623](https://github.com/gradio-app/gradio/pull/7623) [`c9aba8d`](https://github.com/gradio-app/gradio/commit/c9aba8d8a5886ef6456479154a14c69188c20413) - Fixes: gr.Markdown is not updated properly when it has an image tag.  Thanks @dawoodkhan82!
+
 ## 0.6.5
 
 ### Patch Changes

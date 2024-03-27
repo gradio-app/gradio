@@ -46,5 +46,14 @@ def register_app(_app):
     app_map[app_id] = _app
 
 
+class GradioAppNotFoundError(Exception):
+    pass
+
+
 def get_registered_app(app_id: str):
-    return app_map[app_id]
+    try:
+        return app_map[app_id]
+    except KeyError as e:
+        raise GradioAppNotFoundError(
+            f"Gradio app not found (ID: {app_id}). Forgot to call demo.launch()?"
+        ) from e

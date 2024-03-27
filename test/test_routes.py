@@ -344,16 +344,23 @@ class TestRoutes:
         with TestClient(app) as client:
             assert client.get("/echo/docs-custom").is_success
 
-    def test_mount_gradio_app_with_auth_and_root_path(self):
+    def test_mount_gradio_app_with_auth_and_params(self):
         app = FastAPI()
         demo = gr.Interface(lambda s: f"You said {s}!", "textbox", "textbox").queue()
         app = gr.mount_gradio_app(
-            app, demo, path="/echo", auth=("a", "b"), root_path="/echo"
+            app,
+            demo,
+            path="/echo",
+            auth=("a", "b"),
+            root_path="/echo",
+            allowed_paths=["test/test_files/bus.png"],
         )
         # Use context manager to trigger start up events
         with TestClient(app) as client:
             assert client.get("/echo/config").status_code == 401
         assert demo.root_path == "/echo"
+        assert demo.allowed_paths == ["test/test_files/bus.png"]
+        assert demo.show_error
 
     def test_mount_gradio_app_with_lifespan(self):
         @asynccontextmanager
@@ -1065,26 +1072,39 @@ def test_get_root_url(
 
 
 @pytest.mark.parametrize(
-    "headers, root_path, expected_root_url",
+    "headers, root_path, route_path, expected_root_url",
     [
-        ({}, "/gradio/", "http://gradio.app/gradio"),
-        ({"x-forwarded-proto": "http"}, "/gradio/", "http://gradio.app/gradio"),
-        ({"x-forwarded-proto": "https"}, "/gradio/", "https://gradio.app/gradio"),
-        ({"x-forwarded-host": "gradio.dev"}, "/gradio/", "http://gradio.dev/gradio"),
+        ({}, "/gradio/", "/", "http://gradio.app/gradio"),
+        ({"x-forwarded-proto": "http"}, "/gradio/", "/", "http://gradio.app/gradio"),
+        ({"x-forwarded-proto": "https"}, "/gradio/", "/", "https://gradio.app/gradio"),
+        (
+            {"x-forwarded-host": "gradio.dev"},
+            "/gradio/",
+            "/",
+            "http://gradio.dev/gradio",
+        ),
+        (
+            {"x-forwarded-host": "gradio.dev"},
+            "/gradio/",
+            "/config",
+            "http://gradio.dev/gradio",
+        ),
         (
             {"x-forwarded-host": "gradio.dev", "x-forwarded-proto": "https"},
+            "/",
             "/",
             "https://gradio.dev",
         ),
         (
             {"x-forwarded-host": "gradio.dev", "x-forwarded-proto": "https"},
             "http://google.com",
+            "/",
             "http://google.com",
         ),
     ],
 )
 def test_get_root_url_headers(
-    headers: Dict[str, str], root_path: str, expected_root_url: str
+    headers: Dict[str, str], root_path: str, route_path: str, expected_root_url: str
 ):
     scope = {
         "type": "http",
@@ -1092,7 +1112,7 @@ def test_get_root_url_headers(
         "path": "http://gradio.app",
     }
     request = Request(scope)
-    assert get_root_url(request, "/", root_path) == expected_root_url
+    assert get_root_url(request, route_path, root_path) == expected_root_url
 
 
 class TestSimpleAPIRoutes:

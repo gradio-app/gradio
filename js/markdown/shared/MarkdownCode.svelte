@@ -61,10 +61,16 @@
 	}
 	async function render_html(value: string): Promise<void> {
 		if (latex_delimiters.length > 0 && value) {
-			render_math_in_element(el, {
-				delimiters: latex_delimiters,
-				throwOnError: false
-			});
+			const containsDelimiter = latex_delimiters.some(
+				(delimiter) =>
+					value.includes(delimiter.left) && value.includes(delimiter.right)
+			);
+			if (containsDelimiter) {
+				render_math_in_element(el, {
+					delimiters: latex_delimiters,
+					throwOnError: false
+				});
+			}
 		}
 	}
 	afterUpdate(() => render_html(message));

@@ -158,7 +158,9 @@ You can use almost any Gradio app as an API! In the footer of a Gradio app [like
 
 ![Use via API](https://github.com/gradio-app/gradio/blob/main/guides/assets/use_via_api.png?raw=true)
 
-This is a page that lists the endpoints that can be used to query the Gradio app, via our supported clients: either [the Python client](https://gradio.app/guides/getting-started-with-the-python-client/), or [the JavaScript client](https://gradio.app/guides/getting-started-with-the-js-client/). For each endpoint, Gradio automatically generates the parameters and their types, as well as example inputs.
+This is a page that lists the endpoints that can be used to query the Gradio app, via our supported clients: either [the Python client](https://gradio.app/guides/getting-started-with-the-python-client/), or [the JavaScript client](https://gradio.app/guides/getting-started-with-the-js-client/). For each endpoint, Gradio automatically generates the parameters and their types, as well as example inputs, like this.
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api.png)
 
 The endpoints are automatically created when you launch a Gradio `Interface`. If you are using Gradio `Blocks`, you can also set up a Gradio API page, though we recommend that you explicitly name each event listener, such as
 
@@ -389,6 +391,11 @@ async def logout(request: Request):
 @app.route('/login')
 async def login(request: Request):
     redirect_uri = request.url_for('auth')
+    # If your app is running on https, you should ensure that the
+    # `redirect_uri` is https, e.g. uncomment the following lines:
+    # 
+    # from urllib.parse import urlparse, urlunparse
+    # redirect_uri = urlunparse(urlparse(str(redirect_uri))._replace(scheme='https'))
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 @app.route('/auth')

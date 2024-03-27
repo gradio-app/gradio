@@ -42,6 +42,38 @@ def calculator_demo():
 
 
 @pytest.fixture
+def calculator_demo_with_defaults():
+    def calculator(num1, operation=None, num2=100):
+        if operation is None or operation == "add":
+            return num1 + num2
+        elif operation == "subtract":
+            return num1 - num2
+        elif operation == "multiply":
+            return num1 * num2
+        elif operation == "divide":
+            if num2 == 0:
+                raise gr.Error("Cannot divide by zero!")
+            return num1 / num2
+
+    demo = gr.Interface(
+        calculator,
+        [
+            gr.Number(value=10),
+            gr.Radio(["add", "subtract", "multiply", "divide"]),
+            gr.Number(),
+        ],
+        "number",
+        examples=[
+            [5, "add", 3],
+            [4, "divide", 2],
+            [-4, "multiply", 2.5],
+            [0, "subtract", 1.2],
+        ],
+    )
+    return demo
+
+
+@pytest.fixture
 def state_demo():
     demo = gr.Interface(
         lambda x, y: (x, y),

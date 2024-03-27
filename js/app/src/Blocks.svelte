@@ -123,6 +123,8 @@
 			}
 		});
 		update_value(updates);
+
+		await tick();
 	}
 
 	let submit_map: Map<number, ReturnType<typeof app.submit>> = new Map();
@@ -263,88 +265,88 @@
 					}
 					dep.pending_request = false;
 					handle_update(data, fn_index);
+					set_status($loading_status);
 				})
 				.on("status", ({ fn_index, ...status }) => {
-					requestAnimationFrame(() => {
-						//@ts-ignore
-						loading_status.update({
-							...status,
-							status: status.stage,
-							progress: status.progress_data,
-							fn_index
-						});
-						if (
-							!showed_duplicate_message &&
-							space_id !== null &&
-							status.position !== undefined &&
-							status.position >= 2 &&
-							status.eta !== undefined &&
-							status.eta > SHOW_DUPLICATE_MESSAGE_ON_ETA
-						) {
-							showed_duplicate_message = true;
-							messages = [
-								new_message(DUPLICATE_MESSAGE, fn_index, "warning"),
-								...messages
-							];
-						}
-						if (
-							!showed_mobile_warning &&
-							is_mobile_device &&
-							status.eta !== undefined &&
-							status.eta > SHOW_MOBILE_QUEUE_WARNING_ON_ETA
-						) {
-							showed_mobile_warning = true;
-							messages = [
-								new_message(MOBILE_QUEUE_WARNING, fn_index, "warning"),
-								...messages
-							];
-						}
-
-						if (status.stage === "complete") {
-							dependencies.map(async (dep, i) => {
-								if (dep.trigger_after === fn_index) {
-									wait_then_trigger_api_call(i, payload.trigger_id);
-								}
-							});
-
-							submission.destroy();
-						}
-						if (status.broken && is_mobile_device && user_left_page) {
-							window.setTimeout(() => {
-								messages = [
-									new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
-									...messages
-								];
-							}, 0);
-							wait_then_trigger_api_call(
-								dep_index,
-								payload.trigger_id,
-								event_data
-							);
-							user_left_page = false;
-						} else if (status.stage === "error") {
-							if (status.message) {
-								const _message = status.message.replace(
-									MESSAGE_QUOTE_RE,
-									(_, b) => b
-								);
-								messages = [
-									new_message(_message, fn_index, "error"),
-									...messages
-								];
-							}
-							dependencies.map(async (dep, i) => {
-								if (
-									dep.trigger_after === fn_index &&
-									!dep.trigger_only_on_success
-								) {
-									wait_then_trigger_api_call(i, payload.trigger_id);
-								}
-							});
-
-							submission.destroy();
-						}
+					//@ts-ignore
+					loading_status.update({
+						...status,
+						status: status.stage,
+						progress: status.progress_data,
+						fn_index
 					});
+					set_status($loading_status);
+					if (
+						!showed_duplicate_message &&
+						space_id !== null &&
+						status.position !== undefined &&
+						status.position >= 2 &&
+						status.eta !== undefined &&
+						status.eta > SHOW_DUPLICATE_MESSAGE_ON_ETA
+					) {
+						showed_duplicate_message = true;
+						messages = [
+							new_message(DUPLICATE_MESSAGE, fn_index, "warning"),
+							...messages
+						];
+					}
+					if (
+						!showed_mobile_warning &&
+						is_mobile_device &&
+						status.eta !== undefined &&
+						status.eta > SHOW_MOBILE_QUEUE_WARNING_ON_ETA
+					) {
+						showed_mobile_warning = true;
+						messages = [
+							new_message(MOBILE_QUEUE_WARNING, fn_index, "warning"),
+							...messages
+						];
+					}
+
+					if (status.stage === "complete") {
+						dependencies.map(async (dep, i) => {
+							if (dep.trigger_after === fn_index) {
+								wait_then_trigger_api_call(i, payload.trigger_id);
+							}
+						});
+
+						submission.destroy();
+					}
+					if (status.broken && is_mobile_device && user_left_page) {
+						window.setTimeout(() => {
+							messages = [
+								new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
+								...messages
+							];
+						}, 0);
+						wait_then_trigger_api_call(
+							dep_index,
+							payload.trigger_id,
+							event_data
+						);
+						user_left_page = false;
+					} else if (status.stage === "error") {
+						if (status.message) {
+							const _message = status.message.replace(
+								MESSAGE_QUOTE_RE,
+								(_, b) => b
+							);
+							messages = [
+								new_message(_message, fn_index, "error"),
+								...messages
+							];
+						}
+						dependencies.map(async (dep, i) => {
+							if (
+								dep.trigger_after === fn_index &&
+								!dep.trigger_only_on_success
+							) {
+								wait_then_trigger_api_call(i, payload.trigger_id);
+							}
+						});
+
+						submission.destroy();
+					}
 				})
 				.on("log", ({ log, fn_index, level }) => {
 					messages = [new_message(log, fn_index, level), ...messages];
@@ -426,7 +428,9 @@
 				const deps = $targets[id]?.[event];
 
 				deps?.forEach((dep_id) => {
-					wait_then_trigger_api_call(dep_id, id, data);
+					requestAnimationFrame(() => {
+						wait_then_trigger_api_call(dep_id, id, data);
+					});
 				});
 			}
 		});
@@ -455,7 +459,6 @@
 		});
 
 		const inputs_to_update = loading_status.get_inputs_to_update();
-
 		const additional_updates = Array.from(inputs_to_update).map(
 			([id, pending_status]) => {
 				return {

@@ -11,10 +11,10 @@ import tempfile
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any
 
+import httpx
 import numpy as np
-import requests
 from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, PngImagePlugin
 
@@ -58,12 +58,18 @@ def extract_base64_data(x: str) -> str:
 #########################
 
 
-def encode_plot_to_base64(plt):
+def encode_plot_to_base64(plt, format: str = "png"):
+    fmt = format or "png"
     with BytesIO() as output_bytes:
-        plt.savefig(output_bytes, format="png")
+        plt.savefig(output_bytes, format=fmt)
         bytes_data = output_bytes.getvalue()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
-    return "data:image/png;base64," + base64_str
+    return output_base64(base64_str, fmt)
+
+
+def get_pil_exif_bytes(pil_image):
+    if "exif" in pil_image.info:
+        return pil_image.info["exif"]
 
 
 def get_pil_metadata(pil_image):
@@ -78,24 +84,32 @@ def get_pil_metadata(pil_image):
 
 def encode_pil_to_bytes(pil_image, format="png"):
     with BytesIO() as output_bytes:
-        pil_image.save(output_bytes, format, pnginfo=get_pil_metadata(pil_image))
-        # pil_image.save(output_bytes, "webp", quality=0, method=0, lossless=True)
+        if format == "png":
+            params = {"pnginfo": get_pil_metadata(pil_image)}
+        else:
+            exif = get_pil_exif_bytes(pil_image)
+            params = {"exif": exif} if exif else {}
+        pil_image.save(output_bytes, format, **params)
         return output_bytes.getvalue()
 
 
-def encode_pil_to_base64(pil_image):
-    bytes_data = encode_pil_to_bytes(pil_image)
+def encode_pil_to_base64(pil_image, format="png"):
+    bytes_data = encode_pil_to_bytes(pil_image, format)
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
-    return "data:image/png;base64," + base64_str
+    return output_base64(base64_str, format)
 
 
-def encode_array_to_base64(image_array):
+def encode_array_to_base64(image_array, format="png"):
     with BytesIO() as output_bytes:
         pil_image = Image.fromarray(_convert(image_array, np.uint8, force_copy=False))
-        pil_image.save(output_bytes, "PNG")
+        pil_image.save(output_bytes, format)
         bytes_data = output_bytes.getvalue()
     base64_str = str(base64.b64encode(bytes_data), "utf-8")
-    return "data:image/png;base64," + base64_str
+    return output_base64(base64_str, format)
+
+
+def output_base64(data, format=None) -> str:
+    return f"data:image/{format or 'png'};base64,{data}"
 
 
 def hash_file(file_path: str | Path, chunk_num_blocks: int = 128) -> str:
@@ -192,9 +206,10 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
     full_temp_file_path = str(abspath(temp_dir / name))
 
     if not Path(full_temp_file_path).exists():
-        response = requests.get(url, stream=True)
-        with open(full_temp_file_path, "wb") as f:
-            for chunk in response.iter_content(chunk_size=256):
+        with httpx.stream("GET", url, follow_redirects=True) as r, open(
+            full_temp_file_path, "wb"
+        ) as f:
+            for chunk in r.iter_raw():
                 f.write(chunk)
 
     return full_temp_file_path
