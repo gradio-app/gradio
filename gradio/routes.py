@@ -803,11 +803,11 @@ class App(FastAPI):
                         message=str(e),
                     )
                     response = process_msg(message)
-                    if response is not None:
-                        yield response
                     if isinstance(e, asyncio.CancelledError):
                         del blocks._queue.pending_messages_per_session[session_hash]
                         await blocks._queue.clean_events(session_hash=session_hash)
+                    if response is not None:
+                        yield response
                     raise e
 
             return StreamingResponse(
