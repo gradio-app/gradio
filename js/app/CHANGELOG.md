@@ -1,5 +1,11 @@
 # @gradio/app
 
+## 1.30.0
+
+### Features
+
+- [#7852](https://github.com/gradio-app/gradio/pull/7852) [`72661e3`](https://github.com/gradio-app/gradio/commit/72661e3391a432ccd77fb3100e69fbdf95093931) - Revert the minify setting in vite.config.js which was mistakingly introduced in #6261.  Thanks @whitphx!
+
 ## 1.29.0
 
 ### Features
