@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
 import datetime
 import math
+from copy import deepcopy
 from typing import Any, Callable
 
 from gradio_client.documentation import document
@@ -48,7 +48,7 @@ class State(Component):
                 f"The initial value of `gr.State` must be able to be deepcopied. The initial value of type {type(value)} cannot be deepcopied."
             ) from err
         super().__init__(value=self.value, render=render)
-    
+
     @property
     def stateful(self):
         return True

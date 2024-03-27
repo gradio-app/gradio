@@ -511,7 +511,7 @@ def convert_component_dict_to_list(
     return predictions
 
 
-@document("launch", "queue", "integrate", "load")
+@document("launch", "queue", "integrate", "load", "unload")
 class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     """
     Blocks is Gradio's low-level API that allows you to create more custom web
@@ -883,6 +883,39 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             for block in self.blocks.values()
         )
 
+    def unload(self, fn: Callable):
+        """This listener is triggered when the user closes or refreshes the tab, ending the user session.
+
+        It is useful for cleaning up resources when the app is closed.
+
+        Parameters:
+            fn: Callable function to run to clear resources. The function should not take any arguments and the output is not used.
+        """
+        self.set_event_trigger(
+            targets=[EventListenerMethod(None, "unload")],
+            fn=fn,
+            inputs=None,
+            outputs=None,
+            preprocess=False,
+            postprocess=False,
+            show_progress="hidden",
+            api_name=None,
+            js=None,
+            no_target=True,
+            queue=None,
+            batch=False,
+            max_batch_size=4,
+            cancels=None,
+            every=None,
+            collects_event_data=None,
+            trigger_after=None,
+            trigger_only_on_success=False,
+            trigger_mode="once",
+            concurrency_limit="default",
+            concurrency_id=None,
+            show_api=False,
+        )
+
     def set_event_trigger(
         self,
         targets: Sequence[EventListenerMethod],
@@ -1224,6 +1257,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             event_id: id of event in queue
             event_data: data associated with event trigger
         """
+        # breakpoint()
         block_fn = self.fns[fn_index]
         if not block_fn.fn:
             raise IndexError(f"function with index {fn_index} not defined.")
@@ -1504,8 +1538,8 @@ Received outputs:
                 ) from e
 
             if block.stateful:
-                assert isinstance(block, components.State)
-                block._created_at = datetime.datetime.now()
+                if isinstance(block, components.State):
+                    block._created_at = datetime.datetime.now()
                 if not utils.is_update(predictions[i]):
                     state[output_id] = predictions[i]
                 output.append(None)

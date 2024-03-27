@@ -44,16 +44,21 @@ class StateHolder:
             if len(self.session_data) > self.capacity:
                 self.session_data.popitem(last=False)
 
-    def delete_all_expired_state(self,):
+    def delete_all_expired_state(
+        self,
+    ):
         for session_id in self.session_data:
             self.delete_state(session_id, expired_only=True)
-    
+
     def delete_state(self, session_id: str, expired_only: bool = False):
+        if session_id not in self.session_data:
+            return
         from gradio.components import State
+
         to_delete = []
         session_state = self.session_data[session_id]
         for component in session_state:
-            if (isinstance(component, State) and (not expired_only or component.expired)):
+            if isinstance(component, State) and (not expired_only or component.expired):
                 component.delete_callback()
                 to_delete.append(component._id)
         for session_id in to_delete:
