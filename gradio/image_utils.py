@@ -16,7 +16,7 @@ def format_image(
     type: Literal["numpy", "pil", "filepath"],
     cache_dir: str,
     name: str = "image",
-    format: str = "png",
+    format: str = "webp",
 ) -> np.ndarray | PIL.Image.Image | str | None:
     """Helper method to format an image based on self.type"""
     if im is None:
@@ -50,15 +50,13 @@ def format_image(
 def save_image(
     y: np.ndarray | PIL.Image.Image | str | Path, cache_dir: str, format: str = "webp"
 ):
-    print(format)
-    # numpy gets saved to png as default format
-    # PIL gets saved to its original format if possible
+
     if isinstance(y, np.ndarray):
         path = processing_utils.save_img_array_to_cache(
-            y, cache_dir=cache_dir, format="webp"
+            y, cache_dir=cache_dir, format=format
         )
     elif isinstance(y, PIL.Image.Image):
-        fmt = y.format if y.format != "png" and y.format is not None else "webp"
+        fmt = y.format if y.format is not None and y.format != "png" else "webp"
 
         try:
             path = processing_utils.save_pil_to_cache(
