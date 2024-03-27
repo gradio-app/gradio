@@ -48,20 +48,21 @@ def format_image(
 
 
 def save_image(
-    y: np.ndarray | PIL.Image.Image | str | Path, cache_dir: str, format: str = "png"
+    y: np.ndarray | PIL.Image.Image | str | Path, cache_dir: str, format: str = "webp"
 ):
+    print(format)
     # numpy gets saved to png as default format
     # PIL gets saved to its original format if possible
     if isinstance(y, np.ndarray):
         path = processing_utils.save_img_array_to_cache(
-            y, cache_dir=cache_dir, format=format
+            y, cache_dir=cache_dir, format="webp"
         )
     elif isinstance(y, PIL.Image.Image):
         fmt = y.format if y.format != "png" and y.format is not None else "webp"
-        print(fmt)
+
         try:
             path = processing_utils.save_pil_to_cache(
-                y, cache_dir=cache_dir, format=format
+                y, cache_dir=cache_dir, format=fmt
             )
         # Catch error if format is not supported by PIL
         except (KeyError, ValueError):

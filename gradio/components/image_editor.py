@@ -175,7 +175,6 @@ class ImageEditor(Component):
         transforms: Iterable[Literal["crop"]] = ("crop",),
         eraser: Eraser | None | Literal[False] = None,
         brush: Brush | None | Literal[False] = None,
-        live: bool = False,
     ):
         """
         Parameters:
@@ -326,6 +325,10 @@ class ImageEditor(Component):
                 else None
             )
             composite = self.convert_and_format_image(_payload.composite)
+
+        if payload is not None and payload.id is not None:
+            self.blob_storage.pop(payload.id)
+
             return {
                 "background": bg,
                 "layers": [x for x in layers if x is not None] if layers else [],
@@ -409,7 +412,6 @@ class ImageEditor(Component):
         """
         Accepts a dictionary of image blobs, where the keys are 'background', 'layers', and 'composite', and the values are binary file-like objects.
         """
-        # data.data["file"] = data.data
 
         type = data.data["type"]
         index = (
@@ -417,6 +419,7 @@ class ImageEditor(Component):
             if data.data["index"] and data.data["index"] != "null"
             else None
         )
+        print("blob storage", self.blob_storage.keys())
         file = data.files[0][1]
         id = data.data["id"]
 
