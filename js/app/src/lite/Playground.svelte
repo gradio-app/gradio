@@ -69,7 +69,11 @@
 	onMount(() => {
 		var code_editors = document.getElementsByClassName("code-editor");
 		for (var i = 0; i < code_editors.length; i++) {
-			code_editors[i].addEventListener("keydown", shortcut_run as EventListener, true);
+			code_editors[i].addEventListener(
+				"keydown",
+				shortcut_run as EventListener,
+				true
+			);
 		}
 	});
 
@@ -242,9 +246,8 @@
 	}
 
 	.code-header {
-		padding-top: 0.25rem;
+		align-self: center;
 		font-family: monospace;
-		margin-top: 4px;
 		font-size: 14px;
 		font-weight: lighter;
 		margin-right: 4px;
@@ -259,6 +262,7 @@
 		color: #999b9e;
 		font-family: sans-serif;
 		font-size: 15px;
+		align-self: center;
 	}
 	.lightning-logo {
 		width: 1rem;
@@ -278,7 +282,6 @@
 		justify-content: space-between;
 		align-items: middle;
 		height: 2rem;
-		border-bottom: 1px solid rgb(229 231 235);
 	}
 
 	.run {
@@ -305,6 +308,8 @@
 		font-family: sans-serif;
 	}
 	.shortcut {
+		align-self: center;
+		margin-top: 2px;
 		font-size: 10px;
 		font-weight: lighter;
 		padding-left: 0.15rem;
