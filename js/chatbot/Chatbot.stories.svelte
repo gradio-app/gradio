@@ -132,3 +132,12 @@
 		height: "50%"
 	}}
 />
+
+<Story
+	name="Chatbot with placeholder"
+	args={{
+		value: [],
+		placeholder:
+			"**Gradio Helper**\n\nThis Chatbot can help you on *any topic related to Gradio*."
+	}}
+/>
