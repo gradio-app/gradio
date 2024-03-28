@@ -134,13 +134,11 @@ You may want to add multimodal capability to your chatbot. For example, you may 
 import gradio as gr
 import time
 
-def echo(message, history):
-    t = x['text']
-    for i in range(len(t)):
-        time.sleep(0.5)
-        yield t[:i+1]
+def count_files(message, history):
+    num_files = len(message["files"])
+    return f"You uploaded {num_files} files"
 
-demo = gr.ChatInterface(fn=echo, examples=["hello", "hola", "merhaba"], title="Echo Bot", multimodal=True)
+demo = gr.ChatInterface(fn=count_files, examples=[{"text": "Hello", "files": []}], title="Echo Bot", multimodal=True)
 
 demo.launch()
 ```
@@ -148,7 +146,7 @@ demo.launch()
 When `multimodal=True`, the first parameter of your function should receives a dictionary consisting of the submitted text and uploaded files that looks like this: `{"text": "user input", "file": ["file_path1", "file_path2", ...]}`.
 
 
-Tip: If you'd like to [customize](#customizing-your-chatbot) the textbox for your multimodal chatbot, you should pass in an instance of `gr.MultimodalTextbox` instead of an instance of `gr.Textbox`.
+Tip: If you'd like to customize the UI/UX of the textbox for your multimodal chatbot, you should pass in an instance of `gr.MultimodalTextbox` to the `textbox` argument of `ChatInterface` instead of an instance of `gr.Textbox`.
 
 ## Additional Inputs
 
