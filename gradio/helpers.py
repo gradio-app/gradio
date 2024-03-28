@@ -381,9 +381,7 @@ class Examples:
                 yield output[0] if len(self.outputs) == 1 else output
                 return
         output = [None] * len(self.outputs)
-        async for output in self._handle_callable_as_generator(
-            *input_values
-        ):
+        async for output in self._handle_callable_as_generator(*input_values):
             output = self._postprocess_output(output)
             yield output[0] if len(self.outputs) == 1 else output
         self.cache_logger.flag(output)
