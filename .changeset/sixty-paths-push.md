@@ -1,8 +1,6 @@
 ---
-"@gradio/icons": patch
-"@gradio/multimodaltextbox": patch
-"@gradio/upload": patch
-"gradio": patch
+"@gradio/multimodaltextbox": minor
+"gradio": minor
 ---
 
-fix:Multimodal Textbox Loading + other fixes
+feat:Paste Images into MultimodalTextbox
