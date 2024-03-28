@@ -777,8 +777,11 @@ export function api_factory(
 								fn_index,
 								time: new Date()
 							});
+							const origin = window.location.hostname.includes('.dev.')
+								? `moon-${window.location.hostname.split('.')[1]}.dev.spaces.huggingface.tech`
+								: `https://huggingface.co`;
 							const zerogpu_auth_promise = dependency.zerogpu
-								? postMessage<string>("whoami", "https://moon-sp-zerogpu-login-b6.dev.spaces.huggingface.tech")
+								? postMessage<Headers>("whoami", origin)
 								: Promise.resolve(null);
 							zerogpu_auth_promise.then((zerogpu_auth) => {
 								return post_data(
