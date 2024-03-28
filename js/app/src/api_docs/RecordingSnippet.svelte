@@ -111,13 +111,6 @@ const app = await client(<span class="token string">"{root}"</span>);
 		margin-bottom: var(--size-3);
 	}
 
-	.desc {
-		color: var(--body-text-color-subdued);
-	}
-
-	.example-inputs {
-		color: var(--color-accent);
-	}
 	.api-name {
 		color: var(--color-accent);
 	}

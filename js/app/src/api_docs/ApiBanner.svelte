@@ -20,6 +20,9 @@
 	<span class="counts">
 		<span class="url">{api_count}</span> API endpoint{#if api_count > 1}s{/if}<br
 		/>
+		<!-- TODO: fix -->
+		<!-- svelte-ignore a11y-click-events-have-key-events-->
+		<!-- svelte-ignore a11y-no-static-element-interactions-->
 		<span
 			class="api-recorder"
 			on:click={() => dispatch("close", { api_recorder_visible: true })}
