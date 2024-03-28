@@ -328,6 +328,7 @@ class Examples:
         if self.fn is None:
             raise ValueError("Cannot lazy-cache examples if no function is provided")
         output = self.fn(*self.examples[example_index])
+        print("output", output)
         self.write_to_cache(output)
         with open(self.cached_indices_file, "a") as f:
             f.write(f"{example_index}\n")
@@ -403,30 +404,29 @@ class Examples:
             Context.root_block.dependencies.remove(dependency)
             Context.root_block.fns.pop(fn_index)
 
-        if self.cache_examples is True:
-            # Remove the original load_input_event and replace it with one that
-            # also populates the input. We do it this way to to allow the cache()
-            # method to be called independently of the create() method
-            index = Context.root_block.dependencies.index(self.load_input_event)
-            Context.root_block.dependencies.pop(index)
-            Context.root_block.fns.pop(index)
+        # Remove the original load_input_event and replace it with one that
+        # also populates the input. We do it this way to to allow the cache()
+        # method to be called independently of the create() method
+        index = Context.root_block.dependencies.index(self.load_input_event)
+        Context.root_block.dependencies.pop(index)
+        Context.root_block.fns.pop(index)
 
-            def load_example(example_id):
-                processed_example = self.non_none_processed_examples[
-                    example_id
-                ] + self.load_from_cache(example_id)
-                return utils.resolve_singleton(processed_example)
+        def load_example(example_id):
+            processed_example = self.non_none_processed_examples[
+                example_id
+            ] + self.load_from_cache(example_id)
+            return utils.resolve_singleton(processed_example)
 
-            self.load_input_event = self.dataset.click(
-                load_example,
-                inputs=[self.dataset],
-                outputs=self.inputs_with_examples + self.outputs,  # type: ignore
-                show_progress="hidden",
-                postprocess=False,
-                queue=False,
-                api_name=self.api_name,
-                show_api=False,
-            )
+        self.load_input_event = self.dataset.click(
+            load_example,
+            inputs=[self.dataset],
+            outputs=self.inputs_with_examples + self.outputs,  # type: ignore
+            show_progress="hidden",
+            postprocess=False,
+            queue=False,
+            api_name=self.api_name,
+            show_api=False,
+        )
 
     def write_to_cache(self, value):
         self.cache_logger.setup(self.outputs, self.cached_folder)
