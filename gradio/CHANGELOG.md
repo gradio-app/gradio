@@ -1,5 +1,12 @@
 # gradio
 
+## 4.24.1
+
+### Features
+
+- [#7869](https://github.com/gradio-app/gradio/pull/7869) [`b9dbcf7`](https://github.com/gradio-app/gradio/commit/b9dbcf7aa22fe9a19edbc0c52d46a973d8d57ad4) - Make buttons in `gr.ChatInterface` more mobile-friendly.  Thanks @abidlabs!
+- [#7875](https://github.com/gradio-app/gradio/pull/7875) [`e6d051d`](https://github.com/gradio-app/gradio/commit/e6d051dc8a497fdd6b4cfbd57efd4c8015b97a66) - Fix how files are processed in `gr.ChatInterface`.  Thanks @abidlabs!
+
 ## 4.24.0
 
 ### Features
