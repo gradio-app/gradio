@@ -321,8 +321,15 @@ class Examples:
                     )
                 print("\n\n")
                 self.cache_logger.setup(self.outputs, self.cached_folder)
+                if inspect.iscoroutinefunction(self.fn) or inspect.isasyncgenfunction(
+                    self.fn
+                ):
+                    lazy_cache_fn = self.async_lazy_cache
+                else:
+                    lazy_cache_fn = self.sync_lazy_cache
+
                 self.load_input_event.then(
-                    self.lazy_cache,
+                    lazy_cache_fn,
                     inputs=[self.dataset] + self.inputs,
                     outputs=self.outputs,
                     postprocess=False,
@@ -341,21 +348,6 @@ class Examples:
             else:
                 client_utils.synchronize_async(self.cache)
 
-    async def _handle_callable_as_generator(self, *args):
-        if self.fn is None:
-            raise ValueError("Cannot lazy-cache examples if no function is provided")
-        if inspect.iscoroutinefunction(self.fn):
-            result = await self.fn(*args)
-            yield result
-        elif inspect.isasyncgenfunction(self.fn):
-            async for item in self.fn(*args):
-                yield item
-        elif inspect.isgeneratorfunction(self.fn):
-            for item in self.fn(*args):
-                yield item
-        else:
-            yield self.fn(*args)
-
     def _postprocess_output(self, output) -> list:
         """
         This is a way that we can postprocess the data manually, since we set postprocess=False in the lazy_cache
@@ -371,17 +363,45 @@ class Examples:
         demo.unrender()
         return demo.postprocess_data(0, output, None)
 
-    async def lazy_cache(self, example_index, *input_values):
+    def _get_cached_index_if_cached(self, example_index) -> int | None:
         if Path(self.cached_indices_file).exists():
             with open(self.cached_indices_file) as f:
                 cached_indices = [int(line.strip()) for line in f]
             if example_index in cached_indices:
                 cached_index = cached_indices.index(example_index)
-                output = self.load_from_cache(cached_index)
-                yield output[0] if len(self.outputs) == 1 else output
-                return
+                return cached_index
+        return None
+
+    async def async_lazy_cache(self, example_index, *input_values):
+        cached_index = self._get_cached_index_if_cached(example_index)
+        if cached_index is not None:
+            output = self.load_from_cache(cached_index)
+            yield output[0] if len(self.outputs) == 1 else output
+            return
         output = [None] * len(self.outputs)
-        async for output in self._handle_callable_as_generator(*input_values):
+        if inspect.isasyncgenfunction(self.fn):
+            fn = self.fn
+        else:
+            fn = utils.async_fn_to_generator(self.fn)
+        async for output in fn(*input_values):
+            output = self._postprocess_output(output)
+            yield output[0] if len(self.outputs) == 1 else output
+        self.cache_logger.flag(output)
+        with open(self.cached_indices_file, "a") as f:
+            f.write(f"{example_index}\n")
+
+    def sync_lazy_cache(self, example_index, *input_values):
+        cached_index = self._get_cached_index_if_cached(example_index)
+        if cached_index is not None:
+            output = self.load_from_cache(cached_index)
+            yield output[0] if len(self.outputs) == 1 else output
+            return
+        output = [None] * len(self.outputs)
+        if inspect.isgeneratorfunction(self.fn):
+            fn = self.fn
+        else:
+            fn = utils.sync_fn_to_generator(self.fn)
+        for output in fn(*input_values):
             output = self._postprocess_output(output)
             yield output[0] if len(self.outputs) == 1 else output
         self.cache_logger.flag(output)
