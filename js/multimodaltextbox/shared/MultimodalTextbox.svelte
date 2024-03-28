@@ -35,6 +35,8 @@
 	export let root: string;
 	export let file_types: string[] | null = null;
 
+	let upload_component: Upload;
+	let hidden_upload: HTMLInputElement;
 	let el: HTMLTextAreaElement | HTMLInputElement;
 	let can_scroll: boolean;
 	let previous_scroll_top = 0;
@@ -172,8 +174,6 @@
 		value = value;
 	}
 
-	let hidden_upload: HTMLInputElement;
-
 	function handle_upload_click(): void {
 		if (hidden_upload) {
 			hidden_upload.click();
@@ -183,6 +183,18 @@
 	async function handle_submit(): Promise<void> {
 		dispatch("submit");
 	}
+
+	function handle_paste(event: ClipboardEvent): void {
+		if (!event.clipboardData) return;
+		const items = event.clipboardData.items;
+		for (let index in items) {
+			const item = items[index];
+			if (item.kind === "file" && item.type.includes("image")) {
+				const blob = item.getAsFile();
+				if (blob) upload_component.load_files([blob]);
+			}
+		}
+	}
 </script>
 
 <!-- svelte-ignore a11y-autofocus -->
@@ -190,6 +202,7 @@
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
 	<div class="input-container">
 		<Upload
+			bind:this={upload_component}
 			on:load={handle_upload}
 			filetype={accept_file_types}
 			{root}
@@ -268,6 +281,7 @@
 				on:select={handle_select}
 				on:focus
 				on:scroll={handle_scroll}
+				on:paste={handle_paste}
 				style={text_align ? "text-align: " + text_align : ""}
 			/>
 		</Upload>
