@@ -121,24 +121,33 @@
 		return new Promise((resolve) => setTimeout(() => resolve(), 30));
 	}
 
+	let uploading = false;
+	let pending = false;
 	async function handle_change(e: CustomEvent<Blob | any>): Promise<void> {
-		// await nextframe();
+		if (uploading) {
+			pending = true;
+			return;
+		}
+
+		uploading = true;
+
+		await nextframe();
 		const blobs = await editor.get_blobs();
 
 		const images: BinaryImages = [];
 
-		image_id = Math.random().toString(36).substring(2);
+		let id = Math.random().toString(36).substring(2);
 
 		if (blobs.background)
 			images.push([
-				image_id,
+				id,
 				"background",
 				new File([blobs.background], "background.png"),
 				null
 			]);
 		if (blobs.composite)
 			images.push([
-				image_id,
+				id,
 				"composite",
 				new File([blobs.composite], "composite.png"),
 				null
@@ -146,7 +155,7 @@
 		blobs.layers.forEach((layer, i) => {
 			if (layer)
 				images.push([
-					image_id as string,
+					id as string,
 					`layer`,
 					new File([layer], `layer_${i}.png`),
 					i
@@ -161,7 +170,16 @@
 				});
 			})
 		);
+		image_id = id;
 		dispatch("change");
+
+		await nextframe();
+		uploading = false;
+		if (pending) {
+			pending = false;
+			uploading = false;
+			handle_change(e);
+		}
 	}
 </script>
 
