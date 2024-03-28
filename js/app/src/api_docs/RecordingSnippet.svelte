@@ -28,7 +28,7 @@
 			})
 			.join(",\n");
 
-		return `${params}"`;
+		return `${params}`;
 	}
 </script>
 
