@@ -1,6 +1,6 @@
 ---
-"@gradio/multimodaltextbox": minor
-"gradio": minor
+"@gradio/multimodaltextbox": patch
+"gradio": patch
 ---
 
 feat:Paste Images into MultimodalTextbox
