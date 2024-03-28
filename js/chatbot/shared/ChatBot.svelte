@@ -46,6 +46,7 @@
 	export let line_breaks = true;
 	export let i18n: I18nFormatter;
 	export let layout: "bubble" | "panel" = "bubble";
+	export let placeholder: string | null = null;
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
@@ -151,13 +152,14 @@
 
 <div
 	class={layout === "bubble" ? "bubble-wrap" : "panel-wrap"}
+	class:placeholder-container={value === null || value.length === 0}
 	bind:this={div}
 	role="log"
 	aria-label="chatbot conversation"
 	aria-live="polite"
 >
 	<div class="message-wrap" class:bubble-gap={layout === "bubble"} use:copy>
-		{#if value !== null}
+		{#if value !== null && value.length > 0}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
 					{#if message !== null}
@@ -285,11 +287,21 @@
 			{#if pending_message}
 				<Pending {layout} />
 			{/if}
+		{:else if placeholder !== null}
+			<center>
+				<Markdown message={placeholder} {latex_delimiters} />
+			</center>
 		{/if}
 	</div>
 </div>
 
 <style>
+	.placeholder-container {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100%;
+	}
 	.bubble-wrap {
 		padding: var(--block-padding);
 		width: 100%;

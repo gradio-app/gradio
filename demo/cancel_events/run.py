@@ -1,11 +1,17 @@
 import time
 import gradio as gr
+import atexit
+import pathlib
 
+log_file = (pathlib.Path(__file__).parent / "cancel_events_output_log.txt").resolve()
 
 def fake_diffusion(steps):
+    log_file.write_text("")
     for i in range(steps):
         print(f"Current step: {i}")
-        time.sleep(0.5)
+        with log_file.open("a") as f:
+            f.write(f"Current step: {i}\n")
+        time.sleep(0.2)
         yield str(i)
 
 
@@ -45,6 +51,7 @@ with gr.Blocks() as demo:
     video.start_recording(None, None, None, cancels=[click_event, pred_event])
 
     demo.queue(max_size=20)
+    atexit.register(lambda: log_file.unlink())
 
 if __name__ == "__main__":
     demo.launch()
