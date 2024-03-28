@@ -5,6 +5,9 @@ on:
     workflows: ["trigger"]
     types:
       - requested
+  pull_request:
+    branches:
+      - main
 
 permissions:
   statuses: write
@@ -49,7 +52,7 @@ jobs:
           repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
       - name: install dependencies
         id: install_deps
-        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        uses: "./.github/actions/install-all-deps"
         with:
           always_install_pnpm: true
           build_lite: true
