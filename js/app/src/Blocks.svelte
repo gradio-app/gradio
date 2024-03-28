@@ -79,7 +79,7 @@
 		}
 		history.replaceState(null, "", "?" + params.toString());
 	}
-	let api_calls: any[] = [];
+	let api_calls: Payload[] = [];
 
 	export let render_complete = false;
 	async function handle_update(data: any, fn_index: number): Promise<void> {
@@ -253,7 +253,9 @@
 		}
 
 		async function make_prediction(payload: Payload): Promise<void> {
-			api_calls = [...api_calls, payload];
+			if (api_recorder_visible) {
+				api_calls = [...api_calls, payload];
+			}
 			const submission = app
 				.submit(
 					payload.fn_index,
@@ -554,7 +556,7 @@
 			api_recorder_visible = false;
 		}}
 	>
-		<ApiRecorder {api_calls} />
+		<ApiRecorder {api_calls} {dependencies}/>
 	</div>
 {/if}
 
@@ -686,8 +688,8 @@
 
 	#api-recorder-container {
 		position: fixed;
-		left: 0;
-		bottom: 0;
+		left: 10px;
+		bottom: 10px;
 		z-index: 1000;
 	}
 </style>

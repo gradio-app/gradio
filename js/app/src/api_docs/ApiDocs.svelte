@@ -223,7 +223,7 @@
 					/>
 					<p>
 						Note: the above list may include extra API calls that affect the UI,
-						but are not necessary for downstream clients.
+						but are not necessary for the clients.
 					</p>
 				</div>
 			{:else}
