@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:[WIP] Lazy caching examples
+feat:Add support for lazy caches of examples, make it the default on Spaces
