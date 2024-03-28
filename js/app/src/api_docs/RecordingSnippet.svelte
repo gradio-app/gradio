@@ -15,12 +15,14 @@
 
 	function format_api_call(call) {
 		const api_name = `/${dependencies[call.fn_index].api_name}`;
-		const params = call.data.map((param, index) => {
-		const param_info = endpoints_info[api_name].parameters[index];
-		const param_name = param_info.parameter_name;
-		const python_type = param_info.python_type.type;
-		return `  ${param_name}=${represent_value(param, python_type, "py")}`;
-		}).join(",\n");
+		const params = call.data
+			.map((param, index) => {
+				const param_info = endpoints_info[api_name].parameters[index];
+				const param_name = param_info.parameter_name;
+				const python_type = param_info.python_type.type;
+				return `  ${param_name}=${represent_value(param, python_type, "py")}`;
+			})
+			.join(",\n");
 
 		return `${params}"`;
 	}
@@ -42,11 +44,15 @@
 client = Client(<span class="token string">"{root}"</span>)
 {#each api_calls as call}<!--
 -->
-client.<span class="highlight">predict(
+client.<span class="highlight"
+								>predict(
 {format_api_call(call)},
-  api_name=<span class="api-name">"/{dependencies[call.fn_index].api_name}"</span>
+  api_name=<span class="api-name"
+									>"/{dependencies[call.fn_index].api_name}"</span
+								>
 )
-</span>{/each}</div>
+</span>{/each}</pre>
+				</div>
 			{:else if current_language === "javascript"}
 				<div class="copy">
 					<CopyButton code={js_code?.innerText} />
@@ -58,7 +64,8 @@ const app = await client(<span class="token string">"{root}"</span>);
 {#each api_calls as call}<!--
 -->
 {#if dependencies[call.fn_index].backend_fn}client.predict(<span
-									class="api-name">"/{dependencies[call.fn_index].api_name}"</span
+									class="api-name"
+									>"/{dependencies[call.fn_index].api_name}"</span
 								>", {JSON.stringify(call.data, null, 2)});{/if}
 						{/each}</pre>
 				</div>{/if}

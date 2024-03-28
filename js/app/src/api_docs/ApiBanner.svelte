@@ -18,8 +18,13 @@
 		</div>
 	</div>
 	<span class="counts">
-		<span class="url">{api_count}</span> API endpoint{#if api_count > 1}s{/if}<br>
-		<span class="api-recorder" on:click={() => dispatch("close", { api_recorder_visible: true })}>🪄 Try the API Recorder</span>
+		<span class="url">{api_count}</span> API endpoint{#if api_count > 1}s{/if}<br
+		/>
+		<span
+			class="api-recorder"
+			on:click={() => dispatch("close", { api_recorder_visible: true })}
+			>🪄 Try the API Recorder</span
+		>
 	</span>
 </h2>
 
@@ -77,7 +82,7 @@
 		font-weight: var(--weight-light);
 	}
 
-	.api-recorder{
+	.api-recorder {
 		font-size: var(--text-lg);
 		border: 1px solid var(--color-accent);
 		background-color: var(--color-accent-soft);

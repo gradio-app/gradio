@@ -189,8 +189,8 @@
 					Use the <code class="library">gradio_client</code>
 					<a href={py_docs} target="_blank">Python library</a> or the
 					<code class="library">@gradio/client</code>
-					<a href={js_docs} target="_blank">Javascript package</a> to
-					query the app via API.
+					<a href={js_docs} target="_blank">Javascript package</a> to query the app
+					via API.
 				</p>
 			</div>
 			<div class="endpoint">
@@ -207,35 +207,35 @@
 					{/each}
 				</div>
 				{#if api_calls.length}
-				<div>
+					<div>
+						<p
+							style="font-size: var(--text-lg); font-weight:bold; margin: 10px 0px;"
+						>
+							🪄 Recorded API Calls ({api_calls.length})
+						</p>
+						<p>
+							Here is the code snippet to replay the most recently recorded API
+							calls using the {current_language}
+							client.
+						</p>
+
+						<RecordingSnippet
+							{current_language}
+							{api_calls}
+							{dependencies}
+							root={space_id || root}
+							endpoints_info={info.named_endpoints}
+						/>
+						<p>
+							Note: the above list may include extra API calls that affect the
+							UI, but are not necessary for the clients.
+						</p>
+					</div>
 					<p
-						style="font-size: var(--text-lg); font-weight:bold; margin: 10px 0px;"
+						style="font-size: var(--text-lg); font-weight:bold; margin: 30px 0px 10px;"
 					>
-						🪄 Recorded API Calls ({api_calls.length})
+						API Documentation
 					</p>
-					<p>
-						Here is the code snippet to replay the most recently recorded API calls using the {current_language}
-						client.
-					</p>
-
-					<RecordingSnippet
-						{current_language}
-						{api_calls}
-						{dependencies}
-						root={space_id || root}
-						endpoints_info={info.named_endpoints}
-					/>
-					<p>
-						Note: the above list may include extra API calls that affect the UI,
-						but are not necessary for the clients.
-					</p>
-				</div>
-				<p
-				style="font-size: var(--text-lg); font-weight:bold; margin: 30px 0px 10px;"
-			>
-				API Documentation
-			</p>
-
 				{:else}
 					<p class="padded">
 						1. Install the client if you don't already have it installed.
@@ -254,52 +254,54 @@
 								class="underline"
 								target="_blank">read more</a
 							>).{/if} Or try the
-						<span id="api-recorder" on:click={() => dispatch("close", { api_recorder_visible: true })}
+						<span
+							id="api-recorder"
+							on:click={() => dispatch("close", { api_recorder_visible: true })}
 							>🪄 API Recorder</span
 						> to automatically generate your API requests!
 					</p>
 				{/if}
 
-					{#each dependencies as dependency, dependency_index}
-						{#if dependency.show_api}
-							<div class="endpoint-container">
-								<CodeSnippet
-									named={true}
-									endpoint_parameters={info.named_endpoints[
-										"/" + dependency.api_name
-									].parameters}
-									js_parameters={js_info.named_endpoints[
-										"/" + dependency.api_name
-									].parameters}
-									{dependency}
-									{dependency_index}
-									{current_language}
-									root={space_id || root}
-								/>
+				{#each dependencies as dependency, dependency_index}
+					{#if dependency.show_api}
+						<div class="endpoint-container">
+							<CodeSnippet
+								named={true}
+								endpoint_parameters={info.named_endpoints[
+									"/" + dependency.api_name
+								].parameters}
+								js_parameters={js_info.named_endpoints[
+									"/" + dependency.api_name
+								].parameters}
+								{dependency}
+								{dependency_index}
+								{current_language}
+								root={space_id || root}
+							/>
 
-								<ParametersSnippet
-									endpoint_returns={info.named_endpoints[
-										"/" + dependency.api_name
-									].parameters}
-									js_returns={js_info.named_endpoints["/" + dependency.api_name]
-										.parameters}
-									{is_running}
-									{current_language}
-								/>
+							<ParametersSnippet
+								endpoint_returns={info.named_endpoints[
+									"/" + dependency.api_name
+								].parameters}
+								js_returns={js_info.named_endpoints["/" + dependency.api_name]
+									.parameters}
+								{is_running}
+								{current_language}
+							/>
 
-								<ResponseSnippet
-									endpoint_returns={info.named_endpoints[
-										"/" + dependency.api_name
-									].returns}
-									js_returns={js_info.named_endpoints["/" + dependency.api_name]
-										.returns}
-									{is_running}
-									{current_language}
-								/>
-							</div>
-						{/if}
-					{/each}
-				</div>
+							<ResponseSnippet
+								endpoint_returns={info.named_endpoints[
+									"/" + dependency.api_name
+								].returns}
+								js_returns={js_info.named_endpoints["/" + dependency.api_name]
+									.returns}
+								{is_running}
+								{current_language}
+							/>
+						</div>
+					{/if}
+				{/each}
+			</div>
 		</div>
 	{:else}
 		<NoApi {root} on:close />
@@ -345,7 +347,7 @@
 		border: 1px solid var(--border-color-accent);
 		border-radius: var(--radius-sm);
 		background: var(--color-accent-soft);
-		padding:  0px var(--size-1);
+		padding: 0px var(--size-1);
 		color: var(--color-accent);
 		font-size: var(--text-md);
 		text-decoration: none;

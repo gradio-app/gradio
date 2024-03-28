@@ -557,7 +557,7 @@
 			api_recorder_visible = false;
 		}}
 	>
-		<ApiRecorder {api_calls} {dependencies}/>
+		<ApiRecorder {api_calls} {dependencies} />
 	</div>
 {/if}
 
