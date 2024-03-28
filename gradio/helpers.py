@@ -317,12 +317,7 @@ class Examples:
                 # (otherwise, an error "Cannot cache examples if not in a Blocks context" will be raised anyway)
                 # so `eventloop.create_task(self.cache())` is also not an option.
                 warnings.warn("Caching examples is not supported in the Wasm mode.")
-            elif Path(self.cached_file).exists():
-                print(
-                    f"Using cache from '{utils.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache.\n"
-                )
             else:
-                print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
                 self.cache_logger.setup(self.outputs, self.cached_folder)
                 client_utils.synchronize_async(self.cache)
 
@@ -366,7 +361,12 @@ class Examples:
         """
         if Context.root_block is None:
             raise ValueError("Cannot cache examples if not in a Blocks context")
+        if Path(self.cached_file).exists():
+            print(
+                f"Using cache from '{utils.abspath(self.cached_folder)}' directory. If method or examples have changed since last caching, delete this folder to clear cache.\n"
+            )
         else:
+            print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
             generated_values = []
             if inspect.isgeneratorfunction(self.fn):
 
