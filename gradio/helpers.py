@@ -300,6 +300,7 @@ class Examples:
                     postprocess=False,
                     api_name=self.api_name,
                     show_api=False,
+                    show_progress="minimal",
                 )
 
         if self.cache_examples is True:
