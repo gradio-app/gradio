@@ -1,6 +1,5 @@
 ---
-"@gradio/multimodaltextbox": minor
 "gradio": minor
 ---
 
-feat:Paste Images into MultimodalTextbox
+feat:Fix how files are processed in `gr.ChatInterface` 
