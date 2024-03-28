@@ -19,7 +19,7 @@ class SimpleTextbox(FormComponent):
 
     def __init__(
         self,
-        value: str | Callable | None = "",
+        value: str | Callable | None = None,
         *,
         placeholder: str | None = None,
         label: str | None = None,
