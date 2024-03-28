@@ -133,12 +133,18 @@ class Examples:
                     self.cache_examples = "lazy"
                 else:
                     raise ValueError(
-                        "GRADIO_CACHE_EXAMPLES must be one of: 'true', 'false', 'lazy' (case-insensitive)."
+                        "The `GRADIO_CACHE_EXAMPLES` env variable must be one of: 'true', 'false', 'lazy' (case-insensitive)."
                     )
             elif utils.get_space() and fn is not None and outputs is not None:
                 self.cache_examples = True
             else:
                 self.cache_examples = cache_examples or False
+        else:
+            if cache_examples not in [True, False, "lazy"]:
+                raise ValueError(
+                    "The `cache_examples` parameter must be one of: True, False, 'lazy'."
+                )
+            self.cache_examples = cache_examples
 
         if self.cache_examples and (fn is None or outputs is None):
             raise ValueError("If caching examples, `fn` and `outputs` must be provided")
@@ -317,7 +323,7 @@ class Examples:
                 self.cache_logger.setup(self.outputs, self.cached_folder)
                 self.load_input_event.then(
                     self.lazy_cache,
-                    inputs=[self.dataset],
+                    inputs=[self.dataset] + self.inputs,
                     outputs=self.outputs,
                     postprocess=False,
                     api_name=self.api_name,
@@ -365,7 +371,7 @@ class Examples:
         demo.unrender()
         return demo.postprocess_data(0, output, None)
 
-    async def lazy_cache(self, example_index):
+    async def lazy_cache(self, example_index, *input_values):
         if Path(self.cached_indices_file).exists():
             with open(self.cached_indices_file) as f:
                 cached_indices = [int(line.strip()) for line in f]
@@ -376,7 +382,7 @@ class Examples:
                 return
         output = [None] * len(self.outputs)
         async for output in self._handle_callable_as_generator(
-            *self.examples[example_index]
+            *input_values
         ):
             output = self._postprocess_output(output)
             yield output[0] if len(self.outputs) == 1 else output
