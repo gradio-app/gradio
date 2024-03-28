@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
-import altair as alt
-import pandas as pd
 from gradio_client.documentation import document
 
 from gradio.components.plot import AltairPlot, AltairPlotData, Plot
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 @document()
@@ -17,7 +18,7 @@ class LinePlot(Plot):
     Creates a line plot component to display data from a pandas DataFrame (as output). As this component does
     not accept user input, it is rarely used as an input component.
 
-    Demos: line_plot, live_dashboard
+    Demos: live_dashboard
     """
 
     data_model = AltairPlotData
@@ -200,6 +201,8 @@ class LinePlot(Plot):
         interactive: bool | None = None,
     ):
         """Helper for creating the scatter plot."""
+        import altair as alt
+
         interactive = True if interactive is None else interactive
         encodings = {
             "x": alt.X(
@@ -335,4 +338,6 @@ class LinePlot(Plot):
         return None
 
     def example_value(self) -> Any:
+        import pandas as pd
+
         return pd.DataFrame({self.x: [1, 2, 3], self.y: [4, 5, 6]})

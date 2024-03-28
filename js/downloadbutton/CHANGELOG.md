@@ -1,5 +1,21 @@
 # @gradio/downloadbutton
 
+## 0.1.5
+
+### Fixes
+
+- [#7862](https://github.com/gradio-app/gradio/pull/7862) [`0e125d7`](https://github.com/gradio-app/gradio/commit/0e125d7befe436509af6a41b5c92de0ac6d6057c) - Trigger click event from `gr.DownloadButton` even when no file is present.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/button@0.2.28
+
+## 0.1.4
+
+### Dependency updates
+
+- @gradio/button@0.2.27
+
 ## 0.1.3
 
 ### Dependency updates

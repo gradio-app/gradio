@@ -1,5 +1,49 @@
 # gradio
 
+## 4.24.0
+
+### Features
+
+- [#7849](https://github.com/gradio-app/gradio/pull/7849) [`7af3cd7`](https://github.com/gradio-app/gradio/commit/7af3cd7ccb8cc556fd2b290af0bed1c7ec07d174) - Adds a `placeholder` argument to `gr.Chatbot`.  Thanks @abidlabs!
+- [#7835](https://github.com/gradio-app/gradio/pull/7835) [`ee804b2`](https://github.com/gradio-app/gradio/commit/ee804b2d567b4381ef90b1f035d42fe6bb2506bc) - Stop running iterators when js client disconnects.  Thanks @freddyaboulton!
+- [#7852](https://github.com/gradio-app/gradio/pull/7852) [`72661e3`](https://github.com/gradio-app/gradio/commit/72661e3391a432ccd77fb3100e69fbdf95093931) - Revert the minify setting in vite.config.js which was mistakingly introduced in #6261.  Thanks @whitphx!
+- [#7818](https://github.com/gradio-app/gradio/pull/7818) [`1a7c8d3`](https://github.com/gradio-app/gradio/commit/1a7c8d32239d1e304e9f9063d7e2301c4f081b54) - Stop importing gradio.ipython_ext in Wasm mode.  Thanks @whitphx!
+- [#7830](https://github.com/gradio-app/gradio/pull/7830) [`75a2bf7`](https://github.com/gradio-app/gradio/commit/75a2bf745dee3b9e9521dbcf5b74af8bd53ba12f) - Add guide on Client state and and fix default values of components.  Thanks @abidlabs!
+- [#7823](https://github.com/gradio-app/gradio/pull/7823) [`e0a8b7f`](https://github.com/gradio-app/gradio/commit/e0a8b7fa2c60591f7fc6861707f65bf85f4ad27f) - Exclude `typer` from the requirements list for Wasm env and fix `gradio.cli` not to be imported.  Thanks @whitphx!
+- [#7851](https://github.com/gradio-app/gradio/pull/7851) [`e3b1236`](https://github.com/gradio-app/gradio/commit/e3b12369b71e2e3b6b25225f4414d1a28d9faf7d) - Lazy-import pandas.  Thanks @whitphx!
+- [#7840](https://github.com/gradio-app/gradio/pull/7840) [`ecf5c52`](https://github.com/gradio-app/gradio/commit/ecf5c524c23f76119e5b2e17f7a592555fa6557b) - Fix gradio/components/dataframe.py not to import `pandas.io`.  Thanks @whitphx!
+- [#7801](https://github.com/gradio-app/gradio/pull/7801) [`05db0c4`](https://github.com/gradio-app/gradio/commit/05db0c4a59b7a2c4f6297b5007946f5c7b8df1b1) - Refactor CORS Middleware to be much faster.  Thanks @abidlabs!
+- [#7810](https://github.com/gradio-app/gradio/pull/7810) [`425fd1c`](https://github.com/gradio-app/gradio/commit/425fd1ca9d83daf58fd95f3a1e3d566d06064ac3) - Benchmark fix test.  Thanks @aliabid94!
+
+### Fixes
+
+- [#7795](https://github.com/gradio-app/gradio/pull/7795) [`1c257f5`](https://github.com/gradio-app/gradio/commit/1c257f5ebce06e61cd17fc3c0463757f8bc88930) - Bugfix: `..` in filename throwing error while loading in output.  Thanks @shubhamofbce!
+- [#7862](https://github.com/gradio-app/gradio/pull/7862) [`0e125d7`](https://github.com/gradio-app/gradio/commit/0e125d7befe436509af6a41b5c92de0ac6d6057c) - Trigger click event from `gr.DownloadButton` even when no file is present.  Thanks @abidlabs!
+- [#7848](https://github.com/gradio-app/gradio/pull/7848) [`8d7b3ca`](https://github.com/gradio-app/gradio/commit/8d7b3caebd8f95b1372f8412cadbb5862766c365) - Multimodal Textbox Loading + other fixes.  Thanks @dawoodkhan82!
+
+## 4.23.0
+
+### Features
+
+- [#7782](https://github.com/gradio-app/gradio/pull/7782) [`2c8cd0a`](https://github.com/gradio-app/gradio/commit/2c8cd0a73d5c113853ff96ee2da57be12774a238) - Lazy-import altair.  Thanks @whitphx!
+- [#7800](https://github.com/gradio-app/gradio/pull/7800) [`b0a3ea9`](https://github.com/gradio-app/gradio/commit/b0a3ea951c06d4f3ff2755b567629fe988a3e30d) - Small fix to client.view_api() in the case of default file values.  Thanks @abidlabs!
+- [#7684](https://github.com/gradio-app/gradio/pull/7684) [`755157f`](https://github.com/gradio-app/gradio/commit/755157f99c2961f2e5caeaa9b76d248b4225ea8f) - Do not reload code inside gr.NO_RELOAD context.  Thanks @freddyaboulton!
+- [#7770](https://github.com/gradio-app/gradio/pull/7770) [`dd3e363`](https://github.com/gradio-app/gradio/commit/dd3e363261ae63823fb1672443ff2d31c63d656f) - Fail CI if lint or typecheck fails.  Thanks @abidlabs!
+- [#7796](https://github.com/gradio-app/gradio/pull/7796) [`aad209f`](https://github.com/gradio-app/gradio/commit/aad209f0c0faa0bf3e39d0c8624f972118b32830) - Decrease latency: do not run pre and postprocess in threadpool.  Thanks @freddyaboulton!
+- [#7744](https://github.com/gradio-app/gradio/pull/7744) [`d831040`](https://github.com/gradio-app/gradio/commit/d8310400326adbf8d036333f4f1b7df68b7043f6) - Remove Ruff and Uvicorn in Wasm env.  Thanks @whitphx!
+- [#7732](https://github.com/gradio-app/gradio/pull/7732) [`2efb05e`](https://github.com/gradio-app/gradio/commit/2efb05ed99a8a3575aab0a6c14a8d8b91f4e9ed7) - Adds support for kwargs and default arguments in the python client, and improves how parameter information is displayed in the "view API" page.  Thanks @abidlabs!
+- [#7661](https://github.com/gradio-app/gradio/pull/7661) [`c62a57e`](https://github.com/gradio-app/gradio/commit/c62a57e7f8f2f6dad0110d06e915c48e7f628073) - Convert Docs Demos to Lite.  Thanks @aliabd!
+- [#7814](https://github.com/gradio-app/gradio/pull/7814) [`f7df92f`](https://github.com/gradio-app/gradio/commit/f7df92f3f3ff4bb1300ed6d6eb1828615a728acd) - Improve UX of non-interactive slider.  Thanks @Pythongor!
+- [#7789](https://github.com/gradio-app/gradio/pull/7789) [`ff6bf3e`](https://github.com/gradio-app/gradio/commit/ff6bf3ec8f418a7222ca80240c75a1735202e5cc) - Remove the aiohttp mock from the Wasm worker as it's removed in https://github.com/gradio-app/gradio/pull/5244.  Thanks @whitphx!
+
+### Fixes
+
+- [#7783](https://github.com/gradio-app/gradio/pull/7783) [`43ae23f`](https://github.com/gradio-app/gradio/commit/43ae23f092927af2defa8104ee476da012a7b4fa) - Fix accidental bug that prevented custom textboxes from being passed to chatinterface.  Thanks @freddyaboulton!
+- [#7762](https://github.com/gradio-app/gradio/pull/7762) [`e78bca4`](https://github.com/gradio-app/gradio/commit/e78bca4f3789b5b229f6e5f402a1028c7b3bad33) - Trigger input event for Radio even when radio is output component.  Thanks @freddyaboulton!
+- [#7787](https://github.com/gradio-app/gradio/pull/7787) [`781678b`](https://github.com/gradio-app/gradio/commit/781678b3ac0e44ea1401ff55af3e98b474cf36ec) - Fix root url resolution from `x_forwarded_host` headers.  Thanks @abidlabs!
+- [#7794](https://github.com/gradio-app/gradio/pull/7794) [`cf98c7e`](https://github.com/gradio-app/gradio/commit/cf98c7ed18c0211b89e8eed81a5fb61c34b705c3) - Adds trigger_mode to gr.on. Use it to set trigger_model="always_last" for live interfaces.  Thanks @freddyaboulton!
+- [#7761](https://github.com/gradio-app/gradio/pull/7761) [`ca42748`](https://github.com/gradio-app/gradio/commit/ca42748590536e1d940b44ec7c9b6ea402905707) - Ensure `paginate` updates when samples value changes in `Dataset`.  Thanks @hannahblair!
+
 ## 4.22.0
 
 ### Features

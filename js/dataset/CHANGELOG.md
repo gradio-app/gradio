@@ -1,5 +1,23 @@
 # @gradio/dataset
 
+## 0.1.28
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+- @gradio/upload@0.8.2
+
+## 0.1.27
+
+### Fixes
+
+- [#7761](https://github.com/gradio-app/gradio/pull/7761) [`ca42748`](https://github.com/gradio-app/gradio/commit/ca42748590536e1d940b44ec7c9b6ea402905707) - Ensure `paginate` updates when samples value changes in `Dataset`.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/upload@0.8.1
+- @gradio/atoms@0.6.0
+
 ## 0.1.26
 
 ### Fixes

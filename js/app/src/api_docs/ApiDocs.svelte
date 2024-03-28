@@ -9,12 +9,13 @@
 	import { represent_value } from "./utils";
 
 	import ApiBanner from "./ApiBanner.svelte";
-	import ResponseObject from "./ResponseObject.svelte";
+	import ParametersSnippet from "./ParametersSnippet.svelte";
 	import InstallSnippet from "./InstallSnippet.svelte";
-	import CodeSnippets from "./CodeSnippets.svelte";
+	import CodeSnippet from "./CodeSnippet.svelte";
 
 	import python from "./img/python.svg";
 	import javascript from "./img/javascript.svg";
+	import ResponseSnippet from "./ResponseSnippet.svelte";
 
 	export let dependencies: Dependency[];
 	export let root: string;
@@ -223,7 +224,7 @@
 				{#each dependencies as dependency, dependency_index}
 					{#if dependency.show_api}
 						<div class="endpoint-container">
-							<CodeSnippets
+							<CodeSnippet
 								named={true}
 								endpoint_parameters={info.named_endpoints[
 									"/" + dependency.api_name
@@ -235,16 +236,19 @@
 								{dependency_index}
 								{current_language}
 								root={space_id || root}
-								{dependency_failures}
 							/>
 
-							<!-- <TryButton
-							named={true}
-							{dependency_index}
-							{run}
-						/> -->
+							<ParametersSnippet
+								endpoint_returns={info.named_endpoints[
+									"/" + dependency.api_name
+								].parameters}
+								js_returns={js_info.named_endpoints["/" + dependency.api_name]
+									.parameters}
+								{is_running}
+								{current_language}
+							/>
 
-							<ResponseObject
+							<ResponseSnippet
 								endpoint_returns={info.named_endpoints[
 									"/" + dependency.api_name
 								].returns}
@@ -360,7 +364,7 @@
 	.endpoint-container {
 		margin-top: var(--size-3);
 		margin-bottom: var(--size-3);
-		border: 1px solid var(--border-color-primary);
+		border: 1px solid var(--body-text-color);
 		border-radius: var(--radius-xl);
 		padding: var(--size-3);
 		padding-top: 0;

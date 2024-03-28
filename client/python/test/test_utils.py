@@ -167,3 +167,83 @@ def test_json_schema_to_python_type(schema):
     else:
         raise ValueError(f"This test has not been modified to check {schema}")
     assert utils.json_schema_to_python_type(types[schema]) == answer
+
+
+class TestConstructArgs:
+    def test_no_parameters_empty_args(self):
+        assert utils.construct_args(None, (), {}) == []
+
+    def test_no_parameters_with_args(self):
+        assert utils.construct_args(None, (1, 2), {}) == [1, 2]
+
+    def test_no_parameters_with_kwargs(self):
+        with pytest.raises(
+            ValueError, match="This endpoint does not support key-word arguments"
+        ):
+            utils.construct_args(None, (), {"a": 1})
+
+    def test_parameters_no_args_kwargs(self):
+        parameters_info = [
+            {
+                "label": "param1",
+                "parameter_name": "a",
+                "parameter_has_default": True,
+                "parameter_default": 10,
+            }
+        ]
+        assert utils.construct_args(parameters_info, (), {"a": 1}) == [1]
+
+    def test_parameters_with_args_no_kwargs(self):
+        parameters_info = [{"label": "param1", "parameter_name": "a"}]
+        assert utils.construct_args(parameters_info, (1,), {}) == [1]
+
+    def test_parameter_with_default_no_args_no_kwargs(self):
+        parameters_info = [
+            {"label": "param1", "parameter_has_default": True, "parameter_default": 10}
+        ]
+        assert utils.construct_args(parameters_info, (), {}) == [10]
+
+    def test_args_filled_parameters_with_defaults(self):
+        parameters_info = [
+            {"label": "param1", "parameter_has_default": True, "parameter_default": 10},
+            {"label": "param2", "parameter_has_default": True, "parameter_default": 20},
+        ]
+        assert utils.construct_args(parameters_info, (1,), {}) == [1, 20]
+
+    def test_kwargs_filled_parameters_with_defaults(self):
+        parameters_info = [
+            {
+                "label": "param1",
+                "parameter_name": "a",
+                "parameter_has_default": True,
+                "parameter_default": 10,
+            },
+            {
+                "label": "param2",
+                "parameter_name": "b",
+                "parameter_has_default": True,
+                "parameter_default": 20,
+            },
+        ]
+        assert utils.construct_args(parameters_info, (), {"a": 1, "b": 2}) == [1, 2]
+
+    def test_positional_arg_and_kwarg_for_same_parameter(self):
+        parameters_info = [{"label": "param1", "parameter_name": "a"}]
+        with pytest.raises(
+            ValueError, match="Parameter `a` is already set as a positional argument."
+        ):
+            utils.construct_args(parameters_info, (1,), {"a": 2})
+
+    def test_invalid_kwarg(self):
+        parameters_info = [{"label": "param1", "parameter_name": "a"}]
+        with pytest.raises(
+            ValueError, match="Parameter `b` is not a valid key-word argument."
+        ):
+            utils.construct_args(parameters_info, (), {"b": 1})
+
+    def test_required_arg_missing(self):
+        parameters_info = [{"label": "param1", "parameter_name": "a"}]
+        with pytest.raises(
+            ValueError, match="No value provided for required argument: a"
+        ):
+            utils.construct_args(parameters_info, (), {})
