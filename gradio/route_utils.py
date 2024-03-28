@@ -9,7 +9,7 @@ import os
 import re
 import shutil
 from collections import deque
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass as python_dataclass
 from datetime import datetime
 from pathlib import Path
@@ -777,20 +777,33 @@ async def _lifespan_handler(
     delete_files_created_by_app(app.get_blocks(), age=None)
 
 
+async def _delete_state(app: App):
+    while True:
+        app.state_holder.delete_all_expired_state()
+        await asyncio.sleep(1)
+
+
+@asynccontextmanager
+async def _delete_state_handler(app: App):
+    asyncio.create_task(_delete_state(app))
+    yield
+
+
 def create_lifespan_handler(
     user_lifespan: Callable[[App], AsyncContextManager] | None,
-    frequency: int = 1,
-    age: int = 1,
+    frequency: int | None = 1,
+    age: int | None = 1,
 ) -> Callable[[App], AsyncContextManager]:
     """Return a context manager that applies _lifespan_handler and user_lifespan if it exists."""
 
     @asynccontextmanager
     async def _handler(app: App):
-        async with _lifespan_handler(app, frequency, age):
+        async with AsyncExitStack() as stack:
+            await stack.enter_async_context(_delete_state_handler(app))
+            if frequency and age:
+                await stack.enter_async_context(_lifespan_handler(app, frequency, age))
             if user_lifespan is not None:
-                async with user_lifespan(app):
-                    yield
-            else:
-                yield
+                await stack.enter_async_context(user_lifespan(app))
+            yield
 
     return _handler
