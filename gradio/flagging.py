@@ -129,6 +129,7 @@ class CSVLogger(FlaggingCallback):
 
     def __init__(self, simplify_file_data: bool = True):
         self.simplify_file_data = simplify_file_data
+        self._is_setup = False
 
     def setup(
         self,
@@ -138,6 +139,7 @@ class CSVLogger(FlaggingCallback):
         self.components = components
         self.flagging_dir = flagging_dir
         os.makedirs(flagging_dir, exist_ok=True)
+        self._is_setup = True
 
     def flag(
         self,

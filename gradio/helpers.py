@@ -452,7 +452,8 @@ class Examples:
         )
 
     def write_to_cache(self, value):
-        self.cache_logger.setup(self.outputs, self.cached_folder)
+        if not self.cache_logger._is_setup:
+            self.cache_logger.setup(self.outputs, self.cached_folder)
         self.cache_logger.flag(value)
 
     def load_from_cache(self, example_id: int) -> list[Any]:
