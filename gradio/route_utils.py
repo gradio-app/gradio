@@ -778,6 +778,7 @@ async def _lifespan_handler(
 
 
 async def _delete_state(app: App):
+    """Delete all expired state every second."""
     while True:
         app.state_holder.delete_all_expired_state()
         await asyncio.sleep(1)
@@ -785,6 +786,7 @@ async def _delete_state(app: App):
 
 @asynccontextmanager
 async def _delete_state_handler(app: App):
+    """When the server launches, regularly delete expired state."""
     asyncio.create_task(_delete_state(app))
     yield
 

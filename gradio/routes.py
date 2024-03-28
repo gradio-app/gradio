@@ -596,6 +596,10 @@ class App(FastAPI):
             background_tasks: BackgroundTasks,
             username: str = Depends(get_current_user),
         ):
+            """Clients make a persistent connection to this endpoint to keep the session alive.
+            When the client disconnects, the session state is deleted.
+            It is robust to internet cutting out, etc.
+            """
             async def iterator():
                 while True:
                     try:
