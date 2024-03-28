@@ -8,6 +8,7 @@ def sleep(im):
 
 
 def predict(im):
+    # print(im)
     return im["composite"]
 
 

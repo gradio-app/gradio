@@ -41,7 +41,7 @@ class Plot(Component):
         self,
         value: Any | None = None,
         *,
-        format: str = "png",
+        format: str = "webp",
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,

@@ -67,6 +67,7 @@
 	};
 
 	$: sub_menu = $active_tool && metas[$active_tool];
+
 	let current_color = writable("#000000");
 	let sub_tool: upload_tool | transform_tool | brush_tool | eraser_tool | null;
 	const tool_context: ToolContext = {

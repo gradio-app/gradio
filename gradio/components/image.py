@@ -43,7 +43,7 @@ class Image(StreamingInput, Component):
         self,
         value: str | PIL.Image.Image | np.ndarray | None = None,
         *,
-        format: str = "png",
+        format: str = "webp",
         height: int | str | None = None,
         width: int | str | None = None,
         image_mode: Literal[
@@ -163,7 +163,7 @@ class Image(StreamingInput, Component):
                 suffix = "jpeg"
         else:
             name = "image"
-            suffix = "png"
+            suffix = "webp"
 
         if suffix.lower() == "svg":
             return str(file_path)

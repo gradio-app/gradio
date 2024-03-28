@@ -174,6 +174,7 @@ export function create_components(): {
 
 	function flush(): void {
 		layout_store.update((layout) => {
+			// console.log("layout", pending_updates);
 			for (let i = 0; i < pending_updates.length; i++) {
 				for (let j = 0; j < pending_updates[i].length; j++) {
 					const update = pending_updates[i][j];

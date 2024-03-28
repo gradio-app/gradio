@@ -43,13 +43,15 @@ class AnnotatedImage(Component):
 
     def __init__(
         self,
-        value: tuple[
-            np.ndarray | PIL.Image.Image | str,
-            list[tuple[np.ndarray | tuple[int, int, int, int], str]],
-        ]
-        | None = None,
+        value: (
+            tuple[
+                np.ndarray | PIL.Image.Image | str,
+                list[tuple[np.ndarray | tuple[int, int, int, int], str]],
+            ]
+            | None
+        ) = None,
         *,
-        format: str = "png",
+        format: str = "webp",
         show_legend: bool = True,
         height: int | str | None = None,
         width: int | str | None = None,
@@ -120,11 +122,13 @@ class AnnotatedImage(Component):
 
     def postprocess(
         self,
-        value: tuple[
-            np.ndarray | PIL.Image.Image | str,
-            list[tuple[np.ndarray | tuple[int, int, int, int], str]],
-        ]
-        | None,
+        value: (
+            tuple[
+                np.ndarray | PIL.Image.Image | str,
+                list[tuple[np.ndarray | tuple[int, int, int, int], str]],
+            ]
+            | None
+        ),
     ) -> AnnotatedImageData | None:
         """
         Parameters:

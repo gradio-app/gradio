@@ -1,4 +1,4 @@
-<svelte:options accessors={true} />
+<svelte:options accessors={true} immutable={true} />
 
 <script lang="ts">
 	import type { Brush, Eraser } from "./shared/tools/Brush.svelte";
@@ -49,14 +49,17 @@
 	export let transforms: "crop"[] = ["crop"];
 
 	export let attached_events: string[] = [];
+	export let server: {
+		accept_blobs: (a: any, n: number) => void;
+	};
 
 	export let gradio: Gradio<{
 		change: never;
 		error: string;
 		input: never;
 		edit: never;
-		stream: never;
 		drag: never;
+		apply: never;
 		upload: never;
 		clear: never;
 		select: SelectData;
@@ -64,8 +67,14 @@
 	}>;
 
 	let editor_instance: InteractiveImageEditor;
+	let image_id: null | string = null;
 
-	export async function get_value(): Promise<ImageBlobs> {
+	export async function get_value(): Promise<ImageBlobs | { id: string }> {
+		if (image_id) {
+			const val = { id: image_id };
+			image_id = null;
+			return val;
+		}
 		// @ts-ignore
 		loading_status = { status: "pending" };
 		const blobs = await editor_instance.get_data();
@@ -89,8 +98,8 @@
 	}
 
 	function handle_save(): void {
-		gradio.dispatch("change");
-		gradio.dispatch("input");
+		gradio.dispatch("apply");
+		// gradio.dispatch("input");
 	}
 </script>
 
@@ -149,6 +158,8 @@
 		/>
 
 		<InteractiveImageEditor
+			on:change={() => (gradio.dispatch("change"), gradio.dispatch("input"))}
+			bind:image_id
 			{crop_size}
 			{value}
 			bind:this={editor_instance}
@@ -156,13 +167,12 @@
 			{sources}
 			{label}
 			{show_label}
+			on:change={handle_change}
 			on:save={(e) => handle_save()}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => gradio.dispatch("clear")}
-			on:stream={() => gradio.dispatch("stream")}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:upload={() => gradio.dispatch("upload")}
-			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => {
 				loading_status = loading_status || {};
@@ -172,9 +182,10 @@
 			on:error
 			{brush}
 			{eraser}
-			changeable={attached_events.includes("change")}
+			changeable={attached_events.includes("apply")}
 			i18n={gradio.i18n}
 			{transforms}
+			accept_blobs={server.accept_blobs}
 		></InteractiveImageEditor>
 	</Block>
 {/if}

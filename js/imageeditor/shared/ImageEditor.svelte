@@ -68,6 +68,7 @@
 	export let sources: ("clipboard" | "webcam" | "upload")[];
 	const dispatch = createEventDispatcher<{
 		save: void;
+		change: void;
 	}>();
 	export let crop_constraint = false;
 
@@ -101,6 +102,9 @@
 	const CommandManager = command_manager();
 
 	const { can_redo, can_undo, current_history } = CommandManager;
+
+	$: $current_history, dispatch("change");
+	// $: console.log($current_history);
 
 	$: {
 		history = !!$current_history.previous || $active_tool !== "bg";
@@ -359,9 +363,6 @@
 	.stage-wrap {
 		margin: var(--size-8);
 		margin-bottom: var(--size-1);
-	}
-
-	.bg {
 	}
 
 	.image-container {
