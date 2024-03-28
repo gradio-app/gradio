@@ -335,21 +335,36 @@ class Examples:
         else:
             yield self.fn(*args)
 
+    def _postprocess_output(self, output) -> list:
+        """
+        This is a way that we can postprocess the data manually, since we set postprocess=False in the lazy_cache
+        event handler. The reason we did that is because we don't want to postprocess data if we are loading from
+        the cache, since that has already been postprocessed. We postprocess this data manually if we are calling
+        the function using the _handle_callable_as_generator() method.
+        """
+        import gradio as gr
+
+        with gr.Blocks() as demo:
+            [output.render() for output in self.outputs]
+            demo.load(self.fn, self.inputs, self.outputs)
+        demo.unrender()
+        return demo.postprocess_data(0, output, None)
+
     async def lazy_cache(self, example_index):
         if Path(self.cached_indices_file).exists():
             with open(self.cached_indices_file) as f:
                 cached_indices = [int(line.strip()) for line in f]
             if example_index in cached_indices:
                 cached_index = cached_indices.index(example_index)
-                yield self.load_from_cache(cached_index)
+                output = self.load_from_cache(cached_index)
+                yield output[0] if len(self.outputs) == 1 else output
                 return
         output = [None] * len(self.outputs)
         async for output in self._handle_callable_as_generator(
             *self.examples[example_index]
         ):
-            if len(self.outputs) == 1:
-                output = [output]
-            yield output
+            output = self._postprocess_output(output)
+            yield output[0] if len(self.outputs) == 1 else output
         self.cache_logger.flag(output)
         with open(self.cached_indices_file, "a") as f:
             f.write(f"{example_index}\n")
