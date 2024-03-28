@@ -106,7 +106,7 @@ with gr.Blocks(  # noqa: SIM117
                     )
 
                     custom_theme_name = gr.Textbox(
-                        label="THeme Name",
+                        label="Theme Name",
                         placeholder="gradio/seafoam",
                         interactive=True,
                     )
