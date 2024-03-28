@@ -14,5 +14,11 @@ with gr.Blocks() as demo:
 
     inp.change(fn=lambda x: x, inputs=inp, outputs=out)
 
+    def unload(req: gr.Request):
+        print(req.request.path_params)
+        print("UNLOADING")
+
+    demo.unload(unload)
+
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(auth=("admin", "admin"))

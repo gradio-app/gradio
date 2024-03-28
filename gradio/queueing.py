@@ -555,7 +555,6 @@ class Queue:
                             ),
                         )
                     awake_events = [event for event in awake_events if event.alive]
-                    print("AWAKE EVENTS", awake_events)
                     if not awake_events:
                         return
                     try:
