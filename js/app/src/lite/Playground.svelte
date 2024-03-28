@@ -116,7 +116,7 @@
 			dark_class_element.classList.remove("dark");
 		}
 	}
-	
+
 	let active_theme_mode: ThemeMode;
 	let wrapper: HTMLDivElement;
 
@@ -274,7 +274,7 @@
 	}
 
 	.horizontal .code-editor-border {
-		border-right: 1px solid rgb(229 231 235);;
+		border-right: 1px solid rgb(229 231 235);
 		border-bottom: none;
 	}
 	:global(.dark .horizontal .code-editor-border) {
