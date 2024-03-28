@@ -324,7 +324,7 @@ class Examples:
                 print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
                 client_utils.synchronize_async(self.cache)
 
-    async def handle_callable_as_generator(self, *args):
+    async def _handle_callable_as_generator(self, *args):
         if self.fn is None:
             raise ValueError("Cannot lazy-cache examples if no function is provided")
         if inspect.iscoroutinefunction(self.fn):
@@ -348,7 +348,7 @@ class Examples:
                 yield self.load_from_cache(cached_index)
                 return
         output = None
-        async for output in self.handle_callable_as_generator(
+        async for output in self._handle_callable_as_generator(
             *self.examples[example_index]
         ):
             if len(self.outputs) == 1:
