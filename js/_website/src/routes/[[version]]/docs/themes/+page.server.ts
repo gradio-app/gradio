@@ -27,7 +27,7 @@ export async function load({ parent }) {
 
 	let objs = [docs.building.base];
 	let headers = [
-		["Base", "base"],
+		["themes.Base", "base"],
 		["Initialization", "Base-initialization"],
 		["Methods", "Base-methods"]
 	];
