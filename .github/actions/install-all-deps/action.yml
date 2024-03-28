@@ -2,7 +2,7 @@ name: 'install all deps'
 description: 'Install all deps'
 
 inputs:
-  always_install_pnpm:
+  always_install_pnpm: 
     description: 'Dictates whether or not we should install pnpm & dependencies, regardless of the cache'
     default: 'false'
   node_auth_token:
@@ -58,9 +58,6 @@ runs:
           client/python/requirements.txt
           requirements.txt
           test/requirements.txt
-    - name: "[tmp] show files"
-      run: tree gradio
-      shell: bash
     - name: Create env
       shell: bash
       run: |
@@ -75,14 +72,8 @@ runs:
         restore-keys: |
           gradio-lib-${{inputs.os}}-latest-pip-
         key: "gradio-lib-${{inputs.os}}-latest-pip-${{ hashFiles('client/python/requirements.txt') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('test/requirements.txt') }}-${{ hashFiles('client/python/test/requirements.txt') }}${{ inputs.test == 'true' && '-test' || ''}}"
-    - name: "[tmp] show files"
-      run: tree gradio
-      shell: bash
     - name: Install ffmpeg
       uses: FedericoCarboni/setup-ffmpeg@v2
-    - name: "[tmp] show files"
-      run: tree gradio
-      shell: bash
     - name: Install test dependencies
       if: inputs.test == 'true' && steps.cache.outputs.cache-hit != 'true'
       shell: bash
@@ -90,18 +81,12 @@ runs:
         . ${{ env.VENV_ACTIVATE }}
         python -m pip install -r test/requirements.txt
         python -m pip install -r client/python/test/requirements.txt
-    - name: "[tmp] show files"
-      run: tree gradio
-      shell: bash
     - name: Install Gradio and Client Libraries Locally (Linux)
       shell: bash
       run: |
         . ${{ env.VENV_ACTIVATE }}
-        python -m pip install -e client/python
+        python -m pip install -e client/python  
         python -m pip install -e ".[oauth]"
-    - name: "[tmp] show files"
-      run: tree gradio
-      shell: bash
     - name: install-frontend
       uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
       with:
@@ -110,9 +95,6 @@ runs:
         npm_token: ${{ inputs.npm_token }}
         skip_build: ${{ inputs.skip_build }}
         build_lite: ${{ inputs.build_lite }}
-    - name: "[tmp] show files"
-      run: tree gradio
-      shell: bash
     - name: generate json
       shell: bash
       if: inputs.os == 'ubuntu-latest'
