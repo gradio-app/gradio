@@ -87,7 +87,8 @@ def slow_echo(message, history):
 gr.ChatInterface(slow_echo).launch()
 ```
 
-Notice that we've [enabled queuing](/guides/key-features#queuing), which is required to use generator functions. While the response is streaming, the "Submit" button turns into a "Stop" button that can be used to stop the generator function. You can customize the appearance and behavior of the "Stop" button using the `stop_btn` parameter.
+
+Tip: While the response is streaming, the "Submit" button turns into a "Stop" button that can be used to stop the generator function. You can customize the appearance and behavior of the "Stop" button using the `stop_btn` parameter.
 
 ## Customizing your chatbot
 
@@ -128,30 +129,24 @@ gr.ChatInterface(
 
 You may want to add multimodal capability to your chatbot. For example, you may want users to be able to easily upload images or files to your chatbot and ask questions about it. You can make your chatbot "multimodal" by passing in a single parameter (`multimodal=True`) to the `gr.ChatInterface` class.
 
-```python
-import gradio as gr
-
-chat_input = gr.MultimodalTextbox(file_types=["image"], placeholder="Enter message or upload file...")
-```
-
-`gr.ChatInterface` also supports multimodality, simply pass in the `multimodal` parameter as `True`:
 
 ```python
 import gradio as gr
 import time
 
-def echo(message, history):
-    t = x['text']
-    for i in range(len(t)):
-        time.sleep(0.5)
-        yield t[:i+1]
+def count_files(message, history):
+    num_files = len(message["files"])
+    return f"You uploaded {num_files} files"
 
-demo = gr.ChatInterface(fn=echo, examples=["hello", "hola", "merhaba"], title="Echo Bot", multimodal=True)
+demo = gr.ChatInterface(fn=count_files, examples=[{"text": "Hello", "files": []}], title="Echo Bot", multimodal=True)
 
 demo.launch()
 ```
 
 When `multimodal=True`, the first parameter of your function should receives a dictionary consisting of the submitted text and uploaded files that looks like this: `{"text": "user input", "file": ["file_path1", "file_path2", ...]}`.
+
+
+Tip: If you'd like to customize the UI/UX of the textbox for your multimodal chatbot, you should pass in an instance of `gr.MultimodalTextbox` to the `textbox` argument of `ChatInterface` instead of an instance of `gr.Textbox`.
 
 ## Additional Inputs
 
