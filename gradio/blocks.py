@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import datetime
 import hashlib
 import inspect
 import json
@@ -1538,11 +1537,6 @@ Received outputs:
                 ) from e
 
             if block.stateful:
-                if isinstance(block, components.State):
-                    state._state_ttl[output_id] = (
-                        block.time_to_live,
-                        datetime.datetime.now(),
-                    )
                 if not utils.is_update(predictions[i]):
                     state[output_id] = predictions[i]
                 output.append(None)

@@ -4,10 +4,11 @@ import datetime
 import threading
 from collections import OrderedDict
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Iterator
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
+    from gradio.components import State
 
 
 class StateHolder:
@@ -55,10 +56,10 @@ class StateHolder:
             return
         to_delete = []
         session_state = self.session_data[session_id]
-        for id_, value, expired in session_state.state_components:
+        for component, value, expired in session_state.state_components:
             if not expired_only or expired:
-                self.blocks.blocks[id_].delete_callback(value)
-                to_delete.append(id_)
+                component.delete_callback(value)
+                to_delete.append(component._id)
         for component in to_delete:
             del session_state._data[component]
 
@@ -79,22 +80,30 @@ class SessionState:
         return self._data[key]
 
     def __setitem__(self, key: int, value: Any):
-        print(key, value)
+        from gradio.components import State
+
+        block = self.blocks.blocks[key]
+        if isinstance(block, State):
+            self._state_ttl[key] = (
+                block.time_to_live,
+                datetime.datetime.now(),
+            )
         self._data[key] = value
 
     def __contains__(self, key: int):
         return key in self._data
 
     @property
-    def state_components(self):
+    def state_components(self) -> Iterator[tuple[State, Any, bool]]:
         from gradio.components import State
 
         for id in self._data:
-            if isinstance(self.blocks.blocks[id], State) and id in self._state_ttl:
+            block = self.blocks.blocks[id]
+            if isinstance(block, State) and id in self._state_ttl:
                 time_to_live, created_at = self._state_ttl.get(id, None)
                 value = self._data[id]
                 yield (
-                    id,
+                    block,
                     value,
                     (datetime.datetime.now() - created_at).seconds > time_to_live,
                 )
