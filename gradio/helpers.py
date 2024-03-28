@@ -248,7 +248,7 @@ class Examples:
         self.cache_logger = CSVLogger(simplify_file_data=False)
         self.cached_folder = utils.get_cache_folder() / str(self.dataset._id)
         self.cached_file = Path(self.cached_folder) / "log.csv"
-        self.cached_indices_file = Path(self.cached_folder) / "indices.csv"        
+        self.cached_indices_file = Path(self.cached_folder) / "indices.csv"
         self.cache_examples = cache_examples
         self.run_on_click = run_on_click
 
@@ -289,9 +289,15 @@ class Examples:
                     show_api=False,
                 )
             if self.cache_examples == "lazy":
-                print(f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory at first use. ", end="")
+                print(
+                    f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory at first use. ",
+                    end="",
+                )
                 if Path(self.cached_file).exists():
-                    print("If method or examples have changed since last caching, delete this folder to reset cache.", end="")
+                    print(
+                        "If method or examples have changed since last caching, delete this folder to reset cache.",
+                        end="",
+                    )
                 print("\n\n")
                 self.load_input_event.then(
                     self.lazy_cache,
@@ -300,7 +306,6 @@ class Examples:
                     postprocess=False,
                     api_name=self.api_name,
                     show_api=False,
-                    show_progress="minimal",
                 )
 
         if self.cache_examples is True:
@@ -342,7 +347,12 @@ class Examples:
                 cached_index = cached_indices.index(example_index)
                 yield self.load_from_cache(cached_index)
                 return
-        async for output in self.handle_callable_as_generator(*self.examples[example_index]):
+        output = None
+        async for output in self.handle_callable_as_generator(
+            *self.examples[example_index]
+        ):
+            if len(self.outputs) == 1:
+                output = [output]
             yield output
         self.write_to_cache(output)
         with open(self.cached_indices_file, "a") as f:
@@ -355,7 +365,6 @@ class Examples:
         if Context.root_block is None:
             raise ValueError("Cannot cache examples if not in a Blocks context")
         else:
-
             generated_values = []
             if inspect.isgeneratorfunction(self.fn):
 
