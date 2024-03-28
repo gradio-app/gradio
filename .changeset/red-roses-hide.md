@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:API Recorder 
+feat:Adds an "API Recorder" to the view API page
