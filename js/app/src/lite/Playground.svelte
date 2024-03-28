@@ -66,6 +66,60 @@
 		}
 	}
 
+	function handle_theme_mode(target: HTMLDivElement): "light" | "dark" {
+		const force_light = window.__gradio_mode__ === "website";
+
+		let new_theme_mode: ThemeMode;
+		if (force_light) {
+			new_theme_mode = "light";
+		} else {
+			const url = new URL(window.location.toString());
+			const url_color_mode: ThemeMode | null = url.searchParams.get(
+				"__theme"
+			) as ThemeMode | null;
+			new_theme_mode = theme_mode || url_color_mode || "system";
+		}
+
+		if (new_theme_mode === "dark" || new_theme_mode === "light") {
+			apply_theme(target, new_theme_mode);
+		} else {
+			new_theme_mode = sync_system_theme(target);
+		}
+		return new_theme_mode;
+	}
+
+	function sync_system_theme(target: HTMLDivElement): "light" | "dark" {
+		const theme = update_scheme();
+		window
+			?.matchMedia("(prefers-color-scheme: dark)")
+			?.addEventListener("change", update_scheme);
+
+		function update_scheme(): "light" | "dark" {
+			let _theme: "light" | "dark" = window?.matchMedia?.(
+				"(prefers-color-scheme: dark)"
+			).matches
+				? "dark"
+				: "light";
+
+			apply_theme(target, _theme);
+			return _theme;
+		}
+		return theme;
+	}
+
+	function apply_theme(target: HTMLDivElement, theme: "dark" | "light"): void {
+		const dark_class_element = is_embed ? target.parentElement! : document.body;
+		const bg_element = is_embed ? target : target.parentElement!;
+		if (theme === "dark") {
+			dark_class_element.classList.add("dark");
+		} else {
+			dark_class_element.classList.remove("dark");
+		}
+	}
+	
+	let active_theme_mode: ThemeMode;
+	let wrapper: HTMLDivElement;
+
 	onMount(() => {
 		var code_editors = document.getElementsByClassName("code-editor");
 		for (var i = 0; i < code_editors.length; i++) {
@@ -75,6 +129,7 @@
 				true
 			);
 		}
+		active_theme_mode = handle_theme_mode(wrapper);
 	});
 
 	$: loading_text;
@@ -82,7 +137,7 @@
 	$: code;
 </script>
 
-<div class="parent-container">
+<div class="parent-container" bind:this={wrapper}>
 	<div class="loading-panel">
 		<div class="code-header">app.py</div>
 		{#if !loaded}
@@ -187,6 +242,11 @@
 		height: 100%;
 		border: 1px solid rgb(229 231 235);
 		border-radius: 0.375rem;
+		overflow: hidden;
+	}
+	:global(.dark .parent-container) {
+		border-color: #374151 !important;
+		color-scheme: dark !important;
 	}
 
 	.child-container {
@@ -214,8 +274,11 @@
 	}
 
 	.horizontal .code-editor-border {
-		border-right: 1px solid rgb(229 231 235);
+		border-right: 1px solid rgb(229 231 235);;
 		border-bottom: none;
+	}
+	:global(.dark .horizontal .code-editor-border) {
+		border-right: 1px solid #374151 !important;
 	}
 
 	@media (min-width: 768px) {
@@ -225,14 +288,21 @@
 		.code-editor-border {
 			border-right: 1px solid rgb(229 231 235);
 		}
+		:global(.dark .code-editor-border) {
+			border-right: 1px solid #374151 !important;
+		}
 	}
 
 	.code-editor {
 		flex-grow: 1;
 		display: flex;
 		flex-direction: column;
-		border-bottom: 1px solid rgb(229 231 235);
+		border-bottom: 1px solid;
+		border-color: rgb(229 231 235);
 		overflow-y: scroll;
+	}
+	:global(.dark .code-editor) {
+		border-color: #374151 !important;
 	}
 
 	.loading-panel {
@@ -245,6 +315,11 @@
 		border-bottom: 1px solid rgb(229 231 235);
 	}
 
+	:global(.dark .loading-panel) {
+		background: #1f2937 !important;
+		border-color: #374151 !important;
+	}
+
 	.code-header {
 		align-self: center;
 		font-family: monospace;
@@ -252,6 +327,9 @@
 		font-weight: lighter;
 		margin-right: 4px;
 		color: #535d6d;
+	}
+	:global(.dark .code-header) {
+		color: white !important;
 	}
 
 	.loading-section {
@@ -264,6 +342,10 @@
 		font-size: 15px;
 		align-self: center;
 	}
+	:global(.dark .loading-section) {
+		color: white !important;
+	}
+
 	.lightning-logo {
 		width: 1rem;
 		height: 1rem;
@@ -307,6 +389,11 @@
 		cursor: pointer;
 		font-family: sans-serif;
 	}
+	:global(.dark .button) {
+		border-color: #374151 !important;
+		background: linear-gradient(to bottom right, #4b5563, #374151) !important;
+		color: white !important;
+	}
 	.shortcut {
 		align-self: center;
 		margin-top: 2px;
@@ -314,6 +401,9 @@
 		font-weight: lighter;
 		padding-left: 0.15rem;
 		color: #374151;
+	}
+	:global(.dark .shortcut) {
+		color: white !important;
 	}
 
 	:global(div.code-editor div.block) {
@@ -323,6 +413,9 @@
 
 	:global(div.code-editor div.block .cm-gutters) {
 		background-color: white;
+	}
+	:global(.dark div.code-editor div.block .cm-gutters) {
+		background: #1f2937 !important;
 	}
 
 	:global(div.code-editor div.block .cm-content) {
