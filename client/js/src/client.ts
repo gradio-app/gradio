@@ -781,9 +781,9 @@ export function api_factory(
 								? `moon-${window.location.hostname.split('.')[1]}.dev.spaces.huggingface.tech`
 								: `https://huggingface.co`;
 							const zerogpu_auth_promise = dependency.zerogpu
-								? postMessage<Headers>("whoami", origin)
+								? postMessage<Headers>("zerogpu-headers", origin)
 								: Promise.resolve(null);
-							zerogpu_auth_promise.then((zerogpu_auth) => {
+							zerogpu_auth_promise.then((zerogpu_headers) => {
 								return post_data(
 									`${config.root}/queue/join?${url_params}`,
 									{
@@ -791,7 +791,7 @@ export function api_factory(
 										session_hash
 									},
 									hf_token,
-									zerogpu_auth ? {'X-Visitor-Token': zerogpu_auth} : null,
+									zerogpu_headers,
 								)
 							}).then(([response, status]) => {
 								if (status === 503) {
