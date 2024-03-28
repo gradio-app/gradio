@@ -385,7 +385,7 @@ class TestProcessExamples:
 
         with pytest.warns(
             UserWarning,
-            match="^Examples are being cached but not all input components have",
+            match="^Examples will be cached but not all input components have",
         ):
             with pytest.raises(Exception):
                 gr.Interface(
@@ -398,7 +398,7 @@ class TestProcessExamples:
 
         with pytest.warns(
             UserWarning,
-            match="^Examples are being cached but not all input components have",
+            match="^Examples will be cached but not all input components have",
         ):
             with pytest.raises(Exception):
                 gr.Interface(
@@ -425,7 +425,7 @@ class TestProcessExamples:
 
         with pytest.warns(
             UserWarning,
-            match="^Examples are being cached but not all input components have",
+            match="^Examples will be cached but not all input components have",
         ):
             with pytest.raises(Exception):
                 gr.Interface(
