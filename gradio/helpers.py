@@ -318,21 +318,34 @@ class Examples:
                 print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
                 client_utils.synchronize_async(self.cache)
 
-    def lazy_cache(self, example_index):
+    async def handle_callable_as_generator(self, *args):
+        if self.fn is None:
+            raise ValueError("Cannot lazy-cache examples if no function is provided")
+        if inspect.iscoroutinefunction(self.fn):
+            result = await self.fn(*args)
+            yield result
+        elif inspect.isasyncgenfunction(self.fn):
+            async for item in self.fn(*args):
+                yield item
+        elif inspect.isgeneratorfunction(self.fn):
+            for item in self.fn(*args):
+                yield item
+        else:
+            yield self.fn(*args)
+
+    async def lazy_cache(self, example_index):
         if Path(self.cached_indices_file).exists():
             with open(self.cached_indices_file) as f:
                 cached_indices = [int(line.strip()) for line in f]
             if example_index in cached_indices:
                 cached_index = cached_indices.index(example_index)
-                return self.load_from_cache(cached_index)
-        if self.fn is None:
-            raise ValueError("Cannot lazy-cache examples if no function is provided")
-        output = self.fn(*self.examples[example_index])
-        print("output", output)
+                yield self.load_from_cache(cached_index)
+                return
+        async for output in self.handle_callable_as_generator(*self.examples[example_index]):
+            yield output
         self.write_to_cache(output)
         with open(self.cached_indices_file, "a") as f:
             f.write(f"{example_index}\n")
-        return output
 
     async def cache(self) -> None:
         """
