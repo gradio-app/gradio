@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import datetime
 import math
 from copy import deepcopy
 from typing import Any, Callable
@@ -42,7 +41,6 @@ class State(Component):
         """
         self.time_to_live = time_to_live or math.inf
         self.delete_callback = delete_callback or (lambda a: None)  # noqa: ARG005
-        self._created_at: datetime.datetime = datetime.datetime.now()
         try:
             self.value = deepcopy(value)
         except TypeError as err:
@@ -54,10 +52,6 @@ class State(Component):
     @property
     def stateful(self):
         return True
-
-    @property
-    def expired(self):
-        return (datetime.datetime.now() - self._created_at).seconds > self.time_to_live
 
     def preprocess(self, payload: Any) -> Any:
         """
