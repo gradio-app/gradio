@@ -720,7 +720,7 @@ class App(FastAPI):
             session_hash: str,
         ):
             def process_msg(message: EventMessage) -> str:
-                return f"data: {json.dumps(message.model_dump())}\n\n"
+                return f"data: {orjson.dumps(message.model_dump()).decode('utf-8')}\n\n"
 
             return await queue_data_helper(request, session_hash, process_msg)
 
@@ -803,11 +803,11 @@ class App(FastAPI):
                         message=str(e),
                     )
                     response = process_msg(message)
-                    if response is not None:
-                        yield response
                     if isinstance(e, asyncio.CancelledError):
                         del blocks._queue.pending_messages_per_session[session_hash]
                         await blocks._queue.clean_events(session_hash=session_hash)
+                    if response is not None:
+                        yield response
                     raise e
 
             return StreamingResponse(

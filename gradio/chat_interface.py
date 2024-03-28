@@ -193,7 +193,9 @@ class ChatInterface(Blocks):
                         if isinstance(btn, Button):
                             btn.render()
                         elif isinstance(btn, str):
-                            btn = Button(btn, variant="secondary", size="sm")
+                            btn = Button(
+                                btn, variant="secondary", size="sm", min_width=60
+                            )
                         else:
                             raise ValueError(
                                 f"All the _btn parameters must be a gr.Button, string, or None, not {type(btn)}"
@@ -465,7 +467,7 @@ class ChatInterface(Blocks):
         history: list[list[str | tuple | None]],
     ):
         for x in message["files"]:
-            history.append([(x["path"],), None])
+            history.append([(x,), None])
         if message["text"] is not None and isinstance(message["text"], str):
             history.append([message["text"], response])
 
@@ -542,7 +544,7 @@ class ChatInterface(Blocks):
             first_response = await async_iteration(generator)
             if self.multimodal and isinstance(message, dict):
                 for x in message["files"]:
-                    history.append([(x["path"],), None])
+                    history.append([(x,), None])
                 update = history + [[message["text"], first_response]]
                 yield update, update
             else:

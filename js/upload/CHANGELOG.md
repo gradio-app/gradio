@@ -1,5 +1,17 @@
 # @gradio/upload
 
+## 0.8.2
+
+### Fixes
+
+- [#7848](https://github.com/gradio-app/gradio/pull/7848) [`8d7b3ca`](https://github.com/gradio-app/gradio/commit/8d7b3caebd8f95b1372f8412cadbb5862766c365) - Multimodal Textbox Loading + other fixes.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+- @gradio/icons@0.3.4
+- @gradio/upload@0.8.2
+
 ## 0.8.1
 
 ### Dependency updates
