@@ -289,12 +289,10 @@ class Examples:
                     show_api=False,
                 )
             if self.cache_examples == "lazy":
-                print("Will cache examples in '{utils.abspath(self.cached_folder)}' directory at first use. ")
+                print(f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory at first use. ", end="")
                 if Path(self.cached_file).exists():
-                    print(
-                        "If method or examples have changed since last caching, delete this folder to reset cache."
-                    )
-                print("\n")
+                    print("If method or examples have changed since last caching, delete this folder to reset cache.", end="")
+                print("\n\n")
                 self.load_input_event.then(
                     self.lazy_cache,
                     inputs=[self.dataset],
@@ -331,6 +329,8 @@ class Examples:
             raise ValueError("Cannot lazy-cache examples if no function is provided")
         output = self.fn(*self.examples[example_index])
         self.write_to_cache(output)
+        with open(self.cached_indices_file, "a") as f:
+            f.write(f"{example_index}\n")
         return output
 
     async def cache(self) -> None:
