@@ -349,7 +349,7 @@ class Examples:
                 cached_index = cached_indices.index(example_index)
                 yield self.load_from_cache(cached_index)
                 return
-        output = [None]*len(self.outputs)
+        output = [None] * len(self.outputs)
         async for output in self._handle_callable_as_generator(
             *self.examples[example_index]
         ):
