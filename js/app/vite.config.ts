@@ -185,7 +185,7 @@ export default defineConfig(({ mode }) => {
 				// For the Wasm app to import the wheel file URLs.
 				"gradio.whl": resolve(
 					__dirname,
-					`../../dist/gradio-${version_raw}-py3-none-any.whl`
+					`../../dist-lite/gradio-${version_raw}-py3-none-any.whl`
 				),
 				"gradio_client.whl": resolve(
 					__dirname,
