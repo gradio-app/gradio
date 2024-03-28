@@ -318,7 +318,6 @@ class Examples:
                 # so `eventloop.create_task(self.cache())` is also not an option.
                 warnings.warn("Caching examples is not supported in the Wasm mode.")
             else:
-                self.cache_logger.setup(self.outputs, self.cached_folder)
                 client_utils.synchronize_async(self.cache)
 
     async def _handle_callable_as_generator(self, *args):
@@ -367,6 +366,7 @@ class Examples:
             )
         else:
             print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
+            self.cache_logger.setup(self.outputs, self.cached_folder)
             generated_values = []
             if inspect.isgeneratorfunction(self.fn):
 
