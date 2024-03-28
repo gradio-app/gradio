@@ -349,14 +349,14 @@ class Examples:
                 cached_index = cached_indices.index(example_index)
                 yield self.load_from_cache(cached_index)
                 return
-        output = None
+        output = [None]*len(self.outputs)
         async for output in self._handle_callable_as_generator(
             *self.examples[example_index]
         ):
             if len(self.outputs) == 1:
                 output = [output]
             yield output
-        self.write_to_cache(output)
+        self.cache_logger.flag(output)
         with open(self.cached_indices_file, "a") as f:
             f.write(f"{example_index}\n")
 
@@ -424,7 +424,7 @@ class Examples:
                     )
                 if self.batch:
                     output = [value[0] for value in output]
-                self.write_to_cache(output)
+                self.cache_logger.flag(output)
             # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
             Context.root_block.dependencies.remove(dependency)
             Context.root_block.fns.pop(fn_index)
@@ -452,9 +452,6 @@ class Examples:
             api_name=self.api_name,
             show_api=False,
         )
-
-    def write_to_cache(self, value):
-        self.cache_logger.flag(value)
 
     def load_from_cache(self, example_id: int) -> list[Any]:
         """Loads a particular cached example for the interface.
