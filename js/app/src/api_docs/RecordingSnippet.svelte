@@ -13,14 +13,18 @@
 	let js_code: HTMLElement;
 	export let api_calls: Payload[] = [];
 
-	function format_api_call(call) {
+	function format_api_call(call: Payload): string {
 		const api_name = `/${dependencies[call.fn_index].api_name}`;
 		const params = call.data
 			.map((param, index) => {
 				const param_info = endpoints_info[api_name].parameters[index];
 				const param_name = param_info.parameter_name;
 				const python_type = param_info.python_type.type;
-				return `  ${param_name}=${represent_value(param, python_type, "py")}`;
+				return `  ${param_name}=${represent_value(
+					param as string,
+					python_type,
+					"py"
+				)}`;
 			})
 			.join(",\n");
 
