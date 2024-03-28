@@ -30,7 +30,7 @@ jobs:
       - name: Build packages
         run: |
           . venv/bin/activate
-          pip install build
+          pip install build hatch
           pnpm --filter @gradio/client --filter @gradio/lite build
       - name: Package Lite NPM package
         run: pnpm pack --pack-destination ${{ github.workspace }}
