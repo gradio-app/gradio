@@ -600,6 +600,7 @@ class App(FastAPI):
             When the client disconnects, the session state is deleted.
             It is robust to internet cutting out, etc.
             """
+
             async def iterator():
                 while True:
                     try:
