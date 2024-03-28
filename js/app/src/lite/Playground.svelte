@@ -4,11 +4,10 @@
 	import { mount_css as default_mount_css } from "../css";
 	import type { api_factory } from "@gradio/client";
 	import type { WorkerProxy } from "@gradio/wasm";
-	import { SvelteComponent, createEventDispatcher } from "svelte";
+	import { SvelteComponent, createEventDispatcher, onMount } from "svelte";
 	import Code from "@gradio/code";
 	import ErrorDisplay from "./ErrorDisplay.svelte";
 	import lightning from "../images/lightning.svg";
-	import play from "../images/play.svg";
 	import type { LoadingStatus } from "js/statustracker";
 
 	export let autoscroll: boolean;
@@ -34,6 +33,7 @@
 
 	export let code: string | undefined;
 	export let error_display: SvelteComponent | null;
+	export let layout: string | null = null;
 
 	const dispatch = createEventDispatcher();
 
@@ -60,37 +60,64 @@
 	});
 
 	function shortcut_run(e: KeyboardEvent): void {
-		if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-			e.preventDefault();
+		if (e.key == "Enter" && (e.metaKey || e.ctrlKey)) {
 			dispatch("code", { code });
+			e.preventDefault();
 		}
 	}
 
+	onMount(() => {
+		var code_editors = document.getElementsByClassName("code-editor");
+		for (var i = 0; i < code_editors.length; i++) {
+			code_editors[i].addEventListener(
+				"keydown",
+				shortcut_run as EventListener,
+				true
+			);
+		}
+	});
+
 	$: loading_text;
 	$: loaded;
+	$: code;
 </script>
 
-<svelte:window on:keydown={shortcut_run} />
-
 <div class="parent-container">
-	<div class="child-container">
-		<div class:code-editor-border={loaded} class="code-editor">
-			<div class="loading-panel">
-				<div class="code-header">app.py</div>
-				{#if !loaded}
-					<div style="display: flex;"></div>
-					<div class="loading-section">
-						<div class="loading-dot"></div>
-						{loading_text}
-					</div>
-				{:else}
-					<div style="display: flex;"></div>
-					<div class="loading-section">
-						<img src={lightning} alt="lightning icon" class="lightning-logo" />
-						Interactive
-					</div>
-				{/if}
+	<div class="loading-panel">
+		<div class="code-header">app.py</div>
+		{#if !loaded}
+			<div style="display: flex;"></div>
+			<div class="loading-section">
+				<div class="loading-dot"></div>
+				{loading_text}
 			</div>
+		{:else}
+			<div class="buttons">
+				<div class="run">
+					<button
+						class="button"
+						on:click={() => {
+							dispatch("code", { code });
+						}}
+					>
+						Run
+						<div class="shortcut">⌘+↵</div>
+					</button>
+				</div>
+			</div>
+			<div style="flex-grow: 1"></div>
+			<div class="loading-section">
+				<img src={lightning} alt="lightning icon" class="lightning-logo" />
+				Interactive
+			</div>
+		{/if}
+	</div>
+	<div
+		class:horizontal={layout === "horizontal"}
+		class:vertical={layout === "vertical"}
+		class="child-container"
+	>
+		<div class:code-editor-border={loaded} class="code-editor">
 			<div style="flex-grow: 1;">
 				{#if loaded}
 					<Code
@@ -119,22 +146,6 @@
 		</div>
 		{#if loaded}
 			<div class="preview">
-				<div class="buttons">
-					<div class="run">
-						<button
-							class="button"
-							on:click={() => {
-								dispatch("code", { code });
-							}}
-						>
-							Run
-							<img src={play} alt="play icon" class="play-logo" />
-						</button>
-						<div class="shortcut">⌘+↵</div>
-					</div>
-
-					<div style="display: flex; float: right;"></div>
-				</div>
 				<div>
 					{#if !error_display}
 						<Index
@@ -174,6 +185,8 @@
 	.parent-container {
 		width: 100%;
 		height: 100%;
+		border: 1px solid rgb(229 231 235);
+		border-radius: 0.375rem;
 	}
 
 	.child-container {
@@ -181,8 +194,28 @@
 		flex-direction: column;
 		width: 100%;
 		height: 100%;
-		border: 1px solid rgb(229 231 235);
-		border-radius: 0.375rem;
+	}
+
+	.horizontal {
+		flex-direction: row !important;
+		height: 300px;
+	}
+
+	.vertical {
+		flex-direction: column !important;
+	}
+
+	.vertical .code-editor {
+		height: 300px;
+	}
+
+	.vertical .code-editor-border {
+		border-right: none !important;
+	}
+
+	.horizontal .code-editor-border {
+		border-right: 1px solid rgb(229 231 235);
+		border-bottom: none;
 	}
 
 	@media (min-width: 768px) {
@@ -196,9 +229,10 @@
 
 	.code-editor {
 		flex-grow: 1;
-		flex: 1 1 0%;
 		display: flex;
 		flex-direction: column;
+		border-bottom: 1px solid rgb(229 231 235);
+		overflow-y: scroll;
 	}
 
 	.loading-panel {
@@ -212,10 +246,12 @@
 	}
 
 	.code-header {
-		padding-top: 0.25rem;
-		flex-grow: 1;
+		align-self: center;
 		font-family: monospace;
-		margin-top: 4px;
+		font-size: 14px;
+		font-weight: lighter;
+		margin-right: 4px;
+		color: #535d6d;
 	}
 
 	.loading-section {
@@ -225,6 +261,8 @@
 		margin-right: 0.5rem;
 		color: #999b9e;
 		font-family: sans-serif;
+		font-size: 15px;
+		align-self: center;
 	}
 	.lightning-logo {
 		width: 1rem;
@@ -236,6 +274,7 @@
 		flex: 1 1 0%;
 		display: flex;
 		flex-direction: column;
+		overflow-y: scroll;
 	}
 
 	.buttons {
@@ -243,38 +282,38 @@
 		justify-content: space-between;
 		align-items: middle;
 		height: 2rem;
-		padding-left: 0.5rem;
-		padding-right: 0.5rem;
-		border-bottom: 1px solid rgb(229 231 235);
 	}
 
 	.run {
 		display: flex;
 		align-items: center;
 		color: #999b9e;
+		font-size: 15px;
 	}
 
 	.button {
 		display: flex;
+		height: 80%;
 		align-items: center;
-		font-weight: 500;
-		padding-left: 0.5rem;
-		padding-right: 0.25rem;
+		font-weight: 600;
+		padding-left: 0.8rem;
+		padding-right: 0.8rem;
 		border-radius: 0.375rem;
 		float: right;
 		margin: 0.25rem;
-		color: rgb(107 114 128);
-		background: #eff1f3;
-		border: none;
-		font-size: 100%;
+		border: 1px solid #e5e7eb;
+		background: linear-gradient(to bottom right, #f3f4f6, #e5e7eb);
+		color: #374151;
 		cursor: pointer;
 		font-family: sans-serif;
 	}
-
-	.play-logo {
-		width: 0.75rem;
-		height: 0.75rem;
-		margin: 0.125rem;
+	.shortcut {
+		align-self: center;
+		margin-top: 2px;
+		font-size: 10px;
+		font-weight: lighter;
+		padding-left: 0.15rem;
+		color: #374151;
 	}
 
 	:global(div.code-editor div.block) {
@@ -320,10 +359,31 @@
 		height: 100%;
 	}
 	:global(.code-editor .container) {
-		display: none;
+		padding: 2px;
+		padding-right: 0;
+		height: 100%;
 	}
-	:global(.code-editor button) {
-		display: none;
+
+	:global(.code-editor .container a) {
+		display: block;
+		width: 65%;
+		color: #9095a0;
+		margin: auto;
+	}
+
+	:global(.code-editor .block button) {
+		background-color: transparent;
+		border: none;
+		color: #9095a0;
+		height: 100%;
+		padding: 5px;
+		padding-left: 0;
+	}
+
+	:global(.code-editor .block .check) {
+		width: 65%;
+		color: #ff7c00;
+		margin: auto;
 	}
 
 	.loading-dot {

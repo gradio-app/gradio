@@ -63,6 +63,7 @@ export function bootstrap_custom_element(
 					files: gradioLiteAppOptions.files,
 					entrypoint: gradioLiteAppOptions.entrypoint,
 					playground: this.hasAttribute("playground"),
+					layout: this.getAttribute("layout"),
 					...gradioComponentOptions
 				});
 			});
