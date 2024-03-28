@@ -600,7 +600,7 @@ class App(FastAPI):
                 while True:
                     try:
                         yield "data: ALIVE\n\n"
-                        await asyncio.sleep(1)
+                        await asyncio.sleep(15)
                     except asyncio.CancelledError:
                         req = Request(request, username)
                         root_path = route_utils.get_root_url(
