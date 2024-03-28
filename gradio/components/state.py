@@ -17,7 +17,6 @@ class State(Component):
     """
     Special hidden component that stores session state across runs of the demo by the
     same user. The value of the State variable is cleared when the user refreshes the page.
-
     Demos: interface_state, blocks_simple_squares, state_cleanup
     Guides: real-time-speech-recognition
     """

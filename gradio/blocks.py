@@ -884,18 +884,15 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
     def unload(self, fn: Callable):
         """This listener is triggered when the user closes or refreshes the tab, ending the user session.
-
         It is useful for cleaning up resources when the app is closed.
-
         Parameters:
             fn: Callable function to run to clear resources. The function should not take any arguments and the output is not used.
-
         Example:
             import gradio as gr
             with gr.Blocks() as demo:
                 gr.Markdown("# When you close the tab, hello will be printed to the console")
                 demo.unload(lambda: print("hello"))
-            demo.launch(share=True, auth=("username", "password"))
+            demo.launch()
         """
         self.set_event_trigger(
             targets=[EventListenerMethod(None, "unload")],
