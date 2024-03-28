@@ -136,7 +136,7 @@ class Interface(Blocks):
             inputs: A single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If set to None, then only the output components will be displayed.
             outputs: A single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If set to None, then only the input components will be displayed.
             examples: Sample inputs for the function; if provided, appear below the UI components and can be clicked to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided, but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
-            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached after their first use. If `fn` is a generator function, then the last yielded value will be used as the output. The default option in HuggingFace Spaces is "lazy". The default option elsewhere is False.
+            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached after their first use. If `fn` is a generator function, then the last yielded value will be used as the output. Can also be set by the GRADIO_CACHE_EXAMPLES environment variable, which takes a case-insensitive value, one of: {"true", "false", "lazy"}. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
             examples_per_page: If examples are provided, how many to display per page.
             live: Whether the interface should automatically rerun if any of the inputs change.
             title: A title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
@@ -204,10 +204,22 @@ class Interface(Blocks):
         if not isinstance(additional_inputs, list):
             additional_inputs = [additional_inputs]
 
-        if self.space_id and cache_examples is None:
-            self.cache_examples = "lazy"
-        else:
-            self.cache_examples = cache_examples or False
+        if cache_examples is None:
+            if cache_examples_env := os.getenv("GRADIO_CACHE_EXAMPLES"):
+                if cache_examples_env.lower() == "true":
+                    self.cache_examples = True
+                elif cache_examples_env.lower() == "false":
+                    self.cache_examples = False
+                elif cache_examples_env.lower() == "lazy":
+                    self.cache_examples = "lazy"
+                else:
+                    raise ValueError(
+                        "GRADIO_CACHE_EXAMPLES must be one of: 'true', 'false', 'lazy' (case-insensitive)."
+                    )
+            elif self.space_id:
+                self.cache_examples = True
+            else:
+                self.cache_examples = cache_examples or False
 
         state_input_indexes = [
             idx for idx, i in enumerate(inputs) if i == "state" or isinstance(i, State)
