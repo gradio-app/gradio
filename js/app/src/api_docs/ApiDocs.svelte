@@ -351,9 +351,10 @@
 		border: 1px solid var(--border-color-accent);
 		border-radius: var(--radius-sm);
 		background: var(--color-accent-soft);
-		padding: var(--size-1);
+		padding:  0px var(--size-1);
 		color: var(--color-accent);
 		font-size: var(--text-md);
+		text-decoration: none;
 	}
 
 	.snippets {

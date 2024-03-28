@@ -18,7 +18,8 @@
 		</div>
 	</div>
 	<span class="counts">
-		<span class="url">{api_count}</span> API endpoint{#if api_count > 1}s{/if}
+		<span class="url">{api_count}</span> API endpoint{#if api_count > 1}s{/if}<br>
+		<span class="api-recorder">🪄 API Recorder</span>
 	</span>
 </h2>
 
@@ -74,5 +75,14 @@
 		margin-left: auto;
 		color: var(--body-text-color);
 		font-weight: var(--weight-light);
+	}
+
+	.api-recorder{
+		font-size: var(--text-lg);
+		border: 1px solid var(--color-accent);
+		background-color: var(--color-accent-soft);
+		padding: var(--size-1) var(--size-2);
+		border-radius: var(--size-1);
+		cursor: pointer;
 	}
 </style>
