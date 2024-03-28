@@ -39,7 +39,7 @@ def create_examples(
     inputs: Component | list[Component],
     outputs: Component | list[Component] | None = None,
     fn: Callable | None = None,
-    cache_examples: bool | Literal["lazy"] = False,
+    cache_examples: bool | Literal["lazy"] | None = None,
     examples_per_page: int = 10,
     _api_mode: bool = False,
     label: str | None = None,
@@ -90,7 +90,7 @@ class Examples:
         inputs: Component | list[Component],
         outputs: Component | list[Component] | None = None,
         fn: Callable | None = None,
-        cache_examples: bool | Literal["lazy"] = False,
+        cache_examples: bool | Literal["lazy"] | None = None,
         examples_per_page: int = 10,
         _api_mode: bool = False,
         label: str | None = "Examples",
@@ -108,7 +108,7 @@ class Examples:
             inputs: the component or list of components corresponding to the examples
             outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache_examples` is not False.
             fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache_examples` is not False. Also required if `run_on_click` is True.
-            cache_examples: if True, caches examples for fast runtime. If "lazy", then examples are cached after their first use. If True or "lazy", then `fn` and `outputs` must be provided. If `fn` is a generator function, then the last yielded value will be used as the output.
+            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached after their first use. Can also be set by the GRADIO_CACHE_EXAMPLES environment variable, which takes a case-insensitive value, one of: {"true", "false", "lazy"}. The default option in HuggingFace Spaces is True (as long as `fn` and `outputs` are also provided). The default option otherwise is False.
             examples_per_page: how many examples to show per page.
             label: the label to use for the examples component (by default, "Examples")
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM.
@@ -123,7 +123,24 @@ class Examples:
                 "Please use gr.Examples(...) instead of gr.examples.Examples(...) to create the Examples.",
             )
 
-        if cache_examples and (fn is None or outputs is None):
+        if cache_examples is None:
+            if cache_examples_env := os.getenv("GRADIO_CACHE_EXAMPLES"):
+                if cache_examples_env.lower() == "true":
+                    self.cache_examples = True
+                elif cache_examples_env.lower() == "false":
+                    self.cache_examples = False
+                elif cache_examples_env.lower() == "lazy":
+                    self.cache_examples = "lazy"
+                else:
+                    raise ValueError(
+                        "GRADIO_CACHE_EXAMPLES must be one of: 'true', 'false', 'lazy' (case-insensitive)."
+                    )
+            elif utils.get_space() and fn is not None and outputs is not None:
+                self.cache_examples = True
+            else:
+                self.cache_examples = cache_examples or False
+
+        if self.cache_examples and (fn is None or outputs is None):
             raise ValueError("If caching examples, `fn` and `outputs` must be provided")
 
         if not isinstance(inputs, list):
@@ -194,7 +211,6 @@ class Examples:
         self.inputs_with_examples = inputs_with_examples
         self.outputs = outputs or []
         self.fn = fn
-        self.cache_examples = cache_examples
         self._api_mode = _api_mode
         self.preprocess = preprocess
         self.postprocess = postprocess
@@ -221,7 +237,7 @@ class Examples:
             [ex for (ex, keep) in zip(example, input_has_examples) if keep]
             for example in self.processed_examples
         ]
-        if cache_examples:
+        if self.cache_examples:
             for example in self.examples:
                 if len([ex for ex in example if ex is not None]) != len(self.inputs):
                     warnings.warn(
@@ -249,7 +265,6 @@ class Examples:
         self.cached_folder = utils.get_cache_folder() / str(self.dataset._id)
         self.cached_file = Path(self.cached_folder) / "log.csv"
         self.cached_indices_file = Path(self.cached_folder) / "indices.csv"
-        self.cache_examples = cache_examples
         self.run_on_click = run_on_click
 
     def create(self) -> None:

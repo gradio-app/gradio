@@ -204,22 +204,7 @@ class Interface(Blocks):
         if not isinstance(additional_inputs, list):
             additional_inputs = [additional_inputs]
 
-        if cache_examples is None:
-            if cache_examples_env := os.getenv("GRADIO_CACHE_EXAMPLES"):
-                if cache_examples_env.lower() == "true":
-                    self.cache_examples = True
-                elif cache_examples_env.lower() == "false":
-                    self.cache_examples = False
-                elif cache_examples_env.lower() == "lazy":
-                    self.cache_examples = "lazy"
-                else:
-                    raise ValueError(
-                        "GRADIO_CACHE_EXAMPLES must be one of: 'true', 'false', 'lazy' (case-insensitive)."
-                    )
-            elif self.space_id:
-                self.cache_examples = True
-            else:
-                self.cache_examples = cache_examples or False
+        self.cache_examples = cache_examples
 
         state_input_indexes = [
             idx for idx, i in enumerate(inputs) if i == "state" or isinstance(i, State)
