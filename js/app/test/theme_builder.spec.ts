@@ -15,8 +15,8 @@ test("test theme builder changes are applied", async ({ page }) => {
 	);
 	await expect(go_btn).toHaveCSS("background-color", "rgb(16, 185, 129)");
 
-    await page.getByRole('button', { name: 'View Code ▼' }).click();
-    const code = page.getByLabel('Code input container');
-    await expect(code).toContainText("gr.themes.Soft");
-    await expect(code).toContainText('primary_hue="emerald"');
+	await page.getByRole("button", { name: "View Code ▼" }).click();
+	const code = page.getByLabel("Code input container");
+	await expect(code).toContainText("gr.themes.Soft");
+	await expect(code).toContainText('primary_hue="emerald"');
 });
