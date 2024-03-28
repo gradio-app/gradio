@@ -196,7 +196,8 @@ export function create_components(): {
 		update_scheduled_store.set(false);
 	}
 
-	function update_value(updates: UpdateTransaction[]): void {
+	function update_value(updates: UpdateTransaction[] | undefined): void {
+		if (!updates) return;
 		pending_updates.push(updates);
 
 		if (!update_scheduled) {
