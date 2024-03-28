@@ -193,7 +193,9 @@ class ChatInterface(Blocks):
                         if isinstance(btn, Button):
                             btn.render()
                         elif isinstance(btn, str):
-                            btn = Button(btn, variant="secondary", size="sm", min_width=60)
+                            btn = Button(
+                                btn, variant="secondary", size="sm", min_width=60
+                            )
                         else:
                             raise ValueError(
                                 f"All the _btn parameters must be a gr.Button, string, or None, not {type(btn)}"
