@@ -70,6 +70,7 @@
 	let api_docs_visible = params.get("view") === "api" && show_api;
 	let api_recorder_visible = params.get("view") === "api-recorder" && show_api;
 	function set_api_docs_visible(visible: boolean): void {
+		api_recorder_visible = false;
 		api_docs_visible = visible;
 		let params = new URLSearchParams(window.location.search);
 		if (visible) {
@@ -576,6 +577,7 @@
 				root_node={$_layout}
 				on:close={(event) => {
 					set_api_docs_visible(false);
+					api_calls = [];
 					api_recorder_visible = event.detail.api_recorder_visible;
 				}}
 				{dependencies}

@@ -166,13 +166,6 @@
 
 	const dispatch = createEventDispatcher();
 
-	function show_api_recorder() {
-		dispatch("close", { api_recorder_visible: true });
-		let params = new URLSearchParams(window.location.search);
-		params.set("view", "api-recorder");
-		history.replaceState(null, "", "?" + params.toString());
-	}
-
 	onMount(() => {
 		document.body.style.overflow = "hidden";
 		if ("parentIFrame" in window) {
@@ -221,8 +214,8 @@
 						🪄 Recorded API Calls ({api_calls.length})
 					</p>
 					<p>
-						Here is the code snippet to replay the recorded API calls using the {current_language}
-						client library.
+						Here is the code snippet to replay the most recently recorded API calls using the {current_language}
+						client.
 					</p>
 
 					<RecordingSnippet
@@ -230,6 +223,7 @@
 						{api_calls}
 						{dependencies}
 						root={space_id || root}
+						endpoints_info={info.named_endpoints}
 					/>
 					<p>
 						Note: the above list may include extra API calls that affect the UI,
@@ -260,7 +254,7 @@
 								class="underline"
 								target="_blank">read more</a
 							>).{/if} Or try the
-						<span id="api-recorder" on:click={show_api_recorder}
+						<span id="api-recorder" on:click={() => dispatch("close", { api_recorder_visible: true })}
 							>🪄 API Recorder</span
 						> to automatically generate your API requests!
 					</p>

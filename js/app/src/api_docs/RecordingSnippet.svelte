@@ -2,14 +2,28 @@
 	import type { Dependency, Payload } from "../types";
 	import CopyButton from "./CopyButton.svelte";
 	import { Block } from "@gradio/atoms";
+	import { represent_value } from "./utils";
 
 	export let dependencies: Dependency[];
 	export let root: string;
 	export let current_language: "python" | "javascript";
+	export let endpoints_info: any;
 
 	let python_code: HTMLElement;
 	let js_code: HTMLElement;
 	export let api_calls: Payload[] = [];
+
+	function format_api_call(call) {
+		const api_name = `/${dependencies[call.fn_index].api_name}`;
+		const params = call.data.map((param, index) => {
+		const param_info = endpoints_info[api_name].parameters[index];
+		const param_name = param_info.parameter_name;
+		const python_type = param_info.python_type.type;
+		return `  ${param_name}=${represent_value(param, python_type, "py")}`;
+		}).join(",\n");
+
+		return `${params}"`;
+	}
 </script>
 
 <div class="container">
@@ -26,9 +40,13 @@
 						> Client, file
 
 client = Client(<span class="token string">"{root}"</span>)
-result = client.<span class="highlight">predict</span>
-<span class="highlight">print</span>(result)</pre>
-				</div>
+{#each api_calls as call}<!--
+-->
+client.<span class="highlight">predict(
+{format_api_call(call)},
+  api_name=<span class="api-name">"/{dependencies[call.fn_index].api_name}"</span>
+)
+</span>{/each}</div>
 			{:else if current_language === "javascript"}
 				<div class="copy">
 					<CopyButton code={js_code?.innerText} />
@@ -39,8 +57,8 @@ result = client.<span class="highlight">predict</span>
 const app = await client(<span class="token string">"{root}"</span>);
 {#each api_calls as call}<!--
 -->
-{#if dependencies[call.fn_index].backend_fn}client.predict("<span
-									class="api-name">/{dependencies[call.fn_index].api_name}</span
+{#if dependencies[call.fn_index].backend_fn}client.predict(<span
+									class="api-name">"/{dependencies[call.fn_index].api_name}"</span
 								>", {JSON.stringify(call.data, null, 2)});{/if}
 						{/each}</pre>
 				</div>{/if}

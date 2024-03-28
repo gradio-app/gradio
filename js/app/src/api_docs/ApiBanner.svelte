@@ -19,7 +19,7 @@
 	</div>
 	<span class="counts">
 		<span class="url">{api_count}</span> API endpoint{#if api_count > 1}s{/if}<br>
-		<span class="api-recorder">🪄 API Recorder</span>
+		<span class="api-recorder" on:click={() => dispatch("close", { api_recorder_visible: true })}>🪄 Try the API Recorder</span>
 	</span>
 </h2>
 
