@@ -189,7 +189,7 @@
 		const items = event.clipboardData.items;
 		for (let index in items) {
 			const item = items[index];
-			if (item.kind === 'file' && item.type.includes('image')) {
+			if (item.kind === "file" && item.type.includes("image")) {
 				const blob = item.getAsFile();
 				if (blob) upload_component.load_files([blob]);
 			}
