@@ -159,6 +159,7 @@ class Client:
         self.sse_url = urllib.parse.urljoin(
             self.src, utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL
         )
+        self.heartbeat_url = urllib.parse.urljoin(self.src, utils.HEARTBEAT_URL)
         self.sse_data_url = urllib.parse.urljoin(
             self.src,
             utils.SSE_DATA_URL_V0 if self.protocol == "sse" else utils.SSE_DATA_URL,
@@ -184,12 +185,28 @@ class Client:
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
 
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
-        threading.Thread(target=self._telemetry_thread).start()
+        threading.Thread(target=self._telemetry_thread, daemon=True).start()
+        self._refresh_heartbeat = threading.Event()
+        threading.Thread(target=self._stream_heartbeat, daemon=True).start()
 
         self.stream_open = False
         self.streaming_future: Future | None = None
         self.pending_messages_per_event: dict[str, list[Message | None]] = {}
         self.pending_event_ids: set[str] = set()
+
+    def _stream_heartbeat(self):
+        while True:
+            url = self.heartbeat_url.format(session_hash=self.session_hash)
+            with httpx.stream(
+                "GET",
+                url,
+                headers=self.headers,
+                cookies=self.cookies,
+                verify=self.ssl_verify,
+                timeout=60,
+            ):
+                if self._refresh_heartbeat.wait():
+                    self._refresh_heartbeat.clear()
 
     async def stream_messages(
         self, protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]
@@ -640,6 +657,7 @@ class Client:
 
     def reset_session(self) -> None:
         self.session_hash = str(uuid.uuid4())
+        self._refresh_heartbeat.set()
 
     def _render_endpoints_info(
         self,

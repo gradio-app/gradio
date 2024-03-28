@@ -608,6 +608,17 @@ class TestClientPredictions:
             pred = client.predict(api_name="/predict")
             assert pred[0] == data[0]
 
+    def test_state_reset_when_session_changes(
+        self,
+        capsys,
+        state_demo,
+    ):
+        with connect(state_demo) as client:
+            client.predict("Hello", api_name="/predict")
+            client.reset_session()
+        out = capsys.readouterr().out
+        assert "STATE DELETED" in out
+
 
 class TestClientPredictionsWithKwargs:
     def test_no_default_params(self, calculator_demo):
