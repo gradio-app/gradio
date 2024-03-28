@@ -41,7 +41,7 @@
 	}
 
 	export let api_calls: Payload[] = [];
-	let current_language: "python" | "javascript" = "javascript";
+	let current_language: "python" | "javascript" = "python";
 
 	const langs = [
 		["python", python],
@@ -191,25 +191,35 @@
 		</div>
 
 		<div class="docs-wrap">
-			{#if api_calls.length}
-				<div class="client-doc">
+			<div class="client-doc">
+				<p>
+					Use the <code class="library">gradio_client</code>
+					<a href={py_docs} target="_blank">Python library</a> or the
+					<code class="library">@gradio/client</code>
+					<a href={js_docs} target="_blank">Javascript package</a> to
+					query the app via API.
+				</p>
+			</div>
+			<div class="endpoint">
+				<div class="snippets">
+					{#each langs as [language, img]}
+						<li
+							class="snippet
+						{current_language === language ? 'current-lang' : 'inactive-lang'}"
+							on:click={() => (current_language = language)}
+						>
+							<img src={img} alt="" />
+							{language}
+						</li>
+					{/each}
+				</div>
+				{#if api_calls.length}
+				<div>
 					<p
-						style="font-size: var(--text-lg); font-weight:bold; padding-bottom:15px;"
+						style="font-size: var(--text-lg); font-weight:bold; margin: 10px 0px;"
 					>
 						🪄 Recorded API Calls ({api_calls.length})
 					</p>
-					<div class="snippets">
-						{#each langs as [language, img]}
-							<li
-								class="snippet
-							{current_language === language ? 'current-lang' : 'inactive-lang'}"
-								on:click={() => (current_language = language)}
-							>
-								<img src={img} alt="" />
-								{language}
-							</li>
-						{/each}
-					</div>
 					<p>
 						Here is the code snippet to replay the recorded API calls using the {current_language}
 						client library.
@@ -226,30 +236,13 @@
 						but are not necessary for the clients.
 					</p>
 				</div>
-			{:else}
-				<div class="client-doc">
-					<p>
-						Use the <code class="library">gradio_client</code>
-						Python library (<a href={py_docs} target="_blank">docs</a>) or the
-						<code class="library">@gradio/client</code>
-						Javascript package (<a href={js_docs} target="_blank">docs</a>) to
-						query the app via API.
-					</p>
-				</div>
-				<div class="endpoint">
-					<div class="snippets">
-						{#each langs as [language, img]}
-							<li
-								class="snippet
-							{current_language === language ? 'current-lang' : 'inactive-lang'}"
-								on:click={() => (current_language = language)}
-							>
-								<img src={img} alt="" />
-								{language}
-							</li>
-						{/each}
-					</div>
+				<p
+				style="font-size: var(--text-lg); font-weight:bold; margin: 30px 0px 10px;"
+			>
+				API Documentation
+			</p>
 
+				{:else}
 					<p class="padded">
 						1. Install the client if you don't already have it installed.
 					</p>
@@ -271,6 +264,7 @@
 							>🪄 API Recorder</span
 						> to automatically generate your API requests!
 					</p>
+				{/if}
 
 					{#each dependencies as dependency, dependency_index}
 						{#if dependency.show_api}
@@ -312,7 +306,6 @@
 						{/if}
 					{/each}
 				</div>
-			{/if}
 		</div>
 	{:else}
 		<NoApi {root} on:close />
