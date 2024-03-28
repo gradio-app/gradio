@@ -20,8 +20,6 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: "[tmp] show files"
-        run: tree gradio
       - name: install dependencies
         uses: "./.github/actions/install-all-deps"
         with:
@@ -29,8 +27,6 @@ jobs:
           node_auth_token: ${{ secrets.NPM_TOKEN }}
           npm_token: ${{ secrets.NPM_TOKEN }}
           skip_build: 'true'
-      - name: "[tmp] show files"
-        run: tree gradio
       - name: Build packages
         run: |
           . venv/bin/activate
