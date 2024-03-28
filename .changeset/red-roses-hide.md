@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:[WIP] API Recorder 
+feat:API Recorder 
