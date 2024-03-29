@@ -74,6 +74,14 @@ class TestClientInitialization:
         )
         assert {"authorization": "Bearer abcde"}.items() <= client.headers.items()
 
+    def test_many_endpoint_demo_loads_quickly(self, many_endpoint_demo):
+        import datetime
+
+        start = datetime.datetime.now()
+        with connect(many_endpoint_demo):
+            pass
+        assert (datetime.datetime.now() - start).seconds < 5
+
 
 class TestClientPredictions:
     @pytest.mark.flaky
