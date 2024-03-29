@@ -6,11 +6,9 @@ This file defines a useful high-level abstraction to build Gradio chatbots: Chat
 from __future__ import annotations
 
 import inspect
-import os
 from typing import AsyncGenerator, Callable, Literal, Union, cast
 
 import anyio
-from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 from gradio.blocks import Blocks
@@ -30,7 +28,7 @@ from gradio.helpers import special_args
 from gradio.layouts import Accordion, Group, Row
 from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
-from gradio.utils import SyncToAsyncIterator, async_iteration, async_lambda, get_space
+from gradio.utils import SyncToAsyncIterator, async_iteration, async_lambda
 
 
 @document()
@@ -133,28 +131,7 @@ class ChatInterface(Blocks):
         self.buttons: list[Button | None] = []
 
         self.examples = examples
-        if cache_examples is None:
-            if cache_examples_env := os.getenv("GRADIO_CACHE_EXAMPLES"):
-                if cache_examples_env.lower() == "true":
-                    self.cache_examples = True
-                elif cache_examples_env.lower() == "false":
-                    self.cache_examples = False
-                elif cache_examples_env.lower() == "lazy":
-                    self.cache_examples = "lazy"
-                else:
-                    raise ValueError(
-                        "The `GRADIO_CACHE_EXAMPLES` env variable must be one of: 'true', 'false', 'lazy' (case-insensitive)."
-                    )
-            elif get_space():
-                self.cache_examples = True
-            else:
-                self.cache_examples = cache_examples or False
-        else:
-            if cache_examples not in [True, False, "lazy"]:
-                raise ValueError(
-                    "The `cache_examples` parameter must be one of: True, False, 'lazy'."
-                )
-            self.cache_examples = cache_examples
+        self.cache_examples = cache_examples
 
         if additional_inputs:
             if not isinstance(additional_inputs, list):
@@ -316,10 +293,7 @@ class ChatInterface(Blocks):
                             input_component.render()
 
             # The example caching must happen after the input components have rendered
-            if self.cache_examples is True:
-                client_utils.synchronize_async(self.examples_handler.cache)
-            elif self.cache_examples == "lazy":
-                self.examples_handler.lazy_cache()
+            self.examples_handler._start_caching()
 
             self.saved_input = State()
             self.chatbot_state = (

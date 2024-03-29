@@ -49,7 +49,7 @@ def create_examples(
     postprocess: bool = True,
     api_name: str | Literal[False] = "load_example",
     batch: bool = False,
-    defer_caching: bool = False,
+    _defer_caching: bool = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
     examples_obj = Examples(
@@ -67,6 +67,7 @@ def create_examples(
         postprocess=postprocess,
         api_name=api_name,
         batch=batch,
+        _defer_caching=_defer_caching,
         _initiated_directly=False,
     )
     examples_obj.create()
@@ -101,6 +102,7 @@ class Examples:
         postprocess: bool = True,
         api_name: str | Literal[False] = "load_example",
         batch: bool = False,
+        _defer_caching: bool = False,
         _initiated_directly: bool = True,
     ):
         """
@@ -149,6 +151,7 @@ class Examples:
 
         if self.cache_examples and (fn is None or outputs is None):
             raise ValueError("If caching examples, `fn` and `outputs` must be provided")
+        self._defer_caching = _defer_caching
 
         if not isinstance(inputs, list):
             inputs = [inputs]
@@ -244,17 +247,6 @@ class Examples:
             [ex for (ex, keep) in zip(example, input_has_examples) if keep]
             for example in self.processed_examples
         ]
-        if self.cache_examples:
-            for example in self.examples:
-                if len([ex for ex in example if ex is not None]) != len(self.inputs):
-                    warnings.warn(
-                        "Examples will be cached but not all input components have "
-                        "example values. This may result in an exception being thrown by "
-                        "your function. If you do get an error while caching examples, make "
-                        "sure all of your inputs have example values for all of your examples "
-                        "or you provide default values for those particular parameters in your function."
-                    )
-                    break
 
         from gradio import components
 
@@ -310,30 +302,8 @@ class Examples:
                     outputs=self.outputs,  # type: ignore
                     show_api=False,
                 )
-            if self.cache_examples == "lazy":
-                print(
-                    f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory at first use. ",
-                    end="",
-                )
-                if Path(self.cached_file).exists():
-                    print(
-                        "If method or examples have changed since last caching, delete this folder to reset cache.",
-                        end="",
-                    )
-                print("\n\n")
-                self.cache_logger.setup(self.outputs, self.cached_folder)
-                self.lazy_cache()
-
-        if self.cache_examples is True:
-            if wasm_utils.IS_WASM:
-                # In the Wasm mode, the `threading` module is not supported,
-                # so `client_utils.synchronize_async` is also not available.
-                # And `self.cache()` should be waited for to complete before this method returns,
-                # (otherwise, an error "Cannot cache examples if not in a Blocks context" will be raised anyway)
-                # so `eventloop.create_task(self.cache())` is also not an option.
-                warnings.warn("Caching examples is not supported in the Wasm mode.")
-            else:
-                client_utils.synchronize_async(self.cache)
+        if not self._defer_caching:
+            self._start_caching()
 
     def _postprocess_output(self, output) -> list:
         """
@@ -359,12 +329,46 @@ class Examples:
                 return cached_index
         return None
 
-    def cache_examples_if_specified(self) -> None:
+    def _start_caching(self):
+        if self.cache_examples:
+            for example in self.examples:
+                if len([ex for ex in example if ex is not None]) != len(self.inputs):
+                    warnings.warn(
+                        "Examples will be cached but not all input components have "
+                        "example values. This may result in an exception being thrown by "
+                        "your function. If you do get an error while caching examples, make "
+                        "sure all of your inputs have example values for all of your examples "
+                        "or you provide default values for those particular parameters in your function."
+                    )
+                    break
+
+        if self.cache_examples == "lazy":
+            self.cache_logger.setup(self.outputs, self.cached_folder)
+            self.lazy_cache()
+
+        if self.cache_examples is True:
+            if wasm_utils.IS_WASM:
+                # In the Wasm mode, the `threading` module is not supported,
+                # so `client_utils.synchronize_async` is also not available.
+                # And `self.cache()` should be waited for to complete before this method returns,
+                # (otherwise, an error "Cannot cache examples if not in a Blocks context" will be raised anyway)
+                # so `eventloop.create_task(self.cache())` is also not an option.
+                warnings.warn("Caching examples is not supported in the Wasm mode.")
+            else:
+                client_utils.synchronize_async(self.cache)
 
     def lazy_cache(self) -> None:
-        if inspect.iscoroutinefunction(self.fn) or inspect.isasyncgenfunction(
-            self.fn
-        ):
+        print(
+            f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory at first use. ",
+            end="",
+        )
+        if Path(self.cached_file).exists():
+            print(
+                "If method or examples have changed since last caching, delete this folder to reset cache.",
+                end="",
+            )
+        print("\n\n")
+        if inspect.iscoroutinefunction(self.fn) or inspect.isasyncgenfunction(self.fn):
             lazy_cache_fn = self.async_lazy_cache
         else:
             lazy_cache_fn = self.sync_lazy_cache
