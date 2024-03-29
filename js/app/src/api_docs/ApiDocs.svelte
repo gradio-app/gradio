@@ -9,6 +9,7 @@
 	import { represent_value } from "./utils";
 
 	import ApiBanner from "./ApiBanner.svelte";
+	import Button from "../../../button/shared/Button.svelte";
 	import ParametersSnippet from "./ParametersSnippet.svelte";
 	import InstallSnippet from "./InstallSnippet.svelte";
 	import CodeSnippet from "./CodeSnippet.svelte";
@@ -253,12 +254,21 @@
 									spaces_docs_suffix}
 								class="underline"
 								target="_blank">read more</a
-							>).{/if} Or try the
-						<span
+							>).{/if} Or
+						<Button
+							size="sm"
+							variant="primary"
+							on:click={() => dispatch("close", { api_recorder_visible: true })}
+						>
+							🪄 Try the API Recorder
+						</Button>
+						to automatically generate your API requests.
+
+						<!-- <span
 							id="api-recorder"
 							on:click={() => dispatch("close", { api_recorder_visible: true })}
 							>🪄 API Recorder</span
-						> to automatically generate your API requests!
+						> to automatically generate your API requests! -->
 					</p>
 				{/if}
 

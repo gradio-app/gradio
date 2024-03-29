@@ -34,7 +34,7 @@
 
 <div class="container">
 	<!-- <EndpointDetail {named} api_name={dependency.api_name} /> -->
-	<Block>
+	<Block border_mode={"focus"}>
 		<code>
 			{#if current_language === "python"}
 				<div class="copy">

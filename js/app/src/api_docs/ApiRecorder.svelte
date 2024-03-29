@@ -6,7 +6,7 @@
 </script>
 
 <div id="api-recorder">
-	⬛ <span class="message">Recording API Calls...</span>
+	🟠 <span class="message">Recording API Calls...</span>
 	({api_calls.length}) {#if api_calls.length > 0}
 		| <span class="api-name"
 			>/{dependencies[api_calls[api_calls.length - 1].fn_index].api_name}</span
