@@ -615,8 +615,11 @@ class App(FastAPI):
                         yield "data: ALIVE\n\n"
                         # We need to close the heartbeat connections as soon as the server stops
                         # otherwise the server can take forever to close
+                        wait_task = asyncio.create_task(wait())
+                        stop_stream_task = asyncio.create_task(stop_stream())
                         done, _ = await asyncio.wait(
-                            [wait(), stop_stream()], return_when=asyncio.FIRST_COMPLETED
+                            [wait_task, stop_stream_task],
+                            return_when=asyncio.FIRST_COMPLETED,
                         )
                         done = [d.result() for d in done]
                         if "stop" in done:
