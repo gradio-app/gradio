@@ -341,11 +341,8 @@ class Examples:
                         "or you provide default values for those particular parameters in your function."
                     )
                     break
-
         if self.cache_examples == "lazy":
-            self.cache_logger.setup(self.outputs, self.cached_folder)
             self.lazy_cache()
-
         if self.cache_examples is True:
             if wasm_utils.IS_WASM:
                 # In the Wasm mode, the `threading` module is not supported,
@@ -353,7 +350,7 @@ class Examples:
                 # And `self.cache()` should be waited for to complete before this method returns,
                 # (otherwise, an error "Cannot cache examples if not in a Blocks context" will be raised anyway)
                 # so `eventloop.create_task(self.cache())` is also not an option.
-                warnings.warn("Caching examples is not supported in the Wasm mode.")
+                warnings.warn("Setting `cache_examples=True` is not supported in the Wasm mode. You can set `cache_examples='lazy'` to cache examples after first use.")
             else:
                 client_utils.synchronize_async(self.cache)
 
@@ -368,11 +365,11 @@ class Examples:
                 end="",
             )
         print("\n\n")
+        self.cache_logger.setup(self.outputs, self.cached_folder)
         if inspect.iscoroutinefunction(self.fn) or inspect.isasyncgenfunction(self.fn):
             lazy_cache_fn = self.async_lazy_cache
         else:
             lazy_cache_fn = self.sync_lazy_cache
-
         self.load_input_event.then(
             lazy_cache_fn,
             inputs=[self.dataset] + self.inputs,
