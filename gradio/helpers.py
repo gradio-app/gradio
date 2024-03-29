@@ -321,21 +321,7 @@ class Examples:
                     )
                 print("\n\n")
                 self.cache_logger.setup(self.outputs, self.cached_folder)
-                if inspect.iscoroutinefunction(self.fn) or inspect.isasyncgenfunction(
-                    self.fn
-                ):
-                    lazy_cache_fn = self.async_lazy_cache
-                else:
-                    lazy_cache_fn = self.sync_lazy_cache
-
-                self.load_input_event.then(
-                    lazy_cache_fn,
-                    inputs=[self.dataset] + self.inputs,
-                    outputs=self.outputs,
-                    postprocess=False,
-                    api_name=self.api_name,
-                    show_api=False,
-                )
+                self.lazy_cache()
 
         if self.cache_examples is True:
             if wasm_utils.IS_WASM:
@@ -371,6 +357,23 @@ class Examples:
                 cached_index = cached_indices.index(example_index)
                 return cached_index
         return None
+
+    def lazy_cache(self) -> None:
+        if inspect.iscoroutinefunction(self.fn) or inspect.isasyncgenfunction(
+            self.fn
+        ):
+            lazy_cache_fn = self.async_lazy_cache
+        else:
+            lazy_cache_fn = self.sync_lazy_cache
+
+        self.load_input_event.then(
+            lazy_cache_fn,
+            inputs=[self.dataset] + self.inputs,
+            outputs=self.outputs,
+            postprocess=False,
+            api_name=self.api_name,
+            show_api=False,
+        )
 
     async def async_lazy_cache(self, example_index, *input_values):
         cached_index = self._get_cached_index_if_cached(example_index)

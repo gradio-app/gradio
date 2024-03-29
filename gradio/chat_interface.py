@@ -316,8 +316,10 @@ class ChatInterface(Blocks):
                             input_component.render()
 
             # The example caching must happen after the input components have rendered
-            if cache_examples:
+            if self.cache_examples is True:
                 client_utils.synchronize_async(self.examples_handler.cache)
+            elif self.cache_examples == "lazy":
+                self.examples_handler.lazy_cache()
 
             self.saved_input = State()
             self.chatbot_state = (
