@@ -1260,7 +1260,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             event_id: id of event in queue
             event_data: data associated with event trigger
         """
-        # breakpoint()
         block_fn = self.fns[fn_index]
         if not block_fn.fn:
             raise IndexError(f"function with index {fn_index} not defined.")

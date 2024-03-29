@@ -613,6 +613,8 @@ class App(FastAPI):
                 while True:
                     try:
                         yield "data: ALIVE\n\n"
+                        # We need to close the heartbeat connections as soon as the server stops
+                        # otherwise the server can take forever to close
                         done, _ = await asyncio.wait(
                             [wait(), stop_stream()], return_when=asyncio.FIRST_COMPLETED
                         )

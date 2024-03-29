@@ -28,7 +28,7 @@ class State(Component):
         value: Any = None,
         render: bool = True,
         *,
-        time_to_live: int | None = None,
+        time_to_live: int | float | None = None,
         delete_callback: Callable[[Any], None] | None = None,
     ):
         """
@@ -38,7 +38,9 @@ class State(Component):
             time_to_live: The number of seconds the state should be stored for after it is created or updated. If None, the state will be stored indefinitely. Gradio automatically deletes state variables after a user closes the browser tab or refreshes the page, so this is useful for clearing state for potentially long running sessions.
             delete_callback: A function that is called when the state is deleted. The function should take the state value as an argument.
         """
-        self.time_to_live = time_to_live or math.inf
+        self.time_to_live = self.time_to_live = (
+            math.inf if time_to_live is None else time_to_live
+        )
         self.delete_callback = delete_callback or (lambda a: None)  # noqa: ARG005
         try:
             self.value = deepcopy(value)
