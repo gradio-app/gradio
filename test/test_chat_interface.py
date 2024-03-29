@@ -110,20 +110,21 @@ class TestInit:
             assert prediction_hello[0].root[0] == ("hello", "hello hello")
             assert prediction_hi[0].root[0] == ("hi", "hi hi")
 
-    # def test_example_caching_lazy(self):
-    #     with patch(
-    #         "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
-    #     ):
-    #         chatbot = gr.ChatInterface(
-    #             double, examples=["hello", "hi"], cache_examples="lazy"
-    #         )
-    #         app, _, _ = chatbot.launch(prevent_thread_lock=True)
-    #         test_client = TestClient(app)
-    #         test_client.post("/api/load_example", json=[[0]])
-    #         prediction_hello = chatbot.examples_handler.load_from_cache(0)
-    #         # prediction_hi = chatbot.examples_handler.load_from_cache(1)
-    #         assert prediction_hello[0].root[0] == ("hello", "hello hello")
-    #         # assert prediction_hi[0].root[0] == ("hi", "hi hi")
+    @pytest.mark.asyncio
+    async def test_example_caching_lazy(self):
+        with patch(
+            "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
+        ):
+            chatbot = gr.ChatInterface(
+                double, examples=["hello", "hi"], cache_examples="lazy"
+            )
+            async for _ in chatbot.examples_handler.async_lazy_cache(0, "hello"):
+                pass
+            prediction_hello = chatbot.examples_handler.load_from_cache(0)
+            assert prediction_hello[0].root[0] == ("hello", "hello hello")
+            with pytest.raises(IndexError):
+                prediction_hi = chatbot.examples_handler.load_from_cache(1)
+                assert prediction_hi[0].root[0] == ("hi", "hi hi")
 
     def test_example_caching_async(self):
         with patch(
