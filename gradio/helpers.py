@@ -39,7 +39,7 @@ def create_examples(
     inputs: Component | list[Component],
     outputs: Component | list[Component] | None = None,
     fn: Callable | None = None,
-    cache_examples: bool = False,
+    cache_examples: bool | Literal["lazy"] | None = None,
     examples_per_page: int = 10,
     _api_mode: bool = False,
     label: str | None = None,
@@ -49,6 +49,7 @@ def create_examples(
     postprocess: bool = True,
     api_name: str | Literal[False] = "load_example",
     batch: bool = False,
+    _defer_caching: bool = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
     examples_obj = Examples(
@@ -66,6 +67,7 @@ def create_examples(
         postprocess=postprocess,
         api_name=api_name,
         batch=batch,
+        _defer_caching=_defer_caching,
         _initiated_directly=False,
     )
     examples_obj.create()
@@ -90,7 +92,7 @@ class Examples:
         inputs: Component | list[Component],
         outputs: Component | list[Component] | None = None,
         fn: Callable | None = None,
-        cache_examples: bool = False,
+        cache_examples: bool | Literal["lazy"] | None = None,
         examples_per_page: int = 10,
         _api_mode: bool = False,
         label: str | None = "Examples",
@@ -100,31 +102,56 @@ class Examples:
         postprocess: bool = True,
         api_name: str | Literal[False] = "load_example",
         batch: bool = False,
+        _defer_caching: bool = False,
         _initiated_directly: bool = True,
     ):
         """
         Parameters:
             examples: example inputs that can be clicked to populate specific components. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
             inputs: the component or list of components corresponding to the examples
-            outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache_examples` is True.
-            fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache_examples` is True.
-            cache_examples: if True, caches examples for fast runtime. If True, then `fn` and `outputs` must be provided. If `fn` is a generator function, then the last yielded value will be used as the output.
+            outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache_examples` is not False.
+            fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache_examples` is not False. Also required if `run_on_click` is True.
+            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached after their first use. Can also be set by the GRADIO_CACHE_EXAMPLES environment variable, which takes a case-insensitive value, one of: {"true", "false", "lazy"}. The default option in HuggingFace Spaces is True (as long as `fn` and `outputs` are also provided). The default option otherwise is False.
             examples_per_page: how many examples to show per page.
             label: the label to use for the examples component (by default, "Examples")
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM.
             run_on_click: if cache_examples is False, clicking on an example does not run the function when an example is clicked. Set this to True to run the function when an example is clicked. Has no effect if cache_examples is True.
-            preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if `cache_examples` is True.
-            postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if `cache_examples` is True.
+            preprocess: if True, preprocesses the example input before running the prediction function and caching the output. Only applies if `cache_examples` is not False.
+            postprocess: if True, postprocesses the example output after running the prediction function and before caching. Only applies if `cache_examples` is not False.
             api_name: Defines how the event associated with clicking on the examples appears in the API docs. Can be a string or False. If set to a string, the endpoint will be exposed in the API docs with the given name. If False, the endpoint will not be exposed in the API docs and downstream apps (including those that `gr.load` this app) will not be able to use the example function.
-            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is True.
+            batch: If True, then the function should process a batch of inputs, meaning that it should accept a list of input values for each parameter. Used only if cache_examples is not False.
         """
         if _initiated_directly:
             warnings.warn(
                 "Please use gr.Examples(...) instead of gr.examples.Examples(...) to create the Examples.",
             )
 
-        if cache_examples and (fn is None or outputs is None):
+        if cache_examples is None:
+            if cache_examples_env := os.getenv("GRADIO_CACHE_EXAMPLES"):
+                if cache_examples_env.lower() == "true":
+                    self.cache_examples = True
+                elif cache_examples_env.lower() == "false":
+                    self.cache_examples = False
+                elif cache_examples_env.lower() == "lazy":
+                    self.cache_examples = "lazy"
+                else:
+                    raise ValueError(
+                        "The `GRADIO_CACHE_EXAMPLES` env variable must be one of: 'true', 'false', 'lazy' (case-insensitive)."
+                    )
+            elif utils.get_space() and fn is not None and outputs is not None:
+                self.cache_examples = True
+            else:
+                self.cache_examples = cache_examples or False
+        else:
+            if cache_examples not in [True, False, "lazy"]:
+                raise ValueError(
+                    "The `cache_examples` parameter must be one of: True, False, 'lazy'."
+                )
+            self.cache_examples = cache_examples
+
+        if self.cache_examples and (fn is None or outputs is None):
             raise ValueError("If caching examples, `fn` and `outputs` must be provided")
+        self._defer_caching = _defer_caching
 
         if not isinstance(inputs, list):
             inputs = [inputs]
@@ -194,7 +221,6 @@ class Examples:
         self.inputs_with_examples = inputs_with_examples
         self.outputs = outputs or []
         self.fn = fn
-        self.cache_examples = cache_examples
         self._api_mode = _api_mode
         self.preprocess = preprocess
         self.postprocess = postprocess
@@ -221,17 +247,6 @@ class Examples:
             [ex for (ex, keep) in zip(example, input_has_examples) if keep]
             for example in self.processed_examples
         ]
-        if cache_examples:
-            for example in self.examples:
-                if len([ex for ex in example if ex is not None]) != len(self.inputs):
-                    warnings.warn(
-                        "Examples are being cached but not all input components have "
-                        "example values. This may result in an exception being thrown by "
-                        "your function. If you do get an error while caching examples, make "
-                        "sure all of your inputs have example values for all of your examples "
-                        "or you provide default values for those particular parameters in your function."
-                    )
-                    break
 
         from gradio import components
 
@@ -245,9 +260,10 @@ class Examples:
                 elem_id=elem_id,
             )
 
+        self.cache_logger = CSVLogger(simplify_file_data=False)
         self.cached_folder = utils.get_cache_folder() / str(self.dataset._id)
         self.cached_file = Path(self.cached_folder) / "log.csv"
-        self.cache_examples = cache_examples
+        self.cached_indices_file = Path(self.cached_folder) / "indices.csv"
         self.run_on_click = run_on_click
 
     def create(self) -> None:
@@ -286,21 +302,124 @@ class Examples:
                     outputs=self.outputs,  # type: ignore
                     show_api=False,
                 )
+        if not self._defer_caching:
+            self._start_caching()
 
+    def _postprocess_output(self, output) -> list:
+        """
+        This is a way that we can postprocess the data manually, since we set postprocess=False in the lazy_cache
+        event handler. The reason we did that is because we don't want to postprocess data if we are loading from
+        the cache, since that has already been postprocessed. We postprocess this data manually if we are calling
+        the function using the _handle_callable_as_generator() method.
+        """
+        import gradio as gr
+
+        with gr.Blocks() as demo:
+            [output.render() for output in self.outputs]
+            demo.load(self.fn, self.inputs, self.outputs)
+        demo.unrender()
+        return demo.postprocess_data(0, output, None)
+
+    def _get_cached_index_if_cached(self, example_index) -> int | None:
+        if Path(self.cached_indices_file).exists():
+            with open(self.cached_indices_file) as f:
+                cached_indices = [int(line.strip()) for line in f]
+            if example_index in cached_indices:
+                cached_index = cached_indices.index(example_index)
+                return cached_index
+        return None
+
+    def _start_caching(self):
         if self.cache_examples:
+            for example in self.examples:
+                if len([ex for ex in example if ex is not None]) != len(self.inputs):
+                    warnings.warn(
+                        "Examples will be cached but not all input components have "
+                        "example values. This may result in an exception being thrown by "
+                        "your function. If you do get an error while caching examples, make "
+                        "sure all of your inputs have example values for all of your examples "
+                        "or you provide default values for those particular parameters in your function."
+                    )
+                    break
+        if self.cache_examples == "lazy":
+            self.lazy_cache()
+        if self.cache_examples is True:
             if wasm_utils.IS_WASM:
                 # In the Wasm mode, the `threading` module is not supported,
                 # so `client_utils.synchronize_async` is also not available.
                 # And `self.cache()` should be waited for to complete before this method returns,
                 # (otherwise, an error "Cannot cache examples if not in a Blocks context" will be raised anyway)
                 # so `eventloop.create_task(self.cache())` is also not an option.
-                warnings.warn("Caching examples is not supported in the Wasm mode.")
+                warnings.warn(
+                    "Setting `cache_examples=True` is not supported in the Wasm mode. You can set `cache_examples='lazy'` to cache examples after first use."
+                )
             else:
                 client_utils.synchronize_async(self.cache)
 
+    def lazy_cache(self) -> None:
+        print(
+            f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory at first use. ",
+            end="",
+        )
+        if Path(self.cached_file).exists():
+            print(
+                "If method or examples have changed since last caching, delete this folder to reset cache.",
+                end="",
+            )
+        print("\n\n")
+        self.cache_logger.setup(self.outputs, self.cached_folder)
+        if inspect.iscoroutinefunction(self.fn) or inspect.isasyncgenfunction(self.fn):
+            lazy_cache_fn = self.async_lazy_cache
+        else:
+            lazy_cache_fn = self.sync_lazy_cache
+        self.load_input_event.then(
+            lazy_cache_fn,
+            inputs=[self.dataset] + self.inputs,
+            outputs=self.outputs,
+            postprocess=False,
+            api_name=self.api_name,
+            show_api=False,
+        )
+
+    async def async_lazy_cache(self, example_index, *input_values):
+        cached_index = self._get_cached_index_if_cached(example_index)
+        if cached_index is not None:
+            output = self.load_from_cache(cached_index)
+            yield output[0] if len(self.outputs) == 1 else output
+            return
+        output = [None] * len(self.outputs)
+        if inspect.isasyncgenfunction(self.fn):
+            fn = self.fn
+        else:
+            fn = utils.async_fn_to_generator(self.fn)
+        async for output in fn(*input_values):
+            output = self._postprocess_output(output)
+            yield output[0] if len(self.outputs) == 1 else output
+        self.cache_logger.flag(output)
+        with open(self.cached_indices_file, "a") as f:
+            f.write(f"{example_index}\n")
+
+    def sync_lazy_cache(self, example_index, *input_values):
+        cached_index = self._get_cached_index_if_cached(example_index)
+        if cached_index is not None:
+            output = self.load_from_cache(cached_index)
+            yield output[0] if len(self.outputs) == 1 else output
+            return
+        output = [None] * len(self.outputs)
+        if inspect.isgeneratorfunction(self.fn):
+            fn = self.fn
+        else:
+            fn = utils.sync_fn_to_generator(self.fn)
+        for output in fn(*input_values):
+            output = self._postprocess_output(output)
+            yield output[0] if len(self.outputs) == 1 else output
+        self.cache_logger.flag(output)
+        with open(self.cached_indices_file, "a") as f:
+            f.write(f"{example_index}\n")
+
     async def cache(self) -> None:
         """
-        Caches all of the examples so that their predictions can be shown immediately.
+        Caches examples so that their predictions can be shown immediately.
         """
         if Context.root_block is None:
             raise ValueError("Cannot cache examples if not in a Blocks context")
@@ -310,8 +429,7 @@ class Examples:
             )
         else:
             print(f"Caching examples at: '{utils.abspath(self.cached_folder)}'")
-            cache_logger = CSVLogger(simplify_file_data=False)
-
+            self.cache_logger.setup(self.outputs, self.cached_folder)
             generated_values = []
             if inspect.isgeneratorfunction(self.fn):
 
@@ -351,8 +469,7 @@ class Examples:
 
             if self.outputs is None:
                 raise ValueError("self.outputs is missing")
-            cache_logger.setup(self.outputs, self.cached_folder)
-            for example_id, _ in enumerate(self.examples):
+            for example_id in range(len(self.examples)):
                 print(f"Caching example {example_id + 1}/{len(self.examples)}")
                 processed_input = self.processed_examples[example_id]
                 if self.batch:
@@ -368,10 +485,9 @@ class Examples:
                     output = merge_generated_values_into_output(
                         self.outputs, generated_values, output
                     )
-
                 if self.batch:
                     output = [value[0] for value in output]
-                cache_logger.flag(output)
+                self.cache_logger.flag(output)
             # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
             Context.root_block.dependencies.remove(dependency)
             Context.root_block.fns.pop(fn_index)

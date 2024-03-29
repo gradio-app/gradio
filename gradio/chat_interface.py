@@ -9,7 +9,6 @@ import inspect
 from typing import AsyncGenerator, Callable, Literal, Union, cast
 
 import anyio
-from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 from gradio.blocks import Blocks
@@ -63,7 +62,7 @@ class ChatInterface(Blocks):
         additional_inputs_accordion_name: str | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
         examples: list[str] | list[dict[str, str | list]] | None = None,
-        cache_examples: bool | None = None,
+        cache_examples: bool | Literal["lazy"] | None = None,
         title: str | None = None,
         description: str | None = None,
         theme: Theme | str | None = None,
@@ -129,12 +128,10 @@ class ChatInterface(Blocks):
         self.is_generator = inspect.isgeneratorfunction(
             self.fn
         ) or inspect.isasyncgenfunction(self.fn)
-        self.examples = examples
-        if self.space_id and cache_examples is None:
-            self.cache_examples = True
-        else:
-            self.cache_examples = cache_examples or False
         self.buttons: list[Button | None] = []
+
+        self.examples = examples
+        self.cache_examples = cache_examples
 
         if additional_inputs:
             if not isinstance(additional_inputs, list):
@@ -284,6 +281,8 @@ class ChatInterface(Blocks):
                     inputs=[self.textbox] + self.additional_inputs,
                     outputs=self.chatbot,
                     fn=examples_fn,
+                    cache_examples=self.cache_examples,
+                    _defer_caching=True,
                 )
 
             any_unrendered_inputs = any(
@@ -296,8 +295,8 @@ class ChatInterface(Blocks):
                             input_component.render()
 
             # The example caching must happen after the input components have rendered
-            if cache_examples:
-                client_utils.synchronize_async(self.examples_handler.cache)
+            if examples:
+                self.examples_handler._start_caching()
 
             self.saved_input = State()
             self.chatbot_state = (
