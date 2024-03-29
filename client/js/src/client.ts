@@ -187,12 +187,12 @@ export function api_factory(
 		url: string,
 		body: unknown,
 		token?: `hf_${string}`,
-		headers?: Record<string, string>,
+		additional_headers?: Record<string, string>,
 	): Promise<[PostResponse, number]> {
 		const headers: {
 			Authorization?: string;
 			"Content-Type": "application/json";
-		} = { "Content-Type": "application/json", ...headers};
+		} = { "Content-Type": "application/json"};
 		if (token) {
 			headers.Authorization = `Bearer ${token}`;
 		}
@@ -201,7 +201,7 @@ export function api_factory(
 			var response = await fetch_implementation(url, {
 				method: "POST",
 				body: JSON.stringify(body),
-				headers
+				headers: {...headers, ...additional_headers},
 			});
 		} catch (e) {
 			return [{ error: BROKEN_CONNECTION_MSG }, 500];
