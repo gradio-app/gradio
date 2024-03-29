@@ -29,7 +29,7 @@ from gradio.helpers import special_args
 from gradio.layouts import Accordion, Group, Row
 from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
-from gradio.utils import SyncToAsyncIterator, async_iteration
+from gradio.utils import SyncToAsyncIterator, async_iteration, async_lambda
 
 
 @document()
@@ -378,7 +378,7 @@ class ChatInterface(Blocks):
                 show_api=False,
                 queue=False,
             ).then(
-                lambda x: x,
+                async_lambda(lambda x: x),
                 [self.saved_input],
                 [self.textbox],
                 show_api=False,
@@ -387,7 +387,7 @@ class ChatInterface(Blocks):
 
         if self.clear_btn:
             self.clear_btn.click(
-                lambda: ([], [], None),
+                async_lambda(lambda: ([], [], None)),
                 None,
                 [self.chatbot, self.chatbot_state, self.saved_input],
                 queue=False,
@@ -401,9 +401,11 @@ class ChatInterface(Blocks):
             if self.submit_btn:
                 for event_trigger in event_triggers:
                     event_trigger(
-                        lambda: (
-                            Button(visible=False),
-                            Button(visible=True),
+                        async_lambda(
+                            lambda: (
+                                Button(visible=False),
+                                Button(visible=True),
+                            )
                         ),
                         None,
                         [self.submit_btn, self.stop_btn],
@@ -411,7 +413,7 @@ class ChatInterface(Blocks):
                         queue=False,
                     )
                 event_to_cancel.then(
-                    lambda: (Button(visible=True), Button(visible=False)),
+                    async_lambda(lambda: (Button(visible=True), Button(visible=False))),
                     None,
                     [self.submit_btn, self.stop_btn],
                     show_api=False,
@@ -420,14 +422,14 @@ class ChatInterface(Blocks):
             else:
                 for event_trigger in event_triggers:
                     event_trigger(
-                        lambda: Button(visible=True),
+                        async_lambda(lambda: Button(visible=True)),
                         None,
                         [self.stop_btn],
                         show_api=False,
                         queue=False,
                     )
                 event_to_cancel.then(
-                    lambda: Button(visible=False),
+                    async_lambda(lambda: Button(visible=False)),
                     None,
                     [self.stop_btn],
                     show_api=False,
@@ -471,7 +473,7 @@ class ChatInterface(Blocks):
         if message["text"] is not None and isinstance(message["text"], str):
             history.append([message["text"], response])
 
-    def _display_input(
+    async def _display_input(
         self, message: str | dict[str, list], history: list[list[str | tuple | None]]
     ) -> tuple[list[list[str | tuple | None]], list[list[str | tuple | None]]]:
         if self.multimodal and isinstance(message, dict):
@@ -631,7 +633,7 @@ class ChatInterface(Blocks):
         async for response in generator:
             yield [[message, response]]
 
-    def _delete_prev_fn(
+    async def _delete_prev_fn(
         self,
         message: str | dict[str, list],
         history: list[list[str | tuple | None]],
