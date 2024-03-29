@@ -200,7 +200,6 @@ class Client:
     def close(self):
         self._kill_heartbeat.set()
         self.heartbeat.join(timeout=1)
-        self.executor.shutdown(wait=False, cancel_futures=True)
 
     def _stream_heartbeat(self):
         while True:
