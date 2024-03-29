@@ -778,7 +778,7 @@ export function api_factory(
 								time: new Date()
 							});
 							const origin = window.location.hostname.includes('.dev.')
-								? `moon-${window.location.hostname.split('.')[1]}.dev.spaces.huggingface.tech`
+								? `https://moon-${window.location.hostname.split('.')[1]}.dev.spaces.huggingface.tech`
 								: `https://huggingface.co`;
 							const zerogpu_auth_promise = dependency.zerogpu
 								? postMessage<Headers>("zerogpu-headers", origin)
