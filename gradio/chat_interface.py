@@ -6,6 +6,7 @@ This file defines a useful high-level abstraction to build Gradio chatbots: Chat
 from __future__ import annotations
 
 import inspect
+import os
 from typing import AsyncGenerator, Callable, Literal, Union, cast
 
 import anyio
@@ -63,7 +64,7 @@ class ChatInterface(Blocks):
         additional_inputs_accordion_name: str | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
         examples: list[str] | list[dict[str, str | list]] | None = None,
-        cache_examples: bool | None = None,
+        cache_examples: bool | Literal["lazy"] | None = None,
         title: str | None = None,
         description: str | None = None,
         theme: Theme | str | None = None,
@@ -129,12 +130,32 @@ class ChatInterface(Blocks):
         self.is_generator = inspect.isgeneratorfunction(
             self.fn
         ) or inspect.isasyncgenfunction(self.fn)
-        self.examples = examples
-        if self.space_id and cache_examples is None:
-            self.cache_examples = True
-        else:
-            self.cache_examples = cache_examples or False
         self.buttons: list[Button | None] = []
+
+        self.examples = examples
+        if cache_examples is None:
+            if cache_examples_env := os.getenv("GRADIO_CACHE_EXAMPLES"):
+                if cache_examples_env.lower() == "true":
+                    self.cache_examples = True
+                elif cache_examples_env.lower() == "false":
+                    self.cache_examples = False
+                elif cache_examples_env.lower() == "lazy":
+                    self.cache_examples = "lazy"
+                else:
+                    raise ValueError(
+                        "The `GRADIO_CACHE_EXAMPLES` env variable must be one of: 'true', 'false', 'lazy' (case-insensitive)."
+                    )
+            elif utils.get_space():
+                self.cache_examples = True
+            else:
+                self.cache_examples = cache_examples or False
+        else:
+            if cache_examples not in [True, False, "lazy"]:
+                raise ValueError(
+                    "The `cache_examples` parameter must be one of: True, False, 'lazy'."
+                )
+            self.cache_examples = cache_examples
+
 
         if additional_inputs:
             if not isinstance(additional_inputs, list):
