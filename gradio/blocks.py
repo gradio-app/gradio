@@ -1554,6 +1554,7 @@ Received outputs:
         data: list,
         session_hash: str | None,
         run: int | None,
+        root_path: str | None = None,
     ) -> list:
         if session_hash is None or run is None:
             return data
@@ -1571,7 +1572,15 @@ Received outputs:
                 if first_chunk:
                     stream_run[output_id] = []
                 self.pending_streams[session_hash][run][output_id].append(binary_data)
+                output_data = processing_utils.move_files_to_cache(
+                    output_data,
+                    block,
+                    postprocess=True,
+                )
+                if root_path is not None:
+                    output_data = processing_utils.add_root_url(output_data, root_path, None)
                 data[i] = output_data
+                    
         return data
 
     def handle_streaming_diffs(
@@ -1706,6 +1715,7 @@ Received outputs:
                     data,
                     session_hash=session_hash,
                     run=run,
+                    root_path=root_path,
                 )
                 data = self.handle_streaming_diffs(
                     fn_index,
