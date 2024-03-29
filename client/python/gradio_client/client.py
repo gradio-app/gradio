@@ -187,26 +187,41 @@ class Client:
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
         threading.Thread(target=self._telemetry_thread, daemon=True).start()
         self._refresh_heartbeat = threading.Event()
-        threading.Thread(target=self._stream_heartbeat, daemon=True).start()
+        self._kill_heartbeat = threading.Event()
+
+        self.heartbeat = threading.Thread(target=self._stream_heartbeat, daemon=True)
+        self.heartbeat.start()
 
         self.stream_open = False
         self.streaming_future: Future | None = None
         self.pending_messages_per_event: dict[str, list[Message | None]] = {}
         self.pending_event_ids: set[str] = set()
 
+    def close(self):
+        self._kill_heartbeat.set()
+        self.heartbeat.join(timeout=1)
+        self.executor.shutdown(wait=False, cancel_futures=True)
+
     def _stream_heartbeat(self):
         while True:
             url = self.heartbeat_url.format(session_hash=self.session_hash)
-            with httpx.stream(
-                "GET",
-                url,
-                headers=self.headers,
-                cookies=self.cookies,
-                verify=self.ssl_verify,
-                timeout=60,
-            ):
-                if self._refresh_heartbeat.wait():
-                    self._refresh_heartbeat.clear()
+            try:
+                with httpx.stream(
+                    "GET",
+                    url,
+                    headers=self.headers,
+                    cookies=self.cookies,
+                    verify=self.ssl_verify,
+                    timeout=20,
+                ) as response:
+                    for _ in response.iter_lines():
+                        if self._refresh_heartbeat.is_set():
+                            self._refresh_heartbeat.clear()
+                            break
+                        if self._kill_heartbeat.is_set():
+                            return
+            except httpx.TransportError:
+                return
 
     async def stream_messages(
         self, protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]

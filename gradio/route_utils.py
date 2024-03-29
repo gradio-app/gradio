@@ -734,7 +734,6 @@ class CustomCORSMiddleware:
 
 def delete_files_created_by_app(blocks: Blocks, age: int | None) -> None:
     """Delete files that are older than age. If age is None, delete all files."""
-
     dont_delete = set()
     for component in blocks.blocks.values():
         dont_delete.update(getattr(component, "keep_in_cache", set()))
@@ -770,8 +769,6 @@ async def _lifespan_handler(
     app: App, frequency: int = 1, age: int = 1
 ) -> AsyncGenerator:
     """A context manager that triggers the startup and shutdown events of the app."""
-    app.get_blocks().startup_events()
-    app.startup_events_triggered = True
     asyncio.create_task(delete_files_on_schedule(app, frequency, age))
     yield
     delete_files_created_by_app(app.get_blocks(), age=None)

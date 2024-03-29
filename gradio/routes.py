@@ -600,11 +600,25 @@ class App(FastAPI):
             When the client disconnects, the session state is deleted.
             """
 
+            async def wait():
+                await asyncio.sleep(15)
+                return "wait"
+
+            async def stop_stream():
+                while app.get_blocks().is_running:
+                    await asyncio.sleep(0.25)
+                return "stop"
+
             async def iterator():
                 while True:
                     try:
                         yield "data: ALIVE\n\n"
-                        await asyncio.sleep(15)
+                        done, _ = await asyncio.wait(
+                            [wait(), stop_stream()], return_when=asyncio.FIRST_COMPLETED
+                        )
+                        done = [d.result() for d in done]
+                        if "stop" in done:
+                            return
                     except asyncio.CancelledError:
                         req = Request(request, username)
                         root_path = route_utils.get_root_url(

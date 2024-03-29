@@ -2434,9 +2434,10 @@ Received outputs:
                 self._queue._cancel_asyncio_tasks()
                 self.server_app._cancel_asyncio_tasks()
             self._queue.close()
+            # set this before closing server to shut down heartbeats
+            self.is_running = False
             if self.server:
                 self.server.close()
-            self.is_running = False
             # So that the startup events (starting the queue)
             # happen the next time the app is launched
             self.app.startup_events_triggered = False
