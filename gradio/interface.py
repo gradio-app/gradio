@@ -698,14 +698,16 @@ class Interface(Blocks):
             if _stop_btn:
                 extra_output = [_submit_btn, _stop_btn]
 
-                def cleanup():
+                async def cleanup():
                     return [Button(visible=True), Button(visible=False)]
 
                 predict_event = on(
                     triggers,
-                    lambda: (
-                        Button(visible=False),
-                        Button(visible=True),
+                    utils.async_lambda(
+                        lambda: (
+                            Button(visible=False),
+                            Button(visible=True),
+                        )
                     ),
                     inputs=None,
                     outputs=[_submit_btn, _stop_btn],
@@ -824,7 +826,9 @@ class Interface(Blocks):
                 )
             flag_method = FlagMethod(self.flagging_callback, label, value)
             flag_btn.click(
-                lambda: Button(value="Saving...", interactive=False),
+                utils.async_lambda(
+                    lambda: Button(value="Saving...", interactive=False)
+                ),
                 None,
                 flag_btn,
                 queue=False,
@@ -839,7 +843,11 @@ class Interface(Blocks):
                 show_api=False,
             )
             _clear_btn.click(
-                flag_method.reset, None, flag_btn, queue=False, show_api=False
+                utils.async_lambda(flag_method.reset),
+                None,
+                flag_btn,
+                queue=False,
+                show_api=False,
             )
 
     def render_examples(self):

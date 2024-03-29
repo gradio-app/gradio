@@ -2096,7 +2096,7 @@ Received outputs:
                 if self.local_url.startswith("https") or self.is_colab
                 else "http"
             )
-            if not wasm_utils.IS_WASM and not self.is_colab:
+            if not wasm_utils.IS_WASM and not self.is_colab and not quiet:
                 print(
                     strings.en["RUNNING_LOCALLY_SEPARATED"].format(
                         self.protocol, self.server_name, self.server_port
