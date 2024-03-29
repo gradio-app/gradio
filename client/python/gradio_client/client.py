@@ -169,7 +169,7 @@ class Client:
         self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
         self.reset_url = urllib.parse.urljoin(self.src, utils.RESET_URL)
         self.app_version = version.parse(self.config.get("version", "2.0"))
-        self._info = None
+        self._info = self._get_api_info()
         self.session_hash = str(uuid.uuid4())
 
         endpoint_class = (
@@ -611,8 +611,6 @@ class Client:
             }
 
         """
-        if not self._info:
-            self._info = self._get_api_info()
         num_named_endpoints = len(self._info["named_endpoints"])
         num_unnamed_endpoints = len(self._info["unnamed_endpoints"])
         if num_named_endpoints == 0 and all_endpoints is None:
@@ -1000,6 +998,7 @@ class Endpoint:
         self.api_name: str | Literal[False] | None = (
             "/" + api_name if isinstance(api_name, str) else api_name
         )
+        self._info = self.client._info
         self.protocol = protocol
         self.input_component_types = [
             self._get_component_type(id_) for id_ in dependency["inputs"]
@@ -1029,8 +1028,6 @@ class Endpoint:
         )
 
     def _get_parameters_info(self) -> list[ParameterInfo] | None:
-        if not self.client._info:
-            self._info = self.client._get_api_info()
         if self.api_name in self._info["named_endpoints"]:
             return self._info["named_endpoints"][self.api_name]["parameters"]
         return None
