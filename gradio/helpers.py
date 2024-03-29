@@ -49,6 +49,7 @@ def create_examples(
     postprocess: bool = True,
     api_name: str | Literal[False] = "load_example",
     batch: bool = False,
+    defer_caching: bool = False,
 ):
     """Top-level synchronous function that creates Examples. Provided for backwards compatibility, i.e. so that gr.Examples(...) can be used to create the Examples component."""
     examples_obj = Examples(
@@ -357,6 +358,8 @@ class Examples:
                 cached_index = cached_indices.index(example_index)
                 return cached_index
         return None
+
+    def cache_examples_if_specified(self) -> None:
 
     def lazy_cache(self) -> None:
         if inspect.iscoroutinefunction(self.fn) or inspect.isasyncgenfunction(
