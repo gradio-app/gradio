@@ -620,7 +620,7 @@ class App(FastAPI):
                         )
                         done = [d.result() for d in done]
                         if "stop" in done:
-                            return
+                            raise asyncio.CancelledError()
                     except asyncio.CancelledError:
                         req = Request(request, username)
                         root_path = route_utils.get_root_url(
