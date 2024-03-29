@@ -1,5 +1,6 @@
 ---
+"@gradio/multimodaltextbox": patch
 "gradio": patch
 ---
 
-feat:Fix how files are processed in `gr.ChatInterface` 
+feat:Paste Images into MultimodalTextbox
