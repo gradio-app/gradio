@@ -37,7 +37,7 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Response, status
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
@@ -330,7 +330,7 @@ class App(FastAPI):
         else:
 
             @app.get("/logout")
-            def logout(response: Response, user: str = Depends(get_current_user)):
+            def logout(user: str = Depends(get_current_user)):
                 response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
                 response.delete_cookie(key=f"access-token-{app.cookie_id}", path="/")
                 response.delete_cookie(
