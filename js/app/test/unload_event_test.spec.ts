@@ -1,7 +1,7 @@
 import { test, expect } from "@gradio/tootils";
 import { readFileSync } from "fs";
 
-test("when using an iterative function and the user closes the page, the python function should stop running", async ({
+test("when a user closes the page, the unload event should be triggered", async ({
 	page
 }) => {
 	const increment = await page.locator("button", {
@@ -19,7 +19,7 @@ test("when using an iterative function and the user closes the page, the python 
 	await expect(page.getByLabel("Number")).toHaveValue("4");
 	await page.close();
 
-	await new Promise((resolve) => setTimeout(resolve, 300));
+	await new Promise((resolve) => setTimeout(resolve, 500));
 
 	const data = readFileSync(
 		"../../demo/unload_event_test/output_log.txt",

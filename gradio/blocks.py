@@ -2490,6 +2490,7 @@ Received outputs:
         self._queue.start()
         # So that processing can resume in case the queue was stopped
         self._queue.stopped = False
+        self.is_running = True
         self.create_limiter()
 
     def queue_enabled_for_fn(self, fn_index: int):
