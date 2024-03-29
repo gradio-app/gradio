@@ -428,3 +428,20 @@ def long_response_with_info():
         None,
         gr.Textbox(label="Output"),
     )
+
+
+@pytest.fixture
+def many_endpoint_demo():
+    with gr.Blocks() as demo:
+
+        def noop(x):
+            return x
+
+        n_elements = 1000
+        for _ in range(n_elements):
+            msg2 = gr.Textbox()
+            msg2.submit(noop, msg2, msg2)
+            butn2 = gr.Button()
+            butn2.click(noop, msg2, msg2)
+
+    return demo

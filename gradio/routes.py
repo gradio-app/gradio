@@ -163,6 +163,7 @@ class App(FastAPI):
         self.change_event: None | threading.Event = None
         self._asyncio_tasks: list[asyncio.Task] = []
         self.auth_dependency = auth_dependency
+        self.api_info = None
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
@@ -392,7 +393,10 @@ class App(FastAPI):
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
         def api_info():
-            return app.get_blocks().get_api_info()  # type: ignore
+            # The api info is set in create_app
+            if not app.api_info:
+                app.api_info = app.get_blocks().get_api_info()
+            return app.api_info
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
