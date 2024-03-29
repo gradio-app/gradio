@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Update blocks.py
+feat:Suppress printing "Running on local URL:" when quiet is set
