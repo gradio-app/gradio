@@ -1261,7 +1261,7 @@ def async_fn_to_generator(fn):
 
     return wrapped
 
-  
+
 def async_lambda(f: Callable) -> Callable:
     """Turn a function into an async function.
     Useful for internal event handlers defined as lambda functions used in the codebase

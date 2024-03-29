@@ -30,7 +30,7 @@ from gradio.helpers import special_args
 from gradio.layouts import Accordion, Group, Row
 from gradio.routes import Request
 from gradio.themes import ThemeClass as Theme
-from gradio.utils import SyncToAsyncIterator, async_iteration, async_lambda
+from gradio.utils import SyncToAsyncIterator, async_iteration, async_lambda, get_space
 
 
 @document()
@@ -145,7 +145,7 @@ class ChatInterface(Blocks):
                     raise ValueError(
                         "The `GRADIO_CACHE_EXAMPLES` env variable must be one of: 'true', 'false', 'lazy' (case-insensitive)."
                     )
-            elif utils.get_space():
+            elif get_space():
                 self.cache_examples = True
             else:
                 self.cache_examples = cache_examples or False
@@ -155,7 +155,6 @@ class ChatInterface(Blocks):
                     "The `cache_examples` parameter must be one of: True, False, 'lazy'."
                 )
             self.cache_examples = cache_examples
-
 
         if additional_inputs:
             if not isinstance(additional_inputs, list):
