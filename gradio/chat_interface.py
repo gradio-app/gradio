@@ -281,6 +281,8 @@ class ChatInterface(Blocks):
                     inputs=[self.textbox] + self.additional_inputs,
                     outputs=self.chatbot,
                     fn=examples_fn,
+                    cache_examples=self.cache_examples,
+                    _defer_caching=True,
                 )
 
             any_unrendered_inputs = any(
