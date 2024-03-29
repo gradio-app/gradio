@@ -295,7 +295,8 @@ class ChatInterface(Blocks):
                             input_component.render()
 
             # The example caching must happen after the input components have rendered
-            self.examples_handler._start_caching()
+            if examples:
+                self.examples_handler._start_caching()
 
             self.saved_input = State()
             self.chatbot_state = (
