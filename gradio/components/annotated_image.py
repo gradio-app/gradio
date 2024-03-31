@@ -140,7 +140,7 @@ class AnnotatedImage(Component):
                 base_img = client_utils.synchronize_async(
                     processing_utils.save_url_to_cache,
                     base_img,
-                    cache_dir=self.GRADIO_CACHE
+                    cache_dir=self.GRADIO_CACHE,
                 )
             base_img_path = base_img
             base_img = np.array(PIL.Image.open(base_img))

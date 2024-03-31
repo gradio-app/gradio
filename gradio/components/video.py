@@ -284,9 +284,10 @@ class Video(Component):
 
         # For cases where the video needs to be converted to another format
         if is_url:
-            video = processing_utils.save_url_to_cache(
-                video, cache_dir=self.GRADIO_CACHE
+            video = client_utils.synchronize_async(
+                processing_utils.save_url_to_cache, video, cache_dir=self.GRADIO_CACHE
             )
+        assert isinstance(video, str)  # noqa: S101
         if (
             processing_utils.ffmpeg_installed()
             and not processing_utils.video_is_playable(video)

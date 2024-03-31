@@ -411,7 +411,7 @@ class Examples:
         else:
             fn = utils.sync_fn_to_generator(self.fn)
         for output in fn(*input_values):
-            output = self._postprocess_output(output)
+            output = client_utils.synchronize_async(self._postprocess_output, output)
             yield output[0] if len(self.outputs) == 1 else output
         self.cache_logger.flag(output)
         with open(self.cached_indices_file, "a") as f:
