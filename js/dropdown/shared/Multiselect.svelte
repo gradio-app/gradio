@@ -306,8 +306,8 @@
 <style>
 	.icon-wrap {
 		color: var(--body-text-color);
-		margin-right: var(--size-2);
-		width: var(--size-5);
+		margin-right: var(--spacing-sm);
+		width: var(--size-2-5);
 	}
 	label:not(.container),
 	label:not(.container) .wrap,
