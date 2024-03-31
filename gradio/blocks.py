@@ -243,7 +243,7 @@ class Block:
                 kwargs[parameter.name] = props[parameter.name]
         return kwargs
 
-    def move_resource_to_block_cache(
+    async def move_resource_to_block_cache(
         self, url_or_file_path: str | Path | None
     ) -> str | None:
         """Moves a file or downloads a file from a url to a block's cache directory, adds
@@ -259,7 +259,7 @@ class Block:
             url_or_file_path = str(url_or_file_path)
 
         if client_utils.is_http_url_like(url_or_file_path):
-            temp_file_path = processing_utils.save_url_to_cache(
+            temp_file_path = await processing_utils.save_url_to_cache(
                 url_or_file_path, cache_dir=self.GRADIO_CACHE
             )
 
@@ -307,7 +307,9 @@ class Block:
         else:
             data = {"path": url_or_file_path}
             try:
-                return processing_utils.move_files_to_cache(data, self)
+                return client_utils.synchronize_async(
+                    processing_utils.move_files_to_cache, data, self
+                )
             except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
                 return data
 
@@ -1377,7 +1379,7 @@ Received inputs:
     [{received}]"""
             )
 
-    def preprocess_data(
+    async def preprocess_data(
         self,
         fn_index: int,
         inputs: list[Any],
@@ -1408,7 +1410,7 @@ Received inputs:
                 else:
                     if input_id in state:
                         block = state[input_id]
-                    inputs_cached = processing_utils.move_files_to_cache(
+                    inputs_cached = await processing_utils.move_files_to_cache(
                         inputs[i],
                         block,
                         check_in_upload_folder=not explicit_call,
@@ -1459,7 +1461,7 @@ Received outputs:
     [{received}]"""
             )
 
-    def postprocess_data(
+    async def postprocess_data(
         self, fn_index: int, predictions: list | dict, state: SessionState | None
     ):
         state = state or SessionState(self)
@@ -1539,7 +1541,7 @@ Received outputs:
                         block = state[output_id]
                     prediction_value = block.postprocess(prediction_value)
 
-                outputs_cached = processing_utils.move_files_to_cache(
+                outputs_cached = await processing_utils.move_files_to_cache(
                     prediction_value,
                     block,
                     postprocess=True,
@@ -1659,7 +1661,7 @@ Received outputs:
                     f"Batch size ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
                 )
             inputs = [
-                self.preprocess_data(fn_index, list(i), state, explicit_call)
+                await self.preprocess_data(fn_index, list(i), state, explicit_call)
                 for i in zip(*inputs)
             ]
             result = await self.call_function(
@@ -1673,7 +1675,8 @@ Received outputs:
             )
             preds = result["prediction"]
             data = [
-                self.postprocess_data(fn_index, list(o), state) for o in zip(*preds)
+                await self.postprocess_data(fn_index, list(o), state)
+                for o in zip(*preds)
             ]
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)
@@ -1684,7 +1687,9 @@ Received outputs:
             if old_iterator:
                 inputs = []
             else:
-                inputs = self.preprocess_data(fn_index, inputs, state, explicit_call)
+                inputs = await self.preprocess_data(
+                    fn_index, inputs, state, explicit_call
+                )
             was_generating = old_iterator is not None
             result = await self.call_function(
                 fn_index,
@@ -1695,7 +1700,7 @@ Received outputs:
                 event_data,
                 in_event_listener,
             )
-            data = self.postprocess_data(fn_index, result["prediction"], state)
+            data = await self.postprocess_data(fn_index, result["prediction"], state)
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]

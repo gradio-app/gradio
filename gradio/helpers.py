@@ -305,7 +305,7 @@ class Examples:
         if not self._defer_caching:
             self._start_caching()
 
-    def _postprocess_output(self, output) -> list:
+    async def _postprocess_output(self, output) -> list:
         """
         This is a way that we can postprocess the data manually, since we set postprocess=False in the lazy_cache
         event handler. The reason we did that is because we don't want to postprocess data if we are loading from
@@ -318,7 +318,7 @@ class Examples:
             [output.render() for output in self.outputs]
             demo.load(self.fn, self.inputs, self.outputs)
         demo.unrender()
-        return demo.postprocess_data(0, output, None)
+        return await demo.postprocess_data(0, output, None)
 
     def _get_cached_index_if_cached(self, example_index) -> int | None:
         if Path(self.cached_indices_file).exists():
@@ -393,7 +393,7 @@ class Examples:
         else:
             fn = utils.async_fn_to_generator(self.fn)
         async for output in fn(*input_values):
-            output = self._postprocess_output(output)
+            output = await self._postprocess_output(output)
             yield output[0] if len(self.outputs) == 1 else output
         self.cache_logger.flag(output)
         with open(self.cached_indices_file, "a") as f:
