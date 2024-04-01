@@ -3047,8 +3047,7 @@ def test_component_example_values(io_components):
         c.postprocess(c.example_value())
 
 
-@pytest.mark.asyncio
-async def test_component_example_payloads(io_components):
+def test_component_example_payloads(io_components):
     for component in io_components:
         if component == PDF:
             continue
@@ -3057,7 +3056,8 @@ async def test_component_example_payloads(io_components):
         else:
             c: Component = component()
         data = c.example_payload()
-        data = await processing_utils.move_files_to_cache(
+        data = client_utils.synchronize_async(
+            processing_utils.move_files_to_cache,
             data,
             c,
             check_in_upload_folder=False,
