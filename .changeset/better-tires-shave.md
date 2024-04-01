@@ -12,7 +12,7 @@ Gradio now automatically deletes `gr.State` variables stored in the server's RAM
 The deletion will happen 60 minutes after the server detected a disconnect from the user's browser.
 If the user connects again in that timeframe, their state will not be deleted.
 
-Additionally, gradio now runs an `unload` event when users disconnect (this does not have a 60 minute delay).
+Additionally, Gradio now includes a `Blocks.unload()` event, allowing you to run arbitrary cleanup functions when users disconnect (this does not have a 60 minute delay).
 You can think of the `unload` event as the opposite of the `load` event.
 
 
