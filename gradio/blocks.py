@@ -1578,9 +1578,11 @@ Received outputs:
                     postprocess=True,
                 )
                 if root_path is not None:
-                    output_data = processing_utils.add_root_url(output_data, root_path, None)
+                    output_data = processing_utils.add_root_url(
+                        output_data, root_path, None
+                    )
                 data[i] = output_data
-                    
+
         return data
 
     def handle_streaming_diffs(
