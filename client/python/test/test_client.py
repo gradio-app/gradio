@@ -46,11 +46,7 @@ def connect(
         # because we should set a timeout
         # the tests that call .cancel() can get stuck
         # waiting for the thread to join
-        if demo.enable_queue:
-            demo._queue.close()
-        demo.is_running = False
-        demo.server.should_exit = True
-        demo.server.thread.join(timeout=1)
+        demo.close()
 
 
 class TestClientInitialization:
@@ -607,6 +603,15 @@ class TestClientPredictions:
         with connect(demo) as client:
             pred = client.predict(api_name="/predict")
             assert pred[0] == data[0]
+
+    def test_state_reset_when_session_changes(self, capsys, state_demo, monkeypatch):
+        monkeypatch.setenv("GRADIO_IS_E2E_TEST", "1")
+        with connect(state_demo) as client:
+            client.predict("Hello", api_name="/predict")
+            client.reset_session()
+            time.sleep(5)
+        out = capsys.readouterr().out
+        assert "STATE DELETED" in out
 
 
 class TestClientPredictionsWithKwargs:
