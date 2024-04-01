@@ -280,43 +280,6 @@ class Block:
 
         return temp_file_path
 
-    async def async_move_resource_to_block_cache(
-        self, url_or_file_path: str | Path | None
-    ) -> str | None:
-        """Moves a file or downloads a file from a url to a block's cache directory, adds
-        to to the block's temp_files, and returns the path to the file in cache. This
-        ensures that the file is accessible to the Block and can be served to users.
-        """
-        if url_or_file_path is None:
-            return None
-        if isinstance(url_or_file_path, Path):
-            url_or_file_path = str(url_or_file_path)
-
-        if client_utils.is_http_url_like(url_or_file_path):
-            temp_file_path = processing_utils.save_url_to_cache(
-                url_or_file_path, cache_dir=self.GRADIO_CACHE
-            )
-
-            self.temp_files.add(temp_file_path)
-        else:
-            url_or_file_path = str(utils.abspath(url_or_file_path))
-            if not utils.is_in_or_equal(url_or_file_path, self.GRADIO_CACHE):
-                try:
-                    temp_file_path = processing_utils.save_file_to_cache(
-                        url_or_file_path, cache_dir=self.GRADIO_CACHE
-                    )
-                except FileNotFoundError:
-                    # This can happen if when using gr.load() and the file is on a remote Space
-                    # but the file is not the `value` of the component. For example, if the file
-                    # is the `avatar_image` of the `Chatbot` component. In this case, we skip
-                    # copying the file to the cache and just use the remote file path.
-                    return url_or_file_path
-            else:
-                temp_file_path = url_or_file_path
-            self.temp_files.add(temp_file_path)
-
-        return temp_file_path
-
     def serve_static_file(
         self, url_or_file_path: str | Path | dict | None
     ) -> dict | None:

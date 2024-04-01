@@ -383,9 +383,7 @@ async def async_move_files_to_cache(
                         f"File {path} is not in the upload folder and cannot be accessed."
                     )
             if not payload.is_stream:
-                temp_file_path = await block.async_move_resource_to_block_cache(
-                    payload.path
-                )
+                temp_file_path = block.move_resource_to_block_cache(payload.path)
                 if temp_file_path is None:
                     raise ValueError("Did not determine a file path for the resource.")
                 payload.path = temp_file_path
