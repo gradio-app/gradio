@@ -9,6 +9,7 @@ import os
 import pkgutil
 import secrets
 import shutil
+import sys
 import tempfile
 import warnings
 from concurrent.futures import CancelledError, ThreadPoolExecutor
@@ -51,6 +52,10 @@ INVALID_RUNTIME = [
     SpaceStage.RUNTIME_ERROR,
     SpaceStage.PAUSED,
 ]
+
+
+# See https://pyodide.org/en/stable/usage/faq.html#how-to-detect-that-code-is-run-with-pyodide
+IS_WASM = sys.platform == "emscripten"
 
 
 class Message(TypedDict, total=False):
@@ -856,6 +861,9 @@ def synchronize_async(func, *args, **kwargs) -> Any:
         *args: Positional arguments for the function.
         **kwargs: Keyword arguments for the function.
     """
+    if IS_WASM:
+        asyncio.ensure_future(func(*args, **kwargs))
+        return
 
     try:
         loop = asyncio.get_running_loop()
