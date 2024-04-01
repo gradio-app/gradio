@@ -34,6 +34,7 @@
 	export let show_share_button = false;
 	export let editable = true;
 	export let waveform_options: WaveformOptions = {};
+	export let max_file_size: number | null = null;
 	export let pending: boolean;
 	export let streaming: boolean;
 	export let gradio: Gradio<{
@@ -204,6 +205,7 @@
 			{active_source}
 			{pending}
 			{streaming}
+			{max_file_size}
 			{handle_reset_value}
 			{editable}
 			bind:dragging

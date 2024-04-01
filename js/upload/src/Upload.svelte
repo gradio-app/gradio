@@ -100,9 +100,6 @@
 			(f) => new File([f], f.name, { type: f.type })
 		);
 
-		console.log("max_file_size", max_file_size);
-
-
 		if (max_file_size) {
 			const oversized_files = _files.filter((f) => f.size > max_file_size);
 			if (oversized_files.length) {

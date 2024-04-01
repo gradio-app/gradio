@@ -20,6 +20,7 @@
 		select: SelectData;
 		input: never;
 		focus: never;
+		error: string;
 	}>;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -47,6 +48,7 @@
 	export let autoscroll = true;
 	export let interactive: boolean;
 	export let root: string;
+	export let max_file_size: number | null = null;
 </script>
 
 <Block
@@ -83,12 +85,16 @@
 		{autofocus}
 		{container}
 		{autoscroll}
+		{max_file_size}
 		on:change={() => gradio.dispatch("change", value)}
 		on:input={() => gradio.dispatch("input")}
 		on:submit={() => gradio.dispatch("submit")}
 		on:blur={() => gradio.dispatch("blur")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		on:focus={() => gradio.dispatch("focus")}
+		on:error={({ detail }) => {
+			gradio.dispatch("error", detail);
+		}}
 		disabled={!interactive}
 	/>
 </Block>

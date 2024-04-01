@@ -22,6 +22,7 @@
 	export let min_width: number | undefined = undefined;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let disabled = false;
+	export let max_file_size: number | null = null;
 
 	const dispatch = createEventDispatcher();
 
@@ -50,6 +51,20 @@
 
 	async function load_files(files: FileList): Promise<void> {
 		let _files: File[] = Array.from(files);
+
+		if (max_file_size) {
+			const oversized_files = _files.filter((f) => f.size > max_file_size);
+			if (oversized_files.length) {
+				dispatch(
+					"error",
+					`File size exceeds the maximum allowed size of ${max_file_size} bytes: ${oversized_files
+						.map((f) => f.name)
+						.join(", ")}`
+				);
+				return;
+			}
+		}
+
 		if (!files.length) {
 			return;
 		}

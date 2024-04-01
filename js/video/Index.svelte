@@ -52,6 +52,7 @@
 	export let interactive: boolean;
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
+	export let max_file_size: number | null = null;
 
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
@@ -192,6 +193,7 @@
 			{include_audio}
 			{autoplay}
 			{root}
+			{max_file_size}
 			{handle_reset_value}
 			on:clear={() => gradio.dispatch("clear")}
 			on:play={() => gradio.dispatch("play")}

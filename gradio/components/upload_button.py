@@ -15,7 +15,7 @@ from gradio import processing_utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
-from gradio.utils import NamedString
+from gradio.utils import NamedString, _parse_file_size
 
 
 @document()
@@ -47,6 +47,7 @@ class UploadButton(Component):
         type: Literal["filepath", "bytes"] = "filepath",
         file_count: Literal["single", "multiple", "directory"] = "single",
         file_types: list[str] | None = None,
+        max_file_size: int | str | None = None,
     ):
         """
         Parameters:
@@ -66,6 +67,7 @@ class UploadButton(Component):
             type: Type of value to be returned by component. "file" returns a temporary file object with the same base name as the uploaded file, whose full path can be retrieved by file_obj.name, "binary" returns an bytes object.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of type of files to be uploaded. "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
+            max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
         """
         valid_types = [
             "filepath",
@@ -93,6 +95,7 @@ class UploadButton(Component):
         self.file_types = file_types
         self.label = label
         self.variant = variant
+        self.max_file_size = _parse_file_size(max_file_size)
         super().__init__(
             label=label,
             every=every,

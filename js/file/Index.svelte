@@ -42,6 +42,7 @@
 	}>;
 	export let file_count: string;
 	export let file_types: string[] = ["file"];
+	export let max_file_size: number | null = null;
 
 	let old_value = value;
 	$: if (JSON.stringify(old_value) !== JSON.stringify(value)) {
@@ -93,6 +94,7 @@
 			selectable={_selectable}
 			{root}
 			{height}
+			{max_file_size}
 			on:change={({ detail }) => {
 				value = detail;
 			}}
@@ -100,6 +102,11 @@
 			on:clear={() => gradio.dispatch("clear")}
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			on:upload={() => gradio.dispatch("upload")}
+			on:error={({ detail }) => {
+				loading_status = loading_status || {};
+				loading_status.status = "error";
+				gradio.dispatch("error", detail);
+			}}
 			i18n={gradio.i18n}
 		>
 			<UploadText i18n={gradio.i18n} type="file" />

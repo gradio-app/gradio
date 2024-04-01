@@ -34,6 +34,7 @@
 	export let show_share_button = false;
 	export let interactive: boolean;
 	export let show_download_button = false;
+	export let max_file_size: number | null = null;
 	export let gradio: Gradio<{
 		change: typeof value;
 		upload: typeof value;
@@ -71,6 +72,7 @@
 			value={null}
 			{root}
 			{label}
+			{max_file_size}
 			file_count={"multiple"}
 			file_types={["image"]}
 			i18n={gradio.i18n}
@@ -78,6 +80,11 @@
 				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
 				value = files.map((x) => ({ image: x, caption: null }));
 				gradio.dispatch("upload", value);
+			}}
+			on:error={({ detail }) => {
+				loading_status = loading_status || {};
+				loading_status.status = "error";
+				gradio.dispatch("error", detail);
 			}}
 		>
 			<UploadText i18n={gradio.i18n} type="gallery" />

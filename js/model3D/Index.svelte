@@ -30,6 +30,7 @@
 	export let gradio: Gradio;
 	export let height: number | undefined = undefined;
 	export let zoom_speed = 1;
+	export let max_file_size: number | null = null;
 
 	// alpha, beta, radius
 	export let camera_position: [number | null, number | null, number | null] = [
@@ -107,6 +108,7 @@
 			{value}
 			{camera_position}
 			{zoom_speed}
+			{max_file_size}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:change={({ detail }) => gradio.dispatch("change", detail)}
@@ -117,6 +119,11 @@
 			on:load={({ detail }) => {
 				value = detail;
 				gradio.dispatch("upload");
+			}}
+			on:error={({ detail }) => {
+				loading_status = loading_status || {};
+				loading_status.status = "error";
+				gradio.dispatch("error", detail);
 			}}
 			i18n={gradio.i18n}
 		>

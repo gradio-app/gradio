@@ -11,6 +11,7 @@ from gradio_client.documentation import document
 from gradio.components.base import Component
 from gradio.data_classes import FileData
 from gradio.events import Events
+from gradio.utils import _parse_file_size
 
 
 @document()
@@ -51,6 +52,7 @@ class Model3D(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        max_file_size: int | str | None = None,
     ):
         """
         Parameters:
@@ -71,12 +73,14 @@ class Model3D(Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
         """
         self.clear_color = clear_color or [0, 0, 0, 0]
         self.camera_position = camera_position
         self.height = height
         self.zoom_speed = zoom_speed
         self.pan_speed = pan_speed
+        self.max_file_size = _parse_file_size(max_file_size)
         super().__init__(
             label=label,
             every=every,
