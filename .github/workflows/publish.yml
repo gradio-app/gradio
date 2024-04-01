@@ -3,9 +3,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 env:
   CI: true
@@ -32,14 +29,6 @@ jobs:
           . venv/bin/activate
           pip install build hatch
           pnpm --filter @gradio/client --filter @gradio/lite build
-      - name: Package Lite NPM package
-        run: pnpm pack --pack-destination ${{ github.workspace }}
-        working-directory: js/lite
-      - name: Upload Lite NPM package
-        uses: actions/upload-artifact@v4
-        with:
-          name: gradio-lite-${{ github.sha }}
-          path: gradio-lite-*.tgz
       - name: create and publish versions
         id: changesets
         uses: changesets/action@v1
