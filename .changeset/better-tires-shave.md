@@ -6,7 +6,7 @@
 
 highlight:
 
-#### Automatically delete state when a user closes the browser tab
+#### Automatically delete state after user has disconnected from the webpage
 
 Gradio now automatically deletes `gr.State` variables stored in the server's RAM when users close their browser tab.
 The deletion will happen 60 minutes after the server detected a disconnect from the user's browser.
