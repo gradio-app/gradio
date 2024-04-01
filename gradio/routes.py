@@ -37,7 +37,7 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Response, status
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
@@ -163,6 +163,7 @@ class App(FastAPI):
         self.change_event: None | threading.Event = None
         self._asyncio_tasks: list[asyncio.Task] = []
         self.auth_dependency = auth_dependency
+        self.api_info = None
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
@@ -330,7 +331,8 @@ class App(FastAPI):
         else:
 
             @app.get("/logout")
-            def logout(response: Response, user: str = Depends(get_current_user)):
+            def logout(user: str = Depends(get_current_user)):
+                response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
                 response.delete_cookie(key=f"access-token-{app.cookie_id}", path="/")
                 response.delete_cookie(
                     key=f"access-token-unsecure-{app.cookie_id}", path="/"
@@ -339,7 +341,7 @@ class App(FastAPI):
                 for token in list(app.tokens.keys()):
                     if app.tokens[token] == user:
                         del app.tokens[token]
-                return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+                return response
 
         ###############
         # Main Routes
@@ -391,7 +393,10 @@ class App(FastAPI):
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
         def api_info():
-            return app.get_blocks().get_api_info()  # type: ignore
+            # The api info is set in create_app
+            if not app.api_info:
+                app.api_info = app.get_blocks().get_api_info()
+            return app.api_info
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
