@@ -147,8 +147,8 @@ class File(Component):
         if isinstance(value, list):
             for file in value:
                 if client_utils.is_http_url_like(file):
-                    downloaded_file = client_utils.synchronize_async(
-                        processing_utils.save_url_to_cache, file, self.GRADIO_CACHE
+                    downloaded_file = processing_utils.save_url_to_cache(
+                        file, self.GRADIO_CACHE
                     )
                     downloaded_files.append(downloaded_file)
                 else:

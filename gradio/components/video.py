@@ -284,8 +284,8 @@ class Video(Component):
 
         # For cases where the video needs to be converted to another format
         if is_url:
-            video = client_utils.synchronize_async(
-                processing_utils.save_url_to_cache, video, cache_dir=self.GRADIO_CACHE
+            video = processing_utils.save_url_to_cache(
+                video, cache_dir=self.GRADIO_CACHE
             )
         assert isinstance(video, str)  # noqa: S101
         if (

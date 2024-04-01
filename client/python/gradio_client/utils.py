@@ -11,7 +11,7 @@ import secrets
 import shutil
 import tempfile
 import warnings
-from concurrent.futures import CancelledError, ThreadPoolExecutor
+from concurrent.futures import CancelledError
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum

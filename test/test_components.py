@@ -1501,7 +1501,9 @@ class TestVideo:
         )
         video_input = gr.Video()
 
-        x_video = await processing_utils.async_move_files_to_cache([x_video], video_input)
+        x_video = await processing_utils.async_move_files_to_cache(
+            [x_video], video_input
+        )
         x_video = x_video[0]
 
         output1 = video_input.preprocess(x_video)
