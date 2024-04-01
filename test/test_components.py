@@ -842,7 +842,8 @@ class TestAudio:
         assert output1[0] == 8000
         assert output1[1].shape == (8046,)
 
-        x_wav = await processing_utils.move_files_to_cache([x_wav], audio_input)[0]
+        x_wav = await processing_utils.move_files_to_cache([x_wav], audio_input)
+        x_wav = x_wav[0]
         audio_input = gr.Audio(type="filepath")
         output1 = audio_input.preprocess(x_wav)
         assert Path(output1).name.endswith("audio_sample.wav")
@@ -1500,7 +1501,8 @@ class TestVideo:
         )
         video_input = gr.Video()
 
-        x_video = await processing_utils.move_files_to_cache([x_video], video_input)[0]
+        x_video = await processing_utils.move_files_to_cache([x_video], video_input)
+        x_video = x_video[0]
 
         output1 = video_input.preprocess(x_video)
         assert isinstance(output1, str)

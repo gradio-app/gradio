@@ -562,7 +562,9 @@ class TestBlocksPostprocessing:
             checkbox = gr.Checkbox(value=True, label="Show image")
             checkbox.change(change_visibility, inputs=checkbox, outputs=im_list)
 
-        output = await demo.postprocess_data(0, [gr.update(visible=False)] * 2, state=None)
+        output = await demo.postprocess_data(
+            0, [gr.update(visible=False)] * 2, state=None
+        )
         assert output == [
             {"visible": False, "__type__": "update"},
             {"visible": False, "__type__": "update"},
