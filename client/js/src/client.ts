@@ -357,6 +357,10 @@ export function api_factory(
 				);
 
 				const _config = await config_success(config);
+				// connect to the heartbeat endpoint via GET request
+				const heartbeat = new EventSource(
+					`${config.root}/heartbeat/${session_hash}`
+				);
 				res(_config);
 			} catch (e) {
 				console.error(e);

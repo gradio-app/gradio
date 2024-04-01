@@ -1726,3 +1726,44 @@ def test_static_files_multiple_apps(gradio_temp_dir):
 
     # Input/Output got saved to cache
     assert len(list(gradio_temp_dir.glob("**/*.*"))) == 0
+
+
+def test_time_to_live_and_delete_callback_for_state(capsys, monkeypatch):
+    monkeypatch.setenv("GRADIO_IS_E2E_TEST", 1)
+
+    def test_fn(x):
+        return x + 1, x + 1
+
+    def delete_fn(v):
+        print(f"deleted {v}")
+
+    with gr.Blocks() as demo:
+        n1 = gr.Number(value=0)
+        state = gr.State(
+            value=0, time_to_live=1, delete_callback=lambda v: delete_fn(v)
+        )
+        button = gr.Button("Increment")
+        button.click(test_fn, [state], [n1, state], api_name="increment")
+
+    app, url, _ = demo.launch(prevent_thread_lock=True)
+
+    try:
+        client_1 = grc.Client(url)
+        client_2 = grc.Client(url)
+
+        client_1.predict(api_name="/increment")
+        client_1.predict(api_name="/increment")
+        client_1.predict(api_name="/increment")
+
+        client_2.predict(api_name="/increment")
+        client_2.predict(api_name="/increment")
+
+        time.sleep(3)
+
+        captured = capsys.readouterr()
+        assert "deleted 2" in captured.out
+        assert "deleted 3" in captured.out
+        for client in [client_1, client_2]:
+            assert len(app.state_holder.session_data[client.session_hash]._data) == 0
+    finally:
+        demo.close()

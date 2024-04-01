@@ -9,7 +9,7 @@ import os
 import re
 import shutil
 from collections import deque
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass as python_dataclass
 from datetime import datetime
 from pathlib import Path
@@ -734,7 +734,6 @@ class CustomCORSMiddleware:
 
 def delete_files_created_by_app(blocks: Blocks, age: int | None) -> None:
     """Delete files that are older than age. If age is None, delete all files."""
-
     dont_delete = set()
     for component in blocks.blocks.values():
         dont_delete.update(getattr(component, "keep_in_cache", set()))
@@ -770,27 +769,40 @@ async def _lifespan_handler(
     app: App, frequency: int = 1, age: int = 1
 ) -> AsyncGenerator:
     """A context manager that triggers the startup and shutdown events of the app."""
-    app.get_blocks().startup_events()
-    app.startup_events_triggered = True
     asyncio.create_task(delete_files_on_schedule(app, frequency, age))
     yield
     delete_files_created_by_app(app.get_blocks(), age=None)
 
 
+async def _delete_state(app: App):
+    """Delete all expired state every second."""
+    while True:
+        app.state_holder.delete_all_expired_state()
+        await asyncio.sleep(1)
+
+
+@asynccontextmanager
+async def _delete_state_handler(app: App):
+    """When the server launches, regularly delete expired state."""
+    asyncio.create_task(_delete_state(app))
+    yield
+
+
 def create_lifespan_handler(
     user_lifespan: Callable[[App], AsyncContextManager] | None,
-    frequency: int = 1,
-    age: int = 1,
+    frequency: int | None = 1,
+    age: int | None = 1,
 ) -> Callable[[App], AsyncContextManager]:
     """Return a context manager that applies _lifespan_handler and user_lifespan if it exists."""
 
     @asynccontextmanager
     async def _handler(app: App):
-        async with _lifespan_handler(app, frequency, age):
+        async with AsyncExitStack() as stack:
+            await stack.enter_async_context(_delete_state_handler(app))
+            if frequency and age:
+                await stack.enter_async_context(_lifespan_handler(app, frequency, age))
             if user_lifespan is not None:
-                async with user_lifespan(app):
-                    yield
-            else:
-                yield
+                await stack.enter_async_context(user_lifespan(app))
+            yield
 
     return _handler
