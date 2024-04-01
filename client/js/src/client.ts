@@ -361,9 +361,6 @@ export function api_factory(
 				const heartbeat = new EventSource(
 					`${config.root}/heartbeat/${session_hash}`
 				);
-				heartbeat.onmessage = function () {
-					// do nothing
-				};
 				res(_config);
 			} catch (e) {
 				console.error(e);

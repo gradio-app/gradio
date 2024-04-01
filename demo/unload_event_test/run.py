@@ -17,8 +17,7 @@ def delete_fn(v):
     with log_file.open("a") as f:
         f.write(f"deleted {v}\n")
 
-def unload_fn(req: gr.Request):
-   assert req.request
+def unload_fn():
    with log_file.open("a") as f:
       f.write(f"unloading\n")
 

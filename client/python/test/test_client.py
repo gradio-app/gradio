@@ -604,12 +604,7 @@ class TestClientPredictions:
             pred = client.predict(api_name="/predict")
             assert pred[0] == data[0]
 
-    def test_state_reset_when_session_changes(
-        self,
-        capsys,
-        state_demo,
-        monkeypatch
-    ):
+    def test_state_reset_when_session_changes(self, capsys, state_demo, monkeypatch):
         monkeypatch.setenv("GRADIO_IS_E2E_TEST", "1")
         with connect(state_demo) as client:
             client.predict("Hello", api_name="/predict")
