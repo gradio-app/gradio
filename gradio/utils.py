@@ -1280,3 +1280,10 @@ def async_lambda(f: Callable) -> Callable:
         return f(*args, **kwargs)
 
     return function_wrapper
+
+class FileSize:
+    B = 1
+    KB = 1024 * B
+    MB = 1024 * KB
+    GB = 1024 * MB
+    TB = 1024 * GB

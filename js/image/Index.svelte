@@ -49,6 +49,7 @@
 	export let streaming: boolean;
 	export let pending: boolean;
 	export let mirror_webcam: boolean;
+	export let max_file_size: number | null = null;
 
 	export let gradio: Gradio<{
 		change: never;
@@ -152,6 +153,7 @@
 			{pending}
 			{streaming}
 			{mirror_webcam}
+			{max_file_size}
 			i18n={gradio.i18n}
 		>
 			{#if active_source === "upload" || !active_source}

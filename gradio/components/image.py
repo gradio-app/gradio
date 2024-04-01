@@ -66,6 +66,7 @@ class Image(StreamingInput, Component):
         render: bool = True,
         mirror_webcam: bool = True,
         show_share_button: bool | None = None,
+        max_file_size: int | None = None,
     ):
         """
         Parameters:
@@ -91,6 +92,7 @@ class Image(StreamingInput, Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             mirror_webcam: If True webcam will be mirrored. Default is True.
             show_share_button: If True, will show a share icon in the corner of the component that allows user to share outputs to Hugging Face Spaces Discussions. If False, icon does not appear. If set to None (default behavior), then the icon appears if this Gradio app is launched on Spaces, but not otherwise.
+            max_file_size: The maximum file size in bytes that can be uploaded. If None, no limit is set.
         """
         self.format = format
         self.mirror_webcam = mirror_webcam
@@ -103,6 +105,7 @@ class Image(StreamingInput, Component):
         self.height = height
         self.width = width
         self.image_mode = image_mode
+        self.max_file_size = max_file_size
         valid_sources = ["upload", "webcam", "clipboard"]
         if sources is None:
             self.sources = (

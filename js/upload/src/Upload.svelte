@@ -18,6 +18,7 @@
 	export let uploading = false;
 	export let hidden_upload: HTMLInputElement | null = null;
 	export let show_progress = true;
+	export let max_file_size: number | null = null;
 
 	let upload_id: string;
 	let file_data: FileData[];
@@ -98,6 +99,22 @@
 		let _files: File[] = files.map(
 			(f) => new File([f], f.name, { type: f.type })
 		);
+
+		console.log("max_file_size", max_file_size);
+
+
+		if (max_file_size) {
+			const oversized_files = _files.filter((f) => f.size > max_file_size);
+			if (oversized_files.length) {
+				dispatch(
+					"error",
+					`File size exceeds the maximum allowed size of ${max_file_size} bytes: ${oversized_files
+						.map((f) => f.name)
+						.join(", ")}`
+				);
+				return;
+			}
+		}
 		file_data = await prepare_files(_files);
 		return await handle_upload(file_data);
 	}
