@@ -291,12 +291,13 @@ def move_files_to_cache(
                     raise ValueError(
                         f"File {path} is not in the upload folder and cannot be accessed."
                     )
-            temp_file_path = block.move_resource_to_block_cache(payload.path)
-            if temp_file_path is None:
-                raise ValueError("Did not determine a file path for the resource.")
-            payload.path = temp_file_path
-            if keep_in_cache:
-                block.keep_in_cache.add(payload.path)
+            if not payload.is_stream:
+                temp_file_path = block.move_resource_to_block_cache(payload.path)
+                if temp_file_path is None:
+                    raise ValueError("Did not determine a file path for the resource.")
+                payload.path = temp_file_path
+                if keep_in_cache:
+                    block.keep_in_cache.add(payload.path)
 
         url_prefix = "/stream/" if payload.is_stream else "/file="
         if block.proxy_url:
