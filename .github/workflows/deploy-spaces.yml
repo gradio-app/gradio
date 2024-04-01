@@ -79,19 +79,12 @@ jobs:
         node_auth_token: ${{ secrets.NPM_TOKEN }}
         npm_token: ${{ secrets.NPM_TOKEN }}
         skip_build: 'true'
-    - name: Build packages
-      run: |
-        . venv/bin/activate
-        pip install build hatch
-        pnpm --filter @gradio/client --filter @gradio/lite build
-    - name: Package Lite NPM package
-      run: pnpm pack --pack-destination ${{ github.workspace }}
-      working-directory: js/lite
+        build_lite: 'true'
     - name: Upload Lite NPM package
       uses: actions/upload-artifact@v4
       with:
         name: gradio-lite-${{ github.sha }}
-        path: gradio-lite-*.tgz
+        path: js/lite/gradio-lite-*.tgz
 
     - name: Install pip
       run: python -m pip install build requests
