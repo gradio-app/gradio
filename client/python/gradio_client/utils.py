@@ -994,12 +994,12 @@ async def async_traverse(
     elif isinstance(json_obj, dict):
         new_obj = {}
         for key, value in json_obj.items():
-            new_obj[key] = async_traverse(value, func, is_root)
+            new_obj[key] = await async_traverse(value, func, is_root)
         return new_obj
     elif isinstance(json_obj, (list, tuple)):
         new_obj = []
         for item in json_obj:
-            new_obj.append(async_traverse(item, func, is_root))
+            new_obj.append(await async_traverse(item, func, is_root))
         return new_obj
     else:
         return json_obj
