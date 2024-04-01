@@ -80,6 +80,9 @@ jobs:
         npm_token: ${{ secrets.NPM_TOKEN }}
         skip_build: 'true'
         build_lite: 'true'
+    - name: Package Lite NPM package
+      working-directory: js/lite
+      run: pnpm pack --pack-destination .
     - name: Upload Lite NPM package
       uses: actions/upload-artifact@v4
       with:

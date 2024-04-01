@@ -49,5 +49,3 @@ runs:
         . venv/bin/activate
         python -m pip install build hatch
         pnpm --filter @gradio/app build:lite
-        cd js/lite
-        pnpm pack --pack-destination .
