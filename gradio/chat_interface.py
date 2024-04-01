@@ -9,6 +9,7 @@ import inspect
 from typing import AsyncGenerator, Callable, Literal, Union, cast
 
 import anyio
+import gradio_client.utils as client_utils
 from gradio_client.documentation import document
 
 from gradio.blocks import Blocks
@@ -296,7 +297,7 @@ class ChatInterface(Blocks):
 
             # The example caching must happen after the input components have rendered
             if examples:
-                self.examples_handler._start_caching()
+                client_utils.synchronize_async(self.examples_handler._start_caching)
 
             self.saved_input = State()
             self.chatbot_state = (

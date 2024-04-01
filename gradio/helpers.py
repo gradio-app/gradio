@@ -70,7 +70,7 @@ def create_examples(
         _defer_caching=_defer_caching,
         _initiated_directly=False,
     )
-    examples_obj.create()
+    client_utils.synchronize_async(examples_obj.create)
     return examples_obj
 
 
@@ -267,7 +267,7 @@ class Examples:
         self.cached_indices_file = Path(self.cached_folder) / "indices.csv"
         self.run_on_click = run_on_click
 
-    def create(self) -> None:
+    async def create(self) -> None:
         """Caches the examples if self.cache_examples is True and creates the Dataset
         component to hold the examples"""
 
@@ -304,7 +304,7 @@ class Examples:
                     show_api=False,
                 )
         if not self._defer_caching:
-            self._start_caching()
+            await self._start_caching()
 
     async def _postprocess_output(self, output) -> list:
         """
@@ -330,7 +330,7 @@ class Examples:
                 return cached_index
         return None
 
-    def _start_caching(self):
+    async def _start_caching(self):
         if self.cache_examples:
             for example in self.examples:
                 if len([ex for ex in example if ex is not None]) != len(self.inputs):
@@ -354,8 +354,7 @@ class Examples:
                 warnings.warn(
                     "Setting `cache_examples=True` is not supported in the Wasm mode. You can set `cache_examples='lazy'` to cache examples after first use."
                 )
-            else:
-                client_utils.synchronize_async(self.cache)
+            await self.cache()
 
     def lazy_cache(self) -> None:
         print(
