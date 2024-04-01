@@ -148,6 +148,21 @@ demo.launch()
 
 **Try it out**: You can see this example running in [this Hugging Face Static Space](https://huggingface.co/spaces/abidlabs/gradio-lite-classify), which lets you host static (serverless) web applications for free. Visit the page and you'll be able to run a machine learning model without internet access!
 
+### Code and Demo Playground 
+
+If you'd like to see the code side-by-side with the demo just pass in the `playground` attribute to the gradio-lite element. This will create an interactive playground that allows you to change the code and update the demo! If you're using playground, you can also set layout to either 'vertical' or 'horizontal' which will determine if the code editor and preview are side-by-side or on top of each other (by default it's reposnsive with the width of the page).
+
+```html
+<gradio-lite playground>
+import gradio as gr
+
+gr.Interface(fn=lambda x: x,
+			inputs=gr.Textbox(),
+			outputs=gr.Textbox()
+		).launch()
+</gradio-lite>
+```
+
 ## Benefits of Using `@gradio/lite`
 
 ### 1. Serverless Deployment
