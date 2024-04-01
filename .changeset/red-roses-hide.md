@@ -1,7 +1,7 @@
 ---
-"@gradio/app": patch
-"gradio": patch
-"gradio_client": patch
+"@gradio/app": minor
+"gradio": minor
+"gradio_client": minor
 ---
 
-feat:Adds an "API Recorder" to the view API page, some internal methods have been made async
+feat:Whitphx workaround recorder async
