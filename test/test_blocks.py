@@ -1728,7 +1728,9 @@ def test_static_files_multiple_apps(gradio_temp_dir):
     assert len(list(gradio_temp_dir.glob("**/*.*"))) == 0
 
 
-def test_time_to_live_and_delete_callback_for_state(capsys):
+def test_time_to_live_and_delete_callback_for_state(capsys, monkeypatch):
+    monkeypatch.setenv("GRADIO_IS_E2E_TEST", 1)
+
     def test_fn(x):
         return x + 1, x + 1
 
@@ -1764,7 +1766,4 @@ def test_time_to_live_and_delete_callback_for_state(capsys):
         for client in [client_1, client_2]:
             assert len(app.state_holder.session_data[client.session_hash]._data) == 0
     finally:
-        demo._queue.close()
-        demo.is_running = False
-        demo.server.should_exit = True
-        demo.server.thread.join(timeout=1)
+        demo.close()

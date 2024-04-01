@@ -599,9 +599,9 @@ class App(FastAPI):
             """Clients make a persistent connection to this endpoint to keep the session alive.
             When the client disconnects, the session state is deleted.
             """
-
+            HEARTBEAT_RATE = 0.25 if os.getenv("GRADIO_IS_E2E_TEST", None) else 15
             async def wait():
-                await asyncio.sleep(15)
+                await asyncio.sleep(HEARTBEAT_RATE)
                 return "wait"
 
             async def stop_stream():
@@ -650,8 +650,9 @@ class App(FastAPI):
                                 fn_index_inferred=fn_index,
                                 root_path=root_path,
                             )
-                        app.state_holder.delete_state(session_hash, expired_only=False)
-                        app.state_holder.session_data.pop(session_hash, None)
+                        # This will mark the state to be deleted in an hour
+                        if session_hash in app.state_holder.session_data:
+                            app.state_holder.session_data[session_hash].is_closed = True
                         return
 
             return StreamingResponse(iterator(), media_type="text/event-stream")
@@ -1165,8 +1166,9 @@ def mount_gradio_app(
         async with old_lifespan(
             app
         ):  # Instert the startup events inside the FastAPI context manager
-            gradio_app.get_blocks().startup_events()
-            yield
+            async with gradio_app.router.lifespan_context(gradio_app):
+                gradio_app.get_blocks().startup_events()
+                yield
 
     app.router.lifespan_context = new_lifespan
 

@@ -19,7 +19,7 @@ test("when a user closes the page, the unload event should be triggered", async 
 	await expect(page.getByLabel("Number")).toHaveValue("4");
 	await page.close();
 
-	await new Promise((resolve) => setTimeout(resolve, 500));
+	await new Promise((resolve) => setTimeout(resolve, 5000));
 
 	const data = readFileSync(
 		"../../demo/unload_event_test/output_log.txt",
