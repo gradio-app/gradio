@@ -73,7 +73,7 @@ jobs:
         cache-dependency-path: pnpm-lock.yaml
 
     - name: install dependencies
-      uses: "gradio-app/gradio/.github/actions/install-all-deps@lite-wheel-contents-optimization"
+      uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
       with:
         always_install_pnpm: true
         node_auth_token: ${{ secrets.NPM_TOKEN }}
