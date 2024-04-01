@@ -842,7 +842,7 @@ class TestAudio:
         assert output1[0] == 8000
         assert output1[1].shape == (8046,)
 
-        x_wav = await processing_utils.move_files_to_cache([x_wav], audio_input)
+        x_wav = await processing_utils.async_move_files_to_cache([x_wav], audio_input)
         x_wav = x_wav[0]
         audio_input = gr.Audio(type="filepath")
         output1 = audio_input.preprocess(x_wav)
@@ -1501,7 +1501,7 @@ class TestVideo:
         )
         video_input = gr.Video()
 
-        x_video = await processing_utils.move_files_to_cache([x_video], video_input)
+        x_video = await processing_utils.async_move_files_to_cache([x_video], video_input)
         x_video = x_video[0]
 
         output1 = video_input.preprocess(x_video)
@@ -3057,7 +3057,7 @@ def test_component_example_payloads(io_components):
             c: Component = component()
         data = c.example_payload()
         data = client_utils.synchronize_async(
-            processing_utils.move_files_to_cache,
+            processing_utils.async_move_files_to_cache,
             data,
             c,
             check_in_upload_folder=False,

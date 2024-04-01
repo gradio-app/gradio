@@ -236,7 +236,7 @@ class Examples:
                     if isinstance(prediction_value, (GradioRootModel, GradioModel)):
                         prediction_value = prediction_value.model_dump()
                     prediction_value = client_utils.synchronize_async(
-                        processing_utils.move_files_to_cache,
+                        processing_utils.async_move_files_to_cache,
                         prediction_value,
                         component,
                         postprocess=True,

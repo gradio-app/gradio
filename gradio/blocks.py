@@ -308,7 +308,7 @@ class Block:
             data = {"path": url_or_file_path}
             try:
                 return client_utils.synchronize_async(
-                    processing_utils.move_files_to_cache, data, self
+                    processing_utils.async_async_move_files_to_cache, data, self
                 )
             except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
                 return data
@@ -1410,7 +1410,7 @@ Received inputs:
                 else:
                     if input_id in state:
                         block = state[input_id]
-                    inputs_cached = await processing_utils.move_files_to_cache(
+                    inputs_cached = await processing_utils.async_move_files_to_cache(
                         inputs[i],
                         block,
                         check_in_upload_folder=not explicit_call,
@@ -1541,7 +1541,7 @@ Received outputs:
                         block = state[output_id]
                     prediction_value = block.postprocess(prediction_value)
 
-                outputs_cached = await processing_utils.move_files_to_cache(
+                outputs_cached = await processing_utils.async_move_files_to_cache(
                     prediction_value,
                     block,
                     postprocess=True,
@@ -1574,7 +1574,7 @@ Received outputs:
                 if first_chunk:
                     stream_run[output_id] = []
                 self.pending_streams[session_hash][run][output_id].append(binary_data)
-                output_data = await processing_utils.move_files_to_cache(
+                output_data = await processing_utils.async_move_files_to_cache(
                     output_data,
                     block,
                     postprocess=True,

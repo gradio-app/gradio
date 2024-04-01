@@ -100,7 +100,7 @@ class Dataset(Component):
                     # custom components
                     example[i] = component.as_example(ex)
                 example[i] = client_utils.synchronize_async(
-                    processing_utils.move_files_to_cache,
+                    processing_utils.async_move_files_to_cache,
                     example[i],
                     component,
                     keep_in_cache=True,

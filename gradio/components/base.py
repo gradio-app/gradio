@@ -22,7 +22,7 @@ from gradio.component_meta import ComponentMeta
 from gradio.data_classes import GradioDataModel
 from gradio.events import EventListener
 from gradio.layouts import Form
-from gradio.processing_utils import move_files_to_cache
+from gradio.processing_utils import async_move_files_to_cache
 
 if TYPE_CHECKING:
     from typing import TypedDict
@@ -197,7 +197,7 @@ class Component(ComponentBase, Block):
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         initial_value = self.postprocess(initial_value)
         self.value = client_utils.synchronize_async(
-            move_files_to_cache,
+            async_move_files_to_cache,
             initial_value,
             self,  # type: ignore
             postprocess=True,

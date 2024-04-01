@@ -841,36 +841,20 @@ def set_space_timeout(
 ########################
 
 
-def synchronize_async(func, *args, **kwargs) -> Any:
+def synchronize_async(func: Callable, *args, **kwargs) -> Any:
     """
-    Runs async functions in sync scopes. This method checks if there is an
-    event loop running. If there is, it uses a separate thread to run the
-    function to avoid fsspec's `NotImplementedError`. Otherwise, it uses fsspec.asyn.sync.
+    Runs async functions in sync scopes. Can be used in any scope.
 
     Example:
         if inspect.iscoroutinefunction(block_fn.fn):
-            predictions = synchronize_async(block_fn.fn, *processed_input)
+            predictions = utils.synchronize_async(block_fn.fn, *processed_input)
 
-    Parameters:
-        func: The asynchronous function to run.
-        *args: Positional arguments for the function.
-        **kwargs: Keyword arguments for the function.
+    Args:
+        func:
+        *args:
+        **kwargs:
     """
-
-    try:
-        loop = asyncio.get_running_loop()
-        if loop.is_running():
-            # If this point is reached, there's a running loop, so use threading
-            def run_in_thread(func, *args, **kwargs):
-                inner_loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(inner_loop)
-                return inner_loop.run_until_complete(func(*args, **kwargs))
-
-            with ThreadPoolExecutor() as executor:
-                future = executor.submit(run_in_thread, func, *args, **kwargs)
-                return future.result()
-    except RuntimeError:
-        return fsspec.asyn.sync(fsspec.asyn.get_loop(), func, *args, **kwargs)
+    return fsspec.asyn.sync(fsspec.asyn.get_loop(), func, *args, **kwargs)  # type: ignore
 
 
 class APIInfoParseError(ValueError):
