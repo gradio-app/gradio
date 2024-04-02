@@ -902,7 +902,6 @@ class App(FastAPI):
         async def get_item_or_file(
             request: fastapi.Request,
         ) -> Union[ComponentServerJSONBody, ComponentServerBlobBody]:
-
             content_type = request.headers.get("Content-Type")
 
             if isinstance(content_type, str) and content_type.startswith(
@@ -964,7 +963,6 @@ class App(FastAPI):
         async def component_server(
             request: fastapi.Request,
         ):
-
             body = await get_item_or_file(request)
             state = app.state_holder[body.session_hash]
             component_id = body.component_id

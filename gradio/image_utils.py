@@ -50,7 +50,6 @@ def format_image(
 def save_image(
     y: np.ndarray | PIL.Image.Image | str | Path, cache_dir: str, format: str = "webp"
 ):
-
     if isinstance(y, np.ndarray):
         path = processing_utils.save_img_array_to_cache(
             y, cache_dir=cache_dir, format=format
