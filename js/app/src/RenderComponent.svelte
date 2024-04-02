@@ -16,7 +16,7 @@
 	export let gradio: Gradio;
 	export let elem_id: string;
 	export let elem_classes: string[];
-	export let id: number;
+	export let _id: number;
 
 	const s = (id: number, p: string, v: any): CustomEvent =>
 		new CustomEvent("prop_change", { detail: { id, prop: p, value: v } });
@@ -34,7 +34,7 @@
 
 				function report(props: string) {
 					return function (propargs: any) {
-						const ev = s(id, props, propargs);
+						const ev = s(_id, props, propargs);
 						target.dispatchEvent(ev);
 					};
 				}
@@ -50,6 +50,7 @@
 	}
 
 	const _component = wrap(component);
+	console.log("PROPS FOR", $$restProps.name, $$restProps)
 </script>
 
 <svelte:component
