@@ -250,9 +250,12 @@
 
 <style>
 	.icon-wrap {
+		position: absolute;
+		top: var(--size-2);
+		right: var(--size-5);
 		color: var(--body-text-color);
-		margin-right: var(--size-2);
 		width: var(--size-5);
+		pointer-events: none;
 	}
 	.container {
 		height: 100%;
