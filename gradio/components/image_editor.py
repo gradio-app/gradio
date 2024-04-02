@@ -6,15 +6,7 @@ import dataclasses
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import (
-    Any,
-    Iterable,
-    List,
-    Literal,
-    Optional,
-    Union,
-    cast,
-)
+from typing import Any, Iterable, List, Literal, Optional, Tuple, Union, cast
 
 import numpy as np
 import PIL.Image
@@ -64,7 +56,7 @@ class BlobData(TypedDict):
 
 class AcceptBlobs(GradioModel):
     data: BlobData
-    files: List[tuple[str, bytes]]
+    files: List[Tuple[str, bytes]]
 
 
 @dataclasses.dataclass
