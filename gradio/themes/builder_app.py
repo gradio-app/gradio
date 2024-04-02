@@ -670,9 +670,7 @@ with gr.Blocks(  # noqa: SIM117
                         var_val = core_diffs[var_name]
                         if var_name.endswith("_size"):
                             var_val = var_val.split("_")[-1]
-                        core_diffs_code += (
-                            f"""    {var_name}="{var_val}",\n"""
-                        )
+                        core_diffs_code += f"""    {var_name}="{var_val}",\n"""
 
             font_diffs_code = ""
 
