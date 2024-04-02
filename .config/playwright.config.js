@@ -38,7 +38,7 @@ const lite = defineConfig(base, {
 	testMatch: [
 		"**/file_component_events.spec.ts",
 		"**/chatbot_multimodal.spec.ts",
-		// "**/kitchen_sink.spec.ts",
+		"**/kitchen_sink.spec.ts",
 		"**/gallery_component_events.spec.ts"
 	],
 	workers: 1,
