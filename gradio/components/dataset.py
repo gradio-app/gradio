@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-import gradio_client.utils as client_utils
 from gradio_client.documentation import document
 
 from gradio import processing_utils
@@ -99,11 +98,8 @@ class Dataset(Component):
                     # use the previous name to be backwards-compatible with previously-created
                     # custom components
                     example[i] = component.as_example(ex)
-                example[i] = client_utils.synchronize_async(
-                    processing_utils.async_move_files_to_cache,
-                    example[i],
-                    component,
-                    keep_in_cache=True,
+                example[i] = processing_utils.move_files_to_cache(
+                    example[i], component, keep_in_cache=True
                 )
         self.type = type
         self.label = label

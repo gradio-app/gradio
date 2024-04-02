@@ -138,8 +138,7 @@ class AnnotatedImage(Component):
         if isinstance(base_img, str):
             if client_utils.is_http_url_like(base_img):
                 base_img = processing_utils.save_url_to_cache(
-                    base_img,
-                    cache_dir=self.GRADIO_CACHE,
+                    base_img, cache_dir=self.GRADIO_CACHE
                 )
             base_img_path = base_img
             base_img = np.array(PIL.Image.open(base_img))
