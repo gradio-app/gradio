@@ -75,10 +75,11 @@ def calculator_demo_with_defaults():
 
 @pytest.fixture
 def state_demo():
+    state = gr.State(delete_callback=lambda x: print("STATE DELETED"))
     demo = gr.Interface(
         lambda x, y: (x, y),
-        ["textbox", "state"],
-        ["textbox", "state"],
+        ["textbox", state],
+        ["textbox", state],
     )
     return demo
 

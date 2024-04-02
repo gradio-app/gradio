@@ -65,7 +65,7 @@ class Server(uvicorn.Server):
         if self.reloader:
             self.reloader.stop()
             self.watch_thread.join()
-        self.thread.join()
+        self.thread.join(timeout=5)
 
 
 def start_server(
