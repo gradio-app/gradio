@@ -49,7 +49,7 @@ class EditorDataBlobs(GradioModel):
 
 class BlobData(TypedDict):
     type: str
-    index: int | None
+    index: Optional[int]
     file: bytes
     id: str
 
