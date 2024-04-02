@@ -212,6 +212,15 @@ class Audio(
             temp_file_path.with_name(f"{temp_file_path.stem}{temp_file_path.suffix}")
         )
 
+        # skip all processing if the file is already in the correct format and user asks for filepath
+        if (
+            self.type == "filepath"
+            and temp_file_path.suffix == f".{self.format}"
+            and self.min_length is None
+            and self.max_length is None
+        ):
+            return payload.path
+            
         sample_rate, data = processing_utils.audio_from_file(temp_file_path)
 
         duration = len(data) / sample_rate
