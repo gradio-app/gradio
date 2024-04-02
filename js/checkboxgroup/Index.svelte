@@ -25,19 +25,23 @@
 
 	export let loading_status: LoadingStatus;
 	export let interactive = true;
+	let old_value = value;
 
 	function toggle_choice(choice: string | number): void {
-		if (value.includes(choice)) {
-			value = value.filter((v) => v !== choice);
+		if (old_value.includes(choice)) {
+			old_value = value.filter((v) => v !== choice);
 		} else {
-			value = [...value, choice];
+			old_value = [...value, choice];
 		}
 		gradio.dispatch("input");
 	}
 
 	$: disabled = !interactive;
 
-	$: value && gradio.dispatch("change");
+	$: if (JSON.stringify(old_value) !== JSON.stringify(value)) {
+		gradio.dispatch("change");
+		value = old_value;
+	}
 </script>
 
 <Block
