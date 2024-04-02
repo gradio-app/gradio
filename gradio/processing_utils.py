@@ -269,9 +269,7 @@ def move_resource_to_block_cache(
     """This method has been replaced by Block.move_resource_to_block_cache(), but is
     left here for backwards compatibility for any custom components created in Gradio 4.2.0 or earlier.
     """
-    return client_utils.synchronize_async(
-        block.move_resource_to_block_cache, url_or_file_path
-    )
+    return block.move_resource_to_block_cache(url_or_file_path)
 
 
 def move_files_to_cache(
