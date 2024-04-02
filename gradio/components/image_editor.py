@@ -303,6 +303,10 @@ class ImageEditor(Component):
         else:
             _payload = payload
 
+        bg = None
+        layers = None
+        composite = None
+
         if _payload is not None:
             bg = self.convert_and_format_image(_payload.background)
             layers = (
