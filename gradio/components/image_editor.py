@@ -51,7 +51,7 @@ class EditorData(GradioModel):
 
 class EditorDataBlobs(GradioModel):
     background: Optional[bytes]
-    layers: list[Union[bytes, None]]
+    layers: List[Union[bytes, None]]
     composite: Optional[bytes]
 
 
