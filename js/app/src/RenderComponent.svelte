@@ -50,7 +50,6 @@
 	}
 
 	const _component = wrap(component);
-	console.log("PROPS FOR", $$restProps.name, $$restProps)
 </script>
 
 <svelte:component
