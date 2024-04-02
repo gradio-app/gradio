@@ -38,18 +38,13 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
-<<<<<<< HEAD
 from fastapi import (
     BackgroundTasks,
     Depends,
     FastAPI,
     HTTPException,
-    Response,
     status,
 )
-=======
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
->>>>>>> main
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
