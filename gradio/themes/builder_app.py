@@ -667,8 +667,11 @@ with gr.Blocks(  # noqa: SIM117
                         cls, vals = specific_core_diffs[var_name]
                         core_diffs_code += f"""    {var_name}=gr.themes.{cls.__name__}({', '.join(f'''{k}="{v}"''' for k, v in vals.items())}),\n"""
                     elif var_name in core_diffs:
+                        var_val = core_diffs[var_name]
+                        if var_name.endswith("_size"):
+                            var_val = var_val.split("_")[-1]
                         core_diffs_code += (
-                            f"""    {var_name}="{core_diffs[var_name]}",\n"""
+                            f"""    {var_name}="{var_val}",\n"""
                         )
 
             font_diffs_code = ""
