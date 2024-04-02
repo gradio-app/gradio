@@ -52,17 +52,15 @@
 	async function load_files(files: FileList): Promise<void> {
 		let _files: File[] = Array.from(files);
 
-		if (max_file_size) {
-			const oversized_files = _files.filter((f) => f.size > max_file_size);
-			if (oversized_files.length) {
-				dispatch(
-					"error",
-					`File size exceeds the maximum allowed size of ${max_file_size} bytes: ${oversized_files
-						.map((f) => f.name)
-						.join(", ")}`
-				);
-				return;
-			}
+		const oversized_files = _files.filter((f) => f.size > (max_file_size ?? Infinity));
+		if (oversized_files.length) {
+			dispatch(
+				"error",
+				`File size exceeds the maximum allowed size of ${max_file_size} bytes: ${oversized_files
+					.map((f) => f.name)
+					.join(", ")}`
+			);
+			return;
 		}
 
 		if (!files.length) {

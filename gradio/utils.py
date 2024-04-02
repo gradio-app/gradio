@@ -1281,6 +1281,7 @@ def async_lambda(f: Callable) -> Callable:
 
     return function_wrapper
 
+
 class FileSize:
     B = 1
     KB = 1024 * B

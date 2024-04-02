@@ -100,18 +100,17 @@
 			(f) => new File([f], f.name, { type: f.type })
 		);
 
-		if (max_file_size) {
-			const oversized_files = _files.filter((f) => f.size > max_file_size);
-			if (oversized_files.length) {
-				dispatch(
-					"error",
-					`File size exceeds the maximum allowed size of ${max_file_size} bytes: ${oversized_files
-						.map((f) => f.name)
-						.join(", ")}`
-				);
-				return;
-			}
+		const oversized_files = _files.filter((f) => f.size > (max_file_size ?? Infinity));
+		if (oversized_files.length) {
+			dispatch(
+				"error",
+				`File size exceeds the maximum allowed size of ${max_file_size} bytes: ${oversized_files
+					.map((f) => f.name)
+					.join(", ")}`
+			);
+			return;
 		}
+
 		file_data = await prepare_files(_files);
 		return await handle_upload(file_data);
 	}
