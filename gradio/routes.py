@@ -38,6 +38,7 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
+<<<<<<< HEAD
 from fastapi import (
     BackgroundTasks,
     Depends,
@@ -46,6 +47,9 @@ from fastapi import (
     Response,
     status,
 )
+=======
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
+>>>>>>> main
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
@@ -174,6 +178,7 @@ class App(FastAPI):
         self.change_event: None | threading.Event = None
         self._asyncio_tasks: list[asyncio.Task] = []
         self.auth_dependency = auth_dependency
+        self.api_info = None
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
@@ -232,10 +237,10 @@ class App(FastAPI):
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
-        if blocks.delete_cache is not None:
-            app_kwargs["lifespan"] = create_lifespan_handler(
-                app_kwargs.get("lifespan", None), *blocks.delete_cache
-            )
+        delete_cache = blocks.delete_cache or (None, None)
+        app_kwargs["lifespan"] = create_lifespan_handler(
+            app_kwargs.get("lifespan", None), *delete_cache
+        )
         app = App(auth_dependency=auth_dependency, **app_kwargs)
         app.configure_app(blocks)
 
@@ -341,7 +346,8 @@ class App(FastAPI):
         else:
 
             @app.get("/logout")
-            def logout(response: Response, user: str = Depends(get_current_user)):
+            def logout(user: str = Depends(get_current_user)):
+                response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
                 response.delete_cookie(key=f"access-token-{app.cookie_id}", path="/")
                 response.delete_cookie(
                     key=f"access-token-unsecure-{app.cookie_id}", path="/"
@@ -350,7 +356,7 @@ class App(FastAPI):
                 for token in list(app.tokens.keys()):
                     if app.tokens[token] == user:
                         del app.tokens[token]
-                return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+                return response
 
         ###############
         # Main Routes
@@ -402,7 +408,10 @@ class App(FastAPI):
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
         def api_info():
-            return app.get_blocks().get_api_info()  # type: ignore
+            # The api info is set in create_app
+            if not app.api_info:
+                app.api_info = app.get_blocks().get_api_info()
+            return app.api_info
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
@@ -595,6 +604,75 @@ class App(FastAPI):
                 await app.get_blocks()._queue.clean_events(event_id=body.event_id)
             return {"success": True}
 
+        @app.get("/heartbeat/{session_hash}")
+        def heartbeat(
+            session_hash: str,
+            request: fastapi.Request,
+            background_tasks: BackgroundTasks,
+            username: str = Depends(get_current_user),
+        ):
+            """Clients make a persistent connection to this endpoint to keep the session alive.
+            When the client disconnects, the session state is deleted.
+            """
+            heartbeat_rate = 0.25 if os.getenv("GRADIO_IS_E2E_TEST", None) else 15
+
+            async def wait():
+                await asyncio.sleep(heartbeat_rate)
+                return "wait"
+
+            async def stop_stream():
+                while app.get_blocks().is_running:
+                    await asyncio.sleep(0.25)
+                return "stop"
+
+            async def iterator():
+                while True:
+                    try:
+                        yield "data: ALIVE\n\n"
+                        # We need to close the heartbeat connections as soon as the server stops
+                        # otherwise the server can take forever to close
+                        wait_task = asyncio.create_task(wait())
+                        stop_stream_task = asyncio.create_task(stop_stream())
+                        done, _ = await asyncio.wait(
+                            [wait_task, stop_stream_task],
+                            return_when=asyncio.FIRST_COMPLETED,
+                        )
+                        done = [d.result() for d in done]
+                        if "stop" in done:
+                            raise asyncio.CancelledError()
+                    except asyncio.CancelledError:
+                        req = Request(request, username)
+                        root_path = route_utils.get_root_url(
+                            request=request,
+                            route_path=f"/hearbeat/{session_hash}",
+                            root_path=app.root_path,
+                        )
+                        body = PredictBody(
+                            session_hash=session_hash, data=[], request=request
+                        )
+                        unload_fn_indices = [
+                            i
+                            for i, dep in enumerate(app.get_blocks().dependencies)
+                            if any(t for t in dep["targets"] if t[1] == "unload")
+                        ]
+                        for fn_index in unload_fn_indices:
+                            # The task runnning this loop has been cancelled
+                            # so we add tasks in the background
+                            background_tasks.add_task(
+                                route_utils.call_process_api,
+                                app=app,
+                                body=body,
+                                gr_request=req,
+                                fn_index_inferred=fn_index,
+                                root_path=root_path,
+                            )
+                        # This will mark the state to be deleted in an hour
+                        if session_hash in app.state_holder.session_data:
+                            app.state_holder.session_data[session_hash].is_closed = True
+                        return
+
+            return StreamingResponse(iterator(), media_type="text/event-stream")
+
         # had to use '/run' endpoint for Colab compatibility, '/api' supported for backwards compatibility
         @app.post("/run/{api_name}", dependencies=[Depends(login_check)])
         @app.post("/run/{api_name}/", dependencies=[Depends(login_check)])
@@ -731,7 +809,7 @@ class App(FastAPI):
             session_hash: str,
         ):
             def process_msg(message: EventMessage) -> str:
-                return f"data: {json.dumps(message.model_dump())}\n\n"
+                return f"data: {orjson.dumps(message.model_dump()).decode('utf-8')}\n\n"
 
             return await queue_data_helper(request, session_hash, process_msg)
 
@@ -814,11 +892,11 @@ class App(FastAPI):
                         message=str(e),
                     )
                     response = process_msg(message)
-                    if response is not None:
-                        yield response
                     if isinstance(e, asyncio.CancelledError):
                         del blocks._queue.pending_messages_per_session[session_hash]
                         await blocks._queue.clean_events(session_hash=session_hash)
+                    if response is not None:
+                        yield response
                     raise e
 
             return StreamingResponse(
@@ -1168,8 +1246,9 @@ def mount_gradio_app(
         async with old_lifespan(
             app
         ):  # Instert the startup events inside the FastAPI context manager
-            gradio_app.get_blocks().startup_events()
-            yield
+            async with gradio_app.router.lifespan_context(gradio_app):
+                gradio_app.get_blocks().startup_events()
+                yield
 
     app.router.lifespan_context = new_lifespan
 

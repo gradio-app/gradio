@@ -16,7 +16,6 @@ from typing import (
 )
 
 import numpy as np
-import pandas as pd
 import semantic_version
 from gradio_client.documentation import document
 
@@ -25,6 +24,7 @@ from gradio.data_classes import GradioModel
 from gradio.events import Events
 
 if TYPE_CHECKING:
+    import pandas as pd
     import polars as pl  # type: ignore
     from pandas.io.formats.style import Styler
 
@@ -191,6 +191,8 @@ class Dataframe(Component):
         Returns:
             Passes the uploaded spreadsheet data as a `pandas.DataFrame`, `numpy.array`, `polars.DataFrame`, or native 2D Python `list[list]` depending on `type`
         """
+        import pandas as pd
+
         if self.type == "pandas":
             if payload.headers is not None:
                 return pd.DataFrame(
@@ -236,6 +238,7 @@ class Dataframe(Component):
         Returns:
             the uploaded spreadsheet data as an object with `headers` and `data` attributes
         """
+        import pandas as pd
         from pandas.io.formats.style import Styler
 
         if value is None:
@@ -367,6 +370,8 @@ class Dataframe(Component):
         | str
         | None,
     ):
+        import pandas as pd
+
         if value is None:
             return ""
         value_df_data = self.postprocess(value)
