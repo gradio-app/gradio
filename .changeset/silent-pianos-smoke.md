@@ -5,4 +5,4 @@
 "gradio": minor
 ---
 
-feat:ensure `ImageEditor` `change` event works as a realtime event
+feat:ensure `ImageEditor` events work as expected
