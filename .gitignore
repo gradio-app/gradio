@@ -45,6 +45,7 @@ demo/*/config.json
 demo/annotatedimage_component/*.png
 demo/fake_diffusion_with_gif/*.gif
 demo/cancel_events/cancel_events_output_log.txt
+demo/unload_event_test/output_log.txt
 
 # Etc
 .idea/*
