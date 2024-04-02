@@ -155,9 +155,7 @@ class File(Component):
                     downloaded_files.append(file)
             return downloaded_files
         if client_utils.is_http_url_like(value):
-            downloaded_file = client_utils.synchronize_async(
-                processing_utils.save_url_to_cache, value, self.GRADIO_CACHE
-            )
+            downloaded_file = processing_utils.save_url_to_cache(value, self.GRADIO_CACHE)
             return downloaded_file
         else:
             return value
