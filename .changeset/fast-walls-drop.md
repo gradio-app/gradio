@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Add code
+feat:Allow displaying gr.Code examples by their filename if value is a tuple
