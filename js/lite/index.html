@@ -77,6 +77,7 @@ helloWorld();
 			playground
 			layout="horizontal"
 			style="height: 300px; padding: 20px"
+			shared-worker
 		>
 			import gradio as gr
 			<!-- 			 -->
@@ -121,7 +122,7 @@ helloWorld();
 			<a href="https://example.com/moreinfo">our information page</a>.
 		</p>
 
-		<gradio-lite playground layout="vertical">
+		<gradio-lite playground layout="vertical" shared-worker>
 			import gradio as gr
 			<!-- 			 -->
 			gr.ChatInterface(lambda x,y:x).launch()
@@ -134,7 +135,7 @@ helloWorld();
 			est at lobortis.
 		</p>
 
-		<gradio-lite playground style="height: 300px">
+		<gradio-lite playground style="height: 300px" shared-worker>
 			import gradio as gr
 			<!-- 			 -->
 			gr.ChatInterface(lambda x,y:x).launch()

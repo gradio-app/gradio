@@ -202,7 +202,7 @@
 			</div>
 			{#if loaded}
 				<div class="preview">
-					<div>
+					<div class="flex-grow: 1;">
 						{#if !error_display}
 							<Index
 								{autoscroll}
