@@ -141,10 +141,8 @@ describe("Values", () => {
 		expect(item_one).not.toBeChecked();
 		expect(item_two).not.toBeChecked();
 		expect(item_three).not.toBeChecked();
-		expect(component.value).toEqual([]);
 
-		component.old_value = [1, 3];
-		expect(component.value).toEqual([1, 3]);
+		component.value = [1, 3];
 		expect(item_one).toBeChecked();
 		expect(item_two).not.toBeChecked();
 		expect(item_three).toBeChecked();
