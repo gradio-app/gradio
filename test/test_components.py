@@ -2935,6 +2935,15 @@ class TestCode:
             "_selectable": False,
         }
 
+    def test_process_example(self):
+        code = gr.Code()
+        assert (
+            code.process_example("def fn(a):\n  return a") == "def fn(a):\n  return a"
+        )
+        assert code.process_example(None) is None
+        filename = str(Path("test/test_files/test_label_json.json"))
+        assert code.process_example((filename,)) == filename
+
 
 class TestFileExplorer:
     def test_component_functions(self):

@@ -163,3 +163,8 @@ class Code(Component):
 
     def example_value(self) -> Any:
         return "print('Hello World')"
+
+    def process_example(self, value: str | tuple[str] | None) -> str | None:
+        if isinstance(value, tuple):
+            return value[0]
+        return super().process_example(value)
