@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 import warnings
+from io import BytesIO
 from pathlib import Path
 from typing import (
     Any,
@@ -37,7 +38,7 @@ class EditorValue(TypedDict):
 
 class EditorExampleValue(TypedDict):
     background: Optional[str]
-    layers: Optional[list[str | None]]
+    layers: Optional[list[Union[str, None]]]
     composite: Optional[str]
 
 
@@ -109,9 +110,6 @@ class Brush(Eraser):
             self.default_color = (
                 self.colors[0] if isinstance(self.colors, list) else self.colors
             )
-
-
-from io import BytesIO
 
 
 class EditorId(GradioModel):
