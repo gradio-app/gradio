@@ -1,4 +1,5 @@
 import { defineConfig } from "@playwright/test";
+import { time } from "console";
 
 const base = defineConfig({
 	use: {
@@ -15,8 +16,8 @@ const base = defineConfig({
 			]
 		}
 	},
-	expect: { timeout: 15000 },
-	timeout: 30000,
+	expect: { timeout: 5000 },
+	timeout: 5000,
 	testMatch: /.*.spec.ts/,
 	testDir: "..",
 	workers: process.env.CI ? 1 : undefined,
@@ -42,7 +43,9 @@ const lite = defineConfig(base, {
 		"**/gallery_component_events.spec.ts"
 	],
 	workers: 1,
-	retries: 3
+	retries: 3,
+	expect: { timeout: 10000 },
+	timeout: 10000
 });
 
 lite.projects = undefined; // Explicitly unset this field due to https://github.com/microsoft/playwright/issues/28795

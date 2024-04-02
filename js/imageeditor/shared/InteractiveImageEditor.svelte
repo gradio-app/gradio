@@ -54,6 +54,8 @@
 		return !!o;
 	}
 
+	$: if (bg) dispatch("upload");
+
 	export async function get_data(): Promise<ImageBlobs> {
 		const blobs = await editor.get_blobs();
 

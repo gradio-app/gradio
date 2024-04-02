@@ -3,12 +3,10 @@ r"""gr.ImageEditor() component."""
 from __future__ import annotations
 
 import dataclasses
-import threading
 import warnings
 from pathlib import Path
 from typing import (
     Any,
-    BinaryIO,
     Iterable,
     List,
     Literal,
@@ -17,18 +15,16 @@ from typing import (
     cast,
 )
 
-from typing_extensions import TypedDict
-
 import numpy as np
 import PIL.Image
 from gradio_client import file
 from gradio_client.documentation import document
+from typing_extensions import TypedDict
 
 from gradio import image_utils, utils
 from gradio.components.base import Component, server
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
-from fastapi import UploadFile
 
 ImageType = Union[np.ndarray, PIL.Image.Image, str]
 
@@ -419,7 +415,6 @@ class ImageEditor(Component):
             if data.data["index"] and data.data["index"] != "null"
             else None
         )
-        print("blob storage", self.blob_storage.keys())
         file = data.files[0][1]
         id = data.data["id"]
 

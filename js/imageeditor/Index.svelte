@@ -50,7 +50,7 @@
 
 	export let attached_events: string[] = [];
 	export let server: {
-		accept_blobs: (a: any, n: number) => void;
+		accept_blobs: (a: any) => void;
 	};
 
 	export let gradio: Gradio<{

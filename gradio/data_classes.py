@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, List, Optional, Union
 
-from fastapi import Request, UploadFile, Form, File
+from fastapi import Request
 from gradio_client.utils import traverse
 
 from . import wasm_utils
