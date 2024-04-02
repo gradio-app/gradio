@@ -1,5 +1,34 @@
 # @gradio/app
 
+## 1.30.1
+
+### Fixes
+
+- [#7865](https://github.com/gradio-app/gradio/pull/7865) [`7bbc3b6`](https://github.com/gradio-app/gradio/commit/7bbc3b62bf85af2d2230e5f7539efb7f1f0007a1) - JS functions break entire app if there's no input, fixed.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/button@0.2.29
+- @gradio/upload@0.8.3
+- @gradio/code@0.5.10
+- @gradio/client@0.15.0
+- @gradio/multimodaltextbox@0.2.3
+- @gradio/annotatedimage@0.5.10
+- @gradio/audio@0.9.10
+- @gradio/chatbot@0.8.1
+- @gradio/dataset@0.1.29
+- @gradio/downloadbutton@0.1.6
+- @gradio/file@0.5.10
+- @gradio/fileexplorer@0.3.30
+- @gradio/gallery@0.8.6
+- @gradio/image@0.9.10
+- @gradio/imageeditor@0.4.10
+- @gradio/model3d@0.8.9
+- @gradio/simpleimage@0.3.10
+- @gradio/uploadbutton@0.5.6
+- @gradio/video@0.6.10
+- @gradio/dataframe@0.6.11
+
 ## 1.30.0
 
 ### Features
