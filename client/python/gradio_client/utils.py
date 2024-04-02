@@ -17,7 +17,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, TypedDict
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, Literal, Optional, TypedDict
 
 import fsspec.asyn
 import httpx
@@ -971,6 +971,9 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
 
 
 def traverse(json_obj: Any, func: Callable, is_root: Callable[..., bool]) -> Any:
+    """
+    Traverse a JSON object and apply a function to each element that satisfies the is_root condition.
+    """
     if is_root(json_obj):
         return func(json_obj)
     elif isinstance(json_obj, dict):
@@ -988,8 +991,13 @@ def traverse(json_obj: Any, func: Callable, is_root: Callable[..., bool]) -> Any
 
 
 async def async_traverse(
-    json_obj: Any, func: Callable, is_root: Callable[..., bool]
+    json_obj: Any,
+    func: Callable[..., Coroutine[Any, Any, Any]],
+    is_root: Callable[..., bool],
 ) -> Any:
+    """
+    Traverse a JSON object and apply a async function to each element that satisfies the is_root condition.
+    """
     if is_root(json_obj):
         return await func(json_obj)
     elif isinstance(json_obj, dict):

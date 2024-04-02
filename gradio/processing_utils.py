@@ -219,7 +219,7 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
 
 async def async_save_url_to_cache(url: str, cache_dir: str) -> str:
     """Downloads a file and makes a temporary file path for a copy if does not already
-    exist. Otherwise returns the path to the existing temp file."""
+    exist. Otherwise returns the path to the existing temp file. Uses async httpx."""
     temp_dir = hash_url(url)
     temp_dir = Path(cache_dir) / temp_dir
     temp_dir.mkdir(exist_ok=True, parents=True)
@@ -383,7 +383,9 @@ async def async_move_files_to_cache(
                         f"File {path} is not in the upload folder and cannot be accessed."
                     )
             if not payload.is_stream:
-                temp_file_path = await block.async_move_resource_to_block_cache(payload.path)
+                temp_file_path = await block.async_move_resource_to_block_cache(
+                    payload.path
+                )
                 if temp_file_path is None:
                     raise ValueError("Did not determine a file path for the resource.")
                 payload.path = temp_file_path

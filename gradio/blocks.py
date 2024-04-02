@@ -253,6 +253,9 @@ class Block:
         """Moves a file or downloads a file from a url to a block's cache directory, adds
         to to the block's temp_files, and returns the path to the file in cache. This
         ensures that the file is accessible to the Block and can be served to users.
+
+        This async version of the function is used when this is being called within
+        a FastAPI route, as this is not blocking.
         """
         if url_or_file_path is None:
             return None
@@ -290,6 +293,9 @@ class Block:
         """Moves a file or downloads a file from a url to a block's cache directory, adds
         to to the block's temp_files, and returns the path to the file in cache. This
         ensures that the file is accessible to the Block and can be served to users.
+
+        This sync version of the function is used when this is being called outside of
+        a FastAPI route, e.g. when examples are being cached.
         """
         if url_or_file_path is None:
             return None
