@@ -97,6 +97,7 @@ with gr.Blocks(  # noqa: SIM117
                         [theme.__name__ for theme in themes],
                         value="Base",
                         show_label=False,
+                        label="Theme",
                     )
                     load_theme_btn = gr.Button("Load Theme", elem_id="load_theme")
                 with gr.TabItem("Core Colors"):

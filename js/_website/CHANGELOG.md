@@ -1,5 +1,11 @@
 # website
 
+## 0.25.1
+
+### Dependency updates
+
+- @gradio/code@0.5.9
+
 ## 0.25.0
 
 ### Features
