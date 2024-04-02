@@ -1,5 +1,61 @@
 # gradio
 
+## 4.25.0
+
+### Highlights
+
+#### Automatically delete state after user has disconnected from the webpage ([#7829](https://github.com/gradio-app/gradio/pull/7829) [`6a4bf7a`](https://github.com/gradio-app/gradio/commit/6a4bf7abe29059dbdc6a342e0366fdaa2e4120ee))
+
+Gradio now automatically deletes `gr.State` variables stored in the server's RAM when users close their browser tab.
+The deletion will happen 60 minutes after the server detected a disconnect from the user's browser.
+If the user connects again in that timeframe, their state will not be deleted.
+
+Additionally, Gradio now includes a `Blocks.unload()` event, allowing you to run arbitrary cleanup functions when users disconnect (this does not have a 60 minute delay).
+You can think of the `unload` event as the opposite of the `load` event.
+
+
+```python
+with gr.Blocks() as demo:
+    gr.Markdown(
+"""# State Cleanup Demo
+🖼️ Images are saved in a user-specific directory and deleted when the users closes the page via demo.unload.
+""")
+    with gr.Row():
+        with gr.Column(scale=1):
+            with gr.Row():
+                img = gr.Image(label="Generated Image", height=300, width=300)
+            with gr.Row():
+                gen = gr.Button(value="Generate")
+            with gr.Row():
+                history = gr.Gallery(label="Previous Generations", height=500, columns=10)
+                state = gr.State(value=[], delete_callback=lambda v: print("STATE DELETED"))
+
+    demo.load(generate_random_img, [state], [img, state, history]) 
+    gen.click(generate_random_img, [state], [img, state, history])
+    demo.unload(delete_directory)
+
+
+demo.launch(auth=lambda user,pwd: True,
+            auth_message="Enter any username and password to continue")
+```
+
+ Thanks @freddyaboulton!
+
+### Features
+
+- [#7863](https://github.com/gradio-app/gradio/pull/7863) [`024b44c`](https://github.com/gradio-app/gradio/commit/024b44c553e73f1d6c00d4c8cf12ae38181a454d) - Add support for lazy caching of examples, as well as add `GRADIO_CACHE_EXAMPLES` env variable.  Thanks @abidlabs!
+- [#7892](https://github.com/gradio-app/gradio/pull/7892) [`c7933ff`](https://github.com/gradio-app/gradio/commit/c7933ffedb3e2b952152f7d3ce49de2e2da5cc07) - Suppress printing "Running on local URL:" when quiet is set.  Thanks @dnoliver!
+- [#7869](https://github.com/gradio-app/gradio/pull/7869) [`b9dbcf7`](https://github.com/gradio-app/gradio/commit/b9dbcf7aa22fe9a19edbc0c52d46a973d8d57ad4) - Make buttons in `gr.ChatInterface` more mobile-friendly.  Thanks @abidlabs!
+- [#7875](https://github.com/gradio-app/gradio/pull/7875) [`e6d051d`](https://github.com/gradio-app/gradio/commit/e6d051dc8a497fdd6b4cfbd57efd4c8015b97a66) - Paste Images into MultimodalTextbox.  Thanks @abidlabs!
+- [#7893](https://github.com/gradio-app/gradio/pull/7893) [`f42d3e2`](https://github.com/gradio-app/gradio/commit/f42d3e29c7b8cdedd7aea75cffce81857db28eeb) - Make internal event handlers of gr.Interface and gr.ChatInterface async.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#7886](https://github.com/gradio-app/gradio/pull/7886) [`ccdab9b`](https://github.com/gradio-app/gradio/commit/ccdab9b7e729c438649075d7d54afc9a91183677) - logout route deleting cookie fix.  Thanks @MichaelPerger!
+- [#7888](https://github.com/gradio-app/gradio/pull/7888) [`946487c`](https://github.com/gradio-app/gradio/commit/946487cf8e477cbf8d6fad4e772ff574a21782c3) - Cache view_api info in server and python client.  Thanks @freddyaboulton!
+- [#7881](https://github.com/gradio-app/gradio/pull/7881) [`5e66e01`](https://github.com/gradio-app/gradio/commit/5e66e01abc4e2e90bd51f0cb9a41e05157cb0df4) - Fix audio streaming out.  Thanks @aliabid94!
+- [#7865](https://github.com/gradio-app/gradio/pull/7865) [`7bbc3b6`](https://github.com/gradio-app/gradio/commit/7bbc3b62bf85af2d2230e5f7539efb7f1f0007a1) - JS functions break entire app if there's no input, fixed.  Thanks @aliabid94!
+
 ## 4.24.0
 
 ### Features
