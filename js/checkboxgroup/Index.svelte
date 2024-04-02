@@ -25,7 +25,7 @@
 
 	export let loading_status: LoadingStatus;
 	export let interactive = true;
-	let old_value = value;
+	export let old_value = value;
 
 	function toggle_choice(choice: string | number): void {
 		if (old_value.includes(choice)) {

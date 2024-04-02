@@ -124,7 +124,7 @@ describe("Values", () => {
 	});
 
 	test("changing the component value updates the checkboxes", async () => {
-		const { getByLabelText, debug, component } = await render(CheckboxGroup, {
+		const { getByLabelText, component } = await render(CheckboxGroup, {
 			value: [],
 			label: "Dropdown",
 			choices: [
@@ -141,9 +141,10 @@ describe("Values", () => {
 		expect(item_one).not.toBeChecked();
 		expect(item_two).not.toBeChecked();
 		expect(item_three).not.toBeChecked();
+		expect(component.value).toEqual([]);
 
-		component.value = [1, 3];
-
+		component.old_value = [1, 3];
+		expect(component.value).toEqual([1, 3]);
 		expect(item_one).toBeChecked();
 		expect(item_two).not.toBeChecked();
 		expect(item_three).toBeChecked();

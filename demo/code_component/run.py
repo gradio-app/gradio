@@ -1,15 +1,15 @@
 import gradio as gr
+from pathlib import Path
 
-with gr.Blocks() as demo:
-    gr.Code(
-        value="""def hello_world():
-    return "Hello, world!"
-    
-print(hello_world())""",
-        language="python",
-        interactive=True,
-        show_label=False,
-    )
+demo = gr.Interface(
+    lambda x: x,
+    gr.Code(language="python"),
+    gr.Code(language="python"),
+    examples=[[("/Users/freddy/sources/gradio/demo/code_component/run.py",)],
+               ["print('Hello, World!')"],
+               [("/Users/freddy/sources/gradio/demo/code/run.py", )]]
+)
+
 
 if __name__ == "__main__":
     demo.launch()
