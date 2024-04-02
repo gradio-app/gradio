@@ -129,6 +129,10 @@ class Block:
             self.render()
 
     @property
+    def stateful(self):
+        return False
+
+    @property
     def skip_api(self):
         return False
 
@@ -506,7 +510,7 @@ def convert_component_dict_to_list(
     return predictions
 
 
-@document("launch", "queue", "integrate", "load")
+@document("launch", "queue", "integrate", "load", "unload")
 class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     """
     Blocks is Gradio's low-level API that allows you to create more custom web
@@ -876,6 +880,43 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         return any(
             isinstance(block, (components.LoginButton, components.LogoutButton))
             for block in self.blocks.values()
+        )
+
+    def unload(self, fn: Callable):
+        """This listener is triggered when the user closes or refreshes the tab, ending the user session.
+        It is useful for cleaning up resources when the app is closed.
+        Parameters:
+            fn: Callable function to run to clear resources. The function should not take any arguments and the output is not used.
+        Example:
+            import gradio as gr
+            with gr.Blocks() as demo:
+                gr.Markdown("# When you close the tab, hello will be printed to the console")
+                demo.unload(lambda: print("hello"))
+            demo.launch()
+        """
+        self.set_event_trigger(
+            targets=[EventListenerMethod(None, "unload")],
+            fn=fn,
+            inputs=None,
+            outputs=None,
+            preprocess=False,
+            postprocess=False,
+            show_progress="hidden",
+            api_name=None,
+            js=None,
+            no_target=True,
+            queue=None,
+            batch=False,
+            max_batch_size=4,
+            cancels=None,
+            every=None,
+            collects_event_data=None,
+            trigger_after=None,
+            trigger_only_on_success=False,
+            trigger_mode="once",
+            concurrency_limit="default",
+            concurrency_id=None,
+            show_api=False,
         )
 
     def set_event_trigger(
@@ -1498,7 +1539,7 @@ Received outputs:
                     f"Output component with id {output_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
                 ) from e
 
-            if getattr(block, "stateful", False):
+            if block.stateful:
                 if not utils.is_update(predictions[i]):
                     state[output_id] = predictions[i]
                 output.append(None)
@@ -1554,6 +1595,7 @@ Received outputs:
         data: list,
         session_hash: str | None,
         run: int | None,
+        root_path: str | None = None,
     ) -> list:
         if session_hash is None or run is None:
             return data
@@ -1571,7 +1613,17 @@ Received outputs:
                 if first_chunk:
                     stream_run[output_id] = []
                 self.pending_streams[session_hash][run][output_id].append(binary_data)
+                output_data = processing_utils.move_files_to_cache(
+                    output_data,
+                    block,
+                    postprocess=True,
+                )
+                if root_path is not None:
+                    output_data = processing_utils.add_root_url(
+                        output_data, root_path, None
+                    )
                 data[i] = output_data
+
         return data
 
     def handle_streaming_diffs(
@@ -1706,6 +1758,7 @@ Received outputs:
                     data,
                     session_hash=session_hash,
                     run=run,
+                    root_path=root_path,
                 )
                 data = self.handle_streaming_diffs(
                     fn_index,
@@ -2380,9 +2433,10 @@ Received outputs:
                 self._queue._cancel_asyncio_tasks()
                 self.server_app._cancel_asyncio_tasks()
             self._queue.close()
+            # set this before closing server to shut down heartbeats
+            self.is_running = False
             if self.server:
                 self.server.close()
-            self.is_running = False
             # So that the startup events (starting the queue)
             # happen the next time the app is launched
             self.app.startup_events_triggered = False
@@ -2436,6 +2490,7 @@ Received outputs:
         self._queue.start()
         # So that processing can resume in case the queue was stopped
         self._queue.stopped = False
+        self.is_running = True
         self.create_limiter()
 
     def queue_enabled_for_fn(self, fn_index: int):
