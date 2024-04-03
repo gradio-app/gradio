@@ -25,6 +25,7 @@
 
 	export let loading_status: LoadingStatus;
 	export let interactive = true;
+	export let old_value = value.slice();
 
 	function toggle_choice(choice: string | number): void {
 		if (value.includes(choice)) {
@@ -37,7 +38,10 @@
 
 	$: disabled = !interactive;
 
-	$: value && gradio.dispatch("change");
+	$: if (JSON.stringify(old_value) !== JSON.stringify(value)) {
+		old_value = value;
+		gradio.dispatch("change");
+	}
 </script>
 
 <Block
