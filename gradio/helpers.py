@@ -303,7 +303,7 @@ class Examples:
                     show_api=False,
                 )
         if not self._defer_caching:
-            await self._start_caching()
+            self._start_caching()
 
     async def _postprocess_output(self, output) -> list:
         """
@@ -329,7 +329,7 @@ class Examples:
                 return cached_index
         return None
 
-    async def _start_caching(self):
+    def _start_caching(self):
         if self.cache_examples:
             for example in self.examples:
                 if len([ex for ex in example if ex is not None]) != len(self.inputs):
@@ -354,7 +354,7 @@ class Examples:
                     "Setting `cache_examples=True` is not supported in the Wasm mode. You can set `cache_examples='lazy'` to cache examples after first use."
                 )
             else:
-                await self.cache()
+                client_utils.synchronize_async(self.cache)
 
     def lazy_cache(self) -> None:
         print(
