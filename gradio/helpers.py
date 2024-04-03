@@ -70,7 +70,7 @@ def create_examples(
         _defer_caching=_defer_caching,
         _initiated_directly=False,
     )
-    client_utils.synchronize_async(examples_obj.create)
+    examples_obj.create()
     return examples_obj
 
 
@@ -266,7 +266,7 @@ class Examples:
         self.cached_indices_file = Path(self.cached_folder) / "indices.csv"
         self.run_on_click = run_on_click
 
-    async def create(self) -> None:
+    def create(self) -> None:
         """Caches the examples if self.cache_examples is True and creates the Dataset
         component to hold the examples"""
 
