@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Callable, Literal
 
 from gradio_client.documentation import document
@@ -166,5 +167,5 @@ class Code(Component):
 
     def process_example(self, value: str | tuple[str] | None) -> str | None:
         if isinstance(value, tuple):
-            return value[0]
+            return Path(value[0]).name
         return super().process_example(value)
