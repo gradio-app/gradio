@@ -620,7 +620,21 @@ with gr.Blocks(  # noqa: SIM117
                     if getattr(source_obj, attr) != final_attr_values[final_theme_attr]:
                         diff = True
                 if diff:
-                    specific_core_diffs[value_name] = (source_class, final_attr_values)
+                    new_final_attr_values = {}
+                    # We need to update the theme keys to match the color and size attribute names
+                    for key, val in final_attr_values.items():
+                        if key.startswith(("primary_", "secondary_", "neutral_")):
+                            color_key = "c" + key.split("_")[-1]
+                            new_final_attr_values[color_key] = val
+                        elif key.startswith(("text_", "spacing_", "radius_")):
+                            size_key = key.split("_")[-1]
+                            new_final_attr_values[size_key] = val
+                        else:
+                            new_final_attr_values[key] = val
+                    specific_core_diffs[value_name] = (
+                        source_class,
+                        new_final_attr_values,
+                    )
 
             font_diffs = {}
 
@@ -653,9 +667,10 @@ with gr.Blocks(  # noqa: SIM117
                         cls, vals = specific_core_diffs[var_name]
                         core_diffs_code += f"""    {var_name}=gr.themes.{cls.__name__}({', '.join(f'''{k}="{v}"''' for k, v in vals.items())}),\n"""
                     elif var_name in core_diffs:
-                        core_diffs_code += (
-                            f"""    {var_name}="{core_diffs[var_name]}",\n"""
-                        )
+                        var_val = core_diffs[var_name]
+                        if var_name.endswith("_size"):
+                            var_val = var_val.split("_")[-1]
+                        core_diffs_code += f"""    {var_name}="{var_val}",\n"""
 
             font_diffs_code = ""
 
