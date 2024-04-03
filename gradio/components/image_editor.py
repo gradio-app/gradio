@@ -319,11 +319,11 @@ class ImageEditor(Component):
         if payload is not None and payload.id is not None:
             self.blob_storage.pop(payload.id)
 
-            return {
-                "background": bg,
-                "layers": [x for x in layers if x is not None] if layers else [],
-                "composite": composite,
-            }
+        return {
+            "background": bg,
+            "layers": [x for x in layers if x is not None] if layers else [],
+            "composite": composite,
+        }
 
     def postprocess(self, value: EditorValue | ImageType | None) -> EditorData | None:
         """

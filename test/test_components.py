@@ -638,6 +638,7 @@ class TestImageEditor:
             },
             "proxy_url": None,
             "name": "imageeditor",
+            "server_fns": ["accept_blobs"],
         }
 
     def test_process_example(self):
@@ -684,7 +685,7 @@ class TestImage:
             "visible": True,
             "value": None,
             "interactive": None,
-            "format": "png",
+            "format": "webp",
             "proxy_url": None,
             "mirror_webcam": True,
             "_selectable": False,
@@ -722,7 +723,7 @@ class TestImage:
             return np.random.randint(0, 256, (height, width, 3))
 
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
-        assert iface(10, 20).endswith(".png")
+        assert iface(10, 20).endswith(".webp")
 
     def test_static(self):
         """
@@ -754,7 +755,7 @@ class TestImage:
         assert image.path.endswith("jpeg")
 
         image_pre = component.preprocess(FileData(path=file_path))
-        assert image_pre.endswith("png")
+        assert image_pre.endswith("webp")
 
         image_pre = component.preprocess(
             FileData(path="test/test_files/cheetah1.jpg", orig_name="cheetah1.jpg")
@@ -780,7 +781,7 @@ class TestPlot:
         with utils.MatplotlibBackendMananger():
             output = await iface.process_api(fn_index=0, inputs=[10], state={})
         assert output["data"][0]["type"] == "matplotlib"
-        assert output["data"][0]["plot"].startswith("data:image/png;base64")
+        assert output["data"][0]["plot"].startswith("data:image/webp;base64")
 
     def test_static(self):
         """
@@ -1988,7 +1989,7 @@ class TestAnnotatedImage:
             "container": True,
             "min_width": 160,
             "scale": None,
-            "format": "png",
+            "format": "webp",
             "color_map": None,
             "height": None,
             "width": None,
@@ -3029,6 +3030,8 @@ def test_template_component_configs(io_components):
         component_parent_class = inspect.getmro(component)[1]
         template_config = component().get_config()
         parent_config = component_parent_class().get_config()
+        print(component)
+        print(parent_config.keys(), "\n", template_config.keys())
         assert set(parent_config.keys()).issubset(set(template_config.keys()))
 
 

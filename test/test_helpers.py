@@ -262,7 +262,7 @@ class TestProcessExamples:
         )
         prediction = io.examples_handler.load_from_cache(0)
         assert client_utils.encode_url_or_file_to_base64(prediction[0].path).startswith(
-            "data:image/png;base64,iVBORw0KGgoAAA"
+            "data:image/webp;base64"
         )
 
     def test_caching_audio(self, patched_cache_folder):
