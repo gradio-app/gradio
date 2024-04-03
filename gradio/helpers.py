@@ -342,7 +342,7 @@ class Examples:
                     )
                     break
         if self.cache_examples == "lazy":
-            self.lazy_cache()
+            client_utils.synchronize_async(self.lazy_cache)
         if self.cache_examples is True:
             if wasm_utils.IS_WASM:
                 # In the Wasm mode, the `threading` module is not supported,
@@ -356,7 +356,7 @@ class Examples:
             else:
                 client_utils.synchronize_async(self.cache)
 
-    def lazy_cache(self) -> None:
+    async def lazy_cache(self) -> None:
         print(
             f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory at first use. ",
             end="",
