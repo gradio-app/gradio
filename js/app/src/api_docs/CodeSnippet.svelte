@@ -59,7 +59,7 @@ result = client.<span class="highlight">predict</span
         -->
 		{parameter_name
 								? parameter_name + "="
-								: ""}<span class="example-inputs"
+								: ""}<span
 								>{represent_value(
 									parameter_has_default ? parameter_default : example_input,
 									python_type.type,
@@ -86,7 +86,9 @@ const example{component} = await response_{i}.blob();
 						{/each}<!--
 -->
 const app = await client(<span class="token string">"{root}"</span>);
-const result = await app.predict({#if named}"/{dependency.api_name}"{:else}{dependency_index}{/if}, [<!--
+const result = await app.predict({#if named}<span class="api-name"
+								>"/{dependency.api_name}"</span
+							>{:else}{dependency_index}{/if}, [<!--
 -->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
 		-->{#if blob_components.includes(component)}<!--
 	-->
@@ -168,9 +170,6 @@ console.log(result.data);
 		color: var(--body-text-color-subdued);
 	}
 
-	.example-inputs {
-		color: var(--color-accent);
-	}
 	.api-name {
 		color: var(--color-accent);
 	}

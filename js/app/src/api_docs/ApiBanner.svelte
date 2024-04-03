@@ -2,6 +2,7 @@
 	import { createEventDispatcher } from "svelte";
 	import api_logo from "./img/api-logo.svg";
 	import Clear from "./img/clear.svelte";
+	import Button from "../../../button/shared/Button.svelte";
 
 	export let root: string;
 	export let api_count: number;
@@ -18,7 +19,15 @@
 		</div>
 	</div>
 	<span class="counts">
-		<span class="url">{api_count}</span> API endpoint{#if api_count > 1}s{/if}
+		<span class="url">{api_count}</span> API endpoint{#if api_count > 1}s{/if}<br
+		/>
+		<Button
+			size="sm"
+			variant="primary"
+			on:click={() => dispatch("close", { api_recorder_visible: true })}
+		>
+			🪄 API Recorder
+		</Button>
 	</span>
 </h2>
 

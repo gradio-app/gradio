@@ -305,7 +305,7 @@ class Examples:
         if not self._defer_caching:
             self._start_caching()
 
-    def _postprocess_output(self, output) -> list:
+    async def _postprocess_output(self, output) -> list:
         """
         This is a way that we can postprocess the data manually, since we set postprocess=False in the lazy_cache
         event handler. The reason we did that is because we don't want to postprocess data if we are loading from
@@ -318,7 +318,7 @@ class Examples:
             [output.render() for output in self.outputs]
             demo.load(self.fn, self.inputs, self.outputs)
         demo.unrender()
-        return demo.postprocess_data(0, output, None)
+        return await demo.postprocess_data(0, output, None)
 
     def _get_cached_index_if_cached(self, example_index) -> int | None:
         if Path(self.cached_indices_file).exists():
@@ -342,7 +342,7 @@ class Examples:
                     )
                     break
         if self.cache_examples == "lazy":
-            self.lazy_cache()
+            client_utils.synchronize_async(self.lazy_cache)
         if self.cache_examples is True:
             if wasm_utils.IS_WASM:
                 # In the Wasm mode, the `threading` module is not supported,
@@ -356,7 +356,7 @@ class Examples:
             else:
                 client_utils.synchronize_async(self.cache)
 
-    def lazy_cache(self) -> None:
+    async def lazy_cache(self) -> None:
         print(
             f"Will cache examples in '{utils.abspath(self.cached_folder)}' directory at first use. ",
             end="",
@@ -393,7 +393,7 @@ class Examples:
         else:
             fn = utils.async_fn_to_generator(self.fn)
         async for output in fn(*input_values):
-            output = self._postprocess_output(output)
+            output = await self._postprocess_output(output)
             yield output[0] if len(self.outputs) == 1 else output
         self.cache_logger.flag(output)
         with open(self.cached_indices_file, "a") as f:
@@ -411,7 +411,7 @@ class Examples:
         else:
             fn = utils.sync_fn_to_generator(self.fn)
         for output in fn(*input_values):
-            output = self._postprocess_output(output)
+            output = client_utils.synchronize_async(self._postprocess_output, output)
             yield output[0] if len(self.outputs) == 1 else output
         self.cache_logger.flag(output)
         with open(self.cached_indices_file, "a") as f:
