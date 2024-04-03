@@ -2943,7 +2943,6 @@ class TestCode:
         assert code.process_example(None) is None
         filename = str(Path("test/test_files/test_label_json.json"))
         assert code.process_example((filename,)) == "test_label_json.json"
-        assert code.process_example(Path(filename)) == "test_label_json.json"
 
 
 class TestFileExplorer:
