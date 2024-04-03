@@ -260,7 +260,7 @@
 							variant="primary"
 							on:click={() => dispatch("close", { api_recorder_visible: true })}
 						>
-							🪄 Try the API Recorder
+							🪄 Use the API Recorder
 						</Button>
 						to automatically generate your API requests.
 

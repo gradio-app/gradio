@@ -26,7 +26,7 @@
 			variant="primary"
 			on:click={() => dispatch("close", { api_recorder_visible: true })}
 		>
-			🪄 Try the API Recorder
+			🪄 API Recorder
 		</Button>
 	</span>
 </h2>
