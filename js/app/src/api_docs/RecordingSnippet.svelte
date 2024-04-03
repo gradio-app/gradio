@@ -27,7 +27,9 @@
 				)}`;
 			})
 			.join(",\n");
-
+		if (params) {
+			return `${params},\n`;
+		}
 		return `${params}`;
 	}
 </script>
@@ -50,8 +52,7 @@ client = Client(<span class="token string">"{root}"</span>)
 -->
 client.<span class="highlight"
 								>predict(
-{format_api_call(call)},
-  api_name=<span class="api-name"
+{format_api_call(call)}  api_name=<span class="api-name"
 									>"/{dependencies[call.fn_index].api_name}"</span
 								>
 )
