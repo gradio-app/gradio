@@ -67,6 +67,7 @@
 	export let bg = false;
 	export let sources: ("clipboard" | "webcam" | "upload")[];
 	const dispatch = createEventDispatcher<{
+		clear?: never;
 		save: void;
 	}>();
 	export let crop_constraint = false;
@@ -256,6 +257,7 @@
 		} else {
 			set_tool("bg");
 		}
+		dispatch("clear");
 	}
 
 	onMount(() => {
