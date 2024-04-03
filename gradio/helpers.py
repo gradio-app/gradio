@@ -353,7 +353,8 @@ class Examples:
                 warnings.warn(
                     "Setting `cache_examples=True` is not supported in the Wasm mode. You can set `cache_examples='lazy'` to cache examples after first use."
                 )
-            await self.cache()
+            else:
+                await self.cache()
 
     def lazy_cache(self) -> None:
         print(
