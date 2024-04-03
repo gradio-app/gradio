@@ -30,6 +30,7 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "kitchen_sink",
         "kitchen_sink_random",
         "matrix_transpose",
+        "mini_leaderboard",
         "model3D",
         "native_plots",
         "reverse_audio",
