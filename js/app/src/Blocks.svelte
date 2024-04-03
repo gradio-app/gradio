@@ -8,7 +8,7 @@
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import type { UpdateTransaction } from "./init";
 	import { setupi18n } from "./i18n";
-	import { ApiDocs } from "./api_docs/";
+	import { ApiDocs, ApiRecorder } from "./api_docs/";
 	import type { ThemeMode, Payload } from "./types";
 	import { Toast } from "@gradio/statustracker";
 	import type { ToastMessage } from "@gradio/statustracker";
@@ -68,7 +68,9 @@
 
 	let params = new URLSearchParams(window.location.search);
 	let api_docs_visible = params.get("view") === "api" && show_api;
+	let api_recorder_visible = params.get("view") === "api-recorder" && show_api;
 	function set_api_docs_visible(visible: boolean): void {
+		api_recorder_visible = false;
 		api_docs_visible = visible;
 		let params = new URLSearchParams(window.location.search);
 		if (visible) {
@@ -78,6 +80,7 @@
 		}
 		history.replaceState(null, "", "?" + params.toString());
 	}
+	let api_calls: Payload[] = [];
 
 	export let render_complete = false;
 	async function handle_update(data: any, fn_index: number): Promise<void> {
@@ -251,6 +254,9 @@
 		}
 
 		async function make_prediction(payload: Payload): Promise<void> {
+			if (api_recorder_visible) {
+				api_calls = [...api_calls, payload];
+			}
 			const submission = app
 				.submit(
 					payload.fn_index,
@@ -543,6 +549,21 @@
 	{/if}
 </div>
 
+{#if api_recorder_visible}
+	<!-- TODO: fix -->
+	<!-- svelte-ignore a11y-click-events-have-key-events-->
+	<!-- svelte-ignore a11y-no-static-element-interactions-->
+	<div
+		id="api-recorder-container"
+		on:click={() => {
+			set_api_docs_visible(true);
+			api_recorder_visible = false;
+		}}
+	>
+		<ApiRecorder {api_calls} {dependencies} />
+	</div>
+{/if}
+
 {#if api_docs_visible && $_layout}
 	<div class="api-docs">
 		<!-- TODO: fix -->
@@ -557,13 +578,16 @@
 		<div class="api-docs-wrap">
 			<ApiDocs
 				root_node={$_layout}
-				on:close={() => {
+				on:close={(event) => {
 					set_api_docs_visible(false);
+					api_calls = [];
+					api_recorder_visible = event.detail.api_recorder_visible;
 				}}
 				{dependencies}
 				{root}
 				{app}
 				{space_id}
+				{api_calls}
 			/>
 		</div>
 	</div>
@@ -665,5 +689,12 @@
 		.api-docs-wrap {
 			width: 1150px;
 		}
+	}
+
+	#api-recorder-container {
+		position: fixed;
+		left: 10px;
+		bottom: 10px;
+		z-index: 1000;
 	}
 </style>
