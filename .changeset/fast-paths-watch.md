@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Quick fix: Dropdown Click Area
+fix:ensure entire dropdown is clickable
