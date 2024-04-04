@@ -326,6 +326,7 @@ class PlayableVideo(components.Video):
         show_download_button: bool | None = None,
         min_length: int | None = None,
         max_length: int | None = None,
+        max_file_size: int | str | None = None,
     ):
         sources = ["upload"]
         super().__init__(
@@ -352,6 +353,7 @@ class PlayableVideo(components.Video):
             show_download_button=show_download_button,
             min_length=min_length,
             max_length=max_length,
+            max_file_size=max_file_size,
         )
 
 
@@ -388,6 +390,7 @@ class Microphone(components.Audio):
         min_length: int | None = None,
         max_length: int | None = None,
         waveform_options: WaveformOptions | dict | None = None,
+        max_file_size: int | str | None = None,
     ):
         sources = ["microphone"]
         super().__init__(
@@ -414,6 +417,7 @@ class Microphone(components.Audio):
             min_length=min_length,
             max_length=max_length,
             waveform_options=waveform_options,
+            max_file_size=max_file_size,
         )
 
 
@@ -431,6 +435,7 @@ class Files(components.File):
         file_count: Literal["multiple"] = "multiple",
         file_types: list[str] | None = None,
         type: Literal["filepath", "binary"] = "filepath",
+        max_file_size: int | str | None = None,
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
@@ -461,6 +466,7 @@ class Files(components.File):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
+            max_file_size=max_file_size
         )
 
 
