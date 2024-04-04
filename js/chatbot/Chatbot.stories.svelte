@@ -172,13 +172,13 @@ This document is a showcase of various Markdown capabilities.`
 			[
 				`# Markdown Example
 
-This document is a showcase of various Markdown capabilities.`
-			],
-			`## Table of Contents
+This document is a showcase of various Markdown capabilities.`,
+				`## Table of Contents
 
 1. [Text Formatting](#text-formating)
 2. [Code Blocks](#code-blocks)
 3. [Tables](#tables)`
+			]
 		]
 	}}
 />
