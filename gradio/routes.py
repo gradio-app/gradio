@@ -612,7 +612,7 @@ class App(FastAPI):
                 # locally and in deployment we should use the event-based approach
                 if os.getenv("GRADIO_IS_E2E_TEST") and sys.version_info < (3, 9):
                     while app.get_blocks().is_running:
-                        await asyncio.sleep(0.)
+                        await asyncio.sleep(0.25)
                     return "stop"
                 else:
                     await app.stop_event.wait()
