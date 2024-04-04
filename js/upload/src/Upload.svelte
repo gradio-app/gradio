@@ -100,7 +100,9 @@
 			(f) => new File([f], f.name, { type: f.type })
 		);
 
-		const oversized_files = _files.filter((f) => f.size > (max_file_size ?? Infinity));
+		const oversized_files = _files.filter(
+			(f) => f.size > (max_file_size ?? Infinity)
+		);
 		if (oversized_files.length) {
 			dispatch(
 				"error",
