@@ -179,7 +179,7 @@ When using the SharedWorker mode, you should be aware of the following points:
 If you'd like to see the code side-by-side with the demo just pass in the `playground` attribute to the gradio-lite element. This will create an interactive playground that allows you to change the code and update the demo! If you're using playground, you can also set layout to either 'vertical' or 'horizontal' which will determine if the code editor and preview are side-by-side or on top of each other (by default it's reposnsive with the width of the page).
 
 ```html
-<gradio-lite playground>
+<gradio-lite playground layout="horizontal">
 import gradio as gr
 
 gr.Interface(fn=lambda x: x,
