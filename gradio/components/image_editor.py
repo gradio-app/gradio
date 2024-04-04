@@ -349,7 +349,7 @@ class ImageEditor(Component):
                     path=image_utils.save_image(
                         cast(Union[np.ndarray, PIL.Image.Image, str], layer),
                         self.GRADIO_CACHE,
-                        format="png",
+                        format="webp",
                     )
                 )
                 for layer in value["layers"]
@@ -361,7 +361,9 @@ class ImageEditor(Component):
         return EditorData(
             background=(
                 FileData(
-                    path=image_utils.save_image(value["background"], self.GRADIO_CACHE)
+                    path=image_utils.save_image(
+                        value["background"], self.GRADIO_CACHE, format="webp"
+                    )
                 )
                 if value["background"] is not None
                 else None
@@ -374,6 +376,7 @@ class ImageEditor(Component):
                             Union[np.ndarray, PIL.Image.Image, str], value["composite"]
                         ),
                         self.GRADIO_CACHE,
+                        format="webp",
                     )
                 )
                 if value["composite"] is not None
