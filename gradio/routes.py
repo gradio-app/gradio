@@ -610,13 +610,12 @@ class App(FastAPI):
                 # For some reason tests are failing when using events only on CI
                 # so we use a different approach for CI but
                 # locally and in deployment we should use the event-based approach
-                if sys.version_info <= (3, 8):
-                    while app.get_blocks().is_running:
-                        await asyncio.sleep(0.25)
-                    return "stop"
-                else:
-                    await app.stop_event.wait()
-                    return "stop"
+                while app.get_blocks().is_running:
+                    await asyncio.sleep(0.25)
+                return "stop"
+                # else:
+                #     await app.stop_event.wait()
+                #     return "stop"
 
             async def iterator():
                 while True:
