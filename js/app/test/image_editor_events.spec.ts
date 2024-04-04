@@ -51,7 +51,7 @@ test("input events work as expected", async ({ page }) => {
 });
 
 test("apply events work as expected", async ({ page }) => {
-	const apply_text = page.locator("#input h2");
+	const apply_text = page.locator("#apply h2");
 	const apply_button = page.getByLabel("Save changes").first();
 
 	await page.getByLabel("Draw button").first().click();

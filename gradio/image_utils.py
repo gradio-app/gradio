@@ -55,11 +55,9 @@ def save_image(
             y, cache_dir=cache_dir, format=format
         )
     elif isinstance(y, PIL.Image.Image):
-        fmt = y.format if y.format is not None and y.format != "png" else "webp"
-
         try:
             path = processing_utils.save_pil_to_cache(
-                y, cache_dir=cache_dir, format=fmt
+                y, cache_dir=cache_dir, format=format
             )
         # Catch error if format is not supported by PIL
         except (KeyError, ValueError):
