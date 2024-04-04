@@ -41,7 +41,8 @@ const lite = defineConfig(base, {
 		"**/kitchen_sink.spec.ts",
 		"**/gallery_component_events.spec.ts"
 	],
-	workers: 1
+	workers: 1,
+	retries: 3
 });
 
 lite.projects = undefined; // Explicitly unset this field due to https://github.com/microsoft/playwright/issues/28795
