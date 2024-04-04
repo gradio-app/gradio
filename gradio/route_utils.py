@@ -314,7 +314,7 @@ def get_root_url(
         if header_value:
             return header_value.split(",")[
                 0
-            ].strip()  # Splits the value and returns the first element
+            ].strip()
         return None
 
     if root_path and client_utils.is_http_url_like(root_path):
