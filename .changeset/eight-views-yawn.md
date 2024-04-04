@@ -1,5 +1,6 @@
 ---
 "@gradio/markdown": patch
+"@gradio/theme": patch
 "gradio": patch
 ---
 
