@@ -308,10 +308,13 @@ def get_root_url(
     In cases (2) and (3), We also check to see if the x-forwarded-proto header is present, and if so, convert the root url to https.
     And if there are multiple hosts in the x-forwarded-host or multiple protocols in the x-forwarded-proto, the first one is used.
     """
+
     def get_first_header_value(header_name: str):
         header_value = request.headers.get(header_name)
         if header_value:
-            return header_value.split(',')[0].strip()  # Splits the value and returns the first element
+            return header_value.split(",")[
+                0
+            ].strip()  # Splits the value and returns the first element
         return None
 
     if root_path and client_utils.is_http_url_like(root_path):
