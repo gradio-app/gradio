@@ -607,8 +607,16 @@ class App(FastAPI):
                 return "wait"
 
             async def stop_stream():
-                await app.stop_event.wait()
-                return "stop"
+                # For some reason tests are failing when using events only on CI
+                # so we use a different approach for CI but
+                # locally and in deployment we should use the event-based approach
+                if os.getenv("GRADIO_IS_E2E_TEST") and sys.version_info <= (3, 8):
+                    while app.get_blocks().is_running:
+                        await asyncio.sleep(0.25)
+                    return "stop"
+                else:
+                    await app.stop_event.wait()
+                    return "stop"
 
             async def iterator():
                 while True:
