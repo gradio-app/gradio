@@ -1049,6 +1049,10 @@ export function api_factory(
 				event_stream = EventSource_factory(url);
 				event_stream.onmessage = async function (event) {
 					let _data = JSON.parse(event.data);
+					if (_data.msg === "close_stream") {
+						close_stream();
+						return;
+					}
 					const event_id = _data.event_id;
 					if (!event_id) {
 						await Promise.all(
@@ -1073,9 +1077,6 @@ export function api_factory(
 							pending_stream_messages[event_id] = [];
 						}
 						pending_stream_messages[event_id].push(_data);
-					}
-					if (_data.msg === "close_stream") {
-						close_stream();
 					}
 				};
 				event_stream.onerror = async function (event) {

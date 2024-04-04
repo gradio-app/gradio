@@ -1,6 +1,6 @@
 ---
-"@gradio/markdown": minor
-"gradio": minor
+"@gradio/markdown": patch
+"gradio": patch
 ---
 
 feat:Restore Markdown formatting for Chatbots, MarkdownCode
