@@ -73,9 +73,16 @@ helloWorld();
 			<a href="https://example.com/moreinfo">our information page</a>.
 		</p>
 
-		<gradio-lite playground>
-			import gradio as gr gr.Interface(fn=lambda x: x, inputs=gr.Textbox(),
-			outputs=gr.Textbox()).launch()
+		<gradio-lite
+			playground
+			layout="horizontal"
+			style="height: 300px; padding: 20px"
+			shared-worker
+		>
+			import gradio as gr
+			<!-- 			 -->
+			gr.Interface(fn=lambda x: x,
+			inputs=gr.Textbox(),outputs=gr.Textbox()).launch()
 		</gradio-lite>
 
 		<h3>Subsection: Vestibulum</h3>
@@ -115,8 +122,23 @@ helloWorld();
 			<a href="https://example.com/moreinfo">our information page</a>.
 		</p>
 
-		<gradio-lite playground>
-			import gradio as gr gr.ChatInterface(lambda x,y:x).launch()
+		<gradio-lite playground layout="vertical" shared-worker>
+			import gradio as gr
+			<!-- 			 -->
+			gr.ChatInterface(lambda x,y:x).launch()
+		</gradio-lite>
+
+		<h3>Subsection: Vestibulum</h3>
+
+		<p>
+			Vestibulum id ligula porta felis euismod semper. Sed posuere consectetur
+			est at lobortis.
+		</p>
+
+		<gradio-lite playground style="height: 300px" shared-worker>
+			import gradio as gr
+			<!-- 			 -->
+			gr.ChatInterface(lambda x,y:x).launch()
 		</gradio-lite>
 	</body>
 </html>
