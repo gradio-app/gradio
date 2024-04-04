@@ -177,4 +177,8 @@
 		align-items: center;
 		white-space-collapse: break-spaces;
 	}
+
+	.prose :global(:last-child) {
+		margin-bottom: 0;
+	}
 </style>
