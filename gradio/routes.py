@@ -610,7 +610,7 @@ class App(FastAPI):
                 # For some reason tests are failing when using events only on CI
                 # so we use a different approach for CI but
                 # locally and in deployment we should use the event-based approach
-                if os.getenv("GRADIO_IS_E2E_TEST") and sys.version_info <= (3, 8):
+                if sys.version_info <= (3, 8):
                     while app.get_blocks().is_running:
                         await asyncio.sleep(0.25)
                     return "stop"
