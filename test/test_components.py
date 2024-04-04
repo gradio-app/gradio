@@ -3045,8 +3045,6 @@ def test_template_component_configs(io_components):
         component_parent_class = inspect.getmro(component)[1]
         template_config = component().get_config()
         parent_config = component_parent_class().get_config()
-        print(component)
-        print(parent_config.keys(), "\n", template_config.keys())
         assert set(parent_config.keys()).issubset(set(template_config.keys()))
 
 
