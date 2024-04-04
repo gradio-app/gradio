@@ -76,7 +76,7 @@
 	afterUpdate(() => render_html(message));
 </script>
 
-<span class:chatbot bind:this={el} class="md">
+<span class:chatbot bind:this={el} class="md prose">
 	{#if render_markdown}
 		{@html html}
 	{:else}
