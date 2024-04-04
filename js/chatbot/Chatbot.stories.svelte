@@ -174,13 +174,11 @@ This document is a showcase of various Markdown capabilities.`
 
 This document is a showcase of various Markdown capabilities.`
 			],
-			[
-				`## Table of Contents
+			`## Table of Contents
 
 1. [Text Formatting](#text-formating)
 2. [Code Blocks](#code-blocks)
 3. [Tables](#tables)`
-			]
 		]
 	}}
 />
@@ -196,9 +194,7 @@ This document is a showcase of various Markdown capabilities.`
 |----------|----------|----------|
 | Row 1, Cell 1 | Row 1, Cell 2 | Row 1, Cell 3 |
 | Row 2, Cell 1 | Row 2, Cell 2 | Row 2, Cell 3 |
-| Row 3, Cell 1 | Row 3, Cell 2 | Row 3, Cell 3 |`
-			],
-			[
+| Row 3, Cell 1 | Row 3, Cell 2 | Row 3, Cell 3 |`,
 				`### Unordered List
 
 - Item 1
