@@ -67,6 +67,7 @@
 	export let bg = false;
 	export let sources: ("clipboard" | "webcam" | "upload")[];
 	const dispatch = createEventDispatcher<{
+		clear?: never;
 		save: void;
 		change: void;
 	}>();
@@ -260,6 +261,7 @@
 		} else {
 			set_tool("bg");
 		}
+		dispatch("clear");
 	}
 
 	onMount(() => {

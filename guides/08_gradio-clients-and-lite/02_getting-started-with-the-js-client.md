@@ -147,6 +147,15 @@ This shows us that we have 1 API endpoint in this space, and shows us how to use
 
 We should also provide the `api_name='/predict'` argument to the `predict()` method. Although this isn't necessary if a Gradio app has only 1 named endpoint, it does allow us to call different endpoints in a single app if they are available. If an app has unnamed API endpoints, these can also be displayed by running `.view_api(all_endpoints=True)`.
 
+## The "View API" Page
+
+As an alternative to running the `.view_api()` method, you can click on the "Use via API" link in the footer of the Gradio app, which shows us the same information, along with example usage. 
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api.png)
+
+The View API page also includes an "API Recorder" that lets you interact with the Gradio UI normally and converts your interactions into the corresponding code to run with the JS Client.
+
+
 ## Making a prediction
 
 The simplest way to make a prediction is simply to call the `.predict()` method with the appropriate arguments:

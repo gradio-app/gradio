@@ -13,6 +13,7 @@
 </script>
 
 <script lang="ts">
+	import { createEventDispatcher } from "svelte";
 	import { type I18nFormatter } from "@gradio/utils";
 	import { prepare_files, upload, type FileData } from "@gradio/client";
 
@@ -42,7 +43,10 @@
 	};
 	export let transforms: "crop"[] = ["crop"];
 
-	export let accept_blobs: (a: any) => void;
+	const dispatch = createEventDispatcher<{
+		clear?: never;
+		upload?: never;
+	}>();
 
 	let editor: ImageEditor;
 
@@ -114,8 +118,6 @@
 		(sources && sources.length
 			? editor.set_tool("bg")
 			: editor.set_tool("draw"));
-
-	const dispatch = createEventDispatcher();
 
 	type BinaryImages = [string, string, File, number | null][];
 
@@ -195,6 +197,7 @@
 	{changeable}
 	on:save
 	on:change={handle_change}
+	on:clear={() => dispatch("clear")}
 	bind:history
 	bind:bg
 	{sources}
