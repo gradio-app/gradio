@@ -27,7 +27,6 @@
 	import { Tools, Crop, Brush, Sources } from "./tools";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Image as ImageIcon } from "@gradio/icons";
-	import { createEventDispatcher, tick } from "svelte";
 
 	export let sources: ("clipboard" | "webcam" | "upload")[];
 	export let crop_size: [number, number] | `${string}:${string}` | null = null;
@@ -42,10 +41,12 @@
 		composite: null
 	};
 	export let transforms: "crop"[] = ["crop"];
+	export let accept_blobs: (a: any) => void;
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;
 		upload?: never;
+		change?: never;
 	}>();
 
 	let editor: ImageEditor;
