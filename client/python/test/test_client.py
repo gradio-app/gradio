@@ -85,6 +85,17 @@ class TestClientPredictions:
         with pytest.raises(ValueError, match="invalid state"):
             Client("gradio-tests/paused-space")
 
+    def test_raise_error_max_file_size(self, max_file_size_demo):
+        with connect(max_file_size_demo) as client:
+            with pytest.raises(
+                ValueError, match=f"File {__file__} exceeds the maximum file size"
+            ):
+                client.predict(file(__file__), api_name="/upload_1b")
+            assert (
+                client.predict(file(__file__), api_name="/upload_1mb")
+                == "Upload successful"
+            )
+
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")

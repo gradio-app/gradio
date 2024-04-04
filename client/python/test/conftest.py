@@ -446,3 +446,23 @@ def many_endpoint_demo():
             butn2.click(noop, msg2, msg2)
 
     return demo
+
+
+@pytest.fixture
+def max_file_size_demo():
+    with gr.Blocks() as demo:
+        file_1mb = gr.File(max_file_size="1MB")
+        file_1b = gr.File(max_file_size="1B")
+        upload_status = gr.Textbox()
+
+        file_1mb.upload(
+            lambda x: "Upload successful",
+            file_1mb,
+            upload_status,
+            api_name="upload_1mb",
+        )
+        file_1b.upload(
+            lambda x: "Upload successful", file_1b, upload_status, api_name="upload_1b"
+        )
+
+    return demo
