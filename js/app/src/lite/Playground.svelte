@@ -4,11 +4,10 @@
 	import { mount_css as default_mount_css } from "../css";
 	import type { api_factory } from "@gradio/client";
 	import type { WorkerProxy } from "@gradio/wasm";
-	import { SvelteComponent, createEventDispatcher } from "svelte";
+	import { SvelteComponent, createEventDispatcher, onMount } from "svelte";
 	import Code from "@gradio/code";
 	import ErrorDisplay from "./ErrorDisplay.svelte";
 	import lightning from "../images/lightning.svg";
-	import play from "../images/play.svg";
 	import type { LoadingStatus } from "js/statustracker";
 
 	export let autoscroll: boolean;
@@ -34,6 +33,7 @@
 
 	export let code: string | undefined;
 	export let error_display: SvelteComponent | null;
+	export let layout: string | null = null;
 
 	const dispatch = createEventDispatcher();
 
@@ -60,65 +60,94 @@
 	});
 
 	function shortcut_run(e: KeyboardEvent): void {
-		if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-			e.preventDefault();
+		if (e.key == "Enter" && (e.metaKey || e.ctrlKey)) {
 			dispatch("code", { code });
+			e.preventDefault();
 		}
 	}
 
+	function handle_theme_mode(target: HTMLDivElement): "light" | "dark" {
+		const force_light = window.__gradio_mode__ === "website";
+
+		let new_theme_mode: ThemeMode;
+		if (force_light) {
+			new_theme_mode = "light";
+		} else {
+			const url = new URL(window.location.toString());
+			const url_color_mode: ThemeMode | null = url.searchParams.get(
+				"__theme"
+			) as ThemeMode | null;
+			new_theme_mode = theme_mode || url_color_mode || "system";
+		}
+
+		if (new_theme_mode === "dark" || new_theme_mode === "light") {
+			apply_theme(target, new_theme_mode);
+		} else {
+			new_theme_mode = sync_system_theme(target);
+		}
+		return new_theme_mode;
+	}
+
+	function sync_system_theme(target: HTMLDivElement): "light" | "dark" {
+		const theme = update_scheme();
+		window
+			?.matchMedia("(prefers-color-scheme: dark)")
+			?.addEventListener("change", update_scheme);
+
+		function update_scheme(): "light" | "dark" {
+			let _theme: "light" | "dark" = window?.matchMedia?.(
+				"(prefers-color-scheme: dark)"
+			).matches
+				? "dark"
+				: "light";
+
+			apply_theme(target, _theme);
+			return _theme;
+		}
+		return theme;
+	}
+
+	function apply_theme(target: HTMLDivElement, theme: "dark" | "light"): void {
+		const dark_class_element = is_embed ? target.parentElement! : document.body;
+		const bg_element = is_embed ? target : target.parentElement!;
+		if (theme === "dark") {
+			dark_class_element.classList.add("dark");
+		} else {
+			dark_class_element.classList.remove("dark");
+		}
+	}
+
+	let active_theme_mode: ThemeMode;
+	let parent_container: HTMLDivElement;
+
+	onMount(() => {
+		var code_editors = document.getElementsByClassName("code-editor");
+		for (var i = 0; i < code_editors.length; i++) {
+			code_editors[i].addEventListener(
+				"keydown",
+				shortcut_run as EventListener,
+				true
+			);
+		}
+		active_theme_mode = handle_theme_mode(parent_container);
+	});
+
 	$: loading_text;
 	$: loaded;
+	$: code;
 </script>
 
-<svelte:window on:keydown={shortcut_run} />
-
-<div class="parent-container">
-	<div class="child-container">
-		<div class:code-editor-border={loaded} class="code-editor">
-			<div class="loading-panel">
-				<div class="code-header">app.py</div>
-				{#if !loaded}
-					<div style="display: flex;"></div>
-					<div class="loading-section">
-						<div class="loading-dot"></div>
-						{loading_text}
-					</div>
-				{:else}
-					<div style="display: flex;"></div>
-					<div class="loading-section">
-						<img src={lightning} alt="lightning icon" class="lightning-logo" />
-						Interactive
-					</div>
-				{/if}
-			</div>
-			<div style="flex-grow: 1;">
-				{#if loaded}
-					<Code
-						bind:value={code}
-						label=""
-						language="python"
-						target={dummy_elem}
-						gradio={dummy_gradio}
-						lines={10}
-						interactive={true}
-						loading_status={dummy_loading_status}
-					/>
-				{:else}
-					<Code
-						bind:value={code}
-						label=""
-						language="python"
-						target={dummy_elem}
-						gradio={dummy_gradio}
-						lines={10}
-						interactive={false}
-						loading_status={dummy_loading_status}
-					/>
-				{/if}
-			</div>
-		</div>
-		{#if loaded}
-			<div class="preview">
+<div class="parent-container" bind:this={parent_container}>
+	<div class="wrapper">
+		<div class="loading-panel">
+			<div class="code-header">app.py</div>
+			{#if !loaded}
+				<div style="display: flex;"></div>
+				<div class="loading-section">
+					<div class="loading-dot"></div>
+					{loading_text}
+				</div>
+			{:else}
 				<div class="buttons">
 					<div class="run">
 						<button
@@ -128,61 +157,131 @@
 							}}
 						>
 							Run
-							<img src={play} alt="play icon" class="play-logo" />
+							<div class="shortcut">⌘+↵</div>
 						</button>
-						<div class="shortcut">⌘+↵</div>
 					</div>
-
-					<div style="display: flex; float: right;"></div>
 				</div>
-				<div>
-					{#if !error_display}
-						<Index
-							{autoscroll}
-							{version}
-							{initial_height}
-							{app_mode}
-							{is_embed}
-							{theme_mode}
-							{control_page_title}
-							{container}
-							{info}
-							{eager}
-							{mount_css}
-							{client}
-							{upload_files}
-							bind:worker_proxy
-							{fetch_implementation}
-							{EventSource_factory}
-							{space}
-							{host}
-							{src}
+				<div style="flex-grow: 1"></div>
+				<div class="loading-section">
+					<img src={lightning} alt="lightning icon" class="lightning-logo" />
+					Interactive
+				</div>
+			{/if}
+		</div>
+		<div
+			class:horizontal={layout === "horizontal"}
+			class:vertical={layout === "vertical"}
+			class="child-container"
+		>
+			<div class:code-editor-border={loaded} class="code-editor">
+				<div style="flex-grow: 1;">
+					{#if loaded}
+						<Code
+							bind:value={code}
+							label=""
+							language="python"
+							target={dummy_elem}
+							gradio={dummy_gradio}
+							lines={10}
+							interactive={true}
+							loading_status={dummy_loading_status}
 						/>
 					{:else}
-						<ErrorDisplay
-							is_embed={error_display.is_embed}
-							error={error_display.error}
+						<Code
+							bind:value={code}
+							label=""
+							language="python"
+							target={dummy_elem}
+							gradio={dummy_gradio}
+							lines={10}
+							interactive={false}
+							loading_status={dummy_loading_status}
 						/>
 					{/if}
 				</div>
 			</div>
-		{/if}
+			{#if loaded}
+				<div class="preview">
+					<div class="flex-grow: 1;">
+						{#if !error_display}
+							<Index
+								{autoscroll}
+								{version}
+								{initial_height}
+								{app_mode}
+								{is_embed}
+								{theme_mode}
+								{control_page_title}
+								{container}
+								{info}
+								{eager}
+								{mount_css}
+								{client}
+								{upload_files}
+								bind:worker_proxy
+								{fetch_implementation}
+								{EventSource_factory}
+								{space}
+								{host}
+								{src}
+							/>
+						{:else}
+							<ErrorDisplay
+								is_embed={error_display.is_embed}
+								error={error_display.error}
+							/>
+						{/if}
+					</div>
+				</div>
+			{/if}
+		</div>
 	</div>
 </div>
 
 <style>
+	.wrapper {
+		width: 100%;
+		height: 100%;
+		overflow-y: scroll;
+		display: flex;
+		flex-direction: column;
+	}
 	.parent-container {
 		width: 100%;
 		height: 100%;
+		overflow: hidden;
+		border: 1px solid rgb(229 231 235);
+		border-radius: 0.375rem;
+	}
+	:global(.dark .parent-container) {
+		border-color: #374151 !important;
+		color-scheme: dark !important;
 	}
 
 	.child-container {
 		display: flex;
 		flex-direction: column;
-		width: 100%;
-		height: 100%;
-		border: 1px solid rgb(229 231 235);
-		border-radius: 0.375rem;
+		flex-grow: 1;
+	}
+
+	.horizontal {
+		flex-direction: row !important;
+	}
+
+	.vertical {
+		flex-direction: column !important;
+	}
+
+	.vertical .code-editor-border {
+		border-right: none !important;
+	}
+
+	.horizontal .code-editor-border {
+		border-right: 1px solid rgb(229 231 235);
+		border-bottom: none;
+	}
+	:global(.dark .horizontal .code-editor-border) {
+		border-right: 1px solid #374151 !important;
 	}
 
 	@media (min-width: 768px) {
@@ -192,13 +291,20 @@
 		.code-editor-border {
 			border-right: 1px solid rgb(229 231 235);
 		}
+		:global(.dark .code-editor-border) {
+			border-right: 1px solid #374151 !important;
+		}
 	}
 
 	.code-editor {
-		flex-grow: 1;
-		flex: 1 1 0%;
+		flex: 1 1 50%;
 		display: flex;
 		flex-direction: column;
+		border-bottom: 1px solid;
+		border-color: rgb(229 231 235);
+	}
+	:global(.dark .code-editor) {
+		border-color: #374151 !important;
 	}
 
 	.loading-panel {
@@ -211,11 +317,21 @@
 		border-bottom: 1px solid rgb(229 231 235);
 	}
 
+	:global(.dark .loading-panel) {
+		background: #1f2937 !important;
+		border-color: #374151 !important;
+	}
+
 	.code-header {
-		padding-top: 0.25rem;
-		flex-grow: 1;
+		align-self: center;
 		font-family: monospace;
-		margin-top: 4px;
+		font-size: 14px;
+		font-weight: lighter;
+		margin-right: 4px;
+		color: #535d6d;
+	}
+	:global(.dark .code-header) {
+		color: white !important;
 	}
 
 	.loading-section {
@@ -225,7 +341,13 @@
 		margin-right: 0.5rem;
 		color: #999b9e;
 		font-family: sans-serif;
+		font-size: 15px;
+		align-self: center;
 	}
+	:global(.dark .loading-section) {
+		color: white !important;
+	}
+
 	.lightning-logo {
 		width: 1rem;
 		height: 1rem;
@@ -233,7 +355,7 @@
 	}
 
 	.preview {
-		flex: 1 1 0%;
+		flex: 1 1 50%;
 		display: flex;
 		flex-direction: column;
 	}
@@ -243,38 +365,46 @@
 		justify-content: space-between;
 		align-items: middle;
 		height: 2rem;
-		padding-left: 0.5rem;
-		padding-right: 0.5rem;
-		border-bottom: 1px solid rgb(229 231 235);
 	}
 
 	.run {
 		display: flex;
 		align-items: center;
 		color: #999b9e;
+		font-size: 15px;
 	}
 
 	.button {
 		display: flex;
+		height: 80%;
 		align-items: center;
-		font-weight: 500;
-		padding-left: 0.5rem;
-		padding-right: 0.25rem;
+		font-weight: 600;
+		padding-left: 0.8rem;
+		padding-right: 0.8rem;
 		border-radius: 0.375rem;
 		float: right;
 		margin: 0.25rem;
-		color: rgb(107 114 128);
-		background: #eff1f3;
-		border: none;
-		font-size: 100%;
+		border: 1px solid #e5e7eb;
+		background: linear-gradient(to bottom right, #f3f4f6, #e5e7eb);
+		color: #374151;
 		cursor: pointer;
 		font-family: sans-serif;
 	}
-
-	.play-logo {
-		width: 0.75rem;
-		height: 0.75rem;
-		margin: 0.125rem;
+	:global(.dark .button) {
+		border-color: #374151 !important;
+		background: linear-gradient(to bottom right, #4b5563, #374151) !important;
+		color: white !important;
+	}
+	.shortcut {
+		align-self: center;
+		margin-top: 2px;
+		font-size: 10px;
+		font-weight: lighter;
+		padding-left: 0.15rem;
+		color: #374151;
+	}
+	:global(.dark .shortcut) {
+		color: white !important;
 	}
 
 	:global(div.code-editor div.block) {
@@ -284,6 +414,9 @@
 
 	:global(div.code-editor div.block .cm-gutters) {
 		background-color: white;
+	}
+	:global(.dark div.code-editor div.block .cm-gutters) {
+		background: #1f2937 !important;
 	}
 
 	:global(div.code-editor div.block .cm-content) {
@@ -320,10 +453,34 @@
 		height: 100%;
 	}
 	:global(.code-editor .container) {
-		display: none;
+		padding: 2px;
+		padding-right: 0;
+		height: 100%;
 	}
-	:global(.code-editor button) {
-		display: none;
+
+	:global(.code-editor .container a) {
+		display: block;
+		width: 65%;
+		color: #9095a0;
+		margin: auto;
+	}
+
+	:global(.code-editor .block button) {
+		background-color: transparent;
+		border: none;
+		color: #9095a0;
+		height: 100%;
+		padding: 5px;
+		padding-left: 0;
+	}
+
+	:global(.code-editor .block .check) {
+		width: 65%;
+		color: #ff7c00;
+		margin: auto;
+	}
+	:global(.gradio-container) {
+		overflow-y: hidden;
 	}
 
 	.loading-dot {
