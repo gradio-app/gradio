@@ -312,9 +312,7 @@ def get_root_url(
     def get_first_header_value(header_name: str):
         header_value = request.headers.get(header_name)
         if header_value:
-            return header_value.split(",")[
-                0
-            ].strip()
+            return header_value.split(",")[0].strip()
         return None
 
     if root_path and client_utils.is_http_url_like(root_path):
