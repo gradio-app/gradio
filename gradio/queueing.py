@@ -219,7 +219,12 @@ class Queue:
             if body.session_hash not in self.pending_event_ids_session:
                 self.pending_event_ids_session[body.session_hash] = set()
         self.pending_event_ids_session[body.session_hash].add(event._id)
-        event_queue = self.event_queue_per_concurrency_id[event.concurrency_id]
+        try:
+            event_queue = self.event_queue_per_concurrency_id[event.concurrency_id]
+        except KeyError as e:
+            raise KeyError(
+                "Event not found in queue. If you are deploying this Gradio app with multiple replicas, please enable stickiness to ensure that all requests from the same user are routed to the same instance."
+            ) from e
         event_queue.queue.append(event)
 
         self.broadcast_estimations(event.concurrency_id, len(event_queue.queue) - 1)

@@ -14,6 +14,7 @@ import "prismjs/components/prism-csv";
 import "prismjs/components/prism-markup";
 import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-toml";
+import "prismjs/components/prism-docker";
 
 const langs = {
 	python: "python",
@@ -28,7 +29,9 @@ const langs = {
 	typescript: "typescript",
 	ts: "typescript",
 	directory: "json",
-	toml: "toml"
+	toml: "toml",
+	docker: "docker",
+	dockerfile: "docker"
 };
 
 function highlight(code: string, lang: string | undefined) {
