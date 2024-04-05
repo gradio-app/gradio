@@ -331,7 +331,9 @@
 			style:transform="translate({$position_spring.x}px, {$position_spring.y}px)"
 		></div>
 	</div>
-	<slot />
+	<div class="tools-wrap">
+		<slot />
+	</div>
 	<div
 		class="border"
 		style:width="{$crop[2] * $editor_box.child_width}px"
@@ -356,6 +358,7 @@
 		position: absolute;
 		border: var(--block-border-color) 1px solid;
 		pointer-events: none;
+		border-radius: var(--radius-md);
 	}
 
 	.stage-wrap {
@@ -363,7 +366,16 @@
 		margin-bottom: var(--size-1);
 	}
 
-	.bg {
+	.tools-wrap {
+		display: flex;
+		justify-content: center;
+		align-items: flex-end;
+		padding: var(--spacing-sm) var(--spacing-xl) var(--spacing-sm)
+			var(--spacing-xl);
+		border: 1px solid var(--block-border-color);
+		border-radius: var(--radius-sm);
+		/* background-color: var(--block-label-background-fill); */
+		margin: var(--spacing-md) 0 var(--spacing-lg) 0;
 	}
 
 	.image-container {

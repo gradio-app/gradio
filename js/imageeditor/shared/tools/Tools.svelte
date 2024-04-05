@@ -62,11 +62,10 @@
 	const metas: Record<tool, ToolMeta | null> = {
 		draw: null,
 		erase: null,
-		crop: null,
-		bg: null
+		crop: null
 	};
 
-	$: sub_menu = $active_tool && metas[$active_tool];
+	// $: sub_menu = $active_tool && metas[$active_tool];
 	let current_color = writable("#000000");
 	let sub_tool: upload_tool | transform_tool | brush_tool | eraser_tool | null;
 	const tool_context: ToolContext = {
@@ -103,11 +102,6 @@
 			icon: typeof Image;
 		}
 	> = {
-		bg: {
-			order: 0,
-			label: i18n("Image"),
-			icon: Image
-		},
 		crop: {
 			order: 1,
 			label: i18n("Transform"),
@@ -129,7 +123,7 @@
 <slot />
 
 <div class="toolbar-wrap">
-	<Toolbar show_border={false}>
+	<!-- <Toolbar show_border={false}>
 		{#if sub_menu}
 			{#each sub_menu.options as meta (meta.id)}
 				<IconButton
@@ -147,16 +141,16 @@
 				/>
 			{/each}
 		{/if}
-	</Toolbar>
+	</Toolbar> -->
 
 	<Toolbar show_border={false}>
 		{#each tools as tool (tool)}
 			<IconButton
-				disabled={tool === "bg" && !!$current_history.previous}
+				disabled={!!$current_history.previous}
 				highlight={$active_tool === tool}
 				on:click={() => ($active_tool = tool)}
 				Icon={tools_meta[tool].icon}
-				size="large"
+				size="medium"
 				padded={false}
 				label={tools_meta[tool].label + " button"}
 				transparent={true}
@@ -168,9 +162,10 @@
 <style>
 	.toolbar-wrap {
 		display: flex;
-		flex-direction: column;
+
 		justify-content: center;
 		align-items: center;
-		width: 100%;
+
+		margin-left: var(--spacing-xl);
 	}
 </style>

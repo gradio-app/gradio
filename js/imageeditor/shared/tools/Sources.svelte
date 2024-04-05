@@ -3,13 +3,14 @@
 	import { type ToolContext, TOOL_KEY } from "./Tools.svelte";
 	import { type EditorContext, EDITOR_KEY } from "../ImageEditor.svelte";
 	import {
-		Upload as UploadIcon,
+		Image as ImageIcon,
 		Webcam as WebcamIcon,
 		ImagePaste
 	} from "@gradio/icons";
 	import { Upload } from "@gradio/upload";
 	import { Webcam } from "@gradio/image";
 	import { type I18nFormatter } from "@gradio/utils";
+	import { IconButton } from "@gradio/atoms";
 
 	import { add_bg_color, add_bg_image } from "./sources";
 	import type { FileData } from "@gradio/client";
@@ -33,7 +34,7 @@
 
 	const sources_meta = {
 		upload: {
-			icon: UploadIcon,
+			icon: ImageIcon,
 			label: "Upload",
 			order: 0,
 			id: "bg_upload",
@@ -148,53 +149,57 @@
 		},
 		reset_fn: () => {}
 	});
-
-	onMount(() => {
-		return register_tool("bg", {
-			default: "bg_upload",
-			options: sources_list || []
-		});
-	});
 </script>
 
 <svelte:window on:keydown={handle_key} />
 
-{#if $active_tool === "bg"}
-	<div class="upload-container">
-		<Upload
-			hidden={true}
-			bind:this={upload}
-			filetype="image/*"
-			on:load={handle_upload}
-			on:error
-			{root}
-			disable_click={!sources.includes("upload")}
-			format="blob"
-		></Upload>
-		{#if active_mode === "webcam"}
-			<div
-				class="modal"
-				style:max-width="{$editor_box.child_width}px"
-				style:max-height="{$editor_box.child_height}px"
-				style:top="{$editor_box.child_top - $editor_box.parent_top}px"
-			>
-				<div class="modal-inner">
-					<Webcam
-						{root}
-						on:capture={handle_upload}
-						on:error
-						on:drag
-						{mirror_webcam}
-						streaming={false}
-						mode="image"
-						include_audio={false}
-						{i18n}
-					/>
-				</div>
+<div class="source-wrap">
+	{#each sources_list as { icon, label, id, cb } (id)}
+		<IconButton
+			Icon={icon}
+			size="medium"
+			padded={false}
+			label={label + " button"}
+			hasPopup={true}
+			transparent={true}
+		/>
+	{/each}
+	<span class="sep"></span>
+</div>
+<div class="upload-container">
+	<Upload
+		hidden={true}
+		bind:this={upload}
+		filetype="image/*"
+		on:load={handle_upload}
+		on:error
+		{root}
+		disable_click={!sources.includes("upload")}
+		format="blob"
+	></Upload>
+	{#if active_mode === "webcam"}
+		<div
+			class="modal"
+			style:max-width="{$editor_box.child_width}px"
+			style:max-height="{$editor_box.child_height}px"
+			style:top="{$editor_box.child_top - $editor_box.parent_top}px"
+		>
+			<div class="modal-inner">
+				<Webcam
+					{root}
+					on:capture={handle_upload}
+					on:error
+					on:drag
+					{mirror_webcam}
+					streaming={false}
+					mode="image"
+					include_audio={false}
+					{i18n}
+				/>
 			</div>
-		{/if}
-	</div>
-{/if}
+		</div>
+	{/if}
+</div>
 
 <style>
 	.modal {
@@ -212,5 +217,20 @@
 
 	.modal-inner {
 		width: 100%;
+	}
+
+	.sep {
+		height: 12px;
+		background-color: var(--block-border-color);
+		width: 1px;
+		display: block;
+		margin-left: var(--spacing-xl);
+	}
+
+	.source-wrap {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-left: var(--spacing-lg);
 	}
 </style>

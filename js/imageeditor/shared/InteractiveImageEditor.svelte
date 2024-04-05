@@ -130,6 +130,8 @@
 	crop_constraint={!!crop_constraint}
 >
 	<Tools {i18n}>
+		<Layers layer_files={value?.layers || null} />
+
 		{#if sources && sources.length}
 			<Sources
 				{i18n}
@@ -156,8 +158,6 @@
 			<Brush default_size={eraser.default_size} mode="erase" />
 		{/if}
 	</Tools>
-
-	<Layers layer_files={value?.layers || null} />
 
 	{#if !bg && !history}
 		<div class="empty wrap">

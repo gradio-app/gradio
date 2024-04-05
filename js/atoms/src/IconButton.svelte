@@ -4,7 +4,7 @@
 	export let label = "";
 	export let show_label = false;
 	export let pending = false;
-	export let size: "small" | "large" = "small";
+	export let size: "small" | "large" | "medium" = "small";
 	export let padded = true;
 	export let highlight = false;
 	export let disabled = false;
@@ -29,7 +29,11 @@
 	style:--bg-color={!disabled ? background : "auto"}
 >
 	{#if show_label}<span>{label}</span>{/if}
-	<div class:small={size === "small"} class:large={size === "large"}>
+	<div
+		class:small={size === "small"}
+		class:large={size === "large"}
+		class:medium={size === "medium"}
+	>
 		<Icon />
 	</div>
 </button>
@@ -65,22 +69,6 @@
 		border: 1px solid var(--button-secondary-border-color);
 	}
 
-	/* .padded {
-		padding: 2px;
-		background: var(--background-fill-primary);
-
-		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--button-secondary-border-color);
-	} */
-
-	/* .padded {
-		padding: 2px;
-		background: var(--background-fill-primary);
-
-		box-shadow: var(--shadow-drop);
-		border: 1px solid var(--button-secondary-border-color);
-	} */
-
 	button:hover,
 	button.highlight {
 		cursor: pointer;
@@ -107,6 +95,11 @@
 	.small {
 		width: 14px;
 		height: 14px;
+	}
+
+	.medium {
+		width: 20px;
+		height: 20px;
 	}
 
 	.large {
