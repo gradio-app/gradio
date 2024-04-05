@@ -187,12 +187,12 @@ export function api_factory(
 		url: string,
 		body: unknown,
 		token?: `hf_${string}`,
-		additional_headers?: Record<string, string>,
+		additional_headers?: Record<string, string>
 	): Promise<[PostResponse, number]> {
 		const headers: {
 			Authorization?: string;
 			"Content-Type": "application/json";
-		} = { "Content-Type": "application/json"};
+		} = { "Content-Type": "application/json" };
 		if (token) {
 			headers.Authorization = `Bearer ${token}`;
 		}
@@ -201,7 +201,7 @@ export function api_factory(
 			var response = await fetch_implementation(url, {
 				method: "POST",
 				body: JSON.stringify(body),
-				headers: {...headers, ...additional_headers},
+				headers: { ...headers, ...additional_headers }
 			});
 		} catch (e) {
 			return [{ error: BROKEN_CONNECTION_MSG }, 500];
@@ -777,13 +777,15 @@ export function api_factory(
 								fn_index,
 								time: new Date()
 							});
-							const origin = window.location.hostname.includes('.dev.')
-								? `https://moon-${window.location.hostname.split('.')[1]}.dev.spaces.huggingface.tech`
+							let hostname = window.location.hostname;
+							let hfhubdev = "dev.spaces.huggingface.tech";
+							const origin = hostname.includes(".dev.")
+								? `https://moon-${hostname.split(".")[1]}.${hfhubdev}`
 								: `https://huggingface.co`;
 							const zerogpu_auth_promise = dependency.zerogpu
 								? postMessage<Headers>("zerogpu-headers", origin)
 								: Promise.resolve(null);
-							zerogpu_auth_promise.then((zerogpu_headers) => {
+							const post_data_promise = zerogpu_auth_promise.then((headers) => {
 								return post_data(
 									`${config.root}/queue/join?${url_params}`,
 									{
@@ -791,9 +793,10 @@ export function api_factory(
 										session_hash
 									},
 									hf_token,
-									zerogpu_headers,
-								)
-							}).then(([response, status]) => {
+									headers
+								);
+							});
+							post_data_promise.then(([response, status]) => {
 								if (status === 503) {
 									fire_event({
 										type: "status",
