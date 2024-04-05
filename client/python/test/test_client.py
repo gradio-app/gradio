@@ -609,7 +609,7 @@ class TestClientPredictions:
         with connect(state_demo) as client:
             client.predict("Hello", api_name="/predict")
             client.reset_session()
-            time.sleep(10)
+            time.sleep(5)
         out = capsys.readouterr().out
         assert "STATE DELETED" in out
 
