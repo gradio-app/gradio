@@ -782,9 +782,10 @@ export function api_factory(
 							const origin = hostname.includes(".dev.")
 								? `https://moon-${hostname.split(".")[1]}.${hfhubdev}`
 								: `https://huggingface.co`;
-							const zerogpu_auth_promise = dependency.zerogpu
-								? postMessage<Headers>("zerogpu-headers", origin)
-								: Promise.resolve(null);
+							const zerogpu_auth_promise =
+								dependency.zerogpu && window.parent != window
+									? postMessage<Headers>("zerogpu-headers", origin)
+									: Promise.resolve(null);
 							const post_data_promise = zerogpu_auth_promise.then((headers) => {
 								return post_data(
 									`${config.root}/queue/join?${url_params}`,
