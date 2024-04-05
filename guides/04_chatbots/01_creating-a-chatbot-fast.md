@@ -73,7 +73,7 @@ gr.ChatInterface(alternatingly_agree).launch()
 
 ## Streaming chatbots
 
-If in your chat function, you use `yield` to generate a sequence of responses, you'll end up with a streaming chatbot. It's that simple!
+In your chat function, you can use `yield` to generate a sequence of partial responses, each replacing the previous ones. This way, you'll end up with a streaming chatbot. It's that simple!
 
 ```python
 import time
