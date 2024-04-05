@@ -306,16 +306,24 @@ def get_root_url(
     And if a relative `root_path` is provided, and it is not already the subpath of the URL, it is appended to the root url.
 
     In cases (2) and (3), We also check to see if the x-forwarded-proto header is present, and if so, convert the root url to https.
+    And if there are multiple hosts in the x-forwarded-host or multiple protocols in the x-forwarded-proto, the first one is used.
     """
+
+    def get_first_header_value(header_name: str):
+        header_value = request.headers.get(header_name)
+        if header_value:
+            return header_value.split(",")[0].strip()
+        return None
+
     if root_path and client_utils.is_http_url_like(root_path):
         return root_path.rstrip("/")
 
-    x_forwarded_host = request.headers.get("x-forwarded-host")
+    x_forwarded_host = get_first_header_value("x-forwarded-host")
     root_url = f"http://{x_forwarded_host}" if x_forwarded_host else str(request.url)
     root_url = httpx.URL(root_url)
     root_url = root_url.copy_with(query=None)
     root_url = str(root_url).rstrip("/")
-    if request.headers.get("x-forwarded-proto") == "https":
+    if get_first_header_value("x-forwarded-proto") == "https":
         root_url = root_url.replace("http://", "https://")
 
     route_path = route_path.rstrip("/")
