@@ -1,0 +1,427 @@
+# Wrapping Gradio Layouts
+
+Tags: API
+
+## Introduction
+
+Gradio features [blocks](https://www.gradio.app/docs/blocks) to easily layout applications. To use this feature, you have to nest the layout components under each other and build a hierarchy with them. This implementation isn't difficult to implement and maintain for small projects, but after the project gets complex, this component hierarchy becomes difficult to maintain and reusing layouts become difficult.
+
+In this guide, we are going to explore how we can wrap the layout classes to create more maintainable and easy to read applications without sacrificing flexibility.
+
+## Implementation
+
+- The wrapping utility has two important classes. First one is the ```LayoutBase``` class and the other one is ```Application``` class. Let's start with these classes' implementations first. Then we can look at how we can wrap the layouts from the gradio package with the ```LayoutBase``` class.
+- [x] As a note, this implementation is for demonstration purposes. The purpose here is to draw attention to the benefits gained by wrapping and provide a simple example to show how this can be implemented.
+
+### LayoutBase class
+
+- This class is going to be the base class for layout classes we are going to wrap. For example for ```gradio.layouts.Row``` layout, we are going to wrap it to ```RowLayout``` class and this class is going to inherit from the ```LayoutBase``` class.
+
+- ```LayoutBase``` class has four variables. Let's write them and the constructor:
+ 
+```python
+class LayoutBase:
+    main_layout: Block
+    name: str
+    global_children_dict: Dict[str, Block]
+    renderables: list
+
+    def __init__(self) -> None:
+        self.main_layout = None
+        self.name = "Layout Base"
+        self.global_children_dict = {}
+        self.renderables = []
+```
+
+- Here is the variables' definitions:
+
+|       Variable       |              Type              | Definition                                                                                                                                       |
+| :------------------: | :----------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------- |
+|     main_layout      |      gradio.blocks.Block       | Stores the main layout from the gradio package of this class. For example storing ```gradio.layouts.Row``` layout for the ```RowLayout``` class. |
+|         name         |              str               | Name of the class. Using to differentiate from other layouts and for debug purposes.                                                             |
+| global_children_dict | Dict[str, gradio.blocks.Block] | Stores the children components with given name.                                                                                                  |
+|     renderables      |              list              | Stores the renderable elements. Layout and components are not separated because the order is important.                                          |
+
+---------------------------------------------
+
+- Now let's write the ```add_component``` function:
+
+```python
+    # other LayoutBase implementations
+
+    def add_component(self, name: str, component: Block) -> None:
+        self.renderables.append(component)
+        self.global_children_dict[name] = component
+```
+
+- The ```component``` parameter can be Textbox, TextArea, any component from the gradio package.
+- If the ```Block``` component confuse you, the components and layouts in the gradio package are inherit from the ```gradio.blocks.Block``` class eventually. Actually, this function is similar to ```gradio.blocks.BlockContext.add``` function.
+- New component is added to ```renderables``` and ```global_children_dict``` variables. In the ```add_layout``` function, you will understand why there are two different variables for the children components.
+
+---------------------------------------------
+
+- Let's implement the ```add_layout``` function:
+
+```python
+    # other LayoutBase implementations
+
+    def add_layout(self, layout: LayoutBase) -> None:
+            self.renderables.append(layout)
+            self.global_children_dict.update(layout.global_children_dict)
+```
+
+- As you can see, ```global_children_dict``` variable is updating the dictionary with the added new layout's ```global_children_dict``` variable. With this functionality, the parent class includes all the components that children layouts have. You can see in the ```_attach_event``` function why this is important.
+
+---------------------------------------------
+
+- Now, let's implement the most important function of the class, the ```render``` function:
+
+```python
+    # other LayoutBase implementations
+
+    def render(self) -> None:
+        with self.main_layout:
+            for renderable in self.renderables:
+                renderable.render()
+
+        self.main_layout.render()
+```
+
+- ```with``` functionality in the ```gradio.blocks.Block``` is setting the ```Context.block``` which is used in the ```render``` function.
+- Actually, when rendering the ```renderables```, we are adding the components to ```main_layout```. When rendering the ```main_layout```, we are adding the ```main_layout``` to the component which is calling the ```render``` function with the ```with``` syntax.
+- This is a little confusing first but if you think with the default implementation you can understand it easily. Let's look an example:
+
+In the default implementation, we are doing this:
+
+```python
+with Row():
+    first_textbox = Textbox(value="first_textbox")
+    second_textbox = Textbox(value="second_textbox")
+```
+
+- Now let's pay attention to the textbox variables. These variables' render parameter is true by default. So as we use ```with``` syntax and create these variables, they are calling the render function under the ```with``` syntax. We know that from the constructor implementation of the ```gradio.blocks.Block``` class:
+
+```python
+# other assign functions 
+
+if render:
+    self.render()
+```
+
+- In the ```render``` function of the ```LayoutBase``` class, we are simulating it, actually. We are calling the render functions under the ```with``` syntax.
+- Now let's expand the above example to understand why we have to call the ```main_layout``` variable's render function:
+
+```python
+with Tab():
+    with Row():
+        first_textbox = Textbox(value="first_textbox")
+        second_textbox = Textbox(value="second_textbox")
+```
+
+- Pay attention to Row and Tab this time. We created the textbox variables above and add them to Row with ```with``` syntax. Now we need to add Row to Tab. You can see that Row is created with default parameters, so its render parameter is true, so the render function is going to be executed under the Tab's ```with``` syntax. As we know from the above example, it is going to be added in the Tab because the Tab is calling the render function under the ```with``` syntax.
+- To mimic this implementation we need to call the ```render``` function of the ```main_layout``` variable after the ```with``` syntax of the ```main_layout``` variable.
+
+- So the implementation is looked like this:
+
+```python
+with tab_main_layout:
+    with row_main_layout:
+        first_textbox.render()
+        second_textbox.render()
+
+    row_main_layout.render()
+
+tab_main_layout.render()
+```
+
+- The default and our implementations are same, but we are using the render function ourselves. So it is requiring a little work.
+
+---------------------------------------------
+
+- After we create the ```Application``` and render the components we can clear the components because the components is going to be live in the ```app``` variable which is the type of the ```gradio.block.Blocks``` class and in the ```Application``` class. You can check this with the ```app.blocks``` variable.
+- So let's implement our ```clear``` function:
+
+```python
+    # other LayoutBase implementations
+
+    def clear(self) -> None:
+        self.global_children_dict.clear()
+
+        for renderable in self.renderables:
+            if isinstance(renderable, LayoutBase):
+                renderable.clear()
+
+        self.renderables.clear()
+```
+
+- We choose the layouts from the renderables list variable and call the ```clear``` function of them. With this we can be sure that all the objects that stored are cleaned.
+
+---------------------------------------------
+
+- Now the last function we have to implement in the ```LayoutBase``` class is the ```attach_event``` function. The function is leaved as not implemented because it is more specific to class, so each class has to implement their ```attach_event``` function.
+
+```python
+    # other LayoutBase implementations
+
+    def attach_event(self, block_dict: Dict[str, Block]) -> None:
+        raise NotImplementedError
+```
+
+- You can see what is the ```block_dict``` variable in the ```_attach_event``` function which is implemented in the ```Application``` class.
+
+---------------------------------------------
+
+- With this function we finished implementing the ```LayoutBase``` class.
+- As for completeness, here is the full implementation:
+
+```python
+class LayoutBase:
+    main_layout: Block
+    name: str
+    global_children_dict: Dict[str, Block]
+    renderables: list
+
+    def __init__(self) -> None:
+        self.main_layout = None
+        self.name = "Layout Base"
+        self.global_children_dict = {}
+        self.renderables = []
+
+    def add_component(self, name: str, component: Block) -> None:
+        self.renderables.append(component)
+        self.global_children_dict[name] = component
+
+    def add_layout(self, layout: LayoutBase) -> None:
+        self.renderables.append(layout)
+        self.global_children_dict.update(layout.global_children_dict)
+
+    def render(self) -> None:
+        with self.main_layout:
+            for renderable in self.renderables:
+                renderable.render()
+
+        self.main_layout.render()
+
+    def clear(self) -> None:
+        self.global_children_dict.clear()
+
+        for renderable in self.renderables:
+            if isinstance(renderable, LayoutBase):
+                renderable.clear()
+
+        self.renderables.clear()
+
+    def attach_event(self, block_dict: Dict[str, Block]) -> None:
+        raise NotImplementedError
+```
+
+### Application Class
+
+- Now we are going to implement the ```Application``` class which is responsible for giving the global components to children layouts for the ```attach_event``` function, render the components and launch the application.
+
+- Let's start the implementation with the constructor and variable definitions:
+
+```python
+class Application:
+    app: Blocks
+    children: list[LayoutBase]
+
+    # Blocks constructor parameters are omitted for brevity
+    def __init__(self) -> None:
+        self.app = Blocks()
+
+        self.children = []
+```
+
+- Here is the variables' definitions:
+
+| Variable |       Type       | Definition                                          |
+| :------: | :--------------: | :-------------------------------------------------- |
+|   app    |  gradio.Blocks   | Base application component from the gradio package. |
+| children | list[LayoutBase] | Stores the layouts                                  |
+
+---------------------------------------------
+
+- Let's implement the ```add``` function:
+
+```python
+    # other Application implementations
+
+    def add(self, child: LayoutBase):
+        self.children.append(child)
+```
+
+- It has a straight forward implementation. We are just adding the given layout to children variable.
+
+---------------------------------------------
+
+- Now let's implement the ```_render``` function which is important for structure the application:
+
+```python
+    # other Application implementations
+
+    def _render(self):
+        with self.app:
+            for child in self.children:
+                child.render()
+
+        self.app.render()
+```
+
+- This ```_render``` function is implemented as same as the ```render``` function.
+- From the explanation from the ```LayoutBase``` class's ```render``` function, we can understand the ```child.render``` part.
+- So let's look at the below part, why we are calling the ```app```'s ```render``` function? We are calling this render function because if we look at the implementation of this function in the ```gradio.blocks.Blocks``` class, it is adding the components and event functions into the root component. With another saying it is creating the gradio application. So it is important to call this function.
+
+---------------------------------------------
+
+- Let's see how we can attach events to components with new classes that we are implemented:
+
+```python
+    # other Application implementations
+
+    def _attach_event(self):
+    block_dict: Dict[str, Block] = {}
+
+    for child in self.children:
+        block_dict.update(child.global_children_dict)
+
+    with self.app:
+        for child in self.children:
+            try:
+                child.attach_event(block_dict=block_dict)
+            except NotImplementedError:
+                print(f"{child.name}'s attach_event is not implemented")
+
+```
+
+- You can see why the ```global_children_list``` is used in the ```LayoutBase``` class. With this, all the components in the application is gathered into one dictionary, so the component can access all the components with names which is used to insert into dictionary.
+- If the layout is not implement the ```attach_event``` function, the class prints a message with the name which is assigned in the class to inform the developer.
+- The ```with``` syntax is used here again because we need the ```Context.block``` variable to be assigned to attach events to components.
+
+---------------------------------------------
+
+- We render components and attach events to them. As we did these functions our events stored in ```app.fns``` variable and our components are stored in ```app.blocks``` variable, so we don't need them anymore. We can clear them with ```_clear``` function:
+
+```python
+    def _clear(self):
+        from gc import collect
+
+        for child in self.children:
+            child.clear()
+
+        self.children.clear()
+
+        collect()
+```
+
+- We call all the children with their ```clear``` function then clear the ```children``` variable. Then call ```gc.collect``` for memory saving.
+
+---------------------------------------------
+
+- At this point, the application setup is finished. In the ```launch``` function, we can call these functions and launch the application:
+
+```python
+    # other Application implementations
+
+    # launch function parameters are omitted for the brevity
+    def launch(self) -> tuple[FastAPI, str, str]:
+        self._render()
+        self._attach_event()
+        self._clear()
+
+        return self.app.launch()
+```
+
+---------------------------------------------
+
+- With this function we finished implementing the ```Application``` class.
+- As for completeness, here is the full implementation:
+
+```python
+class Application:
+    app: Blocks
+    children: list[LayoutBase]
+
+    # Blocks constructor parameters are omitted for brevity
+    def __init__(self) -> None:
+        self.app = Blocks()
+        self.children = []
+
+    def add(self, child: LayoutBase):
+        self.children.append(child)
+
+    def _render(self):
+        with self.app:
+            for child in self.children:
+                child.render()
+
+        self.app.render()
+
+    def _attach_event(self):
+        block_dict: Dict[str, Block] = {}
+
+        for child in self.children:
+            block_dict.update(child.global_children_dict)
+
+        with self.app:
+            for child in self.children:
+                try:
+                    child.attach_event(block_dict=block_dict)
+                except NotImplementedError:
+                    print(f"{child.name}'s attach_event is not implemented")
+
+    def _clear(self):
+        from gc import collect
+
+        for child in self.children:
+            child.clear()
+
+        self.children.clear()
+
+        collect()
+
+    # launch function parameters are omitted for the brevity
+    def launch(self) -> tuple[FastAPI, str, str]:
+        self._render()
+        self._attach_event()
+        self._clear()
+
+        return self.app.launch()
+```
+
+### Wrapped Layouts
+
+- As we implemented the main classes, we can implement the wrap layout classes that. The implementations are straight forward:
+
+```python
+# the parameters for the layouts are omitted for the brevity
+
+class RowLayout(LayoutBase):
+    def __init__(self, name: str) -> None:
+        super().__init__()
+
+        self.main_layout = Row()
+
+        self.global_children_dict[name] = self.main_layout
+
+
+class ColumnLayout(LayoutBase):
+    def __init__(self, name: str) -> None:
+        super().__init__()
+
+        self.main_layout = Column()
+
+        self.global_children_dict[name] = self.main_layout
+
+
+class TabLayout(LayoutBase):
+    def __init__(self, name: str) -> None:
+        super().__init__()
+
+        self.main_layout = Tab(label=name)
+
+        self.global_children_dict[name] = self.main_layout
+```
+
+- We are adding the ```main_layout``` variables to ```global_children_dict``` because we may want to reach them in the ```attach_event``` functions.
+- We are not using the ```add_component``` function because we don't want them to be rendered in the ```render``` function, we are handling it already.
