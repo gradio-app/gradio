@@ -9,6 +9,7 @@
 "@gradio/uploadbutton": minor
 "@gradio/video": minor
 "gradio": minor
+"gradio_client": minor
 ---
 
 feat:Add max_file_size parameter to components that accept file uploads
