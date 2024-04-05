@@ -2480,6 +2480,7 @@ Received outputs:
             self._queue.close()
             # set this before closing server to shut down heartbeats
             self.is_running = False
+            self.app.stop_event.set()
             if self.server:
                 self.server.close()
             # So that the startup events (starting the queue)

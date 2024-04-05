@@ -156,6 +156,7 @@ class App(FastAPI):
         self.iterators: dict[str, AsyncIterator] = {}
         self.iterators_to_reset: set[str] = set()
         self.lock = utils.safe_get_lock()
+        self.stop_event = utils.safe_get_stop_event()
         self.cookie_id = secrets.token_urlsafe(32)
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
@@ -606,8 +607,7 @@ class App(FastAPI):
                 return "wait"
 
             async def stop_stream():
-                while app.get_blocks().is_running:
-                    await asyncio.sleep(0.25)
+                await app.stop_event.wait()
                 return "stop"
 
             async def iterator():

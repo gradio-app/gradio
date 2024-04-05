@@ -29,6 +29,6 @@ test("when a user closes the page, the unload event should be triggered", async 
 	expect(data).toContain("incremented 1");
 	expect(data).toContain("incremented 2");
 	expect(data).toContain("incremented 3");
-	expect(data).toContain("deleted 4");
 	expect(data).toContain("unloading");
+	expect(data).toContain("deleted 4");
 });
