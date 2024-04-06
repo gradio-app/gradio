@@ -1,4 +1,4 @@
-# Wrapping Gradio Layouts
+# Wrapping Layouts
 
 Tags: API
 
@@ -15,8 +15,8 @@ In this guide, we are going to explore how we can wrap the layout classes to cre
 
 ### LayoutBase class
 
-- This class is going to be the base class for the layout classes we are going to wrap. For example for ```gradio.layouts.Row``` layout, we are going to wrap it to the `RowLayout` class and this class is going to inherit from the ```LayoutBase``` class.
-- The `LayoutBase` class has four variables. Let's write them and the constructor:
+- This class is going to be the base class for the layout classes we are going to wrap. For example; for ```gradio.layouts.Row``` layout, we are going to wrap it with the `RowLayout` class and this class is inherited from the ```LayoutBase``` class.
+- The `LayoutBase` class has four variables. Let's write them and the implementation of the constructor:
  
 ```python
 class LayoutBase:
@@ -34,12 +34,12 @@ class LayoutBase:
 
 - Here are the variables' definitions:
 
-|       Variable       |              Type              | Definition                                                                                                                                       |
-| :------------------: | :----------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------- |
-|     main_layout      |      gradio.blocks.Block       | Stores the main layout from the gradio package of this class. For example storing ```gradio.layouts.Row``` layout for the ```RowLayout``` class. |
-|         name         |              str               | Name of the class. Using to differentiate from other layouts and for debug purposes.                                                             |
-| global_children_dict | Dict[str, gradio.blocks.Block] | Stores the children components with given name.                                                                                                  |
-|     renderables      |              list              | Stores the renderable elements. Layout and components are not separated because the order is important.                                          |
+|       Variable       |              Type              | Definition                                                                                                                                        |
+| :------------------: | :----------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------ |
+|     main_layout      |      gradio.blocks.Block       | Stores the main layout from the gradio package of this class. For example, storing ```gradio.layouts.Row``` layout for the ```RowLayout``` class. |
+|         name         |              str               | Name of the class. Using to differentiate from other layouts and for debug purposes.                                                              |
+| global_children_dict | Dict[str, gradio.blocks.Block] | Stores the children components with given name.                                                                                                   |
+|     renderables      |              list              | Stores the renderable elements. Layout and components are not separated because the order is important.                                           |
 
 ---------------------------------------------
 
@@ -65,8 +65,8 @@ class LayoutBase:
     # other LayoutBase implementations
 
     def add_layout(self, layout: LayoutBase) -> None:
-            self.renderables.append(layout)
-            self.global_children_dict.update(layout.global_children_dict)
+        self.renderables.append(layout)
+        self.global_children_dict.update(layout.global_children_dict)
 ```
 
 - As you can see, the ```global_children_dict``` variable is updating the dictionary with the added new layout's ```global_children_dict``` variable. With this functionality, the parent class includes all the components that children layouts have. You can see in the ```_attach_event``` function why this is important.
@@ -137,7 +137,7 @@ tab_main_layout.render()
 
 ---------------------------------------------
 
-- After we create the ```Application``` and render the components we can clear the components because the components are going to be live in the ```app``` variable which is the type of the ```gradio.block.Blocks``` class and in the ```Application``` class. You can check this with the ```app.blocks``` variable.
+- After we create the ```Application``` and render the components we can clear the components because the components are going to be live in the ```app``` variable which is the type of the ```gradio.block.Blocks``` class and can be found in the ```Application``` class. You can check this with the ```app.blocks``` variable.
 - So let's implement our ```clear``` function:
 
 ```python
@@ -167,6 +167,9 @@ tab_main_layout.render()
 ```
 
 - You can see what is the ```block_dict``` variable in the ```_attach_event``` function which is implemented in the ```Application``` class.
+
+---------------------------------------------
+
 - With this function, we finished implementing the ```LayoutBase``` class.
 - As for completeness, here is the full implementation:
 
@@ -266,7 +269,7 @@ class Application:
 
 - This ```_render``` function is implemented as same as the ```render``` function.
 - From the explanation of the ```LayoutBase``` class's ```render``` function, we can understand the ```child.render``` part.
-- So let's look at the below part, why we are calling the ```app```'s ```render``` function? We are calling this render function because if we look at the implementation of this function in the ```gradio.blocks.Blocks``` class, it is adding the components and event functions into the root component. With another saying it is creating the gradio application. So it is important to call this function.
+- So let's look at the below part, why we are calling the ```app``` variable's ```render``` function? We are calling this render function because if we look at the implementation of this function in the ```gradio.blocks.Blocks``` class, it is adding the components and event functions into the root component. With another saying, it is creating and structuring the gradio application. So it is important to call this function.
 
 ---------------------------------------------
 
@@ -291,11 +294,11 @@ class Application:
 
 - You can see why the ```global_children_list``` is used in the ```LayoutBase``` class. With this, all the components in the application are gathered into one dictionary, so the component can access all the components with names that are used to insert into the dictionary variable.
 - If the layout does not implement the ```attach_event``` function, the class prints a message with the name that is assigned in the class to inform the developer.
-- ```with``` syntax is used here again because we need the ```Context.block``` variable to be assigned to attach events to components.
+- ```with``` syntax is used here again because we need the ```Context.root_block``` variable to be assigned to attach events to components.
 
 ---------------------------------------------
 
-- We render components and attach events to them. As we did these functions our events are stored in the ```app.fns``` variable and our components are stored in ```app.blocks``` variable, so we don't need them anymore. We can clear them with ```_clear``` function:
+- We render components and attach events to them. As we call these functions, our events are stored in the ```app.fns``` variable and our components are stored in ```app.blocks``` variable, so we don't need them anymore. We can clear them in the ```_clear``` function:
 
 ```python
     def _clear(self):
@@ -386,7 +389,7 @@ class Application:
 
 ### Wrapped Layouts
 
-- As we implemented the main classes, we can implement the wrap layout classes. The implementations are straightforward:
+- We implemented the main classes so now we can implement the wrap layout classes. The implementations are straightforward:
 
 ```python
 # the parameters for the layouts are omitted for the brevity
@@ -455,6 +458,7 @@ class RowExample(RowLayout):
         )
 ```
 - As you can see from the constructor of the ```RowExample``` class, we added the ```render=False``` argument when creating the Textbox variable. This is an important parameter to add because we are calling the render function ourselves, so we don't want it to be called in the constructor of the component.
+- [x] As a note; even if you don't assign False to the render variable, the program works and is structured correctly but it is a good practice I think.
 
 ### FirstTab class
 
@@ -481,8 +485,8 @@ class SecondTab(TabLayout):
 
         self.column = ColumnLayout(name="second tab column layout")
 
-        self.top_textbox = Textbox(value="Top Textbox", interactive=True)
-        self.bottom_textbox = Textbox(value="Bottom Textbox")
+        self.top_textbox = Textbox(value="Top Textbox", interactive=True, render=False)
+        self.bottom_textbox = Textbox(value="Bottom Textbox", render=False)
 
         self.column.add_component("top_textbox", self.top_textbox)
         self.column.add_component("bottom_textbox", self.bottom_textbox)
@@ -515,4 +519,4 @@ if __name__ == "__main__":
 ```
 
 - Main function is straightforward. We create our application first. Then we create our tab variables and add them to the application with the ```add``` function. At last, we launch the application.
--  In the example, when changing the ```Left Textbox``` component's text value, the ```Right Textbox``` and ```Bottom Textbox``` components' values are changing according to the ```Left Textbox```'s text value.
+-  In the example, when changing the ```Left Textbox``` component's text value, the ```Right Textbox``` and ```Bottom Textbox``` components' values have to change their values according to the ```Left Textbox```'s text value.
