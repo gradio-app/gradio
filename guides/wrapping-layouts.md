@@ -10,13 +10,13 @@ In this guide, we are going to explore how we can wrap the layout classes to cre
 
 ## Implementation
 
-- The wrapping utility has two important classes. The first one is the ```LayoutBase``` class and the other one is ```Application``` class. Let's start with these classes' implementations first. Then we can look at how we can wrap the layouts from the gradio package with the ```LayoutBase``` class.
+- The wrapping utility has two important classes. The first one is the ```LayoutBase``` class and the other one is the ```Application``` class. Let's start with these classes' implementations first. Then we can look at how we can wrap the layouts from the gradio package with the ```LayoutBase``` class.
 - [x] As a note, this implementation is for demonstration purposes. The purpose here is to draw attention to the benefits gained by wrapping and provide a simple example to show how this can be implemented.
 
 ### LayoutBase class
 
-- This class is going to be the base class for the layout classes we are going to wrap. For example for ```gradio.layouts.Row``` layout, we are going to wrap it to ```RowLayout``` class and this class is going to inherit from the ```LayoutBase``` class.
-- ```LayoutBase``` class has four variables. Let's write them and the constructor:
+- This class is going to be the base class for the layout classes we are going to wrap. For example for ```gradio.layouts.Row``` layout, we are going to wrap it to the `RowLayout` class and this class is going to inherit from the ```LayoutBase``` class.
+- The `LayoutBase` class has four variables. Let's write them and the constructor:
  
 ```python
 class LayoutBase:
@@ -69,7 +69,7 @@ class LayoutBase:
             self.global_children_dict.update(layout.global_children_dict)
 ```
 
-- As you can see, ```global_children_dict``` variable is updating the dictionary with the added new layout's ```global_children_dict``` variable. With this functionality, the parent class includes all the components that children layouts have. You can see in the ```_attach_event``` function why this is important.
+- As you can see, the ```global_children_dict``` variable is updating the dictionary with the added new layout's ```global_children_dict``` variable. With this functionality, the parent class includes all the components that children layouts have. You can see in the ```_attach_event``` function why this is important.
 
 ---------------------------------------------
 
@@ -117,7 +117,7 @@ with Tab():
         second_textbox = Textbox(value="second_textbox")
 ```
 
-- Pay attention to Row and Tab this time. We created the textbox variables above and added them to Row with ```with``` syntax. Now we need to add Row to Tab. You can see that Row is created with default parameters, so its render parameter is true, so the render function is going to be executed under the Tab's ```with``` syntax. As we know from the above example, it is going to be added in the Tab because the Tab is calling the render function under the ```with``` syntax.
+- Pay attention to the Row and Tab this time. We created the textbox variables above and added them to Row with ```with``` syntax. Now we need to add the Row to the Tab. You can see that Row is created with default parameters, so its render parameter is true, so the render function is going to be executed under the Tabs ```with``` syntax. As we know from the above example, it is going to be added in the Tab because the Tab is calling the render function under the ```with``` syntax.
 - To mimic this implementation we need to call the ```render``` function of the ```main_layout``` variable after the ```with``` syntax of the ```main_layout``` variable.
 
 - So the implementation looks like this:
@@ -247,7 +247,7 @@ class Application:
         self.children.append(child)
 ```
 
-- It has a straightforward implementation. We are just adding the given layout to children variable.
+- It has a straightforward implementation. We are just adding the given layout to the children variable.
 
 ---------------------------------------------
 
@@ -295,7 +295,7 @@ class Application:
 
 ---------------------------------------------
 
-- We render components and attach events to them. As we did these functions our events are stored in ```app.fns``` variable and our components are stored in ```app.blocks``` variable, so we don't need them anymore. We can clear them with ```_clear``` function:
+- We render components and attach events to them. As we did these functions our events are stored in the ```app.fns``` variable and our components are stored in ```app.blocks``` variable, so we don't need them anymore. We can clear them with ```_clear``` function:
 
 ```python
     def _clear(self):
@@ -432,6 +432,9 @@ class TabLayout(LayoutBase):
 ### RowExample class
 
 ```python
+def change_text(new_str: str):
+    return Textbox(value=new_str)
+
 class RowExample(RowLayout):
     def __init__(self, name: str) -> None:
         super().__init__(name=name)
@@ -451,4 +454,65 @@ class RowExample(RowLayout):
             outputs=self.right_textbox,
         )
 ```
-- As you can see from the constructor of the ```RowExample``` class, we added ```render=False``` argument when creating the Textbox variable. This is an important parameter to add because we are calling the render function ourselves, so we don't want it to be called in the constructor of the component.
+- As you can see from the constructor of the ```RowExample``` class, we added the ```render=False``` argument when creating the Textbox variable. This is an important parameter to add because we are calling the render function ourselves, so we don't want it to be called in the constructor of the component.
+
+### FirstTab class
+
+```python
+class FirstTab(TabLayout):
+    def __init__(self, name: str) -> None:
+        super().__init__(name)
+
+        self.row = RowExample(name="first tab row layout")
+
+        self.add_layout(self.row)
+
+    def attach_event(self, block_dict: Dict[str, Block]) -> None:
+        self.row.attach_event(block_dict)
+```
+- Here you can see that the parent class is calling the children layout's ```attach_event``` function in its ```attach_event``` function. This has to be done if the parent class has children layouts otherwise the children ```attach_event``` functions are not called.
+
+### SecondTab class
+
+```python
+class SecondTab(TabLayout):
+    def __init__(self, name: str) -> None:
+        super().__init__(name)
+
+        self.column = ColumnLayout(name="second tab column layout")
+
+        self.top_textbox = Textbox(value="Top Textbox", interactive=True)
+        self.bottom_textbox = Textbox(value="Bottom Textbox")
+
+        self.column.add_component("top_textbox", self.top_textbox)
+        self.column.add_component("bottom_textbox", self.bottom_textbox)
+
+        self.add_layout(self.column)
+
+    def attach_event(self, block_dict: Dict[str, Block]) -> None:
+        block_dict["left_textbox"].change(
+            change_text,
+            inputs=block_dict["left_textbox"],
+            outputs=self.bottom_textbox,
+        )
+```
+- We can see that we can use the wrapped layout classes without defining another class. We can use them as they are.
+- In the ```attach_event``` function, we can get the row's first textbox component with the name string. With this functionality, we don't have to deal with giving the required components to the ```attach_event``` function problem.
+
+### Main function
+
+```python
+if __name__ == "__main__":
+    gui = Application(title="Wrap Gradio")
+
+    first_tab = FirstTab(name="First Tab")
+    second_tab = SecondTab(name="Second Tab")
+
+    gui.add(first_tab)
+    gui.add(second_tab)
+
+    gui.launch()
+```
+
+- Main function is straightforward. We create our application first. Then we create our tab variables and add them to the application with the ```add``` function. At last, we launch the application.
+-  In the example, when changing the ```Left Textbox``` component's text value, the ```Right Textbox``` and ```Bottom Textbox``` components' values are changing according to the ```Left Textbox```'s text value.
