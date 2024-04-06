@@ -10,7 +10,7 @@ In this guide, we are going to explore how we can wrap the layout classes to cre
 
 ## Implementation
 
-- The wrapping utility has two important classes. The first one is the ```LayoutBase``` class and the other one is the ```Application``` class. Let's start with these classes' implementations first. Then we can look at how we can wrap the layouts from the gradio package with the ```LayoutBase``` class.
+- The wrapping utility has two important classes. The first one is the ```LayoutBase``` class and the other one is the ```Application``` class. Let's start with these classes' implementations first. Then we look at how we can wrap the layouts from the gradio package with the ```LayoutBase``` class.
 
 ### LayoutBase Class
 
@@ -53,7 +53,7 @@ class LayoutBase:
 ```
 
 - The ```component``` parameter can be Textbox, TextArea, or any component from the gradio package.
-- If the `Block` class confuses you, the components and layouts in the gradio package are inherited from the ```gradio.blocks.Block``` class eventually. This function is similar to ```gradio.blocks.BlockContext.add``` function which is used to add components to a list variable.
+- If the `Block` class confused you, the components and layouts in the gradio package are inherited from the ```gradio.blocks.Block``` class eventually. This function is similar to ```gradio.blocks.BlockContext.add``` function which is used to add components to a list variable.
 - The new component is added to ```renderables``` and ```global_children_dict``` variables. In the ```add_layout``` function, you will see why there are two different variables for the children components.
 
 ---------------------------------------------
@@ -86,7 +86,7 @@ class LayoutBase:
 ```
 
 - When rendering the ```renderables```, we are adding the components to ```main_layout```. 
-- When rendering the ```main_layout```, we are adding the ```main_layout``` to the component which is calling the ```render``` function with the ```with``` syntax.
+- When rendering the ```main_layout```, we are adding the ```main_layout``` to the component which is calling the ```render``` function under the ```with``` syntax.
 - This is a little confusing at first but if you think with the default implementation you can understand it easily. Let's look at an example:
 
 In the default implementation, we are doing this:
@@ -97,7 +97,7 @@ with Row():
     second_textbox = Textbox(value="second_textbox")
 ```
 
-- Now let's pay attention to the textbox variables. These variables' render parameter is true by default. So as we use ```with``` syntax and create these variables, they are calling the render function under the ```with``` syntax. We know that from the constructor implementation of the ```gradio.blocks.Block``` class:
+- Now let's pay attention to the textbox variables. These variables' render parameter is true by default. So as we use ```with``` syntax and create these variables, they are calling the render function under the ```with``` syntax. We know the render function is called, from the constructor implementation of the ```gradio.blocks.Block``` class:
 
 ```python
 # other assign functions 
@@ -132,11 +132,11 @@ with tab_main_layout:
 tab_main_layout.render()
 ```
 
-- The default and our implementations are the same, but we are using the render function ourselves. So it requires a little work.
+- The default implementation and our implementation are the same, but we are using the render function ourselves. So it requires a little work.
 
 ---------------------------------------------
 
-- After we create the ```Application``` and render the components, we can clear the components because the components are going to be live in the ```app``` variable which is the type of the ```gradio.block.Blocks``` class and can be found in the ```Application``` class. You can check this with the ```app.blocks``` variable.
+- After we create the ```Application``` and render the components, we can clear the components because the components are going to be live in the ```app``` variable which is a variable of the ```Application``` class. You can check this with the ```app.blocks``` variable.
 - So let's implement the ```clear``` function:
 
 ```python
@@ -156,7 +156,7 @@ tab_main_layout.render()
 
 ---------------------------------------------
 
-- Now the last function we have to implement in the ```LayoutBase``` class is the ```attach_event``` function. The function is left as not implemented because it is more specific to the class, so each class has to implement its `attach_event` function.
+- Now the last function we have to implement in the ```LayoutBase``` class is the ```attach_event``` function. The function is left as not implemented because it is specific to the class, so each class has to implement its `attach_event` function.
 
 ```python
     # other LayoutBase implementations
@@ -170,7 +170,7 @@ tab_main_layout.render()
 ---------------------------------------------
 
 - With this function, we finished implementing the ```LayoutBase``` class.
-- As for completeness, here is the full implementation:
+- For completeness, here is the full implementation:
 
 ```python
 class LayoutBase:
@@ -332,7 +332,7 @@ class Application:
 ---------------------------------------------
 
 - With this function, we finished implementing the ```Application``` class.
-- As for completeness, here is the full implementation:
+- For completeness, here is the full implementation:
 
 ```python
 class Application:
@@ -388,7 +388,7 @@ class Application:
 
 ### Wrapped Layout Classes
 
-- We have implemented the main classes so now we can implement the wrap layout classes. The implementations are straightforward:
+- We have implemented the main classes, now we can implement the wrap layout classes. The implementations are straightforward:
 
 ```python
 # the parameters for the layouts are omitted for the brevity
@@ -430,6 +430,10 @@ class TabLayout(LayoutBase):
 - Row and column layouts are going to have two textboxes each.
 - Row's and column's second textboxes are going to be attached to the row's first textbox's value.
 - Let's start to write the example!
+
+<iframe
+	src="https://huggingface.co/spaces/WoWoWoWololo/wrapping-layouts"
+></iframe>
 
 ### RowExample Class
 
