@@ -519,3 +519,13 @@ if __name__ == "__main__":
 
 - Main function is straightforward. We create our application first. Then we create our tab variables and add them to the application with the ```add``` function. At last, we launch the application.
 -  In the example, when changing the ```Left Textbox``` component's text value, the ```Right Textbox``` and ```Bottom Textbox``` components' values are changing their values according to the ```Left Textbox```'s text value.
+
+## Conclusion
+- At the end of this guide, we have learned
+    - How we can wrap the layouts
+    - How rendering works with the ```with``` syntax
+    - How we can attach events to the component
+    - How to structure our application with wrapped layout classes
+  
+- Of course, this is not the end. There are more to do such as optimizations, and new functionalities. But this is the subject for another guide.
+- I hope this guide helps you to gain another view to look at the layout classes and gives you an idea about how you can use them for your needs.
