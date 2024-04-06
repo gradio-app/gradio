@@ -16,7 +16,6 @@ In this guide, we are going to explore how we can wrap the layout classes to cre
 ### LayoutBase class
 
 - This class is going to be the base class for the layout classes we are going to wrap. For example for ```gradio.layouts.Row``` layout, we are going to wrap it to ```RowLayout``` class and this class is going to inherit from the ```LayoutBase``` class.
-
 - ```LayoutBase``` class has four variables. Let's write them and the constructor:
  
 ```python
@@ -154,7 +153,7 @@ tab_main_layout.render()
         self.renderables.clear()
 ```
 
-- We choose the layouts from the renderables list variable and call the ```clear``` function of them. With this, we can be sure that all the objects that stored are cleaned.
+- We choose the layouts from the renderables list variable and call the ```clear``` function of them. With this, we can be sure that all the objects that are stored are cleaned.
 
 ---------------------------------------------
 
@@ -330,7 +329,7 @@ class Application:
 
 ---------------------------------------------
 
-- With this function we finished implementing the ```Application``` class.
+- With this function, we finished implementing the ```Application``` class.
 - As for completeness, here is the full implementation:
 
 ```python
@@ -387,7 +386,7 @@ class Application:
 
 ### Wrapped Layouts
 
-- As we implemented the main classes, we can implement the wrap layout classes that. The implementations are straight forward:
+- As we implemented the main classes, we can implement the wrap layout classes. The implementations are straightforward:
 
 ```python
 # the parameters for the layouts are omitted for the brevity
@@ -424,10 +423,10 @@ class TabLayout(LayoutBase):
 
 ## Example
 
-- Let's write a simple example to look how we can use the classes that we have created.
+- Let's write a simple example to show how we can use the classes that we have created.
 - In this example, we are going to use two tabs, one row and one column layouts.
 - Row and column layouts are going to have two textboxes.
-- Row's and column's second textboxes are going to be attached to row's first textbox's value.
+- Row's and column's second textboxes are going to be attached to the row's first textbox's value.
 - Let's start to write the example!
 
 ### RowExample class
