@@ -4,7 +4,7 @@ Tags: LAYOUTS
 
 ## Introduction
 
-Gradio features [blocks](https://www.gradio.app/docs/blocks) to easily layout applications. To use this feature, you have to nest the layout components under each other and build a hierarchy with them. This implementation isn't difficult to implement and maintain for small projects, but after the project gets complex, this component hierarchy becomes difficult to maintain and reusing layouts becomes difficult.
+Gradio features [blocks](https://www.gradio.app/docs/blocks) to easily layout applications. To use this feature, you need to stack or nest layout components and create a hierarchy with them. This implementation isn't difficult to implement and maintain for small projects, but after the project gets complex, this component hierarchy becomes difficult to maintain and reusing layouts becomes difficult.
 
 In this guide, we are going to explore how we can wrap the layout classes to create more maintainable and easy-to-read applications without sacrificing flexibility.
 
