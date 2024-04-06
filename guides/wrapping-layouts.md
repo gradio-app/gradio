@@ -100,10 +100,13 @@ with Row():
 - Now let's pay attention to the textbox variables. These variables' render parameter is true by default. So as we use ```with``` syntax and create these variables, they are calling the render function under the ```with``` syntax. We know the render function is called, from the constructor implementation of the ```gradio.blocks.Block``` class:
 
 ```python
-# other assign functions 
+class Block:
+    # constructor parameters are omitted for brevity
+    def __init__(self, ...):
+        # other assign functions 
 
-if render:
-    self.render()
+        if render:
+            self.render()
 ```
 
 - In the ```render``` function of the ```LayoutBase``` class, we are simulating it. We are calling the render functions under the ```with``` syntax.
@@ -266,7 +269,6 @@ class Application:
         self.app.render()
 ```
 
-- This ```_render``` function is implemented as same as the ```render``` function.
 - From the explanation of the ```LayoutBase``` class's ```render``` function, we can understand the ```child.render``` part.
 - So let's look at the below part, why we are calling the ```app``` variable's ```render``` function? We are calling this render function because if we look at the implementation of this function in the ```gradio.blocks.Blocks``` class, we can see that it is adding the components and event functions into the root component. With another saying, it is creating and structuring the gradio application. So it is important to call this function.
 
@@ -429,11 +431,13 @@ class TabLayout(LayoutBase):
 - In this example, we are going to use two tabs, one row and one column layouts.
 - Row and column layouts are going to have two textboxes each.
 - Row's and column's second textboxes are going to be attached to the row's first textbox's value.
-- Let's start to write the example!
+- Here is the example we are going to write:
 
 <iframe
 	src="https://huggingface.co/spaces/WoWoWoWololo/wrapping-layouts"
 ></iframe>
+
+- Let's start to write the example!
 
 ### RowExample Class
 
@@ -477,7 +481,7 @@ class FirstTab(TabLayout):
     def attach_event(self, block_dict: Dict[str, Block]) -> None:
         self.row.attach_event(block_dict)
 ```
-- Here you can see that the parent class is calling the children layout's ```attach_event``` function in its ```attach_event``` function. This has to be done if the parent class has children layouts otherwise the children's ```attach_event``` functions are not called.
+- Here you can see that the parent class is calling the child layout's ```attach_event``` function in its ```attach_event``` function. This has to be done if the parent class has children layouts otherwise the children's ```attach_event``` functions are not called.
 
 ### SecondTab Class
 
@@ -525,11 +529,10 @@ if __name__ == "__main__":
 -  In the example, when changing the ```Left Textbox``` component's text value, the ```Right Textbox``` and ```Bottom Textbox``` components' values are changing their values according to the ```Left Textbox```'s text value.
 
 ## Conclusion
-- At the end of this guide, we have learned
+- In this guide, we have learned
     - How we can wrap the layouts
-    - How rendering works with the ```with``` syntax
-    - How we can attach events to the component
-    - How to structure our application with wrapped layout classes
-  
-- Of course, this is not the end. There are more to do such as optimizations, and new functionalities. But this is the subject for another guide.
+    - How components are rendered
+    - How we can structure our application with wrapped layout classes
+
+- Because the classes used in this guide are used for demonstration purposes, they may lack optimizations or useful functionality. But this is the subject of another guide.
 - I hope this guide helps you to gain another view to look at the layout classes and gives you an idea about how you can use them for your needs.
