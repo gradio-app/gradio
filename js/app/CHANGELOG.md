@@ -1,5 +1,67 @@
 # @gradio/app
 
+## 1.31.0
+
+### Features
+
+- [#7811](https://github.com/gradio-app/gradio/pull/7811) [`b43055b`](https://github.com/gradio-app/gradio/commit/b43055b297dfe1aa56fda4cd722d878f7297a1b5) - Lite playground design changes.  Thanks @aliabd!
+- [#7850](https://github.com/gradio-app/gradio/pull/7850) [`2bae1cf`](https://github.com/gradio-app/gradio/commit/2bae1cfbd41ed8ae3eea031a64899611a22a1821) - Adds an "API Recorder" to the view API page, some internal methods have been made async.  Thanks @abidlabs!
+
+### Fixes
+
+- [#7963](https://github.com/gradio-app/gradio/pull/7963) [`1eb4c20`](https://github.com/gradio-app/gradio/commit/1eb4c2012065c678d722477f3555ec45a9e78c14) - ensure kwargs are always in sync across the whole application.  Thanks @pngwn!
+- [#7916](https://github.com/gradio-app/gradio/pull/7916) [`7c9a964`](https://github.com/gradio-app/gradio/commit/7c9a964ac6b9c2231c7439758e87b4fac56db99f) - Fix programmatic tab selection.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/atoms@0.6.2
+- @gradio/statustracker@0.4.11
+- @gradio/code@0.5.11
+- @gradio/upload@0.8.4
+- @gradio/tabs@0.2.5
+- @gradio/image@0.9.11
+- @gradio/markdown@0.6.9
+- @gradio/theme@0.2.1
+- @gradio/dropdown@0.6.6
+- @gradio/imageeditor@0.4.11
+- @gradio/checkboxgroup@0.4.8
+- @gradio/client@0.15.1
+- @gradio/chatbot@0.8.2
+- @gradio/gallery@0.8.7
+- @gradio/multimodaltextbox@0.2.4
+- @gradio/video@0.6.11
+- @gradio/dataframe@0.6.12
+- @gradio/highlightedtext@0.4.14
+- @gradio/plot@0.3.6
+- @gradio/annotatedimage@0.5.11
+- @gradio/audio@0.9.11
+- @gradio/button@0.2.30
+- @gradio/dataset@0.1.30
+- @gradio/downloadbutton@0.1.7
+- @gradio/file@0.5.11
+- @gradio/fileexplorer@0.3.31
+- @gradio/model3d@0.8.10
+- @gradio/simpleimage@0.3.11
+- @gradio/uploadbutton@0.5.7
+- @gradio/accordion@0.3.8
+- @gradio/checkbox@0.2.14
+- @gradio/colorpicker@0.2.14
+- @gradio/fallback@0.2.14
+- @gradio/form@0.1.13
+- @gradio/html@0.1.14
+- @gradio/json@0.1.14
+- @gradio/label@0.2.14
+- @gradio/number@0.3.14
+- @gradio/paramviewer@0.4.7
+- @gradio/radio@0.4.9
+- @gradio/simpledropdown@0.1.14
+- @gradio/simpletextbox@0.1.14
+- @gradio/slider@0.3.2
+- @gradio/tabitem@0.2.5
+- @gradio/textbox@0.4.15
+- @gradio/box@0.1.13
+
 ## 1.30.1
 
 ### Fixes
