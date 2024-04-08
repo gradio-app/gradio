@@ -18,13 +18,19 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "transformers not installed. Please try `pip install transformers`"
         ) from ie
 
+    task = getattr(pipeline.model.config, "custom_pipelines", None)
+    task = list(task.keys())[0].lower() if task is not None else None
+
     def is_transformers_pipeline_type(pipeline, class_name: str):
         cls = getattr(transformers, class_name, None)
         return cls and isinstance(pipeline, cls)
 
     # Handle the different pipelines. The has_attr() checks to make sure the pipeline exists in the
     # version of the transformers library that the user has installed.
-    if is_transformers_pipeline_type(pipeline, "AudioClassificationPipeline"):
+    if (
+        is_transformers_pipeline_type(pipeline, "AudioClassificationPipeline")
+        or task == "audio-classification"
+    ):
         return {
             "inputs": components.Audio(
                 sources=["microphone"],
@@ -36,7 +42,10 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda i: {"inputs": i},
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
-    if is_transformers_pipeline_type(pipeline, "AutomaticSpeechRecognitionPipeline"):
+    if (
+        is_transformers_pipeline_type(pipeline, "AutomaticSpeechRecognitionPipeline")
+        or task == "automatic-speech-recognition"
+    ):
         return {
             "inputs": components.Audio(
                 sources=["microphone"], type="filepath", label="Input", render=False
@@ -45,21 +54,30 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda i: {"inputs": i},
             "postprocess": lambda r: r["text"],
         }
-    if is_transformers_pipeline_type(pipeline, "FeatureExtractionPipeline"):
+    if (
+        is_transformers_pipeline_type(pipeline, "FeatureExtractionPipeline")
+        or task == "feature-extraction"
+    ):
         return {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Dataframe(label="Output", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r[0],
         }
-    if is_transformers_pipeline_type(pipeline, "FillMaskPipeline"):
+    if (
+        is_transformers_pipeline_type(pipeline, "FillMaskPipeline")
+        or task == "fill-mask"
+    ):
         return {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Label(label="Classification", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: {i["token_str"]: i["score"] for i in r},
         }
-    if is_transformers_pipeline_type(pipeline, "ImageClassificationPipeline"):
+    if (
+        is_transformers_pipeline_type(pipeline, "ImageClassificationPipeline")
+        or task == "image-classification"
+    ):
         return {
             "inputs": components.Image(
                 type="filepath", label="Input Image", render=False
@@ -68,7 +86,10 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda i: {"images": i},
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
-    if is_transformers_pipeline_type(pipeline, "QuestionAnsweringPipeline"):
+    if (
+        is_transformers_pipeline_type(pipeline, "QuestionAnsweringPipeline")
+        or task == "question-answering"
+    ):
         return {
             "inputs": [
                 components.Textbox(lines=7, label="Context", render=False),
@@ -81,42 +102,60 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda c, q: {"context": c, "question": q},
             "postprocess": lambda r: (r["answer"], r["score"]),
         }
-    if is_transformers_pipeline_type(pipeline, "SummarizationPipeline"):
+    if (
+        is_transformers_pipeline_type(pipeline, "SummarizationPipeline")
+        or task == "summarization"
+    ):
         return {
             "inputs": components.Textbox(lines=7, label="Input", render=False),
             "outputs": components.Textbox(label="Summary", render=False),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r[0]["summary_text"],
         }
-    if is_transformers_pipeline_type(pipeline, "TextClassificationPipeline"):
+    if (
+        is_transformers_pipeline_type(pipeline, "TextClassificationPipeline")
+        or task == "text-classification"
+    ):
         return {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Label(label="Classification", render=False),
             "preprocess": lambda x: [x],
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
-    if is_transformers_pipeline_type(pipeline, "TextGenerationPipeline"):
+    if (
+        is_transformers_pipeline_type(pipeline, "TextGenerationPipeline")
+        or task == "text-generation"
+    ):
         return {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Textbox(label="Output", render=False),
             "preprocess": lambda x: {"text_inputs": x},
             "postprocess": lambda r: r[0]["generated_text"],
         }
-    if is_transformers_pipeline_type(pipeline, "TranslationPipeline"):
+    if (
+        is_transformers_pipeline_type(pipeline, "TranslationPipeline")
+        or task == "translation"
+    ):
         return {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Textbox(label="Translation", render=False),
             "preprocess": lambda x: [x],
             "postprocess": lambda r: r[0]["translation_text"],
         }
-    if is_transformers_pipeline_type(pipeline, "Text2TextGenerationPipeline"):
+    if (
+        is_transformers_pipeline_type(pipeline, "Text2TextGenerationPipeline")
+        or task == "text2text-generation"
+    ):
         return {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Textbox(label="Generated Text", render=False),
             "preprocess": lambda x: [x],
             "postprocess": lambda r: r[0]["generated_text"],
         }
-    if is_transformers_pipeline_type(pipeline, "ZeroShotClassificationPipeline"):
+    if (
+        is_transformers_pipeline_type(pipeline, "ZeroShotClassificationPipeline")
+        or task == "zero-shot-classification"
+    ):
         return {
             "inputs": [
                 components.Textbox(label="Input", render=False),
@@ -135,7 +174,10 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
                 r["labels"][i]: r["scores"][i] for i in range(len(r["labels"]))
             },
         }
-    if is_transformers_pipeline_type(pipeline, "DocumentQuestionAnsweringPipeline"):
+    if (
+        is_transformers_pipeline_type(pipeline, "DocumentQuestionAnsweringPipeline")
+        or task == "document-question-answering"
+    ):
         return {
             "inputs": [
                 components.Image(type="filepath", label="Input Document", render=False),
@@ -145,7 +187,10 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda img, q: {"image": img, "question": q},
             "postprocess": lambda r: {i["answer"]: i["score"] for i in r},
         }
-    if is_transformers_pipeline_type(pipeline, "VisualQuestionAnsweringPipeline"):
+    if (
+        is_transformers_pipeline_type(pipeline, "VisualQuestionAnsweringPipeline")
+        or task == "visual-question-answering"
+    ):
         return {
             "inputs": [
                 components.Image(type="filepath", label="Input Image", render=False),
@@ -155,7 +200,10 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda img, q: {"image": img, "question": q},
             "postprocess": lambda r: {i["answer"]: i["score"] for i in r},
         }
-    if is_transformers_pipeline_type(pipeline, "ImageToTextPipeline"):
+    if (
+        is_transformers_pipeline_type(pipeline, "ImageToTextPipeline")
+        or task == "image-to-text"
+    ):
         return {
             "inputs": components.Image(
                 type="filepath", label="Input Image", render=False
@@ -164,7 +212,10 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "preprocess": lambda i: {"images": i},
             "postprocess": lambda r: r[0]["generated_text"],
         }
-    if is_transformers_pipeline_type(pipeline, "ObjectDetectionPipeline"):
+    if (
+        is_transformers_pipeline_type(pipeline, "ObjectDetectionPipeline")
+        or task == "object-detection"
+    ):
         return {
             "inputs": components.Image(
                 type="filepath", label="Input Image", render=False
