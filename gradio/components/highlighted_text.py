@@ -25,7 +25,7 @@ class HighlightedText(Component):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
 
-    Demos: diff_texts, text_analysis
+    Demos: diff_texts
     Guides: named-entity-recognition
     """
 

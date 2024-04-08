@@ -74,6 +74,10 @@ jobs:
         run: |
           . venv/bin/activate
           pnpm run test:ct
+      - name: run reload mode test
+        run: |
+          . venv/bin/activate
+          pnpm test:browser:reload
       - name: Run Lite E2E tests
         run: |
           . venv/bin/activate

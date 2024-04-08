@@ -16,7 +16,7 @@ import huggingface_hub
 import pytest
 import uvicorn
 from fastapi import FastAPI
-from gradio.networking import Server
+from gradio.http_server import Server
 from huggingface_hub import HfFolder
 from huggingface_hub.utils import RepositoryNotFoundError
 
@@ -46,11 +46,7 @@ def connect(
         # because we should set a timeout
         # the tests that call .cancel() can get stuck
         # waiting for the thread to join
-        if demo.enable_queue:
-            demo._queue.close()
-        demo.is_running = False
-        demo.server.should_exit = True
-        demo.server.thread.join(timeout=1)
+        demo.close()
 
 
 class TestClientInitialization:
@@ -73,6 +69,14 @@ class TestClientInitialization:
             headers={"authorization": "Bearer abcde"},
         )
         assert {"authorization": "Bearer abcde"}.items() <= client.headers.items()
+
+    def test_many_endpoint_demo_loads_quickly(self, many_endpoint_demo):
+        import datetime
+
+        start = datetime.datetime.now()
+        with connect(many_endpoint_demo):
+            pass
+        assert (datetime.datetime.now() - start).seconds < 5
 
 
 class TestClientPredictions:
@@ -600,6 +604,42 @@ class TestClientPredictions:
             pred = client.predict(api_name="/predict")
             assert pred[0] == data[0]
 
+    def test_state_reset_when_session_changes(self, capsys, state_demo, monkeypatch):
+        monkeypatch.setenv("GRADIO_IS_E2E_TEST", "1")
+        with connect(state_demo) as client:
+            client.predict("Hello", api_name="/predict")
+            client.reset_session()
+            time.sleep(5)
+        out = capsys.readouterr().out
+        assert "STATE DELETED" in out
+
+
+class TestClientPredictionsWithKwargs:
+    def test_no_default_params(self, calculator_demo):
+        with connect(calculator_demo) as client:
+            result = client.predict(
+                num1=3, operation="add", num2=3, api_name="/predict"
+            )
+            assert result == 6
+
+            result = client.predict(33, operation="add", num2=3, api_name="/predict")
+            assert result == 36
+
+    def test_default_params(self, calculator_demo_with_defaults):
+        with connect(calculator_demo_with_defaults) as client:
+            result = client.predict(num2=10, api_name="/predict")
+            assert result == 20
+
+            result = client.predict(num2=33, operation="multiply", api_name="/predict")
+            assert result == 330
+
+    def test_missing_params(self, calculator_demo):
+        with connect(calculator_demo) as client:
+            with pytest.raises(
+                ValueError, match="No value provided for required argument: num2"
+            ):
+                client.predict(num1=3, operation="add", api_name="/predict")
+
 
 class TestStatusUpdates:
     @patch("gradio_client.client.Endpoint.make_end_to_end_fn")
@@ -767,6 +807,7 @@ class TestStatusUpdates:
 
 
 class TestAPIInfo:
+    @pytest.mark.flaky
     @pytest.mark.parametrize("trailing_char", ["/", ""])
     def test_test_endpoint_src(self, trailing_char):
         src = "https://gradio-calculator.hf.space" + trailing_char
@@ -952,6 +993,9 @@ class TestAPIInfo:
                 "parameters": [
                     {
                         "label": "num1",
+                        "parameter_name": "num1",
+                        "parameter_has_default": False,
+                        "parameter_default": None,
                         "type": {"type": "number"},
                         "python_type": {"type": "float", "description": ""},
                         "component": "Number",
@@ -959,6 +1003,9 @@ class TestAPIInfo:
                     },
                     {
                         "label": "operation",
+                        "parameter_name": "operation",
+                        "parameter_has_default": False,
+                        "parameter_default": None,
                         "type": {
                             "enum": ["add", "subtract", "multiply", "divide"],
                             "title": "Radio",
@@ -973,6 +1020,9 @@ class TestAPIInfo:
                     },
                     {
                         "label": "num2",
+                        "parameter_name": "num2",
+                        "parameter_has_default": False,
+                        "parameter_default": None,
                         "type": {"type": "number"},
                         "python_type": {"type": "float", "description": ""},
                         "component": "Number",
@@ -1046,6 +1096,9 @@ class TestAPIInfo:
                         "parameters": [
                             {
                                 "label": "name",
+                                "parameter_name": "name",
+                                "parameter_has_default": False,
+                                "parameter_default": None,
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
@@ -1077,6 +1130,9 @@ class TestAPIInfo:
                         "parameters": [
                             {
                                 "label": "name",
+                                "parameter_name": "name",
+                                "parameter_has_default": False,
+                                "parameter_default": None,
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
@@ -1093,10 +1149,7 @@ class TestAPIInfo:
                             {
                                 "label": "count",
                                 "type": {"type": "number"},
-                                "python_type": {
-                                    "type": "float",
-                                    "description": "",
-                                },
+                                "python_type": {"type": "float", "description": ""},
                                 "component": "Number",
                             },
                         ],
@@ -1107,10 +1160,7 @@ class TestAPIInfo:
                             {
                                 "label": "count",
                                 "type": {"type": "number"},
-                                "python_type": {
-                                    "type": "float",
-                                    "description": "",
-                                },
+                                "python_type": {"type": "float", "description": ""},
                                 "component": "Number",
                             }
                         ],
@@ -1121,10 +1171,7 @@ class TestAPIInfo:
                             {
                                 "label": "count",
                                 "type": {"type": "number"},
-                                "python_type": {
-                                    "type": "float",
-                                    "description": "",
-                                },
+                                "python_type": {"type": "float", "description": ""},
                                 "component": "Number",
                             }
                         ],

@@ -24,7 +24,7 @@ const base = defineConfig({
 });
 
 const normal = defineConfig(base, {
-	globalSetup: "./playwright-setup.js"
+	globalSetup: process.env.CUSTOM_TEST ? undefined : "./playwright-setup.js"
 });
 
 normal.projects = undefined; // Explicitly unset this field due to https://github.com/microsoft/playwright/issues/28795
@@ -38,7 +38,7 @@ const lite = defineConfig(base, {
 	testMatch: [
 		"**/file_component_events.spec.ts",
 		"**/chatbot_multimodal.spec.ts",
-		// "**/kitchen_sink.spec.ts",
+		"**/kitchen_sink.spec.ts",
 		"**/gallery_component_events.spec.ts"
 	],
 	workers: 1,

@@ -7,6 +7,9 @@ export function represent_value(
 	if (type === undefined) {
 		return lang === "py" ? "None" : null;
 	}
+	if (value === null && lang === "py") {
+		return "None";
+	}
 	if (type === "string" || type === "str") {
 		return lang === null ? value : '"' + value + '"';
 	} else if (type === "number") {
@@ -43,7 +46,7 @@ export function represent_value(
 
 export function is_potentially_nested_file_data(obj: any): boolean {
 	if (typeof obj === "object" && obj !== null) {
-		if (obj.hasOwnProperty("path") && obj.hasOwnProperty("meta")) {
+		if (obj.hasOwnProperty("url") && obj.hasOwnProperty("meta")) {
 			if (
 				typeof obj.meta === "object" &&
 				obj.meta !== null &&
@@ -69,11 +72,11 @@ export function is_potentially_nested_file_data(obj: any): boolean {
 function replace_file_data_with_file_function(obj: any): any {
 	if (typeof obj === "object" && obj !== null && !Array.isArray(obj)) {
 		if (
-			"path" in obj &&
+			"url" in obj &&
 			"meta" in obj &&
 			obj.meta?._type === "gradio.FileData"
 		) {
-			return `file('${obj.path}')`;
+			return `file('${obj.url}')`;
 		}
 	}
 	if (Array.isArray(obj)) {
@@ -91,7 +94,10 @@ function replace_file_data_with_file_function(obj: any): any {
 }
 
 function stringify_except_file_function(obj: any): string {
-	const jsonString = JSON.stringify(obj, (key, value) => {
+	let jsonString = JSON.stringify(obj, (key, value) => {
+		if (value === null) {
+			return "UNQUOTEDNone";
+		}
 		if (
 			typeof value === "string" &&
 			value.startsWith("file(") &&
@@ -102,5 +108,7 @@ function stringify_except_file_function(obj: any): string {
 		return value;
 	});
 	const regex = /"UNQUOTEDfile\(([^)]*)\)"/g;
-	return jsonString.replace(regex, (match, p1) => `file(${p1})`);
+	jsonString = jsonString.replace(regex, (match, p1) => `file(${p1})`);
+	const regexNone = /"UNQUOTEDNone"/g;
+	return jsonString.replace(regexNone, "None");
 }

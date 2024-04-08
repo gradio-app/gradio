@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import math
 from copy import deepcopy
-from typing import Any
+from typing import Any, Callable
 
 from gradio_client.documentation import document
 
@@ -16,8 +17,7 @@ class State(Component):
     """
     Special hidden component that stores session state across runs of the demo by the
     same user. The value of the State variable is cleared when the user refreshes the page.
-
-    Demos: interface_state, blocks_simple_squares
+    Demos: interface_state, blocks_simple_squares, state_cleanup
     Guides: real-time-speech-recognition
     """
 
@@ -27,13 +27,21 @@ class State(Component):
         self,
         value: Any = None,
         render: bool = True,
+        *,
+        time_to_live: int | float | None = None,
+        delete_callback: Callable[[Any], None] | None = None,
     ):
         """
         Parameters:
             value: the initial value (of arbitrary type) of the state. The provided argument is deepcopied. If a callable is provided, the function will be called whenever the app loads to set the initial value of the state.
             render: has no effect, but is included for consistency with other components.
+            time_to_live: The number of seconds the state should be stored for after it is created or updated. If None, the state will be stored indefinitely. Gradio automatically deletes state variables after a user closes the browser tab or refreshes the page, so this is useful for clearing state for potentially long running sessions.
+            delete_callback: A function that is called when the state is deleted. The function should take the state value as an argument.
         """
-        self.stateful = True
+        self.time_to_live = self.time_to_live = (
+            math.inf if time_to_live is None else time_to_live
+        )
+        self.delete_callback = delete_callback or (lambda a: None)  # noqa: ARG005
         try:
             self.value = deepcopy(value)
         except TypeError as err:
@@ -41,6 +49,10 @@ class State(Component):
                 f"The initial value of `gr.State` must be able to be deepcopied. The initial value of type {type(value)} cannot be deepcopied."
             ) from err
         super().__init__(value=self.value, render=render)
+
+    @property
+    def stateful(self):
+        return True
 
     def preprocess(self, payload: Any) -> Any:
         """

@@ -33,6 +33,7 @@ from packaging import version
 
 from gradio_client import utils
 from gradio_client.compatibility import EndpointV3Compatibility
+from gradio_client.data_classes import ParameterInfo
 from gradio_client.documentation import document
 from gradio_client.exceptions import AuthenticationError
 from gradio_client.utils import (
@@ -158,6 +159,7 @@ class Client:
         self.sse_url = urllib.parse.urljoin(
             self.src, utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL
         )
+        self.heartbeat_url = urllib.parse.urljoin(self.src, utils.HEARTBEAT_URL)
         self.sse_data_url = urllib.parse.urljoin(
             self.src,
             utils.SSE_DATA_URL_V0 if self.protocol == "sse" else utils.SSE_DATA_URL,
@@ -168,7 +170,7 @@ class Client:
         self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
         self.reset_url = urllib.parse.urljoin(self.src, utils.RESET_URL)
         self.app_version = version.parse(self.config.get("version", "2.0"))
-        self._info = None
+        self._info = self._get_api_info()
         self.session_hash = str(uuid.uuid4())
 
         endpoint_class = (
@@ -183,12 +185,42 @@ class Client:
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
 
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
-        threading.Thread(target=self._telemetry_thread).start()
+        threading.Thread(target=self._telemetry_thread, daemon=True).start()
+        self._refresh_heartbeat = threading.Event()
+        self._kill_heartbeat = threading.Event()
+
+        self.heartbeat = threading.Thread(target=self._stream_heartbeat, daemon=True)
+        self.heartbeat.start()
 
         self.stream_open = False
         self.streaming_future: Future | None = None
         self.pending_messages_per_event: dict[str, list[Message | None]] = {}
         self.pending_event_ids: set[str] = set()
+
+    def close(self):
+        self._kill_heartbeat.set()
+        self.heartbeat.join(timeout=1)
+
+    def _stream_heartbeat(self):
+        while True:
+            url = self.heartbeat_url.format(session_hash=self.session_hash)
+            try:
+                with httpx.stream(
+                    "GET",
+                    url,
+                    headers=self.headers,
+                    cookies=self.cookies,
+                    verify=self.ssl_verify,
+                    timeout=20,
+                ) as response:
+                    for _ in response.iter_lines():
+                        if self._refresh_heartbeat.is_set():
+                            self._refresh_heartbeat.clear()
+                            break
+                        if self._kill_heartbeat.is_set():
+                            return
+            except httpx.TransportError:
+                return
 
     async def stream_messages(
         self, protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]
@@ -400,6 +432,7 @@ class Client:
         *args,
         api_name: str | None = None,
         fn_index: int | None = None,
+        **kwargs,
     ) -> Any:
         """
         Calls the Gradio API and returns the result (this is a blocking call).
@@ -421,7 +454,9 @@ class Client:
             raise ValueError(
                 "Cannot call predict on this function as it may run forever. Use submit instead."
             )
-        return self.submit(*args, api_name=api_name, fn_index=fn_index).result()
+        return self.submit(
+            *args, api_name=api_name, fn_index=fn_index, **kwargs
+        ).result()
 
     def new_helper(self, fn_index: int) -> Communicator:
         return Communicator(
@@ -437,6 +472,7 @@ class Client:
         api_name: str | None = None,
         fn_index: int | None = None,
         result_callbacks: Callable | list[Callable] | None = None,
+        **kwargs,
     ) -> Job:
         """
         Creates and returns a Job object which calls the Gradio API in a background thread. The job can be used to retrieve the status and result of the remote API call.
@@ -458,9 +494,13 @@ class Client:
             >> 9.0
         """
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
+        endpoint = self.endpoints[inferred_fn_index]
+
+        if isinstance(endpoint, Endpoint):
+            args = utils.construct_args(endpoint.parameters_info, args, kwargs)
 
         helper = None
-        if self.endpoints[inferred_fn_index].protocol in (
+        if endpoint.protocol in (
             "ws",
             "sse",
             "sse_v1",
@@ -469,7 +509,7 @@ class Client:
             "sse_v3",
         ):
             helper = self.new_helper(inferred_fn_index)
-        end_to_end_fn = self.endpoints[inferred_fn_index].make_end_to_end_fn(helper)
+        end_to_end_fn = endpoint.make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
 
         job = Job(
@@ -602,8 +642,6 @@ class Client:
             }
 
         """
-        if not self._info:
-            self._info = self._get_api_info()
         num_named_endpoints = len(self._info["named_endpoints"])
         num_unnamed_endpoints = len(self._info["unnamed_endpoints"])
         if num_named_endpoints == 0 and all_endpoints is None:
@@ -633,13 +671,17 @@ class Client:
 
     def reset_session(self) -> None:
         self.session_hash = str(uuid.uuid4())
+        self._refresh_heartbeat.set()
 
     def _render_endpoints_info(
         self,
         name_or_index: str | int,
-        endpoints_info: dict[str, list[dict[str, Any]]],
+        endpoints_info: dict[str, list[ParameterInfo]],
     ) -> str:
-        parameter_names = [p["label"] for p in endpoints_info["parameters"]]
+        parameter_info = endpoints_info["parameters"]
+        parameter_names = [
+            p.get("parameter_name") or p["label"] for p in parameter_info
+        ]
         parameter_names = [utils.sanitize_parameter_names(p) for p in parameter_names]
         rendered_parameters = ", ".join(parameter_names)
         if rendered_parameters:
@@ -659,15 +701,28 @@ class Client:
 
         human_info = f"\n - predict({rendered_parameters}{final_param}) -> {rendered_return_values}\n"
         human_info += "    Parameters:\n"
-        if endpoints_info["parameters"]:
-            for info in endpoints_info["parameters"]:
+        if parameter_info:
+            for info in parameter_info:
                 desc = (
                     f" ({info['python_type']['description']})"
                     if info["python_type"].get("description")
                     else ""
                 )
+                default_value = info.get("parameter_default")
+                default_value = utils.traverse(
+                    default_value,
+                    lambda x: f"file(\"{x['url']}\")",
+                    utils.is_file_obj_with_meta,
+                )
+                default_info = (
+                    "(required)"
+                    if not info.get("parameter_has_default", False)
+                    else f"(not required, defaults to:   {default_value})"
+                )
                 type_ = info["python_type"]["type"]
-                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info['label'])}: {type_}{desc} \n"
+                if info.get("parameter_has_default", False) and default_value is None:
+                    type_ += " | None"
+                human_info += f"     - [{info['component']}] {utils.sanitize_parameter_names(info.get('parameter_name') or info['label'])}: {type_} {default_info} {desc} \n"
         else:
             human_info += "     - None\n"
         human_info += "    Returns:\n"
@@ -975,6 +1030,7 @@ class Endpoint:
         self.api_name: str | Literal[False] | None = (
             "/" + api_name if isinstance(api_name, str) else api_name
         )
+        self._info = self.client._info
         self.protocol = protocol
         self.input_component_types = [
             self._get_component_type(id_) for id_ in dependency["inputs"]
@@ -982,6 +1038,8 @@ class Endpoint:
         self.output_component_types = [
             self._get_component_type(id_) for id_ in dependency["outputs"]
         ]
+        self.parameters_info = self._get_parameters_info()
+
         self.root_url = client.src + "/" if not client.src.endswith("/") else client.src
         self.is_continuous = dependency.get("types", {}).get("continuous", False)
 
@@ -1000,6 +1058,11 @@ class Endpoint:
             self.value_is_file(component),
             component["type"] == "state",
         )
+
+    def _get_parameters_info(self) -> list[ParameterInfo] | None:
+        if self.api_name in self._info["named_endpoints"]:
+            return self._info["named_endpoints"][self.api_name]["parameters"]
+        return None
 
     @staticmethod
     def value_is_file(component: dict) -> bool:
