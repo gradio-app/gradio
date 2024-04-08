@@ -151,9 +151,6 @@ class Client:
         if self.verbose:
             print(f"Loaded as API: {self.src} ✔")
 
-        if auth is not None:
-            self._login(auth)
-
         http2 = bool(importlib.util.find_spec("h2"))
 
         if httpx_asyncclient is not None:
@@ -169,6 +166,9 @@ class Client:
             self.httpx_client = httpx.Client(
                 timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify, http2=http2
             )
+
+        if auth is not None:
+            self._login(auth)
 
         self.config = self._get_config()
         self.protocol: Literal[
