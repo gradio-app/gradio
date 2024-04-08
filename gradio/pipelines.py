@@ -30,9 +30,13 @@ def load_from_pipeline(
     elif str(type(pipeline).__module__).startswith("diffusers.pipelines."):
         pipeline_info = handle_diffusers_pipeline(pipeline)
     else:
-        raise ValueError(
-            "pipeline must be a transformers.pipeline or diffusers.pipeline"
-        )
+        inheritance = [i.__module__ for i in pipeline.__class__.mro()]
+        if "transformers.pipelines.base.Pipeline" in inheritance:
+            pipeline_info = handle_transformers_pipeline(pipeline)
+        else:
+            raise ValueError(
+                "pipeline must be a transformers.pipeline or diffusers.pipeline"
+            )
 
     def fn(*params):
         if pipeline_info:
