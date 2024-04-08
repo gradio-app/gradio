@@ -69,6 +69,8 @@ export function generate_dev_entry({ enable }: { enable: boolean }): Plugin {
 	return {
 		name: "generate-dev-entry",
 		transform(code, id) {
+			if (!enable) return;
+
 			const new_code = code.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
 				return `const ${$1
 					.replace(/\* as /, "")

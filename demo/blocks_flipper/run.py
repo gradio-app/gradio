@@ -22,7 +22,7 @@ with gr.Blocks() as demo:
             image_output = gr.Image()
         image_button = gr.Button("Flip")
 
-    with gr.Accordion("Open for More!"):
+    with gr.Accordion("Open for More!", open=False):
         gr.Markdown("Look at me...")
         temp_slider = gr.Slider(
             minimum=0.0,
