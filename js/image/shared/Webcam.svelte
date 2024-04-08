@@ -1,19 +1,21 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from "svelte";
-	import {
-		Camera,
-		Circle,
-		Square,
-		DropdownArrow,
-		Webcam as WebcamIcon
-	} from "@gradio/icons";
+	import { Camera, Circle, Square, DropdownArrow } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
 	import type { FileData } from "@gradio/client";
 	import { prepare_files, upload } from "@gradio/client";
 	import WebcamPermissions from "./WebcamPermissions.svelte";
 	import { fade } from "svelte/transition";
+	import {
+		get_devices,
+		get_video_stream,
+		set_available_devices
+	} from "./stream_utils";
 
 	let video_source: HTMLVideoElement;
+	let available_video_devices: MediaDeviceInfo[] = [];
+	let selected_device: MediaDeviceInfo | null = null;
+
 	let canvas: HTMLCanvasElement;
 	export let streaming = false;
 	export let pending = false;
@@ -33,24 +35,48 @@
 	}>();
 
 	onMount(() => (canvas = document.createElement("canvas")));
-	const size = {
-		width: { ideal: 1920 },
-		height: { ideal: 1440 }
+
+	const handle_device_change = async (event: InputEvent): Promise<void> => {
+		const target = event.target as HTMLInputElement;
+		const device_id = target.value;
+
+		await get_video_stream(include_audio, video_source, device_id).then(
+			async (local_stream) => {
+				stream = local_stream;
+				selected_device =
+					available_video_devices.find(
+						(device) => device.deviceId === device_id
+					) || null;
+				options_open = false;
+			}
+		);
 	};
-	async function access_webcam(device_id?: string): Promise<void> {
-		if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-			dispatch("error", i18n("image.no_webcam_support"));
-			return;
-		}
+
+	async function access_webcam(): Promise<void> {
 		try {
-			stream = await navigator.mediaDevices.getUserMedia({
-				video: device_id ? { deviceId: { exact: device_id }, ...size } : size,
-				audio: include_audio
-			});
-			video_source.srcObject = stream;
-			video_source.muted = true;
-			video_source.play();
-			webcam_accessed = true;
+			get_video_stream(include_audio, video_source)
+				.then(async (local_stream) => {
+					webcam_accessed = true;
+					available_video_devices = await get_devices();
+					stream = local_stream;
+				})
+				.then(() => set_available_devices(available_video_devices))
+				.then((devices) => {
+					available_video_devices = devices;
+
+					const used_devices = stream
+						.getTracks()
+						.map((track) => track.getSettings()?.deviceId)[0];
+
+					selected_device = used_devices
+						? devices.find((device) => device.deviceId === used_devices) ||
+						  available_video_devices[0]
+						: available_video_devices[0];
+				});
+
+			if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+				dispatch("error", i18n("image.no_webcam_support"));
+			}
 		} catch (err) {
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
 				dispatch("error", i18n("image.allow_webcam_access"));
@@ -169,18 +195,6 @@
 		}, 500);
 	}
 
-	async function select_source(): Promise<void> {
-		const devices = await navigator.mediaDevices.enumerateDevices();
-		video_sources = devices.filter((device) => device.kind === "videoinput");
-		options_open = true;
-	}
-
-	let video_sources: MediaDeviceInfo[] = [];
-	async function selectVideoSource(device_id: string): Promise<void> {
-		await access_webcam(device_id);
-		options_open = false;
-	}
-
 	let options_open = false;
 
 	export function click_outside(node: Node, cb: any): any {
@@ -247,18 +261,19 @@
 			{#if !recording}
 				<button
 					class="icon"
-					on:click={select_source}
+					on:click={() => (options_open = true)}
 					aria-label="select input source"
 				>
 					<DropdownArrow />
 				</button>
 			{/if}
 		</div>
-		{#if options_open}
+		{#if options_open && selected_device}
 			<select
 				class="select-wrap"
 				aria-label="select source"
 				use:click_outside={handle_click_outside}
+				on:change={handle_device_change}
 			>
 				<button
 					class="inset-icon"
@@ -266,12 +281,15 @@
 				>
 					<DropdownArrow />
 				</button>
-				{#if video_sources.length === 0}
+				{#if available_video_devices.length === 0}
 					<option value="">{i18n("common.no_devices")}</option>
 				{:else}
-					{#each video_sources as source}
-						<option on:click={() => selectVideoSource(source.deviceId)}>
-							{source.label}
+					{#each available_video_devices as device}
+						<option
+							value={device.deviceId}
+							selected={selected_device.deviceId === device.deviceId}
+						>
+							{device.label}
 						</option>
 					{/each}
 				{/if}
