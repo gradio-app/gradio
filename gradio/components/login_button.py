@@ -101,7 +101,11 @@ class LoginButton(Button):
 _js_handle_redirect = """
 (buttonValue) => {
     uri = buttonValue === BUTTON_DEFAULT_VALUE ? '/login/huggingface' : '/logout';
+    console.log("Setting scrolling to true");
     window.parent?.postMessage({ type: "SET_SCROLLING", enabled: true }, "*");
-    window.location.assign(uri + window.location.search);
+    setTimeout(() => {
+        console.log("Redirecting to " + uri + window.location.search);
+        window.location.assign(uri + window.location.search);
+    }, 500);
 }
 """
