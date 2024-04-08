@@ -13,6 +13,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+import aiofiles
 import httpx
 import numpy as np
 from gradio_client import utils as client_utils
@@ -25,6 +26,8 @@ from gradio.utils import abspath, get_upload_folder, is_in_or_equal
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
     from pydub import AudioSegment
+
+async_client = httpx.AsyncClient()
 
 log = logging.getLogger(__name__)
 
@@ -214,6 +217,24 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
     return full_temp_file_path
 
 
+async def async_save_url_to_cache(url: str, cache_dir: str) -> str:
+    """Downloads a file and makes a temporary file path for a copy if does not already
+    exist. Otherwise returns the path to the existing temp file. Uses async httpx."""
+    temp_dir = hash_url(url)
+    temp_dir = Path(cache_dir) / temp_dir
+    temp_dir.mkdir(exist_ok=True, parents=True)
+    name = client_utils.strip_invalid_filename_characters(Path(url).name)
+    full_temp_file_path = str(abspath(temp_dir / name))
+
+    if not Path(full_temp_file_path).exists():
+        async with async_client.stream("GET", url, follow_redirects=True) as response:
+            async with aiofiles.open(full_temp_file_path, "wb") as f:
+                async for chunk in response.aiter_raw():
+                    await f.write(chunk)
+
+    return full_temp_file_path
+
+
 def save_base64_to_cache(
     base64_encoding: str, cache_dir: str, file_name: str | None = None
 ) -> str:
@@ -317,6 +338,78 @@ def move_files_to_cache(
         data = data.model_dump()
 
     return client_utils.traverse(data, _move_to_cache, client_utils.is_file_obj)
+
+
+async def async_move_files_to_cache(
+    data: Any,
+    block: Block,
+    postprocess: bool = False,
+    check_in_upload_folder=False,
+    keep_in_cache=False,
+) -> dict:
+    """Move any files in `data` to cache and (optionally), adds URL prefixes (/file=...) needed to access the cached file.
+    Also handles the case where the file is on an external Gradio app (/proxy=...).
+
+    Runs after .postprocess() and before .preprocess().
+
+    Args:
+        data: The input or output data for a component. Can be a dictionary or a dataclass
+        block: The component whose data is being processed
+        postprocess: Whether its running from postprocessing
+        check_in_upload_folder: If True, instead of moving the file to cache, checks if the file is in already in cache (exception if not).
+        keep_in_cache: If True, the file will not be deleted from cache when the server is shut down.
+    """
+
+    async def _move_to_cache(d: dict):
+        payload = FileData(**d)
+        # If the gradio app developer is returning a URL from
+        # postprocess, it means the component can display a URL
+        # without it being served from the gradio server
+        # This makes it so that the URL is not downloaded and speeds up event processing
+        if payload.url and postprocess and client_utils.is_http_url_like(payload.url):
+            payload.path = payload.url
+        elif utils.is_static_file(payload):
+            pass
+        elif not block.proxy_url:
+            # If the file is on a remote server, do not move it to cache.
+            if check_in_upload_folder and not client_utils.is_http_url_like(
+                payload.path
+            ):
+                path = os.path.abspath(payload.path)
+                if not is_in_or_equal(path, get_upload_folder()):
+                    raise ValueError(
+                        f"File {path} is not in the upload folder and cannot be accessed."
+                    )
+            if not payload.is_stream:
+                temp_file_path = await block.async_move_resource_to_block_cache(
+                    payload.path
+                )
+                if temp_file_path is None:
+                    raise ValueError("Did not determine a file path for the resource.")
+                payload.path = temp_file_path
+                if keep_in_cache:
+                    block.keep_in_cache.add(payload.path)
+
+        url_prefix = "/stream/" if payload.is_stream else "/file="
+        if block.proxy_url:
+            proxy_url = block.proxy_url.rstrip("/")
+            url = f"/proxy={proxy_url}{url_prefix}{payload.path}"
+        elif client_utils.is_http_url_like(payload.path) or payload.path.startswith(
+            f"{url_prefix}"
+        ):
+            url = payload.path
+        else:
+            url = f"{url_prefix}{payload.path}"
+        payload.url = url
+
+        return payload.model_dump()
+
+    if isinstance(data, (GradioRootModel, GradioModel)):
+        data = data.model_dump()
+
+    return await client_utils.async_traverse(
+        data, _move_to_cache, client_utils.is_file_obj
+    )
 
 
 def add_root_url(data: dict | list, root_url: str, previous_root_url: str | None):
