@@ -62,7 +62,7 @@
 			window.iFrameResizer = {
 				heightCalculationMethod: "taggedElement"
 			};
-			window.parent?.postMessage({ type: "SET_SCROLLING", enabled: false });
+			window.parent?.postMessage({ type: "SET_SCROLLING", enabled: false }, "*");
 		</script>
 
 		%gradio_config%
