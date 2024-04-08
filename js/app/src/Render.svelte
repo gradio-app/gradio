@@ -62,7 +62,7 @@
 </script>
 
 <RenderComponent
-	id={node.id}
+	_id={node.id}
 	component={node.component}
 	bind:instance={node.instance}
 	bind:value={node.props.value}

@@ -16,7 +16,7 @@
 	export let gradio: Gradio;
 	export let elem_id: string;
 	export let elem_classes: string[];
-	export let id: number;
+	export let _id: number;
 
 	const s = (id: number, p: string, v: any): CustomEvent =>
 		new CustomEvent("prop_change", { detail: { id, prop: p, value: v } });
@@ -28,13 +28,11 @@
 			construct(_target, args: Record<string, any>[]) {
 				//@ts-ignore
 				const instance = new _target(...args);
-				const props = Object.getOwnPropertyNames(instance).filter(
-					(s) => !s.startsWith("$")
-				);
+				const props = Object.keys(instance.$$.props);
 
 				function report(props: string) {
 					return function (propargs: any) {
-						const ev = s(id, props, propargs);
+						const ev = s(_id, props, propargs);
 						target.dispatchEvent(ev);
 					};
 				}

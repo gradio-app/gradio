@@ -50,7 +50,7 @@ jobs:
       - name: Assert Notebooks Match 
         run: git status | grep "nothing to commit, working tree clean"
       - name: Check for large files
-        uses: actionsdesk/lfs-warning@v3.2
+        uses: actionsdesk/lfs-warning@v3.3
         with:
           filesizelimit: 5MB
       - name: do check
