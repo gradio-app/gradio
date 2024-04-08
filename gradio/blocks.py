@@ -129,6 +129,10 @@ class Block:
             self.render()
 
     @property
+    def stateful(self):
+        return False
+
+    @property
     def skip_api(self):
         return False
 
@@ -243,6 +247,46 @@ class Block:
                 kwargs[parameter.name] = props[parameter.name]
         return kwargs
 
+    async def async_move_resource_to_block_cache(
+        self, url_or_file_path: str | Path | None
+    ) -> str | None:
+        """Moves a file or downloads a file from a url to a block's cache directory, adds
+        to to the block's temp_files, and returns the path to the file in cache. This
+        ensures that the file is accessible to the Block and can be served to users.
+
+        This async version of the function is used when this is being called within
+        a FastAPI route, as this is not blocking.
+        """
+        if url_or_file_path is None:
+            return None
+        if isinstance(url_or_file_path, Path):
+            url_or_file_path = str(url_or_file_path)
+
+        if client_utils.is_http_url_like(url_or_file_path):
+            temp_file_path = await processing_utils.async_save_url_to_cache(
+                url_or_file_path, cache_dir=self.GRADIO_CACHE
+            )
+
+            self.temp_files.add(temp_file_path)
+        else:
+            url_or_file_path = str(utils.abspath(url_or_file_path))
+            if not utils.is_in_or_equal(url_or_file_path, self.GRADIO_CACHE):
+                try:
+                    temp_file_path = processing_utils.save_file_to_cache(
+                        url_or_file_path, cache_dir=self.GRADIO_CACHE
+                    )
+                except FileNotFoundError:
+                    # This can happen if when using gr.load() and the file is on a remote Space
+                    # but the file is not the `value` of the component. For example, if the file
+                    # is the `avatar_image` of the `Chatbot` component. In this case, we skip
+                    # copying the file to the cache and just use the remote file path.
+                    return url_or_file_path
+            else:
+                temp_file_path = url_or_file_path
+            self.temp_files.add(temp_file_path)
+
+        return temp_file_path
+
     def move_resource_to_block_cache(
         self, url_or_file_path: str | Path | None
     ) -> str | None:
@@ -250,8 +294,8 @@ class Block:
         to to the block's temp_files, and returns the path to the file in cache. This
         ensures that the file is accessible to the Block and can be served to users.
 
-        Note: this method is not used in any core Gradio components, but is kept here
-        for backwards compatibility with custom components created with gradio<=4.20.0.
+        This sync version of the function is used when this is being called outside of
+        a FastAPI route, e.g. when examples are being cached.
         """
         if url_or_file_path is None:
             return None
@@ -307,7 +351,9 @@ class Block:
         else:
             data = {"path": url_or_file_path}
             try:
-                return processing_utils.move_files_to_cache(data, self)
+                return client_utils.synchronize_async(
+                    processing_utils.async_move_files_to_cache, data, self
+                )
             except AttributeError:  # Can be raised if this function is called before the Block is fully initialized.
                 return data
 
@@ -506,7 +552,7 @@ def convert_component_dict_to_list(
     return predictions
 
 
-@document("launch", "queue", "integrate", "load")
+@document("launch", "queue", "integrate", "load", "unload")
 class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
     """
     Blocks is Gradio's low-level API that allows you to create more custom web
@@ -876,6 +922,43 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         return any(
             isinstance(block, (components.LoginButton, components.LogoutButton))
             for block in self.blocks.values()
+        )
+
+    def unload(self, fn: Callable):
+        """This listener is triggered when the user closes or refreshes the tab, ending the user session.
+        It is useful for cleaning up resources when the app is closed.
+        Parameters:
+            fn: Callable function to run to clear resources. The function should not take any arguments and the output is not used.
+        Example:
+            import gradio as gr
+            with gr.Blocks() as demo:
+                gr.Markdown("# When you close the tab, hello will be printed to the console")
+                demo.unload(lambda: print("hello"))
+            demo.launch()
+        """
+        self.set_event_trigger(
+            targets=[EventListenerMethod(None, "unload")],
+            fn=fn,
+            inputs=None,
+            outputs=None,
+            preprocess=False,
+            postprocess=False,
+            show_progress="hidden",
+            api_name=None,
+            js=None,
+            no_target=True,
+            queue=None,
+            batch=False,
+            max_batch_size=4,
+            cancels=None,
+            every=None,
+            collects_event_data=None,
+            trigger_after=None,
+            trigger_only_on_success=False,
+            trigger_mode="once",
+            concurrency_limit="default",
+            concurrency_id=None,
+            show_api=False,
         )
 
     def set_event_trigger(
@@ -1377,7 +1460,7 @@ Received inputs:
     [{received}]"""
             )
 
-    def preprocess_data(
+    async def preprocess_data(
         self,
         fn_index: int,
         inputs: list[Any],
@@ -1408,7 +1491,7 @@ Received inputs:
                 else:
                     if input_id in state:
                         block = state[input_id]
-                    inputs_cached = processing_utils.move_files_to_cache(
+                    inputs_cached = await processing_utils.async_move_files_to_cache(
                         inputs[i],
                         block,
                         check_in_upload_folder=not explicit_call,
@@ -1459,7 +1542,7 @@ Received outputs:
     [{received}]"""
             )
 
-    def postprocess_data(
+    async def postprocess_data(
         self, fn_index: int, predictions: list | dict, state: SessionState | None
     ):
         state = state or SessionState(self)
@@ -1498,7 +1581,7 @@ Received outputs:
                     f"Output component with id {output_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
                 ) from e
 
-            if getattr(block, "stateful", False):
+            if block.stateful:
                 if not utils.is_update(predictions[i]):
                     state[output_id] = predictions[i]
                 output.append(None)
@@ -1539,7 +1622,7 @@ Received outputs:
                         block = state[output_id]
                     prediction_value = block.postprocess(prediction_value)
 
-                outputs_cached = processing_utils.move_files_to_cache(
+                outputs_cached = await processing_utils.async_move_files_to_cache(
                     prediction_value,
                     block,
                     postprocess=True,
@@ -1548,12 +1631,13 @@ Received outputs:
 
         return output
 
-    def handle_streaming_outputs(
+    async def handle_streaming_outputs(
         self,
         fn_index: int,
         data: list,
         session_hash: str | None,
         run: int | None,
+        root_path: str | None = None,
     ) -> list:
         if session_hash is None or run is None:
             return data
@@ -1571,7 +1655,17 @@ Received outputs:
                 if first_chunk:
                     stream_run[output_id] = []
                 self.pending_streams[session_hash][run][output_id].append(binary_data)
+                output_data = await processing_utils.async_move_files_to_cache(
+                    output_data,
+                    block,
+                    postprocess=True,
+                )
+                if root_path is not None:
+                    output_data = processing_utils.add_root_url(
+                        output_data, root_path, None
+                    )
                 data[i] = output_data
+
         return data
 
     def handle_streaming_diffs(
@@ -1659,7 +1753,7 @@ Received outputs:
                     f"Batch size ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
                 )
             inputs = [
-                self.preprocess_data(fn_index, list(i), state, explicit_call)
+                await self.preprocess_data(fn_index, list(i), state, explicit_call)
                 for i in zip(*inputs)
             ]
             result = await self.call_function(
@@ -1673,7 +1767,8 @@ Received outputs:
             )
             preds = result["prediction"]
             data = [
-                self.postprocess_data(fn_index, list(o), state) for o in zip(*preds)
+                await self.postprocess_data(fn_index, list(o), state)
+                for o in zip(*preds)
             ]
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)
@@ -1684,7 +1779,9 @@ Received outputs:
             if old_iterator:
                 inputs = []
             else:
-                inputs = self.preprocess_data(fn_index, inputs, state, explicit_call)
+                inputs = await self.preprocess_data(
+                    fn_index, inputs, state, explicit_call
+                )
             was_generating = old_iterator is not None
             result = await self.call_function(
                 fn_index,
@@ -1695,17 +1792,18 @@ Received outputs:
                 event_data,
                 in_event_listener,
             )
-            data = self.postprocess_data(fn_index, result["prediction"], state)
+            data = await self.postprocess_data(fn_index, result["prediction"], state)
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
                 run = id(old_iterator) if was_generating else id(iterator)
-                data = self.handle_streaming_outputs(
+                data = await self.handle_streaming_outputs(
                     fn_index,
                     data,
                     session_hash=session_hash,
                     run=run,
+                    root_path=root_path,
                 )
                 data = self.handle_streaming_diffs(
                     fn_index,
@@ -2096,7 +2194,7 @@ Received outputs:
                 if self.local_url.startswith("https") or self.is_colab
                 else "http"
             )
-            if not wasm_utils.IS_WASM and not self.is_colab:
+            if not wasm_utils.IS_WASM and not self.is_colab and not quiet:
                 print(
                     strings.en["RUNNING_LOCALLY_SEPARATED"].format(
                         self.protocol, self.server_name, self.server_port
@@ -2380,9 +2478,11 @@ Received outputs:
                 self._queue._cancel_asyncio_tasks()
                 self.server_app._cancel_asyncio_tasks()
             self._queue.close()
+            # set this before closing server to shut down heartbeats
+            self.is_running = False
+            self.app.stop_event.set()
             if self.server:
                 self.server.close()
-            self.is_running = False
             # So that the startup events (starting the queue)
             # happen the next time the app is launched
             self.app.startup_events_triggered = False
@@ -2436,6 +2536,7 @@ Received outputs:
         self._queue.start()
         # So that processing can resume in case the queue was stopped
         self._queue.stopped = False
+        self.is_running = True
         self.create_limiter()
 
     def queue_enabled_for_fn(self, fn_index: int):

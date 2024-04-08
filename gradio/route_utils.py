@@ -8,8 +8,9 @@ import json
 import os
 import re
 import shutil
+import sys
 from collections import deque
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass as python_dataclass
 from datetime import datetime
 from pathlib import Path
@@ -306,16 +307,24 @@ def get_root_url(
     And if a relative `root_path` is provided, and it is not already the subpath of the URL, it is appended to the root url.
 
     In cases (2) and (3), We also check to see if the x-forwarded-proto header is present, and if so, convert the root url to https.
+    And if there are multiple hosts in the x-forwarded-host or multiple protocols in the x-forwarded-proto, the first one is used.
     """
+
+    def get_first_header_value(header_name: str):
+        header_value = request.headers.get(header_name)
+        if header_value:
+            return header_value.split(",")[0].strip()
+        return None
+
     if root_path and client_utils.is_http_url_like(root_path):
         return root_path.rstrip("/")
 
-    x_forwarded_host = request.headers.get("x-forwarded-host")
+    x_forwarded_host = get_first_header_value("x-forwarded-host")
     root_url = f"http://{x_forwarded_host}" if x_forwarded_host else str(request.url)
     root_url = httpx.URL(root_url)
     root_url = root_url.copy_with(query=None)
     root_url = str(root_url).rstrip("/")
-    if request.headers.get("x-forwarded-proto") == "https":
+    if get_first_header_value("x-forwarded-proto") == "https":
         root_url = root_url.replace("http://", "https://")
 
     route_path = route_path.rstrip("/")
@@ -734,7 +743,6 @@ class CustomCORSMiddleware:
 
 def delete_files_created_by_app(blocks: Blocks, age: int | None) -> None:
     """Delete files that are older than age. If age is None, delete all files."""
-
     dont_delete = set()
     for component in blocks.blocks.values():
         dont_delete.update(getattr(component, "keep_in_cache", set()))
@@ -770,27 +778,45 @@ async def _lifespan_handler(
     app: App, frequency: int = 1, age: int = 1
 ) -> AsyncGenerator:
     """A context manager that triggers the startup and shutdown events of the app."""
-    app.get_blocks().startup_events()
-    app.startup_events_triggered = True
     asyncio.create_task(delete_files_on_schedule(app, frequency, age))
     yield
     delete_files_created_by_app(app.get_blocks(), age=None)
 
 
+async def _delete_state(app: App):
+    """Delete all expired state every second."""
+    while True:
+        app.state_holder.delete_all_expired_state()
+        await asyncio.sleep(1)
+
+
+@asynccontextmanager
+async def _delete_state_handler(app: App):
+    """When the server launches, regularly delete expired state."""
+    # The stop event needs to get the current event loop for python 3.8
+    # but the loop parameter is deprecated for 3.8+
+    if sys.version_info < (3, 10):
+        loop = asyncio.get_running_loop()
+        app.stop_event = asyncio.Event(loop=loop)
+    asyncio.create_task(_delete_state(app))
+    yield
+
+
 def create_lifespan_handler(
     user_lifespan: Callable[[App], AsyncContextManager] | None,
-    frequency: int = 1,
-    age: int = 1,
+    frequency: int | None = 1,
+    age: int | None = 1,
 ) -> Callable[[App], AsyncContextManager]:
     """Return a context manager that applies _lifespan_handler and user_lifespan if it exists."""
 
     @asynccontextmanager
     async def _handler(app: App):
-        async with _lifespan_handler(app, frequency, age):
+        async with AsyncExitStack() as stack:
+            await stack.enter_async_context(_delete_state_handler(app))
+            if frequency and age:
+                await stack.enter_async_context(_lifespan_handler(app, frequency, age))
             if user_lifespan is not None:
-                async with user_lifespan(app):
-                    yield
-            else:
-                yield
+                await stack.enter_async_context(user_lifespan(app))
+            yield
 
     return _handler

@@ -17,7 +17,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, TypedDict
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, Literal, Optional, TypedDict
 
 import fsspec.asyn
 import httpx
@@ -42,6 +42,7 @@ RAW_API_INFO_URL = "info?serialize=False"
 SPACE_FETCHER_URL = "https://gradio-space-api-fetcher-v2.hf.space/api"
 RESET_URL = "reset"
 SPACE_URL = "https://hf.space/{}"
+HEARTBEAT_URL = "heartbeat/{session_hash}"
 
 STATE_COMPONENT = "state"
 INVALID_RUNTIME = [
@@ -970,6 +971,9 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
 
 
 def traverse(json_obj: Any, func: Callable, is_root: Callable[..., bool]) -> Any:
+    """
+    Traverse a JSON object and apply a function to each element that satisfies the is_root condition.
+    """
     if is_root(json_obj):
         return func(json_obj)
     elif isinstance(json_obj, dict):
@@ -981,6 +985,30 @@ def traverse(json_obj: Any, func: Callable, is_root: Callable[..., bool]) -> Any
         new_obj = []
         for item in json_obj:
             new_obj.append(traverse(item, func, is_root))
+        return new_obj
+    else:
+        return json_obj
+
+
+async def async_traverse(
+    json_obj: Any,
+    func: Callable[..., Coroutine[Any, Any, Any]],
+    is_root: Callable[..., bool],
+) -> Any:
+    """
+    Traverse a JSON object and apply a async function to each element that satisfies the is_root condition.
+    """
+    if is_root(json_obj):
+        return await func(json_obj)
+    elif isinstance(json_obj, dict):
+        new_obj = {}
+        for key, value in json_obj.items():
+            new_obj[key] = await async_traverse(value, func, is_root)
+        return new_obj
+    elif isinstance(json_obj, (list, tuple)):
+        new_obj = []
+        for item in json_obj:
+            new_obj.append(await async_traverse(item, func, is_root))
         return new_obj
     else:
         return json_obj

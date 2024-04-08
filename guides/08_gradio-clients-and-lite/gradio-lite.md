@@ -2,7 +2,7 @@
 
 Tags: SERVERLESS, BROWSER, PYODIDE
 
-Gradio is a popular Python library for creating interactive machine learning apps. Traditionally, Gradio applications have relied on server-side infrastructure to run, which can be a hurdle for developers who need to host their applications. 
+Gradio is a popular Python library for creating interactive machine learning apps. Traditionally, Gradio applications have relied on server-side infrastructure to run, which can be a hurdle for developers who need to host their applications.
 
 Enter Gradio-lite (`@gradio/lite`): a library that leverages [Pyodide](https://pyodide.org/en/stable/) to bring Gradio directly to your browser. In this blog post, we'll explore what `@gradio/lite` is, go over example code, and discuss the benefits it offers for running Gradio applications.
 
@@ -15,7 +15,7 @@ Enter Gradio-lite (`@gradio/lite`): a library that leverages [Pyodide](https://p
 Let's build a "Hello World" Gradio app in `@gradio/lite`
 
 
-### 1. Import JS and CSS 
+### 1. Import JS and CSS
 
 Start by creating a new HTML file, if you don't have one already. Importing the JavaScript and CSS corresponding to the `@gradio/lite` package by using the following code:
 
@@ -33,7 +33,7 @@ Note that you should generally use the latest version of `@gradio/lite` that is 
 
 ### 2. Create the `<gradio-lite>` tags
 
-Somewhere in the body of your HTML page (wherever you'd like the Gradio app to be rendered), create opening and closing `<gradio-lite>` tags. 
+Somewhere in the body of your HTML page (wherever you'd like the Gradio app to be rendered), create opening and closing `<gradio-lite>` tags.
 
 ```html
 <html>
@@ -58,7 +58,7 @@ Note: you can add the `theme` attribute to the `<gradio-lite>` tag to force the 
 
 ### 3. Write your Gradio app inside of the tags
 
-Now, write your Gradio app as you would normally, in Python! Keep in mind that since this is Python, whitespace and indentations matter. 
+Now, write your Gradio app as you would normally, in Python! Keep in mind that since this is Python, whitespace and indentations matter.
 
 ```html
 <html>
@@ -72,7 +72,7 @@ Now, write your Gradio app as you would normally, in Python! Keep in mind that s
 
 		def greet(name):
 			return "Hello, " + name + "!"
-		
+
 		gr.Interface(greet, "textbox", "textbox").launch()
 		</gradio-lite>
 	</body>
@@ -110,7 +110,7 @@ def add(a, b):
 	return a + b
 </gradio-file>
 
-</gradio-lite>		
+</gradio-lite>
 
 ```
 
@@ -142,11 +142,52 @@ demo = gr.Interface(classify, "textbox", "json")
 demo.launch()
 </gradio-file>
 
-</gradio-lite>	
+</gradio-lite>
 
 ```
 
 **Try it out**: You can see this example running in [this Hugging Face Static Space](https://huggingface.co/spaces/abidlabs/gradio-lite-classify), which lets you host static (serverless) web applications for free. Visit the page and you'll be able to run a machine learning model without internet access!
+
+### SharedWorker mode
+
+By default, Gradio-Lite executes Python code in a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API) with [Pyodide](https://pyodide.org/) runtime, and each Gradio-Lite app has its own worker.
+It has some benefits such as environment isolation.
+
+However, when there are many Gradio-Lite apps in the same page, it may cause performance issues such as high memory usage because each app has its own worker and Pyodide runtime.
+In such cases, you can use the **SharedWorker mode** to share a single Pyodide runtime in a [SharedWorker](https://developer.mozilla.org/en-US/docs/Web/API/SharedWorker) among multiple Gradio-Lite apps. To enable the SharedWorker mode, set the `shared-worker` attribute to the `<gradio-lite>` tag.
+
+```html
+<!-- These two Gradio-Lite apps share a single worker -->
+
+<gradio-lite shared-worker>
+import gradio as gr
+# ...
+</gradio-lite>
+
+<gradio-lite shared-worker>
+import gradio as gr
+# ...
+</gradio-lite>
+```
+
+When using the SharedWorker mode, you should be aware of the following points:
+* The apps share the same Python environment, which means that they can access the same  modules and objects. If, for example, one app makes changes to some modules, the changes will be visible to other apps.
+* The file system is shared among the apps, while each app's files are mounted in each home directory, so each app can access the files of other apps.
+
+### Code and Demo Playground
+
+If you'd like to see the code side-by-side with the demo just pass in the `playground` attribute to the gradio-lite element. This will create an interactive playground that allows you to change the code and update the demo! If you're using playground, you can also set layout to either 'vertical' or 'horizontal' which will determine if the code editor and preview are side-by-side or on top of each other (by default it's reposnsive with the width of the page).
+
+```html
+<gradio-lite playground layout="horizontal">
+import gradio as gr
+
+gr.Interface(fn=lambda x: x,
+			inputs=gr.Textbox(),
+			outputs=gr.Textbox()
+		).launch()
+</gradio-lite>
+```
 
 ## Benefits of Using `@gradio/lite`
 
@@ -161,7 +202,7 @@ Since all processing occurs within the user's browser, `@gradio/lite` enhances p
 
 ### Limitations
 
-* Currently, the biggest limitation in using `@gradio/lite` is that your Gradio apps will generally take more time (usually 5-15 seconds) to load initially in the browser. This is because the browser needs to load the Pyodide runtime before it can render Python code. 
+* Currently, the biggest limitation in using `@gradio/lite` is that your Gradio apps will generally take more time (usually 5-15 seconds) to load initially in the browser. This is because the browser needs to load the Pyodide runtime before it can render Python code.
 
 * Not every Python package is supported by Pyodide. While `gradio` and many other popular packages (including `numpy`, `scikit-learn`, and `transformers-js`) can be installed in Pyodide, if your app has many dependencies, its worth checking whether whether the dependencies are included in Pyodide, or can be [installed with `micropip`](https://micropip.pyodide.org/en/v0.2.2/project/api.html#micropip.install).
 
@@ -181,7 +222,7 @@ You can immediately try out `@gradio/lite` by copying and pasting this code in a
 
 		def greet(name):
 			return "Hello, " + name + "!"
-		
+
 		gr.Interface(greet, "textbox", "textbox").launch()
 		</gradio-lite>
 	</body>
@@ -189,8 +230,6 @@ You can immediately try out `@gradio/lite` by copying and pasting this code in a
 ```
 
 
-We've also created a playground on the Gradio website that allows you to interactively edit code and see the results immediately! 
+We've also created a playground on the Gradio website that allows you to interactively edit code and see the results immediately!
 
 Playground: https://www.gradio.app/playground
-
-

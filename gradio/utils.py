@@ -26,6 +26,7 @@ import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from contextlib import contextmanager
+from functools import wraps
 from io import BytesIO
 from numbers import Number
 from pathlib import Path
@@ -84,6 +85,14 @@ def safe_get_lock() -> asyncio.Lock:
     try:
         asyncio.get_event_loop()
         return asyncio.Lock()
+    except RuntimeError:
+        return None  # type: ignore
+
+
+def safe_get_stop_event() -> asyncio.Event:
+    try:
+        asyncio.get_event_loop()
+        return asyncio.Event()
     except RuntimeError:
         return None  # type: ignore
 
@@ -1245,3 +1254,29 @@ def simplify_file_data_in_str(s):
     if isinstance(payload, str):
         return payload
     return json.dumps(payload)
+
+
+def sync_fn_to_generator(fn):
+    def wrapped(*args, **kwargs):
+        yield fn(*args, **kwargs)
+
+    return wrapped
+
+
+def async_fn_to_generator(fn):
+    async def wrapped(*args, **kwargs):
+        yield await fn(*args, **kwargs)
+
+    return wrapped
+
+
+def async_lambda(f: Callable) -> Callable:
+    """Turn a function into an async function.
+    Useful for internal event handlers defined as lambda functions used in the codebase
+    """
+
+    @wraps(f)
+    async def function_wrapper(*args, **kwargs):
+        return f(*args, **kwargs)
+
+    return function_wrapper
