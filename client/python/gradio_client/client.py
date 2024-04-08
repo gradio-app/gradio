@@ -246,43 +246,40 @@ class Client:
     ) -> None:
         try:
             async with self.httpx_asyncclient.stream(
-                    "GET",
-                    self.sse_url,
-                    params={"session_hash": self.session_hash},
-                    headers=self.headers,
-                    cookies=self.cookies,
+                "GET",
+                self.sse_url,
+                params={"session_hash": self.session_hash},
+                headers=self.headers,
+                cookies=self.cookies,
             ) as response:
-                    async for line in response.aiter_lines():
-                        line = line.rstrip("\n")
-                        if not len(line):
+                async for line in response.aiter_lines():
+                    line = line.rstrip("\n")
+                    if not len(line):
+                        continue
+                    if line.startswith("data:"):
+                        resp = json.loads(line[5:])
+                        if resp["msg"] == ServerMessage.heartbeat:
                             continue
-                        if line.startswith("data:"):
-                            resp = json.loads(line[5:])
-                            if resp["msg"] == ServerMessage.heartbeat:
-                                continue
-                            elif resp["msg"] == ServerMessage.server_stopped:
-                                for (
-                                    pending_messages
-                                ) in self.pending_messages_per_event.values():
-                                    pending_messages.append(resp)
-                                return
-                            elif resp["msg"] == ServerMessage.close_stream:
-                                self.stream_open = False
-                                return
-                            event_id = resp["event_id"]
-                            if event_id not in self.pending_messages_per_event:
-                                self.pending_messages_per_event[event_id] = []
-                            self.pending_messages_per_event[event_id].append(resp)
-                            if resp["msg"] == ServerMessage.process_completed:
-                                self.pending_event_ids.remove(event_id)
-                            if (
-                                len(self.pending_event_ids) == 0
-                                and protocol != "sse_v3"
-                            ):
-                                self.stream_open = False
-                                return
-                        else:
-                            raise ValueError(f"Unexpected SSE line: '{line}'")
+                        elif resp["msg"] == ServerMessage.server_stopped:
+                            for (
+                                pending_messages
+                            ) in self.pending_messages_per_event.values():
+                                pending_messages.append(resp)
+                            return
+                        elif resp["msg"] == ServerMessage.close_stream:
+                            self.stream_open = False
+                            return
+                        event_id = resp["event_id"]
+                        if event_id not in self.pending_messages_per_event:
+                            self.pending_messages_per_event[event_id] = []
+                        self.pending_messages_per_event[event_id].append(resp)
+                        if resp["msg"] == ServerMessage.process_completed:
+                            self.pending_event_ids.remove(event_id)
+                        if len(self.pending_event_ids) == 0 and protocol != "sse_v3":
+                            self.stream_open = False
+                            return
+                    else:
+                        raise ValueError(f"Unexpected SSE line: '{line}'")
         except BaseException as e:
             import traceback
 
@@ -291,11 +288,11 @@ class Client:
 
     async def send_data(self, data, hash_data, protocol):
         req = await self.httpx_asyncclient.post(
-                self.sse_data_url,
-                json={**data, **hash_data},
-                headers=self.headers,
-                cookies=self.cookies,
-            )
+            self.sse_data_url,
+            json={**data, **hash_data},
+            headers=self.headers,
+            cookies=self.cookies,
+        )
         if req.status_code == 503:
             raise QueueError("Queue is full! Please try again.")
         req.raise_for_status()
@@ -1289,16 +1286,16 @@ class Endpoint:
 
     async def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
         return await utils.get_pred_from_sse_v0(
-                self.client.httpx_asyncclient,
-                data,
-                hash_data,
-                helper,
-                self.client.sse_url,
-                self.client.sse_data_url,
-                self.client.headers,
-                self.client.cookies,
-                self.client.ssl_verify,
-            )
+            self.client.httpx_asyncclient,
+            data,
+            hash_data,
+            helper,
+            self.client.sse_url,
+            self.client.sse_data_url,
+            self.client.headers,
+            self.client.cookies,
+            self.client.ssl_verify,
+        )
 
     async def _sse_fn_v1plus(
         self,
