@@ -795,7 +795,7 @@ async def _delete_state_handler(app: App):
     """When the server launches, regularly delete expired state."""
     # The stop event needs to get the current event loop for python 3.8
     # but the loop parameter is deprecated for 3.8+
-    if sys.version_info < (3, 9):
+    if sys.version_info < (3, 10):
         loop = asyncio.get_running_loop()
         app.stop_event = asyncio.Event(loop=loop)
     asyncio.create_task(_delete_state(app))
