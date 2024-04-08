@@ -19,13 +19,6 @@
 	export let elem_id = "id";
 	export let elem_classes: string[] = [];
 	export let selected: number | string | object;
-	let old_selected_prop = selected;
-	let _selected = selected;
-
-	$: if (old_selected_prop !== selected) {
-		_selected = selected;
-		old_selected_prop = selected;
-	}
 
 	let tabs: Tab[] = [];
 
@@ -83,7 +76,7 @@
 			tab_to_activate.interactive &&
 			tab_to_activate.visible
 		) {
-			_selected = id;
+			selected = id;
 			$selected_tab = id;
 			$selected_tab_index = tabs.findIndex((t) => t.id === id);
 			dispatch("change");
@@ -92,7 +85,7 @@
 		}
 	}
 
-	$: tabs, _selected !== null && change_tab(_selected);
+	$: tabs, selected !== null && change_tab(selected);
 </script>
 
 <div class="tabs {elem_classes.join(' ')}" class:hide={!visible} id={elem_id}>
