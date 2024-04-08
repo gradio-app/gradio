@@ -61,3 +61,15 @@ test("output from one tab to another works", async ({ page }) => {
 	await expect(page.getByLabel("Input 14")).toBeVisible();
 	await expect(page.getByLabel("Input 14")).toHaveValue("hi");
 });
+
+test("programmatic selection works", async ({ page }) => {
+	await expect(page.getByText("Text 1!")).toBeHidden();
+	await expect(page.getByText("Text 3!")).toBeVisible();
+
+	await page.getByLabel("Select Tab #").click();
+	await page.getByLabel("Select Tab #").fill("6");
+	await page.getByLabel("Select Tab #").press("Enter");
+
+	await expect(page.getByText("Text 3!")).toBeHidden();
+	await expect(page.getByText("Text 6!")).toBeVisible();
+});
