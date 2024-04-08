@@ -433,9 +433,7 @@ class TabLayout(LayoutBase):
 - Row's and column's second textboxes are going to be attached to the row's first textbox's value.
 - Here is the example we are going to write:
 
-<iframe
-	src="https://huggingface.co/spaces/WoWoWoWololo/wrapping-layouts"
-></iframe>
+<gradio-app space="WoWoWoWololo/wrapping-layouts"></gradio-app>
 
 - Let's start to write the example!
 
@@ -465,7 +463,7 @@ class RowExample(RowLayout):
         )
 ```
 - As you can see from the constructor of the ```RowExample``` class, we add the ```render=False``` argument when creating the Textbox variables. This is an important parameter to add because we are calling the render function ourselves, so we don't want it to be called in the constructor of the component.
-- [x] As a note; even if you don't assign False to the render variable, the program works and is structured correctly but it is a good practice I think.
+- As a note; even if you don't assign False to the render variable, the program works and is structured correctly but it is a good practice I think.
 
 ### FirstTab Class
 
