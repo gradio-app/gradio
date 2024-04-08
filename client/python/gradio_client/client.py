@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import concurrent.futures
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -85,6 +86,8 @@ class Client:
         download_files: bool = True,  # TODO: consider setting to False in 1.0
         _skip_components: bool = True,  # internal parameter to skip values certain components (e.g. State) that do not need to be displayed to users.
         ssl_verify: bool = True,
+        httpx_asyncclient: httpx.AsyncClient | None = None,
+        httpx_client: httpx.Client | None = None,
     ):
         """
         Parameters:
@@ -150,6 +153,22 @@ class Client:
 
         if auth is not None:
             self._login(auth)
+
+        http2 = bool(importlib.util.find_spec("h2"))
+
+        if httpx_asyncclient is not None:
+            self.httpx_asyncclient = httpx_asyncclient
+        else:
+            self.httpx_asyncclient = httpx.AsyncClient(
+                timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify, http2=http2
+            )
+
+        if httpx_client is not None:
+            self.httpx_client = httpx_client
+        else:
+            self.httpx_client = httpx.Client(
+                timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify, http2=http2
+            )
 
         self.config = self._get_config()
         self.protocol: Literal[
@@ -226,16 +245,13 @@ class Client:
         self, protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]
     ) -> None:
         try:
-            async with httpx.AsyncClient(
-                timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify
-            ) as client:
-                async with client.stream(
+            async with self.httpx_asyncclient.stream(
                     "GET",
                     self.sse_url,
                     params={"session_hash": self.session_hash},
                     headers=self.headers,
                     cookies=self.cookies,
-                ) as response:
+            ) as response:
                     async for line in response.aiter_lines():
                         line = line.rstrip("\n")
                         if not len(line):
@@ -274,8 +290,7 @@ class Client:
             raise e
 
     async def send_data(self, data, hash_data, protocol):
-        async with httpx.AsyncClient(verify=self.ssl_verify) as client:
-            req = await client.post(
+        req = await self.httpx_asyncclient.post(
                 self.sse_data_url,
                 json={**data, **hash_data},
                 headers=self.headers,
@@ -540,18 +555,17 @@ class Client:
         else:
             api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
         if self.app_version > version.Version("3.36.1"):
-            r = httpx.get(
+            r = self.httpx_client.get(
                 api_info_url,
                 headers=self.headers,
                 cookies=self.cookies,
-                verify=self.ssl_verify,
             )
             if r.is_success:
                 info = r.json()
             else:
                 raise ValueError(f"Could not fetch api info for {self.src}: {r.text}")
         else:
-            fetch = httpx.post(
+            fetch = self.httpx_client.post(
                 utils.SPACE_FETCHER_URL,
                 json={
                     "config": json.dumps(self.config),
@@ -803,15 +817,20 @@ class Client:
     def __del__(self):
         if hasattr(self, "executor"):
             self.executor.shutdown(wait=True)
+        if self.httpx_client:
+            self.httpx_client.close()
+            self.httpx_client = None
+        if self.httpx_asyncclient:
+            utils.synchronize_async(self.httpx_asyncclient.aclose)
+            self.httpx_asyncclient = None
 
     def _space_name_to_src(self, space) -> str | None:
         return huggingface_hub.space_info(space, token=self.hf_token).host  # type: ignore
 
     def _login(self, auth: tuple[str, str]):
-        resp = httpx.post(
+        resp = self.httpx_client.post(
             urllib.parse.urljoin(self.src, utils.LOGIN_URL),
             data={"username": auth[0], "password": auth[1]},
-            verify=self.ssl_verify,
         )
         if not resp.is_success:
             if resp.status_code == 401:
@@ -825,11 +844,10 @@ class Client:
         }
 
     def _get_config(self) -> dict:
-        r = httpx.get(
+        r = self.httpx_client.get(
             urllib.parse.urljoin(self.src, utils.CONFIG_URL),
             headers=self.headers,
             cookies=self.cookies,
-            verify=self.ssl_verify,
         )
         if r.is_success:
             return r.json()
@@ -838,11 +856,10 @@ class Client:
                 f"Could not load {self.src} as credentials were not provided. Please login."
             )
         else:  # to support older versions of Gradio
-            r = httpx.get(
+            r = self.httpx_client.get(
                 self.src,
                 headers=self.headers,
                 cookies=self.cookies,
-                verify=self.ssl_verify,
             )
             if not r.is_success:
                 raise ValueError(f"Could not fetch config for {self.src}")
@@ -1230,11 +1247,10 @@ class Endpoint:
         if not utils.is_http_url_like(file_path):
             with open(file_path, "rb") as f:
                 files = [("files", (Path(file_path).name, f))]
-                r = httpx.post(
+                r = self.client.httpx_client.post(
                     self.client.upload_url,
                     headers=self.client.headers,
                     cookies=self.client.cookies,
-                    verify=self.client.ssl_verify,
                     files=files,
                 )
             r.raise_for_status()
@@ -1272,11 +1288,8 @@ class Endpoint:
         return str(dest.resolve())
 
     async def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
-        async with httpx.AsyncClient(
-            timeout=httpx.Timeout(timeout=None), verify=self.client.ssl_verify
-        ) as client:
-            return await utils.get_pred_from_sse_v0(
-                client,
+        return await utils.get_pred_from_sse_v0(
+                self.client.httpx_asyncclient,
                 data,
                 hash_data,
                 helper,
