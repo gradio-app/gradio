@@ -31,7 +31,7 @@ def load_from_pipeline(
         pipeline_info = handle_diffusers_pipeline(pipeline)
     else:
         inheritance = [i.__module__ for i in pipeline.__class__.mro()]
-        if "transformers.pipelines.base.Pipeline" in inheritance:
+        if "transformers.pipelines.base" in inheritance:
             pipeline_info = handle_transformers_pipeline(pipeline)
         else:
             raise ValueError(
