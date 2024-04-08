@@ -18,8 +18,10 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "transformers not installed. Please try `pip install transformers`"
         ) from ie
 
-    task = getattr(pipeline.model.config, "custom_pipelines", None)
-    task = list(task.keys())[0].lower() if task is not None else None
+    task = getattr(pipeline, "model", None)
+    if task is not None:
+        task = getattr(pipeline.model.config, "custom_pipelines", None)
+        task = list(task.keys())[0].lower() if task is not None else None
 
     def is_transformers_pipeline_type(pipeline, class_name: str):
         cls = getattr(transformers, class_name, None)
