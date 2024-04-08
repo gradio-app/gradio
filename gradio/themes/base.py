@@ -462,13 +462,13 @@ class Base(ThemeClass):
         self.text_xxl = text_size.xxl
 
         # Font
-        if not isinstance(font, Iterable):
+        if isinstance(font, (fonts.Font, str)):
             font = [font]
         self._font = [
             fontfam if isinstance(fontfam, fonts.Font) else fonts.Font(fontfam)
             for fontfam in font
         ]
-        if not isinstance(font_mono, Iterable):
+        if isinstance(font, fonts.Font) or isinstance(font_mono, str):
             font_mono = [font_mono]
         self._font_mono = [
             fontfam if isinstance(fontfam, fonts.Font) else fonts.Font(fontfam)
