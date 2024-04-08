@@ -496,7 +496,8 @@ class TestComponentsInBlocks:
 
 
 class TestBlocksPostprocessing:
-    def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
+    @pytest.mark.asyncio
+    async def test_blocks_do_not_filter_none_values_from_updates(self, io_components):
         io_components = [
             c()
             for c in io_components
@@ -522,7 +523,7 @@ class TestBlocksPostprocessing:
                 outputs=io_components,
             )
 
-        output = demo.postprocess_data(
+        output = await demo.postprocess_data(
             0, [gr.update(value=None) for _ in io_components], state=None
         )
 
@@ -536,7 +537,8 @@ class TestBlocksPostprocessing:
             o["value"] == process_and_dump(c) for o, c in zip(output, io_components)
         )
 
-    def test_blocks_does_not_replace_keyword_literal(self):
+    @pytest.mark.asyncio
+    async def test_blocks_does_not_replace_keyword_literal(self):
         with gr.Blocks() as demo:
             text = gr.Textbox()
             btn = gr.Button(value="Reset")
@@ -546,10 +548,11 @@ class TestBlocksPostprocessing:
                 outputs=text,
             )
 
-        output = demo.postprocess_data(0, gr.update(value="NO_VALUE"), state=None)
+        output = await demo.postprocess_data(0, gr.update(value="NO_VALUE"), state=None)
         assert output[0]["value"] == "NO_VALUE"
 
-    def test_blocks_does_not_del_dict_keys_inplace(self):
+    @pytest.mark.asyncio
+    async def test_blocks_does_not_del_dict_keys_inplace(self):
         with gr.Blocks() as demo:
             im_list = [gr.Image() for i in range(2)]
 
@@ -559,13 +562,16 @@ class TestBlocksPostprocessing:
             checkbox = gr.Checkbox(value=True, label="Show image")
             checkbox.change(change_visibility, inputs=checkbox, outputs=im_list)
 
-        output = demo.postprocess_data(0, [gr.update(visible=False)] * 2, state=None)
+        output = await demo.postprocess_data(
+            0, [gr.update(visible=False)] * 2, state=None
+        )
         assert output == [
             {"visible": False, "__type__": "update"},
             {"visible": False, "__type__": "update"},
         ]
 
-    def test_blocks_returns_correct_output_dict_single_key(self):
+    @pytest.mark.asyncio
+    async def test_blocks_returns_correct_output_dict_single_key(self):
         with gr.Blocks() as demo:
             num = gr.Number()
             num2 = gr.Number()
@@ -576,10 +582,10 @@ class TestBlocksPostprocessing:
 
             update.click(update_values, inputs=[num], outputs=[num2])
 
-        output = demo.postprocess_data(0, {num2: gr.Number(value=42)}, state=None)
+        output = await demo.postprocess_data(0, {num2: gr.Number(value=42)}, state=None)
         assert output[0]["value"] == 42
 
-        output = demo.postprocess_data(0, {num2: 23}, state=None)
+        output = await demo.postprocess_data(0, {num2: 23}, state=None)
         assert output[0] == 23
 
     @pytest.mark.asyncio
@@ -645,7 +651,8 @@ class TestBlocksPostprocessing:
             }
             assert output["data"][1] == {"__type__": "update", "interactive": True}
 
-    def test_error_raised_if_num_outputs_mismatch(self):
+    @pytest.mark.asyncio
+    async def test_error_raised_if_num_outputs_mismatch(self):
         with gr.Blocks() as demo:
             textbox1 = gr.Textbox()
             textbox2 = gr.Textbox()
@@ -655,9 +662,10 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r"^An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
-            demo.postprocess_data(fn_index=0, predictions=["test"], state=None)
+            await demo.postprocess_data(fn_index=0, predictions=["test"], state=None)
 
-    def test_error_raised_if_num_outputs_mismatch_with_function_name(self):
+    @pytest.mark.asyncio
+    async def test_error_raised_if_num_outputs_mismatch_with_function_name(self):
         def infer(x):
             return x
 
@@ -670,9 +678,10 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r"^An event handler \(infer\) didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
-            demo.postprocess_data(fn_index=0, predictions=["test"], state=None)
+            await demo.postprocess_data(fn_index=0, predictions=["test"], state=None)
 
-    def test_error_raised_if_num_outputs_mismatch_single_output(self):
+    @pytest.mark.asyncio
+    async def test_error_raised_if_num_outputs_mismatch_single_output(self):
         with gr.Blocks() as demo:
             num1 = gr.Number()
             num2 = gr.Number()
@@ -682,9 +691,10 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r"^An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
-            demo.postprocess_data(fn_index=0, predictions=1, state=None)
+            await demo.postprocess_data(fn_index=0, predictions=1, state=None)
 
-    def test_error_raised_if_num_outputs_mismatch_tuple_output(self):
+    @pytest.mark.asyncio
+    async def test_error_raised_if_num_outputs_mismatch_tuple_output(self):
         def infer(a, b):
             return a, b
 
@@ -698,7 +708,7 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r"^An event handler \(infer\) didn\'t receive enough output values \(needed: 3, received: 2\)\.\nWanted outputs:",
         ):
-            demo.postprocess_data(fn_index=0, predictions=(1, 2), state=None)
+            await demo.postprocess_data(fn_index=0, predictions=(1, 2), state=None)
 
 
 class TestStateHolder:
@@ -1663,7 +1673,8 @@ def test_emptry_string_api_name_gets_set_as_fn_name():
     assert demo.dependencies[0]["api_name"] == "test_fn"
 
 
-def test_blocks_postprocessing_with_copies_of_component_instance():
+@pytest.mark.asyncio
+async def test_blocks_postprocessing_with_copies_of_component_instance():
     # Test for: https://github.com/gradio-app/gradio/issues/6608
     with gr.Blocks() as demo:
         chatbot = gr.Chatbot()
@@ -1679,7 +1690,7 @@ def test_blocks_postprocessing_with_copies_of_component_instance():
         )
 
         assert (
-            demo.postprocess_data(0, [gr.Chatbot(value=[])] * 3, None)
+            await demo.postprocess_data(0, [gr.Chatbot(value=[])] * 3, None)
             == [{"value": [], "__type__": "update"}] * 3
         )
 

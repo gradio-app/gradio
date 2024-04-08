@@ -94,7 +94,10 @@ function replace_file_data_with_file_function(obj: any): any {
 }
 
 function stringify_except_file_function(obj: any): string {
-	const jsonString = JSON.stringify(obj, (key, value) => {
+	let jsonString = JSON.stringify(obj, (key, value) => {
+		if (value === null) {
+			return "UNQUOTEDNone";
+		}
 		if (
 			typeof value === "string" &&
 			value.startsWith("file(") &&
@@ -105,5 +108,7 @@ function stringify_except_file_function(obj: any): string {
 		return value;
 	});
 	const regex = /"UNQUOTEDfile\(([^)]*)\)"/g;
-	return jsonString.replace(regex, (match, p1) => `file(${p1})`);
+	jsonString = jsonString.replace(regex, (match, p1) => `file(${p1})`);
+	const regexNone = /"UNQUOTEDNone"/g;
+	return jsonString.replace(regexNone, "None");
 }
