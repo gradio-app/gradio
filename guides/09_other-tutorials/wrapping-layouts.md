@@ -8,6 +8,34 @@ Gradio features [blocks](https://www.gradio.app/docs/blocks) to easily layout ap
 
 In this guide, we are going to explore how we can wrap the layout classes to create more maintainable and easy-to-read applications without sacrificing flexibility.
 
+## Example
+
+- In this guide, we are going to follow from a Huggingface Space example which is implemented with this guide implementation. 
+- Here is the Space example:
+
+<gradio-app space="WoWoWoWololo/wrapping-layouts"></gradio-app>
+
+- To keep this guide easy to follow and read, we are going to look at the important parts of this implementation such as the render hierarchy and attach_event function. The other implementations are straightforward so we are going to skip them. You can look at their implementation from [the example code](https://huggingface.co/spaces/WoWoWoWololo/wrapping-layouts/blob/main/app.py).
+
+## How Does Render Hierarchy Work?
+
+- If you look at the ```LayoutBase``` class's ```render``` function, you can see a render hierarchy. If you have used ```with``` syntax to structure the layouts, you will be confused at first. Let's break the function to two parts and look at them step by step:
+
+# TODO - Rewrite the guide
+- The code snippets can be used for only ```render``` and ```attach_event``` functions. The other ones are unnecessary.
+    - Don't need all the code snippets because there is already a Huggingface Space example and it contains the code example.
+    - The user can check the from there if wanted.
+- Make the guide easy to read, and easy to follow with the code. There is ALREADY a code example.
+- Describe the implementation of ```render``` and ```attach_event``` functions. Other ones are easy to implement and can be easily understandable from the code snippet.
+
+- The new guide may look like this:
+    1. Introduction
+    2. Example
+    3. How does render hierarchy work?
+    4. How attach_event function works?
+    5. Conclusion
+
+
 ## Implementation
 
 - The wrapping utility has two important classes. The first one is the ```LayoutBase``` class and the other one is the ```Application``` class. Let's start with these classes' implementations first. Then we look at how we can wrap the layouts from the gradio package with the ```LayoutBase``` class.
@@ -170,52 +198,6 @@ tab_main_layout.render()
 
 - You can see what is the ```block_dict``` variable in the ```_attach_event``` function which is implemented in the ```Application``` class.
 
----------------------------------------------
-
-- With this function, we finished implementing the ```LayoutBase``` class.
-- For completeness, here is the full implementation:
-
-```python
-class LayoutBase:
-    main_layout: Block
-    name: str
-    global_children_dict: Dict[str, Block]
-    renderables: list
-
-    def __init__(self) -> None:
-        self.main_layout = None
-        self.name = "Layout Base"
-        self.global_children_dict = {}
-        self.renderables = []
-
-    def add_component(self, name: str, component: Block) -> None:
-        self.renderables.append(component)
-        self.global_children_dict[name] = component
-
-    def add_layout(self, layout: LayoutBase) -> None:
-        self.renderables.append(layout)
-        self.global_children_dict.update(layout.global_children_dict)
-
-    def render(self) -> None:
-        with self.main_layout:
-            for renderable in self.renderables:
-                renderable.render()
-
-        self.main_layout.render()
-
-    def clear(self) -> None:
-        self.global_children_dict.clear()
-
-        for renderable in self.renderables:
-            if isinstance(renderable, LayoutBase):
-                renderable.clear()
-
-        self.renderables.clear()
-
-    def attach_event(self, block_dict: Dict[str, Block]) -> None:
-        raise NotImplementedError
-```
-
 ### Application Class
 
 - Now we are going to implement the ```Application``` class which is responsible for giving the global components to children layouts for the ```attach_event``` function, rendering the components and launching the application.
@@ -331,63 +313,6 @@ class Application:
         return self.app.launch()
 ```
 
----------------------------------------------
-
-- With this function, we finished implementing the ```Application``` class.
-- For completeness, here is the full implementation:
-
-```python
-class Application:
-    app: Blocks
-    children: list[LayoutBase]
-
-    # Blocks constructor parameters are omitted for brevity
-    def __init__(self, title: str) -> None:
-        self.app = Blocks(title=title)
-        self.children = []
-
-    def add(self, child: LayoutBase):
-        self.children.append(child)
-
-    def _render(self):
-        with self.app:
-            for child in self.children:
-                child.render()
-
-        self.app.render()
-
-    def _attach_event(self):
-        block_dict: Dict[str, Block] = {}
-
-        for child in self.children:
-            block_dict.update(child.global_children_dict)
-
-        with self.app:
-            for child in self.children:
-                try:
-                    child.attach_event(block_dict=block_dict)
-                except NotImplementedError:
-                    print(f"{child.name}'s attach_event is not implemented")
-
-    def _clear(self):
-        from gc import collect
-
-        for child in self.children:
-            child.clear()
-
-        self.children.clear()
-
-        collect()
-
-    # launch function parameters are omitted for the brevity
-    def launch(self) -> tuple[FastAPI, str, str]:
-        self._render()
-        self._attach_event()
-        self._clear()
-
-        return self.app.launch()
-```
-
 ### Wrapped Layout Classes
 
 - We have implemented the main classes, now we can implement the wrap layout classes. The implementations are straightforward:
@@ -433,7 +358,6 @@ class TabLayout(LayoutBase):
 - Row's and column's second textboxes are going to be attached to the row's first textbox's value.
 - Here is the example we are going to write:
 
-<gradio-app space="WoWoWoWololo/wrapping-layouts"></gradio-app>
 
 - Let's start to write the example!
 
