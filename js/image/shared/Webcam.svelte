@@ -63,7 +63,15 @@
 				.then(() => set_available_devices(available_video_devices))
 				.then((devices) => {
 					available_video_devices = devices;
-					selected_device = devices[0];
+
+					const used_devices = stream
+						.getTracks()
+						.map((track) => track.getSettings()?.deviceId)[0];
+
+					selected_device = used_devices
+						? devices.find((device) => device.deviceId === used_devices) ||
+						  available_video_devices[0]
+						: available_video_devices[0];
 				});
 
 			if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
