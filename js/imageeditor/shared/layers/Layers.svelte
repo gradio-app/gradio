@@ -25,6 +25,12 @@
 		}
 	});
 
+	async function init_layer(): Promise<void> {
+		LayerManager.reset();
+		new_layer();
+	}
+	$: $dimensions, init_layer();
+
 	async function new_layer(): Promise<void> {
 		if (!$pixi) return;
 
