@@ -21,7 +21,7 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
     task = getattr(pipeline, "model", None)
     if task is not None:
         task = getattr(pipeline.model.config, "custom_pipelines", None)
-        if task is not None or task == {}:
+        if task is not None or task is not {}:
             task = list(task.keys())[0].lower()
 
     def is_transformers_pipeline_type(pipeline, class_name: str):
