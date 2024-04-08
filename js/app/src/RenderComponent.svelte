@@ -28,9 +28,7 @@
 			construct(_target, args: Record<string, any>[]) {
 				//@ts-ignore
 				const instance = new _target(...args);
-				const props = Object.getOwnPropertyNames(instance).filter(
-					(s) => !s.startsWith("$")
-				);
+				const props = Object.keys(instance.$$.props);
 
 				function report(props: string) {
 					return function (propargs: any) {
