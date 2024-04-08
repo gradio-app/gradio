@@ -42,11 +42,12 @@ In the default implementation, we are doing this:
 
 ```python
 with Row():
-    first_textbox = Textbox(value="first_textbox")
-    second_textbox = Textbox(value="second_textbox")
+    left_textbox = Textbox(value="left_textbox")
+    right_textbox = Textbox(value="right_textbox")
 ```
 
-- Now let's pay attention to the textbox variables. These variables' render parameter is true by default. So as we use ```with``` syntax and create these variables, they are calling the render function under the ```with``` syntax. We know the render function is called, from the constructor implementation of the ```gradio.blocks.Block``` class:
+- Pay attention to the textbox variables. These variables' render parameter is true by default. So as we use ```with``` syntax and create these variables, they are calling the render function under the ```with``` syntax. 
+- We know the render function is called in the constructor with the implementation from the ```gradio.blocks.Block``` class:
 
 ```python
 class Block:
@@ -58,8 +59,17 @@ class Block:
             self.render()
 ```
 
-- In the ```render``` function of the ```LayoutBase``` class, we are simulating it. We are calling the render functions under the ```with``` syntax.
-- Now let's expand the above example to understand why we have to call the ```main_layout``` variable's render function:
+- So our implementation looks like this:
+
+```python
+# self.main_layout -> Row()
+with self.main_layout:
+    left_textbox.render()
+    right_textbox.render()
+```
+
+- So with calling the components' render functions under the ```with``` syntax, we are simulating the default implementation actually.
+- If we understand the below ```with``` syntax, let's move on the upper ```with``` syntax. For this, let's expand our example with ```Tab``` component:
 
 ```python
 with Tab():
@@ -86,7 +96,7 @@ tab_main_layout.render()
 
 - The default implementation and our implementation are the same, but we are using the render function ourselves. So it requires a little work.
 
-2. Attach Event Function
+1. Attach Event Function
 
 - After we create the ```Application``` and render the components, we can clear the components because the components are going to be live in the ```app``` variable which is a variable of the ```Application``` class. You can check this with the ```app.blocks``` variable.
 - So let's implement the ```clear``` function:
