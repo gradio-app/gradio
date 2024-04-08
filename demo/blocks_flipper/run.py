@@ -24,8 +24,15 @@ with gr.Blocks() as demo:
 
     with gr.Accordion("Open for More!", open=False):
         gr.Markdown("Look at me...")
-        temp_slider = gr.Slider(minimum=0.0, maximum=1.0, value=0.1, step=0.1, interactive=True, label="Slide me")
-        temp_slider.change(lambda x:x, [temp_slider])
+        temp_slider = gr.Slider(
+            minimum=0.0,
+            maximum=1.0,
+            value=0.1,
+            step=0.1,
+            interactive=True,
+            label="Slide me",
+        )
+        temp_slider.change(lambda x: x, [temp_slider])
 
     text_button.click(flip_text, inputs=text_input, outputs=text_output)
     image_button.click(flip_image, inputs=image_input, outputs=image_output)
