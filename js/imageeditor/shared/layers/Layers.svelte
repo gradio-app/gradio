@@ -29,7 +29,7 @@
 		let invalid = layers.some(
 			(layer) =>
 				layer.composite.texture.width != $dimensions[0] ||
-				layer.composite.texture.height != $dimensions[1],
+				layer.composite.texture.height != $dimensions[1]
 		);
 		if (invalid) {
 			LayerManager.reset();
