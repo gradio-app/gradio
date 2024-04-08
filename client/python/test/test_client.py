@@ -807,6 +807,7 @@ class TestStatusUpdates:
 
 
 class TestAPIInfo:
+    @pytest.mark.flaky
     @pytest.mark.parametrize("trailing_char", ["/", ""])
     def test_test_endpoint_src(self, trailing_char):
         src = "https://gradio-calculator.hf.space" + trailing_char
