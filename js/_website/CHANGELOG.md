@@ -1,5 +1,19 @@
 # website
 
+## 0.26.0
+
+### Features
+
+- [#7945](https://github.com/gradio-app/gradio/pull/7945) [`328325a`](https://github.com/gradio-app/gradio/commit/328325a7ad812e7e152fe57a5a91a54b67adf728) - style changes for gradio website docs navbar.  Thanks @shafiqihtsham!
+
+### Fixes
+
+- [#7935](https://github.com/gradio-app/gradio/pull/7935) [`919afff`](https://github.com/gradio-app/gradio/commit/919afffcee87bee25a6905c488484936df92189d) - Adds a Guide on deploying Gradio apps with Docker.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/code@0.5.11
+
 ## 0.25.2
 
 ### Dependency updates

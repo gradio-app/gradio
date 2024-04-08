@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 0.15.1
+
+### Fixes
+
+- [#7926](https://github.com/gradio-app/gradio/pull/7926) [`9666854`](https://github.com/gradio-app/gradio/commit/966685479078f59430b3bced7e6068eb8157c003) - Fixes streaming event race condition.  Thanks @aliabid94!
+
 ## 0.15.0
 
 ### Highlights

@@ -1,5 +1,15 @@
 # @gradio/lite
 
+## 4.26.0
+
+### Features
+
+- [#7811](https://github.com/gradio-app/gradio/pull/7811) [`b43055b`](https://github.com/gradio-app/gradio/commit/b43055b297dfe1aa56fda4cd722d878f7297a1b5) - Lite playground design changes.  Thanks @aliabd!
+
+### Dependency updates
+
+- gradio@4.26.0
+
 ## 4.25.0
 
 ### Dependency updates
