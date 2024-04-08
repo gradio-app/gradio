@@ -100,8 +100,10 @@ class LoginButton(Button):
 # on the same tab.
 _js_handle_redirect = """
 (buttonValue) => {
+    setTimeout(() => {
+        window.parent?.postMessage({type: "SET_SCROLLING", enabled: true});
+    }, 500);
     uri = buttonValue === BUTTON_DEFAULT_VALUE ? '/login/huggingface' : '/logout';
     window.location.assign(uri + window.location.search);
-    window.parent?.postMessage({type: "SET_SCROLLING", enabled: true});
 }
 """
