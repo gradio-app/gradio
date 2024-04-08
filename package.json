@@ -44,7 +44,7 @@
 		"@playwright/test": "^1.39.0",
 		"@sveltejs/vite-plugin-svelte": "^2.5.2",
 		"@tailwindcss/forms": "^0.5.0",
-		"@testing-library/dom": "^9.0.0",
+		"@testing-library/dom": "^10.0.0",
 		"@testing-library/jest-dom": "^6.0.0",
 		"@types/node": "^20.3.1",
 		"@types/testing-library__jest-dom": "^5.14.6",
