@@ -47,7 +47,7 @@
 <svelte:window on:keydown={onKeyDown} />
 
 <section
-	class="top-0 fixed -ml-4 flex items-center p-4 rounded-br-lg backdrop-blur-lg z-50 bg-gray-200/50 lg:hidden"
+	class="top-0 left-0 fixed flex items-center p-4 rounded-br-lg backdrop-blur-lg z-50 bg-gray-200/50 lg:hidden"
 	id="menu-bar"
 >
 	<button
@@ -71,7 +71,7 @@
 	use:clickOutside
 	on:click_outside={() => (show_nav = false)}
 	class:hidden={!show_nav}
-	class="min-w-[200px] navigation mobile-nav overflow-y-auto fixed backdrop-blur-lg z-50 bg-gray-200/50 pr-6 pl-4 py-4 -ml-4 h-full inset-0 w-5/6 lg:inset-auto lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block rounded-t-xl lg:bg-gradient-to-r lg:from-white lg:to-gray-50 lg:overflow-x-clip lg:w-2/12"
+	class="max-w-max md:min-w-[200px] navigation mobile-nav overflow-y-auto fixed backdrop-blur-lg z-50 bg-gray-200/50 pr-6 pl-4 py-4 -ml-4 h-full inset-0 lg:inset-auto lg:ml-0 lg:z-0 lg:backdrop-blur-none lg:navigation lg:p-0 lg:pb-4 lg:h-screen lg:leading-relaxed lg:sticky lg:top-0 lg:text-md lg:block rounded-t-xl lg:bg-gradient-to-r lg:from-white lg:to-gray-50 lg:overflow-x-clip lg:w-2/12"
 	id="mobile-nav"
 >
 	<button
@@ -122,24 +122,24 @@
 	<p class="font-semibold px-4 my-2 block">Building Demos</p>
 	<a
 		class:current-nav-link={current_nav_link == "interface"}
-		class="thin-link px-4 block"
+		class="thin-link px-4 block leading-8"
 		href="./interface/">Interface</a
 	>
 	<a
 		class:current-nav-link={current_nav_link == "chatinterface"}
-		class="thin-link px-4 block"
+		class="thin-link px-4 block leading-8"
 		href="./chatinterface/"
 		>ChatInterface<sup class="text-orange-500">NEW</sup></a
 	>
 	<a
 		class:current-nav-link={current_nav_link == "tabbedinterface"}
-		class="thin-link px-4 block"
+		class="thin-link px-4 block leading-8"
 		href="./tabbedinterface/">TabbedInterface</a
 	>
 
 	<a
 		class:current-nav-link={current_nav_link == "blocks"}
-		class="thin-link px-4 block"
+		class="thin-link px-4 block leading-8"
 		href="./blocks/">Blocks</a
 	>
 
@@ -147,27 +147,27 @@
 
 	<a
 		class:current-nav-link={current_nav_link == "row"}
-		class="thin-link px-4 block"
+		class="thin-link px-4 block leading-8"
 		href="./row/">Row</a
 	>
 	<a
 		class:current-nav-link={current_nav_link == "column"}
-		class="thin-link px-4 block"
+		class="thin-link px-4 block leading-8"
 		href="./column/">Column</a
 	>
 	<a
 		class:current-nav-link={current_nav_link == "tab"}
-		class="thin-link px-4 block"
+		class="thin-link px-4 block leading-8"
 		href="./tab/">Tab</a
 	>
 	<a
 		class:current-nav-link={current_nav_link == "group"}
-		class="thin-link px-4 block"
+		class="thin-link px-4 block leading-8"
 		href="./group/">Group</a
 	>
 	<a
 		class:current-nav-link={current_nav_link == "accordion"}
-		class="thin-link px-4 block"
+		class="thin-link px-4 block leading-8"
 		href="./accordion/">Accordion</a
 	>
 
@@ -179,7 +179,7 @@
 	{#each Object.entries(components) as [name, obj] (name)}
 		<a
 			class:current-nav-link={current_nav_link == name}
-			class="px-4 block thin-link"
+			class="px-4 block thin-link leading-8"
 			href="./{name}/">{obj.name}</a
 		>
 	{/each}
@@ -187,7 +187,7 @@
 	{#each Object.entries(helpers) as [name, obj] (name)}
 		<a
 			class:current-nav-link={current_nav_link == name}
-			class="px-4 block thin-link"
+			class="px-4 block thin-link leading-8"
 			href="./{name}/">{obj.name}</a
 		>
 	{/each}
@@ -195,7 +195,7 @@
 	{#each Object.entries(modals) as [name, obj] (name)}
 		<a
 			class:current-nav-link={current_nav_link == name}
-			class="px-4 block thin-link"
+			class="px-4 block thin-link leading-8"
 			href="./{name}/">{obj.name}</a
 		>
 	{/each}
@@ -204,7 +204,7 @@
 	{#each Object.entries(routes) as [name, obj] (name)}
 		<a
 			class:current-nav-link={current_nav_link == name}
-			class="px-4 block thin-link"
+			class="px-4 block thin-link leading-8"
 			href="./{name}/">{obj.name}</a
 		>
 	{/each}
@@ -213,17 +213,17 @@
 
 	<a
 		class:current-nav-link={current_nav_link == "flagging"}
-		class="thin-link px-4 block"
+		class="thin-link px-4 block leading-8"
 		href="./flagging/">Flagging</a
 	>
 	<a
 		class:current-nav-link={current_nav_link == "themes"}
-		class="thin-link px-4 block"
+		class="thin-link px-4 block leading-8"
 		href="./themes/">Themes</a
 	>
 	<a
 		class:current-nav-link={current_nav_link == "no-reload"}
-		class="thin-link px-4 block"
+		class="thin-link px-4 block leading-8"
 		href="./no-reload/">NO_RELOAD</a
 	>
 
@@ -235,7 +235,7 @@
 	{#each Object.entries(py_client) as [name, obj] (name)}
 		<a
 			class:current-nav-link={current_nav_link == name}
-			class="px-4 block thin-link"
+			class="px-4 block thin-link leading-8"
 			href="./{name}/">{obj.name}</a
 		>
 	{/each}
