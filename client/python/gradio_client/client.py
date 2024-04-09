@@ -86,8 +86,6 @@ class Client:
         download_files: bool = True,  # TODO: consider setting to False in 1.0
         _skip_components: bool = True,  # internal parameter to skip values certain components (e.g. State) that do not need to be displayed to users.
         ssl_verify: bool = True,
-        httpx_asyncclient: httpx.AsyncClient | None = None,
-        httpx_client: httpx.Client | None = None,
     ):
         """
         Parameters:
@@ -153,19 +151,13 @@ class Client:
 
         http2 = bool(importlib.util.find_spec("h2"))
 
-        if httpx_asyncclient is not None:
-            self.httpx_asyncclient = httpx_asyncclient
-        else:
-            self.httpx_asyncclient = httpx.AsyncClient(
-                timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify, http2=http2
-            )
+        self.httpx_asyncclient = httpx.AsyncClient(
+            timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify, http2=http2
+        )
 
-        if httpx_client is not None:
-            self.httpx_client = httpx_client
-        else:
-            self.httpx_client = httpx.Client(
-                timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify, http2=http2
-            )
+        self.httpx_client = httpx.Client(
+            timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify, http2=http2
+        )
 
         if auth is not None:
             self._login(auth)
