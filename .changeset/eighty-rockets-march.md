@@ -1,6 +1,6 @@
 ---
-"@gradio/client": minor
-"gradio": minor
+"@gradio/client": patch
+"gradio": patch
 ---
 
-feat:Fix heartbeat in the js client to be Lite compatible
+fix:Fix heartbeat in the js client to be Lite compatible
