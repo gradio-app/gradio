@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import os
-import traceback
 import typing
 import urllib.parse
 import warnings
@@ -55,7 +54,6 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
     """Add OAuth routes to the FastAPI app (login, callback handler and logout)."""
     try:
         from authlib.integrations.starlette_client import OAuth
-
     except ImportError as e:
         raise ImportError(
             "Cannot initialize OAuth to due a missing library. Please run `pip install gradio[oauth]` or add "
