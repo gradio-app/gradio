@@ -1,6 +1,6 @@
 ---
-"@gradio/app": minor
-"gradio": minor
+"@gradio/app": patch
+"gradio": patch
 ---
 
-feat:Fix example loading for custom components
+fix:Fix example loading for custom components
