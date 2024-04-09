@@ -299,7 +299,7 @@ export function apply_diff(
 	return obj;
 }
 
-export function postMessage<Res = any>(
+export function post_message<Res = any>(
 	message: any,
 	origin: string
 ): Promise<Res> {

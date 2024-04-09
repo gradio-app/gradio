@@ -13,7 +13,7 @@ import {
 	hardware_types,
 	resolve_root,
 	apply_diff,
-	postMessage
+	post_message
 } from "./utils.js";
 
 import type {
@@ -784,7 +784,7 @@ export function api_factory(
 								: `https://huggingface.co`;
 							const zerogpu_auth_promise =
 								dependency.zerogpu && window.parent != window && config.space_id
-									? postMessage<Headers>("zerogpu-headers", origin)
+									? post_message<Headers>("zerogpu-headers", origin)
 									: Promise.resolve(null);
 							const post_data_promise = zerogpu_auth_promise.then((headers) => {
 								return post_data(
