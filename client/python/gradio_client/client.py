@@ -159,6 +159,7 @@ class Client:
         self.sse_url = urllib.parse.urljoin(
             self.src, utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL
         )
+        self.heartbeat_url = urllib.parse.urljoin(self.src, utils.HEARTBEAT_URL)
         self.sse_data_url = urllib.parse.urljoin(
             self.src,
             utils.SSE_DATA_URL_V0 if self.protocol == "sse" else utils.SSE_DATA_URL,
@@ -169,7 +170,7 @@ class Client:
         self.upload_url = urllib.parse.urljoin(self.src, utils.UPLOAD_URL)
         self.reset_url = urllib.parse.urljoin(self.src, utils.RESET_URL)
         self.app_version = version.parse(self.config.get("version", "2.0"))
-        self._info = None
+        self._info = self._get_api_info()
         self.session_hash = str(uuid.uuid4())
 
         endpoint_class = (
@@ -184,12 +185,42 @@ class Client:
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
 
         # Disable telemetry by setting the env variable HF_HUB_DISABLE_TELEMETRY=1
-        threading.Thread(target=self._telemetry_thread).start()
+        threading.Thread(target=self._telemetry_thread, daemon=True).start()
+        self._refresh_heartbeat = threading.Event()
+        self._kill_heartbeat = threading.Event()
+
+        self.heartbeat = threading.Thread(target=self._stream_heartbeat, daemon=True)
+        self.heartbeat.start()
 
         self.stream_open = False
         self.streaming_future: Future | None = None
         self.pending_messages_per_event: dict[str, list[Message | None]] = {}
         self.pending_event_ids: set[str] = set()
+
+    def close(self):
+        self._kill_heartbeat.set()
+        self.heartbeat.join(timeout=1)
+
+    def _stream_heartbeat(self):
+        while True:
+            url = self.heartbeat_url.format(session_hash=self.session_hash)
+            try:
+                with httpx.stream(
+                    "GET",
+                    url,
+                    headers=self.headers,
+                    cookies=self.cookies,
+                    verify=self.ssl_verify,
+                    timeout=20,
+                ) as response:
+                    for _ in response.iter_lines():
+                        if self._refresh_heartbeat.is_set():
+                            self._refresh_heartbeat.clear()
+                            break
+                        if self._kill_heartbeat.is_set():
+                            return
+            except httpx.TransportError:
+                return
 
     async def stream_messages(
         self, protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]
@@ -611,8 +642,6 @@ class Client:
             }
 
         """
-        if not self._info:
-            self._info = self._get_api_info()
         num_named_endpoints = len(self._info["named_endpoints"])
         num_unnamed_endpoints = len(self._info["unnamed_endpoints"])
         if num_named_endpoints == 0 and all_endpoints is None:
@@ -642,6 +671,7 @@ class Client:
 
     def reset_session(self) -> None:
         self.session_hash = str(uuid.uuid4())
+        self._refresh_heartbeat.set()
 
     def _render_endpoints_info(
         self,
@@ -1000,6 +1030,7 @@ class Endpoint:
         self.api_name: str | Literal[False] | None = (
             "/" + api_name if isinstance(api_name, str) else api_name
         )
+        self._info = self.client._info
         self.protocol = protocol
         self.input_component_types = [
             self._get_component_type(id_) for id_ in dependency["inputs"]
@@ -1029,8 +1060,6 @@ class Endpoint:
         )
 
     def _get_parameters_info(self) -> list[ParameterInfo] | None:
-        if not self.client._info:
-            self._info = self.client._get_api_info()
         if self.api_name in self._info["named_endpoints"]:
             return self._info["named_endpoints"][self.api_name]["parameters"]
         return None

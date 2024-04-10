@@ -61,7 +61,8 @@ export class Client {
 	) => Promise<unknown[]>;
 	submit: (
 		endpoint: string | number,
-		data?: unknown[],
+		data: unknown[],
+		app_reference: string,
 		event_data?: unknown,
 		trigger_id?: any
 	) => SubmitReturn;
@@ -84,6 +85,19 @@ export class Client {
 	}
 
 	private async init(): Promise<void> {
+		if (
+			(typeof window === "undefined" || !("WebSocket" in window)) &&
+			// @ts-ignore
+			!global.Websocket
+		) {
+			// @ts-ignore
+			const ws = await import("ws");
+			// @ts-ignore
+			NodeBlob = (await import("node:buffer")).Blob;
+			//@ts-ignore
+			global.WebSocket = ws.WebSocket;
+		}
+
 		this.config = await this._resolve_config();
 		this.api = await this.view_api(this.config);
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);
@@ -118,6 +132,7 @@ export class Client {
 				throw new Error("No config or app_id set");
 			}
 
+			// res(_config);
 			return this.config_success(config);
 		} catch (e) {
 			console.error(e);
@@ -125,7 +140,7 @@ export class Client {
 				check_space_status(
 					space_id,
 					RE_SPACE_NAME.test(space_id) ? "space_name" : "subdomain",
-					this.handle_space_success.bind(this)
+					this.handle_space_success
 				);
 			} else {
 				if (status_callback)
@@ -139,6 +154,7 @@ export class Client {
 		}
 	}
 
+	// todo: check return object
 	private async config_success(
 		_config: Config
 	): Promise<Config | client_return> {
@@ -163,7 +179,10 @@ export class Client {
 			console.error(`Could not get API details: ${(e as Error).message}`);
 		}
 
-		return { ...this.config };
+		return {
+			...this.config,
+			...this.prepare_return_obj()
+		};
 	}
 
 	async handle_space_success(status: SpaceStatus): Promise<Config | void> {
@@ -172,8 +191,15 @@ export class Client {
 		if (status.status === "running") {
 			try {
 				this.config = await this._resolve_config();
-				const config_result = await this.config_success(this.config);
-				return config_result as Config;
+				const _config = await this.config_success(this.config);
+
+				// connect to the heartbeat endpoint via GET request
+				const heartbeat = new EventSource(
+					`${this.config.root}/heartbeat/${this.session_hash}`
+				);
+
+				// res(_config);
+				return _config as Config;
 			} catch (e) {
 				console.error(e);
 				if (status_callback) {

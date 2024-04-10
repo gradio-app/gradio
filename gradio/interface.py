@@ -96,7 +96,7 @@ class Interface(Blocks):
         inputs: str | Component | list[str | Component] | None,
         outputs: str | Component | list[str | Component] | None,
         examples: list[Any] | list[list[Any]] | str | None = None,
-        cache_examples: bool | None = None,
+        cache_examples: bool | Literal["lazy"] | None = None,
         examples_per_page: int = 10,
         live: bool = False,
         title: str | None = None,
@@ -136,7 +136,7 @@ class Interface(Blocks):
             inputs: A single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If set to None, then only the output components will be displayed.
             outputs: A single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If set to None, then only the input components will be displayed.
             examples: Sample inputs for the function; if provided, appear below the UI components and can be clicked to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided, but it should be within the directory with the python file running the gradio app. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
-            cache_examples: If True, caches examples in the server for fast runtime in examples. If `fn` is a generator function, then the last yielded value will be used as the output. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
+            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached after their first use. If `fn` is a generator function, then the last yielded value will be used as the output. Can also be set by the GRADIO_CACHE_EXAMPLES environment variable, which takes a case-insensitive value, one of: {"true", "false", "lazy"}. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
             examples_per_page: If examples are provided, how many to display per page.
             live: Whether the interface should automatically rerun if any of the inputs change.
             title: A title for the interface; if provided, appears above the input and output components in large font. Also used as the tab title when opened in a browser window.
@@ -204,10 +204,7 @@ class Interface(Blocks):
         if not isinstance(additional_inputs, list):
             additional_inputs = [additional_inputs]
 
-        if self.space_id and cache_examples is None:
-            self.cache_examples = True
-        else:
-            self.cache_examples = cache_examples or False
+        self.cache_examples = cache_examples
 
         state_input_indexes = [
             idx for idx, i in enumerate(inputs) if i == "state" or isinstance(i, State)
@@ -701,14 +698,16 @@ class Interface(Blocks):
             if _stop_btn:
                 extra_output = [_submit_btn, _stop_btn]
 
-                def cleanup():
+                async def cleanup():
                     return [Button(visible=True), Button(visible=False)]
 
                 predict_event = on(
                     triggers,
-                    lambda: (
-                        Button(visible=False),
-                        Button(visible=True),
+                    utils.async_lambda(
+                        lambda: (
+                            Button(visible=False),
+                            Button(visible=True),
+                        )
                     ),
                     inputs=None,
                     outputs=[_submit_btn, _stop_btn],
@@ -827,7 +826,9 @@ class Interface(Blocks):
                 )
             flag_method = FlagMethod(self.flagging_callback, label, value)
             flag_btn.click(
-                lambda: Button(value="Saving...", interactive=False),
+                utils.async_lambda(
+                    lambda: Button(value="Saving...", interactive=False)
+                ),
                 None,
                 flag_btn,
                 queue=False,
@@ -842,7 +843,11 @@ class Interface(Blocks):
                 show_api=False,
             )
             _clear_btn.click(
-                flag_method.reset, None, flag_btn, queue=False, show_api=False
+                utils.async_lambda(flag_method.reset),
+                None,
+                flag_btn,
+                queue=False,
+                show_api=False,
             )
 
     def render_examples(self):
@@ -858,7 +863,7 @@ class Interface(Blocks):
                 inputs=non_state_inputs,  # type: ignore
                 outputs=non_state_outputs,  # type: ignore
                 fn=self.fn,
-                cache_examples=self.cache_examples,
+                cache_examples=self.cache_examples,  # type: ignore
                 examples_per_page=self.examples_per_page,
                 _api_mode=self.api_mode,
                 batch=self.batch,

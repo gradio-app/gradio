@@ -1,18 +1,22 @@
 from __future__ import annotations
 
+import datetime
+import os
 import threading
 from collections import OrderedDict
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Iterator
 
 if TYPE_CHECKING:
     from gradio.blocks import Blocks
+    from gradio.components import State
 
 
 class StateHolder:
     def __init__(self):
         self.capacity = 10000
-        self.session_data = OrderedDict()
+        self.session_data: OrderedDict[str, SessionState] = OrderedDict()
+        self.time_last_used: dict[str, datetime.datetime] = {}
         self.lock = threading.Lock()
 
     def set_blocks(self, blocks: Blocks):
@@ -29,6 +33,7 @@ class StateHolder:
         if session_id not in self.session_data:
             self.session_data[session_id] = SessionState(self.blocks)
         self.update(session_id)
+        self.time_last_used[session_id] = datetime.datetime.now()
         return self.session_data[session_id]
 
     def __contains__(self, session_id: str):
@@ -41,11 +46,36 @@ class StateHolder:
             if len(self.session_data) > self.capacity:
                 self.session_data.popitem(last=False)
 
+    def delete_all_expired_state(
+        self,
+    ):
+        for session_id in self.session_data:
+            self.delete_state(session_id, expired_only=True)
+
+    def delete_state(self, session_id: str, expired_only: bool = False):
+        if session_id not in self.session_data:
+            return
+        to_delete = []
+        session_state = self.session_data[session_id]
+        for component, value, expired in session_state.state_components:
+            if not expired_only or expired:
+                component.delete_callback(value)
+                to_delete.append(component._id)
+        for component in to_delete:
+            del session_state._data[component]
+
 
 class SessionState:
     def __init__(self, blocks: Blocks):
         self.blocks = blocks
         self._data = {}
+        self._state_ttl = {}
+        self.is_closed = False
+        # When a session is closed, the state is stored for an hour to give the user time to reopen the session.
+        # During testing we set to a lower value to be able to test
+        self.STATE_TTL_WHEN_CLOSED = (
+            1 if os.getenv("GRADIO_IS_E2E_TEST", None) else 3600
+        )
 
     def __getitem__(self, key: int) -> Any:
         if key not in self._data:
@@ -57,7 +87,32 @@ class SessionState:
         return self._data[key]
 
     def __setitem__(self, key: int, value: Any):
+        from gradio.components import State
+
+        block = self.blocks.blocks[key]
+        if isinstance(block, State):
+            self._state_ttl[key] = (
+                block.time_to_live,
+                datetime.datetime.now(),
+            )
         self._data[key] = value
 
     def __contains__(self, key: int):
         return key in self._data
+
+    @property
+    def state_components(self) -> Iterator[tuple[State, Any, bool]]:
+        from gradio.components import State
+
+        for id in self._data:
+            block = self.blocks.blocks[id]
+            if isinstance(block, State) and id in self._state_ttl:
+                time_to_live, created_at = self._state_ttl[id]
+                if self.is_closed:
+                    time_to_live = self.STATE_TTL_WHEN_CLOSED
+                value = self._data[id]
+                yield (
+                    block,
+                    value,
+                    (datetime.datetime.now() - created_at).seconds > time_to_live,
+                )

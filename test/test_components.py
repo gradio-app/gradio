@@ -830,7 +830,8 @@ class TestPlot:
 
 
 class TestAudio:
-    def test_component_functions(self, gradio_temp_dir):
+    @pytest.mark.asyncio
+    async def test_component_functions(self, gradio_temp_dir):
         """
         Preprocess, postprocess serialize, get_config, deserialize
         type: filepath, numpy, file
@@ -841,7 +842,8 @@ class TestAudio:
         assert output1[0] == 8000
         assert output1[1].shape == (8046,)
 
-        x_wav = processing_utils.move_files_to_cache([x_wav], audio_input)[0]
+        x_wav = await processing_utils.async_move_files_to_cache([x_wav], audio_input)
+        x_wav = x_wav[0]
         audio_input = gr.Audio(type="filepath")
         output1 = audio_input.preprocess(x_wav)
         assert Path(output1).name.endswith("audio_sample.wav")
@@ -1489,7 +1491,8 @@ class TestDataset:
 
 
 class TestVideo:
-    def test_component_functions(self):
+    @pytest.mark.asyncio
+    async def test_component_functions(self):
         """
         Preprocess, serialize, deserialize, get_config
         """
@@ -1498,7 +1501,10 @@ class TestVideo:
         )
         video_input = gr.Video()
 
-        x_video = processing_utils.move_files_to_cache([x_video], video_input)[0]
+        x_video = await processing_utils.async_move_files_to_cache(
+            [x_video], video_input
+        )
+        x_video = x_video[0]
 
         output1 = video_input.preprocess(x_video)
         assert isinstance(output1, str)
@@ -2929,6 +2935,15 @@ class TestCode:
             "_selectable": False,
         }
 
+    def test_process_example(self):
+        code = gr.Code()
+        assert (
+            code.process_example("def fn(a):\n  return a") == "def fn(a):\n  return a"
+        )
+        assert code.process_example(None) is None
+        filename = str(Path("test/test_files/test_label_json.json"))
+        assert code.process_example((filename,)) == "test_label_json.json"
+
 
 class TestFileExplorer:
     def test_component_functions(self):
@@ -3052,7 +3067,8 @@ def test_component_example_payloads(io_components):
         else:
             c: Component = component()
         data = c.example_payload()
-        data = processing_utils.move_files_to_cache(
+        data = client_utils.synchronize_async(
+            processing_utils.async_move_files_to_cache,
             data,
             c,
             check_in_upload_folder=False,

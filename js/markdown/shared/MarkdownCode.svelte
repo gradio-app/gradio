@@ -76,7 +76,7 @@
 	afterUpdate(() => render_html(message));
 </script>
 
-<span class:chatbot bind:this={el} class="md">
+<span class:chatbot bind:this={el} class="md" class:prose={render_markdown}>
 	{#if render_markdown}
 		{@html html}
 	{:else}
@@ -176,5 +176,9 @@
 		display: flex;
 		align-items: center;
 		white-space-collapse: break-spaces;
+	}
+
+	.prose :global(:last-child) {
+		margin-bottom: 0;
 	}
 </style>
