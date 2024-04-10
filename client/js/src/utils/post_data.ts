@@ -4,7 +4,8 @@ import { PostResponse } from "../types";
 export async function post_data(
 	url: string,
 	body: unknown,
-	token?: `hf_${string}`
+	token?: `hf_${string}`,
+	additional_headers?: any
 ): Promise<[PostResponse, number]> {
 	const headers: {
 		Authorization?: string;
@@ -17,7 +18,7 @@ export async function post_data(
 		var response = await fetch(url, {
 			method: "POST",
 			body: JSON.stringify(body),
-			headers
+			headers: { ...headers, ...additional_headers }
 		});
 	} catch (e) {
 		return [{ error: BROKEN_CONNECTION_MSG }, 500];

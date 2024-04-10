@@ -5,7 +5,6 @@
 	import { post_data } from "@gradio/client";
 	import NoApi from "./NoApi.svelte";
 	import type { Client } from "@gradio/client";
-
 	import type { Payload } from "../types";
 	import { represent_value } from "./utils";
 
