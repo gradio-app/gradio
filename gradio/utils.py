@@ -89,6 +89,14 @@ def safe_get_lock() -> asyncio.Lock:
         return None  # type: ignore
 
 
+def safe_get_stop_event() -> asyncio.Event:
+    try:
+        asyncio.get_event_loop()
+        return asyncio.Event()
+    except RuntimeError:
+        return None  # type: ignore
+
+
 class BaseReloader(ABC):
     @property
     @abstractmethod
