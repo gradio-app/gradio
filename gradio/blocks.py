@@ -2243,15 +2243,15 @@ Received outputs:
                 self.share = True
             else:
                 self.share = False
+
+                # GRADIO_SHARE environment variable for forcing 'share=True'
+                # GRADIO_SHARE=True => share=True
+                share_env = os.getenv("GRADIO_SHARE")
+                if share_env is not None:
+                    if share_env.lower() == "true":
+                        self.share = True
         else:
             self.share = share
-
-        # GRADIO_SHARE environment variable for forcing 'share=True' or 'share=False'
-        # GRADIO_SHARE=0 => share=False
-        # GRADIO_SHARE=1 => share=True
-        share_env = os.getenv("GRADIO_SHARE")
-        if share_env is not None:
-            self.share = bool(int(share_env))
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
