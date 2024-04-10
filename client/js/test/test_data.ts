@@ -49,6 +49,7 @@ export const test_config: Config = {
 	mode: "blocks",
 	dev_mode: false,
 	analytics_enabled: true,
+	protocol: "sse_v3",
 	components: [
 		{
 			id: 1,

@@ -20,6 +20,10 @@ export function open_stream(
 
 	event_stream.onmessage = async function (event) {
 		let _data = JSON.parse(event.data);
+		if (_data.msg === "close_stream") {
+			close_stream(stream_open, event_stream);
+			return;
+		}
 		const event_id = _data.event_id;
 		if (!event_id) {
 			await Promise.all(
@@ -54,7 +58,6 @@ export function open_stream(
 	event_stream.onerror = async function () {
 		await Promise.all(
 			Object.keys(event_callbacks).map((event_id) =>
-				// todo: fix typing
 				// @ts-ignore
 				event_callbacks[event_id]({
 					msg: "unexpected_error",
@@ -62,19 +65,18 @@ export function open_stream(
 				})
 			)
 		);
-		stream_open = close_stream(stream_open, event_stream);
+		close_stream(stream_open, event_stream);
 	};
 }
 
 export function close_stream(
 	stream_open: boolean,
 	event_stream: EventSource | null
-): boolean {
+): void {
 	if (stream_open && event_stream) {
-		event_stream.close();
-		return false; // stream is now closed
+		stream_open = false;
+		event_stream?.close();
 	}
-	return stream_open;
 }
 
 export function apply_diff_stream(

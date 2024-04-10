@@ -17,6 +17,10 @@ export async function view_api(this: Client, config?: Config): Promise<any> {
 		headers.Authorization = `Bearer ${hf_token}`;
 	}
 
+	if (!config) {
+		return;
+	}
+
 	try {
 		let response: Response;
 
@@ -39,13 +43,16 @@ export async function view_api(this: Client, config?: Config): Promise<any> {
 			throw new Error("Error fetching API info");
 		}
 
-		let api_info = (await response.json()) as
-			| ApiInfo<ApiData>
-			| { api: ApiInfo<ApiData> };
+		let api_info = (await response.json()) as ApiInfo<ApiData>;
 
-		if (config) {
-			return transform_api_info(api_info, config, this.api_map);
+		if (
+			api_info.named_endpoints["/predict"] &&
+			!api_info.unnamed_endpoints["0"]
+		) {
+			api_info.unnamed_endpoints[0] = api_info.named_endpoints["/predict"];
 		}
+
+		return transform_api_info(api_info, config, this.api_map);
 	} catch (e) {
 		"Could not get API info. " + (e as Error).message;
 	}

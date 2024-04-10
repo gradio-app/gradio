@@ -23,10 +23,12 @@
 		"vite": "^5.1.0",
 		"vite-plugin-dts": "^3.7.2",
 		"vite-tsconfig-paths": "^4.3.1",
-		"vitest": "^1.2.2"
+		"vitest": "^1.2.2",
+		"@types/ws": "^8.5.10"
 	},
 	"dependencies": {
 		"fetch-mock": "^9.11.0",
-		"semiver": "^1.1.0"
+		"semiver": "^1.1.0",
+		"ws": "^8.13.0"
 	}
 }

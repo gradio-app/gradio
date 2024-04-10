@@ -62,19 +62,41 @@ export function resolve_root(
 }
 
 export function determine_protocol(endpoint: string): {
+	ws_protocol: "ws" | "wss";
 	http_protocol: "http:" | "https:";
 	host: string;
 } {
 	if (endpoint.startsWith("http")) {
 		const { protocol, host } = new URL(endpoint);
 
-		return { http_protocol: protocol as "http:" | "https:", host };
+		if (host.endsWith("hf.space")) {
+			return {
+				ws_protocol: "wss",
+				host: host,
+				http_protocol: protocol as "http:" | "https:"
+			};
+		}
+		return {
+			ws_protocol: protocol === "https:" ? "wss" : "ws",
+			http_protocol: protocol as "http:" | "https:",
+			host
+		};
 	} else if (endpoint.startsWith("file:")) {
 		// This case is only expected to be used for the Wasm mode (Gradio-lite),
 		// where users can create a local HTML file using it and open the page in a browser directly via the `file:` protocol.
-		return { http_protocol: "http:", host: "lite.local" };
+		return {
+			ws_protocol: "ws",
+			http_protocol: "http:",
+			host: "lite.local" // Special fake hostname only used for this case. This matches the hostname allowed in `is_self_host()` in `js/wasm/network/host.ts`.
+		};
 	}
-	return { http_protocol: "https:", host: endpoint };
+
+	// default to secure if no protocol is provided
+	return {
+		ws_protocol: "wss",
+		http_protocol: "https:",
+		host: endpoint
+	};
 }
 
 export function get_type(
@@ -140,50 +162,43 @@ export async function process_endpoint(
 ): Promise<{
 	space_id: string | false;
 	host: string;
+	ws_protocol: "ws" | "wss";
 	http_protocol: "http:" | "https:";
 }> {
-	const headers: Record<string, string> = token
-		? { Authorization: `Bearer ${token}` }
-		: {};
+	const headers: { Authorization?: string } = {};
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
+	}
+
 	const _app_reference = app_reference.trim();
 
 	if (RE_SPACE_NAME.test(_app_reference)) {
-		const res = await fetch(
-			`https://huggingface.co/api/spaces/${_app_reference}/host`,
-			{ headers }
-		);
+		try {
+			const res = await fetch(
+				`https://huggingface.co/api/spaces/${_app_reference}/host`,
+				{ headers }
+			);
 
-		if (res.status !== 200) {
-			throw new Error(res.statusText);
+			if (res.status !== 200)
+				throw new Error("Space metadata could not be loaded.");
+			const _host = (await res.json()).host;
+
+			return {
+				space_id: app_reference,
+				...determine_protocol(_host)
+			};
+		} catch (e: any) {
+			throw new Error("Space metadata could not be loaded." + e.message);
 		}
-
-		const _host = (await res.json()).host;
-
-		if (!_host) {
-			throw new Error("Could not get space metadata");
-		}
-
-		let protocol = determine_protocol(_host);
-
-		if (!protocol) {
-			throw new Error("Could not get space metadata");
-		}
-
-		return {
-			space_id: app_reference,
-			...protocol
-		};
 	}
 
 	if (RE_SPACE_DOMAIN.test(_app_reference)) {
-		const { http_protocol, host } = determine_protocol(_app_reference);
-
-		if (!http_protocol || !host) {
-			throw new Error("Could not get space metadata");
-		}
+		const { ws_protocol, http_protocol, host } =
+			determine_protocol(_app_reference);
 
 		return {
 			space_id: host.replace(".hf.space", ""),
+			ws_protocol,
 			http_protocol,
 			host
 		};

@@ -58,7 +58,8 @@ export type client_return = {
 	predict: predict;
 	submit: (
 		endpoint: string | number,
-		data?: unknown[],
+		data: unknown[],
+		app_reference: string,
 		event_data?: unknown
 	) => SubmitReturn;
 	component_server: (

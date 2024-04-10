@@ -62,7 +62,6 @@ export class Client {
 	submit: (
 		endpoint: string | number,
 		data: unknown[],
-		app_reference: string,
 		event_data?: unknown,
 		trigger_id?: any
 	) => SubmitReturn;
@@ -70,7 +69,7 @@ export class Client {
 		endpoint: string | number,
 		data?: unknown[],
 		event_data?: unknown
-	) => Promise<any>;
+	) => Promise<unknown>;
 
 	private constructor(app_reference: string, options: ClientOptions = {}) {
 		this.app_reference = app_reference;
@@ -87,15 +86,12 @@ export class Client {
 	private async init(): Promise<void> {
 		if (
 			(typeof window === "undefined" || !("WebSocket" in window)) &&
-			// @ts-ignore
-			!global.Websocket
+			!global.WebSocket
 		) {
-			// @ts-ignore
 			const ws = await import("ws");
 			// @ts-ignore
 			NodeBlob = (await import("node:buffer")).Blob;
-			//@ts-ignore
-			global.WebSocket = ws.WebSocket;
+			global.WebSocket = ws.WebSocket as unknown as typeof WebSocket;
 		}
 
 		this.config = await this._resolve_config();

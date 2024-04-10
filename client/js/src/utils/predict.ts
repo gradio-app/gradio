@@ -8,6 +8,10 @@ export async function predict(
 	data?: unknown[],
 	event_data?: unknown
 ): Promise<SubmitReturn> {
+	let data_returned = false;
+	let status_complete = false;
+	let dependency: Dependency;
+
 	const { hf_token } = this.options;
 
 	const { http_protocol, host } =
@@ -29,8 +33,6 @@ export async function predict(
 
 	let api_map = map_names_to_ids(config?.dependencies || []);
 
-	let dependency: Dependency;
-
 	if (typeof endpoint === "number") {
 		dependency = config.dependencies[endpoint];
 	} else {
@@ -47,8 +49,6 @@ export async function predict(
 	return new Promise(async (resolve, reject) => {
 		const app = this.submit(endpoint, data || [], event_data);
 		let result: unknown;
-		let data_returned = false;
-		let status_complete = false;
 
 		app
 			.on("data", (d: unknown) => {
