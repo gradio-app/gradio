@@ -343,7 +343,7 @@ Workflows are a discrete set of jobs with a discrete set of steps. It might be r
 
 There are ways to run workflows indirectly:
 
-- `workflow_dispatch` - This event always runs in the context of `main`. You can programatically trigger this workflow event, allowing more control over where that workflow runs but you need to use the GitHub API to do this. Therefore the triggering workflow needs access to secrets, rendering it insecure for our purposes.
+- `workflow_dispatch` - This event always runs in the context of `main`. You can programmatically trigger this workflow event, allowing more control over where that workflow runs but you need to use the GitHub API to do this. Therefore the triggering workflow needs access to secrets, rendering it insecure for our purposes.
 - `workflow_run` - This is essentially `workflow_dispatch` inverted. Instead of triggering it from elsewhere explicitly, the workflow _itself_ determines which workflow will trigger _it_. This means that you do not need access to secrets in order to start a `workflow_run` and since this event type runs in the context of main, it is secure.
 
 <details>

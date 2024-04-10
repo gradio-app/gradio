@@ -380,7 +380,7 @@ You can sort the themes by the number of likes on the space and from most to lea
 
 <div class="wrapper">
 <iframe
-	src="https://gradio-theme-gallery.hf.space"
+	src="https://gradio-theme-gallery.static.hf.space"
 	frameborder="0"
 ></iframe>
 </div>

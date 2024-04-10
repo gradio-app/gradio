@@ -25,7 +25,7 @@ class HighlightedText(Component):
     """
     Displays text that contains spans that are highlighted by category or numerical value.
 
-    Demos: diff_texts, text_analysis
+    Demos: diff_texts
     Guides: named-entity-recognition
     """
 
@@ -91,8 +91,14 @@ class HighlightedText(Component):
             interactive=interactive,
         )
 
-    def example_inputs(self) -> Any:
-        return {"value": [{"token": "Hello", "class_or_confidence": "1"}]}
+    def example_payload(self) -> Any:
+        return [
+            {"token": "The", "class_or_confidence": None},
+            {"token": "quick", "class_or_confidence": "adj"},
+        ]
+
+    def example_value(self) -> Any:
+        return [("The", None), ("quick", "adj"), ("brown", "adj"), ("fox", "noun")]
 
     def preprocess(
         self, payload: HighlightedTextData | None

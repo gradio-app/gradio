@@ -16,6 +16,7 @@
 	const dispatch = createEventDispatcher();
 
 	function download_file(): void {
+		dispatch("click");
 		if (!value?.url) {
 			return;
 		}
@@ -33,7 +34,6 @@
 		document.body.appendChild(a);
 		a.click();
 		document.body.removeChild(a);
-		dispatch("click");
 	}
 </script>
 

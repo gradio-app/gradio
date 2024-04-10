@@ -16,7 +16,8 @@ const test_files = readdirSync(TEST_FILES_PATH)
 		(f) =>
 			f.endsWith("spec.ts") &&
 			!f.endsWith(".skip.spec.ts") &&
-			!f.endsWith(".component.spec.ts")
+			!f.endsWith(".component.spec.ts") &&
+			!f.endsWith(".reload.spec.ts")
 	)
 	.map((f) => basename(f, ".spec.ts"));
 
@@ -63,7 +64,8 @@ function spawn_gradio_app(app, port, verbose) {
 				...process.env,
 				GRADIO_SERVER_PORT: `7879`,
 				PYTHONUNBUFFERED: "true",
-				GRADIO_ANALYTICS_ENABLED: "False"
+				GRADIO_ANALYTICS_ENABLED: "False",
+				GRADIO_IS_E2E_TEST: "1"
 			}
 		});
 		_process.stdout.setEncoding("utf8");

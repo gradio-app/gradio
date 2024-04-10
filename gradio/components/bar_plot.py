@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
-import altair as alt
-import pandas as pd
 from gradio_client.documentation import document
 
 from gradio.components.plot import AltairPlot, AltairPlotData, Plot
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 @document()
@@ -17,7 +18,7 @@ class BarPlot(Plot):
     Creates a bar plot component to display data from a pandas DataFrame (as output). As this component does
     not accept user input, it is rarely used as an input component.
 
-    Demos: bar_plot, chicago-bikeshare-dashboard
+    Demos: bar_plot
     """
 
     data_model = AltairPlotData
@@ -175,6 +176,8 @@ class BarPlot(Plot):
         sort: Literal["x", "y", "-x", "-y"] | None = None,
     ):
         """Helper for creating the bar plot."""
+        import altair as alt
+
         interactive = True if interactive is None else interactive
         orientation = (
             {"field": group, "title": group_title if group_title is not None else group}
@@ -299,5 +302,10 @@ class BarPlot(Plot):
 
         return AltairPlotData(type="altair", plot=chart.to_json(), chart="bar")
 
-    def example_inputs(self) -> dict[str, Any]:
-        return {}
+    def example_payload(self) -> Any:
+        return None
+
+    def example_value(self) -> Any:
+        import pandas as pd
+
+        return pd.DataFrame({self.x: [1, 2, 3], self.y: [4, 5, 6]})

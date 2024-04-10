@@ -37,6 +37,7 @@ export { default as Plot } from "./Plot.svelte";
 export { default as Redo } from "./Redo.svelte";
 export { default as Remove } from "./Remove.svelte";
 export { default as Rotate } from "./Rotate.svelte";
+export { default as Send } from "./Send.svelte";
 export { default as Settings } from "./Settings.svelte";
 export { default as Sketch } from "./Sketch.svelte";
 export { default as Square } from "./Square.svelte";

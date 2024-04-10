@@ -1,5 +1,67 @@
 # @gradio/upload
 
+## 0.8.4
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/atoms@0.6.2
+- @gradio/upload@0.8.4
+- @gradio/client@0.15.1
+
+## 0.8.3
+
+### Dependency updates
+
+- @gradio/upload@0.8.3
+- @gradio/client@0.15.0
+
+## 0.8.2
+
+### Fixes
+
+- [#7848](https://github.com/gradio-app/gradio/pull/7848) [`8d7b3ca`](https://github.com/gradio-app/gradio/commit/8d7b3caebd8f95b1372f8412cadbb5862766c365) - Multimodal Textbox Loading + other fixes.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+- @gradio/icons@0.3.4
+- @gradio/upload@0.8.2
+
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/upload@0.8.1
+- @gradio/wasm@0.10.0
+- @gradio/atoms@0.6.0
+
+## 0.8.0
+
+### Features
+
+- [#7420](https://github.com/gradio-app/gradio/pull/7420) [`15da39f`](https://github.com/gradio-app/gradio/commit/15da39fca01d09a30cf47e7e72d7efa5052f61f8) - Multimodal Textbox (Chat Input Component).  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/client@0.14.0
+- @gradio/upload@0.8.0
+- @gradio/wasm@0.9.0
+
+## 0.7.7
+
+### Dependency updates
+
+- @gradio/upload@0.7.7
+- @gradio/client@0.13.0
+- @gradio/wasm@0.8.0
+
+## 0.7.6
+
+### Features
+
+- [#7625](https://github.com/gradio-app/gradio/pull/7625) [`8181695`](https://github.com/gradio-app/gradio/commit/8181695e70187e8bc2bf7518697098c8d1b9843d) - image upload fix.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+
 ## 0.7.5
 
 ### Fixes

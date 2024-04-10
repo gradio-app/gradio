@@ -91,14 +91,6 @@
 	padding: 12px 15px;
 	text-align: left;
 }
-.prose th:first-child,
-.prose td:first-child {
-	padding-left: 0;
-}
-.prose th:last-child,
-.prose td:last-child {
-	padding-right: 0;
-}
 
 /* spacing
 –––––––––––––––––––––––––––––––––––––––––––––––––– */

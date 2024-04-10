@@ -1,10 +1,66 @@
 # website
 
+## 0.26.0
+
+### Features
+
+- [#7945](https://github.com/gradio-app/gradio/pull/7945) [`328325a`](https://github.com/gradio-app/gradio/commit/328325a7ad812e7e152fe57a5a91a54b67adf728) - style changes for gradio website docs navbar.  Thanks @shafiqihtsham!
+
+### Fixes
+
+- [#7935](https://github.com/gradio-app/gradio/pull/7935) [`919afff`](https://github.com/gradio-app/gradio/commit/919afffcee87bee25a6905c488484936df92189d) - Adds a Guide on deploying Gradio apps with Docker.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/code@0.5.11
+
+## 0.25.2
+
+### Dependency updates
+
+- @gradio/code@0.5.10
+
+## 0.25.1
+
+### Dependency updates
+
+- @gradio/code@0.5.9
+
+## 0.25.0
+
+### Features
+
+- [#7684](https://github.com/gradio-app/gradio/pull/7684) [`755157f`](https://github.com/gradio-app/gradio/commit/755157f99c2961f2e5caeaa9b76d248b4225ea8f) - Do not reload code inside gr.NO_RELOAD context.  Thanks @freddyaboulton!
+- [#7661](https://github.com/gradio-app/gradio/pull/7661) [`c62a57e`](https://github.com/gradio-app/gradio/commit/c62a57e7f8f2f6dad0110d06e915c48e7f628073) - Convert Docs Demos to Lite.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.5.8
+
+## 0.24.3
+
+### Dependency updates
+
+- @gradio/code@0.5.7
+
+## 0.24.2
+
+### Dependency updates
+
+- @gradio/code@0.5.6
+
+## 0.24.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/code@0.5.5
+
 ## 0.24.0
 
 ### Features
 
-- [#7451](https://github.com/gradio-app/gradio/pull/7451) [`65f114a`](https://github.com/gradio-app/gradio/commit/65f114a117b351f5935424fa78c830a58bafc44f) - Add error handling for missing `js/_website/version.json`.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#7451](https://github.com/gradio-app/gradio/pull/7451) [`65f114a`](https://github.com/gradio-app/gradio/commit/65f114a117b351f5935424fa78c830a58bafc44f) - Add error handling for missing `js/_website/version.json`. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ## 0.23.4
 

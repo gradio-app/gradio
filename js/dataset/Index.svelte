@@ -7,8 +7,7 @@
 	export let component_map: Map<
 		string,
 		Promise<{
-			name: string;
-			component: { default: ComponentType<SvelteComponent> };
+			default: ComponentType<SvelteComponent>;
 		}>
 	>;
 	export let label = "Examples";
@@ -46,11 +45,13 @@
 	function handle_mouseenter(i: number): void {
 		current_hover = i;
 	}
+
 	function handle_mouseleave(): void {
 		current_hover = -1;
 	}
 
 	$: {
+		paginate = samples.length > samples_per_page;
 		if (paginate) {
 			visible_pages = [];
 			selected_samples = samples.slice(
@@ -83,18 +84,19 @@
 
 	async function get_component_meta(selected_samples: any[][]): Promise<void> {
 		component_meta = await Promise.all(
-			selected_samples.map(
-				async (sample_row) =>
-					await Promise.all(
-						sample_row.map(async (sample_cell, j) => {
-							return {
-								value: sample_cell,
-								component: (await component_map.get(components[j]))?.component
-									?.default as ComponentType<SvelteComponent>
-							};
-						})
-					)
-			)
+			selected_samples &&
+				selected_samples.map(
+					async (sample_row) =>
+						await Promise.all(
+							sample_row.map(async (sample_cell, j) => {
+								return {
+									value: sample_cell,
+									component: (await component_map.get(components[j]))
+										?.default as ComponentType<SvelteComponent>
+								};
+							})
+						)
+				)
 		);
 	}
 

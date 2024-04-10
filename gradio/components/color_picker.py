@@ -14,7 +14,7 @@ from gradio.events import Events
 class ColorPicker(Component):
     """
     Creates a color picker for user to select a color as string input. Can be used as an input to pass a color value to a function or as an output to display a color value.
-    Demos: color_picker, color_generator
+    Demos: color_picker
     """
 
     EVENTS = [Events.change, Events.input, Events.submit, Events.focus, Events.blur]
@@ -68,7 +68,10 @@ class ColorPicker(Component):
             value=value,
         )
 
-    def example_inputs(self) -> str:
+    def example_payload(self) -> str:
+        return "#000000"
+
+    def example_value(self) -> str:
         return "#000000"
 
     def api_info(self) -> dict[str, Any]:

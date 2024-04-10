@@ -8,7 +8,7 @@ except ImportError:
     pass
 
 import gradio as gr
-from gradio.networking import App
+from gradio.routes import App
 from gradio.utils import BaseReloader
 
 

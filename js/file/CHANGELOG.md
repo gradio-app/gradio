@@ -1,16 +1,74 @@
 # @gradio/file
 
+## 0.5.11
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/atoms@0.6.2
+- @gradio/statustracker@0.4.11
+- @gradio/upload@0.8.4
+- @gradio/client@0.15.1
+
+## 0.5.10
+
+### Dependency updates
+
+- @gradio/upload@0.8.3
+- @gradio/client@0.15.0
+
+## 0.5.9
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+- @gradio/statustracker@0.4.10
+- @gradio/icons@0.3.4
+- @gradio/upload@0.8.2
+
+## 0.5.8
+
+### Dependency updates
+
+- @gradio/upload@0.8.1
+- @gradio/statustracker@0.4.9
+- @gradio/wasm@0.10.0
+- @gradio/atoms@0.6.0
+
+## 0.5.7
+
+### Dependency updates
+
+- @gradio/client@0.14.0
+- @gradio/upload@0.8.0
+- @gradio/wasm@0.9.0
+
+## 0.5.6
+
+### Dependency updates
+
+- @gradio/upload@0.7.7
+- @gradio/client@0.13.0
+- @gradio/wasm@0.8.0
+
+## 0.5.5
+
+### Patch Changes
+
+- Updated dependencies [[`8181695`](https://github.com/gradio-app/gradio/commit/8181695e70187e8bc2bf7518697098c8d1b9843d)]:
+  - @gradio/upload@0.7.6
+
 ## 0.5.4
 
 ### Fixes
 
-- [#7559](https://github.com/gradio-app/gradio/pull/7559) [`26356a6`](https://github.com/gradio-app/gradio/commit/26356a623c4196f48ca236d973a597831743cdb8) - Fixes: Invalid file_type breaks drag and drop.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#7559](https://github.com/gradio-app/gradio/pull/7559) [`26356a6`](https://github.com/gradio-app/gradio/commit/26356a623c4196f48ca236d973a597831743cdb8) - Fixes: Invalid file_type breaks drag and drop. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
 
 ## 0.5.3
 
 ### Fixes
 
-- [#7507](https://github.com/gradio-app/gradio/pull/7507) [`9c36572`](https://github.com/gradio-app/gradio/commit/9c36572e32aeec6e6352a861dfea6ee0f9a15e79) - Quick fix: File height overflow.  Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
+- [#7507](https://github.com/gradio-app/gradio/pull/7507) [`9c36572`](https://github.com/gradio-app/gradio/commit/9c36572e32aeec6e6352a861dfea6ee0f9a15e79) - Quick fix: File height overflow. Thanks [@dawoodkhan82](https://github.com/dawoodkhan82)!
 
 ## 0.5.2
 

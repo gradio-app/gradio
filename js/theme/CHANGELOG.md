@@ -1,5 +1,11 @@
 # @gradio/theme
 
+## 0.2.1
+
+### Features
+
+- [#7936](https://github.com/gradio-app/gradio/pull/7936) [`b165193`](https://github.com/gradio-app/gradio/commit/b165193902985b77a732ed703423ebebeaf0da27) - Restore Markdown formatting for Chatbots, MarkdownCode.  Thanks @aliabid94!
+
 ## 0.2.0
 
 ### Features

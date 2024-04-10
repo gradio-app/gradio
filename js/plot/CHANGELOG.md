@@ -1,5 +1,29 @@
 # @gradio/plot
 
+## 0.3.6
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/atoms@0.6.2
+- @gradio/statustracker@0.4.11
+- @gradio/theme@0.2.1
+
+## 0.3.5
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+- @gradio/statustracker@0.4.10
+- @gradio/icons@0.3.4
+
+## 0.3.4
+
+### Dependency updates
+
+- @gradio/statustracker@0.4.9
+- @gradio/atoms@0.6.0
+
 ## 0.3.3
 
 ### Patch Changes

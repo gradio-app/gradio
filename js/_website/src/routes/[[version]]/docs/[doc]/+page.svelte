@@ -5,8 +5,9 @@
 	import EventListeners from "$lib/components/EventListeners.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import anchor from "$lib/assets/img/anchor.svg";
-	import { onDestroy } from "svelte";
+	import { onDestroy, onMount } from "svelte";
 	import { page } from "$app/stores";
+	import { afterNavigate } from "$app/navigation";
 
 	export let data: any = {};
 

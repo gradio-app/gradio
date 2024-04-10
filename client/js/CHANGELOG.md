@@ -1,5 +1,68 @@
 # @gradio/client
 
+## 0.15.1
+
+### Fixes
+
+- [#7926](https://github.com/gradio-app/gradio/pull/7926) [`9666854`](https://github.com/gradio-app/gradio/commit/966685479078f59430b3bced7e6068eb8157c003) - Fixes streaming event race condition.  Thanks @aliabid94!
+
+## 0.15.0
+
+### Highlights
+
+#### Automatically delete state after user has disconnected from the webpage ([#7829](https://github.com/gradio-app/gradio/pull/7829) [`6a4bf7a`](https://github.com/gradio-app/gradio/commit/6a4bf7abe29059dbdc6a342e0366fdaa2e4120ee))
+
+Gradio now automatically deletes `gr.State` variables stored in the server's RAM when users close their browser tab.
+The deletion will happen 60 minutes after the server detected a disconnect from the user's browser.
+If the user connects again in that timeframe, their state will not be deleted.
+
+Additionally, Gradio now includes a `Blocks.unload()` event, allowing you to run arbitrary cleanup functions when users disconnect (this does not have a 60 minute delay).
+You can think of the `unload` event as the opposite of the `load` event.
+
+
+```python
+with gr.Blocks() as demo:
+    gr.Markdown(
+"""# State Cleanup Demo
+🖼️ Images are saved in a user-specific directory and deleted when the users closes the page via demo.unload.
+""")
+    with gr.Row():
+        with gr.Column(scale=1):
+            with gr.Row():
+                img = gr.Image(label="Generated Image", height=300, width=300)
+            with gr.Row():
+                gen = gr.Button(value="Generate")
+            with gr.Row():
+                history = gr.Gallery(label="Previous Generations", height=500, columns=10)
+                state = gr.State(value=[], delete_callback=lambda v: print("STATE DELETED"))
+
+    demo.load(generate_random_img, [state], [img, state, history]) 
+    gen.click(generate_random_img, [state], [img, state, history])
+    demo.unload(delete_directory)
+
+
+demo.launch(auth=lambda user,pwd: True,
+            auth_message="Enter any username and password to continue")
+```
+
+ Thanks @freddyaboulton!
+
+## 0.14.0
+
+### Features
+
+- [#7691](https://github.com/gradio-app/gradio/pull/7691) [`84f81fe`](https://github.com/gradio-app/gradio/commit/84f81fec9287b041203a141bbf2852720f7d199c) - Closing stream from the backend.  Thanks @aliabid94!
+
+### Fixes
+
+- [#7564](https://github.com/gradio-app/gradio/pull/7564) [`5d1e8da`](https://github.com/gradio-app/gradio/commit/5d1e8dae5ac23f605c3b5f41dbe18751dff380a0) - batch UI updates on a per frame basis.  Thanks @pngwn!
+
+## 0.13.0
+
+### Fixes
+
+- [#7575](https://github.com/gradio-app/gradio/pull/7575) [`d0688b3`](https://github.com/gradio-app/gradio/commit/d0688b3c25feabb4fc7dfa0ab86086b3af7eb337) - Files should now be supplied as `file(...)` in the Client, and some fixes to `gr.load()` as well.  Thanks @abidlabs!
+
 ## 0.12.2
 
 ### Features

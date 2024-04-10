@@ -3,7 +3,7 @@
 	import ImageEditor from "./Index.svelte";
 	import { format } from "svelte-i18n";
 	import { get } from "svelte/store";
-	import { userEvent, within } from "@storybook/testing-library";
+	import { userEvent, within } from "@storybook/test";
 	import { allModes } from "../storybook/modes";
 
 	export const meta = {
@@ -11,6 +11,7 @@
 		component: ImageEditor,
 		parameters: {
 			chromatic: {
+				diffThreshold: 0.4,
 				modes: {
 					desktop: allModes["desktop"],
 					mobile: allModes["mobile"]

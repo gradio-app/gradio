@@ -16,7 +16,7 @@ class Number(FormComponent):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
 
-    Demos: tax_calculator, titanic_survival, blocks_simple_squares
+    Demos: tax_calculator, blocks_simple_squares
     """
 
     EVENTS = [Events.change, Events.input, Events.submit, Events.focus]
@@ -134,5 +134,8 @@ class Number(FormComponent):
     def api_info(self) -> dict[str, str]:
         return {"type": "number"}
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return 3
+
+    def example_value(self) -> Any:
         return 3

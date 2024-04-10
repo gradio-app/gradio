@@ -49,16 +49,11 @@ def connect():
     def _connect(demo: gr.Blocks, serialize=True, **kwargs):
         _, local_url, _ = demo.launch(prevent_thread_lock=True, **kwargs)
         try:
-            yield Client(local_url, serialize=serialize)
+            client = Client(local_url, serialize=serialize)
+            yield client
         finally:
-            # A more verbose version of .close()
-            # because we should set a timeout
-            # the tests that call .cancel() can get stuck
-            # waiting for the thread to join
-            demo._queue.close()
-            demo.is_running = False
-            demo.server.should_exit = True
-            demo.server.thread.join(timeout=1)
+            client.close()
+            demo.close()
 
     return _connect
 
@@ -70,3 +65,15 @@ def gradio_temp_dir(monkeypatch, tmp_path):
     """
     monkeypatch.setenv("GRADIO_TEMP_DIR", str(tmp_path))
     return tmp_path
+
+
+@pytest.fixture(autouse=True)
+def clear_static_files():
+    """Clears all static files from the _StaticFiles class.
+
+    This is necessary because the tests should be independent of one another.
+    """
+    yield
+    from gradio import data_classes
+
+    data_classes._StaticFiles.clear()

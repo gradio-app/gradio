@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import asyncio
+import functools
 import hashlib
 import hmac
 import json
 import os
 import re
 import shutil
+import sys
 from collections import deque
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass as python_dataclass
 from datetime import datetime
 from pathlib import Path
@@ -28,13 +30,15 @@ from urllib.parse import urlparse
 
 import anyio
 import fastapi
+import gradio_client.utils as client_utils
 import httpx
 import multipart
 from gradio_client.documentation import document
 from multipart.multipart import parse_options_header
-from starlette.datastructures import FormData, Headers, UploadFile
+from starlette.datastructures import FormData, Headers, MutableHeaders, UploadFile
 from starlette.formparsers import MultiPartException, MultipartPart
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import PlainTextResponse, Response
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from gradio import processing_utils, utils
 from gradio.data_classes import PredictBody
@@ -80,6 +84,11 @@ class Obj:
             if isinstance(value, Obj) and item in value:
                 return True
         return False
+
+    def get(self, item, default=None):
+        if item in self:
+            return self.__dict__[item]
+        return default
 
     def keys(self):
         return self.__dict__.keys()
@@ -288,20 +297,46 @@ def get_root_url(
     request: fastapi.Request, route_path: str, root_path: str | None
 ) -> str:
     """
-    Gets the root url of the request, stripping off any query parameters, the route_path, and trailing slashes.
-    Also ensures that the root url is https if the request is https. If root_path is provided, it is appended to the root url.
-    The final root url will not have a trailing slash.
+    Gets the root url of the Gradio app (i.e. the public url of the app) without a trailing slash.
+
+    This is how the root_url is resolved:
+    1. If a user provides a `root_path` manually that is a full URL, it is returned directly.
+    2. If the request has an x-forwarded-host header (e.g. because it is behind a proxy), the root url is
+    constructed from the x-forwarded-host header. In this case, `route_path` is not used to construct the root url.
+    3. Otherwise, the root url is constructed from the request url. The query parameters and `route_path` are stripped off.
+    And if a relative `root_path` is provided, and it is not already the subpath of the URL, it is appended to the root url.
+
+    In cases (2) and (3), We also check to see if the x-forwarded-proto header is present, and if so, convert the root url to https.
+    And if there are multiple hosts in the x-forwarded-host or multiple protocols in the x-forwarded-proto, the first one is used.
     """
-    root_url = str(request.url)
+
+    def get_first_header_value(header_name: str):
+        header_value = request.headers.get(header_name)
+        if header_value:
+            return header_value.split(",")[0].strip()
+        return None
+
+    if root_path and client_utils.is_http_url_like(root_path):
+        return root_path.rstrip("/")
+
+    x_forwarded_host = get_first_header_value("x-forwarded-host")
+    root_url = f"http://{x_forwarded_host}" if x_forwarded_host else str(request.url)
     root_url = httpx.URL(root_url)
     root_url = root_url.copy_with(query=None)
     root_url = str(root_url).rstrip("/")
-    if request.headers.get("x-forwarded-proto") == "https":
+    if get_first_header_value("x-forwarded-proto") == "https":
         root_url = root_url.replace("http://", "https://")
+
     route_path = route_path.rstrip("/")
-    if len(route_path) > 0:
+    if len(route_path) > 0 and not x_forwarded_host:
         root_url = root_url[: -len(route_path)]
-    return (root_url.rstrip("/") + (root_path or "")).rstrip("/")
+    root_url = root_url.rstrip("/")
+
+    root_url = httpx.URL(root_url)
+    if root_path and root_url.path != root_path:
+        root_url = root_url.copy_with(path=root_path)
+
+    return str(root_url).rstrip("/")
 
 
 def _user_safe_decode(src: bytes, codec: str) -> str:
@@ -624,46 +659,90 @@ def get_hostname(url: str) -> str:
         return ""
 
 
-class CustomCORSMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: fastapi.Request, call_next):
-        host: str = request.headers.get("host", "")
-        origin: str = request.headers.get("origin", "")
-        host_name = get_hostname(host)
-        origin_name = get_hostname(origin)
+class CustomCORSMiddleware:
+    # This is a modified version of the Starlette CORSMiddleware that restricts the allowed origins when the host is localhost.
+    # Adapted from: https://github.com/encode/starlette/blob/89fae174a1ea10f59ae248fe030d9b7e83d0b8a0/starlette/middleware/cors.py
 
+    def __init__(
+        self,
+        app: ASGIApp,
+    ) -> None:
+        self.app = app
+        self.all_methods = ("DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT")
+        self.preflight_headers = {
+            "Access-Control-Allow-Methods": ", ".join(self.all_methods),
+            "Access-Control-Max-Age": str(600),
+        }
+        self.simple_headers = {"Access-Control-Allow-Credentials": "true"}
         # Any of these hosts suggests that the Gradio app is running locally.
         # Note: "null" is a special case that happens if a Gradio app is running
         # as an embedded web component in a local static webpage.
-        localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0", "null"]
-        is_preflight = (
-            request.method == "OPTIONS"
-            and "access-control-request-method" in request.headers
+        self.localhost_aliases = ["localhost", "127.0.0.1", "0.0.0.0", "null"]
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        headers = Headers(scope=scope)
+        origin = headers.get("origin")
+        if origin is None:
+            await self.app(scope, receive, send)
+            return
+        if scope["method"] == "OPTIONS" and "access-control-request-method" in headers:
+            response = self.preflight_response(request_headers=headers)
+            await response(scope, receive, send)
+            return
+        await self.simple_response(scope, receive, send, request_headers=headers)
+
+    def preflight_response(self, request_headers: Headers) -> Response:
+        headers = dict(self.preflight_headers)
+        origin = request_headers["Origin"]
+        if self.is_valid_origin(request_headers):
+            headers["Access-Control-Allow-Origin"] = origin
+        requested_headers = request_headers.get("access-control-request-headers")
+        if requested_headers is not None:
+            headers["Access-Control-Allow-Headers"] = requested_headers
+        return PlainTextResponse("OK", status_code=200, headers=headers)
+
+    async def simple_response(
+        self, scope: Scope, receive: Receive, send: Send, request_headers: Headers
+    ) -> None:
+        send = functools.partial(self._send, send=send, request_headers=request_headers)
+        await self.app(scope, receive, send)
+
+    async def _send(
+        self, message: Message, send: Send, request_headers: Headers
+    ) -> None:
+        if message["type"] != "http.response.start":
+            await send(message)
+            return
+        message.setdefault("headers", [])
+        headers = MutableHeaders(scope=message)
+        headers.update(self.simple_headers)
+        has_cookie = "cookie" in request_headers
+        origin = request_headers["Origin"]
+        if has_cookie or self.is_valid_origin(request_headers):
+            self.allow_explicit_origin(headers, origin)
+        await send(message)
+
+    def is_valid_origin(self, request_headers: Headers) -> bool:
+        origin = request_headers["Origin"]
+        host = request_headers["Host"]
+        host_name = get_hostname(host)
+        origin_name = get_hostname(origin)
+        return (
+            host_name not in self.localhost_aliases
+            or origin_name in self.localhost_aliases
         )
 
-        if host_name in localhost_aliases and origin_name not in localhost_aliases:
-            allow_origin_header = None
-        else:
-            allow_origin_header = origin
-
-        if is_preflight:
-            response = fastapi.Response()
-        else:
-            response = await call_next(request)
-
-        if allow_origin_header:
-            response.headers["Access-Control-Allow-Origin"] = allow_origin_header
-        response.headers[
-            "Access-Control-Allow-Methods"
-        ] = "GET, POST, PUT, DELETE, OPTIONS"
-        response.headers[
-            "Access-Control-Allow-Headers"
-        ] = "Origin, Content-Type, Accept"
-        return response
+    @staticmethod
+    def allow_explicit_origin(headers: MutableHeaders, origin: str) -> None:
+        headers["Access-Control-Allow-Origin"] = origin
+        headers.add_vary_header("Origin")
 
 
 def delete_files_created_by_app(blocks: Blocks, age: int | None) -> None:
     """Delete files that are older than age. If age is None, delete all files."""
-
     dont_delete = set()
     for component in blocks.blocks.values():
         dont_delete.update(getattr(component, "keep_in_cache", set()))
@@ -699,27 +778,45 @@ async def _lifespan_handler(
     app: App, frequency: int = 1, age: int = 1
 ) -> AsyncGenerator:
     """A context manager that triggers the startup and shutdown events of the app."""
-    app.get_blocks().startup_events()
-    app.startup_events_triggered = True
     asyncio.create_task(delete_files_on_schedule(app, frequency, age))
     yield
     delete_files_created_by_app(app.get_blocks(), age=None)
 
 
+async def _delete_state(app: App):
+    """Delete all expired state every second."""
+    while True:
+        app.state_holder.delete_all_expired_state()
+        await asyncio.sleep(1)
+
+
+@asynccontextmanager
+async def _delete_state_handler(app: App):
+    """When the server launches, regularly delete expired state."""
+    # The stop event needs to get the current event loop for python 3.8
+    # but the loop parameter is deprecated for 3.8+
+    if sys.version_info < (3, 10):
+        loop = asyncio.get_running_loop()
+        app.stop_event = asyncio.Event(loop=loop)
+    asyncio.create_task(_delete_state(app))
+    yield
+
+
 def create_lifespan_handler(
     user_lifespan: Callable[[App], AsyncContextManager] | None,
-    frequency: int = 1,
-    age: int = 1,
+    frequency: int | None = 1,
+    age: int | None = 1,
 ) -> Callable[[App], AsyncContextManager]:
     """Return a context manager that applies _lifespan_handler and user_lifespan if it exists."""
 
     @asynccontextmanager
     async def _handler(app: App):
-        async with _lifespan_handler(app, frequency, age):
+        async with AsyncExitStack() as stack:
+            await stack.enter_async_context(_delete_state_handler(app))
+            if frequency and age:
+                await stack.enter_async_context(_lifespan_handler(app, frequency, age))
             if user_lifespan is not None:
-                async with user_lifespan(app):
-                    yield
-            else:
-                yield
+                await stack.enter_async_context(user_lifespan(app))
+            yield
 
     return _handler

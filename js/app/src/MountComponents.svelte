@@ -3,8 +3,6 @@
 	import Render from "./Render.svelte";
 
 	export let rootNode: any;
-	export let dynamic_ids: any;
-	export let instance_map: any;
 	export let root: any;
 	export let target: any;
 	export let theme_mode: any;
@@ -17,16 +15,4 @@
 	});
 </script>
 
-<Render
-	component={rootNode.component}
-	id={rootNode.id}
-	props={rootNode.props}
-	children={rootNode.children}
-	{dynamic_ids}
-	{instance_map}
-	{root}
-	{target}
-	{theme_mode}
-	{version}
-	{autoscroll}
-/>
+<Render node={rootNode} {root} {target} {theme_mode} {version} {autoscroll} />

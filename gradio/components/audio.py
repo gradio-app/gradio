@@ -8,6 +8,7 @@ from typing import Any, Callable, Literal
 
 import httpx
 import numpy as np
+from gradio_client import file
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
@@ -49,7 +50,7 @@ class Audio(
 ):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
-    Demos: main_note, generate_tone, reverse_audio
+    Demos: generate_tone, reverse_audio
     Guides: real-time-speech-recognition
     """
 
@@ -181,7 +182,12 @@ class Audio(
             value=value,
         )
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return file(
+            "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+        )
+
+    def example_value(self) -> Any:
         return "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
 
     def preprocess(

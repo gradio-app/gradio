@@ -57,6 +57,7 @@ _module_prefixes = [
     ("gradio.route", "routes"),
     ("gradio.theme", "themes"),
     ("gradio_client.", "py-client"),
+    ("gradio.utils", "helpers"),
 ]
 
 

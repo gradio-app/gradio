@@ -15,7 +15,7 @@ class HTML(Component):
     """
     Creates a component to display arbitrary HTML output. As this component does not accept user input, it is rarely used as an input component.
 
-    Demos: text_analysis
+    Demos: blocks_scroll
     Guides: key-features
     """
 
@@ -23,7 +23,7 @@ class HTML(Component):
 
     def __init__(
         self,
-        value: str | Callable = "",
+        value: str | Callable | None = None,
         *,
         label: str | None = None,
         every: float | None = None,
@@ -55,7 +55,10 @@ class HTML(Component):
             value=value,
         )
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return "<p>Hello</p>"
+
+    def example_value(self) -> Any:
         return "<p>Hello</p>"
 
     def preprocess(self, payload: str | None) -> str | None:

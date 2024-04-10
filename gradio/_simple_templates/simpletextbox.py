@@ -19,7 +19,7 @@ class SimpleTextbox(FormComponent):
 
     def __init__(
         self,
-        value: str | Callable | None = "",
+        value: str | Callable | None = None,
         *,
         placeholder: str | None = None,
         label: str | None = None,
@@ -87,5 +87,8 @@ class SimpleTextbox(FormComponent):
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return "Hello!!"
+
+    def example_value(self) -> Any:
         return "Hello!!"

@@ -4,18 +4,6 @@ import { cleanup, render } from "@gradio/tootils";
 import event from "@testing-library/user-event";
 
 import Radio from "./Index.svelte";
-import type { LoadingStatus } from "@gradio/statustracker";
-
-const loading_status = {
-	eta: 0,
-	queue_position: 1,
-	queue_size: 1,
-	status: "complete" as LoadingStatus["status"],
-	scroll_to_output: false,
-	visible: true,
-	fn_index: 0,
-	show_progress: "full" as LoadingStatus["show_progress"]
-};
 
 describe("Radio", () => {
 	afterEach(() => cleanup());
@@ -32,10 +20,9 @@ describe("Radio", () => {
 			label: "Radio"
 		});
 
-		assert.equal(
-			getByTestId("cat-radio-label").className.includes("selected"),
-			true
-		);
+		const cat_radio = getAllByRole("radio")[1];
+
+		expect(cat_radio).toBeChecked();
 
 		const radioButtons: HTMLOptionElement[] = getAllByRole(
 			"radio"
@@ -48,30 +35,27 @@ describe("Radio", () => {
 	});
 
 	test("should update the value when a radio is clicked", async () => {
-		const { getByDisplayValue, getByTestId } = await render(Radio, {
+		const { getByDisplayValue, getAllByRole } = await render(Radio, {
 			choices: choices,
 			value: "cat",
 			label: "Radio"
 		});
 
-		await event.click(getByDisplayValue("dog"));
+		const dog_radio = getAllByRole("radio")[0];
 
-		assert.equal(
-			getByTestId("dog-radio-label").className.includes("selected"),
-			true
-		);
+		await event.click(dog_radio);
 
-		assert.equal(
-			getByTestId("cat-radio-label").classList.contains("selected"),
-			false
-		);
+		expect(dog_radio).toBeChecked();
+
+		const cat_radio = getAllByRole("radio")[1];
+
+		expect(cat_radio).not.toBeChecked();
 
 		await event.click(getByDisplayValue("turtle"));
 
-		assert.equal(
-			getByTestId("turtle-radio-label").classList.contains("selected"),
-			true
-		);
+		await event.click(cat_radio);
+
+		expect(cat_radio).toBeChecked();
 	});
 
 	test("should dispatch the select event when clicks", async () => {

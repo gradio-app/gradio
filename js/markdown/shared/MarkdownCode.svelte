@@ -61,16 +61,22 @@
 	}
 	async function render_html(value: string): Promise<void> {
 		if (latex_delimiters.length > 0 && value) {
-			render_math_in_element(el, {
-				delimiters: latex_delimiters,
-				throwOnError: false
-			});
+			const containsDelimiter = latex_delimiters.some(
+				(delimiter) =>
+					value.includes(delimiter.left) && value.includes(delimiter.right)
+			);
+			if (containsDelimiter) {
+				render_math_in_element(el, {
+					delimiters: latex_delimiters,
+					throwOnError: false
+				});
+			}
 		}
 	}
 	afterUpdate(() => render_html(message));
 </script>
 
-<span class:chatbot bind:this={el} class="md">
+<span class:chatbot bind:this={el} class="md" class:prose={render_markdown}>
 	{#if render_markdown}
 		{@html html}
 	{:else}
@@ -170,5 +176,9 @@
 		display: flex;
 		align-items: center;
 		white-space-collapse: break-spaces;
+	}
+
+	.prose :global(:last-child) {
+		margin-bottom: 0;
 	}
 </style>

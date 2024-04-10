@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from typing import Any, List
 
+import gradio_client.utils as client_utils
 import numpy as np
 import PIL.Image
+from gradio_client import file
 from gradio_client.documentation import document
 
 from gradio import processing_utils, utils
@@ -47,6 +49,7 @@ class AnnotatedImage(Component):
         ]
         | None = None,
         *,
+        format: str = "png",
         show_legend: bool = True,
         height: int | str | None = None,
         width: int | str | None = None,
@@ -65,6 +68,7 @@ class AnnotatedImage(Component):
         """
         Parameters:
             value: Tuple of base image and list of (annotation, label) pairs.
+            format: Format used to save images before it is returned to the front end, such as 'jpeg' or 'png'. This parameter only takes effect when the base image is returned from the prediction function as a numpy array or a PIL Image. The format should be supported by the PIL library.
             show_legend: If True, will show a legend of the annotations.
             height: The height of the image, specified in pixels if a number is passed, or in CSS units if a string is passed.
             width: The width of the image, specified in pixels if a number is passed, or in CSS units if a string is passed.
@@ -80,6 +84,7 @@ class AnnotatedImage(Component):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
         """
+        self.format = format
         self.show_legend = show_legend
         self.height = height
         self.width = width
@@ -103,7 +108,7 @@ class AnnotatedImage(Component):
     ) -> tuple[str, list[tuple[str, str]]] | None:
         """
         Parameters:
-            payload: Tuple of base image and list of annotations.
+            payload: Dict of base image and list of annotations.
         Returns:
             Passes its value as a `tuple` consisting of a `str` filepath to a base image and `list` of annotations. Each annotation itself is `tuple` of a mask (as a `str` filepath to image) and a `str` label.
         """
@@ -131,16 +136,20 @@ class AnnotatedImage(Component):
             return None
         base_img = value[0]
         if isinstance(base_img, str):
+            if client_utils.is_http_url_like(base_img):
+                base_img = processing_utils.save_url_to_cache(
+                    base_img, cache_dir=self.GRADIO_CACHE
+                )
             base_img_path = base_img
             base_img = np.array(PIL.Image.open(base_img))
         elif isinstance(base_img, np.ndarray):
             base_file = processing_utils.save_img_array_to_cache(
-                base_img, cache_dir=self.GRADIO_CACHE
+                base_img, cache_dir=self.GRADIO_CACHE, format=self.format
             )
             base_img_path = str(utils.abspath(base_file))
         elif isinstance(base_img, PIL.Image.Image):
             base_file = processing_utils.save_pil_to_cache(
-                base_img, cache_dir=self.GRADIO_CACHE
+                base_img, cache_dir=self.GRADIO_CACHE, format=self.format
             )
             base_img_path = str(utils.abspath(base_file))
             base_img = np.array(base_img)
@@ -185,8 +194,9 @@ class AnnotatedImage(Component):
 
             colored_mask_img = PIL.Image.fromarray((colored_mask).astype(np.uint8))
 
+            # RGBA does not support transparency
             mask_file = processing_utils.save_pil_to_cache(
-                colored_mask_img, cache_dir=self.GRADIO_CACHE
+                colored_mask_img, cache_dir=self.GRADIO_CACHE, format="png"
             )
             mask_file_path = str(utils.abspath(mask_file))
             sections.append(
@@ -198,5 +208,16 @@ class AnnotatedImage(Component):
             annotations=sections,
         )
 
-    def example_inputs(self) -> Any:
-        return {}
+    def example_payload(self) -> Any:
+        return {
+            "image": file(
+                "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
+            ),
+            "annotations": [],
+        }
+
+    def example_value(self) -> Any:
+        return (
+            "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png",
+            [([0, 0, 100, 100], "bus")],
+        )

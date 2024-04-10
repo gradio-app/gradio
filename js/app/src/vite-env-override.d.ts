@@ -13,8 +13,8 @@ declare module "virtual:component-loader" {
 		id: string;
 		variant: "component" | "example";
 	}
-	export function load_component(args: Args): Promise<{
+	export function load_component(args: Args): {
 		name: ComponentMeta["type"];
 		component: LoadedComponent;
-	}>;
+	};
 }

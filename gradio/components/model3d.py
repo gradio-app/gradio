@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Callable
 
+from gradio_client import file
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
@@ -17,7 +18,6 @@ class Model3D(Component):
     """
     Creates a component allows users to upload or view 3D Model files (.obj, .glb, .stl, .gltf, .splat, or .ply).
 
-    Demos: model3D
     Guides: how-to-use-3D-model-component
     """
 
@@ -117,6 +117,10 @@ class Model3D(Component):
     def process_example(self, input_data: str | Path | None) -> str:
         return Path(input_data).name if input_data else ""
 
-    def example_inputs(self):
-        # TODO: Use permanent link
+    def example_payload(self):
+        return file(
+            "https://raw.githubusercontent.com/gradio-app/gradio/main/demo/model3D/files/Fox.gltf"
+        )
+
+    def example_value(self):
         return "https://raw.githubusercontent.com/gradio-app/gradio/main/demo/model3D/files/Fox.gltf"

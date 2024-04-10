@@ -7,6 +7,7 @@ import warnings
 from pathlib import Path
 from typing import Any, Callable, Literal, Optional
 
+from gradio_client import file
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
@@ -35,7 +36,7 @@ class Video(Component):
     that the output video would not be playable in the browser it will attempt to convert it to a playable mp4 video.
     If the conversion fails, the original video is returned.
 
-    Demos: video_identity, video_subtitle
+    Demos: video_identity_2
     """
 
     data_model = VideoData
@@ -351,8 +352,12 @@ class Video(Component):
 
         return FileData(path=str(subtitle))
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
         return {
-            "video": "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4",
-            "subtitles": None,
+            "video": file(
+                "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+            ),
         }
+
+    def example_value(self) -> Any:
+        return "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
