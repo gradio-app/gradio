@@ -61,7 +61,7 @@ class ChatInterface(Blocks):
         additional_inputs: str | Component | list[str | Component] | None = None,
         additional_inputs_accordion_name: str | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
-        examples: list[str] | list[dict[str, str | list]] | None = None,
+        examples: list[str] | list[dict[str, str | list]] | list[list] | None = None,
         cache_examples: bool | Literal["lazy"] | None = None,
         title: str | None = None,
         description: str | None = None,

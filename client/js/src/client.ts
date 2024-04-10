@@ -190,9 +190,11 @@ export class Client {
 				const _config = await this.config_success(this.config);
 
 				// connect to the heartbeat endpoint via GET request
-				const heartbeat = new EventSource(
+				const heartbeat_url = new URL(
 					`${this.config.root}/heartbeat/${this.session_hash}`
 				);
+
+				// EventSource_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
 
 				// res(_config);
 				return _config as Config;

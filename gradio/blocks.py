@@ -850,6 +850,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     original_mapping[o] for o in dependency["outputs"]
                 ]
                 dependency.pop("status_tracker", None)
+                dependency.pop("zerogpu")
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
                 if is_then_event:
@@ -1148,6 +1149,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             "trigger_only_on_success": trigger_only_on_success,
             "trigger_mode": trigger_mode,
             "show_api": show_api,
+            "zerogpu": hasattr(fn, "zerogpu"),
         }
         self.dependencies.append(dependency)
         return dependency, len(self.dependencies) - 1
