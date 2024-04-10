@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:OAuth: stay in same tab
+feat:When authenticating with HF OAuth, stay in same tab
