@@ -14,7 +14,7 @@ from gradio.events import Events
 @document("languages")
 class Code(Component):
     """
-    Creates a code editor for viewing code (as an ouptut component), or for entering and editing code (as an input component).
+    Creates a code editor for viewing code (as an output component), or for entering and editing code (as an input component).
     """
 
     languages = [
