@@ -56,6 +56,25 @@ class TestInit:
         fns = [fn for fn in chat.fns if fn.name in {"_submit_fn", "_api_submit_fn"}]
         assert all(fn.concurrency_limit == 10 for fn in fns)
 
+    def test_custom_textbox(self):
+        def chat():
+            return "Hello"
+
+        gr.ChatInterface(
+            chat,
+            chatbot=gr.Chatbot(height=400),
+            textbox=gr.Textbox(placeholder="Type Message", container=False, scale=7),
+            title="Test",
+            clear_btn="Clear",
+        )
+        gr.ChatInterface(
+            chat,
+            chatbot=gr.Chatbot(height=400),
+            textbox=gr.MultimodalTextbox(container=False, scale=7),
+            title="Test",
+            clear_btn="Clear",
+        )
+
     def test_events_attached(self):
         chatbot = gr.ChatInterface(double)
         dependencies = chatbot.dependencies
@@ -79,7 +98,7 @@ class TestInit:
                 None,
             )
 
-    def test_example_caching(self, monkeypatch):
+    def test_example_caching(self):
         with patch(
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
@@ -91,7 +110,23 @@ class TestInit:
             assert prediction_hello[0].root[0] == ("hello", "hello hello")
             assert prediction_hi[0].root[0] == ("hi", "hi hi")
 
-    def test_example_caching_async(self, monkeypatch):
+    @pytest.mark.asyncio
+    async def test_example_caching_lazy(self):
+        with patch(
+            "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
+        ):
+            chatbot = gr.ChatInterface(
+                double, examples=["hello", "hi"], cache_examples="lazy"
+            )
+            async for _ in chatbot.examples_handler.async_lazy_cache(0, "hello"):
+                pass
+            prediction_hello = chatbot.examples_handler.load_from_cache(0)
+            assert prediction_hello[0].root[0] == ("hello", "hello hello")
+            with pytest.raises(IndexError):
+                prediction_hi = chatbot.examples_handler.load_from_cache(1)
+                assert prediction_hi[0].root[0] == ("hi", "hi hi")
+
+    def test_example_caching_async(self):
         with patch(
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
@@ -103,7 +138,7 @@ class TestInit:
             assert prediction_hello[0].root[0] == ("abubakar", "hi, abubakar")
             assert prediction_hi[0].root[0] == ("tom", "hi, tom")
 
-    def test_example_caching_with_streaming(self, monkeypatch):
+    def test_example_caching_with_streaming(self):
         with patch(
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):
@@ -115,7 +150,7 @@ class TestInit:
             assert prediction_hello[0].root[0] == ("hello", "hello")
             assert prediction_hi[0].root[0] == ("hi", "hi")
 
-    def test_example_caching_with_streaming_async(self, monkeypatch):
+    def test_example_caching_with_streaming_async(self):
         with patch(
             "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
         ):

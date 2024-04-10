@@ -289,9 +289,7 @@ class TestLoadInterface:
         io = gr.load("models/osanseviero/BigGAN-deep-128")
         try:
             filename = io("chest")
-            assert filename.lower().endswith(".jpg") or filename.lower().endswith(
-                ".jpeg"
-            )
+            assert filename.lower().endswith((".jpg", ".jpeg", ".png"))
         except TooManyRequestsError:
             pass
 
@@ -396,6 +394,9 @@ class TestLoadInterfaceWithExamples:
         # This demo still has the "fake_event". both should work
         demo = gr.load("spaces/gradio-tests/test-calculator-2v4-sse")
         assert demo(2, "add", 4) == 6
+
+    def test_loading_chatbot_with_avatar_images_does_not_raise_errors(self):
+        gr.load("gradio/chatbot_multimodal", src="spaces")
 
 
 def test_get_tabular_examples_replaces_nan_with_str_nan():

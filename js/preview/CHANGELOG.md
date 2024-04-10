@@ -1,5 +1,11 @@
 # @gradio/preview
 
+## 0.7.2
+
+### Fixes
+
+- [#7638](https://github.com/gradio-app/gradio/pull/7638) [`b3b0ea3`](https://github.com/gradio-app/gradio/commit/b3b0ea3e111ef8a3cdd82ecc310a4accc6af6120) - Add --python-path, --pip-path, --gradio-path CLI arguments to let custom component developers control which executable is used.  Thanks @freddyaboulton!
+
 ## 0.7.1
 
 ### Features

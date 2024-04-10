@@ -16,7 +16,7 @@ class Checkbox(FormComponent):
     Creates a checkbox that can be set to `True` or `False`. Can be used as an input to pass a boolean value to a function or as an output
     to display a boolean value.
 
-    Demos: sentence_builder, titanic_survival
+    Demos: sentence_builder, hello_world_3
     """
 
     EVENTS = [Events.change, Events.input, Events.select]
@@ -73,7 +73,10 @@ class Checkbox(FormComponent):
     def api_info(self) -> dict[str, Any]:
         return {"type": "boolean"}
 
-    def example_inputs(self) -> bool:
+    def example_payload(self) -> bool:
+        return True
+
+    def example_value(self) -> bool:
         return True
 
     def preprocess(self, payload: bool | None) -> bool | None:

@@ -1,7 +1,9 @@
 import gradio as gr
 
+
 def greet(name):
     return "Hello " + name + "!"
+
 
 with gr.Blocks() as demo:
     name = gr.Textbox(label="Name")

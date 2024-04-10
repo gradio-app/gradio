@@ -11,15 +11,16 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import gradio as gr
+import httpx
 import huggingface_hub
 import pytest
 import uvicorn
 from fastapi import FastAPI
-from gradio.networking import Server
+from gradio.http_server import Server
 from huggingface_hub import HfFolder
 from huggingface_hub.utils import RepositoryNotFoundError
 
-from gradio_client import Client
+from gradio_client import Client, file
 from gradio_client.client import DEFAULT_TEMP_DIR
 from gradio_client.exceptions import AuthenticationError
 from gradio_client.utils import (
@@ -45,11 +46,7 @@ def connect(
         # because we should set a timeout
         # the tests that call .cancel() can get stuck
         # waiting for the thread to join
-        if demo.enable_queue:
-            demo._queue.close()
-        demo.is_running = False
-        demo.server.should_exit = True
-        demo.server.thread.join(timeout=1)
+        demo.close()
 
 
 class TestClientInitialization:
@@ -72,6 +69,14 @@ class TestClientInitialization:
             headers={"authorization": "Bearer abcde"},
         )
         assert {"authorization": "Bearer abcde"}.items() <= client.headers.items()
+
+    def test_many_endpoint_demo_loads_quickly(self, many_endpoint_demo):
+        import datetime
+
+        start = datetime.datetime.now()
+        with connect(many_endpoint_demo):
+            pass
+        assert (datetime.datetime.now() - start).seconds < 5
 
 
 class TestClientPredictions:
@@ -255,7 +260,9 @@ class TestClientPredictions:
         with connect(video_component) as client:
             job = client.submit(
                 {
-                    "video": "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
+                    "video": file(
+                        "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
+                    )
                 },
                 fn_index=0,
             )
@@ -269,7 +276,9 @@ class TestClientPredictions:
         with connect(video_component, output_dir=temp_dir) as client:
             job = client.submit(
                 {
-                    "video": "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
+                    "video": file(
+                        "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
+                    )
                 },
                 fn_index=0,
             )
@@ -370,13 +379,15 @@ class TestClientPredictions:
     def test_stream_audio(self, stream_audio):
         with connect(stream_audio) as client:
             job1 = client.submit(
-                "https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4",
+                file("https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4"),
                 api_name="/predict",
             )
             assert Path(job1.result()).exists()
 
             job2 = client.submit(
-                "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
+                file(
+                    "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
+                ),
                 api_name="/predict",
             )
             assert Path(job2.result()).exists()
@@ -497,6 +508,13 @@ class TestClientPredictions:
             ret = client.predict(message, initial_history, api_name="/submit")
             assert ret == ("", [["", None], ["Hello", "I love you"]])
 
+    def test_does_not_upload_dir(self, stateful_chatbot):
+        with connect(stateful_chatbot) as client:
+            initial_history = [["", None]]
+            message = "Hello"
+            ret = client.predict(message, initial_history, api_name="/submit")
+            assert ret == ("", [["", None], ["Hello", "I love you"]])
+
     def test_can_call_mounted_app_via_api(self):
         def greet(name):
             return "Hello " + name + "!"
@@ -585,6 +603,42 @@ class TestClientPredictions:
         with connect(demo) as client:
             pred = client.predict(api_name="/predict")
             assert pred[0] == data[0]
+
+    def test_state_reset_when_session_changes(self, capsys, state_demo, monkeypatch):
+        monkeypatch.setenv("GRADIO_IS_E2E_TEST", "1")
+        with connect(state_demo) as client:
+            client.predict("Hello", api_name="/predict")
+            client.reset_session()
+            time.sleep(5)
+        out = capsys.readouterr().out
+        assert "STATE DELETED" in out
+
+
+class TestClientPredictionsWithKwargs:
+    def test_no_default_params(self, calculator_demo):
+        with connect(calculator_demo) as client:
+            result = client.predict(
+                num1=3, operation="add", num2=3, api_name="/predict"
+            )
+            assert result == 6
+
+            result = client.predict(33, operation="add", num2=3, api_name="/predict")
+            assert result == 36
+
+    def test_default_params(self, calculator_demo_with_defaults):
+        with connect(calculator_demo_with_defaults) as client:
+            result = client.predict(num2=10, api_name="/predict")
+            assert result == 20
+
+            result = client.predict(num2=33, operation="multiply", api_name="/predict")
+            assert result == 330
+
+    def test_missing_params(self, calculator_demo):
+        with connect(calculator_demo) as client:
+            with pytest.raises(
+                ValueError, match="No value provided for required argument: num2"
+            ):
+                client.predict(num1=3, operation="add", api_name="/predict")
 
 
 class TestStatusUpdates:
@@ -753,6 +807,7 @@ class TestStatusUpdates:
 
 
 class TestAPIInfo:
+    @pytest.mark.flaky
     @pytest.mark.parametrize("trailing_char", ["/", ""])
     def test_test_endpoint_src(self, trailing_char):
         src = "https://gradio-calculator.hf.space" + trailing_char
@@ -938,6 +993,9 @@ class TestAPIInfo:
                 "parameters": [
                     {
                         "label": "num1",
+                        "parameter_name": "num1",
+                        "parameter_has_default": False,
+                        "parameter_default": None,
                         "type": {"type": "number"},
                         "python_type": {"type": "float", "description": ""},
                         "component": "Number",
@@ -945,6 +1003,9 @@ class TestAPIInfo:
                     },
                     {
                         "label": "operation",
+                        "parameter_name": "operation",
+                        "parameter_has_default": False,
+                        "parameter_default": None,
                         "type": {
                             "enum": ["add", "subtract", "multiply", "divide"],
                             "title": "Radio",
@@ -959,6 +1020,9 @@ class TestAPIInfo:
                     },
                     {
                         "label": "num2",
+                        "parameter_name": "num2",
+                        "parameter_has_default": False,
+                        "parameter_default": None,
                         "type": {"type": "number"},
                         "python_type": {"type": "float", "description": ""},
                         "component": "Number",
@@ -1004,13 +1068,13 @@ class TestAPIInfo:
                 "description": "",
             }
             assert isinstance(inputs[0]["example_input"], list)
-            assert isinstance(inputs[0]["example_input"][0], str)
+            assert isinstance(inputs[0]["example_input"][0], dict)
 
             assert inputs[1]["python_type"] == {
                 "type": "filepath",
                 "description": "",
             }
-            assert isinstance(inputs[1]["example_input"], str)
+            assert isinstance(inputs[1]["example_input"], dict)
 
             assert outputs[0]["python_type"] == {
                 "type": "List[filepath]",
@@ -1032,6 +1096,9 @@ class TestAPIInfo:
                         "parameters": [
                             {
                                 "label": "name",
+                                "parameter_name": "name",
+                                "parameter_has_default": False,
+                                "parameter_default": None,
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
@@ -1063,6 +1130,9 @@ class TestAPIInfo:
                         "parameters": [
                             {
                                 "label": "name",
+                                "parameter_name": "name",
+                                "parameter_has_default": False,
+                                "parameter_default": None,
                                 "type": {"type": "string"},
                                 "python_type": {"type": "str", "description": ""},
                                 "component": "Textbox",
@@ -1079,10 +1149,7 @@ class TestAPIInfo:
                             {
                                 "label": "count",
                                 "type": {"type": "number"},
-                                "python_type": {
-                                    "type": "float",
-                                    "description": "",
-                                },
+                                "python_type": {"type": "float", "description": ""},
                                 "component": "Number",
                             },
                         ],
@@ -1093,10 +1160,7 @@ class TestAPIInfo:
                             {
                                 "label": "count",
                                 "type": {"type": "number"},
-                                "python_type": {
-                                    "type": "float",
-                                    "description": "",
-                                },
+                                "python_type": {"type": "float", "description": ""},
                                 "component": "Number",
                             }
                         ],
@@ -1107,10 +1171,7 @@ class TestAPIInfo:
                             {
                                 "label": "count",
                                 "type": {"type": "number"},
-                                "python_type": {
-                                    "type": "float",
-                                    "description": "",
-                                },
+                                "python_type": {"type": "float", "description": ""},
                                 "component": "Number",
                             }
                         ],
@@ -1159,41 +1220,25 @@ class TestEndpoints:
         ]
 
     @pytest.mark.flaky
-    def test_upload_v4(self):
+    def test_download_private_file(self, gradio_temp_dir):
         client = Client(
-            src="gradio-tests/not-actually-private-file-uploadv4-sse",
+            src="gradio/zip_files",
         )
-        response = MagicMock(status_code=200)
-        response.json.return_value = [
-            "file1",
-            "file2",
-            "file3",
-            "file4",
-            "file5",
-            "file6",
-            "file7",
-        ]
-        with patch("httpx.post", MagicMock(return_value=response)):
-            with patch("builtins.open", MagicMock()):
-                with patch.object(pathlib.Path, "name") as mock_name:
-                    mock_name.side_effect = lambda x: x
-                    results = client.endpoints[0]._upload(
-                        ["pre1", ["pre2", "pre3", "pre4"], ["pre5", "pre6"], "pre7"]
-                    )
+        url_path = "https://gradio-tests-not-actually-private-spacev4-sse.hf.space/file=lion.jpg"
+        file = client.endpoints[0]._upload_file(url_path)  # type: ignore
+        assert file["path"].endswith(".jpg")
 
-        res = []
-        for re in results:
-            if isinstance(re, list):
-                res.append([r["path"] for r in re])
-            else:
-                res.append(re["path"])
-
-        assert res == [
-            "file1",
-            ["file2", "file3", "file4"],
-            ["file5", "file6"],
-            "file7",
-        ]
+    @pytest.mark.flaky
+    def test_download_tmp_copy_of_file_does_not_save_errors(
+        self, monkeypatch, gradio_temp_dir
+    ):
+        client = Client(
+            src="gradio/zip_files",
+        )
+        error_response = httpx.Response(status_code=404)
+        monkeypatch.setattr(httpx, "get", lambda *args, **kwargs: error_response)
+        with pytest.raises(httpx.HTTPStatusError):
+            client.endpoints[0]._download_file({"path": "https://example.com/foo"})  # type: ignore
 
 
 cpu = huggingface_hub.SpaceHardware.CPU_BASIC

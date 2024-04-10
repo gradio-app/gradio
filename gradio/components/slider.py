@@ -96,7 +96,10 @@ class Slider(FormComponent):
             "description": f"numeric value between {self.minimum} and {self.maximum}",
         }
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return self.minimum
+
+    def example_value(self) -> Any:
         return self.minimum
 
     def get_random_value(self):

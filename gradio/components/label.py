@@ -30,7 +30,6 @@ class Label(Component):
     Displays a classification label, along with confidence scores of top categories, if provided. As this component does not
     accept user input, it is rarely used as an input component.
 
-    Demos: main_note, titanic_survival
     Guides: image-classification-in-pytorch, image-classification-in-tensorflow, image-classification-with-vision-transformers
     """
 
@@ -141,7 +140,7 @@ class Label(Component):
             f"Instead, got a {type(value)}"
         )
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
         return {
             "label": "Cat",
             "confidences": [
@@ -149,3 +148,6 @@ class Label(Component):
                 {"label": "dog", "confidence": 0.1},
             ],
         }
+
+    def example_value(self) -> Any:
+        return {"cat": 0.9, "dog": 0.1}

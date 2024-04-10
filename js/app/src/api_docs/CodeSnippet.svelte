@@ -1,14 +1,22 @@
 <script lang="ts">
 	import type { ComponentMeta, Dependency } from "../types";
 	import CopyButton from "./CopyButton.svelte";
-	import { represent_value } from "./utils";
+	import { represent_value, is_potentially_nested_file_data } from "./utils";
 	import { Block } from "@gradio/atoms";
 	import EndpointDetail from "./EndpointDetail.svelte";
+
+	interface EndpointParameter {
+		label: string;
+		type: string;
+		python_type: { type: string };
+		component: string;
+		example_input: string;
+		serializer: string;
+	}
 
 	export let dependency: Dependency;
 	export let dependency_index: number;
 	export let root: string;
-	export let dependency_failures: boolean[][];
 	export let endpoint_parameters: any;
 	export let js_parameters: any;
 	export let named: boolean;
@@ -18,19 +26,12 @@
 	let python_code: HTMLElement;
 	let js_code: HTMLElement;
 
+	let has_file_path = endpoint_parameters.some((param: EndpointParameter) =>
+		is_potentially_nested_file_data(param.example_input)
+	);
 	let blob_components = ["Audio", "File", "Image", "Video"];
 	let blob_examples: any[] = endpoint_parameters.filter(
-		(param: {
-			label: string;
-			type: string;
-			python_type: {
-				type: string;
-				description: string;
-			};
-			component: string;
-			example_input: string;
-			serializer: string;
-		}) => blob_components.includes(param.component)
+		(param: EndpointParameter) => blob_components.includes(param.component)
 	);
 </script>
 
@@ -47,34 +48,30 @@
 					<CopyButton code={python_code?.innerText} />
 				</div>
 				<div bind:this={python_code}>
-					<pre>from gradio_client import Client
+					<pre><span class="highlight">from</span> gradio_client <span
+							class="highlight">import</span
+						> Client{#if has_file_path}, file{/if}
 
 client = Client(<span class="token string">"{root}"</span>)
-result = client.predict(<!--
--->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
+result = client.<span class="highlight">predict</span
+						>(<!--
+-->{#each endpoint_parameters as { python_type, example_input, parameter_name, parameter_has_default, parameter_default }, i}<!--
         -->
-		<span
-								class="example-inputs"
-								>{represent_value(example_input, python_type.type, "py")}</span
-							>,<!--
-			-->{#if dependency_failures[dependency_index][i]}<!--
-			--><span
-									class="error">ERROR</span
-								><!--
-				-->{/if}<!--
-			--><span class="desc"
-								><!--
-			-->	# {python_type.type} {#if python_type.description}({python_type.description}){/if}<!----> in '{label}' <!--
-			-->{component} component<!--
-			--></span
-							><!--
-		-->{/each}<!--
+		{parameter_name
+								? parameter_name + "="
+								: ""}<span
+								>{represent_value(
+									parameter_has_default ? parameter_default : example_input,
+									python_type.type,
+									"py"
+								)}</span
+							>,{/each}<!--
 
 		-->
-		api_name="/{dependency.api_name}"<!--
+		api_name=<span class="api-name">"/{dependency.api_name}"</span><!--
 		-->
 )
-print(result)</pre>
+<span class="highlight">print</span>(result)</pre>
 				</div>
 			{:else if current_language === "javascript"}
 				<div class="copy">
@@ -84,12 +81,14 @@ print(result)</pre>
 					<pre>import &lbrace; client &rbrace; from "@gradio/client";
 {#each blob_examples as { label, type, python_type, component, example_input, serializer }, i}<!--
 -->
-const response_{i} = await fetch("{example_input}");
+const response_{i} = await fetch("{example_input.url}");
 const example{component} = await response_{i}.blob();
 						{/each}<!--
 -->
 const app = await client(<span class="token string">"{root}"</span>);
-const result = await app.predict({#if named}"/{dependency.api_name}"{:else}{dependency_index}{/if}, [<!--
+const result = await app.predict({#if named}<span class="api-name"
+								>"/{dependency.api_name}"</span
+							>{:else}{dependency_index}{/if}, [<!--
 -->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
 		-->{#if blob_components.includes(component)}<!--
 	-->
@@ -167,20 +166,11 @@ console.log(result.data);
 		margin-bottom: var(--size-3);
 	}
 
-	.error {
-		color: var(--error-text-color);
-	}
-
 	.desc {
 		color: var(--body-text-color-subdued);
 	}
 
-	.example-inputs {
-		border: 1px solid var(--border-color-accent);
-		border-radius: var(--radius-sm);
-		background: var(--color-accent-soft);
-		padding-right: var(--size-1);
-		padding-left: var(--size-1);
+	.api-name {
 		color: var(--color-accent);
 	}
 </style>

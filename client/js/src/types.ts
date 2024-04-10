@@ -20,7 +20,7 @@ export interface Config {
 	show_api: boolean;
 	stylesheets: string[];
 	path: string;
-	protocol?: "sse_v2" | "sse_v1" | "sse" | "ws";
+	protocol?: "sse_v2.1" | "sse_v2" | "sse_v1" | "sse" | "ws";
 }
 
 export interface Payload {

@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import importlib
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Optional
 
 import semantic_version
 import typer
@@ -13,6 +16,7 @@ from gradio.cli.commands.components._docs_utils import (
     get_deep,
 )
 from gradio.cli.commands.components.docs import run_command
+from gradio.cli.commands.components.install_component import _get_executable_path
 from gradio.cli.commands.display import LivePanelDisplay
 
 gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"
@@ -32,6 +36,12 @@ def _build(
     generate_docs: Annotated[
         bool, typer.Option(help="Whether to generate the documentation as well.")
     ] = True,
+    python_path: Annotated[
+        Optional[str],
+        typer.Option(
+            help="Path to python executable. If None, will use the default path found by `which python3`. If python3 is not found, `which python` will be tried. If both fail an error will be raised."
+        ),
+    ] = None,
 ):
     name = Path(path).resolve()
     if not (name / "pyproject.toml").exists():
@@ -43,6 +53,10 @@ def _build(
         )
         pyproject_toml = parse((path / "pyproject.toml").read_text())
         package_name = get_deep(pyproject_toml, ["project", "name"])
+
+        python_path = _get_executable_path(
+            "python", None, "--python-path", check_3=True
+        )
 
         if not isinstance(package_name, str):
             raise ValueError(
@@ -115,6 +129,8 @@ def _build(
                 gradio_template_path,
                 "--mode",
                 "build",
+                "--python-path",
+                python_path,
             ]
             pipe = subprocess.run(
                 node_cmds, capture_output=True, text=True, check=False
@@ -127,7 +143,7 @@ def _build(
             else:
                 live.update(":white_check_mark: Build succeeded!")
 
-        cmds = [shutil.which("python"), "-m", "build", str(name)]
+        cmds = [python_path, "-m", "build", str(name)]
         live.update(f":construction_worker: Building... [grey37]({' '.join(cmds)})[/]")
         pipe = subprocess.run(cmds, capture_output=True, text=True, check=False)
         if pipe.returncode != 0:

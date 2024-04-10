@@ -166,56 +166,61 @@
 
 			if (parsed_head_html) {
 				for (let head_element of parsed_head_html) {
-					for (let head_element of parsed_head_html) {
-						let newElement = document.createElement(head_element.tagName);
-						Array.from(head_element.attributes).forEach((attr) => {
-							newElement.setAttribute(attr.name, attr.value);
-						});
-						newElement.textContent = head_element.textContent;
+					let newElement = document.createElement(head_element.tagName);
+					Array.from(head_element.attributes).forEach((attr) => {
+						newElement.setAttribute(attr.name, attr.value);
+					});
+					newElement.textContent = head_element.textContent;
 
-						if (
-							newElement.tagName == "META" &&
-							newElement.getAttribute("property")
-						) {
-							const domMetaList = Array.from(
-								document.head.getElementsByTagName("meta") ?? []
+					if (
+						newElement.tagName == "META" &&
+						newElement.getAttribute("property")
+					) {
+						const domMetaList = Array.from(
+							document.head.getElementsByTagName("meta") ?? []
+						);
+						const matched = domMetaList.find((el) => {
+							return (
+								el.getAttribute("property") ==
+									newElement.getAttribute("property") &&
+								!el.isEqualNode(newElement)
 							);
-							const matched = domMetaList.find((el) => {
-								return (
-									el.getAttribute("property") ==
-										newElement.getAttribute("property") &&
-									!el.isEqualNode(newElement)
-								);
-							});
-							if (matched) {
-								document.head.replaceChild(newElement, matched);
-								continue;
-							}
+						});
+						if (matched) {
+							document.head.replaceChild(newElement, matched);
+							continue;
 						}
-
-						document.head.appendChild(newElement);
 					}
+
+					document.head.appendChild(newElement);
 				}
 			}
 		}
 	}
 
-	function handle_darkmode(target: HTMLDivElement): "light" | "dark" {
-		let url = new URL(window.location.toString());
-		let url_color_mode: ThemeMode | null = url.searchParams.get(
-			"__theme"
-		) as ThemeMode | null;
-		active_theme_mode = theme_mode || url_color_mode || "system";
+	function handle_theme_mode(target: HTMLDivElement): "light" | "dark" {
+		const force_light = window.__gradio_mode__ === "website";
 
-		if (active_theme_mode === "dark" || active_theme_mode === "light") {
-			darkmode(target, active_theme_mode);
+		let new_theme_mode: ThemeMode;
+		if (force_light) {
+			new_theme_mode = "light";
 		} else {
-			active_theme_mode = use_system_theme(target);
+			const url = new URL(window.location.toString());
+			const url_color_mode: ThemeMode | null = url.searchParams.get(
+				"__theme"
+			) as ThemeMode | null;
+			new_theme_mode = theme_mode || url_color_mode || "system";
 		}
-		return active_theme_mode;
+
+		if (new_theme_mode === "dark" || new_theme_mode === "light") {
+			apply_theme(target, new_theme_mode);
+		} else {
+			new_theme_mode = sync_system_theme(target);
+		}
+		return new_theme_mode;
 	}
 
-	function use_system_theme(target: HTMLDivElement): "light" | "dark" {
+	function sync_system_theme(target: HTMLDivElement): "light" | "dark" {
 		const theme = update_scheme();
 		window
 			?.matchMedia("(prefers-color-scheme: dark)")
@@ -228,13 +233,13 @@
 				? "dark"
 				: "light";
 
-			darkmode(target, _theme);
+			apply_theme(target, _theme);
 			return _theme;
 		}
 		return theme;
 	}
 
-	function darkmode(target: HTMLDivElement, theme: "dark" | "light"): void {
+	function apply_theme(target: HTMLDivElement, theme: "dark" | "light"): void {
 		const dark_class_element = is_embed ? target.parentElement! : document.body;
 		const bg_element = is_embed ? target : target.parentElement!;
 		bg_element.style.background = "var(--body-background-fill)";
@@ -258,9 +263,7 @@
 		status = _status;
 	}
 	onMount(async () => {
-		if (window.__gradio_mode__ !== "website") {
-			active_theme_mode = handle_darkmode(wrapper);
-		}
+		active_theme_mode = handle_theme_mode(wrapper);
 
 		//@ts-ignore
 		const gradio_dev_mode = window.__GRADIO_DEV__;

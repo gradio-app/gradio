@@ -6,7 +6,6 @@ import json
 from types import ModuleType
 from typing import Any, Literal
 
-import altair as alt
 from gradio_client.documentation import document
 
 from gradio import processing_utils
@@ -31,7 +30,7 @@ class Plot(Component):
     Creates a plot component to display various kinds of plots (matplotlib, plotly, altair, or bokeh plots are supported). As this component does
     not accept user input, it is rarely used as an input component.
 
-    Demos: altair_plot, outbreak_forecast, blocks_kinematics, stock_forecast, map_airbnb
+    Demos: blocks_kinematics, stock_forecast
     Guides: plot-component-for-maps
     """
 
@@ -42,6 +41,7 @@ class Plot(Component):
         self,
         value: Any | None = None,
         *,
+        format: str = "png",
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
@@ -56,6 +56,7 @@ class Plot(Component):
         """
         Parameters:
             value: Optionally, supply a default plot object to display, must be a matplotlib, plotly, altair, or bokeh figure, or a callable. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            format: File format in which to send matplotlib plots to the front end, such as 'jpg' or 'png'.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -67,6 +68,7 @@ class Plot(Component):
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
         """
+        self.format = format
         super().__init__(
             label=label,
             every=every,
@@ -102,7 +104,10 @@ class Plot(Component):
         """
         return payload
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return None
+
+    def example_value(self) -> Any:
         return None
 
     def postprocess(self, value: Any) -> PlotData | None:
@@ -118,7 +123,7 @@ class Plot(Component):
             return None
         if isinstance(value, (ModuleType, matplotlib.figure.Figure)):  # type: ignore
             dtype = "matplotlib"
-            out_y = processing_utils.encode_plot_to_base64(value)
+            out_y = processing_utils.encode_plot_to_base64(value, self.format)
         elif "bokeh" in value.__module__:
             dtype = "bokeh"
             from bokeh.embed import json_item  # type: ignore
@@ -144,4 +149,6 @@ class AltairPlot:
 
     @staticmethod
     def create_scale(limit):
+        import altair as alt
+
         return alt.Scale(domain=limit) if limit else alt.Undefined

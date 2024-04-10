@@ -16,7 +16,7 @@ class Dropdown(FormComponent):
     """
     Creates a dropdown of choices from which a single entry or multiple entries can be selected (as an input component) or displayed (as an output component).
 
-    Demos: sentence_builder, titanic_survival
+    Demos: sentence_builder
     """
 
     EVENTS = [
@@ -130,7 +130,13 @@ class Dropdown(FormComponent):
             }
         return json_type
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        if self.multiselect:
+            return [self.choices[0][1]] if self.choices else []
+        else:
+            return self.choices[0][1] if self.choices else None
+
+    def example_value(self) -> Any:
         if self.multiselect:
             return [self.choices[0][1]] if self.choices else []
         else:

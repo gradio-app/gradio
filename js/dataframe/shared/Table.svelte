@@ -21,8 +21,7 @@
 	export let label: string | null = null;
 	export let show_label = true;
 	export let headers: Headers = [];
-	let values: (string | number)[][];
-	export let value: { data: Data; headers: Headers; metadata: Metadata } | null;
+	export let values: (string | number)[][] = [];
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let latex_delimiters: {
@@ -41,20 +40,9 @@
 	export let column_widths: string[] = [];
 
 	let selected: false | [number, number] = false;
-	let display_value: string[][] | null = value?.metadata?.display_value ?? null;
-	let styling: string[][] | null = value?.metadata?.styling ?? null;
+	export let display_value: string[][] | null = null;
+	export let styling: string[][] | null = null;
 	let t_rect: DOMRectReadOnly;
-
-	$: {
-		if (value) {
-			headers = value.headers;
-			values = value.data;
-			display_value = value?.metadata?.display_value ?? null;
-			styling = value?.metadata?.styling ?? null;
-		} else if (values === null) {
-			values = [];
-		}
-	}
 
 	const dispatch = createEventDispatcher<{
 		change: {
@@ -69,6 +57,7 @@
 
 	const get_data_at = (row: number, col: number): string | number =>
 		data?.[row]?.[col]?.value;
+
 	$: {
 		if (selected !== false) {
 			const [row, col] = selected;
@@ -77,6 +66,7 @@
 			}
 		}
 	}
+
 	let els: Record<
 		string,
 		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
@@ -87,6 +77,7 @@
 	function make_id(): string {
 		return Math.random().toString(36).substring(2, 15);
 	}
+
 	function make_headers(_head: Headers): HeadersWithIDs {
 		let _h = _head || [];
 		if (col_count[1] === "fixed" && _h.length < col_count[0]) {
@@ -105,6 +96,7 @@
 					return { id: _id, value: JSON.stringify(i + 1) };
 				});
 		}
+
 		return _h.map((h, i) => {
 			const _id = make_id();
 			els[_id] = { cell: null, input: null };
@@ -157,7 +149,9 @@
 		_headers = make_headers(headers);
 
 		old_headers = headers.slice();
+		trigger_change();
 	}
+
 	$: if (!dequal(values, old_val)) {
 		data = process_data(values as (string | number)[][]);
 		old_val = values as (string | number)[][];
@@ -167,7 +161,7 @@
 
 	let old_val: undefined | (string | number)[][] = undefined;
 
-	$: _headers &&
+	async function trigger_change(): Promise<void> {
 		dispatch("change", {
 			data: data.map((r) => r.map(({ value }) => value)),
 			headers: _headers.map((h) => h.value),
@@ -175,6 +169,7 @@
 				? null
 				: { display_value: display_value, styling: styling }
 		});
+	}
 
 	function get_sort_status(
 		name: string,
@@ -424,6 +419,8 @@
 		data = data;
 		selected = [index ? index + 1 : data.length - 1, 0];
 	}
+
+	$: data && trigger_change();
 
 	async function add_col(): Promise<void> {
 		parent.focus();

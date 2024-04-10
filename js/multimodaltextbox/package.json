@@ -1,0 +1,25 @@
+{
+	"name": "@gradio/multimodaltextbox",
+	"version": "0.2.4",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"author": "",
+	"license": "ISC",
+	"private": false,
+	"main_changeset": true,
+	"main": "Index.svelte",
+	"exports": {
+		".": "./Index.svelte",
+		"./example": "./Example.svelte",
+		"./package.json": "./package.json"
+	},
+	"dependencies": {
+		"@gradio/atoms": "workspace:^",
+		"@gradio/icons": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/utils": "workspace:^",
+		"@gradio/upload": "workspace:^",
+		"@gradio/image": "workspace:^",
+		"@gradio/client": "workspace:^"
+	}
+}

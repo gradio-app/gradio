@@ -14,7 +14,7 @@ from gradio.events import Events
 class CheckboxGroup(FormComponent):
     """
     Creates a set of checkboxes. Can be used as an input to pass a set of values to a function or as an output to display values, a subset of which are selected.
-    Demos: sentence_builder, titanic_survival
+    Demos: sentence_builder
     """
 
     EVENTS = [Events.change, Events.input, Events.select]
@@ -85,7 +85,10 @@ class CheckboxGroup(FormComponent):
             value=value,
         )
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return [self.choices[0][1]] if self.choices else None
+
+    def example_value(self) -> Any:
         return [self.choices[0][1]] if self.choices else None
 
     def api_info(self) -> dict[str, Any]:

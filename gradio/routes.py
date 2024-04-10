@@ -37,7 +37,7 @@ import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Response, status
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
@@ -79,6 +79,7 @@ from gradio.route_utils import (  # noqa: F401
     move_uploaded_files_to_cache,
 )
 from gradio.server_messages import (
+    CloseStreamMessage,
     EstimationMessage,
     EventMessage,
     HeartbeatMessage,
@@ -155,6 +156,7 @@ class App(FastAPI):
         self.iterators: dict[str, AsyncIterator] = {}
         self.iterators_to_reset: set[str] = set()
         self.lock = utils.safe_get_lock()
+        self.stop_event = utils.safe_get_stop_event()
         self.cookie_id = secrets.token_urlsafe(32)
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
@@ -162,6 +164,7 @@ class App(FastAPI):
         self.change_event: None | threading.Event = None
         self._asyncio_tasks: list[asyncio.Task] = []
         self.auth_dependency = auth_dependency
+        self.api_info = None
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
@@ -220,10 +223,10 @@ class App(FastAPI):
     ) -> App:
         app_kwargs = app_kwargs or {}
         app_kwargs.setdefault("default_response_class", ORJSONResponse)
-        if blocks.delete_cache is not None:
-            app_kwargs["lifespan"] = create_lifespan_handler(
-                app_kwargs.get("lifespan", None), *blocks.delete_cache
-            )
+        delete_cache = blocks.delete_cache or (None, None)
+        app_kwargs["lifespan"] = create_lifespan_handler(
+            app_kwargs.get("lifespan", None), *delete_cache
+        )
         app = App(auth_dependency=auth_dependency, **app_kwargs)
         app.configure_app(blocks)
 
@@ -329,7 +332,8 @@ class App(FastAPI):
         else:
 
             @app.get("/logout")
-            def logout(response: Response, user: str = Depends(get_current_user)):
+            def logout(user: str = Depends(get_current_user)):
+                response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
                 response.delete_cookie(key=f"access-token-{app.cookie_id}", path="/")
                 response.delete_cookie(
                     key=f"access-token-unsecure-{app.cookie_id}", path="/"
@@ -338,7 +342,7 @@ class App(FastAPI):
                 for token in list(app.tokens.keys()):
                     if app.tokens[token] == user:
                         del app.tokens[token]
-                return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+                return response
 
         ###############
         # Main Routes
@@ -390,7 +394,10 @@ class App(FastAPI):
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
         def api_info():
-            return app.get_blocks().get_api_info()  # type: ignore
+            # The api info is set in create_app
+            if not app.api_info:
+                app.api_info = app.get_blocks().get_api_info()
+            return app.api_info
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
@@ -495,13 +502,18 @@ class App(FastAPI):
                 utils.is_in_or_equal(abs_path, allowed_path)
                 for allowed_path in blocks.allowed_paths
             )
+            is_static_file = utils.is_static_file(abs_path)
             was_uploaded = utils.is_in_or_equal(abs_path, app.uploaded_file_dir)
             is_cached_example = utils.is_in_or_equal(
                 abs_path, utils.abspath(utils.get_cache_folder())
             )
 
             if not (
-                created_by_app or in_allowlist or was_uploaded or is_cached_example
+                created_by_app
+                or in_allowlist
+                or was_uploaded
+                or is_cached_example
+                or is_static_file
             ):
                 raise HTTPException(403, f"File not allowed: {path_or_url}.")
 
@@ -577,6 +589,74 @@ class App(FastAPI):
                 app.iterators_to_reset.add(body.event_id)
                 await app.get_blocks()._queue.clean_events(event_id=body.event_id)
             return {"success": True}
+
+        @app.get("/heartbeat/{session_hash}")
+        def heartbeat(
+            session_hash: str,
+            request: fastapi.Request,
+            background_tasks: BackgroundTasks,
+            username: str = Depends(get_current_user),
+        ):
+            """Clients make a persistent connection to this endpoint to keep the session alive.
+            When the client disconnects, the session state is deleted.
+            """
+            heartbeat_rate = 0.25 if os.getenv("GRADIO_IS_E2E_TEST", None) else 15
+
+            async def wait():
+                await asyncio.sleep(heartbeat_rate)
+                return "wait"
+
+            async def stop_stream():
+                await app.stop_event.wait()
+                return "stop"
+
+            async def iterator():
+                while True:
+                    try:
+                        yield "data: ALIVE\n\n"
+                        # We need to close the heartbeat connections as soon as the server stops
+                        # otherwise the server can take forever to close
+                        wait_task = asyncio.create_task(wait())
+                        stop_stream_task = asyncio.create_task(stop_stream())
+                        done, _ = await asyncio.wait(
+                            [wait_task, stop_stream_task],
+                            return_when=asyncio.FIRST_COMPLETED,
+                        )
+                        done = [d.result() for d in done]
+                        if "stop" in done:
+                            raise asyncio.CancelledError()
+                    except asyncio.CancelledError:
+                        req = Request(request, username)
+                        root_path = route_utils.get_root_url(
+                            request=request,
+                            route_path=f"/hearbeat/{session_hash}",
+                            root_path=app.root_path,
+                        )
+                        body = PredictBody(
+                            session_hash=session_hash, data=[], request=request
+                        )
+                        unload_fn_indices = [
+                            i
+                            for i, dep in enumerate(app.get_blocks().dependencies)
+                            if any(t for t in dep["targets"] if t[1] == "unload")
+                        ]
+                        for fn_index in unload_fn_indices:
+                            # The task runnning this loop has been cancelled
+                            # so we add tasks in the background
+                            background_tasks.add_task(
+                                route_utils.call_process_api,
+                                app=app,
+                                body=body,
+                                gr_request=req,
+                                fn_index_inferred=fn_index,
+                                root_path=root_path,
+                            )
+                        # This will mark the state to be deleted in an hour
+                        if session_hash in app.state_holder.session_data:
+                            app.state_holder.session_data[session_hash].is_closed = True
+                        return
+
+            return StreamingResponse(iterator(), media_type="text/event-stream")
 
         # had to use '/run' endpoint for Colab compatibility, '/api' supported for backwards compatibility
         @app.post("/run/{api_name}", dependencies=[Depends(login_check)])
@@ -714,7 +794,7 @@ class App(FastAPI):
             session_hash: str,
         ):
             def process_msg(message: EventMessage) -> str:
-                return f"data: {json.dumps(message.model_dump())}\n\n"
+                return f"data: {orjson.dumps(message.model_dump()).decode('utf-8')}\n\n"
 
             return await queue_data_helper(request, session_hash, process_msg)
 
@@ -787,17 +867,21 @@ class App(FastAPI):
                                         == 0
                                     )
                                 ):
+                                    message = CloseStreamMessage()
+                                    response = process_msg(message)
+                                    if response is not None:
+                                        yield response
                                     return
                 except BaseException as e:
                     message = UnexpectedErrorMessage(
                         message=str(e),
                     )
                     response = process_msg(message)
-                    if response is not None:
-                        yield response
                     if isinstance(e, asyncio.CancelledError):
                         del blocks._queue.pending_messages_per_session[session_hash]
                         await blocks._queue.clean_events(session_hash=session_hash)
+                    if response is not None:
+                        yield response
                     raise e
 
             return StreamingResponse(
@@ -1008,7 +1092,14 @@ def mount_gradio_app(
     path: str,
     app_kwargs: dict[str, Any] | None = None,
     *,
+    auth: Callable | tuple[str, str] | list[tuple[str, str]] | None = None,
+    auth_message: str | None = None,
     auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+    root_path: str | None = None,
+    allowed_paths: list[str] | None = None,
+    blocked_paths: list[str] | None = None,
+    favicon_path: str | None = None,
+    show_error: bool = True,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -1017,7 +1108,14 @@ def mount_gradio_app(
         blocks: The blocks object we want to mount to the parent app.
         path: The path at which the gradio application will be mounted.
         app_kwargs: Additional keyword arguments to pass to the underlying FastAPI app as a dictionary of parameter keys and argument values. For example, `{"docs_url": "/docs"}`
-        auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth.
+        auth: If provided, username and password (or list of username-password tuples) required to access the gradio app. Can also provide function that takes username and password and returns True if valid login.
+        auth_message: If provided, HTML message provided on login page for this gradio app.
+        auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the gradio app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth. Cannot be used with `auth`.
+        root_path: The subpath corresponding to the public deployment of this FastAPI application. For example, if the application is served at "https://example.com/myapp", the `root_path` should be set to "/myapp". A full URL beginning with http:// or https:// can be provided, which will be used in its entirety. Normally, this does not need to provided (even if you are using a custom `path`). However, if you are serving the FastAPI app behind a proxy, the proxy may not provide the full path to the Gradio app in the request headers. In which case, you can provide the root path here.
+        allowed_paths: List of complete filepaths or parent directories that this gradio app is allowed to serve. Must be absolute paths. Warning: if you provide directories, any files in these directories or their subdirectories are accessible to all users of your app.
+        blocked_paths: List of complete filepaths or parent directories that this gradio app is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
+        favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for this gradio app's page.
+        show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. Otherwise, errors will only be visible in the terminal session running the Gradio app.
     Example:
         from fastapi import FastAPI
         import gradio as gr
@@ -1032,10 +1130,36 @@ def mount_gradio_app(
     blocks.dev_mode = False
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
+    if auth is not None and auth_dependency is not None:
+        raise ValueError(
+            "You cannot provide both `auth` and `auth_dependency` in mount_gradio_app(). Please choose one."
+        )
+    if (
+        auth
+        and not callable(auth)
+        and not isinstance(auth[0], tuple)
+        and not isinstance(auth[0], list)
+    ):
+        blocks.auth = [auth]
+    else:
+        blocks.auth = auth
+    blocks.auth_message = auth_message
+    blocks.favicon_path = favicon_path
+    blocks.allowed_paths = allowed_paths or []
+    blocks.blocked_paths = blocked_paths or []
+    blocks.show_error = show_error
+
+    if not isinstance(blocks.allowed_paths, list):
+        raise ValueError("`allowed_paths` must be a list of directories.")
+    if not isinstance(blocks.blocked_paths, list):
+        raise ValueError("`blocked_paths` must be a list of directories.")
+
+    if root_path is not None:
+        blocks.root_path = root_path
+
     gradio_app = App.create_app(
         blocks, app_kwargs=app_kwargs, auth_dependency=auth_dependency
     )
-
     old_lifespan = app.router.lifespan_context
 
     @contextlib.asynccontextmanager
@@ -1043,8 +1167,9 @@ def mount_gradio_app(
         async with old_lifespan(
             app
         ):  # Instert the startup events inside the FastAPI context manager
-            gradio_app.get_blocks().startup_events()
-            yield
+            async with gradio_app.router.lifespan_context(gradio_app):
+                gradio_app.get_blocks().startup_events()
+                yield
 
     app.router.lifespan_context = new_lifespan
 

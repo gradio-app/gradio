@@ -8,16 +8,23 @@ import { examine_module } from "./index";
 interface BuildOptions {
 	component_dir: string;
 	root_dir: string;
+	python_path: string;
 }
 
 export async function make_build({
 	component_dir,
-	root_dir
+	root_dir,
+	python_path
 }: BuildOptions): Promise<void> {
 	process.env.gradio_mode = "dev";
 	const svelte_dir = join(root_dir, "assets", "svelte");
 
-	const module_meta = examine_module(component_dir, root_dir, "build");
+	const module_meta = examine_module(
+		component_dir,
+		root_dir,
+		python_path,
+		"build"
+	);
 	try {
 		for (const comp of module_meta) {
 			const template_dir = comp.template_dir;

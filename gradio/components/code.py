@@ -14,7 +14,7 @@ from gradio.events import Events
 @document("languages")
 class Code(Component):
     """
-    Creates a code editor for viewing code (as an ouptut component), or for entering and editing code (as an input component).
+    Creates a code editor for viewing code (as an output component), or for entering and editing code (as an input component).
     """
 
     languages = [
@@ -156,11 +156,16 @@ class Code(Component):
         else:
             return value.strip()
 
-    def flag(self, payload: Any, flag_dir: str | Path = "") -> str:
-        return super().flag(payload, flag_dir)
-
     def api_info(self) -> dict[str, Any]:
         return {"type": "string"}
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
         return "print('Hello World')"
+
+    def example_value(self) -> Any:
+        return "print('Hello World')"
+
+    def process_example(self, value: str | tuple[str] | None) -> str | None:
+        if isinstance(value, tuple):
+            return Path(value[0]).name
+        return super().process_example(value)

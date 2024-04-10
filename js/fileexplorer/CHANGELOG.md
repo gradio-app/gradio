@@ -1,5 +1,70 @@
 # @gradio/fileexplorer
 
+## 0.3.31
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/atoms@0.6.2
+- @gradio/statustracker@0.4.11
+- @gradio/upload@0.8.4
+- @gradio/client@0.15.1
+- @gradio/file@0.5.11
+- @gradio/checkbox@0.2.14
+
+## 0.3.30
+
+### Dependency updates
+
+- @gradio/upload@0.8.3
+- @gradio/client@0.15.0
+- @gradio/file@0.5.10
+
+## 0.3.29
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+- @gradio/statustracker@0.4.10
+- @gradio/icons@0.3.4
+- @gradio/upload@0.8.2
+- @gradio/file@0.5.9
+- @gradio/checkbox@0.2.13
+
+## 0.3.28
+
+### Dependency updates
+
+- @gradio/upload@0.8.1
+- @gradio/statustracker@0.4.9
+- @gradio/atoms@0.6.0
+- @gradio/file@0.5.8
+- @gradio/checkbox@0.2.12
+
+## 0.3.27
+
+### Dependency updates
+
+- @gradio/client@0.14.0
+- @gradio/upload@0.8.0
+- @gradio/file@0.5.7
+
+## 0.3.26
+
+### Dependency updates
+
+- @gradio/upload@0.7.7
+- @gradio/client@0.13.0
+- @gradio/file@0.5.6
+
+## 0.3.25
+
+### Patch Changes
+
+- Updated dependencies [[`8181695`](https://github.com/gradio-app/gradio/commit/8181695e70187e8bc2bf7518697098c8d1b9843d)]:
+  - @gradio/upload@0.7.6
+  - @gradio/file@0.5.5
+
 ## 0.3.24
 
 ### Patch Changes

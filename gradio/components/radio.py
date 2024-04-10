@@ -15,7 +15,7 @@ class Radio(FormComponent):
     """
     Creates a set of (string or numeric type) radio buttons of which only one can be selected.
 
-    Demos: sentence_builder, titanic_survival, blocks_essay
+    Demos: sentence_builder, blocks_essay
     """
 
     EVENTS = [Events.select, Events.change, Events.input]
@@ -86,7 +86,10 @@ class Radio(FormComponent):
             value=value,
         )
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return self.choices[0][1] if self.choices else None
+
+    def example_value(self) -> Any:
         return self.choices[0][1] if self.choices else None
 
     def preprocess(self, payload: str | int | float | None) -> str | int | float | None:

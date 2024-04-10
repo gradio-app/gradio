@@ -5,25 +5,25 @@
 	import { post_data } from "@gradio/client";
 	import NoApi from "./NoApi.svelte";
 	import type { client } from "@gradio/client";
-
+	import type { Payload } from "../types";
 	import { represent_value } from "./utils";
 
 	import ApiBanner from "./ApiBanner.svelte";
-	import ResponseObject from "./ResponseObject.svelte";
+	import Button from "../../../button/shared/Button.svelte";
+	import ParametersSnippet from "./ParametersSnippet.svelte";
 	import InstallSnippet from "./InstallSnippet.svelte";
-	import CodeSnippets from "./CodeSnippets.svelte";
+	import CodeSnippet from "./CodeSnippet.svelte";
+	import RecordingSnippet from "./RecordingSnippet.svelte";
 
 	import python from "./img/python.svg";
 	import javascript from "./img/javascript.svg";
+	import ResponseSnippet from "./ResponseSnippet.svelte";
 
-	export let instance_map: {
-		[id: number]: ComponentMeta;
-	};
 	export let dependencies: Dependency[];
 	export let root: string;
 	export let app: Awaited<ReturnType<typeof client>>;
 	export let space_id: string | null;
-
+	export let root_node: ComponentMeta;
 	const js_docs =
 		"https://www.gradio.app/guides/getting-started-with-the-js-client";
 	const py_docs =
@@ -41,6 +41,7 @@
 		root += "/";
 	}
 
+	export let api_calls: Payload[] = [];
 	let current_language: "python" | "javascript" = "python";
 
 	const langs = [
@@ -50,9 +51,27 @@
 
 	let is_running = false;
 
+	function find_recursive(
+		node: ComponentMeta,
+		id: number
+	): ComponentMeta | null {
+		if (node.id === id) {
+			return node;
+		}
+		if (node.children) {
+			for (let child of node.children) {
+				let result = find_recursive(child, id);
+				if (result) {
+					return result;
+				}
+			}
+		}
+		return null;
+	}
+
 	let dependency_inputs = dependencies.map((dependency) =>
 		dependency.inputs.map((_id) => {
-			let default_data = instance_map[_id].documentation?.example_data;
+			let default_data = find_recursive(root_node, _id)?.props?.default;
 			if (default_data === undefined) {
 				default_data = "";
 			} else if (typeof default_data === "object") {
@@ -103,10 +122,9 @@
 		let dependency = dependencies[index];
 		let attempted_component_index = 0;
 		try {
-			var inputs = dependency_inputs[index].map((input_val, i) => {
+			var inputs = dependency_inputs[index].map((input_val: any, i: number) => {
 				attempted_component_index = i;
-				let component = instance_map[dependency.inputs[i]];
-				// @ts-ignore
+				let component = find_recursive(root_node, dependency.inputs[i])!;
 				input_val = represent_value(
 					input_val,
 					component.documentation?.type?.input_payload ||
@@ -130,7 +148,7 @@
 		if (status_code == 200) {
 			dependency_outputs[index] = response.data.map(
 				(output_val: any, i: number) => {
-					let component = instance_map[dependency.outputs[i]];
+					let component = find_recursive(root_node, dependency.outputs[i])!;
 
 					return represent_value(
 						output_val,
@@ -146,6 +164,8 @@
 			).fill(true);
 		}
 	}
+
+	const dispatch = createEventDispatcher();
 
 	onMount(() => {
 		document.body.style.overflow = "hidden";
@@ -163,14 +183,15 @@
 		<div class="banner-wrap">
 			<ApiBanner on:close root={space_id || root} {api_count} />
 		</div>
+
 		<div class="docs-wrap">
 			<div class="client-doc">
 				<p>
 					Use the <code class="library">gradio_client</code>
-					Python library (<a href={py_docs} target="_blank">docs</a>) or the
+					<a href={py_docs} target="_blank">Python library</a> or the
 					<code class="library">@gradio/client</code>
-					Javascript package (<a href={js_docs} target="_blank">docs</a>) to
-					query the app via API.
+					<a href={js_docs} target="_blank">Javascript package</a> to query the app
+					via API.
 				</p>
 			</div>
 			<div class="endpoint">
@@ -178,7 +199,7 @@
 					{#each langs as [language, img]}
 						<li
 							class="snippet
-							{current_language === language ? 'current-lang' : 'inactive-lang'}"
+						{current_language === language ? 'current-lang' : 'inactive-lang'}"
 							on:click={() => (current_language = language)}
 						>
 							<img src={img} alt="" />
@@ -186,30 +207,75 @@
 						</li>
 					{/each}
 				</div>
+				{#if api_calls.length}
+					<div>
+						<p
+							style="font-size: var(--text-lg); font-weight:bold; margin: 10px 0px;"
+						>
+							🪄 Recorded API Calls ({api_calls.length})
+						</p>
+						<p>
+							Here is the code snippet to replay the most recently recorded API
+							calls using the {current_language}
+							client.
+						</p>
 
-				<p class="padded">
-					1. Install the client if you don't already have it installed.
-				</p>
+						<RecordingSnippet
+							{current_language}
+							{api_calls}
+							{dependencies}
+							root={space_id || root}
+							endpoints_info={info.named_endpoints}
+						/>
+						<p>
+							Note: the above list may include extra API calls that affect the
+							UI, but are not necessary for the clients.
+						</p>
+					</div>
+					<p
+						style="font-size: var(--text-lg); font-weight:bold; margin: 30px 0px 10px;"
+					>
+						API Documentation
+					</p>
+				{:else}
+					<p class="padded">
+						1. Install the client if you don't already have it installed.
+					</p>
 
-				<InstallSnippet {current_language} />
+					<InstallSnippet {current_language} />
 
-				<p class="padded">
-					2. Find the API endpoint below corresponding to your desired function
-					in the app. Copy the code snippet, replacing the placeholder values
-					with your own input data.
-					{#if space_id}If this is a private Space, you may need to pass your
-						Hugging Face token as well (<a
-							href={(current_language == "python" ? py_docs : js_docs) +
-								spaces_docs_suffix}
-							class="underline"
-							target="_blank">read more</a
-						>).{/if} Run the code, that's it!
-				</p>
+					<p class="padded">
+						2. Find the API endpoint below corresponding to your desired
+						function in the app. Copy the code snippet, replacing the
+						placeholder values with your own input data.
+						{#if space_id}If this is a private Space, you may need to pass your
+							Hugging Face token as well (<a
+								href={(current_language == "python" ? py_docs : js_docs) +
+									spaces_docs_suffix}
+								class="underline"
+								target="_blank">read more</a
+							>).{/if} Or
+						<Button
+							size="sm"
+							variant="primary"
+							on:click={() => dispatch("close", { api_recorder_visible: true })}
+						>
+							🪄 Use the API Recorder
+						</Button>
+						to automatically generate your API requests.
+
+						<!-- <span
+							id="api-recorder"
+							on:click={() => dispatch("close", { api_recorder_visible: true })}
+							>🪄 API Recorder</span
+						> to automatically generate your API requests! -->
+					</p>
+				{/if}
 
 				{#each dependencies as dependency, dependency_index}
 					{#if dependency.show_api}
 						<div class="endpoint-container">
-							<CodeSnippets
+							<CodeSnippet
 								named={true}
 								endpoint_parameters={info.named_endpoints[
 									"/" + dependency.api_name
@@ -221,16 +287,19 @@
 								{dependency_index}
 								{current_language}
 								root={space_id || root}
-								{dependency_failures}
 							/>
 
-							<!-- <TryButton
-							named={true}
-							{dependency_index}
-							{run}
-						/> -->
+							<ParametersSnippet
+								endpoint_returns={info.named_endpoints[
+									"/" + dependency.api_name
+								].parameters}
+								js_returns={js_info.named_endpoints["/" + dependency.api_name]
+									.parameters}
+								{is_running}
+								{current_language}
+							/>
 
-							<ResponseObject
+							<ResponseSnippet
 								endpoint_returns={info.named_endpoints[
 									"/" + dependency.api_name
 								].returns}
@@ -288,9 +357,10 @@
 		border: 1px solid var(--border-color-accent);
 		border-radius: var(--radius-sm);
 		background: var(--color-accent-soft);
-		padding: var(--size-1);
+		padding: 0px var(--size-1);
 		color: var(--color-accent);
 		font-size: var(--text-md);
+		text-decoration: none;
 	}
 
 	.snippets {
@@ -346,7 +416,7 @@
 	.endpoint-container {
 		margin-top: var(--size-3);
 		margin-bottom: var(--size-3);
-		border: 1px solid var(--border-color-primary);
+		border: 1px solid var(--body-text-color);
 		border-radius: var(--radius-xl);
 		padding: var(--size-3);
 		padding-top: 0;
@@ -359,5 +429,13 @@
 	p.padded {
 		padding: 15px 0px;
 		font-size: var(--text-lg);
+	}
+
+	#api-recorder {
+		border: 1px solid var(--color-accent);
+		background-color: var(--color-accent-soft);
+		padding: 0px var(--size-2);
+		border-radius: var(--size-1);
+		cursor: pointer;
 	}
 </style>

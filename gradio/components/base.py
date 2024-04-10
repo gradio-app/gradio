@@ -14,7 +14,7 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
-from gradio_client.utils import is_file_obj
+import gradio_client.utils as client_utils
 
 from gradio import utils
 from gradio.blocks import Block, BlockContext
@@ -83,8 +83,7 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     @abstractmethod
     def example_inputs(self) -> Any:
         """
-        The example inputs for this component as a dictionary whose values are example inputs compatible with this component.
-        Keys of the dictionary are: raw, serialized
+        Deprecated and replaced by `example_payload()` and `example_value()`.
         """
         pass
 
@@ -191,9 +190,6 @@ class Component(ComponentBase, Block):
         self.scale = scale
         self.min_width = min_width
         self.interactive = interactive
-        # Keep tracks of files that should not be deleted when the delete_cache parmaeter is set
-        # These files are the default value of the component and files that are used in examples
-        self.keep_in_cache = set()
 
         # load_event is set in the Blocks.attach_load_events method
         self.load_event: None | dict[str, Any] = None
@@ -204,8 +200,9 @@ class Component(ComponentBase, Block):
             initial_value,
             self,  # type: ignore
             postprocess=True,
+            keep_in_cache=True,
         )
-        if is_file_obj(self.value):
+        if client_utils.is_file_obj(self.value):
             self.keep_in_cache.add(self.value["path"])
 
         if callable(load_fn):
@@ -239,12 +236,6 @@ class Component(ComponentBase, Block):
             load_fn = None
         return load_fn, initial_value
 
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self):
-        return f"{self.get_block_name()}"
-
     def attach_load_event(self, callable: Callable, every: float | None):
         """Add a load event that runs `callable`, optionally every `every` seconds."""
         self.load_event_to_attach = (callable, every)
@@ -267,6 +258,24 @@ class Component(ComponentBase, Block):
         """Deprecated and replaced by `process_example()`."""
         return self.process_example(value)
 
+    def example_inputs(self) -> Any:
+        """Deprecated and replaced by `example_payload()` and `example_value()`."""
+        return self.example_payload()
+
+    def example_payload(self) -> Any:
+        """
+        An example input data for this component, e.g. what is passed to this component's preprocess() method.
+        This is used to generate the docs for the View API page for Gradio apps using this component.
+        """
+        raise NotImplementedError()
+
+    def example_value(self) -> Any:
+        """
+        An example output data for this component, e.g. what is passed to this component's postprocess() method.
+        This is used to generate an example value if this component is used as a template for a custom component.
+        """
+        raise NotImplementedError()
+
     def api_info(self) -> dict[str, Any]:
         """
         The typing information for this component as a dictionary whose values are a list of 2 strings: [Python type, language-agnostic description].
@@ -285,7 +294,9 @@ class Component(ComponentBase, Block):
         if self.data_model:
             payload = self.data_model.from_json(payload)
             Path(flag_dir).mkdir(exist_ok=True)
-            return payload.copy_to_dir(flag_dir).model_dump_json()
+            payload = payload.copy_to_dir(flag_dir).model_dump()
+        if not isinstance(payload, str):
+            payload = json.dumps(payload)
         return payload
 
     def read_from_flag(self, payload: Any):

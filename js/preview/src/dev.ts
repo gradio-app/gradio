@@ -23,6 +23,7 @@ interface ServerOptions {
 	frontend_port: number;
 	backend_port: number;
 	host: string;
+	python_path: string;
 }
 
 export async function create_server({
@@ -30,10 +31,11 @@ export async function create_server({
 	root_dir,
 	frontend_port,
 	backend_port,
-	host
+	host,
+	python_path
 }: ServerOptions): Promise<void> {
 	process.env.gradio_mode = "dev";
-	const imports = generate_imports(component_dir, root_dir);
+	const imports = generate_imports(component_dir, root_dir, python_path);
 
 	const NODE_DIR = join(root_dir, "..", "..", "node", "dev");
 	const svelte_dir = join(root_dir, "assets", "svelte");
@@ -109,12 +111,21 @@ function to_posix(_path: string): string {
 	return _path.replace(/\\/g, "/");
 }
 
-function generate_imports(component_dir: string, root: string): string {
+function generate_imports(
+	component_dir: string,
+	root: string,
+	python_path: string
+): string {
 	const components = find_frontend_folders(component_dir);
 
 	const component_entries = components.flatMap((component) => {
-		return examine_module(component, root, "dev");
+		return examine_module(component, root, python_path, "dev");
 	});
+	if (component_entries.length === 0) {
+		console.info(
+			`No custom components were found in ${component_dir}. It is likely that dev mode does not work properly. Please pass the --gradio-path and --python-path CLI arguments so that gradio uses the right executables.`
+		);
+	}
 
 	const imports = component_entries.reduce((acc, component) => {
 		const pkg = JSON.parse(
