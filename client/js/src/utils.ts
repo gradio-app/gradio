@@ -298,3 +298,17 @@ export function apply_diff(
 
 	return obj;
 }
+
+export function post_message<Res = any>(
+	message: any,
+	origin: string
+): Promise<Res> {
+	return new Promise((res, _rej) => {
+		const channel = new MessageChannel();
+		channel.port1.onmessage = (({ data }) => {
+			channel.port1.close();
+			res(data);
+		}) as (ev: MessageEvent<Res>) => void;
+		window.parent.postMessage(message, origin, [channel.port2]);
+	});
+}
