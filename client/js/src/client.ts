@@ -39,6 +39,7 @@ export class Client {
 	session_hash: string = Math.random().toString(36).substring(2);
 	jwt: string | false = false;
 	last_status: Record<string, Status["stage"]> = {};
+	fetch_implementation: typeof fetch;
 
 	view_api: (this: Client, config?: Config) => Promise<ApiInfo<JsApiData>>;
 	upload_files: (
@@ -74,6 +75,7 @@ export class Client {
 	private constructor(app_reference: string, options: ClientOptions = {}) {
 		this.app_reference = app_reference;
 		this.options = options;
+		this.fetch_implementation = options.fetch_implementation || fetch;
 
 		this.view_api = view_api.bind(this);
 		this.upload_files = upload_files.bind(this);
@@ -234,16 +236,19 @@ export class Client {
 		} else {
 			root_url = this.config.root;
 		}
-		const response = await fetch(`${root_url}/component_server/`, {
-			method: "POST",
-			body: JSON.stringify({
-				data: data,
-				component_id: component_id,
-				fn_name: fn_name,
-				session_hash: this.session_hash
-			}),
-			headers
-		});
+		const response = await this.fetch_implementation(
+			`${root_url}/component_server/`,
+			{
+				method: "POST",
+				body: JSON.stringify({
+					data: data,
+					component_id: component_id,
+					fn_name: fn_name,
+					session_hash: this.session_hash
+				}),
+				headers
+			}
+		);
 
 		if (!response.ok) {
 			throw new Error(

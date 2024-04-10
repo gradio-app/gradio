@@ -38,6 +38,8 @@ export function submit(
 ): SubmitReturn {
 	try {
 		const { hf_token } = this.options;
+		const fetch_implementation = this.fetch_implementation;
+		const app_reference = this.app_reference;
 		const config: Config = this.config;
 		const session_hash = Math.random().toString(36).substring(2);
 		const event_callbacks: Record<string, () => Promise<void>> = {};
@@ -150,7 +152,7 @@ export function submit(
 			}
 
 			try {
-				await fetch(`${config.root}/reset`, {
+				await fetch_implementation(`${config.root}/reset`, {
 					headers: { "Content-Type": "application/json" },
 					method: "POST",
 					body: JSON.stringify(cancel_request)
@@ -244,7 +246,7 @@ export function submit(
 						});
 				} else if (protocol == "ws") {
 					const { ws_protocol, host, space_id } = await process_endpoint(
-						this.app_reference,
+						app_reference,
 						hf_token
 					);
 

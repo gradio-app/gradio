@@ -158,6 +158,7 @@ export const RE_SPACE_DOMAIN = /.*hf\.space\/{0,1}$/;
 
 export async function process_endpoint(
 	app_reference: string,
+	fetch_implementation: typeof fetch,
 	token?: `hf_${string}`
 ): Promise<{
 	space_id: string | false;
@@ -174,7 +175,7 @@ export async function process_endpoint(
 
 	if (RE_SPACE_NAME.test(_app_reference)) {
 		try {
-			const res = await fetch(
+			const res = await fetch_implementation(
 				`https://huggingface.co/api/spaces/${_app_reference}/host`,
 				{ headers }
 			);

@@ -7,6 +7,7 @@ import { SPACE_FETCHER_URL } from "../constants";
 
 export async function view_api(this: Client, config?: Config): Promise<any> {
 	const { hf_token } = this.options;
+	const fetch_implementation = this.fetch_implementation;
 
 	const headers: {
 		Authorization?: string;
@@ -25,7 +26,7 @@ export async function view_api(this: Client, config?: Config): Promise<any> {
 		let response: Response;
 
 		if (semiver(config?.version || "2.0.0", "3.30") < 0) {
-			response = await fetch(SPACE_FETCHER_URL, {
+			response = await fetch_implementation(SPACE_FETCHER_URL, {
 				method: "POST",
 				body: JSON.stringify({
 					serialize: false,
@@ -34,7 +35,7 @@ export async function view_api(this: Client, config?: Config): Promise<any> {
 				headers
 			});
 		} else {
-			response = await fetch(`${config?.root}/${API_INFO_URL}`, {
+			response = await fetch_implementation(`${config?.root}/${API_INFO_URL}`, {
 				headers
 			});
 		}
