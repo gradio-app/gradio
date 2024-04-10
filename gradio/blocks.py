@@ -2243,7 +2243,6 @@ Received outputs:
                 self.share = True
             else:
                 self.share = False
-
                 # GRADIO_SHARE environment variable for forcing 'share=True'
                 # GRADIO_SHARE=True => share=True
                 share_env = os.getenv("GRADIO_SHARE")
