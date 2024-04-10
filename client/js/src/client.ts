@@ -361,7 +361,7 @@ export function api_factory(
 				const heartbeat_url = new URL(
 					`${config.root}/heartbeat/${session_hash}`
 				);
-				const heartbeat = EventSource_factory(heartbeat_url);
+				EventSource_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
 				res(_config);
 			} catch (e) {
 				console.error(e);
