@@ -2247,6 +2247,8 @@ Received outputs:
             self.share = share
 
         # GRADIO_SHARE environment variable for forcing 'share=True' or 'share=False'
+        # GRADIO_SHARE=0 => share=False
+        # GRADIO_SHARE=1 => share=True
         share_env = os.getenv("GRADIO_SHARE")
         if share_env is not None:
             self.share = bool(int(share_env))
