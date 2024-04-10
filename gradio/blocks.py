@@ -2247,9 +2247,8 @@ Received outputs:
                 # GRADIO_SHARE environment variable for forcing 'share=True'
                 # GRADIO_SHARE=True => share=True
                 share_env = os.getenv("GRADIO_SHARE")
-                if share_env is not None:
-                    if share_env.lower() == "true":
-                        self.share = True
+                if share_env is not None and share_env.lower() == "true":
+                    self.share = True
         else:
             self.share = share
 
