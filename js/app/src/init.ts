@@ -118,12 +118,15 @@ export function create_components(): {
 			{} as { [id: number]: ComponentMeta }
 		);
 
-		walk_layout(layout).then(() => {
+		walk_layout(layout, root).then(() => {
 			layout_store.set(_rootNode);
 		});
 	}
 
-	async function walk_layout(node: LayoutNode): Promise<ComponentMeta> {
+	async function walk_layout(
+		node: LayoutNode,
+		root: string
+	): Promise<ComponentMeta> {
 		const instance = instance_map[node.id];
 
 		instance.component = (await constructor_map.get(
@@ -162,7 +165,7 @@ export function create_components(): {
 
 		if (node.children) {
 			instance.children = await Promise.all(
-				node.children.map((v) => walk_layout(v))
+				node.children.map((v) => walk_layout(v, root))
 			);
 		}
 

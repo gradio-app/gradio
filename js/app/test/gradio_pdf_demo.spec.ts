@@ -19,3 +19,7 @@ test("Custom PDF component demo can be loaded and inference function works .", a
 	const download = await downloadPromise;
 	await expect(download.suggestedFilename()).toBe("contract.pdf");
 });
+
+test("Custom PDF component examples load properly .", async ({ page }) => {
+	expect(page.locator("canvas")).toBeVisible();
+});
