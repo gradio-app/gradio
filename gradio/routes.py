@@ -1044,39 +1044,29 @@ class App(FastAPI):
             try:
                 if upload_id:
                     file_upload_statuses.track(upload_id)
+                max_file_size = app.get_blocks().max_file_size or math.inf
                 multipart_parser = GradioMultiPartParser(
                     request.headers,
                     request.stream(),
                     max_files=1000,
                     max_fields=1000,
+                    max_file_size=max_file_size,
                     upload_id=upload_id if upload_id else None,
                     upload_progress=file_upload_statuses if upload_id else None,
                 )
                 form = await multipart_parser.parse()
             except MultiPartException as exc:
-                raise HTTPException(status_code=400, detail=exc.message) from exc
+                code = 413 if "maximum allowed size" in exc.message else 400
+                raise HTTPException(status_code=code, detail=exc.message) from exc
 
             output_files = []
             files_to_copy = []
             locations: list[str] = []
-            max_file_size = app.get_blocks().max_file_size or math.inf
 
             uploaded_files: list[GradioUploadFile] = form.getlist("files")  # type: ignore
             for f in uploaded_files:
                 if not isinstance(f, GradioUploadFile):
                     raise TypeError("File is not an instance of GradioUploadFile")
-
-            # check that no files are too large
-            if any(
-                os.path.getsize(f.file.name) > max_file_size for f in uploaded_files
-            ):
-                for f in uploaded_files:
-                    f.file.close()
-                    Path(f.file.name).unlink()
-                raise HTTPException(
-                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                    detail=f"File size exceeds maximum allowed size of {max_file_size} bytes.",
-                )
 
             for temp_file in uploaded_files:
                 if temp_file.filename:

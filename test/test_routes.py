@@ -1274,8 +1274,8 @@ def test_max_file_size_used_in_upload_route(connect):
     with gr.Blocks() as demo:
         gr.Markdown("Max file size demo")
 
-    app, _, _ = demo.launch(prevent_thread_lock=True, max_file_size="20b")
+    app, _, _ = demo.launch(prevent_thread_lock=True, max_file_size="1kb")
     test_client = TestClient(app)
-    with open("test/test_files/alphabet.txt", "rb") as f:
+    with open("test/test_files/bus.png", "rb") as f:
         r = test_client.post("/upload", files={"files": f})
         assert r.status_code == 413
