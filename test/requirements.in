@@ -21,4 +21,3 @@ tqdm
 transformers
 vega_datasets
 diffusers
-packaging>=23.2  # >=23.2 is required for hatch to handle the context formatting in build target dependencies.
