@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:[wip] Fix internal server error in HF OAuth workflow
+feat:Fix internal server error in HF OAuth workflow
