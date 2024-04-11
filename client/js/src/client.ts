@@ -112,6 +112,14 @@ export class Client {
 		}
 
 		this.config = await this._resolve_config();
+
+		// connect to the heartbeat endpoint via GET request
+		const heartbeat_url = new URL(
+			`${this.config.root}/heartbeat/${this.session_hash}`
+		);
+
+		this.eventSource_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
+
 		this.api = await this.view_api(this.config, this.fetch_implementation);
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);
 	}
@@ -173,15 +181,11 @@ export class Client {
 	): Promise<Config | client_return> {
 		this.config = _config;
 
-		if (
-			typeof window !== "undefined" &&
-			window.location.protocol === "https:"
-		) {
+		if (window.location.protocol === "https:") {
 			this.config.root = this.config.root.replace("http://", "https://");
 		}
 
 		this.api_map = map_names_to_ids(_config.dependencies || []);
-
 		if (this.config.auth_required) {
 			return this.prepare_return_obj();
 		}
@@ -205,13 +209,6 @@ export class Client {
 			try {
 				this.config = await this._resolve_config();
 				const _config = await this.config_success(this.config);
-
-				// connect to the heartbeat endpoint via GET request
-				const heartbeat_url = new URL(
-					`${this.config.root}/heartbeat/${this.session_hash}`
-				);
-
-				this.eventSource_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
 
 				// res(_config);
 				return _config as Config;
