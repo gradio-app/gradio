@@ -106,13 +106,17 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
             # See https://github.com/lepture/authlib/issues/622 for more details.
             login_uri = "/login/huggingface"
             if "_target_url" in request.query_params:
-                # Keep same _target_url as before
-                login_uri += "?" + urllib.parse.urlencode(
-                    {"_target_url": request.query_params["_target_url"]}
+                login_uri += (
+                    "?"
+                    + urllib.parse.urlencode(  # Keep same _target_url as before
+                        {"_target_url": request.query_params["_target_url"]}
+                    )
                 )
-            response = RedirectResponse(login_uri)
-            response.delete_cookie("session")  # delete the corrupted session cookie
-            return response
+            for key in list(request.session.keys()):
+                # Delete all keys that are related to the OAuth state
+                if key.startswith("_state_huggingface"):
+                    request.session.pop(key)
+            return RedirectResponse(login_uri)
 
         # OAuth login worked => store the user info in the session and redirect
         request.session["oauth_info"] = oauth_info
