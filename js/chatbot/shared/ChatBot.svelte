@@ -346,6 +346,9 @@
 		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
 		padding: calc(var(--spacing-xxl) + var(--spacing-sm));
 	}
+	.message :global(.prose) {
+		font-size: var(--chatbot-body-text-size);
+	}
 
 	.message-bubble-border {
 		border-width: 1px;
