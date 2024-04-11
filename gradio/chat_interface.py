@@ -201,7 +201,7 @@ class ChatInterface(Blocks):
 
             with Group():
                 with Row():
-                    if self.mutimodal:
+                    if self.multimodal:
                         submit_btn = None
                     if textbox:
                         textbox.container = False
