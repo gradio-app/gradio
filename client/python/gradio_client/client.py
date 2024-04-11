@@ -1239,9 +1239,7 @@ class Endpoint:
                 ),
                 {},
             )
-            max_file_size = component_config.get("props", {}).get(
-                "max_file_size", math.inf
-            )
+            max_file_size = self.client.config.get("max_file_size", math.inf)
             if os.path.getsize(file_path) > max_file_size:
                 raise ValueError(
                     f"File {file_path} exceeds the maximum file size of {max_file_size} bytes "

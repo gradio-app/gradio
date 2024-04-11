@@ -36,9 +36,12 @@ HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
 
 @contextmanager
 def connect(
-    demo: gr.Blocks, serialize: bool = True, output_dir: str = DEFAULT_TEMP_DIR
+    demo: gr.Blocks,
+    serialize: bool = True,
+    output_dir: str = DEFAULT_TEMP_DIR,
+    max_file_size: str | int | None = None,
 ):
-    _, local_url, _ = demo.launch(prevent_thread_lock=True)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, max_file_size=max_file_size)
     try:
         yield Client(local_url, serialize=serialize, output_dir=output_dir)
     finally:
@@ -86,7 +89,7 @@ class TestClientPredictions:
             Client("gradio-tests/paused-space")
 
     def test_raise_error_max_file_size(self, max_file_size_demo):
-        with connect(max_file_size_demo) as client:
+        with connect(max_file_size_demo, max_file_size="1b") as client:
             with pytest.raises(
                 ValueError, match=f"File {__file__} exceeds the maximum file size"
             ):
