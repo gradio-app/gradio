@@ -64,6 +64,7 @@
 <script lang="ts">
 	import { onMount, setContext, createEventDispatcher } from "svelte";
 	import type { SpaceStatus } from "@gradio/client";
+	import { Client as ClientClass } from "@gradio/client";
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./types";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -90,9 +91,8 @@
 
 	// These utilities are exported to be injectable for the Wasm version.
 	export let mount_css: typeof default_mount_css = default_mount_css;
-	// todo: fix typing
-	export let Client: any;
-	export let upload_files: ReturnType<typeof Client.upload_files>;
+	export let Client: typeof ClientClass;
+	export let upload_files: InstanceType<typeof Client>["upload_files"];
 	export let worker_proxy: WorkerProxy | undefined = undefined;
 	if (worker_proxy) {
 		setWorkerProxyContext(worker_proxy);
@@ -258,7 +258,7 @@
 		detail: "SLEEPING"
 	};
 
-	let app: Awaited<ReturnType<typeof Client>>;
+	let app: ClientClass;
 	let css_ready = false;
 	function handle_status(_status: SpaceStatus): void {
 		status = _status;

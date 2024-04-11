@@ -4,6 +4,8 @@
 	"description": "Gradio API client",
 	"type": "module",
 	"main": "dist/client.umd.js",
+	"author": "",
+	"license": "ISC",
 	"module": "dist/client.js",
 	"types": "dist/client.d.ts",
 	"exports": {
@@ -30,5 +32,9 @@
 		"fetch-mock": "^9.11.0",
 		"semiver": "^1.1.0",
 		"ws": "^8.13.0"
-	}
+	},
+	"engines": {
+		"node": ">=18.0.0"
+	},
+	"main_changeset": true
 }

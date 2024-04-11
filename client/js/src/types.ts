@@ -1,7 +1,7 @@
 // API Data Types
 
 import { hardware_types } from "./helpers/spaces";
-
+import { ComponentMeta } from "../../../js/app/src/types";
 export interface ApiData {
 	label: string;
 	type: {
@@ -111,13 +111,13 @@ export type SpaceStatusCallback = (a: SpaceStatus) => void;
 // Configuration and Response Types
 // --------------------------------
 export interface Config {
-	auth_required?: boolean;
+	auth_required: boolean | undefined;
 	analytics_enabled: boolean;
-	auth_message?: string;
-	components: any[];
+	auth_message: string;
+	components: ComponentMeta[];
 	css: string;
-	js?: string;
-	head?: string | null | undefined;
+	js: string;
+	head: string | null;
 	dependencies: Dependency[];
 	dev_mode: boolean;
 	enable_queue: boolean;
@@ -129,17 +129,34 @@ export interface Config {
 	theme: string;
 	title: string;
 	version: string;
-	space_id?: string | null;
+	space_id: string | null;
 	is_space: boolean;
 	is_colab: boolean;
 	show_api: boolean;
 	stylesheets: string[];
-	path?: string;
+	path: string;
 	protocol: "sse_v3" | "sse_v2.1" | "sse_v2" | "sse_v1" | "sse" | "ws";
+	app_id?: string;
+}
+
+export interface Payload {
+	data: unknown[];
+	fn_index: number;
+	event_data: unknown;
+	time?: Date;
+	trigger_id: any;
+}
+
+export interface Payload {
+	data: unknown[];
+	fn_index: number;
+	event_data: unknown;
+	time?: Date;
+	trigger_id: any;
 }
 
 export interface Dependency {
-	targets: [number, string][] | [number];
+	targets: [number, string][];
 	inputs: number[];
 	outputs: number[];
 	backend_fn: boolean;
@@ -147,8 +164,8 @@ export interface Dependency {
 	scroll_to_output: boolean;
 	trigger: "click" | "load" | string;
 	max_batch_size: number;
-	show_progress: boolean;
-	frontend_fn?: (...args: unknown[]) => Promise<unknown[]>;
+	show_progress: "full" | "minimal" | "hidden";
+	frontend_fn: ((...args: unknown[]) => Promise<unknown[]>) | null;
 	status?: string;
 	queue: boolean | null;
 	every: number | null;
@@ -158,25 +175,17 @@ export interface Dependency {
 	types: DependencyType;
 	collects_event_data: boolean;
 	pending_request?: boolean;
-	trigger_after?: any;
+	trigger_after?: number;
 	trigger_only_on_success?: boolean;
-	trigger_mode?: "once" | "multiple" | "always_last";
-	final_event?: Payload | null;
-	show_api?: boolean;
+	trigger_mode: "once" | "multiple" | "always_last";
+	final_event: Payload | null;
+	show_api: boolean;
 	zerogpu?: boolean;
 }
 
 export interface DependencyType {
 	continuous: boolean;
 	generator: boolean;
-}
-
-export interface Payload {
-	data: unknown[];
-	fn_index?: number;
-	event_data?: unknown;
-	time?: Date;
-	trigger_id?: any;
 }
 
 export interface PostResponse {
