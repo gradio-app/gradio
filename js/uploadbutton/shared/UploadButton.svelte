@@ -62,12 +62,17 @@
 		await tick();
 
 		try {
-			all_file_data = (await upload(all_file_data, root, undefined, max_file_size ?? Infinity, upload_fn))?.filter((x) => x !== null) as FileData[];
+			all_file_data = (
+				await upload(
+					all_file_data,
+					root,
+					undefined,
+					max_file_size ?? Infinity,
+					upload_fn
+				)
+			)?.filter((x) => x !== null) as FileData[];
 		} catch (e) {
-			dispatch(
-				"error",
-				(e as Error).message
-			);
+			dispatch("error", (e as Error).message);
 			return;
 		}
 		value = file_count === "single" ? all_file_data?.[0] : all_file_data;

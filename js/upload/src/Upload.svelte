@@ -85,15 +85,18 @@
 		upload_id = Math.random().toString(36).substring(2, 15);
 		uploading = true;
 		try {
-			const _file_data = await upload(file_data, root, upload_id, max_file_size ?? Infinity, upload_fn);
+			const _file_data = await upload(
+				file_data,
+				root,
+				upload_id,
+				max_file_size ?? Infinity,
+				upload_fn
+			);
 			dispatch("load", file_count === "single" ? _file_data?.[0] : _file_data);
 			uploading = false;
 			return _file_data || [];
 		} catch (e) {
-			dispatch(
-				"error",
-				(e as Error).message
-			);
+			dispatch("error", (e as Error).message);
 			return [];
 		}
 	}
