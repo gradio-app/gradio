@@ -47,5 +47,5 @@ runs:
       shell: bash
       run: |
         . venv/bin/activate
-        python -m pip install -U build hatch packaging>=23.2
+        python -m pip install build hatch
         pnpm --filter @gradio/app build:lite
