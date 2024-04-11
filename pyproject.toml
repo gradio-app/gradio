@@ -80,7 +80,6 @@ artifacts = [
 
 [tool.hatch.build.targets.lite]
 artifacts = ["!gradio/templates", "!*.pyi", "!/gradio/test_data", "!/gradio/_frontend_code", "!/gradio/node"]
-path = ".config/lite_builder.py"
 directory = "dist-lite"
 dependencies = ["lite-builder @ {root:uri}/../.config/lite-builder"]
 
