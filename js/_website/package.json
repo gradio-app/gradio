@@ -1,6 +1,6 @@
 {
 	"name": "website",
-	"version": "0.25.2",
+	"version": "0.26.0",
 	"private": true,
 	"scripts": {
 		"dev": "python generate_jsons/generate.py && vite dev",
@@ -22,7 +22,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@gradio/code": "0.5.10",
+		"@gradio/code": "0.5.11",
 		"@sindresorhus/slugify": "^2.2.0",
 		"@sveltejs/adapter-vercel": "^3.0.3",
 		"hast-util-to-string": "^3.0.0",
