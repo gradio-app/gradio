@@ -201,6 +201,8 @@ class ChatInterface(Blocks):
 
             with Group():
                 with Row():
+                    if self.mutimodal:
+                        submit_btn = None
                     if textbox:
                         textbox.container = False
                         textbox.show_label = False
@@ -211,7 +213,6 @@ class ChatInterface(Blocks):
                             )
                         self.textbox = textbox_
                     elif self.multimodal:
-                        submit_btn = None
                         self.textbox = MultimodalTextbox(
                             show_label=False,
                             label="Message",
