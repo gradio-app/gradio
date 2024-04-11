@@ -51,9 +51,6 @@ export function open_stream(
 				pending_stream_messages[event_id] = [];
 			}
 			pending_stream_messages[event_id].push(_data);
-			if (_data.msg === "close_stream") {
-				close_stream(stream_open, event_source);
-			}
 		}
 	};
 	event_source.onerror = async function () {

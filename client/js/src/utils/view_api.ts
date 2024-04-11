@@ -1,7 +1,7 @@
 import { ApiInfo, ApiData, Config } from "../types";
 import { transform_api_info } from "../helpers";
 import semiver from "semiver";
-import { API_INFO_URL } from "../constants";
+import { API_INFO_URL, BROKEN_CONNECTION_MSG } from "../constants";
 import { Client } from "../client";
 import { SPACE_FETCHER_URL } from "../constants";
 
@@ -10,6 +10,7 @@ export async function view_api(
 	config?: Config,
 	fetch_implementation: typeof fetch = fetch
 ): Promise<any> {
+	if (this.api) return this.api;
 	const { hf_token } = this.options;
 
 	const headers: {
@@ -44,10 +45,15 @@ export async function view_api(
 		}
 
 		if (!response.ok) {
-			throw new Error("Error fetching API info");
+			throw new Error(BROKEN_CONNECTION_MSG);
 		}
 
-		let api_info = (await response.json()) as ApiInfo<ApiData>;
+		let api_info = (await response.json()) as
+			| ApiInfo<ApiData>
+			| { api: ApiInfo<ApiData> };
+		if ("api" in api_info) {
+			api_info = api_info.api;
+		}
 
 		if (
 			api_info.named_endpoints["/predict"] &&

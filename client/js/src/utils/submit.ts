@@ -394,7 +394,7 @@ export function submit(
 					}${params}`
 				);
 
-				let event_source = this.eventSource_factory(url);
+				event_source = this.eventSource_factory(url);
 
 				event_source.onmessage = async function (event) {
 					const _data = JSON.parse(event.data);
@@ -653,11 +653,8 @@ export function submit(
 							pending_stream_messages[event_id].forEach((msg) => callback(msg));
 							delete pending_stream_messages[event_id];
 						}
-
-						if (event_id) {
-							// @ts-ignore
-							event_callbacks[event_id] = callback;
-						}
+						// @ts-ignore
+						event_callbacks[event_id] = callback;
 						unclosed_events.add(event_id);
 						if (!stream_open) {
 							open_stream(

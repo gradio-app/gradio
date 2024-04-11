@@ -52,6 +52,7 @@ export async function predict(
 
 		app
 			.on("data", (d: unknown) => {
+				// if complete message comes before data, resolve here
 				if (status_complete) {
 					app.destroy();
 					resolve(d as SubmitReturn);
@@ -59,10 +60,11 @@ export async function predict(
 				data_returned = true;
 				result = d;
 			})
-			.on("status", (status: { stage: string }) => {
+			.on("status", (status) => {
 				if (status.stage === "error") reject(status);
 				if (status.stage === "complete") {
 					status_complete = true;
+					// if complete message comes after data, resolve here
 					if (data_returned) {
 						app.destroy();
 						resolve(result as SubmitReturn);
