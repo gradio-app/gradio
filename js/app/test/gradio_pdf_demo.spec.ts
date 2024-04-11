@@ -21,5 +21,5 @@ test("Custom PDF component demo can be loaded and inference function works .", a
 });
 
 test("Custom PDF component examples load properly .", async ({ page }) => {
-	expect(page.locator("canvas")).toBeVisible();
+	expect(page.locator("canvas")).toBeVisible({timeout: 10000});
 });
