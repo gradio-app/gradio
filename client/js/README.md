@@ -21,9 +21,9 @@ The client function connects to the API of a hosted Gradio space and returns an 
 The simplest example looks like this:
 
 ```ts
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await client("user/space-name");
+const app = await Client.create("user/space-name");
 const result = await app.predict("/predict");
 ```
 
@@ -48,9 +48,9 @@ This should be a Hugging Face personal access token and is required if you wish 
 Example:
 
 ```ts
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await client("user/space-name", { hf_token: "hf_..." });
+const app = await Client.create("user/space-name", { hf_token: "hf_..." });
 ```
 
 ##### `status_callback`
@@ -64,7 +64,7 @@ Applications hosted on Hugging Face spaces can be in a number of different state
 ```ts
 import { client, type SpaceStatus } from "@gradio/client";
 
-const app = await client("user/space-name", {
+const app = await Client.create("user/space-name", {
 	// The space_status parameter does not need to be manually annotated, this is just for illustration.
 	space_status: (space_status: SpaceStatus) => console.log(space_status)
 });
@@ -100,9 +100,9 @@ The gradio client returns an object with a number of methods and properties:
 The `predict` method allows you to call an api endpoint and get a prediction result:
 
 ```ts
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await client("user/space-name");
+const app = await Client.create("user/space-name");
 const result = await app.predict("/predict");
 ```
 
@@ -113,9 +113,9 @@ const result = await app.predict("/predict");
 This is the endpoint for an api request and is required. The default endpoint for a `gradio.Interface` is `"/predict"`. Explicitly named endpoints have a custom name. The endpoint names can be found on the "View API" page of a space.
 
 ```ts
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await client("user/space-name");
+const app = await Client.create("user/space-name");
 const result = await app.predict("/predict");
 ```
 
@@ -124,9 +124,9 @@ const result = await app.predict("/predict");
 The `payload` argument is generally optional but this depends on the API itself. If the API endpoint depends on values being passed in then it is required for the API request to succeed. The data that should be passed in is detailed on the "View API" page of a space, or accessible via the `view_api()` method of the client.
 
 ```ts
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await client("user/space-name");
+const app = await Client.create("user/space-name");
 const result = await app.predict("/predict", [1, "Hello", "friends"]);
 ```
 
@@ -135,9 +135,9 @@ const result = await app.predict("/predict", [1, "Hello", "friends"]);
 The `submit` method provides a more flexible way to call an API endpoint, providing you with status updates about the current progress of the prediction as well as supporting more complex endpoint types.
 
 ```ts
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await client("user/space-name");
+const app = await Client.create("user/space-name");
 const submission = app.submit("/predict", payload);
 ```
 
@@ -179,9 +179,9 @@ interface Status {
 Usage of these subscribe callback looks like this:
 
 ```ts
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await client("user/space-name");
+const app = await Client.create("user/space-name");
 const submission = app
 	.submit("/predict", payload)
 	.on("data", (data) => console.log(data))
@@ -193,9 +193,9 @@ const submission = app
 The `off` method unsubscribes from a specific event of the submitted job and works similarly to `document.removeEventListener`; both the event name and the original callback must be passed in to successfully unsubscribe:
 
 ```ts
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await client("user/space-name");
+const app = await Client.create("user/space-name");
 const handle_data = (data) => console.log(data);
 
 const submission = app.submit("/predict", payload).on("data", handle_data);
@@ -209,9 +209,9 @@ submission.off("/predict", handle_data);
 The `destroy` method will remove all subscriptions to a job, regardless of whether or not they are `"data"` or `"status"` events. This is a convenience method for when you do not want to unsubscribe use the `off` method.
 
 ```js
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await client("user/space-name");
+const app = await Client.create("user/space-name");
 const handle_data = (data) => console.log(data);
 
 const submission = app.submit("/predict", payload).on("data", handle_data);
@@ -225,9 +225,9 @@ submission.destroy();
 Certain types of gradio function can run repeatedly and in some cases indefinitely. the `cancel` method will stop such an endpoints and prevent the API from issuing additional updates.
 
 ```ts
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await client("user/space-name");
+const app = await Client.create("user/space-name");
 const submission = app
 	.submit("/predict", payload)
 	.on("data", (data) => console.log(data));
@@ -242,9 +242,9 @@ submission.cancel();
 The `view_api` method provides details about the API you are connected to. It returns a JavaScript object of all named endpoints, unnamed endpoints and what values they accept and return. This method does not accept arguments.
 
 ```ts
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await client("user/space-name");
+const app = await Client.create("user/space-name");
 const api_info = await app.view_api();
 
 console.log(api_info);
@@ -255,9 +255,9 @@ console.log(api_info);
 The `config` property contains the configuration for the gradio application you are connected to. This object may contain useful meta information about the application.
 
 ```ts
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await client("user/space-name");
+const app = await Client.create("user/space-name");
 console.log(app.config);
 ```
 
