@@ -96,7 +96,6 @@ class Audio(
         min_length: int | None = None,
         max_length: int | None = None,
         waveform_options: WaveformOptions | dict | None = None,
-        max_file_size: int | str | None = None,
     ):
         """
         Parameters:
@@ -123,7 +122,6 @@ class Audio(
             min_length: The minimum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of audio (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
             waveform_options: A dictionary of options for the waveform display. Options include: waveform_color (str), waveform_progress_color (str), show_controls (bool), skip_length (int), trim_region_color (str). Default is None, which uses the default values for these options.
-            max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
         """
         valid_sources: list[Literal["upload", "microphone"]] = ["upload", "microphone"]
         if sources is None:
@@ -152,7 +150,6 @@ class Audio(
             raise ValueError(
                 "Audio streaming only available if sources includes 'microphone'."
             )
-        self.max_file_size = utils._parse_file_size(max_file_size)
         self.format = format
         self.autoplay = autoplay
         self.show_download_button = show_download_button

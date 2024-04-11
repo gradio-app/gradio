@@ -91,10 +91,6 @@ class TestClientPredictions:
                 ValueError, match=f"File {__file__} exceeds the maximum file size"
             ):
                 client.predict(file(__file__), api_name="/upload_1b")
-            assert (
-                client.predict(file(__file__), api_name="/upload_1mb")
-                == "Upload successful"
-            )
 
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):

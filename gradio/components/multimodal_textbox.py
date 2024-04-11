@@ -13,7 +13,6 @@ from typing_extensions import NotRequired
 from gradio.components.base import FormComponent
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
-from gradio.utils import _parse_file_size
 
 
 class MultimodalData(GradioModel):
@@ -76,7 +75,6 @@ class MultimodalTextbox(FormComponent):
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
         submit_btn: str | Literal[False] | None = None,
-        max_file_size: int | str | None = None,
     ):
         """
         Parameters:
@@ -102,7 +100,6 @@ class MultimodalTextbox(FormComponent):
             rtl: If True and `type` is "text", sets the direction of the text to right-to-left (cursor appears on the left of the text). Default is False, which renders cursor on the right.
             autoscroll: If True, will automatically scroll to the bottom of the textbox when the value changes, unless the user scrolls up. If False, will not scroll to the bottom of the textbox when the value changes.
             submit_btn: If False, will not show a submit button. If a string, will use that string as the submit button text. Only applies if `interactive` is True.
-            max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
         """
         self.file_types = file_types
         if value is None:
@@ -117,7 +114,6 @@ class MultimodalTextbox(FormComponent):
         self.submit_btn = submit_btn
         self.autofocus = autofocus
         self.autoscroll = autoscroll
-        self.max_file_size = _parse_file_size(max_file_size)
 
         super().__init__(
             label=label,

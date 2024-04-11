@@ -15,7 +15,7 @@ from gradio import processing_utils
 from gradio.components.base import Component
 from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
-from gradio.utils import NamedString, _parse_file_size
+from gradio.utils import NamedString
 
 
 @document()
@@ -47,7 +47,6 @@ class File(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
-        max_file_size: int | str | None = None,
     ):
         """
         Parameters:
@@ -67,7 +66,6 @@ class File(Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
-            max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
         """
         self.file_count = file_count
         if self.file_count in ["multiple", "directory"]:
@@ -75,7 +73,6 @@ class File(Component):
         else:
             self.data_model = FileData
         self.file_types = file_types
-        self.max_file_size = _parse_file_size(max_file_size)
         if file_types is not None and not isinstance(file_types, list):
             raise ValueError(
                 f"Parameter file_types must be a list. Received {file_types.__class__.__name__}"

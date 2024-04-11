@@ -160,6 +160,9 @@ export function create_components(): {
 			instance.props.server_fns,
 			app
 		);
+		// Pass the max file size from the app to the component
+		// so we can validate it before files are uploaded
+		instance.props.max_file_size = app.config.max_file_size
 
 		_component_map.set(instance.id, instance);
 

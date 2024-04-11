@@ -7,17 +7,17 @@ with gr.Blocks() as demo:
     """)
     with gr.Row():
         with gr.Column():
-            gr.Image(label="Image", interactive=True, max_file_size="1b")
-            gr.Gallery(label="Gallery", interactive=True, max_file_size="1b")
-            gr.File(label="Single File", interactive=True, max_file_size="1b", file_count="single")
+            gr.Image(label="Image", interactive=True)
+            gr.Gallery(label="Gallery", interactive=True)
+            gr.File(label="Single File", interactive=True, file_count="single")
         with gr.Column():
-            gr.Model3D(label="Model 3D", interactive=True, max_file_size="1b")
-            gr.MultimodalTextbox(label="Multimodal Textbox", interactive=True, max_file_size="1b")
-            gr.UploadButton(label="Upload Button", interactive=True, max_file_size="1b")
+            gr.Model3D(label="Model 3D", interactive=True,)
+            gr.MultimodalTextbox(label="Multimodal Textbox", interactive=True)
+            gr.UploadButton(label="Upload Button", interactive=True)
         with gr.Column():
-            gr.Video(label="Video", interactive=True, max_file_size="1b")
-            gr.Audio(label="Audio", interactive=True, max_file_size="1b")
-            gr.File(label="Multiple Files", interactive=True, max_file_size="1b", file_count="multiple")
+            gr.Video(label="Video", interactive=True)
+            gr.Audio(label="Audio", interactive=True)
+            gr.File(label="Multiple Files", interactive=True, file_count="multiple")
 
 
 if __name__ == "__main__":

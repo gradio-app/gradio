@@ -52,19 +52,6 @@
 	async function load_files(files: FileList): Promise<void> {
 		let _files: File[] = Array.from(files);
 
-		const oversized_files = _files.filter(
-			(f) => f.size > (max_file_size ?? Infinity)
-		);
-		if (oversized_files.length) {
-			dispatch(
-				"error",
-				`File size exceeds the maximum allowed size of ${max_file_size} bytes: ${oversized_files
-					.map((f) => f.name)
-					.join(", ")}`
-			);
-			return;
-		}
-
 		if (!files.length) {
 			return;
 		}
@@ -74,9 +61,15 @@
 		let all_file_data = await prepare_files(_files);
 		await tick();
 
-		all_file_data = (
-			await upload(all_file_data, root, undefined, upload_fn)
-		)?.filter((x) => x !== null) as FileData[];
+		try {
+			all_file_data = (await upload(all_file_data, root, undefined, max_file_size ?? Infinity, upload_fn))?.filter((x) => x !== null) as FileData[];
+		} catch (e) {
+			dispatch(
+				"error",
+				(e as Error).message
+			);
+			return;
+		}
 		value = file_count === "single" ? all_file_data?.[0] : all_file_data;
 		dispatch("change", value);
 		dispatch("upload", value);

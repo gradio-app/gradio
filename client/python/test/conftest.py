@@ -451,8 +451,8 @@ def many_endpoint_demo():
 @pytest.fixture
 def max_file_size_demo():
     with gr.Blocks() as demo:
-        file_1mb = gr.File(max_file_size="1MB")
-        file_1b = gr.File(max_file_size="1B")
+        file_1mb = gr.File()
+        file_1b = gr.File()
         upload_status = gr.Textbox()
 
         file_1mb.upload(
@@ -465,4 +465,5 @@ def max_file_size_demo():
             lambda x: "Upload successful", file_1b, upload_status, api_name="upload_1b"
         )
 
+    demo.max_file_size = 1
     return demo

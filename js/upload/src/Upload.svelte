@@ -84,10 +84,18 @@
 		await tick();
 		upload_id = Math.random().toString(36).substring(2, 15);
 		uploading = true;
-		const _file_data = await upload(file_data, root, upload_id, upload_fn);
-		dispatch("load", file_count === "single" ? _file_data?.[0] : _file_data);
-		uploading = false;
-		return _file_data || [];
+		try {
+			const _file_data = await upload(file_data, root, upload_id, max_file_size ?? Infinity, upload_fn);
+			dispatch("load", file_count === "single" ? _file_data?.[0] : _file_data);
+			uploading = false;
+			return _file_data || [];
+		} catch (e) {
+			dispatch(
+				"error",
+				(e as Error).message
+			);
+			return [];
+		}
 	}
 
 	export async function load_files(
@@ -99,20 +107,6 @@
 		let _files: File[] = files.map(
 			(f) => new File([f], f.name, { type: f.type })
 		);
-
-		const oversized_files = _files.filter(
-			(f) => f.size > (max_file_size ?? Infinity)
-		);
-		if (oversized_files.length) {
-			dispatch(
-				"error",
-				`File size exceeds the maximum allowed size of ${max_file_size} bytes: ${oversized_files
-					.map((f) => f.name)
-					.join(", ")}`
-			);
-			return;
-		}
-
 		file_data = await prepare_files(_files);
 		return await handle_upload(file_data);
 	}

@@ -74,7 +74,6 @@ class Gallery(Component):
         show_download_button: bool | None = True,
         interactive: bool | None = None,
         type: Literal["numpy", "pil", "filepath"] = "filepath",
-        max_file_size: int | str | None = None,
     ):
         """
         Parameters:
@@ -101,7 +100,6 @@ class Gallery(Component):
             show_download_button: If True, will show a download button in the corner of the selected image. If False, the icon does not appear. Default is True.
             interactive: If True, the gallery will be interactive, allowing the user to upload images. If False, the gallery will be static. Default is True.
             type: The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (height, width, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "filepath" passes a str path to a temporary file containing the image. If the image is SVG, the `type` is ignored and the filepath of the SVG is returned.
-            max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
         """
         self.format = format
         self.columns = columns
@@ -115,7 +113,6 @@ class Gallery(Component):
             if show_download_button is None
             else show_download_button
         )
-        self.max_file_size = utils._parse_file_size(max_file_size)
         self.selected_index = selected_index
         self.type = type
 

@@ -1853,6 +1853,7 @@ Received outputs:
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
             "is_colab": utils.colab_check(),
+            "max_file_size": getattr(self, "max_file_size", None),
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
             "protocol": "sse_v3",
@@ -2031,6 +2032,7 @@ Received outputs:
         share_server_address: str | None = None,
         share_server_protocol: Literal["http", "https"] | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        max_file_size: str | int | None = None,
         _frontend: bool = True,
     ) -> tuple[FastAPI, str, str]:
         """
@@ -2066,6 +2068,7 @@ Received outputs:
             share_server_address: Use this to specify a custom FRP server and port for sharing Gradio apps (only applies if share=True). If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
             share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
             auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth. Cannot be used with `auth`.
+            max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2128,6 +2131,7 @@ Received outputs:
             raise ValueError("`blocked_paths` must be a list of directories.")
 
         self.validate_queue_settings()
+        self.max_file_size = utils._parse_file_size(max_file_size)
 
         self.config = self.get_config_file()
         self.max_threads = max_threads

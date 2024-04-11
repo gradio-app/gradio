@@ -83,7 +83,6 @@ class Video(Component):
         show_download_button: bool | None = None,
         min_length: int | None = None,
         max_length: int | None = None,
-        max_file_size: int | str | None = None,
     ):
         """
         Parameters:
@@ -110,7 +109,6 @@ class Video(Component):
             show_download_button: If True, will show a download icon in the corner of the component that allows user to download the output. If False, icon does not appear. By default, it will be True for output components and False for input components.
             min_length: The minimum length of video (in seconds) that the user can pass into the prediction function. If None, there is no minimum length.
             max_length: The maximum length of video (in seconds) that the user can pass into the prediction function. If None, there is no maximum length.
-            max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
         """
         valid_sources: list[Literal["upload", "webcam"]] = ["upload", "webcam"]
         if sources is None:
@@ -144,7 +142,6 @@ class Video(Component):
         self.show_download_button = show_download_button
         self.min_length = min_length
         self.max_length = max_length
-        self.max_file_size = utils._parse_file_size(max_file_size)
         super().__init__(
             label=label,
             every=every,
