@@ -1,13 +1,17 @@
 <script>
-	import { client } from "@gradio/client";
+	import { Client } from "@gradio/client";
 	import EndpointInputs from "../../lib/EndpointInputs.svelte";
 	import ResponsePreview from "../../lib/ResponsePreview.svelte";
 
 	let api = "gradio/cancel_events";
-	let hf_token = "";
+	let hf_token = "hf_123";
 
 	/**
-	 * @type Awaited<ReturnType<typeof client>>
+	 * @type Promise<Client>
+	 */
+	let app_promise;
+	/**
+	 * @type Client
 	 */
 	let app;
 	/**
@@ -40,12 +44,14 @@
 		app_info = undefined;
 		active_endpoint = "";
 		response_data = { data: [], fn_index: 0, endpoint: "" };
-		if (!api || (hf_token && !hf_token.startsWith("_hf"))) return;
+		if (!api || (hf_token && !hf_token.startsWith("hf_"))) return;
 
-		app = await client(api, {
-			//@ts-ignore
-			hf_token: hf_token
+		app_promise = Client.create(api, {
+			// @ts-ignore
+			hf_token
 		});
+
+		app = await app_promise;
 
 		const { named_endpoints, unnamed_endpoints } = await app.view_api();
 
@@ -69,7 +75,7 @@
 	}
 
 	/**
-	 * @type ReturnType<Awaited<ReturnType<typeof client>>["submit"]>
+	 * @type ReturnType<Client['submit']>
 	 */
 	let job;
 
