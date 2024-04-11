@@ -1,7 +1,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { duplicate } from "../src/utils/duplicate";
 import fetchMock from "fetch-mock";
-import { Client } from "../src/Client";
+import { Client } from "../src/client";
 import { DuplicateOptions } from "../src/types";
 
 describe("duplicate", () => {

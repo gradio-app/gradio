@@ -1,4 +1,4 @@
-import { Client } from "../src/Client.js";
+import { Client } from "../src/client";
 import { test, describe, expect, beforeEach, afterEach } from "vitest";
 import fetchMock from "fetch-mock";
 import { test_api_info, test_config } from "../test_data.js";
