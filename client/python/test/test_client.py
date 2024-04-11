@@ -39,7 +39,7 @@ def connect(
     demo: gr.Blocks,
     serialize: bool = True,
     output_dir: str = DEFAULT_TEMP_DIR,
-    max_file_size: str | int | None = None,
+    max_file_size=None,
 ):
     _, local_url, _ = demo.launch(prevent_thread_lock=True, max_file_size=max_file_size)
     try:
