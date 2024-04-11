@@ -22,7 +22,7 @@ export async function predict(
 	}
 
 	let config = await resolve_config(
-		fetch,
+		this.fetch_implementation,
 		`${http_protocol}//${host}`,
 		hf_token
 	);

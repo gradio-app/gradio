@@ -200,7 +200,6 @@ export interface DuplicateOptions extends ClientOptions {
 export interface ClientOptions {
 	hf_token?: `hf_${string}`;
 	status_callback?: SpaceStatusCallback | null;
-	fetch_implementation?: typeof fetch;
 }
 
 export interface FileData {

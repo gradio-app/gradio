@@ -6,7 +6,8 @@ import { FileData } from "../upload";
 export async function handle_blob(
 	endpoint: string,
 	data: unknown[],
-	apiInfo: EndpointInfo<JsApiData | ApiData>,
+	api_info: EndpointInfo<JsApiData | ApiData>,
+	fetch_implementation: typeof fetch = fetch,
 	token?: `hf_${string}`
 ): Promise<unknown[]> {
 	const blobRefs = await walk_and_store_blobs(
@@ -14,14 +15,19 @@ export async function handle_blob(
 		undefined,
 		[],
 		true,
-		apiInfo
+		api_info
 	);
 
 	const results = await Promise.all(
 		blobRefs.map(async ({ path, blob, type }) => {
 			if (!blob) return { path, type };
 
-			const response = await upload_files(endpoint, [blob], token);
+			const response = await upload_files(
+				endpoint,
+				[blob],
+				fetch_implementation,
+				token
+			);
 			const file_url = response.files && response.files[0];
 			return {
 				path,

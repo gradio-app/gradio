@@ -4,6 +4,7 @@ import { PostResponse } from "../types";
 export async function post_data(
 	url: string,
 	body: unknown,
+	fetch_implementation: typeof fetch = fetch,
 	token?: `hf_${string}`,
 	additional_headers?: any
 ): Promise<[PostResponse, number]> {
@@ -15,7 +16,7 @@ export async function post_data(
 		headers.Authorization = `Bearer ${token}`;
 	}
 	try {
-		var response = await fetch(url, {
+		var response = await fetch_implementation(url, {
 			method: "POST",
 			body: JSON.stringify(body),
 			headers: { ...headers, ...additional_headers }

@@ -90,6 +90,7 @@
 
 	// These utilities are exported to be injectable for the Wasm version.
 	export let mount_css: typeof default_mount_css = default_mount_css;
+	// todo: fix typing
 	export let Client: any;
 	export let upload_files: ReturnType<typeof Client.upload_files>;
 	export let worker_proxy: WorkerProxy | undefined = undefined;
@@ -274,7 +275,7 @@
 			BUILD_MODE === "dev" || gradio_dev_mode === "dev"
 				? `http://localhost:${
 						typeof server_port === "number" ? server_port : 7860
-					}`
+				  }`
 				: host || space || src || location.origin;
 
 		app = await Client.create(api_url, {
@@ -323,8 +324,8 @@
 		!ready && status.load_status !== "error"
 			? "pending"
 			: !ready && status.load_status === "error"
-				? "error"
-				: status.load_status;
+			? "error"
+			: status.load_status;
 
 	$: config && (eager || $intersecting[_id]) && load_demo();
 

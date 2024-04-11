@@ -5,9 +5,12 @@ import { API_INFO_URL } from "../constants";
 import { Client } from "../client";
 import { SPACE_FETCHER_URL } from "../constants";
 
-export async function view_api(this: Client, config?: Config): Promise<any> {
+export async function view_api(
+	this: Client,
+	config?: Config,
+	fetch_implementation: typeof fetch = fetch
+): Promise<any> {
 	const { hf_token } = this.options;
-	const fetch_implementation = this.fetch_implementation;
 
 	const headers: {
 		Authorization?: string;

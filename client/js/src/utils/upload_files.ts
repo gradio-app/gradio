@@ -4,6 +4,7 @@ import { UploadResponse } from "../types";
 export async function upload_files(
 	root: string,
 	files: (Blob | File)[],
+	fetch_implementation: typeof fetch = fetch,
 	token?: `hf_${string}`,
 	upload_id?: string
 ): Promise<UploadResponse> {
@@ -25,7 +26,7 @@ export async function upload_files(
 			const upload_url = upload_id
 				? `${root}/upload?upload_id=${upload_id}`
 				: `${root}/upload`;
-			var response = await fetch(upload_url, {
+			var response = await fetch_implementation(upload_url, {
 				method: "POST",
 				body: formData,
 				headers

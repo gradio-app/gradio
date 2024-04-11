@@ -39,12 +39,27 @@ export class Client {
 	session_hash: string = Math.random().toString(36).substring(2);
 	jwt: string | false = false;
 	last_status: Record<string, Status["stage"]> = {};
-	fetch_implementation: typeof fetch;
 
-	view_api: (this: Client, config?: Config) => Promise<ApiInfo<JsApiData>>;
+	protected fetch_implementation(
+		input: RequestInfo | URL,
+		init?: RequestInit
+	): Promise<Response> {
+		return fetch(input, init);
+	}
+
+	protected eventSource_factory(url: URL): EventSource {
+		return new EventSource(url);
+	}
+
+	view_api: (
+		this: Client,
+		config?: Config,
+		fetch_implementation?: typeof fetch
+	) => Promise<ApiInfo<JsApiData>>;
 	upload_files: (
 		root: string,
 		files: (Blob | File)[],
+		fetch_implementation: typeof fetch,
 		token?: `hf_${string}`,
 		upload_id?: string
 	) => Promise<UploadResponse>;
@@ -52,6 +67,7 @@ export class Client {
 		endpoint: string,
 		data: unknown[],
 		api_info: any,
+		fetch_implementation: typeof fetch,
 		token?: `hf_${string}`
 	) => Promise<unknown[]>;
 	post_data: (
@@ -72,10 +88,9 @@ export class Client {
 		event_data?: unknown
 	) => Promise<unknown>;
 
-	private constructor(app_reference: string, options: ClientOptions = {}) {
+	constructor(app_reference: string, options: ClientOptions = {}) {
 		this.app_reference = app_reference;
 		this.options = options;
-		this.fetch_implementation = options.fetch_implementation || fetch;
 
 		this.view_api = view_api.bind(this);
 		this.upload_files = upload_files.bind(this);
@@ -97,7 +112,7 @@ export class Client {
 		}
 
 		this.config = await this._resolve_config();
-		this.api = await this.view_api(this.config);
+		this.api = await this.view_api(this.config, this.fetch_implementation);
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);
 	}
 
@@ -121,7 +136,7 @@ export class Client {
 
 		try {
 			config = await resolve_config(
-				fetch,
+				this.fetch_implementation,
 				`${http_protocol}//${host}`,
 				hf_token
 			);
@@ -172,7 +187,7 @@ export class Client {
 		}
 
 		try {
-			this.api = await this.view_api(this.config);
+			this.api = await this.view_api(this.config, this.fetch_implementation);
 		} catch (e) {
 			console.error(`Could not get API details: ${(e as Error).message}`);
 		}
@@ -196,7 +211,7 @@ export class Client {
 					`${this.config.root}/heartbeat/${this.session_hash}`
 				);
 
-				// EventSource_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
+				this.eventSource_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
 
 				// res(_config);
 				return _config as Config;

@@ -7,7 +7,8 @@ export function open_stream(
 	config: Config,
 	event_callbacks: Record<string, () => Promise<void>>,
 	unclosed_events: Set<string>,
-	pending_stream_messages: Record<string, any[][]>
+	pending_stream_messages: Record<string, any[][]>,
+	eventSource_factory: (url: URL) => EventSource
 ): void {
 	stream_open = true;
 
@@ -16,12 +17,12 @@ export function open_stream(
 	}).toString();
 
 	let url = new URL(`${config.root}/queue/data?${params}`);
-	let event_stream = new EventSource(url);
+	let event_source = eventSource_factory(url);
 
-	event_stream.onmessage = async function (event) {
+	event_source.onmessage = async function (event) {
 		let _data = JSON.parse(event.data);
 		if (_data.msg === "close_stream") {
-			close_stream(stream_open, event_stream);
+			close_stream(stream_open, event_source);
 			return;
 		}
 		const event_id = _data.event_id;
@@ -40,7 +41,7 @@ export function open_stream(
 			) {
 				unclosed_events.delete(event_id);
 				if (unclosed_events.size === 0) {
-					close_stream(stream_open, event_stream);
+					close_stream(stream_open, event_source);
 				}
 			}
 			let fn = event_callbacks[event_id];
@@ -51,11 +52,11 @@ export function open_stream(
 			}
 			pending_stream_messages[event_id].push(_data);
 			if (_data.msg === "close_stream") {
-				close_stream(stream_open, event_stream);
+				close_stream(stream_open, event_source);
 			}
 		}
 	};
-	event_stream.onerror = async function () {
+	event_source.onerror = async function () {
 		await Promise.all(
 			Object.keys(event_callbacks).map((event_id) =>
 				// @ts-ignore
@@ -65,17 +66,17 @@ export function open_stream(
 				})
 			)
 		);
-		close_stream(stream_open, event_stream);
+		close_stream(stream_open, event_source);
 	};
 }
 
 export function close_stream(
 	stream_open: boolean,
-	event_stream: EventSource | null
+	event_source: EventSource | null
 ): void {
-	if (stream_open && event_stream) {
+	if (stream_open && event_source) {
 		stream_open = false;
-		event_stream?.close();
+		event_source?.close();
 	}
 }
 
