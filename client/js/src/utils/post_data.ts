@@ -1,5 +1,5 @@
 import { BROKEN_CONNECTION_MSG } from "../constants";
-import { PostResponse } from "../types";
+import type { PostResponse } from "../types";
 
 export async function post_data(
 	url: string,

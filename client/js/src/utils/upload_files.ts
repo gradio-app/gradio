@@ -1,5 +1,5 @@
 import { BROKEN_CONNECTION_MSG } from "../constants";
-import { UploadResponse } from "../types";
+import type { UploadResponse } from "../types";
 
 export async function upload_files(
 	root: string,

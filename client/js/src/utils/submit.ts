@@ -1,5 +1,5 @@
 /* eslint-disable complexity */
-import {
+import type {
 	Status,
 	Payload,
 	EventType,

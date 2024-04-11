@@ -3,7 +3,7 @@ import {
 	hardware_types,
 	set_space_timeout
 } from "../helpers/spaces";
-import { DuplicateOptions } from "../types";
+import type { DuplicateOptions } from "../types";
 import { Client } from "../client";
 
 export async function duplicate(

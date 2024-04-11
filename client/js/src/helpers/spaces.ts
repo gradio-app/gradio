@@ -1,4 +1,4 @@
-import { SpaceStatusCallback } from "../types";
+import type { SpaceStatusCallback } from "../types";
 
 export async function check_space_status(
 	id: string,

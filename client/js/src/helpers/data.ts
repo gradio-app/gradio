@@ -1,5 +1,11 @@
 import { NodeBlob } from "../client";
-import { ApiData, BlobRef, EndpointInfo, JsApiData, ParamType } from "../types";
+import type {
+	ApiData,
+	BlobRef,
+	EndpointInfo,
+	JsApiData,
+	ParamType
+} from "../types";
 
 export function update_object(
 	object: { [x: string]: any },

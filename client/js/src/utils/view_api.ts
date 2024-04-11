@@ -1,4 +1,4 @@
-import { ApiInfo, ApiData, Config } from "../types";
+import type { ApiInfo, ApiData, Config } from "../types";
 import { transform_api_info } from "../helpers";
 import semiver from "semiver";
 import { API_INFO_URL, BROKEN_CONNECTION_MSG } from "../constants";

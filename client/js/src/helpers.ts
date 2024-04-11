@@ -1,5 +1,5 @@
 import { CONFIG_URL, QUEUE_FULL_MSG } from "./constants";
-import { Config, ApiInfo, ApiData, Status } from "./types";
+import type { Config, ApiInfo, ApiData, Status } from "./types";
 
 export async function resolve_config(
 	fetch_implementation: typeof fetch = fetch,
@@ -24,6 +24,7 @@ export async function resolve_config(
 		let config_root = resolve_root(endpoint, config.root, false);
 
 		config.root = config_root;
+		// @ts-ignore
 		return { ...config, path };
 	}
 

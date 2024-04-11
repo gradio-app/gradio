@@ -1,6 +1,6 @@
 import { Client } from "../client";
 import { map_names_to_ids, process_endpoint, resolve_config } from "../helpers";
-import { Dependency, SubmitReturn } from "../types";
+import type { Dependency, SubmitReturn } from "../types";
 
 export async function predict(
 	this: Client,

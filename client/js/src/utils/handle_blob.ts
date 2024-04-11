@@ -1,5 +1,5 @@
 import { update_object, walk_and_store_blobs } from "../helpers/data";
-import { ApiData, EndpointInfo, JsApiData } from "../types";
+import type { ApiData, EndpointInfo, JsApiData } from "../types";
 import { upload_files } from "./upload_files";
 import { FileData } from "../upload";
 

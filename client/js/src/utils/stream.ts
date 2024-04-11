@@ -1,5 +1,5 @@
 import { BROKEN_CONNECTION_MSG } from "../constants";
-import { Config } from "../types";
+import type { Config } from "../types";
 
 export function open_stream(
 	stream_open: boolean,
