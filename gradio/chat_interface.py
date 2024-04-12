@@ -203,9 +203,9 @@ class ChatInterface(Blocks):
                 with Row():
                     if textbox:
                         if self.multimodal:
-                            textbox.container = False
-                        else:
                             submit_btn = None
+                        else:
+                            textbox.container = False
                         textbox.show_label = False
                         textbox_ = textbox.render()
                         if not isinstance(textbox_, (Textbox, MultimodalTextbox)):
