@@ -11,7 +11,7 @@ markupsafe~=2.0
 matplotlib~=3.0
 numpy~=1.0
 orjson~=3.0
-packaging>=23.2  # >=23.2 is required for hatch to handle the context formatting in build target dependencies.
+packaging
 pandas>=1.0,<3.0
 pillow>=8.0,<11.0
 pydantic>=2.0
