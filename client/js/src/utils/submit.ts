@@ -34,8 +34,8 @@ export function submit(
 	this: Client,
 	endpoint: string | number,
 	data: unknown[],
-	event_data?: unknown,
-	trigger_id?: any
+	trigger_id: number | null,
+	event_data: unknown
 ): SubmitReturn {
 	try {
 		const { hf_token } = this.options;
@@ -216,7 +216,9 @@ export function submit(
 								endpoint: _endpoint,
 								fn_index,
 								data: data,
-								time: new Date()
+								time: new Date(),
+								event_data,
+								trigger_id
 							});
 
 							fire_event({
@@ -350,7 +352,9 @@ export function submit(
 							time: new Date(),
 							data: data.data,
 							endpoint: _endpoint,
-							fn_index
+							fn_index,
+							event_data,
+							trigger_id
 						});
 
 						if (complete) {
@@ -466,7 +470,9 @@ export function submit(
 							time: new Date(),
 							data: data.data,
 							endpoint: _endpoint,
-							fn_index
+							fn_index,
+							event_data,
+							trigger_id
 						});
 
 						if (complete) {
@@ -608,7 +614,9 @@ export function submit(
 										time: new Date(),
 										data: data.data,
 										endpoint: _endpoint,
-										fn_index
+										fn_index,
+										event_data,
+										trigger_id
 									});
 
 									if (complete) {

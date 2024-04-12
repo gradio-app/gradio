@@ -47,7 +47,7 @@ export async function predict(
 	}
 
 	return new Promise(async (resolve, reject) => {
-		const app = this.submit(endpoint, data || [], event_data);
+		const app = this.submit(endpoint, data || [], null, event_data);
 		let result: unknown;
 
 		app

@@ -38,9 +38,8 @@ export interface DependencyTypes {
 export interface Payload {
 	fn_index: number;
 	data: unknown[];
-	time?: Date;
-	event_data: unknown | null;
 	trigger_id: number | null;
+	event_data: unknown | null;
 }
 
 /** A dependency as received from the backend */

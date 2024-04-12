@@ -77,8 +77,8 @@ export class Client {
 	submit: (
 		endpoint: string | number,
 		data: unknown[],
-		event_data?: unknown,
-		trigger_id?: any
+		trigger_id: number | null,
+		event_data: unknown
 	) => SubmitReturn;
 	predict: (
 		endpoint: string | number,

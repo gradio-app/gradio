@@ -59,8 +59,8 @@ export type client_return = {
 	submit: (
 		endpoint: string | number,
 		data: unknown[],
-		app_reference: string,
-		event_data?: unknown
+		trigger_id: number | null,
+		event_data: unknown
 	) => SubmitReturn;
 	component_server: (
 		component_id: number,
@@ -174,8 +174,9 @@ export interface DependencyTypes {
 export interface Payload {
 	fn_index: number;
 	data: unknown[];
-	event_data: unknown | null;
+	time?: Date;
 	trigger_id: number | null;
+	event_data: unknown | null;
 }
 
 export interface PostResponse {
