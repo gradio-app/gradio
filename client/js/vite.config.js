@@ -8,22 +8,9 @@ export default defineConfig({
 			entry: "src/index.ts",
 			formats: ["es"],
 			fileName: (format) => `index.${format}.js`
-		},
-		rollupOptions: {
-			external: ["ws"],
-			output: {
-				globals: {
-					ws: "WebSocket"
-				}
-			}
 		}
 	},
-	plugins: [
-		svelte(),
-		dts({
-			insertTypesEntry: true
-		})
-	],
+	plugins: [svelte()],
 
 	ssr: {
 		target: "node",
