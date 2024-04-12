@@ -208,6 +208,7 @@
 			{root}
 			bind:dragging
 			bind:uploading
+			show_progress={false}
 			disable_click={true}
 			bind:hidden_upload
 		>
