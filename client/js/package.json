@@ -3,7 +3,7 @@
 	"version": "0.15.1",
 	"description": "Gradio API client",
 	"type": "module",
-	"main": "dist/index.ts",
+	"main": "dist/index.js",
 	"author": "",
 	"license": "ISC",
 	"types": "dist/index.d.ts",

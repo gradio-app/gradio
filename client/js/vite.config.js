@@ -6,7 +6,8 @@ export default defineConfig({
 	build: {
 		lib: {
 			entry: "src/index.ts",
-			formats: ["es"]
+			formats: ["es"],
+			fileName: "index"
 		},
 		rollupOptions: {
 			input: "src/index.ts",
