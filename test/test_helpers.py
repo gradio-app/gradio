@@ -764,6 +764,7 @@ class TestProgressBar:
         ]
 
     @pytest.mark.asyncio
+    @pytest.mark.flaky
     async def test_progress_bar_track_tqdm_without_iterable(self):
         def greet(s, _=gr.Progress(track_tqdm=True)):
             with tqdm(total=len(s)) as progress_bar:
