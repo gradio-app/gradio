@@ -357,7 +357,7 @@ class GradioUploadFile(UploadFile):
         filename: str | None = None,
         headers: Headers | None = None,
     ) -> None:
-        super().__init__(file, size=size or 0, filename=filename, headers=headers)
+        super().__init__(file, size=size, filename=filename, headers=headers)
         self.sha = hashlib.sha1()
 
 
@@ -596,8 +596,7 @@ class GradioMultiPartParser:
                     assert part.file  # for type checkers  # noqa: S101
                     await part.file.write(data)
                     part.file.sha.update(data)  # type: ignore
-                    part.file.size += len(data)  # type: ignore
-                    if part.file.size > self.max_file_size:
+                    if os.stat(part.file.file.name).st_size > self.max_file_size:
                         raise MultiPartException(
                             f"File size exceeded maximum allowed size of {self.max_file_size} bytes."
                         )

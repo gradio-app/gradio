@@ -118,7 +118,7 @@ ${demos
 	.map(
 		(d) =>
 			`app = gr.mount_gradio_app(app, ${d}, path="/${d}", max_file_size=${
-				d == "upload_file_limit_test" ? 1 : "None"
+				d == "upload_file_limit_test" ? "'15kb'" : "None"
 			})`
 	)
 	.join("\n")}

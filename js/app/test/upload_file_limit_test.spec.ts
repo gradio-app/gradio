@@ -118,3 +118,17 @@ test("gr.Audio() triggers the gr.Error modal when an uploaded file exceeds max_f
 	await file_chooser.setFiles(["./test/files/world.mp4"]);
 	await error_modal_showed(page);
 });
+
+test("gr.Image() will allow uploads below the max_file_size limit of 15kb", async ({
+	page
+}) => {
+	// test fails because the error modal does not show up
+	test.fail();
+
+	const locator = page.getByText(
+		"Single File Drop File Here - or - Click to Upload"
+	);
+	const file_chooser = await get_file_selector(page, locator);
+	await file_chooser.setFiles(["./test/files/gradio-logo.svg"]);
+	await expect(page.getByTestId("toast-body")).toHaveCount(1);
+});

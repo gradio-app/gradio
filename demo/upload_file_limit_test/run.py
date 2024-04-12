@@ -3,7 +3,7 @@ import gradio as gr
 with gr.Blocks() as demo:
     gr.Markdown("""
     # ⬆️📁 max_file_size test
-    Components have a max file size of 1kb (disabling upload). The error modal should pop up when a file is uploaded.          
+    The demo has a max file size of 15kb. The error modal should pop up when a file larger than that is uploaded.          
     """)
     with gr.Row():
         with gr.Column():
@@ -21,4 +21,6 @@ with gr.Blocks() as demo:
 
 
 if __name__ == "__main__":
-    demo.launch()
+    # The upload limit is set in playwright_setup.js
+    # since the e2e tests use mount_gradio_app
+    demo.launch(max_file_size="15kb")

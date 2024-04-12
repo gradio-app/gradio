@@ -1057,7 +1057,7 @@ class App(FastAPI):
                 form = await multipart_parser.parse()
             except MultiPartException as exc:
                 code = 413 if "maximum allowed size" in exc.message else 400
-                raise HTTPException(status_code=code, detail=exc.message) from exc
+                return PlainTextResponse(exc.message, status_code=code)
 
             output_files = []
             files_to_copy = []
