@@ -1063,12 +1063,9 @@ class App(FastAPI):
             files_to_copy = []
             locations: list[str] = []
 
-            uploaded_files: list[GradioUploadFile] = form.getlist("files")  # type: ignore
-            for f in uploaded_files:
-                if not isinstance(f, GradioUploadFile):
+            for temp_file in form.getlist("files"):
+                if not isinstance(temp_file, GradioUploadFile):
                     raise TypeError("File is not an instance of GradioUploadFile")
-
-            for temp_file in uploaded_files:
                 if temp_file.filename:
                     file_name = Path(temp_file.filename).name
                     name = client_utils.strip_invalid_filename_characters(file_name)

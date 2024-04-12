@@ -1294,6 +1294,8 @@ def _parse_file_size(size: str | int | None) -> int | None:
     if isinstance(size, int) or size is None:
         return size
 
+    size = size.replace(" ", "")
+
     last_digit_index = next(
         (i for i, c in enumerate(size) if not c.isdigit()), len(size)
     )
