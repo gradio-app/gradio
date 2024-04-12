@@ -89,11 +89,16 @@ class TestClientPredictions:
             Client("gradio-tests/paused-space")
 
     def test_raise_error_max_file_size(self, max_file_size_demo):
-        with connect(max_file_size_demo, max_file_size="1b") as client:
-            with pytest.raises(
-                ValueError, match=f"File {__file__} exceeds the maximum file size"
-            ):
-                client.predict(file(__file__), api_name="/upload_1b")
+        with connect(max_file_size_demo, max_file_size="15kb") as client:
+            with pytest.raises(ValueError, match="exceeds the maximum file size"):
+                client.predict(
+                    file(Path(__file__).parent / "files" / "cheetah1.jpg"),
+                    api_name="/upload_1b",
+                )
+            client.predict(
+                file(Path(__file__).parent / "files" / "alphabet.txt"),
+                api_name="/upload_1b",
+            )
 
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):

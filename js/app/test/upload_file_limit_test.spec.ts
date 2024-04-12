@@ -119,7 +119,7 @@ test("gr.Audio() triggers the gr.Error modal when an uploaded file exceeds max_f
 	await error_modal_showed(page);
 });
 
-test("gr.Image() will allow uploads below the max_file_size limit of 15kb", async ({
+test("gr.File() will allow uploads below the max_file_size limit of 15kb", async ({
 	page
 }) => {
 	// test fails because the error modal does not show up
@@ -130,5 +130,24 @@ test("gr.Image() will allow uploads below the max_file_size limit of 15kb", asyn
 	);
 	const file_chooser = await get_file_selector(page, locator);
 	await file_chooser.setFiles(["./test/files/gradio-logo.svg"]);
-	await expect(page.getByTestId("toast-body")).toHaveCount(1);
+	await expect(page.getByTestId("toast-body")).toHaveCount(1, {
+		timeout: 2000
+	});
+});
+
+test("gr.UploadButton() will allow uploads below the max_file_size limit of 15kb", async ({
+	page
+}) => {
+	// test fails because the error modal does not show up
+	test.fail();
+
+	const locator = page.getByRole("button", {
+		name: "Upload Button",
+		exact: true
+	});
+	const file_chooser = await get_file_selector(page, locator);
+	await file_chooser.setFiles(["./test/files/time.csv"]);
+	await expect(page.getByTestId("toast-body")).toHaveCount(1, {
+		timeout: 2000
+	});
 });
