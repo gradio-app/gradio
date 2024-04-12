@@ -67,6 +67,7 @@ export interface Options {
 	controlPageTitle: boolean;
 	appMode: boolean;
 	playground: boolean | undefined;
+	layout: string | null;
 }
 export function create(options: Options): GradioAppController {
 	// TODO: Runtime type validation for options.
@@ -213,7 +214,9 @@ export function create(options: Options): GradioAppController {
 			upload_files,
 			mount_css: overridden_mount_css,
 			fetch_implementation: overridden_fetch,
-			EventSource_factory
+			EventSource_factory,
+			// For playground
+			layout: options.layout
 		};
 
 		if (options.playground) {

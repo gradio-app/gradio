@@ -104,14 +104,17 @@ Named API endpoints: 1
      - [Textbox] output: str 
 ```
 
-
-Alternatively, you can click on the "Use via API" link in the footer of the Gradio app, which shows us the same information, along with example usage.
-
-![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api.png)
-
 We see  that we have 1 API endpoint in this space, and shows us how to use the API endpoint to make a prediction: we should call the `.predict()` method (which we will explore below), providing a parameter `input_audio` of type `str`, which is a `filepath or URL`.
 
 We should also provide the `api_name='/predict'` argument to the `predict()` method. Although this isn't necessary if a Gradio app has only 1 named endpoint, it does allow us to call different endpoints in a single app if they are available.
+
+## The "View API" Page
+
+As an alternative to running the `.view_api()` method, you can click on the "Use via API" link in the footer of the Gradio app, which shows us the same information, along with example usage. 
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api.png)
+
+The View API page also includes an "API Recorder" that lets you interact with the Gradio UI normally and converts your interactions into the corresponding code to run with the Python Client.
 
 ## Making a prediction
 
@@ -295,3 +298,40 @@ job = client.submit("abcdef")
 time.sleep(3)
 job.cancel()  # job cancels after 2 iterations
 ```
+
+## Demos with Session State
+
+Gradio demos can include [session state](https://www.gradio.app/guides/state-in-blocks), which provides a way for demos to persist information from user interactions within a page session.
+
+For example, consider the following demo, which maintains a list of words that a user has submitted in a `gr.State` component. When a user submits a new word, it is added to the state, and the number of previous occurrences of that word is displayed:
+
+```python
+import gradio as gr
+
+def count(word, list_of_words):
+    return list_of_words.count(word), list_of_words + [word]
+
+with gr.Blocks() as demo:
+    words = gr.State([])
+    textbox = gr.Textbox()
+    number = gr.Number()
+    textbox.submit(count, inputs=[textbox, words], outputs=[number, words])
+    
+demo.launch()
+```
+
+If you were to connect this this Gradio app using the Python Client, you would notice that the API information only shows a single input and output:
+
+```csv
+Client.predict() Usage Info
+---------------------------
+Named API endpoints: 1
+
+ - predict(word, api_name="/count") -> value_31
+    Parameters:
+     - [Textbox] word: str (required)  
+    Returns:
+     - [Number] value_31: float 
+```
+
+That is because the Python client handles state automatically for you -- as you make a series of requests, the returned state from one request is stored internally and automatically supplied for the subsequent request. If you'd like to reset the state, you can do that by calling `Client.reset_session()`.

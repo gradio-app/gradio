@@ -1,5 +1,201 @@
 # @gradio/app
 
+## 1.31.0
+
+### Features
+
+- [#7811](https://github.com/gradio-app/gradio/pull/7811) [`b43055b`](https://github.com/gradio-app/gradio/commit/b43055b297dfe1aa56fda4cd722d878f7297a1b5) - Lite playground design changes.  Thanks @aliabd!
+- [#7850](https://github.com/gradio-app/gradio/pull/7850) [`2bae1cf`](https://github.com/gradio-app/gradio/commit/2bae1cfbd41ed8ae3eea031a64899611a22a1821) - Adds an "API Recorder" to the view API page, some internal methods have been made async.  Thanks @abidlabs!
+
+### Fixes
+
+- [#7963](https://github.com/gradio-app/gradio/pull/7963) [`1eb4c20`](https://github.com/gradio-app/gradio/commit/1eb4c2012065c678d722477f3555ec45a9e78c14) - ensure kwargs are always in sync across the whole application.  Thanks @pngwn!
+- [#7916](https://github.com/gradio-app/gradio/pull/7916) [`7c9a964`](https://github.com/gradio-app/gradio/commit/7c9a964ac6b9c2231c7439758e87b4fac56db99f) - Fix programmatic tab selection.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/atoms@0.6.2
+- @gradio/statustracker@0.4.11
+- @gradio/code@0.5.11
+- @gradio/upload@0.8.4
+- @gradio/tabs@0.2.5
+- @gradio/image@0.9.11
+- @gradio/markdown@0.6.9
+- @gradio/theme@0.2.1
+- @gradio/dropdown@0.6.6
+- @gradio/imageeditor@0.4.11
+- @gradio/checkboxgroup@0.4.8
+- @gradio/client@0.15.1
+- @gradio/chatbot@0.8.2
+- @gradio/gallery@0.8.7
+- @gradio/multimodaltextbox@0.2.4
+- @gradio/video@0.6.11
+- @gradio/dataframe@0.6.12
+- @gradio/highlightedtext@0.4.14
+- @gradio/plot@0.3.6
+- @gradio/annotatedimage@0.5.11
+- @gradio/audio@0.9.11
+- @gradio/button@0.2.30
+- @gradio/dataset@0.1.30
+- @gradio/downloadbutton@0.1.7
+- @gradio/file@0.5.11
+- @gradio/fileexplorer@0.3.31
+- @gradio/model3d@0.8.10
+- @gradio/simpleimage@0.3.11
+- @gradio/uploadbutton@0.5.7
+- @gradio/accordion@0.3.8
+- @gradio/checkbox@0.2.14
+- @gradio/colorpicker@0.2.14
+- @gradio/fallback@0.2.14
+- @gradio/form@0.1.13
+- @gradio/html@0.1.14
+- @gradio/json@0.1.14
+- @gradio/label@0.2.14
+- @gradio/number@0.3.14
+- @gradio/paramviewer@0.4.7
+- @gradio/radio@0.4.9
+- @gradio/simpledropdown@0.1.14
+- @gradio/simpletextbox@0.1.14
+- @gradio/slider@0.3.2
+- @gradio/tabitem@0.2.5
+- @gradio/textbox@0.4.15
+- @gradio/box@0.1.13
+
+## 1.30.1
+
+### Fixes
+
+- [#7865](https://github.com/gradio-app/gradio/pull/7865) [`7bbc3b6`](https://github.com/gradio-app/gradio/commit/7bbc3b62bf85af2d2230e5f7539efb7f1f0007a1) - JS functions break entire app if there's no input, fixed.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/button@0.2.29
+- @gradio/upload@0.8.3
+- @gradio/code@0.5.10
+- @gradio/client@0.15.0
+- @gradio/multimodaltextbox@0.2.3
+- @gradio/annotatedimage@0.5.10
+- @gradio/audio@0.9.10
+- @gradio/chatbot@0.8.1
+- @gradio/dataset@0.1.29
+- @gradio/downloadbutton@0.1.6
+- @gradio/file@0.5.10
+- @gradio/fileexplorer@0.3.30
+- @gradio/gallery@0.8.6
+- @gradio/image@0.9.10
+- @gradio/imageeditor@0.4.10
+- @gradio/model3d@0.8.9
+- @gradio/simpleimage@0.3.10
+- @gradio/uploadbutton@0.5.6
+- @gradio/video@0.6.10
+- @gradio/dataframe@0.6.11
+
+## 1.30.0
+
+### Features
+
+- [#7852](https://github.com/gradio-app/gradio/pull/7852) [`72661e3`](https://github.com/gradio-app/gradio/commit/72661e3391a432ccd77fb3100e69fbdf95093931) - Revert the minify setting in vite.config.js which was mistakingly introduced in #6261.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/button@0.2.28
+- @gradio/atoms@0.6.1
+- @gradio/statustracker@0.4.10
+- @gradio/code@0.5.9
+- @gradio/icons@0.3.4
+- @gradio/upload@0.8.2
+- @gradio/audio@0.9.9
+- @gradio/image@0.9.9
+- @gradio/video@0.6.9
+- @gradio/markdown@0.6.8
+- @gradio/chatbot@0.8.0
+- @gradio/downloadbutton@0.1.5
+- @gradio/multimodaltextbox@0.2.2
+- @gradio/annotatedimage@0.5.9
+- @gradio/dropdown@0.6.5
+- @gradio/file@0.5.9
+- @gradio/fileexplorer@0.3.29
+- @gradio/form@0.1.12
+- @gradio/gallery@0.8.5
+- @gradio/highlightedtext@0.4.13
+- @gradio/imageeditor@0.4.9
+- @gradio/json@0.1.13
+- @gradio/label@0.2.13
+- @gradio/model3d@0.8.8
+- @gradio/plot@0.3.5
+- @gradio/simpledropdown@0.1.13
+- @gradio/simpleimage@0.3.9
+- @gradio/simpletextbox@0.1.13
+- @gradio/textbox@0.4.14
+- @gradio/dataframe@0.6.10
+- @gradio/dataset@0.1.28
+- @gradio/uploadbutton@0.5.5
+- @gradio/accordion@0.3.7
+- @gradio/box@0.1.12
+- @gradio/checkbox@0.2.13
+- @gradio/checkboxgroup@0.4.7
+- @gradio/colorpicker@0.2.13
+- @gradio/fallback@0.2.13
+- @gradio/html@0.1.13
+- @gradio/number@0.3.13
+- @gradio/paramviewer@0.4.6
+- @gradio/radio@0.4.8
+- @gradio/slider@0.3.1
+
+## 1.29.0
+
+### Features
+
+- [#7684](https://github.com/gradio-app/gradio/pull/7684) [`755157f`](https://github.com/gradio-app/gradio/commit/755157f99c2961f2e5caeaa9b76d248b4225ea8f) - Do not reload code inside gr.NO_RELOAD context.  Thanks @freddyaboulton!
+- [#7732](https://github.com/gradio-app/gradio/pull/7732) [`2efb05e`](https://github.com/gradio-app/gradio/commit/2efb05ed99a8a3575aab0a6c14a8d8b91f4e9ed7) - Adds support for kwargs and default arguments in the python client, and improves how parameter information is displayed in the "view API" page.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/code@0.5.8
+- @gradio/upload@0.8.1
+- @gradio/button@0.2.27
+- @gradio/statustracker@0.4.9
+- @gradio/radio@0.4.7
+- @gradio/wasm@0.10.0
+- @gradio/atoms@0.6.0
+- @gradio/slider@0.3.0
+- @gradio/dataset@0.1.27
+- @gradio/annotatedimage@0.5.8
+- @gradio/audio@0.9.8
+- @gradio/file@0.5.8
+- @gradio/image@0.9.8
+- @gradio/imageeditor@0.4.8
+- @gradio/model3d@0.8.7
+- @gradio/simpleimage@0.3.8
+- @gradio/video@0.6.8
+- @gradio/accordion@0.3.6
+- @gradio/box@0.1.11
+- @gradio/chatbot@0.7.8
+- @gradio/checkbox@0.2.12
+- @gradio/checkboxgroup@0.4.6
+- @gradio/colorpicker@0.2.12
+- @gradio/dataframe@0.6.9
+- @gradio/dropdown@0.6.4
+- @gradio/fallback@0.2.12
+- @gradio/fileexplorer@0.3.28
+- @gradio/form@0.1.11
+- @gradio/gallery@0.8.4
+- @gradio/highlightedtext@0.4.12
+- @gradio/html@0.1.12
+- @gradio/json@0.1.12
+- @gradio/label@0.2.12
+- @gradio/markdown@0.6.7
+- @gradio/multimodaltextbox@0.2.1
+- @gradio/number@0.3.12
+- @gradio/paramviewer@0.4.5
+- @gradio/plot@0.3.4
+- @gradio/simpledropdown@0.1.12
+- @gradio/simpletextbox@0.1.12
+- @gradio/textbox@0.4.13
+- @gradio/uploadbutton@0.5.4
+- @gradio/downloadbutton@0.1.4
+
 ## 1.28.0
 
 ### Features

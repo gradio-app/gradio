@@ -61,8 +61,7 @@ export default defineConfig(({ mode }) => {
 		build: {
 			sourcemap: true,
 			target: "esnext",
-			// minify: production,
-			minify: false,
+			minify: production,
 			outDir: is_lite ? resolve(__dirname, "../lite/dist") : targets[mode],
 			// To build Gradio-lite as a library, we can't use the library mode
 			// like `lib: is_lite && {}`
@@ -140,7 +139,7 @@ export default defineConfig(({ mode }) => {
 				compilerOptions: {
 					dev: true,
 					discloseVersion: false,
-					accessors: mode === "test"
+					accessors: true
 				},
 				hot: !process.env.VITEST && !production,
 				preprocess: sveltePreprocess({

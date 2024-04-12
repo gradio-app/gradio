@@ -38,7 +38,7 @@
 	export let container = true;
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
-	export let submit_btn = "⌲";
+	export let submit_btn: string | null = null;
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let value_is_output = false;
 	export let rtl = false;

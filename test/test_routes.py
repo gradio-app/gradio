@@ -1096,6 +1096,15 @@ def test_get_root_url(
             "https://gradio.dev",
         ),
         (
+            {
+                "x-forwarded-host": "gradio.dev,internal.gradio.dev",
+                "x-forwarded-proto": "https,http",
+            },
+            "/",
+            "/",
+            "https://gradio.dev",
+        ),
+        (
             {"x-forwarded-host": "gradio.dev", "x-forwarded-proto": "https"},
             "http://google.com",
             "/",

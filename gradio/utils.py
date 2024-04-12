@@ -1,4 +1,4 @@
-""" Handy utility functions. """
+"""Handy utility functions."""
 
 from __future__ import annotations
 
@@ -26,6 +26,7 @@ import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from contextlib import contextmanager
+from functools import wraps
 from io import BytesIO
 from numbers import Number
 from pathlib import Path
@@ -84,6 +85,14 @@ def safe_get_lock() -> asyncio.Lock:
     try:
         asyncio.get_event_loop()
         return asyncio.Lock()
+    except RuntimeError:
+        return None  # type: ignore
+
+
+def safe_get_stop_event() -> asyncio.Event:
+    try:
+        asyncio.get_event_loop()
+        return asyncio.Event()
     except RuntimeError:
         return None  # type: ignore
 
@@ -1006,13 +1015,16 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path):
     True if path_1 is a descendant (i.e. located within) path_2 or if the paths are the
     same, returns False otherwise.
     Parameters:
-        path_1: str or Path (should be a file)
-        path_2: str or Path (can be a file or directory)
+        path_1: str or Path (to file or directory)
+        path_2: str or Path (to file or directory)
     """
     path_1, path_2 = abspath(path_1), abspath(path_2)
     try:
-        if ".." in str(path_1.relative_to(path_2)):  # prevent path traversal
-            return False
+        relative_path = path_1.relative_to(path_2)
+        if str(relative_path) == ".":
+            return True
+        relative_path = path_1.parent.relative_to(path_2)
+        return ".." not in str(relative_path)
     except ValueError:
         return False
     return True
@@ -1242,3 +1254,29 @@ def simplify_file_data_in_str(s):
     if isinstance(payload, str):
         return payload
     return json.dumps(payload)
+
+
+def sync_fn_to_generator(fn):
+    def wrapped(*args, **kwargs):
+        yield fn(*args, **kwargs)
+
+    return wrapped
+
+
+def async_fn_to_generator(fn):
+    async def wrapped(*args, **kwargs):
+        yield await fn(*args, **kwargs)
+
+    return wrapped
+
+
+def async_lambda(f: Callable) -> Callable:
+    """Turn a function into an async function.
+    Useful for internal event handlers defined as lambda functions used in the codebase
+    """
+
+    @wraps(f)
+    async def function_wrapper(*args, **kwargs):
+        return f(*args, **kwargs)
+
+    return function_wrapper
