@@ -27,6 +27,12 @@
 		select: SelectData;
 	}>;
 
+	let _component_map = component_map;
+
+	$: console.log("component_map", component_map);
+	$: console.log("_component_map", _component_map);
+
+
 	// Although the `samples_dir` prop is not used in any of the core Gradio component, it is kept for backward compatibility
 	// with any custom components created with gradio<=4.20.0
 	let samples_dir: string = proxy_url
@@ -91,7 +97,7 @@
 							sample_row.map(async (sample_cell, j) => {
 								return {
 									value: sample_cell,
-									component: (await component_map.get(components[j]))
+									component: (await _component_map.get(components[j]))
 										?.default as ComponentType<SvelteComponent>
 								};
 							})
@@ -145,7 +151,7 @@
 						on:mouseenter={() => handle_mouseenter(i)}
 						on:mouseleave={() => handle_mouseleave()}
 					>
-						{#if component_meta.length && component_map.get(components[0])}
+						{#if component_meta.length && _component_map.get(components[0])}
 							<svelte:component
 								this={component_meta[0][0].component}
 								{...component_props[0]}
@@ -185,7 +191,7 @@
 						>
 							{#each sample_row as { value, component }, j}
 								{@const component_name = components[j]}
-								{#if component_name !== undefined && component_map.get(component_name) !== undefined}
+								{#if component_name !== undefined && _component_map.get(component_name) !== undefined}
 									<td
 										style="max-width: {component_name === 'textbox'
 											? '35ch'
