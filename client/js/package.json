@@ -15,14 +15,7 @@
 			"types": "./dist/index.d.ts"
 		}
 	},
-	"scripts": {
-		"dev": "vite",
-		"build": "tsc && vite build",
-		"preview": "vite preview",
-		"test": "vitest"
-	},
 	"dependencies": {
-		"fetch-mock": "^9.11.0",
 		"semiver": "^1.1.0",
 		"ws": "^8.13.0"
 	},
@@ -33,6 +26,12 @@
 		"vite-plugin-dts": "^3.7.2",
 		"vite-tsconfig-paths": "^4.3.2",
 		"vitest": "^1.2.2"
+	},
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"preview": "vite preview",
+		"test": "vitest"
 	},
 	"engines": {
 		"node": ">=18.0.0"
