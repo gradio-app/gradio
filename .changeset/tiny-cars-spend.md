@@ -14,4 +14,4 @@
 "gradio_client": minor
 ---
 
-feat:Add max_file_size parameter to components that accept file uploads
+feat:Add `max_file_size` parameter to `launch()` that limits the size of files that can be uploaded in the Gradio app
