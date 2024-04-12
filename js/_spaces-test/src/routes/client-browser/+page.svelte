@@ -48,7 +48,7 @@
 
 		app_promise = Client.create(api, {
 			// @ts-ignore
-			hf_token
+			hf_token,
 		});
 
 		app = await app_promise;
@@ -88,7 +88,7 @@
 		response_data = { data: [], fn_index: 0, endpoint: "" };
 
 		job = app
-			.submit(active_endpoint, request_data)
+			.submit(active_endpoint, request_data, null, null)
 			.on("data", (data) => {
 				response_data = data;
 			})
