@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:fix(chat_interface.py): fix 'submit_btn' not being set to 'None'
+fix:Fix multimode interface double box on file upload
