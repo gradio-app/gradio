@@ -1,5 +1,5 @@
 {
-	"include": ["src/**/*", "./test_data", "test/test_data.ts"],
+	"include": ["src/**/*"],
 	"exclude": ["src/**/*.test.ts"],
 	"compilerOptions": {
 		"allowJs": true,

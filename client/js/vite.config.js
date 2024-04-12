@@ -8,6 +8,12 @@ export default defineConfig({
 			entry: "src/index.ts",
 			formats: ["es"],
 			fileName: (format) => `index.${format}.js`
+		},
+		rollupOptions: {
+			input: "src/index.ts",
+			output: {
+				dir: "dist"
+			}
 		}
 	},
 	plugins: [svelte()],
