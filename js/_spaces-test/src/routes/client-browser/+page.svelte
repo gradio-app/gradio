@@ -48,7 +48,7 @@
 
 		app_promise = Client.create(api, {
 			// @ts-ignore
-			hf_token,
+			hf_token
 		});
 
 		app = await app_promise;

@@ -47,7 +47,7 @@
 		show_progress: "hidden",
 		scroll_to_output: false,
 		visible: false,
-		fn_index: 0,
+		fn_index: 0
 	};
 
 	let loading_text = "";
@@ -75,7 +75,7 @@
 		} else {
 			const url = new URL(window.location.toString());
 			const url_color_mode: ThemeMode | null = url.searchParams.get(
-				"__theme",
+				"__theme"
 			) as ThemeMode | null;
 			new_theme_mode = theme_mode || url_color_mode || "system";
 		}
@@ -96,7 +96,7 @@
 
 		function update_scheme(): "light" | "dark" {
 			let _theme: "light" | "dark" = window?.matchMedia?.(
-				"(prefers-color-scheme: dark)",
+				"(prefers-color-scheme: dark)"
 			).matches
 				? "dark"
 				: "light";
@@ -126,7 +126,7 @@
 			code_editors[i].addEventListener(
 				"keydown",
 				shortcut_run as EventListener,
-				true,
+				true
 			);
 		}
 		active_theme_mode = handle_theme_mode(parent_container);
