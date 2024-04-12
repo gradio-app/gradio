@@ -30,4 +30,4 @@ sources = ["src"]
 only-packages = true
 
 [project.entry-points.hatch]
-aws = "lite_builder.hooks"
+lite_builder = "lite_builder.hooks"
