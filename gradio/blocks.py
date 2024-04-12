@@ -2040,7 +2040,7 @@ Received outputs:
         Parameters:
             inline: whether to display in the gradio app inline in an iframe. Defaults to True in python notebooks; False otherwise.
             inbrowser: whether to automatically launch the gradio app in a new tab on the default browser.
-            share: whether to create a publicly shareable link for the gradio app. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab. When localhost is not accessible (e.g. Google Colab), setting share=False is not supported.
+            share: whether to create a publicly shareable link for the gradio app. Creates an SSH tunnel to make your UI accessible from anywhere. If not provided, it is set to False by default every time, except when running in Google Colab. When localhost is not accessible (e.g. Google Colab), setting share=False is not supported. Can be set by environment variable GRADIO_SHARE=True.
             debug: if True, blocks the main thread from running. If running in Google Colab, this is needed to print the errors in the cell output.
             auth: If provided, username and password (or list of username-password tuples) required to access app. Can also provide function that takes username and password and returns True if valid login.
             auth_message: If provided, HTML message provided on login page.
@@ -2243,6 +2243,11 @@ Received outputs:
                 self.share = True
             else:
                 self.share = False
+                # GRADIO_SHARE environment variable for forcing 'share=True'
+                # GRADIO_SHARE=True => share=True
+                share_env = os.getenv("GRADIO_SHARE")
+                if share_env is not None and share_env.lower() == "true":
+                    self.share = True
         else:
             self.share = share
 
