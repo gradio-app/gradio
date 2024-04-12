@@ -111,13 +111,13 @@ export type SpaceStatusCallback = (a: SpaceStatus) => void;
 // Configuration and Response Types
 // --------------------------------
 export interface Config {
-	auth_required?: boolean;
+	auth_required: boolean;
 	analytics_enabled: boolean;
-	auth_message?: string;
+	auth_message: string;
 	components: any[];
 	css: string;
-	js?: string;
-	head?: string | null | undefined;
+	js: string;
+	head: string | null;
 	dependencies: Dependency[];
 	dev_mode: boolean;
 	enable_queue: boolean;
@@ -129,17 +129,17 @@ export interface Config {
 	theme: string;
 	title: string;
 	version: string;
-	space_id?: string | null;
+	space_id: string | null;
 	is_space: boolean;
 	is_colab: boolean;
 	show_api: boolean;
 	stylesheets: string[];
-	path?: string;
+	path: string;
 	protocol: "sse_v3" | "sse_v2.1" | "sse_v2" | "sse_v1" | "sse" | "ws";
 }
 
 export interface Dependency {
-	targets: [number, string][] | [number];
+	targets: [number, string][];
 	inputs: number[];
 	outputs: number[];
 	backend_fn: boolean;
@@ -147,36 +147,35 @@ export interface Dependency {
 	scroll_to_output: boolean;
 	trigger: "click" | "load" | string;
 	max_batch_size: number;
-	show_progress: boolean;
-	frontend_fn?: (...args: unknown[]) => Promise<unknown[]>;
+	show_progress: "full" | "minimal" | "hidden";
+	frontend_fn: ((...args: unknown[]) => Promise<unknown[]>) | null;
 	status?: string;
 	queue: boolean | null;
 	every: number | null;
 	batch: boolean;
 	api_name: string | null;
 	cancels: number[];
-	types: DependencyType;
+	types: DependencyTypes;
 	collects_event_data: boolean;
 	pending_request?: boolean;
-	trigger_after?: any;
+	trigger_after?: number;
 	trigger_only_on_success?: boolean;
-	trigger_mode?: "once" | "multiple" | "always_last";
-	final_event?: Payload | null;
-	show_api?: boolean;
+	trigger_mode: "once" | "multiple" | "always_last";
+	final_event: Payload | null;
+	show_api: boolean;
 	zerogpu?: boolean;
 }
 
-export interface DependencyType {
+export interface DependencyTypes {
 	continuous: boolean;
 	generator: boolean;
 }
 
 export interface Payload {
+	fn_index: number;
 	data: unknown[];
-	fn_index?: number;
-	event_data?: unknown;
-	time?: Date;
-	trigger_id?: any;
+	event_data: unknown | null;
+	trigger_id: number | null;
 }
 
 export interface PostResponse {
