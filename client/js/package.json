@@ -3,15 +3,16 @@
 	"version": "0.15.1",
 	"description": "Gradio API client",
 	"type": "module",
-	"main": "dist/client.umd.js",
 	"author": "",
 	"license": "ISC",
-	"module": "dist/client.js",
-	"types": "dist/client.d.ts",
+	"main": "dist/index.umd.cjs",
+	"module": "dist/index.js",
+	"types": "dist/index.d.ts",
 	"exports": {
 		".": {
-			"import": "./dist/client.js",
-			"require": "./dist/client.umd.cjs"
+			"import": "./dist/index.js",
+			"require": "./dist/index.umd.cjs",
+			"types": "./dist/index.d.ts"
 		}
 	},
 	"scripts": {
@@ -20,6 +21,11 @@
 		"preview": "vite preview",
 		"test": "vitest"
 	},
+	"dependencies": {
+		"fetch-mock": "^9.11.0",
+		"semiver": "^1.1.0",
+		"ws": "^8.13.0"
+	},
 	"devDependencies": {
 		"@types/ws": "^8.5.10",
 		"typescript": "^5.2.2",
@@ -27,11 +33,6 @@
 		"vite-plugin-dts": "^3.7.2",
 		"vite-tsconfig-paths": "^4.3.2",
 		"vitest": "^1.2.2"
-	},
-	"dependencies": {
-		"fetch-mock": "^9.11.0",
-		"semiver": "^1.1.0",
-		"ws": "^8.13.0"
 	},
 	"engines": {
 		"node": ">=18.0.0"
