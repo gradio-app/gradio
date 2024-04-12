@@ -7,11 +7,11 @@ import { SPACE_FETCHER_URL } from "../constants";
 
 export async function view_api(
 	this: Client,
-	config?: Config,
 	fetch_implementation: typeof fetch = fetch
 ): Promise<any> {
 	if (this.api) return this.api;
 	const { hf_token } = this.options;
+	let config = this.config;
 
 	const headers: {
 		Authorization?: string;

@@ -1,5 +1,5 @@
 import { CONFIG_URL, QUEUE_FULL_MSG } from "./constants";
-import type { Config, ApiInfo, ApiData, Status } from "./types";
+import type { Config, ApiInfo, ApiData, Status, JsApiData } from "./types";
 
 export async function resolve_config(
 	fetch_implementation: typeof fetch = fetch,
@@ -212,64 +212,49 @@ export async function process_endpoint(
 }
 
 export function transform_api_info(
-	api_info: ApiInfo<ApiData> | { api: ApiInfo<ApiData> },
+	api_info: ApiInfo<ApiData>,
 	config: Config,
 	api_map: Record<string, number>
-): ApiInfo<ApiData> {
-	let new_data: Record<string, any> = {
+): ApiInfo<JsApiData> {
+	const new_data: any = {
 		named_endpoints: {},
 		unnamed_endpoints: {}
 	};
 
-	const updated_api_info = "api" in api_info ? api_info.api : api_info;
+	for (const category of Object.keys(api_info) as (keyof ApiInfo<ApiData>)[]) {
+		const endpoints = api_info[category];
+		new_data[category] = {};
 
-	(["named_endpoints", "unnamed_endpoints"] as const).forEach(
-		(endpoint_category) => {
-			new_data[endpoint_category] = {};
+		for (const endpoint in endpoints) {
+			const { parameters, returns } = endpoints[endpoint];
+			const dependencyIndex =
+				config.dependencies.findIndex((dep) => dep.api_name === endpoint) ||
+				api_map[endpoint.replace("/", "")] ||
+				-1;
+			const dependencyTypes =
+				dependencyIndex !== -1
+					? config.dependencies[dependencyIndex].types
+					: { continuous: false, generator: false };
 
-			for (const endpoint in updated_api_info[endpoint_category]) {
-				const dependency = config.dependencies.find(
-					(dep) => dep.api_name === endpoint
-				);
-
-				const dep_index = dependency
-					? endpoint
-					: api_map[endpoint.replace("/", "")];
-
-				const info = updated_api_info[endpoint_category][endpoint];
-
-				const parameters = info.parameters.map(
-					({ label, component, type, serializer }: ApiData) => ({
-						label,
-						component,
-						type: get_type(type, component, serializer, "parameter"),
-						description: get_description(type, serializer)
-					})
-				);
-
-				const returns = info.returns.map(
-					({ label, component, type, serializer }: ApiData) => ({
-						label,
-						component,
-						type: get_type(type, component, serializer, "return"),
-						description: get_description(type, serializer)
-					})
-				);
-
-				let temp_index =
-					typeof dep_index === "string" ? api_map[dep_index] : dep_index;
-
-				new_data[endpoint_category][endpoint] = {
-					parameters: parameters,
-					returns: returns,
-					type: config.dependencies[temp_index].types
-				};
-			}
+			new_data[category][endpoint] = {
+				parameters: parameters.map((p) => ({
+					...p,
+					type: get_type(p.type, p.component, p.serializer, "parameter"),
+					description: get_description(p.type, p.serializer)
+				})),
+				returns: returns.map((r) => ({
+					...r,
+					type: get_type(r.type, r.component, r.serializer, "return"),
+					description: get_description(r.type, r.serializer)
+				})),
+				type: dependencyTypes
+			};
 		}
-	);
+	}
 
-	return new_data as ApiInfo<ApiData>;
+	return new_data;
 }
+
 export function map_names_to_ids(
 	fns: Config["dependencies"]
 ): Record<string, number> {

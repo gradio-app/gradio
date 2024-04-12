@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import dts from "vite-plugin-dts";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
 	build: {
@@ -14,13 +13,11 @@ export default defineConfig({
 			input: "src/index.ts",
 			output: {
 				dir: "dist"
-			},
-			external: ["ws"]
+			}
 		}
 	},
 	plugins: [
 		svelte(),
-		tsconfigPaths(),
 		dts({
 			insertTypesEntry: true
 		})

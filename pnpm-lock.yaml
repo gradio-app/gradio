@@ -239,7 +239,7 @@ importers:
         specifier: ^3.7.2
         version: 3.8.1(@types/node@20.3.2)(typescript@5.3.3)(vite@5.1.1)
       vite-tsconfig-paths:
-        specifier: ^4.3.1
+        specifier: ^4.3.2
         version: 4.3.2(typescript@5.3.3)(vite@5.1.1)
       vitest:
         specifier: ^1.2.2

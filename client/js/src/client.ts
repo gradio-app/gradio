@@ -40,20 +40,18 @@ export class Client {
 	jwt: string | false = false;
 	last_status: Record<string, Status["stage"]> = {};
 
-	protected fetch_implementation(
+	fetch_implementation(
 		input: RequestInfo | URL,
 		init?: RequestInit
 	): Promise<Response> {
 		return fetch(input, init);
 	}
 
-	protected eventSource_factory(url: URL): EventSource {
-		return new EventSource(url);
+	eventSource_factory(url: URL): EventSource {
+		return new EventSource(url.toString());
 	}
 
 	view_api: (
-		this: Client,
-		config?: Config,
 		fetch_implementation?: typeof fetch
 	) => Promise<ApiInfo<JsApiData>>;
 	upload_files: (
@@ -120,13 +118,13 @@ export class Client {
 
 		this.eventSource_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
 
-		this.api = await this.view_api(this.config, this.fetch_implementation);
+		this.api = await this.view_api(this.fetch_implementation);
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);
 	}
 
 	static async create(
 		app_reference: string,
-		options: ClientOptions
+		options: ClientOptions = {}
 	): Promise<Client> {
 		const client = new Client(app_reference, options);
 		await client.init();
@@ -181,8 +179,10 @@ export class Client {
 	): Promise<Config | client_return> {
 		this.config = _config;
 
-		if (window.location.protocol === "https:") {
-			this.config.root = this.config.root.replace("http://", "https://");
+		if (typeof window !== "undefined") {
+			if (window.location.protocol === "https:") {
+				this.config.root = this.config.root.replace("http://", "https://");
+			}
 		}
 
 		this.api_map = map_names_to_ids(_config.dependencies || []);
@@ -191,7 +191,7 @@ export class Client {
 		}
 
 		try {
-			this.api = await this.view_api(this.config, this.fetch_implementation);
+			this.api = await this.view_api(this.fetch_implementation);
 		} catch (e) {
 			console.error(`Could not get API details: ${(e as Error).message}`);
 		}
@@ -210,7 +210,6 @@ export class Client {
 				this.config = await this._resolve_config();
 				const _config = await this.config_success(this.config);
 
-				// res(_config);
 				return _config as Config;
 			} catch (e) {
 				console.error(e);

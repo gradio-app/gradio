@@ -20,7 +20,7 @@ export interface JsApiData {
 	component: string;
 	example_input: any;
 	serializer: string;
-	python_type: any;
+	python_type: { type: string; description: string };
 }
 
 export interface EndpointInfo<T extends ApiData | JsApiData> {
@@ -29,8 +29,8 @@ export interface EndpointInfo<T extends ApiData | JsApiData> {
 }
 
 export interface ApiInfo<T extends ApiData | JsApiData> {
-	named_endpoints: { [endpoint: string]: EndpointInfo<T> };
-	unnamed_endpoints: { [endpoint: string]: EndpointInfo<T> };
+	named_endpoints: Record<string, EndpointInfo<T>>;
+	unnamed_endpoints: Record<string, EndpointInfo<T>>;
 }
 
 export interface BlobRef {
@@ -67,7 +67,7 @@ export type client_return = {
 		fn_name: string,
 		data: unknown[]
 	) => any;
-	view_api: (config?: Config) => Promise<ApiInfo<JsApiData>>;
+	view_api: (fetch_implementation: typeof fetch) => Promise<ApiInfo<JsApiData>>;
 };
 
 export type SubmitReturn = {
