@@ -9,7 +9,8 @@
 	"types": "dist/index.d.ts",
 	"exports": {
 		".": {
-			"import": "./dist/index.ts"
+			"import": "./dist/index.js",
+			"require": "./dist/index.js"
 		},
 		"./package.json": "./package.json"
 	},

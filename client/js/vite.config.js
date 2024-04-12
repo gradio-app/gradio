@@ -7,10 +7,10 @@ export default defineConfig({
 		lib: {
 			entry: "src/index.ts",
 			formats: ["es"],
-			fileName: "index"
+			fileName: (format) => `index.${format}.js`
 		},
 		rollupOptions: {
-			input: "src/index.ts",
+			external: ["ws"],
 			output: {
 				globals: {
 					ws: "WebSocket"
