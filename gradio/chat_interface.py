@@ -472,7 +472,7 @@ class ChatInterface(Blocks):
     ):
         for x in message["files"]:
             history.append([(x,), None])
-        if message["text"] is not None and isinstance(message["text"], str):
+        if message["text"] is None or not isinstance(message["text"], str):
             return
         elif message["text"] == "" and message["files"] != []:
             history.append([None, response])
