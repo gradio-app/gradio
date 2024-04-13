@@ -34,8 +34,8 @@ export function submit(
 	this: Client,
 	endpoint: string | number,
 	data: unknown[],
-	trigger_id: number | null,
-	event_data: unknown
+	event_data?: unknown,
+	trigger_id?: number | null
 ): SubmitReturn {
 	try {
 		const { hf_token } = this.options;

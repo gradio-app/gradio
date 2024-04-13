@@ -261,8 +261,8 @@
 				.submit(
 					payload.fn_index,
 					payload.data as unknown[],
-					payload.trigger_id,
-					payload.event_data
+					payload.event_data,
+					payload.trigger_id
 				)
 				.on("data", ({ data, fn_index }) => {
 					if (dep.pending_request && dep.final_event) {

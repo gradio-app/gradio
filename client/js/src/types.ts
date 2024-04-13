@@ -59,8 +59,8 @@ export type client_return = {
 	submit: (
 		endpoint: string | number,
 		data: unknown[],
-		trigger_id: number | null,
-		event_data: unknown
+		event_data?: unknown,
+		trigger_id?: number | null
 	) => SubmitReturn;
 	component_server: (
 		component_id: number,
@@ -175,8 +175,8 @@ export interface Payload {
 	fn_index: number;
 	data: unknown[];
 	time?: Date;
-	trigger_id: number | null;
-	event_data: unknown | null;
+	event_data?: unknown;
+	trigger_id?: number | null;
 }
 
 export interface PostResponse {
