@@ -216,12 +216,15 @@ importers:
 
   client/js:
     dependencies:
+      bufferutil:
+        specifier: ^4.0.7
+        version: 4.0.8
       semiver:
         specifier: ^1.1.0
         version: 1.1.0
       ws:
         specifier: ^8.13.0
-        version: 8.16.0
+        version: 8.16.0(bufferutil@4.0.8)
     devDependencies:
       '@types/ws':
         specifier: ^8.5.10
@@ -5928,7 +5931,7 @@ packages:
       util: 0.12.5
       util-deprecate: 1.0.2
       watchpack: 2.4.0
-      ws: 8.16.0
+      ws: 8.16.0(bufferutil@4.0.8)
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -7700,6 +7703,13 @@ packages:
       base64-js: 1.5.1
       ieee754: 1.2.1
     dev: true
+
+  /bufferutil@4.0.8:
+    resolution: {integrity: sha512-4T53u4PdgsXqKaIctwF8ifXlRTTmEPJ8iEPWFdGZvcf7sbwYo6FKFEX9eNNAnzFZ7EzJAQ3CJeOtCRA4rDp7Pw==}
+    engines: {node: '>=6.14.2'}
+    requiresBuild: true
+    dependencies:
+      node-gyp-build: 4.6.1
 
   /builtin-modules@3.3.0:
     resolution: {integrity: sha512-zhaCDicdLuWN5UbN5IMnFqNMhNfo919sH85y2/ea+5Yg9TsTkeZxpL+JLbp6cgYFS4sRLp3YV4S6yDuqVWHYOw==}
@@ -10903,7 +10913,7 @@ packages:
       whatwg-encoding: 3.1.1
       whatwg-mimetype: 4.0.0
       whatwg-url: 14.0.0
-      ws: 8.16.0
+      ws: 8.16.0(bufferutil@4.0.8)
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - bufferutil
@@ -11723,7 +11733,6 @@ packages:
   /node-gyp-build@4.6.1:
     resolution: {integrity: sha512-24vnklJmyRS8ViBNI8KbtK/r/DmXQMRiOMXTNz2nrTnAYUwjmEEbnnpB/+kt+yWRv73bPsSPRFddrcIbAxSiMQ==}
     hasBin: true
-    dev: false
 
   /node-html-parser@6.0.0:
     resolution: {integrity: sha512-o4vS5Jm7ZdV5WN4/jHmCEVJOpm4exLCeXOcZnNzXi0BGv0AS8FsGwyQ4k0Ujmui1NMQs6qsTy+amjjpr9rmz4Q==}
@@ -12608,7 +12617,7 @@ packages:
     resolution: {integrity: sha512-RagtX3TfV2M0QAfThG2SMvwE31ikqAFDUXc5/4xhppEoVf4VbL7L0kbKOIdSNg7MbVsHELVxftk66WvT926GpA==}
     dependencies:
       base-64: 1.0.0
-      ws: 8.16.0
+      ws: 8.16.0(bufferutil@4.0.8)
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -15495,7 +15504,7 @@ packages:
       signal-exit: 3.0.7
     dev: true
 
-  /ws@8.16.0:
+  /ws@8.16.0(bufferutil@4.0.8):
     resolution: {integrity: sha512-HS0c//TP7Ina87TfiPUz1rQzMhHrl/SG2guqRcTOIUYD2q8uhUdNHZYJUaQ8aTGPzCh+c6oawMKW35nFl1dxyQ==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
@@ -15506,6 +15515,8 @@ packages:
         optional: true
       utf-8-validate:
         optional: true
+    dependencies:
+      bufferutil: 4.0.8
 
   /xml-name-validator@5.0.0:
     resolution: {integrity: sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg==}
