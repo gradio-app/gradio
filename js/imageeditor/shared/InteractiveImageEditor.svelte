@@ -186,6 +186,10 @@
 			handle_change(e);
 		}
 	}
+
+	$: console.log(active_mode);
+
+	let active_mode: "webcam" | "color" | null = null;
 </script>
 
 <BlockLabel
@@ -211,6 +215,7 @@
 				{root}
 				{sources}
 				bind:bg
+				bind:active_mode
 				background_file={value?.background || null}
 			></Sources>
 		{/if}
@@ -234,7 +239,7 @@
 
 	<Layers layer_files={value?.layers || null} />
 
-	{#if !bg && !history}
+	{#if !bg && !history && active_mode !== "webcam"}
 		<div class="empty wrap">
 			{#if sources && sources.length}
 				<div>Upload an image</div>

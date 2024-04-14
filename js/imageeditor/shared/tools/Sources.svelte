@@ -28,7 +28,7 @@
 	const { pixi, dimensions, register_context, reset, editor_box } =
 		getContext<EditorContext>(EDITOR_KEY);
 
-	let active_mode: "webcam" | "color" | null = null;
+	export let active_mode: "webcam" | "color" | null = null;
 	let background: Blob | File | null;
 
 	const dispatch = createEventDispatcher<{
