@@ -160,7 +160,7 @@ export function bootstrap_custom_element(
 						code += node.textContent;
 					}
 				});
-				options.code = code.trim() || undefined;
+				options.code = code || undefined;
 			} else {
 				if (codeElements.length > 1) {
 					console.warn(
