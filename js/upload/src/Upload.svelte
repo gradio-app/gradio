@@ -17,6 +17,7 @@
 	export let format: "blob" | "file" = "file";
 	export let uploading = false;
 	export let hidden_upload: HTMLInputElement | null = null;
+	export let show_progress = true;
 
 	let upload_id: string;
 	let file_data: FileData[];
@@ -185,7 +186,7 @@
 	>
 		<slot />
 	</button>
-{:else if uploading && !hidden_upload}
+{:else if uploading && show_progress}
 	{#if !hidden}
 		<UploadProgress {root} {upload_id} files={file_data} />
 	{/if}

@@ -26,9 +26,9 @@ attrs==21.4.0
     #   pytest
 backcall==0.2.0
     # via ipython
-boto3==1.26.65
+boto3==1.34.84
     # via -r requirements.in
-botocore==1.29.87
+botocore==1.34.84
     # via
     #   boto3
     #   s3transfer
@@ -273,7 +273,7 @@ ruff==0.2.2
     # via
     #   -r requirements.in
     #   gradio
-s3transfer==0.6.0
+s3transfer==0.10.0
     # via boto3
 safetensors==0.4.2
     # via
