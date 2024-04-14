@@ -44,7 +44,7 @@
 
 		app = await Client.create(api, {
 			// @ts-ignore
-			hf_token,
+			hf_token
 		});
 
 		const { named_endpoints, unnamed_endpoints } = await app.view_api();

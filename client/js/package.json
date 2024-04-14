@@ -20,10 +20,7 @@
 	"devDependencies": {
 		"@types/ws": "^8.5.10",
 		"esbuild": "^0.20.0",
-		"typescript": "^5.2.2",
-		"vite": "^5.1.0",
-		"vite-plugin-dts": "^3.7.2",
-		"vitest": "^1.2.2"
+		"typescript": "^5.2.2"
 	},
 	"scripts": {
 		"bundle": "vite build --ssr",

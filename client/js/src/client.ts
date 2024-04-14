@@ -47,8 +47,11 @@ export class Client {
 		return fetch(input, init);
 	}
 
-	eventSource_factory(url: URL): EventSource {
-		return new EventSource(url.toString());
+	eventSource_factory(url: URL): any {
+		if (typeof window !== undefined && typeof EventSource !== "undefined") {
+			return new EventSource(url.toString());
+		}
+		return () => {}; // todo: polyfill eventsource for node envs
 	}
 
 	view_api: (
