@@ -43,7 +43,6 @@
 		if (!api || (hf_token && !hf_token.startsWith("hf_"))) return;
 
 		app = await Client.create(api, {
-			// @ts-ignore
 			hf_token
 		});
 
