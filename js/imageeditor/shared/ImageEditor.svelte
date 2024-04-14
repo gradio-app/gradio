@@ -105,7 +105,6 @@
 	const { can_redo, can_undo, current_history } = CommandManager;
 
 	$: $current_history, dispatch("change");
-	// $: console.log($current_history);
 
 	$: {
 		history = !!$current_history.previous || $active_tool !== "bg";

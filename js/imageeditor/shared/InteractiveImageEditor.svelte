@@ -187,8 +187,6 @@
 		}
 	}
 
-	$: console.log(active_mode);
-
 	let active_mode: "webcam" | "color" | null = null;
 </script>
 
