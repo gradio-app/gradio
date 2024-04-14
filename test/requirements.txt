@@ -273,7 +273,7 @@ ruff==0.2.2
     # via
     #   -r requirements.in
     #   gradio
-s3transfer==0.6.0
+s3transfer==0.10.0
     # via boto3
 safetensors==0.4.2
     # via
