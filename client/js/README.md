@@ -6,7 +6,7 @@ A javascript (and typescript) client to call Gradio APIs.
 
 The Gradio JavaScript client is available on npm as `@gradio/client`. You can install it as below:
 
-```sh
+```shell
 npm i @gradio/client
 ```
 

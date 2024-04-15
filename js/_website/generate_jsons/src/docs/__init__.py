@@ -274,7 +274,7 @@ def organize_docs(d):
     c_keys = list(organized["py-client"].keys())
     for i, cls in enumerate(organized["py-client"]):
         if not i:
-            organized["py-client"][cls]["prev_obj"] = "Python-Client"
+            organized["py-client"][cls]["prev_obj"] = "Intro"
             organized["py-client"][cls]["next_obj"] = organized["py-client"][c_keys[1]][
                 "name"
             ]

@@ -1,13 +1,13 @@
 <script lang="ts">
 	import Demos from "$lib/components/Demos.svelte";
 	import DocsNav from "$lib/components/DocsNav.svelte";
+	import DocsNavCustom from "$lib/components/DocsNavCustom.svelte";
 	import FunctionDoc from "$lib/components/FunctionDoc.svelte";
 	import EventListeners from "$lib/components/EventListeners.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import anchor from "$lib/assets/img/anchor.svg";
-	import { onDestroy, onMount } from "svelte";
+	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
-	import { afterNavigate } from "$app/navigation";
 
 	export let data: any = {};
 
@@ -72,13 +72,14 @@
 
 <main class="container mx-auto px-4 flex gap-4">
 	<div class="flex w-full">
-		<DocsNav
-			current_nav_link={obj.name.toLowerCase()}
-			{components}
-			{helpers}
-			{modals}
-			{routes}
-			{py_client}
+		<DocsNavCustom
+			current_nav_link={obj.name}
+			items={{
+				Intro: "intro",
+				Client: "client",
+				Job: "job",
+			}}
+			title={"Python Client"}
 		/>
 
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
@@ -215,82 +216,40 @@
 									><img class="anchor-img-small" src={anchor} /></a
 								>
 							</h4>
-							<p class="mb-2 text-lg">{@html obj.description}</p>
+							<p class="mb-2 text-lg text-gray-600">{@html obj.description}</p>
 						</div>
 
 						{#if mode === "components"}
-							{#if "preprocess" in obj}
-								<div id="behavior">
-									<h4 class="mt-4 text-xl text-orange-500 font-light group">
-										Behavior
-										<a href="#behavior" class="invisible group-hover-visible"
-											><img class="anchor-img-small" src={anchor} /></a
-										>
-									</h4>
-									<p class="text-lg mb-2">
-										<span class="font-semibold">As input component:</span>
-										{@html obj.preprocess.return_doc.doc}
-									</p>
-									<p class="text-md text-gray-500 -mb-1">
-										Your function should accept one of these types:
-									</p>
-									<div class="codeblock">
-										<pre><code class="code language-python"
-												>{@html obj.preprocess_code_snippet}</code
-											></pre>
-									</div>
-
-									<p class="text-lg my-2">
-										<span class="font-semibold">As output component:</span>
-										{@html obj.postprocess.parameter_doc[0].doc}
-									</p>
-									<p class="text-md text-gray-500 -mb-1">
-										Your function should return one of these types:
-									</p>
-									<div class="codeblock">
-										<pre><code class="code language-python"
-												>{@html obj.postprocess_code_snippet}</code
-											></pre>
-									</div>
-									{#if obj.tags.events && obj.tags.events.length > 0}
-										<p class="text-lg text-gray-500">
-											<span class="text-gray-700">Supported events:</span>
-											<em>{@html obj.tags.events}</em>
-										</p>
-									{/if}
-								</div>
-							{:else}
-								<div id="behavior">
-									<h4 class="mt-4 text-xl text-orange-500 font-light group">
-										Behavior
-										<a href="#behavior" class="invisible group-hover-visible"
-											><img class="anchor-img-small" src={anchor} /></a
-										>
-									</h4>
+							<div id="behavior">
+								<h4 class="mt-4 text-xl text-orange-500 font-light group">
+									Behavior
+									<a href="#behavior" class="invisible group-hover-visible"
+										><img class="anchor-img-small" src={anchor} /></a
+									>
+								</h4>
+								<p class="text-lg text-gray-500">
+									<span class="text-gray-700">As input: </span>
+									{@html obj.tags.preprocessing}
+								</p>
+								<p class="text-lg text-gray-500">
+									<span class="text-gray-700">As output:</span>
+									{@html obj.tags.postprocessing}
+								</p>
+								{#if obj.tags.examples_format}
 									<p class="text-lg text-gray-500">
-										<span class="text-gray-700">As input: </span>
-										{@html obj.tags.preprocessing}
+										<span class="text-gray-700"
+											>Format expected for examples:</span
+										>
+										{@html obj.tags.examples_format}
 									</p>
+								{/if}
+								{#if obj.tags.events && obj.tags.events.length > 0}
 									<p class="text-lg text-gray-500">
-										<span class="text-gray-700">As output:</span>
-										{@html obj.tags.postprocessing}
+										<span class="text-gray-700">Supported events:</span>
+										<em>{@html obj.tags.events}</em>
 									</p>
-									{#if obj.tags.examples_format}
-										<p class="text-lg text-gray-500">
-											<span class="text-gray-700"
-												>Format expected for examples:</span
-											>
-											{@html obj.tags.examples_format}
-										</p>
-									{/if}
-									{#if obj.tags.events && obj.tags.events.length > 0}
-										<p class="text-lg text-gray-500">
-											<span class="text-gray-700">Supported events:</span>
-											<em>{@html obj.tags.events}</em>
-										</p>
-									{/if}
-								</div>
-							{/if}
+								{/if}
+							</div>
 						{/if}
 
 						{#if obj.example}
@@ -509,7 +468,7 @@
 											class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {data
 												.COLOR_SETS[i][0]} {data.COLOR_SETS[i][1]}"
 											target="_blank"
-											href="../..{guide.url}"
+											href={guide.url}
 										>
 											<div class="flex flex-col p-4 h-min">
 												<p class="group-hover:underline text-l">

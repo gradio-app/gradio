@@ -87,23 +87,6 @@
 			</div>
 		</a>
 
-		<!-- <a
-			href="/main/docs/lite"
-			target="_self"
-			class="group group relative flex flex-col overflow-hidden md:first:row-span-2 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[0]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
-			><div
-				class="absolute hidden h-16 w-[550px] rotate-45 transform bg-{data.COLOR_SETS[0]}-500 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"
-			></div>
-			<div
-				class="relative mb-2 mt-auto flex items-center text-lg"
-			>
-				<span>Gradio Lite</span>
-			</div>
-			<div class="relative pr-4 text-smd font-normal text-gray-400">
-				Serverless Gradio running entirely in your browser.
-			</div>
-		</a> -->
-
         <a
 			href="/main/docs/js-client"
 			target="_self"
@@ -137,10 +120,8 @@
 				context of Gradio.
 			</div>
 		</a>
-
-
-		<!-- <a
-			href="/main/docs/custom-components"
+		<a
+			href="/main/guides/custom-components-in-five-minutes"
 			target="_self"
 			class="group group relative flex flex-col overflow-hidden md:first:row-span-2 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[5]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 			><div
@@ -154,7 +135,23 @@
 			<div class="relative pr-4 text-smd font-normal text-gray-400">
 				Create, use and share your own custom components.
 			</div>
-		</a> -->
+		</a>
+		<a
+			href="/main/guides/gradio-lite"
+			target="_self"
+			class="group group relative flex flex-col overflow-hidden md:first:row-span-2 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[4]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+			><div
+				class="absolute hidden h-16 w-[550px] rotate-45 transform bg-{data.COLOR_SETS[4]}-500 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"
+			></div>
+			<div
+				class="relative mb-2 mt-auto flex items-center text-lg"
+			>
+				<span>Gradio Lite</span>
+			</div>
+			<div class="relative pr-4 text-smd font-normal text-gray-400">
+				Serverless Gradio running entirely in your browser.
+			</div>
+		</a>
 	</nav>
 
 	<h1 class="mb-4 flex items-center text-2xl font-light mt-8">
