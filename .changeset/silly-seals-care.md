@@ -2,4 +2,4 @@
 "gradio": minor
 ---
 
-feat:Patch async save url to cache wasm
+feat:Patch `async_save_url_to_cache` for Lite
