@@ -615,9 +615,7 @@ export function submit(
 										time: new Date(),
 										data: data.data,
 										endpoint: _endpoint,
-										fn_index,
-										event_data,
-										trigger_id
+										fn_index
 									});
 
 									if (complete) {
@@ -654,7 +652,7 @@ export function submit(
 								});
 								if (["sse_v2", "sse_v2.1"].includes(protocol)) {
 									close_stream(stream_open, event_source);
-									stream_open = false;
+									stream_open.open = false;
 								}
 							}
 						};
@@ -666,7 +664,7 @@ export function submit(
 						// @ts-ignore
 						event_callbacks[event_id] = callback;
 						unclosed_events.add(event_id);
-						if (!stream_open) {
+						if (!stream_open.open) {
 							open_stream(
 								stream_open,
 								session_hash,

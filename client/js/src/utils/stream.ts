@@ -2,7 +2,7 @@ import { BROKEN_CONNECTION_MSG } from "../constants";
 import type { Config } from "../types";
 
 export function open_stream(
-	stream_open: boolean,
+	stream_open: { open: boolean },
 	session_hash: string,
 	config: Config,
 	event_callbacks: Record<string, () => Promise<void>>,
@@ -11,7 +11,7 @@ export function open_stream(
 	eventSource_factory: (url: URL) => EventSource,
 	event_source: EventSource
 ): void {
-	stream_open = true;
+	stream_open.open = true;
 
 	let params = new URLSearchParams({
 		session_hash: session_hash
@@ -69,11 +69,11 @@ export function open_stream(
 }
 
 export function close_stream(
-	stream_open: boolean,
+	stream_open: { open: boolean },
 	event_source: EventSource | null
 ): void {
 	if (stream_open && event_source) {
-		stream_open = false;
+		stream_open.open = false;
 		event_source?.close();
 	}
 }
