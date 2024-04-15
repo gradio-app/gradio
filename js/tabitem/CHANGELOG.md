@@ -1,5 +1,12 @@
 # @gradio/tabitem
 
+## 0.2.5
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/tabs@0.2.5
+
 ## 0.2.4
 
 ### Patch Changes
