@@ -9,7 +9,7 @@
 	export let docs_type = "python";
 
 	$: is_guide = $page.route.id?.includes("/guides");
-	$: is_docs = $page.route.id?.includes("/docs/");
+	$: is_docs = $page.route.id?.includes("/docs");
 
 	$: docs_url = `${value === version ? "" : `/${value}`}/docs/${
 		$page.params?.doc ||
