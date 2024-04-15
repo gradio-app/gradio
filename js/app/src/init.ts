@@ -72,6 +72,7 @@ export function create_components(): {
 			fill_height: boolean;
 		};
 	}): void {
+		console.log("recreate_layout");
 		app = _app;
 		_components = components;
 		inputs = new Set();
@@ -134,6 +135,7 @@ export function create_components(): {
 		))!?.default;
 
 		if (instance.type === "dataset") {
+			console.log("dataset");
 			instance.props.component_map = get_component(
 				instance.type,
 				instance.component_class_id,
@@ -141,6 +143,7 @@ export function create_components(): {
 				_components,
 				instance.props.components
 			).example_components;
+			console.log("dataset", instance.props.component_map);
 		}
 
 		if (_target_map[instance.id]) {
@@ -183,7 +186,10 @@ export function create_components(): {
 					const instance = instance_map[update.id];
 					if (!instance) continue;
 					let new_value;
-					if (Array.isArray(update.value)) new_value = [...update.value];
+					if (update.value instanceof Map) new_value = new Map(update.value);
+					else if (update.value instanceof Set)
+						new_value = new Set(update.value);
+					else if (Array.isArray(update.value)) new_value = [...update.value];
 					else if (update.value === null) new_value = null;
 					else if (typeof update.value === "object")
 						new_value = { ...update.value };
