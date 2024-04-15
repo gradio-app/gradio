@@ -28,7 +28,39 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
     from pydub import AudioSegment
 
-async_client = httpx.AsyncClient()
+if wasm_utils.IS_WASM:
+    import pyodide.http  # type: ignore
+
+    class PyodideHttpResponseAsyncByteStream(httpx.AsyncByteStream):
+        def __init__(self, response) -> None:
+            self.response = response
+
+        async def __aiter__(self):
+            yield await self.response.bytes()
+
+    class PyodideHttpTransport(httpx.AsyncBaseTransport):
+        async def handle_async_request(
+            self,
+            request: httpx.Request,
+        ) -> httpx.Response:
+            url = str(request.url)
+            method = request.method
+            headers = dict(request.headers)
+            body = None if method in ["GET", "HEAD"] else await request.aread()
+            response = await pyodide.http.pyfetch(
+                url, method=method, headers=headers, body=body
+            )
+            return httpx.Response(
+                status_code=response.status,
+                headers=response.headers,
+                stream=PyodideHttpResponseAsyncByteStream(response),
+            )
+
+    transport = PyodideHttpTransport()
+else:
+    transport = None
+
+async_client = httpx.AsyncClient(transport=transport)
 
 log = logging.getLogger(__name__)
 
@@ -234,22 +266,10 @@ async def async_save_url_to_cache(url: str, cache_dir: str) -> str:
     full_temp_file_path = str(abspath(temp_dir / name))
 
     if not Path(full_temp_file_path).exists():
-        if wasm_utils.IS_WASM:
-            # NOTE: We use pyodide.http instead of httpx. pyodide.http is a wrapper around fetch() that works in the Wasm environment. See https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.pyfetch
-            import pyodide.http  # type: ignore
-
-            response = await pyodide.http.pyfetch(url)
-            if not response.ok:
-                raise Exception(f"Failed to download {url}")
+        async with async_client.stream("GET", url, follow_redirects=True) as response:
             async with aiofiles.open(full_temp_file_path, "wb") as f:
-                await f.write(await response.bytes())
-        else:
-            async with async_client.stream(
-                "GET", url, follow_redirects=True
-            ) as response:
-                async with aiofiles.open(full_temp_file_path, "wb") as f:
-                    async for chunk in response.aiter_raw():
-                        await f.write(chunk)
+                async for chunk in response.aiter_raw():
+                    await f.write(chunk)
 
     return full_temp_file_path
 
