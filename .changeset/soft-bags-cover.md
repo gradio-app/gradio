@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Fix ImageEditor drawing at wrong position.
+fix:ensure `ImageEditor` always draws at the correct position
