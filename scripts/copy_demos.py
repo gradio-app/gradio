@@ -25,6 +25,7 @@ def copy_all_demos(source_dir: str, dest_dir: str):
         "fake_diffusion_with_gif",
         "file_explorer_component_events",
         "image_mod_default_image",
+        "image_editor_events",
         "image_segmentation",
         "interface_random_slider",
         "kitchen_sink",

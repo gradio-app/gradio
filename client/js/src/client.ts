@@ -1118,15 +1118,13 @@ export function api_factory(
 			async function component_server(
 				component_id: number,
 				fn_name: string,
-				data: unknown[]
+				data: unknown[] | { binary: boolean; data: Record<string, any> }
 			): Promise<any> {
 				const headers: {
 					Authorization?: string;
 					"Content-Type": "application/json";
-				} = { "Content-Type": "application/json" };
-				if (hf_token) {
-					headers.Authorization = `Bearer ${hf_token}`;
-				}
+				} = {};
+
 				let root_url: string;
 				let component = config.components.find(
 					(comp) => comp.id === component_id
@@ -1136,28 +1134,53 @@ export function api_factory(
 				} else {
 					root_url = config.root;
 				}
-				const response = await fetch_implementation(
-					`${root_url}/component_server/`,
-					{
-						method: "POST",
-						body: JSON.stringify({
-							data: data,
-							component_id: component_id,
-							fn_name: fn_name,
-							session_hash: session_hash
-						}),
-						headers
-					}
-				);
 
-				if (!response.ok) {
-					throw new Error(
-						"Could not connect to component server: " + response.statusText
-					);
+				let body: FormData | string;
+				if (data.binary) {
+					body = new FormData();
+					for (const key in data.data) {
+						if (key === "binary") continue;
+						body.append(key, data.data[key]);
+					}
+					body.set("component_id", component_id);
+					body.set("fn_name", fn_name);
+					body.set("session_hash", session_hash);
+				} else {
+					body = JSON.stringify({
+						data: data,
+						component_id,
+						fn_name,
+						session_hash
+					});
+
+					headers["Content-Type"] = "application/json";
+				}
+				if (hf_token) {
+					headers.Authorization = `Bearer ${hf_token}`;
 				}
 
-				const output = await response.json();
-				return output;
+				try {
+					const response = await fetch_implementation(
+						`${root_url}/component_server/`,
+						{
+							method: "POST",
+							body: body,
+							headers
+						}
+					);
+
+					if (!response.ok) {
+						// console.warn(await response.text());
+						throw new Error(
+							"Could not connect to component server: " + response.statusText
+						);
+					}
+
+					const output = await response.json();
+					return output;
+				} catch (e) {
+					console.warn(e);
+				}
 			}
 
 			async function view_api(config?: Config): Promise<ApiInfo<JsApiData>> {

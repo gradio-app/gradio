@@ -68,14 +68,17 @@
 		t_p = y_offset / $editor_box.child_height;
 
 		c = crop_canvas($pixi!.renderer, $pixi!.mask_container, crop, 0.2);
-		c.start(...$dimensions, current_crop);
+		c.start(...$dimensions, current_crop, false);
 
-		c.continue([
-			l_p * $dimensions[0],
-			t_p * $dimensions[1],
-			w_p * $dimensions[0],
-			h_p * $dimensions[1]
-		]);
+		c.continue(
+			[
+				l_p * $dimensions[0],
+				t_p * $dimensions[1],
+				w_p * $dimensions[0],
+				h_p * $dimensions[1]
+			],
+			false
+		);
 		c.stop();
 
 		c.execute();
