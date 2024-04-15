@@ -13,20 +13,12 @@ export function update_object(
 	stack: (string | number)[]
 ): void {
 	while (stack.length > 1) {
-		const key = stack.shift();
-		if (typeof key === "string" || typeof key === "number") {
-			object = object[key];
-		} else {
-			throw new Error("Invalid key type");
-		}
+		// @ts-ignore
+		object = object[stack.shift()];
 	}
 
-	const key = stack.shift();
-	if (typeof key === "string" || typeof key === "number") {
-		object[key] = newValue;
-	} else {
-		throw new Error("Invalid key type");
-	}
+	// @ts-ignore
+	object[stack.shift()] = newValue;
 }
 
 export async function get_jwt(

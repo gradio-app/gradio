@@ -10,7 +10,7 @@ export async function resolve_config(
 		? { Authorization: `Bearer ${token}` }
 		: {};
 
-	headers["Content-Type"] = "application/json";
+	// headers["Content-Type"] = "application/json";
 
 	if (
 		typeof window !== "undefined" &&
@@ -20,25 +20,25 @@ export async function resolve_config(
 	) {
 		const path = window.gradio_config.root;
 		const config = window.gradio_config;
-
 		let config_root = resolve_root(endpoint, config.root, false);
-
 		config.root = config_root;
 		// @ts-ignore
 		return { ...config, path };
-	}
-
-	if (endpoint) {
+	} else if (endpoint) {
 		const response = await fetch_implementation(`${endpoint}/${CONFIG_URL}`, {
 			headers
 		});
 
 		if (response?.status === 200) {
 			let config = await response.json();
-
-			return { ...config, path: config.path ?? "", root: endpoint };
+			config.path = config.path ?? "";
+			config.root = endpoint;
+			return config;
 		}
+		throw new Error("Could not get config.");
 	}
+
+	throw new Error("No config or app endpoint found");
 }
 
 /**
