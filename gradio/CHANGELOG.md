@@ -1,5 +1,31 @@
 # gradio
 
+## 4.26.0
+
+### Features
+
+- [#7811](https://github.com/gradio-app/gradio/pull/7811) [`b43055b`](https://github.com/gradio-app/gradio/commit/b43055b297dfe1aa56fda4cd722d878f7297a1b5) - Lite playground design changes.  Thanks @aliabd!
+- [#7850](https://github.com/gradio-app/gradio/pull/7850) [`2bae1cf`](https://github.com/gradio-app/gradio/commit/2bae1cfbd41ed8ae3eea031a64899611a22a1821) - Adds an "API Recorder" to the view API page, some internal methods have been made async.  Thanks @abidlabs!
+- [#7936](https://github.com/gradio-app/gradio/pull/7936) [`b165193`](https://github.com/gradio-app/gradio/commit/b165193902985b77a732ed703423ebebeaf0da27) - Restore Markdown formatting for Chatbots, MarkdownCode.  Thanks @aliabid94!
+- [#7912](https://github.com/gradio-app/gradio/pull/7912) [`a4782f7`](https://github.com/gradio-app/gradio/commit/a4782f7a09ed69ebfa9953b029bd4ffa1c60220a) - Allow displaying gr.Code examples by their filename if value is a tuple.  Thanks @freddyaboulton!
+- [#7938](https://github.com/gradio-app/gradio/pull/7938) [`8250a1a`](https://github.com/gradio-app/gradio/commit/8250a1a0dfb8219943beef500ddf29e0fcc4e38d) - Handle the case of multiple headers when constructing root url.  Thanks @abidlabs!
+- [#7932](https://github.com/gradio-app/gradio/pull/7932) [`b78129d`](https://github.com/gradio-app/gradio/commit/b78129d90fc800e6987226114adc2f062dc403ec) - Use asyncio.Event to stop stream in heartbeat route.  Thanks @freddyaboulton!
+- [#7961](https://github.com/gradio-app/gradio/pull/7961) [`eae97c2`](https://github.com/gradio-app/gradio/commit/eae97c29ce8bb81670e1ee0533efa02afa38cc23) - Fix task bug in python 3.9.  Thanks @freddyaboulton!
+- [#7967](https://github.com/gradio-app/gradio/pull/7967) [`1a7851c`](https://github.com/gradio-app/gradio/commit/1a7851c5125b7dd2bccf9f3f1ead38be5da2c9ad) - Fix handling of single font name in theme.  Thanks @sd109!
+
+### Fixes
+
+- [#7963](https://github.com/gradio-app/gradio/pull/7963) [`1eb4c20`](https://github.com/gradio-app/gradio/commit/1eb4c2012065c678d722477f3555ec45a9e78c14) - ensure kwargs are always in sync across the whole application.  Thanks @pngwn!
+- [#7916](https://github.com/gradio-app/gradio/pull/7916) [`7c9a964`](https://github.com/gradio-app/gradio/commit/7c9a964ac6b9c2231c7439758e87b4fac56db99f) - Fix programmatic tab selection.  Thanks @aliabid94!
+- [#7754](https://github.com/gradio-app/gradio/pull/7754) [`057d171`](https://github.com/gradio-app/gradio/commit/057d171c717737a522b55b0d66962f9c62dd87c3) - Correctly handle device selection in `Image` and `ImageEditor`.  Thanks @hannahblair!
+- [#7756](https://github.com/gradio-app/gradio/pull/7756) [`b729f10`](https://github.com/gradio-app/gradio/commit/b729f10321b571e7de418596d1cf605773b0b8e6) - Bugfix: Fix color and size keys in theme builder app.  Thanks @shubhamofbce!
+- [#7918](https://github.com/gradio-app/gradio/pull/7918) [`be46ab1`](https://github.com/gradio-app/gradio/commit/be46ab1213b32a40e4ac1c399499d69eaf6ec0f1) - ensure entire dropdown is clickable.  Thanks @dawoodkhan82!
+- [#7966](https://github.com/gradio-app/gradio/pull/7966) [`bad3836`](https://github.com/gradio-app/gradio/commit/bad383645ec659433086b174f1ec5a7e2669d43b) - Adding hint `list[list]` for example parameter.  Thanks @WH-Yoshi!
+- [#7817](https://github.com/gradio-app/gradio/pull/7817) [`867ff16`](https://github.com/gradio-app/gradio/commit/867ff16cd47ceb5bbf076503538a262b6fe64638) - Trigger the "clear" event of Image Editor.  Thanks @uebian!
+- [#7935](https://github.com/gradio-app/gradio/pull/7935) [`919afff`](https://github.com/gradio-app/gradio/commit/919afffcee87bee25a6905c488484936df92189d) - Adds a Guide on deploying Gradio apps with Docker.  Thanks @abidlabs!
+- [#7915](https://github.com/gradio-app/gradio/pull/7915) [`efd9524`](https://github.com/gradio-app/gradio/commit/efd95245081f5657b1d13f34038205fc8791c1f7) - Fix gr.CheckboxGroup change event.  Thanks @freddyaboulton!
+- [#7926](https://github.com/gradio-app/gradio/pull/7926) [`9666854`](https://github.com/gradio-app/gradio/commit/966685479078f59430b3bced7e6068eb8157c003) - Fixes streaming event race condition.  Thanks @aliabid94!
+
 ## 4.25.0
 
 ### Highlights

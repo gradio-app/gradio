@@ -107,6 +107,7 @@ class Sketchpad(components.ImageEditor):
         transforms: Iterable[Literal["crop"]] = ("crop",),
         eraser: Eraser | None = None,
         brush: Brush | None = None,
+        format: str = "webp",
     ):
         if not brush:
             brush = Brush(colors=["#000000"], color_mode="fixed")
@@ -136,6 +137,7 @@ class Sketchpad(components.ImageEditor):
             transforms=transforms,
             eraser=eraser,
             brush=brush,
+            format=format,
         )
 
 
@@ -176,6 +178,7 @@ class Paint(components.ImageEditor):
         transforms: Iterable[Literal["crop"]] = ("crop",),
         eraser: Eraser | None = None,
         brush: Brush | None = None,
+        format: str = "webp",
     ):
         super().__init__(
             value=value,
@@ -203,6 +206,7 @@ class Paint(components.ImageEditor):
             transforms=transforms,
             eraser=eraser,
             brush=brush,
+            format=format,
         )
 
 
@@ -247,6 +251,7 @@ class ImageMask(components.ImageEditor):
         transforms: Iterable[Literal["crop"]] = ("crop",),
         eraser: Eraser | None = None,
         brush: Brush | None = None,
+        format: str = "webp",
     ):
         if not brush:
             brush = Brush(colors=["#000000"], color_mode="fixed")
@@ -276,6 +281,7 @@ class ImageMask(components.ImageEditor):
             transforms=transforms,
             eraser=eraser,
             brush=brush,
+            format=format,
         )
 
 
@@ -288,11 +294,9 @@ class PlayableVideo(components.Video):
 
     def __init__(
         self,
-        value: str
-        | Path
-        | tuple[str | Path, str | Path | None]
-        | Callable
-        | None = None,
+        value: (
+            str | Path | tuple[str | Path, str | Path | None] | Callable | None
+        ) = None,
         *,
         format: Literal["mp4"] = "mp4",
         sources: list[Literal["upload", "webcam"]] | None = None,

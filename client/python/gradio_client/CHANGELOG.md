@@ -1,5 +1,11 @@
 # gradio_client
 
+## 0.15.1
+
+### Features
+
+- [#7850](https://github.com/gradio-app/gradio/pull/7850) [`2bae1cf`](https://github.com/gradio-app/gradio/commit/2bae1cfbd41ed8ae3eea031a64899611a22a1821) - Adds an "API Recorder" to the view API page, some internal methods have been made async.  Thanks @abidlabs!
+
 ## 0.15.0
 
 ### Highlights

@@ -61,7 +61,7 @@ class ChatInterface(Blocks):
         additional_inputs: str | Component | list[str | Component] | None = None,
         additional_inputs_accordion_name: str | None = None,
         additional_inputs_accordion: str | Accordion | None = None,
-        examples: list[str] | list[dict[str, str | list]] | None = None,
+        examples: list[str] | list[dict[str, str | list]] | list[list] | None = None,
         cache_examples: bool | Literal["lazy"] | None = None,
         title: str | None = None,
         description: str | None = None,
@@ -202,7 +202,10 @@ class ChatInterface(Blocks):
             with Group():
                 with Row():
                     if textbox:
-                        textbox.container = False
+                        if self.multimodal:
+                            submit_btn = None
+                        else:
+                            textbox.container = False
                         textbox.show_label = False
                         textbox_ = textbox.render()
                         if not isinstance(textbox_, (Textbox, MultimodalTextbox)):
@@ -469,7 +472,11 @@ class ChatInterface(Blocks):
     ):
         for x in message["files"]:
             history.append([(x,), None])
-        if message["text"] is not None and isinstance(message["text"], str):
+        if message["text"] is None or not isinstance(message["text"], str):
+            return
+        elif message["text"] == "" and message["files"] != []:
+            history.append([None, response])
+        else:
             history.append([message["text"], response])
 
     async def _display_input(

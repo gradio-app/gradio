@@ -1,5 +1,6 @@
 """Pydantic data models and other dataclasses. This is the only file that uses Optional[]
 typing syntax instead of | None syntax to work with pydantic"""
+
 from __future__ import annotations
 
 import pathlib
@@ -7,7 +8,7 @@ import secrets
 import shutil
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
 
 from fastapi import Request
 from gradio_client.utils import traverse
@@ -101,11 +102,23 @@ class ResetBody(BaseModel):
     event_id: str
 
 
-class ComponentServerBody(BaseModel):
+class ComponentServerJSONBody(BaseModel):
     session_hash: str
     component_id: int
     fn_name: str
     data: Any
+
+
+class DataWithFiles(BaseModel):
+    data: Any
+    files: List[Tuple[str, bytes]]
+
+
+class ComponentServerBlobBody(BaseModel):
+    session_hash: str
+    component_id: int
+    fn_name: str
+    data: DataWithFiles
 
 
 class InterfaceTypes(Enum):

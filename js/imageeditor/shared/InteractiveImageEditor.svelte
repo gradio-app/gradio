@@ -41,9 +41,12 @@
 		composite: null
 	};
 	export let transforms: "crop"[] = ["crop"];
+	export let accept_blobs: (a: any) => void;
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;
+		upload?: never;
+		change?: never;
 	}>();
 
 	let editor: ImageEditor;
@@ -55,6 +58,8 @@
 	function is_file_data(o: null | FileData): o is FileData {
 		return !!o;
 	}
+
+	$: if (bg) dispatch("upload");
 
 	export async function get_data(): Promise<ImageBlobs> {
 		const blobs = await editor.get_blobs();
@@ -107,11 +112,82 @@
 	let bg = false;
 	let history = false;
 
+	export let image_id: null | string = null;
+
 	$: editor &&
 		editor.set_tool &&
 		(sources && sources.length
 			? editor.set_tool("bg")
 			: editor.set_tool("draw"));
+
+	type BinaryImages = [string, string, File, number | null][];
+
+	function nextframe(): Promise<void> {
+		return new Promise((resolve) => setTimeout(() => resolve(), 30));
+	}
+
+	let uploading = false;
+	let pending = false;
+	async function handle_change(e: CustomEvent<Blob | any>): Promise<void> {
+		if (uploading) {
+			pending = true;
+			return;
+		}
+
+		uploading = true;
+
+		await nextframe();
+		const blobs = await editor.get_blobs();
+
+		const images: BinaryImages = [];
+
+		let id = Math.random().toString(36).substring(2);
+
+		if (blobs.background)
+			images.push([
+				id,
+				"background",
+				new File([blobs.background], "background.png"),
+				null
+			]);
+		if (blobs.composite)
+			images.push([
+				id,
+				"composite",
+				new File([blobs.composite], "composite.png"),
+				null
+			]);
+		blobs.layers.forEach((layer, i) => {
+			if (layer)
+				images.push([
+					id as string,
+					`layer`,
+					new File([layer], `layer_${i}.png`),
+					i
+				]);
+		});
+
+		await Promise.all(
+			images.map(async ([image_id, type, data, index]) => {
+				return accept_blobs({
+					binary: true,
+					data: { file: data, id: image_id, type, index }
+				});
+			})
+		);
+		image_id = id;
+		dispatch("change");
+
+		await nextframe();
+		uploading = false;
+		if (pending) {
+			pending = false;
+			uploading = false;
+			handle_change(e);
+		}
+	}
+
+	let active_mode: "webcam" | "color" | null = null;
 </script>
 
 <BlockLabel
@@ -123,6 +199,7 @@
 	bind:this={editor}
 	{changeable}
 	on:save
+	on:change={handle_change}
 	on:clear={() => dispatch("clear")}
 	bind:history
 	bind:bg
@@ -136,6 +213,7 @@
 				{root}
 				{sources}
 				bind:bg
+				bind:active_mode
 				background_file={value?.background || null}
 			></Sources>
 		{/if}
@@ -159,7 +237,7 @@
 
 	<Layers layer_files={value?.layers || null} />
 
-	{#if !bg && !history}
+	{#if !bg && !history && active_mode !== "webcam"}
 		<div class="empty wrap">
 			{#if sources && sources.length}
 				<div>Upload an image</div>

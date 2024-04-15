@@ -26,7 +26,11 @@
 		class="image-container"
 		style="width: 500px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
 	>
-		<ImageEditor i18n={get(format)} {...args} />
+		<ImageEditor
+			i18n={get(format)}
+			{...args}
+			server={{ accept_blobs: () => {} }}
+		/>
 	</div>
 </Template>
 

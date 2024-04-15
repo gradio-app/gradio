@@ -96,21 +96,14 @@ class LoginButton(Button):
 
 
 # JS code to redirects to /login/huggingface if user is not logged in.
-# If the app is opened in an iframe, open the login page in a new tab.
-# Otherwise, redirects locally. Taken from https://stackoverflow.com/a/61596084.
-# If user is logged in, redirect to logout page (always in-place).
+# If user is logged in, redirect to /logout page. Always happens
+# on the same tab.
 _js_handle_redirect = """
 (buttonValue) => {
-    if (buttonValue === BUTTON_DEFAULT_VALUE) {
-        url = '/login/huggingface' + window.location.search;
-        if ( window !== window.parent ) {
-            window.open(url, '_blank');
-        } else {
-            window.location.assign(url);
-        }
-    } else {
-        url = '/logout' + window.location.search
-        window.location.assign(url);
-    }
+    uri = buttonValue === BUTTON_DEFAULT_VALUE ? '/login/huggingface' : '/logout';
+    window.parent?.postMessage({ type: "SET_SCROLLING", enabled: true }, "*");
+    setTimeout(() => {
+        window.location.assign(uri + window.location.search);
+    }, 500);
 }
 """
