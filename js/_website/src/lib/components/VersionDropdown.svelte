@@ -39,8 +39,8 @@
 		}
 	}
 
-	$: browser && is_docs && goto(docs_url);
-	$: browser && is_docs && goto(docs_url);
+	// $: browser && is_docs && goto(docs_url);
+	// $: browser && is_docs && goto(docs_url);
 </script>
 
 <svelte:head>
@@ -52,9 +52,10 @@
 	></script>
 </svelte:head>
 
+
+<!-- on:change={reload} -->
 <select
 	bind:value
-	on:change={reload}
 	class="rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0 text-xs mt-2 py-1 pl-2 pr-7 font-mono"
 >
 	{#each choices as choice}

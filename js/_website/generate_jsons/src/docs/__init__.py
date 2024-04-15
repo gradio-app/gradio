@@ -282,7 +282,6 @@ def organize_docs(d):
             organized["py-client"][cls]["prev_obj"] = organized["py-client"][
                 c_keys[len(c_keys) - 2]
             ]["name"]
-            organized["py-client"][cls]["next_obj"] = "JS-Client"
         else:
             organized["py-client"][cls]["prev_obj"] = organized["py-client"][
                 c_keys[i - 1]

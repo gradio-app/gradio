@@ -51,30 +51,29 @@
 		>
 		Documentation
 	</h1>
-
-	<nav class="grid grid-cols-1 gap-4 md:grid-cols-3 mt-8">
-		<a
-			href="/main/docs/python-library"
-			target="_self"
-			class="group group relative flex flex-col overflow-hidden md:first:row-span-3 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[2]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
-			><div
-				class="absolute hidden h-16 w-[550px] rotate-45 transform bg-{data.COLOR_SETS[2]}-100 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"
-			></div>
-			<div
-				class="relative mb-2 mt-auto flex items-center text-lg"
-			>
-				<span>Python Library</span>
-			</div>
-			<div class="  xlative pr-4 text-smd font-normal text-gray-400">
-				Build and share machine learning demos and web apps, in just a few lines
-				of Python.
-			</div>
-		</a>
-
+   
+	<nav class="grid grid-cols-1 gap-4 lg:grid-cols-2 mt-8">
+        <a
+    href="/main/docs/python-library"
+    target="_self"
+    class="group group relative flex flex-col overflow-hidden md:first:row-span-3 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[2]}-50 hover:shadow-alternate to-white shadow-none transition-shadow"
+    ><div
+        class="absolute hidden h-16 w-[550px] rotate-45 transform bg-{data.COLOR_SETS[2]}-100 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"
+    ></div>
+    <div
+        class="relative mb-2 mt-auto flex items-center text-lg"
+    >
+        <span>Python Library</span>
+    </div>
+    <div class="  relative pr-4 text-smd font-normal text-gray-400">
+        Build and share machine learning demos and web apps, in just a few lines
+        of Python.
+    </div>
+    </a>
 		<a
 			href="/main/docs/python-client"
 			target="_self"
-			class="group group relative flex flex-col overflow-hidden md:first:row-span-2 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[1]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+			class="group group relative flex flex-col overflow-hidden 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[1]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 			><div
 				class="absolute hidden h-16 w-[550px] rotate-45 transform bg-{data.COLOR_SETS[1]}-500 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"
 			></div>
@@ -88,7 +87,7 @@
 			</div>
 		</a>
 
-		<a
+		<!-- <a
 			href="/main/docs/lite"
 			target="_self"
 			class="group group relative flex flex-col overflow-hidden md:first:row-span-2 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[0]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
@@ -103,14 +102,14 @@
 			<div class="relative pr-4 text-smd font-normal text-gray-400">
 				Serverless Gradio running entirely in your browser.
 			</div>
-		</a>
+		</a> -->
 
-		<a
+        <a
 			href="/main/docs/js-client"
 			target="_self"
-			class="group group relative flex flex-col overflow-hidden md:first:row-span-2  2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[3]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+			class="group group relative flex flex-col overflow-hidden md:first:row-span-2  2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[0]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 			><div
-				class="absolute hidden h-16 w-[550px] rotate-45 transform bg-{data.COLOR_SETS[3]}-500 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"
+				class="absolute hidden h-16 w-[550px] rotate-45 transform bg-{data.COLOR_SETS[0]}-500 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"
 			></div>
 			<div
 				class="relative mb-2 mt-auto flex items-center text-lg"
@@ -121,13 +120,12 @@
 				A Javascript (and Typescript) client to call Gradio APIs.
 			</div>
 		</a>
-
-		<a
+        <a
 			href="/main/docs/js"
 			target="_self"
-			class="group group relative flex flex-col overflow-hidden md:first:row-span-22x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[4]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+			class="group group relative flex flex-col overflow-hidden md:first:row-span-22x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[3]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 			><div
-				class="absolute hidden h-16 w-[550px] rotate-45 transform bg-{data.COLOR_SETS[4]}-500 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"
+				class="absolute hidden h-16 w-[550px] rotate-45 transform bg-{data.COLOR_SETS[3]}-500 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"
 			></div>
 			<div
 				class="relative mb-2 mt-auto flex items-center text-lg"
@@ -140,7 +138,8 @@
 			</div>
 		</a>
 
-		<a
+
+		<!-- <a
 			href="/main/docs/custom-components"
 			target="_self"
 			class="group group relative flex flex-col overflow-hidden md:first:row-span-2 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[5]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
@@ -155,7 +154,7 @@
 			<div class="relative pr-4 text-smd font-normal text-gray-400">
 				Create, use and share your own custom components.
 			</div>
-		</a>
+		</a> -->
 	</nav>
 
 	<h1 class="mb-4 flex items-center text-2xl font-light mt-8">
