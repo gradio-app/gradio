@@ -31,13 +31,20 @@ from typing import (
     List,
     Optional,
     Type,
+    Union,
 )
 
 import fastapi
 import httpx
 import markupsafe
 import orjson
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
+from fastapi import (
+    BackgroundTasks,
+    Depends,
+    FastAPI,
+    HTTPException,
+    status,
+)
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
@@ -52,13 +59,16 @@ from gradio_client.utils import ServerMessage
 from jinja2.exceptions import TemplateNotFound
 from multipart.multipart import parse_options_header
 from starlette.background import BackgroundTask
+from starlette.datastructures import UploadFile as StarletteUploadFile
 from starlette.responses import RedirectResponse, StreamingResponse
 
 import gradio
 from gradio import ranged_response, route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import (
-    ComponentServerBody,
+    ComponentServerBlobBody,
+    ComponentServerJSONBody,
+    DataWithFiles,
     PredictBody,
     ResetBody,
     SimplePredictBody,
@@ -889,9 +899,71 @@ class App(FastAPI):
                 media_type="text/event-stream",
             )
 
-        @app.post("/component_server", dependencies=[Depends(login_check)])
-        @app.post("/component_server/", dependencies=[Depends(login_check)])
-        def component_server(body: ComponentServerBody):
+        async def get_item_or_file(
+            request: fastapi.Request,
+        ) -> Union[ComponentServerJSONBody, ComponentServerBlobBody]:
+            content_type = request.headers.get("Content-Type")
+
+            if isinstance(content_type, str) and content_type.startswith(
+                "multipart/form-data"
+            ):
+                files = []
+                data = {}
+                async with request.form() as form:
+                    for key, value in form.items():
+                        if (
+                            isinstance(value, list)
+                            and len(value) > 1
+                            and isinstance(value[0], StarletteUploadFile)
+                        ):
+                            for i, v in enumerate(value):
+                                if isinstance(v, StarletteUploadFile):
+                                    filename = v.filename
+                                    contents = await v.read()
+                                    files.append((filename, contents))
+                                else:
+                                    data[f"{key}-{i}"] = v
+                        elif isinstance(value, StarletteUploadFile):
+                            filename = value.filename
+                            contents = await value.read()
+                            files.append((filename, contents))
+                        else:
+                            data[key] = value
+
+                return ComponentServerBlobBody(
+                    data=DataWithFiles(data=data, files=files),
+                    component_id=data["component_id"],
+                    session_hash=data["session_hash"],
+                    fn_name=data["fn_name"],
+                )
+            else:
+                try:
+                    data = await request.json()
+                    return ComponentServerJSONBody(
+                        data=data["data"],
+                        component_id=data["component_id"],
+                        session_hash=data["session_hash"],
+                        fn_name=data["fn_name"],
+                    )
+
+                except Exception:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Invalid JSON body.",
+                    ) from None
+
+        @app.post(
+            "/component_server",
+            dependencies=[Depends(login_check)],
+        )
+        @app.post(
+            "/component_server/",
+            dependencies=[Depends(login_check)],
+        )
+        async def component_server(
+            request: fastapi.Request,
+        ):
+            body = await get_item_or_file(request)
             state = app.state_holder[body.session_hash]
             component_id = body.component_id
             block: Block

@@ -539,6 +539,10 @@ class Events:
         "key_up",
         doc="This listener is triggered when the user presses a key while the {{ component }} is focused.",
     )
+    apply = EventListener(
+        "apply",
+        doc="This listener is triggered when the user applies changes to the {{ component }} through an integrated UI action.",
+    )
 
 
 class LikeData(EventData):
