@@ -27,6 +27,8 @@
 		select: SelectData;
 	}>;
 
+	$: console.log({ component_map });
+
 	// Although the `samples_dir` prop is not used in any of the core Gradio component, it is kept for backward compatibility
 	// with any custom components created with gradio<=4.20.0
 	let samples_dir: string = proxy_url
@@ -100,7 +102,7 @@
 		);
 	}
 
-	$: get_component_meta(selected_samples);
+	$: component_map, get_component_meta(selected_samples);
 </script>
 
 <Block
