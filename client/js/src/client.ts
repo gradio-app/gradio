@@ -154,7 +154,6 @@ export class Client {
 				throw new Error("No config or app_id set");
 			}
 
-			// res(_config);
 			return this.config_success(config);
 		} catch (e) {
 			console.error(e);

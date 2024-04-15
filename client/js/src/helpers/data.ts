@@ -54,49 +54,57 @@ export async function walk_and_store_blobs(
 	type: string | undefined = undefined,
 	path: string[] = [],
 	root = false,
-	endpoint_info: EndpointInfo<ApiData | JsApiData>
+	api_info: EndpointInfo<ApiData | JsApiData> | undefined = undefined
 ): Promise<BlobRef[]> {
 	if (Array.isArray(param)) {
-		const blobRefs: BlobRef[] = [];
+		let blob_refs: BlobRef[] = [];
 
 		await Promise.all(
 			param.map(async (item, index) => {
-				const newPath = [...path, index.toString()];
-				const arrayRefs = await walk_and_store_blobs(
-					item,
-					root ? endpoint_info.parameters[index]?.component : type,
-					newPath,
+				let new_path = path.slice();
+				new_path.push(item);
+
+				const array_refs = await walk_and_store_blobs(
+					param[item],
+					root ? api_info?.parameters[item]?.component || undefined : type,
+					new_path,
 					false,
-					endpoint_info
+					api_info
 				);
-				blobRefs.push(...arrayRefs);
+
+				blob_refs = blob_refs.concat(array_refs);
 			})
 		);
 
-		return blobRefs;
+		return blob_refs;
 	} else if (globalThis.Buffer && param instanceof globalThis.Buffer) {
+		const is_image = type === "Image";
 		return [
 			{
-				path,
-				type,
-				blob: type === "Image" ? false : new NodeBlob([param])
+				path: path,
+				blob: is_image ? false : new NodeBlob([param]),
+				type
 			}
 		];
-	} else if (param && typeof param === "object") {
-		const recordParam = param as Record<string, any>;
-		const blobRefs: BlobRef[] = [];
-		for (const key of Object.keys(recordParam)) {
-			const newPath = [...path, key];
-			const refs = await walk_and_store_blobs(
-				recordParam[key],
-				undefined,
-				newPath,
-				false,
-				endpoint_info
-			);
-			blobRefs.push(...refs);
+	} else if (typeof param === "object") {
+		let blob_refs: BlobRef[] = [];
+		for (let key in param) {
+			if (param.hasOwnProperty(key)) {
+				let new_path = path.slice();
+				new_path.push(key);
+				blob_refs = blob_refs.concat(
+					await walk_and_store_blobs(
+						// @ts-ignore
+						param[key],
+						undefined,
+						new_path,
+						false,
+						api_info
+					)
+				);
+			}
 		}
-		return blobRefs;
+		return blob_refs;
 	}
 	return [];
 }
