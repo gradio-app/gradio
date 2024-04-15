@@ -81,8 +81,12 @@ def hi(name):
 			playground: false,
 			layout: null
 		});
+		// @ts-ignore
+		window.controller = controller; // For Playwright
 	});
 	onDestroy(() => {
+		// @ts-ignore
+		window.controller = undefined;
 		controller.unmount();
 	});
 

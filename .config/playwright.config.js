@@ -31,8 +31,8 @@ normal.projects = undefined; // Explicitly unset this field due to https://githu
 
 const lite = defineConfig(base, {
 	webServer: {
-		command: "python -m http.server 8000 --directory ../js/lite",
-		url: "http://localhost:8000/",
+		command: "pnpm --filter @gradio/app dev:lite",
+		url: "http://localhost:9876/lite.html",
 		reuseExistingServer: !process.env.CI
 	},
 	testMatch: [
