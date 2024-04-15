@@ -639,6 +639,7 @@ class TestImageEditor:
             "proxy_url": None,
             "name": "imageeditor",
             "server_fns": ["accept_blobs"],
+            "format": "webp",
         }
 
     def test_process_example(self):
