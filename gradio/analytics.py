@@ -184,21 +184,21 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
             x, BlockContext
         ) else blocks_telemetry.append(str(x))
 
-    for x in blocks.dependencies:
+    for x in blocks.fns:
         targets_telemetry = targets_telemetry + [
             # Sometimes the target can be the Blocks object itself, so we need to check if its in blocks.blocks
             str(blocks.blocks[y[0]])
-            for y in x["targets"]
+            for y in x.targets
             if y[0] in blocks.blocks
         ]
         events_telemetry = events_telemetry + [
-            y[1] for y in x["targets"] if y[0] in blocks.blocks
+            y[1] for y in x.targets if y[0] in blocks.blocks
         ]
         inputs_telemetry = inputs_telemetry + [
-            str(blocks.blocks[y]) for y in x["inputs"] if y in blocks.blocks
+            str(blocks.blocks[y]) for y in x.inputs if y in blocks.blocks
         ]
         outputs_telemetry = outputs_telemetry + [
-            str(blocks.blocks[y]) for y in x["outputs"] if y in blocks.blocks
+            str(blocks.blocks[y]) for y in x.outputs if y in blocks.blocks
         ]
     additional_data = {
         "version": get_package_version(),

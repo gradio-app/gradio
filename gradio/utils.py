@@ -54,7 +54,7 @@ from gradio.data_classes import FileData
 from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio.blocks import BlockContext, Blocks
+    from gradio.blocks import BlockContext, BlockFunction, Blocks
     from gradio.components import Component
     from gradio.routes import App, Request
 
@@ -808,17 +808,17 @@ def set_task_name(task, session_hash: str, fn_index: int, batch: bool):
 
 
 def get_cancel_function(
-    dependencies: list[dict[str, Any]],
+    dependencies: list[BlockFunction],
 ) -> tuple[Callable, list[int]]:
     fn_to_comp = {}
     for dep in dependencies:
         if Context.root_block:
             fn_index = next(
-                i for i, d in enumerate(Context.root_block.dependencies) if d == dep
+                i
+                for i, d in enumerate(Context.root_block.fns)
+                if d.get_config() == dep.get_config()
             )
-            fn_to_comp[fn_index] = [
-                Context.root_block.blocks[o] for o in dep["outputs"]
-            ]
+            fn_to_comp[fn_index] = dep.outputs
 
     async def cancel(session_hash: str) -> None:
         task_ids = {f"{session_hash}_{fn}" for fn in fn_to_comp}

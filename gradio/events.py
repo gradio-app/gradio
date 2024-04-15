@@ -320,7 +320,7 @@ class EventListener(str):
             )
             if _callback:
                 _callback(block)
-            return Dependency(block, dep, dep_index, fn)
+            return Dependency(block, dep.get_config(), dep_index, fn)
 
         event_trigger.event_name = _event_name
         event_trigger.has_trigger = _has_trigger
@@ -445,7 +445,7 @@ def on(
         trigger_mode=trigger_mode,
     )
     set_cancel_events(triggers, cancels)
-    return Dependency(None, dep, dep_index, fn)
+    return Dependency(None, dep.get_config(), dep_index, fn)
 
 
 class Events:
