@@ -13,6 +13,7 @@
 	import { Block } from "@gradio/atoms";
 	import { StatusTracker } from "@gradio/statustracker";
 	import type { LoadingStatus } from "@gradio/statustracker";
+	import { tick } from "svelte";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -26,6 +27,7 @@
 	export let show_label: boolean;
 	export let show_download_button: boolean;
 	export let root: string;
+	export let value_is_output = false;
 
 	export let height: number | undefined;
 	export let width: number | undefined;
@@ -99,7 +101,14 @@
 
 	function handle_save(): void {
 		gradio.dispatch("apply");
-		// gradio.dispatch("input");
+	}
+
+	function handle_history_change(): void {
+		gradio.dispatch("change");
+		if (!value_is_output) {
+			gradio.dispatch("input");
+			tick().then((_) => (value_is_output = false));
+		}
 	}
 </script>
 
@@ -158,7 +167,7 @@
 		/>
 
 		<InteractiveImageEditor
-			on:change={() => (gradio.dispatch("change"), gradio.dispatch("input"))}
+			on:change={() => handle_history_change()}
 			bind:image_id
 			{crop_size}
 			{value}
@@ -167,7 +176,6 @@
 			{sources}
 			{label}
 			{show_label}
-			on:change={handle_change}
 			on:save={(e) => handle_save()}
 			on:edit={() => gradio.dispatch("edit")}
 			on:clear={() => gradio.dispatch("clear")}

@@ -207,7 +207,6 @@
 		width: 100%;
 		left: 0;
 		right: 0;
-		background-color: rgba(0, 0, 0, 0.9);
 		margin: auto;
 		z-index: var(--layer-top);
 		display: flex;

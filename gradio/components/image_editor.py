@@ -104,10 +104,6 @@ class Brush(Eraser):
             )
 
 
-class EditorId(GradioModel):
-    id: str
-
-
 @document()
 class ImageEditor(Component):
     """
@@ -125,6 +121,7 @@ class ImageEditor(Component):
         Events.upload,
         Events.apply,
     ]
+
     data_model = EditorData
 
     def __init__(
@@ -161,6 +158,7 @@ class ImageEditor(Component):
         transforms: Iterable[Literal["crop"]] = ("crop",),
         eraser: Eraser | None | Literal[False] = None,
         brush: Brush | None | Literal[False] = None,
+        format: str = "webp",
     ):
         """
         Parameters:
@@ -188,6 +186,8 @@ class ImageEditor(Component):
             transforms: The transforms tools to make available to users. "crop" allows the user to crop the image.
             eraser: The options for the eraser tool in the image editor. Should be an instance of the `gr.Eraser` class, or None to use the default settings. Can also be False to hide the eraser tool.
             brush: The options for the brush tool in the image editor. Should be an instance of the `gr.Brush` class, or None to use the default settings. Can also be False to hide the brush tool, which will also hide the eraser tool.
+            format: Format to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image).  The format should be supported by the PIL library. This parameter has no effect on SVG files.
+
         """
         self._selectable = _selectable
         self.mirror_webcam = mirror_webcam
@@ -223,6 +223,7 @@ class ImageEditor(Component):
         self.eraser = Eraser() if eraser is None else eraser
         self.brush = Brush() if brush is None else brush
         self.blob_storage: dict[str, EditorDataBlobs] = {}
+        self.format = format
 
         super().__init__(
             label=label,
@@ -252,7 +253,7 @@ class ImageEditor(Component):
         )
         if isinstance(file, (bytes, bytearray, memoryview)):
             name = "image"
-            suffix = "webp"
+            suffix = self.format
         elif file.orig_name:
             p = Path(file.orig_name)
             name = p.stem
@@ -261,7 +262,7 @@ class ImageEditor(Component):
                 suffix = "jpeg"
         else:
             name = "image"
-            suffix = "webp"
+            suffix = self.format
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
@@ -349,7 +350,7 @@ class ImageEditor(Component):
                     path=image_utils.save_image(
                         cast(Union[np.ndarray, PIL.Image.Image, str], layer),
                         self.GRADIO_CACHE,
-                        format="webp",
+                        format=self.format,
                     )
                 )
                 for layer in value["layers"]
@@ -362,7 +363,7 @@ class ImageEditor(Component):
             background=(
                 FileData(
                     path=image_utils.save_image(
-                        value["background"], self.GRADIO_CACHE, format="webp"
+                        value["background"], self.GRADIO_CACHE, format=self.format
                     )
                 )
                 if value["background"] is not None
@@ -376,7 +377,7 @@ class ImageEditor(Component):
                             Union[np.ndarray, PIL.Image.Image, str], value["composite"]
                         ),
                         self.GRADIO_CACHE,
-                        format="webp",
+                        format=self.format,
                     )
                 )
                 if value["composite"] is not None
