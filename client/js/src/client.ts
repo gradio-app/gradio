@@ -238,16 +238,20 @@ export class Client {
 	public async component_server(
 		component_id: number,
 		fn_name: string,
-		data: unknown[]
+		data: unknown[] | { binary: boolean; data: Record<string, any> }
 	): Promise<unknown> {
 		const headers: {
 			Authorization?: string;
-			"Content-Type": "application/json";
-		} = { "Content-Type": "application/json" };
+			"Content-Type"?: "application/json";
+		} = {};
 
-		if (this.options.hf_token) {
+		const { hf_token } = this.options;
+		const { session_hash } = this;
+
+		if (hf_token) {
 			headers.Authorization = `Bearer ${this.options.hf_token}`;
 		}
+
 		let root_url: string;
 		let component = this.config.components.find(
 			(comp) => comp.id === component_id
@@ -257,28 +261,59 @@ export class Client {
 		} else {
 			root_url = this.config.root;
 		}
-		const response = await this.fetch_implementation(
-			`${root_url}/component_server/`,
-			{
-				method: "POST",
-				body: JSON.stringify({
-					data: data,
-					component_id: component_id,
-					fn_name: fn_name,
-					session_hash: this.session_hash
-				}),
-				headers
-			}
-		);
 
-		if (!response.ok) {
-			throw new Error(
-				"Could not connect to component server: " + response.statusText
-			);
+		let body: FormData | string;
+
+		if ("binary" in data) {
+			body = new FormData();
+			for (const key in data.data) {
+				if (key === "binary") continue;
+				body.append(key, data.data[key]);
+			}
+			body.set("component_id", component_id.toString());
+			body.set("fn_name", fn_name);
+			body.set("session_hash", session_hash);
+		} else {
+			body = JSON.stringify({
+				data: data,
+				component_id,
+				fn_name,
+				session_hash
+			});
+
+			headers["Content-Type"] = "application/json";
 		}
 
-		const output = await response.json();
-		return output;
+		if (hf_token) {
+			headers.Authorization = `Bearer ${hf_token}`;
+		}
+
+		try {
+			const response = await this.fetch_implementation(
+				`${root_url}/component_server/`,
+				{
+					method: "POST",
+					body: JSON.stringify({
+						data: data,
+						component_id: component_id,
+						fn_name: fn_name,
+						session_hash: this.session_hash
+					}),
+					headers
+				}
+			);
+
+			if (!response.ok) {
+				throw new Error(
+					"Could not connect to component server: " + response.statusText
+				);
+			}
+
+			const output = await response.json();
+			return output;
+		} catch (e) {
+			console.warn(e);
+		}
 	}
 
 	private prepare_return_obj(): client_return {
