@@ -19,12 +19,14 @@ space="WoWoWoWololo/wrapping-layouts">
 ## Implementation
 
 - The wrapping utility has two important classes. The first one is the ```LayoutBase``` class and the other one is the ```Application``` class.
-- We are going to look at the render and attach_event functions of them for brevity. You can look at their full implementation from [the example code](https://huggingface.co/spaces/WoWoWoWololo/wrapping-layouts/blob/main/app.py).
+- We are going to look at the ```render``` and ```attach_event``` functions of them for brevity. You can look at the full implementation from [the example code](https://huggingface.co/spaces/WoWoWoWololo/wrapping-layouts/blob/main/app.py).
 - So let's start with the ```LayoutBase``` class.
 
 ### LayoutBase Class
 
 1. Render Function
+
+- Let's look at the ```render``` function in the ```LayoutBase``` class:
 
 ```python
 # other LayoutBase implementations
@@ -79,8 +81,7 @@ with Tab():
         second_textbox = Textbox(value="second_textbox")
 ```
 
-- Pay attention to the Row and Tab this time. We created the Textbox variables above and added them to Row with ```with``` syntax. Now we need to add the Row component to the Tab component. You can see that Row component is created with default parameters, so its render parameter is true, that's why the render function is going to be executed under the Tab component's ```with``` syntax.
-- [x] As we know from the above example, it is going to be added in the Tab component because the Tab component is calling the render function under the ```with``` syntax.
+- Pay attention to the Row and Tab components this time. We have created the Textbox variables above and added them to Row with ```with``` syntax. Now we need to add the Row component to the Tab component. You can see that Row component is created with default parameters, so its render parameter is true, that's why the render function is going to be executed under the Tab component's ```with``` syntax.
 - To mimic this implementation, we need to call the ```render``` function of the ```main_layout``` variable after the ```with``` syntax of the ```main_layout``` variable.
 
 - So the implementation looks like this:
@@ -96,7 +97,8 @@ with tab_main_layout:
 tab_main_layout.render()
 ```
 
-- The default implementation and new implementation are the same, but we are using the render function ourselves. So it requires a little work.
+- The default implementation and our implementation are the same, but we are using the render function ourselves. So it requires a little work.
+- Now, let's look at the ```attach_event``` function.
 
 2. Attach Event Function
 
@@ -108,6 +110,8 @@ tab_main_layout.render()
     def attach_event(self, block_dict: Dict[str, Block]) -> None:
         raise NotImplementedError
 ```
+
+- You can see what is the ```block_dict``` variable in the ```Application``` class's ```attach_event``` function.
 
 ### Application Class
 
@@ -148,9 +152,9 @@ tab_main_layout.render()
                     print(f"{child.name}'s attach_event is not implemented")
 ```
 
-- You can see why the ```global_children_list``` is used in the ```LayoutBase``` class. With this, all the components in the application are gathered into one dictionary, so the component can access all the components with their names.
-- If the layout does not implement the ```attach_event``` function, the class prints a message with the name that is assigned in the class to inform the developer.
-- ```with``` syntax is used here again to attach events to components.
+- You can see why the ```global_children_list``` is used in the ```LayoutBase``` class from the example code. With this, all the components in the application are gathered into one dictionary, so the component can access all the components with their names.
+- ```with``` syntax is used here again to attach events to components. If we look at the ```__exit__``` function in the ```gradio.blocks.Blocks``` class, we can see that it is calling the ```attach_load_events``` function which is used for setting event triggers to components. So we have to use the ```with``` syntax to trigger the ```__exit__``` function.
+- Yes, we can call ```attach_load_events``` function without using ```with``` syntax, but the function needs a ```Context.root_block```, and it is set in the ```__enter__``` function. So we used ```with``` syntax here rather than calling functions ourselves.
 
 ## Conclusion
 
