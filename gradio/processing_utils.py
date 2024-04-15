@@ -214,7 +214,8 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
         response = http.request(
             "GET",
             url,
-            preload_content=False,
+            preload_content=False,  # Stream the content
+            redirect=True,  # Follow redirects
         )
         with open(full_temp_file_path, "wb") as f:
             for chunk in response.stream():
