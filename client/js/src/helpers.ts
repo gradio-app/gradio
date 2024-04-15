@@ -10,7 +10,7 @@ export async function resolve_config(
 		? { Authorization: `Bearer ${token}` }
 		: {};
 
-	// headers["Content-Type"] = "application/json";
+	headers["Content-Type"] = "application/json";
 
 	if (
 		typeof window !== "undefined" &&
