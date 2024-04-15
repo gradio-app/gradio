@@ -25,6 +25,19 @@
 		}
 	});
 
+	async function validate_layers(): Promise<void> {
+		let invalid = layers.some(
+			(layer) =>
+				layer.composite.texture.width != $dimensions[0] ||
+				layer.composite.texture.height != $dimensions[1]
+		);
+		if (invalid) {
+			LayerManager.reset();
+			new_layer();
+		}
+	}
+	$: $dimensions, validate_layers();
+
 	async function new_layer(): Promise<void> {
 		if (!$pixi) return;
 
