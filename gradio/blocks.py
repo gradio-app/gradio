@@ -1005,12 +1005,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             # Allows some use of Interface-specific methods with loaded Spaces
             if first_dependency and Context.root_block:
                 blocks.predict = [fns[0]]
-                blocks.input_components = [
-                    Context.root_block.blocks[i] for i in first_dependency["inputs"]
-                ]
-                blocks.output_components = [
-                    Context.root_block.blocks[o] for o in first_dependency["outputs"]
-                ]
+                blocks.input_components = first_dependency.inputs
+                blocks.output_components = first_dependency.outputs
                 blocks.__name__ = "Interface"
                 blocks.api_mode = True
         blocks.proxy_urls = proxy_urls
@@ -1217,7 +1213,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         if api_name is not False:
             api_name = utils.append_unique_suffix(
-                api_name, [fn.api_name for fn in self.fns]
+                api_name,
+                [fn.api_name for fn in self.fns if isinstance(fn.api_name, str)],
             )
         else:
             show_api = False
@@ -1280,7 +1277,11 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 if api_name is not None and api_name is not False:
                     api_name_ = utils.append_unique_suffix(
                         api_name,
-                        [dep.api_name for dep in Context.root_block.fns],
+                        [
+                            dep.api_name
+                            for dep in Context.root_block.fns
+                            if isinstance(dep.api_name, str)
+                        ],
                     )
                     if api_name != api_name_:
                         dependency.api_name = api_name_
