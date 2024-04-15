@@ -4,8 +4,11 @@
 	import ResponsePreview from "../../lib/ResponsePreview.svelte";
 
 	let api = "gradio/cancel_events";
-	let hf_token = "";
 
+	/**
+	 * @type {`hf_${string}`}
+	 */
+	let hf_token = "hf_";
 	/**
 	 * @type Client
 	 */
@@ -43,7 +46,7 @@
 		if (!api || (hf_token && !hf_token.startsWith("hf_"))) return;
 
 		app = await Client.create(api, {
-			hf_token
+			hf_token,
 		});
 
 		const { named_endpoints, unnamed_endpoints } = await app.view_api();

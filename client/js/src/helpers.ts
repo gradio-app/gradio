@@ -24,6 +24,7 @@ export async function resolve_config(
 		let config_root = resolve_root(endpoint, config.root, false);
 
 		config.root = config_root;
+		// @ts-ignore
 		return { ...config, path };
 	}
 
