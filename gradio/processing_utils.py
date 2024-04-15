@@ -233,10 +233,22 @@ async def async_save_url_to_cache(url: str, cache_dir: str) -> str:
     full_temp_file_path = str(abspath(temp_dir / name))
 
     if not Path(full_temp_file_path).exists():
-        async with async_client.stream("GET", url, follow_redirects=True) as response:
+        if wasm_utils.IS_WASM:
+            # NOTE: We use pyodide.http instead of httpx. pyodide.http is a wrapper around fetch() that works in the Wasm environment. See https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.pyfetch
+            import pyodide.http
+
+            response = await pyodide.http.pyfetch(url)
+            if not response.ok:
+                raise Exception(f"Failed to download {url}")
             async with aiofiles.open(full_temp_file_path, "wb") as f:
-                async for chunk in response.aiter_raw():
-                    await f.write(chunk)
+                await f.write(await response.bytes())
+        else:
+            async with async_client.stream(
+                "GET", url, follow_redirects=True
+            ) as response:
+                async with aiofiles.open(full_temp_file_path, "wb") as f:
+                    async for chunk in response.aiter_raw():
+                        await f.write(chunk)
 
     return full_temp_file_path
 
