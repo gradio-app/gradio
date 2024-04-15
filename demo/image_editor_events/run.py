@@ -37,6 +37,7 @@ with gr.Blocks() as demo:
                 label="apply",
                 elem_id="apply",
             )
+    clear_btn = gr.Button("Clear", elem_id="clear")
 
     im.upload(
         lambda x: int(x) + 1, outputs=n_upload, inputs=n_upload, show_progress="hidden"
@@ -51,6 +52,11 @@ with gr.Blocks() as demo:
         lambda x: int(x) + 1, outputs=n_apply, inputs=n_apply, show_progress="hidden"
     )
     im.change(predict, outputs=im_preview, inputs=im, show_progress="hidden")
+    clear_btn.click(
+        lambda: None,
+        None,
+        im,
+    )
 
 if __name__ == "__main__":
     demo.launch()
