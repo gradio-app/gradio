@@ -72,7 +72,6 @@ export function create_components(): {
 			fill_height: boolean;
 		};
 	}): void {
-		console.log("recreate_layout");
 		app = _app;
 		_components = components;
 		inputs = new Set();
@@ -135,7 +134,6 @@ export function create_components(): {
 		))!?.default;
 
 		if (instance.type === "dataset") {
-			console.log("dataset");
 			instance.props.component_map = get_component(
 				instance.type,
 				instance.component_class_id,
@@ -143,7 +141,6 @@ export function create_components(): {
 				_components,
 				instance.props.components
 			).example_components;
-			console.log("dataset", instance.props.component_map);
 		}
 
 		if (_target_map[instance.id]) {
