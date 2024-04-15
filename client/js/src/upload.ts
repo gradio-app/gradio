@@ -11,8 +11,7 @@ export async function upload(
 	);
 
 	return await Promise.all(
-		// @ts-ignore
-		await upload_fn(root, files, undefined, upload_id).then(
+		await upload_fn(root, files, fetch, undefined, upload_id).then(
 			async (response: { files?: string[]; error?: string }) => {
 				if (response.error) {
 					throw new Error(response.error);
