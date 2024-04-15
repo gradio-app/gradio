@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getContext, onMount, tick } from "svelte";
+	import { getContext, onMount, tick, createEventDispatcher } from "svelte";
 	import { type ToolContext, TOOL_KEY } from "./Tools.svelte";
 	import { type EditorContext, EDITOR_KEY } from "../ImageEditor.svelte";
 	import {
@@ -28,8 +28,12 @@
 	const { pixi, dimensions, register_context, reset, editor_box } =
 		getContext<EditorContext>(EDITOR_KEY);
 
-	let active_mode: "webcam" | "color" | null = null;
+	export let active_mode: "webcam" | "color" | null = null;
 	let background: Blob | File | null;
+
+	const dispatch = createEventDispatcher<{
+		upload: never;
+	}>();
 
 	const sources_meta = {
 		upload: {
@@ -203,7 +207,6 @@
 		width: 100%;
 		left: 0;
 		right: 0;
-		background-color: rgba(0, 0, 0, 0.9);
 		margin: auto;
 		z-index: var(--layer-top);
 		display: flex;

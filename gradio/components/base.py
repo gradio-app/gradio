@@ -147,9 +147,10 @@ class Component(ComponentBase, Block):
         every: float | None = None,
     ):
         self.server_fns = [
-            value
-            for value in self.__class__.__dict__.values()
-            if callable(value) and getattr(value, "_is_server_fn", False)
+            getattr(self, value)
+            for value in dir(self.__class__)
+            if callable(getattr(self, value))
+            and getattr(getattr(self, value), "_is_server_fn", False)
         ]
 
         # Svelte components expect elem_classes to be a list
