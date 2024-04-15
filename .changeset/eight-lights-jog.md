@@ -1,7 +1,7 @@
 ---
-"@gradio/app": minor
-"@gradio/dataset": minor
-"gradio": minor
+"@gradio/app": patch
+"@gradio/dataset": patch
+"gradio": patch
 ---
 
-feat:ensure maps are correctly shallow cloned when updating state
+fix:ensure maps are correctly shallow cloned when updating state
