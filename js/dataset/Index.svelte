@@ -100,7 +100,7 @@
 		);
 	}
 
-	$: get_component_meta(selected_samples);
+	$: component_map, get_component_meta(selected_samples);
 </script>
 
 <Block
