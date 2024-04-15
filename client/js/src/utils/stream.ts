@@ -2,7 +2,7 @@ import { BROKEN_CONNECTION_MSG } from "../constants";
 import type { Config } from "../types";
 
 export function open_stream(
-	stream_open: { open: boolean },
+	stream_status: { open: boolean },
 	session_hash: string,
 	config: Config,
 	event_callbacks: Record<string, () => Promise<void>>,
@@ -11,7 +11,7 @@ export function open_stream(
 	eventSource_factory: (url: URL) => EventSource,
 	event_source: EventSource
 ): void {
-	stream_open.open = true;
+	stream_status.open = true;
 
 	let params = new URLSearchParams({
 		session_hash: session_hash
@@ -23,7 +23,7 @@ export function open_stream(
 	event_source.onmessage = async function (event) {
 		let _data = JSON.parse(event.data);
 		if (_data.msg === "close_stream") {
-			close_stream(stream_open, event_source);
+			close_stream(stream_status, event_source);
 			return;
 		}
 		const event_id = _data.event_id;
@@ -42,7 +42,7 @@ export function open_stream(
 			) {
 				unclosed_events.delete(event_id);
 				if (unclosed_events.size === 0) {
-					close_stream(stream_open, event_source);
+					close_stream(stream_status, event_source);
 				}
 			}
 			let fn = event_callbacks[event_id];
@@ -64,16 +64,16 @@ export function open_stream(
 				})
 			)
 		);
-		close_stream(stream_open, event_source);
+		close_stream(stream_status, event_source);
 	};
 }
 
 export function close_stream(
-	stream_open: { open: boolean },
+	stream_status: { open: boolean },
 	event_source: EventSource | null
 ): void {
-	if (stream_open && event_source) {
-		stream_open.open = false;
+	if (stream_status && event_source) {
+		stream_status.open = false;
 		event_source?.close();
 	}
 }

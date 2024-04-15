@@ -33,7 +33,6 @@ export async function handle_blob(
 				path,
 				file_url,
 				type,
-				// @ts-ignore
 				name: blob?.name
 			};
 		})

@@ -85,7 +85,7 @@ export function submit(
 				: "";
 
 		let {
-			stream_open,
+			stream_status,
 			pending_stream_messages,
 			pending_diff_streams,
 			event_callbacks,
@@ -651,8 +651,8 @@ export function submit(
 									time: new Date()
 								});
 								if (["sse_v2", "sse_v2.1"].includes(protocol)) {
-									close_stream(stream_open, event_source);
-									stream_open.open = false;
+									close_stream(stream_status, event_source);
+									stream_status.open = false;
 								}
 							}
 						};
@@ -664,9 +664,9 @@ export function submit(
 						// @ts-ignore
 						event_callbacks[event_id] = callback;
 						unclosed_events.add(event_id);
-						if (!stream_open.open) {
+						if (!stream_status.open) {
 							open_stream(
-								stream_open,
+								stream_status,
 								session_hash,
 								config,
 								event_callbacks,

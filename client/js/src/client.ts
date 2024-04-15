@@ -41,7 +41,7 @@ export class Client {
 	last_status: Record<string, Status["stage"]> = {};
 
 	// streaming
-	stream_open = { open: false };
+	stream_status = { open: false };
 	pending_stream_messages: Record<string, any[][]> = {};
 	pending_diff_streams: Record<string, any[][]> = {};
 	event_stream: EventSource | null = null;

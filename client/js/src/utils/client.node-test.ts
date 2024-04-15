@@ -138,7 +138,6 @@ describe("handle_blob", () => {
 			}
 		];
 
-		// @ts-ignore
 		const parts = await handle_blob(app.config.root, obj, undefined, undefined);
 		//@ts-ignore
 		// assert.isString(parts.data[0].a[0].b[0].data[0][0]);
