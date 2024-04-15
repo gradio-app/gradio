@@ -42,8 +42,7 @@ export function submit(
 		const fetch_implementation = this.fetch_implementation;
 		const app_reference = this.app_reference;
 		const config: Config = this.config;
-		const session_hash = Math.random().toString(36).substring(2);
-		const event_callbacks: Record<string, () => Promise<void>> = {};
+		const session_hash = this.session_hash;
 
 		// API variables
 		const api = this.api;
@@ -85,11 +84,13 @@ export function submit(
 				? new URLSearchParams(window.location.search).toString()
 				: "";
 
-		// SSE variables
-		let stream_open = false;
-		let pending_stream_messages: Record<string, any[]> = {}; // Event messages may be received by the SSE stream before the initial data POST request is complete. To resolve this race condition, we store the messages in a dictionary and process them when the POST request is complete.
-		let pending_diff_streams: Record<string, any[][]> = {};
-		const unclosed_events: Set<string> = new Set();
+		let {
+			stream_open,
+			pending_stream_messages,
+			pending_diff_streams,
+			event_callbacks,
+			unclosed_events
+		} = this;
 
 		let jwt: false | string = false;
 
@@ -653,6 +654,7 @@ export function submit(
 								});
 								if (["sse_v2", "sse_v2.1"].includes(protocol)) {
 									close_stream(stream_open, event_source);
+									stream_open = false;
 								}
 							}
 						};
@@ -672,7 +674,8 @@ export function submit(
 								event_callbacks,
 								unclosed_events,
 								pending_stream_messages,
-								this.eventSource_factory
+								this.eventSource_factory,
+								event_source
 							);
 						}
 					}
@@ -698,7 +701,7 @@ function get_endpoint_info(
 } {
 	let fn_index: number;
 	let api_info;
-	let dependency;
+	let dependency; // todo: check where this is used
 
 	if (typeof endpoint === "number") {
 		fn_index = endpoint;

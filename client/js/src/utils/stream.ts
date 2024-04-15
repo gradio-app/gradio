@@ -8,7 +8,8 @@ export function open_stream(
 	event_callbacks: Record<string, () => Promise<void>>,
 	unclosed_events: Set<string>,
 	pending_stream_messages: Record<string, any[][]>,
-	eventSource_factory: (url: URL) => EventSource
+	eventSource_factory: (url: URL) => EventSource,
+	event_source: EventSource
 ): void {
 	stream_open = true;
 
@@ -17,7 +18,7 @@ export function open_stream(
 	}).toString();
 
 	let url = new URL(`${config.root}/queue/data?${params}`);
-	let event_source = eventSource_factory(url);
+	event_source = eventSource_factory(url);
 
 	event_source.onmessage = async function (event) {
 		let _data = JSON.parse(event.data);

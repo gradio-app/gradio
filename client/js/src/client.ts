@@ -40,6 +40,14 @@ export class Client {
 	jwt: string | false = false;
 	last_status: Record<string, Status["stage"]> = {};
 
+	// streaming
+	stream_open = false;
+	pending_stream_messages: Record<string, any[][]> = {};
+	pending_diff_streams: Record<string, any[][]> = {};
+	event_stream: EventSource | null = null;
+	event_callbacks: Record<string, () => Promise<void>> = {};
+	unclosed_events: Set<string> = new Set();
+
 	fetch_implementation(
 		input: RequestInfo | URL,
 		init?: RequestInit
