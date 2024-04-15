@@ -8,16 +8,17 @@ Gradio features [blocks](https://www.gradio.app/docs/blocks) to easily layout ap
 
 In this guide, we are going to explore how we can wrap the layout classes to create more maintainable and easy-to-read applications without sacrificing flexibility.
 
-## Example 
+## Example
+
 - We are going to follow the implementation from this Huggingface Space example:
 
-<gradio-app 
+<gradio-app
 space="WoWoWoWololo/wrapping-layouts">
 </gradio-app>
 
 ## Implementation
 
-- The wrapping utility has two important classes. The first one is the ```LayoutBase``` class and the other one is the ```Application``` class. 
+- The wrapping utility has two important classes. The first one is the ```LayoutBase``` class and the other one is the ```Application``` class.
 - We are going to look at the render and attach_event functions of them for brevity. You can look at their full implementation from [the example code](https://huggingface.co/spaces/WoWoWoWololo/wrapping-layouts/blob/main/app.py).
 - So let's start with the ```LayoutBase``` class.
 
@@ -46,7 +47,7 @@ with Row():
     right_textbox = Textbox(value="right_textbox")
 ```
 
-- Pay attention to the textbox variables. These variables' render parameter is true by default. So as we use ```with``` syntax and create these variables, they are calling the render function under the ```with``` syntax. 
+- Pay attention to the Textbox variables. These variables' render parameter is true by default. So as we use ```with``` syntax and create these variables, they are calling the render function under the ```with``` syntax.
 - We know the render function is called in the constructor with the implementation from the ```gradio.blocks.Block``` class:
 
 ```python
@@ -68,7 +69,7 @@ with self.main_layout:
     right_textbox.render()
 ```
 
-- So with calling the components' render functions under the ```with``` syntax, we are simulating the default implementation actually.
+- So with calling the components' render functions under the ```with``` syntax, we are simulating the default implementation, actually.
 - If we understand the below ```with``` syntax, let's move on the upper ```with``` syntax. For this, let's expand our example with ```Tab``` component:
 
 ```python
@@ -78,8 +79,9 @@ with Tab():
         second_textbox = Textbox(value="second_textbox")
 ```
 
-- Pay attention to the Row and Tab this time. We created the textbox variables above and added them to Row with ```with``` syntax. Now we need to add the Row to the Tab. You can see that Row is created with default parameters, so its render parameter is true, that's why the render function is going to be executed under the Tabs ```with``` syntax. As we know from the above example, it is going to be added in the Tab because the Tab is calling the render function under the ```with``` syntax.
-- To mimic this implementation we need to call the ```render``` function of the ```main_layout``` variable after the ```with``` syntax of the ```main_layout``` variable.
+- Pay attention to the Row and Tab this time. We created the Textbox variables above and added them to Row with ```with``` syntax. Now we need to add the Row component to the Tab component. You can see that Row component is created with default parameters, so its render parameter is true, that's why the render function is going to be executed under the Tab component's ```with``` syntax.
+- [x] As we know from the above example, it is going to be added in the Tab component because the Tab component is calling the render function under the ```with``` syntax.
+- To mimic this implementation, we need to call the ```render``` function of the ```main_layout``` variable after the ```with``` syntax of the ```main_layout``` variable.
 
 - So the implementation looks like this:
 
@@ -94,31 +96,11 @@ with tab_main_layout:
 tab_main_layout.render()
 ```
 
-- The default implementation and our implementation are the same, but we are using the render function ourselves. So it requires a little work.
+- The default implementation and new implementation are the same, but we are using the render function ourselves. So it requires a little work.
 
-1. Attach Event Function
+2. Attach Event Function
 
-- After we create the ```Application``` and render the components, we can clear the components because the components are going to be live in the ```app``` variable which is a variable of the ```Application``` class. You can check this with the ```app.blocks``` variable.
-- So let's implement the ```clear``` function:
-
-```python
-    # other LayoutBase implementations
-
-    def clear(self) -> None:
-        self.global_children_dict.clear()
-
-        for renderable in self.renderables:
-            if isinstance(renderable, LayoutBase):
-                renderable.clear()
-
-        self.renderables.clear()
-```
-
-- We choose the layouts from the renderables list variable and call the ```clear``` function of them. With this, we can be sure that all the objects that are stored are cleaned.
-
----------------------------------------------
-
-- Now the last function we have to implement in the ```LayoutBase``` class is the ```attach_event``` function. The function is left as not implemented because it is specific to the class, so each class has to implement its `attach_event` function.
+- The function is left as not implemented because it is specific to the class, so each class has to implement its `attach_event` function.
 
 ```python
     # other LayoutBase implementations
@@ -126,8 +108,6 @@ tab_main_layout.render()
     def attach_event(self, block_dict: Dict[str, Block]) -> None:
         raise NotImplementedError
 ```
-
-- You can see what is the ```block_dict``` variable in the ```_attach_event``` function which is implemented in the ```Application``` class.
 
 ### Application Class
 
@@ -149,7 +129,7 @@ tab_main_layout.render()
 
 2. Attach Event Function
 
-- Let's see how we can attach events to components with new classes that we have implemented with the ```_attach_event``` function:
+- Let's see how we can attach events to components:
 
 ```python
     # other Application implementations
@@ -173,10 +153,11 @@ tab_main_layout.render()
 - ```with``` syntax is used here again to attach events to components.
 
 ## Conclusion
-- In this guide, we have learned
-    - How we can wrap the layouts
-    - How components are rendered
-    - How we can structure our application with wrapped layout classes
+
+- In this guide, we saw
+  - How we can wrap the layouts
+  - How components are rendered
+  - How we can structure our application with wrapped layout classes
 
 - Because the classes used in this guide are used for demonstration purposes, they may lack optimizations or useful functionality. But this is the subject of another guide.
 - I hope this guide helps you to gain another view to look at the layout classes and gives you an idea about how you can use them for your needs.
