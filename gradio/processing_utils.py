@@ -236,7 +236,7 @@ async def async_save_url_to_cache(url: str, cache_dir: str) -> str:
     if not Path(full_temp_file_path).exists():
         if wasm_utils.IS_WASM:
             # NOTE: We use pyodide.http instead of httpx. pyodide.http is a wrapper around fetch() that works in the Wasm environment. See https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.pyfetch
-            import pyodide.http
+            import pyodide.http  # type: ignore
 
             response = await pyodide.http.pyfetch(url)
             if not response.ok:
