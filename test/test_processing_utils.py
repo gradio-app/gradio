@@ -135,7 +135,7 @@ class TestImagePreprocessing:
         input_img.save(gradio_temp_dir / "test_test_image.png")
 
         file_obj = processing_utils.save_pil_to_cache(
-            input_img, cache_dir=gradio_temp_dir
+            input_img, cache_dir=gradio_temp_dir, format="png"
         )
         output_img = Image.open(file_obj)
 
@@ -170,16 +170,19 @@ class TestImagePreprocessing:
         )
         img_cp2 = Image.open(str(gradio_temp_dir / "img_color_profile_2.png"))
 
-        img_path = processing_utils.save_pil_to_cache(img, cache_dir=gradio_temp_dir)
+        img_path = processing_utils.save_pil_to_cache(
+            img, cache_dir=gradio_temp_dir, format="png"
+        )
         img_metadata_path = processing_utils.save_pil_to_cache(
-            img_metadata, cache_dir=gradio_temp_dir
+            img_metadata, cache_dir=gradio_temp_dir, format="png"
         )
         img_cp1_path = processing_utils.save_pil_to_cache(
-            img_cp1, cache_dir=gradio_temp_dir
+            img_cp1, cache_dir=gradio_temp_dir, format="png"
         )
         img_cp2_path = processing_utils.save_pil_to_cache(
-            img_cp2, cache_dir=gradio_temp_dir
+            img_cp2, cache_dir=gradio_temp_dir, format="png"
         )
+
         assert len({img_path, img_metadata_path, img_cp1_path, img_cp2_path}) == 4
 
     def test_resize_and_crop(self):

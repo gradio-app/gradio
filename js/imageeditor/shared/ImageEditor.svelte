@@ -69,6 +69,7 @@
 	const dispatch = createEventDispatcher<{
 		clear?: never;
 		save: void;
+		change: void;
 	}>();
 	export let crop_constraint = false;
 
@@ -102,6 +103,8 @@
 	const CommandManager = command_manager();
 
 	const { can_redo, can_undo, current_history } = CommandManager;
+
+	$: $current_history.previous, dispatch("change");
 
 	$: {
 		history = !!$current_history.previous || $active_tool !== "bg";
@@ -361,9 +364,6 @@
 	.stage-wrap {
 		margin: var(--size-8);
 		margin-bottom: var(--size-1);
-	}
-
-	.bg {
 	}
 
 	.image-container {
