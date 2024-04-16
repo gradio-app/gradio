@@ -7,8 +7,11 @@
 "@gradio/image": minor
 "@gradio/model3d": minor
 "@gradio/multimodaltextbox": minor
+"@gradio/storybook": minor
+"@gradio/tootils": minor
 "@gradio/upload": minor
 "@gradio/uploadbutton": minor
+"@gradio/utils": minor
 "@gradio/video": minor
 "gradio": minor
 "gradio_client": minor
