@@ -501,8 +501,15 @@ class BlockFunction:
         self.trigger_only_on_success = trigger_only_on_success
         self.trigger_mode = trigger_mode
         self.queue = False if fn is None else queue
-        self.scroll_to_output = scroll_to_output
+        self.scroll_to_output = False if utils.get_space() else scroll_to_output
         self.show_api = show_api
+        self.zero_gpu = hasattr(self.fn, "zerogpu")
+        self.types_continuous = bool(self.every)
+        self.types_generator = (
+            inspect.isgeneratorfunction(self.fn)
+            or inspect.isasyncgenfunction(self.fn)
+            or bool(self.every)
+        )
         self.spaces_auto_wrap()
 
     def spaces_auto_wrap(self):
@@ -533,24 +540,22 @@ class BlockFunction:
             "js": self.js,
             "queue": self.queue,
             "api_name": self.api_name,
-            "scroll_to_output": False if utils.get_space() else self.scroll_to_output,
+            "scroll_to_output": self.scroll_to_output,
             "show_progress": self.show_progress,
             "every": self.every,
             "batch": self.batch,
             "max_batch_size": self.max_batch_size,
             "cancels": self.cancels,
             "types": {
-                "continuous": bool(self.every),
-                "generator": inspect.isgeneratorfunction(self.fn)
-                or inspect.isasyncgenfunction(self.fn)
-                or bool(self.every),
+                "continuous": self.types_continuous,
+                "generator": self.types_generator,
             },
             "collects_event_data": self.collects_event_data,
             "trigger_after": self.trigger_after,
             "trigger_only_on_success": self.trigger_only_on_success,
             "trigger_mode": self.trigger_mode,
             "show_api": self.show_api,
-            "zerogpu": hasattr(self.fn, "zerogpu"),
+            "zerogpu": self.zero_gpu,
         }
 
 
