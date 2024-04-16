@@ -4,6 +4,7 @@
 	"description": "Gradio API client",
 	"type": "module",
 	"main": "dist/index.js",
+	"private": "true",
 	"author": "",
 	"license": "ISC",
 	"exports": {

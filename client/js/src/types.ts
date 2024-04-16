@@ -55,6 +55,7 @@ type predict = (
 ) => Promise<unknown>;
 
 export type client_return = {
+	config: Config;
 	predict: predict;
 	submit: (
 		endpoint: string | number,

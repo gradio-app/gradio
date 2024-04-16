@@ -48,26 +48,12 @@ export function submit(
 		const api = this.api;
 		if (!api) throw new Error("No API found");
 		const api_map = this.api_map;
-		let api_info: EndpointInfo<ApiData | JsApiData>;
-		let dependency: Dependency;
-		let { fn_index } = get_endpoint_info(api, endpoint, api_map, config);
-
-		if (typeof endpoint === "number") {
-			fn_index = endpoint;
-			api_info = api.unnamed_endpoints[fn_index];
-			dependency = config.dependencies[endpoint];
-		} else {
-			const trimmed_endpoint = endpoint.replace(/^\//, "");
-			fn_index = api_map[trimmed_endpoint];
-			api_info = api.named_endpoints[endpoint.trim()];
-			dependency = config.dependencies[api_map[trimmed_endpoint]];
-		}
-
-		if (typeof fn_index !== "number") {
-			throw new Error(
-				"There is no endpoint matching that name of fn_index matching that number."
-			);
-		}
+		let { fn_index, api_info, dependency } = get_endpoint_info(
+			api,
+			endpoint,
+			api_map,
+			config
+		);
 
 		let websocket: WebSocket;
 		let event_source: EventSource;
@@ -696,6 +682,7 @@ function get_endpoint_info(
 ): {
 	fn_index: number;
 	api_info: EndpointInfo<JsApiData>;
+	dependency: Dependency;
 } {
 	let fn_index: number;
 	let api_info;
@@ -718,5 +705,5 @@ function get_endpoint_info(
 			"There is no endpoint matching that name of fn_index matching that number."
 		);
 	}
-	return { fn_index, api_info };
+	return { fn_index, api_info, dependency };
 }

@@ -141,8 +141,7 @@ export class Client {
 		app_reference: string,
 		options: ClientOptions = {}
 	): Promise<Client> {
-		const client = new this(app_reference, options);
-		// this refers to the class itself, not the instance
+		const client = new this(app_reference, options); // this refers to the class itself, not the instance
 		await client.init();
 		return client;
 	}
@@ -188,7 +187,6 @@ export class Client {
 		}
 	}
 
-	// todo: check return object
 	private async config_success(
 		_config: Config
 	): Promise<Config | client_return> {
@@ -211,10 +209,7 @@ export class Client {
 			console.error(`Could not get API details: ${(e as Error).message}`);
 		}
 
-		return {
-			...this.config,
-			...this.prepare_return_obj()
-		};
+		return this.prepare_return_obj();
 	}
 
 	async handle_space_success(status: SpaceStatus): Promise<Config | void> {
@@ -323,6 +318,7 @@ export class Client {
 
 	private prepare_return_obj(): client_return {
 		return {
+			config: this.config,
 			predict: this.predict,
 			submit: this.submit,
 			view_api: this.view_api,

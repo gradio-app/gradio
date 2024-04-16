@@ -230,7 +230,7 @@ export function create(options: Options): GradioAppController {
 			app_mode: options.appMode,
 			// For Wasm mode
 			worker_proxy,
-			LiteClient,
+			Client: LiteClient,
 			upload_files: upload_files_overriden,
 			mount_css: overridden_mount_css,
 			fetch_implementation: overridden_fetch,
