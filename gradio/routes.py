@@ -407,7 +407,7 @@ class App(FastAPI):
             # The api info is set in create_app
             if not app.api_info:
                 app.api_info = app.get_blocks().get_api_info()
-            return app.api_info
+            return ORJSONResponse(app.api_info)
 
         @app.get("/config/", dependencies=[Depends(login_check)])
         @app.get("/config", dependencies=[Depends(login_check)])
@@ -804,7 +804,12 @@ class App(FastAPI):
             session_hash: str,
         ):
             def process_msg(message: EventMessage) -> str:
-                return f"data: {orjson.dumps(message.model_dump()).decode('utf-8')}\n\n"
+                json_bytes = orjson.dumps(
+                    message.model_dump(),
+                    option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_PASSTHROUGH_DATETIME,
+                    default=str,
+                )
+                return f"data: {json_bytes.decode('utf-8')}\n\n"
 
             return await queue_data_helper(request, session_hash, process_msg)
 
