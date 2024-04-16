@@ -49,7 +49,6 @@ from gradio.events import (
 from gradio.exceptions import (
     DuplicateBlockError,
     InvalidApiNameError,
-    InvalidBlockError,
     InvalidComponentError,
 )
 from gradio.helpers import create_tracker, skip, special_args
@@ -1293,7 +1292,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 # events in the backend
                 if dependency.cancels:
                     updated_cancels = [
-                        Context.root_block.fns[i] for i in dependency["cancels"]
+                        Context.root_block.fns[i].get_config()
+                        for i in dependency["cancels"]
                     ]
                     dependency.fn = get_cancel_function(updated_cancels)[0]
                 Context.root_block.fns.append(dependency)
@@ -1462,16 +1462,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         def format_file(s):
             return FileData(path=s).model_dump()
 
-        for i, input_id in enumerate(dependency.inputs):
-            try:
-                block = self.blocks[input_id]
-            except KeyError as e:
-                raise InvalidBlockError(
-                    f"Input component with id {input_id} used in {dependency['trigger']}() event is not defined in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
-                ) from e
+        for i, block in enumerate(dependency.inputs):
             if not isinstance(block, components.Component):
                 raise InvalidComponentError(
-                    f"{block.__class__} Component with id {input_id} not a valid input component."
+                    f"{block.__class__} Component not a valid input component."
                 )
             api_info = block.api_info()
             if client_utils.value_is_file(api_info):
@@ -1521,8 +1515,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
             wanted_args = []
             received_args = []
-            for input_id in dep_inputs:
-                block = self.blocks[input_id]
+            for block in dep_inputs:
                 wanted_args.append(str(block))
             for inp in inputs:
                 v = f'"{inp}"' if isinstance(inp, str) else str(inp)
@@ -1961,8 +1954,8 @@ Received outputs:
 
     def clear(self):
         """Resets the layout of the Blocks object."""
-        self.blocks = {}
-        self.fns = []
+        self.default_config.blocks = {}
+        self.default_config.fns = []
         self.children = []
         return self
 
@@ -2565,7 +2558,7 @@ Received outputs:
                         queue=False if every is None else None,
                         every=every,
                     )[0]
-                    component.load_event = dep
+                    component.load_event = dep.get_config()
 
     def startup_events(self):
         """Events that should be run when the app containing this block starts up."""
