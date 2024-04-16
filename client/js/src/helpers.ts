@@ -2,7 +2,7 @@ import { CONFIG_URL, QUEUE_FULL_MSG } from "./constants";
 import type { Config, ApiInfo, ApiData, Status, JsApiData } from "./types";
 
 export async function resolve_config(
-	fetch_implementation: typeof fetch = fetch,
+	fetch_implementation: typeof fetch,
 	endpoint: string,
 	token?: `hf_${string}`
 ): Promise<Config | undefined> {

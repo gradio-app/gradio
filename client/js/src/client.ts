@@ -120,7 +120,11 @@ export class Client {
 			global.WebSocket = ws.WebSocket as unknown as typeof WebSocket;
 		}
 
-		this.config = await this._resolve_config();
+		try {
+			this.config = await this._resolve_config();
+		} catch (e) {
+			console.error("Could not resolve config:", e);
+		}
 
 		// connect to the heartbeat endpoint via GET request
 		const heartbeat_url = new URL(
@@ -137,7 +141,8 @@ export class Client {
 		app_reference: string,
 		options: ClientOptions = {}
 	): Promise<Client> {
-		const client = new Client(app_reference, options);
+		const client = new this(app_reference, options);
+		// this refers to the class itself, not the instance
 		await client.init();
 		return client;
 	}
