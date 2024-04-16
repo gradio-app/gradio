@@ -1269,18 +1269,18 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     )
 
             Context.root_block.blocks.update(self.blocks)
-            Context.root_block.fns.extend(self.fns)
             dependency_offset = len(Context.root_block.fns)
-            for i, dependency in enumerate(self.fns):
+            existing_api_names = [
+                dep.api_name
+                for dep in Context.root_block.fns
+                if isinstance(dep.api_name, str)
+            ]
+            for dependency in self.fns:
                 api_name = dependency.api_name
                 if isinstance(api_name, str):
                     api_name_ = utils.append_unique_suffix(
                         api_name,
-                        [
-                            dep.api_name
-                            for dep in Context.root_block.fns
-                            if isinstance(dep.api_name, str)
-                        ],
+                        existing_api_names,
                     )
                     if api_name != api_name_:
                         dependency.api_name = api_name_
