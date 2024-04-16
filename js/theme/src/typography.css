@@ -73,7 +73,7 @@
 .prose ul ol,
 .prose ol ol,
 .prose ol ul {
-	margin: 0.5em 0 0.5em 3em;
+	margin: 0.5em 0 0.5em 0em;
 	font-size: 90%;
 }
 .prose li {

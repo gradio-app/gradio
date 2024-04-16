@@ -118,12 +118,15 @@ export function create_components(): {
 			{} as { [id: number]: ComponentMeta }
 		);
 
-		walk_layout(layout).then(() => {
+		walk_layout(layout, root).then(() => {
 			layout_store.set(_rootNode);
 		});
 	}
 
-	async function walk_layout(node: LayoutNode): Promise<ComponentMeta> {
+	async function walk_layout(
+		node: LayoutNode,
+		root: string
+	): Promise<ComponentMeta> {
 		const instance = instance_map[node.id];
 
 		instance.component = (await constructor_map.get(
@@ -162,7 +165,7 @@ export function create_components(): {
 
 		if (node.children) {
 			instance.children = await Promise.all(
-				node.children.map((v) => walk_layout(v))
+				node.children.map((v) => walk_layout(v, root))
 			);
 		}
 
@@ -180,7 +183,10 @@ export function create_components(): {
 					const instance = instance_map[update.id];
 					if (!instance) continue;
 					let new_value;
-					if (Array.isArray(update.value)) new_value = [...update.value];
+					if (update.value instanceof Map) new_value = new Map(update.value);
+					else if (update.value instanceof Set)
+						new_value = new Set(update.value);
+					else if (Array.isArray(update.value)) new_value = [...update.value];
 					else if (update.value === null) new_value = null;
 					else if (typeof update.value === "object")
 						new_value = { ...update.value };
