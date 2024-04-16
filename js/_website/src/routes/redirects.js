@@ -107,7 +107,5 @@ export const redirects = {
 		"/guides/getting-started-with-the-js-client",
 	"/gradio-and-llm-agents": "/guides/gradio-and-llm-agents",
 	"/fastapi-app-with-the-gradio-client":
-		"/guides/fastapi-app-with-the-gradio-client",
-	"/docs/interface": "/docs/python-library/interface",
-	"/docs/blocks": "/docs/python-library/blocks",
+		"/guides/fastapi-app-with-the-gradio-client"
 };

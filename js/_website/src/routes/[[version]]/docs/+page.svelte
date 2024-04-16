@@ -54,7 +54,7 @@
    
 	<nav class="grid grid-cols-1 gap-4 lg:grid-cols-2 mt-8">
         <a
-    href="/main/docs/python-library"
+    href="./docs/gradio"
     target="_self"
     class="group group relative flex flex-col overflow-hidden md:first:row-span-3 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[2]}-50 hover:shadow-alternate to-white shadow-none transition-shadow"
     ><div
@@ -63,15 +63,17 @@
     <div
         class="relative mb-2 mt-auto flex items-center text-lg"
     >
-        <span>Python Library</span>
+        <p class="">Gradio</p>
     </div>
+	
+	<code class="font-light text-xs mb-2 float-right text-gray-500">gradio</code>
     <div class="  relative pr-4 text-smd font-normal text-gray-400">
         Build and share machine learning demos and web apps, in just a few lines
         of Python.
     </div>
     </a>
 		<a
-			href="/main/docs/python-client"
+			href="./docs/python-client"
 			target="_self"
 			class="group group relative flex flex-col overflow-hidden 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[1]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 			><div
@@ -80,15 +82,16 @@
 			<div
 				class="relative mb-2 mt-auto flex items-center text-lg"
 			>
-				<span>Python Client Library</span>
+				<span>Python Client</span>
 			</div>
+			<code class="font-light text-xs mb-2 float-right text-gray-500">gradio-client</code>
 			<div class="relative pr-4 text-smd font-normal text-gray-400">
 				Turn any Gradio app into an API.
 			</div>
 		</a>
 
         <a
-			href="/main/docs/js-client"
+			href="./docs/js-client"
 			target="_self"
 			class="group group relative flex flex-col overflow-hidden md:first:row-span-2  2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[0]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 			><div
@@ -97,14 +100,15 @@
 			<div
 				class="relative mb-2 mt-auto flex items-center text-lg"
 			>
-				<span>Javascript Client Library</span>
+				<span>Javascript Client</span>
 			</div>
+			<code class="font-light text-xs mb-2 float-right text-gray-500">@gradio/client</code>
 			<div class="relative pr-4 text-smd font-normal text-gray-400">
 				A Javascript (and Typescript) client to call Gradio APIs.
 			</div>
 		</a>
         <a
-			href="/main/docs/js"
+			href="./docs/js"
 			target="_self"
 			class="group group relative flex flex-col overflow-hidden md:first:row-span-22x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[3]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 			><div
@@ -121,7 +125,7 @@
 			</div>
 		</a>
 		<a
-			href="/main/guides/custom-components-in-five-minutes"
+			href="../guides/custom-components-in-five-minutes"
 			target="_self"
 			class="group group relative flex flex-col overflow-hidden md:first:row-span-2 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[5]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 			><div
@@ -137,7 +141,7 @@
 			</div>
 		</a>
 		<a
-			href="/main/guides/gradio-lite"
+			href="../guides/gradio-lite"
 			target="_self"
 			class="group group relative flex flex-col overflow-hidden md:first:row-span-2 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[4]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 			><div
@@ -148,6 +152,8 @@
 			>
 				<span>Gradio Lite</span>
 			</div>
+			<code class="font-light text-xs mb-2 float-right text-gray-500">@gradio/lite</code>
+			
 			<div class="relative pr-4 text-smd font-normal text-gray-400">
 				Serverless Gradio running entirely in your browser.
 			</div>
