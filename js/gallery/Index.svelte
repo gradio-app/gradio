@@ -34,7 +34,6 @@
 	export let show_share_button = false;
 	export let interactive: boolean;
 	export let show_download_button = false;
-	export let max_file_size: number | null = null;
 	export let gradio: Gradio<{
 		change: typeof value;
 		upload: typeof value;
@@ -72,7 +71,7 @@
 			value={null}
 			{root}
 			{label}
-			{max_file_size}
+			max_file_size={gradio.max_file_size}
 			file_count={"multiple"}
 			file_types={["image"]}
 			i18n={gradio.i18n}

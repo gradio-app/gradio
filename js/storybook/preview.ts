@@ -19,7 +19,8 @@ const preview: Preview = {
 			"light",
 			"1.1.1",
 			"localhost:9876",
-			false
+			false,
+			null
 		)
 	},
 	argTypes: {

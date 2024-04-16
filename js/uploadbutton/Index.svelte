@@ -26,7 +26,6 @@
 		click: never;
 		error: string;
 	}>;
-	export let max_file_size: number | null = null;
 	export let interactive: boolean;
 
 	$: disabled = !interactive;
@@ -55,7 +54,7 @@
 	{disabled}
 	{variant}
 	{label}
-	{max_file_size}
+	max_file_size={gradio.max_file_size}
 	on:click={() => gradio.dispatch("click")}
 	on:change={({ detail }) => handle_event(detail, "change")}
 	on:upload={({ detail }) => handle_event(detail, "upload")}

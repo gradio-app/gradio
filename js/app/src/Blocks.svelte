@@ -518,6 +518,7 @@
 				on:destroy={({ detail }) => handle_destroy(detail)}
 				{version}
 				{autoscroll}
+				max_file_size={app.config.max_file_size}
 			/>
 		{/if}
 	</div>

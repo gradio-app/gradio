@@ -52,7 +52,6 @@
 	export let interactive: boolean;
 	export let mirror_webcam: boolean;
 	export let include_audio: boolean;
-	export let max_file_size: number | null = null;
 
 	let _video: FileData | null = null;
 	let _subtitle: FileData | null = null;
@@ -193,7 +192,6 @@
 			{include_audio}
 			{autoplay}
 			{root}
-			{max_file_size}
 			{handle_reset_value}
 			on:clear={() => gradio.dispatch("clear")}
 			on:play={() => gradio.dispatch("play")}
@@ -204,6 +202,7 @@
 			on:start_recording={() => gradio.dispatch("start_recording")}
 			on:stop_recording={() => gradio.dispatch("stop_recording")}
 			i18n={gradio.i18n}
+			max_file_size={gradio.max_file_size}
 		>
 			<UploadText i18n={gradio.i18n} type="video" />
 		</Video>

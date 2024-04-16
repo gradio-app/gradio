@@ -42,7 +42,6 @@
 	}>;
 	export let file_count: string;
 	export let file_types: string[] = ["file"];
-	export let max_file_size: number | null = null;
 
 	let old_value = value;
 	$: if (JSON.stringify(old_value) !== JSON.stringify(value)) {
@@ -94,7 +93,7 @@
 			selectable={_selectable}
 			{root}
 			{height}
-			{max_file_size}
+			max_file_size={gradio.max_file_size}
 			on:change={({ detail }) => {
 				value = detail;
 			}}

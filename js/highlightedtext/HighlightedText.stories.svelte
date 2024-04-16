@@ -19,7 +19,8 @@
 			"light",
 			"1.1.1",
 			"http://localhost:7860",
-			false
+			false,
+			null
 		)}
 		{...args}
 	/>
