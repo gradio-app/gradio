@@ -1273,7 +1273,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             dependency_offset = len(Context.root_block.fns)
             for i, dependency in enumerate(self.fns):
                 api_name = dependency.api_name
-                if api_name is not None and api_name is not False:
+                if isinstance(api_name, str):
                     api_name_ = utils.append_unique_suffix(
                         api_name,
                         [
@@ -1293,7 +1293,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 if dependency.cancels:
                     updated_cancels = [
                         Context.root_block.fns[i].get_config()
-                        for i in dependency["cancels"]
+                        for i in dependency.cancels
                     ]
                     dependency.fn = get_cancel_function(updated_cancels)[0]
                 Context.root_block.fns.append(dependency)

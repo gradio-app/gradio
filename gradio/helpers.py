@@ -491,7 +491,7 @@ class Examples:
                     output = [value[0] for value in output]
                 self.cache_logger.flag(output)
             # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
-            Context.root_block.fns.pop(dependency)
+            Context.root_block.fns.pop(fn_index)
 
         # Remove the original load_input_event and replace it with one that
         # also populates the input. We do it this way to to allow the cache()
