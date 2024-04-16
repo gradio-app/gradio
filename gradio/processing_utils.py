@@ -16,7 +16,6 @@ from typing import TYPE_CHECKING, Any
 import aiofiles
 import httpx
 import numpy as np
-import urllib3
 from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, PngImagePlugin
 
@@ -28,7 +27,76 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
     from pydub import AudioSegment
 
-async_client = httpx.AsyncClient()
+if wasm_utils.IS_WASM:
+    import pyodide.http  # type: ignore
+    import urllib3
+
+    # NOTE: In the Wasm env, we use urllib3 to make HTTP requests. See https://github.com/gradio-app/gradio/issues/6837.
+    class Urllib3ResponseSyncByteStream(httpx.SyncByteStream):
+        def __init__(self, response) -> None:
+            self.response = response
+
+        def __iter__(self):
+            yield from self.response.stream()
+
+    class Urllib3Transport(httpx.BaseTransport):
+        def __init__(self):
+            self.pool = urllib3.PoolManager()
+
+        def handle_request(self, request: httpx.Request) -> httpx.Response:
+            url = str(request.url)
+            method = request.method
+            headers = dict(request.headers)
+            body = None if method in ["GET", "HEAD"] else request.read()
+
+            response = self.pool.request(
+                headers=headers,
+                method=method,
+                url=url,
+                body=body,
+                preload_content=False,  # Stream the content
+            )
+
+            return httpx.Response(
+                status_code=response.status,
+                headers=response.headers,
+                stream=Urllib3ResponseSyncByteStream(response),
+            )
+
+    sync_transport = Urllib3Transport()
+
+    class PyodideHttpResponseAsyncByteStream(httpx.AsyncByteStream):
+        def __init__(self, response) -> None:
+            self.response = response
+
+        async def __aiter__(self):
+            yield await self.response.bytes()
+
+    class PyodideHttpTransport(httpx.AsyncBaseTransport):
+        async def handle_async_request(
+            self,
+            request: httpx.Request,
+        ) -> httpx.Response:
+            url = str(request.url)
+            method = request.method
+            headers = dict(request.headers)
+            body = None if method in ["GET", "HEAD"] else await request.aread()
+            response = await pyodide.http.pyfetch(
+                url, method=method, headers=headers, body=body
+            )
+            return httpx.Response(
+                status_code=response.status,
+                headers=response.headers,
+                stream=PyodideHttpResponseAsyncByteStream(response),
+            )
+
+    async_transport = PyodideHttpTransport()
+else:
+    sync_transport = None
+    async_transport = None
+
+sync_client = httpx.Client(transport=sync_transport)
+async_client = httpx.AsyncClient(transport=async_transport)
 
 log = logging.getLogger(__name__)
 
@@ -209,15 +277,10 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
     full_temp_file_path = str(abspath(temp_dir / name))
 
     if not Path(full_temp_file_path).exists():
-        # NOTE: We use urllib3 instead of httpx because it works in the Wasm environment. See https://github.com/gradio-app/gradio/issues/6837.
-        http = urllib3.PoolManager()
-        response = http.request(
-            "GET",
-            url,
-            preload_content=False,
-        )
-        with open(full_temp_file_path, "wb") as f:
-            for chunk in response.stream():
+        with sync_client.stream("GET", url, follow_redirects=True) as r, open(
+            full_temp_file_path, "wb"
+        ) as f:
+            for chunk in r.iter_raw():
                 f.write(chunk)
 
     return full_temp_file_path
