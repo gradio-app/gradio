@@ -500,7 +500,7 @@ class BlockFunction:
         self.trigger_after = trigger_after
         self.trigger_only_on_success = trigger_only_on_success
         self.trigger_mode = trigger_mode
-        self.queue = queue
+        self.queue = False if fn is None else queue
         self.scroll_to_output = scroll_to_output
         self.show_api = show_api
         self.spaces_auto_wrap()
@@ -531,7 +531,7 @@ class BlockFunction:
             "outputs": [block._id for block in self.outputs],
             "backend_fn": self.fn is not None,
             "js": self.js,
-            "queue": False if self.fn is None else self.queue,
+            "queue": self.queue,
             "api_name": self.api_name,
             "scroll_to_output": False if utils.get_space() else self.scroll_to_output,
             "show_progress": self.show_progress,
