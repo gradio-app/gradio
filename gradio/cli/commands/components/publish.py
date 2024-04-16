@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import random
 import re
 import shutil
 import tempfile
@@ -21,43 +20,6 @@ from typing_extensions import Annotated
 colors = ["red", "yellow", "green", "blue", "indigo", "purple", "pink", "gray"]
 
 PYPI_REGISTER_URL = "https://pypi.org/account/register/"
-
-README_CONTENTS = """
----
-tags: [gradio-custom-component{template}]
-title: {package_name} V{version}
-colorFrom: {color_from}
-colorTo: {color_to}
-sdk: docker
-pinned: false
-license: apache-2.0
----
-"""
-
-
-def make_dockerfile(demo):
-    return f"""
-FROM python:3.9
-
-WORKDIR /code
-
-COPY --link --chown=1000 . .
-
-RUN mkdir -p /tmp/cache/
-RUN chmod a+rwx -R /tmp/cache/
-ENV TRANSFORMERS_CACHE=/tmp/cache/
-
-RUN pip install --no-cache-dir -r requirements.txt
-
-ENV PYTHONUNBUFFERED=1 \
-	GRADIO_ALLOW_FLAGGING=never \
-	GRADIO_NUM_PORTS=1 \
-	GRADIO_SERVER_NAME=0.0.0.0 \
-    GRADIO_SERVER_PORT=7860 \
-	SYSTEM=spaces
-
-CMD ["python", "{demo}"]
-"""
 
 
 def _ignore(_src, names):
@@ -103,9 +65,9 @@ def _publish(
         Optional[Path], Option(help="Path to the demo directory.")
     ] = None,
     source_dir: Annotated[
-        Optional[Path],
+        Path,
         Option(help="Path to the source directory of the custom component."),
-    ] = None,
+    ] = Path("."),
     hf_token: Annotated[
         Optional[str],
         Option(
@@ -123,12 +85,11 @@ def _publish(
         Option(
             help="Whether to upload the source code of the custom component, to share with the community."
         ),
-    ] = True,
+    ] = False,
 ):
     console = Console()
     dist_dir = dist_dir.resolve()
-    name = None
-    description = None
+
     if not dist_dir.exists():
         raise ValueError(
             f"{dist_dir} does not exist. Run `gradio cc build` to create a wheel and source distribution."
@@ -207,7 +168,7 @@ def _publish(
             panel = Panel(
                 "Please provide the path to the [magenta]demo directory[/] for your custom component.\n\n"
                 "This directory should contain [magenta]all the files[/] it needs to run successfully.\n\n"
-                "Please make sure the gradio app is in an [magenta]app.py[/] file.\n\n"
+                "Please make sure the gradio app is in an [magenta]space.py[/] file.\n\n"
                 "If you need additional python requirements, add a [magenta]requirements.txt[/] file to this directory."
             )
             print(panel)
@@ -217,30 +178,28 @@ def _publish(
             demo_dir_ = demo_dir_ or str(Path(".") / "demo")
             demo_dir = Path(demo_dir_).resolve()
 
-    if upload_source and not source_dir:
+    if not upload_source:
         panel = Panel(
             "It is recommended that you share your [magenta]source code[/] so that others can learn from and improve your component."
         )
         print(panel)
         upload_source = Confirm.ask(":books: Would you like to share your source code?")
         if upload_source:
-            source_dir_ = Prompt.ask(
-                ":page_with_curl: Enter the path to the source code [magenta]directory[/]. Leave blank to use current directory"
+            source_dir_ = (
+                Prompt.ask(
+                    f":file_folder: Please enter the path to the source directory. Leave blank to use: {source_dir}"
+                )
+                or source_dir
             )
-            source_dir_ = source_dir_ or str(Path("."))
             source_dir = Path(source_dir_).resolve()
     if upload_demo:
-        pyproject_toml_path = (
-            (source_dir / "pyproject.toml")
-            if source_dir
-            else Path(".") / "pyproject.toml"
-        )
+        pyproject_toml_path = source_dir / "pyproject.toml"
 
         try:
             pyproject_toml = parse(pyproject_toml_path.read_text())
             package_name = pyproject_toml["project"]["name"]  # type: ignore
         except Exception:
-            (package_name, version) = wheel_file.name.split("-")[:2]
+            (package_name, _) = wheel_file.name.split("-")[:2]
 
         try:
             latest_release = httpx.get(
@@ -251,7 +210,6 @@ def _publish(
 
         if not demo_dir:
             raise ValueError("demo_dir must be set")
-        demo_path = resolve_demo(demo_dir)
 
         if prefer_local or not latest_release:
             additional_reqs = [wheel_file.name]
@@ -262,80 +220,55 @@ def _publish(
             reqs += additional_reqs
         else:
             reqs = additional_reqs
+        (demo_dir / "requirements.txt").write_text("\n".join(reqs))
 
-        color_from, color_to = random.choice(colors), random.choice(colors)
-        package_name, version = wheel_file.name.split("-")[:2]
+        package_name, _ = wheel_file.name.split("-")[:2]
         with tempfile.TemporaryDirectory() as tempdir:
             shutil.copytree(
                 str(demo_dir),
                 str(tempdir),
                 dirs_exist_ok=True,
             )
-            if source_dir:
+            if upload_source:
                 shutil.copytree(
                     str(source_dir),
                     str(Path(tempdir) / "src"),
                     dirs_exist_ok=True,
                     ignore=_ignore,
                 )
-            reqs_txt = Path(tempdir) / "requirements.txt"
-            reqs_txt.write_text("\n".join(reqs))
-            readme = Path(tempdir) / "README.md"
-            template = ""
-            if upload_source and source_dir:
-                pyproject_toml = parse((source_dir / "pyproject.toml").read_text())
-                keywords = pyproject_toml["project"].get("keywords", [])  # type: ignore
-                keywords = [
-                    k
-                    for k in keywords
-                    if k not in {"gradio-custom-component", "gradio custom component"}
-                ]
-                if keywords:
-                    template = "," + ",".join(keywords)
-                name = pyproject_toml["project"]["name"]  # type: ignore
-                description = pyproject_toml["project"]["description"]  # type: ignore
 
-            readme_text = README_CONTENTS.format(
-                package_name=package_name,
-                version=version,
-                color_from=color_from,
-                color_to=color_to,
-                template=template,
+            shutil.copyfile(
+                str(source_dir / "README.md"), str(Path(tempdir) / "README.md")
             )
-
-            if name and description:
-                readme_text += f"\n\n# Name: {name}"
-                readme_text += f"\n\nDescription: {description}"
-                readme_text += f"\n\nInstall with: pip install {package_name}"
-
-            readme.write_text(readme_text)
-            dockerfile = Path(tempdir) / "Dockerfile"
-            dockerfile.write_text(make_dockerfile(demo_path.name))
 
             api = HfApi()
-            new_space = api.create_repo(
-                repo_id=f"{package_name}",
-                repo_type="space",
-                exist_ok=True,
-                private=False,
-                space_sdk="docker",
-                token=hf_token,
-            )
+            whoami = api.whoami(token=hf_token)
+            repo_id = f"{whoami['name']}/{package_name}"
+            if not api.repo_exists(repo_id=repo_id, repo_type="space"):
+                api.create_repo(
+                    repo_id=package_name,
+                    repo_type="space",
+                    exist_ok=True,
+                    private=False,
+                    space_sdk="gradio",
+                    token=hf_token,
+                )
             api.upload_folder(
-                repo_id=new_space.repo_id,
+                repo_id=repo_id,
                 folder_path=tempdir,
                 token=hf_token,
                 repo_type="space",
             )
-            api.upload_file(
-                repo_id=new_space.repo_id,
-                path_or_fileobj=str(wheel_file),
-                path_in_repo=wheel_file.name,
-                token=hf_token,
-                repo_type="space",
-            )
+            if prefer_local:
+                api.upload_file(
+                    repo_id=repo_id,
+                    path_or_fileobj=str(wheel_file),
+                    path_in_repo=wheel_file.name,
+                    token=hf_token,
+                    repo_type="space",
+                )
             print("\n")
-            print(f"Demo uploaded to {new_space} !")
+            print(f"Demo uploaded to https://huggingface.co/spaces/{repo_id} !")
 
 
 def resolve_demo(demo_dir: Path) -> Path:
