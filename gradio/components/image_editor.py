@@ -4,16 +4,18 @@ from __future__ import annotations
 
 import dataclasses
 import warnings
+from io import BytesIO
 from pathlib import Path
-from typing import Any, Iterable, List, Literal, Optional, TypedDict, Union, cast
+from typing import Any, Iterable, List, Literal, Optional, Tuple, Union, cast
 
 import numpy as np
 import PIL.Image
 from gradio_client import file
 from gradio_client.documentation import document
+from typing_extensions import TypedDict
 
 from gradio import image_utils, utils
-from gradio.components.base import Component
+from gradio.components.base import Component, server
 from gradio.data_classes import FileData, GradioModel
 from gradio.events import Events
 
@@ -28,7 +30,7 @@ class EditorValue(TypedDict):
 
 class EditorExampleValue(TypedDict):
     background: Optional[str]
-    layers: Optional[list[str | None]]
+    layers: Optional[list[Union[str, None]]]
     composite: Optional[str]
 
 
@@ -36,6 +38,25 @@ class EditorData(GradioModel):
     background: Optional[FileData] = None
     layers: List[FileData] = []
     composite: Optional[FileData] = None
+    id: Optional[str] = None
+
+
+class EditorDataBlobs(GradioModel):
+    background: Optional[bytes]
+    layers: List[Union[bytes, None]]
+    composite: Optional[bytes]
+
+
+class BlobData(TypedDict):
+    type: str
+    index: Optional[int]
+    file: bytes
+    id: str
+
+
+class AcceptBlobs(GradioModel):
+    data: BlobData
+    files: List[Tuple[str, bytes]]
 
 
 @dataclasses.dataclass
@@ -95,9 +116,12 @@ class ImageEditor(Component):
     EVENTS = [
         Events.clear,
         Events.change,
+        Events.input,
         Events.select,
         Events.upload,
+        Events.apply,
     ]
+
     data_model = EditorData
 
     def __init__(
@@ -134,6 +158,7 @@ class ImageEditor(Component):
         transforms: Iterable[Literal["crop"]] = ("crop",),
         eraser: Eraser | None | Literal[False] = None,
         brush: Brush | None | Literal[False] = None,
+        format: str = "webp",
     ):
         """
         Parameters:
@@ -161,6 +186,8 @@ class ImageEditor(Component):
             transforms: The transforms tools to make available to users. "crop" allows the user to crop the image.
             eraser: The options for the eraser tool in the image editor. Should be an instance of the `gr.Eraser` class, or None to use the default settings. Can also be False to hide the eraser tool.
             brush: The options for the brush tool in the image editor. Should be an instance of the `gr.Brush` class, or None to use the default settings. Can also be False to hide the brush tool, which will also hide the eraser tool.
+            format: Format to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image).  The format should be supported by the PIL library. This parameter has no effect on SVG files.
+
         """
         self._selectable = _selectable
         self.mirror_webcam = mirror_webcam
@@ -195,6 +222,8 @@ class ImageEditor(Component):
         self.transforms = transforms
         self.eraser = Eraser() if eraser is None else eraser
         self.brush = Brush() if brush is None else brush
+        self.blob_storage: dict[str, EditorDataBlobs] = {}
+        self.format = format
 
         super().__init__(
             label=label,
@@ -213,12 +242,19 @@ class ImageEditor(Component):
 
     def convert_and_format_image(
         self,
-        file: FileData | None,
+        file: FileData | None | bytes,
     ) -> np.ndarray | PIL.Image.Image | str | None:
         if file is None:
             return None
-        im = PIL.Image.open(file.path)
-        if file.orig_name:
+        im = (
+            PIL.Image.open(file.path)
+            if isinstance(file, FileData)
+            else PIL.Image.open(BytesIO(file))
+        )
+        if isinstance(file, (bytes, bytearray, memoryview)):
+            name = "image"
+            suffix = self.format
+        elif file.orig_name:
             p = Path(file.orig_name)
             name = p.stem
             suffix = p.suffix.replace(".", "")
@@ -226,7 +262,7 @@ class ImageEditor(Component):
                 suffix = "jpeg"
         else:
             name = "image"
-            suffix = "png"
+            suffix = self.format
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
@@ -249,16 +285,41 @@ class ImageEditor(Component):
         Returns:
             Passes the uploaded images as an instance of EditorValue, which is just a `dict` with keys: 'background', 'layers', and 'composite'. The values corresponding to 'background' and 'composite' are images, while 'layers' is a `list` of images. The images are of type `PIL.Image`, `np.array`, or `str` filepath, depending on the `type` parameter.
         """
-        if payload is None:
-            return payload
+        _payload = payload
 
-        bg = self.convert_and_format_image(payload.background)
-        layers = (
-            [self.convert_and_format_image(layer) for layer in payload.layers]
-            if payload.layers
-            else None
-        )
-        composite = self.convert_and_format_image(payload.composite)
+        if payload is not None and payload.id is not None:
+            cached = self.blob_storage.get(payload.id)
+            _payload = (
+                EditorDataBlobs(
+                    background=cached.background,
+                    layers=cached.layers,
+                    composite=cached.composite,
+                )
+                if cached
+                else None
+            )
+
+        elif _payload is None:
+            return _payload
+        else:
+            _payload = payload
+
+        bg = None
+        layers = None
+        composite = None
+
+        if _payload is not None:
+            bg = self.convert_and_format_image(_payload.background)
+            layers = (
+                [self.convert_and_format_image(layer) for layer in _payload.layers]
+                if _payload.layers
+                else None
+            )
+            composite = self.convert_and_format_image(_payload.composite)
+
+        if payload is not None and payload.id is not None:
+            self.blob_storage.pop(payload.id)
+
         return {
             "background": bg,
             "layers": [x for x in layers if x is not None] if layers else [],
@@ -289,7 +350,7 @@ class ImageEditor(Component):
                     path=image_utils.save_image(
                         cast(Union[np.ndarray, PIL.Image.Image, str], layer),
                         self.GRADIO_CACHE,
-                        format="png",
+                        format=self.format,
                     )
                 )
                 for layer in value["layers"]
@@ -299,20 +360,29 @@ class ImageEditor(Component):
         )
 
         return EditorData(
-            background=FileData(
-                path=image_utils.save_image(value["background"], self.GRADIO_CACHE)
-            )
-            if value["background"] is not None
-            else None,
-            layers=layers,
-            composite=FileData(
-                path=image_utils.save_image(
-                    cast(Union[np.ndarray, PIL.Image.Image, str], value["composite"]),
-                    self.GRADIO_CACHE,
+            background=(
+                FileData(
+                    path=image_utils.save_image(
+                        value["background"], self.GRADIO_CACHE, format=self.format
+                    )
                 )
-            )
-            if value["composite"] is not None
-            else None,
+                if value["background"] is not None
+                else None
+            ),
+            layers=layers,
+            composite=(
+                FileData(
+                    path=image_utils.save_image(
+                        cast(
+                            Union[np.ndarray, PIL.Image.Image, str], value["composite"]
+                        ),
+                        self.GRADIO_CACHE,
+                        format=self.format,
+                    )
+                )
+                if value["composite"] is not None
+                else None
+            ),
         )
 
     def example_payload(self) -> Any:
@@ -330,3 +400,33 @@ class ImageEditor(Component):
             "layers": [],
             "composite": None,
         }
+
+    @server
+    def accept_blobs(self, data: AcceptBlobs):
+        """
+        Accepts a dictionary of image blobs, where the keys are 'background', 'layers', and 'composite', and the values are binary file-like objects.
+        """
+
+        type = data.data["type"]
+        index = (
+            int(data.data["index"])
+            if data.data["index"] and data.data["index"] != "null"
+            else None
+        )
+        file = data.files[0][1]
+        id = data.data["id"]
+
+        current = self.blob_storage.get(
+            id, EditorDataBlobs(background=None, layers=[], composite=None)
+        )
+
+        if type == "layer" and index is not None:
+            if index >= len(current.layers):
+                current.layers.extend([None] * (index + 1 - len(current.layers)))
+            current.layers[index] = file
+        elif type == "background":
+            current.background = file
+        elif type == "composite":
+            current.composite = file
+
+        self.blob_storage[id] = current
