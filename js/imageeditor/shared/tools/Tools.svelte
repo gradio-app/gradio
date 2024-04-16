@@ -146,7 +146,6 @@
 	<Toolbar show_border={false}>
 		{#each tools as tool (tool)}
 			<IconButton
-				disabled={!!$current_history.previous}
 				highlight={$active_tool === tool}
 				on:click={() => ($active_tool = tool)}
 				Icon={tools_meta[tool].icon}

@@ -166,6 +166,7 @@
 			label={label + " button"}
 			hasPopup={true}
 			transparent={true}
+			on:click={cb}
 		/>
 	{/each}
 	<span class="sep"></span>
