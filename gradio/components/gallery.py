@@ -46,11 +46,11 @@ class Gallery(Component):
 
     def __init__(
         self,
-        value: list[np.ndarray | PIL.Image.Image | str | Path | tuple]
-        | Callable
-        | None = None,
+        value: (
+            list[np.ndarray | PIL.Image.Image | str | Path | tuple] | Callable | None
+        ) = None,
         *,
-        format: str = "png",
+        format: str = "webp",
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
@@ -67,8 +67,9 @@ class Gallery(Component):
         allow_preview: bool = True,
         preview: bool | None = None,
         selected_index: int | None = None,
-        object_fit: Literal["contain", "cover", "fill", "none", "scale-down"]
-        | None = None,
+        object_fit: (
+            Literal["contain", "cover", "fill", "none", "scale-down"] | None
+        ) = None,
         show_share_button: bool | None = None,
         show_download_button: bool | None = True,
         interactive: bool | None = None,
