@@ -216,12 +216,11 @@ class Client:
         while True:
             url = self.heartbeat_url.format(session_hash=self.session_hash)
             try:
-                with httpx.stream(
+                with self.httpx_client.stream(
                     "GET",
                     url,
                     headers=self.headers,
                     cookies=self.cookies,
-                    verify=self.ssl_verify,
                     timeout=20,
                 ) as response:
                     for _ in response.iter_lines():
@@ -1256,13 +1255,12 @@ class Endpoint:
         temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
         temp_dir.mkdir(exist_ok=True, parents=True)
 
-        with httpx.stream(
-            "GET",
-            url_path,
-            headers=self.client.headers,
-            cookies=self.client.cookies,
-            verify=self.client.ssl_verify,
-            follow_redirects=True,
+        with self.client.httpx_client.stream(
+                "GET",
+                url_path,
+                headers=self.client.headers,
+                cookies=self.client.cookies,
+                follow_redirects=True,
         ) as response:
             response.raise_for_status()
             with open(temp_dir / Path(url_path).name, "wb") as f:
