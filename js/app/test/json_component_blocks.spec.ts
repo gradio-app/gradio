@@ -7,7 +7,7 @@ test("JSON displays the json value both as an input and an output", async ({
 		'div.block:has(label:has-text("InputJSON")) div.json-holder'
 	);
 
-	expect(input_json).not.toHaveText("");
+	await expect(input_json).not.toHaveText("");
 
 	const submit_button = page.locator('button:has-text("Submit")');
 	await submit_button.click();
@@ -16,6 +16,6 @@ test("JSON displays the json value both as an input and an output", async ({
 		'div.block:has(label:has-text("OutputJSON")) div.json-holder'
 	);
 
-	expect(input_json).not.toHaveText("");
-	expect(output_json).not.toHaveText("");
+	await expect(input_json).not.toHaveText("");
+	await expect(output_json).not.toHaveText("");
 });
