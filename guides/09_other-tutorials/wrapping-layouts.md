@@ -4,7 +4,7 @@ Tags: LAYOUTS
 
 ## Introduction
 
-Gradio features [blocks](https://www.gradio.app/docs/blocks) to easily layout applications. To use this feature, you need to stack or nest layout components and create a hierarchy with them. This implementation isn't difficult to implement and maintain for small projects, but after the project gets complex, this component hierarchy becomes difficult to maintain and reusing layouts becomes difficult.
+Gradio features [blocks](https://www.gradio.app/docs/blocks) to easily layout applications. To use this feature, you need to stack or nest layout components and create a hierarchy with them. This isn't difficult to implement and maintain for small projects, but after the project gets more complex, this component hierarchy becomes difficult to maintain and reuse.
 
 In this guide, we are going to explore how we can wrap the layout classes to create more maintainable and easy-to-read applications without sacrificing flexibility.
 
@@ -40,11 +40,10 @@ def render(self) -> None:
 
     self.main_layout.render()
 ```
-
-This is a little confusing at first but if you think with the default implementation you can understand it easily.
+This is a little confusing at first but if you consider the default implementation you can understand it easily.
 Let's look at an example:
 
-In the default implementation, we are doing this:
+In the default implementation, this is what we're doing:
 
 ```python
 with Row():
@@ -52,7 +51,7 @@ with Row():
     right_textbox = Textbox(value="right_textbox")
 ```
 
-Pay attention to the Textbox variables. These variables' render parameter is true by default. So as we use ```with``` syntax and create these variables, they are calling the render function under the ```with``` syntax.
+Now, pay attention to the Textbox variables. These variables' ```render``` parameter is true by default. So as we use the ```with``` syntax and create these variables, they are calling the ```render``` function under the ```with``` syntax.
 
 We know the render function is called in the constructor with the implementation from the ```gradio.blocks.Block``` class:
 
@@ -75,9 +74,9 @@ with self.main_layout:
     right_textbox.render()
 ```
 
-So with calling the components' render functions under the ```with``` syntax, we are simulating the default implementation, actually.
+What this means is by calling the components' render functions under the ```with``` syntax, we are actually simulating the default implementation.
 
-If we understand the below ```with``` syntax, let's move on the upper ```with``` syntax. For this, let's expand our example with ```Tab``` component:
+So now let's consider two nested ```with```s to see how the outer one works. For this, let's expand our example with the ```Tab``` component:
 
 ```python
 with Tab():
@@ -86,7 +85,7 @@ with Tab():
         second_textbox = Textbox(value="second_textbox")
 ```
 
-Pay attention to the Row and Tab components this time. We have created the Textbox variables above and added them to Row with ```with``` syntax. Now we need to add the Row component to the Tab component. You can see that Row component is created with default parameters, so its render parameter is true, that's why the render function is going to be executed under the Tab component's ```with``` syntax.
+Pay attention to the Row and Tab components this time. We have created the Textbox variables above and added them to Row with the ```with``` syntax. Now we need to add the Row component to the Tab component. You can see that the Row component is created with default parameters, so its render parameter is true, that's why the render function is going to be executed under the Tab component's ```with``` syntax.
 
 To mimic this implementation, we need to call the ```render``` function of the ```main_layout``` variable after the ```with``` syntax of the ```main_layout``` variable.
 
@@ -105,7 +104,7 @@ tab_main_layout.render()
 
 The default implementation and our implementation are the same, but we are using the render function ourselves. So it requires a little work.
 
-Now, let's look at the ```attach_event``` function.
+Now, let's take a look at the ```attach_event``` function.
 
 2. Attach Event Function
 
@@ -118,7 +117,7 @@ Now, let's look at the ```attach_event``` function.
         raise NotImplementedError
 ```
 
-You can see what is the ```block_dict``` variable in the ```Application``` class's ```attach_event``` function.
+Check out the ```block_dict``` variable in the ```Application``` class's ```attach_event``` function.
 
 ### Application Class
 
@@ -137,7 +136,7 @@ You can see what is the ```block_dict``` variable in the ```Application``` class
 
 From the explanation of the ```LayoutBase``` class's ```render``` function, we can understand the ```child.render``` part.
 
-So let's look at the below part, why we are calling the ```app``` variable's ```render``` function? We are calling this render function because if we look at the implementation of this function in the ```gradio.blocks.Blocks``` class, we can see that it is adding the components and event functions into the root component. With another saying, it is creating and structuring the gradio application. So it is important to call this function.
+So let's look at the bottom part, why are we calling the ```app``` variable's ```render``` function? It's important to call this function because if we look at the implementation in the ```gradio.blocks.Blocks``` class, we can see that it is adding the components and event functions into the root component. To put it another way, it is creating and structuring the gradio application.
 
 2. Attach Event Function
 
@@ -162,9 +161,9 @@ So let's look at the below part, why we are calling the ```app``` variable's ```
 
 You can see why the ```global_children_list``` is used in the ```LayoutBase``` class from the example code. With this, all the components in the application are gathered into one dictionary, so the component can access all the components with their names.
 
-```with``` syntax is used here again to attach events to components. If we look at the ```__exit__``` function in the ```gradio.blocks.Blocks``` class, we can see that it is calling the ```attach_load_events``` function which is used for setting event triggers to components. So we have to use the ```with``` syntax to trigger the ```__exit__``` function.
+The ```with``` syntax is used here again to attach events to components. If we look at the ```__exit__``` function in the ```gradio.blocks.Blocks``` class, we can see that it is calling the ```attach_load_events``` function which is used for setting event triggers to components. So we have to use the ```with``` syntax to trigger the ```__exit__``` function.
 
-Yes, we can call ```attach_load_events``` function without using ```with``` syntax, but the function needs a ```Context.root_block```, and it is set in the ```__enter__``` function. So we used ```with``` syntax here rather than calling functions ourselves.
+Of course, we can call ```attach_load_events``` without using the ```with``` syntax, but the function needs a ```Context.root_block```, and it is set in the ```__enter__``` function. So we used the ```with``` syntax here rather than calling the function ourselves.
 
 ## Conclusion
 
@@ -174,6 +173,6 @@ In this guide, we saw
 - How components are rendered
 - How we can structure our application with wrapped layout classes
 
-Because the classes used in this guide are used for demonstration purposes, they may lack optimizations or useful functionality. But this is the subject of another guide.
+Because the classes used in this guide are used for demonstration purposes, they may still not be totally optimized or modular. But that would make the guide much longer!
 
-I hope this guide helps you to gain another view to look at the layout classes and gives you an idea about how you can use them for your needs.
+I hope this guide helps you gain another view of the layout classes and gives you an idea about how you can use them for your needs. See the full implementation of our example [here](https://huggingface.co/spaces/WoWoWoWololo/wrapping-layouts/blob/main/app.py).
