@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Patch `async_save_url_to_cache` for Lite
+fix:Patch `async_save_url_to_cache` for Lite
