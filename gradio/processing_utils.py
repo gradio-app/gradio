@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, Any
 import aiofiles
 import httpx
 import numpy as np
+import urllib3
 from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, PngImagePlugin
 
@@ -147,7 +148,7 @@ def save_pil_to_cache(
     img: Image.Image,
     cache_dir: str,
     name: str = "image",
-    format: str = "png",
+    format: str = "webp",
 ) -> str:
     bytes_data = encode_pil_to_bytes(img, format)
     temp_dir = Path(cache_dir) / hash_bytes(bytes_data)
@@ -158,7 +159,7 @@ def save_pil_to_cache(
 
 
 def save_img_array_to_cache(
-    arr: np.ndarray, cache_dir: str, format: str = "png"
+    arr: np.ndarray, cache_dir: str, format: str = "webp"
 ) -> str:
     pil_image = Image.fromarray(_convert(arr, np.uint8, force_copy=False))
     return save_pil_to_cache(pil_image, cache_dir, format=format)
@@ -208,10 +209,15 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
     full_temp_file_path = str(abspath(temp_dir / name))
 
     if not Path(full_temp_file_path).exists():
-        with httpx.stream("GET", url, follow_redirects=True) as r, open(
-            full_temp_file_path, "wb"
-        ) as f:
-            for chunk in r.iter_raw():
+        # NOTE: We use urllib3 instead of httpx because it works in the Wasm environment. See https://github.com/gradio-app/gradio/issues/6837.
+        http = urllib3.PoolManager()
+        response = http.request(
+            "GET",
+            url,
+            preload_content=False,
+        )
+        with open(full_temp_file_path, "wb") as f:
+            for chunk in response.stream():
                 f.write(chunk)
 
     return full_temp_file_path

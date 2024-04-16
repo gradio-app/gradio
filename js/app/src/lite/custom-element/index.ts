@@ -115,11 +115,6 @@ export function bootstrap_custom_element(
 		}
 
 		parseGradioLiteAppOptions(): GradioLiteAppOptions {
-			// When gradioLiteAppElement only contains text content, it is treated as the Python code.
-			if (this.childElementCount === 0) {
-				return { code: this.textContent ?? "" };
-			}
-
 			// When it contains child elements, parse them as options. Available child elements are:
 			// * <gradio-file />
 			//   Represents a file to be mounted in the virtual file system of the Wasm worker.
@@ -157,13 +152,24 @@ export function bootstrap_custom_element(
 			}
 
 			const codeElements = this.getElementsByTagName("gradio-code");
-			if (codeElements.length > 1) {
-				console.warn(
-					"Multiple <gradio-code> elements are found. Only the first one will be used."
-				);
+			if (codeElements.length === 0) {
+				// If there is no <gradio-code> element, try to parse the content of the custom element as code.
+				let code = "";
+				this.childNodes.forEach((node) => {
+					if (node.nodeType === Node.TEXT_NODE) {
+						code += node.textContent;
+					}
+				});
+				options.code = code || undefined;
+			} else {
+				if (codeElements.length > 1) {
+					console.warn(
+						"Multiple <gradio-code> elements are found. Only the first one will be used."
+					);
+				}
+				const firstCodeElement = codeElements[0];
+				options.code = firstCodeElement?.textContent ?? undefined;
 			}
-			const firstCodeElement = codeElements[0];
-			options.code = firstCodeElement?.textContent ?? undefined;
 
 			const requirementsElements = this.getElementsByTagName(
 				"gradio-requirements"
