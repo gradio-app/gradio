@@ -87,8 +87,10 @@ class SessionState:
             return block
 
     def __setitem__(self, key: int, value: Any):
+        from gradio.components import State
+
         block = self.blocks_config.blocks[key]
-        if block.stateful:
+        if isinstance(block, State):
             self._state_ttl[key] = (
                 block.time_to_live,
                 datetime.datetime.now(),
@@ -106,9 +108,11 @@ class SessionState:
 
     @property
     def state_components(self) -> Iterator[tuple[State, Any, bool]]:
+        from gradio.components import State
+
         for id in self.state_data:
             block = self.blocks_config.blocks[id]
-            if block.stateful and id in self._state_ttl:
+            if isinstance(block, State) and id in self._state_ttl:
                 time_to_live, created_at = self._state_ttl[id]
                 if self.is_closed:
                     time_to_live = self.STATE_TTL_WHEN_CLOSED
