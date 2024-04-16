@@ -6,7 +6,6 @@ import tempfile
 from pathlib import Path
 from typing import List, Optional
 
-import httpx
 import semantic_version
 from huggingface_hub import HfApi
 from rich import print
@@ -131,6 +130,7 @@ def _publish(
     if upload_pypi:
         try:
             from twine.commands.upload import upload as twine_upload  # type: ignore
+            from twine.exceptions import InvalidDistribution  # type: ignore
             from twine.settings import Settings  # type: ignore
         except (ImportError, ModuleNotFoundError) as e:
             raise ValueError(
@@ -154,7 +154,13 @@ def _publish(
                 if (not max_version or max_version in p.name)
             ]
             print(f"Uploading files: {','.join(twine_files)}")
-            twine_upload(twine_settings, twine_files)
+            try:
+                twine_upload(twine_settings, twine_files)
+            except InvalidDistribution as e:
+                raise ValueError(
+                    "Invalid distribution when uploading to pypi. "
+                    "Try upgrading 'pkginfo' with python -m pip install pkginfo --upgrade"
+                ) from e
         except Exception:
             console.print_exception()
     if upload_demo and not demo_dir:
@@ -201,26 +207,8 @@ def _publish(
         except Exception:
             (package_name, _) = wheel_file.name.split("-")[:2]
 
-        try:
-            latest_release = httpx.get(
-                f"https://pypi.org/pypi/{package_name}/json"
-            ).json()["info"]["version"]
-        except Exception:
-            latest_release = None
-
         if not demo_dir:
             raise ValueError("demo_dir must be set")
-
-        if prefer_local or not latest_release:
-            additional_reqs = [wheel_file.name]
-        else:
-            additional_reqs = [f"{package_name}=={latest_release}"]
-        if (demo_dir / "requirements.txt").exists():
-            reqs = (demo_dir / "requirements.txt").read_text().splitlines()
-            reqs += additional_reqs
-        else:
-            reqs = additional_reqs
-        (demo_dir / "requirements.txt").write_text("\n".join(reqs))
 
         package_name, _ = wheel_file.name.split("-")[:2]
         with tempfile.TemporaryDirectory() as tempdir:
@@ -268,6 +256,8 @@ def _publish(
                     repo_type="space",
                 )
             print("\n")
+            # Do a factory reboot so that the new dependencies get installed
+            api.restart_space(repo_id=repo_id, factory_reboot=True, token=hf_token)
             print(f"Demo uploaded to https://huggingface.co/spaces/{repo_id} !")
 
 

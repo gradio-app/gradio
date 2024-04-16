@@ -170,7 +170,7 @@ def _create(
                 with open(directory / "pyproject.toml", "w") as f:
                     dump(pyproject_toml, f)
 
-        (directory / "demo" / "requirements.txt").write_text("")
+        (directory / "demo" / "requirements.txt").write_text(package_name)
         readme_path = Path(__file__).parent / "files" / "README.md"
 
         readme_contents = readme_path.read_text()
