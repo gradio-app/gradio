@@ -110,6 +110,8 @@
 			tick().then((_) => (value_is_output = false));
 		}
 	}
+
+	$: console.log({ value });
 </script>
 
 {#if !interactive}

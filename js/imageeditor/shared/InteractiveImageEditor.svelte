@@ -158,6 +158,7 @@
 				null
 			]);
 		blobs.layers.forEach((layer, i) => {
+			console.log(layer);
 			if (layer)
 				images.push([
 					id as string,
@@ -169,6 +170,7 @@
 
 		await Promise.all(
 			images.map(async ([image_id, type, data, index]) => {
+				console.log({ image_id, type, data, index });
 				return accept_blobs({
 					binary: true,
 					data: { file: data, id: image_id, type, index }
@@ -186,6 +188,7 @@
 			handle_change(e);
 		}
 	}
+	// $: console.log({ value });
 
 	let active_mode: "webcam" | "color" | null = null;
 </script>
