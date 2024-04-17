@@ -675,4 +675,4 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             ),
         }
 
-    raise ValueError(f"Unsupported transformers pipeline type: {type(pipeline)}")
+    raise ValueError(f"Unsupported transformers pipeline type: {pipeline.task}")
