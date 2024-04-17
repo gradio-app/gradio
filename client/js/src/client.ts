@@ -41,11 +41,9 @@ export class Client {
 	last_status: Record<string, Status["stage"]> = {};
 
 	// streaming
-	event_source: EventSource | null = null;
 	stream_status = { open: false };
 	pending_stream_messages: Record<string, any[][]> = {};
 	pending_diff_streams: Record<string, any[][]> = {};
-	event_stream: EventSource | null = null;
 	event_callbacks: Record<string, () => Promise<void>> = {};
 	unclosed_events: Set<string> = new Set();
 
@@ -56,11 +54,11 @@ export class Client {
 		return fetch(input, init);
 	}
 
-	eventSource_factory(url: URL): any {
+	eventSource_factory(url: URL): EventSource | null {
 		if (typeof window !== undefined && typeof EventSource !== "undefined") {
 			return new EventSource(url.toString());
 		}
-		return () => {}; // todo: polyfill eventsource for node envs
+		return null; // todo: polyfill eventsource for node envs
 	}
 
 	view_api: () => Promise<ApiInfo<JsApiData>>;

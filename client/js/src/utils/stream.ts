@@ -3,7 +3,6 @@ import type { Client } from "../client";
 
 export function open_stream(this: Client): void {
 	let {
-		event_source,
 		event_callbacks,
 		unclosed_events,
 		pending_stream_messages,
@@ -11,18 +10,19 @@ export function open_stream(this: Client): void {
 		config
 	} = this;
 
-	if (!event_source) {
-		return;
-	}
-
 	stream_status.open = true;
 
+	let event_source: EventSource | null = null;
 	let params = new URLSearchParams({
 		session_hash: this.session_hash
 	}).toString();
 
 	let url = new URL(`${this.config.root}/queue/data?${params}`);
-	this.event_source = this.eventSource_factory(url);
+	event_source = this.eventSource_factory(url);
+
+	if (!event_source) {
+		throw new Error("Cannot connect to sse endpoint: " + url.toString());
+	}
 
 	event_source.onmessage = async function (event) {
 		let _data = JSON.parse(event.data);

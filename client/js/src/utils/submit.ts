@@ -40,7 +40,12 @@ export function submit(
 			config,
 			session_hash,
 			api_info,
-			api_map
+			api_map,
+			stream_status,
+			pending_stream_messages,
+			pending_diff_streams,
+			event_callbacks,
+			unclosed_events
 		} = this;
 
 		if (!api_info) throw new Error("No API found");
@@ -53,7 +58,7 @@ export function submit(
 		);
 
 		let websocket: WebSocket;
-		let event_source: EventSource;
+		let event_source: EventSource | null;
 		let protocol = config.protocol ?? "ws";
 
 		const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
@@ -66,15 +71,6 @@ export function submit(
 			typeof window !== "undefined"
 				? new URLSearchParams(window.location.search).toString()
 				: "";
-
-		let {
-			stream_status,
-			pending_stream_messages,
-			pending_diff_streams,
-			event_callbacks,
-			unclosed_events
-		} = this;
-		let jwt: false | string = false; // todo remove
 
 		// event subscription methods
 		function fire_event<K extends EventType>(event: Event<K>): void {
@@ -131,7 +127,7 @@ export function submit(
 				}
 				cancel_request = { fn_index, session_hash };
 			} else {
-				event_source.close();
+				event_source?.close();
 				cancel_request = { event_id };
 			}
 
@@ -383,6 +379,10 @@ export function submit(
 
 				event_source = this.eventSource_factory(url);
 
+				if (!event_source) {
+					throw new Error("Cannot connect to sse endpoint: " + url.toString());
+				}
+
 				event_source.onmessage = async function (event) {
 					const _data = JSON.parse(event.data);
 					const { type, status, data } = handle_message(
@@ -400,7 +400,7 @@ export function submit(
 							...status
 						});
 						if (status.stage === "error") {
-							event_source.close();
+							event_source?.close();
 						}
 					} else if (type === "data") {
 						event_id = _data.event_id as string;
@@ -424,7 +424,7 @@ export function submit(
 								fn_index,
 								time: new Date()
 							});
-							event_source.close();
+							event_source?.close();
 						}
 					} else if (type === "complete") {
 						complete = status;
@@ -468,7 +468,7 @@ export function submit(
 								endpoint: _endpoint,
 								fn_index
 							});
-							event_source.close();
+							event_source?.close();
 						}
 					}
 				};
