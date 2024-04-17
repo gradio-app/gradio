@@ -21,7 +21,7 @@
 
 	$: docs_url = `${value === version ? "" : `/${value}`}/docs${docs_section ? `/${docs_section}` : ""}/${
 		$page.params?.doc ||
-		(is_dynamic || path_parts.length !== 4
+		(is_dynamic || path_parts.length !== 5
 			? ""
 			: path_parts[path_parts.length - 1])
 	}`;
