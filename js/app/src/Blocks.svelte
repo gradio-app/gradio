@@ -23,6 +23,7 @@
 
 	export let root: string;
 	export let components: ComponentMeta[];
+	let old_components: ComponentMeta[] = components;
 	export let layout: LayoutNode;
 	export let dependencies: Dependency[];
 	export let title = "Gradio";
@@ -51,6 +52,24 @@
 		create_layout
 	} = create_components();
 
+	const restore_keyed_values = () => {
+		let component_values_by_key: Record<string | number, ComponentMeta> = {};
+		old_components.forEach((component) => {
+			if (component.key) {
+				component_values_by_key[component.key] = component;
+			}
+		});
+		components.forEach((component) => {
+			if (component.key) {
+				const old_component = component_values_by_key[component.key];
+				if (old_component) {
+					console.log("set old value", old_component.props.value);
+					component.props.value = old_component.props.value;
+				}
+			}
+		});
+	};
+
 	$: create_layout({
 		components,
 		layout,
@@ -59,7 +78,8 @@
 		app,
 		options: {
 			fill_height
-		}
+		},
+		callback: restore_keyed_values
 	});
 
 	$: {

@@ -38,6 +38,7 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
+		callback?: () => void;
 	}) => void;
 } {
 	let _component_map: Map<number, ComponentMeta>;
@@ -61,7 +62,8 @@ export function create_components(): {
 		layout,
 		dependencies,
 		root,
-		options
+		options,
+		callback
 	}: {
 		app: client_return;
 		components: ComponentMeta[];
@@ -71,6 +73,7 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
+		callback?: () => void;
 	}): void {
 		app = _app;
 		_components = components;
@@ -120,6 +123,7 @@ export function create_components(): {
 
 		walk_layout(layout, root).then(() => {
 			layout_store.set(_rootNode);
+			callback();
 		});
 	}
 
