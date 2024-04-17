@@ -121,7 +121,7 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "inputs": [
                 components.Textbox(label="Input", render=False),
                 components.Textbox(
-                    label="Possible class names (" "comma-separated)", render=False
+                    label="Possible class names (comma-separated)", render=False
                 ),
                 components.Checkbox(label="Allow multiple true classes", render=False),
             ],
@@ -582,9 +582,53 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
     #     pass
     # if pipeline.task == "zero-shot-audio-classification":
     #     pass
-    # if pipeline.task == "zero-shot-image-classification":
-    #     pass
-    # if pipeline.task == "zero-shot-object-detection":
-    #     pass
+    if pipeline.task == "zero-shot-image-classification":
+        return {
+            "inputs": [
+                components.Image(type="filepath", label="Input Image", render=False),
+                components.Textbox(
+                    label="Possible class names (comma-separated)", render=False
+                ),
+            ],
+            "outputs": components.Label(label="Classification", render=False),
+            "preprocess": lambda image_path, classnames: (
+                as_url(image_path),
+                [c.strip() for c in classnames.split(",")],
+            ),
+            "postprocess": lambda result, *_: {
+                i["label"].split(", ")[0]: i["score"] for i in result
+            },
+        }
+    if pipeline.task == "zero-shot-object-detection":
+        return {
+            "inputs": [
+                components.Image(type="filepath", label="Input Image", render=False),
+                components.Textbox(
+                    label="Possible class names (comma-separated)", render=False
+                ),
+            ],
+            "outputs": components.AnnotatedImage(
+                label="Objects Detected", render=False
+            ),
+            "preprocess": lambda image_path, classnames: (
+                as_url(image_path),
+                [c.strip() for c in classnames.split(",")],
+            ),
+            "postprocess": lambda result, image_path, _: (
+                image_path,
+                [
+                    (
+                        (
+                            int(item["box"]["xmin"]),
+                            int(item["box"]["ymin"]),
+                            int(item["box"]["xmax"]),
+                            int(item["box"]["ymax"]),
+                        ),
+                        f"{item['label']} ({item['score']})",
+                    )
+                    for item in result
+                ],
+            ),
+        }
 
     raise ValueError(f"Unsupported transformers pipeline type: {type(pipeline)}")
