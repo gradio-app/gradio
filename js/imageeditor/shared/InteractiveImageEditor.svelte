@@ -261,7 +261,6 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-
 		position: absolute;
 		height: 100%;
 		width: 100%;
@@ -282,10 +281,8 @@
 		color: var(--block-label-text-color);
 		line-height: var(--line-md);
 		height: 100%;
-		padding-top: var(--size-3);
 		font-size: var(--text-lg);
 		pointer-events: none;
-		transform: translateY(-30px);
 	}
 
 	.or {
