@@ -12,13 +12,12 @@
 		display: flex;
 		max-height: 100%;
 		justify-content: center;
+		align-items: center;
 		gap: var(--spacing-sm);
 		height: auto;
 		align-items: flex-end;
-		padding-bottom: var(--spacing-xl);
 		color: var(--block-label-text-color);
 		flex-shrink: 0;
-		width: 95%;
 	}
 
 	.show_border {
