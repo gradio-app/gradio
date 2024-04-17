@@ -79,13 +79,17 @@ def predict(im):
 
 
 with gr.Blocks() as demo:
-    with gr.Row():
-        im = gr.ImageEditor(
-            type="numpy",
-            crop_size="1:1",
-            interactive=True,
-        )
-        im_preview = gr.ImageEditor(interactive=True)
+    with gr.Group():
+        with gr.Row():
+            im = gr.ImageEditor(
+                type="numpy",
+                crop_size="1:1",
+                elem_id="image_editor",
+                interactive=True,
+            )
+            im_preview = gr.Image()
+    with gr.Group():
+        with gr.Row():
 
     set_background = gr.Button("Set Background")
     set_background.click(
