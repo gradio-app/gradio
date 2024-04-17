@@ -97,6 +97,7 @@
 			return _file_data || [];
 		} catch (e) {
 			dispatch("error", (e as Error).message);
+			uploading = false;
 			return [];
 		}
 	}

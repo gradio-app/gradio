@@ -177,6 +177,7 @@
 
 	function handle_upload_click(): void {
 		if (hidden_upload) {
+			hidden_upload.value = "";
 			hidden_upload.click();
 		}
 	}
@@ -196,6 +197,8 @@
 			}
 		}
 	}
+
+	$: console.log("UPLOADING", uploading);
 </script>
 
 <!-- svelte-ignore a11y-autofocus -->

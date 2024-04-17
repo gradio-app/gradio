@@ -3,7 +3,7 @@
 	import { _ } from "svelte-i18n";
 	import { client } from "@gradio/client";
 
-	import type { LoadingStatusCollection } from "./stores";
+	import type { LoadingStatus, LoadingStatusCollection } from "./stores";
 
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import type { UpdateTransaction } from "./init";
@@ -18,6 +18,7 @@
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import { create_components, AsyncFunction } from "./init";
+	import type { int } from "babylonjs";
 
 	setupi18n();
 
@@ -424,12 +425,16 @@
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
 
 			const { id, event, data } = e.detail;
+			console.log("event", event, "data", data, "id", id);
 
 			if (event === "share") {
 				const { title, description } = data as ShareData;
 				trigger_share(title, description);
 			} else if (event === "error" || event === "warning") {
+				console.log("ID", id, "event", event, "data", data);
 				messages = [new_message(data, -1, event), ...messages];
+			} else if (event  == "clear_status") {
+				update_status(id, "complete", data);
 			} else {
 				const deps = $targets[id]?.[event];
 
@@ -451,6 +456,17 @@
 	}
 
 	$: set_status($loading_status);
+
+	function update_status(id: int, status: "error" | "complete" | "pending", data: LoadingStatus): void {
+		data.status = status;
+		update_value([
+			{
+				id,
+				prop: "loading_status",
+				value: data
+			}
+		]);
+	}
 
 	function set_status(statuses: LoadingStatusCollection): void {
 		const updates = Object.entries(statuses).map(([id, loading_status]) => {

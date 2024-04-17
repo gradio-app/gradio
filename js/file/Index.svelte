@@ -49,6 +49,8 @@
 		old_value = value;
 	}
 
+	$: console.log("GRADIO MAX FILE SIZE", gradio.max_file_size);
+
 	let dragging = false;
 	let pending_upload = false;
 </script>

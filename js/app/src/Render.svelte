@@ -12,7 +12,9 @@
 	export let theme_mode: ThemeMode;
 	export let version: string;
 	export let autoscroll: boolean;
-	export let max_file_size: number | null = null;
+	export let max_file_size: number | null;
+
+	$: console.log("RENDER MAX FILE SIZE", max_file_size);	
 
 	const dispatch = createEventDispatcher<{ mount: number; destroy: number }>();
 	let filtered_children: ComponentMeta[] = [];
@@ -97,6 +99,7 @@
 				{theme_mode}
 				on:destroy
 				on:mount
+				{max_file_size}
 			/>
 		{/each}
 	{/if}

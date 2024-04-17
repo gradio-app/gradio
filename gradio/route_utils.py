@@ -597,6 +597,8 @@ class GradioMultiPartParser:
                     await part.file.write(data)
                     part.file.sha.update(data)  # type: ignore
                     if os.stat(part.file.file.name).st_size > self.max_file_size:
+                        if self.upload_progress is not None:
+                            self.upload_progress.set_done(self.upload_id)
                         raise MultiPartException(
                             f"File size exceeded maximum allowed size of {self.max_file_size} bytes."
                         )
