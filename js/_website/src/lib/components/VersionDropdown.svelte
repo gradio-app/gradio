@@ -16,10 +16,12 @@
 
 	$: match_name = $page.url.pathname.match(/\/docs\/([^/]+)/);
 	$: if (match_name) {
-		 docs_section = match_name[1];
+		docs_section = match_name[1];
 	}
 
-	$: docs_url = `${value === version ? "" : `/${value}`}/docs${docs_section ? `/${docs_section}` : ""}/${
+	$: docs_url = `${value === version ? "" : `/${value}`}/docs${
+		docs_section ? `/${docs_section}` : ""
+	}/${
 		$page.params?.doc ||
 		(is_dynamic || path_parts.length !== 5
 			? ""
@@ -59,7 +61,6 @@
 			: value}/gradio.js"
 	></script>
 </svelte:head>
-
 
 <select
 	bind:value

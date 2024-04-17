@@ -77,7 +77,7 @@
 			items={{
 				Intro: "intro",
 				Client: "client",
-				Job: "job",
+				Job: "job"
 			}}
 			title={"Python Client"}
 		/>

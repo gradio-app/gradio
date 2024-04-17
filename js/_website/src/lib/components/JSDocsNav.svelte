@@ -104,7 +104,6 @@
 		{#if version_dropdown}
 			<DropDown docs_type="js"></DropDown>
 		{/if}
-		
 	</div>
 
 	<p

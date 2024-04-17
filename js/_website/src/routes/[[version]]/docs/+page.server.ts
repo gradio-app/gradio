@@ -1,7 +1,20 @@
 import { redirect } from "@sveltejs/kit";
 import * as version from "$lib/json/version.json";
 
-const COLOR_SETS = ["green", "yellow", "red", "blue", "pink", "purple", "green", "yellow", "red", "blue", "pink", "purple"];
+const COLOR_SETS = [
+	"green",
+	"yellow",
+	"red",
+	"blue",
+	"pink",
+	"purple",
+	"green",
+	"yellow",
+	"red",
+	"blue",
+	"pink",
+	"purple"
+];
 
 const DOCS_BUCKET = "https://gradio-docs-json.s3.us-west-2.amazonaws.com";
 const VERSION = version.version;
@@ -42,4 +55,3 @@ export async function load({ params, url }) {
 		COLOR_SETS
 	};
 }
-

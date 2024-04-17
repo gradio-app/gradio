@@ -121,7 +121,7 @@
 		<a
 			class:current-nav-link={current_nav_link == name}
 			class="px-4 block thin-link"
-			href="{url}">{name}</a
+			href={url}>{name}</a
 		>
 	{/each}
 </div>

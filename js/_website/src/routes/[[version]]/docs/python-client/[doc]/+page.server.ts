@@ -36,7 +36,7 @@ export async function load({ params, parent }) {
 	let method_headers = [];
 	const get_slug = make_slug_processor();
 
-    let py_client_pages = ["intro", "client", "job"]
+	let py_client_pages = ["intro", "client", "job"];
 
 	if (!py_client_pages.some((p: string) => p === params.doc)) {
 		throw error(404);

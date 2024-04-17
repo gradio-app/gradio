@@ -30,15 +30,15 @@
 	<div class="flex w-full">
 		<DocsNavCustom
 			items={{
-				"Installation": "#installation",
-				"Usage": "#usage",
-				"client": "#client",
-				"duplicate": "#duplicate"
+				Installation: "#installation",
+				Usage: "#usage",
+				client: "#client",
+				duplicate: "#duplicate"
 			}}
 			title={"JavaScript Client"}
 		/>
 
-		<div class="flex flex-col w-full min-w-full  lg:min-w-0">
+		<div class="flex flex-col w-full min-w-full lg:min-w-0">
 			<div>
 				<p
 					class="lg:ml-10 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left"
@@ -54,9 +54,7 @@
 				</p>
 			</div>
 
-			<div class="lg:ml-10 flex justify-between mt-4">
-				
-			</div>
+			<div class="lg:ml-10 flex justify-between mt-4"></div>
 			<div class="flex flex-row">
 				<div class=" lg:ml-10 lg:mr-24">
 					<div class="prose text-lg max-w-full">
@@ -65,7 +63,6 @@
 				</div>
 			</div>
 		</div>
-		
 	</div>
 </main>
 
