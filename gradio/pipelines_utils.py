@@ -580,10 +580,36 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             ),
         }
 
-    # if pipeline.task == "question-answering":
-    #     pass
-    # if pipeline.task == "summarization":
-    #     pass
+    if pipeline.task == "question-answering":
+        return {
+            "inputs": [
+                components.Textbox(lines=7, label="Context", render=False),
+                components.Textbox(label="Question", render=False),
+            ],
+            "outputs": [
+                components.Textbox(label="Answer", render=False),
+                components.Label(label="Score", render=False),
+            ],
+            "preprocess": None,
+            "postprocess": lambda r, *_: (r["answer"], r["score"]),
+        }
+    if pipeline.task == "summarization":
+        return {
+            "inputs": [
+                components.Textbox(lines=7, label="Input", render=False),
+                components.Slider(
+                    label="The maximum numbers of tokens to generate",
+                    minimum=1,
+                    maximum=500,
+                    value=100,
+                    step=1,
+                    render=False,
+                ),
+            ],
+            "outputs": components.Textbox(label="Summary", render=False),
+            "preprocess": lambda text, max_new_tokens: (text, { "max_new_tokens": max_new_tokens}),
+            "postprocess": lambda r, *_: r[0]["summary_text"],
+        }
     # if pipeline.task == "text2text-generation":
     #     pass
     # if pipeline.task == "text-classification":
