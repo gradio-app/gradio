@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from gradio.pipelines_utils import (
     handle_diffusers_pipeline,
+    handle_transformers_js_pipeline,
     handle_transformers_pipeline,
 )
 
@@ -82,4 +83,29 @@ def load_from_pipeline(
         else pipeline.__class__.__name__
     )
 
+    return interface_info
+
+
+def load_from_js_pipeline(pipeline) -> dict:
+    if str(type(pipeline).__module__).startswith("transformers_js_py."):
+        pipeline_info = handle_transformers_js_pipeline(pipeline)
+    else:
+        raise ValueError("pipeline must be a transformers_js_py's pipeline")
+
+    async def fn(*params):
+        preprocess = pipeline_info["preprocess"]
+        postprocess = pipeline_info["postprocess"]
+
+        preprocessed_params = preprocess(*params)
+        pipeline_output = await pipeline(*preprocessed_params)
+        postprocessed_output = postprocess(pipeline_output, *params)
+
+        return postprocessed_output
+
+    interface_info = {
+        "fn": fn,
+        "inputs": pipeline_info["inputs"],
+        "outputs": pipeline_info["outputs"],
+        "title": pipeline.task,
+    }
     return interface_info

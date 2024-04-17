@@ -482,3 +482,90 @@ def handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "postprocess": lambda r: r["images"][0],
         }
     raise ValueError(f"Unsupported diffusers pipeline type: {type(pipeline)}")
+
+
+def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
+    try:
+        from transformers_js_py import as_url
+    except ImportError as ie:
+        raise ImportError(
+            "transformers_js_py not installed. Please add `transformers_js_py` to the requirements option of your Gradio-Lite app"
+        ) from ie
+
+    # if pipeline.task == "audio-classification":
+    #     pass
+    # if pipeline.task == "automatic-speech-recognition":
+    #     pass
+    # if pipeline.task == "depth-estimation":
+    #     pass
+    # if pipeline.task == "document-question-answering":
+    #     pass
+    # if pipeline.task == "feature-extraction":
+    #     pass
+    # if pipeline.task == "fill-mask":
+    #     pass
+    # if pipeline.task == "image-classification":
+    #     pass
+    # if pipeline.task == "image-segmentation":
+    #     pass
+    # if pipeline.task == "image-to-text":
+    #     pass
+    if pipeline.task == "object-detection":
+
+        def preprocess(image_path):
+            return (as_url(image_path),)
+
+        def postprocess(pipeline_output, image_path):
+            gradio_labels = [
+                # List[Tuple[numpy.ndarray | Tuple[int, int, int, int], str]]
+                (
+                    (
+                        int(item["box"]["xmin"]),
+                        int(item["box"]["ymin"]),
+                        int(item["box"]["xmax"]),
+                        int(item["box"]["ymax"]),
+                    ),
+                    item["label"],
+                )
+                for item in pipeline_output
+            ]
+            annotated_image_data = image_path, gradio_labels
+            return annotated_image_data
+
+        return {
+            "inputs": components.Image(
+                type="filepath", label="Input Image", render=False
+            ),
+            "outputs": components.AnnotatedImage(
+                label="Objects Detected", render=False
+            ),
+            "preprocess": preprocess,
+            "postprocess": postprocess,
+        }
+
+    # if pipeline.task == "question-answering":
+    #     pass
+    # if pipeline.task == "summarization":
+    #     pass
+    # if pipeline.task == "text2text-generation":
+    #     pass
+    # if pipeline.task == "text-classification":
+    #     pass
+    # if pipeline.task == "text-generation":
+    #     pass
+    # if pipeline.task == "token-classification":
+    #     pass
+    # if pipeline.task == "translation":
+    #     pass
+    # if pipeline.task == "translation_xx_to_yy":
+    #     pass
+    # if pipeline.task == "zero-shot-classification":
+    #     pass
+    # if pipeline.task == "zero-shot-audio-classification":
+    #     pass
+    # if pipeline.task == "zero-shot-image-classification":
+    #     pass
+    # if pipeline.task == "zero-shot-object-detection":
+    #     pass
+
+    raise ValueError(f"Unsupported transformers pipeline type: {type(pipeline)}")
