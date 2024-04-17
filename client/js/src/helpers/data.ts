@@ -2,6 +2,7 @@ import { NodeBlob } from "../client";
 import type {
 	ApiData,
 	BlobRef,
+	Config,
 	EndpointInfo,
 	JsApiData,
 	ParamType
@@ -87,4 +88,26 @@ export async function walk_and_store_blobs(
 		return blob_refs;
 	}
 	return [];
+}
+
+export function skip_queue(id: number, config: Config): boolean {
+	return (
+		!(config?.dependencies?.[id]?.queue === null
+			? config.enable_queue
+			: config?.dependencies?.[id]?.queue) || false
+	);
+}
+
+export function post_message<Res = any>(
+	message: any,
+	origin: string
+): Promise<Res> {
+	return new Promise((res, _rej) => {
+		const channel = new MessageChannel();
+		channel.port1.onmessage = (({ data }) => {
+			channel.port1.close();
+			res(data);
+		}) as (ev: MessageEvent<Res>) => void;
+		window.parent.postMessage(message, origin, [channel.port2]);
+	});
 }

@@ -1,4 +1,5 @@
-import { UploadResponse, upload_files } from ".";
+import type { UploadResponse } from "./types";
+import { upload_files } from ".";
 
 export async function upload(
 	file_data: FileData[],

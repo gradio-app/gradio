@@ -1,9 +1,9 @@
 import type { ApiInfo, ApiData } from "../types";
-import { transform_api_info } from "../helpers";
 import semiver from "semiver";
 import { API_INFO_URL, BROKEN_CONNECTION_MSG } from "../constants";
 import { Client } from "../client";
 import { SPACE_FETCHER_URL } from "../constants";
+import { transform_api_info } from "../helpers/api_info";
 
 export async function view_api(this: Client): Promise<any> {
 	if (this.api_info) return this.api_info;

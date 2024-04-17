@@ -17,13 +17,9 @@ import type {
 import { post_data } from "./post_data";
 import { handle_blob } from "./handle_blob";
 
-import {
-	skip_queue,
-	handle_message,
-	process_endpoint,
-	resolve_root,
-	post_message
-} from "../helpers";
+import { skip_queue, post_message } from "../helpers/data";
+import { resolve_root } from "../helpers/init_helpers";
+import { handle_message, process_endpoint } from "../helpers/api_info";
 import { BROKEN_CONNECTION_MSG, QUEUE_FULL_MSG } from "../constants";
 import { apply_diff_stream, close_stream } from "./stream";
 import { get_jwt } from "../helpers/init_helpers";

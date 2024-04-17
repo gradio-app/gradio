@@ -17,12 +17,8 @@ import { handle_blob } from "./utils/handle_blob";
 import { post_data } from "./utils/post_data";
 import { predict } from "./utils/predict";
 import { submit } from "./utils/submit";
-import {
-	RE_SPACE_NAME,
-	map_names_to_ids,
-	process_endpoint,
-	resolve_config
-} from "./helpers";
+import { RE_SPACE_NAME, process_endpoint } from "./helpers/api_info";
+import { map_names_to_ids, resolve_config } from "./helpers/init_helpers";
 import { check_space_status } from "./helpers/spaces";
 import { open_stream } from "./utils/stream";
 
