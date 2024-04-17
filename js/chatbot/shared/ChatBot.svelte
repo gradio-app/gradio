@@ -325,7 +325,10 @@
 
 	.message-wrap > div :not(.avatar-container) :global(img) {
 		border-radius: 13px;
+		margin: var(--size-2);
+		width: 400px;
 		max-width: 30vw;
+		max-height: auto;
 	}
 
 	.message-wrap > div :global(p:not(:first-child)) {
@@ -516,10 +519,7 @@
 			opacity: 0.8;
 		}
 	}
-	.message-wrap .message :global(img) {
-		margin: var(--size-2);
-		max-height: 200px;
-	}
+
 	.message-wrap .message :global(a) {
 		color: var(--color-text-link);
 		text-decoration: underline;
