@@ -176,5 +176,8 @@ export const redirects = {
 	"/docs/tabbedinterface": "/docs/gradio/tabbedinterface",
 	"/docs/themes": "/docs/gradio/themes",
 	"/docs/no-reload": "/docs/gradio/no-reload",
-	"/docs/js-client": "/docs/js-client"
+	"/docs/python-client/python-client": "/docs/python-client/intro",
+	"/docs/python-client/js-client": "/docs/js-client",
+	"/3.50.2/docs/python-client/python-client": "/docs/python-client/intro",
+	"/3.50.2/docs/python-client/js-client": "/docs/js-client"
 };

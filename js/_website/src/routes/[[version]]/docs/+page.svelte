@@ -147,6 +147,7 @@
 				A Javascript (and Typescript) client to call Gradio APIs.
 			</div>
 		</a>
+		{#if $page.params?.version !== "3.50.2"}
 		<a
 			href="./docs/js"
 			target="_self"
@@ -174,6 +175,7 @@
 				Create, use and share your own custom components.
 			</div>
 		</a>
+		{/if}
 		<a
 			href="../guides/gradio-lite"
 			target="_self"
