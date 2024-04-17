@@ -75,6 +75,7 @@
 	export let crop_constraint = false;
 
 	let dimensions = writable(crop_size);
+	export let height = 0;
 
 	let editor_box: EditorContext["editor_box"] = writable({
 		parent_width: 0,
@@ -90,6 +91,8 @@
 		child_right: 0,
 		child_bottom: 0
 	});
+
+	$: height = $editor_box.child_height;
 
 	const crop = writable<[number, number, number, number]>([0, 0, 1, 1]);
 	const position_spring = spring(

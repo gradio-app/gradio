@@ -188,6 +188,7 @@
 	}
 
 	let active_mode: "webcam" | "color" | null = null;
+	let editor_height = 0;
 </script>
 
 <BlockLabel
@@ -197,6 +198,7 @@
 />
 <ImageEditor
 	bind:this={editor}
+	bind:height={editor_height}
 	{changeable}
 	on:save
 	on:change={handle_change}
@@ -238,7 +240,7 @@
 	</Tools>
 
 	{#if !bg && !history && active_mode !== "webcam"}
-		<div class="empty wrap">
+		<div class="empty wrap" style:height={`${editor_height}px`}>
 			{#if sources && sources.length}
 				<div>Upload an image</div>
 			{/if}
@@ -268,6 +270,7 @@
 		z-index: var(--layer-top);
 		text-align: center;
 		color: var(--body-text-color);
+		top: var(--size-8);
 	}
 
 	.wrap {
@@ -278,9 +281,10 @@
 		min-height: var(--size-60);
 		color: var(--block-label-text-color);
 		line-height: var(--line-md);
-		height: 100%;
+		/* height: 100%; */
 		font-size: var(--text-lg);
 		pointer-events: none;
+		/* margin-top: var(--size-8); */
 	}
 
 	.or {
