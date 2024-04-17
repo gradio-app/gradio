@@ -209,13 +209,17 @@
 	$: brush_size =
 		(selected_size / $dimensions[0]) * $editor_box.child_width * 2;
 
-	function debounce_toggle(): () => void {
+	function debounce_toggle(): (should_close?: boolean) => void {
 		let timeout: NodeJS.Timeout | null = null;
 
-		return function executedFunction() {
+		return function executedFunction(should_close?: boolean) {
 			const later = (): void => {
 				if (timeout) {
 					clearTimeout(timeout);
+				}
+				if (should_close !== undefined) {
+					brush_options = should_close;
+					return;
 				}
 				brush_options = !brush_options;
 			};
@@ -230,7 +234,9 @@
 	const toggle_options = debounce_toggle();
 </script>
 
-<svelte:window on:keydown={({ key }) => key === "Escape" && toggle_options()} />
+<svelte:window
+	on:keydown={({ key }) => key === "Escape" && toggle_options(false)}
+/>
 
 <span
 	style:transform="translate({pos.x}px, {pos.y}px)"
@@ -249,7 +255,7 @@
 	<div>
 		<BrushOptions
 			show_swatch={mode === "draw"}
-			on:click_outside={toggle_options}
+			on:click_outside={() => toggle_options()}
 			colors={processed_colors}
 			bind:selected_color
 			{color_mode}

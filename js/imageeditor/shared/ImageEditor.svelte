@@ -358,7 +358,7 @@
 		height: 100%;
 		position: relative;
 		justify-content: center;
-		align-items: center;
+		align-items: flex-start;
 	}
 	.border {
 		position: absolute;
