@@ -1,1 +1,1 @@
-export type tool = "draw" | "erase" | "crop";
+export type tool = "draw" | "erase" | "crop" | "bg";

@@ -28,6 +28,7 @@
 			child_bottom: number;
 		}>;
 		active_tool: Writable<tool>;
+		toolbar_box: Writable<DOMRect>;
 		crop: Writable<[number, number, number, number]>;
 		position_spring: Spring<{
 			x: number;
@@ -117,6 +118,7 @@
 		PartialRecord<context_type, (dimensions?: typeof $dimensions) => void>
 	> = writable({});
 	const contexts: Writable<context_type[]> = writable([]);
+	const toolbar_box: Writable<DOMRect> = writable(new DOMRect());
 
 	const sort_order = ["bg", "layers", "crop", "draw", "erase"] as const;
 	const editor_context = setContext<EditorContext>(EDITOR_KEY, {
@@ -124,6 +126,7 @@
 		current_layer: writable(null),
 		dimensions,
 		editor_box,
+		toolbar_box,
 		active_tool,
 		crop,
 		position_spring,
@@ -350,10 +353,10 @@
 
 <style>
 	.wrap {
+		display: flex;
 		width: 100%;
 		height: 100%;
 		position: relative;
-		display: flex;
 		justify-content: center;
 		align-items: center;
 	}
@@ -373,12 +376,10 @@
 		display: flex;
 		justify-content: center;
 		align-items: flex-end;
-		padding: var(--spacing-sm) var(--spacing-xl) var(--spacing-sm)
-			var(--spacing-xl);
+		padding: 0 var(--spacing-xl) 0 0;
 		border: 1px solid var(--block-border-color);
 		border-radius: var(--radius-sm);
-		/* background-color: var(--block-label-background-fill); */
-		margin: var(--spacing-md) 0 var(--spacing-lg) 0;
+		margin: var(--spacing-xxl) 0 var(--spacing-xxl) 0;
 	}
 
 	.image-container {

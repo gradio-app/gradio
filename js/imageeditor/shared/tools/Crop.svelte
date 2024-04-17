@@ -176,6 +176,8 @@
 			options: []
 		})
 	);
+
+	$: console.log($active_tool);
 </script>
 
 {#if $active_tool === "crop" && measured}
@@ -191,6 +193,3 @@
 		on:crop_end={({ detail }) => handle_crop("stop", detail)}
 	/>
 {/if}
-
-<style>
-</style>

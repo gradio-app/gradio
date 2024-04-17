@@ -44,6 +44,8 @@
 			id: "bg_upload",
 			cb() {
 				upload.open_file_upload();
+
+				$active_tool = "bg";
 			}
 		},
 		webcam: {
@@ -53,6 +55,8 @@
 			id: "bg_webcam",
 			cb() {
 				active_mode = "webcam";
+				console.log(active_tool);
+				$active_tool = "bg";
 			}
 		},
 		clipboard: {
@@ -62,6 +66,7 @@
 			id: "bg_clipboard",
 			cb() {
 				process_clipboard();
+				$active_tool = null;
 			}
 		}
 	} as const;
@@ -236,5 +241,6 @@
 		justify-content: center;
 		align-items: center;
 		margin-left: var(--spacing-lg);
+		height: 100%;
 	}
 </style>

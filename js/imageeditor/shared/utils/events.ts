@@ -1,3 +1,5 @@
+import { tick } from "svelte";
+
 /**
  * Svelte action to handle clicks outside of a DOM node
  * @param node DOM node to check the click is outside of
@@ -14,6 +16,7 @@ export function click_outside(
 			!node.contains(event.target as Node) &&
 			!event.defaultPrevented
 		) {
+			console.log("click outside");
 			callback(event);
 		}
 	};
