@@ -504,34 +504,39 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
     #     pass
     # if pipeline.task == "fill-mask":
     #     pass
-    # if pipeline.task == "image-classification":
-    #     pass
-    # if pipeline.task == "image-segmentation":
-    #     pass
+    if pipeline.task == "image-classification":
+        return {
+            "inputs": components.Image(
+                type="filepath", label="Input Image", render=False
+            ),
+            "outputs": components.Label(label="Classification", render=False),
+            "preprocess": lambda image_path: (as_url(image_path),),
+            "postprocess": lambda result, *_: {
+                item["label"].split(", ")[0]: item["score"] for item in result
+            },
+        }
+    if pipeline.task == "image-segmentation":
+        return {
+            "inputs": components.Image(
+                type="filepath", label="Input Image", render=False
+            ),
+            "outputs": components.AnnotatedImage(label="Segmentation", render=False),
+            "preprocess": lambda image_path: (as_url(image_path),),
+            "postprocess": lambda result, image_path: (
+                image_path,
+                [
+                    (
+                        item["mask"].to_numpy()[:, :, 0]
+                        / 255.0,  # Reshape ([h,w,1] -> [h,w]) and normalize ([0,255] -> [0,1])
+                        f"{item['label']} ({item['score']})",
+                    )
+                    for item in result
+                ],
+            ),
+        }
     # if pipeline.task == "image-to-text":
     #     pass
     if pipeline.task == "object-detection":
-
-        def preprocess(image_path):
-            return (as_url(image_path),)
-
-        def postprocess(pipeline_output, image_path):
-            gradio_labels = [
-                # List[Tuple[numpy.ndarray | Tuple[int, int, int, int], str]]
-                (
-                    (
-                        int(item["box"]["xmin"]),
-                        int(item["box"]["ymin"]),
-                        int(item["box"]["xmax"]),
-                        int(item["box"]["ymax"]),
-                    ),
-                    item["label"],
-                )
-                for item in pipeline_output
-            ]
-            annotated_image_data = image_path, gradio_labels
-            return annotated_image_data
-
         return {
             "inputs": components.Image(
                 type="filepath", label="Input Image", render=False
@@ -539,8 +544,22 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             "outputs": components.AnnotatedImage(
                 label="Objects Detected", render=False
             ),
-            "preprocess": preprocess,
-            "postprocess": postprocess,
+            "preprocess": lambda image_path: (as_url(image_path),),
+            "postprocess": lambda result, image_path: (
+                image_path,
+                [
+                    (
+                        (
+                            int(item["box"]["xmin"]),
+                            int(item["box"]["ymin"]),
+                            int(item["box"]["xmax"]),
+                            int(item["box"]["ymax"]),
+                        ),
+                        f"{item['label']} ({item['score']})",
+                    )
+                    for item in result
+                ],
+            ),
         }
 
     # if pipeline.task == "question-answering":

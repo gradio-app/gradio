@@ -96,9 +96,11 @@ def load_from_js_pipeline(pipeline) -> dict:
         preprocess = pipeline_info["preprocess"]
         postprocess = pipeline_info["postprocess"]
 
-        preprocessed_params = preprocess(*params)
+        preprocessed_params = preprocess(*params) if preprocess else params
         pipeline_output = await pipeline(*preprocessed_params)
-        postprocessed_output = postprocess(pipeline_output, *params)
+        postprocessed_output = (
+            postprocess(pipeline_output, *params) if postprocess else pipeline_output
+        )
 
         return postprocessed_output
 
