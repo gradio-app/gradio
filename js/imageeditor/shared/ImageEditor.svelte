@@ -241,10 +241,10 @@
 		return $pixi?.get_blobs(
 			$pixi.get_layers(),
 			new Rectangle(
-				l * $dimensions[0],
-				t * $dimensions[1],
-				w * $dimensions[0],
-				h * $dimensions[1]
+				Math.round(l * $dimensions[0]),
+				Math.round(t * $dimensions[1]),
+				Math.round(w * $dimensions[0]),
+				Math.round(h * $dimensions[1])
 			),
 			$dimensions
 		);
