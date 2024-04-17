@@ -498,8 +498,16 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
     #     pass
     # if pipeline.task == "depth-estimation":
     #     pass
-    # if pipeline.task == "document-question-answering":
-    #     pass
+    if pipeline.task == "document-question-answering":
+        return {
+            "inputs": [
+                components.Image(type="filepath", label="Input Document", render=False),
+                components.Textbox(label="Question", render=False),
+            ],
+            "outputs": components.Textbox(label="Label", render=False),
+            "preprocess": lambda img, q: (as_url(img), q),
+            "postprocess": lambda r, *_: r[0]["answer"],  # This data structure is different from the original Transformers.
+        }
     # if pipeline.task == "feature-extraction":
     #     pass
     # if pipeline.task == "fill-mask":
