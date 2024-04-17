@@ -42,6 +42,7 @@
 	export let autofocus = false;
 	export let autoscroll = true;
 	export let interactive: boolean;
+	console.log("interactive", interactive);
 </script>
 
 <Block

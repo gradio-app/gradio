@@ -121,6 +121,7 @@ class Block:
         self.state_session_capacity = 10000
         self.temp_files: set[str] = set()
         self.GRADIO_CACHE = get_upload_folder()
+        self.key: int | str | None = None
         # Keep tracks of files that should not be deleted when the delete_cache parmaeter is set
         # These files are the default value of the component and files that are used in examples
         self.keep_in_cache = set()
@@ -1892,6 +1893,7 @@ Received outputs:
             block_config["component_class_id"] = getattr(
                 block, "component_class_id", None
             )
+            block_config["key"] = block.key
 
             if not block.skip_api:
                 block_config["api_info"] = block.api_info()  # type: ignore
@@ -2128,6 +2130,11 @@ Received outputs:
             raise ValueError("`blocked_paths` must be a list of directories.")
 
         self.validate_queue_settings()
+
+        if self.dev_mode:
+            for block in self.blocks.values():
+                if block.key is None:
+                    block.key = f"__{block._id}__"
 
         self.config = self.get_config_file()
         self.max_threads = max_threads

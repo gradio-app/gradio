@@ -302,17 +302,13 @@
 				const { host } = new URL(api_url);
 				let url = new URL(`http://${host}/dev/reload`);
 				eventSource = new EventSource(url);
-				eventSource.onmessage = async function (event) {
-					if (event.data === "CHANGE") {
-						app = await client(api_url, {
-							status_callback: handle_status
-						});
-
-						config = app.config;
-						window.__gradio_space__ = config.space_id;
-						await mount_custom_css(config.css);
-					}
-				};
+				eventSource.addEventListener("reload", async (event) => {
+					app = await client(api_url, {
+						status_callback: handle_status
+					});
+					config = app.config;
+					await mount_custom_css(config.css);
+				});
 			}, 200);
 		}
 	});
