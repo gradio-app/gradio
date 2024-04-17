@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { createEventDispatcher, getContext, onMount, tick } from "svelte";
-	import { DropdownArrow } from "@gradio/icons";
+	import { getContext, onMount, tick } from "svelte";
+
 	import { click_outside } from "../utils/events";
 	import { layer_manager, type LayerScene } from "./utils";
 	import { EDITOR_KEY, type EditorContext } from "../ImageEditor.svelte";
@@ -155,7 +155,6 @@
 	.layer-wrap button {
 		justify-content: flex-start;
 		align-items: flex-start;
-
 		width: 100%;
 		border-bottom: 1px solid var(--block-border-color);
 		display: flex;
@@ -187,9 +186,7 @@
 	}
 
 	.selected_layer {
-		/* background-color: var(--color-accent) !important; */
 		background-color: var(--block-background-fill);
-
 		font-weight: bold;
 	}
 

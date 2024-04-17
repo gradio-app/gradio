@@ -268,7 +268,6 @@
 			toolbar_box={$toolbar_box}
 		/>
 	</div>
-	<!-- {:else if current_option === "size"}{/if} -->
 {/if}
 
 <style>

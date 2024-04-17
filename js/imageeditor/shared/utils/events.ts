@@ -16,7 +16,6 @@ export function click_outside(
 			!node.contains(event.target as Node) &&
 			!event.defaultPrevented
 		) {
-			console.log("click outside");
 			callback(event);
 		}
 	};

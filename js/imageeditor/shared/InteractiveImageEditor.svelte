@@ -237,8 +237,6 @@
 		{/if}
 	</Tools>
 
-	<!-- <Layers layer_files={value?.layers || null} /> -->
-
 	{#if !bg && !history && active_mode !== "webcam"}
 		<div class="empty wrap">
 			{#if sources && sources.length}

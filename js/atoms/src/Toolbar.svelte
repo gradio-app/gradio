@@ -16,7 +16,6 @@
 		gap: var(--spacing-sm);
 		height: auto;
 		align-items: flex-end;
-
 		color: var(--block-label-text-color);
 		flex-shrink: 0;
 	}
