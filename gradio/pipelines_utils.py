@@ -508,10 +508,20 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             "preprocess": lambda img, q: (as_url(img), q),
             "postprocess": lambda r, *_: r[0]["answer"],  # This data structure is different from the original Transformers.
         }
-    # if pipeline.task == "feature-extraction":
-    #     pass
-    # if pipeline.task == "fill-mask":
-    #     pass
+    if pipeline.task == "feature-extraction":
+        return {
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Dataframe(label="Output", render=False),
+            "preprocess": None,
+            "postprocess": lambda tensor, *_: tensor.to_numpy(),
+        }
+    if pipeline.task == "fill-mask":
+        return {
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Label(label="Classification", render=False),
+            "preprocess": None,
+            "postprocess": lambda r, *_: {i["token_str"]: i["score"] for i in r},
+        }
     if pipeline.task == "image-classification":
         return {
             "inputs": components.Image(
