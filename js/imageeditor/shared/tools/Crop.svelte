@@ -170,14 +170,7 @@
 
 	$: $editor_box && get_measurements();
 
-	onMount(() =>
-		register_tool("crop", {
-			default: "crop",
-			options: []
-		})
-	);
-
-	$: console.log($active_tool);
+	onMount(() => register_tool("crop"));
 </script>
 
 {#if $active_tool === "crop" && measured}

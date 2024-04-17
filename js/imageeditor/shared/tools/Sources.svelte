@@ -25,7 +25,7 @@
 	export let mirror_webcam = true;
 	export let i18n: I18nFormatter;
 
-	const { active_tool, register_tool } = getContext<ToolContext>(TOOL_KEY);
+	const { active_tool } = getContext<ToolContext>(TOOL_KEY);
 	const { pixi, dimensions, register_context, reset, editor_box } =
 		getContext<EditorContext>(EDITOR_KEY);
 
@@ -55,7 +55,6 @@
 			id: "bg_webcam",
 			cb() {
 				active_mode = "webcam";
-				console.log(active_tool);
 				$active_tool = "bg";
 			}
 		},
