@@ -52,14 +52,57 @@
 		Documentation
 	</h1>
    
-	<nav class="grid grid-cols-1 gap-4 lg:grid-cols-2 mt-8">
+	<nav class="grid grid-cols-1 gap-5 lg:grid-cols-2 mt-8">
         <a
     href="./docs/gradio"
     target="_self"
-    class="group group relative flex flex-col overflow-hidden md:first:row-span-3 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[2]}-50 hover:shadow-alternate to-white shadow-none transition-shadow"
-    ><div
-        class="absolute hidden h-16 w-[550px] rotate-45 transform bg-{data.COLOR_SETS[2]}-100 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"
-    ></div>
+    class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-gradient-to-br px-3 pb-4 pt-6 from-orange-100 via-orange-50 hover:shadow-alternate to-white shadow-none transition-shadow"
+    >
+	<div class="hidden lg:flex flex-wrap mx-auto justify-center">
+		<a
+		href="./docs/gradio/interface"
+		target="_self"
+		class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white  bg-orange-300 hover:drop-shadow-md"
+		>Interface </a
+		>
+		<a
+		href="./docs/gradio/blocks"
+		target="_self"
+		class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white  bg-orange-300 hover:drop-shadow-md"
+		>Blocks </a
+		>
+		<a
+		href="./docs/gradio/chatinterface"
+		target="_self"
+		class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white  bg-orange-300 hover:drop-shadow-md"
+		>ChatInterface </a
+		>
+		<a
+		href="./docs/gradio/textbox"
+		target="_self"
+		class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white  bg-orange-300 hover:drop-shadow-md"
+		>Textbox </a
+		>
+		<a
+		href="./docs/gradio/image"
+		target="_self"
+		class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white  bg-orange-300 hover:drop-shadow-md"
+		>Image </a
+		>
+		<a
+		href="./docs/gradio/audio"
+		target="_self"
+		class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white  bg-orange-300 hover:drop-shadow-md"
+		>Audio </a
+		>
+		<a
+		href="./docs/gradio/dataframe"
+		target="_self"
+		class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white  bg-orange-300 hover:drop-shadow-md"
+		>Dataframe </a
+		>
+
+	</div>
     <div
         class="relative mb-2 mt-auto flex items-center text-lg"
     >
@@ -75,12 +118,10 @@
 		<a
 			href="./docs/python-client"
 			target="_self"
-			class="group group relative flex flex-col overflow-hidden 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[1]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
-			><div
-				class="absolute hidden h-16 w-[550px] rotate-45 transform bg-{data.COLOR_SETS[1]}-500 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"
-			></div>
+			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden  rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data.COLOR_SETS[1]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+			>
 			<div
-				class="relative mb-2 mt-auto flex items-center text-lg"
+				class="relative mb-2 flex items-center text-lg"
 			>
 				<span>Python Client</span>
 			</div>
@@ -93,12 +134,10 @@
         <a
 			href="./docs/js-client"
 			target="_self"
-			class="group group relative flex flex-col overflow-hidden md:first:row-span-2  2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[0]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
-			><div
-				class="absolute hidden h-16 w-[550px] rotate-45 transform bg-{data.COLOR_SETS[0]}-500 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"
-			></div>
+			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data.COLOR_SETS[0]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+			>
 			<div
-				class="relative mb-2 mt-auto flex items-center text-lg"
+				class="relative mb-2 flex items-center text-lg"
 			>
 				<span>Javascript Client</span>
 			</div>
@@ -110,12 +149,10 @@
         <a
 			href="./docs/js"
 			target="_self"
-			class="group group relative flex flex-col overflow-hidden md:first:row-span-22x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[3]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
-			><div
-				class="absolute hidden h-16 w-[550px] rotate-45 transform bg-{data.COLOR_SETS[3]}-500 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"
-			></div>
+			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data.COLOR_SETS[3]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+			>
 			<div
-				class="relative mb-2 mt-auto flex items-center text-lg"
+				class="relative mb-2 flex items-center text-lg"
 			>
 				<span>Javascript Components</span>
 			</div>
@@ -127,12 +164,10 @@
 		<a
 			href="../guides/custom-components-in-five-minutes"
 			target="_self"
-			class="group group relative flex flex-col overflow-hidden md:first:row-span-2 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[5]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
-			><div
-				class="absolute hidden h-16 w-[550px] rotate-45 transform bg-{data.COLOR_SETS[5]}-500 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"
-			></div>
+			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data.COLOR_SETS[5]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+			>
 			<div
-				class="relative mb-2 mt-auto flex items-center text-lg"
+				class="relative mb-2 flex items-center text-lg"
 			>
 				<span>Custom Components</span>
 			</div>
@@ -143,12 +178,10 @@
 		<a
 			href="../guides/gradio-lite"
 			target="_self"
-			class="group group relative flex flex-col overflow-hidden md:first:row-span-2 2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 dark:border-gray-900 from-{data.COLOR_SETS[4]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
-			><div
-				class="absolute hidden h-16 w-[550px] rotate-45 transform bg-{data.COLOR_SETS[4]}-500 blur-3xl transition-transform group-first:block group-hover:-translate-y-24 dark:bg-white/10 md:h-24"
-			></div>
+			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2  rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data.COLOR_SETS[4]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+			>
 			<div
-				class="relative mb-2 mt-auto flex items-center text-lg"
+				class="relative mb-2 flex items-center text-lg"
 			>
 				<span>Gradio Lite</span>
 			</div>
@@ -196,7 +229,7 @@
 			<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 				{#each guides as guide (guide.name)}
 					<a  
-                    class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative  2x:pt-10 rounded-xl bg-gradient-to-r px-3 pb-4 pt-6 from-{data.COLOR_SETS[i]}-50 hover:shadow-alternate to-white shadow-none transition-shadow"
+                    class="shadow-alternate hover:scale-[1.04] guide-box flex lg:col-span-1 flex-col group overflow-hidden relative  rounded-xl bg-gradient-to-r px-3 py-4 from-{data.COLOR_SETS[i]}-50 hover:shadow-alternate to-white shadow-none transition-shadow"
                     href=".{guide.url}"
 					>
 						<div class="flex flex-col p-4 h-min">
@@ -223,3 +256,10 @@
 
 
 </div>
+
+
+<style>
+	.quick-link {
+		transition: transform 0.1s ease-in-out;
+	}
+</style>
