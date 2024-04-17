@@ -5,4 +5,4 @@
 "gradio": minor
 ---
 
-feat:Image editor UI
+feat:refresh the `ImageEditor` UI
