@@ -1,43 +1,20 @@
 import { Client } from "../client";
-import { map_names_to_ids, process_endpoint, resolve_config } from "../helpers";
 import type { Dependency, SubmitReturn } from "../types";
 
 export async function predict(
 	this: Client,
 	endpoint: string | number,
-	data?: unknown[],
-	event_data?: unknown
+	data?: unknown[]
 ): Promise<SubmitReturn> {
 	let data_returned = false;
 	let status_complete = false;
 	let dependency: Dependency;
 
-	const { hf_token } = this.options;
-
-	const { http_protocol, host } =
-		(await process_endpoint(this.app_reference, hf_token ?? undefined)) || {};
-
-	if (!http_protocol || !host) {
-		throw new Error("Could not get host");
-	}
-
-	let config = await resolve_config(
-		this.fetch_implementation,
-		`${http_protocol}//${host}`,
-		hf_token
-	);
-
-	if (!config) {
-		throw new Error("No config or app_id set");
-	}
-
-	let api_map = map_names_to_ids(config?.dependencies || []);
-
 	if (typeof endpoint === "number") {
-		dependency = config.dependencies[endpoint];
+		dependency = this.config.dependencies[endpoint];
 	} else {
 		const trimmed_endpoint = endpoint.replace(/^\//, "");
-		dependency = config.dependencies[api_map[trimmed_endpoint]];
+		dependency = this.config.dependencies[this.api_map[trimmed_endpoint]];
 	}
 
 	if (dependency?.types.continuous) {

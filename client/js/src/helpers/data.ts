@@ -29,47 +29,27 @@ export function update_object(
 	}
 }
 
-export async function get_jwt(
-	space: string,
-	token: `hf_${string}`
-): Promise<string | false> {
-	try {
-		const r = await fetch(`https://huggingface.co/api/spaces/${space}/jwt`, {
-			headers: {
-				Authorization: `Bearer ${token}`
-			}
-		});
-
-		const jwt = (await r.json()).token;
-
-		return jwt || false;
-	} catch (e) {
-		console.error(e);
-		return false;
-	}
-}
-
 export async function walk_and_store_blobs(
 	param: ParamType,
 	type: string | undefined = undefined,
 	path: string[] = [],
 	root = false,
-	api_info: EndpointInfo<ApiData | JsApiData> | undefined = undefined
+	endpoint_info: EndpointInfo<ApiData | JsApiData> | undefined = undefined
 ): Promise<BlobRef[]> {
 	if (Array.isArray(param)) {
 		let blob_refs: BlobRef[] = [];
 
 		await Promise.all(
-			param.map(async (item, index) => {
+			param.map(async (item) => {
 				let new_path = path.slice();
 				new_path.push(item);
 
 				const array_refs = await walk_and_store_blobs(
 					param[item],
-					root ? api_info?.parameters[item]?.component || undefined : type,
+					root ? endpoint_info?.parameters[item]?.component || undefined : type,
 					new_path,
 					false,
-					api_info
+					endpoint_info
 				);
 
 				blob_refs = blob_refs.concat(array_refs);
@@ -99,7 +79,7 @@ export async function walk_and_store_blobs(
 						undefined,
 						new_path,
 						false,
-						api_info
+						endpoint_info
 					)
 				);
 			}

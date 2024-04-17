@@ -10,4 +10,3 @@ export type {
 export { submit } from "./utils/submit";
 export { FileData, upload, prepare_files } from "./upload";
 export { Client } from "./client";
-export { post_data } from "./utils/post_data";

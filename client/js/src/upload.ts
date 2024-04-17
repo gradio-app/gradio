@@ -1,10 +1,16 @@
-import { upload_files } from ".";
+import { UploadResponse, upload_files } from ".";
 
 export async function upload(
 	file_data: FileData[],
 	root: string,
 	upload_id?: string,
-	upload_fn: typeof upload_files = upload_files
+	upload_fn: (
+		root: string,
+		files: (Blob | File)[],
+		fetch_implementation: typeof fetch,
+		hf_token?: `hf_${string}`,
+		upload_id?: string
+	) => Promise<UploadResponse> = upload_files
 ): Promise<(FileData | null)[] | null> {
 	let files = (Array.isArray(file_data) ? file_data : [file_data]).map(
 		(file_data) => file_data.blob!

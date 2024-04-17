@@ -5,14 +5,14 @@ export async function upload_files(
 	root: string,
 	files: (Blob | File)[],
 	fetch_implementation: typeof fetch = fetch,
-	token?: `hf_${string}`,
+	hf_token?: `hf_${string}`,
 	upload_id?: string
 ): Promise<UploadResponse> {
 	const headers: {
 		Authorization?: string;
 	} = {};
-	if (token) {
-		headers.Authorization = `Bearer ${token}`;
+	if (hf_token) {
+		headers.Authorization = `Bearer ${hf_token}`;
 	}
 	const chunkSize = 1000;
 	const uploadResponses = [];

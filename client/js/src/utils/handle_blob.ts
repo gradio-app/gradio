@@ -8,7 +8,7 @@ export async function handle_blob(
 	data: unknown[],
 	api_info: EndpointInfo<JsApiData | ApiData>,
 	fetch_implementation: typeof fetch = fetch,
-	token?: `hf_${string}`
+	hf_token?: `hf_${string}`
 ): Promise<unknown[]> {
 	const blobRefs = await walk_and_store_blobs(
 		data,
@@ -26,7 +26,7 @@ export async function handle_blob(
 				endpoint,
 				[blob],
 				fetch_implementation,
-				token
+				hf_token
 			);
 			const file_url = response.files && response.files[0];
 			return {

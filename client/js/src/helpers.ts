@@ -1,13 +1,14 @@
 import { CONFIG_URL, QUEUE_FULL_MSG } from "./constants";
 import type { Config, ApiInfo, ApiData, Status, JsApiData } from "./types";
+import type { Client } from "./client";
 
 export async function resolve_config(
 	fetch_implementation: typeof fetch,
 	endpoint: string,
-	token?: `hf_${string}`
+	hf_token: `hf_${string}` | undefined
 ): Promise<Config | undefined> {
-	const headers: Record<string, string> = token
-		? { Authorization: `Bearer ${token}` }
+	const headers: Record<string, string> = hf_token
+		? { Authorization: `Bearer ${hf_token}` }
 		: {};
 
 	headers["Content-Type"] = "application/json";

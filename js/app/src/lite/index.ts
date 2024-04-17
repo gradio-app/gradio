@@ -147,7 +147,7 @@ export function create(options: Options): GradioAppController {
 		}
 	}
 
-	async function upload_files_overriden(
+	async function upload_files_overridden(
 		root: string,
 		files: (Blob | File)[],
 		token?: `hf_${string}`,
@@ -231,7 +231,7 @@ export function create(options: Options): GradioAppController {
 			// For Wasm mode
 			worker_proxy,
 			Client: LiteClient,
-			upload_files: upload_files_overriden,
+			upload_files: upload_files_overridden,
 			mount_css: overridden_mount_css,
 			fetch_implementation: overridden_fetch,
 			EventSource_factory,

@@ -11,7 +11,6 @@ import type {
 	EndpointInfo,
 	ApiInfo,
 	Config,
-	ApiData,
 	Dependency
 } from "../types";
 
@@ -26,8 +25,8 @@ import {
 	post_message
 } from "../helpers";
 import { BROKEN_CONNECTION_MSG, QUEUE_FULL_MSG } from "../constants";
-import { apply_diff_stream, close_stream, open_stream } from "./stream";
-import { get_jwt } from "../helpers/data";
+import { apply_diff_stream, close_stream } from "./stream";
+import { get_jwt } from "../helpers/init_helpers";
 import { Client } from "../client";
 
 export function submit(
@@ -39,17 +38,19 @@ export function submit(
 ): SubmitReturn {
 	try {
 		const { hf_token } = this.options;
-		const fetch_implementation = this.fetch_implementation;
-		const app_reference = this.app_reference;
-		const config: Config = this.config;
-		const session_hash = this.session_hash;
+		const {
+			fetch_implementation,
+			app_reference,
+			config,
+			session_hash,
+			api_info,
+			api_map
+		} = this;
 
-		// API variables
-		const api = this.api;
-		if (!api) throw new Error("No API found");
-		const api_map = this.api_map;
-		let { fn_index, api_info, dependency } = get_endpoint_info(
-			api,
+		if (!api_info) throw new Error("No API found");
+
+		let { fn_index, endpoint_info, dependency } = get_endpoint_info(
+			api_info,
 			endpoint,
 			api_map,
 			config
@@ -77,8 +78,7 @@ export function submit(
 			event_callbacks,
 			unclosed_events
 		} = this;
-
-		let jwt: false | string = false;
+		let jwt: false | string = false; // todo remove
 
 		// event subscription methods
 		function fire_event<K extends EventType>(event: Event<K>): void {
@@ -164,7 +164,7 @@ export function submit(
 		handle_blob(
 			`${config.root}`,
 			data,
-			api_info,
+			endpoint_info,
 			fetch_implementation,
 			hf_token
 		).then(async (_payload) => {
@@ -264,11 +264,11 @@ export function submit(
 				);
 
 				if (hf_token && space_id) {
-					jwt = await get_jwt(space_id, hf_token);
+					this.jwt = await get_jwt(space_id, hf_token);
 				}
 
-				if (jwt) {
-					url.searchParams.set("__sign", jwt);
+				if (this.jwt) {
+					url.searchParams.set("__sign", this.jwt);
 				}
 
 				websocket = new WebSocket(url);
@@ -651,16 +651,7 @@ export function submit(
 						event_callbacks[event_id] = callback;
 						unclosed_events.add(event_id);
 						if (!stream_status.open) {
-							open_stream(
-								stream_status,
-								session_hash,
-								config,
-								event_callbacks,
-								unclosed_events,
-								pending_stream_messages,
-								this.eventSource_factory,
-								event_source
-							);
+							this.open_stream();
 						}
 					}
 				});
@@ -675,28 +666,28 @@ export function submit(
 }
 
 function get_endpoint_info(
-	api: ApiInfo<JsApiData>,
+	api_info: ApiInfo<JsApiData>,
 	endpoint: string | number,
 	api_map: Record<string, number>,
 	config: Config
 ): {
 	fn_index: number;
-	api_info: EndpointInfo<JsApiData>;
+	endpoint_info: EndpointInfo<JsApiData>;
 	dependency: Dependency;
 } {
 	let fn_index: number;
-	let api_info;
-	let dependency; // todo: check where this is used
+	let endpoint_info: EndpointInfo<JsApiData>;
+	let dependency: Dependency;
 
 	if (typeof endpoint === "number") {
 		fn_index = endpoint;
-		api_info = api.unnamed_endpoints[fn_index];
+		endpoint_info = api_info.unnamed_endpoints[fn_index];
 		dependency = config.dependencies[endpoint];
 	} else {
 		const trimmed_endpoint = endpoint.replace(/^\//, "");
 
 		fn_index = api_map[trimmed_endpoint];
-		api_info = api.named_endpoints[endpoint.trim()];
+		endpoint_info = api_info.named_endpoints[endpoint.trim()];
 		dependency = config.dependencies[api_map[trimmed_endpoint]];
 	}
 
@@ -705,5 +696,5 @@ function get_endpoint_info(
 			"There is no endpoint matching that name of fn_index matching that number."
 		);
 	}
-	return { fn_index, api_info, dependency };
+	return { fn_index, endpoint_info, dependency };
 }

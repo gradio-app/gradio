@@ -1,7 +1,9 @@
 import type {
+	ApiData,
 	ApiInfo,
 	ClientOptions,
 	Config,
+	EndpointInfo,
 	JsApiData,
 	SpaceStatus,
 	Status,
@@ -22,6 +24,7 @@ import {
 	resolve_config
 } from "./helpers";
 import { check_space_status } from "./helpers/spaces";
+import { open_stream } from "./utils/stream";
 
 export class NodeBlob extends Blob {
 	constructor(blobParts?: BlobPart[], options?: BlobPropertyBag) {
@@ -33,14 +36,16 @@ export class Client {
 	app_reference: string;
 	options: ClientOptions;
 
+	hf_token: `hf_${string}` | undefined;
 	config!: Config;
-	api!: ApiInfo<JsApiData>;
+	api_info!: ApiInfo<JsApiData>;
 	api_map: Record<string, number> = {};
 	session_hash: string = Math.random().toString(36).substring(2);
 	jwt: string | false = false;
 	last_status: Record<string, Status["stage"]> = {};
 
 	// streaming
+	event_source: EventSource | null = null;
 	stream_status = { open: false };
 	pending_stream_messages: Record<string, any[][]> = {};
 	pending_diff_streams: Record<string, any[][]> = {};
@@ -62,9 +67,7 @@ export class Client {
 		return () => {}; // todo: polyfill eventsource for node envs
 	}
 
-	view_api: (
-		fetch_implementation?: typeof fetch
-	) => Promise<ApiInfo<JsApiData>>;
+	view_api: () => Promise<ApiInfo<JsApiData>>;
 	upload_files: (
 		root: string,
 		files: (Blob | File)[],
@@ -75,15 +78,16 @@ export class Client {
 	handle_blob: (
 		endpoint: string,
 		data: unknown[],
-		api_info: any,
+		endpoint_info: EndpointInfo<ApiData | JsApiData>,
 		fetch_implementation: typeof fetch,
-		token?: `hf_${string}`
+		hf_token?: `hf_${string}`
 	) => Promise<unknown[]>;
 	post_data: (
 		endpoint: string,
 		data: unknown[],
 		api_info: any,
-		token?: `hf_${string}`
+		token?: `hf_${string}`,
+		additional_headers?: Record<string, string>
 	) => Promise<unknown[]>;
 	submit: (
 		endpoint: string | number,
@@ -96,7 +100,12 @@ export class Client {
 		data?: unknown[],
 		event_data?: unknown
 	) => Promise<unknown>;
-
+	open_stream: () => void;
+	resolve_config: (
+		fetch_implementation: typeof fetch,
+		endpoint: string,
+		hf_token: `hf_${string}` | undefined
+	) => Promise<Config | undefined>;
 	constructor(app_reference: string, options: ClientOptions = {}) {
 		this.app_reference = app_reference;
 		this.options = options;
@@ -107,6 +116,8 @@ export class Client {
 		this.post_data = post_data.bind(this);
 		this.submit = submit.bind(this);
 		this.predict = predict.bind(this);
+		this.open_stream = open_stream.bind(this);
+		this.resolve_config = resolve_config.bind(this);
 	}
 
 	private async init(): Promise<void> {
@@ -121,19 +132,22 @@ export class Client {
 		}
 
 		try {
-			this.config = await this._resolve_config();
+			await this._resolve_config().then(({ config }) => {
+				if (config) {
+					this.config = config;
+
+					// connect to the heartbeat endpoint via GET request
+					const heartbeat_url = new URL(
+						`${this.config.root}/heartbeat/${this.session_hash}`
+					);
+					this.eventSource_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
+				}
+			});
 		} catch (e) {
 			console.error("Could not resolve config:", e);
 		}
 
-		// connect to the heartbeat endpoint via GET request
-		const heartbeat_url = new URL(
-			`${this.config.root}/heartbeat/${this.session_hash}`
-		);
-
-		this.eventSource_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
-
-		this.api = await this.view_api(this.fetch_implementation);
+		this.api_info = await this.view_api();
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);
 	}
 
@@ -198,13 +212,12 @@ export class Client {
 			}
 		}
 
-		this.api_map = map_names_to_ids(_config.dependencies || []);
 		if (this.config.auth_required) {
 			return this.prepare_return_obj();
 		}
 
 		try {
-			this.api = await this.view_api(this.fetch_implementation);
+			this.api_info = await this.view_api();
 		} catch (e) {
 			console.error(`Could not get API details: ${(e as Error).message}`);
 		}

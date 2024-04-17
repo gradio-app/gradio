@@ -1,24 +1,28 @@
 import { BROKEN_CONNECTION_MSG } from "../constants";
-import type { Config } from "../types";
+import type { Client } from "../client";
 
-export function open_stream(
-	stream_status: { open: boolean },
-	session_hash: string,
-	config: Config,
-	event_callbacks: Record<string, () => Promise<void>>,
-	unclosed_events: Set<string>,
-	pending_stream_messages: Record<string, any[][]>,
-	eventSource_factory: (url: URL) => EventSource,
-	event_source: EventSource
-): void {
+export function open_stream(this: Client): void {
+	let {
+		event_source,
+		event_callbacks,
+		unclosed_events,
+		pending_stream_messages,
+		stream_status,
+		config
+	} = this;
+
+	if (!event_source) {
+		return;
+	}
+
 	stream_status.open = true;
 
 	let params = new URLSearchParams({
-		session_hash: session_hash
+		session_hash: this.session_hash
 	}).toString();
 
-	let url = new URL(`${config.root}/queue/data?${params}`);
-	event_source = eventSource_factory(url);
+	let url = new URL(`${this.config.root}/queue/data?${params}`);
+	this.event_source = this.eventSource_factory(url);
 
 	event_source.onmessage = async function (event) {
 		let _data = JSON.parse(event.data);
