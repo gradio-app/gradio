@@ -22,6 +22,7 @@
 		label?: string;
 		confidences?: { label: string; confidence: number }[];
 	} = {};
+	let old_value: typeof value | null = null;
 	export let label = gradio.i18n("label.label");
 	export let container = true;
 	export let scale: number | null = null;
@@ -30,8 +31,14 @@
 	export let show_label = true;
 	export let _selectable = false;
 
-	$: ({ confidences, label: _label } = value);
-	$: _label, confidences, gradio.dispatch("change");
+	$: {
+		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
+			old_value = value;
+			gradio.dispatch("change");
+		}
+	}
+
+	$: _label = value.label;
 </script>
 
 <Block
