@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { createEventDispatcher, getContext, onMount, tick } from "svelte";
-	import { DropdownArrow } from "@gradio/icons";
+	import { getContext, onMount, tick } from "svelte";
+
 	import { click_outside } from "../utils/events";
 	import { layer_manager, type LayerScene } from "./utils";
 	import { EDITOR_KEY, type EditorContext } from "../ImageEditor.svelte";
 	import type { FileData } from "@gradio/client";
+	import { Layers } from "@gradio/icons";
 
 	let show_layers = false;
 
@@ -110,8 +111,10 @@
 	use:click_outside={() => (show_layers = false)}
 >
 	<button aria-label="Show Layers" on:click={() => (show_layers = !show_layers)}
-		>Layers<span class="layer-toggle"><DropdownArrow /></span></button
-	>
+		><span class="icon"><Layers /></span> Layer {layers.findIndex(
+			(l) => l === $current_layer
+		) + 1}
+	</button>
 	{#if show_layers}
 		<ul>
 			{#each layers as layer, i (i)}
@@ -129,50 +132,45 @@
 			</li>
 		</ul>
 	{/if}
+
+	<span class="sep"></span>
 </div>
 
 <style>
-	.layer-toggle {
-		width: 20px;
-		transform: rotate(0deg);
-	}
-
-	.closed .layer-toggle {
-		transform: rotate(-90deg);
+	.icon {
+		width: 14px;
+		margin-right: var(--spacing-md);
+		color: var(--block-label-text-color);
+		margin-right: var(--spacing-lg);
+		margin-top: 1px;
 	}
 
 	.layer-wrap {
-		position: absolute;
-		bottom: 0;
-		left: 0;
-		display: inline-block;
-		border: 1px solid var(--block-border-color);
-		border-radius: var(--radius-md);
-
-		transition: var(--button-transition);
-		box-shadow: var(--button-shadow);
-
-		text-align: left;
-		border-bottom: none;
-		border-left: none;
-		border-bottom-right-radius: 0;
-		border-top-left-radius: 0;
-		background-color: var(--background-fill-primary);
-		overflow: hidden;
+		position: relative;
+		display: flex;
+		justify-content: center;
+		align-items: center;
 	}
 
 	.layer-wrap button {
-		display: inline-flex;
 		justify-content: flex-start;
 		align-items: flex-start;
-		padding: var(--size-2) var(--size-4);
 		width: 100%;
 		border-bottom: 1px solid var(--block-border-color);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: var(--scale-000);
+		line-height: var(--line-sm);
+		padding-bottom: 1px;
+		margin-left: var(--spacing-xl);
+		padding: var(--spacing-sm) 0;
 	}
 
 	.layer-wrap li:last-child button {
 		border-bottom: none;
 		text-align: center;
+		padding: 2.5px;
 	}
 
 	.closed > button {
@@ -180,12 +178,43 @@
 	}
 
 	.layer-wrap button:hover {
-		background-color: var(--background-fill-secondary);
+		background-color: none;
+	}
+
+	.layer-wrap button:hover .icon {
+		color: var(--color-accent);
 	}
 
 	.selected_layer {
-		background-color: var(--color-accent) !important;
-		color: white;
+		background-color: var(--block-background-fill);
 		font-weight: bold;
+	}
+
+	ul {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		background: #fff;
+		width: calc(100% + 1px);
+		list-style: none;
+		z-index: var(--layer-top);
+		border: 1px solid var(--block-border-color);
+		padding: var(--spacing-sm) 0;
+		text-wrap: none;
+		transform: translate(-1px, 1px);
+		border-radius: var(--radius-sm);
+		border-bottom-right-radius: 0;
+	}
+
+	.layer-wrap ul > li > button {
+		margin-left: 0;
+	}
+
+	.sep {
+		height: 12px;
+		background-color: var(--block-border-color);
+		width: 1px;
+		display: block;
+		margin-left: var(--spacing-xl);
 	}
 </style>
