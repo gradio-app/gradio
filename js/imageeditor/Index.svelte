@@ -200,6 +200,7 @@
 			{transforms}
 			accept_blobs={server.accept_blobs}
 			{layers}
+			status={loading_status?.status}
 		></InteractiveImageEditor>
 	</Block>
 {/if}

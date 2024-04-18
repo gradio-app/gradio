@@ -15,7 +15,9 @@ with gr.Blocks() as demo:
             type="numpy",
             interactive=True,
         )
-        im_preview = gr.ImageEditor(interactive=True)
+        im_preview = gr.ImageEditor(
+            interactive=True,
+        )
 
     set_background = gr.Button("Set Background")
     set_background.click(
@@ -51,7 +53,11 @@ with gr.Blocks() as demo:
         show_progress="hidden",
     )
 
-    im.change(predict, outputs=im_preview, inputs=im, show_progress="hidden")
+    im.change(
+        predict,
+        outputs=im_preview,
+        inputs=im,
+    )
 
     gr.Examples(
         examples=[

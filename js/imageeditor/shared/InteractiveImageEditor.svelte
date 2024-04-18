@@ -43,6 +43,7 @@
 	export let transforms: "crop"[] = ["crop"];
 	export let layers: boolean;
 	export let accept_blobs: (a: any) => void;
+	export let status: "pending" | "complete" | "error" = "complete";
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;
@@ -239,7 +240,7 @@
 		{/if}
 	</Tools>
 
-	{#if !bg && !history && active_mode !== "webcam"}
+	{#if !bg && !history && active_mode !== "webcam" && status !== "error"}
 		<div class="empty wrap" style:height={`${editor_height}px`}>
 			{#if sources && sources.length}
 				<div>Upload an image</div>
