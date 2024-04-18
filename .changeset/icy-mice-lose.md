@@ -1,7 +1,7 @@
 ---
-"@gradio/client": minor
-"gradio": minor
-"website": minor
+"@gradio/client": patch
+"gradio": patch
+"website": patch
 ---
 
 feat:Docs Reorg and Intro Page
