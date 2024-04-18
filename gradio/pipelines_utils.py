@@ -486,7 +486,7 @@ def handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
 
 def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
     try:
-        from transformers_js_py import as_url, read_audio
+        from transformers_js_py import as_url, read_audio  # type: ignore
     except ImportError as ie:
         raise ImportError(
             "transformers_js_py not installed. Please add `transformers_js_py` to the requirements option of your Gradio-Lite app"
