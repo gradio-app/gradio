@@ -304,6 +304,7 @@ def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
             if new_block.key is None:
                 if (
                     old_block.__class__ == new_block.__class__
+                    and old_block is not None
                     and old_block.key not in assigned_keys
                 ):
                     new_block.key = old_block.key
@@ -311,7 +312,10 @@ def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
                     new_block.key = f"__{new_block._id}__"
 
             if isinstance(new_block, BlockContext):
-                if old_block.__class__ == new_block.__class__:
+                if (
+                    isinstance(old_block, BlockContext)
+                    and old_block.__class__ == new_block.__class__
+                ):
                     reassign_context_keys(old_block, new_block)
                 else:
                     reassign_context_keys(None, new_block)
