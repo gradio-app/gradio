@@ -1,15 +1,16 @@
-export { duplicate } from "./utils/duplicate";
+export { Client } from "./client";
+
 export { predict } from "./utils/predict";
+export { submit } from "./utils/submit";
 export { upload_files } from "./utils/upload_files";
+export { FileData, upload, prepare_files } from "./upload";
+
 export type {
 	SpaceStatus,
 	Status,
 	client_return,
 	UploadResponse
 } from "./types";
-export { submit } from "./utils/submit";
-export { FileData, upload, prepare_files } from "./upload";
-export { Client } from "./client";
 
 // todo: remove in @gradio/client v1.0
 export { client } from "./client";

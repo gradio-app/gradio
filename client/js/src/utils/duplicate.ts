@@ -9,7 +9,7 @@ import { Client } from "../client";
 export async function duplicate(
 	app_reference: string,
 	options: DuplicateOptions
-): Promise<any> {
+): Promise<Client> {
 	const { hf_token, private: _private, hardware, timeout } = options;
 
 	if (hardware && !hardware_types.includes(hardware)) {
@@ -67,10 +67,10 @@ export async function duplicate(
 
 		if (response.status === 409) {
 			try {
-				const client = await Client.create(`${user}/${space_name}`, options);
+				const client = await Client.connect(`${user}/${space_name}`, options);
 				return client;
 			} catch (error) {
-				console.error("Failed to create Client instance:", error);
+				console.error("Failed to connect Client instance:", error);
 				throw error;
 			}
 		} else if (response.status !== 200) {
@@ -80,7 +80,7 @@ export async function duplicate(
 		const duplicated_space = await response.json();
 
 		await set_space_timeout(`${user}/${space_name}`, timeout || 300, hf_token);
-		return await Client.create(duplicated_space.url, options);
+		return await Client.connect(duplicated_space.url, options);
 	} catch (e: any) {
 		throw new Error(e);
 	}

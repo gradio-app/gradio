@@ -45,7 +45,7 @@
 		response_data = { data: [], fn_index: 0, endpoint: "" };
 		if (!api || (hf_token && !hf_token.startsWith("hf_"))) return;
 
-		app = await Client.create(api, {
+		app = await Client.connect(api, {
 			hf_token
 		});
 

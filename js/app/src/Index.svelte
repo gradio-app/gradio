@@ -277,7 +277,7 @@
 				  }`
 				: host || space || src || location.origin;
 
-		app = await Client.create(api_url, {
+		app = await Client.connect(api_url, {
 			status_callback: handle_status
 		});
 		config = app.config;
@@ -304,7 +304,7 @@
 				eventSource = new EventSource(url);
 				eventSource.onmessage = async function (event) {
 					if (event.data === "CHANGE") {
-						app = await Client.create(api_url, {
+						app = await Client.connect(api_url, {
 							status_callback: handle_status
 						});
 

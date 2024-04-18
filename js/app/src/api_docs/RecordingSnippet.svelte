@@ -65,7 +65,7 @@ client.<span class="highlight"
 				<div bind:this={js_code}>
 					<pre>import &lbrace; Client &rbrace; from "@gradio/client";
 
-const app = await Client.create(<span class="token string">"{root}"</span>);
+const app = await Client.connect(<span class="token string">"{root}"</span>);
 {#each api_calls as call}<!--
 -->
 {#if dependencies[call.fn_index].backend_fn}client.predict(<span
