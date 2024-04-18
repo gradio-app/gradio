@@ -28,18 +28,16 @@
 	}
 
 	export interface ToolContext {
-		register_tool: (type: tool, meta: ToolMeta) => () => void;
+		register_tool: (type: tool, opts?: { cb: () => void }) => () => void;
 		active_tool: {
+			set: (tool: tool) => void;
 			subscribe(
 				this: void,
 				run: Subscriber<tool | null>,
 				invalidate?: Invalidator<tool | null>
 			): Unsubscriber;
 		};
-		activate_subtool: (
-			sub_tool: upload_tool | transform_tool | brush_tool | eraser_tool | null,
-			cb?: (...args: any[]) => void
-		) => void;
+
 		current_color: Writable<string>;
 	}
 </script>
@@ -52,29 +50,22 @@
 	import { Image, Crop, Brush, Erase } from "@gradio/icons";
 	import { type I18nFormatter } from "@gradio/utils";
 
-	const { current_history, active_tool } =
+	const { active_tool, toolbar_box, editor_box } =
 		getContext<EditorContext>(EDITOR_KEY);
 
 	export let i18n: I18nFormatter;
 
 	let tools: tool[] = [];
 
-	const metas: Record<tool, ToolMeta | null> = {
-		draw: null,
-		erase: null,
-		crop: null,
-		bg: null
-	};
-
-	$: sub_menu = $active_tool && metas[$active_tool];
-
+	const cbs: Record<string, () => void> = {};
 	let current_color = writable("#000000");
-	let sub_tool: upload_tool | transform_tool | brush_tool | eraser_tool | null;
 	const tool_context: ToolContext = {
 		current_color,
-		register_tool: (type: tool, meta: ToolMeta) => {
+		register_tool: (type: tool, opts?: { cb: () => void }) => {
 			tools = [...tools, type];
-			metas[type] = meta;
+			if (opts?.cb) {
+				cbs[type] = opts.cb;
+			}
 
 			return () => {
 				tools = tools.filter((tool) => tool !== type);
@@ -82,15 +73,8 @@
 		},
 
 		active_tool: {
-			subscribe: active_tool.subscribe
-		},
-
-		activate_subtool: (
-			_sub_tool: upload_tool | transform_tool | brush_tool | eraser_tool | null,
-			cb?: (...args: any[]) => void
-		) => {
-			sub_tool = _sub_tool;
-			if (cb) cb();
+			subscribe: active_tool.subscribe,
+			set: active_tool.set
 		}
 	};
 
@@ -104,11 +88,6 @@
 			icon: typeof Image;
 		}
 	> = {
-		bg: {
-			order: 0,
-			label: i18n("Image"),
-			icon: Image
-		},
 		crop: {
 			order: 1,
 			label: i18n("Transform"),
@@ -123,44 +102,49 @@
 			order: 2,
 			label: i18n("Erase"),
 			icon: Erase
+		},
+		bg: {
+			order: 0,
+			label: i18n("Background"),
+			icon: Image
 		}
 	} as const;
+
+	let toolbar_width: number;
+	let toolbar_wrap: HTMLDivElement;
+
+	$: toolbar_width, $editor_box, get_dimensions();
+
+	function get_dimensions(): void {
+		if (!toolbar_wrap) return;
+		$toolbar_box = toolbar_wrap.getBoundingClientRect();
+	}
+
+	function handle_click(e: Event, tool: tool): void {
+		e.stopPropagation();
+		$active_tool = tool;
+		cbs[tool] && cbs[tool]();
+	}
 </script>
 
 <slot />
 
-<div class="toolbar-wrap">
-	<Toolbar show_border={false}>
-		{#if sub_menu}
-			{#each sub_menu.options as meta (meta.id)}
-				<IconButton
-					highlight={sub_tool === meta.id && meta.id !== "brush_size"}
-					color={$active_tool === "draw" && meta.id === "brush_size"
-						? $current_color
-						: undefined}
-					on:click={() => tool_context.activate_subtool(meta.id, meta.cb)}
-					Icon={meta.icon}
-					size="large"
-					padded={false}
-					label={meta.label + " button"}
-					hasPopup={true}
-					transparent={true}
-				/>
-			{/each}
-		{/if}
-	</Toolbar>
-
+<div
+	class="toolbar-wrap"
+	bind:clientWidth={toolbar_width}
+	bind:this={toolbar_wrap}
+>
 	<Toolbar show_border={false}>
 		{#each tools as tool (tool)}
 			<IconButton
-				disabled={tool === "bg" && !!$current_history.previous}
 				highlight={$active_tool === tool}
-				on:click={() => ($active_tool = tool)}
+				on:click={(e) => handle_click(e, tool)}
 				Icon={tools_meta[tool].icon}
-				size="large"
+				size="medium"
 				padded={false}
 				label={tools_meta[tool].label + " button"}
 				transparent={true}
+				offset={tool === "draw" ? -2 : tool === "erase" ? -6 : 0}
 			/>
 		{/each}
 	</Toolbar>
@@ -169,9 +153,9 @@
 <style>
 	.toolbar-wrap {
 		display: flex;
-		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		width: 100%;
+		margin-left: var(--spacing-xl);
+		height: 100%;
 	}
 </style>
