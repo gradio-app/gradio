@@ -178,9 +178,15 @@ export async function set_space_timeout(
 export const hardware_types = [
 	"cpu-basic",
 	"cpu-upgrade",
+	"cpu-xl",
 	"t4-small",
 	"t4-medium",
 	"a10g-small",
 	"a10g-large",
-	"a100-large"
+	"a10g-largex2",
+	"a10g-largex4",
+	"a100-large",
+	"zero-a10g",
+	"h100",
+	"h100x8"
 ] as const;

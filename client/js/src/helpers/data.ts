@@ -98,6 +98,8 @@ export function skip_queue(id: number, config: Config): boolean {
 	);
 }
 
+// todo: add jsdoc for this function
+
 export function post_message<Res = any>(
 	message: any,
 	origin: string

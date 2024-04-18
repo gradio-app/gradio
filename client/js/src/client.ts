@@ -18,7 +18,11 @@ import { post_data } from "./utils/post_data";
 import { predict } from "./utils/predict";
 import { submit } from "./utils/submit";
 import { RE_SPACE_NAME, process_endpoint } from "./helpers/api_info";
-import { map_names_to_ids, resolve_config } from "./helpers/init_helpers";
+import {
+	map_names_to_ids,
+	resolve_config,
+	get_jwt
+} from "./helpers/init_helpers";
 import { check_space_status } from "./helpers/spaces";
 import { open_stream } from "./utils/stream";
 
@@ -115,7 +119,7 @@ export class Client {
 		}
 
 		try {
-			await this._resolve_config().then(({ config }) => {
+			await this._resolve_config().then(async ({ config }) => {
 				if (config) {
 					this.config = config;
 
@@ -124,6 +128,13 @@ export class Client {
 						`${this.config.root}/heartbeat/${this.session_hash}`
 					);
 					this.eventSource_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
+
+					if (this.config.space_id && this.options.hf_token) {
+						this.jwt = await get_jwt(
+							this.config.space_id,
+							this.options.hf_token
+						);
+					}
 				}
 			});
 		} catch (e) {

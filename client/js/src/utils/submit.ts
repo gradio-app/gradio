@@ -19,7 +19,6 @@ import { resolve_root } from "../helpers/init_helpers";
 import { handle_message, process_endpoint } from "../helpers/api_info";
 import { BROKEN_CONNECTION_MSG, QUEUE_FULL_MSG } from "../constants";
 import { apply_diff_stream, close_stream } from "./stream";
-import { get_jwt } from "../helpers/init_helpers";
 import { Client } from "../client";
 
 export function submit(
@@ -224,7 +223,7 @@ export function submit(
 							});
 						});
 				} else if (protocol == "ws") {
-					const { ws_protocol, host, space_id } = await process_endpoint(
+					const { ws_protocol, host } = await process_endpoint(
 						app_reference,
 						hf_token
 					);
@@ -245,10 +244,6 @@ export function submit(
 							true
 						)}/queue/join${url_params ? "?" + url_params : ""}`
 					);
-
-					if (hf_token && space_id) {
-						this.jwt = await get_jwt(space_id, hf_token);
-					}
 
 					if (this.jwt) {
 						url.searchParams.set("__sign", this.jwt);
