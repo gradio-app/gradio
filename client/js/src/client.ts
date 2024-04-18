@@ -16,6 +16,7 @@ import { upload_files } from "./utils/upload_files";
 import { handle_blob } from "./utils/handle_blob";
 import { post_data } from "./utils/post_data";
 import { predict } from "./utils/predict";
+import { duplicate } from "./utils/duplicate";
 import { submit } from "./utils/submit";
 import { RE_SPACE_NAME, process_endpoint } from "./helpers/api_info";
 import {
@@ -145,13 +146,20 @@ export class Client {
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);
 	}
 
-	static async create(
+	static async connect(
 		app_reference: string,
 		options: ClientOptions = {}
 	): Promise<Client> {
 		const client = new this(app_reference, options); // this refers to the class itself, not the instance
 		await client.init();
 		return client;
+	}
+
+	static async duplicate(
+		app_reference: string,
+		options: ClientOptions = {}
+	): Promise<Client> {
+		return duplicate(app_reference, options);
 	}
 
 	private async _resolve_config(): Promise<any> {
@@ -331,7 +339,7 @@ export class Client {
 }
 
 /**
- * @deprecated This method will be removed in v1.0. Use `Client.create()` instead.
+ * @deprecated This method will be removed in v1.0. Use `Client.connect()` instead.
  * Creates a client instance for interacting with Gradio apps.
  *
  * @param {string} app_reference - The reference or URL to a Gradio space or app.
@@ -342,7 +350,7 @@ export async function client(
 	app_reference: string,
 	options: ClientOptions = {}
 ): Promise<Client> {
-	return await Client.create(app_reference, options);
+	return await Client.connect(app_reference, options);
 }
 
 export type ClientInstance = Client;

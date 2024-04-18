@@ -19,7 +19,7 @@
 
 	export let dependencies: Dependency[];
 	export let root: string;
-	export let app: Awaited<ReturnType<typeof Client.create>>;
+	export let app: Awaited<ReturnType<typeof Client.connect>>;
 	export let space_id: string | null;
 	export let root_node: ComponentMeta;
 	const js_docs =

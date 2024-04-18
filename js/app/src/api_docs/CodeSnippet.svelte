@@ -85,7 +85,7 @@ const response_{i} = await fetch("{example_input.url}");
 const example{component} = await response_{i}.blob();
 						{/each}<!--
 -->
-const app = await Client.create(<span class="token string">"{root}"</span>);
+const app = await Client.connect(<span class="token string">"{root}"</span>);
 const result = await app.predict({#if named}<span class="api-name"
 								>"/{dependency.api_name}"</span
 							>{:else}{dependency_index}{/if}, [<!--

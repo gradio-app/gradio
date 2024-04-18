@@ -35,7 +35,7 @@
 	export let control_page_title = false;
 	export let app_mode: boolean;
 	export let theme_mode: ThemeMode;
-	export let app: Awaited<ReturnType<typeof Client.create>>;
+	export let app: Awaited<ReturnType<typeof Client.connect>>;
 	export let space_id: string | null;
 	export let version: string;
 	export let js: string | null;
