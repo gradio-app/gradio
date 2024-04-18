@@ -93,7 +93,8 @@ interface LayerManager {
 	add_layer_from_blob(
 		container: Container,
 		renderer: IRenderer,
-		blob: Blob
+		blob: Blob,
+		view: HTMLCanvasElement
 	): Promise<[LayerScene, LayerScene[]]>;
 }
 
@@ -197,19 +198,32 @@ export function layer_manager(): LayerManager {
 		async add_layer_from_blob(
 			container: Container,
 			renderer: IRenderer,
-			blob: Blob
+			blob: Blob,
+			view: HTMLCanvasElement
 		) {
 			const img = await createImageBitmap(blob);
 			const bitmap_texture = Texture.from(img);
+
+			const [w, h] = resize_to_fit(
+				bitmap_texture.width,
+				bitmap_texture.height,
+				view.width,
+				view.height
+			);
+
 			const sprite = new Sprite(bitmap_texture) as Sprite & DisplayObject;
 			sprite.zIndex = 0;
+
+			sprite.width = w;
+			sprite.height = h;
 
 			const [layer, layers] = this.add_layer(
 				container,
 				renderer,
-				sprite.width,
-				sprite.height
+				view.width,
+				view.height
 			);
+
 			renderer.render(sprite, {
 				renderTexture: layer.draw_texture
 			});
@@ -220,4 +234,30 @@ export function layer_manager(): LayerManager {
 			return _layers;
 		}
 	};
+}
+
+function resize_to_fit(
+	inner_width: number,
+	inner_height: number,
+	outer_width: number,
+	outer_height: number
+): [number, number] {
+	if (inner_width <= outer_width && inner_height <= outer_height) {
+		return [inner_width, inner_height];
+	}
+
+	const inner_aspect = inner_width / inner_height;
+	const outer_aspect = outer_width / outer_height;
+
+	let new_width, new_height;
+
+	if (inner_aspect > outer_aspect) {
+		new_width = outer_width;
+		new_height = outer_width / inner_aspect;
+	} else {
+		new_height = outer_height;
+		new_width = outer_height * inner_aspect;
+	}
+
+	return [new_width, new_height];
 }

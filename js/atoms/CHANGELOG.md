@@ -1,5 +1,16 @@
 # @gradio/atoms
 
+## 0.7.0
+
+### Features
+
+- [#8042](https://github.com/gradio-app/gradio/pull/8042) [`92139f3`](https://github.com/gradio-app/gradio/commit/92139f3d7d6b832b649ff1f6c10c87e6fb522cde) - refresh the `ImageEditor` UI.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/icons@0.4.0
+
 ## 0.6.2
 
 ### Dependency updates

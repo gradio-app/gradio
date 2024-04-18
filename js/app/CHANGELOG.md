@@ -1,5 +1,69 @@
 # @gradio/app
 
+## 1.32.0
+
+### Features
+
+- [#8062](https://github.com/gradio-app/gradio/pull/8062) [`cecd6e4`](https://github.com/gradio-app/gradio/commit/cecd6e4c4accb3ef220284dc54a87510b3503ec9) - Update dependency iframe-resizer to v4.3.10.  Thanks @renovate!
+- [#7887](https://github.com/gradio-app/gradio/pull/7887) [`5f0248e`](https://github.com/gradio-app/gradio/commit/5f0248e797af087c7fd0ad35ea7f2bd778a7cc41) - When authenticating with HF OAuth, stay in same tab.  Thanks @Wauplin!
+- [#7975](https://github.com/gradio-app/gradio/pull/7975) [`c9ddd84`](https://github.com/gradio-app/gradio/commit/c9ddd847d6c57d5efc4e887180d219f2a0b5b98d) - Update the Lite custom element parser.  Thanks @whitphx!
+
+### Fixes
+
+- [#8028](https://github.com/gradio-app/gradio/pull/8028) [`6fafce0`](https://github.com/gradio-app/gradio/commit/6fafce06704ab8f2cd5fe6fbdb58b842e144e44d) - ensure maps are correctly shallow cloned when updating state.  Thanks @pngwn!
+- [#7981](https://github.com/gradio-app/gradio/pull/7981) [`c1df2f8`](https://github.com/gradio-app/gradio/commit/c1df2f818ce285a8e7871d43b76c4959beb00956) - Fix example loading for custom components.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/tabs@0.2.6
+- @gradio/statustracker@0.4.12
+- @gradio/code@0.5.12
+- @gradio/theme@0.2.2
+- @gradio/client@0.16.0
+- @gradio/upload@0.8.5
+- @gradio/atoms@0.7.0
+- @gradio/icons@0.4.0
+- @gradio/audio@0.9.12
+- @gradio/image@0.9.12
+- @gradio/video@0.6.12
+- @gradio/markdown@0.6.10
+- @gradio/chatbot@0.8.3
+- @gradio/dataset@0.1.31
+- @gradio/multimodaltextbox@0.2.5
+- @gradio/imageeditor@0.5.0
+- @gradio/highlightedtext@0.4.15
+- @gradio/plot@0.3.7
+- @gradio/annotatedimage@0.5.12
+- @gradio/button@0.2.31
+- @gradio/downloadbutton@0.1.8
+- @gradio/file@0.5.12
+- @gradio/fileexplorer@0.3.32
+- @gradio/gallery@0.8.8
+- @gradio/model3d@0.8.11
+- @gradio/simpleimage@0.3.12
+- @gradio/uploadbutton@0.5.8
+- @gradio/dataframe@0.6.13
+- @gradio/accordion@0.3.9
+- @gradio/box@0.1.14
+- @gradio/checkbox@0.2.15
+- @gradio/checkboxgroup@0.4.9
+- @gradio/colorpicker@0.2.15
+- @gradio/dropdown@0.6.7
+- @gradio/fallback@0.2.15
+- @gradio/form@0.1.14
+- @gradio/html@0.1.15
+- @gradio/json@0.1.15
+- @gradio/label@0.2.15
+- @gradio/number@0.3.15
+- @gradio/paramviewer@0.4.8
+- @gradio/radio@0.4.10
+- @gradio/simpledropdown@0.1.15
+- @gradio/simpletextbox@0.1.15
+- @gradio/slider@0.3.3
+- @gradio/textbox@0.4.16
+- @gradio/tabitem@0.2.6
+
 ## 1.31.0
 
 ### Features
