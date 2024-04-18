@@ -54,21 +54,19 @@
 
 	<div class="grid grid-cols-1 gap-5 lg:grid-cols-2 mt-8">
 		<div
-			class="shadow-alternate hover:scale-[1.02] group group	 flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-gradient-to-br px-3 pb-4 pt-6 from-orange-100 via-orange-50 hover:shadow-alternate to-white shadow-none transition-shadow"
+			class="shadow-alternate hover:scale-[1.02] group group flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-gradient-to-br px-3 pb-4 pt-6 from-orange-100 via-orange-50 hover:shadow-alternate to-white shadow-none transition-shadow"
 		>
-		<a class="mt-auto mb-2 flex-grow" href="./docs/gradio/" target="_self">
-			<div class="text-lg">
-				<p class="">Gradio</p>
-			</div>
+			<a class="mt-auto mb-2 flex-grow" href="./docs/gradio/" target="_self">
+				<div class="text-lg">
+					<p class="">Gradio</p>
+				</div>
 
-			<code class="font-light text-xs mb-2  text-gray-500"
-				>gradio</code
-			>
-			<div class="  relative pr-4 text-smd font-normal text-gray-400">
-				Build and share machine learning demos and web apps, in just a few lines
-				of Python.
-			</div>
-		</a>
+				<code class="font-light text-xs mb-2 text-gray-500">gradio</code>
+				<div class="  relative pr-4 text-smd font-normal text-gray-400">
+					Build and share machine learning demos and web apps, in just a few
+					lines of Python.
+				</div>
+			</a>
 			<div class="hidden lg:flex flex-wrap mx-auto justify-center">
 				<a
 					href="./docs/gradio/interface"
@@ -113,7 +111,6 @@
 					>Dataframe
 				</a>
 			</div>
-			
 		</div>
 		<a
 			href="./docs/python-client"
@@ -124,9 +121,7 @@
 			<div class="relative mb-2 flex items-center text-lg">
 				<span>Python Client</span>
 			</div>
-			<code class="font-light text-xs mb-2  text-gray-500"
-				>gradio-client</code
-			>
+			<code class="font-light text-xs mb-2 text-gray-500">gradio-client</code>
 			<div class="relative pr-4 text-smd font-normal text-gray-400">
 				Turn any Gradio app into an API.
 			</div>
@@ -141,41 +136,39 @@
 			<div class="relative mb-2 flex items-center text-lg">
 				<span>Javascript Client</span>
 			</div>
-			<code class="font-light text-xs mb-2  text-gray-500"
-				>@gradio/client</code
-			>
+			<code class="font-light text-xs mb-2 text-gray-500">@gradio/client</code>
 			<div class="relative pr-4 text-smd font-normal text-gray-400">
 				A Javascript (and Typescript) client to call Gradio APIs.
 			</div>
 		</a>
 		{#if $page.params?.version !== "3.50.2"}
-		<a
-			href="./docs/js"
-			target="_self"
-			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
-				.COLOR_SETS[3]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
-		>
-			<div class="relative mb-2 flex items-center text-lg">
-				<span>Javascript Components</span>
-			</div>
-			<div class="relative pr-4 text-smd font-normal text-gray-400">
-				Use Gradio's Javascript components in custom components or outside the
-				context of Gradio.
-			</div>
-		</a>
-		<a
-			href="../guides/custom-components-in-five-minutes"
-			target="_self"
-			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
-				.COLOR_SETS[5]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
-		>
-			<div class="relative mb-2 flex items-center text-lg">
-				<span>Custom Components</span>
-			</div>
-			<div class="relative pr-4 text-smd font-normal text-gray-400">
-				Create, use and share your own custom components.
-			</div>
-		</a>
+			<a
+				href="./docs/js"
+				target="_self"
+				class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
+					.COLOR_SETS[3]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+			>
+				<div class="relative mb-2 flex items-center text-lg">
+					<span>Javascript Components</span>
+				</div>
+				<div class="relative pr-4 text-smd font-normal text-gray-400">
+					Use Gradio's Javascript components in custom components or outside the
+					context of Gradio.
+				</div>
+			</a>
+			<a
+				href="../guides/custom-components-in-five-minutes"
+				target="_self"
+				class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
+					.COLOR_SETS[5]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
+			>
+				<div class="relative mb-2 flex items-center text-lg">
+					<span>Custom Components</span>
+				</div>
+				<div class="relative pr-4 text-smd font-normal text-gray-400">
+					Create, use and share your own custom components.
+				</div>
+			</a>
 		{/if}
 		<a
 			href="../guides/gradio-lite"
@@ -186,9 +179,7 @@
 			<div class="relative mb-2 flex items-center text-lg">
 				<span>Gradio Lite</span>
 			</div>
-			<code class="font-light text-xs mb-2 text-gray-500"
-				>@gradio/lite</code
-			>
+			<code class="font-light text-xs mb-2 text-gray-500">@gradio/lite</code>
 
 			<div class="relative pr-4 text-smd font-normal text-gray-400">
 				Serverless Gradio running entirely in your browser.

@@ -58,7 +58,7 @@ const config = {
 				`/main/docs/js`,
 				`/main/docs/js/storybook`,
 				`/main/docs/js/`,
-				
+
 				...Object.keys(redirects)
 			]
 		},
