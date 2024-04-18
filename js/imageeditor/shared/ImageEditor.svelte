@@ -378,7 +378,7 @@
 	.tools-wrap {
 		display: flex;
 		justify-content: center;
-		align-items: flex-end;
+		align-items: center;
 		padding: 0 var(--spacing-xl) 0 0;
 		border: 1px solid var(--block-border-color);
 		border-radius: var(--radius-sm);

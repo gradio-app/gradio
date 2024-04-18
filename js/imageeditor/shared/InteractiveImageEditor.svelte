@@ -211,16 +211,16 @@
 	<Tools {i18n}>
 		<Layers layer_files={value?.layers || null} />
 
-		{#if sources && sources.length}
-			<Sources
-				{i18n}
-				{root}
-				{sources}
-				bind:bg
-				bind:active_mode
-				background_file={value?.background || null}
-			></Sources>
-		{/if}
+		<!-- {#if sources && sources.length} -->
+		<Sources
+			{i18n}
+			{root}
+			{sources}
+			bind:bg
+			bind:active_mode
+			background_file={value?.background || null}
+		></Sources>
+		<!-- {/if} -->
 		{#if transforms.includes("crop")}
 			<Crop {crop_constraint} />
 		{/if}
