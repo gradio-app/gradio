@@ -41,6 +41,7 @@
 		composite: null
 	};
 	export let transforms: "crop"[] = ["crop"];
+	export let layers: boolean;
 	export let accept_blobs: (a: any) => void;
 
 	const dispatch = createEventDispatcher<{
@@ -209,7 +210,7 @@
 	crop_constraint={!!crop_constraint}
 >
 	<Tools {i18n}>
-		<Layers layer_files={value?.layers || null} />
+		<Layers layer_files={value?.layers || null} enable_layers={layers} />
 
 		<!-- {#if sources && sources.length} -->
 		<Sources

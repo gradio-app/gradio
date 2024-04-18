@@ -10,6 +10,7 @@
 	let show_layers = false;
 
 	export let layer_files: (FileData | null)[] | null = [];
+	export let enable_layers: boolean = true;
 
 	const { pixi, current_layer, dimensions, register_context } =
 		getContext<EditorContext>(EDITOR_KEY);
@@ -111,36 +112,40 @@
 	});
 </script>
 
-<div
-	class="layer-wrap"
-	class:closed={!show_layers}
-	use:click_outside={() => (show_layers = false)}
->
-	<button aria-label="Show Layers" on:click={() => (show_layers = !show_layers)}
-		><span class="icon"><Layers /></span> Layer {layers.findIndex(
-			(l) => l === $current_layer
-		) + 1}
-	</button>
-	{#if show_layers}
-		<ul>
-			{#each layers as layer, i (i)}
+{#if enable_layers}
+	<div
+		class="layer-wrap"
+		class:closed={!show_layers}
+		use:click_outside={() => (show_layers = false)}
+	>
+		<button
+			aria-label="Show Layers"
+			on:click={() => (show_layers = !show_layers)}
+			><span class="icon"><Layers /></span> Layer {layers.findIndex(
+				(l) => l === $current_layer
+			) + 1}
+		</button>
+		{#if show_layers}
+			<ul>
+				{#each layers as layer, i (i)}
+					<li>
+						<button
+							class:selected_layer={$current_layer === layer}
+							on:click={() =>
+								($current_layer = LayerManager.change_active_layer(i))}
+							>Layer {i + 1}</button
+						>
+					</li>
+				{/each}
 				<li>
-					<button
-						class:selected_layer={$current_layer === layer}
-						on:click={() =>
-							($current_layer = LayerManager.change_active_layer(i))}
-						>Layer {i + 1}</button
-					>
+					<button aria-label="Add Layer" on:click={new_layer}> +</button>
 				</li>
-			{/each}
-			<li>
-				<button aria-label="Add Layer" on:click={new_layer}> +</button>
-			</li>
-		</ul>
-	{/if}
+			</ul>
+		{/if}
 
-	<span class="sep"></span>
-</div>
+		<span class="sep"></span>
+	</div>
+{/if}
 
 <style>
 	.icon {
