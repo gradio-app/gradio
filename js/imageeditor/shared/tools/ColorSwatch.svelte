@@ -4,6 +4,7 @@
 	export let selected_color: string;
 	export let colors: string[];
 	export let user_colors: (string | null)[] | null = [];
+	import { Palette } from "@gradio/icons";
 
 	export let show_empty = false;
 	export let current_mode: "hex" | "rgb" | "hsl" = "hex";
@@ -50,44 +51,75 @@
 	}
 </script>
 
-{#if user_colors}
-	<div class="swatch">
-		{#each user_colors as color, i}
-			<button
-				on:click={() => handle_select("edit", { index: i, color })}
-				class="color"
-				class:empty={color === null}
-				style="background-color: {color}"
-				class:selected={`edit-${i}` === current_index}
-			></button>
-		{/each}
-
-		<button
-			on:click={handle_picker_click}
-			class="color colorpicker"
-			class:hidden={!color_picker}
-		></button>
-	</div>
+{#if !color_picker}
+	<span class:lg={user_colors}></span>
 {/if}
-<menu class="swatch">
-	{#each _colors as color, i}
-		<button
-			on:click={() => handle_select("select", { index: i, color })}
-			class="color"
-			class:empty={color === null}
-			style="background-color: {color}"
-			class:selected={`select-${i}` === current_index}
-		></button>
-	{/each}
-</menu>
+
+<div class="swatch-wrap">
+	<span class="icon-wrap">
+		<Palette />
+	</span>
+	<div>
+		{#if user_colors}
+			<div class="swatch">
+				{#each user_colors as color, i}
+					<button
+						on:click={() => handle_select("edit", { index: i, color })}
+						class="color"
+						class:empty={color === null}
+						style="background-color: {color}"
+						class:selected={`edit-${i}` === current_index}
+					></button>
+				{/each}
+
+				<button
+					on:click={handle_picker_click}
+					class="color colorpicker"
+					class:hidden={!color_picker}
+				></button>
+			</div>
+		{/if}
+		<menu class="swatch">
+			{#each _colors as color, i}
+				<button
+					on:click={() => handle_select("select", { index: i, color })}
+					class="color"
+					class:empty={color === null}
+					style="background-color: {color}"
+					class:selected={`select-${i}` === current_index}
+				></button>
+			{/each}
+		</menu>
+	</div>
+</div>
 
 <style>
+	.icon-wrap {
+		width: 18px;
+		margin-top: 6px;
+
+		margin-left: var(--size-4);
+	}
+
+	.swatch-wrap {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+	}
+	span {
+		margin-top: 0px;
+	}
+
+	span.lg {
+		margin-top: var(--spacing-xl);
+	}
 	.swatch {
 		display: flex;
-		width: 100%;
-		gap: var(--size-2);
-		justify-content: center;
-		margin-bottom: var(--size-1);
+		gap: var(--size-2-5);
+		justify-content: space-around;
+		margin-bottom: var(--size-2);
+		margin-right: var(--size-6);
+		padding-left: var(--size-2);
 	}
 
 	.empty {
@@ -96,7 +128,7 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		padding-top: 1px;
+		padding-top: 4px;
 		text-align: center;
 		font-size: var(--scale-0);
 		cursor: pointer;
