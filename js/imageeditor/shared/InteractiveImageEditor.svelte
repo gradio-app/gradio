@@ -41,9 +41,12 @@
 		composite: null
 	};
 	export let transforms: "crop"[] = ["crop"];
+	export let accept_blobs: (a: any) => void;
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;
+		upload?: never;
+		change?: never;
 	}>();
 
 	let editor: ImageEditor;
@@ -55,6 +58,8 @@
 	function is_file_data(o: null | FileData): o is FileData {
 		return !!o;
 	}
+
+	$: if (bg) dispatch("upload");
 
 	export async function get_data(): Promise<ImageBlobs> {
 		const blobs = await editor.get_blobs();
@@ -107,11 +112,83 @@
 	let bg = false;
 	let history = false;
 
+	export let image_id: null | string = null;
+
 	$: editor &&
 		editor.set_tool &&
 		(sources && sources.length
 			? editor.set_tool("bg")
 			: editor.set_tool("draw"));
+
+	type BinaryImages = [string, string, File, number | null][];
+
+	function nextframe(): Promise<void> {
+		return new Promise((resolve) => setTimeout(() => resolve(), 30));
+	}
+
+	let uploading = false;
+	let pending = false;
+	async function handle_change(e: CustomEvent<Blob | any>): Promise<void> {
+		if (uploading) {
+			pending = true;
+			return;
+		}
+
+		uploading = true;
+
+		await nextframe();
+		const blobs = await editor.get_blobs();
+
+		const images: BinaryImages = [];
+
+		let id = Math.random().toString(36).substring(2);
+
+		if (blobs.background)
+			images.push([
+				id,
+				"background",
+				new File([blobs.background], "background.png"),
+				null
+			]);
+		if (blobs.composite)
+			images.push([
+				id,
+				"composite",
+				new File([blobs.composite], "composite.png"),
+				null
+			]);
+		blobs.layers.forEach((layer, i) => {
+			if (layer)
+				images.push([
+					id as string,
+					`layer`,
+					new File([layer], `layer_${i}.png`),
+					i
+				]);
+		});
+
+		await Promise.all(
+			images.map(async ([image_id, type, data, index]) => {
+				return accept_blobs({
+					binary: true,
+					data: { file: data, id: image_id, type, index }
+				});
+			})
+		);
+		image_id = id;
+		dispatch("change");
+
+		await nextframe();
+		uploading = false;
+		if (pending) {
+			pending = false;
+			uploading = false;
+			handle_change(e);
+		}
+	}
+
+	let active_mode: "webcam" | "color" | null = null;
+	let editor_height = 0;
 </script>
 
 <BlockLabel
@@ -121,8 +198,10 @@
 />
 <ImageEditor
 	bind:this={editor}
+	bind:height={editor_height}
 	{changeable}
 	on:save
+	on:change={handle_change}
 	on:clear={() => dispatch("clear")}
 	bind:history
 	bind:bg
@@ -130,12 +209,15 @@
 	crop_constraint={!!crop_constraint}
 >
 	<Tools {i18n}>
+		<Layers layer_files={value?.layers || null} />
+
 		{#if sources && sources.length}
 			<Sources
 				{i18n}
 				{root}
 				{sources}
 				bind:bg
+				bind:active_mode
 				background_file={value?.background || null}
 			></Sources>
 		{/if}
@@ -157,10 +239,8 @@
 		{/if}
 	</Tools>
 
-	<Layers layer_files={value?.layers || null} />
-
-	{#if !bg && !history}
-		<div class="empty wrap">
+	{#if !bg && !history && active_mode !== "webcam"}
+		<div class="empty wrap" style:height={`${editor_height}px`}>
 			{#if sources && sources.length}
 				<div>Upload an image</div>
 			{/if}
@@ -181,7 +261,6 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-
 		position: absolute;
 		height: 100%;
 		width: 100%;
@@ -191,6 +270,7 @@
 		z-index: var(--layer-top);
 		text-align: center;
 		color: var(--body-text-color);
+		top: var(--size-8);
 	}
 
 	.wrap {
@@ -201,11 +281,10 @@
 		min-height: var(--size-60);
 		color: var(--block-label-text-color);
 		line-height: var(--line-md);
-		height: 100%;
-		padding-top: var(--size-3);
+		/* height: 100%; */
 		font-size: var(--text-lg);
 		pointer-events: none;
-		transform: translateY(-30px);
+		/* margin-top: var(--size-8); */
 	}
 
 	.or {

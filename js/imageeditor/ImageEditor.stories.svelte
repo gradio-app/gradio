@@ -26,7 +26,11 @@
 		class="image-container"
 		style="width: 500px; position: relative;border-radius: var(--radius-lg);overflow: hidden;"
 	>
-		<ImageEditor i18n={get(format)} {...args} />
+		<ImageEditor
+			i18n={get(format)}
+			{...args}
+			server={{ accept_blobs: () => {} }}
+		/>
 	</div>
 </Template>
 
@@ -118,7 +122,7 @@
 			coords: { clientX: 100, clientY: 100 }
 		});
 
-		await userEvent.click(canvas.getByLabelText("Color button"));
+		await userEvent.click(canvas.getByLabelText("Draw button"));
 
 		var availableColors = document.querySelectorAll(
 			"button.color:not(.empty):not(.selected):not(.hidden)"
