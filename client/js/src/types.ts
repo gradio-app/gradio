@@ -1,7 +1,7 @@
 // API Data Types
 
 import { hardware_types } from "./helpers/spaces";
-import { ComponentMeta } from "../../../js/app/src/types";
+
 export interface ApiData {
 	label: string;
 	type: {
@@ -139,23 +139,6 @@ export interface Config {
 	stylesheets: string[];
 	path: string;
 	protocol: "sse_v3" | "sse_v2.1" | "sse_v2" | "sse_v1" | "sse" | "ws";
-	app_id?: string;
-}
-
-export interface Payload {
-	data: unknown[];
-	fn_index: number;
-	event_data: unknown;
-	time?: Date;
-	trigger_id: any;
-}
-
-export interface Payload {
-	data: unknown[];
-	fn_index: number;
-	event_data: unknown;
-	time?: Date;
-	trigger_id: any;
 }
 
 export interface Dependency {
