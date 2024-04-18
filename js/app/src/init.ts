@@ -92,7 +92,8 @@ export function create_components(): {
 			has_modes: false,
 			instance: null as unknown as ComponentMeta["instance"],
 			component: null as unknown as ComponentMeta["component"],
-			component_class_id: ""
+			component_class_id: "",
+			key: null
 		};
 
 		components.push(_rootNode);
@@ -123,7 +124,9 @@ export function create_components(): {
 
 		walk_layout(layout, root).then(() => {
 			layout_store.set(_rootNode);
-			callback();
+			if (callback) {
+				callback();
+			}
 		});
 	}
 
