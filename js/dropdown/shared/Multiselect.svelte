@@ -357,6 +357,7 @@
 		font-weight: var(--checkbox-label-text-weight);
 		font-size: var(--checkbox-label-text-size);
 		line-height: var(--line-md);
+		word-break: break-word;
 	}
 
 	.token > * + * {
