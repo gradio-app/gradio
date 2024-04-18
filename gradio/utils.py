@@ -150,7 +150,8 @@ class SourceFileReloader(BaseReloader):
     def swap_blocks(self, demo: Blocks):
         old_blocks = self.running_app.blocks
         super().swap_blocks(demo)
-        reassign_keys(old_blocks, demo)
+        if old_blocks:
+            reassign_keys(old_blocks, demo)
         demo.config = demo.get_config_file()
         self.alert_change()
 
