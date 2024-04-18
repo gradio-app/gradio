@@ -4,6 +4,7 @@ import { redirects } from "./src/routes/redirects.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import {mdsvex} from "mdsvex";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 let version = "4.0.0";
@@ -39,7 +40,10 @@ get_version();
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	preprocess: vitePreprocess(),
+	extensions: [".svelte", ".svx"],
+	preprocess: [mdsvex({
+		extensions: ['.svx'],
+	}), vitePreprocess()],
 	kit: {
 		prerender: {
 			crawl: true,

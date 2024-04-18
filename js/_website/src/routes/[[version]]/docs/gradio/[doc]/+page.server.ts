@@ -3,6 +3,11 @@ import "prismjs/components/prism-python";
 import { make_slug_processor } from "$lib/utils";
 import { error } from "@sveltejs/kit";
 import { style_formatted_text } from "$lib/text";
+import { compile } from "mdsvex";
+import { readFileSync } from 'fs';
+import path from 'path';
+
+
 
 let language = "python";
 
@@ -178,6 +183,7 @@ export async function load({ params, parent }) {
 			}
 		}
 	}
+
 
 	return {
 		name,

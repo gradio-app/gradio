@@ -121,6 +121,17 @@
 	@apply border-orange-500 text-orange-500;
 }
 
+/* editable docs */
+
+.obj h1 {
+	@apply text-3xl font-light py-4;
+}
+.obj h2 {
+	@apply mb-2 text-lg;
+}
+.obj h3 {
+	@apply mt-8 text-xl text-orange-500 font-light;
+}
 /* playground */
 
 .current-playground-demo {
