@@ -695,8 +695,14 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             "preprocess": None,
             "postprocess": lambda r: r[0]["generated_text"],
         }
-    # if pipeline.task == "token-classification":
-    #     pass
+    if pipeline.task == "token-classification":
+        return {
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.JSON(label="Output", render=False),
+            "preprocess": None,
+            "postprocess": None,
+            "postprocess_takes_inputs": True,
+        }
     if pipeline.task in {"translation", "translation_xx_to_yy"}:
         return {
             "inputs": [
