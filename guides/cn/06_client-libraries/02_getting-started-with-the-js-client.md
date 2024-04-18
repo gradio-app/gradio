@@ -39,14 +39,14 @@ npm i @gradio/client
 
 ## 连接到正在运行的Gradio应用
 
-首先，通过实例化`client`对象并将其连接到在Hugging Face Spaces或任何其他位置运行的Gradio应用来建立连接。
+首先，通过实例化`Client`对象并将其连接到在Hugging Face Spaces或任何其他位置运行的Gradio应用来建立连接。
 
 ## 连接到Hugging Face Space
 
 ```js
 import { Client } from "@gradio/client";
 
-const app = client("abidlabs/en2fr"); // 一个从英语翻译为法语的 Space
+const app = Client.connect("abidlabs/en2fr"); // 一个从英语翻译为法语的 Space
 ```
 
 您还可以通过在options参数的`hf_token`属性中传入您的HF token来连接到私有Spaces。您可以在此处获取您的HF token：https://huggingface.co/settings/tokens
@@ -54,7 +54,7 @@ const app = client("abidlabs/en2fr"); // 一个从英语翻译为法语的 Space
 ```js
 import { Client } from "@gradio/client";
 
-const app = client("abidlabs/my-private-space", { hf_token="hf_..." })
+const app = Client.connect("abidlabs/my-private-space", { hf_token="hf_..." })
 ```
 
 ## 为私人使用复制一个Space
@@ -63,7 +63,7 @@ const app = client("abidlabs/my-private-space", { hf_token="hf_..." })
 
 `@gradio/client`还导出了另一个函数`duplicate`，以使此过程变得简单（您将需要传入您的[Hugging Face token](https://huggingface.co/settings/tokens)）。
 
-`duplicate`与`client`几乎相同，唯一的区别在于底层实现：
+`duplicate`与`Client`几乎相同，唯一的区别在于底层实现：
 
 ```js
 import { Client } from "@gradio/client";
@@ -98,12 +98,12 @@ const app = await Client.duplicate("abidlabs/whisper", {
 ```js
 import { Client } from "@gradio/client";
 
-const app = client("https://bec81a83-5b5c-471e.gradio.live");
+const app = Client.connect("https://bec81a83-5b5c-471e.gradio.live");
 ```
 
 ## 检查API端点
 
-一旦连接到Gradio应用程序，可以通过调用`client`的`view_api`方法来查看可用的API端点。
+一旦连接到Gradio应用程序，可以通过调用`Client`的`view_api`方法来查看可用的API端点。
 
 对于Whisper Space，我们可以这样做：
 
