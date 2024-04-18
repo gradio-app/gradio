@@ -506,7 +506,9 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             ],
             "outputs": components.Textbox(label="Label", render=False),
             "preprocess": lambda img, q: (as_url(img), q),
-            "postprocess": lambda r: r[0]["answer"],  # This data structure is different from the original Transformers.
+            "postprocess": lambda r: r[0][
+                "answer"
+            ],  # This data structure is different from the original Transformers.
         }
     if pipeline.task == "feature-extraction":
         return {
@@ -525,13 +527,11 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
     if pipeline.task == "image-classification":
         return {
             "inputs": [
-                components.Image(
-                    type="filepath", label="Input Image", render=False
-                ),
+                components.Image(type="filepath", label="Input Image", render=False),
                 components.Number(label="Top k", value=5, render=False),
             ],
             "outputs": components.Label(label="Classification", render=False),
-            "preprocess": lambda image_path, topk: (as_url(image_path), { "topk": topk }),
+            "preprocess": lambda image_path, topk: (as_url(image_path), {"topk": topk}),
             "postprocess": lambda result: {
                 item["label"]: item["score"] for item in result
             },
@@ -595,7 +595,10 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
                 components.Textbox(label="Answer", render=False),
                 components.Label(label="Score", render=False),
             ],
-            "preprocess": lambda c, q: (q, c),  # Placed the context first in the input UI to match `handle_transformers_pipeline`'s order of inputs, but Transformers.js' question-answering pipeline expects the question first.
+            "preprocess": lambda c, q: (
+                q,
+                c,
+            ),  # Placed the context first in the input UI to match `handle_transformers_pipeline`'s order of inputs, but Transformers.js' question-answering pipeline expects the question first.
             "postprocess": lambda r: (r["answer"], r["score"]),
         }
     if pipeline.task == "summarization":
@@ -612,7 +615,10 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
                 ),
             ],
             "outputs": components.Textbox(label="Summary", render=False),
-            "preprocess": lambda text, max_new_tokens: (text, { "max_new_tokens": max_new_tokens}),
+            "preprocess": lambda text, max_new_tokens: (
+                text,
+                {"max_new_tokens": max_new_tokens},
+            ),
             "postprocess": lambda r: r[0]["summary_text"],
         }
     if pipeline.task == "text2text-generation":
@@ -629,7 +635,10 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
                 ),
             ],
             "outputs": components.Textbox(label="Generated Text", render=False),
-            "preprocess": lambda text, max_new_tokens: (text, { "max_new_tokens": max_new_tokens}),
+            "preprocess": lambda text, max_new_tokens: (
+                text,
+                {"max_new_tokens": max_new_tokens},
+            ),
             "postprocess": lambda r: r[0]["generated_text"],
         }
     if pipeline.task == "text-classification":
@@ -639,7 +648,7 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
                 components.Number(label="Top k", value=5, render=False),
             ],
             "outputs": components.Label(label="Classification", render=False),
-            "preprocess": lambda text, topk: (text, { "topk": topk }),
+            "preprocess": lambda text, topk: (text, {"topk": topk}),
             "postprocess": lambda r: {i["label"]: i["score"] for i in r},
         }
     if pipeline.task == "text-generation":
@@ -692,9 +701,7 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
                 as_url(image_path),
                 [c.strip() for c in classnames.split(",")],
             ),
-            "postprocess": lambda result: {
-                i["label"]: i["score"] for i in result
-            },
+            "postprocess": lambda result: {i["label"]: i["score"] for i in result},
         }
     if pipeline.task == "zero-shot-object-detection":
         return {
