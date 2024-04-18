@@ -8,7 +8,7 @@
 
 The `ImageEditor` component has been refreshed to make it more user-friendly and reliable.
 
-This release contains a host of improvements to the `ImageEditor` component, that will be of particular interest to those builing real-time image editing applications or complex image processing pipelines:
+This release contains a host of improvements to the `ImageEditor` component, that will be of particular interest to those building real-time image editing applications or complex image processing pipelines:
 
 - Cleaner and more compact interface.
 - New option to hide the layer controls for a more minimal UI.
