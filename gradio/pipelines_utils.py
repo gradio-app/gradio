@@ -643,10 +643,17 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
         }
     # if pipeline.task == "token-classification":
     #     pass
-    # if pipeline.task == "translation":
-    #     pass
-    # if pipeline.task == "translation_xx_to_yy":
-    #     pass
+    if pipeline.task in {"translation", "translation_xx_to_yy"}:
+        return {
+            "inputs": [
+                components.Textbox(label="Input", render=False),
+                components.Textbox(label="Source Language", render=False),
+                components.Textbox(label="Target Language", render=False),
+            ],
+            "outputs": components.Textbox(label="Translation", render=False),
+            "preprocess": lambda x, s, t: (x, {"src_lang": s, "tgt_lang": t}),
+            "postprocess": lambda r, *_: r[0]["translation_text"],
+        }
     # if pipeline.task == "zero-shot-classification":
     #     pass
     # if pipeline.task == "zero-shot-audio-classification":
