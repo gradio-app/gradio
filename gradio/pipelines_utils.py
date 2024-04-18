@@ -486,16 +486,46 @@ def handle_diffusers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
 
 def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
     try:
-        from transformers_js_py import as_url
+        from transformers_js_py import as_url, read_audio
     except ImportError as ie:
         raise ImportError(
             "transformers_js_py not installed. Please add `transformers_js_py` to the requirements option of your Gradio-Lite app"
         ) from ie
 
-    # if pipeline.task == "audio-classification":
-    #     pass
-    # if pipeline.task == "automatic-speech-recognition":
-    #     pass
+    if pipeline.task == "audio-classification":
+        return {
+            "inputs": [
+                components.Audio(
+                    type="filepath",
+                    label="Input",
+                    render=False,
+                ),
+            ],
+            "outputs": components.Label(label="Class", render=False),
+            "preprocess": lambda i: (
+                read_audio(
+                    i, pipeline.processor.feature_extractor.config["sampling_rate"]
+                ),
+            ),
+            "postprocess": lambda r: {i["label"]: i["score"] for i in r},
+        }
+    if pipeline.task == "automatic-speech-recognition":
+        return {
+            "inputs": [
+                components.Audio(
+                    type="filepath",
+                    label="Input",
+                    render=False,
+                ),
+            ],
+            "outputs": components.Textbox(label="Output", render=False),
+            "preprocess": lambda i: (
+                read_audio(
+                    i, pipeline.processor.feature_extractor.config["sampling_rate"]
+                ),
+            ),
+            "postprocess": lambda r: r["text"],
+        }
     # if pipeline.task == "depth-estimation":
     #     pass
     if pipeline.task == "document-question-answering":
@@ -686,8 +716,28 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             ),
             "postprocess": lambda result: dict(zip(result["labels"], result["scores"])),
         }
-    # if pipeline.task == "zero-shot-audio-classification":
-    #     pass
+    if pipeline.task == "zero-shot-audio-classification":
+        return {
+            "inputs": [
+                components.Audio(
+                    type="filepath",
+                    label="Input",
+                    render=False,
+                ),
+                components.Textbox(
+                    label="Possible class names (comma-separated)", render=False
+                ),
+            ],
+            "outputs": components.Label(label="Classification", render=False),
+            "preprocess": lambda audio_path, classnames: (
+                read_audio(
+                    audio_path,
+                    pipeline.processor.feature_extractor.config["sampling_rate"],
+                ),
+                [c.strip() for c in classnames.split(",")],
+            ),
+            "postprocess": lambda result: {i["label"]: i["score"] for i in result},
+        }
     if pipeline.task == "zero-shot-image-classification":
         return {
             "inputs": [
