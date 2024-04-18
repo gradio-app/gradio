@@ -181,7 +181,10 @@
 	.layer-wrap li:last-child button {
 		border-bottom: none;
 		text-align: center;
-		padding: 2.5px;
+		font-size: var(--scale-0);
+		line-height: 1;
+		font-weight: var(--weight-bold);
+		padding: 5px 0 1px 0;
 	}
 
 	.closed > button {
@@ -198,6 +201,7 @@
 
 	.selected_layer {
 		background-color: var(--block-background-fill);
+		color: var(--color-accent);
 		font-weight: bold;
 	}
 
@@ -205,7 +209,7 @@
 		position: absolute;
 		bottom: 0;
 		left: 0;
-		background: #fff;
+		background: var(--block-background-fill);
 		width: calc(100% + 1px);
 		list-style: none;
 		z-index: var(--layer-top);
