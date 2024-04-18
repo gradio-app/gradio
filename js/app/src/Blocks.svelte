@@ -52,7 +52,7 @@
 		create_layout
 	} = create_components();
 
-	const restore_keyed_values = () => {
+	const restore_keyed_values = (): void => {
 		let component_values_by_key: Record<string | number, ComponentMeta> = {};
 		old_components.forEach((component) => {
 			if (component.key) {
@@ -63,7 +63,6 @@
 			if (component.key) {
 				const old_component = component_values_by_key[component.key];
 				if (old_component) {
-					console.log("set old value", old_component.props.value);
 					component.props.value = old_component.props.value;
 				}
 			}
