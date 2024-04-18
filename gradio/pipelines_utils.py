@@ -524,9 +524,12 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
         }
     if pipeline.task == "image-classification":
         return {
-            "inputs": components.Image(
-                type="filepath", label="Input Image", render=False
-            ),
+            "inputs": [
+                components.Image(
+                    type="filepath", label="Input Image", render=False
+                ),
+                components.Number(label="Top k", value=5, render=False),
+            ],
             "outputs": components.Label(label="Classification", render=False),
             "preprocess": lambda image_path, topk: (as_url(image_path), { "topk": topk }),
             "postprocess": lambda result: {
