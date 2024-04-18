@@ -77,11 +77,8 @@
 			image_id = null;
 			return val;
 		}
-		// @ts-ignore
-		loading_status = { status: "pending" };
+
 		const blobs = await editor_instance.get_data();
-		// @ts-ignore
-		loading_status = { status: "complete" };
 
 		return blobs;
 	}
