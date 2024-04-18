@@ -345,12 +345,14 @@
 	</div>
 	<div
 		class="border"
-		style:width="{$crop[2] * $editor_box.child_width}px"
-		style:height="{$crop[3] * $editor_box.child_height}px"
+		style:width="{$crop[2] * $editor_box.child_width + 1}px"
+		style:height="{$crop[3] * $editor_box.child_height + 1}px"
 		style:top="{$crop[1] * $editor_box.child_height +
-			($editor_box.child_top - $editor_box.parent_top)}px"
+			($editor_box.child_top - $editor_box.parent_top) -
+			0.5}px"
 		style:left="{$crop[0] * $editor_box.child_width +
-			($editor_box.child_left - $editor_box.parent_left)}px"
+			($editor_box.child_left - $editor_box.parent_left) -
+			0.5}px"
 	></div>
 </div>
 
@@ -373,12 +375,14 @@
 	.stage-wrap {
 		margin: var(--size-8);
 		margin-bottom: var(--size-1);
+		border-radius: var(--radius-md);
+		overflow: hidden;
 	}
 
 	.tools-wrap {
 		display: flex;
 		justify-content: center;
-		align-items: flex-end;
+		align-items: center;
 		padding: 0 var(--spacing-xl) 0 0;
 		border: 1px solid var(--block-border-color);
 		border-radius: var(--radius-sm);

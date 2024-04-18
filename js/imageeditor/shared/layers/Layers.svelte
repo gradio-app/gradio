@@ -10,6 +10,7 @@
 	let show_layers = false;
 
 	export let layer_files: (FileData | null)[] | null = [];
+	export let enable_layers = true;
 
 	const { pixi, current_layer, dimensions, register_context } =
 		getContext<EditorContext>(EDITOR_KEY);
@@ -29,12 +30,13 @@
 	async function validate_layers(): Promise<void> {
 		let invalid = layers.some(
 			(layer) =>
-				layer.composite.texture.width != $dimensions[0] ||
-				layer.composite.texture.height != $dimensions[1]
+				layer.composite.texture?.width != $dimensions[0] ||
+				layer.composite.texture?.height != $dimensions[1]
 		);
 		if (invalid) {
 			LayerManager.reset();
-			new_layer();
+			if (!layer_files || layer_files.length == 0) new_layer();
+			else render_layer_files(layer_files);
 		}
 	}
 	$: $dimensions, validate_layers();
@@ -62,7 +64,11 @@
 		_layer_files: typeof layer_files
 	): Promise<void> {
 		await tick();
-		if (!_layer_files || _layer_files.length == 0) return;
+		if (!_layer_files || _layer_files.length == 0) {
+			LayerManager.reset();
+			new_layer();
+			return;
+		}
 		if (!$pixi) return;
 
 		const fetch_promises = await Promise.all(
@@ -87,7 +93,8 @@
 			last_layer = await LayerManager.add_layer_from_blob(
 				$pixi.layer_container,
 				$pixi.renderer,
-				blob
+				blob,
+				$pixi.view
 			);
 		}
 
@@ -105,36 +112,40 @@
 	});
 </script>
 
-<div
-	class="layer-wrap"
-	class:closed={!show_layers}
-	use:click_outside={() => (show_layers = false)}
->
-	<button aria-label="Show Layers" on:click={() => (show_layers = !show_layers)}
-		><span class="icon"><Layers /></span> Layer {layers.findIndex(
-			(l) => l === $current_layer
-		) + 1}
-	</button>
-	{#if show_layers}
-		<ul>
-			{#each layers as layer, i (i)}
+{#if enable_layers}
+	<div
+		class="layer-wrap"
+		class:closed={!show_layers}
+		use:click_outside={() => (show_layers = false)}
+	>
+		<button
+			aria-label="Show Layers"
+			on:click={() => (show_layers = !show_layers)}
+			><span class="icon"><Layers /></span> Layer {layers.findIndex(
+				(l) => l === $current_layer
+			) + 1}
+		</button>
+		{#if show_layers}
+			<ul>
+				{#each layers as layer, i (i)}
+					<li>
+						<button
+							class:selected_layer={$current_layer === layer}
+							on:click={() =>
+								($current_layer = LayerManager.change_active_layer(i))}
+							>Layer {i + 1}</button
+						>
+					</li>
+				{/each}
 				<li>
-					<button
-						class:selected_layer={$current_layer === layer}
-						on:click={() =>
-							($current_layer = LayerManager.change_active_layer(i))}
-						>Layer {i + 1}</button
-					>
+					<button aria-label="Add Layer" on:click={new_layer}> +</button>
 				</li>
-			{/each}
-			<li>
-				<button aria-label="Add Layer" on:click={new_layer}> +</button>
-			</li>
-		</ul>
-	{/if}
+			</ul>
+		{/if}
 
-	<span class="sep"></span>
-</div>
+		<span class="sep"></span>
+	</div>
+{/if}
 
 <style>
 	.icon {
@@ -170,7 +181,10 @@
 	.layer-wrap li:last-child button {
 		border-bottom: none;
 		text-align: center;
-		padding: 2.5px;
+		font-size: var(--scale-0);
+		line-height: 1;
+		font-weight: var(--weight-bold);
+		padding: 5px 0 1px 0;
 	}
 
 	.closed > button {
@@ -187,6 +201,7 @@
 
 	.selected_layer {
 		background-color: var(--block-background-fill);
+		color: var(--color-accent);
 		font-weight: bold;
 	}
 
@@ -194,7 +209,7 @@
 		position: absolute;
 		bottom: 0;
 		left: 0;
-		background: #fff;
+		background: var(--block-background-fill);
 		width: calc(100% + 1px);
 		list-style: none;
 		z-index: var(--layer-top);
