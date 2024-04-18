@@ -286,7 +286,6 @@ class ImageEditor(Component):
             Passes the uploaded images as an instance of EditorValue, which is just a `dict` with keys: 'background', 'layers', and 'composite'. The values corresponding to 'background' and 'composite' are images, while 'layers' is a `list` of images. The images are of type `PIL.Image`, `np.array`, or `str` filepath, depending on the `type` parameter.
         """
         _payload = payload
-        # print("payload", payload)
 
         if payload is not None and payload.id is not None:
             cached = self.blob_storage.get(payload.id)
@@ -320,9 +319,7 @@ class ImageEditor(Component):
 
         if payload is not None and payload.id is not None:
             self.blob_storage.pop(payload.id)
-        print("bg", bg)
-        print("layers", layers)
-        print("composite", composite)
+
         return {
             "background": bg,
             "layers": [x for x in layers if x is not None] if layers else [],
@@ -336,7 +333,6 @@ class ImageEditor(Component):
         Returns:
             An instance of `EditorData` consisting of the background image, layers, and composite image.
         """
-        print("value", value)
         if value is None:
             return None
         elif isinstance(value, dict):
@@ -347,8 +343,6 @@ class ImageEditor(Component):
             raise ValueError(
                 "The value to `gr.ImageEditor` must be a dictionary of images or a single image."
             )
-
-        # print("value", value)
 
         layers = (
             [

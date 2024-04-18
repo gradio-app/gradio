@@ -90,7 +90,15 @@
 
 	$: value && handle_change();
 
-	function handle_change(): void {
+	function wait_for_next_frame(): Promise<void> {
+		return new Promise((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+	}
+
+	async function handle_change(): Promise<void> {
+		await wait_for_next_frame();
+
 		if (
 			value &&
 			(value.background || value.layers?.length || value.composite)
@@ -110,8 +118,6 @@
 			tick().then((_) => (value_is_output = false));
 		}
 	}
-
-	$: console.log({ value });
 </script>
 
 {#if !interactive}

@@ -29,12 +29,13 @@
 	async function validate_layers(): Promise<void> {
 		let invalid = layers.some(
 			(layer) =>
-				layer.composite.texture.width != $dimensions[0] ||
-				layer.composite.texture.height != $dimensions[1]
+				layer.composite.texture?.width != $dimensions[0] ||
+				layer.composite.texture?.height != $dimensions[1]
 		);
 		if (invalid) {
 			LayerManager.reset();
-			new_layer();
+			if (!layer_files || layer_files.length == 0) new_layer();
+			else render_layer_files(layer_files);
 		}
 	}
 	$: $dimensions, validate_layers();
@@ -62,7 +63,11 @@
 		_layer_files: typeof layer_files
 	): Promise<void> {
 		await tick();
-		if (!_layer_files || _layer_files.length == 0) return;
+		if (!_layer_files || _layer_files.length == 0) {
+			LayerManager.reset();
+			new_layer();
+			return;
+		}
 		if (!$pixi) return;
 
 		const fetch_promises = await Promise.all(
@@ -87,7 +92,8 @@
 			last_layer = await LayerManager.add_layer_from_blob(
 				$pixi.layer_container,
 				$pixi.renderer,
-				blob
+				blob,
+				$pixi.view
 			);
 		}
 
