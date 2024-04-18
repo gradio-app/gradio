@@ -49,7 +49,7 @@
 	export let eraser: Eraser;
 	export let crop_size: [number, number] | `${string}:${string}` | null = null;
 	export let transforms: "crop"[] = ["crop"];
-	export let layers: boolean = true;
+	export let layers = true;
 	export let attached_events: string[] = [];
 	export let server: {
 		accept_blobs: (a: any) => void;

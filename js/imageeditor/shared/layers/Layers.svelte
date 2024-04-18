@@ -10,7 +10,7 @@
 	let show_layers = false;
 
 	export let layer_files: (FileData | null)[] | null = [];
-	export let enable_layers: boolean = true;
+	export let enable_layers = true;
 
 	const { pixi, current_layer, dimensions, register_context } =
 		getContext<EditorContext>(EDITOR_KEY);
