@@ -121,7 +121,7 @@ const result = await app.predict("/predict");
 
 ##### `payload`
 
-The `payload` argument is generally optional but this depends on the API itself. If the API endpoint depends on values being passed in then it is required for the API request to succeed. The data that should be passed in is detailed on the "View API" page of a space, or accessible via the `view_api()` method of the client.
+The `payload` argument is generally required but this depends on the API itself. If the API endpoint depends on values being passed in then the argument is required for the API request to succeed. The data that should be passed in is detailed on the "View API" page of a space, or accessible via the `view_api()` method of the client.
 
 ```ts
 import { Client } from "@gradio/client";
