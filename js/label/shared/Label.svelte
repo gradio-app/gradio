@@ -50,12 +50,10 @@
 						<dt id={`meter-text-${confidence_set.label}`} class="text">
 							{confidence_set.label}
 						</dt>
-						{#if value.confidences}
-							<div class="line" />
-							<dd class="confidence">
-								{Math.round(confidence_set.confidence * 100)}%
-							</dd>
-						{/if}
+						<div class="line" />
+						<dd class="confidence">
+							{Math.round(confidence_set.confidence * 100)}%
+						</dd>
 					</dl>
 				</div>
 			</button>
