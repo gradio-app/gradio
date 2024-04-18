@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { click_outside } from "../utils/events";
 	import { createEventDispatcher } from "svelte";
+	import { BrushSize } from "@gradio/icons";
 
 	export let selected_size: number;
 	export let min: number;
@@ -40,36 +41,28 @@
 	class:top={anchor_top}
 	class:bottom={!anchor_top}
 >
+	<span>
+		<BrushSize />
+	</span>
 	<input type="range" bind:value={selected_size} {min} {max} step={1} />
 </div>
 
 <style>
 	.wrap {
-		width: 180px;
-		position: absolute;
+		width: 100%;
 		display: flex;
-		flex-direction: column;
-		gap: 5px;
+		gap: var(--size-4);
 		background: var(--background-fill-secondary);
-		border: 1px solid var(--block-border-color);
-
-		border-radius: var(--radius-md);
-		box-shadow:
-			0 0 5px rgba(0, 0, 0, 0.1),
-			0 5px 30px rgba(0, 0, 0, 0.2);
-		padding: var(--size-2);
+		padding: 0 var(--size-4);
 		cursor: default;
+		padding-top: var(--size-2-5);
 	}
 
-	.bottom {
-		bottom: 85px;
+	input {
+		width: 100%;
 	}
-
-	.top {
-		top: 30px;
-	}
-
-	.right {
-		right: 10px;
+	span {
+		width: 26px;
+		color: var(--body-text-color);
 	}
 </style>
