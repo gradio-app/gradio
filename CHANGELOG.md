@@ -2,6 +2,23 @@
 
 ## 4.27.0
 
+### Highlights
+
+#### Refreshed `ImageEditor`
+
+The `ImageEditor` component has been refreshed to make it more user-friendly and reliable.
+
+This release contains a host of improvements to the `ImageEditor` component, that will be of particular interest to those builing real-time image editing applications or complex image processing pipelines:
+
+- Cleaner and more compact interface.
+- New option to hide the layer controls for a more minimal UI.
+- Improved stability when updating the sources programmatically.
+- Improved support for `input`, `upload`, `change` and `apply` events.
+- Support for realtime drawing via the `change` event.
+- Many bug fixes!
+
+![output](https://github.com/gradio-app/gradio/assets/12937446/826dde7d-942b-4e1f-9a3e-aa4dc1f74402)
+
 ### Features
 
 - [#7998](https://github.com/gradio-app/gradio/pull/7998) [`06bdf0e`](https://github.com/gradio-app/gradio/commit/06bdf0eddf59bf79b6b4d1268fc9290955ef2490) - Restore chatbot formatting.  Thanks @aliabid94!
