@@ -52,6 +52,52 @@ DEFAULT_TEMP_DIR = os.environ.get("GRADIO_TEMP_DIR") or str(
 )
 
 
+class OptionalHttpxAsyncClient:
+    """
+    Thin wrapper over httpx.asynclient that supports persistent shared connections if available
+    """
+
+    def __init__(self, client, *args, **kwargs):
+        self.client = client
+        self.new_client = None
+        self.args = args
+        self.kwargs = kwargs
+
+    async def __aenter__(self):
+        if self.client:
+            return self.client
+        self.new_client = await httpx.AsyncClient(
+            *self.args, **self.kwargs
+        ).__aenter__()
+        return self.new_client
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.new_client:
+            return await self.new_client.__aexit__()
+
+
+class OptionalHttpxClient:
+    """
+    Thin wrapper over httpx.client that supports persistent shared connections if available
+    """
+
+    def __init__(self, client, *args, **kwargs):
+        self.client = client
+        self.new_client = None
+        self.args = args
+        self.kwargs = kwargs
+
+    def __enter__(self):
+        if self.client:
+            return self.client
+        self.new_client = httpx.Client(*self.args, **self.kwargs).__enter__()
+        return self.new_client
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.new_client:
+            return self.new_client.__exit__()
+
+
 @document("predict", "submit", "view_api", "duplicate", "deploy_discord")
 class Client:
     """
@@ -86,6 +132,7 @@ class Client:
         download_files: bool = True,  # TODO: consider setting to False in 1.0
         _skip_components: bool = True,  # internal parameter to skip values certain components (e.g. State) that do not need to be displayed to users.
         ssl_verify: bool = True,
+        connection_reuse: bool = False,
     ):
         """
         Parameters:
@@ -99,6 +146,7 @@ class Client:
             upload_files: Whether the client should treat input string filepath as files and upload them to the remote server. If False, the client will treat input string filepaths as strings always and not modify them, and files should be passed in explicitly using `gradio_client.file("path/to/file/or/url")` instead. This parameter will be deleted and False will become the default in a future version.
             download_files: Whether the client should download output files from the remote API and return them as string filepaths on the local machine. If False, the client will return a FileData dataclass object with the filepath on the remote machine instead.
             ssl_verify: If False, skips certificate validation which allows the client to connect to Gradio apps that are using self-signed certificates.
+            connection_reuse: If True, you must call close() when finishes using client to avoid resources leak.
         """
         self.verbose = verbose
         self.hf_token = hf_token
@@ -149,15 +197,22 @@ class Client:
         if self.verbose:
             print(f"Loaded as API: {self.src} ✔")
 
-        _http2 = bool(importlib.util.find_spec("h2"))
+        if connection_reuse:
+            _http2 = bool(importlib.util.find_spec("h2"))
+            self.httpx_asyncclient = httpx.AsyncClient(
+                timeout=httpx.Timeout(timeout=None),
+                verify=self.ssl_verify,
+                http2=_http2,
+            )
 
-        self.httpx_asyncclient = httpx.AsyncClient(
-            timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify, http2=_http2
-        )
-
-        self.httpx_client = httpx.Client(
-            timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify, http2=_http2
-        )
+            self.httpx_client = httpx.Client(
+                timeout=httpx.Timeout(timeout=None),
+                verify=self.ssl_verify,
+                http2=_http2,
+            )
+        else:
+            self.httpx_asyncclient = None
+            self.httpx_client = None
 
         if auth is not None:
             self._login(auth)
@@ -227,11 +282,12 @@ class Client:
         while True:
             url = self.heartbeat_url.format(session_hash=self.session_hash)
             try:
-                with self.httpx_client.stream(
+                with httpx.stream(
                     "GET",
                     url,
                     headers=self.headers,
                     cookies=self.cookies,
+                    verify=self.ssl_verify,
                     timeout=20,
                 ) as response:
                     for _ in response.iter_lines():
@@ -247,41 +303,49 @@ class Client:
         self, protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]
     ) -> None:
         try:
-            async with self.httpx_asyncclient.stream(
-                "GET",
-                self.sse_url,
-                params={"session_hash": self.session_hash},
-                headers=self.headers,
-                cookies=self.cookies,
-            ) as response:
-                async for line in response.aiter_lines():
-                    line = line.rstrip("\n")
-                    if not len(line):
-                        continue
-                    if line.startswith("data:"):
-                        resp = json.loads(line[5:])
-                        if resp["msg"] == ServerMessage.heartbeat:
+            async with OptionalHttpxAsyncClient(
+                self.httpx_asyncclient,
+                timeout=httpx.Timeout(timeout=None),
+                verify=self.ssl_verify,
+            ) as client:
+                async with client.stream(
+                    "GET",
+                    self.sse_url,
+                    params={"session_hash": self.session_hash},
+                    headers=self.headers,
+                    cookies=self.cookies,
+                ) as response:
+                    async for line in response.aiter_lines():
+                        line = line.rstrip("\n")
+                        if not len(line):
                             continue
-                        elif resp["msg"] == ServerMessage.server_stopped:
-                            for (
-                                pending_messages
-                            ) in self.pending_messages_per_event.values():
-                                pending_messages.append(resp)
-                            return
-                        elif resp["msg"] == ServerMessage.close_stream:
-                            self.stream_open = False
-                            return
-                        event_id = resp["event_id"]
-                        if event_id not in self.pending_messages_per_event:
-                            self.pending_messages_per_event[event_id] = []
-                        self.pending_messages_per_event[event_id].append(resp)
-                        if resp["msg"] == ServerMessage.process_completed:
-                            self.pending_event_ids.remove(event_id)
-                        if len(self.pending_event_ids) == 0 and protocol != "sse_v3":
-                            self.stream_open = False
-                            return
-                    else:
-                        raise ValueError(f"Unexpected SSE line: '{line}'")
+                        if line.startswith("data:"):
+                            resp = json.loads(line[5:])
+                            if resp["msg"] == ServerMessage.heartbeat:
+                                continue
+                            elif resp["msg"] == ServerMessage.server_stopped:
+                                for (
+                                    pending_messages
+                                ) in self.pending_messages_per_event.values():
+                                    pending_messages.append(resp)
+                                return
+                            elif resp["msg"] == ServerMessage.close_stream:
+                                self.stream_open = False
+                                return
+                            event_id = resp["event_id"]
+                            if event_id not in self.pending_messages_per_event:
+                                self.pending_messages_per_event[event_id] = []
+                            self.pending_messages_per_event[event_id].append(resp)
+                            if resp["msg"] == ServerMessage.process_completed:
+                                self.pending_event_ids.remove(event_id)
+                            if (
+                                len(self.pending_event_ids) == 0
+                                and protocol != "sse_v3"
+                            ):
+                                self.stream_open = False
+                                return
+                        else:
+                            raise ValueError(f"Unexpected SSE line: '{line}'")
         except BaseException as e:
             import traceback
 
@@ -289,12 +353,15 @@ class Client:
             raise e
 
     async def send_data(self, data, hash_data, protocol):
-        req = await self.httpx_asyncclient.post(
-            self.sse_data_url,
-            json={**data, **hash_data},
-            headers=self.headers,
-            cookies=self.cookies,
-        )
+        async with OptionalHttpxAsyncClient(
+            self.httpx_asyncclient, verify=self.ssl_verify
+        ) as client:
+            req = await client.post(
+                self.sse_data_url,
+                json={**data, **hash_data},
+                headers=self.headers,
+                cookies=self.cookies,
+            )
         if req.status_code == 503:
             raise QueueError("Queue is full! Please try again.")
         req.raise_for_status()
@@ -554,17 +621,18 @@ class Client:
         else:
             api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
         if self.app_version > version.Version("3.36.1"):
-            r = self.httpx_client.get(
+            r = httpx.get(
                 api_info_url,
                 headers=self.headers,
                 cookies=self.cookies,
+                verify=self.ssl_verify,
             )
             if r.is_success:
                 info = r.json()
             else:
                 raise ValueError(f"Could not fetch api info for {self.src}: {r.text}")
         else:
-            fetch = self.httpx_client.post(
+            fetch = httpx.post(
                 utils.SPACE_FETCHER_URL,
                 json={
                     "config": json.dumps(self.config),
@@ -821,10 +889,11 @@ class Client:
         return huggingface_hub.space_info(space, token=self.hf_token).host  # type: ignore
 
     def _login(self, auth: tuple[str, str]):
-        resp = self.httpx_client.post(
-            urllib.parse.urljoin(self.src, utils.LOGIN_URL),
-            data={"username": auth[0], "password": auth[1]},
-        )
+        with OptionalHttpxClient(self.httpx_client, verify=self.ssl_verify) as client:
+            resp = client.post(
+                urllib.parse.urljoin(self.src, utils.LOGIN_URL),
+                data={"username": auth[0], "password": auth[1]},
+            )
         if not resp.is_success:
             if resp.status_code == 401:
                 raise AuthenticationError(
@@ -837,11 +906,12 @@ class Client:
         }
 
     def _get_config(self) -> dict:
-        r = self.httpx_client.get(
-            urllib.parse.urljoin(self.src, utils.CONFIG_URL),
-            headers=self.headers,
-            cookies=self.cookies,
-        )
+        with OptionalHttpxClient(self.httpx_client, verify=self.ssl_verify) as client:
+            r = client.get(
+                urllib.parse.urljoin(self.src, utils.CONFIG_URL),
+                headers=self.headers,
+                cookies=self.cookies,
+            )
         if r.is_success:
             return r.json()
         elif r.status_code == 401:
@@ -849,11 +919,14 @@ class Client:
                 f"Could not load {self.src} as credentials were not provided. Please login."
             )
         else:  # to support older versions of Gradio
-            r = self.httpx_client.get(
-                self.src,
-                headers=self.headers,
-                cookies=self.cookies,
-            )
+            with OptionalHttpxClient(
+                self.httpx_client, verify=self.ssl_verify
+            ) as client:
+                r = client.get(
+                    self.src,
+                    headers=self.headers,
+                    cookies=self.cookies,
+                )
             if not r.is_success:
                 raise ValueError(f"Could not fetch config for {self.src}")
             # some basic regex to extract the config
@@ -1240,12 +1313,15 @@ class Endpoint:
         if not utils.is_http_url_like(file_path):
             with open(file_path, "rb") as f:
                 files = [("files", (Path(file_path).name, f))]
-                r = self.client.httpx_client.post(
-                    self.client.upload_url,
-                    headers=self.client.headers,
-                    cookies=self.client.cookies,
-                    files=files,
-                )
+                with OptionalHttpxClient(
+                    self.client.httpx_client, verify=self.client.ssl_verify
+                ) as client:
+                    r = client.post(
+                        self.client.upload_url,
+                        headers=self.client.headers,
+                        cookies=self.client.cookies,
+                        files=files,
+                    )
             r.raise_for_status()
             result = r.json()
             file_path = result[0]
@@ -1259,19 +1335,21 @@ class Endpoint:
         sha1 = hashlib.sha1()
         temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
         temp_dir.mkdir(exist_ok=True, parents=True)
-
-        with self.client.httpx_client.stream(
+        with OptionalHttpxClient(
+            self.client.httpx_client, verify=self.client.ssl_verify
+        ) as client:
+            with client.stream(
                 "GET",
                 url_path,
                 headers=self.client.headers,
                 cookies=self.client.cookies,
                 follow_redirects=True,
-        ) as response:
-            response.raise_for_status()
-            with open(temp_dir / Path(url_path).name, "wb") as f:
-                for chunk in response.iter_bytes(chunk_size=128 * sha1.block_size):
-                    sha1.update(chunk)
-                    f.write(chunk)
+            ) as response:
+                response.raise_for_status()
+                with open(temp_dir / Path(url_path).name, "wb") as f:
+                    for chunk in response.iter_bytes(chunk_size=128 * sha1.block_size):
+                        sha1.update(chunk)
+                        f.write(chunk)
 
         directory = Path(self.client.output_dir) / sha1.hexdigest()
         directory.mkdir(exist_ok=True, parents=True)
@@ -1280,17 +1358,22 @@ class Endpoint:
         return str(dest.resolve())
 
     async def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
-        return await utils.get_pred_from_sse_v0(
+        async with OptionalHttpxAsyncClient(
             self.client.httpx_asyncclient,
-            data,
-            hash_data,
-            helper,
-            self.client.sse_url,
-            self.client.sse_data_url,
-            self.client.headers,
-            self.client.cookies,
-            self.client.ssl_verify,
-        )
+            timeout=httpx.Timeout(timeout=None),
+            verify=self.client.ssl_verify,
+        ) as client:
+            return await utils.get_pred_from_sse_v0(
+                client,
+                data,
+                hash_data,
+                helper,
+                self.client.sse_url,
+                self.client.sse_data_url,
+                self.client.headers,
+                self.client.cookies,
+                self.client.ssl_verify,
+            )
 
     async def _sse_fn_v1plus(
         self,
