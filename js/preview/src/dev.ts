@@ -37,7 +37,7 @@ export async function create_server({
 	process.env.gradio_mode = "dev";
 	const imports = generate_imports(component_dir, root_dir, python_path);
 
-	const NODE_DIR = join(root_dir, "..", "..", "node", "dev");
+	// const NODE_DIR = join(root_dir, "..", "..", "node", "dev");
 	const svelte_dir = join(root_dir, "assets", "svelte");
 
 	try {
@@ -55,7 +55,7 @@ export async function create_server({
 				port: frontend_port,
 				host: host,
 				fs: {
-					allow: [root_dir, NODE_DIR, component_dir]
+					allow: [root_dir, component_dir]
 				}
 			},
 			plugins: [

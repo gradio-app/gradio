@@ -3,7 +3,7 @@
 	"version": "0.7.2",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "src/index.ts",
+	"main": "dist/index.js",
 	"author": "",
 	"license": "ISC",
 	"private": false,
@@ -21,7 +21,7 @@
 	"dependencies": {
 		"@originjs/vite-plugin-commonjs": "^1.0.3",
 		"@rollup/plugin-sucrase": "^5.0.1",
-		"@sveltejs/vite-plugin-svelte": "^2.5.2",
+		"@sveltejs/vite-plugin-svelte": "^3.1.0",
 		"@types/which": "^3.0.0",
 		"coffeescript": "^2.7.0",
 		"css-tree": "2.3.1",
@@ -33,6 +33,7 @@
 		"stylus": "^0.63.0",
 		"sucrase": "^3.34.0",
 		"sugarss": "^4.0.1",
+		"vite": "^5.2.9",
 		"which": "4.0.0",
 		"yootils": "^0.3.1"
 	}

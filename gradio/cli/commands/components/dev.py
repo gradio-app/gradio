@@ -13,7 +13,6 @@ import gradio
 from gradio.cli.commands.components.install_component import _get_executable_path
 
 gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"
-gradio_node_path = Path(gradio.__file__).parent / "node" / "dev" / "files" / "index.js"
 
 
 def _dev(
@@ -22,7 +21,8 @@ def _dev(
         typer.Argument(
             help="The path to the app. By default, looks for demo/app.py in the current directory."
         ),
-    ] = Path("demo") / "app.py",
+    ] = Path("demo")
+    / "app.py",
     component_directory: Annotated[
         Path,
         typer.Option(
@@ -62,6 +62,18 @@ def _dev(
     gradio_path = _get_executable_path(
         "gradio", gradio_path, cli_arg_name="--gradio-path"
     )
+
+    gradio_node_path = subprocess.Popen(
+        [node, "-e", "console.log(require.resolve('@gradio/preview'))"],
+        cwd=Path(component_directory / "frontend"),
+        stdout=subprocess.PIPE,
+    )
+
+    if gradio_node_path.stdout is None:
+        raise ValueError(
+            "Failed to find gradio node path. Please make sure you have gradio installed."
+        )
+    gradio_node_path = gradio_node_path.stdout.readline().decode("utf-8").strip()
 
     proc = subprocess.Popen(
         [

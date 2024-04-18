@@ -8,6 +8,7 @@ import ts from "@rollup/plugin-typescript";
 import node from "@rollup/plugin-node-resolve";
 import cjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
+import { mkdirSync } from "node:fs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -52,20 +53,20 @@ function inject_dirname() {
 function resolve_imports() {
 	return {
 		name: "resolve-imports",
-		resolveId(id) {
-			const pkgs = [
-				"sugarss",
-				"stylus",
-				"sass",
-				"pug",
-				"coffeescript",
-				"lightningcss"
-			];
-			if (pkgs.includes(id)) {
-				return join(__dirname, "src", "placeholder.ts");
-			}
-			if (id === "svelte/compiler") return "../compiler.js";
-		},
+		// resolveId(id) {
+		// 	const pkgs = [
+		// 		"sugarss",
+		// 		"stylus",
+		// 		"sass",
+		// 		"pug",
+		// 		"coffeescript",
+		// 		"lightningcss"
+		// 	];
+		// 	if (pkgs.includes(id)) {
+		// 		return join(__dirname, "src", "placeholder.ts");
+		// 	}
+		// 	if (id === "svelte/compiler") return "../compiler.js";
+		// },
 		transform(code) {
 			const new_code = code.replace(RE_SVELTE_IMPORT, (str, $1, $2) => {
 				const identifier = $1.trim().startsWith("* as")
@@ -88,30 +89,31 @@ export function copy_files() {
 	return {
 		name: "copy_files",
 		writeBundle() {
-			cpSync(join(vite_client, ".."), "../../gradio/node/dist/client", {
-				recursive: true
-			});
+			// cpSync(join(vite_client, ".."), "../../gradio/node/dist/client", {
+			// 	recursive: true
+			// });
 
-			cpSync(join(hmr, "../runtime"), "../../gradio/node/dev/files/runtime", {
-				recursive: true
-			});
-			cpSync(
-				join(esbuild_binary_path, "..", "..", ".."),
-				"../../gradio/node/dev/node_modules",
-				{
-					recursive: true
-				}
-			);
+			// cpSync(join(hmr, "../runtime"), "../../gradio/node/dev/files/runtime", {
+			// 	recursive: true
+			// });
+			// cpSync(
+			// 	join(esbuild_binary_path, "..", "..", ".."),
+			// 	"../../gradio/node/dev/node_modules",
+			// 	{
+			// 		recursive: true
+			// 	}
+			// );
 
-			cpSync("./src/examine.py", "../../gradio/node/examine.py");
+			cpSync("./src/examine.py", "dist/examine.py");
+			// mkdirSync("dist", { recursive: true });
 
-			writeFileSync(
-				"../../gradio/node/package.json",
-				`{"type": "module", "version": "0.0.0"}`,
-				{
-					encoding: "utf-8"
-				}
-			);
+			// writeFileSync(
+			// 	"dist/package.json",
+			// 	`{"type": "module", "version": "0.0.0"}`,
+			// 	{
+			// 		encoding: "utf-8"
+			// 	}
+			// );
 		}
 	};
 }
@@ -122,19 +124,12 @@ export default [
 	{
 		input: "src/index.ts",
 		output: {
-			dir: "../../gradio/node/dev/files",
+			dir: "dist",
 			format: "esm",
 			minifyInternalExports: false
 		},
 		onwarn,
 		plugins: [
-			{
-				resolveId(id, importer) {
-					if (id === "esbuild") {
-						return "esbuild-wasm";
-					}
-				}
-			},
 			...plugins,
 			{
 				name: "clean_dir",
@@ -148,7 +143,12 @@ export default [
 			inject_dirname(),
 			copy_files()
 		],
-		external: ["fsevents", "esbuild-wasm", "../compiler.js"]
+		external: [
+			"fsevents",
+			"../compiler.js",
+			"vite",
+			"@sveltejs/vite-plugin-svelte"
+		]
 	},
 	{
 		input: "src/svelte-submodules.ts",
