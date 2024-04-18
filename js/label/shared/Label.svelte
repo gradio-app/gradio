@@ -126,6 +126,7 @@
 
 	.text {
 		line-height: var(--line-md);
+		text-align: left;
 	}
 
 	.line {
