@@ -12,7 +12,7 @@ npm i @gradio/client
 
 ## Usage
 
-The JavaScript Gradio Client exposes two named imports, `Client` and `duplicate`.
+The JavaScript Gradio Client exposes the Client class, `Client`, along with various other utility functions. `Client` is used to initialise and establish a connection to, or duplicate, a Gradio app. 
 
 ### `Client`
 
@@ -23,7 +23,7 @@ The simplest example looks like this:
 ```ts
 import { Client } from "@gradio/client";
 
-const app = await Client.create("user/space-name");
+const app = await Client.connect("user/space-name");
 const result = await app.predict("/predict");
 ```
 
@@ -34,7 +34,7 @@ This function accepts two arguments: `source` and `options`:
 This is the url or name of the gradio app whose API you wish to connect to. This parameter is required and should always be a string. For example:
 
 ```ts
-Client.create("user/space-name");  
+Client.connect("user/space-name");  
 ```
 
 #### `options`
@@ -50,7 +50,7 @@ Example:
 ```ts
 import { Client } from "@gradio/client";
 
-const app = await Client.create("user/space-name", { hf_token: "hf_..." });
+const app = await Client.connect("user/space-name", { hf_token: "hf_..." });
 ```
 
 ##### `status_callback`
@@ -64,7 +64,7 @@ Applications hosted on Hugging Face spaces can be in a number of different state
 ```ts
 import { Client, type SpaceStatus } from "@gradio/client";
 
-const app = await Client.create("user/space-name", {
+const app = await Client.connect("user/space-name", {
 	// The space_status parameter does not need to be manually annotated, this is just for illustration.
 	space_status: (space_status: SpaceStatus) => console.log(space_status)
 });
@@ -102,7 +102,7 @@ The `predict` method allows you to call an api endpoint and get a prediction res
 ```ts
 import { Client } from "@gradio/client";
 
-const app = await Client.create("user/space-name");
+const app = await Client.connect("user/space-name");
 const result = await app.predict("/predict");
 ```
 
@@ -115,7 +115,7 @@ This is the endpoint for an api request and is required. The default endpoint fo
 ```ts
 import { Client } from "@gradio/client";
 
-const app = await Client.create("user/space-name");
+const app = await Client.connect("user/space-name");
 const result = await app.predict("/predict");
 ```
 
@@ -126,7 +126,7 @@ The `payload` argument is generally optional but this depends on the API itself.
 ```ts
 import { Client } from "@gradio/client";
 
-const app = await Client.create("user/space-name");
+const app = await Client.connect("user/space-name");
 const result = await app.predict("/predict", [1, "Hello", "friends"]);
 ```
 
@@ -137,7 +137,7 @@ The `submit` method provides a more flexible way to call an API endpoint, provid
 ```ts
 import { Client } from "@gradio/client";
 
-const app = await Client.create("user/space-name");
+const app = await Client.connect("user/space-name");
 const submission = app.submit("/predict", payload);
 ```
 
@@ -181,7 +181,7 @@ Usage of these subscribe callback looks like this:
 ```ts
 import { Client } from "@gradio/client";
 
-const app = await Client.create("user/space-name");
+const app = await Client.connect("user/space-name");
 const submission = app
 	.submit("/predict", payload)
 	.on("data", (data) => console.log(data))
@@ -195,7 +195,7 @@ The `off` method unsubscribes from a specific event of the submitted job and wor
 ```ts
 import { Client } from "@gradio/client";
 
-const app = await Client.create("user/space-name");
+const app = await Client.connect("user/space-name");
 const handle_data = (data) => console.log(data);
 
 const submission = app.submit("/predict", payload).on("data", handle_data);
@@ -211,7 +211,7 @@ The `destroy` method will remove all subscriptions to a job, regardless of wheth
 ```js
 import { Client } from "@gradio/client";
 
-const app = await Client.create("user/space-name");
+const app = await Client.connect("user/space-name");
 const handle_data = (data) => console.log(data);
 
 const submission = app.submit("/predict", payload).on("data", handle_data);
@@ -227,7 +227,7 @@ Certain types of gradio function can run repeatedly and in some cases indefinite
 ```ts
 import { Client } from "@gradio/client";
 
-const app = await Client.create("user/space-name");
+const app = await Client.connect("user/space-name");
 const submission = app
 	.submit("/predict", payload)
 	.on("data", (data) => console.log(data));
@@ -244,7 +244,7 @@ The `view_api` method provides details about the API you are connected to. It re
 ```ts
 import { Client } from "@gradio/client";
 
-const app = await Client.create("user/space-name");
+const app = await Client.connect("user/space-name");
 const api_info = await app.view_api();
 
 console.log(api_info);
@@ -257,7 +257,7 @@ The `config` property contains the configuration for the gradio application you 
 ```ts
 import { Client } from "@gradio/client";
 
-const app = await Client.create("user/space-name");
+const app = await Client.connect("user/space-name");
 console.log(app.config);
 ```
 
@@ -268,9 +268,9 @@ The duplicate function will attempt to duplicate the space that is referenced an
 `duplicate` accepts the same arguments as `client` with the addition of a `private` options property dictating whether the duplicated space should be private or public. A huggingface token is required for duplication to work.
 
 ```ts
-import { duplicate } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await duplicate("user/space-name", {
+const app = await Client.duplicate("user/space-name", {
 	hf_token: "hf_..."
 });
 ```
@@ -292,9 +292,9 @@ Accepts all options that `client` accepts, except `hf_token` is required. [See `
 This is an optional property specific to `duplicate`'s options object and will determine whether the space should be public or private. Spaces duplicated via the `duplicate` method are public by default.
 
 ```ts
-import { duplicate } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await duplicate("user/space-name", {
+const app = await Client.duplicate("user/space-name", {
 	hf_token: "hf_...",
 	private: true
 });
@@ -305,9 +305,9 @@ const app = await duplicate("user/space-name", {
 This is an optional property specific to `duplicate`'s options object and will set the timeout in minutes before the duplicated space will go to sleep.
 
 ```ts
-import { duplicate } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await duplicate("user/space-name", {
+const app = await Client.duplicate("user/space-name", {
 	hf_token: "hf_...",
 	private: true,
 	timeout: 5
@@ -322,16 +322,22 @@ Possible hardware options are:
 
 - `"cpu-basic"`
 - `"cpu-upgrade"`
+- `"cpu-xl"`
 - `"t4-small"`
 - `"t4-medium"`
 - `"a10g-small"`
 - `"a10g-large"`
+- `"a10g-largex2"`
+- `"a10g-largex4"`
 - `"a100-large"`
+- `"zero-a10g"`
+- `"h100"`
+- `"h100x8"`
 
 ```ts
-import { duplicate } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await duplicate("user/space-name", {
+const app = await Client.duplicate("user/space-name", {
 	hf_token: "hf_...",
 	private: true,
 	hardware: "a10g-small"

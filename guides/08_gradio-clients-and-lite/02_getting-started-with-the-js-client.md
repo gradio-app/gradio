@@ -18,7 +18,7 @@ const response = await fetch(
 );
 const audio_file = await response.blob();
 
-const app = await Client.create("abidlabs/whisper");
+const app = await Client.connect("abidlabs/whisper");
 const transcription = await app.predict("/predict", [audio_file]);
 
 console.log(transcription.data);
@@ -46,7 +46,7 @@ Start by connecting instantiating a `client` instance and connecting it to a Gra
 ```js
 import { Client } from "@gradio/client";
 
-const app = Client.create("abidlabs/en2fr"); // a Space that translates from English to French
+const app = Client.connect("abidlabs/en2fr"); // a Space that translates from English to French
 ```
 
 You can also connect to private Spaces by passing in your HF token with the `hf_token` property of the options parameter. You can get your HF token here: https://huggingface.co/settings/tokens
@@ -54,37 +54,35 @@ You can also connect to private Spaces by passing in your HF token with the `hf_
 ```js
 import { Client } from "@gradio/client";
 
-const app = Client.create("abidlabs/my-private-space", { hf_token="hf_..." })
+const app = Client.connect("abidlabs/my-private-space", { hf_token="hf_..." })
 ```
 
 ## Duplicating a Space for private use
 
-While you can use any public Space as an API, you may get rate limited by Hugging Face if you make too many requests. For unlimited usage of a Space, simply duplicate the Space to create a private Space, and then use it to make as many requests as you'd like!
+While you can use any public Space as an API, you may get rate limited by Hugging Face if you make too many requests. For unlimited usage of a Space, simply duplicate the Space to create a private Space, and then use it to make as many requests as you'd like! You'll need to pass in your [Hugging Face token](https://huggingface.co/settings/tokens)).
 
-The `@gradio/client` exports another function, `duplicate`, to make this process simple (you'll need to pass in your [Hugging Face token](https://huggingface.co/settings/tokens)).
-
-`duplicate` is almost identical to `Client.create`, the only difference is under the hood:
+`Client.duplicate` is almost identical to `Client.connect`, the only difference is under the hood:
 
 ```js
-import { Client, duplicate } from "@gradio/client";
+import { Client } from "@gradio/client";
 
 const response = await fetch(
 	"https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
 );
 const audio_file = await response.blob();
 
-const app = await duplicate("abidlabs/whisper", { hf_token: "hf_..." });
+const app = await Client.duplicate("abidlabs/whisper", { hf_token: "hf_..." });
 const transcription = app.predict("/predict", [audio_file]);
 ```
 
-If you have previously duplicated a Space, re-running `duplicate` will _not_ create a new Space. Instead, the client will attach to the previously-created Space. So it is safe to re-run the `duplicate` method multiple times with the same space.
+If you have previously duplicated a Space, re-running `Client.duplicate` will _not_ create a new Space. Instead, the client will attach to the previously-created Space. So it is safe to re-run the `Client.duplicate` method multiple times with the same space.
 
 **Note:** if the original Space uses GPUs, your private Space will as well, and your Hugging Face account will get billed based on the price of the GPU. To minimize charges, your Space will automatically go to sleep after 5 minutes of inactivity. You can also set the hardware using the `hardware` and `timeout` properties of `duplicate`'s options object like this:
 
 ```js
-import { Client, duplicate } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await duplicate("abidlabs/whisper", {
+const app = await Client.duplicate("abidlabs/whisper", {
 	hf_token: "hf_...",
 	timeout: 60,
 	hardware: "a10g-small"
@@ -98,7 +96,7 @@ If your app is running somewhere else, just provide the full URL instead, includ
 ```js
 import { Client } from "@gradio/client";
 
-const app = Client.create("https://bec81a83-5b5c-471e.gradio.live");
+const app = Client.connect("https://bec81a83-5b5c-471e.gradio.live");
 ```
 
 ## Inspecting the API endpoints
@@ -110,7 +108,7 @@ For the Whisper Space, we can do this:
 ```js
 import { Client } from "@gradio/client";
 
-const app = await Client.create("abidlabs/whisper");
+const app = await Client.connect("abidlabs/whisper");
 
 const app_info = await app.view_api();
 
@@ -163,7 +161,7 @@ The simplest way to make a prediction is simply to call the `.predict()` method 
 ```js
 import { Client } from "@gradio/client";
 
-const app = await Client.create("abidlabs/en2fr");
+const app = await Client.connect("abidlabs/en2fr");
 const result = await app.predict("/predict", ["Hello"]);
 ```
 
@@ -172,7 +170,7 @@ If there are multiple parameters, then you should pass them as an array to `.pre
 ```js
 import { Client } from "@gradio/client";
 
-const app = await Client.create("gradio/calculator");
+const app = await Client.connect("gradio/calculator");
 const result = await app.predict("/predict", [4, "add", 5]);
 ```
 
@@ -186,7 +184,7 @@ const response = await fetch(
 );
 const audio_file = await response.blob();
 
-const app = await Client.create("abidlabs/whisper");
+const app = await Client.connect("abidlabs/whisper");
 const result = await app.predict("/predict", [audio_file]);
 ```
 
@@ -205,7 +203,7 @@ function log_result(payload) {
 	console.log(`The translated result is: ${translation}`);
 }
 
-const app = await Client.create("abidlabs/en2fr");
+const app = await Client.connect("abidlabs/en2fr");
 const job = app.submit("/predict", ["Hello"]);
 
 job.on("data", log_result);
@@ -224,7 +222,7 @@ function log_status(status) {
 	);
 }
 
-const app = await Client.create("abidlabs/en2fr");
+const app = await Client.connect("abidlabs/en2fr");
 const job = app.submit("/predict", ["Hello"]);
 
 job.on("status", log_status);
@@ -237,7 +235,7 @@ The job instance also has a `.cancel()` method that cancels jobs that have been 
 ```js
 import { Client } from "@gradio/client";
 
-const app = await Client.create("abidlabs/en2fr");
+const app = await Client.connect("abidlabs/en2fr");
 const job_one = app.submit("/predict", ["Hello"]);
 const job_two = app.submit("/predict", ["Friends"]);
 
@@ -254,7 +252,7 @@ Some Gradio API endpoints do not return a single value, rather they return a ser
 ```js
 import { Client } from "@gradio/client";
 
-const app = await Client.create("gradio/count_generator");
+const app = await Client.connect("gradio/count_generator");
 const job = app.submit(0, [9]);
 
 job.on("data", (data) => console.log(data));
@@ -267,7 +265,7 @@ You can also cancel jobs that that have iterative outputs, in which case the job
 ```js
 import { Client } from "@gradio/client";
 
-const app = await Client.create("gradio/count_generator");
+const app = await Client.connect("gradio/count_generator");
 const job = app.submit(0, [9]);
 
 job.on("data", (data) => console.log(data));

@@ -18,7 +18,7 @@ const response = await fetch(
 );
 const audio_file = await response.blob();
 
-const app = await Client.create("abidlabs/whisper");
+const app = await Client.connect("abidlabs/whisper");
 const transcription = await app.predict("/predict", [audio_file]);
 
 console.log(transcription.data);
@@ -73,7 +73,7 @@ const response = await fetch(
 );
 const audio_file = await response.blob();
 
-const app = await duplicate("abidlabs/whisper", { hf_token: "hf_..." });
+const app = await Client.duplicate("abidlabs/whisper", { hf_token: "hf_..." });
 const transcription = app.predict("/predict", [audio_file]);
 ```
 
@@ -84,7 +84,7 @@ const transcription = app.predict("/predict", [audio_file]);
 ```js
 import { Client } from "@gradio/client";
 
-const app = await duplicate("abidlabs/whisper", {
+const app = await Client.duplicate("abidlabs/whisper", {
 	hf_token: "hf_...",
 	timeout: 60,
 	hardware: "a10g-small"
@@ -110,7 +110,7 @@ const app = client("https://bec81a83-5b5c-471e.gradio.live");
 ```js
 import { Client } from "@gradio/client";
 
-const app = await Client.create("abidlabs/whisper");
+const app = await Client.connect("abidlabs/whisper");
 
 const app_info = await app.view_info();
 
@@ -154,7 +154,7 @@ console.log(app_info);
 ```js
 import { Client } from "@gradio/client";
 
-const app = await Client.create("abidlabs/en2fr");
+const app = await Client.connect("abidlabs/en2fr");
 const result = await app.predict("/predict", ["Hello"]);
 ```
 
@@ -163,7 +163,7 @@ const result = await app.predict("/predict", ["Hello"]);
 ```js
 import { Client } from "@gradio/client";
 
-const app = await Client.create("gradio/calculator");
+const app = await Client.connect("gradio/calculator");
 const result = await app.predict("/predict", [4, "add", 5]);
 ```
 
@@ -177,8 +177,8 @@ const response = await fetch(
 );
 const audio_file = await response.blob();
 
-const app = await Client.create("abidlabs/whisper");
-const result = await Client.create.predict("/predict", [audio_file]);
+const app = await Client.connect("abidlabs/whisper");
+const result = await Client.connect.predict("/predict", [audio_file]);
 ```
 
 ## 使用事件
@@ -196,7 +196,7 @@ function log_result(payload) {
 	console.log(`翻译结果为：${translation}`);
 }
 
-const app = await Client.create("abidlabs/en2fr");
+const app = await Client.connect("abidlabs/en2fr");
 const job = app.submit("/predict", ["Hello"]);
 
 job.on("data", log_result);
@@ -213,7 +213,7 @@ function log_status(status) {
 	console.log(`此作业的当前状态为：${JSON.stringify(status, null, 2)}`);
 }
 
-const app = await Client.create("abidlabs/en2fr");
+const app = await Client.connect("abidlabs/en2fr");
 const job = app.submit("/predict", ["Hello"]);
 
 job.on("status", log_status);
@@ -226,7 +226,7 @@ job.on("status", log_status);
 ```js
 import { Client } from "@gradio/client";
 
-const app = await Client.create("abidlabs/en2fr");
+const app = await Client.connect("abidlabs/en2fr");
 const job_one = app.submit("/predict", ["Hello"]);
 const job_two = app.submit("/predict", ["Friends"]);
 
@@ -243,7 +243,7 @@ job_two.cancel();
 ```js
 import { Client } from "@gradio/client";
 
-const app = await Client.create("gradio/count_generator");
+const app = await Client.connect("gradio/count_generator");
 const job = app.submit(0, [9]);
 
 job.on("data", (data) => console.log(data));
@@ -256,7 +256,7 @@ job.on("data", (data) => console.log(data));
 ```js
 import { Client } from "@gradio/client";
 
-const app = await Client.create("gradio/count_generator");
+const app = await Client.connect("gradio/count_generator");
 const job = app.submit(0, [9]);
 
 job.on("data", (data) => console.log(data));
