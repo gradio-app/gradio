@@ -12,7 +12,6 @@ with gr.Blocks() as demo:
                 type="numpy",
                 crop_size="1:1",
                 elem_id="image_editor",
-                interactive=True,
             )
             im_preview = gr.Image()
     with gr.Group():
