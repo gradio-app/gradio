@@ -610,12 +610,37 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             "preprocess": lambda text, max_new_tokens: (text, { "max_new_tokens": max_new_tokens}),
             "postprocess": lambda r, *_: r[0]["summary_text"],
         }
-    # if pipeline.task == "text2text-generation":
-    #     pass
-    # if pipeline.task == "text-classification":
-    #     pass
-    # if pipeline.task == "text-generation":
-    #     pass
+    if pipeline.task == "text2text-generation":
+        return {
+            "inputs": [
+                components.Textbox(label="Input", render=False),
+                components.Slider(
+                    label="The maximum numbers of tokens to generate",
+                    minimum=1,
+                    maximum=500,
+                    value=100,
+                    step=1,
+                    render=False,
+                ),
+            ],
+            "outputs": components.Textbox(label="Generated Text", render=False),
+            "preprocess": lambda text, max_new_tokens: (text, { "max_new_tokens": max_new_tokens}),
+            "postprocess": lambda r, *_: r[0]["generated_text"],
+        }
+    if pipeline.task == "text-classification":
+        return {
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Label(label="Classification", render=False),
+            "preprocess": None,
+            "postprocess": lambda r, *_: {i["label"].split(", ")[0]: i["score"] for i in r},
+        }
+    if pipeline.task == "text-generation":
+        return {
+            "inputs": components.Textbox(label="Input", render=False),
+            "outputs": components.Textbox(label="Output", render=False),
+            "preprocess": None,
+            "postprocess": lambda r, *_: r[0]["generated_text"],
+        }
     # if pipeline.task == "token-classification":
     #     pass
     # if pipeline.task == "translation":
