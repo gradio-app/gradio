@@ -159,6 +159,7 @@ class ImageEditor(Component):
         eraser: Eraser | None | Literal[False] = None,
         brush: Brush | None | Literal[False] = None,
         format: str = "webp",
+        layers: bool = True,
     ):
         """
         Parameters:
@@ -187,6 +188,7 @@ class ImageEditor(Component):
             eraser: The options for the eraser tool in the image editor. Should be an instance of the `gr.Eraser` class, or None to use the default settings. Can also be False to hide the eraser tool.
             brush: The options for the brush tool in the image editor. Should be an instance of the `gr.Brush` class, or None to use the default settings. Can also be False to hide the brush tool, which will also hide the eraser tool.
             format: Format to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image).  The format should be supported by the PIL library. This parameter has no effect on SVG files.
+            layers: If True, will allow users to add layers to the image. If False, the layers option will be hidden.
 
         """
         self._selectable = _selectable
@@ -224,6 +226,7 @@ class ImageEditor(Component):
         self.brush = Brush() if brush is None else brush
         self.blob_storage: dict[str, EditorDataBlobs] = {}
         self.format = format
+        self.layers = layers
 
         super().__init__(
             label=label,

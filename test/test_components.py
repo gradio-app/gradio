@@ -640,6 +640,7 @@ class TestImageEditor:
             "name": "imageeditor",
             "server_fns": ["accept_blobs"],
             "format": "webp",
+            "layers": True,
         }
 
     def test_process_example(self):
