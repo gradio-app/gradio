@@ -212,7 +212,6 @@
 	<Tools {i18n}>
 		<Layers layer_files={value?.layers || null} enable_layers={layers} />
 
-		<!-- {#if sources && sources.length} -->
 		<Sources
 			{i18n}
 			{root}
@@ -221,7 +220,7 @@
 			bind:active_mode
 			background_file={value?.background || null}
 		></Sources>
-		<!-- {/if} -->
+
 		{#if transforms.includes("crop")}
 			<Crop {crop_constraint} />
 		{/if}
