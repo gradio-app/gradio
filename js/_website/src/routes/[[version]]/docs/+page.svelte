@@ -52,12 +52,23 @@
 		Documentation
 	</h1>
 
-	<nav class="grid grid-cols-1 gap-5 lg:grid-cols-2 mt-8">
-		<a
-			href="./docs/gradio"
-			target="_self"
-			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-gradient-to-br px-3 pb-4 pt-6 from-orange-100 via-orange-50 hover:shadow-alternate to-white shadow-none transition-shadow"
+	<div class="grid grid-cols-1 gap-5 lg:grid-cols-2 mt-8">
+		<div
+			class="shadow-alternate hover:scale-[1.02] group group	 flex flex-col overflow-hidden md:first:row-span-3 rounded-xl bg-gradient-to-br px-3 pb-4 pt-6 from-orange-100 via-orange-50 hover:shadow-alternate to-white shadow-none transition-shadow"
 		>
+		<a class="mt-auto mb-2 flex-grow" href="./docs/gradio/" target="_self">
+			<div class="text-lg">
+				<p class="">Gradio</p>
+			</div>
+
+			<code class="font-light text-xs mb-2  text-gray-500"
+				>gradio</code
+			>
+			<div class="  relative pr-4 text-smd font-normal text-gray-400">
+				Build and share machine learning demos and web apps, in just a few lines
+				of Python.
+			</div>
+		</a>
 			<div class="hidden lg:flex flex-wrap mx-auto justify-center">
 				<a
 					href="./docs/gradio/interface"
@@ -102,18 +113,8 @@
 					>Dataframe
 				</a>
 			</div>
-			<div class="relative mb-2 mt-auto flex items-center text-lg">
-				<p class="">Gradio</p>
-			</div>
-
-			<code class="font-light text-xs mb-2 float-right text-gray-500"
-				>gradio</code
-			>
-			<div class="  relative pr-4 text-smd font-normal text-gray-400">
-				Build and share machine learning demos and web apps, in just a few lines
-				of Python.
-			</div>
-		</a>
+			
+		</div>
 		<a
 			href="./docs/python-client"
 			target="_self"
@@ -123,7 +124,7 @@
 			<div class="relative mb-2 flex items-center text-lg">
 				<span>Python Client</span>
 			</div>
-			<code class="font-light text-xs mb-2 float-right text-gray-500"
+			<code class="font-light text-xs mb-2  text-gray-500"
 				>gradio-client</code
 			>
 			<div class="relative pr-4 text-smd font-normal text-gray-400">
@@ -140,7 +141,7 @@
 			<div class="relative mb-2 flex items-center text-lg">
 				<span>Javascript Client</span>
 			</div>
-			<code class="font-light text-xs mb-2 float-right text-gray-500"
+			<code class="font-light text-xs mb-2  text-gray-500"
 				>@gradio/client</code
 			>
 			<div class="relative pr-4 text-smd font-normal text-gray-400">
@@ -185,7 +186,7 @@
 			<div class="relative mb-2 flex items-center text-lg">
 				<span>Gradio Lite</span>
 			</div>
-			<code class="font-light text-xs mb-2 float-right text-gray-500"
+			<code class="font-light text-xs mb-2 text-gray-500"
 				>@gradio/lite</code
 			>
 
@@ -193,7 +194,7 @@
 				Serverless Gradio running entirely in your browser.
 			</div>
 		</a>
-	</nav>
+	</div>
 
 	<h1 class="mb-4 flex items-center text-2xl font-light mt-8">
 		<svg
