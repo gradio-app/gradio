@@ -330,4 +330,19 @@ export class Client {
 	}
 }
 
+/**
+ * @deprecated This method will be removed in v1.0. Use `Client.create()` instead.
+ * Creates a client instance for interacting with Gradio apps.
+ *
+ * @param {string} app_reference - The reference or URL to a Gradio space or app.
+ * @param {ClientOptions} options - Configuration options for the client.
+ * @returns {Promise<Client>} A promise that resolves to a `Client` instance.
+ */
+export async function client(
+	app_reference: string,
+	options: ClientOptions = {}
+): Promise<Client> {
+	return await Client.create(app_reference, options);
+}
+
 export type ClientInstance = Client;
