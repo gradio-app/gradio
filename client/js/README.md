@@ -1,10 +1,10 @@
 ## JavaScript Client Library
 
-A javascript (and typescript) client to call Gradio APIs.
+A JavaScript (and TypeScript) Client to call Gradio APIs.
 
 ## Installation
 
-The Gradio JavaScript client is available on npm as `@gradio/client`. You can install it as below:
+The Gradio JavaScript Client is available on npm as `@gradio/client`. You can install it as below:
 
 ```sh
 npm i @gradio/client
@@ -12,11 +12,11 @@ npm i @gradio/client
 
 ## Usage
 
-The JavaScript Gradio Client exposes two named imports, `client` and `duplicate`.
+The JavaScript Gradio Client exposes two named imports, `Client` and `duplicate`.
 
-### `client`
+### `Client`
 
-The client function connects to the API of a hosted Gradio space and returns an object that allows you to make calls to that API.
+The Client function connects to the API of a hosted Gradio space and returns an object that allows you to make calls to that API.
 
 The simplest example looks like this:
 
@@ -34,7 +34,7 @@ This function accepts two arguments: `source` and `options`:
 This is the url or name of the gradio app whose API you wish to connect to. This parameter is required and should always be a string. For example:
 
 ```ts
-client("user/space-name");
+Client.create("user/space-name");  
 ```
 
 #### `options`

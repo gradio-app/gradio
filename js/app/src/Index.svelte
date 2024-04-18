@@ -65,7 +65,6 @@
 <script lang="ts">
 	import { onMount, setContext, createEventDispatcher } from "svelte";
 	import type { SpaceStatus } from "@gradio/client";
-	import { Client as ClientClass } from "@gradio/client";
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./types";
 	import { StatusTracker } from "@gradio/statustracker";

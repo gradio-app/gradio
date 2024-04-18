@@ -1,8 +1,8 @@
-# Getting Started with the Gradio JavaScript client
+# Getting Started with the Gradio JavaScript Client
 
 Tags: CLIENT, API, SPACES
 
-The Gradio JavaScript client makes it very easy to use any Gradio app as an API. As an example, consider this [Hugging Face Space that transcribes audio files](https://huggingface.co/spaces/abidlabs/whisper) that are recorded from the microphone.
+The Gradio JavaScript Client makes it very easy to use any Gradio app as an API. As an example, consider this [Hugging Face Space that transcribes audio files](https://huggingface.co/spaces/abidlabs/whisper) that are recorded from the microphone.
 
 ![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/whisper-screenshot.jpg)
 
@@ -25,7 +25,7 @@ console.log(transcription.data);
 // [ "I said the same phrase 30 times." ]
 ```
 
-The Gradio client works with any hosted Gradio app, whether it be an image generator, a text summarizer, a stateful chatbot, a tax calculator, or anything else! The Gradio Client is mostly used with apps hosted on [Hugging Face Spaces](https://hf.space), but your app can be hosted anywhere, such as your own server.
+The Gradio Client works with any hosted Gradio app, whether it be an image generator, a text summarizer, a stateful chatbot, a tax calculator, or anything else! The Gradio Client is mostly used with apps hosted on [Hugging Face Spaces](https://hf.space), but your app can be hosted anywhere, such as your own server.
 
 **Prequisites**: To use the Gradio client, you do _not_ need to know the `gradio` library in great detail. However, it is helpful to have general familiarity with Gradio's concepts of input and output components.
 
@@ -46,7 +46,7 @@ Start by connecting instantiating a `client` instance and connecting it to a Gra
 ```js
 import { Client } from "@gradio/client";
 
-const app = client("abidlabs/en2fr"); // a Space that translates from English to French
+const app = Client.create("abidlabs/en2fr"); // a Space that translates from English to French
 ```
 
 You can also connect to private Spaces by passing in your HF token with the `hf_token` property of the options parameter. You can get your HF token here: https://huggingface.co/settings/tokens
@@ -54,7 +54,7 @@ You can also connect to private Spaces by passing in your HF token with the `hf_
 ```js
 import { Client } from "@gradio/client";
 
-const app = client("abidlabs/my-private-space", { hf_token="hf_..." })
+const app = Client.create("abidlabs/my-private-space", { hf_token="hf_..." })
 ```
 
 ## Duplicating a Space for private use
@@ -63,10 +63,10 @@ While you can use any public Space as an API, you may get rate limited by Huggin
 
 The `@gradio/client` exports another function, `duplicate`, to make this process simple (you'll need to pass in your [Hugging Face token](https://huggingface.co/settings/tokens)).
 
-`duplicate` is almost identical to `client`, the only difference is under the hood:
+`duplicate` is almost identical to `Client.create`, the only difference is under the hood:
 
 ```js
-import { Client } from "@gradio/client";
+import { Client, duplicate } from "@gradio/client";
 
 const response = await fetch(
 	"https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
@@ -82,7 +82,7 @@ If you have previously duplicated a Space, re-running `duplicate` will _not_ cre
 **Note:** if the original Space uses GPUs, your private Space will as well, and your Hugging Face account will get billed based on the price of the GPU. To minimize charges, your Space will automatically go to sleep after 5 minutes of inactivity. You can also set the hardware using the `hardware` and `timeout` properties of `duplicate`'s options object like this:
 
 ```js
-import { Client } from "@gradio/client";
+import { Client, duplicate } from "@gradio/client";
 
 const app = await duplicate("abidlabs/whisper", {
 	hf_token: "hf_...",
@@ -98,12 +98,12 @@ If your app is running somewhere else, just provide the full URL instead, includ
 ```js
 import { Client } from "@gradio/client";
 
-const app = client("https://bec81a83-5b5c-471e.gradio.live");
+const app = Client.create("https://bec81a83-5b5c-471e.gradio.live");
 ```
 
 ## Inspecting the API endpoints
 
-Once you have connected to a Gradio app, you can view the APIs that are available to you by calling the `client`'s `view_api` method.
+Once you have connected to a Gradio app, you can view the APIs that are available to you by calling the `Client`'s `view_api` method.
 
 For the Whisper Space, we can do this:
 
