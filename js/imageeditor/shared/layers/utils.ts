@@ -128,7 +128,6 @@ export function layer_manager(): LayerManager {
 			width: number,
 			height: number
 		): [LayerScene, LayerScene[]] {
-			console.log("add_layer");
 			const layer_container = new Container() as Container & DisplayObject;
 			position++;
 			layer_container.zIndex = position;
@@ -205,11 +204,6 @@ export function layer_manager(): LayerManager {
 			const img = await createImageBitmap(blob);
 			const bitmap_texture = Texture.from(img);
 
-			console.log({
-				view_dimensions: [view.width, view.height],
-				bitmap_dimensions: [bitmap_texture.width, bitmap_texture.height]
-			});
-
 			const [w, h] = resize_to_fit(
 				bitmap_texture.width,
 				bitmap_texture.height,
@@ -234,7 +228,6 @@ export function layer_manager(): LayerManager {
 				renderTexture: layer.draw_texture
 			});
 
-			console.log("added layer from blob");
 			return [layer, layers];
 		},
 		get_layers() {
