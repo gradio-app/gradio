@@ -62,7 +62,7 @@ This should be a function which will notify you of the status of a space if it i
 Applications hosted on Hugging Face spaces can be in a number of different states. As spaces are a GitOps tool and will rebuild when new changes are pushed to the repository, they have various building, running and error states. If a space is not 'running' then the function passed as the `status_callback` will notify you of the current state of the space and the status of the space as it changes. Spaces that are building or sleeping can take longer than usual to respond, so you can use this information to give users feedback about the progress of their action.
 
 ```ts
-import { client, type SpaceStatus } from "@gradio/client";
+import { Client, type SpaceStatus } from "@gradio/client";
 
 const app = await Client.create("user/space-name", {
 	// The space_status parameter does not need to be manually annotated, this is just for illustration.
