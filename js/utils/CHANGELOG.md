@@ -1,5 +1,11 @@
 # @gradio/utils
 
+## 0.3.2
+
+### Dependency updates
+
+- @gradio/theme@0.2.2
+
 ## 0.3.1
 
 ### Dependency updates
