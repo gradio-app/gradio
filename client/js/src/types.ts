@@ -17,8 +17,9 @@ export interface ApiData {
 export interface JsApiData {
 	label: string;
 	type: string;
+	description: string;
 	component: string;
-	example_input: any;
+	example_input?: any;
 	serializer: string;
 	python_type: { type: string; description: string };
 }
@@ -26,6 +27,7 @@ export interface JsApiData {
 export interface EndpointInfo<T extends ApiData | JsApiData> {
 	parameters: T[];
 	returns: T[];
+	type?: DependencyTypes;
 }
 
 export interface ApiInfo<T extends ApiData | JsApiData> {

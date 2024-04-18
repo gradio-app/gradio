@@ -65,47 +65,58 @@ export function transform_api_info(
 	config: Config,
 	api_map: Record<string, number>
 ): ApiInfo<JsApiData> {
-	const new_data: any = {
+	const transformed_info: ApiInfo<JsApiData> = {
 		named_endpoints: {},
 		unnamed_endpoints: {}
 	};
 
-	for (const category of Object.keys(api_info) as (keyof ApiInfo<ApiData>)[]) {
-		const endpoints = api_info[category];
-		new_data[category] = {};
+	Object.keys(api_info).forEach((category) => {
+		if (category === "named_endpoints" || category === "unnamed_endpoints") {
+			transformed_info[category] = {};
 
-		for (const endpoint in endpoints) {
-			const { parameters, returns } = endpoints[endpoint];
-			const dependencyIndex =
-				config.dependencies.findIndex((dep) => dep.api_name === endpoint) ||
-				api_map[endpoint.replace("/", "")] ||
-				-1;
-			const dependencyTypes =
-				dependencyIndex !== -1
-					? config.dependencies[dependencyIndex].types
-					: { continuous: false, generator: false };
+			Object.entries(api_info[category]).forEach(
+				([endpoint, { parameters, returns }]) => {
+					const dependencyIndex =
+						config.dependencies.findIndex((dep) => dep.api_name === endpoint) ||
+						api_map[endpoint.replace("/", "")] ||
+						-1;
 
-			new_data[category][endpoint] = {
-				parameters: parameters.map((p) => ({
-					...p,
-					type: get_type(p.type, p.component, p.serializer, "parameter"),
-					description: get_description(p.type, p.serializer)
-				})),
-				returns: returns.map((r) => ({
-					...r,
-					type: get_type(r.type, r.component, r.serializer, "return"),
-					description: get_description(r.type, r.serializer)
-				})),
-				type: dependencyTypes
-			};
+					const dependencyTypes =
+						dependencyIndex !== -1
+							? config.dependencies[dependencyIndex].types
+							: { continuous: false, generator: false };
+
+					const transform_type = (
+						data: ApiData,
+						component: string,
+						serializer: string,
+						signature_type: "return" | "parameter"
+					): JsApiData => ({
+						...data,
+						description: get_description(data.type, serializer),
+						type:
+							get_type(data.type, component, serializer, signature_type) || ""
+					});
+
+					transformed_info[category][endpoint] = {
+						parameters: parameters.map((p: ApiData) =>
+							transform_type(p, p.component, p.serializer, "parameter")
+						),
+						returns: returns.map((r: ApiData) =>
+							transform_type(r, r.component, r.serializer, "return")
+						),
+						type: dependencyTypes
+					};
+				}
+			);
 		}
-	}
+	});
 
-	return new_data;
+	return transformed_info;
 }
 
 export function get_type(
-	type: { [key: string]: any },
+	type: { type: any; description: string },
 	component: string,
 	serializer: string,
 	signature_type: "return" | "parameter"
