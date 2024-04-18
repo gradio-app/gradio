@@ -149,14 +149,14 @@ class Client:
         if self.verbose:
             print(f"Loaded as API: {self.src} ✔")
 
-        http2 = bool(importlib.util.find_spec("h2"))
+        _http2 = bool(importlib.util.find_spec("h2"))
 
         self.httpx_asyncclient = httpx.AsyncClient(
-            timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify, http2=http2
+            timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify, http2=_http2
         )
 
         self.httpx_client = httpx.Client(
-            timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify, http2=http2
+            timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify, http2=_http2
         )
 
         if auth is not None:
@@ -208,9 +208,20 @@ class Client:
         self.pending_messages_per_event: dict[str, list[Message | None]] = {}
         self.pending_event_ids: set[str] = set()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+        return False
+
     def close(self):
         self._kill_heartbeat.set()
         self.heartbeat.join(timeout=1)
+        if self.httpx_client:
+            self.httpx_client.close()
+        if self.httpx_asyncclient:
+            utils.synchronize_async(self.httpx_asyncclient.aclose)
 
     def _stream_heartbeat(self):
         while True:
@@ -805,12 +816,6 @@ class Client:
     def __del__(self):
         if hasattr(self, "executor"):
             self.executor.shutdown(wait=True)
-        if self.httpx_client:
-            self.httpx_client.close()
-            self.httpx_client = None
-        if self.httpx_asyncclient:
-            utils.synchronize_async(self.httpx_asyncclient.aclose)
-            self.httpx_asyncclient = None
 
     def _space_name_to_src(self, space) -> str | None:
         return huggingface_hub.space_info(space, token=self.hf_token).host  # type: ignore
