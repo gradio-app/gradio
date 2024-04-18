@@ -44,7 +44,7 @@ with gr.Blocks() as demo:
         lambda: {
             "background": None,
             "layers": None,
-            "composite": "https://nationalzoo.si.edu/sites/default/files/animals/cheetah-003.jpg",
+            "composite": str(dir_ / "cheetah.jpg"),
         },
         None,
         im,

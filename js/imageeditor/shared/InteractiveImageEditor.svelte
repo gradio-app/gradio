@@ -218,7 +218,7 @@
 			{sources}
 			bind:bg
 			bind:active_mode
-			background_file={value?.background || null}
+			background_file={value?.background || value?.composite || null}
 		></Sources>
 
 		{#if transforms.includes("crop")}
