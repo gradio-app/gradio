@@ -1,15 +1,16 @@
 import { update_object, walk_and_store_blobs } from "../helpers/data";
 import type { ApiData, EndpointInfo, JsApiData } from "../types";
-import { upload_files } from "./upload_files";
 import { FileData } from "../upload";
+import type { Client } from "..";
 
 export async function handle_blob(
+	this: Client,
 	endpoint: string,
 	data: unknown[],
-	api_info: EndpointInfo<JsApiData | ApiData>,
-	fetch_implementation: typeof fetch = fetch,
-	token?: `hf_${string}`
+	api_info: EndpointInfo<JsApiData | ApiData>
 ): Promise<unknown[]> {
+	const self = this;
+
 	const blobRefs = await walk_and_store_blobs(
 		data,
 		undefined,
@@ -22,18 +23,12 @@ export async function handle_blob(
 		blobRefs.map(async ({ path, blob, type }) => {
 			if (!blob) return { path, type };
 
-			const response = await upload_files(
-				endpoint,
-				[blob],
-				fetch_implementation,
-				token
-			);
+			const response = await self.upload_files(endpoint, [blob]);
 			const file_url = response.files && response.files[0];
 			return {
 				path,
 				file_url,
 				type,
-				// @ts-ignore
 				name: blob?.name
 			};
 		})

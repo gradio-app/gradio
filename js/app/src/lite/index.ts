@@ -147,15 +147,6 @@ export function create(options: Options): GradioAppController {
 		}
 	}
 
-	async function upload_files_overriden(
-		root: string,
-		files: (Blob | File)[],
-		token?: `hf_${string}`,
-		upload_id?: string
-	): Promise<UploadResponse> {
-		return upload_files(root, files, overridden_fetch, token, upload_id);
-	}
-
 	const overridden_mount_css: typeof mount_css = async (url, target) => {
 		return wasm_proxied_mount_css(worker_proxy, url, target);
 	};
@@ -230,8 +221,7 @@ export function create(options: Options): GradioAppController {
 			app_mode: options.appMode,
 			// For Wasm mode
 			worker_proxy,
-			LiteClient,
-			upload_files: upload_files_overriden,
+			Client: LiteClient,
 			mount_css: overridden_mount_css,
 			fetch_implementation: overridden_fetch,
 			EventSource_factory,

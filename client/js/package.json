@@ -3,35 +3,30 @@
 	"version": "0.15.1",
 	"description": "Gradio API client",
 	"type": "module",
-	"main": "dist/client.umd.js",
+	"main": "dist/index.js",
+	"private": "true",
 	"author": "",
 	"license": "ISC",
-	"module": "dist/client.js",
-	"types": "dist/client.d.ts",
 	"exports": {
 		".": {
-			"import": "./dist/client.js",
-			"require": "./dist/client.umd.cjs"
-		}
-	},
-	"scripts": {
-		"dev": "vite",
-		"build": "tsc && vite build",
-		"preview": "vite preview",
-		"test": "vitest"
-	},
-	"devDependencies": {
-		"typescript": "^5.2.2",
-		"vite": "^5.1.0",
-		"vite-plugin-dts": "^3.7.2",
-		"vite-tsconfig-paths": "^4.3.1",
-		"vitest": "^1.2.2",
-		"@types/ws": "^8.5.10"
+			"import": "./dist/index.js"
+		},
+		"./package.json": "./package.json"
 	},
 	"dependencies": {
-		"fetch-mock": "^9.11.0",
+		"bufferutil": "^4.0.7",
 		"semiver": "^1.1.0",
+		"typescript": "^5.0.0",
 		"ws": "^8.13.0"
+	},
+	"devDependencies": {
+		"@types/ws": "^8.5.10",
+		"esbuild": "^0.20.0"
+	},
+	"scripts": {
+		"bundle": "vite build --ssr",
+		"generate_types": "tsc",
+		"build": "pnpm bundle && pnpm generate_types"
 	},
 	"engines": {
 		"node": ">=18.0.0"

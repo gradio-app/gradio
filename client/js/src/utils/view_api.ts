@@ -1,17 +1,15 @@
-import type { ApiInfo, ApiData, Config } from "../types";
-import { transform_api_info } from "../helpers";
+import type { ApiInfo, ApiData } from "../types";
 import semiver from "semiver";
 import { API_INFO_URL, BROKEN_CONNECTION_MSG } from "../constants";
 import { Client } from "../client";
 import { SPACE_FETCHER_URL } from "../constants";
+import { transform_api_info } from "../helpers/api_info";
 
-export async function view_api(
-	this: Client,
-	config?: Config,
-	fetch_implementation: typeof fetch = fetch
-): Promise<any> {
-	if (this.api) return this.api;
+export async function view_api(this: Client): Promise<any> {
+	if (this.api_info) return this.api_info;
+
 	const { hf_token } = this.options;
+	const { config } = this;
 
 	const headers: {
 		Authorization?: string;
@@ -30,7 +28,7 @@ export async function view_api(
 		let response: Response;
 
 		if (semiver(config?.version || "2.0.0", "3.30") < 0) {
-			response = await fetch_implementation(SPACE_FETCHER_URL, {
+			response = await this.fetch_implementation(SPACE_FETCHER_URL, {
 				method: "POST",
 				body: JSON.stringify({
 					serialize: false,
@@ -39,9 +37,12 @@ export async function view_api(
 				headers
 			});
 		} else {
-			response = await fetch_implementation(`${config?.root}/${API_INFO_URL}`, {
-				headers
-			});
+			response = await this.fetch_implementation(
+				`${config?.root}/${API_INFO_URL}`,
+				{
+					headers
+				}
+			);
 		}
 
 		if (!response.ok) {

@@ -1,6 +1,6 @@
 {
-	"include": ["src/**/*", "./test_data"],
-	"exclude": ["src/**/*.test.ts"],
+	"include": ["src/**/*"],
+	"exclude": ["src/**/*.test.ts", "src/**/*.node-test.ts"],
 	"compilerOptions": {
 		"allowJs": true,
 		"declaration": true,

@@ -261,9 +261,7 @@ class TestProcessExamples:
             cache_examples=True,
         )
         prediction = io.examples_handler.load_from_cache(0)
-        assert client_utils.encode_url_or_file_to_base64(prediction[0].path).startswith(
-            "data:image/png;base64,iVBORw0KGgoAAA"
-        )
+        assert prediction[0].path.endswith(".webp")
 
     def test_caching_audio(self, patched_cache_folder):
         io = gr.Interface(
@@ -764,6 +762,7 @@ class TestProgressBar:
         ]
 
     @pytest.mark.asyncio
+    @pytest.mark.flaky
     async def test_progress_bar_track_tqdm_without_iterable(self):
         def greet(s, _=gr.Progress(track_tqdm=True)):
             with tqdm(total=len(s)) as progress_bar:

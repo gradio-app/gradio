@@ -1,28 +1,33 @@
 import { BROKEN_CONNECTION_MSG } from "../constants";
-import type { Config } from "../types";
+import type { Client } from "../client";
 
-export function open_stream(
-	stream_open: boolean,
-	session_hash: string,
-	config: Config,
-	event_callbacks: Record<string, () => Promise<void>>,
-	unclosed_events: Set<string>,
-	pending_stream_messages: Record<string, any[][]>,
-	eventSource_factory: (url: URL) => EventSource
-): void {
-	stream_open = true;
+export function open_stream(this: Client): void {
+	let {
+		event_callbacks,
+		unclosed_events,
+		pending_stream_messages,
+		stream_status,
+		config
+	} = this;
 
+	stream_status.open = true;
+
+	let event_source: EventSource | null = null;
 	let params = new URLSearchParams({
-		session_hash: session_hash
+		session_hash: this.session_hash
 	}).toString();
 
-	let url = new URL(`${config.root}/queue/data?${params}`);
-	let event_source = eventSource_factory(url);
+	let url = new URL(`${this.config.root}/queue/data?${params}`);
+	event_source = this.eventSource_factory(url);
+
+	if (!event_source) {
+		throw new Error("Cannot connect to sse endpoint: " + url.toString());
+	}
 
 	event_source.onmessage = async function (event) {
 		let _data = JSON.parse(event.data);
 		if (_data.msg === "close_stream") {
-			close_stream(stream_open, event_source);
+			close_stream(stream_status, event_source);
 			return;
 		}
 		const event_id = _data.event_id;
@@ -41,7 +46,7 @@ export function open_stream(
 			) {
 				unclosed_events.delete(event_id);
 				if (unclosed_events.size === 0) {
-					close_stream(stream_open, event_source);
+					close_stream(stream_status, event_source);
 				}
 			}
 			let fn = event_callbacks[event_id];
@@ -63,16 +68,16 @@ export function open_stream(
 				})
 			)
 		);
-		close_stream(stream_open, event_source);
+		close_stream(stream_status, event_source);
 	};
 }
 
 export function close_stream(
-	stream_open: boolean,
+	stream_status: { open: boolean },
 	event_source: EventSource | null
 ): void {
-	if (stream_open && event_source) {
-		stream_open = false;
+	if (stream_status && event_source) {
+		stream_status.open = false;
 		event_source?.close();
 	}
 }

@@ -4,12 +4,11 @@
 	import ResponsePreview from "../../lib/ResponsePreview.svelte";
 
 	let api = "gradio/cancel_events";
-	let hf_token = "hf_123";
 
 	/**
-	 * @type Promise<Client>
+	 * @type {`hf_${string}`}
 	 */
-	let app_promise;
+	let hf_token = "hf_";
 	/**
 	 * @type Client
 	 */
@@ -46,12 +45,9 @@
 		response_data = { data: [], fn_index: 0, endpoint: "" };
 		if (!api || (hf_token && !hf_token.startsWith("hf_"))) return;
 
-		app_promise = Client.create(api, {
-			// @ts-ignore
+		app = await Client.create(api, {
 			hf_token
 		});
-
-		app = await app_promise;
 
 		const { named_endpoints, unnamed_endpoints } = await app.view_api();
 

@@ -78,7 +78,7 @@ result = client.<span class="highlight">predict</span
 					<CopyButton code={js_code?.innerText} />
 				</div>
 				<div bind:this={js_code}>
-					<pre>import &lbrace; client &rbrace; from "@gradio/client";
+					<pre>import &lbrace; Client &rbrace; from "@gradio/client";
 {#each blob_examples as { label, type, python_type, component, example_input, serializer }, i}<!--
 -->
 const response_{i} = await fetch("{example_input.url}");

@@ -17,20 +17,22 @@ export interface ApiData {
 export interface JsApiData {
 	label: string;
 	type: string;
+	description: string;
 	component: string;
-	example_input: any;
+	example_input?: any;
 	serializer: string;
-	python_type: any;
+	python_type: { type: string; description: string };
 }
 
 export interface EndpointInfo<T extends ApiData | JsApiData> {
 	parameters: T[];
 	returns: T[];
+	type?: DependencyTypes;
 }
 
 export interface ApiInfo<T extends ApiData | JsApiData> {
-	named_endpoints: { [endpoint: string]: EndpointInfo<T> };
-	unnamed_endpoints: { [endpoint: string]: EndpointInfo<T> };
+	named_endpoints: Record<string, EndpointInfo<T>>;
+	unnamed_endpoints: Record<string, EndpointInfo<T>>;
 }
 
 export interface BlobRef {
@@ -55,19 +57,20 @@ type predict = (
 ) => Promise<unknown>;
 
 export type client_return = {
+	config: Config;
 	predict: predict;
 	submit: (
 		endpoint: string | number,
 		data: unknown[],
-		app_reference: string,
-		event_data?: unknown
+		event_data?: unknown,
+		trigger_id?: number | null
 	) => SubmitReturn;
 	component_server: (
 		component_id: number,
 		fn_name: string,
 		data: unknown[]
 	) => any;
-	view_api: (config?: Config) => Promise<ApiInfo<JsApiData>>;
+	view_api: (fetch_implementation: typeof fetch) => Promise<ApiInfo<JsApiData>>;
 };
 
 export type SubmitReturn = {
@@ -111,10 +114,10 @@ export type SpaceStatusCallback = (a: SpaceStatus) => void;
 // Configuration and Response Types
 // --------------------------------
 export interface Config {
-	auth_required: boolean | undefined;
+	auth_required: boolean;
 	analytics_enabled: boolean;
 	auth_message: string;
-	components: ComponentMeta[];
+	components: any[];
 	css: string;
 	js: string;
 	head: string | null;
@@ -172,7 +175,7 @@ export interface Dependency {
 	batch: boolean;
 	api_name: string | null;
 	cancels: number[];
-	types: DependencyType;
+	types: DependencyTypes;
 	collects_event_data: boolean;
 	pending_request?: boolean;
 	trigger_after?: number;
@@ -183,9 +186,17 @@ export interface Dependency {
 	zerogpu?: boolean;
 }
 
-export interface DependencyType {
+export interface DependencyTypes {
 	continuous: boolean;
 	generator: boolean;
+}
+
+export interface Payload {
+	fn_index: number;
+	data: unknown[];
+	time?: Date;
+	event_data?: unknown;
+	trigger_id?: number | null;
 }
 
 export interface PostResponse {

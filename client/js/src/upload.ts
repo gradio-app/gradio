@@ -1,18 +1,22 @@
+import type { UploadResponse } from "./types";
 import { upload_files } from ".";
 
 export async function upload(
 	file_data: FileData[],
-	root: string,
+	root_url: string,
 	upload_id?: string,
-	upload_fn: typeof upload_files = upload_files
+	upload_fn: (
+		root_url: string,
+		files: (Blob | File)[],
+		upload_id?: string
+	) => Promise<UploadResponse> = upload_files
 ): Promise<(FileData | null)[] | null> {
 	let files = (Array.isArray(file_data) ? file_data : [file_data]).map(
 		(file_data) => file_data.blob!
 	);
 
 	return await Promise.all(
-		// @ts-ignore
-		await upload_fn(root, files, undefined, upload_id).then(
+		await upload_fn(root_url, files, upload_id).then(
 			async (response: { files?: string[]; error?: string }) => {
 				if (response.error) {
 					throw new Error(response.error);
@@ -22,7 +26,7 @@ export async function upload(
 							const file = new FileData({
 								...file_data[i],
 								path: f,
-								url: root + "/file=" + f
+								url: root_url + "/file=" + f
 							});
 							return file;
 						});

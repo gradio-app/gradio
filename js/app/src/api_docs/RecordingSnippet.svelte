@@ -63,7 +63,7 @@ client.<span class="highlight"
 					<CopyButton code={js_code?.innerText} />
 				</div>
 				<div bind:this={js_code}>
-					<pre>import &lbrace; client &rbrace; from "@gradio/client";
+					<pre>import &lbrace; Client &rbrace; from "@gradio/client";
 
 const app = await Client.create(<span class="token string">"{root}"</span>);
 {#each api_calls as call}<!--

@@ -1,30 +1,21 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
-import dts from "vite-plugin-dts";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
 	build: {
 		lib: {
 			entry: "src/index.ts",
-			formats: ["es", "umd"],
-			name: "client"
+			formats: ["es"],
+			fileName: (format) => `index.${format}.js`
 		},
 		rollupOptions: {
 			input: "src/index.ts",
 			output: {
 				dir: "dist"
-			},
-			external: ["ws"]
+			}
 		}
 	},
-	plugins: [
-		svelte(),
-		tsconfigPaths(),
-		dts({
-			insertTypesEntry: true
-		})
-	],
+	plugins: [svelte()],
 
 	ssr: {
 		target: "node",

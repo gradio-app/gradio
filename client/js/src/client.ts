@@ -1,7 +1,9 @@
 import type {
+	ApiData,
 	ApiInfo,
 	ClientOptions,
 	Config,
+	EndpointInfo,
 	JsApiData,
 	SpaceStatus,
 	Status,
@@ -15,13 +17,14 @@ import { handle_blob } from "./utils/handle_blob";
 import { post_data } from "./utils/post_data";
 import { predict } from "./utils/predict";
 import { submit } from "./utils/submit";
+import { RE_SPACE_NAME, process_endpoint } from "./helpers/api_info";
 import {
-	RE_SPACE_NAME,
 	map_names_to_ids,
-	process_endpoint,
-	resolve_config
-} from "./helpers";
+	resolve_config,
+	get_jwt
+} from "./helpers/init_helpers";
 import { check_space_status } from "./helpers/spaces";
+import { open_stream } from "./utils/stream";
 
 export class NodeBlob extends Blob {
 	constructor(blobParts?: BlobPart[], options?: BlobPropertyBag) {
@@ -34,60 +37,62 @@ export class Client {
 	options: ClientOptions;
 
 	config!: Config;
-	api!: ApiInfo<JsApiData>;
+	api_info!: ApiInfo<JsApiData>;
 	api_map: Record<string, number> = {};
 	session_hash: string = Math.random().toString(36).substring(2);
 	jwt: string | false = false;
 	last_status: Record<string, Status["stage"]> = {};
 
-	protected fetch_implementation(
+	// streaming
+	stream_status = { open: false };
+	pending_stream_messages: Record<string, any[][]> = {};
+	pending_diff_streams: Record<string, any[][]> = {};
+	event_callbacks: Record<string, () => Promise<void>> = {};
+	unclosed_events: Set<string> = new Set();
+
+	fetch_implementation(
 		input: RequestInfo | URL,
 		init?: RequestInit
 	): Promise<Response> {
 		return fetch(input, init);
 	}
 
-	protected eventSource_factory(url: URL): EventSource {
-		return new EventSource(url);
+	eventSource_factory(url: URL): EventSource | null {
+		if (typeof window !== undefined && typeof EventSource !== "undefined") {
+			return new EventSource(url.toString());
+		}
+		return null; // todo: polyfill eventsource for node envs
 	}
 
-	view_api: (
-		this: Client,
-		config?: Config,
-		fetch_implementation?: typeof fetch
-	) => Promise<ApiInfo<JsApiData>>;
+	view_api: () => Promise<ApiInfo<JsApiData>>;
 	upload_files: (
-		root: string,
+		root_url: string,
 		files: (Blob | File)[],
-		fetch_implementation: typeof fetch,
-		token?: `hf_${string}`,
 		upload_id?: string
 	) => Promise<UploadResponse>;
 	handle_blob: (
 		endpoint: string,
 		data: unknown[],
-		api_info: any,
-		fetch_implementation: typeof fetch,
-		token?: `hf_${string}`
+		endpoint_info: EndpointInfo<ApiData | JsApiData>
 	) => Promise<unknown[]>;
 	post_data: (
-		endpoint: string,
-		data: unknown[],
-		api_info: any,
-		token?: `hf_${string}`
+		url: string,
+		body: unknown,
+		additional_headers?: any
 	) => Promise<unknown[]>;
 	submit: (
 		endpoint: string | number,
 		data: unknown[],
 		event_data?: unknown,
-		trigger_id?: any
+		trigger_id?: number | null
 	) => SubmitReturn;
 	predict: (
 		endpoint: string | number,
 		data?: unknown[],
 		event_data?: unknown
 	) => Promise<unknown>;
-
+	open_stream: () => void;
+	resolve_config: (endpoint: string) => Promise<Config | undefined>;
 	constructor(app_reference: string, options: ClientOptions = {}) {
 		this.app_reference = app_reference;
 		this.options = options;
@@ -98,6 +103,8 @@ export class Client {
 		this.post_data = post_data.bind(this);
 		this.submit = submit.bind(this);
 		this.predict = predict.bind(this);
+		this.open_stream = open_stream.bind(this);
+		this.resolve_config = resolve_config.bind(this);
 	}
 
 	private async init(): Promise<void> {
@@ -111,24 +118,38 @@ export class Client {
 			global.WebSocket = ws.WebSocket as unknown as typeof WebSocket;
 		}
 
-		this.config = await this._resolve_config();
+		try {
+			await this._resolve_config().then(async ({ config }) => {
+				if (config) {
+					this.config = config;
 
-		// connect to the heartbeat endpoint via GET request
-		const heartbeat_url = new URL(
-			`${this.config.root}/heartbeat/${this.session_hash}`
-		);
+					// connect to the heartbeat endpoint via GET request
+					const heartbeat_url = new URL(
+						`${this.config.root}/heartbeat/${this.session_hash}`
+					);
+					this.eventSource_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
 
-		this.eventSource_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
+					if (this.config.space_id && this.options.hf_token) {
+						this.jwt = await get_jwt(
+							this.config.space_id,
+							this.options.hf_token
+						);
+					}
+				}
+			});
+		} catch (e) {
+			console.error("Could not resolve config:", e);
+		}
 
-		this.api = await this.view_api(this.config, this.fetch_implementation);
+		this.api_info = await this.view_api();
 		this.api_map = map_names_to_ids(this.config?.dependencies || []);
 	}
 
 	static async create(
 		app_reference: string,
-		options: ClientOptions
+		options: ClientOptions = {}
 	): Promise<Client> {
-		const client = new Client(app_reference, options);
+		const client = new this(app_reference, options); // this refers to the class itself, not the instance
 		await client.init();
 		return client;
 	}
@@ -139,21 +160,16 @@ export class Client {
 			this.options.hf_token
 		);
 
-		const { hf_token, status_callback } = this.options;
+		const { status_callback } = this.options;
 		let config: Config | undefined;
 
 		try {
-			config = await resolve_config(
-				this.fetch_implementation,
-				`${http_protocol}//${host}`,
-				hf_token
-			);
+			config = await this.resolve_config(`${http_protocol}//${host}`);
 
 			if (!config) {
 				throw new Error("No config or app_id set");
 			}
 
-			// res(_config);
 			return this.config_success(config);
 		} catch (e) {
 			console.error(e);
@@ -175,31 +191,28 @@ export class Client {
 		}
 	}
 
-	// todo: check return object
 	private async config_success(
 		_config: Config
 	): Promise<Config | client_return> {
 		this.config = _config;
 
-		if (window.location.protocol === "https:") {
-			this.config.root = this.config.root.replace("http://", "https://");
+		if (typeof window !== "undefined") {
+			if (window.location.protocol === "https:") {
+				this.config.root = this.config.root.replace("http://", "https://");
+			}
 		}
 
-		this.api_map = map_names_to_ids(_config.dependencies || []);
 		if (this.config.auth_required) {
 			return this.prepare_return_obj();
 		}
 
 		try {
-			this.api = await this.view_api(this.config, this.fetch_implementation);
+			this.api_info = await this.view_api();
 		} catch (e) {
 			console.error(`Could not get API details: ${(e as Error).message}`);
 		}
 
-		return {
-			...this.config,
-			...this.prepare_return_obj()
-		};
+		return this.prepare_return_obj();
 	}
 
 	async handle_space_success(status: SpaceStatus): Promise<Config | void> {
@@ -210,7 +223,6 @@ export class Client {
 				this.config = await this._resolve_config();
 				const _config = await this.config_success(this.config);
 
-				// res(_config);
 				return _config as Config;
 			} catch (e) {
 				console.error(e);
@@ -229,16 +241,20 @@ export class Client {
 	public async component_server(
 		component_id: number,
 		fn_name: string,
-		data: unknown[]
+		data: unknown[] | { binary: boolean; data: Record<string, any> }
 	): Promise<unknown> {
 		const headers: {
 			Authorization?: string;
-			"Content-Type": "application/json";
-		} = { "Content-Type": "application/json" };
+			"Content-Type"?: "application/json";
+		} = {};
 
-		if (this.options.hf_token) {
+		const { hf_token } = this.options;
+		const { session_hash } = this;
+
+		if (hf_token) {
 			headers.Authorization = `Bearer ${this.options.hf_token}`;
 		}
+
 		let root_url: string;
 		let component = this.config.components.find(
 			(comp) => comp.id === component_id
@@ -248,38 +264,85 @@ export class Client {
 		} else {
 			root_url = this.config.root;
 		}
-		const response = await this.fetch_implementation(
-			`${root_url}/component_server/`,
-			{
-				method: "POST",
-				body: JSON.stringify({
-					data: data,
-					component_id: component_id,
-					fn_name: fn_name,
-					session_hash: this.session_hash
-				}),
-				headers
-			}
-		);
 
-		if (!response.ok) {
-			throw new Error(
-				"Could not connect to component server: " + response.statusText
-			);
+		let body: FormData | string;
+
+		if ("binary" in data) {
+			body = new FormData();
+			for (const key in data.data) {
+				if (key === "binary") continue;
+				body.append(key, data.data[key]);
+			}
+			body.set("component_id", component_id.toString());
+			body.set("fn_name", fn_name);
+			body.set("session_hash", session_hash);
+		} else {
+			body = JSON.stringify({
+				data: data,
+				component_id,
+				fn_name,
+				session_hash
+			});
+
+			headers["Content-Type"] = "application/json";
 		}
 
-		const output = await response.json();
-		return output;
+		if (hf_token) {
+			headers.Authorization = `Bearer ${hf_token}`;
+		}
+
+		try {
+			const response = await this.fetch_implementation(
+				`${root_url}/component_server/`,
+				{
+					method: "POST",
+					body: JSON.stringify({
+						data: data,
+						component_id: component_id,
+						fn_name: fn_name,
+						session_hash: this.session_hash
+					}),
+					headers
+				}
+			);
+
+			if (!response.ok) {
+				throw new Error(
+					"Could not connect to component server: " + response.statusText
+				);
+			}
+
+			const output = await response.json();
+			return output;
+		} catch (e) {
+			console.warn(e);
+		}
 	}
 
 	private prepare_return_obj(): client_return {
 		return {
+			config: this.config,
 			predict: this.predict,
 			submit: this.submit,
 			view_api: this.view_api,
 			component_server: this.component_server
 		};
 	}
+}
+
+/**
+ * @deprecated This method will be removed in v1.0. Use `Client.create()` instead.
+ * Creates a client instance for interacting with Gradio apps.
+ *
+ * @param {string} app_reference - The reference or URL to a Gradio space or app.
+ * @param {ClientOptions} options - Configuration options for the client.
+ * @returns {Promise<Client>} A promise that resolves to a `Client` instance.
+ */
+export async function client(
+	app_reference: string,
+	options: ClientOptions = {}
+): Promise<Client> {
+	return await Client.create(app_reference, options);
 }
 
 export type ClientInstance = Client;
