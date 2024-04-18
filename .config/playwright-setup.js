@@ -62,7 +62,6 @@ function spawn_gradio_app(app, port, verbose) {
 			cwd: ROOT,
 			env: {
 				...process.env,
-				GRADIO_SERVER_PORT: `7879`,
 				PYTHONUNBUFFERED: "true",
 				GRADIO_ANALYTICS_ENABLED: "False",
 				GRADIO_IS_E2E_TEST: "1"
@@ -107,10 +106,11 @@ function kill_process(process) {
 }
 
 function make_app(demos, port) {
-	return `import gradio as gr
+	return `
 import uvicorn
 from fastapi import FastAPI
 import gradio as gr
+
 ${demos.map((d) => `from demo.${d}.run import demo as ${d}`).join("\n")}
 
 app = FastAPI()
