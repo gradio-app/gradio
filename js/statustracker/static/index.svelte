@@ -55,7 +55,6 @@
 	import { IconButton } from "@gradio/atoms";
 	import { Clear } from "@gradio/icons";
 
-
 	const dispatch = createEventDispatcher();
 
 	export let i18n: I18nFormatter;
@@ -278,13 +277,15 @@
 			<p class="loading">{loading_text}</p>
 		{/if}
 	{:else if status === "error"}
-		<div style="position: absolute;top: 0;right: 0;">
+		<div class="clear-status">
 			<IconButton
-			Icon={Clear}
-			label={i18n("common.clear")}
-			disabled={false}
-			on:click={(event) => {dispatch("clear_status")}}
-		/>
+				Icon={Clear}
+				label={i18n("common.clear")}
+				disabled={false}
+				on:click={(event) => {
+					dispatch("clear_status");
+				}}
+			/>
 		</div>
 		<span class="error">{i18n("common.error")}</span>
 		<slot name="error" />
@@ -435,5 +436,15 @@
 
 	.border {
 		border: 1px solid var(--border-color-primary);
+	}
+
+	.clear-status {
+		position: absolute;
+		display: flex;
+		top: var(--size-2);
+		right: var(--size-2);
+		justify-content: flex-end;
+		gap: var(--spacing-sm);
+		z-index: var(--layer-1);
 	}
 </style>

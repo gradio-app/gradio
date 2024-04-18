@@ -14,8 +14,6 @@
 	export let autoscroll: boolean;
 	export let max_file_size: number | null;
 
-	$: console.log("RENDER MAX FILE SIZE", max_file_size);	
-
 	const dispatch = createEventDispatcher<{ mount: number; destroy: number }>();
 	let filtered_children: ComponentMeta[] = [];
 

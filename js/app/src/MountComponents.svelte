@@ -14,8 +14,6 @@
 	onMount(() => {
 		dispatch("mount");
 	});
-
-	$: console.log("MOUNT COMPONENT MAX FILE SIZE", max_file_size);
 </script>
 
 <Render

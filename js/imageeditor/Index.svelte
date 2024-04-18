@@ -66,6 +66,7 @@
 		clear: never;
 		select: SelectData;
 		share: ShareData;
+		clear_status: LoadingStatus;
 	}>;
 
 	let editor_instance: InteractiveImageEditor;
@@ -136,6 +137,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 		<StaticImage
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
@@ -169,6 +171,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 
 		<InteractiveImageEditor

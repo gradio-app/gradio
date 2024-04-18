@@ -425,15 +425,13 @@
 			if (!isCustomEvent(e)) throw new Error("not a custom event");
 
 			const { id, event, data } = e.detail;
-			console.log("event", event, "data", data, "id", id);
 
 			if (event === "share") {
 				const { title, description } = data as ShareData;
 				trigger_share(title, description);
 			} else if (event === "error" || event === "warning") {
-				console.log("ID", id, "event", event, "data", data);
 				messages = [new_message(data, -1, event), ...messages];
-			} else if (event  == "clear_status") {
+			} else if (event == "clear_status") {
 				update_status(id, "complete", data);
 			} else {
 				const deps = $targets[id]?.[event];
@@ -457,7 +455,11 @@
 
 	$: set_status($loading_status);
 
-	function update_status(id: int, status: "error" | "complete" | "pending", data: LoadingStatus): void {
+	function update_status(
+		id: int,
+		status: "error" | "complete" | "pending",
+		data: LoadingStatus
+	): void {
 		data.status = status;
 		update_value([
 			{

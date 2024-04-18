@@ -60,6 +60,7 @@
 		clear: never;
 		select: SelectData;
 		share: ShareData;
+		clear_status: LoadingStatus;
 	}>;
 
 	$: {

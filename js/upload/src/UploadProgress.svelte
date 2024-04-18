@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { FileData } from "@gradio/client";
-	import { onMount, createEventDispatcher, getContext, onDestroy } from "svelte";
+	import {
+		onMount,
+		createEventDispatcher,
+		getContext,
+		onDestroy
+	} from "svelte";
 
 	type FileDataWithProgress = FileData & { progress: number };
 

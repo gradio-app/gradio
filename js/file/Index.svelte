@@ -39,6 +39,7 @@
 		upload: never;
 		clear: never;
 		select: SelectData;
+		clear_status: LoadingStatus;
 	}>;
 	export let file_count: string;
 	export let file_types: string[] = ["file"];
@@ -48,8 +49,6 @@
 		gradio.dispatch("change");
 		old_value = value;
 	}
-
-	$: console.log("GRADIO MAX FILE SIZE", gradio.max_file_size);
 
 	let dragging = false;
 	let pending_upload = false;
@@ -74,6 +73,7 @@
 		status={pending_upload
 			? "generating"
 			: loading_status?.status || "complete"}
+		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	{#if !interactive}
 		<File

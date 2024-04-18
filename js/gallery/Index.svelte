@@ -41,6 +41,7 @@
 		share: ShareData;
 		error: string;
 		prop_change: Record<string, any>;
+		clear_status: LoadingStatus;
 	}>;
 
 	const dispatch = createEventDispatcher();
@@ -65,6 +66,7 @@
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
 		{...loading_status}
+		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	{#if interactive && no_value}
 		<BaseFileUpload
