@@ -1,6 +1,5 @@
 ---
 "@gradio/app": minor
-"@gradio/cdn-test": minor
 "gradio": minor
 ---
 
