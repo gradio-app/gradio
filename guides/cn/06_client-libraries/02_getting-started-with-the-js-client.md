@@ -11,14 +11,14 @@ Gradio JavaScript客户端使得使用任何Gradio应用作为API非常简单。
 以下是完成此操作的完整代码：
 
 ```js
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
 const response = await fetch(
 	"https://github.com/audio-samples/audio-samples.github.io/raw/master/samples/wav/ted_speakers/SalmanKhan/sample-1.wav"
 );
 const audio_file = await response.blob();
 
-const app = await client("abidlabs/whisper");
+const app = await Client.connect("abidlabs/whisper");
 const transcription = await app.predict("/predict", [audio_file]);
 
 console.log(transcription.data);
@@ -39,22 +39,22 @@ npm i @gradio/client
 
 ## 连接到正在运行的Gradio应用
 
-首先，通过实例化`client`对象并将其连接到在Hugging Face Spaces或任何其他位置运行的Gradio应用来建立连接。
+首先，通过实例化`Client`对象并将其连接到在Hugging Face Spaces或任何其他位置运行的Gradio应用来建立连接。
 
 ## 连接到Hugging Face Space
 
 ```js
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = client("abidlabs/en2fr"); // 一个从英语翻译为法语的 Space
+const app = Client.connect("abidlabs/en2fr"); // 一个从英语翻译为法语的 Space
 ```
 
 您还可以通过在options参数的`hf_token`属性中传入您的HF token来连接到私有Spaces。您可以在此处获取您的HF token：https://huggingface.co/settings/tokens
 
 ```js
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = client("abidlabs/my-private-space", { hf_token="hf_..." })
+const app = Client.connect("abidlabs/my-private-space", { hf_token="hf_..." })
 ```
 
 ## 为私人使用复制一个Space
@@ -63,17 +63,17 @@ const app = client("abidlabs/my-private-space", { hf_token="hf_..." })
 
 `@gradio/client`还导出了另一个函数`duplicate`，以使此过程变得简单（您将需要传入您的[Hugging Face token](https://huggingface.co/settings/tokens)）。
 
-`duplicate`与`client`几乎相同，唯一的区别在于底层实现：
+`duplicate`与`Client`几乎相同，唯一的区别在于底层实现：
 
 ```js
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
 const response = await fetch(
 	"https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
 );
 const audio_file = await response.blob();
 
-const app = await duplicate("abidlabs/whisper", { hf_token: "hf_..." });
+const app = await Client.duplicate("abidlabs/whisper", { hf_token: "hf_..." });
 const transcription = app.predict("/predict", [audio_file]);
 ```
 
@@ -82,9 +82,9 @@ const transcription = app.predict("/predict", [audio_file]);
 **注意：**如果原始Space使用了GPU，您的私有Space也将使用GPU，并且将根据GPU的价格向您的Hugging Face账户计费。为了最大程度地减少费用，在5分钟不活动后，您的Space将自动进入休眠状态。您还可以使用`duplicate`的options对象的`hardware`和`timeout`属性来设置硬件，例如：
 
 ```js
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await duplicate("abidlabs/whisper", {
+const app = await Client.duplicate("abidlabs/whisper", {
 	hf_token: "hf_...",
 	timeout: 60,
 	hardware: "a10g-small"
@@ -96,21 +96,21 @@ const app = await duplicate("abidlabs/whisper", {
 如果您的应用程序在其他地方运行，只需提供完整的URL，包括"http://"或"https://"。以下是向运行在共享URL上的Gradio应用进行预测的示例：
 
 ```js
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = client("https://bec81a83-5b5c-471e.gradio.live");
+const app = Client.connect("https://bec81a83-5b5c-471e.gradio.live");
 ```
 
 ## 检查API端点
 
-一旦连接到Gradio应用程序，可以通过调用`client`的`view_api`方法来查看可用的API端点。
+一旦连接到Gradio应用程序，可以通过调用`Client`的`view_api`方法来查看可用的API端点。
 
 对于Whisper Space，我们可以这样做：
 
 ```js
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await client("abidlabs/whisper");
+const app = await Client.connect("abidlabs/whisper");
 
 const app_info = await app.view_info();
 
@@ -152,33 +152,33 @@ console.log(app_info);
 进行预测的最简单方法就是使用适当的参数调用`.predict()`方法：
 
 ```js
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await client("abidlabs/en2fr");
+const app = await Client.connect("abidlabs/en2fr");
 const result = await app.predict("/predict", ["Hello"]);
 ```
 
 如果有多个参数，您应该将它们作为一个数组传递给`.predict()`，像这样：
 
 ```js
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await client("gradio/calculator");
+const app = await Client.connect("gradio/calculator");
 const result = await app.predict("/predict", [4, "add", 5]);
 ```
 
 对于某些输入，例如图像，您应该根据所需要的方便程度传入`Buffer`、`Blob`或`File`。在Node.js中，可以使用`Buffer`或`Blob`；在浏览器环境中，可以使用`Blob`或`File`。
 
 ```js
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
 const response = await fetch(
 	"https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
 );
 const audio_file = await response.blob();
 
-const app = await client("abidlabs/whisper");
-const result = await client.predict("/predict", [audio_file]);
+const app = await Client.connect("abidlabs/whisper");
+const result = await Client.connect.predict("/predict", [audio_file]);
 ```
 
 ## 使用事件
@@ -186,7 +186,7 @@ const result = await client.predict("/predict", [audio_file]);
 如果您使用的API可以随时间返回结果，或者您希望访问有关作业状态的信息，您可以使用事件接口获取更大的灵活性。这对于迭代的或生成器的端点特别有用，因为它们会生成一系列离散的响应值。
 
 ```js
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
 function log_result(payload) {
 	const {
@@ -196,7 +196,7 @@ function log_result(payload) {
 	console.log(`翻译结果为：${translation}`);
 }
 
-const app = await client("abidlabs/en2fr");
+const app = await Client.connect("abidlabs/en2fr");
 const job = app.submit("/predict", ["Hello"]);
 
 job.on("data", log_result);
@@ -207,13 +207,13 @@ job.on("data", log_result);
 事件接口还可以通过监听`"status"`事件来获取运行作业的状态。这将返回一个对象，其中包含以下属性：`status`（当前作业的人类可读状态，`"pending" | "generating" | "complete" | "error"`），`code`（作业的详细gradio code），`position`（此作业在队列中的当前位置），`queue_size`（总队列大小），`eta`（作业完成的预计时间），`success`（表示作业是否成功完成的布尔值）和`time`（作业状态生成的时间，是一个`Date`对象）。
 
 ```js
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
 function log_status(status) {
 	console.log(`此作业的当前状态为：${JSON.stringify(status, null, 2)}`);
 }
 
-const app = await client("abidlabs/en2fr");
+const app = await Client.connect("abidlabs/en2fr");
 const job = app.submit("/predict", ["Hello"]);
 
 job.on("status", log_status);
@@ -224,9 +224,9 @@ job.on("status", log_status);
 作业实例还具有`.cancel()`方法，用于取消已排队但尚未启动的作业。例如，如果您运行以下命令：
 
 ```js
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await client("abidlabs/en2fr");
+const app = await Client.connect("abidlabs/en2fr");
 const job_one = app.submit("/predict", ["Hello"]);
 const job_two = app.submit("/predict", ["Friends"]);
 
@@ -241,9 +241,9 @@ job_two.cancel();
 某些Gradio API端点不返回单个值，而是返回一系列值。您可以使用事件接口实时侦听这些值：
 
 ```js
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await client("gradio/count_generator");
+const app = await Client.connect("gradio/count_generator");
 const job = app.submit(0, [9]);
 
 job.on("data", (data) => console.log(data));
@@ -254,9 +254,9 @@ job.on("data", (data) => console.log(data));
 您还可以取消具有迭代输出的作业，在这种情况下，作业将立即完成。
 
 ```js
-import { client } from "@gradio/client";
+import { Client } from "@gradio/client";
 
-const app = await client("gradio/count_generator");
+const app = await Client.connect("gradio/count_generator");
 const job = app.submit(0, [9]);
 
 job.on("data", (data) => console.log(data));
