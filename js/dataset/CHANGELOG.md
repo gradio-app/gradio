@@ -1,5 +1,18 @@
 # @gradio/dataset
 
+## 0.1.31
+
+### Fixes
+
+- [#8028](https://github.com/gradio-app/gradio/pull/8028) [`6fafce0`](https://github.com/gradio-app/gradio/commit/6fafce06704ab8f2cd5fe6fbdb58b842e144e44d) - ensure maps are correctly shallow cloned when updating state.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/client@0.16.0
+- @gradio/upload@0.8.5
+- @gradio/atoms@0.7.0
+
 ## 0.1.30
 
 ### Dependency updates
