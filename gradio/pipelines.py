@@ -95,11 +95,12 @@ def load_from_js_pipeline(pipeline) -> dict:
     async def fn(*params):
         preprocess = pipeline_info["preprocess"]
         postprocess = pipeline_info["postprocess"]
+        postprocess_takes_inputs = pipeline_info.get("postprocess_takes_inputs", False)
 
         preprocessed_params = preprocess(*params) if preprocess else params
         pipeline_output = await pipeline(*preprocessed_params)
         postprocessed_output = (
-            postprocess(pipeline_output, *params) if postprocess else pipeline_output
+            postprocess(pipeline_output, *(params if postprocess_takes_inputs else ())) if postprocess else pipeline_output
         )
 
         return postprocessed_output

@@ -506,21 +506,21 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             ],
             "outputs": components.Textbox(label="Label", render=False),
             "preprocess": lambda img, q: (as_url(img), q),
-            "postprocess": lambda r, *_: r[0]["answer"],  # This data structure is different from the original Transformers.
+            "postprocess": lambda r: r[0]["answer"],  # This data structure is different from the original Transformers.
         }
     if pipeline.task == "feature-extraction":
         return {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Dataframe(label="Output", render=False),
             "preprocess": None,
-            "postprocess": lambda tensor, *_: tensor.to_numpy(),
+            "postprocess": lambda tensor: tensor.to_numpy(),
         }
     if pipeline.task == "fill-mask":
         return {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Label(label="Classification", render=False),
             "preprocess": None,
-            "postprocess": lambda r, *_: {i["token_str"]: i["score"] for i in r},
+            "postprocess": lambda r: {i["token_str"]: i["score"] for i in r},
         }
     if pipeline.task == "image-classification":
         return {
@@ -528,9 +528,9 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
                 type="filepath", label="Input Image", render=False
             ),
             "outputs": components.Label(label="Classification", render=False),
-            "preprocess": lambda image_path: (as_url(image_path),),
-            "postprocess": lambda result, *_: {
-                item["label"].split(", ")[0]: item["score"] for item in result
+            "preprocess": lambda image_path, topk: (as_url(image_path), { "topk": topk }),
+            "postprocess": lambda result: {
+                item["label"]: item["score"] for item in result
             },
         }
     if pipeline.task == "image-segmentation":
@@ -551,6 +551,7 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
                     for item in result
                 ],
             ),
+            "postprocess_takes_inputs": True,
         }
     # if pipeline.task == "image-to-text":
     #     pass
@@ -578,6 +579,7 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
                     for item in result
                 ],
             ),
+            "postprocess_takes_inputs": True,
         }
 
     if pipeline.task == "question-answering":
@@ -590,8 +592,8 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
                 components.Textbox(label="Answer", render=False),
                 components.Label(label="Score", render=False),
             ],
-            "preprocess": None,
-            "postprocess": lambda r, *_: (r["answer"], r["score"]),
+            "preprocess": lambda c, q: (q, c),  # Placed the context first in the input UI to match `handle_transformers_pipeline`'s order of inputs, but Transformers.js' question-answering pipeline expects the question first.
+            "postprocess": lambda r: (r["answer"], r["score"]),
         }
     if pipeline.task == "summarization":
         return {
@@ -608,7 +610,7 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             ],
             "outputs": components.Textbox(label="Summary", render=False),
             "preprocess": lambda text, max_new_tokens: (text, { "max_new_tokens": max_new_tokens}),
-            "postprocess": lambda r, *_: r[0]["summary_text"],
+            "postprocess": lambda r: r[0]["summary_text"],
         }
     if pipeline.task == "text2text-generation":
         return {
@@ -625,21 +627,24 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             ],
             "outputs": components.Textbox(label="Generated Text", render=False),
             "preprocess": lambda text, max_new_tokens: (text, { "max_new_tokens": max_new_tokens}),
-            "postprocess": lambda r, *_: r[0]["generated_text"],
+            "postprocess": lambda r: r[0]["generated_text"],
         }
     if pipeline.task == "text-classification":
         return {
-            "inputs": components.Textbox(label="Input", render=False),
+            "inputs": [
+                components.Textbox(label="Input", render=False),
+                components.Number(label="Top k", value=5, render=False),
+            ],
             "outputs": components.Label(label="Classification", render=False),
-            "preprocess": None,
-            "postprocess": lambda r, *_: {i["label"].split(", ")[0]: i["score"] for i in r},
+            "preprocess": lambda text, topk: (text, { "topk": topk }),
+            "postprocess": lambda r: {i["label"]: i["score"] for i in r},
         }
     if pipeline.task == "text-generation":
         return {
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Textbox(label="Output", render=False),
             "preprocess": None,
-            "postprocess": lambda r, *_: r[0]["generated_text"],
+            "postprocess": lambda r: r[0]["generated_text"],
         }
     # if pipeline.task == "token-classification":
     #     pass
@@ -652,7 +657,7 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             ],
             "outputs": components.Textbox(label="Translation", render=False),
             "preprocess": lambda x, s, t: (x, {"src_lang": s, "tgt_lang": t}),
-            "postprocess": lambda r, *_: r[0]["translation_text"],
+            "postprocess": lambda r: r[0]["translation_text"],
         }
     if pipeline.task == "zero-shot-classification":
         return {
@@ -667,7 +672,7 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
                 text,
                 [c.strip() for c in classnames.split(",")],
             ),
-            "postprocess": lambda result, *_: dict(zip(result["labels"], result["scores"])),
+            "postprocess": lambda result: dict(zip(result["labels"], result["scores"])),
         }
     # if pipeline.task == "zero-shot-audio-classification":
     #     pass
@@ -684,7 +689,7 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
                 as_url(image_path),
                 [c.strip() for c in classnames.split(",")],
             ),
-            "postprocess": lambda result, *_: {
+            "postprocess": lambda result: {
                 i["label"]: i["score"] for i in result
             },
         }
@@ -718,6 +723,7 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
                     for item in result
                 ],
             ),
+            "postprocess_takes_inputs": True,
         }
 
     raise ValueError(f"Unsupported transformers pipeline type: {pipeline.task}")
