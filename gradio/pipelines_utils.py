@@ -654,8 +654,21 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             "preprocess": lambda x, s, t: (x, {"src_lang": s, "tgt_lang": t}),
             "postprocess": lambda r, *_: r[0]["translation_text"],
         }
-    # if pipeline.task == "zero-shot-classification":
-    #     pass
+    if pipeline.task == "zero-shot-classification":
+        return {
+            "inputs": [
+                components.Textbox(label="Input", render=False),
+                components.Textbox(
+                    label="Possible class names (comma-separated)", render=False
+                ),
+            ],
+            "outputs": components.Label(label="Classification", render=False),
+            "preprocess": lambda text, classnames: (
+                text,
+                [c.strip() for c in classnames.split(",")],
+            ),
+            "postprocess": lambda result, *_: dict(zip(result["labels"], result["scores"])),
+        }
     # if pipeline.task == "zero-shot-audio-classification":
     #     pass
     if pipeline.task == "zero-shot-image-classification":
@@ -672,7 +685,7 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
                 [c.strip() for c in classnames.split(",")],
             ),
             "postprocess": lambda result, *_: {
-                i["label"].split(", ")[0]: i["score"] for i in result
+                i["label"]: i["score"] for i in result
             },
         }
     if pipeline.task == "zero-shot-object-detection":
