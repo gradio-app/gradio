@@ -1,18 +1,18 @@
+import type { Client } from "..";
 import { BROKEN_CONNECTION_MSG } from "../constants";
 import type { UploadResponse } from "../types";
 
 export async function upload_files(
-	root: string,
+	this: Client,
+	root_url: string,
 	files: (Blob | File)[],
-	fetch_implementation: typeof fetch = fetch,
-	hf_token?: `hf_${string}`,
 	upload_id?: string
 ): Promise<UploadResponse> {
 	const headers: {
 		Authorization?: string;
 	} = {};
-	if (hf_token) {
-		headers.Authorization = `Bearer ${hf_token}`;
+	if (this.options.hf_token) {
+		headers.Authorization = `Bearer ${this.options.hf_token}`;
 	}
 	const chunkSize = 1000;
 	const uploadResponses = [];
@@ -24,9 +24,9 @@ export async function upload_files(
 		});
 		try {
 			const upload_url = upload_id
-				? `${root}/upload?upload_id=${upload_id}`
-				: `${root}/upload`;
-			var response = await fetch_implementation(upload_url, {
+				? `${root_url}/upload?upload_id=${upload_id}`
+				: `${root_url}/upload`;
+			var response = await this.fetch_implementation(upload_url, {
 				method: "POST",
 				body: formData,
 				headers

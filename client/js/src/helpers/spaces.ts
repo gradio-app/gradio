@@ -112,11 +112,11 @@ export async function discussions_enabled(space_id: string): Promise<boolean> {
 
 export async function get_space_hardware(
 	space_id: string,
-	token?: `hf_${string}` | undefined
+	hf_token?: `hf_${string}` | undefined
 ): Promise<(typeof hardware_types)[number]> {
 	const headers: { Authorization?: string } = {};
-	if (token) {
-		headers.Authorization = `Bearer ${token}`;
+	if (hf_token) {
+		headers.Authorization = `Bearer ${hf_token}`;
 	}
 
 	try {
@@ -139,11 +139,11 @@ export async function get_space_hardware(
 export async function set_space_timeout(
 	space_id: string,
 	timeout: number,
-	token?: `hf_${string}`
+	hf_token?: `hf_${string}`
 ): Promise<any> {
 	const headers: { Authorization?: string } = {};
-	if (token) {
-		headers.Authorization = `Bearer ${token}`;
+	if (hf_token) {
+		headers.Authorization = `Bearer ${hf_token}`;
 	}
 
 	const body: {

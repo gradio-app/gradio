@@ -92,7 +92,6 @@
 	// These utilities are exported to be injectable for the Wasm version.
 	export let mount_css: typeof default_mount_css = default_mount_css;
 	export let Client: typeof ClientType;
-	export let upload_files: InstanceType<typeof Client>["upload_files"];
 	export let worker_proxy: WorkerProxy | undefined = undefined;
 	if (worker_proxy) {
 		setWorkerProxyContext(worker_proxy);
@@ -317,8 +316,6 @@
 			}, 200);
 		}
 	});
-
-	setContext("upload_files", upload_files);
 
 	$: loader_status =
 		!ready && status.load_status !== "error"

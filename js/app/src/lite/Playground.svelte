@@ -22,7 +22,6 @@
 	export let eager: boolean;
 	export let mount_css: typeof default_mount_css = default_mount_css;
 	export let Client: typeof ClientType;
-	export let upload_files: InstanceType<typeof Client>["upload_files"];
 	export let worker_proxy: WorkerProxy | undefined = undefined;
 	export let fetch_implementation: typeof fetch = fetch;
 	export let EventSource_factory: (url: URL) => EventSource = (url) =>
@@ -217,7 +216,6 @@
 								{eager}
 								{mount_css}
 								{Client}
-								{upload_files}
 								bind:worker_proxy
 								{fetch_implementation}
 								{EventSource_factory}

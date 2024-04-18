@@ -1,22 +1,22 @@
 import { BROKEN_CONNECTION_MSG } from "../constants";
 import type { PostResponse } from "../types";
+import { Client } from "..";
 
 export async function post_data(
+	this: Client,
 	url: string,
 	body: unknown,
-	fetch_implementation: typeof fetch,
-	hf_token?: `hf_${string}`,
 	additional_headers?: any
 ): Promise<[PostResponse, number]> {
 	const headers: {
 		Authorization?: string;
 		"Content-Type": "application/json";
 	} = { "Content-Type": "application/json" };
-	if (hf_token) {
-		headers.Authorization = `Bearer ${hf_token}`;
+	if (this.options.hf_token) {
+		headers.Authorization = `Bearer ${this.options.hf_token}`;
 	}
 	try {
-		var response = await fetch_implementation(url, {
+		var response = await this.fetch_implementation(url, {
 			method: "POST",
 			body: JSON.stringify(body),
 			headers: { ...headers, ...additional_headers }

@@ -32,7 +32,6 @@ export class Client {
 	app_reference: string;
 	options: ClientOptions;
 
-	hf_token: `hf_${string}` | undefined;
 	config!: Config;
 	api_info!: ApiInfo<JsApiData>;
 	api_map: Record<string, number> = {};
@@ -63,25 +62,19 @@ export class Client {
 
 	view_api: () => Promise<ApiInfo<JsApiData>>;
 	upload_files: (
-		root: string,
+		root_url: string,
 		files: (Blob | File)[],
-		fetch_implementation: typeof fetch,
-		token?: `hf_${string}`,
 		upload_id?: string
 	) => Promise<UploadResponse>;
 	handle_blob: (
 		endpoint: string,
 		data: unknown[],
-		endpoint_info: EndpointInfo<ApiData | JsApiData>,
-		fetch_implementation: typeof fetch,
-		hf_token?: `hf_${string}`
+		endpoint_info: EndpointInfo<ApiData | JsApiData>
 	) => Promise<unknown[]>;
 	post_data: (
-		endpoint: string,
-		data: unknown[],
-		api_info: any,
-		token?: `hf_${string}`,
-		additional_headers?: Record<string, string>
+		url: string,
+		body: unknown,
+		additional_headers?: any
 	) => Promise<unknown[]>;
 	submit: (
 		endpoint: string | number,
@@ -95,11 +88,7 @@ export class Client {
 		event_data?: unknown
 	) => Promise<unknown>;
 	open_stream: () => void;
-	resolve_config: (
-		fetch_implementation: typeof fetch,
-		endpoint: string,
-		hf_token: `hf_${string}` | undefined
-	) => Promise<Config | undefined>;
+	resolve_config: (endpoint: string) => Promise<Config | undefined>;
 	constructor(app_reference: string, options: ClientOptions = {}) {
 		this.app_reference = app_reference;
 		this.options = options;
@@ -160,15 +149,11 @@ export class Client {
 			this.options.hf_token
 		);
 
-		const { hf_token, status_callback } = this.options;
+		const { status_callback } = this.options;
 		let config: Config | undefined;
 
 		try {
-			config = await resolve_config(
-				this.fetch_implementation,
-				`${http_protocol}//${host}`,
-				hf_token
-			);
+			config = await this.resolve_config(`${http_protocol}//${host}`);
 
 			if (!config) {
 				throw new Error("No config or app_id set");

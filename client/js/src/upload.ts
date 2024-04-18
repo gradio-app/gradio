@@ -3,13 +3,11 @@ import { upload_files } from ".";
 
 export async function upload(
 	file_data: FileData[],
-	root: string,
+	root_url: string,
 	upload_id?: string,
 	upload_fn: (
-		root: string,
+		root_url: string,
 		files: (Blob | File)[],
-		fetch_implementation: typeof fetch,
-		hf_token?: `hf_${string}`,
 		upload_id?: string
 	) => Promise<UploadResponse> = upload_files
 ): Promise<(FileData | null)[] | null> {
@@ -18,7 +16,7 @@ export async function upload(
 	);
 
 	return await Promise.all(
-		await upload_fn(root, files, fetch, undefined, upload_id).then(
+		await upload_fn(root_url, files, upload_id).then(
 			async (response: { files?: string[]; error?: string }) => {
 				if (response.error) {
 					throw new Error(response.error);
@@ -28,7 +26,7 @@ export async function upload(
 							const file = new FileData({
 								...file_data[i],
 								path: f,
-								url: root + "/file=" + f
+								url: root_url + "/file=" + f
 							});
 							return file;
 						});

@@ -1,5 +1,6 @@
 import type { Config } from "../types";
 import { CONFIG_URL } from "../constants";
+import { Client } from "..";
 
 /**
  * This function is used to resolve the URL for making requests when the app has a root path.
@@ -54,12 +55,11 @@ export function map_names_to_ids(
 }
 
 export async function resolve_config(
-	fetch_implementation: typeof fetch,
-	endpoint: string,
-	hf_token: `hf_${string}` | undefined
+	this: Client,
+	endpoint: string
 ): Promise<Config | undefined> {
-	const headers: Record<string, string> = hf_token
-		? { Authorization: `Bearer ${hf_token}` }
+	const headers: Record<string, string> = this.options.hf_token
+		? { Authorization: `Bearer ${this.options.hf_token}` }
 		: {};
 
 	headers["Content-Type"] = "application/json";
@@ -77,9 +77,12 @@ export async function resolve_config(
 		// @ts-ignore
 		return { ...config, path };
 	} else if (endpoint) {
-		const response = await fetch_implementation(`${endpoint}/${CONFIG_URL}`, {
-			headers
-		});
+		const response = await this.fetch_implementation(
+			`${endpoint}/${CONFIG_URL}`,
+			{
+				headers
+			}
+		);
 
 		if (response?.status === 200) {
 			let config = await response.json();
