@@ -47,6 +47,9 @@
 "@gradio/video": patch
 "gradio": patch
 "gradio_test": patch
+"gradio_test_five": patch
+"gradio_test_four": patch
+"gradio_test_three": patch
 "gradio_test_two": patch
 ---
 
