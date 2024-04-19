@@ -11,6 +11,7 @@
 		submit: never;
 		blur: never;
 		focus: never;
+		clear_status: LoadingStatus;
 	}>;
 	export let label = gradio.i18n("number.number");
 	export let info: string | undefined = undefined;
@@ -66,6 +67,7 @@
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
 		{...loading_status}
+		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	<label class="block" class:container>
 		<BlockTitle {show_label} {info}>{label}</BlockTitle>

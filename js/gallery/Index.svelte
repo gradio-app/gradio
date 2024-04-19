@@ -41,6 +41,7 @@
 		share: ShareData;
 		error: string;
 		prop_change: Record<string, any>;
+		clear_status: LoadingStatus;
 	}>;
 
 	const dispatch = createEventDispatcher();
@@ -65,12 +66,14 @@
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
 		{...loading_status}
+		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	{#if interactive && no_value}
 		<BaseFileUpload
 			value={null}
 			{root}
 			{label}
+			max_file_size={gradio.max_file_size}
 			file_count={"multiple"}
 			file_types={["image"]}
 			i18n={gradio.i18n}
@@ -78,6 +81,11 @@
 				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
 				value = files.map((x) => ({ image: x, caption: null }));
 				gradio.dispatch("upload", value);
+			}}
+			on:error={({ detail }) => {
+				loading_status = loading_status || {};
+				loading_status.status = "error";
+				gradio.dispatch("error", detail);
 			}}
 		>
 			<UploadText i18n={gradio.i18n} type="gallery" />

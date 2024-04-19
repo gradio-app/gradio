@@ -96,7 +96,7 @@ from gradio.templates import (
     TextArea,
 )
 from gradio.themes import Base as Theme
-from gradio.utils import NO_RELOAD, get_package_version, set_static_paths
+from gradio.utils import NO_RELOAD, FileSize, get_package_version, set_static_paths
 from gradio.wasm_utils import IS_WASM
 
 if not IS_WASM:

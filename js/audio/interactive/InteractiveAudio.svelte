@@ -38,6 +38,7 @@
 	export let active_source: "microphone" | "upload";
 	export let handle_reset_value: () => void = () => {};
 	export let editable = true;
+	export let max_file_size: number | null = null;
 
 	// Needed for wasm support
 	const upload_fn = getContext<typeof upload_files>("upload_files");
@@ -97,9 +98,9 @@
 		let _audio_blob = new File(blobs, "audio.wav");
 		const val = await prepare_files([_audio_blob], event === "stream");
 		value = (
-			(await upload(val, root, undefined, upload_fn))?.filter(
-				Boolean
-			) as FileData[]
+			(
+				await upload(val, root, undefined, max_file_size ?? Infinity, upload_fn)
+			)?.filter(Boolean) as FileData[]
 		)[0];
 
 		dispatch(event, value);
@@ -255,6 +256,7 @@
 				bind:dragging
 				on:error={({ detail }) => dispatch("error", detail)}
 				{root}
+				{max_file_size}
 			>
 				<slot />
 			</Upload>

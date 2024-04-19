@@ -13,14 +13,6 @@
 			{ token: "dogs", class_or_confidence: "-" },
 			{ token: "elephants", class_or_confidence: "+" }
 		]}
-		gradio={new Gradio(
-			0,
-			document.body,
-			"light",
-			"1.1.1",
-			"http://localhost:7860",
-			false
-		)}
 		{...args}
 	/>
 </Template>

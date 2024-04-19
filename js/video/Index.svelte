@@ -48,6 +48,7 @@
 		share: ShareData;
 		error: string;
 		warning: string;
+		clear_status: LoadingStatus;
 	}>;
 	export let interactive: boolean;
 	export let mirror_webcam: boolean;
@@ -137,6 +138,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 
 		<StaticVideo
@@ -175,6 +177,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 
 		<Video
@@ -202,6 +205,7 @@
 			on:start_recording={() => gradio.dispatch("start_recording")}
 			on:stop_recording={() => gradio.dispatch("stop_recording")}
 			i18n={gradio.i18n}
+			max_file_size={gradio.max_file_size}
 		>
 			<UploadText i18n={gradio.i18n} type="video" />
 		</Video>

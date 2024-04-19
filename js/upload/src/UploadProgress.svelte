@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { FileData } from "@gradio/client";
-	import { onMount, createEventDispatcher, getContext } from "svelte";
+	import {
+		onMount,
+		createEventDispatcher,
+		getContext,
+		onDestroy
+	} from "svelte";
 
 	type FileDataWithProgress = FileData & { progress: number };
 
@@ -55,6 +60,9 @@
 				handleProgress(_data.orig_name, _data.chunk_size);
 			}
 		};
+	});
+	onDestroy(() => {
+		if (event_source != null || event_source != undefined) event_source.close();
 	});
 
 	function calculateTotalProgress(files: FileData[]): number {

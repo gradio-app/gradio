@@ -23,6 +23,7 @@
 	export let line_breaks = false;
 	export let gradio: Gradio<{
 		change: never;
+		clear_status: LoadingStatus;
 	}>;
 	export let latex_delimiters: {
 		left: string;
@@ -46,6 +47,7 @@
 		i18n={gradio.i18n}
 		{...loading_status}
 		variant="center"
+		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	<div class:pending={loading_status?.status === "pending"}>
 		<Markdown

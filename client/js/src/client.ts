@@ -250,6 +250,9 @@ export function api_factory(
 			} catch (e) {
 				return { error: BROKEN_CONNECTION_MSG };
 			}
+			if (!response.ok) {
+				return { error: await response.text() };
+			}
 			const output: UploadResponse["files"] = await response.json();
 			uploadResponses.push(...output);
 		}
