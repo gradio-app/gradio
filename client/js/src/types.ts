@@ -118,8 +118,8 @@ export interface Config {
 	analytics_enabled: boolean;
 	auth_message: string;
 	components: any[];
-	css: string;
-	js: string;
+	css: string | null;
+	js: string | null;
 	head: string | null;
 	dependencies: Dependency[];
 	dev_mode: boolean;
