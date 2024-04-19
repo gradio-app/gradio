@@ -59,6 +59,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 
 		{#if value}
@@ -97,6 +98,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 
 		<Model3DUpload
@@ -118,7 +120,13 @@
 				value = detail;
 				gradio.dispatch("upload");
 			}}
+			on:error={({ detail }) => {
+				loading_status = loading_status || {};
+				loading_status.status = "error";
+				gradio.dispatch("error", detail);
+			}}
 			i18n={gradio.i18n}
+			max_file_size={gradio.max_file_size}
 		>
 			<UploadText i18n={gradio.i18n} type="file" />
 		</Model3DUpload>

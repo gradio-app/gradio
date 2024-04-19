@@ -34,6 +34,9 @@ export async function upload_files(
 		} catch (e) {
 			return { error: BROKEN_CONNECTION_MSG };
 		}
+		if (!response.ok) {
+			return { error: await response.text() };
+		}
 		const output: UploadResponse["files"] = await response.json();
 		if (output) {
 			uploadResponses.push(...output);

@@ -5,6 +5,7 @@ export async function upload(
 	file_data: FileData[],
 	root_url: string,
 	upload_id?: string,
+	max_file_size?: number,
 	upload_fn: (
 		root_url: string,
 		files: (Blob | File)[],
@@ -14,6 +15,17 @@ export async function upload(
 	let files = (Array.isArray(file_data) ? file_data : [file_data]).map(
 		(file_data) => file_data.blob!
 	);
+
+	const oversized_files = files.filter(
+		(f) => f.size > (max_file_size ?? Infinity)
+	);
+	if (oversized_files.length) {
+		throw new Error(
+			`File size exceeds the maximum allowed size of ${max_file_size} bytes: ${oversized_files
+				.map((f) => f.name)
+				.join(", ")}`
+		);
+	}
 
 	return await Promise.all(
 		await upload_fn(root_url, files, upload_id).then(

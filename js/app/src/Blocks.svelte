@@ -4,7 +4,7 @@
 	import { Client } from "@gradio/client";
 	import { setContext } from "svelte";
 
-	import type { LoadingStatusCollection } from "./stores";
+	import type { LoadingStatus, LoadingStatusCollection } from "./stores";
 
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import type { UpdateTransaction } from "./init";
@@ -431,6 +431,8 @@
 				trigger_share(title, description);
 			} else if (event === "error" || event === "warning") {
 				messages = [new_message(data, -1, event), ...messages];
+			} else if (event == "clear_status") {
+				update_status(id, "complete", data);
 			} else {
 				const deps = $targets[id]?.[event];
 
@@ -452,6 +454,21 @@
 	}
 
 	$: set_status($loading_status);
+
+	function update_status(
+		id: number,
+		status: "error" | "complete" | "pending",
+		data: LoadingStatus
+	): void {
+		data.status = status;
+		update_value([
+			{
+				id,
+				prop: "loading_status",
+				value: data
+			}
+		]);
+	}
 
 	function set_status(statuses: LoadingStatusCollection): void {
 		const updates = Object.entries(statuses).map(([id, loading_status]) => {
@@ -521,6 +538,7 @@
 				on:destroy={({ detail }) => handle_destroy(detail)}
 				{version}
 				{autoscroll}
+				max_file_size={app.config.max_file_size}
 			/>
 		{/if}
 	</div>

@@ -22,6 +22,7 @@
 	export let min_width: number | undefined = undefined;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let disabled = false;
+	export let max_file_size: number | null = null;
 
 	const dispatch = createEventDispatcher();
 
@@ -50,6 +51,7 @@
 
 	async function load_files(files: FileList): Promise<void> {
 		let _files: File[] = Array.from(files);
+
 		if (!files.length) {
 			return;
 		}
@@ -59,9 +61,20 @@
 		let all_file_data = await prepare_files(_files);
 		await tick();
 
-		all_file_data = (
-			await upload(all_file_data, root, undefined, upload_fn)
-		)?.filter((x) => x !== null) as FileData[];
+		try {
+			all_file_data = (
+				await upload(
+					all_file_data,
+					root,
+					undefined,
+					max_file_size ?? Infinity,
+					upload_fn
+				)
+			)?.filter((x) => x !== null) as FileData[];
+		} catch (e) {
+			dispatch("error", (e as Error).message);
+			return;
+		}
 		value = file_count === "single" ? all_file_data?.[0] : all_file_data;
 		dispatch("change", value);
 		dispatch("upload", value);
