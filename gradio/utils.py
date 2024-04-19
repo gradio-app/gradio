@@ -169,7 +169,7 @@ def _remove_no_reload_codeblocks(file_path: str):
         file_path (str): The path to the file to remove the no_reload code blocks from.
     """
 
-    with open(file_path) as file:
+    with open(file_path, encoding="utf-8") as file:
         code = file.read()
 
     tree = ast.parse(code)
