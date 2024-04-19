@@ -98,7 +98,8 @@ export async function render<
 				"light",
 				"2.0.0",
 				"http://localhost:8000",
-				false
+				false,
+				null
 			)
 		}
 	});

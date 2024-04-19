@@ -25,6 +25,7 @@
 	export let selectable = false;
 	export let root: string;
 	export let i18n: I18nFormatter;
+	export let max_file_size: number | null = null;
 
 	let upload: Upload;
 	let uploading = false;
@@ -114,6 +115,7 @@
 			on:load={handle_upload}
 			on:error
 			{root}
+			{max_file_size}
 			disable_click={!sources.includes("upload")}
 		>
 			{#if value === null}

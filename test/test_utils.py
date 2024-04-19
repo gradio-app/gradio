@@ -13,6 +13,8 @@ from typing_extensions import Literal
 from gradio import EventData, Request
 from gradio.external_utils import format_ner_list
 from gradio.utils import (
+    FileSize,
+    _parse_file_size,
     abspath,
     append_unique_suffix,
     assert_configs_are_equivalent_besides_ids,
@@ -526,3 +528,9 @@ class TestFunctionParams:
 
     def test_lambda_with_kwargs(self):
         assert get_function_params(lambda x, **kwargs: x) == [("x", False, None)]
+
+
+def test_parse_file_size():
+    assert _parse_file_size("1kb") == 1 * FileSize.KB
+    assert _parse_file_size("1mb") == 1 * FileSize.MB
+    assert _parse_file_size("505 Mb") == 505 * FileSize.MB

@@ -1740,7 +1740,7 @@ def test_static_files_multiple_apps(gradio_temp_dir):
 
 
 def test_time_to_live_and_delete_callback_for_state(capsys, monkeypatch):
-    monkeypatch.setenv("GRADIO_IS_E2E_TEST", 1)
+    monkeypatch.setenv("GRADIO_IS_E2E_TEST", "1")
 
     def test_fn(x):
         return x + 1, x + 1

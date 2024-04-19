@@ -24,6 +24,7 @@
 	export let min_width: number | undefined = undefined;
 	export let gradio: Gradio<{
 		change: never;
+		clear_status: LoadingStatus;
 	}>;
 
 	$: {
@@ -58,6 +59,7 @@
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
 		{...loading_status}
+		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 
 	<JSON {value} />

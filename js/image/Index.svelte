@@ -60,6 +60,7 @@
 		clear: never;
 		select: SelectData;
 		share: ShareData;
+		clear_status: LoadingStatus;
 	}>;
 
 	$: {
@@ -125,6 +126,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 
 		<ImageUploader
@@ -152,6 +154,7 @@
 			{pending}
 			{streaming}
 			{mirror_webcam}
+			max_file_size={gradio.max_file_size}
 			i18n={gradio.i18n}
 		>
 			{#if active_source === "upload" || !active_source}

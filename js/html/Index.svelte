@@ -13,6 +13,7 @@
 	export let loading_status: LoadingStatus;
 	export let gradio: Gradio<{
 		change: never;
+		clear_status: LoadingStatus;
 	}>;
 
 	$: label, gradio.dispatch("change");
@@ -24,6 +25,7 @@
 		i18n={gradio.i18n}
 		{...loading_status}
 		variant="center"
+		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	<div class:pending={loading_status?.status === "pending"}>
 		<HTML
