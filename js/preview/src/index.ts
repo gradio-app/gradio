@@ -1,4 +1,4 @@
-import { ChildProcess, spawn, spawnSync } from "node:child_process";
+import { type ChildProcess, spawn, spawnSync } from "node:child_process";
 import * as net from "net";
 
 import { create_server } from "./dev";
