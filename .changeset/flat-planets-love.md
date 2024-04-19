@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-feat:Improve gr.Interface.from_pipeline()
+feat:Fix `gr.Interface.from_pipeline()` to allow audio uploads and to display classification labels correctly
