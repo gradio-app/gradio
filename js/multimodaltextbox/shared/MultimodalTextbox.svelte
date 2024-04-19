@@ -197,7 +197,6 @@
 			}
 		}
 	}
-
 </script>
 
 <!-- svelte-ignore a11y-autofocus -->

@@ -1044,7 +1044,8 @@ class App(FastAPI):
             try:
                 if upload_id:
                     file_upload_statuses.track(upload_id)
-                max_file_size = app.get_blocks().max_file_size or math.inf
+                max_file_size = app.get_blocks().max_file_size
+                max_file_size = max_file_size if max_file_size is not None else math.inf
                 multipart_parser = GradioMultiPartParser(
                     request.headers,
                     request.stream(),
