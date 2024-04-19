@@ -1,4 +1,4 @@
-import { describe, test, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { bootstrap_custom_element } from "./index";
 
 const delay = (ms?: number) =>
@@ -19,7 +19,9 @@ describe("bootstrap_custom_element", () => {
 
 		expect(create).toHaveBeenCalledWith(
 			expect.objectContaining({
-				code: expect.stringMatching(/import gradio as gr/)
+				code: expect.stringMatching(/import gradio as gr/),
+				requirements: [],
+				files: undefined
 			})
 		);
 	});
@@ -42,7 +44,8 @@ scipy
 		expect(create).toHaveBeenCalledWith(
 			expect.objectContaining({
 				code: expect.stringMatching(/import gradio as gr/),
-				requirements: ["numpy", "scipy"]
+				requirements: ["numpy", "scipy"],
+				files: undefined
 			})
 		);
 	});
@@ -80,6 +83,7 @@ scipy
 					}
 				},
 				entrypoint: "app.py",
+				code: undefined,
 				requirements: ["numpy", "scipy"]
 			})
 		);
