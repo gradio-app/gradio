@@ -36,6 +36,15 @@ export async function create_server({
 }: ServerOptions): Promise<void> {
 	process.env.gradio_mode = "dev";
 	const imports = generate_imports(component_dir, root_dir, python_path);
+	console.log({
+		component_dir,
+		root_dir,
+		frontend_port,
+		backend_port,
+		host,
+		python_path,
+		imports
+	});
 
 	const svelte_dir = join(root_dir, "assets", "svelte");
 
@@ -140,7 +149,9 @@ function generate_imports(
 			: "";
 		return `${acc}"${component.component_class_id}": {
 			${example}
-			component: () => import("${to_posix(component.frontend_dir)}")
+			component: () => import("${to_posix(
+				join(component.frontend_dir, exports.component)
+			)}")
 			},\n`;
 	}, "");
 

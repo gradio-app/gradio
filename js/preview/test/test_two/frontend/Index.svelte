@@ -30,6 +30,6 @@
 			{...loading_status}
 		/>
 	{/if}
-	asdasdasd
+	asdasdasdasdasdasd
 	<JsonView json={value} />
 </Block>
