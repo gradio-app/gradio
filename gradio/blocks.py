@@ -973,7 +973,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     original_mapping[o] for o in dependency["outputs"]
                 ]
                 dependency.pop("status_tracker", None)
-                dependency.pop("zerogpu")
+                dependency.pop("zerogpu", None)
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
                 if is_then_event:
