@@ -18,32 +18,26 @@ content = """
 
 <!--- Usage and Embedded Component -->
 <div class="codeblock"><pre><code class="code language-python">{{obj.parent}}.{{obj.name}}(···)</code></pre></div>
-<div class="embedded-component mt-3"><gradio-app space={{"gradio/" + obj.name.toLowerCase() + "_component"}}/></div>
 
 <!--- Description -->
 ### Description
 ## {{obj.description}}
 
-<!--- Behavior -->
-### Behavior
-## **As input component**: {{obj.preprocess.return_doc.doc}}
-## **As output component**: {{obj.postprocess.parameter_doc[0].doc}}
+<!-- Example Usage --> 
+### Example Usage
+<div class="codeblock"><pre><code class="code language-python">{{obj.example}}</code></pre></div>
 
 <!--- Initialization -->
 ### Initialization
 <ParamTable parameters={{obj.parameters}} />
 
-<!--- Shortcuts -->
-### Shortcuts
-<ShortcutTable shortcuts={{obj.string_shortcuts}} />
-
 <!--- Demos -->
 ### Demos 
 <DemosSection demos={{obj.demos}} />
 
-<!--- Event Listeners -->
-### Event Listeners 
-<FunctionsSection fns={{obj.fns}} event_listeners={{true}} />
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={{obj.fns}} event_listeners={{false}} />
 
 <!--- Guides -->
 ### Guides
@@ -59,7 +53,7 @@ with open("../json/docs.json", "r") as j:
     data = json.load(j)
 
 
-components = list(data["docs"]["components"].keys())
+components = ["interface", "chatinterface", "tabbedinterface", "blocks"]
 
 
 for component in components:

@@ -1,0 +1,70 @@
+
+<script lang="ts">
+    import {get_object} from "./process_json.ts";
+    import ParamTable from "../ParamTable.svelte";
+    import ShortcutTable from "../ShortcutTable.svelte";
+    import DemosSection from "../DemosSection.svelte";
+    import FunctionsSection from "../FunctionsSection.svelte";
+    import GuidesSection from "../GuidesSection.svelte";
+
+
+    let obj = get_object("interface");
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage and Embedded Component -->
+<div class="codeblock"><pre><code class="code language-python">{obj.parent}.{obj.name}(···)</code></pre></div>
+
+<!--- Description -->
+### Description
+## {obj.description}
+
+### Live Interfaces
+## You can make interfaces automatically refresh by setting **live=True** in the interface. Now the interface will recalculate as soon as the user input changes.
+
+<p><gradio-lite playground>import gradio as gr
+def calculator(num1, operation, num2):
+    if operation == "add":
+        return num1 + num2
+    elif operation == "subtract":
+        return num1 - num2
+    elif operation == "multiply"
+        return num1 * num2
+    elif operation == "divide":
+        return num1 / num2
+demo = gr.Interface(
+    calculator,
+    [
+        "number",
+        gr.Radio(["add", "subtract", "multiply", "divide"]),
+        "number"
+    ],
+    "number",
+    live=True,
+)
+demo.launch()</gradio-lite>
+
+#
+*Note: There is no submit button, because the interface resubmits automatically on change.*
+
+<!-- Example Usage --> 
+### Example Usage
+<div class="codeblock"><pre><code class="code language-python">{obj.example}</code></pre></div>
+
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj.parameters} />
+
+<!--- Demos -->
+### Demos 
+<DemosSection demos={obj.demos} />
+
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+
+<!--- Guides -->
+### Guides
+<GuidesSection guides={obj.guides}/>
