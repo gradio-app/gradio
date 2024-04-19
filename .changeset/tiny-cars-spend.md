@@ -41,4 +41,28 @@
 "gradio_client": minor
 ---
 
-feat:Add `max_file_size` parameter to `launch()` that limits the size of files that can be uploaded in the Gradio app
+
+#### Setting File Upload Limits
+
+We have added a `max_file_size` size parameter to `launch()` that limits to size of files uploaded to the server. This limit applies to each individual file. This parameter can be specified as a string or an integer (corresponding to the size in bytes).
+
+The following code snippet sets a max file size of 5 megabytes.
+
+```python
+import gradio as gr
+
+demo = gr.Interface(lambda x: x, "image", "image")
+
+demo.launch(max_file_size="5mb")
+# or
+demo.launch(max_file_size=5 * gr.FileSize.MB)
+```
+
+![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
+
+
+#### Error states can now be cleared
+
+When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
+
+![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
