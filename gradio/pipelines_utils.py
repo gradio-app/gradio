@@ -29,7 +29,7 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "inputs": components.Audio(type="filepath", label="Input", render=False),
             "outputs": components.Label(label="Class", render=False),
             "preprocess": lambda i: {"inputs": i},
-            "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
+            "postprocess": lambda r: {i["label"]: i["score"] for i in r},
         }
     if is_transformers_pipeline_type(pipeline, "AutomaticSpeechRecognitionPipeline"):
         return {
@@ -59,7 +59,7 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             ),
             "outputs": components.Label(label="Classification", render=False),
             "preprocess": lambda i: {"images": i},
-            "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
+            "postprocess": lambda r: {i["label"]: i["score"] for i in r},
         }
     if is_transformers_pipeline_type(pipeline, "QuestionAnsweringPipeline"):
         return {
@@ -86,7 +86,7 @@ def handle_transformers_pipeline(pipeline: Any) -> Optional[Dict[str, Any]]:
             "inputs": components.Textbox(label="Input", render=False),
             "outputs": components.Label(label="Classification", render=False),
             "preprocess": lambda x: [x],
-            "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
+            "postprocess": lambda r: {i["label"]: i["score"] for i in r},
         }
     if is_transformers_pipeline_type(pipeline, "TextGenerationPipeline"):
         return {
