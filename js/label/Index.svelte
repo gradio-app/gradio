@@ -13,6 +13,7 @@
 	export let gradio: Gradio<{
 		change: never;
 		select: SelectData;
+		clear_status: LoadingStatus;
 	}>;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -48,6 +49,7 @@
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
 		{...loading_status}
+		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	{#if show_label}
 		<BlockLabel Icon={LabelIcon} {label} disable={container === false} />

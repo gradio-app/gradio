@@ -12,6 +12,7 @@
 		change: never;
 		submit: never;
 		input: never;
+		clear_status: LoadingStatus;
 	}>;
 	export let label = "Textbox";
 	export let elem_id = "";
@@ -66,6 +67,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 	{/if}
 
