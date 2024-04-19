@@ -13,6 +13,9 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/utils": "workspace:0.3.2"
 	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
 	"exports": {
 		".": "./Index.svelte",
 		"./package.json": "./package.json"

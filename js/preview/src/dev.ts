@@ -36,15 +36,6 @@ export async function create_server({
 }: ServerOptions): Promise<void> {
 	process.env.gradio_mode = "dev";
 	const imports = generate_imports(component_dir, root_dir, python_path);
-	console.log({
-		component_dir,
-		root_dir,
-		frontend_port,
-		backend_port,
-		host,
-		python_path,
-		imports
-	});
 
 	const svelte_dir = join(root_dir, "assets", "svelte");
 
@@ -141,6 +132,11 @@ function generate_imports(
 			component: pkg.exports["."],
 			example: pkg.exports["./example"]
 		};
+
+		if (!exports.component)
+			throw new Error(
+				"Could not find component entry point. Please check the exports field of your package.json."
+			);
 
 		const example = exports.example
 			? `example: () => import("${to_posix(
