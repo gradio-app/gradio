@@ -314,12 +314,7 @@ export class Client {
 				`${root_url}/component_server/`,
 				{
 					method: "POST",
-					body: JSON.stringify({
-						data: data,
-						component_id: component_id,
-						fn_name: fn_name,
-						session_hash: this.session_hash
-					}),
+					body: body,
 					headers
 				}
 			);
