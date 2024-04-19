@@ -20,6 +20,6 @@ export default defineConfig({
 	ssr: {
 		target: "node",
 		format: "esm",
-		noExternal: ["ws", "semiver", "@gradio/upload"]
+		noExternal: ["ws", "semiver", "bufferutil", "@gradio/upload"]
 	}
 });

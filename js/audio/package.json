@@ -22,6 +22,9 @@
 		"wavesurfer.js": "^7.4.2",
 		"@types/wavesurfer.js": "^6.0.10"
 	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
 	"main_changeset": true,
 	"main": "index.ts",
 	"exports": {

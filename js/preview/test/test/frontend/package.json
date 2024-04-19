@@ -17,5 +17,8 @@
 		"@gradio/statustracker": "0.4.12",
 		"@gradio/utils": "0.3.2",
 		"@zerodevx/svelte-json-view": "^1.0.7"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
 	}
 }

@@ -18,6 +18,9 @@
 		"vega": "^5.22.1",
 		"vega-lite": "^5.12.0"
 	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
 	"main_changeset": true,
 	"exports": {
 		".": "./Index.svelte",
