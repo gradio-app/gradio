@@ -46,6 +46,7 @@ export function submit(
 		} = this;
 
 		if (!api_info) throw new Error("No API found");
+		if (!config) throw new Error("Could not resolve app config");
 
 		let { fn_index, endpoint_info, dependency } = get_endpoint_info(
 			api_info,
@@ -129,6 +130,10 @@ export function submit(
 			}
 
 			try {
+				if (!config) {
+					throw new Error("Could not resolve app config");
+				}
+
 				await fetch_implementation(`${config.root}/reset`, {
 					headers: { "Content-Type": "application/json" },
 					method: "POST",

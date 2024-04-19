@@ -3,6 +3,7 @@ import type {
 	ApiInfo,
 	ClientOptions,
 	Config,
+	DuplicateOptions,
 	EndpointInfo,
 	JsApiData,
 	SpaceStatus,
@@ -37,8 +38,8 @@ export class Client {
 	app_reference: string;
 	options: ClientOptions;
 
-	config!: Config;
-	api_info!: ApiInfo<JsApiData>;
+	config: Config | undefined;
+	api_info: ApiInfo<JsApiData> | undefined;
 	api_map: Record<string, number> = {};
 	session_hash: string = Math.random().toString(36).substring(2);
 	jwt: string | false = false;
@@ -123,23 +124,24 @@ export class Client {
 			await this._resolve_config().then(async ({ config }) => {
 				if (config) {
 					this.config = config;
-
-					// connect to the heartbeat endpoint via GET request
-					const heartbeat_url = new URL(
-						`${this.config.root}/heartbeat/${this.session_hash}`
-					);
-					this.eventSource_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
-
-					if (this.config.space_id && this.options.hf_token) {
-						this.jwt = await get_jwt(
-							this.config.space_id,
-							this.options.hf_token
+					if (this.config) {
+						// connect to the heartbeat endpoint via GET request
+						const heartbeat_url = new URL(
+							`${this.config.root}/heartbeat/${this.session_hash}`
 						);
+						this.eventSource_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
+
+						if (this.config.space_id && this.options.hf_token) {
+							this.jwt = await get_jwt(
+								this.config.space_id,
+								this.options.hf_token
+							);
+						}
 					}
 				}
 			});
 		} catch (e) {
-			console.error("Could not resolve config:", e);
+			throw Error(`Could not resolve config: ${e}`);
 		}
 
 		this.api_info = await this.view_api();
@@ -157,7 +159,7 @@ export class Client {
 
 	static async duplicate(
 		app_reference: string,
-		options: ClientOptions = {}
+		options: DuplicateOptions = {}
 	): Promise<Client> {
 		return duplicate(app_reference, options);
 	}
@@ -175,7 +177,7 @@ export class Client {
 			config = await this.resolve_config(`${http_protocol}//${host}`);
 
 			if (!config) {
-				throw new Error("No config or app_id set");
+				throw new Error("Could not resolve app config");
 			}
 
 			return this.config_success(config);
@@ -229,6 +231,10 @@ export class Client {
 		if (status.status === "running") {
 			try {
 				this.config = await this._resolve_config();
+				if (!this.config) {
+					throw new Error("Could not resolve app config");
+				}
+
 				const _config = await this.config_success(this.config);
 
 				return _config as Config;
@@ -251,6 +257,10 @@ export class Client {
 		fn_name: string,
 		data: unknown[] | { binary: boolean; data: Record<string, any> }
 	): Promise<unknown> {
+		if (!this.config) {
+			throw new Error("Could not resolve app config");
+		}
+
 		const headers: {
 			Authorization?: string;
 			"Content-Type"?: "application/json";

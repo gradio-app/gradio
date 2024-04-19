@@ -10,6 +10,10 @@ export async function predict(
 	let status_complete = false;
 	let dependency: Dependency;
 
+	if (!this.config) {
+		throw new Error("Could not resolve app config");
+	}
+
 	if (typeof endpoint === "number") {
 		dependency = this.config.dependencies[endpoint];
 	} else {

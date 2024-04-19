@@ -10,6 +10,10 @@ export function open_stream(this: Client): void {
 		config
 	} = this;
 
+	if (!config) {
+		throw new Error("Could not resolve app config");
+	}
+
 	stream_status.open = true;
 
 	let event_source: EventSource | null = null;
@@ -17,7 +21,7 @@ export function open_stream(this: Client): void {
 		session_hash: this.session_hash
 	}).toString();
 
-	let url = new URL(`${this.config.root}/queue/data?${params}`);
+	let url = new URL(`${config.root}/queue/data?${params}`);
 	event_source = this.eventSource_factory(url);
 
 	if (!event_source) {
@@ -39,7 +43,7 @@ export function open_stream(this: Client): void {
 						event_callbacks[event_id](_data) // todo: check event_callbacks
 				)
 			);
-		} else if (event_callbacks[event_id]) {
+		} else if (event_callbacks[event_id] && config) {
 			if (
 				_data.msg === "process_completed" &&
 				["sse", "sse_v1", "sse_v2", "sse_v2.1"].includes(config.protocol)

@@ -280,6 +280,11 @@
 		app = await Client.connect(api_url, {
 			status_callback: handle_status
 		});
+
+		if (!app.config) {
+			throw new Error("Could not resolve app config");
+		}
+
 		config = app.config;
 		window.__gradio_space__ = config.space_id;
 
@@ -307,6 +312,10 @@
 						app = await Client.connect(api_url, {
 							status_callback: handle_status
 						});
+
+						if (!app.config) {
+							throw new Error("Could not resolve app config");
+						}
 
 						config = app.config;
 						window.__gradio_space__ = config.space_id;
