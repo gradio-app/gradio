@@ -18,6 +18,7 @@
 	export let root: string;
 	export let height: number | undefined = undefined;
 	export let i18n: I18nFormatter;
+	export let max_file_size: number | null = null;
 
 	async function handle_upload({
 		detail
@@ -62,8 +63,10 @@
 		on:load={handle_upload}
 		filetype={file_types}
 		{file_count}
+		{max_file_size}
 		{root}
 		bind:dragging
+		on:error
 	>
 		<slot />
 	</Upload>

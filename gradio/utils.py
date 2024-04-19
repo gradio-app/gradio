@@ -169,7 +169,7 @@ def _remove_no_reload_codeblocks(file_path: str):
         file_path (str): The path to the file to remove the no_reload code blocks from.
     """
 
-    with open(file_path) as file:
+    with open(file_path, encoding="utf-8") as file:
         code = file.read()
 
     tree = ast.parse(code)
@@ -1280,3 +1280,27 @@ def async_lambda(f: Callable) -> Callable:
         return f(*args, **kwargs)
 
     return function_wrapper
+
+
+class FileSize:
+    B = 1
+    KB = 1024 * B
+    MB = 1024 * KB
+    GB = 1024 * MB
+    TB = 1024 * GB
+
+
+def _parse_file_size(size: str | int | None) -> int | None:
+    if isinstance(size, int) or size is None:
+        return size
+
+    size = size.replace(" ", "")
+
+    last_digit_index = next(
+        (i for i, c in enumerate(size) if not c.isdigit()), len(size)
+    )
+    size_int, unit = int(size[:last_digit_index]), size[last_digit_index:].upper()
+    multiple = getattr(FileSize, unit, None)
+    if not multiple:
+        raise ValueError(f"Invalid file size unit: {unit}")
+    return multiple * size_int
