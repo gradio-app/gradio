@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
 	import { mount_css as default_mount_css, prefix_css } from "./css";
+	import type { Client as ClientType } from "@gradio/client";
 
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 
@@ -63,7 +64,7 @@
 
 <script lang="ts">
 	import { onMount, setContext, createEventDispatcher } from "svelte";
-	import type { api_factory, SpaceStatus } from "@gradio/client";
+	import type { SpaceStatus } from "@gradio/client";
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./types";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -90,8 +91,7 @@
 
 	// These utilities are exported to be injectable for the Wasm version.
 	export let mount_css: typeof default_mount_css = default_mount_css;
-	export let client: ReturnType<typeof api_factory>["client"];
-	export let upload_files: ReturnType<typeof api_factory>["upload_files"];
+	export let Client: typeof ClientType;
 	export let worker_proxy: WorkerProxy | undefined = undefined;
 	if (worker_proxy) {
 		setWorkerProxyContext(worker_proxy);
@@ -257,7 +257,7 @@
 		detail: "SLEEPING"
 	};
 
-	let app: Awaited<ReturnType<typeof client>>;
+	let app: ClientType;
 	let css_ready = false;
 	function handle_status(_status: SpaceStatus): void {
 		status = _status;
@@ -277,9 +277,14 @@
 				  }`
 				: host || space || src || location.origin;
 
-		app = await client(api_url, {
+		app = await Client.connect(api_url, {
 			status_callback: handle_status
 		});
+
+		if (!app.config) {
+			throw new Error("Could not resolve app config");
+		}
+
 		config = app.config;
 		window.__gradio_space__ = config.space_id;
 
@@ -304,9 +309,13 @@
 				eventSource = new EventSource(url);
 				eventSource.onmessage = async function (event) {
 					if (event.data === "CHANGE") {
-						app = await client(api_url, {
+						app = await Client.connect(api_url, {
 							status_callback: handle_status
 						});
+
+						if (!app.config) {
+							throw new Error("Could not resolve app config");
+						}
 
 						config = app.config;
 						window.__gradio_space__ = config.space_id;
@@ -316,8 +325,6 @@
 			}, 200);
 		}
 	});
-
-	setContext("upload_files", upload_files);
 
 	$: loader_status =
 		!ready && status.load_status !== "error"
