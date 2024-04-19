@@ -48,9 +48,6 @@ export async function create_server({
 			configFile: false,
 			root: root_dir,
 
-			optimizeDeps: {
-				disabled: true
-			},
 			server: {
 				port: frontend_port,
 				host: host,

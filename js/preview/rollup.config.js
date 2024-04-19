@@ -121,35 +121,35 @@ export function copy_files() {
 const plugins = [node({ preferBuiltins: true }), json(), cjs(), ts()];
 
 export default [
-	{
-		input: "src/index.ts",
-		output: {
-			dir: "dist",
-			format: "esm",
-			minifyInternalExports: false
-		},
-		onwarn,
-		plugins: [
-			...plugins,
-			{
-				name: "clean_dir",
-				buildStart() {
-					if (existsSync("../../gradio/node")) {
-						rmSync("../../gradio/node", { recursive: true });
-					}
-				}
-			},
-			resolve_imports(),
-			inject_dirname(),
-			copy_files()
-		],
-		external: [
-			"fsevents",
-			"../compiler.js",
-			"vite",
-			"@sveltejs/vite-plugin-svelte"
-		]
-	},
+	// {
+	// 	input: "src/index.ts",
+	// 	output: {
+	// 		dir: "dist",
+	// 		format: "esm",
+	// 		minifyInternalExports: false
+	// 	},
+	// 	onwarn,
+	// 	plugins: [
+	// 		...plugins,
+	// 		// {
+	// 		// 	name: "clean_dir",
+	// 		// 	buildStart() {
+	// 		// 		if (existsSync("../../gradio/node")) {
+	// 		// 			rmSync("../../gradio/node", { recursive: true });
+	// 		// 		}
+	// 		// 	}
+	// 		// },
+	// 		resolve_imports(),
+	// 		inject_dirname(),
+	// 		copy_files()
+	// 	],
+	// 	external: [
+	// 		"fsevents",
+	// 		"../compiler.js",
+	// 		"vite",
+	// 		"@sveltejs/vite-plugin-svelte"
+	// 	]
+	// },
 	{
 		input: "src/svelte-submodules.ts",
 		output: {
