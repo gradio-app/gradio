@@ -28,8 +28,7 @@
 			label: "Label",
 			confidences: [
 				{
-					label:
-						"Long space separated label text, long space separated label text, long space separated label text",
+					label: "Long space separated label text, ".repeat(10),
 					confidence: 0.8
 				}
 			]
