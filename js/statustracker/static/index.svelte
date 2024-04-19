@@ -282,7 +282,7 @@
 				Icon={Clear}
 				label={i18n("common.clear")}
 				disabled={false}
-				on:click={(event) => {
+				on:click={() => {
 					dispatch("clear_status");
 				}}
 			/>

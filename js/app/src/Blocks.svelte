@@ -18,7 +18,6 @@
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import { create_components, AsyncFunction } from "./init";
-	import type { int } from "babylonjs";
 
 	setupi18n();
 
@@ -456,7 +455,7 @@
 	$: set_status($loading_status);
 
 	function update_status(
-		id: int,
+		id: number,
 		status: "error" | "complete" | "pending",
 		data: LoadingStatus
 	): void {
