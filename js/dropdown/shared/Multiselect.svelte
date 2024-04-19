@@ -376,6 +376,7 @@
 		padding: var(--size-0-5);
 		width: 16px;
 		height: 16px;
+		flex-shrink: 0;
 	}
 
 	.secondary-wrap {
