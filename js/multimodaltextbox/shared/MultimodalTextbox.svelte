@@ -198,7 +198,6 @@
 		}
 	}
 
-	$: console.log("UPLOADING", uploading);
 </script>
 
 <!-- svelte-ignore a11y-autofocus -->
