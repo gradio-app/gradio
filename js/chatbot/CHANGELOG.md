@@ -1,5 +1,29 @@
 # @gradio/chatbot
 
+## 0.8.3
+
+### Features
+
+- [#7998](https://github.com/gradio-app/gradio/pull/7998) [`06bdf0e`](https://github.com/gradio-app/gradio/commit/06bdf0eddf59bf79b6b4d1268fc9290955ef2490) - Restore chatbot formatting.  Thanks @aliabid94!
+
+### Fixes
+
+- [#8025](https://github.com/gradio-app/gradio/pull/8025) [`55ef4a5`](https://github.com/gradio-app/gradio/commit/55ef4a52c3d600344d8cf1a667f3f352c52c8e57) - Fixes Chatbot Image Sizing.  Thanks @dawoodkhan82!
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/statustracker@0.4.12
+- @gradio/theme@0.2.2
+- @gradio/client@0.16.0
+- @gradio/upload@0.8.5
+- @gradio/atoms@0.7.0
+- @gradio/icons@0.4.0
+- @gradio/audio@0.9.12
+- @gradio/image@0.9.12
+- @gradio/video@0.6.12
+- @gradio/markdown@0.6.10
+
 ## 0.8.2
 
 ### Dependency updates

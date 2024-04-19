@@ -16,6 +16,7 @@
 	export let i18n: I18nFormatter;
 	export let zoom_speed = 1;
 	export let pan_speed = 1;
+	export let max_file_size: number | null = null;
 
 	// alpha, beta, radius
 	export let camera_position: [number | null, number | null, number | null] = [
@@ -87,8 +88,10 @@
 	<Upload
 		on:load={handle_upload}
 		{root}
+		{max_file_size}
 		filetype={[".stl", ".obj", ".gltf", ".glb", "model/obj", ".splat", ".ply"]}
 		bind:dragging
+		on:error
 	>
 		<slot />
 	</Upload>

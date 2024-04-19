@@ -451,4 +451,16 @@ Gradio DOES NOT ALLOW access to:
 
 - **Any other paths on the host machine**. Users should NOT be able to access other arbitrary paths on the host.
 
+Sharing your Gradio application will also allow users to upload files to your computer or server. You can set a maximum file size for uploads to prevent abuse and to preserve disk space. You can do this with the `max_file_size` parameter of `.launch`. For example, the following two code snippets limit file uploads to 5 megabytes per file.
+
+```python
+import gradio as gr
+
+demo = gr.Interface(lambda x: x, "image", "image")
+
+demo.launch(max_file_size="5mb")
+# or
+demo.launch(max_file_size=5 * gr.FileSize.MB)
+```
+
 Please make sure you are running the latest version of `gradio` for these security settings to apply.
