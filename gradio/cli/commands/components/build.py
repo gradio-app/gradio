@@ -122,11 +122,11 @@ def _build(
             gradio_node_path = subprocess.run(
                 [node, "-e", "console.log(require.resolve('@gradio/preview'))"],
                 cwd=Path(component_directory / "frontend"),
-                check=True,
+                check=False,
                 capture_output=True,
             )
 
-            if gradio_node_path.stdout is None:
+            if gradio_node_path.returncode != 0:
                 raise ValueError(
                     "Could not find `@gradio/preview`. Run `npm i -D @gradio/preview` in your frontend folder."
                 )
