@@ -8,7 +8,6 @@ from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
 
 def copy_js_code(root: str | pathlib.Path):
-    print("COPYING CODE")
     NOT_COMPONENT = [
         "app",
         "node_modules",

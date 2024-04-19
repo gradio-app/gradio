@@ -63,17 +63,19 @@ def _dev(
         "gradio", gradio_path, cli_arg_name="--gradio-path"
     )
 
-    gradio_node_path = subprocess.Popen(
+    gradio_node_path = subprocess.run(
         [node, "-e", "console.log(require.resolve('@gradio/preview'))"],
         cwd=Path(component_directory / "frontend"),
-        stdout=subprocess.PIPE,
+        check=True,
+        capture_output=True,
     )
 
     if gradio_node_path.stdout is None:
         raise ValueError(
-            "Failed to find gradio node path. Please make sure you have gradio installed."
+            "Could not find `@gradio/preview`. Run `npm i -D @gradio/preview` in your frontend folder."
         )
-    gradio_node_path = gradio_node_path.stdout.readline().decode("utf-8").strip()
+
+    gradio_node_path = gradio_node_path.stdout.decode("utf-8").strip()
 
     proc = subprocess.Popen(
         [
