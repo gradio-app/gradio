@@ -8,6 +8,7 @@ from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
 
 def copy_js_code(root: str | pathlib.Path):
+    print("COPYING CODE")
     NOT_COMPONENT = [
         "app",
         "node_modules",
@@ -36,6 +37,7 @@ def copy_js_code(root: str | pathlib.Path):
                     ):
                         ignored.append(n)
                 return ignored
+
             shutil.copytree(
                 str(entry),
                 str(pathlib.Path("gradio") / "_frontend_code" / entry.name),
