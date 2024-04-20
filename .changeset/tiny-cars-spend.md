@@ -41,6 +41,7 @@
 "gradio_client": minor
 ---
 
+highlight:
 
 #### Setting File Upload Limits
 
