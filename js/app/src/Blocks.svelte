@@ -679,7 +679,7 @@
 		position: fixed;
 		top: 0;
 		right: 0;
-		z-index: var(--layer-5);
+		z-index: var(--layer-top);
 		background: rgba(0, 0, 0, 0.5);
 		width: var(--size-screen);
 		height: var(--size-screen-h);
