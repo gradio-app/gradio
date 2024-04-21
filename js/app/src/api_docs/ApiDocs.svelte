@@ -2,11 +2,9 @@
 	/* eslint-disable */
 	import { onMount, createEventDispatcher } from "svelte";
 	import type { ComponentMeta, Dependency } from "../types";
-	import { post_data } from "@gradio/client";
 	import NoApi from "./NoApi.svelte";
-	import type { client } from "@gradio/client";
+	import type { Client } from "@gradio/client";
 	import type { Payload } from "../types";
-	import { represent_value } from "./utils";
 
 	import ApiBanner from "./ApiBanner.svelte";
 	import Button from "../../../button/shared/Button.svelte";
@@ -21,7 +19,7 @@
 
 	export let dependencies: Dependency[];
 	export let root: string;
-	export let app: Awaited<ReturnType<typeof client>>;
+	export let app: Awaited<ReturnType<typeof Client.connect>>;
 	export let space_id: string | null;
 	export let root_node: ComponentMeta;
 	const js_docs =
@@ -51,44 +49,6 @@
 
 	let is_running = false;
 
-	function find_recursive(
-		node: ComponentMeta,
-		id: number
-	): ComponentMeta | null {
-		if (node.id === id) {
-			return node;
-		}
-		if (node.children) {
-			for (let child of node.children) {
-				let result = find_recursive(child, id);
-				if (result) {
-					return result;
-				}
-			}
-		}
-		return null;
-	}
-
-	let dependency_inputs = dependencies.map((dependency) =>
-		dependency.inputs.map((_id) => {
-			let default_data = find_recursive(root_node, _id)?.props?.default;
-			if (default_data === undefined) {
-				default_data = "";
-			} else if (typeof default_data === "object") {
-				default_data = JSON.stringify(default_data);
-			}
-			return default_data;
-		})
-	);
-
-	let dependency_outputs: any[][] = dependencies.map(
-		(dependency) => new Array(dependency.outputs.length)
-	);
-
-	let dependency_failures: boolean[][] = dependencies.map((dependency) =>
-		new Array(dependency.inputs.length).fill(false)
-	);
-
 	async function get_info(): Promise<{
 		named_endpoints: any;
 		unnamed_endpoints: any;
@@ -116,54 +76,6 @@
 	get_js_info().then((js_api_info) => {
 		js_info = js_api_info;
 	});
-
-	async function run(index: number): Promise<void> {
-		is_running = true;
-		let dependency = dependencies[index];
-		let attempted_component_index = 0;
-		try {
-			var inputs = dependency_inputs[index].map((input_val: any, i: number) => {
-				attempted_component_index = i;
-				let component = find_recursive(root_node, dependency.inputs[i])!;
-				input_val = represent_value(
-					input_val,
-					component.documentation?.type?.input_payload ||
-						component.documentation?.type?.payload
-				);
-				dependency_failures[index][attempted_component_index] = false;
-				return input_val;
-			});
-		} catch (err) {
-			dependency_failures[index][attempted_component_index] = true;
-			is_running = false;
-			return;
-		}
-		let [response, status_code] = await post_data(
-			`${root}run/${dependency.api_name}`,
-			{
-				data: inputs
-			}
-		);
-		is_running = false;
-		if (status_code == 200) {
-			dependency_outputs[index] = response.data.map(
-				(output_val: any, i: number) => {
-					let component = find_recursive(root_node, dependency.outputs[i])!;
-
-					return represent_value(
-						output_val,
-						component.documentation?.type?.response_object ||
-							component.documentation?.type?.payload,
-						"js"
-					);
-				}
-			);
-		} else {
-			dependency_failures[index] = new Array(
-				dependency_failures[index].length
-			).fill(true);
-		}
-	}
 
 	const dispatch = createEventDispatcher();
 

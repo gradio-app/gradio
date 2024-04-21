@@ -16,12 +16,13 @@ const image_path = join(
 	"lion.jpg"
 );
 
-import { walk_and_store_blobs, client, handle_blob } from "./client";
+import { walk_and_store_blobs } from "../helpers/data";
+import { Client } from "..";
 
 describe.skip("extract blob parts", () => {
 	test("convert Buffer to Blob", async () => {
 		const image = readFileSync(image_path);
-		await client("gradio/hello_world_main");
+		await Client.connect("gradio/hello_world_main");
 		const parts = walk_and_store_blobs({
 			data: {
 				image
@@ -34,7 +35,7 @@ describe.skip("extract blob parts", () => {
 	test("leave node Blob as Blob", async () => {
 		const image = new Blob([readFileSync(image_path)]);
 
-		await client("gradio/hello_world_main");
+		await Client.connect("gradio/hello_world_main");
 		const parts = walk_and_store_blobs({
 			data: {
 				image
@@ -47,7 +48,7 @@ describe.skip("extract blob parts", () => {
 	test("handle deep structures", async () => {
 		const image = new Blob([readFileSync(image_path)]);
 
-		await client("gradio/hello_world_main");
+		await Client.connect("gradio/hello_world_main");
 		const parts = walk_and_store_blobs({
 			a: {
 				b: {
@@ -64,7 +65,7 @@ describe.skip("extract blob parts", () => {
 	test("handle deep structures with arrays", async () => {
 		const image = new Blob([readFileSync(image_path)]);
 
-		await client("gradio/hello_world_main");
+		await Client.connect("gradio/hello_world_main");
 		const parts = walk_and_store_blobs({
 			a: [
 				{
@@ -87,7 +88,7 @@ describe.skip("extract blob parts", () => {
 	test("handle deep structures with arrays 2", async () => {
 		const image = new Blob([readFileSync(image_path)]);
 
-		await client("gradio/hello_world_main");
+		await Client.connect("gradio/hello_world_main");
 		const obj = {
 			a: [
 				{
@@ -121,7 +122,7 @@ describe("handle_blob", () => {
 	test("handle blobs", async () => {
 		const image = new Blob([readFileSync(image_path)]);
 
-		const app = await client("gradio/hello_world_main");
+		const app = await Client.connect("gradio/hello_world_main");
 		const obj = [
 			{
 				a: [
@@ -136,7 +137,7 @@ describe("handle_blob", () => {
 			}
 		];
 
-		const parts = await handle_blob(app.config.root, obj, undefined);
+		const parts = await app.handle_blob(app.config.root, obj, undefined);
 		//@ts-ignore
 		// assert.isString(parts.data[0].a[0].b[0].data[0][0]);
 	});
@@ -146,7 +147,7 @@ describe.skip("private space", () => {
 	test("can access a private space", async () => {
 		const image = new Blob([readFileSync(image_path)]);
 
-		const app = await client("pngwn/hello_world", {
+		const app = await Client.connect("pngwn/hello_world", {
 			hf_token: "hf_"
 		});
 
@@ -165,7 +166,7 @@ describe.skip("private space", () => {
 			}
 		];
 
-		const parts = await handle_blob(app.config.root, obj, "hf_");
+		const parts = await app.handle_blob(app.config.root, obj, undefined);
 		//@ts-ignore
 		assert.isString(parts.data[0].a[0].b[0].data[0][0]);
 	});
