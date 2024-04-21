@@ -17,7 +17,11 @@
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
-	import { create_components, AsyncFunction } from "./init";
+	import {
+		create_components,
+		AsyncFunction,
+		restore_keyed_values
+	} from "./init";
 
 	setupi18n();
 
@@ -52,23 +56,6 @@
 		create_layout
 	} = create_components();
 
-	const restore_keyed_values = (): void => {
-		let component_values_by_key: Record<string | number, ComponentMeta> = {};
-		old_components.forEach((component) => {
-			if (component.key) {
-				component_values_by_key[component.key] = component;
-			}
-		});
-		components.forEach((component) => {
-			if (component.key) {
-				const old_component = component_values_by_key[component.key];
-				if (old_component) {
-					component.props.value = old_component.props.value;
-				}
-			}
-		});
-	};
-
 	$: create_layout({
 		components,
 		layout,
@@ -78,7 +65,7 @@
 		options: {
 			fill_height
 		},
-		callback: restore_keyed_values
+		callback: () => restore_keyed_values(old_components, components)
 	});
 
 	$: {
