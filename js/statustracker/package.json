@@ -19,5 +19,8 @@
 		"@gradio/column": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/utils": "workspace:^"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
 	}
 }

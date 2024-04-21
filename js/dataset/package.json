@@ -16,5 +16,8 @@
 		"@gradio/client": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@gradio/upload": "workspace:^"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
 	}
 }

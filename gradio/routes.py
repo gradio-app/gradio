@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import math
 import sys
 
 if sys.version_info >= (3, 9):
@@ -1043,21 +1044,26 @@ class App(FastAPI):
             try:
                 if upload_id:
                     file_upload_statuses.track(upload_id)
+                max_file_size = app.get_blocks().max_file_size
+                max_file_size = max_file_size if max_file_size is not None else math.inf
                 multipart_parser = GradioMultiPartParser(
                     request.headers,
                     request.stream(),
                     max_files=1000,
                     max_fields=1000,
+                    max_file_size=max_file_size,
                     upload_id=upload_id if upload_id else None,
                     upload_progress=file_upload_statuses if upload_id else None,
                 )
                 form = await multipart_parser.parse()
             except MultiPartException as exc:
-                raise HTTPException(status_code=400, detail=exc.message) from exc
+                code = 413 if "maximum allowed size" in exc.message else 400
+                return PlainTextResponse(exc.message, status_code=code)
 
             output_files = []
             files_to_copy = []
             locations: list[str] = []
+
             for temp_file in form.getlist("files"):
                 if not isinstance(temp_file, GradioUploadFile):
                     raise TypeError("File is not an instance of GradioUploadFile")
@@ -1172,6 +1178,7 @@ def mount_gradio_app(
     blocked_paths: list[str] | None = None,
     favicon_path: str | None = None,
     show_error: bool = True,
+    max_file_size: str | int | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -1188,6 +1195,7 @@ def mount_gradio_app(
         blocked_paths: List of complete filepaths or parent directories that this gradio app is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
         favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for this gradio app's page.
         show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. Otherwise, errors will only be visible in the terminal session running the Gradio app.
+        max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
     Example:
         from fastapi import FastAPI
         import gradio as gr
@@ -1200,6 +1208,7 @@ def mount_gradio_app(
         # Then run `uvicorn run:app` from the terminal and navigate to http://localhost:8000/gradio.
     """
     blocks.dev_mode = False
+    blocks.max_file_size = utils._parse_file_size(max_file_size)
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
     if auth is not None and auth_dependency is not None:

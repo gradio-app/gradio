@@ -1268,3 +1268,17 @@ def test_compare_passwords_securely():
 )
 def test_starts_with_protocol(string, expected):
     assert starts_with_protocol(string) == expected
+
+
+def test_max_file_size_used_in_upload_route(connect):
+    with gr.Blocks() as demo:
+        gr.Markdown("Max file size demo")
+
+    app, _, _ = demo.launch(prevent_thread_lock=True, max_file_size="1kb")
+    test_client = TestClient(app)
+    with open("test/test_files/cheetah1.jpg", "rb") as f:
+        r = test_client.post("/upload", files={"files": f})
+        assert r.status_code == 413
+    with open("test/test_files/alphabet.txt", "rb") as f:
+        r = test_client.post("/upload", files={"files": f})
+        assert r.status_code == 200

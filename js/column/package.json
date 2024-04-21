@@ -11,5 +11,8 @@
 	"exports": {
 		".": "./Index.svelte",
 		"./package.json": "./package.json"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
 	}
 }

@@ -20,6 +20,9 @@
 		"dequal": "^2.0.2",
 		"gsplat": "^1.0.5"
 	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
 	"main_changeset": true,
 	"main": "./Index.svelte",
 	"exports": {

@@ -28,6 +28,7 @@
 	export let i18n: I18nFormatter;
 	export let active_source: "webcam" | "upload" = "webcam";
 	export let handle_reset_value: () => void = () => {};
+	export let max_file_size: number | null = null;
 
 	const dispatch = createEventDispatcher<{
 		change: FileData | null;
@@ -77,6 +78,7 @@
 					bind:dragging
 					filetype="video/x-m4v,video/*"
 					on:load={handle_load}
+					{max_file_size}
 					on:error={({ detail }) => dispatch("error", detail)}
 					{root}
 				>

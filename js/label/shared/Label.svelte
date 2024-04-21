@@ -11,6 +11,13 @@
 
 	export let color: string | undefined = undefined;
 	export let selectable = false;
+
+	function get_aria_referenceable_id(elem_id: string): string {
+		// `aria-labelledby` interprets the value as a space-separated id reference list,
+		// so each single id should not contain any spaces.
+		// Ref: https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes/aria-labelledby#benefits_and_drawbacks
+		return elem_id.replace(/\s/g, "-");
+	}
 </script>
 
 <div class="container">
@@ -35,27 +42,35 @@
 			>
 				<div class="inner-wrap">
 					<meter
-						aria-labelledby="meter-text"
+						aria-labelledby={get_aria_referenceable_id(
+							`meter-text-${confidence_set.label}`
+						)}
+						aria-label={confidence_set.label}
+						aria-valuenow={Math.round(confidence_set.confidence * 100)}
+						aria-valuemin="0"
+						aria-valuemax="100"
 						class="bar"
 						min="0"
-						max="100"
+						max="1"
+						value={confidence_set.confidence}
 						style="width: {confidence_set.confidence *
 							100}%; background: var(--stat-background-fill);
 						"
-						value="100"
-						aria-label={Math.round(confidence_set.confidence * 100) + "%"}
 					/>
 
 					<dl class="label">
-						<dt id={`meter-text-${confidence_set.label}`} class="text">
+						<dt
+							id={get_aria_referenceable_id(
+								`meter-text-${confidence_set.label}`
+							)}
+							class="text"
+						>
 							{confidence_set.label}
 						</dt>
-						{#if value.confidences}
-							<div class="line" />
-							<dd class="confidence">
-								{Math.round(confidence_set.confidence * 100)}%
-							</dd>
-						{/if}
+						<div class="line" />
+						<dd class="confidence">
+							{Math.round(confidence_set.confidence * 100)}%
+						</dd>
 					</dl>
 				</div>
 			</button>
@@ -126,6 +141,7 @@
 
 	.text {
 		line-height: var(--line-md);
+		text-align: left;
 	}
 
 	.line {

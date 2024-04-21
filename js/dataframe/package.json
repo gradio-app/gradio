@@ -28,5 +28,8 @@
 		".": "./Index.svelte",
 		"./example": "./Example.svelte",
 		"./package.json": "./package.json"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
 	}
 }

@@ -15,6 +15,7 @@
 		change: never;
 		select: SelectData;
 		input: never;
+		clear_status: LoadingStatus;
 	}>;
 
 	export let label = gradio.i18n("radio.radio");
@@ -53,6 +54,7 @@
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
 		{...loading_status}
+		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 
 	<BlockTitle {show_label} {info}>{label}</BlockTitle>
