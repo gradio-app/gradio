@@ -830,7 +830,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         return self.default_config.blocks
 
     @blocks.setter
-    def name(self, value: dict[int, Component | Block]):
+    def blocks(self, value: dict[int, Component | Block]):
         self.default_config.blocks = value
 
     @property
