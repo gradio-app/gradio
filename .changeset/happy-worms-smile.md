@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Respect `auth_dependency` parameter in `launch()`
+fix:Respect `auth_dependency` parameter in `launch()`
