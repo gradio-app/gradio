@@ -1,7 +1,7 @@
 import type { Preview } from "@storybook/svelte";
 import "./theme.css";
 import { setupi18n } from "../app/src/i18n";
-import { Gradio } from "../app/src/gradio_helper";
+import { Gradio, formatter } from "../app/src/gradio_helper";
 import "../theme/src/reset.css";
 import "../theme/src/global.css";
 
@@ -19,7 +19,9 @@ const preview: Preview = {
 			"light",
 			"1.1.1",
 			"localhost:9876",
-			false
+			false,
+			null,
+			formatter
 		)
 	},
 	argTypes: {

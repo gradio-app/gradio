@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { tick } from "svelte";
 	import { _ } from "svelte-i18n";
-	import { client } from "@gradio/client";
+	import { Client } from "@gradio/client";
+	import { setContext } from "svelte";
 
-	import type { LoadingStatusCollection } from "./stores";
+	import type { LoadingStatus, LoadingStatusCollection } from "./stores";
 
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import type { UpdateTransaction } from "./init";
@@ -34,7 +35,7 @@
 	export let control_page_title = false;
 	export let app_mode: boolean;
 	export let theme_mode: ThemeMode;
-	export let app: Awaited<ReturnType<typeof client>>;
+	export let app: Awaited<ReturnType<typeof Client.connect>>;
 	export let space_id: string | null;
 	export let version: string;
 	export let js: string | null;
@@ -430,6 +431,8 @@
 				trigger_share(title, description);
 			} else if (event === "error" || event === "warning") {
 				messages = [new_message(data, -1, event), ...messages];
+			} else if (event == "clear_status") {
+				update_status(id, "complete", data);
 			} else {
 				const deps = $targets[id]?.[event];
 
@@ -451,6 +454,21 @@
 	}
 
 	$: set_status($loading_status);
+
+	function update_status(
+		id: number,
+		status: "error" | "complete" | "pending",
+		data: LoadingStatus
+	): void {
+		data.status = status;
+		update_value([
+			{
+				id,
+				prop: "loading_status",
+				value: data
+			}
+		]);
+	}
 
 	function set_status(statuses: LoadingStatusCollection): void {
 		const updates = Object.entries(statuses).map(([id, loading_status]) => {
@@ -481,6 +499,8 @@
 	function isCustomEvent(event: Event): event is CustomEvent {
 		return "detail" in event;
 	}
+
+	setContext("upload_files", app.upload_files);
 </script>
 
 <svelte:head>
@@ -508,7 +528,7 @@
 
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
-		{#if $_layout}
+		{#if $_layout && app.config}
 			<MountComponents
 				rootNode={$_layout}
 				{root}
@@ -518,6 +538,7 @@
 				on:destroy={({ detail }) => handle_destroy(detail)}
 				{version}
 				{autoscroll}
+				max_file_size={app.config.max_file_size}
 			/>
 		{/if}
 	</div>
@@ -658,7 +679,7 @@
 		position: fixed;
 		top: 0;
 		right: 0;
-		z-index: var(--layer-5);
+		z-index: var(--layer-top);
 		background: rgba(0, 0, 0, 0.5);
 		width: var(--size-screen);
 		height: var(--size-screen-h);

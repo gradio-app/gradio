@@ -3,12 +3,14 @@
 	"version": "0.7.2",
 	"description": "Gradio UI packages",
 	"type": "module",
-	"main": "src/index.ts",
+	"main": "dist/index.js",
 	"author": "",
 	"license": "ISC",
 	"private": false,
 	"scripts": {
-		"build": "rollup -c"
+		"build:rollup": "rollup -c",
+		"build:vite": "vite build --ssr",
+		"build": "pnpm build:rollup && pnpm build:vite"
 	},
 	"devDependencies": {
 		"@rollup/plugin-commonjs": "^25.0.4",
@@ -16,24 +18,22 @@
 		"@rollup/plugin-node-resolve": "^15.1.0",
 		"@rollup/plugin-typescript": "^11.1.2",
 		"rollup": "^3.28.0",
-		"svelte-hmr": "^0.16.0"
+		"@originjs/vite-plugin-commonjs": "^1.0.3",
+		"@rollup/plugin-sucrase": "^5.0.1"
 	},
 	"dependencies": {
-		"@originjs/vite-plugin-commonjs": "^1.0.3",
-		"@rollup/plugin-sucrase": "^5.0.1",
-		"@sveltejs/vite-plugin-svelte": "^2.5.2",
+		"@sveltejs/vite-plugin-svelte": "^3.1.0",
 		"@types/which": "^3.0.0",
 		"coffeescript": "^2.7.0",
-		"css-tree": "2.3.1",
-		"esbuild-wasm": "^0.20.0",
 		"lightningcss": "^1.21.7",
 		"pug": "^3.0.2",
-		"rollup-plugin-ignore": "^1.0.10",
 		"sass": "^1.66.1",
 		"stylus": "^0.63.0",
 		"sucrase": "^3.34.0",
 		"sugarss": "^4.0.1",
+		"vite": "^5.2.9",
 		"which": "4.0.0",
-		"yootils": "^0.3.1"
+		"yootils": "^0.3.1",
+		"svelte-hmr": "^0.16.0"
 	}
 }

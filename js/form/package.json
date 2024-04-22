@@ -11,6 +11,9 @@
 		"@gradio/utils": "workspace:^",
 		"@gradio/icons": "workspace:^"
 	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
 	"main_changeset": true,
 	"main": "./Index.svelte",
 	"exports": {

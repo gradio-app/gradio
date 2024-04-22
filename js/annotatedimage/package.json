@@ -11,6 +11,9 @@
 		".": "./Index.svelte",
 		"./package.json": "./package.json"
 	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/icons": "workspace:^",

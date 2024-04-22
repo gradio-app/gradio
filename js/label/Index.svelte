@@ -13,6 +13,7 @@
 	export let gradio: Gradio<{
 		change: never;
 		select: SelectData;
+		clear_status: LoadingStatus;
 	}>;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -22,6 +23,7 @@
 		label?: string;
 		confidences?: { label: string; confidence: number }[];
 	} = {};
+	let old_value: typeof value | null = null;
 	export let label = gradio.i18n("label.label");
 	export let container = true;
 	export let scale: number | null = null;
@@ -30,8 +32,14 @@
 	export let show_label = true;
 	export let _selectable = false;
 
-	$: ({ confidences, label: _label } = value);
-	$: _label, confidences, gradio.dispatch("change");
+	$: {
+		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
+			old_value = value;
+			gradio.dispatch("change");
+		}
+	}
+
+	$: _label = value.label;
 </script>
 
 <Block
@@ -48,6 +56,7 @@
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
 		{...loading_status}
+		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	{#if show_label}
 		<BlockLabel Icon={LabelIcon} {label} disable={container === false} />
