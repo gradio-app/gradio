@@ -2088,6 +2088,8 @@ Received outputs:
             demo = gr.Interface(reverse, "text", "text")
             demo.launch(share=True, auth=("username", "password"))
         """
+        from gradio.routes import App
+
         if self._is_running_in_reload_thread:
             # We have already launched the demo
             return None, None, None  # type: ignore
@@ -2136,6 +2138,8 @@ Received outputs:
         self.config = self.get_config_file()
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
+        # self.server_app is included for backwards compatibility
+        self.server_app = self.app = App.create_app(self, auth_dependency=auth_dependency, app_kwargs=app_kwargs)
 
         if self.is_running:
             if not isinstance(self.local_url, str):
@@ -2150,42 +2154,28 @@ Received outputs:
                 server_port = 99999
                 local_url = ""
                 server = None
-
                 # In the Wasm environment, we only need the app object
                 # which the frontend app will directly communicate with through the Worker API,
                 # and we don't need to start a server.
-                # So we just create the app object and register it here,
-                # and avoid using `networking.start_server` that would start a server that don't work in the Wasm env.
-                from gradio.routes import App
-
-                app = App.create_app(
-                    self, auth_dependency=auth_dependency, app_kwargs=app_kwargs
-                )
-                wasm_utils.register_app(app)
+                wasm_utils.register_app(self.app)
             else:
                 from gradio import http_server
-
                 (
                     server_name,
                     server_port,
                     local_url,
-                    app,
                     server,
                 ) = http_server.start_server(
-                    self,
-                    server_name,
-                    server_port,
-                    ssl_keyfile,
-                    ssl_certfile,
-                    ssl_keyfile_password,
-                    app_kwargs=app_kwargs,
+                    app=self.app,
+                    server_name=server_name,
+                    server_port=server_port,
+                    ssl_keyfile=ssl_keyfile,
+                    ssl_certfile=ssl_certfile,
+                    ssl_keyfile_password=ssl_keyfile_password,
                 )
             self.server_name = server_name
             self.local_url = local_url
             self.server_port = server_port
-            self.server_app = (
-                self.app
-            ) = app  # server_app is included for backwards compatibility
             self.server = server
             self.is_running = True
             self.is_colab = utils.colab_check()
