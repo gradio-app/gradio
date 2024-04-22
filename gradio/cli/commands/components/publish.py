@@ -230,17 +230,14 @@ def _publish(
             )
 
             api = HfApi()
-            whoami = api.whoami(token=hf_token)
-            repo_id = f"{whoami['name']}/{package_name}"
-            if not api.repo_exists(repo_id=repo_id, repo_type="space"):
-                api.create_repo(
-                    repo_id=package_name,
-                    repo_type="space",
-                    exist_ok=True,
-                    private=False,
-                    space_sdk="gradio",
-                    token=hf_token,
-                )
+            api = HfApi(token=hf_token)
+            repo_url = api.create_repo(
+                repo_id=package_name,
+                repo_type="space",
+                exist_ok=True,
+                space_sdk="gradio",
+            )
+            repo_id = repo_url.repo_id
             api.upload_folder(
                 repo_id=repo_id,
                 folder_path=tempdir,
