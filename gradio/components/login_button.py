@@ -1,4 +1,5 @@
 """Predefined button to sign in with Hugging Face in a Gradio Space."""
+
 from __future__ import annotations
 
 import json
@@ -91,14 +92,14 @@ class LoginButton(Button):
 
         if session is None or "oauth_info" not in session:
             # Cookie set but user not logged in
-            return LoginButton(self.value, interactive=True)  # type: ignore[arg-type]
+            return LoginButton(self.value, interactive=True)
 
         oauth_info = session["oauth_info"]
         expires_at = oauth_info.get("expires_at")
         if expires_at is not None and expires_at < time.time():
             # User is logged in but token has expired => logout
             session.pop("oauth_info", None)
-            return LoginButton(self.value, interactive=True)  # type: ignore[arg-type]
+            return LoginButton(self.value, interactive=True)
 
         # User is correctly logged in
         username = oauth_info["userinfo"]["preferred_username"]
