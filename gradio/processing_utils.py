@@ -347,7 +347,7 @@ def move_files_to_cache(
     postprocess: bool = False,
     check_in_upload_folder=False,
     keep_in_cache=False,
-) -> dict:
+):
     """Move any files in `data` to cache and (optionally), adds URL prefixes (/file=...) needed to access the cached file.
     Also handles the case where the file is on an external Gradio app (/proxy=...).
 
