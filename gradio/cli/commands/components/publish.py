@@ -217,6 +217,10 @@ def _publish(
                 str(tempdir),
                 dirs_exist_ok=True,
             )
+            shutil.copyfile(
+                str(source_dir / ".gitignore"),
+                str(Path(tempdir) / ".gitignore"),
+            )
             if upload_source:
                 shutil.copytree(
                     str(source_dir),
@@ -229,7 +233,6 @@ def _publish(
                 str(source_dir / "README.md"), str(Path(tempdir) / "README.md")
             )
 
-            api = HfApi()
             api = HfApi(token=hf_token)
             repo_url = api.create_repo(
                 repo_id=package_name,
@@ -241,7 +244,6 @@ def _publish(
             api.upload_folder(
                 repo_id=repo_id,
                 folder_path=tempdir,
-                token=hf_token,
                 repo_type="space",
             )
             if prefer_local:
@@ -249,7 +251,6 @@ def _publish(
                     repo_id=repo_id,
                     path_or_fileobj=str(wheel_file),
                     path_in_repo=wheel_file.name,
-                    token=hf_token,
                     repo_type="space",
                 )
             print("\n")
