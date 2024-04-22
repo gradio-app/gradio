@@ -15,7 +15,7 @@ from gradio.routes import App
 from gradio.utils import SourceFileReloader, watchfn
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio.blocks import Blocks
+    pass
 
 # By default, the local server will try to open on localhost, port 7860.
 # If that is not available, then it will try 7861, 7862, ... 7959.

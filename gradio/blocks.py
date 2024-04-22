@@ -2139,7 +2139,9 @@ Received outputs:
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
         # self.server_app is included for backwards compatibility
-        self.server_app = self.app = App.create_app(self, auth_dependency=auth_dependency, app_kwargs=app_kwargs)
+        self.server_app = self.app = App.create_app(
+            self, auth_dependency=auth_dependency, app_kwargs=app_kwargs
+        )
 
         if self.is_running:
             if not isinstance(self.local_url, str):
@@ -2160,6 +2162,7 @@ Received outputs:
                 wasm_utils.register_app(self.app)
             else:
                 from gradio import http_server
+
                 (
                     server_name,
                     server_port,
