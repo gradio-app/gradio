@@ -1,6 +1,6 @@
 ---
-"gradio": minor
-"gradio_client": minor
+"gradio": patch
+"gradio_client": patch
 ---
 
-feat:upgrade `ruff` dependency to `ruff==0.4.1`
+feat:upgrade `ruff` test dependency to `ruff==0.4.1`
