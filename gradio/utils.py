@@ -814,7 +814,7 @@ def get_cancel_function(
     for dep in dependencies:
         if Context.root_block:
             fn_index = next(
-                i for i, d in enumerate(Context.root_block.dependencies) if d == dep
+                i for i, d in enumerate(Context.root_block.fns) if d.get_config() == dep
             )
             fn_to_comp[fn_index] = [
                 Context.root_block.blocks[o] for o in dep["outputs"]
