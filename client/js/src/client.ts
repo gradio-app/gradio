@@ -94,7 +94,7 @@ export class Client {
 		event_data?: unknown
 	) => Promise<unknown>;
 	open_stream: () => void;
-	resolve_config: (endpoint: string) => Promise<Config | undefined>;
+	private resolve_config: (endpoint: string) => Promise<Config | undefined>;
 	constructor(app_reference: string, options: ClientOptions = {}) {
 		this.app_reference = app_reference;
 		this.options = options;
@@ -356,6 +356,21 @@ export async function client(
 	options: ClientOptions = {}
 ): Promise<Client> {
 	return await Client.connect(app_reference, options);
+}
+
+/**
+ * @deprecated This method will be removed in v1.0. Use `Client.duplicate()` instead.
+ * Creates a duplicate of a space and returns a client instance for the duplicated space.
+ *
+ * @param {string} app_reference - The reference or URL to a Gradio space or app to duplicate.
+ * @param {DuplicateOptions} options - Configuration options for the client.
+ * @returns {Promise<Client>} A promise that resolves to a `Client` instance.
+ */
+export async function duplicate_space(
+	app_reference: string,
+	options: DuplicateOptions
+): Promise<Client> {
+	return await Client.duplicate(app_reference, options);
 }
 
 export type ClientInstance = Client;

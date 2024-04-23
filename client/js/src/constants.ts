@@ -9,6 +9,8 @@ export const UPLOAD_URL = "upload";
 export const LOGIN_URL = "login";
 export const CONFIG_URL = "config";
 export const API_INFO_URL = "info";
+export const RUNTIME_URL = "runtime";
+export const SLEEPTIME_URL = "sleeptime";
 export const RAW_API_INFO_URL = "info?serialize=False";
 export const SPACE_FETCHER_URL =
 	"https://gradio-space-api-fetcher-v2.hf.space/api";
