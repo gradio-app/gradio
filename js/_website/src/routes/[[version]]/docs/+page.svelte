@@ -71,43 +71,43 @@
 				<a
 					href="./docs/gradio/interface"
 					target="_self"
-					class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
 					>Interface
 				</a>
 				<a
 					href="./docs/gradio/blocks"
 					target="_self"
-					class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
 					>Blocks
 				</a>
 				<a
 					href="./docs/gradio/chatinterface"
 					target="_self"
-					class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
 					>ChatInterface
 				</a>
 				<a
 					href="./docs/gradio/textbox"
 					target="_self"
-					class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
 					>Textbox
 				</a>
 				<a
 					href="./docs/gradio/image"
 					target="_self"
-					class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
 					>Image
 				</a>
 				<a
 					href="./docs/gradio/audio"
 					target="_self"
-					class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
 					>Audio
 				</a>
 				<a
 					href="./docs/gradio/dataframe"
 					target="_self"
-					class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
 					>Dataframe
 				</a>
 			</div>
