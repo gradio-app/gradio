@@ -49,7 +49,8 @@
 		get_data,
 		loading_status,
 		scheduled_updates,
-		create_layout
+		create_layout,
+		rerender_layout
 	} = create_components();
 
 	const restore_keyed_values = (): void => {
@@ -69,7 +70,7 @@
 		});
 	};
 
-	$: create_layout({
+	create_layout({
 		components,
 		layout,
 		dependencies,
@@ -291,6 +292,17 @@
 					dep.pending_request = false;
 					handle_update(data, fn_index);
 					set_status($loading_status);
+				})
+				.on("render", ({ data, fn_index }) => {
+					let _components: ComponentMeta[] = data.components;
+					let render_layout: LayoutNode = data.layout;
+
+					rerender_layout({
+						components: _components,
+						layout: render_layout,
+						root: root,
+						callback: restore_keyed_values
+					});
 				})
 				.on("status", ({ fn_index, ...status }) => {
 					//@ts-ignore

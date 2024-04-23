@@ -49,6 +49,7 @@ class Textbox(FormComponent):
         autoscroll: bool = True,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        key: int | str | None = None,
         type: Literal["text", "password", "email"] = "text",
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
@@ -104,6 +105,7 @@ class Textbox(FormComponent):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
+            key=key,
             value=value,
         )
         self.type = type

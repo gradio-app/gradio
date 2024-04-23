@@ -143,6 +143,7 @@ class Component(ComponentBase, Block):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        key: int | str | None = None,
         load_fn: Callable | None = None,
         every: float | None = None,
     ):
@@ -170,6 +171,7 @@ class Component(ComponentBase, Block):
             elem_classes=elem_classes,
             visible=visible,
             render=render,
+            key=key,
         )
         if isinstance(self, StreamingInput):
             self.check_streamable()

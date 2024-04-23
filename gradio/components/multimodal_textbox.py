@@ -72,6 +72,7 @@ class MultimodalTextbox(FormComponent):
         autoscroll: bool = True,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        key: int | str | None = None,
         text_align: Literal["left", "right"] | None = None,
         rtl: bool = False,
         submit_btn: str | Literal[False] | None = None,
@@ -128,6 +129,7 @@ class MultimodalTextbox(FormComponent):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
+            key=key,
             value=value,
         )
         self.rtl = rtl

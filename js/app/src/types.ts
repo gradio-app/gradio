@@ -24,6 +24,7 @@ export interface ComponentMeta {
 	component: ComponentType<SvelteComponent>;
 	documentation?: Documentation;
 	children?: ComponentMeta[];
+	parent?: ComponentMeta;
 	value?: any;
 	component_class_id: string;
 	key: string | number | null;
@@ -65,6 +66,7 @@ export interface Dependency {
 	trigger_mode: "once" | "multiple" | "always_last";
 	final_event: Payload | null;
 	show_api: boolean;
+	is_render: boolean;
 }
 
 interface TypeDescription {

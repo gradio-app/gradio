@@ -33,6 +33,7 @@ class DuplicateButton(Button):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        key: int | str | None = None,
         scale: int | None = 0,
         min_width: int | None = None,
         _activate: bool = True,
@@ -65,6 +66,7 @@ class DuplicateButton(Button):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
+            key=key,
             scale=scale,
             min_width=min_width,
         )
