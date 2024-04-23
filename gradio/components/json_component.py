@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from typing import Any, Callable
 
+import orjson
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
@@ -83,9 +84,18 @@ class JSON(Component):
         if value is None:
             return None
         if isinstance(value, str):
-            return json.loads(value)
+            return orjson.loads(value)
         else:
-            return value
+            # Use orjson to convert NumPy arrays and datetime objects to JSON.
+            # This ensures a backward compatibility with the previous behavior.
+            # See https://github.com/gradio-app/gradio/pull/8041
+            return orjson.loads(
+                orjson.dumps(
+                    value,
+                    option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_PASSTHROUGH_DATETIME,
+                    default=str,
+                )
+            )
 
     def example_payload(self) -> Any:
         return {"foo": "bar"}
