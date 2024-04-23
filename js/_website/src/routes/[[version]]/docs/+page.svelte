@@ -61,9 +61,10 @@
 					<p class="font-semibold">Gradio</p>
 				</div>
 
-				<code class="font-light text-md mb-2 ">gradio</code>
-				<div class="  relative pr-4  text-lg font-light mt-2">
-					Build and share machine learning demos and web applications using the core Gradio Python library.
+				<code class="font-light text-md mb-2">gradio</code>
+				<div class="  relative pr-4 text-lg font-light mt-2">
+					Build and share machine learning demos and web applications using the
+					core Gradio Python library.
 				</div>
 			</a>
 			<div class="hidden lg:flex flex-wrap mx-auto justify-center">
@@ -120,9 +121,10 @@
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Python Client</span>
 			</div>
-			<code class="font-light text-md mb-2 ">gradio-client</code>
-			<div class="relative pr-4 text-lg font-light ">
-				Make programmatic requests to Gradio applications from Python environments.
+			<code class="font-light text-md mb-2">gradio-client</code>
+			<div class="relative pr-4 text-lg font-light">
+				Make programmatic requests to Gradio applications from Python
+				environments.
 			</div>
 		</a>
 
@@ -135,9 +137,10 @@
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Javascript Client</span>
 			</div>
-			<code class=" text-md mb-2 ">@gradio/client</code>
-			<div class="relative pr-4  text-lg font-light">
-				Make programmatic requests to Gradio applications in JavaScript (TypeScript) from the browser or server-side.
+			<code class=" text-md mb-2">@gradio/client</code>
+			<div class="relative pr-4 text-lg font-light">
+				Make programmatic requests to Gradio applications in JavaScript
+				(TypeScript) from the browser or server-side.
 			</div>
 		</a>
 		{#if $page.params?.version !== "3.50.2"}
@@ -150,8 +153,9 @@
 				<div class="relative mb-2 flex items-center text-lg font-semibold">
 					<span>Javascript Components</span>
 				</div>
-				<div class="relative pr-4  text-lg font-light ">
-					Use Gradio's UI components in standalone JavaScript applications outside of the Gradio environment.
+				<div class="relative pr-4 text-lg font-light">
+					Use Gradio's UI components in standalone JavaScript applications
+					outside of the Gradio environment.
 				</div>
 			</a>
 			<a
@@ -163,8 +167,9 @@
 				<div class="relative mb-2 flex items-center text-lg font-semibold">
 					<span>Custom Components</span>
 				</div>
-				<div class="relative pr-4  text-lg font-light ">
-					Create, use, and share your own custom components within a Gradio application.
+				<div class="relative pr-4 text-lg font-light">
+					Create, use, and share your own custom components within a Gradio
+					application.
 				</div>
 			</a>
 		{/if}
@@ -177,10 +182,11 @@
 			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Gradio Lite</span>
 			</div>
-			<code class="font-light text-md mb-2 ">@gradio/lite</code>
+			<code class="font-light text-md mb-2">@gradio/lite</code>
 
-			<div class="relative pr-4  text-lg font-light ">
-				Run Gradio's Python code serverless (entirely in your browser) using WebAssembly.
+			<div class="relative pr-4 text-lg font-light">
+				Run Gradio's Python code serverless (entirely in your browser) using
+				WebAssembly.
 			</div>
 		</a>
 	</div>
