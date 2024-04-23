@@ -34,6 +34,7 @@
 		change: never;
 		upload: never;
 		clear: never;
+		clear_status: LoadingStatus;
 	}>;
 
 	$: value, gradio.dispatch("change");
@@ -58,6 +59,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 		<ImagePreview
 			{value}
@@ -84,6 +86,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 
 		<ImageUploader

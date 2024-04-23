@@ -167,8 +167,8 @@ class FnIndexInferError(Exception):
 
 def infer_fn_index(app: App, api_name: str, body: PredictBody) -> int:
     if body.fn_index is None:
-        for i, fn in enumerate(app.get_blocks().dependencies):
-            if fn["api_name"] == api_name:
+        for i, fn in enumerate(app.get_blocks().fns):
+            if fn.api_name == api_name:
                 return i
 
         raise FnIndexInferError(f"Could not infer fn_index for api_name {api_name}.")
@@ -185,7 +185,7 @@ def compile_gr_request(
 ):
     # If this fn_index cancels jobs, then the only input we need is the
     # current session hash
-    if app.get_blocks().dependencies[fn_index_inferred]["cancels"]:
+    if app.get_blocks().fns[fn_index_inferred].cancels:
         body.data = [body.session_hash]
     if body.request:
         if body.batched:
@@ -245,14 +245,14 @@ async def call_process_api(
 ):
     session_state, iterator = restore_session_state(app=app, body=body)
 
-    dependency = app.get_blocks().dependencies[fn_index_inferred]
+    dependency = app.get_blocks().fns[fn_index_inferred]
     event_data = prepare_event_data(app.get_blocks(), body)
     event_id = body.event_id
 
     session_hash = getattr(body, "session_hash", None)
     inputs = body.data
 
-    batch_in_single_out = not body.batched and dependency["batch"]
+    batch_in_single_out = not body.batched and dependency.batch
     if batch_in_single_out:
         inputs = [inputs]
 
@@ -454,6 +454,7 @@ class GradioMultiPartParser:
         max_fields: Union[int, float] = 1000,
         upload_id: str | None = None,
         upload_progress: FileUploadProgress | None = None,
+        max_file_size: int | float,
     ) -> None:
         self.headers = headers
         self.stream = stream
@@ -464,6 +465,7 @@ class GradioMultiPartParser:
         self.upload_progress = upload_progress
         self._current_files = 0
         self._current_fields = 0
+        self.max_file_size = max_file_size
         self._current_partial_header_name: bytes = b""
         self._current_partial_header_value: bytes = b""
         self._current_part = MultipartPart()
@@ -594,6 +596,12 @@ class GradioMultiPartParser:
                     assert part.file  # for type checkers  # noqa: S101
                     await part.file.write(data)
                     part.file.sha.update(data)  # type: ignore
+                    if os.stat(part.file.file.name).st_size > self.max_file_size:
+                        if self.upload_progress is not None:
+                            self.upload_progress.set_done(self.upload_id)  # type: ignore
+                        raise MultiPartException(
+                            f"File size exceeded maximum allowed size of {self.max_file_size} bytes."
+                        )
                 for part in self._file_parts_to_finish:
                     assert part.file  # for type checkers  # noqa: S101
                     await part.file.seek(0)
@@ -603,6 +611,7 @@ class GradioMultiPartParser:
             # Close all the files if there was an error.
             for file in self._files_to_close_on_error:
                 file.close()
+                Path(file.name).unlink()
             raise exc
 
         parser.finalize()

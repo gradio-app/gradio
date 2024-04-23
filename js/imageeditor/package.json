@@ -19,6 +19,9 @@
 		"pixi.js": "^7.3.2",
 		"tinycolor2": "^1.6.0"
 	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
 	"main_changeset": true,
 	"main": "./Index.svelte",
 	"exports": {
