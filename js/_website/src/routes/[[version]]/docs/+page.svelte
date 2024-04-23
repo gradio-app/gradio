@@ -165,7 +165,7 @@
 					<span>Custom Components</span>
 				</div>
 				<div class="relative pr-4 text-smd font-normal text-gray-400">
-					Create, use and share your own custom components.
+					Create, use, and share your own custom components within a Gradio application.
 				</div>
 			</a>
 		{/if}
