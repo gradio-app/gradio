@@ -151,8 +151,7 @@
 					<span>Javascript Components</span>
 				</div>
 				<div class="relative pr-4 text-smd font-normal text-gray-400">
-					Use Gradio's Javascript components in custom components or outside the
-					context of Gradio.
+					Use Gradio's UI components in standalone JavaScript applications outside of the Gradio environment.
 				</div>
 			</a>
 			<a
