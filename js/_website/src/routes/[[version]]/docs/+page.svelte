@@ -137,7 +137,7 @@
 			</div>
 			<code class="font-light text-xs mb-2 text-gray-500">@gradio/client</code>
 			<div class="relative pr-4 text-smd font-normal text-gray-400">
-				A Javascript (and Typescript) client to call Gradio APIs.
+				Make programmatic requests to Gradio applications in JavaScript (TypeScript) from the browser or server-side.
 			</div>
 		</a>
 		{#if $page.params?.version !== "3.50.2"}
