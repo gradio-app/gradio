@@ -122,7 +122,7 @@
 			</div>
 			<code class="font-light text-xs mb-2 text-gray-500">gradio-client</code>
 			<div class="relative pr-4 text-smd font-normal text-gray-400">
-				Turn any Gradio app into an API.
+				Make programmatic requests to Gradio applications from Python environments.
 			</div>
 		</a>
 
