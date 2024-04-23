@@ -63,8 +63,7 @@
 
 				<code class="font-light text-xs mb-2 text-gray-500">gradio</code>
 				<div class="  relative pr-4 text-smd font-normal text-gray-400">
-					Build and share machine learning demos and web apps, in just a few
-					lines of Python.
+					Build and share machine learning demos and web applications using the core Gradio Python library.
 				</div>
 			</a>
 			<div class="hidden lg:flex flex-wrap mx-auto justify-center">
