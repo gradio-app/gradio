@@ -566,6 +566,15 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
                 item["label"]: item["score"] for item in result
             },
         }
+    if pipeline.task == "image-feature-extraction":
+        return {
+            "inputs": components.Image(
+                type="filepath", label="Input Image", render=False
+            ),
+            "outputs": components.Dataframe(label="Output", render=False),
+            "preprocess": lambda image_path: (as_url(image_path),),
+            "postprocess": lambda tensor: tensor.to_numpy(),
+        }
     if pipeline.task == "image-segmentation":
         return {
             "inputs": components.Image(
