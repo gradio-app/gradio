@@ -495,14 +495,8 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
 
     if pipeline.task == "audio-classification":
         return {
-            "inputs": [
-                components.Audio(
-                    type="filepath",
-                    label="Input",
-                    render=False,
-                ),
-            ],
-            "outputs": components.Label(label="Class", render=False),
+            "inputs": components.Audio(type="filepath", label="Input"),
+            "outputs": components.Label(label="Class"),
             "preprocess": lambda i: (
                 read_audio(
                     i, pipeline.processor.feature_extractor.config["sampling_rate"]
@@ -512,14 +506,8 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
         }
     if pipeline.task == "automatic-speech-recognition":
         return {
-            "inputs": [
-                components.Audio(
-                    type="filepath",
-                    label="Input",
-                    render=False,
-                ),
-            ],
-            "outputs": components.Textbox(label="Output", render=False),
+            "inputs": components.Audio(type="filepath", label="Input"),
+            "outputs": components.Textbox(label="Output"),
             "preprocess": lambda i: (
                 read_audio(
                     i, pipeline.processor.feature_extractor.config["sampling_rate"]
@@ -529,18 +517,18 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
         }
     if pipeline.task == "depth-estimation":
         return {
-            "inputs": components.Image(type="filepath", label="Input Image", render=False),
-            "outputs": components.Image(label="Depth", render=False),
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.Image(label="Depth"),
             "preprocess": lambda image_path: (as_url(image_path),),
             "postprocess": lambda result: result["depth"].to_pil(),
         }
     if pipeline.task == "document-question-answering":
         return {
             "inputs": [
-                components.Image(type="filepath", label="Input Document", render=False),
-                components.Textbox(label="Question", render=False),
+                components.Image(type="filepath", label="Input Document"),
+                components.Textbox(label="Question"),
             ],
-            "outputs": components.Textbox(label="Label", render=False),
+            "outputs": components.Textbox(label="Label"),
             "preprocess": lambda img, q: (as_url(img), q),
             "postprocess": lambda r: r[0][
                 "answer"
@@ -548,25 +536,25 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
         }
     if pipeline.task == "feature-extraction":
         return {
-            "inputs": components.Textbox(label="Input", render=False),
-            "outputs": components.Dataframe(label="Output", render=False),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Dataframe(label="Output"),
             "preprocess": None,
             "postprocess": lambda tensor: tensor.to_numpy(),
         }
     if pipeline.task == "fill-mask":
         return {
-            "inputs": components.Textbox(label="Input", render=False),
-            "outputs": components.Label(label="Classification", render=False),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Label(label="Classification"),
             "preprocess": None,
             "postprocess": lambda r: {i["token_str"]: i["score"] for i in r},
         }
     if pipeline.task == "image-classification":
         return {
             "inputs": [
-                components.Image(type="filepath", label="Input Image", render=False),
-                components.Number(label="Top k", value=5, render=False),
+                components.Image(type="filepath", label="Input Image"),
+                components.Number(label="Top k", value=5),
             ],
-            "outputs": components.Label(label="Classification", render=False),
+            "outputs": components.Label(label="Classification"),
             "preprocess": lambda image_path, topk: (as_url(image_path), {"topk": topk}),
             "postprocess": lambda result: {
                 item["label"]: item["score"] for item in result
@@ -574,19 +562,15 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
         }
     if pipeline.task == "image-feature-extraction":
         return {
-            "inputs": components.Image(
-                type="filepath", label="Input Image", render=False
-            ),
-            "outputs": components.Dataframe(label="Output", render=False),
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.Dataframe(label="Output"),
             "preprocess": lambda image_path: (as_url(image_path),),
             "postprocess": lambda tensor: tensor.to_numpy(),
         }
     if pipeline.task == "image-segmentation":
         return {
-            "inputs": components.Image(
-                type="filepath", label="Input Image", render=False
-            ),
-            "outputs": components.AnnotatedImage(label="Segmentation", render=False),
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.AnnotatedImage(label="Segmentation"),
             "preprocess": lambda image_path: (as_url(image_path),),
             "postprocess": lambda result, image_path: (
                 image_path,
@@ -603,30 +587,22 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
         }
     if pipeline.task == "image-to-image":
         return {
-            "inputs": components.Image(
-                label="Input Image", type="filepath", render=False
-            ),
-            "outputs": components.Image(label="Output Image", render=False),
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.Image(label="Output Image"),
             "preprocess": lambda image_path: (as_url(image_path),),
             "postprocess": lambda result: result.to_pil(),
         }
     if pipeline.task == "image-to-text":
         return {
-            "inputs": components.Image(
-                type="filepath", label="Input Image", render=False
-            ),
-            "outputs": components.Textbox(label="Output", render=False),
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.Textbox(label="Output"),
             "preprocess": lambda image_path: (as_url(image_path),),
             "postprocess": lambda r: r[0]["generated_text"],
         }
     if pipeline.task == "object-detection":
         return {
-            "inputs": components.Image(
-                type="filepath", label="Input Image", render=False
-            ),
-            "outputs": components.AnnotatedImage(
-                label="Objects Detected", render=False
-            ),
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.AnnotatedImage(label="Objects Detected"),
             "preprocess": lambda image_path: (as_url(image_path),),
             "postprocess": lambda result, image_path: (
                 image_path,
@@ -649,12 +625,12 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
     if pipeline.task == "question-answering":
         return {
             "inputs": [
-                components.Textbox(lines=7, label="Context", render=False),
-                components.Textbox(label="Question", render=False),
+                components.Textbox(lines=7, label="Context"),
+                components.Textbox(label="Question"),
             ],
             "outputs": [
-                components.Textbox(label="Answer", render=False),
-                components.Label(label="Score", render=False),
+                components.Textbox(label="Answer"),
+                components.Label(label="Score"),
             ],
             "preprocess": lambda c, q: (
                 q,
@@ -665,17 +641,16 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
     if pipeline.task == "summarization":
         return {
             "inputs": [
-                components.Textbox(lines=7, label="Input", render=False),
+                components.Textbox(lines=7, label="Input"),
                 components.Slider(
                     label="The maximum numbers of tokens to generate",
                     minimum=1,
                     maximum=500,
                     value=100,
                     step=1,
-                    render=False,
                 ),
             ],
-            "outputs": components.Textbox(label="Summary", render=False),
+            "outputs": components.Textbox(label="Summary"),
             "preprocess": lambda text, max_new_tokens: (
                 text,
                 {"max_new_tokens": max_new_tokens},
@@ -685,17 +660,16 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
     if pipeline.task == "text2text-generation":
         return {
             "inputs": [
-                components.Textbox(label="Input", render=False),
+                components.Textbox(label="Input"),
                 components.Slider(
                     label="The maximum numbers of tokens to generate",
                     minimum=1,
                     maximum=500,
                     value=100,
                     step=1,
-                    render=False,
                 ),
             ],
-            "outputs": components.Textbox(label="Generated Text", render=False),
+            "outputs": components.Textbox(label="Generated Text"),
             "preprocess": lambda text, max_new_tokens: (
                 text,
                 {"max_new_tokens": max_new_tokens},
@@ -705,27 +679,27 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
     if pipeline.task == "text-classification":
         return {
             "inputs": [
-                components.Textbox(label="Input", render=False),
-                components.Number(label="Top k", value=5, render=False),
+                components.Textbox(label="Input"),
+                components.Number(label="Top k", value=5),
             ],
-            "outputs": components.Label(label="Classification", render=False),
+            "outputs": components.Label(label="Classification"),
             "preprocess": lambda text, topk: (text, {"topk": topk}),
             "postprocess": lambda r: {i["label"]: i["score"] for i in r},
         }
     if pipeline.task == "text-generation":
         return {
-            "inputs": components.Textbox(label="Input", render=False),
-            "outputs": components.Textbox(label="Output", render=False),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Textbox(label="Output"),
             "preprocess": None,
             "postprocess": lambda r: r[0]["generated_text"],
         }
     if pipeline.task == "text-to-audio":
         return {
             "inputs": [
-                components.Textbox(label="Input", render=False),
-                components.Textbox(label="Speaker Embeddings", render=False),
+                components.Textbox(label="Input"),
+                components.Textbox(label="Speaker Embeddings"),
             ],
-            "outputs": components.Audio(label="Output", render=False),
+            "outputs": components.Audio(label="Output"),
             "preprocess": lambda text, speaker_embeddings: (
                 text,
                 {"speaker_embeddings": speaker_embeddings},
@@ -734,8 +708,8 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
         }
     if pipeline.task == "token-classification":
         return {
-            "inputs": components.Textbox(label="Input", render=False),
-            "outputs": components.JSON(label="Output", render=False),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.JSON(label="Output"),
             "preprocess": None,
             "postprocess": None,
             "postprocess_takes_inputs": True,
@@ -743,23 +717,21 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
     if pipeline.task in {"translation", "translation_xx_to_yy"}:
         return {
             "inputs": [
-                components.Textbox(label="Input", render=False),
-                components.Textbox(label="Source Language", render=False),
-                components.Textbox(label="Target Language", render=False),
+                components.Textbox(label="Input"),
+                components.Textbox(label="Source Language"),
+                components.Textbox(label="Target Language"),
             ],
-            "outputs": components.Textbox(label="Translation", render=False),
+            "outputs": components.Textbox(label="Translation"),
             "preprocess": lambda x, s, t: (x, {"src_lang": s, "tgt_lang": t}),
             "postprocess": lambda r: r[0]["translation_text"],
         }
     if pipeline.task == "zero-shot-classification":
         return {
             "inputs": [
-                components.Textbox(label="Input", render=False),
-                components.Textbox(
-                    label="Possible class names (comma-separated)", render=False
-                ),
+                components.Textbox(label="Input"),
+                components.Textbox(label="Possible class names (comma-separated)"),
             ],
-            "outputs": components.Label(label="Classification", render=False),
+            "outputs": components.Label(label="Classification"),
             "preprocess": lambda text, classnames: (
                 text,
                 [c.strip() for c in classnames.split(",")],
@@ -769,16 +741,10 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
     if pipeline.task == "zero-shot-audio-classification":
         return {
             "inputs": [
-                components.Audio(
-                    type="filepath",
-                    label="Input",
-                    render=False,
-                ),
-                components.Textbox(
-                    label="Possible class names (comma-separated)", render=False
-                ),
+                components.Audio(type="filepath", label="Input"),
+                components.Textbox(label="Possible class names (comma-separated)"),
             ],
-            "outputs": components.Label(label="Classification", render=False),
+            "outputs": components.Label(label="Classification"),
             "preprocess": lambda audio_path, classnames: (
                 read_audio(
                     audio_path,
@@ -791,12 +757,10 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
     if pipeline.task == "zero-shot-image-classification":
         return {
             "inputs": [
-                components.Image(type="filepath", label="Input Image", render=False),
-                components.Textbox(
-                    label="Possible class names (comma-separated)", render=False
-                ),
+                components.Image(type="filepath", label="Input Image"),
+                components.Textbox(label="Possible class names (comma-separated)"),
             ],
-            "outputs": components.Label(label="Classification", render=False),
+            "outputs": components.Label(label="Classification"),
             "preprocess": lambda image_path, classnames: (
                 as_url(image_path),
                 [c.strip() for c in classnames.split(",")],
@@ -806,14 +770,10 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
     if pipeline.task == "zero-shot-object-detection":
         return {
             "inputs": [
-                components.Image(type="filepath", label="Input Image", render=False),
-                components.Textbox(
-                    label="Possible class names (comma-separated)", render=False
-                ),
+                components.Image(type="filepath", label="Input Image"),
+                components.Textbox(label="Possible class names (comma-separated)"),
             ],
-            "outputs": components.AnnotatedImage(
-                label="Objects Detected", render=False
-            ),
+            "outputs": components.AnnotatedImage(label="Objects Detected"),
             "preprocess": lambda image_path, classnames: (
                 as_url(image_path),
                 [c.strip() for c in classnames.split(",")],
