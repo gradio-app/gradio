@@ -181,7 +181,7 @@
 			<code class="font-light text-xs mb-2 text-gray-500">@gradio/lite</code>
 
 			<div class="relative pr-4 text-smd font-normal text-gray-400">
-				Serverless Gradio running entirely in your browser.
+				Run Gradio's Python code serverless (entirely in your browser) using WebAssembly.
 			</div>
 		</a>
 	</div>
