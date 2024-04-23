@@ -527,8 +527,13 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             ),
             "postprocess": lambda r: r["text"],
         }
-    # if pipeline.task == "depth-estimation":
-    #     pass
+    if pipeline.task == "depth-estimation":
+        return {
+            "inputs": components.Image(type="filepath", label="Input Image", render=False),
+            "outputs": components.Image(label="Depth", render=False),
+            "preprocess": lambda image_path: (as_url(image_path),),
+            "postprocess": lambda result: result["depth"].to_pil(),
+        }
     if pipeline.task == "document-question-answering":
         return {
             "inputs": [
