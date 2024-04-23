@@ -3,7 +3,7 @@ import urllib.parse
 import pytest
 
 import gradio as gr
-from gradio import http_server
+from gradio import http_server, routes
 
 
 class TestStartServer:
@@ -16,8 +16,9 @@ class TestStartServer:
         io.show_error = True
         io.flagging_callback.setup(gr.Number(), io.flagging_dir)
         io.auth = None
+        app = routes.App.create_app(io)
 
-        _, _, local_path, _, server = http_server.start_server(io)
+        _, _, local_path, server = http_server.start_server(app)
         url = urllib.parse.urlparse(local_path)
         assert url.scheme == "http"
         assert url.port is not None
