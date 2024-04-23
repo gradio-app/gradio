@@ -18,6 +18,7 @@
 	export let uploading = false;
 	export let hidden_upload: HTMLInputElement | null = null;
 	export let show_progress = true;
+	export let max_file_size: number | null = null;
 
 	let upload_id: string;
 	let file_data: FileData[];
@@ -83,10 +84,22 @@
 		await tick();
 		upload_id = Math.random().toString(36).substring(2, 15);
 		uploading = true;
-		const _file_data = await upload(file_data, root, upload_id, upload_fn);
-		dispatch("load", file_count === "single" ? _file_data?.[0] : _file_data);
-		uploading = false;
-		return _file_data || [];
+		try {
+			const _file_data = await upload(
+				file_data,
+				root,
+				upload_id,
+				max_file_size ?? Infinity,
+				upload_fn
+			);
+			dispatch("load", file_count === "single" ? _file_data?.[0] : _file_data);
+			uploading = false;
+			return _file_data || [];
+		} catch (e) {
+			dispatch("error", (e as Error).message);
+			uploading = false;
+			return [];
+		}
 	}
 
 	export async function load_files(

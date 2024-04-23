@@ -45,6 +45,7 @@
 		share: ShareData;
 		error: string;
 		like: LikeData;
+		clear_status: LoadingStatus;
 	}>;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 
@@ -102,6 +103,7 @@
 			show_progress={loading_status.show_progress === "hidden"
 				? "hidden"
 				: "minimal"}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 	{/if}
 	<div class="wrapper">

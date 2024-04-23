@@ -1,10 +1,12 @@
-import { ChildProcess, spawn, spawnSync } from "node:child_process";
+import { type ChildProcess, spawn, spawnSync } from "node:child_process";
 import * as net from "net";
 
 import { create_server } from "./dev";
 import { make_build } from "./build";
-import { join } from "path";
-import which from "which";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export interface ComponentMeta {
 	name: string;
@@ -155,7 +157,7 @@ export function examine_module(
 ): ComponentMeta[] {
 	const _process = spawnSync(
 		python_path,
-		[join(root, "..", "..", "node", "examine.py"), "-m", mode],
+		[join(__dirname, "examine.py"), "-m", mode],
 		{
 			cwd: join(component_dir, "backend"),
 			stdio: "pipe"
