@@ -54,6 +54,7 @@ class Chatbot(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        key: int | str | None = None,
         height: int | str | None = None,
         latex_delimiters: list[dict[str, str | bool]] | None = None,
         rtl: bool = False,
@@ -123,6 +124,7 @@ class Chatbot(Component):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
+            key=key,
             value=value,
         )
         self.avatar_images: list[dict | None] = [None, None]

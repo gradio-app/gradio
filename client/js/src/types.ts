@@ -92,12 +92,13 @@ export type SpaceStatus = SpaceStatusNormal | SpaceStatusError;
 export type status_callback_function = (a: Status) => void;
 export type SpaceStatusCallback = (a: SpaceStatus) => void;
 
-export type EventType = "data" | "status" | "log";
+export type EventType = "data" | "status" | "log" | "render";
 
 export interface EventMap {
 	data: Payload;
 	status: Status;
 	log: LogMessage;
+	render: any;
 }
 
 export type Event<K extends EventType> = {

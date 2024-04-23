@@ -35,6 +35,7 @@ class ParamViewer(Component):
         linkify: list[str] | None = None,
         every: float | None = None,
         render: bool = True,
+        key: int | str | None = None,
     ):
         """
         Parameters:
@@ -51,6 +52,7 @@ class ParamViewer(Component):
             every=every,
             value=value,
             render=render,
+            key=key,
         )
 
     def preprocess(self, payload: dict[str, Parameter]) -> dict[str, Parameter]:

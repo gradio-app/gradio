@@ -89,6 +89,7 @@ class Dataframe(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        key: int | str | None = None,
         wrap: bool = False,
         line_breaks: bool = True,
         column_widths: list[str | int] | None = None,
@@ -179,6 +180,7 @@ class Dataframe(Component):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
+            key=key,
             value=value,
         )
 

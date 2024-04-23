@@ -1,4 +1,4 @@
-import { writable, type Writable } from "svelte/store";
+import { writable, type Writable, get } from "svelte/store";
 import type {
 	ComponentMeta,
 	Dependency,
@@ -9,6 +9,7 @@ import type {
 import { load_component } from "virtual:component-loader";
 import type { client_return } from "@gradio/client";
 import { create_loading_status_store } from "./stores";
+import { _ } from "svelte-i18n";
 
 export interface UpdateTransaction {
 	id: number;
@@ -38,6 +39,12 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
+		callback?: () => void;
+	}) => void;
+	rerender_layout: (args: {
+		components: ComponentMeta[];
+		layout: LayoutNode;
+		root: string;
 		callback?: () => void;
 	}) => void;
 } {
@@ -130,15 +137,60 @@ export function create_components(): {
 		});
 	}
 
+	function rerender_layout({
+		components,
+		layout,
+		root,
+		callback
+	}: {
+		components: ComponentMeta[];
+		layout: LayoutNode;
+		root: string;
+		callback?: () => void;
+	}): void {
+		console.log("rerender");
+		_components = components;
+
+		target_map.set(_target_map);
+
+		let _constructor_map = preload_all_components(components, root);
+		_constructor_map.forEach((v, k) => {
+			constructor_map.set(k, v);
+		});
+
+		let current_element = instance_map[layout.id];
+		console.log(current_element);
+		components.forEach((c) => {
+			instance_map[c.id] = c;
+			_component_map.set(c.id, c);
+		});
+		if (current_element.parent) {
+			console.log("swap");
+			current_element.parent.children![
+				current_element.parent.children!.indexOf(current_element)
+			] = instance_map[layout.id];
+			console.log("swap");
+		}
+
+		walk_layout(layout, root, current_element.parent).then(() => {
+			layout_store.set(instance_map[0]);
+			if (callback) {
+				callback();
+			}
+		});
+	}
+
 	async function walk_layout(
 		node: LayoutNode,
-		root: string
+		root: string,
+		parent?: ComponentMeta
 	): Promise<ComponentMeta> {
 		const instance = instance_map[node.id];
 
 		instance.component = (await constructor_map.get(
 			instance.component_class_id
 		))!?.default;
+		instance.parent = parent;
 
 		if (instance.type === "dataset") {
 			instance.props.component_map = get_component(
@@ -172,7 +224,7 @@ export function create_components(): {
 
 		if (node.children) {
 			instance.children = await Promise.all(
-				node.children.map((v) => walk_layout(v, root))
+				node.children.map((v) => walk_layout(v, root, instance))
 			);
 		}
 
@@ -239,7 +291,8 @@ export function create_components(): {
 		loading_status,
 		scheduled_updates: update_scheduled_store,
 		create_layout: (...args) =>
-			requestAnimationFrame(() => create_layout(...args))
+			requestAnimationFrame(() => create_layout(...args)),
+		rerender_layout
 	};
 }
 

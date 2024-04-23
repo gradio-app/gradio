@@ -40,6 +40,7 @@ class DownloadButton(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        key: int | str | None = None,
     ):
         """
         Parameters:
@@ -68,6 +69,7 @@ class DownloadButton(Component):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
+            key=key,
             value=value,
             scale=scale,
             min_width=min_width,

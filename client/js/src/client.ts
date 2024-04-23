@@ -893,6 +893,15 @@ export function api_factory(
 													endpoint: _endpoint,
 													fn_index
 												});
+												if (data.render_config) {
+													fire_event({
+														type: "render",
+														time: new Date(),
+														data: data.render_config,
+														endpoint: _endpoint,
+														fn_index
+													});
+												}
 
 												if (complete) {
 													fire_event({
@@ -906,7 +915,6 @@ export function api_factory(
 													});
 												}
 											}
-
 											if (
 												status?.stage === "complete" ||
 												status?.stage === "error"
