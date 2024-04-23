@@ -227,7 +227,7 @@
 			dep
 				.frontend_fn(
 					payload.data.concat(
-						await Promise.all(dep.inputs.map((id) => get_data(id)))
+						await Promise.all(dep.outputs.map((id) => get_data(id)))
 					)
 				)
 				.then((v: unknown[]) => {
