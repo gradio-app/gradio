@@ -493,54 +493,7 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             "transformers_js_py not installed. Please add `transformers_js_py` to the requirements option of your Gradio-Lite app"
         ) from ie
 
-    if pipeline.task == "audio-classification":
-        return {
-            "inputs": components.Audio(type="filepath", label="Input"),
-            "outputs": components.Label(label="Class"),
-            "preprocess": lambda i: (
-                read_audio(
-                    i, pipeline.processor.feature_extractor.config["sampling_rate"]
-                ),
-            ),
-            "postprocess": lambda r: {i["label"]: i["score"] for i in r},
-        }
-    if pipeline.task == "automatic-speech-recognition":
-        return {
-            "inputs": components.Audio(type="filepath", label="Input"),
-            "outputs": components.Textbox(label="Output"),
-            "preprocess": lambda i: (
-                read_audio(
-                    i, pipeline.processor.feature_extractor.config["sampling_rate"]
-                ),
-            ),
-            "postprocess": lambda r: r["text"],
-        }
-    if pipeline.task == "depth-estimation":
-        return {
-            "inputs": components.Image(type="filepath", label="Input Image"),
-            "outputs": components.Image(label="Depth"),
-            "preprocess": lambda image_path: (as_url(image_path),),
-            "postprocess": lambda result: result["depth"].to_pil(),
-        }
-    if pipeline.task == "document-question-answering":
-        return {
-            "inputs": [
-                components.Image(type="filepath", label="Input Document"),
-                components.Textbox(label="Question"),
-            ],
-            "outputs": components.Textbox(label="Label"),
-            "preprocess": lambda img, q: (as_url(img), q),
-            "postprocess": lambda r: r[0][
-                "answer"
-            ],  # This data structure is different from the original Transformers.
-        }
-    if pipeline.task == "feature-extraction":
-        return {
-            "inputs": components.Textbox(label="Input"),
-            "outputs": components.Dataframe(label="Output"),
-            "preprocess": None,
-            "postprocess": lambda tensor: tensor.to_numpy(),
-        }
+    ## Natural Language Processing ##
     if pipeline.task == "fill-mask":
         return {
             "inputs": components.Textbox(label="Input"),
@@ -548,80 +501,6 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             "preprocess": None,
             "postprocess": lambda r: {i["token_str"]: i["score"] for i in r},
         }
-    if pipeline.task == "image-classification":
-        return {
-            "inputs": [
-                components.Image(type="filepath", label="Input Image"),
-                components.Number(label="Top k", value=5),
-            ],
-            "outputs": components.Label(label="Classification"),
-            "preprocess": lambda image_path, topk: (as_url(image_path), {"topk": topk}),
-            "postprocess": lambda result: {
-                item["label"]: item["score"] for item in result
-            },
-        }
-    if pipeline.task == "image-feature-extraction":
-        return {
-            "inputs": components.Image(type="filepath", label="Input Image"),
-            "outputs": components.Dataframe(label="Output"),
-            "preprocess": lambda image_path: (as_url(image_path),),
-            "postprocess": lambda tensor: tensor.to_numpy(),
-        }
-    if pipeline.task == "image-segmentation":
-        return {
-            "inputs": components.Image(type="filepath", label="Input Image"),
-            "outputs": components.AnnotatedImage(label="Segmentation"),
-            "preprocess": lambda image_path: (as_url(image_path),),
-            "postprocess": lambda result, image_path: (
-                image_path,
-                [
-                    (
-                        item["mask"].to_numpy()[:, :, 0]
-                        / 255.0,  # Reshape ([h,w,1] -> [h,w]) and normalize ([0,255] -> [0,1])
-                        f"{item['label']} ({item['score']})",
-                    )
-                    for item in result
-                ],
-            ),
-            "postprocess_takes_inputs": True,
-        }
-    if pipeline.task == "image-to-image":
-        return {
-            "inputs": components.Image(type="filepath", label="Input Image"),
-            "outputs": components.Image(label="Output Image"),
-            "preprocess": lambda image_path: (as_url(image_path),),
-            "postprocess": lambda result: result.to_pil(),
-        }
-    if pipeline.task == "image-to-text":
-        return {
-            "inputs": components.Image(type="filepath", label="Input Image"),
-            "outputs": components.Textbox(label="Output"),
-            "preprocess": lambda image_path: (as_url(image_path),),
-            "postprocess": lambda r: r[0]["generated_text"],
-        }
-    if pipeline.task == "object-detection":
-        return {
-            "inputs": components.Image(type="filepath", label="Input Image"),
-            "outputs": components.AnnotatedImage(label="Objects Detected"),
-            "preprocess": lambda image_path: (as_url(image_path),),
-            "postprocess": lambda result, image_path: (
-                image_path,
-                [
-                    (
-                        (
-                            int(item["box"]["xmin"]),
-                            int(item["box"]["ymin"]),
-                            int(item["box"]["xmax"]),
-                            int(item["box"]["ymax"]),
-                        ),
-                        f"{item['label']} ({item['score']})",
-                    )
-                    for item in result
-                ],
-            ),
-            "postprocess_takes_inputs": True,
-        }
-
     if pipeline.task == "question-answering":
         return {
             "inputs": [
@@ -657,6 +536,23 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             ),
             "postprocess": lambda r: r[0]["summary_text"],
         }
+    if pipeline.task == "text-classification":
+        return {
+            "inputs": [
+                components.Textbox(label="Input"),
+                components.Number(label="Top k", value=5),
+            ],
+            "outputs": components.Label(label="Classification"),
+            "preprocess": lambda text, topk: (text, {"topk": topk}),
+            "postprocess": lambda r: {i["label"]: i["score"] for i in r},
+        }
+    if pipeline.task == "text-generation":
+        return {
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Textbox(label="Output"),
+            "preprocess": None,
+            "postprocess": lambda r: r[0]["generated_text"],
+        }
     if pipeline.task == "text2text-generation":
         return {
             "inputs": [
@@ -675,36 +571,6 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
                 {"max_new_tokens": max_new_tokens},
             ),
             "postprocess": lambda r: r[0]["generated_text"],
-        }
-    if pipeline.task == "text-classification":
-        return {
-            "inputs": [
-                components.Textbox(label="Input"),
-                components.Number(label="Top k", value=5),
-            ],
-            "outputs": components.Label(label="Classification"),
-            "preprocess": lambda text, topk: (text, {"topk": topk}),
-            "postprocess": lambda r: {i["label"]: i["score"] for i in r},
-        }
-    if pipeline.task == "text-generation":
-        return {
-            "inputs": components.Textbox(label="Input"),
-            "outputs": components.Textbox(label="Output"),
-            "preprocess": None,
-            "postprocess": lambda r: r[0]["generated_text"],
-        }
-    if pipeline.task == "text-to-audio":
-        return {
-            "inputs": [
-                components.Textbox(label="Input"),
-                components.Textbox(label="Speaker Embeddings"),
-            ],
-            "outputs": components.Audio(label="Output"),
-            "preprocess": lambda text, speaker_embeddings: (
-                text,
-                {"speaker_embeddings": speaker_embeddings},
-            ),
-            "postprocess": lambda r: (r["sampling_rate"], np.asarray(r["audio"])),
         }
     if pipeline.task == "token-classification":
         return {
@@ -737,6 +603,146 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
                 [c.strip() for c in classnames.split(",")],
             ),
             "postprocess": lambda result: dict(zip(result["labels"], result["scores"])),
+        }
+    if pipeline.task == "feature-extraction":
+        return {
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Dataframe(label="Output"),
+            "preprocess": None,
+            "postprocess": lambda tensor: tensor.to_numpy(),
+        }
+
+    ## Vision ##
+    if pipeline.task == "depth-estimation":
+        return {
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.Image(label="Depth"),
+            "preprocess": lambda image_path: (as_url(image_path),),
+            "postprocess": lambda result: result["depth"].to_pil(),
+        }
+    if pipeline.task == "image-classification":
+        return {
+            "inputs": [
+                components.Image(type="filepath", label="Input Image"),
+                components.Number(label="Top k", value=5),
+            ],
+            "outputs": components.Label(label="Classification"),
+            "preprocess": lambda image_path, topk: (as_url(image_path), {"topk": topk}),
+            "postprocess": lambda result: {
+                item["label"]: item["score"] for item in result
+            },
+        }
+    if pipeline.task == "image-segmentation":
+        return {
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.AnnotatedImage(label="Segmentation"),
+            "preprocess": lambda image_path: (as_url(image_path),),
+            "postprocess": lambda result, image_path: (
+                image_path,
+                [
+                    (
+                        item["mask"].to_numpy()[:, :, 0]
+                        / 255.0,  # Reshape ([h,w,1] -> [h,w]) and normalize ([0,255] -> [0,1])
+                        f"{item['label']} ({item['score']})",
+                    )
+                    for item in result
+                ],
+            ),
+            "postprocess_takes_inputs": True,
+        }
+    if pipeline.task == "image-to-image":
+        return {
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.Image(label="Output Image"),
+            "preprocess": lambda image_path: (as_url(image_path),),
+            "postprocess": lambda result: result.to_pil(),
+        }
+    if pipeline.task == "object-detection":
+        return {
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.AnnotatedImage(label="Objects Detected"),
+            "preprocess": lambda image_path: (as_url(image_path),),
+            "postprocess": lambda result, image_path: (
+                image_path,
+                [
+                    (
+                        (
+                            int(item["box"]["xmin"]),
+                            int(item["box"]["ymin"]),
+                            int(item["box"]["xmax"]),
+                            int(item["box"]["ymax"]),
+                        ),
+                        f"{item['label']} ({item['score']})",
+                    )
+                    for item in result
+                ],
+            ),
+            "postprocess_takes_inputs": True,
+        }
+    if pipeline.task == "image-feature-extraction":
+        return {
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.Dataframe(label="Output"),
+            "preprocess": lambda image_path: (as_url(image_path),),
+            "postprocess": lambda tensor: tensor.to_numpy(),
+        }
+
+    ## Audio ##
+    if pipeline.task == "audio-classification":
+        return {
+            "inputs": components.Audio(type="filepath", label="Input"),
+            "outputs": components.Label(label="Class"),
+            "preprocess": lambda i: (
+                read_audio(
+                    i, pipeline.processor.feature_extractor.config["sampling_rate"]
+                ),
+            ),
+            "postprocess": lambda r: {i["label"]: i["score"] for i in r},
+        }
+    if pipeline.task == "automatic-speech-recognition":
+        return {
+            "inputs": components.Audio(type="filepath", label="Input"),
+            "outputs": components.Textbox(label="Output"),
+            "preprocess": lambda i: (
+                read_audio(
+                    i, pipeline.processor.feature_extractor.config["sampling_rate"]
+                ),
+            ),
+            "postprocess": lambda r: r["text"],
+        }
+    if pipeline.task == "text-to-audio":
+        return {
+            "inputs": [
+                components.Textbox(label="Input"),
+                components.Textbox(label="Speaker Embeddings"),
+            ],
+            "outputs": components.Audio(label="Output"),
+            "preprocess": lambda text, speaker_embeddings: (
+                text,
+                {"speaker_embeddings": speaker_embeddings},
+            ),
+            "postprocess": lambda r: (r["sampling_rate"], np.asarray(r["audio"])),
+        }
+
+    ## Multimodal ##
+    if pipeline.task == "document-question-answering":
+        return {
+            "inputs": [
+                components.Image(type="filepath", label="Input Document"),
+                components.Textbox(label="Question"),
+            ],
+            "outputs": components.Textbox(label="Label"),
+            "preprocess": lambda img, q: (as_url(img), q),
+            "postprocess": lambda r: r[0][
+                "answer"
+            ],  # This data structure is different from the original Transformers.
+        }
+    if pipeline.task == "image-to-text":
+        return {
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.Textbox(label="Output"),
+            "preprocess": lambda image_path: (as_url(image_path),),
+            "postprocess": lambda r: r[0]["generated_text"],
         }
     if pipeline.task == "zero-shot-audio-classification":
         return {
