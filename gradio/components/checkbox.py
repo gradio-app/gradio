@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import Any, Callable
 
 from gradio_client.documentation import document
@@ -95,4 +96,7 @@ class Checkbox(FormComponent):
         Returns:
             The same `bool` value that is set as the status of the checkbox
         """
-        return value
+        if isinstance(value, Iterable):
+            # Handles the cases of NumPy arrays for instance, in the same way as lists.
+            return len(value) > 0
+        return bool(value)
