@@ -19,11 +19,11 @@ import mimetypes
 import os
 import posixpath
 import secrets
-import threading
 import time
 import traceback
 from pathlib import Path
 from queue import Empty as EmptyQueue
+from queue import Queue as ThreadQueue
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -173,7 +173,7 @@ class App(FastAPI):
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
         self.uploaded_file_dir = get_upload_folder()
-        self.change_event: None | threading.Event = None
+        self.reload_queue: None | ThreadQueue = None
         self._asyncio_tasks: list[asyncio.Task] = []
         self.auth_dependency = auth_dependency
         self.api_info = None
@@ -285,13 +285,21 @@ class App(FastAPI):
                 check_rate = 0.05
                 last_heartbeat = time.perf_counter()
 
+                def get_change_type(queue: ThreadQueue):
+                    try:
+                        change_type = queue.get_nowait()
+                        return change_type
+                    except EmptyQueue:
+                        return False
+
                 while True:
                     if await request.is_disconnected():
                         return
 
-                    if app.change_event and app.change_event.is_set():
-                        app.change_event.clear()
-                        yield """event: reload\ndata: {}\n\n"""
+                    if app.reload_queue and (
+                        change_type := get_change_type(app.reload_queue)
+                    ):
+                        yield f"""data: {change_type.upper()}\n\n"""
 
                     await asyncio.sleep(check_rate)
                     if time.perf_counter() - last_heartbeat > heartbeat_rate:
