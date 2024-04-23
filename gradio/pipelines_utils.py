@@ -595,6 +595,15 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             ),
             "postprocess_takes_inputs": True,
         }
+    if pipeline.task == "image-to-image":
+        return {
+            "inputs": components.Image(
+                label="Input Image", type="filepath", render=False
+            ),
+            "outputs": components.Image(label="Output Image", render=False),
+            "preprocess": lambda image_path: (as_url(image_path),),
+            "postprocess": lambda result: result.to_pil(),
+        }
     if pipeline.task == "image-to-text":
         return {
             "inputs": components.Image(
