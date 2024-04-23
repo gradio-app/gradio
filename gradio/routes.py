@@ -648,8 +648,8 @@ class App(FastAPI):
                         )
                         unload_fn_indices = [
                             i
-                            for i, dep in enumerate(app.get_blocks().dependencies)
-                            if any(t for t in dep["targets"] if t[1] == "unload")
+                            for i, dep in enumerate(app.get_blocks().fns)
+                            if any(t for t in dep.targets if t[1] == "unload")
                         ]
                         for fn_index in unload_fn_indices:
                             # The task runnning this loop has been cancelled

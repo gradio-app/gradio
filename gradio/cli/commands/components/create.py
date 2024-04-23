@@ -11,10 +11,9 @@ from rich.prompt import Confirm, Prompt
 from tomlkit import dump, parse
 from typing_extensions import Annotated
 
-from gradio.cli.commands.components.install_component import _get_npm, _install_command
-from gradio.cli.commands.display import LivePanelDisplay
-
+from ..display import LivePanelDisplay
 from . import _create_utils
+from .install_component import _get_npm, _install_command
 
 
 def _create(
@@ -113,6 +112,9 @@ def _create(
 
         live._panel.stop()
 
+        description = "A gradio custom component"
+        keywords = []
+
         if configure_metadata:
             print(
                 Panel(
@@ -123,8 +125,9 @@ def _create(
 
             answer_qs = Confirm.ask("\nDo you want to answer them now?")
 
+            pyproject_toml = parse((directory / "pyproject.toml").read_text())
+
             if answer_qs:
-                pyproject_toml = parse((directory / "pyproject.toml").read_text())
                 name = pyproject_toml["project"]["name"]  # type: ignore
 
                 description = Prompt.ask(
@@ -133,10 +136,12 @@ def _create(
                 if description:
                     pyproject_toml["project"]["description"] = description  # type: ignore
 
-                license_ = Prompt.ask(
-                    "\n:bookmark_tabs: Please enter a [bold][magenta]software license[/][/] for your component. Leave blank for 'MIT'"
+                license_ = (
+                    Prompt.ask(
+                        "\n:bookmark_tabs: Please enter a [bold][magenta]software license[/][/] for your component. Leave blank for 'apache-2.0'"
+                    )
+                    or "apache-2.0"
                 )
-                license_ = license_ or "MIT"
                 print(f":bookmark_tabs: Using license [bold][magenta]{license_}[/][/]")
                 pyproject_toml["project"]["license"] = license_  # type: ignore
 
@@ -151,7 +156,6 @@ def _create(
                     requires_python or ">=3.8"
                 )
 
-                keywords = []
                 print(
                     "\n:label: Please add some keywords to help others discover your component."
                 )
@@ -165,4 +169,19 @@ def _create(
                 pyproject_toml["project"]["keywords"] = current_keywords + keywords  # type: ignore
                 with open(directory / "pyproject.toml", "w") as f:
                     dump(pyproject_toml, f)
-                print("\nComponent creation [bold][magenta]complete[/][/]!")
+
+        (directory / "demo" / "requirements.txt").write_text(package_name)
+        readme_path = Path(__file__).parent / "files" / "README.md"
+
+        readme_contents = readme_path.read_text()
+        tags = f", {', '.join(keywords)}" if keywords else ""
+        template = f", {template}"
+        readme_contents = (
+            readme_contents.replace("<<title>>", package_name)
+            .replace("<<short-description>>", description)
+            .replace("<<tags>>", tags)
+            .replace("<<template>>", template)
+        )
+        (directory / "README.md").write_text(readme_contents)
+
+        print("\nComponent creation [bold][magenta]complete[/][/]!")
