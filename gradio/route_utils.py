@@ -167,8 +167,8 @@ class FnIndexInferError(Exception):
 
 def infer_fn_index(app: App, api_name: str, body: PredictBody) -> int:
     if body.fn_index is None:
-        for i, fn in enumerate(app.get_blocks().dependencies):
-            if fn["api_name"] == api_name:
+        for i, fn in enumerate(app.get_blocks().fns):
+            if fn.api_name == api_name:
                 return i
 
         raise FnIndexInferError(f"Could not infer fn_index for api_name {api_name}.")
@@ -185,7 +185,7 @@ def compile_gr_request(
 ):
     # If this fn_index cancels jobs, then the only input we need is the
     # current session hash
-    if app.get_blocks().dependencies[fn_index_inferred]["cancels"]:
+    if app.get_blocks().fns[fn_index_inferred].cancels:
         body.data = [body.session_hash]
     if body.request:
         if body.batched:
@@ -245,14 +245,14 @@ async def call_process_api(
 ):
     session_state, iterator = restore_session_state(app=app, body=body)
 
-    dependency = app.get_blocks().dependencies[fn_index_inferred]
+    dependency = app.get_blocks().fns[fn_index_inferred]
     event_data = prepare_event_data(app.get_blocks(), body)
     event_id = body.event_id
 
     session_hash = getattr(body, "session_hash", None)
     inputs = body.data
 
-    batch_in_single_out = not body.batched and dependency["batch"]
+    batch_in_single_out = not body.batched and dependency.batch
     if batch_in_single_out:
         inputs = [inputs]
 
