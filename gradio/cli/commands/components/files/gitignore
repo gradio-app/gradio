@@ -6,4 +6,7 @@ __pycache__/
 *$py.class
 __tmp/*
 *.pyi
+.mypycache
+.ruff_cache
 node_modules
+backend/**/templates/
