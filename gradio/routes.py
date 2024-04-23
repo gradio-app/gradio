@@ -23,7 +23,6 @@ import time
 import traceback
 from pathlib import Path
 from queue import Empty as EmptyQueue
-from queue import Queue as ThreadQueue
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -31,6 +30,7 @@ from typing import (
     Callable,
     Dict,
     List,
+    Literal,
     Optional,
     Type,
     Union,
@@ -173,7 +173,8 @@ class App(FastAPI):
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
         self.uploaded_file_dir = get_upload_folder()
-        self.reload_queue: None | ThreadQueue = None
+        self.change_count: int = 0
+        self.change_type: Literal["reload", "error"] | None = None
         self._asyncio_tasks: list[asyncio.Task] = []
         self.auth_dependency = auth_dependency
         self.api_info = None
@@ -284,26 +285,19 @@ class App(FastAPI):
                 heartbeat_rate = 15
                 check_rate = 0.05
                 last_heartbeat = time.perf_counter()
-
-                def get_change_type(queue: ThreadQueue):
-                    try:
-                        change_type = queue.get_nowait()
-                        return change_type
-                    except EmptyQueue:
-                        return False
+                current_count = app.change_count
 
                 while True:
                     if await request.is_disconnected():
                         return
 
-                    if app.reload_queue and (
-                        change_type := get_change_type(app.reload_queue)
-                    ):
-                        yield f"""data: {change_type.upper()}\n\n"""
+                    if app.change_count != current_count:
+                        current_count = app.change_count
+                        yield f"""event: {app.change_type}\ndata: {{}}\n\n"""
 
                     await asyncio.sleep(check_rate)
                     if time.perf_counter() - last_heartbeat > heartbeat_rate:
-                        yield """event: heartbeat\ndata: {}\n\n"""
+                        yield """event: heartbeat\ndata: {}\n\n\n\n"""
                         last_heartbeat = time.time()
 
             return StreamingResponse(

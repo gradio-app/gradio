@@ -5,7 +5,6 @@ import socket
 import threading
 import time
 from functools import partial
-from queue import Queue as ThreadQueue
 from typing import TYPE_CHECKING
 
 import uvicorn
@@ -138,15 +137,12 @@ def start_server(
             )
             reloader = None
             if GRADIO_WATCH_DIRS:
-                queue = ThreadQueue()
-                app.reload_queue = queue
                 reloader = SourceFileReloader(
                     app=app,
                     watch_dirs=GRADIO_WATCH_DIRS,
                     watch_module_name=GRADIO_WATCH_MODULE_NAME,
                     demo_name=GRADIO_WATCH_DEMO_NAME,
                     stop_event=threading.Event(),
-                    reload_queue=queue,
                     demo_file=GRADIO_WATCH_DEMO_PATH,
                 )
             server = Server(config=config, reloader=reloader)
