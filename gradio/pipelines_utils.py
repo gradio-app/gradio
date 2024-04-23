@@ -5,6 +5,7 @@ These are used by load_from_pipeline method in pipelines.py.
 
 from typing import Any, Dict, Optional
 
+import numpy as np
 from PIL import Image
 
 from gradio import components
@@ -712,6 +713,19 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             "outputs": components.Textbox(label="Output", render=False),
             "preprocess": None,
             "postprocess": lambda r: r[0]["generated_text"],
+        }
+    if pipeline.task == "text-to-audio":
+        return {
+            "inputs": [
+                components.Textbox(label="Input", render=False),
+                components.Textbox(label="Speaker Embeddings", render=False),
+            ],
+            "outputs": components.Audio(label="Output", render=False),
+            "preprocess": lambda text, speaker_embeddings: (
+                text,
+                {"speaker_embeddings": speaker_embeddings},
+            ),
+            "postprocess": lambda r: (r["sampling_rate"], np.asarray(r["audio"])),
         }
     if pipeline.task == "token-classification":
         return {
