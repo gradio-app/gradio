@@ -105,18 +105,6 @@
 			autocomplete="off"
 		/>
 		<DropDown></DropDown>
-		<select
-			bind:value={docs_type}
-			on:change={() => {
-				if (docs_type == "js") {
-					window.location.href = "/main/docs/js/";
-				}
-			}}
-			class="rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0 text-xs mt-2 py-1 pl-2 pr-7 font-mono"
-		>
-			<option value="js">js</option>
-			<option value="python">python</option>
-		</select>
 	</div>
 
 	<p class="font-semibold px-4 my-2 block">Building Demos</p>
@@ -225,24 +213,5 @@
 		class:current-nav-link={current_nav_link == "no-reload"}
 		class="thin-link px-4 block leading-8"
 		href="./no-reload/">NO_RELOAD</a
-	>
-
-	<a
-		class:current-nav-link={current_nav_link == "python-client"}
-		class="link px-4 my-2 block"
-		href="./python-client/">Python Client</a
-	>
-	{#each Object.entries(py_client) as [name, obj] (name)}
-		<a
-			class:current-nav-link={current_nav_link == name}
-			class="px-4 block thin-link leading-8"
-			href="./{name}/">{obj.name}</a
-		>
-	{/each}
-
-	<a
-		class:current_nav_link={current_nav_link == "js-client"}
-		class="link px-4 my-2 block"
-		href="./js-client/">JavaScript Client</a
 	>
 </div>

@@ -77,14 +77,14 @@ class TestInit:
 
     def test_events_attached(self):
         chatbot = gr.ChatInterface(double)
-        dependencies = chatbot.dependencies
+        dependencies = chatbot.fns
         textbox = chatbot.textbox._id
         submit_btn = chatbot.submit_btn._id
         assert next(
             (
                 d
                 for d in dependencies
-                if d["targets"] == [(textbox, "submit"), (submit_btn, "click")]
+                if d.targets == [(textbox, "submit"), (submit_btn, "click")]
             ),
             None,
         )
@@ -94,7 +94,7 @@ class TestInit:
             chatbot.undo_btn._id,
         ]:
             assert next(
-                (d for d in dependencies if d["targets"][0] == (btn_id, "click")),
+                (d for d in dependencies if d.targets[0] == (btn_id, "click")),
                 None,
             )
 

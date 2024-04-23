@@ -115,14 +115,7 @@
 						<span class="text-orange-500">&#8592;</span> Themes
 					</div>
 				</a>
-				<a
-					href="./python-client"
-					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
-				>
-					<div class="text-lg">
-						Python Client <span class="text-orange-500">&#8594;</span>
-					</div>
-				</a>
+				
 			</div>
 
 			<div class="flex flex-row">
@@ -183,14 +176,7 @@
 						<span class="text-orange-500">&#8592;</span> themes
 					</div>
 				</a>
-				<a
-					href="./python-client"
-					class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
-				>
-					<div class="text-lg">
-						Python Client <span class="text-orange-500">&#8594;</span>
-					</div>
-				</a>
+				
 			</div>
 		</div>
 		<div

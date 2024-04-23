@@ -492,7 +492,9 @@ class TestComponentsInBlocks:
         with gr.Blocks() as demo:
             for component in io_components:
                 components.append(component(value=lambda: None, every=1))
-        assert all(comp.load_event in demo.dependencies for comp in components)
+        assert all(
+            comp.load_event in demo.config["dependencies"] for comp in components
+        )
 
 
 class TestBlocksPostprocessing:
@@ -1670,7 +1672,7 @@ def test_emptry_string_api_name_gets_set_as_fn_name():
         t2 = gr.Textbox()
         t1.change(test_fn, t1, t2, api_name="")
 
-    assert demo.dependencies[0]["api_name"] == "test_fn"
+    assert demo.fns[0].api_name == "test_fn"
 
 
 @pytest.mark.asyncio
@@ -1775,6 +1777,8 @@ def test_time_to_live_and_delete_callback_for_state(capsys, monkeypatch):
         assert "deleted 2" in captured.out
         assert "deleted 3" in captured.out
         for client in [client_1, client_2]:
-            assert len(app.state_holder.session_data[client.session_hash]._data) == 0
+            assert (
+                len(app.state_holder.session_data[client.session_hash].state_data) == 0
+            )
     finally:
         demo.close()
