@@ -161,7 +161,7 @@ demo.launch()
 你也可以用 `type=` 关键字参数设置组件使用的数据类型。例如，如果你想让你的函数获取一个图像的文件路径，而不是一个NumPy数组时，输入 `Image` 组件可以写成：
 
 ```python
-gr.Image(type="filepath", shape=...)
+gr.Image(type="filepath")
 ```
 
 还要注意，我们的输入 `Image` 组件带有一个编辑按钮 🖉，它允许裁剪和放大图像。以这种方式操作图像可以帮助揭示机器学习模型中的偏见或隐藏的缺陷！
