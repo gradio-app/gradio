@@ -2,7 +2,7 @@
 	import Index from "../Index.svelte";
 	import type { ThemeMode } from "../types";
 	import { mount_css as default_mount_css } from "../css";
-	import type { api_factory } from "@gradio/client";
+	import type { Client as ClientType } from "@gradio/client";
 	import type { WorkerProxy } from "@gradio/wasm";
 	import { SvelteComponent, createEventDispatcher, onMount } from "svelte";
 	import Code from "@gradio/code";
@@ -21,8 +21,7 @@
 	export let info: boolean;
 	export let eager: boolean;
 	export let mount_css: typeof default_mount_css = default_mount_css;
-	export let client: ReturnType<typeof api_factory>["client"];
-	export let upload_files: ReturnType<typeof api_factory>["upload_files"];
+	export let Client: typeof ClientType;
 	export let worker_proxy: WorkerProxy | undefined = undefined;
 	export let fetch_implementation: typeof fetch = fetch;
 	export let EventSource_factory: (url: URL) => EventSource = (url) =>
@@ -216,8 +215,7 @@
 								{info}
 								{eager}
 								{mount_css}
-								{client}
-								{upload_files}
+								{Client}
 								bind:worker_proxy
 								{fetch_implementation}
 								{EventSource_factory}

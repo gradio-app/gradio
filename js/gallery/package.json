@@ -17,6 +17,9 @@
 		"@gradio/file": "workspace:^",
 		"dequal": "^2.0.2"
 	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
 	"main": "./Index.svelte",
 	"main_changeset": true,
 	"exports": {

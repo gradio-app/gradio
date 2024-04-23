@@ -20,6 +20,8 @@
 		select: SelectData;
 		input: never;
 		focus: never;
+		error: string;
+		clear_status: LoadingStatus;
 	}>;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -63,6 +65,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 	{/if}
 
@@ -83,12 +86,16 @@
 		{autofocus}
 		{container}
 		{autoscroll}
+		max_file_size={gradio.max_file_size}
 		on:change={() => gradio.dispatch("change", value)}
 		on:input={() => gradio.dispatch("input")}
 		on:submit={() => gradio.dispatch("submit")}
 		on:blur={() => gradio.dispatch("blur")}
 		on:select={(e) => gradio.dispatch("select", e.detail)}
 		on:focus={() => gradio.dispatch("focus")}
+		on:error={({ detail }) => {
+			gradio.dispatch("error", detail);
+		}}
 		disabled={!interactive}
 	/>
 </Block>

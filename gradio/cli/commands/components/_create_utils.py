@@ -326,6 +326,7 @@ def _create_backend(
     if not module:
         raise ValueError("Module not found")
 
+    # These README contents are used to install the component but they are overwritten later
     readme_contents = textwrap.dedent(
         """
 # {package_name}

@@ -454,6 +454,7 @@ class GradioMultiPartParser:
         max_fields: Union[int, float] = 1000,
         upload_id: str | None = None,
         upload_progress: FileUploadProgress | None = None,
+        max_file_size: int | float,
     ) -> None:
         self.headers = headers
         self.stream = stream
@@ -464,6 +465,7 @@ class GradioMultiPartParser:
         self.upload_progress = upload_progress
         self._current_files = 0
         self._current_fields = 0
+        self.max_file_size = max_file_size
         self._current_partial_header_name: bytes = b""
         self._current_partial_header_value: bytes = b""
         self._current_part = MultipartPart()
@@ -594,6 +596,12 @@ class GradioMultiPartParser:
                     assert part.file  # for type checkers  # noqa: S101
                     await part.file.write(data)
                     part.file.sha.update(data)  # type: ignore
+                    if os.stat(part.file.file.name).st_size > self.max_file_size:
+                        if self.upload_progress is not None:
+                            self.upload_progress.set_done(self.upload_id)  # type: ignore
+                        raise MultiPartException(
+                            f"File size exceeded maximum allowed size of {self.max_file_size} bytes."
+                        )
                 for part in self._file_parts_to_finish:
                     assert part.file  # for type checkers  # noqa: S101
                     await part.file.seek(0)
@@ -603,6 +611,7 @@ class GradioMultiPartParser:
             # Close all the files if there was an error.
             for file in self._files_to_close_on_error:
                 file.close()
+                Path(file.name).unlink()
             raise exc
 
         parser.finalize()

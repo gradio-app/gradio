@@ -1,4 +1,4 @@
-""" Predefined buttons with bound events that can be included in a gr.Blocks for convenience. """
+"""Predefined buttons with bound events that can be included in a gr.Blocks for convenience."""
 
 from __future__ import annotations
 

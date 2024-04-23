@@ -541,3 +541,23 @@ export function preload_all_components(
 
 	return constructor_map;
 }
+
+export const restore_keyed_values = (
+	old_components: ComponentMeta[],
+	new_components: ComponentMeta[]
+): void => {
+	let component_values_by_key: Record<string | number, ComponentMeta> = {};
+	old_components.forEach((component) => {
+		if (component.key) {
+			component_values_by_key[component.key] = component;
+		}
+	});
+	new_components.forEach((component) => {
+		if (component.key) {
+			const old_component = component_values_by_key[component.key];
+			if (old_component) {
+				component.props.value = old_component.props.value;
+			}
+		}
+	});
+};

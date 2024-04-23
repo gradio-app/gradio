@@ -112,7 +112,7 @@ class Examples:
             inputs: the component or list of components corresponding to the examples
             outputs: optionally, provide the component or list of components corresponding to the output of the examples. Required if `cache_examples` is not False.
             fn: optionally, provide the function to run to generate the outputs corresponding to the examples. Required if `cache_examples` is not False. Also required if `run_on_click` is True.
-            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached after their first use. Can also be set by the GRADIO_CACHE_EXAMPLES environment variable, which takes a case-insensitive value, one of: {"true", "false", "lazy"}. The default option in HuggingFace Spaces is True (as long as `fn` and `outputs` are also provided). The default option otherwise is False.
+            cache_examples: If True, caches examples in the server for fast runtime in examples. If "lazy", then examples are cached after their first use. Can also be set by the GRADIO_CACHE_EXAMPLES environment variable, which takes a case-insensitive value, one of: {"true", "lazy", or "false"} (for the first two to take effect, `fn` and `outputs` should also be provided). In HuggingFace Spaces, this is True (as long as `fn` and `outputs` are also provided). The default option otherwise is False.
             examples_per_page: how many examples to show per page.
             label: the label to use for the examples component (by default, "Examples")
             elem_id: an optional string that is assigned as the id of this component in the HTML DOM.
@@ -130,11 +130,17 @@ class Examples:
         if cache_examples is None:
             if cache_examples_env := os.getenv("GRADIO_CACHE_EXAMPLES"):
                 if cache_examples_env.lower() == "true":
-                    self.cache_examples = True
+                    if fn is not None and outputs is not None:
+                        self.cache_examples = True
+                    else:
+                        self.cache_examples = False
+                elif cache_examples_env.lower() == "lazy":
+                    if fn is not None and outputs is not None:
+                        self.cache_examples = "lazy"
+                    else:
+                        self.cache_examples = False
                 elif cache_examples_env.lower() == "false":
                     self.cache_examples = False
-                elif cache_examples_env.lower() == "lazy":
-                    self.cache_examples = "lazy"
                 else:
                     raise ValueError(
                         "The `GRADIO_CACHE_EXAMPLES` env variable must be one of: 'true', 'false', 'lazy' (case-insensitive)."

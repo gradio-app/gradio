@@ -19,6 +19,9 @@
 		"@ffmpeg/util": "^0.12.1",
 		"mrmime": "^2.0.0"
 	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
 	"exports": {
 		".": "./index.ts",
 		"./example": "./Example.svelte",

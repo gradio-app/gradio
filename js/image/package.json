@@ -18,6 +18,9 @@
 		"lazy-brush": "^1.0.1",
 		"resize-observer-polyfill": "^1.5.1"
 	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
 	"main_changeset": true,
 	"main": "./Index.svelte",
 	"exports": {

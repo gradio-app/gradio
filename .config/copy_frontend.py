@@ -36,6 +36,7 @@ def copy_js_code(root: str | pathlib.Path):
                     ):
                         ignored.append(n)
                 return ignored
+
             shutil.copytree(
                 str(entry),
                 str(pathlib.Path("gradio") / "_frontend_code" / entry.name),

@@ -31,6 +31,7 @@
 		submit: never;
 		blur: never;
 		focus: never;
+		clear_status: LoadingStatus;
 	}>;
 	export let interactive: boolean;
 </script>
@@ -40,6 +41,7 @@
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
 		{...loading_status}
+		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 
 	<Colorpicker

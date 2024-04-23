@@ -34,6 +34,7 @@
 	export let autoscroll = true;
 	export let root: string;
 	export let file_types: string[] | null = null;
+	export let max_file_size: number | null = null;
 
 	let upload_component: Upload;
 	let hidden_upload: HTMLInputElement;
@@ -176,6 +177,7 @@
 
 	function handle_upload_click(): void {
 		if (hidden_upload) {
+			hidden_upload.value = "";
 			hidden_upload.click();
 		}
 	}
@@ -206,11 +208,13 @@
 			on:load={handle_upload}
 			filetype={accept_file_types}
 			{root}
+			{max_file_size}
 			bind:dragging
 			bind:uploading
 			show_progress={false}
 			disable_click={true}
 			bind:hidden_upload
+			on:error
 		>
 			{#if submit_btn !== null}
 				<button class:disabled class="submit-button" on:click={handle_submit}

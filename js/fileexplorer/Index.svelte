@@ -31,6 +31,7 @@
 	export let min_width: number | undefined = undefined;
 	export let gradio: Gradio<{
 		change: never;
+		clear_status: LoadingStatus;
 	}>;
 	export let server: {
 		ls: (path: string[]) => Promise<FileNode[]>;
@@ -62,6 +63,7 @@
 		{...loading_status}
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
+		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	<BlockLabel
 		{show_label}

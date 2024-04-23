@@ -78,14 +78,14 @@ result = client.<span class="highlight">predict</span
 					<CopyButton code={js_code?.innerText} />
 				</div>
 				<div bind:this={js_code}>
-					<pre>import &lbrace; client &rbrace; from "@gradio/client";
+					<pre>import &lbrace; Client &rbrace; from "@gradio/client";
 {#each blob_examples as { label, type, python_type, component, example_input, serializer }, i}<!--
 -->
 const response_{i} = await fetch("{example_input.url}");
 const example{component} = await response_{i}.blob();
 						{/each}<!--
 -->
-const app = await client(<span class="token string">"{root}"</span>);
+const app = await Client.connect(<span class="token string">"{root}"</span>);
 const result = await app.predict({#if named}<span class="api-name"
 								>"/{dependency.api_name}"</span
 							>{:else}{dependency_index}{/if}, [<!--
