@@ -81,6 +81,7 @@
 	$: next = ((selected_index ?? 0) + 1) % (resolved_value?.length ?? 0);
 
 	function handle_preview_click(event: MouseEvent): void {
+		console.log("preview click")
 		const element = event.target as HTMLElement;
 		const x = event.offsetX;
 		const width = element.offsetWidth;

@@ -16,8 +16,8 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: [
-		string | { file: FileData; alt_text: string | null } | null,
-		string | { file: FileData; alt_text: string | null } | null
+		string | { file: FileData | FileData[]; alt_text: string | null } | { type: string; plot: string | null } | null,
+		string | { file: FileData| FileData[]; alt_text: string | null } | { type: string; plot: string | null } | null
 	][] = [];
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -49,18 +49,24 @@
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 
 	let _value: [
-		string | { file: FileData; alt_text: string | null } | null,
-		string | { file: FileData; alt_text: string | null } | null
+		string | { file: FileData | FileData[]; alt_text: string | null } | { type: string; plot: string | null } | null,
+		string | { file: FileData| FileData[]; alt_text: string | null } | { type: string; plot: string | null } | null
 	][];
 
 	const redirect_src_url = (src: string): string =>
 		src.replace('src="/file', `src="${root}file`);
 
 	function normalize_messages(
-		message: { file: FileData; alt_text: string | null } | null
-	): { file: FileData; alt_text: string | null } | null {
+		message: { file: FileData | FileData[]; alt_text: string | null } | null
+	): { file: FileData | FileData[]; alt_text: string | null } | null {
 		if (message === null) {
 			return message;
+		}
+		if (Array.isArray(message)) {
+			return {
+				file: message.map((file: FileData) => file as FileData),
+				alt_text: message?.alt_text
+			};
 		}
 		return {
 			file: message?.file as FileData,
@@ -72,13 +78,18 @@
 		? value.map(([user_msg, bot_msg]) => [
 				typeof user_msg === "string"
 					? redirect_src_url(user_msg)
-					: normalize_messages(user_msg),
-				typeof bot_msg === "string"
+					: user_msg != null && 'plot' in user_msg
+						? user_msg
+						: normalize_messages(user_msg),
+				typeof bot_msg === "string" && bot_msg != null
 					? redirect_src_url(bot_msg)
-					: normalize_messages(bot_msg)
+					: bot_msg != null && 'plot' in bot_msg
+						? bot_msg
+						: normalize_messages(bot_msg),
 		  ])
 		: [];
 
+	
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;
 	export let placeholder: string | null = null;

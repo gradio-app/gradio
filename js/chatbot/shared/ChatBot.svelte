@@ -5,9 +5,11 @@
 	import { dequal } from "dequal/lite";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
-	import { Audio } from "@gradio/audio/shared";
-	import { Image } from "@gradio/image/shared";
-	import { Video } from "@gradio/video/shared";
+	import { BaseStaticAudio } from "@gradio/audio";
+	import { BaseGallery } from "@gradio/gallery";
+	import { BaseStaticImage } from "@gradio/image";
+	import { BaseStaticVideo } from "@gradio/video";
+	import { BasePlot } from "@gradio/plot";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import { type FileData } from "@gradio/client";
@@ -18,14 +20,14 @@
 
 	export let value:
 		| [
-				string | { file: FileData; alt_text: string | null } | null,
-				string | { file: FileData; alt_text: string | null } | null
+				string | { file: FileData| FileData[]; alt_text: string | null } | { type: string; plot: string | null } | null,
+				string | { file: FileData| FileData[]; alt_text: string | null } | { type: string; plot: string | null } | null
 		  ][]
 		| null;
 	let old_value:
 		| [
-				string | { file: FileData; alt_text: string | null } | null,
-				string | { file: FileData; alt_text: string | null } | null
+				string | { file: FileData| FileData[]; alt_text: string | null } | { type: string; plot: string | null } | null,
+				string | { file: FileData| FileData[]; alt_text: string | null } | { type: string; plot: string | null } | null
 		  ][]
 		| null = null;
 	export let latex_delimiters: {
@@ -47,6 +49,7 @@
 	export let i18n: I18nFormatter;
 	export let layout: "bubble" | "panel" = "bubble";
 	export let placeholder: string | null = null;
+	let target = document.querySelector('div.gradio-container');
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
@@ -148,6 +151,7 @@
 			{value}
 		/>
 	</div>
+
 {/if}
 
 <div
@@ -215,37 +219,40 @@
 											{line_breaks}
 											on:load={scroll}
 										/>
-									{:else if message !== null && message.file?.mime_type?.includes("audio")}
-										<Audio
-											data-testid="chatbot-audio"
-											controls
-											preload="metadata"
-											src={message.file?.url}
-											title={message.alt_text}
-											on:play
-											on:pause
-											on:ended
+									{:else if message !== null && "file" in message && Array.isArray(message.file)}
+										<BaseGallery
+											value={message.file}
+											show_label={false}
+											i18n={i18n}
 										/>
-									{:else if message !== null && message.file?.mime_type?.includes("video")}
-										<Video
-											data-testid="chatbot-video"
-											controls
-											src={message.file?.url}
-											title={message.alt_text}
-											preload="auto"
-											on:play
-											on:pause
-											on:ended
+									{:else if message !== null && "file" in message && message.file.mime_type?.includes("audio")}
+										<BaseStaticAudio
+											value={message.file}
+											show_label={false}
+											show_share_button={true}
+											i18n={i18n}
+											label=""
+											waveform_settings={{}}
+											waveform_options={{}}
+										/>
+									{:else if message !== null && "file" in message && message.file.mime_type?.includes("video")}
+										<BaseStaticVideo
+											autoplay={true}
+											value={message.file}
+											show_label={false}
+											show_share_button={true}
+											i18n={i18n}
 										>
 											<track kind="captions" />
-										</Video>
-									{:else if message !== null && message.file?.mime_type?.includes("image")}
-										<Image
-											data-testid="chatbot-image"
-											src={message.file?.url}
-											alt={message.alt_text}
+										</BaseStaticVideo>
+									{:else if message !== null && "file" in message && message.file.mime_type?.includes("image")}
+										<BaseStaticImage
+											value={message.file}
+											show_label={false}
+											show_share_button={true}
+											i18n={i18n}
 										/>
-									{:else if message !== null && message.file?.url !== null}
+									{:else if message !== null && "file" in message && message.file.url !== null}
 										<a
 											data-testid="chatbot-file"
 											href={message.file?.url}
@@ -256,6 +263,14 @@
 										>
 											{message.file?.orig_name || message.file?.path}
 										</a>
+									{:else if message !== null && "plot" in message}
+										<BasePlot
+											value={message}
+											show_label={false}
+											target={target}
+											i18n={i18n}
+											label=""
+										/>
 									{/if}
 								</button>
 							</div>
@@ -323,7 +338,7 @@
 		gap: calc(var(--spacing-xxl) + var(--spacing-lg));
 	}
 
-	.message-wrap > div :not(.avatar-container) :global(img) {
+	.message-wrap > div :not(.avatar-container) div :not(.image-button) :global(img) {
 		border-radius: 13px;
 		max-width: 30vw;
 	}
@@ -449,7 +464,7 @@
 		align-self: center;
 	}
 
-	.avatar-container :global(img) {
+	.avatar-container :not(.thumbnail-item) :global(img) {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
@@ -516,7 +531,7 @@
 			opacity: 0.8;
 		}
 	}
-	.message-wrap .message :global(img) {
+	.message-wrap > .message :not(.image-button) :global(img) {
 		margin: var(--size-2);
 		max-height: 200px;
 	}
@@ -588,5 +603,16 @@
 
 	.message-wrap :global(pre) {
 		position: relative;
+	}
+
+	.message-wrap :global(.grid-wrap) {
+		max-height: 80% !important;
+		min-width: 600px;
+		object-fit: contain;
+	}
+	.message :global(.preview) {
+		object-fit: contain;
+		width: 95%;
+		max-height: 93%;
 	}
 </style>
