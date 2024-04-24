@@ -1,6 +1,6 @@
 # 通过自动重载实现更快的开发
 
-**先决条件**：本指南要求您了解块的知识。请确保[先阅读块指南](https://gradio.app/quickstart/#blocks-more-flexibility-and-control)。
+**先决条件**：本指南要求您了解块的知识。请确保[先阅读块指南](https://gradio.app/blocks-and-event-listeners)。
 
 本指南介绍了自动重新加载、在 Python IDE 中重新加载以及在 Jupyter Notebooks 中使用 gradio 的方法。
 

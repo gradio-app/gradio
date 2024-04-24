@@ -28,6 +28,7 @@
 			child_bottom: number;
 		}>;
 		active_tool: Writable<tool>;
+		toolbar_box: Writable<DOMRect>;
 		crop: Writable<[number, number, number, number]>;
 		position_spring: Spring<{
 			x: number;
@@ -67,11 +68,14 @@
 	export let bg = false;
 	export let sources: ("clipboard" | "webcam" | "upload")[];
 	const dispatch = createEventDispatcher<{
+		clear?: never;
 		save: void;
+		change: void;
 	}>();
 	export let crop_constraint = false;
 
 	let dimensions = writable(crop_size);
+	export let height = 0;
 
 	let editor_box: EditorContext["editor_box"] = writable({
 		parent_width: 0,
@@ -88,6 +92,8 @@
 		child_bottom: 0
 	});
 
+	$: height = $editor_box.child_height;
+
 	const crop = writable<[number, number, number, number]>([0, 0, 1, 1]);
 	const position_spring = spring(
 		{ x: 0, y: 0 },
@@ -102,6 +108,8 @@
 
 	const { can_redo, can_undo, current_history } = CommandManager;
 
+	$: $current_history.previous, dispatch("change");
+
 	$: {
 		history = !!$current_history.previous || $active_tool !== "bg";
 	}
@@ -113,6 +121,7 @@
 		PartialRecord<context_type, (dimensions?: typeof $dimensions) => void>
 	> = writable({});
 	const contexts: Writable<context_type[]> = writable([]);
+	const toolbar_box: Writable<DOMRect> = writable(new DOMRect());
 
 	const sort_order = ["bg", "layers", "crop", "draw", "erase"] as const;
 	const editor_context = setContext<EditorContext>(EDITOR_KEY, {
@@ -120,6 +129,7 @@
 		current_layer: writable(null),
 		dimensions,
 		editor_box,
+		toolbar_box,
 		active_tool,
 		crop,
 		position_spring,
@@ -237,10 +247,10 @@
 		return $pixi?.get_blobs(
 			$pixi.get_layers(),
 			new Rectangle(
-				l * $dimensions[0],
-				t * $dimensions[1],
-				w * $dimensions[0],
-				h * $dimensions[1]
+				Math.round(l * $dimensions[0]),
+				Math.round(t * $dimensions[1]),
+				Math.round(w * $dimensions[0]),
+				Math.round(h * $dimensions[1])
 			),
 			$dimensions
 		);
@@ -256,6 +266,7 @@
 		} else {
 			set_tool("bg");
 		}
+		dispatch("clear");
 	}
 
 	onMount(() => {
@@ -329,39 +340,53 @@
 			style:transform="translate({$position_spring.x}px, {$position_spring.y}px)"
 		></div>
 	</div>
-	<slot />
+	<div class="tools-wrap">
+		<slot />
+	</div>
 	<div
 		class="border"
-		style:width="{$crop[2] * $editor_box.child_width}px"
-		style:height="{$crop[3] * $editor_box.child_height}px"
+		style:width="{$crop[2] * $editor_box.child_width + 1}px"
+		style:height="{$crop[3] * $editor_box.child_height + 1}px"
 		style:top="{$crop[1] * $editor_box.child_height +
-			($editor_box.child_top - $editor_box.parent_top)}px"
+			($editor_box.child_top - $editor_box.parent_top) -
+			0.5}px"
 		style:left="{$crop[0] * $editor_box.child_width +
-			($editor_box.child_left - $editor_box.parent_left)}px"
+			($editor_box.child_left - $editor_box.parent_left) -
+			0.5}px"
 	></div>
 </div>
 
 <style>
 	.wrap {
+		display: flex;
 		width: 100%;
 		height: 100%;
 		position: relative;
-		display: flex;
 		justify-content: center;
-		align-items: center;
+		align-items: flex-start;
 	}
 	.border {
 		position: absolute;
 		border: var(--block-border-color) 1px solid;
 		pointer-events: none;
+		border-radius: var(--radius-md);
 	}
 
 	.stage-wrap {
 		margin: var(--size-8);
 		margin-bottom: var(--size-1);
+		border-radius: var(--radius-md);
+		overflow: hidden;
 	}
 
-	.bg {
+	.tools-wrap {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: 0 var(--spacing-xl) 0 0;
+		border: 1px solid var(--block-border-color);
+		border-radius: var(--radius-sm);
+		margin: var(--spacing-xxl) 0 var(--spacing-xxl) 0;
 	}
 
 	.image-container {

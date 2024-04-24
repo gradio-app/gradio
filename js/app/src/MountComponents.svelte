@@ -3,13 +3,12 @@
 	import Render from "./Render.svelte";
 
 	export let rootNode: any;
-	export let dynamic_ids: any;
-	export let instance_map: any;
 	export let root: any;
 	export let target: any;
 	export let theme_mode: any;
 	export let version: any;
 	export let autoscroll: boolean;
+	export let max_file_size: number | null = null;
 
 	const dispatch = createEventDispatcher<{ mount?: never }>();
 	onMount(() => {
@@ -18,15 +17,11 @@
 </script>
 
 <Render
-	component={rootNode.component}
-	id={rootNode.id}
-	props={rootNode.props}
-	children={rootNode.children}
-	{dynamic_ids}
-	{instance_map}
+	node={rootNode}
 	{root}
 	{target}
 	{theme_mode}
 	{version}
 	{autoscroll}
+	{max_file_size}
 />

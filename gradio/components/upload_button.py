@@ -5,36 +5,25 @@ from __future__ import annotations
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Any, Callable, List, Literal
+from typing import Any, Callable, Literal
 
-from gradio_client.documentation import document, set_documentation_group
+import gradio_client.utils as client_utils
+from gradio_client import file
+from gradio_client.documentation import document
 
+from gradio import processing_utils
 from gradio.components.base import Component
-from gradio.data_classes import FileData, GradioRootModel
+from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
 from gradio.utils import NamedString
-
-set_documentation_group("component")
-
-
-class ListFiles(GradioRootModel):
-    root: List[FileData]
-
-    def __getitem__(self, index):
-        return self.root[index]
-
-    def __iter__(self):
-        return iter(self.root)
 
 
 @document()
 class UploadButton(Component):
     """
     Used to create an upload button, when clicked allows a user to upload files that satisfy the specified file type or generic files (if file_type not set).
-    Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List[bytes]} depending on `type`)
-    Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
-    Examples-format: a {str} path to a local file that populates the component.
-    Demos: upload_button
+
+    Demos: upload_and_download, upload_button
     """
 
     EVENTS = [Events.click, Events.upload]
@@ -63,11 +52,12 @@ class UploadButton(Component):
         Parameters:
             label: Text to display on the button. Defaults to "Upload a File".
             value: File or list of files to upload by default.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             variant: 'primary' for main call-to-action, 'secondary' for a more subdued style, 'stop' for a stop button.
             visible: If False, component will be hidden.
             size: Size of the button. Can be "sm" or "lg".
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
+            icon: URL or path to the icon file to display within the button. If None, no icon will be displayed.
+            scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             interactive: If False, the UploadButton will be in a disabled state.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -95,7 +85,7 @@ class UploadButton(Component):
             raise ValueError(
                 f"Parameter file_types must be a list. Received {file_types.__class__.__name__}"
             )
-        if self.file_count == "multiple":
+        if self.file_count in ["multiple", "directory"]:
             self.data_model = ListFiles
         else:
             self.data_model = FileData
@@ -115,7 +105,7 @@ class UploadButton(Component):
             min_width=min_width,
             interactive=interactive,
         )
-        self.icon = self.move_resource_to_block_cache(icon)
+        self.icon = self.serve_static_file(icon)
 
     def api_info(self) -> dict[str, list[str]]:
         if self.file_count == "single":
@@ -123,7 +113,19 @@ class UploadButton(Component):
         else:
             return ListFiles.model_json_schema()
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        if self.file_count == "single":
+            return file(
+                "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+            )
+        else:
+            return [
+                file(
+                    "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+                )
+            ]
+
+    def example_value(self) -> Any:
         if self.file_count == "single":
             return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
         else:
@@ -149,24 +151,55 @@ class UploadButton(Component):
 
     def preprocess(
         self, payload: ListFiles | FileData | None
-    ) -> bytes | NamedString | list[bytes | NamedString] | None:
+    ) -> bytes | str | list[bytes] | list[str] | None:
+        """
+        Parameters:
+            payload: File information as a FileData object, or a list of FileData objects.
+        Returns:
+            Passes the file as a `str` or `bytes` object, or a list of `str` or list of `bytes` objects, depending on `type` and `file_count`.
+        """
         if payload is None:
             return None
 
         if self.file_count == "single":
             if isinstance(payload, ListFiles):
                 return self._process_single_file(payload[0])
-            else:
-                return self._process_single_file(payload)
+            return self._process_single_file(payload)
+
+        if isinstance(payload, ListFiles):
+            return [self._process_single_file(f) for f in payload]  # type: ignore
+        return [self._process_single_file(payload)]  # type: ignore
+
+    def _download_files(self, value: str | list[str]) -> str | list[str]:
+        downloaded_files = []
+        if isinstance(value, list):
+            for file in value:
+                if client_utils.is_http_url_like(file):
+                    downloaded_file = processing_utils.save_url_to_cache(
+                        file, self.GRADIO_CACHE
+                    )
+                    downloaded_files.append(downloaded_file)
+                else:
+                    downloaded_files.append(file)
+            return downloaded_files
+        if client_utils.is_http_url_like(value):
+            downloaded_file = processing_utils.save_url_to_cache(
+                value, self.GRADIO_CACHE
+            )
+            return downloaded_file
         else:
-            if isinstance(payload, ListFiles):
-                return [self._process_single_file(f) for f in payload]
-            else:
-                return [self._process_single_file(payload)]
+            return value
 
     def postprocess(self, value: str | list[str] | None) -> ListFiles | FileData | None:
+        """
+        Parameters:
+            value: Expects a `str` filepath or URL, or a `list[str]` of filepaths/URLs.
+        Returns:
+            File information as a FileData object, or a list of FileData objects.
+        """
         if value is None:
             return None
+        value = self._download_files(value)
         if isinstance(value, list):
             return ListFiles(
                 root=[

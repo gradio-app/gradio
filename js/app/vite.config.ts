@@ -32,16 +32,16 @@ import {
 	generate_dev_entry,
 	handle_ce_css,
 	inject_component_loader,
-	resolve_svelte
+	resolve_svelte,
+	mock_modules
 } from "./build_plugins";
 
 const GRADIO_VERSION = version_raw || "asd_stub_asd";
 const CDN_BASE = "https://gradio.s3-us-west-2.amazonaws.com";
-const TEST_MODE = process.env.TEST_MODE || "jsdom";
+const TEST_MODE = process.env.TEST_MODE || "happy-dom";
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {
-	console.log(mode);
 	const targets = {
 		production: "../../gradio/templates/frontend",
 		"dev:custom": "../../gradio/templates/frontend"
@@ -61,8 +61,7 @@ export default defineConfig(({ mode }) => {
 		build: {
 			sourcemap: true,
 			target: "esnext",
-			// minify: production,
-			minify: false,
+			minify: production,
 			outDir: is_lite ? resolve(__dirname, "../lite/dist") : targets[mode],
 			// To build Gradio-lite as a library, we can't use the library mode
 			// like `lib: is_lite && {}`
@@ -115,6 +114,7 @@ export default defineConfig(({ mode }) => {
 							} else if (
 								selector.indexOf(":root") > -1 ||
 								selector.indexOf("dark") > -1 ||
+								selector.indexOf("body") > -1 ||
 								fileName.indexOf(".svelte") > -1
 							) {
 								return selector;
@@ -139,7 +139,7 @@ export default defineConfig(({ mode }) => {
 				compilerOptions: {
 					dev: true,
 					discloseVersion: false,
-					accessors: mode === "test"
+					accessors: true
 				},
 				hot: !process.env.VITEST && !production,
 				preprocess: sveltePreprocess({
@@ -160,7 +160,8 @@ export default defineConfig(({ mode }) => {
 			inject_ejs(),
 			generate_cdn_entry({ version: GRADIO_VERSION, cdn_base: CDN_BASE }),
 			handle_ce_css(),
-			inject_component_loader()
+			inject_component_loader({ mode }),
+			mode === "test" && mock_modules()
 		],
 		optimizeDeps: {
 			exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"]
@@ -178,6 +179,7 @@ export default defineConfig(({ mode }) => {
 				if (log.includes("was created with unknown prop")) return false;
 			}
 		},
+
 		resolve: {
 			alias: {
 				// For the Wasm app to import the wheel file URLs.

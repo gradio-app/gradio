@@ -5,6 +5,7 @@ Tests for all of the components defined in components.py. Tests are divided into
 """
 
 import filecmp
+import inspect
 import json
 import os
 import shutil
@@ -21,6 +22,7 @@ import pytest
 import vega_datasets
 from gradio_client import media_data
 from gradio_client import utils as client_utils
+from gradio_pdf import PDF
 from scipy.io import wavfile
 
 try:
@@ -30,10 +32,12 @@ except ImportError:
 
 import gradio as gr
 from gradio import processing_utils, utils
+from gradio.components.base import Component
 from gradio.components.dataframe import DataframeData
 from gradio.components.file_explorer import FileExplorerData
+from gradio.components.image_editor import EditorData
 from gradio.components.video import VideoData
-from gradio.data_classes import FileData
+from gradio.data_classes import FileData, GradioModel, GradioRootModel, ListFiles
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -80,7 +84,7 @@ class TestTextbox:
             "lines": 1,
             "max_lines": 20,
             "placeholder": None,
-            "value": "",
+            "value": None,
             "name": "textbox",
             "show_copy_button": False,
             "show_label": True,
@@ -231,12 +235,32 @@ class TestNumber:
         assert numeric_input.postprocess(2.1421) == 2.14
         assert numeric_input.postprocess(None) is None
 
+    def test_precision_none_with_integer(self):
+        """
+        Preprocess, postprocess
+        """
+        numeric_input = gr.Number(precision=None)
+        assert numeric_input.preprocess(5) == 5
+        assert isinstance(numeric_input.preprocess(5), int)
+        assert numeric_input.postprocess(5) == 5
+        assert isinstance(numeric_input.postprocess(5), int)
+
+    def test_precision_none_with_float(self):
+        """
+        Preprocess, postprocess
+        """
+        numeric_input = gr.Number(value=5.5, precision=None)
+        assert numeric_input.preprocess(5.5) == 5.5
+        assert isinstance(numeric_input.preprocess(5.5), float)
+        assert numeric_input.postprocess(5.5) == 5.5
+        assert isinstance(numeric_input.postprocess(5.5), float)
+
     def test_in_interface_as_input(self):
         """
         Interface, process
         """
         iface = gr.Interface(lambda x: x**2, "number", "textbox")
-        assert iface(2) == "4.0"
+        assert iface(2) == "4"
 
     def test_precision_0_in_interface(self):
         """
@@ -409,8 +433,7 @@ class TestCheckboxGroup:
         cbox = gr.CheckboxGroup(choices=["a", "b"], value="c")
         assert cbox.get_config()["value"] == ["c"]
         assert cbox.postprocess("a") == ["a"]
-        with pytest.raises(ValueError):
-            gr.CheckboxGroup().as_example("a")
+        assert cbox.process_example("a") == ["a"]
 
     def test_in_interface(self):
         """
@@ -554,6 +577,80 @@ class TestDropdown:
         assert iface([]) == ""
 
 
+class TestImageEditor:
+    def test_component_functions(self):
+        test_image_path = "test/test_files/bus.png"
+        image_data = FileData(path=test_image_path)
+        image_editor_data = EditorData(
+            background=image_data, layers=[image_data, image_data], composite=image_data
+        )
+        payload = {
+            "background": test_image_path,
+            "layers": [test_image_path, test_image_path],
+            "composite": test_image_path,
+        }
+
+        image_editor_component = gr.ImageEditor()
+
+        assert isinstance(image_editor_component.preprocess(image_editor_data), dict)
+        assert image_editor_component.postprocess(payload) == image_editor_data
+
+        # Test that ImageEditor can accept just a filepath as well
+        simpler_data = EditorData(
+            background=image_data, layers=[], composite=image_data
+        )
+        assert image_editor_component.postprocess(test_image_path) == simpler_data
+
+        assert image_editor_component.get_config() == {
+            "value": None,
+            "height": None,
+            "width": None,
+            "image_mode": "RGBA",
+            "sources": ("upload", "webcam", "clipboard"),
+            "type": "numpy",
+            "label": None,
+            "show_label": True,
+            "show_download_button": True,
+            "container": True,
+            "scale": None,
+            "min_width": 160,
+            "interactive": None,
+            "visible": True,
+            "elem_id": None,
+            "elem_classes": [],
+            "mirror_webcam": True,
+            "show_share_button": False,
+            "_selectable": False,
+            "crop_size": None,
+            "transforms": ("crop",),
+            "eraser": {"default_size": "auto"},
+            "brush": {
+                "default_size": "auto",
+                "colors": [
+                    "rgb(204, 50, 50)",
+                    "rgb(173, 204, 50)",
+                    "rgb(50, 204, 112)",
+                    "rgb(50, 112, 204)",
+                    "rgb(173, 50, 204)",
+                ],
+                "default_color": "auto",
+                "color_mode": "defaults",
+            },
+            "proxy_url": None,
+            "name": "imageeditor",
+            "server_fns": ["accept_blobs"],
+            "format": "webp",
+            "layers": True,
+        }
+
+    def test_process_example(self):
+        test_image_path = "test/test_files/bus.png"
+        image_editor = gr.ImageEditor()
+        example_value = image_editor.process_example(test_image_path)
+        assert isinstance(example_value, EditorData)
+        assert example_value.background and example_value.background.path
+
+
 class TestImage:
     def test_component_functions(self, gradio_temp_dir):
         """
@@ -590,6 +687,7 @@ class TestImage:
             "visible": True,
             "value": None,
             "interactive": None,
+            "format": "webp",
             "proxy_url": None,
             "mirror_webcam": True,
             "_selectable": False,
@@ -627,7 +725,7 @@ class TestImage:
             return np.random.randint(0, 256, (height, width, 3))
 
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
-        assert iface(10, 20).endswith(".png")
+        assert iface(10, 20).endswith(".webp")
 
     def test_static(self):
         """
@@ -648,6 +746,24 @@ class TestImage:
         image = component.preprocess(FileData(path=file_path))
         assert image == PIL.ImageOps.exif_transpose(im)
 
+    def test_image_format_parameter(self):
+        component = gr.Image(type="filepath", format="jpeg")
+        file_path = "test/test_files/bus.png"
+        image = component.postprocess(file_path)
+        assert image.path.endswith("png")
+        image = component.postprocess(
+            np.random.randint(0, 256, (100, 100, 3), dtype=np.uint8)
+        )
+        assert image.path.endswith("jpeg")
+
+        image_pre = component.preprocess(FileData(path=file_path))
+        assert image_pre.endswith("webp")
+
+        image_pre = component.preprocess(
+            FileData(path="test/test_files/cheetah1.jpg", orig_name="cheetah1.jpg")
+        )
+        assert image_pre.endswith("jpeg")
+
 
 class TestPlot:
     @pytest.mark.asyncio
@@ -667,7 +783,7 @@ class TestPlot:
         with utils.MatplotlibBackendMananger():
             output = await iface.process_api(fn_index=0, inputs=[10], state={})
         assert output["data"][0]["type"] == "matplotlib"
-        assert output["data"][0]["plot"].startswith("data:image/png;base64")
+        assert output["data"][0]["plot"].startswith("data:image/webp;base64")
 
     def test_static(self):
         """
@@ -702,9 +818,23 @@ class TestPlot:
         assert isinstance(out["plot"], str)
         assert out["plot"] == chart.to_json()
 
+    def test_plot_format_parameter(self):
+        """
+        postprocess
+        """
+        with utils.MatplotlibBackendMananger():
+            import matplotlib.pyplot as plt
+
+            fig = plt.figure()
+            plt.plot([1, 2, 3], [1, 2, 3])
+
+        component = gr.Plot(format="jpeg")
+        assert component.postprocess(fig).plot.startswith("data:image/jpeg")
+
 
 class TestAudio:
-    def test_component_functions(self, gradio_temp_dir):
+    @pytest.mark.asyncio
+    async def test_component_functions(self, gradio_temp_dir):
         """
         Preprocess, postprocess serialize, get_config, deserialize
         type: filepath, numpy, file
@@ -715,7 +845,8 @@ class TestAudio:
         assert output1[0] == 8000
         assert output1[1].shape == (8046,)
 
-        x_wav = processing_utils.move_files_to_cache([x_wav], audio_input)[0]
+        x_wav = await processing_utils.async_move_files_to_cache([x_wav], audio_input)
+        x_wav = x_wav[0]
         audio_input = gr.Audio(type="filepath")
         output1 = audio_input.preprocess(x_wav)
         assert Path(output1).name.endswith("audio_sample.wav")
@@ -725,7 +856,7 @@ class TestAudio:
             "autoplay": False,
             "sources": ["upload", "microphone"],
             "name": "audio",
-            "show_download_button": True,
+            "show_download_button": None,
             "show_share_button": False,
             "streaming": False,
             "show_label": True,
@@ -745,7 +876,15 @@ class TestAudio:
             "streamable": False,
             "max_length": None,
             "min_length": None,
-            "waveform_options": None,
+            "waveform_options": {
+                "sample_rate": 44100,
+                "show_controls": False,
+                "show_recording_waveform": True,
+                "skip_length": 5,
+                "waveform_color": None,
+                "waveform_progress_color": None,
+                "trim_region_color": None,
+            },
             "_selectable": False,
         }
         assert audio_input.preprocess(None) is None
@@ -755,8 +894,9 @@ class TestAudio:
         with pytest.raises(ValueError):
             gr.Audio(type="unknown")
 
+        rng = np.random.default_rng()
         # Confirm Audio can be instantiated with a numpy array
-        gr.Audio((100, np.random.random(size=(1000, 2))), label="Play your audio")
+        gr.Audio((100, rng.random(size=(1000, 2))), label="Play your audio")
 
         # Output functionalities
         y_audio = client_utils.decode_base64_to_file(
@@ -769,7 +909,7 @@ class TestAudio:
         assert audio_output.get_config() == {
             "autoplay": False,
             "name": "audio",
-            "show_download_button": True,
+            "show_download_button": None,
             "show_share_button": False,
             "streaming": False,
             "show_label": True,
@@ -790,7 +930,15 @@ class TestAudio:
             "format": "wav",
             "streamable": False,
             "sources": ["upload", "microphone"],
-            "waveform_options": None,
+            "waveform_options": {
+                "sample_rate": 44100,
+                "show_controls": False,
+                "show_recording_waveform": True,
+                "skip_length": 5,
+                "waveform_color": None,
+                "waveform_progress_color": None,
+                "trim_region_color": None,
+            },
             "_selectable": False,
         }
 
@@ -906,6 +1054,14 @@ class TestFile:
         output2 = file_input.postprocess("test/test_files/sample_file.pdf")
         assert output1 == output2
 
+    def test_preprocess_with_multiple_files(self):
+        file_data = FileData(path=media_data.BASE64_FILE["path"])
+        list_file_data = ListFiles(root=[file_data, file_data])
+        file_input = gr.File(file_count="directory")
+        output = file_input.preprocess(list_file_data)
+        assert isinstance(output, list)
+        assert isinstance(output[0], str)
+
     def test_file_type_must_be_list(self):
         with pytest.raises(
             ValueError, match="Parameter file_types must be a list. Received str"
@@ -959,6 +1115,14 @@ class TestUploadButton:
         ):
             gr.UploadButton(file_types=2)
 
+    def test_preprocess_with_multiple_files(self):
+        file_data = FileData(path=media_data.BASE64_FILE["path"])
+        list_file_data = ListFiles(root=[file_data, file_data])
+        upload_input = gr.UploadButton(file_count="directory")
+        output = upload_input.preprocess(list_file_data)
+        assert isinstance(output, list)
+        assert isinstance(output[0], str)
+
 
 class TestDataframe:
     def test_component_functions(self):
@@ -970,11 +1134,12 @@ class TestDataframe:
             "headers": ["Name", "Age", "Member"],
             "metadata": None,
         }
+        x_payload = DataframeData(**x_data)
         dataframe_input = gr.Dataframe(headers=["Name", "Age", "Member"])
-        output = dataframe_input.preprocess(DataframeData(**x_data))
+        output = dataframe_input.preprocess(x_payload)
         assert output["Age"][1] == 24
         assert not output["Member"][0]
-        assert dataframe_input.postprocess(x_data) == x_data
+        assert dataframe_input.postprocess(output) == x_payload
 
         dataframe_input = gr.Dataframe(
             headers=["Name", "Age", "Member"], label="Dataframe Input"
@@ -989,7 +1154,7 @@ class TestDataframe:
             "headers": ["Name", "Age", "Member"],
             "row_count": (1, "dynamic"),
             "col_count": (3, "dynamic"),
-            "datatype": ["str", "str", "str"],
+            "datatype": "str",
             "type": "pandas",
             "label": "Dataframe Input",
             "show_label": True,
@@ -1032,7 +1197,7 @@ class TestDataframe:
             "headers": ["1", "2", "3"],
             "row_count": (1, "dynamic"),
             "col_count": (3, "dynamic"),
-            "datatype": ["str", "str", "str"],
+            "datatype": "str",
             "type": "pandas",
             "label": None,
             "show_label": True,
@@ -1064,7 +1229,7 @@ class TestDataframe:
         """
         dataframe_output = gr.Dataframe()
         output = dataframe_output.postprocess([]).model_dump()
-        assert output == {"data": [[]], "headers": [], "metadata": None}
+        assert output == {"data": [[]], "headers": ["1", "2", "3"], "metadata": None}
         output = dataframe_output.postprocess(np.zeros((2, 2))).model_dump()
         assert output == {
             "data": [[0, 0], [0, 0]],
@@ -1285,7 +1450,7 @@ class TestDataset:
         row = dataset.preprocess(1)
         assert row[0] == 15
         assert row[1] == "hi"
-        assert row[2].endswith("bus.png")
+        assert row[2]["path"].endswith("bus.png")
         assert row[3] == "<i>Italics</i>"
         assert row[4] == "*Italics*"
 
@@ -1302,7 +1467,7 @@ class TestDataset:
 
         radio = gr.Radio(choices=[("name 1", "value 1"), ("name 2", "value 2")])
         dataset = gr.Dataset(samples=[["value 1"], ["value 2"]], components=[radio])
-        assert dataset.samples == [["name 1"], ["name 2"]]
+        assert dataset.samples == [["value 1"], ["value 2"]]
 
     def test_postprocessing(self):
         test_file_dir = Path(Path(__file__).parent, "test_files")
@@ -1329,7 +1494,8 @@ class TestDataset:
 
 
 class TestVideo:
-    def test_component_functions(self):
+    @pytest.mark.asyncio
+    async def test_component_functions(self):
         """
         Preprocess, serialize, deserialize, get_config
         """
@@ -1338,7 +1504,10 @@ class TestVideo:
         )
         video_input = gr.Video()
 
-        x_video = processing_utils.move_files_to_cache([x_video], video_input)[0]
+        x_video = await processing_utils.async_move_files_to_cache(
+            [x_video], video_input
+        )
+        x_video = x_video[0]
 
         output1 = video_input.preprocess(x_video)
         assert isinstance(output1, str)
@@ -1353,7 +1522,7 @@ class TestVideo:
         video_input = gr.Video(label="Upload Your Video")
         assert video_input.get_config() == {
             "autoplay": False,
-            "sources": ["webcam", "upload"],
+            "sources": ["upload", "webcam"],
             "name": "video",
             "show_share_button": False,
             "show_label": True,
@@ -1361,6 +1530,7 @@ class TestVideo:
             "container": True,
             "min_width": 160,
             "scale": None,
+            "show_download_button": None,
             "height": None,
             "width": None,
             "elem_id": None,
@@ -1413,6 +1583,8 @@ class TestVideo:
                 "mime_type": None,
                 "size": None,
                 "url": None,
+                "is_stream": False,
+                "meta": {"_type": "gradio.FileData"},
             },
             "subtitles": None,
         }
@@ -1424,6 +1596,8 @@ class TestVideo:
                 "mime_type": None,
                 "size": None,
                 "url": None,
+                "is_stream": False,
+                "meta": {"_type": "gradio.FileData"},
             },
             "subtitles": {
                 "path": "s1.srt",
@@ -1431,6 +1605,8 @@ class TestVideo:
                 "orig_name": None,
                 "size": None,
                 "url": None,
+                "is_stream": False,
+                "meta": {"_type": "gradio.FileData"},
             },
         }
         postprocessed_video["video"]["path"] = os.path.basename(
@@ -1802,6 +1978,15 @@ class TestAnnotatedImage:
         assert np.max(mask1_array_out[40:50, 40:50]) == 255
         assert np.max(mask1_array_out[50:60, 50:60]) == 0
 
+    def test_annotated_image_format_parameter(self):
+        component = gr.AnnotatedImage(format="jpeg")
+        img = np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
+        mask1 = [40, 40, 50, 50]
+        data = (img, [(mask1, "mask1"), (mask1, "mask2")])
+        output = component.postprocess(data)
+        assert output.image.path.endswith(".jpeg")
+        assert output.annotations[0].image.path.endswith(".png")
+
     def test_component_functions(self):
         ht_output = gr.AnnotatedImage(label="sections", show_legend=False)
         assert ht_output.get_config() == {
@@ -1812,6 +1997,7 @@ class TestAnnotatedImage:
             "container": True,
             "min_width": 160,
             "scale": None,
+            "format": "webp",
             "color_map": None,
             "height": None,
             "width": None,
@@ -1878,6 +2064,7 @@ class TestChatbot:
             "container": True,
             "min_width": 160,
             "scale": None,
+            "placeholder": None,
             "height": None,
             "proxy_url": None,
             "_selectable": False,
@@ -1896,7 +2083,9 @@ class TestChatbot:
     def test_avatar_images_are_moved_to_cache(self):
         chatbot = gr.Chatbot(avatar_images=("test/test_files/bus.png", None))
         assert chatbot.avatar_images[0]
-        assert utils.is_in_or_equal(chatbot.avatar_images[0], chatbot.GRADIO_CACHE)
+        assert utils.is_in_or_equal(
+            chatbot.avatar_images[0]["path"], chatbot.GRADIO_CACHE
+        )
         assert chatbot.avatar_images[1] is None
 
 
@@ -2127,6 +2316,8 @@ class TestGallery:
                     "mime_type": None,
                     "size": None,
                     "url": url,
+                    "is_stream": False,
+                    "meta": {"_type": "gradio.FileData"},
                 },
                 "caption": None,
             }
@@ -2138,54 +2329,99 @@ class TestGallery:
 
         postprocessed_gallery = gallery.postprocess(
             [
-                ("test/test_files/foo.png", "foo_caption"),
+                (str(Path("test/test_files/foo.png")), "foo_caption"),
                 (Path("test/test_files/bar.png"), "bar_caption"),
-                "test/test_files/baz.png",
+                str(Path("test/test_files/baz.png")),
                 Path("test/test_files/qux.png"),
             ]
         ).model_dump()
+
+        # Using str(Path(...)) to ensure that the test passes on all platforms
         assert postprocessed_gallery == [
             {
                 "image": {
-                    "path": "test/test_files/foo.png",
+                    "path": str(Path("test") / "test_files" / "foo.png"),
                     "orig_name": "foo.png",
                     "mime_type": None,
                     "size": None,
                     "url": None,
+                    "is_stream": False,
+                    "meta": {"_type": "gradio.FileData"},
                 },
                 "caption": "foo_caption",
             },
             {
                 "image": {
-                    "path": "test/test_files/bar.png",
+                    "path": str(Path("test") / "test_files" / "bar.png"),
                     "orig_name": "bar.png",
                     "mime_type": None,
                     "size": None,
                     "url": None,
+                    "is_stream": False,
+                    "meta": {"_type": "gradio.FileData"},
                 },
                 "caption": "bar_caption",
             },
             {
                 "image": {
-                    "path": "test/test_files/baz.png",
+                    "path": str(Path("test") / "test_files" / "baz.png"),
                     "orig_name": "baz.png",
                     "mime_type": None,
                     "size": None,
                     "url": None,
+                    "is_stream": False,
+                    "meta": {"_type": "gradio.FileData"},
                 },
                 "caption": None,
             },
             {
                 "image": {
-                    "path": "test/test_files/qux.png",
+                    "path": str(Path("test") / "test_files" / "qux.png"),
                     "orig_name": "qux.png",
                     "mime_type": None,
                     "size": None,
                     "url": None,
+                    "is_stream": False,
+                    "meta": {"_type": "gradio.FileData"},
                 },
                 "caption": None,
             },
         ]
+
+    def test_gallery_preprocess(self):
+        from gradio.components.gallery import GalleryData, GalleryImage
+
+        gallery = gr.Gallery()
+        img = GalleryImage(image=FileData(path="test/test_files/bus.png"))
+        data = GalleryData(root=[img])
+
+        preprocess = gallery.preprocess(data)
+        assert preprocess[0][0] == "test/test_files/bus.png"
+
+        gallery = gr.Gallery(type="numpy")
+        assert (
+            gallery.preprocess(data)[0][0]
+            == np.array(PIL.Image.open("test/test_files/bus.png"))
+        ).all()
+
+        gallery = gr.Gallery(type="pil")
+        assert gallery.preprocess(data)[0][0] == PIL.Image.open(
+            "test/test_files/bus.png"
+        )
+
+        img_captions = GalleryImage(
+            image=FileData(path="test/test_files/bus.png"), caption="bus"
+        )
+        data = GalleryData(root=[img_captions])
+        preprocess = gr.Gallery().preprocess(data)
+        assert preprocess[0] == ("test/test_files/bus.png", "bus")
+
+    def test_gallery_format(self):
+        gallery = gr.Gallery(format="jpeg")
+        output = gallery.postprocess(
+            [np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)]
+        )
+        assert output.root[0].image.path.endswith(".jpeg")
 
 
 class TestState:
@@ -2223,32 +2459,40 @@ class TestState:
         assert result["prediction"] == 2
 
 
-def test_dataframe_as_example_converts_dataframes():
+def test_dataframe_process_example_converts_dataframes():
     df_comp = gr.Dataframe()
-    assert df_comp.as_example(pd.DataFrame({"a": [1, 2, 3, 4], "b": [5, 6, 7, 8]})) == [
+    assert df_comp.process_example(
+        pd.DataFrame({"a": [1, 2, 3, 4], "b": [5, 6, 7, 8]})
+    ) == [
         [1, 5],
         [2, 6],
         [3, 7],
         [4, 8],
     ]
-    assert df_comp.as_example(np.array([[1, 2], [3, 4.0]])) == [[1.0, 2.0], [3.0, 4.0]]
+    assert df_comp.process_example(np.array([[1, 2], [3, 4.0]])) == [
+        [1.0, 2.0],
+        [3.0, 4.0],
+    ]
 
 
 @pytest.mark.parametrize("component", [gr.Model3D, gr.File, gr.Audio])
-def test_as_example_returns_file_basename(component):
+def test_process_example_returns_file_basename(component):
     component = component()
-    assert component.as_example("/home/freddy/sources/example.ext") == "example.ext"
-    assert component.as_example(None) == ""
+    assert (
+        component.process_example("/home/freddy/sources/example.ext") == "example.ext"
+    )
+    assert component.process_example(None) == ""
 
 
 @patch(
-    "gradio.components.Component.as_example", spec=gr.components.Component.as_example
+    "gradio.components.Component.process_example",
+    spec=gr.components.Component.process_example,
 )
-@patch("gradio.components.Image.as_example", spec=gr.Image.as_example)
-@patch("gradio.components.File.as_example", spec=gr.File.as_example)
-@patch("gradio.components.Dataframe.as_example", spec=gr.DataFrame.as_example)
-@patch("gradio.components.Model3D.as_example", spec=gr.Model3D.as_example)
-def test_dataset_calls_as_example(*mocks):
+@patch("gradio.components.Image.process_example", spec=gr.Image.process_example)
+@patch("gradio.components.File.process_example", spec=gr.File.process_example)
+@patch("gradio.components.Dataframe.process_example", spec=gr.DataFrame.process_example)
+@patch("gradio.components.Model3D.process_example", spec=gr.Model3D.process_example)
+def test_dataset_calls_process_example(*mocks):
     gr.Dataset(
         components=[gr.Dataframe(), gr.File(), gr.Image(), gr.Model3D(), gr.Textbox()],
         samples=[
@@ -2285,7 +2529,7 @@ class TestScatterPlot:
             "elem_classes": [],
             "interactive": None,
             "label": None,
-            "name": "plot",
+            "name": "scatterplot",
             "bokeh_version": "3.0.3",
             "show_actions_button": False,
             "proxy_url": None,
@@ -2445,7 +2689,7 @@ class TestLinePlot:
             "elem_classes": [],
             "interactive": None,
             "label": None,
-            "name": "plot",
+            "name": "lineplot",
             "bokeh_version": "3.0.3",
             "show_actions_button": False,
             "proxy_url": None,
@@ -2550,7 +2794,7 @@ class TestBarPlot:
             "elem_classes": [],
             "interactive": None,
             "label": None,
-            "name": "plot",
+            "name": "barplot",
             "bokeh_version": "3.0.3",
             "show_actions_button": False,
             "proxy_url": None,
@@ -2694,6 +2938,15 @@ class TestCode:
             "_selectable": False,
         }
 
+    def test_process_example(self):
+        code = gr.Code()
+        assert (
+            code.process_example("def fn(a):\n  return a") == "def fn(a):\n  return a"
+        )
+        assert code.process_example(None) is None
+        filename = str(Path("test/test_files/test_label_json.json"))
+        assert code.process_example((filename,)) == "test_label_json.json"
+
 
 class TestFileExplorer:
     def test_component_functions(self):
@@ -2703,7 +2956,7 @@ class TestFileExplorer:
         file_explorer = gr.FileExplorer(file_count="single")
 
         config = file_explorer.get_config()
-        assert config["glob"] == "**/*.*"
+        assert config["glob"] == "**/*"
         assert config["value"] is None
         assert config["file_count"] == "single"
         assert config["server_fns"] == ["ls"]
@@ -2720,7 +2973,7 @@ class TestFileExplorer:
         file_explorer = gr.FileExplorer(file_count="multiple")
 
         config = file_explorer.get_config()
-        assert config["glob"] == "**/*.*"
+        assert config["glob"] == "**/*"
         assert config["value"] is None
         assert config["file_count"] == "multiple"
         assert config["server_fns"] == ["ls"]
@@ -2734,66 +2987,30 @@ class TestFileExplorer:
         preprocessed_data = file_explorer.preprocess(input_data)
         assert preprocessed_data == []
 
-    def test_file_explorer_dir_only_glob(self, tmpdir):
+    def test_file_explorer_txt_only_glob(self, tmpdir):
         tmpdir.mkdir("foo")
-        tmpdir.mkdir("bar")
-        tmpdir.mkdir("baz")
-        (Path(tmpdir) / "baz" / "qux").mkdir()
-        (Path(tmpdir) / "foo" / "abc").mkdir()
-        (Path(tmpdir) / "foo" / "abc" / "def").mkdir()
-        (Path(tmpdir) / "foo" / "abc" / "def" / "file.txt").touch()
+        (Path(tmpdir) / "foo" / "bar").mkdir()
+        (Path(tmpdir) / "foo" / "file.txt").touch()
+        (Path(tmpdir) / "foo" / "file2.txt").touch()
+        (Path(tmpdir) / "foo" / "file3.log").touch()
+        (Path(tmpdir) / "foo" / "img.png").touch()
+        (Path(tmpdir) / "foo" / "bar" / "bar.txt").touch()
 
-        file_explorer = gr.FileExplorer(glob="**/", root=Path(tmpdir))
-        tree = file_explorer.ls()
-
-        def sort_answer(answer):
-            answer = sorted(answer, key=lambda x: x["path"])
-            for item in answer:
-                if item["children"]:
-                    item["children"] = sort_answer(item["children"])
-            return answer
+        file_explorer = gr.FileExplorer(glob="*.txt", root=Path(tmpdir))
+        tree = file_explorer.ls(["foo"])
 
         answer = [
-            {
-                "path": "bar",
-                "type": "folder",
-                "children": [{"path": "", "type": "file", "children": None}],
-            },
-            {
-                "path": "baz",
-                "type": "folder",
-                "children": [
-                    {"path": "", "type": "file", "children": None},
-                    {
-                        "path": "qux",
-                        "type": "folder",
-                        "children": [{"path": "", "type": "file", "children": None}],
-                    },
-                ],
-            },
-            {
-                "path": "foo",
-                "type": "folder",
-                "children": [
-                    {"path": "", "type": "file", "children": None},
-                    {
-                        "path": "abc",
-                        "type": "folder",
-                        "children": [
-                            {"path": "", "type": "file", "children": None},
-                            {
-                                "path": "def",
-                                "type": "folder",
-                                "children": [
-                                    {"path": "", "type": "file", "children": None}
-                                ],
-                            },
-                        ],
-                    },
-                ],
-            },
+            {"name": "bar", "type": "folder", "valid": False},
+            {"name": "file.txt", "type": "file", "valid": True},
+            {"name": "file2.txt", "type": "file", "valid": True},
         ]
-        assert sort_answer(tree) == sort_answer(answer)
+        assert tree == answer
+
+
+class TestButton:
+    def test_postprocess(self):
+        assert gr.Button().postprocess("5") == "5"
+        assert gr.Button().postprocess(5) == "5"
 
 
 def test_component_class_ids():
@@ -2822,3 +3039,46 @@ def test_constructor_args():
         "visible": False,
         "value": "Log in please",
     }
+
+
+def test_template_component_configs(io_components):
+    template_components = [c for c in io_components if getattr(c, "is_template", False)]
+    for component in template_components:
+        component_parent_class = inspect.getmro(component)[1]
+        template_config = component().get_config()
+        parent_config = component_parent_class().get_config()
+        assert set(parent_config.keys()).issubset(set(template_config.keys()))
+
+
+def test_component_example_values(io_components):
+    for component in io_components:
+        if component == PDF:
+            continue
+        elif component in [gr.BarPlot, gr.LinePlot, gr.ScatterPlot]:
+            c: Component = component(x="x", y="y")
+        else:
+            c: Component = component()
+        c.postprocess(c.example_value())
+
+
+def test_component_example_payloads(io_components):
+    for component in io_components:
+        if component == PDF:
+            continue
+        elif component in [gr.BarPlot, gr.LinePlot, gr.ScatterPlot]:
+            c: Component = component(x="x", y="y")
+        else:
+            c: Component = component()
+        data = c.example_payload()
+        data = client_utils.synchronize_async(
+            processing_utils.async_move_files_to_cache,
+            data,
+            c,
+            check_in_upload_folder=False,
+        )
+        if getattr(c, "data_model", None) and data is not None:
+            if issubclass(c.data_model, GradioModel):  # type: ignore
+                data = c.data_model(**data)  # type: ignore
+            elif issubclass(c.data_model, GradioRootModel):  # type: ignore
+                data = c.data_model(root=data)  # type: ignore
+        c.preprocess(data)

@@ -5,48 +5,53 @@ How to share your Gradio app:
 1. [Sharing demos with the share parameter](#sharing-demos)
 2. [Hosting on HF Spaces](#hosting-on-hf-spaces)
 3. [Embedding hosted spaces](#embedding-hosted-spaces)
-4. [Embedding with web components](#embedding-with-web-components)
-5. [Using the API page](#api-page)
-6. [Adding authentication to the page](#authentication)
-7. [Accessing network requests](#accessing-the-network-request-directly)
-8. [Mounting within FastAPI](#mounting-within-another-fast-api-app)
-9. [Security and file access](#security-and-file-access)
+4. [Using the API page](#api-page)
+5. [Accessing network requests](#accessing-the-network-request-directly)
+6. [Mounting within FastAPI](#mounting-within-another-fast-api-app)
+7. [Authentication](#authentication)
+8. [Security and file access](#security-and-file-access)
 
 ## Sharing Demos
 
 Gradio demos can be easily shared publicly by setting `share=True` in the `launch()` method. Like this:
 
 ```python
-demo.launch(share=True)
+import gradio as gr
+
+def greet(name):
+    return "Hello " + name + "!"
+
+demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
+    
+demo.launch(share=True)  # Share your demo with just 1 extra parameter 🚀
 ```
 
-This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on!), you don't have to worry about any packaging any dependencies. A share link usually looks something like this: **https://07ff8706ab.gradio.live**. Although the link is served through the Gradio Share Servers, these servers are only a proxy for your local server, and do not store any data sent through your app. 
-
-Keep in mind that share links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default, except in colab notebooks), only a local link is created, which can be shared by [port-forwarding](https://www.ssh.com/ssh/tunneling/example) with specific users. 
+This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on), you don't have to worry about any packaging any dependencies. 
 
 ![sharing](https://github.com/gradio-app/gradio/blob/main/guides/assets/sharing.svg?raw=true)
 
-Share links expire after 72 hours. (Note: it is [also possible to set up your own Share Server](https://github.com/huggingface/frp/) to overcome this restriction.)
+
+A share link usually looks something like this: **https://07ff8706ab.gradio.live**. Although the link is served through the Gradio Share Servers, these servers are only a proxy for your local server, and do not store any data sent through your app. Share links expire after 72 hours. (it is [also possible to set up your own Share Server](https://github.com/huggingface/frp/) on your own cloud server to overcome this restriction.)
+
+Tip: Keep in mind that share links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. Or you can [add authentication to your Gradio app](#authentication) as discussed below.
+
+Note that by default, `share=False`, which means that your server is only running locally. (This is the default, except in Google Colab notebooks, where share links are automatically created). As an alternative to using share links, you can use use [SSH port-forwarding](https://www.ssh.com/ssh/tunneling/example) to share your local server with specific users.
+
 
 ## Hosting on HF Spaces
 
 If you'd like to have a permanent link to your Gradio demo on the internet, use Hugging Face Spaces. [Hugging Face Spaces](http://huggingface.co/spaces/) provides the infrastructure to permanently host your machine learning model for free!
 
-After you have [created a free Hugging Face account](https://huggingface.co/join), you have three methods to deploy your Gradio app to Hugging Face Spaces:
+After you have [created a free Hugging Face account](https://huggingface.co/join), you have two methods to deploy your Gradio app to Hugging Face Spaces:
 
 1. From terminal: run `gradio deploy` in your app directory. The CLI will gather some basic metadata and then launch your app. To update your space, you can re-run this command or enable the Github Actions option to automatically update the Spaces on `git push`.
 
-2. From your browser: Drag and drop a folder containing your Gradio model and all related files [here](https://huggingface.co/new-space).
-
-3. Connect Spaces with your Git repository and Spaces will pull the Gradio app from there. See [this guide how to host on Hugging Face Spaces](https://huggingface.co/blog/gradio-spaces) for more information.
+2. From your browser: Drag and drop a folder containing your Gradio model and all related files [here](https://huggingface.co/new-space). See [this guide how to host on Hugging Face Spaces](https://huggingface.co/blog/gradio-spaces) for more information, or watch the embedded video:
 
 <video autoplay muted loop>
   <source src="https://github.com/gradio-app/gradio/blob/main/guides/assets/hf_demo.mp4?raw=true" type="video/mp4" />
 </video>
 
-Note: Some components, like `gr.Image`, will display a "Share" button only on Spaces, so that users can share the generated output to the Discussions page of the Space easily. You can disable this with `show_share_button`, such as `gr.Image(show_share_button=False)`.
-
-![Image with show_share_button=True](https://github.com/gradio-app/gradio/blob/main/guides/assets/share_icon.png?raw=true)
 
 ## Embedding Hosted Spaces
 
@@ -153,7 +158,9 @@ You can use almost any Gradio app as an API! In the footer of a Gradio app [like
 
 ![Use via API](https://github.com/gradio-app/gradio/blob/main/guides/assets/use_via_api.png?raw=true)
 
-This is a page that lists the endpoints that can be used to query the Gradio app, via our supported clients: either [the Python client](https://gradio.app/guides/getting-started-with-the-python-client/), or [the JavaScript client](https://gradio.app/guides/getting-started-with-the-js-client/). For each endpoint, Gradio automatically generates the parameters and their types, as well as example inputs.
+This is a page that lists the endpoints that can be used to query the Gradio app, via our supported clients: either [the Python client](https://gradio.app/guides/getting-started-with-the-python-client/), or [the JavaScript client](https://gradio.app/guides/getting-started-with-the-js-client/). For each endpoint, Gradio automatically generates the parameters and their types, as well as example inputs, like this.
+
+![](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/view-api.png)
 
 The endpoints are automatically created when you launch a Gradio `Interface`. If you are using Gradio `Blocks`, you can also set up a Gradio API page, though we recommend that you explicitly name each event listener, such as
 
@@ -162,80 +169,6 @@ btn.click(add, [num1, num2], output, api_name="addition")
 ```
 
 This will add and document the endpoint `/api/addition/` to the automatically generated API page. Otherwise, your API endpoints will appear as "unnamed" endpoints.
-
-_Note_: For Gradio apps in which [queueing is enabled](https://gradio.app/guides/key-features#queuing), users can bypass the queue if they make a POST request to your API endpoint. To disable this behavior, set `api_open=False` in the `queue()` method. To disable the API page altogether, set `show_api=False` in `.launch()`.
-
-## Authentication
-
-### Password-protected app
-
-You may wish to put an authentication page in front of your app to limit who can open your app. With the `auth=` keyword argument in the `launch()` method, you can provide a tuple with a username and password, or a list of acceptable username/password tuples; Here's an example that provides password-based authentication for a single user named "admin":
-
-```python
-demo.launch(auth=("admin", "pass1234"))
-```
-
-For more complex authentication handling, you can even pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise. This can be used for, among other things, making requests to 3rd-party authentication services.
-
-Here's an example of a function that accepts any login where the username and password are the same:
-
-```python
-def same_auth(username, password):
-    return username == password
-demo.launch(auth=same_auth)
-```
-
-For authentication to work properly, third party cookies must be enabled in your browser.
-This is not the case by default for Safari, Chrome Incognito Mode.
-
-### OAuth (Login via Hugging Face)
-
-Gradio supports OAuth login via Hugging Face. This feature is currently **experimental** and only available on Spaces.
-It allows you to add a _"Sign in with Hugging Face"_ button to your demo. Check out [this Space](https://huggingface.co/spaces/Wauplin/gradio-oauth-demo) for a live demo.
-
-To enable OAuth, you must set `hf_oauth: true` as a Space metadata in your README.md file. This will register your Space
-as an OAuth application on Hugging Face. Next, you can use `gr.LoginButton` and `gr.LogoutButton` to add login and logout buttons to
-your Gradio app. Once a user is logged in with their HF account, you can retrieve their profile by adding a parameter of type
-`gr.OAuthProfile` to any Gradio function. The user profile will be automatically injected as a parameter value. If you want
-to perform actions on behalf of the user (e.g. list user's private repos, create repo, etc.), you can retrieve the user
-token by adding a parameter of type `gr.OAuthToken`. You must define which scopes you will use in your Space metadata
-(see [documentation](https://huggingface.co/docs/hub/spaces-oauth#scopes) for more details).
-
-Here is a short example:
-
-```py
-import gradio as gr
-
-
-def hello(profile: gr.OAuthProfile | None) -> str:
-    if profile is None:
-        return "I don't know you."
-    return f"Hello {profile.name}"
-
-def list_organizations(oauth_token: gr.OAuthToken | None) -> str:
-    if oauth_token is None:
-        return "Please log in to list organizations."
-    org_names = [org["name"] for org in whoami(oauth_token.token)["orgs"]]
-    return f"You belong to {', '.join(org_names)}."
-
-with gr.Blocks() as demo:
-    gr.LoginButton()
-    gr.LogoutButton()
-    m1 = gr.Markdown()
-    m2 = gr.Markdown()
-    demo.load(hello, inputs=None, outputs=m1)
-    demo.load(list_organizations, inputs=None, outputs=m2)
-```
-
-When the user clicks on the login button, they get redirected in a new page to authorize your Space.
-
-![Allow Space app](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/oauth_sign_in.png)
-
-Users can revoke access to their profile at any time in their [settings](https://huggingface.co/settings/connected-applications).
-
-As seen above, OAuth features are available only when your app runs in a Space. However, you often need to test your app
-locally before deploying it. To help with that, the `gr.LoginButton` is mocked. When a user clicks on it, they are
-automatically logged in with a fake user profile. This allows you to debug your app before deploying it to a Space.
 
 ## Accessing the Network Request Directly
 
@@ -270,23 +203,264 @@ $code_custom_path
 
 Note that this approach also allows you run your Gradio apps on custom paths (`http://localhost:8000/gradio` in the example above).
 
+
+## Authentication
+
+### Password-protected app
+
+You may wish to put an authentication page in front of your app to limit who can open your app. With the `auth=` keyword argument in the `launch()` method, you can provide a tuple with a username and password, or a list of acceptable username/password tuples; Here's an example that provides password-based authentication for a single user named "admin":
+
+```python
+demo.launch(auth=("admin", "pass1234"))
+```
+
+For more complex authentication handling, you can even pass a function that takes a username and password as arguments, and returns `True` to allow access, `False` otherwise.
+
+Here's an example of a function that accepts any login where the username and password are the same:
+
+```python
+def same_auth(username, password):
+    return username == password
+demo.launch(auth=same_auth)
+```
+
+If you have multiple users, you may wish to customize the content that is shown depending on the user that is logged in. You can retrieve the logged in user by [accessing the network request directly](#accessing-the-network-request-directly) as discussed above, and then reading the `.username` attribute of the request. Here's an example:
+
+
+```python
+import gradio as gr
+
+def update_message(request: gr.Request):
+    return f"Welcome, {request.username}"
+
+with gr.Blocks() as demo:
+    m = gr.Markdown()
+    demo.load(update_message, None, m)
+    
+demo.launch(auth=[("Abubakar", "Abubakar"), ("Ali", "Ali")])
+```
+
+Note: For authentication to work properly, third party cookies must be enabled in your browser. This is not the case by default for Safari or for Chrome Incognito Mode. 
+
+If users visit the `/logout` page of your Gradio app, they will automatically be logged out and session cookies deleted. This allows you to add logout functionality to your Gradio app as well. Let's update the previous example to include a log out button:
+
+```python
+import gradio as gr
+
+def update_message(request: gr.Request):
+    return f"Welcome, {request.username}"
+
+with gr.Blocks() as demo:
+    m = gr.Markdown()
+    logout_button = gr.Button("Logout", link="/logout")
+    demo.load(update_message, None, m)
+    
+demo.launch(auth=[("Pete", "Pete"), ("Dawood", "Dawood")])
+```
+
+Note: Gradio's built-in authentication provides a straightforward and basic layer of access control but does not offer robust security features for applications that require stringent access controls (e.g.  multi-factor authentication, rate limiting, or automatic lockout policies).
+
+### OAuth (Login via Hugging Face)
+
+Gradio natively supports OAuth login via Hugging Face. In other words, you can easily add a _"Sign in with Hugging Face"_ button to your demo, which allows you to get a user's HF username as well as other information from their HF profile. Check out [this Space](https://huggingface.co/spaces/Wauplin/gradio-oauth-demo) for a live demo.
+
+To enable OAuth, you must set `hf_oauth: true` as a Space metadata in your README.md file. This will register your Space
+as an OAuth application on Hugging Face. Next, you can use `gr.LoginButton` to add a login button to
+your Gradio app. Once a user is logged in with their HF account, you can retrieve their profile by adding a parameter of type
+`gr.OAuthProfile` to any Gradio function. The user profile will be automatically injected as a parameter value. If you want
+to perform actions on behalf of the user (e.g. list user's private repos, create repo, etc.), you can retrieve the user
+token by adding a parameter of type `gr.OAuthToken`. You must define which scopes you will use in your Space metadata
+(see [documentation](https://huggingface.co/docs/hub/spaces-oauth#scopes) for more details).
+
+Here is a short example:
+
+```py
+import gradio as gr
+from huggingface_hub import whoami
+
+def hello(profile: gr.OAuthProfile | None) -> str:
+    if profile is None:
+        return "I don't know you."
+    return f"Hello {profile.name}"
+
+def list_organizations(oauth_token: gr.OAuthToken | None) -> str:
+    if oauth_token is None:
+        return "Please log in to list organizations."
+    org_names = [org["name"] for org in whoami(oauth_token.token)["orgs"]]
+    return f"You belong to {', '.join(org_names)}."
+
+with gr.Blocks() as demo:
+    gr.LoginButton()
+    m1 = gr.Markdown()
+    m2 = gr.Markdown()
+    demo.load(hello, inputs=None, outputs=m1)
+    demo.load(list_organizations, inputs=None, outputs=m2)
+
+demo.launch()
+```
+
+When the user clicks on the login button, they get redirected in a new page to authorize your Space.
+
+<center>
+<img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/oauth_sign_in.png" style="width:300px; max-width:80%">
+</center>
+
+Users can revoke access to their profile at any time in their [settings](https://huggingface.co/settings/connected-applications).
+
+As seen above, OAuth features are available only when your app runs in a Space. However, you often need to test your app
+locally before deploying it. To test OAuth features locally, your machine must be logged in to Hugging Face. Please run `huggingface-cli login` or set `HF_TOKEN` as environment variable with one of your access token. You can generate a new token in your settings page (https://huggingface.co/settings/tokens). Then, clicking on the `gr.LoginButton` will login your local Hugging Face profile, allowing you to debug your app with your Hugging Face account before deploying it to a Space.
+
+
+### OAuth (with external providers)
+
+It is also possible to authenticate with external OAuth providers (e.g. Google OAuth) in your Gradio apps. To do this, first mount your Gradio app within a FastAPI app ([as discussed above](#mounting-within-another-fast-api-app)). Then, you must write an *authentication function*, which gets the user's username from the OAuth provider and returns it. This function should be passed to the `auth_dependency` parameter in `gr.mount_gradio_app`. 
+
+Similar to [FastAPI dependency functions](https://fastapi.tiangolo.com/tutorial/dependencies/), the function specified by `auth_dependency` will run before any Gradio-related route in your FastAPI app. The function should accept a single parameter: the FastAPI `Request` and return either a string (representing a user's username) or `None`. If a string is returned, the user will be able to access the Gradio-related routes in your FastAPI app. 
+
+First, let's show a simplistic example to illustrate the `auth_dependency` parameter:
+
+```python
+from fastapi import FastAPI, Request
+import gradio as gr
+
+app = FastAPI()
+
+def get_user(request: Request):
+    return request.headers.get("user")
+
+demo = gr.Interface(lambda s: f"Hello {s}!", "textbox", "textbox")
+
+app = gr.mount_gradio_app(app, demo, path="/demo", auth_dependency=get_user)
+
+if __name__ == '__main__':
+    uvicorn.run(app)
+```
+
+In this example, only requests that include a "user" header will be allowed to access the Gradio app. Of course, this does not add much security, since any user can add this header in their request.
+
+Here's a more complete example showing how to add Google OAuth to a Gradio app (assuming you've already created OAuth Credentials on the [Google Developer Console](https://console.cloud.google.com/project)):
+
+```python
+import os
+from authlib.integrations.starlette_client import OAuth, OAuthError
+from fastapi import FastAPI, Depends, Request
+from starlette.config import Config
+from starlette.responses import RedirectResponse
+from starlette.middleware.sessions import SessionMiddleware
+import uvicorn
+import gradio as gr
+
+app = FastAPI()
+
+# Replace these with your own OAuth settings
+GOOGLE_CLIENT_ID = "..."
+GOOGLE_CLIENT_SECRET = "..."
+SECRET_KEY = "..."
+
+config_data = {'GOOGLE_CLIENT_ID': GOOGLE_CLIENT_ID, 'GOOGLE_CLIENT_SECRET': GOOGLE_CLIENT_SECRET}
+starlette_config = Config(environ=config_data)
+oauth = OAuth(starlette_config)
+oauth.register(
+    name='google',
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={'scope': 'openid email profile'},
+)
+
+SECRET_KEY = os.environ.get('SECRET_KEY') or "a_very_secret_key"
+app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
+
+# Dependency to get the current user
+def get_user(request: Request):
+    user = request.session.get('user')
+    if user:
+        return user['name']
+    return None
+
+@app.get('/')
+def public(user: dict = Depends(get_user)):
+    if user:
+        return RedirectResponse(url='/gradio')
+    else:
+        return RedirectResponse(url='/login-demo')
+
+@app.route('/logout')
+async def logout(request: Request):
+    request.session.pop('user', None)
+    return RedirectResponse(url='/')
+
+@app.route('/login')
+async def login(request: Request):
+    redirect_uri = request.url_for('auth')
+    # If your app is running on https, you should ensure that the
+    # `redirect_uri` is https, e.g. uncomment the following lines:
+    # 
+    # from urllib.parse import urlparse, urlunparse
+    # redirect_uri = urlunparse(urlparse(str(redirect_uri))._replace(scheme='https'))
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+@app.route('/auth')
+async def auth(request: Request):
+    try:
+        access_token = await oauth.google.authorize_access_token(request)
+    except OAuthError:
+        return RedirectResponse(url='/')
+    request.session['user'] = dict(access_token)["userinfo"]
+    return RedirectResponse(url='/')
+
+with gr.Blocks() as login_demo:
+    gr.Button("Login", link="/login")
+
+app = gr.mount_gradio_app(app, login_demo, path="/login-demo")
+
+def greet(request: gr.Request):
+    return f"Welcome to Gradio, {request.username}"
+
+with gr.Blocks() as main_demo:
+    m = gr.Markdown("Welcome to Gradio!")
+    gr.Button("Logout", link="/logout")
+    main_demo.load(greet, None, m)
+
+app = gr.mount_gradio_app(app, main_demo, path="/gradio", auth_dependency=get_user)
+
+if __name__ == '__main__':
+    uvicorn.run(app)
+```
+
+There are actually two separate Gradio apps in this example! One that simply displays a log in button (this demo is accessible to any user), while the other main demo is only accessible to users that are logged in. You can try this example out on [this Space](https://huggingface.co/spaces/gradio/oauth-example).
+
+
+
 ## Security and File Access
 
 Sharing your Gradio app with others (by hosting it on Spaces, on your own server, or through temporary share links) **exposes** certain files on the host machine to users of your Gradio app.
 
-In particular, Gradio apps ALLOW users to access to three kinds of files:
+In particular, Gradio apps ALLOW users to access to four kinds of files:
 
-- **Temporary files created by Gradio.** These are files that are created by Gradio as part of running your prediction function. For example, if your prediction function returns a video file, then Gradio will save that video to a temporary cache on your device and then send the path to the file to the front end. You can customize the location of cache files created by Gradio by setting the environment variable `GRADIO_TEMP_DIR` to an absolute path, such as `/home/usr/scripts/project/temp/`.
+- **Temporary files created by Gradio.** These are files that are created by Gradio as part of running your prediction function. For example, if your prediction function returns a video file, then Gradio will save that video to a temporary cache on your device and then send the path to the file to the front end. You can customize the location of temporary cache files created by Gradio by setting the environment variable `GRADIO_TEMP_DIR` to an absolute path, such as `/home/usr/scripts/project/temp/`. You can delete the files created by your app when it shuts down with the `delete_cache` parameter of `gradio.Blocks`, `gradio.Interface`, and `gradio.ChatInterface`. This parameter is a tuple of integers of the form `[frequency, age]` where `frequency` is how often to delete files and `age` is the time in seconds since the file was last modified.
 
 
-- **Cached examples created by Gradio.** These are files that are created by Gradio as part of caching examples for faster runtimes, if you set `cache_examples=True` in `gr.Interface()` or in `gr.Examples()`. These files are saved in the `gradio_cached_examples/` subdirectory within your app's working directory.
+- **Cached examples created by Gradio.** These are files that are created by Gradio as part of caching examples for faster runtimes, if you set `cache_examples=True` or `cache_examples="lazy"` in `gr.Interface()`, `gr.ChatInterface()` or in `gr.Examples()`. By default, these files are saved in the `gradio_cached_examples/` subdirectory within your app's working directory. You can customize the location of cached example files created by Gradio by setting the environment variable `GRADIO_EXAMPLES_CACHE` to an absolute path or a path relative to your working directory.
 
 - **Files that you explicitly allow via the `allowed_paths` parameter in `launch()`**. This parameter allows you to pass in a list of additional directories or exact filepaths you'd like to allow users to have access to. (By default, this parameter is an empty list).
+
+- **Static files that you explicitly set via the `gr.set_static_paths` function**. This parameter allows you to pass in a list of directories or filenames that will be considered static. This means that they will not be copied to the cache and will be served directly from your computer. This can help save disk space and reduce the time your app takes to launch but be mindful of possible security implications.
 
 Gradio DOES NOT ALLOW access to:
 
 - **Files that you explicitly block via the `blocked_paths` parameter in `launch()`**. You can pass in a list of additional directories or exact filepaths to the `blocked_paths` parameter in `launch()`. This parameter takes precedence over the files that Gradio exposes by default or by the `allowed_paths`.
 
 - **Any other paths on the host machine**. Users should NOT be able to access other arbitrary paths on the host.
+
+Sharing your Gradio application will also allow users to upload files to your computer or server. You can set a maximum file size for uploads to prevent abuse and to preserve disk space. You can do this with the `max_file_size` parameter of `.launch`. For example, the following two code snippets limit file uploads to 5 megabytes per file.
+
+```python
+import gradio as gr
+
+demo = gr.Interface(lambda x: x, "image", "image")
+
+demo.launch(max_file_size="5mb")
+# or
+demo.launch(max_file_size=5 * gr.FileSize.MB)
+```
 
 Please make sure you are running the latest version of `gradio` for these security settings to apply.

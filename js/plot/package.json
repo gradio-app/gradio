@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/plot",
-	"version": "0.2.5",
+	"version": "0.3.7",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -17,6 +17,9 @@
 		"svelte-vega": "^2.0.0",
 		"vega": "^5.22.1",
 		"vega-lite": "^5.12.0"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
 	},
 	"main_changeset": true,
 	"exports": {

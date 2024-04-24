@@ -16,7 +16,8 @@ const test_files = readdirSync(TEST_FILES_PATH)
 		(f) =>
 			f.endsWith("spec.ts") &&
 			!f.endsWith(".skip.spec.ts") &&
-			!f.endsWith(".component.spec.ts")
+			!f.endsWith(".component.spec.ts") &&
+			!f.endsWith(".reload.spec.ts")
 	)
 	.map((f) => basename(f, ".spec.ts"));
 
@@ -61,8 +62,9 @@ function spawn_gradio_app(app, port, verbose) {
 			cwd: ROOT,
 			env: {
 				...process.env,
-				GRADIO_SERVER_PORT: `7879`,
-				PYTHONUNBUFFERED: "true"
+				PYTHONUNBUFFERED: "true",
+				GRADIO_ANALYTICS_ENABLED: "False",
+				GRADIO_IS_E2E_TEST: "1"
 			}
 		});
 		_process.stdout.setEncoding("utf8");
@@ -104,15 +106,21 @@ function kill_process(process) {
 }
 
 function make_app(demos, port) {
-	return `import gradio as gr
+	return `
 import uvicorn
 from fastapi import FastAPI
 import gradio as gr
+
 ${demos.map((d) => `from demo.${d}.run import demo as ${d}`).join("\n")}
 
 app = FastAPI()
 ${demos
-	.map((d) => `app = gr.mount_gradio_app(app, ${d}, path="/${d}")`)
+	.map(
+		(d) =>
+			`app = gr.mount_gradio_app(app, ${d}, path="/${d}", max_file_size=${
+				d == "upload_file_limit_test" ? "'15kb'" : "None"
+			})`
+	)
 	.join("\n")}
 
 config = uvicorn.Config(app, port=${port}, log_level="info")

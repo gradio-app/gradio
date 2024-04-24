@@ -24,9 +24,10 @@ test("images uploaded by a user should be shown in the chat", async ({
 	page
 }) => {
 	const fileChooserPromise = page.waitForEvent("filechooser");
-	await page.getByRole("button", { name: "📁" }).click();
+	await page.getByRole("button", { name: "+", exact: true }).click();
 	const fileChooser = await fileChooserPromise;
 	await fileChooser.setFiles("./test/files/cheetah1.jpg");
+	await page.getByTestId("textbox").click();
 	await page.keyboard.press("Enter");
 
 	const user_message = await page.getByTestId("user").first().getByRole("img");
@@ -35,18 +36,20 @@ test("images uploaded by a user should be shown in the chat", async ({
 		.first()
 		.getByRole("paragraph")
 		.textContent();
-	const image_data = await user_message.getAttribute("src");
-	await expect(image_data).toContain("cheetah1.jpg");
-	await expect(bot_message).toBeTruthy();
+	const image_src = await user_message.getAttribute("src");
+	expect(image_src).toBeTruthy();
+
+	expect(bot_message).toBeTruthy();
 });
 
 test("audio uploaded by a user should be shown in the chatbot", async ({
 	page
 }) => {
 	const fileChooserPromise = page.waitForEvent("filechooser");
-	await page.getByRole("button", { name: "📁" }).click();
+	await page.getByRole("button", { name: "+" }).click();
 	const fileChooser = await fileChooserPromise;
 	await fileChooser.setFiles("../../test/test_files/audio_sample.wav");
+	await page.getByTestId("textbox").click();
 	await page.keyboard.press("Enter");
 
 	const user_message = await page.getByTestId("user").first().locator("audio");
@@ -56,7 +59,7 @@ test("audio uploaded by a user should be shown in the chatbot", async ({
 		.getByRole("paragraph")
 		.textContent();
 	const audio_data = await user_message.getAttribute("src");
-	await expect(audio_data).toContain("audio_sample.wav");
+	await expect(audio_data).toBeTruthy();
 	await expect(bot_message).toBeTruthy();
 });
 
@@ -64,9 +67,10 @@ test("videos uploaded by a user should be shown in the chatbot", async ({
 	page
 }) => {
 	const fileChooserPromise = page.waitForEvent("filechooser");
-	await page.getByRole("button", { name: "📁" }).click();
+	await page.getByRole("button", { name: "+" }).click();
 	const fileChooser = await fileChooserPromise;
 	await fileChooser.setFiles("../../test/test_files/video_sample.mp4");
+	await page.getByTestId("textbox").click();
 	await page.keyboard.press("Enter");
 
 	const user_message = await page.getByTestId("user").first().locator("video");
@@ -76,7 +80,7 @@ test("videos uploaded by a user should be shown in the chatbot", async ({
 		.getByRole("paragraph")
 		.textContent();
 	const video_data = await user_message.getAttribute("src");
-	await expect(video_data).toContain("video_sample.mp4");
+	await expect(video_data).toBeTruthy();
 	await expect(bot_message).toBeTruthy();
 });
 

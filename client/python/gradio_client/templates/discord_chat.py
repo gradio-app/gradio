@@ -141,19 +141,19 @@ if not DISCORD_TOKEN:
     ## You have not specified a DISCORD_TOKEN, which means you have not created a bot account. Please follow these steps:
 
     ### 1. Go to https://discord.com/developers/applications and click 'New Application'
-    
+
     ### 2. Give your bot a name 🤖
 
     ![](https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/BotName.png)
-    
+
     ## 3. In Settings > Bot, click the 'Reset Token' button to get a new token. Write it down and keep it safe 🔐
-    
+
     ![](https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/ResetToken.png)
-    
+
     ## 4. Optionally make the bot public if you want anyone to be able to add it to their servers
-    
+
     ## 5. Scroll down and enable 'Message Content Intent' under 'Priviledged Gateway Intents'
-    
+
     ![](https://gradio-builds.s3.amazonaws.com/demo-files/discordbots/MessageContentIntent.png)
 
     ## 6. Save your changes!
@@ -164,20 +164,20 @@ else:
     permissions = Permissions(326417525824)
     url = oauth_url(bot.user.id, permissions=permissions)
     welcome_message = f"""
-    ## Add this bot to your server by clicking this link: 
-    
+    ## Add this bot to your server by clicking this link:
+
     {url}
 
     ## How to use it?
 
     The bot can be triggered via `/<<command-name>>` followed by your text prompt.
-    
+
     This will create a thread with the bot's response to your text prompt.
     You can reply in the thread (without `/<<command-name>>`) to continue the conversation.
     In the thread, the bot will only reply to the original author of the command.
 
     ⚠️ Note ⚠️: Please make sure this bot's command does have the same name as another command in your server.
-    
+
     ⚠️ Note ⚠️: Bot commands do not work in DMs with the bot as of now.
     """
 

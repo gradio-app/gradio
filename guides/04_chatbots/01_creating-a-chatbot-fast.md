@@ -73,7 +73,7 @@ gr.ChatInterface(alternatingly_agree).launch()
 
 ## Streaming chatbots
 
-If in your chat function, you use `yield` to generate a sequence of responses, you'll end up with a streaming chatbot. It's that simple!
+In your chat function, you can use `yield` to generate a sequence of partial responses, each replacing the previous ones. This way, you'll end up with a streaming chatbot. It's that simple!
 
 ```python
 import time
@@ -84,10 +84,11 @@ def slow_echo(message, history):
         time.sleep(0.3)
         yield "You typed: " + message[: i+1]
 
-gr.ChatInterface(slow_echo).queue().launch()
+gr.ChatInterface(slow_echo).launch()
 ```
 
-Notice that we've [enabled queuing](/guides/key-features#queuing), which is required to use generator functions. While the response is streaming, the "Submit" button turns into a "Stop" button that can be used to stop the generator function. You can customize the appearance and behavior of the "Stop" button using the `stop_btn` parameter.
+
+Tip: While the response is streaming, the "Submit" button turns into a "Stop" button that can be used to stop the generator function. You can customize the appearance and behavior of the "Stop" button using the `stop_btn` parameter.
 
 ## Customizing your chatbot
 
@@ -124,6 +125,29 @@ gr.ChatInterface(
 ).launch()
 ```
 
+## Add Multimodal Capability to your chatbot
+
+You may want to add multimodal capability to your chatbot. For example, you may want users to be able to easily upload images or files to your chatbot and ask questions about it. You can make your chatbot "multimodal" by passing in a single parameter (`multimodal=True`) to the `gr.ChatInterface` class.
+
+
+```python
+import gradio as gr
+import time
+
+def count_files(message, history):
+    num_files = len(message["files"])
+    return f"You uploaded {num_files} files"
+
+demo = gr.ChatInterface(fn=count_files, examples=[{"text": "Hello", "files": []}], title="Echo Bot", multimodal=True)
+
+demo.launch()
+```
+
+When `multimodal=True`, the first parameter of your function should receives a dictionary consisting of the submitted text and uploaded files that looks like this: `{"text": "user input", "file": ["file_path1", "file_path2", ...]}`.
+
+
+Tip: If you'd like to customize the UI/UX of the textbox for your multimodal chatbot, you should pass in an instance of `gr.MultimodalTextbox` to the `textbox` argument of `ChatInterface` instead of an instance of `gr.Textbox`.
+
 ## Additional Inputs
 
 You may want to add additional parameters to your chatbot and expose them to your users through the Chatbot UI. For example, suppose you want to add a textbox for a system prompt, or a slider that sets the number of tokens in the chatbot's response. The `ChatInterface` class supports an `additional_inputs` parameter which can be used to add additional input components.
@@ -154,7 +178,7 @@ with gr.Blocks() as demo:
         echo, additional_inputs=[system_prompt, slider]
     )
 
-demo.queue().launch()
+demo.launch()
 ```
 
 If you need to create something even more custom, then its best to construct the chatbot UI using the low-level `gr.Blocks()` API. We have [a dedicated guide for that here](/guides/creating-a-custom-chatbot-with-blocks).
@@ -198,10 +222,11 @@ gr.ChatInterface(predict).launch()
 Of course, we could also use the `openai` library directy. Here a similar example, but this time with streaming results as well:
 
 ```python
-import openai
+from openai import OpenAI
 import gradio as gr
 
-openai.api_key = "sk-..."  # Replace with your key
+api_key = "sk-..."  # Replace with your key
+client = OpenAI(api_key=api_key)
 
 def predict(message, history):
     history_openai_format = []
@@ -209,21 +234,19 @@ def predict(message, history):
         history_openai_format.append({"role": "user", "content": human })
         history_openai_format.append({"role": "assistant", "content":assistant})
     history_openai_format.append({"role": "user", "content": message})
-
-    response = openai.ChatCompletion.create(
-        model='gpt-3.5-turbo',
-        messages= history_openai_format,
-        temperature=1.0,
-        stream=True
-    )
+  
+    response = client.chat.completions.create(model='gpt-3.5-turbo',
+    messages= history_openai_format,
+    temperature=1.0,
+    stream=True)
 
     partial_message = ""
     for chunk in response:
-        if len(chunk['choices'][0]['delta']) != 0:
-            partial_message = partial_message + chunk['choices'][0]['delta']['content']
-            yield partial_message
+        if chunk.choices[0].delta.content is not None:
+              partial_message = partial_message + chunk.choices[0].delta.content
+              yield partial_message
 
-gr.ChatInterface(predict).queue().launch()
+gr.ChatInterface(predict).launch()
 ```
 
 ## Example using a local, open-source LLM with Hugging Face
@@ -249,11 +272,10 @@ class StopOnTokens(StoppingCriteria):
         return False
 
 def predict(message, history):
-
     history_transformer_format = history + [[message, ""]]
     stop = StopOnTokens()
 
-    messages = "".join(["".join(["\n<human>:"+item[0], "\n<bot>:"+item[1]])  #curr_system_message +
+    messages = "".join(["".join(["\n<human>:"+item[0], "\n<bot>:"+item[1]])
                 for item in history_transformer_format])
 
     model_inputs = tokenizer([messages], return_tensors="pt").to("cuda")
@@ -272,14 +294,13 @@ def predict(message, history):
     t = Thread(target=model.generate, kwargs=generate_kwargs)
     t.start()
 
-    partial_message  = ""
+    partial_message = ""
     for new_token in streamer:
         if new_token != '<':
             partial_message += new_token
             yield partial_message
 
-
-gr.ChatInterface(predict).queue().launch()
+gr.ChatInterface(predict).launch()
 ```
 
 With those examples, you should be all set to create your own Gradio Chatbot demos soon! For building even more custom Chatbot applications, check out [a dedicated guide](/guides/creating-a-custom-chatbot-with-blocks) using the low-level `gr.Blocks()` API.

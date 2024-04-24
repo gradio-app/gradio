@@ -57,12 +57,14 @@
 				0px 5px 5px rgba(0, 0, 0, 0.03),
 				0px 2px 2px rgba(0, 0, 0, 0.03),
 				0px 0px 1px rgba(0, 0, 0, 0.03);
+			transition: transform 0.3s ease-in-out;
 		}
 		.shadow-alternate {
 			box-shadow:
 				0px 10px 20px rgba(0, 0, 0, 0.04),
 				0px 2px 6px rgba(0, 0, 0, 0.04),
 				0px 0px 1px rgba(0, 0, 0, 0.04);
+			transition: transform 0.3s ease-in-out;
 		}
 		.shadow-alternate-xl {
 			box-shadow:
@@ -70,10 +72,14 @@
 				0px 16px 24px rgba(0, 0, 0, 0.04),
 				0px 4px 8px rgba(0, 0, 0, 0.04),
 				0px 0px 1px rgba(0, 0, 0, 0.04);
+			transition: transform 0.3s ease-in-out;
 		}
 	}
 }
 
+.shadow-alternate:hover {
+	transform: scale(1.1);
+}
 /* index */
 .active-example-tab {
 	@apply border-orange-500 rounded-full text-orange-500 ring-1 bg-orange-50 ring-orange-200 hover:!text-orange-500 cursor-pointer shadow shadow-orange-200;
@@ -198,6 +204,10 @@ code.language-bash {
 	@apply bg-gradient-to-br from-orange-50 to-white border-orange-50 border-l-2 border-l-orange-300 text-orange-700 p-4 px-6;
 }
 
+.tip strong {
+	@apply text-orange-700;
+}
+
 .tip code {
 	@apply text-orange-700;
 }
@@ -211,4 +221,43 @@ code.language-bash {
 	width: 15px;
 	display: inline-block;
 	margin-right: 5px;
+}
+
+li > p {
+	margin: 0.25rem 0 !important;
+	padding: 0 !important;
+}
+
+ul > li,
+li > ul {
+	margin: 0 !important;
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+}
+
+pre > code {
+	font-weight: 500 !important;
+	border-radius: 0.25rem;
+	font-size: 0.8em !important;
+}
+
+h1 > code,
+h2 > code,
+h3 > code,
+h4 > code,
+h5 > code,
+h6 > code {
+	font-weight: 600 !important;
+	border: none;
+	border-radius: 0;
+	background-color: transparent;
+}
+
+h5,
+h6 {
+	margin-top: 2rem;
+}
+
+.token.table {
+	display: unset;
 }

@@ -1,7 +1,12 @@
 export const get_coordinates_of_clicked_image = (
 	evt: MouseEvent
 ): [number, number] | null => {
-	let image = evt.currentTarget as HTMLImageElement;
+	let image;
+	if (evt.currentTarget instanceof Element) {
+		image = evt.currentTarget.querySelector("img") as HTMLImageElement;
+	} else {
+		return [NaN, NaN];
+	}
 
 	const imageRect = image.getBoundingClientRect();
 	const xScale = image.naturalWidth / imageRect.width;

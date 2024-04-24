@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/video",
-	"version": "0.2.0",
+	"version": "0.6.12",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -16,14 +16,16 @@
 		"@gradio/utils": "workspace:^",
 		"@gradio/wasm": "workspace:^",
 		"@ffmpeg/ffmpeg": "^0.12.7",
-		"@ffmpeg/util": "^0.12.1"
+		"@ffmpeg/util": "^0.12.1",
+		"mrmime": "^2.0.0"
 	},
 	"devDependencies": {
-		"mrmime": "^1.0.1"
+		"@gradio/preview": "workspace:^"
 	},
 	"exports": {
 		".": "./index.ts",
 		"./example": "./Example.svelte",
+		"./shared": "./shared/index.ts",
 		"./package.json": "./package.json"
 	},
 	"main": "index.ts",

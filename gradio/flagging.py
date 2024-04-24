@@ -14,15 +14,13 @@ from typing import TYPE_CHECKING, Any
 import filelock
 import huggingface_hub
 from gradio_client import utils as client_utils
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 import gradio as gr
 from gradio import utils
 
 if TYPE_CHECKING:
     from gradio.components import Component
-
-set_documentation_group("flagging")
 
 
 class FlaggingCallback(ABC):
@@ -37,7 +35,7 @@ class FlaggingCallback(ABC):
         This method gets called once at the beginning of the Interface.launch() method.
         Parameters:
         components: Set of components that will provide flagged data.
-        flagging_dir: A string, typically containing the path to the directory where the flagging file should be storied (provided as an argument to Interface.__init__()).
+        flagging_dir: A string, typically containing the path to the directory where the flagging file should be stored (provided as an argument to Interface.__init__()).
         """
         pass
 
@@ -87,8 +85,8 @@ class SimpleCSVLogger(FlaggingCallback):
     def flag(
         self,
         flag_data: list[Any],
-        flag_option: str = "",
-        username: str | None = None,
+        flag_option: str = "",  # noqa: ARG002
+        username: str | None = None,  # noqa: ARG002
     ) -> int:
         flagging_dir = self.flagging_dir
         log_filepath = Path(flagging_dir) / "log.csv"
@@ -129,8 +127,8 @@ class CSVLogger(FlaggingCallback):
     Guides: using-flagging
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, simplify_file_data: bool = True):
+        self.simplify_file_data = simplify_file_data
 
     def setup(
         self,
@@ -169,11 +167,14 @@ class CSVLogger(FlaggingCallback):
             if utils.is_update(sample):
                 csv_data.append(str(sample))
             else:
-                csv_data.append(
+                data = (
                     component.flag(sample, flag_dir=save_dir)
                     if sample is not None
                     else ""
                 )
+                if self.simplify_file_data:
+                    data = utils.simplify_file_data_in_str(data)
+                csv_data.append(data)
         csv_data.append(flag_option)
         csv_data.append(username if username is not None else "")
         csv_data.append(str(datetime.datetime.now()))
@@ -418,14 +419,18 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             label = component.label or ""
             save_dir = data_dir / client_utils.strip_invalid_filename_characters(label)
             save_dir.mkdir(exist_ok=True, parents=True)
-            deserialized = component.flag(sample, save_dir)
+            deserialized = utils.simplify_file_data_in_str(
+                component.flag(sample, save_dir)
+            )
 
             # Add deserialized object to row
             features[label] = {"dtype": "string", "_type": "Value"}
             try:
-                assert Path(deserialized).exists()
-                row.append(str(Path(deserialized).relative_to(self.dataset_dir)))
-            except (AssertionError, TypeError, ValueError):
+                deserialized_path = Path(deserialized)
+                if not deserialized_path.exists():
+                    raise FileNotFoundError(f"File {deserialized} not found")
+                row.append(str(deserialized_path.relative_to(self.dataset_dir)))
+            except (FileNotFoundError, TypeError, ValueError):
                 deserialized = "" if deserialized is None else str(deserialized)
                 row.append(deserialized)
 

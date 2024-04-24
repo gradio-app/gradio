@@ -1,31 +1,193 @@
 # website
 
+## 0.26.1
+
+### Dependency updates
+
+- @gradio/code@0.5.12
+
+## 0.26.0
+
+### Features
+
+- [#7945](https://github.com/gradio-app/gradio/pull/7945) [`328325a`](https://github.com/gradio-app/gradio/commit/328325a7ad812e7e152fe57a5a91a54b67adf728) - style changes for gradio website docs navbar.  Thanks @shafiqihtsham!
+
+### Fixes
+
+- [#7935](https://github.com/gradio-app/gradio/pull/7935) [`919afff`](https://github.com/gradio-app/gradio/commit/919afffcee87bee25a6905c488484936df92189d) - Adds a Guide on deploying Gradio apps with Docker.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/code@0.5.11
+
+## 0.25.2
+
+### Dependency updates
+
+- @gradio/code@0.5.10
+
+## 0.25.1
+
+### Dependency updates
+
+- @gradio/code@0.5.9
+
+## 0.25.0
+
+### Features
+
+- [#7684](https://github.com/gradio-app/gradio/pull/7684) [`755157f`](https://github.com/gradio-app/gradio/commit/755157f99c2961f2e5caeaa9b76d248b4225ea8f) - Do not reload code inside gr.NO_RELOAD context.  Thanks @freddyaboulton!
+- [#7661](https://github.com/gradio-app/gradio/pull/7661) [`c62a57e`](https://github.com/gradio-app/gradio/commit/c62a57e7f8f2f6dad0110d06e915c48e7f628073) - Convert Docs Demos to Lite.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.5.8
+
+## 0.24.3
+
+### Dependency updates
+
+- @gradio/code@0.5.7
+
+## 0.24.2
+
+### Dependency updates
+
+- @gradio/code@0.5.6
+
+## 0.24.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/code@0.5.5
+
+## 0.24.0
+
+### Features
+
+- [#7451](https://github.com/gradio-app/gradio/pull/7451) [`65f114a`](https://github.com/gradio-app/gradio/commit/65f114a117b351f5935424fa78c830a58bafc44f) - Add error handling for missing `js/_website/version.json`. Thanks [@hannahblair](https://github.com/hannahblair)!
+
+## 0.23.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/code@0.5.3
+
+## 0.23.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/code@0.5.2
+
+## 0.23.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/code@0.5.1
+
+## 0.23.1
+
+### Patch Changes
+
+- Updated dependencies [[`c1a7ea7`](https://github.com/gradio-app/gradio/commit/c1a7ea7c0c294aa970624f02225717c12bcf9b58)]:
+  - @gradio/code@0.5.0
+
+## 0.23.0
+
+### Features
+
+- [#7116](https://github.com/gradio-app/gradio/pull/7116) [`3c8c4ac`](https://github.com/gradio-app/gradio/commit/3c8c4ac2db284e1cb503c397205a79a6dcc27e23) - Document the `gr.ParamViewer` component, and fix component preprocessing/postprocessing docstrings. Thanks [@abidlabs](https://github.com/abidlabs)!
+
+## 0.22.0
+
+### Features
+
+- [#6970](https://github.com/gradio-app/gradio/pull/6970) [`dfe1f08`](https://github.com/gradio-app/gradio/commit/dfe1f08ae216dca8bac8e2d992ebde1f8746c795) - Style changes to custom components gallery. Thanks [@aliabd](https://github.com/aliabd)!
+- [#7080](https://github.com/gradio-app/gradio/pull/7080) [`6654a32`](https://github.com/gradio-app/gradio/commit/6654a32ebad3c5b9f762d8e9e531f29152625819) - start cc docs guide. Thanks [@pngwn](https://github.com/pngwn)!
+
+## 0.21.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/code@0.3.7
+
+## 0.21.2
+
+### Features
+
+- [#6997](https://github.com/gradio-app/gradio/pull/6997) [`523c08f`](https://github.com/gradio-app/gradio/commit/523c08fe3036f9d72416f7599fe0c64c1a4af823) - Design changes to Playground. Thanks [@aliabd](https://github.com/aliabd)!
+
+## 0.21.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/code@0.3.6
+
+## 0.21.0
+
+### Features
+
+- [#6913](https://github.com/gradio-app/gradio/pull/6913) [`a5f3d2b`](https://github.com/gradio-app/gradio/commit/a5f3d2bef2d53b367ebf78d86e61f227cda5effa) - Fix broken redirects and guides in website. Thanks [@aliabd](https://github.com/aliabd)!
+
+## 0.20.4
+
+### Fixes
+
+- [#6767](https://github.com/gradio-app/gradio/pull/6767) [`7bb561a`](https://github.com/gradio-app/gradio/commit/7bb561a294ca41d1044927cb34d8645c4175cae0) - Rewriting parts of the README and getting started guides for 4.0. Thanks [@abidlabs](https://github.com/abidlabs)!
+
+## 0.20.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/code@0.3.3
+
+## 0.20.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/code@0.3.2
+
+## 0.20.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/code@0.3.1
+
 ## 0.20.0
 
 ### Features
 
-- [#6679](https://github.com/gradio-app/gradio/pull/6679) [`abe9785`](https://github.com/gradio-app/gradio/commit/abe9785c50cf3d1098605326c92a1825ae89df14) - Remove Discourse Forum Link from Website.  Thanks [@aliabd](https://github.com/aliabd)!
-- [#6477](https://github.com/gradio-app/gradio/pull/6477) [`21ce721`](https://github.com/gradio-app/gradio/commit/21ce721bbddaf4f5768f59eef5fefc74c8f0cf27) - Custom component gallery.  Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+- [#6679](https://github.com/gradio-app/gradio/pull/6679) [`abe9785`](https://github.com/gradio-app/gradio/commit/abe9785c50cf3d1098605326c92a1825ae89df14) - Remove Discourse Forum Link from Website. Thanks [@aliabd](https://github.com/aliabd)!
+- [#6477](https://github.com/gradio-app/gradio/pull/6477) [`21ce721`](https://github.com/gradio-app/gradio/commit/21ce721bbddaf4f5768f59eef5fefc74c8f0cf27) - Custom component gallery. Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
 
 ## 0.19.0
 
 ### Features
 
-- [#5885](https://github.com/gradio-app/gradio/pull/5885) [`9919b8a`](https://github.com/gradio-app/gradio/commit/9919b8ab43bee3d1d7cc65fd641fc8bc9725e102) - Fix the docstring decoration.  Thanks [@whitphx](https://github.com/whitphx)!
-- [#6650](https://github.com/gradio-app/gradio/pull/6650) [`d59ceec`](https://github.com/gradio-app/gradio/commit/d59ceec99d16f52e71d165448d959ba6b5624425) - Removes smooth scrolling from website.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#5885](https://github.com/gradio-app/gradio/pull/5885) [`9919b8a`](https://github.com/gradio-app/gradio/commit/9919b8ab43bee3d1d7cc65fd641fc8bc9725e102) - Fix the docstring decoration. Thanks [@whitphx](https://github.com/whitphx)!
+- [#6650](https://github.com/gradio-app/gradio/pull/6650) [`d59ceec`](https://github.com/gradio-app/gradio/commit/d59ceec99d16f52e71d165448d959ba6b5624425) - Removes smooth scrolling from website. Thanks [@aliabd](https://github.com/aliabd)!
 
 ## 0.18.0
 
 ### Features
 
-- [#6549](https://github.com/gradio-app/gradio/pull/6549) [`3e60c13b9`](https://github.com/gradio-app/gradio/commit/3e60c13b9192fac04c5386135ede906d0e6a2025) - Add 3.x docs to the website!.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6549](https://github.com/gradio-app/gradio/pull/6549) [`3e60c13b9`](https://github.com/gradio-app/gradio/commit/3e60c13b9192fac04c5386135ede906d0e6a2025) - Add 3.x docs to the website!. Thanks [@aliabd](https://github.com/aliabd)!
 
 ## 0.17.0
 
 ### Features
 
-- [#6533](https://github.com/gradio-app/gradio/pull/6533) [`e2810fcfc`](https://github.com/gradio-app/gradio/commit/e2810fcfc84e2d66797736d8002c6a16f5b330d6) - Fix redirected paths on website.  Thanks [@aliabd](https://github.com/aliabd)!
-- [#6532](https://github.com/gradio-app/gradio/pull/6532) [`96290d304`](https://github.com/gradio-app/gradio/commit/96290d304a61064b52c10a54b2feeb09ca007542) - tweak deps.  Thanks [@pngwn](https://github.com/pngwn)!
+- [#6533](https://github.com/gradio-app/gradio/pull/6533) [`e2810fcfc`](https://github.com/gradio-app/gradio/commit/e2810fcfc84e2d66797736d8002c6a16f5b330d6) - Fix redirected paths on website. Thanks [@aliabd](https://github.com/aliabd)!
+- [#6532](https://github.com/gradio-app/gradio/pull/6532) [`96290d304`](https://github.com/gradio-app/gradio/commit/96290d304a61064b52c10a54b2feeb09ca007542) - tweak deps. Thanks [@pngwn](https://github.com/pngwn)!
 
 ## 0.16.1
 

@@ -2,6 +2,7 @@
 **/pnpm-workspace.yaml
 **/js/app/dist/**
 **/js/wasm/dist/**
+**/js/preview/dist/**
 **/client/js/dist/**
 **/js/lite/dist/**
 **/pnpm-lock.yaml
@@ -28,3 +29,4 @@ sweep.yaml
 **/src/lib/json/**/*
 **/playwright/.cache/**/*
 **/theme/src/pollen.css
+**/venv/**

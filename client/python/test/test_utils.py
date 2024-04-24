@@ -71,24 +71,6 @@ def test_decode_base64_to_file():
     assert isinstance(temp_file, tempfile._TemporaryFileWrapper)
 
 
-@pytest.mark.flaky
-def test_download_private_file(gradio_temp_dir):
-    url_path = (
-        "https://gradio-tests-not-actually-private-spacev4-sse.hf.space/file=lion.jpg"
-    )
-    file = utils.download_file(
-        url_path=url_path, hf_token=HF_TOKEN, dir=str(gradio_temp_dir)
-    )
-    assert Path(file).name.endswith(".jpg")
-
-
-def test_download_tmp_copy_of_file_does_not_save_errors(monkeypatch, gradio_temp_dir):
-    error_response = httpx.Response(status_code=404)
-    monkeypatch.setattr(httpx, "get", lambda *args, **kwargs: error_response)
-    with pytest.raises(httpx.HTTPStatusError):
-        utils.download_file("https://example.com/foo", dir=str(gradio_temp_dir))
-
-
 @pytest.mark.parametrize(
     "orig_filename, new_filename",
     [
@@ -185,3 +167,83 @@ def test_json_schema_to_python_type(schema):
     else:
         raise ValueError(f"This test has not been modified to check {schema}")
     assert utils.json_schema_to_python_type(types[schema]) == answer
+
+
+class TestConstructArgs:
+    def test_no_parameters_empty_args(self):
+        assert utils.construct_args(None, (), {}) == []
+
+    def test_no_parameters_with_args(self):
+        assert utils.construct_args(None, (1, 2), {}) == [1, 2]
+
+    def test_no_parameters_with_kwargs(self):
+        with pytest.raises(
+            ValueError, match="This endpoint does not support key-word arguments"
+        ):
+            utils.construct_args(None, (), {"a": 1})
+
+    def test_parameters_no_args_kwargs(self):
+        parameters_info = [
+            {
+                "label": "param1",
+                "parameter_name": "a",
+                "parameter_has_default": True,
+                "parameter_default": 10,
+            }
+        ]
+        assert utils.construct_args(parameters_info, (), {"a": 1}) == [1]
+
+    def test_parameters_with_args_no_kwargs(self):
+        parameters_info = [{"label": "param1", "parameter_name": "a"}]
+        assert utils.construct_args(parameters_info, (1,), {}) == [1]
+
+    def test_parameter_with_default_no_args_no_kwargs(self):
+        parameters_info = [
+            {"label": "param1", "parameter_has_default": True, "parameter_default": 10}
+        ]
+        assert utils.construct_args(parameters_info, (), {}) == [10]
+
+    def test_args_filled_parameters_with_defaults(self):
+        parameters_info = [
+            {"label": "param1", "parameter_has_default": True, "parameter_default": 10},
+            {"label": "param2", "parameter_has_default": True, "parameter_default": 20},
+        ]
+        assert utils.construct_args(parameters_info, (1,), {}) == [1, 20]
+
+    def test_kwargs_filled_parameters_with_defaults(self):
+        parameters_info = [
+            {
+                "label": "param1",
+                "parameter_name": "a",
+                "parameter_has_default": True,
+                "parameter_default": 10,
+            },
+            {
+                "label": "param2",
+                "parameter_name": "b",
+                "parameter_has_default": True,
+                "parameter_default": 20,
+            },
+        ]
+        assert utils.construct_args(parameters_info, (), {"a": 1, "b": 2}) == [1, 2]
+
+    def test_positional_arg_and_kwarg_for_same_parameter(self):
+        parameters_info = [{"label": "param1", "parameter_name": "a"}]
+        with pytest.raises(
+            ValueError, match="Parameter `a` is already set as a positional argument."
+        ):
+            utils.construct_args(parameters_info, (1,), {"a": 2})
+
+    def test_invalid_kwarg(self):
+        parameters_info = [{"label": "param1", "parameter_name": "a"}]
+        with pytest.raises(
+            ValueError, match="Parameter `b` is not a valid key-word argument."
+        ):
+            utils.construct_args(parameters_info, (), {"b": 1})
+
+    def test_required_arg_missing(self):
+        parameters_info = [{"label": "param1", "parameter_name": "a"}]
+        with pytest.raises(
+            ValueError, match="No value provided for required argument: a"
+        ):
+            utils.construct_args(parameters_info, (), {})

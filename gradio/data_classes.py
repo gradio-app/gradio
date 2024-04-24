@@ -1,5 +1,6 @@
 """Pydantic data models and other dataclasses. This is the only file that uses Optional[]
 typing syntax instead of | None syntax to work with pydantic"""
+
 from __future__ import annotations
 
 import pathlib
@@ -7,16 +8,15 @@ import secrets
 import shutil
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
 
 from fastapi import Request
 from gradio_client.utils import traverse
-from typing_extensions import Literal
 
 from . import wasm_utils
 
-if not wasm_utils.IS_WASM:
-    from pydantic import BaseModel, RootModel, ValidationError  # type: ignore
+if not wasm_utils.IS_WASM or TYPE_CHECKING:
+    from pydantic import BaseModel, RootModel, ValidationError
 else:
     # XXX: Currently Pyodide V2 is not available on Pyodide,
     # so we install V1 for the Wasm version.
@@ -27,7 +27,20 @@ else:
 
     # Map V2 method calls to V1 implementations.
     # Ref: https://docs.pydantic.dev/latest/migration/#changes-to-pydanticbasemodel
-    class BaseModel(BaseModelV1):
+    class BaseModelMeta(type(BaseModelV1)):
+        def __new__(cls, name, bases, dct):
+            # Override `dct` to dynamically create a `Config` class based on `model_config`.
+            if "model_config" in dct:
+                config_class = type("Config", (), {})
+                for key, value in dct["model_config"].items():
+                    setattr(config_class, key, value)
+                dct["Config"] = config_class
+                del dct["model_config"]
+
+            model_class = super().__new__(cls, name, bases, dct)
+            return model_class
+
+    class BaseModel(BaseModelV1, metaclass=BaseModelMeta):
         pass
 
     BaseModel.model_dump = BaseModel.dict  # type: ignore
@@ -54,7 +67,7 @@ else:
             return super().dict(**kwargs)["root"]
 
         @classmethod
-        def schema(cls, **kwargs):
+        def schema(cls, **_kwargs):
             # XXX: kwargs are ignored.
             return schema_of(cls.__fields__["root"].type_)  # type: ignore
 
@@ -62,9 +75,13 @@ else:
     RootModel.model_json_schema = RootModel.schema  # type: ignore
 
 
+class SimplePredictBody(BaseModel):
+    data: List[Any]
+    session_hash: Optional[str] = None
+
+
 class PredictBody(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = {"arbitrary_types_allowed": True}
 
     session_hash: Optional[str] = None
     event_id: Optional[str] = None
@@ -72,23 +89,36 @@ class PredictBody(BaseModel):
     event_data: Optional[Any] = None
     fn_index: Optional[int] = None
     trigger_id: Optional[int] = None
-    batched: Optional[
-        bool
-    ] = False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
-    request: Optional[
-        Request
-    ] = None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
+    simple_format: bool = False
+    batched: Optional[bool] = (
+        False  # Whether the data is a batch of samples (i.e. called from the queue if batch=True) or a single sample (i.e. called from the UI)
+    )
+    request: Optional[Request] = (
+        None  # dictionary of request headers, query parameters, url, etc. (used to to pass in request for queuing)
+    )
 
 
 class ResetBody(BaseModel):
     event_id: str
 
 
-class ComponentServerBody(BaseModel):
+class ComponentServerJSONBody(BaseModel):
     session_hash: str
     component_id: int
     fn_name: str
     data: Any
+
+
+class DataWithFiles(BaseModel):
+    data: Any
+    files: List[Tuple[str, bytes]]
+
+
+class ComponentServerBlobBody(BaseModel):
+    session_hash: str
+    component_id: int
+    fn_name: str
+    data: DataWithFiles
 
 
 class InterfaceTypes(Enum):
@@ -98,37 +128,11 @@ class InterfaceTypes(Enum):
     UNIFIED = auto()
 
 
-class Estimation(BaseModel):
-    rank: Optional[int] = None
-    queue_size: int
-    avg_event_process_time: Optional[float] = None
-    avg_event_concurrent_process_time: Optional[float] = None
-    rank_eta: Optional[float] = None
-    queue_eta: float
-
-
-class ProgressUnit(BaseModel):
-    index: Optional[int] = None
-    length: Optional[int] = None
-    unit: Optional[str] = None
-    progress: Optional[float] = None
-    desc: Optional[str] = None
-
-
-class Progress(BaseModel):
-    progress_data: List[ProgressUnit] = []
-
-
-class LogMessage(BaseModel):
-    log: str
-    level: Literal["info", "warning"]
-
-
 class GradioBaseModel(ABC):
     def copy_to_dir(self, dir: str | pathlib.Path) -> GradioDataModel:
-        assert isinstance(self, (BaseModel, RootModel))
-        if isinstance(dir, str):
-            dir = pathlib.Path(dir)
+        if not isinstance(self, (BaseModel, RootModel)):
+            raise TypeError("must be used in a Pydantic model")
+        dir = pathlib.Path(dir)
 
         # TODO: Making sure path is unique should be done in caller
         def unique_copy(obj: dict):
@@ -172,6 +176,8 @@ class FileData(GradioModel):
     size: Optional[int] = None  # size in bytes
     orig_name: Optional[str] = None  # original filename
     mime_type: Optional[str] = None
+    is_stream: bool = False
+    meta: dict = {"_type": "gradio.FileData"}
 
     @property
     def is_none(self):
@@ -194,7 +200,8 @@ class FileData(GradioModel):
         pathlib.Path(dir).mkdir(exist_ok=True)
         new_obj = dict(self)
 
-        assert self.path
+        if not self.path:
+            raise ValueError("Source file path is not set")
         new_name = shutil.copy(self.path, dir)
         new_obj["path"] = new_name
         return self.__class__(**new_obj)
@@ -207,3 +214,29 @@ class FileData(GradioModel):
             except (TypeError, ValidationError):
                 return False
         return False
+
+
+class ListFiles(GradioRootModel):
+    root: List[FileData]
+
+    def __getitem__(self, index):
+        return self.root[index]
+
+    def __iter__(self):
+        return iter(self.root)
+
+
+class _StaticFiles:
+    """
+    Class to hold all static files for an app
+    """
+
+    all_paths = []
+
+    def __init__(self, paths: list[str | pathlib.Path]) -> None:
+        self.paths = paths
+        self.all_paths = [pathlib.Path(p).resolve() for p in paths]
+
+    @classmethod
+    def clear(cls):
+        cls.all_paths = []

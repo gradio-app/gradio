@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
-import hashlib
+import copy
 import json
 import mimetypes
 import os
@@ -17,13 +17,16 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Optional, TypedDict
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, Literal, Optional, TypedDict
 
 import fsspec.asyn
 import httpx
 import huggingface_hub
 from huggingface_hub import SpaceStage
 from websockets.legacy.protocol import WebSocketCommonProtocol
+
+if TYPE_CHECKING:
+    from gradio_client.data_classes import ParameterInfo
 
 API_URL = "api/predict/"
 SSE_URL_V0 = "queue/join"
@@ -39,6 +42,7 @@ RAW_API_INFO_URL = "info?serialize=False"
 SPACE_FETCHER_URL = "https://gradio-space-api-fetcher-v2.hf.space/api"
 RESET_URL = "reset"
 SPACE_URL = "https://hf.space/{}"
+HEARTBEAT_URL = "heartbeat/{session_hash}"
 
 STATE_COMPONENT = "state"
 INVALID_RUNTIME = [
@@ -114,6 +118,8 @@ class ServerMessage(str, Enum):
     progress = "progress"
     heartbeat = "heartbeat"
     server_stopped = "server_stopped"
+    unexpected_error = "unexpected_error"
+    close_stream = "close_stream"
 
 
 class Status(Enum):
@@ -244,10 +250,12 @@ class Communicator:
 ########################
 
 
-def is_http_url_like(possible_url: str) -> bool:
+def is_http_url_like(possible_url) -> bool:
     """
-    Check if the given string looks like an HTTP(S) URL.
+    Check if the given value is a string that looks like an HTTP(S) URL.
     """
+    if not isinstance(possible_url, str):
+        return False
     return possible_url.startswith(("http://", "https://"))
 
 
@@ -255,7 +263,7 @@ def probe_url(possible_url: str) -> bool:
     """
     Probe the given URL to see if it responds with a 200 status code (to HEAD, then to GET).
     """
-    headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
+    headers = {"User-Agent": "gradio (https://gradio.app/; gradio-team@huggingface.co)"}
     try:
         with httpx.Client() as client:
             head_request = client.head(possible_url, headers=headers)
@@ -349,10 +357,11 @@ async def get_pred_from_sse_v0(
     sse_data_url: str,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
+    ssl_verify: bool,
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
-            asyncio.create_task(check_for_cancel(helper, headers, cookies)),
+            asyncio.create_task(check_for_cancel(helper, headers, cookies, ssl_verify)),
             asyncio.create_task(
                 stream_sse_v0(
                     client,
@@ -376,26 +385,27 @@ async def get_pred_from_sse_v0(
         except asyncio.CancelledError:
             pass
 
-    assert len(done) == 1
+    if len(done) != 1:
+        raise ValueError(f"Did not expect {len(done)} tasks to be done.")
     for task in done:
         return task.result()
 
 
-async def get_pred_from_sse_v1(
+async def get_pred_from_sse_v1plus(
     helper: Communicator,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
     pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
+    protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
+    ssl_verify: bool,
 ) -> dict[str, Any] | None:
     done, pending = await asyncio.wait(
         [
-            asyncio.create_task(check_for_cancel(helper, headers, cookies)),
+            asyncio.create_task(check_for_cancel(helper, headers, cookies, ssl_verify)),
             asyncio.create_task(
-                stream_sse_v1(
-                    helper,
-                    pending_messages_per_event,
-                    event_id,
+                stream_sse_v1plus(
+                    helper, pending_messages_per_event, event_id, protocol
                 )
             ),
         ],
@@ -409,13 +419,20 @@ async def get_pred_from_sse_v1(
         except asyncio.CancelledError:
             pass
 
-    assert len(done) == 1
+    if len(done) != 1:
+        raise ValueError(f"Did not expect {len(done)} tasks to be done.")
     for task in done:
+        exception = task.exception()
+        if exception:
+            raise exception
         return task.result()
 
 
 async def check_for_cancel(
-    helper: Communicator, headers: dict[str, str], cookies: dict[str, str] | None
+    helper: Communicator,
+    headers: dict[str, str],
+    cookies: dict[str, str] | None,
+    ssl_verify: bool,
 ):
     while True:
         await asyncio.sleep(0.05)
@@ -423,7 +440,7 @@ async def check_for_cancel(
             if helper.should_cancel:
                 break
     if helper.event_id:
-        async with httpx.AsyncClient() as http:
+        async with httpx.AsyncClient(ssl_verify=ssl_verify) as http:
             await http.post(
                 helper.reset_url,
                 json={"event_id": helper.event_id},
@@ -502,13 +519,15 @@ async def stream_sse_v0(
         raise
 
 
-async def stream_sse_v1(
+async def stream_sse_v1plus(
     helper: Communicator,
     pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
+    protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
 ) -> dict[str, Any]:
     try:
         pending_messages = pending_messages_per_event[event_id]
+        pending_responses_for_diffs = None
 
         while True:
             if len(pending_messages) > 0:
@@ -540,6 +559,20 @@ async def stream_sse_v1(
                     log=log_message,
                 )
                 output = msg.get("output", {}).get("data", [])
+                if msg["msg"] == ServerMessage.process_generating and protocol in [
+                    "sse_v2",
+                    "sse_v2.1",
+                    "sse_v3",
+                ]:
+                    if pending_responses_for_diffs is None:
+                        pending_responses_for_diffs = list(output)
+                    else:
+                        for i, value in enumerate(output):
+                            prev_output = pending_responses_for_diffs[i]
+                            new_output = apply_diff(prev_output, value)
+                            pending_responses_for_diffs[i] = new_output
+                            output[i] = new_output
+
                 if output and status_update.code != Status.FINISHED:
                     try:
                         result = helper.prediction_processor(*output)
@@ -557,36 +590,51 @@ async def stream_sse_v1(
         raise
 
 
+def apply_diff(obj, diff):
+    obj = copy.deepcopy(obj)
+
+    def apply_edit(target, path, action, value):
+        if len(path) == 0:
+            if action == "replace":
+                return value
+            elif action == "append":
+                return target + value
+            else:
+                raise ValueError(f"Unsupported action: {action}")
+
+        current = target
+        for i in range(len(path) - 1):
+            current = current[path[i]]
+
+        last_path = path[-1]
+        if action == "replace":
+            current[last_path] = value
+        elif action == "append":
+            current[last_path] += value
+        elif action == "add":
+            if isinstance(current, list):
+                current.insert(int(last_path), value)
+            else:
+                current[last_path] = value
+        elif action == "delete":
+            if isinstance(current, list):
+                del current[int(last_path)]
+            else:
+                del current[last_path]
+        else:
+            raise ValueError(f"Unknown action: {action}")
+
+        return target
+
+    for action, path, value in diff:
+        obj = apply_edit(obj, path, action, value)
+
+    return obj
+
+
 ########################
 # Data processing utils
 ########################
-
-
-def download_file(
-    url_path: str,
-    dir: str,
-    hf_token: str | None = None,
-) -> str:
-    if dir is not None:
-        os.makedirs(dir, exist_ok=True)
-    headers = {"Authorization": "Bearer " + hf_token} if hf_token else {}
-
-    sha1 = hashlib.sha1()
-    temp_dir = Path(tempfile.gettempdir()) / secrets.token_hex(20)
-    temp_dir.mkdir(exist_ok=True, parents=True)
-
-    with httpx.stream("GET", url_path, headers=headers) as response:
-        response.raise_for_status()
-        with open(temp_dir / Path(url_path).name, "wb") as f:
-            for chunk in response.iter_bytes(chunk_size=128 * sha1.block_size):
-                sha1.update(chunk)
-                f.write(chunk)
-
-    directory = Path(dir) / sha1.hexdigest()
-    directory.mkdir(exist_ok=True, parents=True)
-    dest = directory / Path(url_path).name
-    shutil.move(temp_dir / Path(url_path).name, dest)
-    return str(dest.resolve())
 
 
 def create_tmp_copy_of_file(file_path: str, dir: str | None = None) -> str:
@@ -608,7 +656,9 @@ def download_tmp_copy_of_file(
     directory.mkdir(exist_ok=True, parents=True)
     file_path = directory / Path(url_path).name
 
-    with httpx.stream("GET", url_path, headers=headers) as response:
+    with httpx.stream(
+        "GET", url_path, headers=headers, follow_redirects=True
+    ) as response:
         response.raise_for_status()
         with open(file_path, "wb") as f:
             for chunk in response.iter_raw():
@@ -833,12 +883,18 @@ def get_type(schema: dict):
         raise APIInfoParseError(f"Cannot parse type for {schema}")
 
 
-FILE_DATA = "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)"
+FILE_DATA_FORMATS = [
+    "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None)",
+    "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool)",
+    "Dict(path: str, url: str | None, size: int | None, orig_name: str | None, mime_type: str | None, is_stream: bool, meta: Dict())",
+]
+
+CURRENT_FILE_DATA_FORMAT = FILE_DATA_FORMATS[-1]
 
 
 def json_schema_to_python_type(schema: Any) -> str:
     type_ = _json_schema_to_python_type(schema, schema.get("$defs"))
-    return type_.replace(FILE_DATA, "filepath")
+    return type_.replace(CURRENT_FILE_DATA_FORMAT, "filepath")
 
 
 def _json_schema_to_python_type(schema: Any, defs) -> str:
@@ -856,9 +912,11 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
     elif type_ == "null":
         return "None"
     elif type_ == "const":
-        return f"Litetal[{schema['const']}]"
+        return f"Literal[{schema['const']}]"
     elif type_ == "enum":
-        return f"Literal[{', '.join([str(v) for v in schema['enum']])}]"
+        return (
+            "Literal[" + ", ".join(["'" + str(v) + "'" for v in schema["enum"]]) + "]"
+        )
     elif type_ == "integer":
         return "int"
     elif type_ == "string":
@@ -912,7 +970,10 @@ def _json_schema_to_python_type(schema: Any, defs) -> str:
         raise APIInfoParseError(f"Cannot parse schema {schema}")
 
 
-def traverse(json_obj: Any, func: Callable, is_root: Callable) -> Any:
+def traverse(json_obj: Any, func: Callable, is_root: Callable[..., bool]) -> Any:
+    """
+    Traverse a JSON object and apply a function to each element that satisfies the is_root condition.
+    """
     if is_root(json_obj):
         return func(json_obj)
     elif isinstance(json_obj, dict):
@@ -929,21 +990,81 @@ def traverse(json_obj: Any, func: Callable, is_root: Callable) -> Any:
         return json_obj
 
 
+async def async_traverse(
+    json_obj: Any,
+    func: Callable[..., Coroutine[Any, Any, Any]],
+    is_root: Callable[..., bool],
+) -> Any:
+    """
+    Traverse a JSON object and apply a async function to each element that satisfies the is_root condition.
+    """
+    if is_root(json_obj):
+        return await func(json_obj)
+    elif isinstance(json_obj, dict):
+        new_obj = {}
+        for key, value in json_obj.items():
+            new_obj[key] = await async_traverse(value, func, is_root)
+        return new_obj
+    elif isinstance(json_obj, (list, tuple)):
+        new_obj = []
+        for item in json_obj:
+            new_obj.append(await async_traverse(item, func, is_root))
+        return new_obj
+    else:
+        return json_obj
+
+
 def value_is_file(api_info: dict) -> bool:
     info = _json_schema_to_python_type(api_info, api_info.get("$defs"))
-    return FILE_DATA in info
+    return any(file_data_format in info for file_data_format in FILE_DATA_FORMATS)
 
 
-def is_filepath(s):
-    return isinstance(s, str) and Path(s).exists()
+def is_filepath(s) -> bool:
+    """
+    Check if the given value is a valid str or Path filepath on the local filesystem, e.g. "path/to/file".
+    """
+    return isinstance(s, (str, Path)) and Path(s).exists() and Path(s).is_file()
 
 
-def is_url(s):
-    return isinstance(s, str) and is_http_url_like(s)
+def is_file_obj(d) -> bool:
+    """
+    Check if the given value is a valid FileData object dictionary in versions of Gradio<=4.20, e.g.
+    {
+        "path": "path/to/file",
+    }
+    """
+    return isinstance(d, dict) and "path" in d and isinstance(d["path"], str)
 
 
-def is_file_obj(d):
-    return isinstance(d, dict) and "path" in d
+def is_file_obj_with_meta(d) -> bool:
+    """
+    Check if the given value is a valid FileData object dictionary in newer versions of Gradio
+    where the file objects include a specific "meta" key, e.g.
+    {
+        "path": "path/to/file",
+        "meta": {"_type: "gradio.FileData"}
+    }
+    """
+    return (
+        isinstance(d, dict)
+        and "path" in d
+        and isinstance(d["path"], str)
+        and "meta" in d
+        and d["meta"].get("_type", "") == "gradio.FileData"
+    )
+
+
+def is_file_obj_with_url(d) -> bool:
+    """
+    Check if the given value is a valid FileData object dictionary in newer versions of Gradio
+    where the file objects include a specific "meta" key, and ALSO include a "url" key, e.g.
+    {
+        "path": "path/to/file",
+        "url": "/file=path/to/file",
+        "meta": {"_type: "gradio.FileData"}
+    }
+    """
+    return is_file_obj_with_meta(d) and "url" in d and isinstance(d["url"], str)
 
 
 SKIP_COMPONENTS = {
@@ -960,3 +1081,67 @@ SKIP_COMPONENTS = {
     "interpretation",
     "dataset",
 }
+
+
+def file(filepath_or_url: str | Path):
+    s = str(filepath_or_url)
+    data = {"path": s, "meta": {"_type": "gradio.FileData"}}
+    if is_http_url_like(s):
+        return {**data, "orig_name": s.split("/")[-1], "url": s}
+    elif Path(s).exists():
+        return {**data, "orig_name": Path(s).name}
+    else:
+        raise ValueError(
+            f"File {s} does not exist on local filesystem and is not a valid URL."
+        )
+
+
+def construct_args(
+    parameters_info: list[ParameterInfo] | None, args: tuple, kwargs: dict
+) -> list:
+    class _Keywords(Enum):
+        NO_VALUE = "NO_VALUE"  # Used as a sentinel to determine if nothing is provided as a parameter for an argument
+
+    _args = list(args)
+    if parameters_info is None:
+        if kwargs:
+            raise ValueError(
+                "This endpoint does not support key-word arguments Please click on 'view API' in the footer of the Gradio app to see usage."
+            )
+        return _args
+    num_args = len(args)
+    _args = _args + [_Keywords.NO_VALUE] * (len(parameters_info) - num_args)
+
+    kwarg_arg_mapping = {}
+    kwarg_names = []
+    for index, param_info in enumerate(parameters_info):
+        if "parameter_name" in param_info:
+            kwarg_arg_mapping[param_info["parameter_name"]] = index
+            kwarg_names.append(param_info["parameter_name"])
+        else:
+            kwarg_names.append("argument {index}")
+        if (
+            param_info.get("parameter_has_default", False)
+            and _args[index] == _Keywords.NO_VALUE
+        ):
+            _args[index] = param_info.get("parameter_default")
+
+    for key, value in kwargs.items():
+        if key in kwarg_arg_mapping:
+            if kwarg_arg_mapping[key] < num_args:
+                raise ValueError(
+                    f"Parameter `{key}` is already set as a positional argument. Please click on 'view API' in the footer of the Gradio app to see usage."
+                )
+            else:
+                _args[kwarg_arg_mapping[key]] = value
+        else:
+            raise ValueError(
+                f"Parameter `{key}` is not a valid key-word argument. Please click on 'view API' in the footer of the Gradio app to see usage."
+            )
+
+    if _Keywords.NO_VALUE in _args:
+        raise ValueError(
+            f"No value provided for required argument: {kwarg_names[_args.index(_Keywords.NO_VALUE)]}"
+        )
+
+    return _args

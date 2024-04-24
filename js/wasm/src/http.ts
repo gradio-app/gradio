@@ -1,9 +1,9 @@
 export interface HttpRequest {
 	method: "GET" | "POST" | "PUT" | "DELETE";
 	path: string;
-	query_string: string;
+	query_string: string; // This field must not contain the leading `?`, as it's directly used in the ASGI spec which requires this.
 	headers: Record<string, string>;
-	body?: Uint8Array;
+	body?: Uint8Array | ReadableStream<Uint8Array> | null;
 }
 export interface HttpResponse {
 	status: number;

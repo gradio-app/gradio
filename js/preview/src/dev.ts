@@ -23,6 +23,7 @@ interface ServerOptions {
 	frontend_port: number;
 	backend_port: number;
 	host: string;
+	python_path: string;
 }
 
 export async function create_server({
@@ -30,12 +31,16 @@ export async function create_server({
 	root_dir,
 	frontend_port,
 	backend_port,
-	host
+	host,
+	python_path
 }: ServerOptions): Promise<void> {
 	process.env.gradio_mode = "dev";
-	const [imports, config] = await generate_imports(component_dir, root_dir);
+	const [imports, config] = await generate_imports(
+		component_dir,
+		root_dir,
+		python_path
+	);
 
-	const NODE_DIR = join(root_dir, "..", "..", "node", "dev");
 	const svelte_dir = join(root_dir, "assets", "svelte");
 
 	try {
@@ -46,14 +51,11 @@ export async function create_server({
 			configFile: false,
 			root: root_dir,
 
-			optimizeDeps: {
-				disabled: true
-			},
 			server: {
 				port: frontend_port,
 				host: host,
 				fs: {
-					allow: [root_dir, NODE_DIR, component_dir]
+					allow: [root_dir, component_dir]
 				}
 			},
 			plugins: [
@@ -118,13 +120,19 @@ export interface ComponentConfig {
 
 async function generate_imports(
 	component_dir: string,
-	root: string
+	root: string,
+	python_path: string
 ): Promise<[string, ComponentConfig]> {
 	const components = find_frontend_folders(component_dir);
 
 	const component_entries = components.flatMap((component) => {
-		return examine_module(component, root, "dev");
+		return examine_module(component, root, python_path, "dev");
 	});
+	if (component_entries.length === 0) {
+		console.info(
+			`No custom components were found in ${component_dir}. It is likely that dev mode does not work properly. Please pass the --gradio-path and --python-path CLI arguments so that gradio uses the right executables.`
+		);
+	}
 
 	let component_config = {
 		plugins: [],
@@ -160,6 +168,11 @@ async function generate_imports(
 			example: pkg.exports["./example"]
 		};
 
+		if (!exports.component)
+			throw new Error(
+				"Could not find component entry point. Please check the exports field of your package.json."
+			);
+
 		const example = exports.example
 			? `example: () => import("${to_posix(
 					join(component.frontend_dir, exports.example)
@@ -167,7 +180,9 @@ async function generate_imports(
 			: "";
 		return `${acc}"${component.component_class_id}": {
 			${example}
-			component: () => import("${to_posix(component.frontend_dir)}")
+			component: () => import("${to_posix(
+				join(component.frontend_dir, exports.component)
+			)}")
 			},\n`;
 	}, "");
 

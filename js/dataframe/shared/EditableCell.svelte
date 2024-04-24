@@ -54,6 +54,7 @@
 
 {#if edit}
 	<input
+		role="textbox"
 		bind:this={el}
 		bind:value={_value}
 		class:header
@@ -104,6 +105,10 @@
 		flex: 1 1 0%;
 		outline: none;
 		padding: var(--size-2);
+		-webkit-user-select: text;
+		-moz-user-select: text;
+		-ms-user-select: text;
+		user-select: text;
 	}
 
 	.header {

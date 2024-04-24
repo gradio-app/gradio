@@ -15,8 +15,10 @@
 	export let root: string;
 	export let hidden = false;
 	export let format: "blob" | "file" = "file";
-	export let include_sources = false;
 	export let uploading = false;
+	export let hidden_upload: HTMLInputElement | null = null;
+	export let show_progress = true;
+	export let max_file_size: number | null = null;
 
 	let upload_id: string;
 	let file_data: FileData[];
@@ -25,29 +27,55 @@
 	// Needed for wasm support
 	const upload_fn = getContext<typeof upload_files>("upload_files");
 
-	let hidden_upload: HTMLInputElement;
-
 	const dispatch = createEventDispatcher();
+	const validFileTypes = ["image", "video", "audio", "text", "file"];
+	const processFileType = (type: string): string => {
+		if (type.startsWith(".") || type.endsWith("/*")) {
+			return type;
+		}
+		if (validFileTypes.includes(type)) {
+			return type + "/*";
+		}
+		return "." + type;
+	};
 
-	$: if (filetype == null || typeof filetype === "string") {
-		accept_file_types = filetype;
+	$: if (filetype == null) {
+		accept_file_types = null;
+	} else if (typeof filetype === "string") {
+		accept_file_types = processFileType(filetype);
 	} else {
-		filetype = filetype.map((x) => {
-			if (x.startsWith(".")) {
-				return x;
-			}
-			return x + "/*";
-		});
+		filetype = filetype.map(processFileType);
 		accept_file_types = filetype.join(", ");
 	}
+
 	function updateDragging(): void {
 		dragging = !dragging;
 	}
 
+	export function paste_clipboard(): void {
+		navigator.clipboard.read().then(async (items) => {
+			for (let i = 0; i < items.length; i++) {
+				const type = items[i].types.find((t) => t.startsWith("image/"));
+				if (type) {
+					items[i].getType(type).then(async (blob) => {
+						const file = new File(
+							[blob],
+							`clipboard.${type.replace("image/", "")}`
+						);
+						await load_files([file]);
+					});
+					break;
+				}
+			}
+		});
+	}
+
 	export function open_file_upload(): void {
 		if (disable_click) return;
-		hidden_upload.value = "";
-		hidden_upload.click();
+		if (hidden_upload) {
+			hidden_upload.value = "";
+			hidden_upload.click();
+		}
 	}
 
 	async function handle_upload(
@@ -56,10 +84,22 @@
 		await tick();
 		upload_id = Math.random().toString(36).substring(2, 15);
 		uploading = true;
-		const _file_data = await upload(file_data, root, upload_id, upload_fn);
-		dispatch("load", file_count === "single" ? _file_data?.[0] : _file_data);
-		uploading = false;
-		return _file_data || [];
+		try {
+			const _file_data = await upload(
+				file_data,
+				root,
+				upload_id,
+				max_file_size ?? Infinity,
+				upload_fn
+			);
+			dispatch("load", file_count === "single" ? _file_data?.[0] : _file_data);
+			uploading = false;
+			return _file_data || [];
+		} catch (e) {
+			dispatch("error", (e as Error).message);
+			uploading = false;
+			return [];
+		}
 	}
 
 	export async function load_files(
@@ -68,7 +108,9 @@
 		if (!files.length) {
 			return;
 		}
-		let _files: File[] = files.map((f) => new File([f], f.name));
+		let _files: File[] = files.map(
+			(f) => new File([f], f.name, { type: f.type })
+		);
 		file_data = await prepare_files(_files);
 		return await handle_upload(file_data);
 	}
@@ -89,34 +131,53 @@
 
 	function is_valid_mimetype(
 		file_accept: string | string[] | null,
-		mime_type: string
+		uploaded_file_extension: string,
+		uploaded_file_type: string
 	): boolean {
-		if (!file_accept || file_accept === "*" || file_accept === "file/*") {
+		if (
+			!file_accept ||
+			file_accept === "*" ||
+			file_accept === "file/*" ||
+			(Array.isArray(file_accept) &&
+				file_accept.some((accept) => accept === "*" || accept === "file/*"))
+		) {
 			return true;
 		}
-		if (typeof file_accept === "string" && file_accept.endsWith("/*")) {
-			file_accept = file_accept.split(",");
+		let acceptArray: string[];
+		if (typeof file_accept === "string") {
+			acceptArray = file_accept.split(",").map((s) => s.trim());
+		} else if (Array.isArray(file_accept)) {
+			acceptArray = file_accept;
+		} else {
+			return false;
 		}
-		if (Array.isArray(file_accept)) {
-			return (
-				file_accept.includes(mime_type) ||
-				file_accept.some((type) => {
-					const [category] = type.split("/");
-					return type.endsWith("/*") && mime_type.startsWith(category + "/");
-				})
-			);
-		}
-		return file_accept === mime_type;
+		return (
+			acceptArray.includes(uploaded_file_extension) ||
+			acceptArray.some((type) => {
+				const [category] = type.split("/").map((s) => s.trim());
+				return (
+					type.endsWith("/*") && uploaded_file_type.startsWith(category + "/")
+				);
+			})
+		);
 	}
 
 	async function loadFilesFromDrop(e: DragEvent): Promise<void> {
 		dragging = false;
 		if (!e.dataTransfer?.files) return;
-
-		const files_to_load = Array.from(e.dataTransfer.files).filter((f) => {
-			const file_extension =
-				f.type !== "" ? f.type : "." + f.name.split(".").pop();
-			if (file_extension && is_valid_mimetype(filetype, file_extension)) {
+		const files_to_load = Array.from(e.dataTransfer.files).filter((file) => {
+			const file_extension = "." + file.name.split(".").pop();
+			if (
+				file_extension &&
+				is_valid_mimetype(accept_file_types, file_extension, file.type)
+			) {
+				return true;
+			}
+			if (
+				file_extension && Array.isArray(filetype)
+					? filetype.includes(file_extension)
+					: file_extension === filetype
+			) {
 				return true;
 			}
 			dispatch("error", `Invalid file type only ${filetype} allowed.`);
@@ -126,7 +187,19 @@
 	}
 </script>
 
-{#if uploading}
+{#if filetype === "clipboard"}
+	<button
+		class:hidden
+		class:center
+		class:boundedheight
+		class:flex
+		style:height="100%"
+		tabindex={hidden ? -1 : 0}
+		on:click={paste_clipboard}
+	>
+		<slot />
+	</button>
+{:else if uploading && show_progress}
 	{#if !hidden}
 		<UploadProgress {root} {upload_id} files={file_data} />
 	{/if}
@@ -136,7 +209,8 @@
 		class:center
 		class:boundedheight
 		class:flex
-		style:height={include_sources ? "calc(100% - 40px" : "100%"}
+		class:disable_click
+		style:height="100%"
 		tabindex={hidden ? -1 : 0}
 		on:drag|preventDefault|stopPropagation
 		on:dragstart|preventDefault|stopPropagation
@@ -153,10 +227,11 @@
 		<slot />
 		<input
 			aria-label="file upload"
+			data-testid="file-upload"
 			type="file"
 			bind:this={hidden_upload}
 			on:change={load_files_from_upload}
-			accept={accept_file_types}
+			accept={accept_file_types || undefined}
 			multiple={file_count === "multiple" || undefined}
 			webkitdirectory={file_count === "directory" || undefined}
 			mozdirectory={file_count === "directory" || undefined}
@@ -184,8 +259,12 @@
 	}
 	.flex {
 		display: flex;
+		flex-direction: column;
 		justify-content: center;
 		align-items: center;
+	}
+	.disable_click {
+		cursor: default;
 	}
 
 	input {

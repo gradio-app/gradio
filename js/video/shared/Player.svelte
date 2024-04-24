@@ -5,6 +5,7 @@
 	import VideoControls from "./VideoControls.svelte";
 	import type { FileData } from "@gradio/client";
 	import { prepare_files, upload } from "@gradio/client";
+	import { format_time } from "@gradio/utils";
 
 	export let root = "";
 	export let src: string;
@@ -70,16 +71,6 @@
 		time = (duration * (e.clientX - left)) / (right - left);
 	}
 
-	function format(seconds: number): string {
-		if (isNaN(seconds) || !isFinite(seconds)) return "...";
-
-		const minutes = Math.floor(seconds / 60);
-		let _seconds: number | string = Math.floor(seconds % 60);
-		if (_seconds < 10) _seconds = `0${_seconds}`;
-
-		return `${minutes}:${_seconds}`;
-	}
-
 	function handle_end(): void {
 		dispatch("stop");
 		dispatch("end");
@@ -138,7 +129,7 @@
 				{/if}
 			</span>
 
-			<span class="time">{format(time)} / {format(duration)}</span>
+			<span class="time">{format_time(time)} / {format_time(duration)}</span>
 
 			<!-- TODO: implement accessible video timeline for 4.0 -->
 			<!-- svelte-ignore a11y-click-events-have-key-events -->

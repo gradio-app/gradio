@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/annotatedimage",
-	"version": "0.3.10",
+	"version": "0.5.12",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -11,12 +11,16 @@
 		".": "./Index.svelte",
 		"./package.json": "./package.json"
 	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
 	"dependencies": {
 		"@gradio/atoms": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
-		"@gradio/client": "workspace:^"
+		"@gradio/client": "workspace:^",
+		"@gradio/wasm": "workspace:^"
 	}
 }

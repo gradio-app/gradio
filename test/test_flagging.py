@@ -1,4 +1,5 @@
 import os
+import pathlib
 import tempfile
 from unittest.mock import MagicMock, patch
 
@@ -19,6 +20,24 @@ class TestDefaultFlagging:
             assert row_count == 1  # 2 rows written including header
             row_count = io.flagging_callback.flag(["test", "test"])
             assert row_count == 2  # 3 rows written including header
+        io.close()
+
+    def test_files_saved_as_file_paths(self):
+        image = {"path": str(pathlib.Path(__file__).parent / "test_files" / "bus.png")}
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            io = gr.Interface(
+                lambda x: x,
+                "image",
+                "image",
+                flagging_dir=tmpdirname,
+                allow_flagging="auto",
+            )
+            io.launch(prevent_thread_lock=True)
+            io.flagging_callback.flag([image, image])
+            io.close()
+            with open(os.path.join(tmpdirname, "log.csv")) as f:
+                flagged_data = f.readlines()[1].split(",")[0]
+                assert flagged_data.endswith("bus.png")
         io.close()
 
     def test_flagging_does_not_create_unnecessary_directories(self):

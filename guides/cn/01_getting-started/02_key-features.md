@@ -16,7 +16,7 @@
 
 ## 示例输入
 
-您可以提供用户可以轻松加载到 "Interface" 中的示例数据。这对于演示模型期望的输入类型以及演示数据集和模型一起探索的方式非常有帮助。要加载示例数据，您可以将嵌套列表提供给 Interface 构造函数的 `examples=` 关键字参数。外部列表中的每个子列表表示一个数据样本，子列表中的每个元素表示每个输入组件的输入。有关每个组件的示例数据格式在[Docs](https://gradio.app/docs#components)中有说明。
+您可以提供用户可以轻松加载到 "Interface" 中的示例数据。这对于演示模型期望的输入类型以及演示数据集和模型一起探索的方式非常有帮助。要加载示例数据，您可以将嵌套列表提供给 Interface 构造函数的 `examples=` 关键字参数。外部列表中的每个子列表表示一个数据样本，子列表中的每个元素表示每个输入组件的输入。有关每个组件的示例数据格式在[Docs](https://gradio.app/docs/components)中有说明。
 
 $code_calculator
 $demo_calculator
@@ -27,7 +27,7 @@ $demo_calculator
 
 ## 错误
 
-您希望向用户传递自定义错误消息。为此，with `gr.Error("custom message")` 来显示错误消息。如果在上面的计算器示例中尝试除以零，将显示自定义错误消息的弹出模态窗口。了解有关错误的更多信息，请参阅[文档](https://gradio.app/docs#error)。
+您希望向用户传递自定义错误消息。为此，with `gr.Error("custom message")` 来显示错误消息。如果在上面的计算器示例中尝试除以零，将显示自定义错误消息的弹出模态窗口。了解有关错误的更多信息，请参阅[文档](https://gradio.app/docs/error)。
 
 ## 描述性内容
 

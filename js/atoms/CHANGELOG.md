@@ -1,10 +1,72 @@
 # @gradio/atoms
 
+## 0.7.0
+
+### Features
+
+- [#8042](https://github.com/gradio-app/gradio/pull/8042) [`92139f3`](https://github.com/gradio-app/gradio/commit/92139f3d7d6b832b649ff1f6c10c87e6fb522cde) - refresh the `ImageEditor` UI.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/icons@0.4.0
+
+## 0.6.2
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+
+## 0.6.1
+
+### Dependency updates
+
+- @gradio/icons@0.3.4
+
+## 0.6.0
+
+### Features
+
+- [#7732](https://github.com/gradio-app/gradio/pull/7732) [`2efb05e`](https://github.com/gradio-app/gradio/commit/2efb05ed99a8a3575aab0a6c14a8d8b91f4e9ed7) - Adds support for kwargs and default arguments in the python client, and improves how parameter information is displayed in the "view API" page.  Thanks @abidlabs!
+
+## 0.5.3
+
+### Patch Changes
+
+- Updated dependencies [[`f191786`](https://github.com/gradio-app/gradio/commit/f1917867916647d383b8d7ce15e0c17f2abbdec1)]:
+  - @gradio/icons@0.3.3
+
+## 0.5.2
+
+### Patch Changes
+
+- Updated dependencies [[`065c5b1`](https://github.com/gradio-app/gradio/commit/065c5b163c4badb9d9cbd06d627fb4ba086003e7)]:
+  - @gradio/utils@0.3.0
+
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [[`fdd1521`](https://github.com/gradio-app/gradio/commit/fdd15213c24b9cbc58bbc1b6beb4af7c18f48557)]:
+  - @gradio/utils@0.2.2
+
+## 0.5.0
+
+### Features
+
+- [#7148](https://github.com/gradio-app/gradio/pull/7148) [`c60ad4d`](https://github.com/gradio-app/gradio/commit/c60ad4d34ab5b56a89bf6796822977e51e7a4a32) - Use Gallery as input component. Thanks [@freddyaboulton](https://github.com/freddyaboulton)!
+
+## 0.4.1
+
+### Fixes
+
+- [#6766](https://github.com/gradio-app/gradio/pull/6766) [`73268ee`](https://github.com/gradio-app/gradio/commit/73268ee2e39f23ebdd1e927cb49b8d79c4b9a144) - Improve source selection UX. Thanks [@hannahblair](https://github.com/hannahblair)!
+
 ## 0.4.0
 
 ### Features
 
-- [#6569](https://github.com/gradio-app/gradio/pull/6569) [`4d1cbbc`](https://github.com/gradio-app/gradio/commit/4d1cbbcf30833ef1de2d2d2710c7492a379a9a00) - Allow passing height and width as string in `Blocks.svelte`.  Thanks [@hannahblair](https://github.com/hannahblair)!
+- [#6569](https://github.com/gradio-app/gradio/pull/6569) [`4d1cbbc`](https://github.com/gradio-app/gradio/commit/4d1cbbcf30833ef1de2d2d2710c7492a379a9a00) - Allow passing height and width as string in `Blocks.svelte`. Thanks [@hannahblair](https://github.com/hannahblair)!
 
 ## 0.3.1
 

@@ -8,7 +8,7 @@ except ImportError:
     pass
 
 import gradio as gr
-from gradio.networking import App
+from gradio.routes import App
 from gradio.utils import BaseReloader
 
 
@@ -41,7 +41,8 @@ class JupyterReloader(BaseReloader):
 
     @property
     def running_app(self) -> App:
-        assert self.running_demo.server
+        if not self.running_demo.server:
+            raise RuntimeError("Server not running")
         return self.running_demo.server.running_app  # type: ignore
 
     @property

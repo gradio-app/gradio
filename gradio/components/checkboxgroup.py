@@ -4,22 +4,17 @@ from __future__ import annotations
 
 from typing import Any, Callable, Literal
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components.base import FormComponent
 from gradio.events import Events
-
-set_documentation_group("component")
 
 
 @document()
 class CheckboxGroup(FormComponent):
     """
-    Creates a set of checkboxes of which a subset can be checked.
-    Preprocessing: passes the list of checked checkboxes as a {List[str | int | float]} or their indices as a {List[int]} into the function, depending on `type`.
-    Postprocessing: expects a {List[str | int | float]}, each element of which becomes a checked checkbox.
-    Examples-format: a {List[str | int | float]} representing the values to be checked.
-    Demos: sentence_builder, titanic_survival
+    Creates a set of checkboxes. Can be used as an input to pass a set of values to a function or as an output to display values, a subset of which are selected.
+    Demos: sentence_builder
     """
 
     EVENTS = [Events.change, Events.input, Events.select]
@@ -50,7 +45,7 @@ class CheckboxGroup(FormComponent):
             type: Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indices of the choices selected.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             info: Additional component description.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise.sed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: If True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
             scale: Relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
@@ -90,7 +85,10 @@ class CheckboxGroup(FormComponent):
             value=value,
         )
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        return [self.choices[0][1]] if self.choices else None
+
+    def example_value(self) -> Any:
         return [self.choices[0][1]] if self.choices else None
 
     def api_info(self) -> dict[str, Any]:
@@ -103,6 +101,12 @@ class CheckboxGroup(FormComponent):
     def preprocess(
         self, payload: list[str | int | float]
     ) -> list[str | int | float] | list[int | None]:
+        """
+        Parameters:
+            payload: the list of checked checkboxes' values
+        Returns:
+            Passes the list of checked checkboxes as a `list[str | int | float]` or their indices as a `list[int]` into the function, depending on `type`.
+        """
         if self.type == "value":
             return payload
         elif self.type == "index":
@@ -119,21 +123,14 @@ class CheckboxGroup(FormComponent):
     def postprocess(
         self, value: list[str | int | float] | str | int | float | None
     ) -> list[str | int | float]:
+        """
+        Parameters:
+            value: Expects a `list[str | int | float]` of values or a single `str | int | float` value, the checkboxes with these values are checked.
+        Returns:
+            the list of checked checkboxes' values
+        """
         if value is None:
             return []
         if not isinstance(value, list):
             value = [value]
         return value
-
-    def as_example(self, input_data):
-        if input_data is None:
-            return None
-        elif not isinstance(input_data, list):
-            input_data = [input_data]
-        for data in input_data:
-            if data not in [c[0] for c in self.choices]:
-                raise ValueError(f"Example {data} provided not a valid choice.")
-        return [
-            next((c[0] for c in self.choices if c[1] == data), None)
-            for data in input_data
-        ]

@@ -37,8 +37,6 @@ def app_id_context(app_id: str):
 # for the Wasm worker to get a reference to
 # the Gradio's FastAPI app instance (`app`).
 def register_app(_app):
-    global app_map
-
     app_id = _app_id_context_var.get()
 
     if app_id in app_map:
@@ -48,6 +46,14 @@ def register_app(_app):
     app_map[app_id] = _app
 
 
+class GradioAppNotFoundError(Exception):
+    pass
+
+
 def get_registered_app(app_id: str):
-    global app_map
-    return app_map[app_id]
+    try:
+        return app_map[app_id]
+    except KeyError as e:
+        raise GradioAppNotFoundError(
+            f"Gradio app not found (ID: {app_id}). Forgot to call demo.launch()?"
+        ) from e

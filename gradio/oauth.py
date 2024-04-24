@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import os
 import typing
+import urllib.parse
 import warnings
 from dataclasses import dataclass, field
 
@@ -38,7 +39,7 @@ def attach_oauth(app: fastapi.FastAPI):
     # Session Middleware requires a secret key to sign the cookies. Let's use a hash
     # of the OAuth secret key to make it unique to the Space + updated in case OAuth
     # config gets updated.
-    session_secret = (OAUTH_CLIENT_SECRET or "") + "-v2"
+    session_secret = (OAUTH_CLIENT_SECRET or "") + "-v4"
     # ^ if we change the session cookie format in the future, we can bump the version of the session secret to make
     #   sure cookies are invalidated. Otherwise some users with an old cookie format might get a HTTP 500 error.
     app.add_middleware(
@@ -52,6 +53,7 @@ def attach_oauth(app: fastapi.FastAPI):
 def _add_oauth_routes(app: fastapi.FastAPI) -> None:
     """Add OAuth routes to the FastAPI app (login, callback handler and logout)."""
     try:
+        from authlib.integrations.base_client.errors import MismatchingStateError
         from authlib.integrations.starlette_client import OAuth
     except ImportError as e:
         raise ImportError(
@@ -87,24 +89,44 @@ def _add_oauth_routes(app: fastapi.FastAPI) -> None:
     @app.get("/login/huggingface")
     async def oauth_login(request: fastapi.Request):
         """Endpoint that redirects to HF OAuth page."""
-        redirect_uri = str(request.url_for("oauth_redirect_callback"))
-        if ".hf.space" in redirect_uri:
-            # In Space, FastAPI redirect as http but we want https
-            redirect_uri = redirect_uri.replace("http://", "https://")
+        # Define target (where to redirect after login)
+        redirect_uri = _generate_redirect_uri(request)
         return await oauth.huggingface.authorize_redirect(request, redirect_uri)  # type: ignore
 
     @app.get("/login/callback")
     async def oauth_redirect_callback(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that handles the OAuth callback."""
-        oauth_info = await oauth.huggingface.authorize_access_token(request)  # type: ignore
+        try:
+            oauth_info = await oauth.huggingface.authorize_access_token(request)  # type: ignore
+        except MismatchingStateError:
+            # If the state mismatch, it is very likely that the cookie is corrupted.
+            # There is a bug reported in authlib that causes the token to grow indefinitely if the user tries to login
+            # repeatedly. Since cookies cannot get bigger than 4kb, the token will be truncated at some point - hence
+            # losing the state. A workaround is to delete the cookie and redirect the user to the login page again.
+            # See https://github.com/lepture/authlib/issues/622 for more details.
+            login_uri = "/login/huggingface"
+            if "_target_url" in request.query_params:
+                login_uri += (
+                    "?"
+                    + urllib.parse.urlencode(  # Keep same _target_url as before
+                        {"_target_url": request.query_params["_target_url"]}
+                    )
+                )
+            for key in list(request.session.keys()):
+                # Delete all keys that are related to the OAuth state
+                if key.startswith("_state_huggingface"):
+                    request.session.pop(key)
+            return RedirectResponse(login_uri)
+
+        # OAuth login worked => store the user info in the session and redirect
         request.session["oauth_info"] = oauth_info
-        return RedirectResponse("/")
+        return _redirect_to_target(request)
 
     @app.get("/logout")
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
         request.session.pop("oauth_info", None)
-        return RedirectResponse("/")
+        return _redirect_to_target(request)
 
 
 def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
@@ -122,21 +144,51 @@ def _add_mocked_oauth_routes(app: fastapi.FastAPI) -> None:
 
     # Define OAuth routes
     @app.get("/login/huggingface")
-    async def oauth_login(request: fastapi.Request):
+    async def oauth_login(request: fastapi.Request):  # noqa: ARG001
         """Fake endpoint that redirects to HF OAuth page."""
-        return RedirectResponse("/login/callback")
+        # Define target (where to redirect after login)
+        redirect_uri = _generate_redirect_uri(request)
+        return RedirectResponse(
+            "/login/callback?" + urllib.parse.urlencode({"_target_url": redirect_uri})
+        )
 
     @app.get("/login/callback")
     async def oauth_redirect_callback(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that handles the OAuth callback."""
         request.session["oauth_info"] = mocked_oauth_info
-        return RedirectResponse("/")
+        return _redirect_to_target(request)
 
     @app.get("/logout")
     async def oauth_logout(request: fastapi.Request) -> RedirectResponse:
         """Endpoint that logs out the user (e.g. delete cookie session)."""
         request.session.pop("oauth_info", None)
-        return RedirectResponse("/")
+        logout_url = str(request.url).replace("/logout", "/")  # preserve query params
+        return RedirectResponse(url=logout_url)
+
+
+def _generate_redirect_uri(request: fastapi.Request) -> str:
+    if "_target_url" in request.query_params:
+        # if `_target_url` already in query params => respect it
+        target = request.query_params["_target_url"]
+    else:
+        # otherwise => keep query params
+        target = "/?" + urllib.parse.urlencode(request.query_params)
+
+    redirect_uri = request.url_for("oauth_redirect_callback").include_query_params(
+        _target_url=target
+    )
+    redirect_uri_as_str = str(redirect_uri)
+    if redirect_uri.netloc.endswith(".hf.space"):
+        # In Space, FastAPI redirect as http but we want https
+        redirect_uri_as_str = redirect_uri_as_str.replace("http://", "https://")
+    return redirect_uri_as_str
+
+
+def _redirect_to_target(
+    request: fastapi.Request, default_target: str = "/"
+) -> RedirectResponse:
+    target = request.query_params.get("_target_url", default_target)
+    return RedirectResponse(target)
 
 
 @dataclass
@@ -167,7 +219,6 @@ class OAuthProfile(typing.Dict):  # inherit from Dict for backward compatibility
 
         with gr.Blocks() as demo:
             gr.LoginButton()
-            gr.LogoutButton()
             gr.Markdown().attach_load_event(hello, None)
     """
 
@@ -213,7 +264,6 @@ class OAuthToken:
 
         with gr.Blocks() as demo:
             gr.LoginButton()
-            gr.LogoutButton()
             gr.Markdown().attach_load_event(list_organizations, None)
     """
 

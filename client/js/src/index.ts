@@ -1,15 +1,17 @@
-export {
-	client,
-	post_data,
-	upload_files,
-	duplicate,
-	api_factory
-} from "./client.js";
-export type { SpaceStatus } from "./types.js";
-export {
-	normalise_file,
-	FileData,
-	upload,
-	get_fetchable_url_or_file,
-	prepare_files
-} from "./upload.js";
+export { Client } from "./client";
+
+export { predict } from "./utils/predict";
+export { submit } from "./utils/submit";
+export { upload_files } from "./utils/upload_files";
+export { FileData, upload, prepare_files } from "./upload";
+
+export type {
+	SpaceStatus,
+	Status,
+	client_return,
+	UploadResponse
+} from "./types";
+
+// todo: remove in @gradio/client v1.0
+export { client } from "./client";
+export { duplicate } from "./utils/duplicate";

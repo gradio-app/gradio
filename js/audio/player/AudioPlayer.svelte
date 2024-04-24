@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { Music } from "@gradio/icons";
-	import type { I18nFormatter } from "@gradio/utils";
+	import { format_time, type I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
-	import { skipAudio, process_audio } from "../shared/utils";
+	import { skip_audio, process_audio } from "../shared/utils";
 	import WaveformControls from "../shared/WaveformControls.svelte";
 	import { Empty } from "@gradio/atoms";
 	import { resolve_wasm_src } from "@gradio/wasm/svelte";
@@ -33,7 +33,7 @@
 
 	let timeRef: HTMLTimeElement;
 	let durationRef: HTMLTimeElement;
-	let audioDuration: number;
+	let audio_duration: number;
 
 	let trimDuration = 0;
 
@@ -46,13 +46,6 @@
 		edit: undefined;
 		end: undefined;
 	}>();
-
-	const formatTime = (seconds: number): string => {
-		const minutes = Math.floor(seconds / 60);
-		const secondsRemainder = Math.round(seconds) % 60;
-		const paddedSeconds = `0${secondsRemainder}`.slice(-2);
-		return `${minutes}:${paddedSeconds}`;
-	};
 
 	const create_waveform = (): void => {
 		waveform = WaveSurfer.create({
@@ -74,14 +67,14 @@
 	}
 
 	$: waveform?.on("decode", (duration: any) => {
-		audioDuration = duration;
-		durationRef && (durationRef.textContent = formatTime(duration));
+		audio_duration = duration;
+		durationRef && (durationRef.textContent = format_time(duration));
 	});
 
 	$: waveform?.on(
 		"timeupdate",
 		(currentTime: any) =>
-			timeRef && (timeRef.textContent = formatTime(currentTime))
+			timeRef && (timeRef.textContent = format_time(currentTime))
 	);
 
 	$: waveform?.on("ready", () => {
@@ -112,13 +105,16 @@
 		mode = "";
 		const decodedData = waveform?.getDecodedData();
 		if (decodedData)
-			await process_audio(decodedData, start, end).then(
-				async (trimmedBlob: Uint8Array) => {
-					await dispatch_blob([trimmedBlob], "change");
-					waveform?.destroy();
-					create_waveform();
-				}
-			);
+			await process_audio(
+				decodedData,
+				start,
+				end,
+				waveform_settings.sampleRate
+			).then(async (trimmedBlob: Uint8Array) => {
+				await dispatch_blob([trimmedBlob], "change");
+				waveform?.destroy();
+				container.innerHTML = "";
+			});
 		dispatch("edit");
 	};
 
@@ -135,9 +131,9 @@
 		window.addEventListener("keydown", (e) => {
 			if (!waveform || show_volume_slider) return;
 			if (e.key === "ArrowRight" && mode !== "edit") {
-				skipAudio(waveform, 0.1);
+				skip_audio(waveform, 0.1);
 			} else if (e.key === "ArrowLeft" && mode !== "edit") {
-				skipAudio(waveform, -0.1);
+				skip_audio(waveform, -0.1);
 			}
 		});
 	});
@@ -167,7 +163,7 @@
 			<time bind:this={timeRef} id="time">0:00</time>
 			<div>
 				{#if mode === "edit" && trimDuration > 0}
-					<time id="trim-duration">{formatTime(trimDuration)}</time>
+					<time id="trim-duration">{format_time(trimDuration)}</time>
 				{/if}
 				<time bind:this={durationRef} id="duration">0:00</time>
 			</div>
@@ -178,14 +174,14 @@
 				{container}
 				{waveform}
 				{playing}
-				{audioDuration}
+				{audio_duration}
 				{i18n}
 				{interactive}
 				{handle_trim_audio}
 				bind:mode
 				bind:trimDuration
 				bind:show_volume_slider
-				showRedo={interactive}
+				show_redo={interactive}
 				{handle_reset_value}
 				{waveform_options}
 				{trim_region_settings}
@@ -198,6 +194,7 @@
 <style>
 	.component-wrapper {
 		padding: var(--size-3);
+		width: 100%;
 	}
 
 	:global(::part(wrapper)) {

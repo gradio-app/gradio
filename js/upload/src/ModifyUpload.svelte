@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { IconButton } from "@gradio/atoms";
 	import type { I18nFormatter } from "@gradio/utils";
-	import { Edit, Clear, Undo } from "@gradio/icons";
+	import { Edit, Clear, Undo, Download } from "@gradio/icons";
+	import { DownloadLink } from "@gradio/wasm/svelte";
 
 	import { createEventDispatcher } from "svelte";
 
 	export let editable = false;
 	export let undoable = false;
+	export let download: string | null = null;
 	export let absolute = true;
 	export let i18n: I18nFormatter;
 
@@ -35,6 +37,12 @@
 			label={i18n("common.undo")}
 			on:click={() => dispatch("undo")}
 		/>
+	{/if}
+
+	{#if download}
+		<DownloadLink href={download} download>
+			<IconButton Icon={Download} label={i18n("common.download")} />
+		</DownloadLink>
 	{/if}
 
 	<IconButton

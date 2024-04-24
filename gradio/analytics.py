@@ -1,4 +1,5 @@
-""" Functions related to analytics and telemetry. """
+"""Functions related to analytics and telemetry."""
+
 from __future__ import annotations
 
 import asyncio
@@ -7,10 +8,10 @@ import os
 import threading
 import urllib.parse
 import warnings
-from distutils.version import StrictVersion
 from typing import Any
 
 import httpx
+from packaging.version import Version
 
 import gradio
 from gradio import wasm_utils
@@ -22,7 +23,7 @@ try:
     from pyodide.http import pyfetch as pyodide_pyfetch  # type: ignore
 except ImportError:
 
-    async def pyodide_pyfetch(*args, **kwargs):
+    async def pyodide_pyfetch(*_args, **_kwargs):
         raise NotImplementedError(
             "pyodide.http.pyfetch is not available in this environment."
         )
@@ -88,7 +89,7 @@ def version_check():
     try:
         current_pkg_version = get_package_version()
         latest_pkg_version = httpx.get(url=PKG_VERSION_URL, timeout=3).json()["version"]
-        if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
+        if Version(latest_pkg_version) > Version(current_pkg_version):
             print(
                 f"IMPORTANT: You are using gradio version {current_pkg_version}, "
                 f"however version {latest_pkg_version} is available, please upgrade."
@@ -184,21 +185,21 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
             x, BlockContext
         ) else blocks_telemetry.append(str(x))
 
-    for x in blocks.dependencies:
+    for x in blocks.fns:
         targets_telemetry = targets_telemetry + [
             # Sometimes the target can be the Blocks object itself, so we need to check if its in blocks.blocks
             str(blocks.blocks[y[0]])
-            for y in x["targets"]
+            for y in x.targets
             if y[0] in blocks.blocks
         ]
         events_telemetry = events_telemetry + [
-            y[1] for y in x["targets"] if y[0] in blocks.blocks
+            y[1] for y in x.targets if y[0] in blocks.blocks
         ]
         inputs_telemetry = inputs_telemetry + [
-            str(blocks.blocks[y]) for y in x["inputs"] if y in blocks.blocks
+            str(blocks.blocks[y]) for y in x.inputs if y in blocks.blocks
         ]
         outputs_telemetry = outputs_telemetry + [
-            str(blocks.blocks[y]) for y in x["outputs"] if y in blocks.blocks
+            str(blocks.blocks[y]) for y in x.outputs if y in blocks.blocks
         ]
     additional_data = {
         "version": get_package_version(),

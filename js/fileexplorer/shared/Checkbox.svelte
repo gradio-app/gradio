@@ -7,10 +7,8 @@
 
 <input
 	bind:checked={value}
+	on:input={() => dispatch("change", !value)}
 	type="checkbox"
-	on:click={() => dispatch("change", value)}
-	on:keydown={({ key }) =>
-		(key === " " || key === "Enter") && dispatch("change", value)}
 	{disabled}
 	class:disabled={disabled && !value}
 />
@@ -47,14 +45,6 @@
 	}
 
 	.disabled {
-		cursor: not-allowed;
-		border-color: var(--checkbox-border-color-hover);
-		background-color: var(--checkbox-background-color-hover);
-	}
-
-	input:disabled:checked,
-	input:disabled:checked:hover,
-	.disabled:checked:focus {
 		opacity: 0.8 !important;
 		cursor: not-allowed;
 	}

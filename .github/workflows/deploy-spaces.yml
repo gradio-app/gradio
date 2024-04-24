@@ -1,0 +1,154 @@
+name: "deploy / spaces"
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["trigger"]
+    types: 
+      - requested
+
+permissions:
+  statuses: write
+concurrency:
+  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  cancel-in-progress: true
+  
+jobs:
+  changes:
+    name: "changes"
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.changes.outputs.should_run }}
+      sha: ${{ steps.changes.outputs.sha }}
+      pr_number: ${{ steps.changes.outputs.pr_number }}
+      source_branch: ${{ steps.changes.outputs.source_branch }}
+      source_repo: ${{ steps.changes.outputs.source_repo }}
+      merge_sha: ${{ steps.changes.outputs.merge_sha }}
+      mergeable: ${{ steps.changes.outputs.mergeable }}
+      found_pr: ${{ steps.changes.outputs.found_pr }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: "gradio-app/gradio/.github/actions/changes@main"
+        id: changes
+        with:
+          type: "functional"
+          name: "deploy / spaces"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit_status: false
+  
+  comment-spaces-start:
+    needs: changes
+    uses: "./.github/workflows/comment-queue.yml"
+    if: ${{ needs.changes.outputs.should_run == 'true' }}
+    secrets:
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
+    with:
+      pr_number: ${{ needs.changes.outputs.pr_number }}
+      message: spaces~pending~null
+  deploy-spaces:
+    outputs:
+      space_url: ${{ steps.upload-demo.outputs.SPACE_URL }}
+      gradio_version: ${{ steps.get_gradio_version.outputs.gradio_version }}
+    needs: changes
+    if: ${{ needs.changes.outputs.should_run == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ needs.changes.outputs.merge_sha }}
+        repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
+    - name: Install Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8.15
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 18
+        cache: pnpm
+        cache-dependency-path: pnpm-lock.yaml
+    - name: Install pip
+      run: python -m pip install build requests
+    - name: Get Gradio Version
+      id: get_gradio_version
+      run: |
+        if ${{ github.event_name == 'pull_request' || github.event.workflow_run.event == 'pull_request' }}; then
+          echo "GRADIO_VERSION=$(python -c 'import requests;print(requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"])')" >> $GITHUB_OUTPUT
+          python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
+        else 
+          echo "GRADIO_VERSION=$(python -c 'import json; print(json.load(open("gradio/package.json"))["version"])')" >> $GITHUB_OUTPUT
+        fi
+    - name: Build pr package
+      run: |
+        python -c 'import json; j = json.load(open("gradio/package.json")); j["version"] = "${{ steps.get_gradio_version.outputs.GRADIO_VERSION }}"; json.dump(j, open("gradio/package.json", "w"))'
+        pnpm i --frozen-lockfile --ignore-scripts
+        pnpm build
+        python3 -m build -w
+      env:
+        NODE_OPTIONS: --max_old_space_size=8192
+
+    - name: Set up Demos
+      run: |
+        python scripts/copy_demos.py https://gradio-builds.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/gradio-${{ steps.get_gradio_version.outputs.GRADIO_VERSION }}-py3-none-any.whl \
+        "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=client/python"
+    - name: Upload wheel
+      run: |
+        export AWS_ACCESS_KEY_ID=${{ secrets.PR_DEPLOY_KEY }}
+        export AWS_SECRET_ACCESS_KEY=${{ secrets.PR_DEPLOY_SECRET }}
+        export AWS_DEFAULT_REGION=us-east-1
+        aws s3 cp dist/gradio-${{ steps.get_gradio_version.outputs.GRADIO_VERSION }}-py3-none-any.whl s3://gradio-builds/${{ needs.changes.outputs.sha  }}/
+    - name: Install Hub Client Library
+      run: pip install huggingface-hub
+    - name: Upload demo to spaces
+      if: github.event.workflow_run.event == 'pull_request'
+      id: upload-demo
+      run: |
+        python scripts/upload_demo_to_space.py all_demos \
+        gradio-pr-deploys/pr-${{ needs.changes.outputs.pr_number }}-all-demos \
+        ${{ secrets.SPACES_DEPLOY_TOKEN }} \
+        --gradio-version ${{ steps.get_gradio_version.outputs.GRADIO_VERSION }} > url.txt
+        echo "SPACE_URL=$(cat url.txt)" >> $GITHUB_OUTPUT
+    - name: Upload Website Demos
+      if: github.event_name == 'workflow_dispatch'
+      id: upload-website-demos
+      run: |
+        python scripts/upload_website_demos.py --AUTH_TOKEN ${{ secrets.WEBSITE_SPACES_DEPLOY_TOKEN }} \
+        --WHEEL_URL https://gradio-builds.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/ \
+        --CLIENT_URL "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=client/python" \
+        --GRADIO_VERSION ${{ steps.get_gradio_version.outputs.GRADIO_VERSION }}
+    - name: log
+      run: |
+        echo ${{github.event.workflow_run.event }}
+        echo ${{ github.event.workflow_run.conclusion }}
+    
+  comment-spaces-success:
+    uses: "./.github/workflows/comment-queue.yml"
+    needs: [deploy-spaces, changes]
+    if: needs.deploy-spaces.result == 'success' && needs.changes.outputs.found_pr == 'true'
+    secrets:
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
+    with:
+      pr_number: ${{ needs.changes.outputs.pr_number }}
+      message: spaces~success~${{ needs.deploy-spaces.outputs.space_url }}
+      additional_text: |
+        **Install Gradio from this PR**
+        ```bash
+        pip install https://gradio-builds.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/gradio-${{ needs.deploy-spaces.outputs.gradio_version }}-py3-none-any.whl
+        ```
+
+        **Install Gradio Python Client from this PR**
+        ```bash
+        pip install "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=client/python"
+        ```
+  comment-spaces-failure:
+    uses: "./.github/workflows/comment-queue.yml"
+    needs: [deploy-spaces, changes]
+    if: always() && needs.deploy-spaces == 'failure' && needs.changes.outputs.found_pr == 'true'
+    secrets:
+      gh_token: ${{ secrets.COMMENT_TOKEN }}
+    with:
+      pr_number: ${{ needs.changes.outputs.pr_number }}
+      message: spaces~failure~https://github.com/gradio-app/gradio/actions/runs/${{github.run_id}}/

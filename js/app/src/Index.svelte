@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
 	import { mount_css as default_mount_css, prefix_css } from "./css";
+	import type { Client as ClientType } from "@gradio/client";
 
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 
@@ -27,6 +28,7 @@
 		stylesheets?: string[];
 		path: string;
 		app_id?: string;
+		fill_height?: boolean;
 	}
 
 	let id = -1;
@@ -61,8 +63,8 @@
 </script>
 
 <script lang="ts">
-	import { onMount, setContext } from "svelte";
-	import type { api_factory, SpaceStatus } from "@gradio/client";
+	import { onMount, setContext, createEventDispatcher } from "svelte";
+	import type { SpaceStatus } from "@gradio/client";
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./types";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -72,6 +74,8 @@
 	import { setWorkerProxyContext } from "@gradio/wasm/svelte";
 
 	setupi18n();
+
+	const dispatch = createEventDispatcher();
 
 	export let autoscroll: boolean;
 	export let version: string;
@@ -87,8 +91,7 @@
 
 	// These utilities are exported to be injectable for the Wasm version.
 	export let mount_css: typeof default_mount_css = default_mount_css;
-	export let client: ReturnType<typeof api_factory>["client"];
-	export let upload_files: ReturnType<typeof api_factory>["upload_files"];
+	export let Client: typeof ClientType;
 	export let worker_proxy: WorkerProxy | undefined = undefined;
 	if (worker_proxy) {
 		setWorkerProxyContext(worker_proxy);
@@ -97,6 +100,11 @@
 			loading_text = (event as CustomEvent).detail + "...";
 		});
 	}
+	export let fetch_implementation: typeof fetch = fetch;
+	setContext("fetch_implementation", fetch_implementation);
+	export let EventSource_factory: (url: URL) => EventSource = (url) =>
+		new EventSource(url);
+	setContext("EventSource_factory", EventSource_factory);
 
 	export let space: string | null;
 	export let host: string | null;
@@ -158,33 +166,61 @@
 
 			if (parsed_head_html) {
 				for (let head_element of parsed_head_html) {
-					let newScriptTag = document.createElement("script");
+					let newElement = document.createElement(head_element.tagName);
 					Array.from(head_element.attributes).forEach((attr) => {
-						newScriptTag.setAttribute(attr.name, attr.value);
+						newElement.setAttribute(attr.name, attr.value);
 					});
-					newScriptTag.textContent = head_element.textContent;
-					document.head.appendChild(newScriptTag);
+					newElement.textContent = head_element.textContent;
+
+					if (
+						newElement.tagName == "META" &&
+						newElement.getAttribute("property")
+					) {
+						const domMetaList = Array.from(
+							document.head.getElementsByTagName("meta") ?? []
+						);
+						const matched = domMetaList.find((el) => {
+							return (
+								el.getAttribute("property") ==
+									newElement.getAttribute("property") &&
+								!el.isEqualNode(newElement)
+							);
+						});
+						if (matched) {
+							document.head.replaceChild(newElement, matched);
+							continue;
+						}
+					}
+
+					document.head.appendChild(newElement);
 				}
 			}
 		}
 	}
 
-	function handle_darkmode(target: HTMLDivElement): "light" | "dark" {
-		let url = new URL(window.location.toString());
-		let url_color_mode: ThemeMode | null = url.searchParams.get(
-			"__theme"
-		) as ThemeMode | null;
-		active_theme_mode = theme_mode || url_color_mode || "system";
+	function handle_theme_mode(target: HTMLDivElement): "light" | "dark" {
+		const force_light = window.__gradio_mode__ === "website";
 
-		if (active_theme_mode === "dark" || active_theme_mode === "light") {
-			darkmode(target, active_theme_mode);
+		let new_theme_mode: ThemeMode;
+		if (force_light) {
+			new_theme_mode = "light";
 		} else {
-			active_theme_mode = use_system_theme(target);
+			const url = new URL(window.location.toString());
+			const url_color_mode: ThemeMode | null = url.searchParams.get(
+				"__theme"
+			) as ThemeMode | null;
+			new_theme_mode = theme_mode || url_color_mode || "system";
 		}
-		return active_theme_mode;
+
+		if (new_theme_mode === "dark" || new_theme_mode === "light") {
+			apply_theme(target, new_theme_mode);
+		} else {
+			new_theme_mode = sync_system_theme(target);
+		}
+		return new_theme_mode;
 	}
 
-	function use_system_theme(target: HTMLDivElement): "light" | "dark" {
+	function sync_system_theme(target: HTMLDivElement): "light" | "dark" {
 		const theme = update_scheme();
 		window
 			?.matchMedia("(prefers-color-scheme: dark)")
@@ -197,13 +233,13 @@
 				? "dark"
 				: "light";
 
-			darkmode(target, _theme);
+			apply_theme(target, _theme);
 			return _theme;
 		}
 		return theme;
 	}
 
-	function darkmode(target: HTMLDivElement, theme: "dark" | "light"): void {
+	function apply_theme(target: HTMLDivElement, theme: "dark" | "light"): void {
 		const dark_class_element = is_embed ? target.parentElement! : document.body;
 		const bg_element = is_embed ? target : target.parentElement!;
 		bg_element.style.background = "var(--body-background-fill)";
@@ -221,15 +257,13 @@
 		detail: "SLEEPING"
 	};
 
-	let app: Awaited<ReturnType<typeof client>>;
+	let app: ClientType;
 	let css_ready = false;
 	function handle_status(_status: SpaceStatus): void {
 		status = _status;
 	}
 	onMount(async () => {
-		if (window.__gradio_mode__ !== "website") {
-			active_theme_mode = handle_darkmode(wrapper);
-		}
+		active_theme_mode = handle_theme_mode(wrapper);
 
 		//@ts-ignore
 		const gradio_dev_mode = window.__GRADIO_DEV__;
@@ -243,10 +277,14 @@
 				  }`
 				: host || space || src || location.origin;
 
-		app = await client(api_url, {
-			status_callback: handle_status,
-			normalise_files: false
+		app = await Client.connect(api_url, {
+			status_callback: handle_status
 		});
+
+		if (!app.config) {
+			throw new Error("Could not resolve app config");
+		}
+
 		config = app.config;
 		window.__gradio_space__ = config.space_id;
 
@@ -262,6 +300,8 @@
 		css_ready = true;
 		window.__is_colab__ = config.is_colab;
 
+		dispatch("loaded");
+
 		if (config.dev_mode) {
 			setTimeout(() => {
 				const { host } = new URL(api_url);
@@ -269,10 +309,13 @@
 				eventSource = new EventSource(url);
 				eventSource.onmessage = async function (event) {
 					if (event.data === "CHANGE") {
-						app = await client(api_url, {
-							status_callback: handle_status,
-							normalise_files: false
+						app = await Client.connect(api_url, {
+							status_callback: handle_status
 						});
+
+						if (!app.config) {
+							throw new Error("Could not resolve app config");
+						}
 
 						config = app.config;
 						window.__gradio_space__ = config.space_id;
@@ -282,8 +325,6 @@
 			}, 200);
 		}
 	});
-
-	setContext("upload_files", upload_files);
 
 	$: loader_status =
 		!ready && status.load_status !== "error"
@@ -407,6 +448,7 @@
 		<Blocks
 			{app}
 			{...config}
+			fill_height={!is_embed && config.fill_height}
 			theme_mode={active_theme_mode}
 			{control_page_title}
 			target={wrapper}
@@ -416,7 +458,6 @@
 			show_footer={!is_embed}
 			{app_mode}
 			{version}
-			{api_url}
 		/>
 	{/if}
 </Embed>

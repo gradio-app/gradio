@@ -1,9 +1,9 @@
 import io
 import sys
-import unittest.mock as mock
 from contextlib import contextmanager
 from functools import partial
 from string import capwords
+from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
@@ -39,7 +39,7 @@ class TestInterface:
 
     def test_close_all(self):
         interface = Interface(lambda input: None, "textbox", "label")
-        interface.close = mock.MagicMock()
+        interface.close = MagicMock()
         close_all()
         interface.close.assert_called()
 
@@ -90,7 +90,7 @@ class TestInterface:
         )
         assert dataset_check
 
-    @mock.patch("time.sleep")
+    @patch("time.sleep")
     def test_block_thread(self, mock_sleep):
         with pytest.raises(KeyboardInterrupt):
             with captured_output() as (out, _):
@@ -102,8 +102,8 @@ class TestInterface:
                     "Keyboard interruption in main thread... closing server." in output
                 )
 
-    @mock.patch("gradio.utils.colab_check")
-    @mock.patch("gradio.networking.setup_tunnel")
+    @patch("gradio.utils.colab_check")
+    @patch("gradio.networking.setup_tunnel")
     def test_launch_colab_share_error(self, mock_setup_tunnel, mock_colab_check):
         mock_setup_tunnel.side_effect = RuntimeError()
         mock_colab_check.return_value = True
@@ -121,7 +121,7 @@ class TestInterface:
         assert prediction_fn.__name__ in repr[0]
         assert len(repr[0]) == len(repr[1])
 
-    @mock.patch("webbrowser.open")
+    @patch("webbrowser.open")
     def test_interface_browser(self, mock_browser):
         interface = Interface(lambda x: x, "textbox", "label")
         interface.launch(inbrowser=True, prevent_thread_lock=True)
@@ -139,7 +139,7 @@ class TestInterface:
         assert interface.examples_handler.dataset.get_config()["samples_per_page"] == 2
         interface.close()
 
-    @mock.patch("IPython.display.display")
+    @patch("IPython.display.display")
     def test_inline_display(self, mock_display):
         interface = Interface(lambda x: x, "textbox", "label")
         interface.launch(inline=True, prevent_thread_lock=True)
@@ -176,6 +176,12 @@ class TestInterface:
         t = Textbox()
         Interface(fn=str, inputs=t, outputs=Textbox())
         assert t.label == "input 0"
+
+    def test_interface_additional_components_are_included_as_inputs(self):
+        t = Textbox()
+        s = gradio.Slider(0, 100)
+        io = Interface(fn=str, inputs=t, outputs=Textbox(), additional_inputs=s)
+        assert io.input_components == [t, s]
 
 
 class TestTabbedInterface:
@@ -242,3 +248,18 @@ def test_interface_adds_stop_button(interface_type, live, use_generator):
         assert has_stop
     else:
         assert not has_stop
+
+
+def test_live_interface_sets_always_last():
+    iface = gradio.Interface(
+        fn=lambda s: s,
+        inputs=gradio.Textbox(lines=2, placeholder="Hello 👋", label="Input Sentence"),
+        outputs=gradio.Markdown(),
+        live=True,  # Set live to True for real-time feedback
+    )
+    config = iface.get_config_file()
+    for dep in config["dependencies"]:
+        if dep["targets"][0][1] == "change":
+            assert dep["trigger_mode"] == "always_last"
+            return
+    raise AssertionError("No change dependency found")

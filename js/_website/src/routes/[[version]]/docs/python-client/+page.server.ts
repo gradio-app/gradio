@@ -1,14 +1,8 @@
-export async function load({ parent }) {
-	const { components, helpers, modals, py_client, routes, on_main, wheel } =
-		await parent();
+import { redirect } from "@sveltejs/kit";
 
-	return {
-		components,
-		helpers,
-		modals,
-		routes,
-		py_client,
-		on_main,
-		wheel
-	};
+export function load({ params }) {
+	if (params?.version)
+		throw redirect(302, `/${params?.version}/docs/python-client/intro`);
+
+	throw redirect(302, `/docs/python-client/intro`);
 }

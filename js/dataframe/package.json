@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/dataframe",
-	"version": "0.4.0",
+	"version": "0.6.13",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -22,11 +22,14 @@
 		"dequal": "^2.0.2",
 		"dompurify": "^3.0.3",
 		"katex": "^0.16.7",
-		"marked": "^11.0.0"
+		"marked": "^12.0.0"
 	},
 	"exports": {
 		".": "./Index.svelte",
 		"./example": "./Example.svelte",
 		"./package.json": "./package.json"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
 	}
 }

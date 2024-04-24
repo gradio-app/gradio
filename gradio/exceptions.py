@@ -1,6 +1,4 @@
-from gradio_client.documentation import document, set_documentation_group
-
-set_documentation_group("helpers")
+from gradio_client.documentation import document
 
 
 class DuplicateBlockError(ValueError):
@@ -61,10 +59,8 @@ class GradioVersionIncompatibleError(Exception):
 
 InvalidApiName = InvalidApiNameError  # backwards compatibility
 
-set_documentation_group("modals")
 
-
-@document()
+@document(documentation_group="modals")
 class Error(Exception):
     """
     This class allows you to pass custom error messages to the user. You can do so by raising a gr.Error("custom message") anywhere in the code, and when that line is executed the custom message will appear in a modal on the demo.

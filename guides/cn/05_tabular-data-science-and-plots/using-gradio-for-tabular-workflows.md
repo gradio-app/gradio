@@ -95,7 +95,7 @@ import gradio as gr
 title = "Supersoaker产品缺陷预测"
 description = "该模型预测Supersoaker生产线故障。在下面的数据帧组件中，您可以拖放数据集的任意切片或自行编辑值。"
 
-gr.Interface.load("huggingface/scikit-learn/tabular-playground", title=title, description=description).launch()
+gr.load("huggingface/scikit-learn/tabular-playground", title=title, description=description).launch()
 ```
 
 <gradio-app space="gradio/gradio-skops-integration"></gradio-app>

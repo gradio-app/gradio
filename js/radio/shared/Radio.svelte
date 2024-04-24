@@ -35,6 +35,7 @@
 		type="radio"
 		name="radio-{++id}"
 		value={internal_value}
+		aria-checked={is_selected}
 		bind:group={selected}
 	/>
 	<span class="ml-2">{display_value}</span>

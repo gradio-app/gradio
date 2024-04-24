@@ -1,4 +1,4 @@
-""" Predefined buttons with bound events that can be included in a gr.Blocks for convenience. """
+"""Predefined buttons with bound events that can be included in a gr.Blocks for convenience."""
 
 from __future__ import annotations
 
@@ -6,13 +6,12 @@ import copy
 import json
 from typing import Any, Literal
 
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components import Button, Component
+from gradio.context import Context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.utils import resolve_singleton
-
-set_documentation_group("component")
 
 
 @document("add")
@@ -42,6 +41,8 @@ class ClearButton(Button):
         render: bool = True,
         scale: int | None = None,
         min_width: int | None = None,
+        api_name: str | None | Literal["False"] = None,
+        show_api: bool = False,
     ):
         super().__init__(
             value,
@@ -58,7 +59,11 @@ class ClearButton(Button):
             scale=scale,
             min_width=min_width,
         )
-        self.add(components)
+        self.api_name = api_name
+        self.show_api = show_api
+
+        if Context.root_block:
+            self.add(components)
 
     def add(self, components: None | Component | list[Component]) -> ClearButton:
         """
@@ -86,21 +91,44 @@ class ClearButton(Button):
                 none = none.model_dump()
             none_values.append(none)
         clear_values = json.dumps(none_values)
-        self.click(None, [], components, js=f"() => {clear_values}")
+        self.click(
+            None,
+            [],
+            components,
+            js=f"() => {clear_values}",
+            api_name=self.api_name,
+            show_api=self.show_api,
+        )
         if state_components:
             self.click(
                 lambda: resolve_singleton(initial_states),
                 None,
                 state_components,
-                api_name="reset_state",
+                api_name=self.api_name,
+                show_api=self.show_api,
             )
         return self
 
-    def postprocess(self, value: str | None) -> str | None:
-        return value
-
     def preprocess(self, payload: str | None) -> str | None:
+        """
+        Parameters:
+            payload: string corresponding to the button label
+        Returns:
+            (Rarely used) the `str` corresponding to the button label when the button is clicked
+        """
         return payload
 
-    def example_inputs(self) -> Any:
-        return None
+    def postprocess(self, value: str | None) -> str | None:
+        """
+        Parameters:
+            value: string corresponding to the button label
+        Returns:
+            Expects a `str` value that is set as the button label
+        """
+        return value
+
+    def example_payload(self) -> Any:
+        return "Clear"
+
+    def example_value(self) -> Any:
+        return "Clear"

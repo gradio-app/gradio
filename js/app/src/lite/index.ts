@@ -4,12 +4,14 @@ import "@gradio/theme/src/pollen.css";
 import "@gradio/theme/src/typography.css";
 import type { SvelteComponent } from "svelte";
 import { WorkerProxy, type WorkerProxyOptions } from "@gradio/wasm";
-import { api_factory } from "@gradio/client";
+import { Client, upload_files } from "@gradio/client";
+import type { UploadResponse } from "@gradio/client";
 import { wasm_proxied_fetch } from "./fetch";
 import { wasm_proxied_EventSource_factory } from "./sse";
 import { wasm_proxied_mount_css, mount_prebuilt_css } from "./css";
 import type { mount_css } from "../css";
 import Index from "../Index.svelte";
+import Playground from "./Playground.svelte";
 import ErrorDisplay from "./ErrorDisplay.svelte";
 import type { ThemeMode } from "../types";
 import { bootstrap_custom_element } from "./custom-element";
@@ -35,7 +37,7 @@ declare let GRADIO_VERSION: string;
 // As a result, the users of the Wasm app will have to load the CSS file manually.
 // const ENTRY_CSS = "__ENTRY_CSS__";
 
-interface GradioAppController {
+export interface GradioAppController {
 	run_code: (code: string) => Promise<void>;
 	run_file: (path: string) => Promise<void>;
 	write: (
@@ -65,6 +67,8 @@ export interface Options {
 	autoScroll: boolean;
 	controlPageTitle: boolean;
 	appMode: boolean;
+	playground: boolean | undefined;
+	layout: string | null;
 }
 export function create(options: Options): GradioAppController {
 	// TODO: Runtime type validation for options.
@@ -87,6 +91,28 @@ export function create(options: Options): GradioAppController {
 		showError((event as CustomEvent).detail);
 	});
 
+	function clean_indent(code: string): string {
+		const lines = code.split("\n");
+		let min_indent: any = null;
+		lines.forEach((line) => {
+			const current_indent = line.match(/^(\s*)\S/);
+			if (current_indent) {
+				const indent_length = current_indent[1].length;
+				min_indent =
+					min_indent !== null
+						? Math.min(min_indent, indent_length)
+						: indent_length;
+			}
+		});
+		if (min_indent === null || min_indent === 0) {
+			return code.trim();
+		}
+		const normalized_lines = lines.map((line) => line.substring(min_indent));
+		return normalized_lines.join("\n").trim();
+	}
+
+	options.code = options.code ? clean_indent(options.code) : options.code;
+
 	// Internally, the execution of `runPythonCode()` or `runPythonFile()` is queued
 	// and its promise will be resolved after the Pyodide is loaded and the worker initialization is done
 	// (see the await in the `onmessage` callback in the webworker code)
@@ -107,61 +133,134 @@ export function create(options: Options): GradioAppController {
 	const EventSource_factory = (url: URL): EventSource => {
 		return wasm_proxied_EventSource_factory(worker_proxy, url);
 	};
-	const { client, upload_files } = api_factory(
-		overridden_fetch,
-		EventSource_factory
-	);
+
+	class LiteClient extends Client {
+		fetch_implementation(
+			input: RequestInfo | URL,
+			init?: RequestInit
+		): Promise<Response> {
+			return wasm_proxied_fetch(worker_proxy, input, init);
+		}
+
+		eventSource_factory(url: URL): EventSource {
+			return wasm_proxied_EventSource_factory(worker_proxy, url);
+		}
+	}
+
 	const overridden_mount_css: typeof mount_css = async (url, target) => {
 		return wasm_proxied_mount_css(worker_proxy, url, target);
 	};
 
 	let app: SvelteComponent;
+	let app_props: any;
+
+	let loaded = false;
+
 	function showError(error: Error): void {
 		if (app != null) {
 			app.$destroy();
 		}
-
-		app = new ErrorDisplay({
-			target: options.target,
-			props: {
-				is_embed: !options.isEmbed,
-				error
-			}
-		});
+		if (options.playground) {
+			app = new Playground({
+				target: options.target,
+				props: {
+					...app_props,
+					code: options.code,
+					error_display: {
+						is_embed: !options.isEmbed,
+						error
+					},
+					loaded: true
+				}
+			});
+			app.$on("code", (code) => {
+				options.code = clean_indent(code.detail.code);
+				loaded = true;
+				worker_proxy
+					.runPythonCode(options.code)
+					.then(launchNewApp)
+					.catch((e) => {
+						showError(e);
+						throw e;
+					});
+			});
+		} else {
+			app = new ErrorDisplay({
+				target: options.target,
+				props: {
+					is_embed: !options.isEmbed,
+					error
+				}
+			});
+		}
 	}
-	function launchNewApp(): void {
+	function launchNewApp(): Promise<void> {
 		if (app != null) {
 			app.$destroy();
 		}
 
-		app = new Index({
-			target: options.target,
-			props: {
-				// embed source
-				space: null,
-				src: null,
-				host: null,
-				// embed info
-				info: options.info,
-				container: options.container,
-				is_embed: options.isEmbed,
-				initial_height: options.initialHeight ?? "300px", // default: 300px
-				eager: options.eager,
-				// gradio meta info
-				version: GRADIO_VERSION,
-				theme_mode: options.themeMode,
-				// misc global behaviour
-				autoscroll: options.autoScroll,
-				control_page_title: options.controlPageTitle,
-				// for gradio docs
-				// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
-				app_mode: options.appMode,
-				// For Wasm mode
-				worker_proxy,
-				client,
-				upload_files,
-				mount_css: overridden_mount_css
-			}
+		app_props = {
+			// embed source
+			space: null,
+			src: null,
+			host: null,
+			// embed info
+			info: options.info,
+			container: options.container,
+			is_embed: options.isEmbed,
+			initial_height: options.initialHeight ?? "300px", // default: 300px
+			eager: options.eager,
+			// gradio meta info
+			version: GRADIO_VERSION,
+			theme_mode: options.themeMode,
+			// misc global behaviour
+			autoscroll: options.autoScroll,
+			control_page_title: options.controlPageTitle,
+			// for gradio docs
+			// TODO: Remove -- i think this is just for autoscroll behavhiour, app vs embeds
+			app_mode: options.appMode,
+			// For Wasm mode
+			worker_proxy,
+			Client: LiteClient,
+			mount_css: overridden_mount_css,
+			fetch_implementation: overridden_fetch,
+			EventSource_factory,
+			// For playground
+			layout: options.layout
+		};
+
+		if (options.playground) {
+			app = new Playground({
+				target: options.target,
+				props: {
+					...app_props,
+					code: options.code,
+					error_display: null,
+					loaded: loaded
+				}
+			});
+			app.$on("code", (code) => {
+				options.code = clean_indent(code.detail.code);
+				loaded = true;
+				worker_proxy
+					.runPythonCode(options.code)
+					.then(launchNewApp)
+					.catch((e) => {
+						showError(e);
+						throw e;
+					});
+			});
+		} else {
+			app = new Index({
+				target: options.target,
+				props: app_props
+			});
+		}
+
+		return new Promise((resolve) => {
+			app.$on("loaded", () => {
+				resolve();
+			});
 		});
 	}
 
@@ -169,6 +268,7 @@ export function create(options: Options): GradioAppController {
 
 	return {
 		run_code: (code: string) => {
+			code = clean_indent(code);
 			return worker_proxy
 				.runPythonCode(code)
 				.then(launchNewApp)
@@ -250,7 +350,7 @@ export function create(options: Options): GradioAppController {
 // @ts-ignore
 globalThis.createGradioApp = create;
 
-bootstrap_custom_element();
+bootstrap_custom_element(create);
 
 declare let BUILD_MODE: string;
 if (BUILD_MODE === "dev") {

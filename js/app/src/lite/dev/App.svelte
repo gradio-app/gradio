@@ -77,7 +77,9 @@ def hi(name):
 			themeMode: null,
 			autoScroll: false,
 			controlPageTitle: false,
-			appMode: true
+			appMode: true,
+			playground: false,
+			layout: null
 		});
 	});
 	onDestroy(() => {
@@ -118,6 +120,12 @@ def hi(name):
 </script>
 
 <div class="container">
+	<div class="panel">
+		When the SharedWorker mode is enabled, access the URL below (for Chrome) and
+		click the "inspect" link of the worker to show the console log emitted from
+		the worker.
+		<pre><code>chrome://inspect/#workers</code></pre>
+	</div>
 	<div class="panel">
 		<h2>Files</h2>
 

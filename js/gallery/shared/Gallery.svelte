@@ -2,12 +2,13 @@
 	import { BlockLabel, Empty, ShareButton } from "@gradio/atoms";
 	import { ModifyUpload } from "@gradio/upload";
 	import type { SelectData } from "@gradio/utils";
+	import { Image } from "@gradio/image/shared";
 	import { dequal } from "dequal";
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, getContext } from "svelte";
 	import { tick } from "svelte";
 
-	import { Download, Image } from "@gradio/icons";
-	import { normalise_file, type FileData } from "@gradio/client";
+	import { Download, Image as ImageIcon } from "@gradio/icons";
+	import { FileData } from "@gradio/client";
 	import { format_gallery_for_sharing } from "./utils";
 	import { IconButton } from "@gradio/atoms";
 	import type { I18nFormatter } from "@gradio/utils";
@@ -17,8 +18,6 @@
 
 	export let show_label = true;
 	export let label: string;
-	export let root = "";
-	export let proxy_url: null | string = null;
 	export let value: GalleryData | null = null;
 	export let columns: number | number[] | undefined = [2];
 	export let rows: number | number[] | undefined = undefined;
@@ -31,6 +30,7 @@
 	export let show_download_button = false;
 	export let i18n: I18nFormatter;
 	export let selected_index: number | null = null;
+	export let interactive: boolean;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -47,7 +47,7 @@
 		value == null
 			? null
 			: value.map((data) => ({
-					image: normalise_file(data.image, root, proxy_url) as FileData,
+					image: data.image as FileData,
 					caption: data.caption
 			  }));
 
@@ -82,7 +82,7 @@
 
 	function handle_preview_click(event: MouseEvent): void {
 		const element = event.target as HTMLElement;
-		const x = event.clientX;
+		const x = event.offsetX;
 		const width = element.offsetWidth;
 		const centerX = width / 2;
 
@@ -166,10 +166,11 @@
 	// and their remote URLs are directly passed to the client as `value[].image.url`.
 	// The `download` attribute of the <a> tag doesn't work for remote URLs (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#download),
 	// so we need to download the image via JS as below.
+	const fetch_implementation = getContext<typeof fetch>("fetch_implementation");
 	async function download(file_url: string, name: string): Promise<void> {
 		let response;
 		try {
-			response = await fetch(file_url);
+			response = await fetch_implementation(file_url);
 		} catch (error) {
 			if (error instanceof TypeError) {
 				// If CORS is not allowed (https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#checking_that_the_fetch_was_successful),
@@ -199,10 +200,10 @@
 <svelte:window bind:innerHeight={window_height} />
 
 {#if show_label}
-	<BlockLabel {show_label} Icon={Image} label={label || "Gallery"} />
+	<BlockLabel {show_label} Icon={ImageIcon} label={label || "Gallery"} />
 {/if}
 {#if value == null || resolved_value == null || resolved_value.length === 0}
-	<Empty unpadded_box={true} size="large"><Image /></Empty>
+	<Empty unpadded_box={true} size="large"><ImageIcon /></Empty>
 {:else}
 	{#if selected_image && allow_preview}
 		<button on:keydown={on_keydown} class="preview">
@@ -238,12 +239,12 @@
 				style="height: calc(100% - {selected_image.caption ? '80px' : '60px'})"
 				aria-label="detailed view of selected image"
 			>
-				<img
+				<Image
 					data-testid="detailed-image"
 					src={selected_image.image.url}
 					alt={selected_image.caption || ""}
 					title={selected_image.caption || null}
-					class:with-caption={!!selected_image.caption}
+					class={selected_image.caption && "with-caption"}
 					loading="lazy"
 				/>
 			</button>
@@ -265,7 +266,7 @@
 						class:selected={selected_index === i}
 						aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
 					>
-						<img
+						<Image
 							src={image.image.url}
 							title={image.caption || null}
 							data-testid={"thumbnail " + (i + 1)}
@@ -288,6 +289,15 @@
 			style="--grid-cols:{columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
 			class:pt-6={show_label}
 		>
+			{#if interactive}
+				<div class="icon-button">
+					<ModifyUpload
+						{i18n}
+						absolute={false}
+						on:clear={() => (value = null)}
+					/>
+				</div>
+			{/if}
 			{#if show_share_button}
 				<div class="icon-button">
 					<ShareButton
@@ -306,7 +316,7 @@
 					on:click={() => (selected_index = i)}
 					aria-label={"Thumbnail " + (i + 1) + " of " + resolved_value.length}
 				>
-					<img
+					<Image
 						alt={entry.caption || ""}
 						src={typeof entry.image === "string"
 							? entry.image
@@ -328,14 +338,22 @@
 	.preview {
 		display: flex;
 		position: absolute;
-		top: 0px;
-		right: 0px;
-		bottom: 0px;
-		left: 0px;
 		flex-direction: column;
 		z-index: var(--layer-2);
+		border-radius: calc(var(--block-radius) - var(--block-border-width));
+		-webkit-backdrop-filter: blur(8px);
 		backdrop-filter: blur(8px);
+		width: var(--size-full);
+		height: var(--size-full);
+	}
+
+	.preview::before {
+		content: "";
+		position: absolute;
+		z-index: var(--layer-below);
 		background: var(--background-fill-primary);
+		opacity: 0.9;
+		width: var(--size-full);
 		height: var(--size-full);
 	}
 
@@ -355,13 +373,17 @@
 		width: 100%;
 		display: flex;
 	}
-	.preview img {
+	.image-button :global(img) {
 		width: var(--size-full);
 		height: var(--size-full);
 		object-fit: contain;
 	}
-
-	.preview img.with-caption {
+	.thumbnails :global(img) {
+		object-fit: cover;
+		width: var(--size-full);
+		height: var(--size-full);
+	}
+	.preview :global(img.with-caption) {
 		height: var(--size-full);
 	}
 
@@ -449,7 +471,7 @@
 		gap: var(--spacing-lg);
 	}
 
-	.thumbnail-lg > img {
+	.thumbnail-lg > :global(img) {
 		width: var(--size-full);
 		height: var(--size-full);
 		overflow: hidden;

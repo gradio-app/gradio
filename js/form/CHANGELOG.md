@@ -1,5 +1,72 @@
 # @gradio/form
 
+## 0.1.14
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/atoms@0.7.0
+- @gradio/icons@0.4.0
+
+## 0.1.13
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/atoms@0.6.2
+
+## 0.1.12
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+- @gradio/icons@0.3.4
+
+## 0.1.11
+
+### Dependency updates
+
+- @gradio/atoms@0.6.0
+
+## 0.1.10
+
+### Patch Changes
+
+- Updated dependencies [[`f191786`](https://github.com/gradio-app/gradio/commit/f1917867916647d383b8d7ce15e0c17f2abbdec1)]:
+  - @gradio/icons@0.3.3
+  - @gradio/atoms@0.5.3
+
+## 0.1.9
+
+### Patch Changes
+
+- Updated dependencies [[`065c5b1`](https://github.com/gradio-app/gradio/commit/065c5b163c4badb9d9cbd06d627fb4ba086003e7)]:
+  - @gradio/utils@0.3.0
+  - @gradio/atoms@0.5.2
+
+## 0.1.8
+
+### Patch Changes
+
+- Updated dependencies [[`fdd1521`](https://github.com/gradio-app/gradio/commit/fdd15213c24b9cbc58bbc1b6beb4af7c18f48557)]:
+  - @gradio/utils@0.2.2
+  - @gradio/atoms@0.5.1
+
+## 0.1.7
+
+### Patch Changes
+
+- Updated dependencies [[`5727b92`](https://github.com/gradio-app/gradio/commit/5727b92abc8a00a675bfc0a921b38de771af947b), [`c60ad4d`](https://github.com/gradio-app/gradio/commit/c60ad4d34ab5b56a89bf6796822977e51e7a4a32)]:
+  - @gradio/utils@0.2.1
+  - @gradio/atoms@0.5.0
+
+## 0.1.6
+
+### Patch Changes
+
+- Updated dependencies [[`73268ee`](https://github.com/gradio-app/gradio/commit/73268ee2e39f23ebdd1e927cb49b8d79c4b9a144)]:
+  - @gradio/atoms@0.4.1
+
 ## 0.1.5
 
 ### Patch Changes

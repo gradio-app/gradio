@@ -1,12 +1,25 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount, tick } from "svelte";
+	import { createEventDispatcher, onMount } from "svelte";
 	import { Camera, Circle, Square, DropdownArrow } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
+	import type { FileData } from "@gradio/client";
+	import { prepare_files, upload } from "@gradio/client";
+	import WebcamPermissions from "./WebcamPermissions.svelte";
+	import { fade } from "svelte/transition";
+	import {
+		get_devices,
+		get_video_stream,
+		set_available_devices
+	} from "./stream_utils";
 
 	let video_source: HTMLVideoElement;
+	let available_video_devices: MediaDeviceInfo[] = [];
+	let selected_device: MediaDeviceInfo | null = null;
+
 	let canvas: HTMLCanvasElement;
 	export let streaming = false;
 	export let pending = false;
+	export let root = "";
 
 	export let mode: "image" | "video" = "image";
 	export let mirror_webcam: boolean;
@@ -15,30 +28,55 @@
 
 	const dispatch = createEventDispatcher<{
 		stream: undefined;
-		capture: Blob;
+		capture: FileData | Blob | null;
 		error: string;
 		start_recording: undefined;
 		stop_recording: undefined;
 	}>();
 
 	onMount(() => (canvas = document.createElement("canvas")));
-	const size = {
-		width: { ideal: 1920 },
-		height: { ideal: 1440 }
+
+	const handle_device_change = async (event: InputEvent): Promise<void> => {
+		const target = event.target as HTMLInputElement;
+		const device_id = target.value;
+
+		await get_video_stream(include_audio, video_source, device_id).then(
+			async (local_stream) => {
+				stream = local_stream;
+				selected_device =
+					available_video_devices.find(
+						(device) => device.deviceId === device_id
+					) || null;
+				options_open = false;
+			}
+		);
 	};
-	async function access_webcam(device_id?: string): Promise<void> {
-		if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-			dispatch("error", i18n("image.no_webcam_support"));
-			return;
-		}
+
+	async function access_webcam(): Promise<void> {
 		try {
-			stream = await navigator.mediaDevices.getUserMedia({
-				video: device_id ? { deviceId: { exact: device_id }, ...size } : size,
-				audio: include_audio
-			});
-			video_source.srcObject = stream;
-			video_source.muted = true;
-			video_source.play();
+			get_video_stream(include_audio, video_source)
+				.then(async (local_stream) => {
+					webcam_accessed = true;
+					available_video_devices = await get_devices();
+					stream = local_stream;
+				})
+				.then(() => set_available_devices(available_video_devices))
+				.then((devices) => {
+					available_video_devices = devices;
+
+					const used_devices = stream
+						.getTracks()
+						.map((track) => track.getSettings()?.deviceId)[0];
+
+					selected_device = used_devices
+						? devices.find((device) => device.deviceId === used_devices) ||
+						  available_video_devices[0]
+						: available_video_devices[0];
+				});
+
+			if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+				dispatch("error", i18n("image.no_webcam_support"));
+			}
 		} catch (err) {
 			if (err instanceof DOMException && err.name == "NotAllowedError") {
 				dispatch("error", i18n("image.allow_webcam_access"));
@@ -50,8 +88,11 @@
 
 	function take_picture(): void {
 		var context = canvas.getContext("2d")!;
-
-		if (video_source.videoWidth && video_source.videoHeight) {
+		if (
+			(!streaming || (streaming && recording)) &&
+			video_source.videoWidth &&
+			video_source.videoHeight
+		) {
 			canvas.width = video_source.videoWidth;
 			canvas.height = video_source.videoHeight;
 			context.drawImage(
@@ -88,15 +129,17 @@
 			media_recorder.stop();
 			let video_blob = new Blob(recorded_blobs, { type: mimeType });
 			let ReaderObj = new FileReader();
-			ReaderObj.onload = function (e): void {
+			ReaderObj.onload = async function (e): Promise<void> {
 				if (e.target) {
-					dispatch("capture", {
-						//@ts-ignore
-						data: e.target.result,
-						name: "sample." + mimeType.substring(6),
-						is_example: false,
-						is_file: false
-					});
+					let _video_blob = new File(
+						[video_blob],
+						"sample." + mimeType.substring(6)
+					);
+					const val = await prepare_files([_video_blob]);
+					let value = (
+						(await upload(val, root))?.filter(Boolean) as FileData[]
+					)[0];
+					dispatch("capture", value);
 					dispatch("stop_recording");
 				}
 			};
@@ -126,7 +169,23 @@
 		recording = !recording;
 	}
 
-	access_webcam();
+	let webcam_accessed = false;
+
+	function record_video_or_photo(): void {
+		if (mode === "image" && streaming) {
+			recording = !recording;
+		}
+		if (mode === "image") {
+			take_picture();
+		} else {
+			take_recording();
+		}
+		if (!recording && stream) {
+			stream.getTracks().forEach((track) => track.stop());
+			video_source.srcObject = null;
+			webcam_accessed = false;
+		}
+	}
 
 	if (streaming && mode === "image") {
 		window.setInterval(() => {
@@ -134,18 +193,6 @@
 				take_picture();
 			}
 		}, 500);
-	}
-
-	async function select_source(): Promise<void> {
-		const devices = await navigator.mediaDevices.enumerateDevices();
-		video_sources = devices.filter((device) => device.kind === "videoinput");
-		options_open = true;
-	}
-
-	let video_sources: MediaDeviceInfo[] = [];
-	async function selectVideoSource(device_id: string): Promise<void> {
-		await access_webcam(device_id);
-		options_open = false;
 	}
 
 	let options_open = false;
@@ -180,14 +227,22 @@
 <div class="wrap">
 	<!-- svelte-ignore a11y-media-has-caption -->
 	<!-- need to suppress for video streaming https://github.com/sveltejs/svelte/issues/5967 -->
-	<video bind:this={video_source} class:flip={mirror_webcam} />
-	{#if !streaming}
-		<div class:capture={!recording} class="button-wrap">
+	<video
+		bind:this={video_source}
+		class:flip={mirror_webcam}
+		class:hide={!webcam_accessed}
+	/>
+	{#if !webcam_accessed}
+		<div in:fade={{ delay: 100, duration: 200 }} title="grant webcam access">
+			<WebcamPermissions on:click={async () => access_webcam()} />
+		</div>
+	{:else}
+		<div class="button-wrap">
 			<button
-				on:click={mode === "image" ? take_picture : take_recording}
+				on:click={record_video_or_photo}
 				aria-label={mode === "image" ? "capture photo" : "start recording"}
 			>
-				{#if mode === "video"}
+				{#if mode === "video" || streaming}
 					{#if recording}
 						<div class="icon red" title="stop recording">
 							<Square />
@@ -203,38 +258,43 @@
 					</div>
 				{/if}
 			</button>
-
 			{#if !recording}
 				<button
-					on:click={select_source}
-					aria-label={mode === "image" ? "capture photo" : "start recording"}
+					class="icon"
+					on:click={() => (options_open = true)}
+					aria-label="select input source"
 				>
-					<div class="icon" title="select video source">
-						<DropdownArrow />
-					</div>
-
-					{#if options_open}
-						<div class="select-wrap" use:click_outside={handle_click_outside}>
-							<!-- svelte-ignore a11y-click-events-have-key-events-->
-							<!-- svelte-ignore a11y-no-static-element-interactions-->
-							<span
-								class="inset-icon"
-								on:click|stopPropagation={() => (options_open = false)}
-							>
-								<DropdownArrow />
-							</span>
-							{#each video_sources as source}
-								<!-- svelte-ignore a11y-click-events-have-key-events-->
-								<!-- svelte-ignore a11y-no-static-element-interactions-->
-								<div on:click={() => selectVideoSource(source.deviceId)}>
-									{source.label}
-								</div>
-							{/each}
-						</div>
-					{/if}
+					<DropdownArrow />
 				</button>
 			{/if}
 		</div>
+		{#if options_open && selected_device}
+			<select
+				class="select-wrap"
+				aria-label="select source"
+				use:click_outside={handle_click_outside}
+				on:change={handle_device_change}
+			>
+				<button
+					class="inset-icon"
+					on:click|stopPropagation={() => (options_open = false)}
+				>
+					<DropdownArrow />
+				</button>
+				{#if available_video_devices.length === 0}
+					<option value="">{i18n("common.no_devices")}</option>
+				{:else}
+					{#each available_video_devices as device}
+						<option
+							value={device.deviceId}
+							selected={selected_device.deviceId === device.deviceId}
+						>
+							{device.label}
+						</option>
+					{/each}
+				{/if}
+			</select>
+		{/if}
 	{/if}
 </div>
 
@@ -243,36 +303,32 @@
 		position: relative;
 		width: var(--size-full);
 		height: var(--size-full);
-		min-height: var(--size-60);
+	}
+
+	.hide {
+		display: none;
 	}
 
 	video {
 		width: var(--size-full);
 		height: var(--size-full);
+		object-fit: cover;
 	}
 
 	.button-wrap {
-		display: flex;
 		position: absolute;
-		right: 0px;
+		background-color: var(--block-background-fill);
+		border: 1px solid var(--border-color-primary);
+		border-radius: var(--radius-xl);
+		padding: var(--size-1-5);
+		display: flex;
 		bottom: var(--size-2);
-		left: 0px;
-		justify-content: center;
-		align-items: center;
-		margin: auto;
+		left: 50%;
+		transform: translate(-50%, 0);
 		box-shadow: var(--shadow-drop-lg);
 		border-radius: var(--radius-xl);
-		background-color: rgba(0, 0, 0, 0.9);
-		width: var(--size-10);
-		height: var(--size-8);
-		padding: var(--size-2-5);
-		padding-right: var(--size-1);
-		z-index: var(--layer-3);
-	}
-
-	.capture {
-		width: var(--size-14);
-		transform: translateX(var(--size-2-5));
+		line-height: var(--size-3);
+		color: var(--button-secondary-text-color);
 	}
 
 	@media (--screen-md) {
@@ -289,9 +345,8 @@
 
 	.icon {
 		opacity: 0.8;
-		width: 100%;
-		height: 100%;
-		color: white;
+		width: 18px;
+		height: 18px;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -310,35 +365,39 @@
 		-webkit-appearance: none;
 		-moz-appearance: none;
 		appearance: none;
+		color: var(--button-secondary-text-color);
 		background-color: transparent;
-		border: none;
-		width: auto;
-		font-size: 1rem;
-		/* padding: 0.5rem; */
-		width: max-content;
+		width: 95%;
+		font-size: var(--text-md);
 		position: absolute;
-		top: 0;
-		right: 0;
+		bottom: var(--size-2);
 		background-color: var(--block-background-fill);
 		box-shadow: var(--shadow-drop-lg);
 		border-radius: var(--radius-xl);
 		z-index: var(--layer-top);
-		border: 1px solid var(--border-color-accent);
+		border: 1px solid var(--border-color-primary);
 		text-align: left;
-		overflow: hidden;
+		line-height: var(--size-4);
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		left: 50%;
+		transform: translate(-50%, 0);
+		max-width: var(--size-52);
 	}
 
-	.select-wrap > div {
+	.select-wrap > option {
 		padding: 0.25rem 0.5rem;
 		border-bottom: 1px solid var(--border-color-accent);
 		padding-right: var(--size-8);
+		text-overflow: ellipsis;
+		overflow: hidden;
 	}
 
-	.select-wrap > div:hover {
+	.select-wrap > option:hover {
 		background-color: var(--color-accent);
 	}
 
-	.select-wrap > div:last-child {
+	.select-wrap > option:last-child {
 		border: none;
 	}
 
@@ -349,5 +408,11 @@
 		width: var(--size-10);
 		height: var(--size-5);
 		opacity: 0.8;
+	}
+
+	@media (--screen-md) {
+		.wrap {
+			font-size: var(--text-lg);
+		}
 	}
 </style>

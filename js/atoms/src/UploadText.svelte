@@ -1,7 +1,14 @@
 <script lang="ts">
 	import type { I18nFormatter } from "@gradio/utils";
-	import { Upload as UploadIcon } from "@gradio/icons";
-	export let type: "video" | "image" | "audio" | "file" | "csv" = "file";
+	import { Upload as UploadIcon, ImagePaste } from "@gradio/icons";
+	export let type:
+		| "video"
+		| "image"
+		| "audio"
+		| "file"
+		| "csv"
+		| "clipboard"
+		| "gallery" = "file";
 	export let i18n: I18nFormatter;
 	export let message: string | undefined = undefined;
 	export let mode: "full" | "short" = "full";
@@ -12,12 +19,20 @@
 		video: "upload_text.drop_video",
 		audio: "upload_text.drop_audio",
 		file: "upload_text.drop_file",
-		csv: "upload_text.drop_csv"
+		csv: "upload_text.drop_csv",
+		gallery: "upload_text.drop_gallery",
+		clipboard: "upload_text.paste_clipboard"
 	};
 </script>
 
 <div class="wrap">
-	<span class="icon-wrap" class:hovered><UploadIcon /> </span>
+	<span class="icon-wrap" class:hovered>
+		{#if type === "clipboard"}
+			<ImagePaste />
+		{:else}
+			<UploadIcon />
+		{/if}
+	</span>
 
 	{i18n(defs[type] || defs.file)}
 

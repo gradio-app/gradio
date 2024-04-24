@@ -3,7 +3,8 @@
 	import DOMPurify from "dompurify";
 	import render_math_in_element from "katex/dist/contrib/auto-render.js";
 	import "katex/dist/katex.min.css";
-	import { marked } from "./utils";
+	import { create_marked } from "./utils";
+
 	import "./prism.css";
 
 	export let chatbot = true;
@@ -16,15 +17,30 @@
 	}[] = [];
 	export let render_markdown = true;
 	export let line_breaks = true;
+	export let header_links = false;
+
 	let el: HTMLSpanElement;
 	let html: string;
 
-	marked.use({ breaks: line_breaks });
+	const marked = create_marked({
+		header_links,
+		line_breaks
+	});
+
+	const is_external_url = (link: string | null): boolean => {
+		try {
+			return !!link && new URL(link, location.href).origin !== location.origin;
+		} catch (e) {
+			return false;
+		}
+	};
 
 	DOMPurify.addHook("afterSanitizeAttributes", function (node) {
 		if ("target" in node) {
-			node.setAttribute("target", "_blank");
-			node.setAttribute("rel", "noopener noreferrer");
+			if (is_external_url(node.getAttribute("href"))) {
+				node.setAttribute("target", "_blank");
+				node.setAttribute("rel", "noopener noreferrer");
+			}
 		}
 	});
 
@@ -45,16 +61,22 @@
 	}
 	async function render_html(value: string): Promise<void> {
 		if (latex_delimiters.length > 0 && value) {
-			render_math_in_element(el, {
-				delimiters: latex_delimiters,
-				throwOnError: false
-			});
+			const containsDelimiter = latex_delimiters.some(
+				(delimiter) =>
+					value.includes(delimiter.left) && value.includes(delimiter.right)
+			);
+			if (containsDelimiter) {
+				render_math_in_element(el, {
+					delimiters: latex_delimiters,
+					throwOnError: false
+				});
+			}
 		}
 	}
 	afterUpdate(() => render_html(message));
 </script>
 
-<span class:chatbot bind:this={el} class="md">
+<span class:chatbot bind:this={el} class="md" class:prose={render_markdown}>
 	{#if render_markdown}
 		{@html html}
 	{:else}
@@ -121,5 +143,42 @@
 	}
 	span :global(p:not(:first-child)) {
 		margin-top: var(--spacing-xxl);
+	}
+
+	span :global(.md-header-anchor) {
+		/* position: absolute; */
+		margin-left: -25px;
+		padding-right: 8px;
+		line-height: 1;
+		color: var(--body-text-color-subdued);
+		opacity: 0;
+	}
+
+	span :global(h1:hover .md-header-anchor),
+	span :global(h2:hover .md-header-anchor),
+	span :global(h3:hover .md-header-anchor),
+	span :global(h4:hover .md-header-anchor),
+	span :global(h5:hover .md-header-anchor),
+	span :global(h6:hover .md-header-anchor) {
+		opacity: 1;
+	}
+
+	span.md :global(.md-header-anchor > svg) {
+		color: var(--body-text-color-subdued);
+	}
+
+	span :global(h1),
+	span :global(h2),
+	span :global(h3),
+	span :global(h4),
+	span :global(h5),
+	span :global(h6) {
+		display: flex;
+		align-items: center;
+		white-space-collapse: break-spaces;
+	}
+
+	.prose :global(:last-child) {
+		margin-bottom: 0;
 	}
 </style>

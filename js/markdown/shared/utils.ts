@@ -1,12 +1,17 @@
-import { marked, type Renderer } from "marked";
+import { type Renderer, Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
+import { gfmHeadingId } from "marked-gfm-heading-id";
 import Prism from "prismjs";
 import "prismjs/components/prism-python";
 import "prismjs/components/prism-latex";
 import "prismjs/components/prism-bash";
+import GithubSlugger from "github-slugger";
+
 // import loadLanguages from "prismjs/components/";
 
 // loadLanguages(["python", "latex"]);
+
+const LINK_ICON_CODE = `<svg class="md-link-icon" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>`;
 
 const COPY_ICON_CODE = `<svg
 xmlns="http://www.w3.org/2000/svg"
@@ -70,9 +75,7 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 		escaped: boolean
 	) {
 		const lang = (infostring ?? "").match(/\S*/)?.[0] ?? "";
-
 		code = code.replace(/\n$/, "") + "\n";
-
 		if (!lang) {
 			return (
 				'<div class="code_wrap">' +
@@ -82,7 +85,6 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 				"</code></pre></div>\n"
 			);
 		}
-
 		return (
 			'<div class="code_wrap">' +
 			COPY_BUTTON_CODE +
@@ -96,21 +98,59 @@ const renderer: Partial<Omit<Renderer, "constructor" | "options">> = {
 	}
 };
 
-marked.use(
-	{
-		gfm: true,
-		pedantic: false
-	},
-	markedHighlight({
-		highlight: (code: string, lang: string) => {
-			if (Prism.languages[lang]) {
-				return Prism.highlight(code, Prism.languages[lang], lang);
+const slugger = new GithubSlugger();
+
+export function create_marked({
+	header_links,
+	line_breaks
+}: {
+	header_links: boolean;
+	line_breaks: boolean;
+}): typeof marked {
+	const marked = new Marked();
+
+	marked.use(
+		{
+			gfm: true,
+			pedantic: false,
+			breaks: line_breaks
+		},
+		markedHighlight({
+			highlight: (code: string, lang: string) => {
+				if (Prism.languages[lang]) {
+					return Prism.highlight(code, Prism.languages[lang], lang);
+				}
+				return code;
 			}
-			return code;
-		}
-	}),
-	{ renderer }
-);
+		}),
+		{ renderer }
+	);
+
+	if (header_links) {
+		marked.use(gfmHeadingId());
+		marked.use({
+			extensions: [
+				{
+					name: "heading",
+					level: "block",
+					renderer(token) {
+						const raw = token.raw
+							.toLowerCase()
+							.trim()
+							.replace(/<[!\/a-z].*?>/gi, "");
+						const id = "h" + slugger.slug(raw);
+						const level = token.depth;
+						const text = this.parser.parseInline(token.tokens!);
+
+						return `<h${level} id="${id}"><a class="md-header-anchor" href="#${id}">${LINK_ICON_CODE}</a>${text}</h${level}>\n`;
+					}
+				}
+			]
+		});
+	}
+
+	return marked;
+}
 
 export function copy(node: HTMLDivElement): any {
 	node.addEventListener("click", handle_copy);
@@ -178,5 +218,3 @@ async function copy_to_clipboard(value: string): Promise<boolean> {
 
 	return copied;
 }
-
-export { marked };

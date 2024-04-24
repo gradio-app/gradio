@@ -18,6 +18,7 @@
 	export let root: string;
 	export let height: number | undefined = undefined;
 	export let i18n: I18nFormatter;
+	export let max_file_size: number | null = null;
 
 	async function handle_upload({
 		detail
@@ -43,19 +44,6 @@
 		error: string;
 	}>();
 
-	let accept_file_types: string | null;
-	if (file_types == null) {
-		accept_file_types = null;
-	} else {
-		file_types = file_types.map((x) => {
-			if (x.startsWith(".")) {
-				return x;
-			}
-			return x + "/*";
-		});
-		accept_file_types = file_types.join(", ");
-	}
-
 	let dragging = false;
 	$: dispatch("drag", dragging);
 </script>
@@ -67,16 +55,18 @@
 	label={label || "File"}
 />
 
-{#if value}
+{#if value && (Array.isArray(value) ? value.length > 0 : true)}
 	<ModifyUpload {i18n} on:clear={handle_clear} absolute />
-	<FilePreview {i18n} on:select {selectable} {value} {height} />
+	<FilePreview {i18n} on:select {selectable} {value} {height} on:change />
 {:else}
 	<Upload
 		on:load={handle_upload}
-		filetype={accept_file_types}
+		filetype={file_types}
 		{file_count}
+		{max_file_size}
 		{root}
 		bind:dragging
+		on:error
 	>
 		<slot />
 	</Upload>

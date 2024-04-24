@@ -1,6 +1,6 @@
 # 区块和事件监听器 (Blocks and Event Listeners)
 
-我们在[快速入门](https://gradio.app/quickstart/#blocks-more-flexibility-and-control)中简要介绍了区块。让我们深入探讨一下。本指南将涵盖区块的结构、事件监听器及其类型、连续运行事件、更新配置以及使用字典与列表。
+我们在[快速入门](https://gradio.app/blocks-and-event-listeners)中简要介绍了区块。让我们深入探讨一下。本指南将涵盖区块的结构、事件监听器及其类型、连续运行事件、更新配置以及使用字典与列表。
 
 ## 区块结构 (Blocks Structure)
 
@@ -28,7 +28,7 @@ output = gr.Textbox(label="输出", interactive=True)
 $code_blocks_hello
 $demo_blocks_hello
 
-`welcome` 函数不是由点击触发的，而是由在文本框 `inp` 中输入文字触发的。这是由于 `change()` 事件监听器。不同的组件支持不同的事件监听器。例如，`Video` 组件支持一个 `play()` 事件监听器，当用户按下播放按钮时触发。有关每个组件的事件监听器，请参见[文档](http://gradio.app/docs#components)。
+`welcome` 函数不是由点击触发的，而是由在文本框 `inp` 中输入文字触发的。这是由于 `change()` 事件监听器。不同的组件支持不同的事件监听器。例如，`Video` 组件支持一个 `play()` 事件监听器，当用户按下播放按钮时触发。有关每个组件的事件监听器，请参见[文档](http://gradio.app/docs/components)。
 
 ## 多个数据流 (Multiple Data Flows)
 

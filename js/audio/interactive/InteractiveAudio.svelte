@@ -22,6 +22,7 @@
 	export let label: string;
 	export let root: string;
 	export let show_label = true;
+	export let show_download_button = false;
 	export let sources:
 		| ["microphone"]
 		| ["upload"]
@@ -37,6 +38,7 @@
 	export let active_source: "microphone" | "upload";
 	export let handle_reset_value: () => void = () => {};
 	export let editable = true;
+	export let max_file_size: number | null = null;
 
 	// Needed for wasm support
 	const upload_fn = getContext<typeof upload_files>("upload_files");
@@ -96,9 +98,9 @@
 		let _audio_blob = new File(blobs, "audio.wav");
 		const val = await prepare_files([_audio_blob], event === "stream");
 		value = (
-			(await upload(val, root, undefined, upload_fn))?.filter(
-				Boolean
-			) as FileData[]
+			(
+				await upload(val, root, undefined, max_file_size ?? Infinity, upload_fn)
+			)?.filter(Boolean) as FileData[]
 		)[0];
 
 		dispatch(event, value);
@@ -219,66 +221,81 @@
 	float={active_source === "upload" && value === null}
 	label={label || i18n("audio.audio")}
 />
-{#if value === null || streaming}
-	{#if active_source === "microphone"}
-		<ModifyUpload {i18n} on:clear={clear} absolute={true} />
-		{#if streaming}
-			<StreamAudio
-				{record}
-				{recording}
-				{stop}
-				{i18n}
-				{waveform_settings}
-				{waveform_options}
-			/>
-		{:else}
-			<AudioRecorder
-				bind:mode
-				{i18n}
-				{dispatch_blob}
-				{waveform_settings}
-				{waveform_options}
-				{handle_reset_value}
-			/>
+<div class="audio-container">
+	{#if value === null || streaming}
+		{#if active_source === "microphone"}
+			<ModifyUpload {i18n} on:clear={clear} absolute={true} />
+			{#if streaming}
+				<StreamAudio
+					{record}
+					{recording}
+					{stop}
+					{i18n}
+					{waveform_settings}
+					{waveform_options}
+				/>
+			{:else}
+				<AudioRecorder
+					bind:mode
+					{i18n}
+					{editable}
+					{dispatch_blob}
+					{waveform_settings}
+					{waveform_options}
+					{handle_reset_value}
+					on:start_recording
+					on:pause_recording
+					on:stop_recording
+				/>
+			{/if}
+		{:else if active_source === "upload"}
+			<!-- explicitly listed out audio mimetypes due to iOS bug not recognizing audio/* -->
+			<Upload
+				filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
+				on:load={handle_load}
+				bind:dragging
+				on:error={({ detail }) => dispatch("error", detail)}
+				{root}
+				{max_file_size}
+			>
+				<slot />
+			</Upload>
 		{/if}
-	{:else if active_source === "upload"}
-		<!-- explicitly listed out audio mimetypes due to iOS bug not recognizing audio/* -->
-		<Upload
-			filetype="audio/aac,audio/midi,audio/mpeg,audio/ogg,audio/wav,audio/x-wav,audio/opus,audio/webm,audio/flac,audio/vnd.rn-realaudio,audio/x-ms-wma,audio/x-aiff,audio/amr,audio/*"
-			on:load={handle_load}
-			bind:dragging
-			on:error={({ detail }) => dispatch("error", detail)}
-			{root}
-			include_sources={sources.length > 1}
-		>
-			<slot />
-		</Upload>
+	{:else}
+		<ModifyUpload
+			{i18n}
+			on:clear={clear}
+			on:edit={() => (mode = "edit")}
+			download={show_download_button ? value.url : null}
+			absolute={true}
+		/>
+
+		<AudioPlayer
+			bind:mode
+			{value}
+			{label}
+			{i18n}
+			{dispatch_blob}
+			{waveform_settings}
+			{waveform_options}
+			{trim_region_settings}
+			{handle_reset_value}
+			{editable}
+			interactive
+			on:stop
+			on:play
+			on:pause
+			on:edit
+		/>
 	{/if}
-{:else}
-	<ModifyUpload
-		{i18n}
-		on:clear={clear}
-		on:edit={() => (mode = "edit")}
-		absolute={true}
-	/>
+	<SelectSource {sources} bind:active_source handle_clear={clear} />
+</div>
 
-	<AudioPlayer
-		bind:mode
-		{value}
-		{label}
-		{i18n}
-		{dispatch_blob}
-		{waveform_settings}
-		{waveform_options}
-		{trim_region_settings}
-		{handle_reset_value}
-		{editable}
-		interactive
-		on:stop
-		on:play
-		on:pause
-		on:edit
-	/>
-{/if}
-
-<SelectSource {sources} bind:active_source handle_clear={clear} />
+<style>
+	.audio-container {
+		height: calc(var(--size-full) - var(--size-6));
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+	}
+</style>

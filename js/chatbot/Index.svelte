@@ -9,7 +9,7 @@
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { Chat } from "@gradio/icons";
-	import { normalise_file, type FileData } from "@gradio/client";
+	import type { FileData } from "@gradio/client";
 	import { StatusTracker } from "@gradio/statustracker";
 
 	export let elem_id = "";
@@ -24,7 +24,6 @@
 	export let label: string;
 	export let show_label = true;
 	export let root: string;
-	export let proxy_url: null | string;
 	export let _selectable = false;
 	export let likeable = false;
 	export let show_share_button = false;
@@ -46,8 +45,9 @@
 		share: ShareData;
 		error: string;
 		like: LikeData;
+		clear_status: LoadingStatus;
 	}>;
-	export let avatar_images: [string | null, string | null] = [null, null];
+	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 
 	let _value: [
 		string | { file: FileData; alt_text: string | null } | null,
@@ -64,7 +64,7 @@
 			return message;
 		}
 		return {
-			file: normalise_file(message?.file, root, proxy_url) as FileData,
+			file: message?.file as FileData,
 			alt_text: message?.alt_text
 		};
 	}
@@ -82,6 +82,7 @@
 
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;
+	export let placeholder: string | null = null;
 </script>
 
 <Block
@@ -102,6 +103,7 @@
 			show_progress={loading_status.show_progress === "hidden"
 				? "hidden"
 				: "minimal"}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 	{/if}
 	<div class="wrapper">
@@ -134,8 +136,7 @@
 			{bubble_full_width}
 			{line_breaks}
 			{layout}
-			{proxy_url}
-			{root}
+			{placeholder}
 		/>
 	</div>
 </Block>

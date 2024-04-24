@@ -1,0 +1,95 @@
+name: "test / functional"
+
+on:
+  workflow_run:
+    workflows: ["trigger"]
+    types:
+      - requested
+
+permissions:
+  statuses: write
+
+concurrency:
+  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: "changes"
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.changes.outputs.should_run }}
+      sha: ${{ steps.changes.outputs.sha }}
+      merge_sha: ${{ steps.changes.outputs.merge_sha }}
+      pr_number: ${{ steps.changes.outputs.pr_number }}
+      source_branch: ${{ steps.changes.outputs.source_branch }}
+      source_repo: ${{ steps.changes.outputs.source_repo }}
+      mergeable: ${{ steps.changes.outputs.mergeable }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: "gradio-app/gradio/.github/actions/changes@main"
+        id: changes
+        with:
+          type: "functional"
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: echo github context
+        if: always()
+        run: echo "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+
+  test-functional:
+    name: "test-functional"
+    needs: changes
+    if: needs.changes.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.changes.outputs.merge_sha }}
+          repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
+      - name: install dependencies
+        id: install_deps
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
+        with:
+          always_install_pnpm: true
+          build_lite: true
+      - name: install outbreak_forecast dependencies
+        run: |
+          . venv/bin/activate
+          python -m pip install -r demo/outbreak_forecast/requirements.txt
+          python -m pip install -r demo/gradio_pdf_demo/requirements.txt
+      - run: pnpm exec playwright install chromium
+      - name: run browser tests
+        run: |
+          . venv/bin/activate
+          CI=1 pnpm test:browser
+      - name: upload screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-screenshots
+          path: |
+            ./test-results
+      - name: run browser component tests
+        run: |
+          . venv/bin/activate
+          pnpm run test:ct
+      - name: run reload mode test
+        run: |
+          . venv/bin/activate
+          pnpm test:browser:reload
+      - name: Run Lite E2E tests
+        run: |
+          . venv/bin/activate
+          pnpm --filter @gradio/app test:browser:lite
+      - name: do check
+        if: always()
+        uses: "gradio-app/github/actions/commit-status@main"
+        with:
+          type: "functional"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pr: ${{ needs.changes.outputs.pr_number }}
+          sha: ${{ needs.changes.outputs.sha }}
+          name: "test / functional"
+          result: ${{ job.status }}
+          job_id: "test-functional"

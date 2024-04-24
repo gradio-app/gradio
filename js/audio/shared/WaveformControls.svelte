@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Play, Pause, Forward, Backward, Undo, Trim } from "@gradio/icons";
-	import { getSkipRewindAmount } from "../shared/utils";
+	import { get_skip_rewind_amount } from "../shared/utils";
 	import type { I18nFormatter } from "@gradio/utils";
 	import WaveSurfer from "wavesurfer.js";
 	import RegionsPlugin, {
@@ -11,10 +11,10 @@
 	import VolumeControl from "./VolumeControl.svelte";
 
 	export let waveform: WaveSurfer;
-	export let audioDuration: number;
+	export let audio_duration: number;
 	export let i18n: I18nFormatter;
 	export let playing: boolean;
-	export let showRedo = false;
+	export let show_redo = false;
 	export let interactive = false;
 	export let handle_trim_audio: (start: number, end: number) => void;
 	export let mode = "";
@@ -57,8 +57,8 @@
 
 	const addTrimRegion = (): void => {
 		activeRegion = trimRegion.addRegion({
-			start: audioDuration / 4,
-			end: audioDuration / 2,
+			start: audio_duration / 4,
+			end: audio_duration / 2,
 			...trim_region_settings
 		});
 
@@ -200,13 +200,14 @@
 	<div class="play-pause-wrapper">
 		<button
 			class="rewind icon"
-			aria-label={`Skip backwards by ${getSkipRewindAmount(
-				audioDuration,
+			aria-label={`Skip backwards by ${get_skip_rewind_amount(
+				audio_duration,
 				waveform_options.skip_length
 			)} seconds`}
 			on:click={() =>
 				waveform.skip(
-					getSkipRewindAmount(audioDuration, waveform_options.skip_length) * -1
+					get_skip_rewind_amount(audio_duration, waveform_options.skip_length) *
+						-1
 				)}
 		>
 			<Backward />
@@ -224,13 +225,13 @@
 		</button>
 		<button
 			class="skip icon"
-			aria-label="Skip forward by {getSkipRewindAmount(
-				audioDuration,
+			aria-label="Skip forward by {get_skip_rewind_amount(
+				audio_duration,
 				waveform_options.skip_length
 			)} seconds"
 			on:click={() =>
 				waveform.skip(
-					getSkipRewindAmount(audioDuration, waveform_options.skip_length)
+					get_skip_rewind_amount(audio_duration, waveform_options.skip_length)
 				)}
 		>
 			<Forward />
@@ -239,7 +240,7 @@
 
 	<div class="settings-wrapper">
 		{#if editable && interactive}
-			{#if showRedo && mode === ""}
+			{#if show_redo && mode === ""}
 				<button
 					class="action icon"
 					aria-label="Reset audio"
@@ -275,6 +276,7 @@
 		display: flex;
 		justify-self: self-end;
 		align-items: center;
+		grid-area: editing;
 	}
 	.text-button {
 		border: 1px solid var(--neutral-400);
@@ -298,9 +300,31 @@
 	.controls {
 		display: grid;
 		grid-template-columns: 1fr 1fr 1fr;
+		grid-template-areas: "controls playback editing";
 		margin-top: 5px;
 		align-items: center;
 		position: relative;
+		flex-wrap: wrap;
+		justify-content: space-between;
+	}
+	.controls div {
+		margin: var(--size-1) 0;
+	}
+
+	@media (max-width: 600px) {
+		.controls {
+			grid-template-columns: 1fr 1fr;
+			grid-template-rows: auto auto;
+			grid-template-areas:
+				"playback playback"
+				"controls editing";
+		}
+	}
+
+	@media (max-width: 319px) {
+		.controls {
+			overflow-x: scroll;
+		}
 	}
 
 	.hidden {
@@ -312,25 +336,10 @@
 		justify-self: self-start;
 		align-items: center;
 		justify-content: space-between;
-	}
-
-	@media (max-width: 375px) {
-		.controls {
-			display: flex;
-			flex-wrap: wrap;
-		}
-
-		.controls * {
-			margin: var(--spacing-sm);
-		}
-
-		.controls .text-button {
-			margin-left: 0;
-		}
+		grid-area: controls;
 	}
 
 	.action {
-		width: var(--size-5);
 		width: var(--size-5);
 		color: var(--neutral-400);
 		margin-left: var(--spacing-md);
@@ -342,6 +351,13 @@
 	.play-pause-wrapper {
 		display: flex;
 		justify-self: center;
+		grid-area: playback;
+	}
+
+	@media (max-width: 600px) {
+		.play-pause-wrapper {
+			margin: var(--spacing-md);
+		}
 	}
 	.playback {
 		border: 1px solid var(--neutral-400);
@@ -369,7 +385,6 @@
 
 	.play-pause-button {
 		width: var(--size-8);
-		width: var(--size-8);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -382,5 +397,6 @@
 		display: flex;
 		justify-content: center;
 		margin-right: var(--spacing-xl);
+		width: var(--size-5);
 	}
 </style>

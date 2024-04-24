@@ -1,7 +1,7 @@
 
-import gradio as gr
 from gradio_test import Test
 
+import gradio as gr
 
 example = Test().example_inputs()
 

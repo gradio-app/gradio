@@ -97,6 +97,7 @@ with gr.Blocks(  # noqa: SIM117
                         [theme.__name__ for theme in themes],
                         value="Base",
                         show_label=False,
+                        label="Theme",
                     )
                     load_theme_btn = gr.Button("Load Theme", elem_id="load_theme")
                 with gr.TabItem("Core Colors"):
@@ -359,7 +360,7 @@ with gr.Blocks(  # noqa: SIM117
                         go_btn = gr.Button("Go", variant="primary")
                         clear_btn = gr.Button("Clear", variant="secondary")
 
-                        def go(*args):
+                        def go(*_args):
                             time.sleep(3)
                             return "https://gradio-static-files.s3.us-west-2.amazonaws.com/header-image.jpg"
 
@@ -367,12 +368,11 @@ with gr.Blocks(  # noqa: SIM117
                             go,
                             [radio, drop, drop_2, check, name],
                             img,
-                            api_name=False,
+                            show_api=False,
                         )
 
                         def clear():
                             time.sleep(0.2)
-                            return None
 
                         clear_btn.click(clear, None, img)
 
@@ -437,17 +437,13 @@ with gr.Blocks(  # noqa: SIM117
                     chatbot = gr.Chatbot([("Hello", "Hi")], label="Chatbot")
                     chat_btn = gr.Button("Add messages")
 
-                    def chat(history):
-                        time.sleep(2)
-                        yield [["How are you?", "I am good."]]
-
                     chat_btn.click(
                         lambda history: history
                         + [["How are you?", "I am good."]]
                         + (time.sleep(2) or []),
                         chatbot,
                         chatbot,
-                        api_name=False,
+                        show_api=False,
                     )
                 with gr.Column(scale=1):
                     with gr.Accordion("Advanced Settings"):
@@ -478,7 +474,7 @@ with gr.Blocks(  # noqa: SIM117
                     100
                 );
             }""",
-            api_name=False,
+            show_api=False,
         )
 
         theme_inputs = (
@@ -624,7 +620,21 @@ with gr.Blocks(  # noqa: SIM117
                     if getattr(source_obj, attr) != final_attr_values[final_theme_attr]:
                         diff = True
                 if diff:
-                    specific_core_diffs[value_name] = (source_class, final_attr_values)
+                    new_final_attr_values = {}
+                    # We need to update the theme keys to match the color and size attribute names
+                    for key, val in final_attr_values.items():
+                        if key.startswith(("primary_", "secondary_", "neutral_")):
+                            color_key = "c" + key.split("_")[-1]
+                            new_final_attr_values[color_key] = val
+                        elif key.startswith(("text_", "spacing_", "radius_")):
+                            size_key = key.split("_")[-1]
+                            new_final_attr_values[size_key] = val
+                        else:
+                            new_final_attr_values[key] = val
+                    specific_core_diffs[value_name] = (
+                        source_class,
+                        new_final_attr_values,
+                    )
 
             font_diffs = {}
 
@@ -657,9 +667,10 @@ with gr.Blocks(  # noqa: SIM117
                         cls, vals = specific_core_diffs[var_name]
                         core_diffs_code += f"""    {var_name}=gr.themes.{cls.__name__}({', '.join(f'''{k}="{v}"''' for k, v in vals.items())}),\n"""
                     elif var_name in core_diffs:
-                        core_diffs_code += (
-                            f"""    {var_name}="{core_diffs[var_name]}",\n"""
-                        )
+                        var_val = core_diffs[var_name]
+                        if var_name.endswith("_size"):
+                            var_val = var_val.split("_")[-1]
+                        core_diffs_code += f"""    {var_name}="{var_val}",\n"""
 
             font_diffs_code = ""
 
@@ -820,7 +831,7 @@ with gr.Blocks(theme=theme) as demo:
                 render_variables,
                 [history, base_theme_dropdown] + theme_inputs,
                 [history, secret_css, secret_font, output_code, current_theme],
-                api_name=False,
+                show_api=False,
             ).then(
                 None,
                 [secret_css, secret_font],
@@ -842,7 +853,7 @@ with gr.Blocks(theme=theme) as demo:
                         document.head.appendChild(link);
                     });
                 }""",
-                api_name=False,
+                show_api=False,
             )
 
         def load_color(color_name):
@@ -851,17 +862,17 @@ with gr.Blocks(theme=theme) as demo:
 
         attach_rerender(
             primary_hue.select(
-                load_color, primary_hue, primary_hues, api_name=False
+                load_color, primary_hue, primary_hues, show_api=False
             ).then
         )
         attach_rerender(
             secondary_hue.select(
-                load_color, secondary_hue, secondary_hues, api_name=False
+                load_color, secondary_hue, secondary_hues, show_api=False
             ).then
         )
         attach_rerender(
             neutral_hue.select(
-                load_color, neutral_hue, neutral_hues, api_name=False
+                load_color, neutral_hue, neutral_hues, show_api=False
             ).then
         )
         for hue_set in (primary_hues, secondary_hues, neutral_hues):
@@ -873,22 +884,22 @@ with gr.Blocks(theme=theme) as demo:
             return [getattr(size, i) for i in size_range]
 
         attach_rerender(
-            text_size.change(load_size, text_size, text_sizes, api_name=False).then
+            text_size.change(load_size, text_size, text_sizes, show_api=False).then
         )
         attach_rerender(
             spacing_size.change(
-                load_size, spacing_size, spacing_sizes, api_name=False
+                load_size, spacing_size, spacing_sizes, show_api=False
             ).then
         )
         attach_rerender(
             radius_size.change(
-                load_size, radius_size, radius_sizes, api_name=False
+                load_size, radius_size, radius_sizes, show_api=False
             ).then
         )
 
         attach_rerender(
             load_theme_btn.click(
-                load_theme, base_theme_dropdown, theme_inputs, api_name=False
+                load_theme, base_theme_dropdown, theme_inputs, show_api=False
             ).then
         )
 
@@ -914,7 +925,7 @@ with gr.Blocks(theme=theme) as demo:
                 document.querySelector('body').classList.add('dark');
             }
         }""",
-            api_name=False,
+            show_api=False,
         )
 
         def undo(history_var):
@@ -930,7 +941,7 @@ with gr.Blocks(theme=theme) as demo:
                 undo,
                 [history],
                 [history, base_theme_dropdown] + theme_inputs,
-                api_name=False,
+                show_api=False,
             ).then
         )
 
@@ -963,7 +974,7 @@ with gr.Blocks(theme=theme) as demo:
             lambda: "Uploading...",
             None,
             upload_to_hub_btn,
-            api_name=False,
+            show_api=False,
         ).then(
             upload_to_hub,
             {
@@ -973,7 +984,7 @@ with gr.Blocks(theme=theme) as demo:
                 theme_version,
             },
             [theme_upload_status, upload_to_hub_btn],
-            api_name=False,
+            show_api=False,
         )
 
 

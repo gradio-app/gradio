@@ -1,5 +1,83 @@
 # @gradio/lite
 
+## 4.27.0
+
+### Dependency updates
+
+- gradio@4.27.0
+
+## 4.26.0
+
+### Features
+
+- [#7811](https://github.com/gradio-app/gradio/pull/7811) [`b43055b`](https://github.com/gradio-app/gradio/commit/b43055b297dfe1aa56fda4cd722d878f7297a1b5) - Lite playground design changes.  Thanks @aliabd!
+
+### Dependency updates
+
+- gradio@4.26.0
+
+## 4.25.0
+
+### Dependency updates
+
+- gradio@4.25.0
+
+## 4.24.0
+
+### Dependency updates
+
+- gradio@4.24.0
+
+## 4.23.0
+
+### Dependency updates
+
+- @gradio/wasm@0.10.0
+- gradio@4.23.0
+
+## 4.22.0
+
+### Features
+
+- [#7660](https://github.com/gradio-app/gradio/pull/7660) [`f739bef`](https://github.com/gradio-app/gradio/commit/f739bef6c70a2b012dd896456709eae5ee4de7d5) - Add Playground to Lite Custom Element.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/wasm@0.9.0
+- gradio@4.22.0
+
+## 4.21.0
+
+### Features
+
+- [#7647](https://github.com/gradio-app/gradio/pull/7647) [`57510f9`](https://github.com/gradio-app/gradio/commit/57510f9ce0b38d473cc90800a05e769f1a47be9b) - Lite version.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/wasm@0.8.0
+- gradio@4.21.0
+
+## 4.14.2
+
+### Features
+
+- [#7345](https://github.com/gradio-app/gradio/pull/7345) [`561579d`](https://github.com/gradio-app/gradio/commit/561579d9b7b860c5cb3f8131e0dced0c8114463f) - fix-tests.  Thanks [@pngwn](https://github.com/pngwn)!
+
+## 4.14.1
+
+### Features
+
+- [#6999](https://github.com/gradio-app/gradio/pull/6999) [`576b7ce`](https://github.com/gradio-app/gradio/commit/576b7ce827f36b579384391e581e73760b7bfc53) - lite build fix: install build package.  Thanks [@abidlabs](https://github.com/abidlabs)!
+- [#7000](https://github.com/gradio-app/gradio/pull/7000) [`a7db8c1`](https://github.com/gradio-app/gradio/commit/a7db8c1b8a68c78f57088da1b1890e15dd0c5afe) - Add env to lite build.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6997](https://github.com/gradio-app/gradio/pull/6997) [`523c08f`](https://github.com/gradio-app/gradio/commit/523c08fe3036f9d72416f7599fe0c64c1a4af823) - Design changes to Playground.  Thanks [@aliabd](https://github.com/aliabd)!
+
+## 4.14.0
+
+### Features
+
+- [#6989](https://github.com/gradio-app/gradio/pull/6989) [`71aab1c`](https://github.com/gradio-app/gradio/commit/71aab1c6173665a7886399614dbb2dd864adbd6b) - Add README to @gradio/lite.  Thanks [@aliabd](https://github.com/aliabd)!
+- [#6996](https://github.com/gradio-app/gradio/pull/6996) [`0b1f68d`](https://github.com/gradio-app/gradio/commit/0b1f68d2dbdaea3588fea6366a0da991a6e07f77) - bump lite to match gradio.  Thanks [@pngwn](https://github.com/pngwn)!
+
 ## 0.4.4
 
 ## 0.4.4-beta.0

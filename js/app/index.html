@@ -16,6 +16,29 @@
 			content="width=device-width, initial-scale=1, shrink-to-fit=no"
 		/>
 
+		<style>
+			:root {
+				--bg: {{ config.get('body_css', {}).get('body_background_fill', 'white') }};
+				--col:   {{ config.get('body_css', {}).get('body_text_color', '#1f2937') }};
+				--bg-dark: {{ config.get('body_css', {}).get('body_background_fill_dark', '#0b0f19') }};
+				--col-dark: {{ config.get('body_css', {}).get('body_text_color_dark', '#f3f4f6') }};
+			}
+
+
+			body {
+				background: var(--bg);
+				color: var(--col);
+				font-family: Arial, Helvetica, sans-serif;
+			}
+
+			@media (prefers-color-scheme: dark) {
+				body {
+					background: var(--bg-dark);
+					color: var(--col-dark);
+				}
+			}
+		</style>
+
 		<script type="module" src="./src/main.ts"></script>
 		<meta property="og:url" content="https://gradio.app/" />
 		<meta property="og:type" content="website" />
@@ -39,6 +62,10 @@
 			window.iFrameResizer = {
 				heightCalculationMethod: "taggedElement"
 			};
+			window.parent?.postMessage(
+				{ type: "SET_SCROLLING", enabled: false },
+				"*"
+			);
 		</script>
 
 		%gradio_config%
@@ -50,7 +77,7 @@
 			crossorigin="anonymous"
 		/>
 		<script
-			src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.9/iframeResizer.contentWindow.min.js"
+			src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.11/iframeResizer.contentWindow.min.js"
 			async
 		></script>
 	</head>
@@ -74,6 +101,7 @@
 		</gradio-app>
 		<script>
 			const ce = document.getElementsByTagName("gradio-app");
+
 			if (ce[0]) {
 				ce[0].addEventListener("domchange", () => {
 					document.body.style.padding = "0";

@@ -1,7 +1,8 @@
 """
-This suite of tests is designed to ensure compatibility between the current version of Gradio 
+This suite of tests is designed to ensure compatibility between the current version of Gradio
 with custom components created using the previous version of Gradio.
 """
+
 from pathlib import Path
 
 from gradio_pdf import PDF

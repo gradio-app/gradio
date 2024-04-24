@@ -5,7 +5,8 @@
 		"config:base",
 		":preserveSemverRanges",
 		"group:allNonMajor",
-		":semanticCommitTypeAll(chore)"
+		":semanticCommitTypeAll(chore)",
+		":disableDependencyDashboard"
 	],
 	"ignorePaths": [
 		"**/demo/**",

@@ -62,3 +62,11 @@ in two separate lines.`
 		latex_delimiters: [{ left: "$", right: "$", display: false }]
 	}}
 />
+
+<Story
+	name="Markdown with header links"
+	args={{
+		value: "# Visit [Gradio](https://gradio.app) for more information",
+		header_links: true
+	}}
+/>

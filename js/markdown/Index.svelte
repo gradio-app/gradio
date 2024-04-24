@@ -23,22 +23,31 @@
 	export let line_breaks = false;
 	export let gradio: Gradio<{
 		change: never;
+		clear_status: LoadingStatus;
 	}>;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
 		display: boolean;
 	}[];
+	export let header_links = false;
 
 	$: label, gradio.dispatch("change");
 </script>
 
-<Block {visible} {elem_id} {elem_classes} container={false}>
+<Block
+	{visible}
+	{elem_id}
+	{elem_classes}
+	container={false}
+	allow_overflow={true}
+>
 	<StatusTracker
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
 		{...loading_status}
 		variant="center"
+		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	<div class:pending={loading_status?.status === "pending"}>
 		<Markdown
@@ -51,6 +60,7 @@
 			{latex_delimiters}
 			{sanitize_html}
 			{line_breaks}
+			{header_links}
 		/>
 	</div>
 </Block>

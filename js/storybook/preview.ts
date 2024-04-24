@@ -1,7 +1,7 @@
 import type { Preview } from "@storybook/svelte";
 import "./theme.css";
 import { setupi18n } from "../app/src/i18n";
-import { Gradio } from "../app/src/gradio_helper";
+import { Gradio, formatter } from "../app/src/gradio_helper";
 import "../theme/src/reset.css";
 import "../theme/src/global.css";
 
@@ -19,7 +19,9 @@ const preview: Preview = {
 			"light",
 			"1.1.1",
 			"localhost:9876",
-			false
+			false,
+			null,
+			formatter
 		)
 	},
 	argTypes: {
@@ -30,7 +32,6 @@ const preview: Preview = {
 		}
 	},
 	parameters: {
-		actions: { argTypesRegex: "^on[A-Z].*" },
 		controls: {
 			matchers: {
 				color: /(background|color)$/i,
@@ -40,6 +41,16 @@ const preview: Preview = {
 		options: {
 			storySort: {
 				order: ["Design System", "Components"]
+			}
+		},
+		viewport: {
+			viewports: {
+				mobile: { name: "mobile", styles: { width: "320px", height: "400px" } },
+				tablet: { name: "tablet", styles: { width: "640px", height: "800px" } },
+				desktop: {
+					name: "desktop",
+					styles: { width: "1024px", height: "1000px" }
+				}
 			}
 		}
 	}

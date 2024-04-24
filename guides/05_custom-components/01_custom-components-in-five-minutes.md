@@ -38,7 +38,7 @@ gradio cc create MyComponent --template SimpleTextbox
 Instead of `MyComponent`, give your component any name.
 
 Instead of `SimpleTextbox`, you can use any Gradio component as a template. `SimpleTextbox` is actually a special component that a stripped-down version of the `Textbox` component that makes it particularly useful when creating your first custom component.
-Some other components that are good if you are starting out: `SimpleDropdown` or `File`.
+Some other components that are good if you are starting out: `SimpleDropdown`, `SimpleImage`, or `File`.
 
 Tip: Run `gradio cc show` to get a list of available component templates.
 
@@ -88,6 +88,8 @@ gradio cc build
 
 This will create a `tar.gz` and `.whl` file in a `dist/` subdirectory.
 If you or anyone installs that `.whl` file (`pip install <path-to-whl>`) they will be able to use your custom component in any gradio app!
+
+The `build` command will also generate documentation for your custom component. This takes the form of an interactive space and a static `README.md`. You can disable this by passing `--no-generate-docs`. You can read more about the documentation generator in [the dedicated guide](./documenting-custom-components).
 
 ## 4. publish
 

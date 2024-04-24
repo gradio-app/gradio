@@ -2,14 +2,12 @@
 	import { Block } from "@gradio/atoms";
 	import type { SvelteComponent, ComponentType } from "svelte";
 	import type { Gradio, SelectData } from "@gradio/utils";
-	import { get_fetchable_url_or_file } from "@gradio/client";
 	export let components: string[];
 	export let component_props: Record<string, any>[];
 	export let component_map: Map<
 		string,
 		Promise<{
-			name: string;
-			component: { default: ComponentType<SvelteComponent> };
+			default: ComponentType<SvelteComponent>;
 		}>
 	>;
 	export let label = "Examples";
@@ -29,7 +27,11 @@
 		select: SelectData;
 	}>;
 
-	let samples_dir: string = get_fetchable_url_or_file(null, root, proxy_url);
+	// Although the `samples_dir` prop is not used in any of the core Gradio component, it is kept for backward compatibility
+	// with any custom components created with gradio<=4.20.0
+	let samples_dir: string = proxy_url
+		? `/proxy=${proxy_url}file=`
+		: `${root}/file=`;
 	let page = 0;
 	$: gallery = components.length < 2;
 	let paginate = samples.length > samples_per_page;
@@ -43,11 +45,13 @@
 	function handle_mouseenter(i: number): void {
 		current_hover = i;
 	}
+
 	function handle_mouseleave(): void {
 		current_hover = -1;
 	}
 
 	$: {
+		paginate = samples.length > samples_per_page;
 		if (paginate) {
 			visible_pages = [];
 			selected_samples = samples.slice(
@@ -80,22 +84,23 @@
 
 	async function get_component_meta(selected_samples: any[][]): Promise<void> {
 		component_meta = await Promise.all(
-			selected_samples.map(
-				async (sample_row) =>
-					await Promise.all(
-						sample_row.map(async (sample_cell, j) => {
-							return {
-								value: sample_cell,
-								component: (await component_map.get(components[j]))?.component
-									?.default as ComponentType<SvelteComponent>
-							};
-						})
-					)
-			)
+			selected_samples &&
+				selected_samples.map(
+					async (sample_row) =>
+						await Promise.all(
+							sample_row.map(async (sample_cell, j) => {
+								return {
+									value: sample_cell,
+									component: (await component_map.get(components[j]))
+										?.default as ComponentType<SvelteComponent>
+								};
+							})
+						)
+				)
 		);
 	}
 
-	$: get_component_meta(selected_samples);
+	$: component_map, get_component_meta(selected_samples);
 </script>
 
 <Block
@@ -129,28 +134,30 @@
 	{#if gallery}
 		<div class="gallery">
 			{#each selected_samples as sample_row, i}
-				<button
-					class="gallery-item"
-					on:click={() => {
-						value = i + page * samples_per_page;
-						gradio.dispatch("click", value);
-						gradio.dispatch("select", { index: value, value: sample_row });
-					}}
-					on:mouseenter={() => handle_mouseenter(i)}
-					on:mouseleave={() => handle_mouseleave()}
-				>
-					{#if component_meta.length && component_map.get(components[0])}
-						<svelte:component
-							this={component_meta[0][0].component}
-							{...component_props[0]}
-							value={sample_row[0]}
-							{samples_dir}
-							type="gallery"
-							selected={current_hover === i}
-							index={i}
-						/>
-					{/if}
-				</button>
+				{#if sample_row[0]}
+					<button
+						class="gallery-item"
+						on:click={() => {
+							value = i + page * samples_per_page;
+							gradio.dispatch("click", value);
+							gradio.dispatch("select", { index: value, value: sample_row });
+						}}
+						on:mouseenter={() => handle_mouseenter(i)}
+						on:mouseleave={() => handle_mouseleave()}
+					>
+						{#if component_meta.length && component_map.get(components[0])}
+							<svelte:component
+								this={component_meta[0][0].component}
+								{...component_props[0]}
+								value={sample_row[0]}
+								{samples_dir}
+								type="gallery"
+								selected={current_hover === i}
+								index={i}
+							/>
+						{/if}
+					</button>
+				{/if}
 			{/each}
 		</div>
 	{:else}

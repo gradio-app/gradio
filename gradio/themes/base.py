@@ -4,12 +4,13 @@ import json
 import re
 import tempfile
 import textwrap
+import warnings
 from pathlib import Path
 from typing import Iterable
 
 import huggingface_hub
 import semantic_version as semver
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 from huggingface_hub import CommitOperationAdd
 
 from gradio.themes.utils import (
@@ -20,8 +21,6 @@ from gradio.themes.utils import (
     sizes,
 )
 from gradio.themes.utils.readme_content import README_CONTENT
-
-set_documentation_group("themes")
 
 
 class ThemeClass:
@@ -92,6 +91,30 @@ class ThemeClass:
         )
 
         return f"{css_code}\n{dark_css_code}"
+
+    def _get_computed_value(self, property: str, depth=0) -> str:
+        max_depth = 100
+        if depth > max_depth:
+            warnings.warn(f"Cannot resolve '{property}' - circular reference detected.")
+            return ""
+        is_dark = property.endswith("_dark")
+        if is_dark:
+            set_value = getattr(
+                self, property, getattr(self, property[:-5], "")
+            )  # if dark mode value is unavailable, use light mode value
+        else:
+            set_value = getattr(self, property, "")
+        pattern = r"(\*)([\w_]+)(\b)"
+
+        def repl_func(match, depth):
+            word = match.group(2)
+            dark_suffix = "_dark" if property.endswith("_dark") else ""
+            return self._get_computed_value(word + dark_suffix, depth + 1)
+
+        computed_value = re.sub(
+            pattern, lambda match: repl_func(match, depth), set_value
+        )
+        return computed_value
 
     def to_dict(self):
         """Convert the theme into a python dictionary."""
@@ -439,13 +462,13 @@ class Base(ThemeClass):
         self.text_xxl = text_size.xxl
 
         # Font
-        if not isinstance(font, Iterable):
+        if isinstance(font, (fonts.Font, str)):
             font = [font]
         self._font = [
             fontfam if isinstance(fontfam, fonts.Font) else fonts.Font(fontfam)
             for fontfam in font
         ]
-        if not isinstance(font_mono, Iterable):
+        if isinstance(font, fonts.Font) or isinstance(font_mono, str):
             font_mono = [font_mono]
         self._font_mono = [
             fontfam if isinstance(fontfam, fonts.Font) else fonts.Font(fontfam)

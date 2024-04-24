@@ -3,6 +3,7 @@ from typer import Typer
 from .build import _build
 from .create import _create
 from .dev import _dev
+from .docs import _docs
 from .install_component import _install
 from .publish import _publish
 from .show import _show
@@ -20,3 +21,4 @@ app.command("install", help="Install the custom component in the current environ
     _install
 )
 app.command("publish", help="Publish a component to PyPI and HuggingFace Hub")(_publish)
+app.command("docs", help="Generate documentation for a custom components")(_docs)

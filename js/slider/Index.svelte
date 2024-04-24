@@ -13,6 +13,7 @@
 		change: never;
 		input: never;
 		release: number;
+		clear_status: LoadingStatus;
 	}>;
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -24,7 +25,7 @@
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let minimum: number;
-	export let maximum: number;
+	export let maximum = 100;
 	export let step: number;
 	export let show_label: boolean;
 	export let interactive: boolean;
@@ -61,11 +62,10 @@
 		numberInput.addEventListener("input", setSliderRange);
 	}
 	function setSliderRange(): void {
-		rangeInput.style.backgroundSize =
-			((Number(rangeInput.value) - Number(rangeInput.min)) /
-				(Number(rangeInput.max) - Number(rangeInput.min))) *
-				100 +
-			"% 100%";
+		const dividend = Number(rangeInput.value) - Number(rangeInput.min);
+		const divisor = Number(rangeInput.max) - Number(rangeInput.min);
+		const h = divisor === 0 ? 0 : dividend / divisor;
+		rangeInput.style.backgroundSize = h * 100 + "% 100%";
 	}
 
 	$: disabled = !interactive;
@@ -80,6 +80,7 @@
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
 		{...loading_status}
+		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 
 	<div class="wrap">
@@ -130,6 +131,7 @@
 		display: flex;
 		justify-content: space-between;
 	}
+
 	input[type="number"] {
 		display: block;
 		position: relative;
@@ -145,6 +147,7 @@
 		line-height: var(--line-sm);
 		text-align: center;
 	}
+
 	input:disabled {
 		-webkit-text-fill-color: var(--body-text-color);
 		-webkit-opacity: 1;
@@ -192,6 +195,28 @@
 
 	input[type="range"]::-webkit-slider-thumb:hover {
 		background: var(--neutral-50);
+	}
+
+	input[type="range"][disabled] {
+		background: var(--body-text-color-subdued);
+	}
+
+	input[type="range"][disabled]::-webkit-slider-thumb {
+		cursor: not-allowed;
+		background-color: var(--body-text-color-subdued);
+	}
+
+	input[type="range"][disabled]::-moz-range-track {
+		cursor: not-allowed;
+		background-color: var(--body-text-color-subdued);
+	}
+
+	input[type="range"][disabled]::-webkit-slider-thumb:hover {
+		background-color: var(--body-text-color-subdued);
+	}
+
+	input[type="range"][disabled]::-moz-range-track:hover {
+		background-color: var(--body-text-color-subdued);
 	}
 
 	input[type="range"]::-webkit-slider-runnable-track {

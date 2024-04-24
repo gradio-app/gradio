@@ -10,23 +10,23 @@
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let label: string;
+	export let label: string | null;
 	export let value: null | FileData | FileData[];
 	export let file_count: string;
 	export let file_types: string[] = [];
 	export let root: string;
 	export let size: "sm" | "lg" = "lg";
 	export let scale: number | null = null;
-	export let icon: string | null = null;
+	export let icon: FileData | null = null;
 	export let min_width: number | undefined = undefined;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let gradio: Gradio<{
 		change: never;
 		upload: never;
 		click: never;
+		error: string;
 	}>;
 	export let interactive: boolean;
-	export let proxy_url: null | string = null;
 
 	$: disabled = !interactive;
 
@@ -54,10 +54,13 @@
 	{disabled}
 	{variant}
 	{label}
-	{proxy_url}
+	max_file_size={gradio.max_file_size}
 	on:click={() => gradio.dispatch("click")}
 	on:change={({ detail }) => handle_event(detail, "change")}
 	on:upload={({ detail }) => handle_event(detail, "upload")}
+	on:error={({ detail }) => {
+		gradio.dispatch("error", detail);
+	}}
 >
-	{gradio.i18n(label)}
+	{label ? gradio.i18n(label) : ""}
 </UploadButton>

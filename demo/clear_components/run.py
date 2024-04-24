@@ -164,15 +164,16 @@ with gr.Blocks() as demo:
     result = gr.Textbox(label="Are all cleared?")
     hide = gr.Button(value="Hide")
     reveal = gr.Button(value="Reveal")
+    clear_button_and_components = components + [clear]
     hide.click(
-        lambda: [c.__class__(visible=False) for c in components],
+        lambda: [c.__class__(visible=False) for c in clear_button_and_components],
         inputs=[],
-        outputs=components
+        outputs=clear_button_and_components
     )
     reveal.click(
-        lambda: [c.__class__(visible=True) for c in components],
+        lambda: [c.__class__(visible=True) for c in clear_button_and_components],
         inputs=[],
-        outputs=components
+        outputs=clear_button_and_components
     )
     get_value = gr.Button(value="Get Values")
     get_value.click(evaluate_values, components, result)

@@ -14,8 +14,7 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
-from gradio_client.documentation import set_documentation_group
-from PIL import Image as _Image  # using _ to minimize namespace pollution
+import gradio_client.utils as client_utils
 
 from gradio import utils
 from gradio.blocks import Block, BlockContext
@@ -33,10 +32,6 @@ if TYPE_CHECKING:
         data: list[list[str | int | bool]]
 
 
-set_documentation_group("component")
-_Image.init()  # fixes https://github.com/gradio-app/gradio/issues/2843
-
-
 class _Keywords(Enum):
     NO_VALUE = "NO_VALUE"  # Used as a sentinel to determine if nothing is provided as a argument for `value` in `Component.update()`
     FINISHED_ITERATING = "FINISHED_ITERATING"  # Used to skip processing of a component's value (needed for generators + state)
@@ -49,6 +44,10 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     def preprocess(self, payload: Any) -> Any:
         """
         Any preprocessing needed to be performed on function input.
+        Parameters:
+            payload: The input data received by the component from the frontend.
+        Returns:
+            The preprocessed input data sent to the user's function in the backend.
         """
         return payload
 
@@ -56,16 +55,20 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     def postprocess(self, value):
         """
         Any postprocessing needed to be performed on function output.
+        Parameters:
+            value: The output data received by the component from the user's function in the backend.
+        Returns:
+            The postprocessed output data sent to the frontend.
         """
         return value
 
     @abstractmethod
-    def as_example(self, value):
+    def process_example(self, value):
         """
-        Return the input data in a way that can be displayed by the examples dataset component in the front-end.
+        Process the input data in a way that can be displayed by the examples dataset component in the front-end.
 
         For example, only return the name of a file as opposed to a full path. Or get the head of a dataframe.
-        Must be able to be converted to a string to put in the config.
+        The return value must be able to be json-serializable to put in the config.
         """
         pass
 
@@ -80,8 +83,7 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
     @abstractmethod
     def example_inputs(self) -> Any:
         """
-        The example inputs for this component as a dictionary whose values are example inputs compatible with this component.
-        Keys of the dictionary are: raw, serialized
+        Deprecated and replaced by `example_payload()` and `example_value()`.
         """
         pass
 
@@ -93,11 +95,7 @@ class ComponentBase(ABC, metaclass=ComponentMeta):
         pass
 
     @abstractmethod
-    def read_from_flag(
-        self,
-        payload: Any,
-        flag_dir: str | Path | None = None,
-    ) -> GradioDataModel | Any:
+    def read_from_flag(self, payload: Any) -> GradioDataModel | Any:
         """
         Convert the data from the csv or jsonl file into the component state.
         """
@@ -149,9 +147,10 @@ class Component(ComponentBase, Block):
         every: float | None = None,
     ):
         self.server_fns = [
-            value
-            for value in self.__class__.__dict__.values()
-            if callable(value) and getattr(value, "_is_server_fn", False)
+            getattr(self, value)
+            for value in dir(self.__class__)
+            if callable(getattr(self, value))
+            and getattr(getattr(self, value), "_is_server_fn", False)
         ]
 
         # Svelte components expect elem_classes to be a list
@@ -198,7 +197,14 @@ class Component(ComponentBase, Block):
         self.load_event_to_attach: None | tuple[Callable, float | None] = None
         load_fn, initial_value = self.get_load_fn_and_initial_value(value)
         initial_value = self.postprocess(initial_value)
-        self.value = move_files_to_cache(initial_value, self, postprocess=True)  # type: ignore
+        self.value = move_files_to_cache(
+            initial_value,
+            self,  # type: ignore
+            postprocess=True,
+            keep_in_cache=True,
+        )
+        if client_utils.is_file_obj(self.value):
+            self.keep_in_cache.add(self.value["path"])
 
         if callable(load_fn):
             self.attach_load_event(load_fn, every)
@@ -231,19 +237,45 @@ class Component(ComponentBase, Block):
             load_fn = None
         return load_fn, initial_value
 
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self):
-        return f"{self.get_block_name()}"
-
     def attach_load_event(self, callable: Callable, every: float | None):
         """Add a load event that runs `callable`, optionally every `every` seconds."""
         self.load_event_to_attach = (callable, every)
 
-    def as_example(self, input_data):
-        """Return the input data in a way that can be displayed by the examples dataset component in the front-end."""
-        return input_data
+    def process_example(self, value):
+        """
+        Process the input data in a way that can be displayed by the examples dataset component in the front-end.
+        By default, this calls the `.postprocess()` method of the component. However, if the `.postprocess()` method is
+        computationally intensive, or returns a large payload, a custom implementation may be appropriate.
+
+        For example,  the `process_example()` method of the `gr.Audio()` component only returns the name of the file, not
+        the processed audio file. The `.process_example()` method of the `gr.Dataframe()` returns the head of a dataframe
+        instead of the full dataframe.
+
+        The return value of this method must be json-serializable to put in the config.
+        """
+        return self.postprocess(value)
+
+    def as_example(self, value):
+        """Deprecated and replaced by `process_example()`."""
+        return self.process_example(value)
+
+    def example_inputs(self) -> Any:
+        """Deprecated and replaced by `example_payload()` and `example_value()`."""
+        return self.example_payload()
+
+    def example_payload(self) -> Any:
+        """
+        An example input data for this component, e.g. what is passed to this component's preprocess() method.
+        This is used to generate the docs for the View API page for Gradio apps using this component.
+        """
+        raise NotImplementedError()
+
+    def example_value(self) -> Any:
+        """
+        An example output data for this component, e.g. what is passed to this component's postprocess() method.
+        This is used to generate an example value if this component is used as a template for a custom component.
+        """
+        raise NotImplementedError()
 
     def api_info(self) -> dict[str, Any]:
         """
@@ -263,14 +295,12 @@ class Component(ComponentBase, Block):
         if self.data_model:
             payload = self.data_model.from_json(payload)
             Path(flag_dir).mkdir(exist_ok=True)
-            return payload.copy_to_dir(flag_dir).model_dump_json()
+            payload = payload.copy_to_dir(flag_dir).model_dump()
+        if not isinstance(payload, str):
+            payload = json.dumps(payload)
         return payload
 
-    def read_from_flag(
-        self,
-        payload: Any,
-        flag_dir: str | Path | None = None,
-    ):
+    def read_from_flag(self, payload: Any):
         """
         Convert the data from the csv or jsonl file into the component state.
         """
@@ -318,7 +348,8 @@ def component(cls_name: str, render: bool) -> Component:
     obj = utils.component_or_layout_class(cls_name)(render=render)
     if isinstance(obj, BlockContext):
         raise ValueError(f"Invalid component: {obj.__class__}")
-    assert isinstance(obj, Component)
+    if not isinstance(obj, Component):
+        raise TypeError(f"Expected a Component instance, but got {obj.__class__}")
     return obj
 
 
@@ -351,5 +382,8 @@ def get_component_instance(
         component_obj.render()
     elif unrender and component_obj.is_rendered:
         component_obj.unrender()
-    assert isinstance(component_obj, Component)
+    if not isinstance(component_obj, Component):
+        raise TypeError(
+            f"Expected a Component instance, but got {component_obj.__class__}"
+        )
     return component_obj

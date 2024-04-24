@@ -87,7 +87,7 @@ for guide_folder in guide_folders:
 
         guide_content = re.sub(
             r"(\n\nTip: )(.*?)(?=\n\n|$)", 
-            lambda x: f"<p class='tip'>💡 {x.group(2)}</p>", 
+            lambda x: f"<p class='tip'><strong>✍️ Tip:</strong> {x.group(2)}</p>", 
             guide_content,
         )
 

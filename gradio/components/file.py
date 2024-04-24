@@ -5,36 +5,25 @@ from __future__ import annotations
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Any, Callable, List, Literal
+from typing import Any, Callable, Literal
 
-from gradio_client.documentation import document, set_documentation_group
+import gradio_client.utils as client_utils
+from gradio_client import file
+from gradio_client.documentation import document
 
+from gradio import processing_utils
 from gradio.components.base import Component
-from gradio.data_classes import FileData, GradioRootModel
+from gradio.data_classes import FileData, ListFiles
 from gradio.events import Events
 from gradio.utils import NamedString
-
-set_documentation_group("component")
-
-
-class ListFiles(GradioRootModel):
-    root: List[FileData]
-
-    def __getitem__(self, index):
-        return self.root[index]
-
-    def __iter__(self):
-        return iter(self.root)
 
 
 @document()
 class File(Component):
     """
-    Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
-    Preprocessing: passes the uploaded file as a {tempfile._TemporaryFileWrapper} or {List[tempfile._TemporaryFileWrapper]} depending on `file_count` (or a {bytes}/{List[bytes]} depending on `type`)
-    Postprocessing: expects function to return a {str} path to a file, or {List[str]} consisting of paths to files.
-    Examples-format: a {str} path to a local file that populates the component.
-    Demos: zip_to_json, zip_files
+    Creates a file component that allows uploading one or more generic files (when used as an input) or displaying generic files or URLs for download (as output).
+
+    Demo: zip_files, zip_to_json
     """
 
     EVENTS = [Events.change, Events.select, Events.clear, Events.upload]
@@ -61,15 +50,15 @@ class File(Component):
     ):
         """
         Parameters:
-            value: Default file to display, given as str file path. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default file(s) to display, given as a str file path or URL, or a list of str file paths / URLs. If callable, the function will be called whenever the app loads to set the initial value of the component.
             file_count: if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
             file_types: List of file extensions or types of files to be uploaded (e.g. ['image', '.json', '.mp4']). "file" allows any file to be uploaded, "image" allows only image files to be uploaded, "audio" allows only audio files to be uploaded, "video" allows only video files to be uploaded, "text" allows only text files to be uploaded.
             type: Type of value to be returned by component. "file" returns a temporary file object with the same base name as the uploaded file, whose full path can be retrieved by file_obj.name, "binary" returns an bytes object.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise.sed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
             container: If True, will place the component in a container - providing some extra padding around the border.
-            scale: relative width compared to adjacent Components in a Row. For example, if Component A has scale=2, and Component B has scale=1, A will be twice as wide as B. Should be an integer.
+            scale: relative size compared to adjacent Components. For example if Components A and B are in a Row, and A has scale=2, and B has scale=1, A will be twice as wide as B. Should be an integer. scale applies in Rows, and to top-level Components in Blocks where fill_height=True.
             min_width: minimum pixel width, will wrap if not sufficient screen space to satisfy this value. If a certain scale value results in this Component being narrower than min_width, the min_width parameter will be respected first.
             height: The maximum height of the file component, specified in pixels if a number is passed, or in CSS units if a string is passed. If more files are uploaded than can fit in the height, a scrollbar will appear.
             interactive: if True, will allow users to upload a file; if False, can only be used to display files. If not provided, this is inferred based on whether the component is used as an input or output.
@@ -79,7 +68,7 @@ class File(Component):
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
         """
         self.file_count = file_count
-        if self.file_count == "multiple":
+        if self.file_count in ["multiple", "directory"]:
             self.data_model = ListFiles
         else:
             self.data_model = FileData
@@ -135,23 +124,54 @@ class File(Component):
 
     def preprocess(
         self, payload: ListFiles | FileData | None
-    ) -> bytes | NamedString | list[bytes | NamedString] | None:
+    ) -> bytes | str | list[bytes] | list[str] | None:
+        """
+        Parameters:
+            payload: File information as a FileData object, or a list of FileData objects.
+        Returns:
+            Passes the file as a `str` or `bytes` object, or a list of `str` or list of `bytes` objects, depending on `type` and `file_count`.
+        """
         if payload is None:
             return None
+
         if self.file_count == "single":
             if isinstance(payload, ListFiles):
                 return self._process_single_file(payload[0])
-            else:
-                return self._process_single_file(payload)
+            return self._process_single_file(payload)
+        if isinstance(payload, ListFiles):
+            return [self._process_single_file(f) for f in payload]  # type: ignore
+        return [self._process_single_file(payload)]  # type: ignore
+
+    def _download_files(self, value: str | list[str]) -> str | list[str]:
+        downloaded_files = []
+        if isinstance(value, list):
+            for file in value:
+                if client_utils.is_http_url_like(file):
+                    downloaded_file = processing_utils.save_url_to_cache(
+                        file, self.GRADIO_CACHE
+                    )
+                    downloaded_files.append(downloaded_file)
+                else:
+                    downloaded_files.append(file)
+            return downloaded_files
+        if client_utils.is_http_url_like(value):
+            downloaded_file = processing_utils.save_url_to_cache(
+                value, self.GRADIO_CACHE
+            )
+            return downloaded_file
         else:
-            if isinstance(payload, ListFiles):
-                return [self._process_single_file(f) for f in payload]
-            else:
-                return [self._process_single_file(payload)]
+            return value
 
     def postprocess(self, value: str | list[str] | None) -> ListFiles | FileData | None:
+        """
+        Parameters:
+            value: Expects a `str` filepath or URL, or a `list[str]` of filepaths/URLs.
+        Returns:
+            File information as a FileData object, or a list of FileData objects.
+        """
         if value is None:
             return None
+        value = self._download_files(value)
         if isinstance(value, list):
             return ListFiles(
                 root=[
@@ -170,7 +190,7 @@ class File(Component):
                 size=Path(value).stat().st_size,
             )
 
-    def as_example(self, input_data: str | list | None) -> str:
+    def process_example(self, input_data: str | list | None) -> str:
         if input_data is None:
             return ""
         elif isinstance(input_data, list):
@@ -178,7 +198,19 @@ class File(Component):
         else:
             return Path(input_data).name
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
+        if self.file_count == "single":
+            return file(
+                "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+            )
+        else:
+            return [
+                file(
+                    "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
+                )
+            ]
+
+    def example_value(self) -> Any:
         if self.file_count == "single":
             return "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
         else:

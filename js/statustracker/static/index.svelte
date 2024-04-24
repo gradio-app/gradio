@@ -50,13 +50,18 @@
 	import Loader from "./Loader.svelte";
 	import type { LoadingStatus } from "./types";
 	import type { I18nFormatter } from "@gradio/utils";
+	import { createEventDispatcher } from "svelte";
+
+	import { IconButton } from "@gradio/atoms";
+	import { Clear } from "@gradio/icons";
+
+	const dispatch = createEventDispatcher();
 
 	export let i18n: I18nFormatter;
 	export let eta: number | null = null;
-	export let queue = false;
 	export let queue_position: number | null;
 	export let queue_size: number | null;
-	export let status: "complete" | "pending" | "error" | "generating";
+	export let status: "complete" | "pending" | "error" | "generating" | null;
 	export let scroll_to_output = false;
 	export let timer = true;
 	export let show_progress: "full" | "minimal" | "hidden" = "full";
@@ -75,6 +80,7 @@
 	let timer_start = 0;
 	let timer_diff = 0;
 	let old_eta: number | null = null;
+	let eta_from_start: number | null = null;
 	let message_visible = false;
 	let eta_level: number | null = 0;
 	let progress_level: (number | undefined)[] | null = null;
@@ -83,9 +89,9 @@
 	let show_eta_bar = true;
 
 	$: eta_level =
-		eta === null || eta <= 0 || !timer_diff
+		eta_from_start === null || eta_from_start <= 0 || !timer_diff
 			? null
-			: Math.min(timer_diff / eta, 1);
+			: Math.min(timer_diff / eta_from_start, 1);
 	$: if (progress != null) {
 		show_eta_bar = false;
 	}
@@ -119,6 +125,7 @@
 	}
 
 	const start_timer = (): void => {
+		eta = old_eta = formatted_eta = null;
 		timer_start = performance.now();
 		timer_diff = 0;
 		_timer = true;
@@ -134,6 +141,7 @@
 
 	function stop_timer(): void {
 		timer_diff = 0;
+		eta = old_eta = formatted_eta = null;
 
 		if (!_timer) return;
 		_timer = false;
@@ -160,11 +168,10 @@
 	$: {
 		if (eta === null) {
 			eta = old_eta;
-		} else if (queue) {
-			eta = (performance.now() - timer_start) / 1000 + eta;
 		}
-		if (eta != null) {
-			formatted_eta = eta.toFixed(1);
+		if (eta != null && old_eta !== eta) {
+			eta_from_start = (performance.now() - timer_start) / 1000 + eta;
+			formatted_eta = eta_from_start.toFixed(1);
 			old_eta = eta;
 		}
 	}
@@ -270,6 +277,16 @@
 			<p class="loading">{loading_text}</p>
 		{/if}
 	{:else if status === "error"}
+		<div class="clear-status">
+			<IconButton
+				Icon={Clear}
+				label={i18n("common.clear")}
+				disabled={false}
+				on:click={() => {
+					dispatch("clear_status");
+				}}
+			/>
+		</div>
 		<span class="error">{i18n("common.error")}</span>
 		<slot name="error" />
 	{/if}
@@ -288,7 +305,6 @@
 		padding: 0 var(--size-6);
 		max-height: var(--size-screen-h);
 		overflow: hidden;
-		pointer-events: none;
 	}
 
 	.wrap.center {
@@ -313,6 +329,7 @@
 		animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 		border: 2px solid var(--color-accent);
 		background: transparent;
+		z-index: var(--layer-1);
 	}
 
 	.translucent {
@@ -419,5 +436,15 @@
 
 	.border {
 		border: 1px solid var(--border-color-primary);
+	}
+
+	.clear-status {
+		position: absolute;
+		display: flex;
+		top: var(--size-2);
+		right: var(--size-2);
+		justify-content: flex-end;
+		gap: var(--spacing-sm);
+		z-index: var(--layer-1);
 	}
 </style>

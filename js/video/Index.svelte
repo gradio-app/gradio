@@ -3,7 +3,7 @@
 <script lang="ts">
 	import type { Gradio, ShareData } from "@gradio/utils";
 
-	import { normalise_file, type FileData } from "@gradio/client";
+	import type { FileData } from "@gradio/client";
 	import { Block, UploadText } from "@gradio/atoms";
 	import StaticVideo from "./shared/VideoPreview.svelte";
 	import Video from "./shared/InteractiveVideo.svelte";
@@ -24,7 +24,6 @@
 		| ["webcam", "upload"]
 		| ["upload", "webcam"];
 	export let root: string;
-	export let proxy_url: null | string;
 	export let show_label: boolean;
 	export let loading_status: LoadingStatus;
 	export let height: number | undefined;
@@ -35,6 +34,7 @@
 	export let min_width: number | undefined = undefined;
 	export let autoplay = false;
 	export let show_share_button = true;
+	export let show_download_button: boolean;
 	export let gradio: Gradio<{
 		change: never;
 		clear: never;
@@ -48,6 +48,7 @@
 		share: ShareData;
 		error: string;
 		warning: string;
+		clear_status: LoadingStatus;
 	}>;
 	export let interactive: boolean;
 	export let mirror_webcam: boolean;
@@ -73,18 +74,14 @@
 		value = initial_value;
 	};
 
-	$: if (sources) {
-		if (sources.length > 1) {
-			active_source = "upload";
-		} else {
-			active_source = sources[0];
-		}
+	$: if (sources && !active_source) {
+		active_source = sources[0];
 	}
 
 	$: {
 		if (value != null) {
-			_video = normalise_file(value.video, root, proxy_url);
-			_subtitle = normalise_file(value.subtitles, root, proxy_url);
+			_video = value.video;
+			_subtitle = value.subtitles;
 		} else {
 			_video = null;
 			_subtitle = null;
@@ -141,6 +138,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 
 		<StaticVideo
@@ -150,7 +148,7 @@
 			{show_label}
 			{autoplay}
 			{show_share_button}
-			show_download_button={true}
+			{show_download_button}
 			on:play={() => gradio.dispatch("play")}
 			on:pause={() => gradio.dispatch("pause")}
 			on:stop={() => gradio.dispatch("stop")}
@@ -179,6 +177,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 
 		<Video
@@ -189,6 +188,7 @@
 			on:error={handle_error}
 			{label}
 			{show_label}
+			{show_download_button}
 			{sources}
 			{active_source}
 			{mirror_webcam}
@@ -205,6 +205,7 @@
 			on:start_recording={() => gradio.dispatch("start_recording")}
 			on:stop_recording={() => gradio.dispatch("stop_recording")}
 			i18n={gradio.i18n}
+			max_file_size={gradio.max_file_size}
 		>
 			<UploadText i18n={gradio.i18n} type="video" />
 		</Video>

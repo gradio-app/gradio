@@ -3,7 +3,7 @@
 </script>
 
 <footer
-	class="container mx-auto flex-row flex items-center px-4 py-6 justify-between"
+	class="main-footer container mx-auto flex-row flex items-center px-4 py-6 justify-between"
 >
 	<a href="/">
 		<img src={gradio_logo} alt="Gradio logo" />

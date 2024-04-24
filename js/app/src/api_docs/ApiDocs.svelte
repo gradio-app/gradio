@@ -2,26 +2,35 @@
 	/* eslint-disable */
 	import { onMount, createEventDispatcher } from "svelte";
 	import type { ComponentMeta, Dependency } from "../types";
-	import { post_data } from "@gradio/client";
 	import NoApi from "./NoApi.svelte";
-	import type { client } from "@gradio/client";
-
-	import { represent_value } from "./utils";
+	import type { Client } from "@gradio/client";
+	import type { Payload } from "../types";
 
 	import ApiBanner from "./ApiBanner.svelte";
-	import ResponseObject from "./ResponseObject.svelte";
+	import Button from "../../../button/shared/Button.svelte";
+	import ParametersSnippet from "./ParametersSnippet.svelte";
 	import InstallSnippet from "./InstallSnippet.svelte";
-	import CodeSnippets from "./CodeSnippets.svelte";
+	import CodeSnippet from "./CodeSnippet.svelte";
+	import RecordingSnippet from "./RecordingSnippet.svelte";
 
 	import python from "./img/python.svg";
 	import javascript from "./img/javascript.svg";
+	import ResponseSnippet from "./ResponseSnippet.svelte";
 
-	export let instance_map: {
-		[id: number]: ComponentMeta;
-	};
 	export let dependencies: Dependency[];
 	export let root: string;
-	export let app: Awaited<ReturnType<typeof client>>;
+	export let app: Awaited<ReturnType<typeof Client.connect>>;
+	export let space_id: string | null;
+	export let root_node: ComponentMeta;
+	const js_docs =
+		"https://www.gradio.app/guides/getting-started-with-the-js-client";
+	const py_docs =
+		"https://www.gradio.app/guides/getting-started-with-the-python-client";
+	const spaces_docs_suffix = "#connecting-to-a-hugging-face-space";
+
+	let api_count = dependencies.filter(
+		(dependency) => dependency.show_api
+	).length;
 
 	if (root === "") {
 		root = location.protocol + "//" + location.host + location.pathname;
@@ -30,6 +39,7 @@
 		root += "/";
 	}
 
+	export let api_calls: Payload[] = [];
 	let current_language: "python" | "javascript" = "python";
 
 	const langs = [
@@ -38,26 +48,6 @@
 	] as const;
 
 	let is_running = false;
-
-	let dependency_inputs = dependencies.map((dependency) =>
-		dependency.inputs.map((_id) => {
-			let default_data = instance_map[_id].documentation?.example_data;
-			if (default_data === undefined) {
-				default_data = "";
-			} else if (typeof default_data === "object") {
-				default_data = JSON.stringify(default_data);
-			}
-			return default_data;
-		})
-	);
-
-	let dependency_outputs: any[][] = dependencies.map(
-		(dependency) => new Array(dependency.outputs.length)
-	);
-
-	let dependency_failures: boolean[][] = dependencies.map((dependency) =>
-		new Array(dependency.inputs.length).fill(false)
-	);
 
 	async function get_info(): Promise<{
 		named_endpoints: any;
@@ -79,58 +69,15 @@
 
 	let js_info: Record<string, any>;
 
-	get_info().then((data) => (info = data));
+	get_info().then((data) => {
+		info = data;
+	});
 
-	get_js_info().then((js_api_info) => (js_info = js_api_info));
+	get_js_info().then((js_api_info) => {
+		js_info = js_api_info;
+	});
 
-	async function run(index: number): Promise<void> {
-		is_running = true;
-		let dependency = dependencies[index];
-		let attempted_component_index = 0;
-		try {
-			var inputs = dependency_inputs[index].map((input_val, i) => {
-				attempted_component_index = i;
-				let component = instance_map[dependency.inputs[i]];
-				// @ts-ignore
-				input_val = represent_value(
-					input_val,
-					component.documentation?.type?.input_payload ||
-						component.documentation?.type?.payload
-				);
-				dependency_failures[index][attempted_component_index] = false;
-				return input_val;
-			});
-		} catch (err) {
-			dependency_failures[index][attempted_component_index] = true;
-			is_running = false;
-			return;
-		}
-		let [response, status_code] = await post_data(
-			`${root}run/${dependency.api_name}`,
-			{
-				data: inputs
-			}
-		);
-		is_running = false;
-		if (status_code == 200) {
-			dependency_outputs[index] = response.data.map(
-				(output_val: any, i: number) => {
-					let component = instance_map[dependency.outputs[i]];
-
-					return represent_value(
-						output_val,
-						component.documentation?.type?.response_object ||
-							component.documentation?.type?.payload,
-						"js"
-					);
-				}
-			);
-		} else {
-			dependency_failures[index] = new Array(
-				dependency_failures[index].length
-			).fill(true);
-		}
-	}
+	const dispatch = createEventDispatcher();
 
 	onMount(() => {
 		document.body.style.overflow = "hidden";
@@ -144,26 +91,19 @@
 </script>
 
 {#if info}
-	{#if Object.keys(info.named_endpoints).length + Object.keys(info.unnamed_endpoints).length}
+	{#if api_count}
 		<div class="banner-wrap">
-			<ApiBanner
-				on:close
-				{root}
-				api_count={Object.keys(info.named_endpoints).length +
-					Object.keys(info.unnamed_endpoints).length}
-			/>
+			<ApiBanner on:close root={space_id || root} {api_count} />
 		</div>
+
 		<div class="docs-wrap">
 			<div class="client-doc">
 				<p>
-					Use the <a
-						href="https://gradio.app/docs/#python-client"
-						target="_blank"><code class="library">gradio_client</code></a
-					>
-					Python library or the
-					<a href="https://gradio.app/docs/#javascript-client" target="_blank"
-						><code class="library">@gradio/client</code></a
-					> Javascript package to query the demo via API.
+					Use the <code class="library">gradio_client</code>
+					<a href={py_docs} target="_blank">Python library</a> or the
+					<code class="library">@gradio/client</code>
+					<a href={js_docs} target="_blank">Javascript package</a> to query the app
+					via API.
 				</p>
 			</div>
 			<div class="endpoint">
@@ -171,7 +111,7 @@
 					{#each langs as [language, img]}
 						<li
 							class="snippet
-							{current_language === language ? 'current-lang' : 'inactive-lang'}"
+						{current_language === language ? 'current-lang' : 'inactive-lang'}"
 							on:click={() => (current_language = language)}
 						>
 							<img src={img} alt="" />
@@ -179,16 +119,75 @@
 						</li>
 					{/each}
 				</div>
-				<InstallSnippet {current_language} />
+				{#if api_calls.length}
+					<div>
+						<p
+							style="font-size: var(--text-lg); font-weight:bold; margin: 10px 0px;"
+						>
+							🪄 Recorded API Calls ({api_calls.length})
+						</p>
+						<p>
+							Here is the code snippet to replay the most recently recorded API
+							calls using the {current_language}
+							client.
+						</p>
 
-				{#if Object.keys(info.named_endpoints).length}
-					<h2 class="header">Named Endpoints</h2>
+						<RecordingSnippet
+							{current_language}
+							{api_calls}
+							{dependencies}
+							root={space_id || root}
+							endpoints_info={info.named_endpoints}
+						/>
+						<p>
+							Note: the above list may include extra API calls that affect the
+							UI, but are not necessary for the clients.
+						</p>
+					</div>
+					<p
+						style="font-size: var(--text-lg); font-weight:bold; margin: 30px 0px 10px;"
+					>
+						API Documentation
+					</p>
+				{:else}
+					<p class="padded">
+						1. Install the client if you don't already have it installed.
+					</p>
+
+					<InstallSnippet {current_language} />
+
+					<p class="padded">
+						2. Find the API endpoint below corresponding to your desired
+						function in the app. Copy the code snippet, replacing the
+						placeholder values with your own input data.
+						{#if space_id}If this is a private Space, you may need to pass your
+							Hugging Face token as well (<a
+								href={(current_language == "python" ? py_docs : js_docs) +
+									spaces_docs_suffix}
+								class="underline"
+								target="_blank">read more</a
+							>).{/if} Or
+						<Button
+							size="sm"
+							variant="primary"
+							on:click={() => dispatch("close", { api_recorder_visible: true })}
+						>
+							🪄 Use the API Recorder
+						</Button>
+						to automatically generate your API requests.
+
+						<!-- <span
+							id="api-recorder"
+							on:click={() => dispatch("close", { api_recorder_visible: true })}
+							>🪄 API Recorder</span
+						> to automatically generate your API requests! -->
+					</p>
 				{/if}
 
 				{#each dependencies as dependency, dependency_index}
-					{#if dependency.api_name}
+					{#if dependency.show_api}
 						<div class="endpoint-container">
-							<CodeSnippets
+							<CodeSnippet
 								named={true}
 								endpoint_parameters={info.named_endpoints[
 									"/" + dependency.api_name
@@ -199,53 +198,25 @@
 								{dependency}
 								{dependency_index}
 								{current_language}
-								{root}
-								{dependency_failures}
+								root={space_id || root}
 							/>
 
-							<!-- <TryButton
-							named={true}
-							{dependency_index}
-							{run}
-						/> -->
+							<ParametersSnippet
+								endpoint_returns={info.named_endpoints[
+									"/" + dependency.api_name
+								].parameters}
+								js_returns={js_info.named_endpoints["/" + dependency.api_name]
+									.parameters}
+								{is_running}
+								{current_language}
+							/>
 
-							<ResponseObject
+							<ResponseSnippet
 								endpoint_returns={info.named_endpoints[
 									"/" + dependency.api_name
 								].returns}
 								js_returns={js_info.named_endpoints["/" + dependency.api_name]
 									.returns}
-								{is_running}
-								{current_language}
-							/>
-						</div>
-					{/if}
-				{/each}
-
-				{#if Object.keys(info.unnamed_endpoints).length}
-					<h2 class="header">Unnamed Endpoints</h2>
-				{/if}
-
-				{#each dependencies as dependency, dependency_index}
-					{#if info.unnamed_endpoints[dependency_index]}
-						<div class="endpoint-container">
-							<CodeSnippets
-								named={false}
-								endpoint_parameters={info.unnamed_endpoints[dependency_index]
-									.parameters}
-								js_parameters={js_info.unnamed_endpoints[dependency_index]
-									.parameters}
-								{dependency}
-								{dependency_index}
-								{current_language}
-								{root}
-								{dependency_failures}
-							/>
-
-							<ResponseObject
-								endpoint_returns={info.unnamed_endpoints[dependency_index]
-									.returns}
-								js_returns={js_info.unnamed_endpoints[dependency_index].returns}
 								{is_running}
 								{current_language}
 							/>
@@ -298,10 +269,10 @@
 		border: 1px solid var(--border-color-accent);
 		border-radius: var(--radius-sm);
 		background: var(--color-accent-soft);
-		padding-right: var(--size-1);
-		padding-bottom: var(--size-1);
-		padding-left: var(--size-1);
+		padding: 0px var(--size-1);
 		color: var(--color-accent);
+		font-size: var(--text-md);
+		text-decoration: none;
 	}
 
 	.snippets {
@@ -357,9 +328,26 @@
 	.endpoint-container {
 		margin-top: var(--size-3);
 		margin-bottom: var(--size-3);
-		border: 1px solid var(--border-color-primary);
+		border: 1px solid var(--body-text-color);
 		border-radius: var(--radius-xl);
 		padding: var(--size-3);
 		padding-top: 0;
+	}
+
+	a {
+		text-decoration: underline;
+	}
+
+	p.padded {
+		padding: 15px 0px;
+		font-size: var(--text-lg);
+	}
+
+	#api-recorder {
+		border: 1px solid var(--color-accent);
+		background-color: var(--color-accent-soft);
+		padding: 0px var(--size-2);
+		border-radius: var(--size-1);
+		cursor: pointer;
 	}
 </style>

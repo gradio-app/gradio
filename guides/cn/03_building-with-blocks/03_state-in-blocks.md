@@ -27,4 +27,4 @@ $demo_hangman
 
 对于更复杂的应用程序，您可能会在一个单独的分块应用程序中使用许多存储会话状态的 `State` 变量。
 
-在[文档](https://gradio.app/docs#state)中了解更多关于 `State` 的信息。
+在[文档](https://gradio.app/docs/state)中了解更多关于 `State` 的信息。

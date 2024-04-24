@@ -1,2 +1,14 @@
 # https://github.com/gradio-app/gradio/pull/4487 - refactor components.py to separate files
 69f36f98535c904e7cac2b4942cecc747ed7443c
+# Format the codebase
+cc0cff893f9d7d472788adc2510c123967b384fe
+# Switch from black to ruff
+8a70e83db9c7751b46058cdd2514e6bddeef6210
+# format (#4810)
+7fa5e766ce0f89f1fb84c329e62c9df9c332120a
+# lint website
+4bf301324b3b180fa32166ff1774312b01334c88
+# format frontend with prettier
+980b9f60eb49ed81e4957debe7b23a559a4d4b51
+# Refactor component directories (#5074)
+1419538ea795caa391e3de809379f10639e9e764

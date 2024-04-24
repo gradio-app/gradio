@@ -19,6 +19,7 @@ from gradio.components.code import Code
 from gradio.components.color_picker import ColorPicker
 from gradio.components.dataframe import Dataframe
 from gradio.components.dataset import Dataset
+from gradio.components.download_button import DownloadButton
 from gradio.components.dropdown import Dropdown
 from gradio.components.duplicate_button import DuplicateButton
 from gradio.components.fallback import Fallback
@@ -36,7 +37,9 @@ from gradio.components.login_button import LoginButton
 from gradio.components.logout_button import LogoutButton
 from gradio.components.markdown import Markdown
 from gradio.components.model3d import Model3D
+from gradio.components.multimodal_textbox import MultimodalTextbox
 from gradio.components.number import Number
+from gradio.components.paramviewer import ParamViewer
 from gradio.components.plot import Plot
 from gradio.components.radio import Radio
 from gradio.components.scatter_plot import ScatterPlot
@@ -72,6 +75,7 @@ __all__ = [
     "Dataframe",
     "DataFrame",
     "Dataset",
+    "DownloadButton",
     "DuplicateButton",
     "Fallback",
     "Form",
@@ -110,4 +114,6 @@ __all__ = [
     "StreamingInput",
     "StreamingOutput",
     "ImageEditor",
+    "ParamViewer",
+    "MultimodalTextbox",
 ]

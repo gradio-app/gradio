@@ -7,7 +7,7 @@ import pytest
 import gradio
 import gradio as gr
 from gradio.cli.commands.reload import _setup_config
-from gradio.networking import Server
+from gradio.http_server import Server
 
 
 def build_demo():

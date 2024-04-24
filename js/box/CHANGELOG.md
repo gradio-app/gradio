@@ -1,5 +1,64 @@
 # @gradio/box
 
+## 0.1.14
+
+### Dependency updates
+
+- @gradio/atoms@0.7.0
+
+## 0.1.13
+
+### Dependency updates
+
+- @gradio/atoms@0.6.2
+
+## 0.1.12
+
+### Dependency updates
+
+- @gradio/atoms@0.6.1
+
+## 0.1.11
+
+### Dependency updates
+
+- @gradio/atoms@0.6.0
+
+## 0.1.10
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/atoms@0.5.3
+
+## 0.1.9
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/atoms@0.5.2
+
+## 0.1.8
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/atoms@0.5.1
+
+## 0.1.7
+
+### Patch Changes
+
+- Updated dependencies [[`c60ad4d`](https://github.com/gradio-app/gradio/commit/c60ad4d34ab5b56a89bf6796822977e51e7a4a32)]:
+  - @gradio/atoms@0.5.0
+
+## 0.1.6
+
+### Patch Changes
+
+- Updated dependencies [[`73268ee`](https://github.com/gradio-app/gradio/commit/73268ee2e39f23ebdd1e927cb49b8d79c4b9a144)]:
+  - @gradio/atoms@0.4.1
+
 ## 0.1.5
 
 ### Patch Changes

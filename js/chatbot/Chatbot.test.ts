@@ -23,8 +23,6 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: [["user message one", "bot message one"]],
-			root: "",
-			proxy_url: "",
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
@@ -40,8 +38,6 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: [[null, null]],
-			root: "",
-			proxy_url: "",
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
@@ -61,8 +57,6 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: [["", ""]],
-			root: "",
-			proxy_url: "",
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
@@ -78,8 +72,6 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: [["user message one", "bot message one"]],
-			root: "",
-			proxy_url: "",
 			latex_delimiters: [{ left: "$$", right: "$$", display: true }]
 		});
 
@@ -105,8 +97,6 @@ describe("Chatbot", () => {
 			loading_status,
 			label: "chatbot",
 			value: undefined,
-			root: "",
-			proxy_url: "",
 			latex_delimiters: []
 		});
 
@@ -116,6 +106,7 @@ describe("Chatbot", () => {
 			{
 				file: {
 					path: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah1.jpg",
+					url: "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah1.jpg",
 					mime_type: "image/jpeg",
 					alt_text: null
 				}
@@ -136,8 +127,6 @@ describe("Chatbot", () => {
 		const { component, getAllByTestId } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
-			root: "",
-			proxy_url: "",
 			latex_delimiters: [],
 			theme_mode: "dark"
 		});
@@ -146,6 +135,7 @@ describe("Chatbot", () => {
 				{
 					file: {
 						path: "https://gradio-builds.s3.amazonaws.com/demo-files/video_sample.mp4",
+						url: "https://gradio-builds.s3.amazonaws.com/demo-files/video_sample.mp4",
 						mime_type: "video/mp4",
 						alt_text: null
 					}
@@ -164,8 +154,6 @@ describe("Chatbot", () => {
 		const { component, getAllByTestId } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
-			root: "",
-			proxy_url: "",
 			latex_delimiters: [],
 			theme_mode: "dark"
 		});
@@ -174,6 +162,7 @@ describe("Chatbot", () => {
 			{
 				file: {
 					path: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
+					url: "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav",
 					mime_type: "audio/wav",
 					alt_text: null
 				}
@@ -193,8 +182,6 @@ describe("Chatbot", () => {
 		const { component, getAllByTestId } = await render(Chatbot, {
 			loading_status,
 			label: "chatbot",
-			root: "",
-			proxy_url: "",
 			latex_delimiters: []
 		});
 
@@ -202,6 +189,7 @@ describe("Chatbot", () => {
 			{
 				file: {
 					path: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
+					url: "https://gradio-builds.s3.amazonaws.com/demo-files/titanic.csv",
 					mime_type: "text/csv",
 					alt_text: null
 				}

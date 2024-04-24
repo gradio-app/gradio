@@ -1,0 +1,151 @@
+name: "prepare"
+description: "Prepare workflow"
+
+inputs:
+  type:
+    description: "Type of workflow"
+    default: "one of: `gradio`, `python-client`, `js`, `js-client`, `functional`"
+  token:
+    description: "Github token"
+    required: true
+  name:
+    description: "Check name"
+    default: "false"
+  commit_status:
+    description: "Whether to create a commit status"
+    default: "true"
+outputs:
+  should_run:
+    description: "Whether to run the workflow"
+    value: ${{ steps.should_run.outputs.should_run }}
+  pr_number:
+    description: "PR number"
+    value: ${{ steps.pr.outputs.pr_number }}
+  sha:
+    description: "SHA of the HEAD commit of the PR"
+    value: ${{ steps.pr.outputs.sha }}
+  source_repo:
+    description: "Source repo"
+    value: ${{ steps.pr.outputs.source_repo }}
+  source_branch:
+    description: "Source branch"
+    value: ${{ steps.pr.outputs.source_branch }}
+  merge_sha:
+    description: "SHA of the merged result preview branch"
+    value: ${{ steps.pr.outputs.merge_sha }}
+  mergeable:
+    description: "Whether the PR is mergeable"
+    value: ${{ steps.pr.outputs.mergeable }}
+  labels:
+    description: "Labels on the PR"
+    value: ${{ steps.pr.outputs.labels }}
+  found_pr:
+    description: "Whether a PR was found"
+    value: ${{ steps.pr.outputs.found_pr }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Get PR number"
+      id: pr
+      uses: "gradio-app/github/actions/find-pr@main"
+      with:
+        github_token: ${{ inputs.token }}
+    - uses: actions/checkout@v4
+      with:
+        repository: ${{ github.repository }}
+        ref: ${{ steps.pr.outputs.sha }}
+        fetch-depth: 0
+        token: ${{ inputs.token }}
+    - uses: dorny/paths-filter@v3
+      id: changes
+      with:
+        base: main
+        ref: ${{ steps.pr.outputs.sha == github.sha && 'main' || steps.pr.outputs.sha }}
+        filters: |
+          gradio:
+            - 'client/python/**'
+            - 'gradio/**'
+            - 'requirements.txt'
+            - '.github/**'
+            - 'scripts/**'
+            - 'test/**'
+          js:
+            - 'js/**'
+            - 'client/js/**'
+            - '.github/**'
+            - 'package.json'
+            - 'pnpm-lock.yaml'
+            - 'tsconfig.json'
+            - '.config/**'
+          functional:
+            - '.github/**'
+            - 'client/**'
+            - 'demo/**'
+            - 'gradio/**'
+            - 'js/**'
+            - 'scripts/**'
+            - 'globals.d.ts'
+            - 'package.json'
+            - 'pnpm-lock.yaml'
+            - 'pyproject.toml'
+            - 'requirements.txt'
+            - '.config/**'
+          visual:
+            - '.github/workflows/deploy-chromatic.yml'
+            - 'js!(/_website)/**'
+            - 'package.json'
+          website:
+            - 'js/_website/**'
+            - 'package.json'
+            - 'pnpm-lock.yaml'
+            - 'guides/**'
+            - 'README.md'
+            - 'CHANGELOG.md'
+            - 'gradio/**'
+            - 'client/**'
+            - 'demo/**'
+            - '.github/deplooy-website.yml'
+
+    - name: set env (gradio)
+      if: ${{ inputs.type == 'gradio' }}
+      shell: bash
+      run: echo "SHOULD_RUN=${{ steps.changes.outputs.gradio == 'true' }}" >> $GITHUB_ENV
+    - name: set env (js)
+      if: ${{ inputs.type == 'js' }}
+      shell: bash
+      run: echo "SHOULD_RUN=${{ steps.changes.outputs.js == 'true' }}" >> $GITHUB_ENV
+    - name: set env (functional)
+      if: ${{ inputs.type == 'functional' }}
+      shell: bash
+      run: echo "SHOULD_RUN=${{ steps.changes.outputs.functional == 'true' }}" >> $GITHUB_ENV
+    - name: set env (visual)
+      if: ${{ inputs.type == 'visual' }}
+      shell: bash
+      run: echo "SHOULD_RUN=${{ steps.changes.outputs.visual == 'true' }}" >> $GITHUB_ENV
+    - name: set end (all)
+      if: ${{ inputs.type == 'all' }}
+      shell: bash
+      run: echo "SHOULD_RUN=true" >> $GITHUB_ENV
+    - name: set env (website)
+      if: ${{ inputs.type == 'website' }}
+      shell: bash
+      run: echo "SHOULD_RUN=${{ steps.changes.outputs.website == 'true' }}" >> $GITHUB_ENV
+    - if: ${{ steps.pr.outputs.mergeable == 'false' && steps.pr.outputs.source_branch != 'main' }}
+      run: echo "SHOULD_RUN=false" >> $GITHUB_ENV
+      shell: bash
+    - name: set output
+      id: should_run
+      shell: bash
+      run: echo "should_run=${{ env.SHOULD_RUN }}" >> $GITHUB_OUTPUT
+    - uses: "gradio-app/github/actions/commit-status@main"
+      with:
+        token: ${{ inputs.token }}
+        pr: ${{ steps.pr.outputs.pr_number }}
+        sha: ${{ steps.pr.outputs.sha }}
+        name: ${{ inputs.name }}
+        changes: ${{ steps.changes.outputs.changes }}
+        type: ${{ inputs.type }}
+        init: true
+        mergeable: ${{ steps.pr.outputs.source_branch == 'main' || steps.pr.outputs.mergeable }}
+        commit_status: ${{ inputs.type == 'visual' && steps.should_run.outputs.should_run == 'false' || inputs.commit_status }}

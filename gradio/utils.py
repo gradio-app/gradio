@@ -1,19 +1,24 @@
-""" Handy utility functions. """
+"""Handy utility functions."""
 
 from __future__ import annotations
 
+import ast
 import asyncio
 import copy
 import dataclasses
 import functools
 import importlib
+import importlib.util
 import inspect
 import json
 import json.decoder
 import os
 import pkgutil
 import re
+import sys
+import tempfile
 import threading
+import time
 import traceback
 import typing
 import urllib.parse
@@ -21,10 +26,11 @@ import warnings
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from contextlib import contextmanager
+from functools import wraps
 from io import BytesIO
 from numbers import Number
 from pathlib import Path
-from types import AsyncGeneratorType, GeneratorType
+from types import AsyncGeneratorType, GeneratorType, ModuleType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -37,12 +43,14 @@ from typing import (
 )
 
 import anyio
+import gradio_client.utils as client_utils
 import httpx
-import matplotlib
+from gradio_client.documentation import document
 from typing_extensions import ParamSpec
 
 import gradio
 from gradio.context import Context
+from gradio.data_classes import FileData
 from gradio.strings import en
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -81,6 +89,14 @@ def safe_get_lock() -> asyncio.Lock:
         return None  # type: ignore
 
 
+def safe_get_stop_event() -> asyncio.Event:
+    try:
+        asyncio.get_event_loop()
+        return asyncio.Event()
+    except RuntimeError:
+        return None  # type: ignore
+
+
 class BaseReloader(ABC):
     @property
     @abstractmethod
@@ -95,13 +111,14 @@ class BaseReloader(ABC):
         )
 
     def swap_blocks(self, demo: Blocks):
-        assert self.running_app.blocks
+        assert self.running_app.blocks  # noqa: S101
         # Copy over the blocks to get new components and events but
         # not a new queue
-        if self.running_app.blocks._queue:
-            self.running_app.blocks._queue.block_fns = demo.fns
-            demo._queue = self.running_app.blocks._queue
+        self.running_app.blocks._queue.block_fns = demo.fns
+        demo._queue = self.running_app.blocks._queue
+        self.running_app.state_holder.reset(demo)
         self.running_app.blocks = demo
+        demo._queue.reload()
 
 
 class SourceFileReloader(BaseReloader):
@@ -110,6 +127,7 @@ class SourceFileReloader(BaseReloader):
         app: App,
         watch_dirs: list[str],
         watch_module_name: str,
+        demo_file: str,
         stop_event: threading.Event,
         change_event: threading.Event,
         demo_name: str = "demo",
@@ -121,6 +139,7 @@ class SourceFileReloader(BaseReloader):
         self.stop_event = stop_event
         self.change_event = change_event
         self.demo_name = demo_name
+        self.demo_file = Path(demo_file)
 
     @property
     def running_app(self) -> App:
@@ -138,6 +157,51 @@ class SourceFileReloader(BaseReloader):
     def swap_blocks(self, demo: Blocks):
         super().swap_blocks(demo)
         self.alert_change()
+
+
+NO_RELOAD = True
+
+
+def _remove_no_reload_codeblocks(file_path: str):
+    """Parse the file, remove the gr.no_reload code blocks, and write the file back to disk.
+
+    Parameters:
+        file_path (str): The path to the file to remove the no_reload code blocks from.
+    """
+
+    with open(file_path, encoding="utf-8") as file:
+        code = file.read()
+
+    tree = ast.parse(code)
+
+    def _is_gr_no_reload(expr: ast.AST) -> bool:
+        """Find with gr.no_reload context managers."""
+        return (
+            isinstance(expr, ast.If)
+            and isinstance(expr.test, ast.Attribute)
+            and isinstance(expr.test.value, ast.Name)
+            and expr.test.value.id == "gr"
+            and expr.test.attr == "NO_RELOAD"
+        )
+
+    # Find the positions of the code blocks to load
+    for node in ast.walk(tree):
+        if _is_gr_no_reload(node):
+            assert isinstance(node, ast.If)  # noqa: S101
+            node.body = [ast.Pass(lineno=node.lineno, col_offset=node.col_offset)]
+
+    # convert tree to string
+    code_removed = compile(tree, filename=file_path, mode="exec")
+    return code_removed
+
+
+def _find_module(source_file: Path) -> ModuleType:
+    for s, v in sys.modules.items():
+        if s not in {"__main__", "__mp_main__"} and getattr(v, "__file__", None) == str(
+            source_file
+        ):
+            return v
+    raise ValueError(f"Cannot find module for source file: {source_file}")
 
 
 def watchfn(reloader: SourceFileReloader):
@@ -175,7 +239,6 @@ def watchfn(reloader: SourceFileReloader):
             for path in list(reload_dir.rglob("*.css")):
                 yield path.resolve()
 
-    module = None
     reload_dirs = [Path(dir_) for dir_ in reloader.watch_dirs]
     import sys
 
@@ -183,37 +246,44 @@ def watchfn(reloader: SourceFileReloader):
         sys.path.insert(0, str(dir_))
 
     mtimes = {}
+    # Need to import the module in this thread so that the
+    # module is available in the namespace of this thread
+    module = importlib.import_module(reloader.watch_module_name)
     while reloader.should_watch():
         changed = get_changes()
         if changed:
             print(f"Changes detected in: {changed}")
-            # To simulate a fresh reload, delete all module references from sys.modules
-            # for the modules in the package the change came from.
-            dir_ = next(d for d in reload_dirs if is_in_or_equal(changed, d))
-            modules = list(sys.modules)
-            for k in modules:
-                v = sys.modules[k]
-                sourcefile = getattr(v, "__file__", None)
-                # Do not reload `reload.py` to keep thread data
-                if (
-                    sourcefile
-                    and dir_ == Path(inspect.getfile(gradio)).parent
-                    and sourcefile.endswith("reload.py")
-                ):
-                    continue
-                if sourcefile and is_in_or_equal(sourcefile, dir_):
-                    del sys.modules[k]
             try:
-                module = importlib.import_module(reloader.watch_module_name)
-                module = importlib.reload(module)
-            except Exception as e:
+                # How source file reloading works
+                # 1. Remove the gr.no_reload code blocks from the temp file
+                # 2. Execute the changed source code in the original module's namespac
+                # 3. Delete the package the module is in from sys.modules.
+                # This is so that the updated module is available in the entire package
+                # 4. Do 1-2 for the main demo file even if it did not change.
+                # This is because the main demo file may import the changed file and we need the
+                # changes to be reflected in the main demo file.
+
+                changed_in_copy = _remove_no_reload_codeblocks(str(changed))
+                if changed != reloader.demo_file:
+                    changed_module = _find_module(changed)
+                    exec(changed_in_copy, changed_module.__dict__)
+                    top_level_parent = sys.modules[
+                        changed_module.__name__.split(".")[0]
+                    ]
+                    if top_level_parent != changed_module:
+                        importlib.reload(top_level_parent)
+
+                changed_demo_file = _remove_no_reload_codeblocks(
+                    str(reloader.demo_file)
+                )
+                exec(changed_demo_file, module.__dict__)
+            except Exception:
                 print(
                     f"Reloading {reloader.watch_module_name} failed with the following exception: "
                 )
-                traceback.print_exception(None, value=e, tb=None)
+                traceback.print_exc()
                 mtimes = {}
                 continue
-
             demo = getattr(module, reloader.demo_name)
             if reloader.queue_changed(demo):
                 print(
@@ -223,6 +293,7 @@ def watchfn(reloader: SourceFileReloader):
             else:
                 reloader.swap_blocks(demo)
             mtimes = {}
+        time.sleep(0.05)
 
 
 def colab_check() -> bool:
@@ -285,13 +356,24 @@ def is_zero_gpu_space() -> bool:
     return os.getenv("SPACES_ZERO_GPU") == "true"
 
 
-def readme_to_html(article: str) -> str:
+def download_if_url(article: str) -> str:
+    try:
+        result = urllib.parse.urlparse(article)
+        is_url = all([result.scheme, result.netloc, result.path])
+        is_url = is_url and result.scheme in ["http", "https"]
+    except ValueError:
+        is_url = False
+
+    if not is_url:
+        return article
+
     try:
         response = httpx.get(article, timeout=3)
         if response.status_code == httpx.codes.OK:  # pylint: disable=no-member
             article = response.text
-    except httpx.RequestError:
+    except (httpx.InvalidURL, httpx.RequestError, httpx.TimeoutException):
         pass
+
     return article
 
 
@@ -383,24 +465,6 @@ def assert_configs_are_equivalent_besides_ids(
             raise ValueError(f"{d1} does not match {d2}")
 
     return True
-
-
-def format_ner_list(input_string: str, ner_groups: list[dict[str, str | int]]):
-    if len(ner_groups) == 0:
-        return [(input_string, None)]
-
-    output = []
-    end = 0
-    prev_end = 0
-
-    for group in ner_groups:
-        entity, start, end = group["entity_group"], group["start"], group["end"]
-        output.append((input_string[prev_end:start], None))
-        output.append((input_string[start:end], entity))
-        prev_end = end
-
-    output.append((input_string[end:], None))
-    return output
 
 
 def delete_none(_dict: dict, skip_value: bool = False) -> dict:
@@ -586,12 +650,14 @@ def append_unique_suffix(name: str, list_of_names: list[str]):
 
 
 def validate_url(possible_url: str) -> bool:
-    headers = {"User-Agent": "gradio (https://gradio.app/; team@gradio.app)"}
+    headers = {"User-Agent": "gradio (https://gradio.app/; gradio-team@huggingface.co)"}
     try:
         head_request = httpx.head(possible_url, headers=headers, follow_redirects=True)
         # some URLs, such as AWS S3 presigned URLs, return a 405 or a 403 for HEAD requests
-        if head_request.status_code == 405 or head_request.status_code == 403:
-            return httpx.get(possible_url, headers=headers).is_success
+        if head_request.status_code in (403, 405):
+            return httpx.get(
+                possible_url, headers=headers, follow_redirects=True
+            ).is_success
         return head_request.is_success
     except Exception:
         return False
@@ -635,12 +701,19 @@ def function_wrapper(
 
         @functools.wraps(f)
         async def asyncgen_wrapper(*args, **kwargs):
-            if before_fn:
-                before_fn(*before_args)
-            async for response in f(*args, **kwargs):
+            iterator = f(*args, **kwargs)
+            while True:
+                if before_fn:
+                    before_fn(*before_args)
+                try:
+                    response = await iterator.__anext__()
+                except StopAsyncIteration:
+                    if after_fn:
+                        after_fn(*after_args)
+                    break
+                if after_fn:
+                    after_fn(*after_args)
                 yield response
-            if after_fn:
-                after_fn(*after_args)
 
         return asyncgen_wrapper
 
@@ -661,11 +734,19 @@ def function_wrapper(
 
         @functools.wraps(f)
         def gen_wrapper(*args, **kwargs):
-            if before_fn:
-                before_fn(*before_args)
-            yield from f(*args, **kwargs)
-            if after_fn:
-                after_fn(*after_args)
+            iterator = f(*args, **kwargs)
+            while True:
+                if before_fn:
+                    before_fn(*before_args)
+                try:
+                    response = next(iterator)
+                except StopIteration:
+                    if after_fn:
+                        after_fn(*after_args)
+                    break
+                if after_fn:
+                    after_fn(*after_args)
+                yield response
 
         return gen_wrapper
 
@@ -705,7 +786,10 @@ def get_function_with_locals(
         LocalContext.request.set(None)
 
     return function_wrapper(
-        fn, before_fn=before_fn, before_args=(blocks, event_id), after_fn=after_fn
+        fn,
+        before_fn=before_fn,
+        before_args=(blocks, event_id),
+        after_fn=after_fn,
     )
 
 
@@ -730,7 +814,7 @@ def get_cancel_function(
     for dep in dependencies:
         if Context.root_block:
             fn_index = next(
-                i for i, d in enumerate(Context.root_block.dependencies) if d == dep
+                i for i, d in enumerate(Context.root_block.fns) if d.get_config() == dep
             )
             fn_to_comp[fn_index] = [
                 Context.root_block.blocks[o] for o in dep["outputs"]
@@ -861,14 +945,18 @@ class TupleNoPrint(tuple):
 
 class MatplotlibBackendMananger:
     def __enter__(self):
+        import matplotlib
+
         self._original_backend = matplotlib.get_backend()
         matplotlib.use("agg")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        import matplotlib
+
         matplotlib.use(self._original_backend)
 
 
-def tex2svg(formula, *args):
+def tex2svg(formula, *_args):
     with MatplotlibBackendMananger():
         import matplotlib.pyplot as plt
 
@@ -927,16 +1015,77 @@ def is_in_or_equal(path_1: str | Path, path_2: str | Path):
     True if path_1 is a descendant (i.e. located within) path_2 or if the paths are the
     same, returns False otherwise.
     Parameters:
-        path_1: str or Path (should be a file)
-        path_2: str or Path (can be a file or directory)
+        path_1: str or Path (to file or directory)
+        path_2: str or Path (to file or directory)
     """
     path_1, path_2 = abspath(path_1), abspath(path_2)
     try:
-        if str(path_1.relative_to(path_2)).startswith(".."):  # prevent path traversal
-            return False
+        relative_path = path_1.relative_to(path_2)
+        if str(relative_path) == ".":
+            return True
+        relative_path = path_1.parent.relative_to(path_2)
+        return ".." not in str(relative_path)
     except ValueError:
         return False
     return True
+
+
+@document()
+def set_static_paths(paths: list[str | Path]) -> None:
+    """
+    Set the static paths to be served by the gradio app.
+
+    Static files are not moved to the gradio cache and are served directly from the file system.
+    This function is useful when you want to serve files that you know will not be modified during the lifetime of the gradio app (like files used in gr.Examples).
+    By setting static paths, your app will launch faster and it will consume less disk space.
+    Calling this function will set the static paths for all gradio applications defined in the same interpreter session until it is called again or the session ends.
+    To clear out the static paths, call this function with an empty list.
+
+    Parameters:
+        paths: List of filepaths or directory names to be served by the gradio app. If it is a directory name, ALL files located within that directory will be considered static and not moved to the gradio cache. This also means that ALL files in that directory will be accessible over the network.
+    Example:
+        import gradio as gr
+
+        # Paths can be a list of strings or pathlib.Path objects
+        # corresponding to filenames or directories.
+        gr.set_static_paths(paths=["test/test_files/"])
+
+        # The example files and the default value of the input
+        # will not be copied to the gradio cache and will be served directly.
+        demo = gr.Interface(
+            lambda s: s.rotate(45),
+            gr.Image(value="test/test_files/cheetah1.jpg", type="pil"),
+            gr.Image(),
+            examples=["test/test_files/bus.png"],
+        )
+
+        demo.launch()
+    """
+    from gradio.data_classes import _StaticFiles
+
+    _StaticFiles.all_paths.extend([Path(p).resolve() for p in paths])
+
+
+def is_static_file(file_path: Any):
+    """Returns True if the file is a static file (and not moved to cache)"""
+    from gradio.data_classes import _StaticFiles
+
+    return _is_static_file(file_path, _StaticFiles.all_paths)
+
+
+def _is_static_file(file_path: Any, static_files: list[Path]) -> bool:
+    """
+    Returns True if the file is a static file (i.e. is is in the static files list).
+    """
+    if not isinstance(file_path, (str, Path, FileData)):
+        return False
+    if isinstance(file_path, FileData):
+        file_path = file_path.path
+    if isinstance(file_path, str):
+        file_path = Path(file_path)
+        if not file_path.exists():
+            return False
+    return any(is_in_or_equal(file_path, static_file) for static_file in static_files)
 
 
 HTML_TAG_RE = re.compile("<.*?>")
@@ -1016,3 +1165,142 @@ class LRUCache(OrderedDict, Generic[K, V]):
         elif len(self) >= self.max_size:
             self.popitem(last=False)
         super().__setitem__(key, value)
+
+    def __getitem__(self, key: K) -> V:
+        return super().__getitem__(key)
+
+
+def get_cache_folder() -> Path:
+    return Path(os.environ.get("GRADIO_EXAMPLES_CACHE", "gradio_cached_examples"))
+
+
+def diff(old, new):
+    def compare_objects(obj1, obj2, path=None):
+        if path is None:
+            path = []
+        edits = []
+
+        if obj1 == obj2:
+            return edits
+
+        if type(obj1) != type(obj2):
+            edits.append(("replace", path, obj2))
+            return edits
+
+        if isinstance(obj1, str) and obj2.startswith(obj1):
+            edits.append(("append", path, obj2[len(obj1) :]))
+            return edits
+
+        if isinstance(obj1, list):
+            common_length = min(len(obj1), len(obj2))
+            for i in range(common_length):
+                edits.extend(compare_objects(obj1[i], obj2[i], path + [i]))
+            for i in range(common_length, len(obj1)):
+                edits.append(("delete", path + [i], None))
+            for i in range(common_length, len(obj2)):
+                edits.append(("add", path + [i], obj2[i]))
+            return edits
+
+        if isinstance(obj1, dict):
+            for key in obj1:
+                if key in obj2:
+                    edits.extend(compare_objects(obj1[key], obj2[key], path + [key]))
+                else:
+                    edits.append(("delete", path + [key], None))
+            for key in obj2:
+                if key not in obj1:
+                    edits.append(("add", path + [key], obj2[key]))
+            return edits
+
+        edits.append(("replace", path, obj2))
+        return edits
+
+    return compare_objects(old, new)
+
+
+def get_upload_folder() -> str:
+    return os.environ.get("GRADIO_TEMP_DIR") or str(
+        (Path(tempfile.gettempdir()) / "gradio").resolve()
+    )
+
+
+def get_function_params(func: Callable) -> list[tuple[str, bool, Any]]:
+    params_info = []
+    signature = inspect.signature(func)
+    for name, parameter in signature.parameters.items():
+        if parameter.kind in (
+            inspect.Parameter.VAR_POSITIONAL,
+            inspect.Parameter.VAR_KEYWORD,
+        ):
+            break
+        if parameter.default is inspect.Parameter.empty:
+            params_info.append((name, False, None))
+        else:
+            params_info.append((name, True, parameter.default))
+    return params_info
+
+
+def simplify_file_data_in_str(s):
+    """
+    If a FileData dictionary has been dumped as part of a string, this function will replace the dict with just the str filepath
+    """
+    try:
+        payload = json.loads(s)
+    except json.JSONDecodeError:
+        return s
+    payload = client_utils.traverse(
+        payload, lambda x: x["path"], client_utils.is_file_obj_with_meta
+    )
+    if isinstance(payload, str):
+        return payload
+    return json.dumps(payload)
+
+
+def sync_fn_to_generator(fn):
+    def wrapped(*args, **kwargs):
+        yield fn(*args, **kwargs)
+
+    return wrapped
+
+
+def async_fn_to_generator(fn):
+    async def wrapped(*args, **kwargs):
+        yield await fn(*args, **kwargs)
+
+    return wrapped
+
+
+def async_lambda(f: Callable) -> Callable:
+    """Turn a function into an async function.
+    Useful for internal event handlers defined as lambda functions used in the codebase
+    """
+
+    @wraps(f)
+    async def function_wrapper(*args, **kwargs):
+        return f(*args, **kwargs)
+
+    return function_wrapper
+
+
+class FileSize:
+    B = 1
+    KB = 1024 * B
+    MB = 1024 * KB
+    GB = 1024 * MB
+    TB = 1024 * GB
+
+
+def _parse_file_size(size: str | int | None) -> int | None:
+    if isinstance(size, int) or size is None:
+        return size
+
+    size = size.replace(" ", "")
+
+    last_digit_index = next(
+        (i for i, c in enumerate(size) if not c.isdigit()), len(size)
+    )
+    size_int, unit = int(size[:last_digit_index]), size[last_digit_index:].upper()
+    multiple = getattr(FileSize, unit, None)
+    if not multiple:
+        raise ValueError(f"Invalid file size unit: {unit}")
+    return multiple * size_int

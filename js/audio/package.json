@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/audio",
-	"version": "0.6.0",
+	"version": "0.9.12",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -22,11 +22,15 @@
 		"wavesurfer.js": "^7.4.2",
 		"@types/wavesurfer.js": "^6.0.10"
 	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
 	"main_changeset": true,
 	"main": "index.ts",
 	"exports": {
 		".": "./index.ts",
 		"./example": "./Example.svelte",
+		"./shared": "./shared/index.ts",
 		"./package.json": "./package.json"
 	}
 }

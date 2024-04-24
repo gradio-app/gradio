@@ -30,13 +30,13 @@ describe("Gallery", () => {
 			label: "Gallery",
 			loading_status: loading_status,
 			preview: true,
-			root: "",
-			proxy_url: "",
 			value: [
 				{
 					image: {
-						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-					}
+						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+					},
+					caption: null
 				}
 			]
 		});
@@ -53,13 +53,13 @@ describe("Gallery", () => {
 			label: "Gallery",
 			loading_status: loading_status,
 			preview: true,
-			root: "",
-			proxy_url: "",
 			value: [
 				{
 					image: {
-						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-					}
+						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+					},
+					caption: null
 				}
 			]
 		});
@@ -69,8 +69,10 @@ describe("Gallery", () => {
 			value: [
 				{
 					image: {
-						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
-					}
+						path: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4",
+						url: "https://raw.githubusercontent.com/gradio-app/gradio/main/gradio/demo/video_component/files/a.mp4"
+					},
+					caption: null
 				}
 			]
 		});

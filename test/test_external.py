@@ -1,4 +1,5 @@
 import os
+import tempfile
 import textwrap
 import warnings
 from pathlib import Path
@@ -12,7 +13,8 @@ from huggingface_hub import HfFolder
 import gradio as gr
 from gradio.context import Context
 from gradio.exceptions import GradioVersionIncompatibleError, InvalidApiNameError
-from gradio.external import TooManyRequestsError, cols_to_rows, get_tabular_examples
+from gradio.external import TooManyRequestsError
+from gradio.external_utils import cols_to_rows, get_tabular_examples
 
 """
 WARNING: These tests have an external dependency: namely that Hugging Face's
@@ -203,7 +205,7 @@ class TestLoadInterface:
     def test_image_classification_model(self):
         io = gr.load(name="models/google/vit-base-patch16-224")
         try:
-            assert io("gradio/test_data/lion.jpg")["label"] == "lion"
+            assert io("gradio/test_data/lion.jpg")["label"].startswith("lion")
         except TooManyRequestsError:
             pass
 
@@ -250,11 +252,11 @@ class TestLoadInterface:
         client = TestClient(app)
         response = client.post(
             "/api/predict/",
-            json={"session_hash": "foo", "data": ["Hi!", None], "fn_index": 0},
+            json={"session_hash": "foo", "data": ["Hi!"], "fn_index": 0},
         )
         output = response.json()
         assert isinstance(output["data"], list)
-        assert isinstance(output["data"][0], list)
+        assert isinstance(output["data"][0], str)
         assert "foo" in app.state_holder
 
     def test_speech_recognition_model(self):
@@ -274,13 +276,10 @@ class TestLoadInterface:
         try:
             if resp.status_code != 200:
                 warnings.warn("Request for speech recognition model failed!")
-                if (
+                assert (
                     "Could not complete request to HuggingFace API"
-                    in resp.json()["error"]
-                ):
-                    pass
-                else:
-                    raise AssertionError()
+                    not in resp.json()["error"]
+                )
             else:
                 assert resp.json()["data"] is not None
         finally:
@@ -290,7 +289,7 @@ class TestLoadInterface:
         io = gr.load("models/osanseviero/BigGAN-deep-128")
         try:
             filename = io("chest")
-            assert filename.endswith(".jpg") or filename.endswith(".jpeg")
+            assert filename.lower().endswith((".jpg", ".jpeg", ".png"))
         except TooManyRequestsError:
             pass
 
@@ -340,11 +339,23 @@ class TestLoadInterface:
         )
         assert r.status_code == 200
 
+    def test_private_space_v4_sse_v1(self):
+        io = gr.load(
+            "spaces/gradio-tests/not-actually-private-spacev4-sse-v1",
+            hf_token=HfFolder.get_token(),
+        )
+        try:
+            output = io("abc")
+            assert output == "abc"
+            assert io.theme.name == "gradio/monochrome"
+        except TooManyRequestsError:
+            pass
+
 
 class TestLoadInterfaceWithExamples:
     def test_interface_load_examples(self, tmp_path):
         test_file_dir = Path(Path(__file__).parent, "test_files")
-        with patch("gradio.helpers.CACHED_FOLDER", tmp_path):
+        with patch("gradio.utils.get_cache_folder", return_value=tmp_path):
             gr.load(
                 name="models/google/vit-base-patch16-224",
                 examples=[Path(test_file_dir, "cheetah1.jpg")],
@@ -353,7 +364,9 @@ class TestLoadInterfaceWithExamples:
 
     def test_interface_load_cache_examples(self, tmp_path):
         test_file_dir = Path(Path(__file__).parent, "test_files")
-        with patch("gradio.helpers.CACHED_FOLDER", tmp_path):
+        with patch(
+            "gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp())
+        ):
             gr.load(
                 name="models/google/vit-base-patch16-224",
                 examples=[Path(test_file_dir, "cheetah1.jpg")],
@@ -381,6 +394,9 @@ class TestLoadInterfaceWithExamples:
         # This demo still has the "fake_event". both should work
         demo = gr.load("spaces/gradio-tests/test-calculator-2v4-sse")
         assert demo(2, "add", 4) == 6
+
+    def test_loading_chatbot_with_avatar_images_does_not_raise_errors(self):
+        gr.load("gradio/chatbot_multimodal", src="spaces")
 
 
 def test_get_tabular_examples_replaces_nan_with_str_nan():
@@ -476,7 +492,7 @@ def test_load_blocks_with_default_values():
 )
 def test_can_load_tabular_model_with_different_widget_data(hypothetical_readme):
     with patch(
-        "gradio.external.get_tabular_examples", return_value=hypothetical_readme
+        "gradio.external_utils.get_tabular_examples", return_value=hypothetical_readme
     ):
         io = gr.load("models/scikit-learn/tabular-playground")
         check_dataframe(io.config)

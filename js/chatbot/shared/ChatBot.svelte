@@ -5,9 +5,12 @@
 	import { dequal } from "dequal/lite";
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	import { ShareButton } from "@gradio/atoms";
+	import { Audio } from "@gradio/audio/shared";
+	import { Image } from "@gradio/image/shared";
+	import { Video } from "@gradio/video/shared";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
-	import { get_fetchable_url_or_file, type FileData } from "@gradio/client";
+	import { type FileData } from "@gradio/client";
 	import Copy from "./Copy.svelte";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import LikeDislike from "./LikeDislike.svelte";
@@ -36,18 +39,45 @@
 	export let show_share_button = false;
 	export let rtl = false;
 	export let show_copy_button = false;
-	export let avatar_images: [string | null, string | null] = [null, null];
+	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
 	export let render_markdown = true;
 	export let line_breaks = true;
-	export let root: string;
-	export let proxy_url: null | string;
 	export let i18n: I18nFormatter;
 	export let layout: "bubble" | "panel" = "bubble";
+	export let placeholder: string | null = null;
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
+
+	$: adjust_text_size = () => {
+		let style = getComputedStyle(document.body);
+		let body_text_size = style.getPropertyValue("--body-text-size");
+		let updated_text_size;
+
+		switch (body_text_size) {
+			case "13px":
+				updated_text_size = 14;
+				break;
+			case "14px":
+				updated_text_size = 16;
+				break;
+			case "16px":
+				updated_text_size = 20;
+				break;
+			default:
+				updated_text_size = 14;
+				break;
+		}
+
+		document.body.style.setProperty(
+			"--chatbot-body-text-size",
+			updated_text_size + "px"
+		);
+	};
+
+	$: adjust_text_size();
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -122,26 +152,23 @@
 
 <div
 	class={layout === "bubble" ? "bubble-wrap" : "panel-wrap"}
+	class:placeholder-container={value === null || value.length === 0}
 	bind:this={div}
 	role="log"
 	aria-label="chatbot conversation"
 	aria-live="polite"
 >
 	<div class="message-wrap" class:bubble-gap={layout === "bubble"} use:copy>
-		{#if value !== null}
+		{#if value !== null && value.length > 0}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
 					{#if message !== null}
 						<div class="message-row {layout} {j == 0 ? 'user-row' : 'bot-row'}">
 							{#if avatar_images[j] !== null}
 								<div class="avatar-container">
-									<img
+									<Image
 										class="avatar-image"
-										src={get_fetchable_url_or_file(
-											avatar_images[j],
-											root,
-											proxy_url
-										)}
+										src={avatar_images[j]?.url}
 										alt="{j == 0 ? 'user' : 'bot'} avatar"
 									/>
 								</div>
@@ -170,8 +197,14 @@
 									}}
 									dir={rtl ? "rtl" : "ltr"}
 									aria-label={(j == 0 ? "user" : "bot") +
-										"'s message:' " +
-										message}
+										"'s message: " +
+										(typeof message === "string"
+											? message
+											: `a file of type ${message.file?.mime_type}, ${
+													message.file?.alt_text ??
+													message.file?.orig_name ??
+													""
+											  }`)}
 								>
 									{#if typeof message === "string"}
 										<Markdown
@@ -183,7 +216,7 @@
 											on:load={scroll}
 										/>
 									{:else if message !== null && message.file?.mime_type?.includes("audio")}
-										<audio
+										<Audio
 											data-testid="chatbot-audio"
 											controls
 											preload="metadata"
@@ -194,7 +227,7 @@
 											on:ended
 										/>
 									{:else if message !== null && message.file?.mime_type?.includes("video")}
-										<video
+										<Video
 											data-testid="chatbot-video"
 											controls
 											src={message.file?.url}
@@ -205,9 +238,9 @@
 											on:ended
 										>
 											<track kind="captions" />
-										</video>
+										</Video>
 									{:else if message !== null && message.file?.mime_type?.includes("image")}
-										<img
+										<Image
 											data-testid="chatbot-image"
 											src={message.file?.url}
 											alt={message.alt_text}
@@ -254,11 +287,21 @@
 			{#if pending_message}
 				<Pending {layout} />
 			{/if}
+		{:else if placeholder !== null}
+			<center>
+				<Markdown message={placeholder} {latex_delimiters} />
+			</center>
 		{/if}
 	</div>
 </div>
 
 <style>
+	.placeholder-container {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100%;
+	}
 	.bubble-wrap {
 		padding: var(--block-padding);
 		width: 100%;
@@ -282,15 +325,14 @@
 
 	.message-wrap > div :not(.avatar-container) :global(img) {
 		border-radius: 13px;
+		margin: var(--size-2);
+		width: 400px;
 		max-width: 30vw;
+		max-height: auto;
 	}
 
 	.message-wrap > div :global(p:not(:first-child)) {
 		margin-top: var(--spacing-xxl);
-	}
-
-	.message-wrap :global(audio) {
-		width: 100%;
 	}
 
 	.message {
@@ -301,12 +343,14 @@
 		background: var(--background-fill-secondary);
 		width: calc(100% - var(--spacing-xxl));
 		color: var(--body-text-color);
-		font-size: var(--text-lg);
-		line-height: var(--line-lg);
+		font-size: var(--chatbot-body-text-size);
 		overflow-wrap: break-word;
 		overflow-x: hidden;
 		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
 		padding: calc(var(--spacing-xxl) + var(--spacing-sm));
+	}
+	.message :global(.prose) {
+		font-size: var(--chatbot-body-text-size);
 	}
 
 	.message-bubble-border {
@@ -407,7 +451,8 @@
 		margin-left: 25px;
 		align-self: center;
 	}
-	img.avatar-image {
+
+	.avatar-container :global(img) {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
@@ -474,10 +519,7 @@
 			opacity: 0.8;
 		}
 	}
-	.message-wrap .message :global(img) {
-		margin: var(--size-2);
-		max-height: 200px;
-	}
+
 	.message-wrap .message :global(a) {
 		color: var(--color-text-link);
 		text-decoration: underline;

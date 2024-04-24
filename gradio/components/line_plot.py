@@ -2,26 +2,23 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
-import altair as alt
-import pandas as pd
-from gradio_client.documentation import document, set_documentation_group
+from gradio_client.documentation import document
 
 from gradio.components.plot import AltairPlot, AltairPlotData, Plot
 
-set_documentation_group("component")
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 @document()
 class LinePlot(Plot):
     """
-    Create a line plot.
+    Creates a line plot component to display data from a pandas DataFrame (as output). As this component does
+    not accept user input, it is rarely used as an input component.
 
-    Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a pandas dataframe with the data to plot.
-
-    Demos: line_plot, live_dashboard
+    Demos: live_dashboard
     """
 
     data_model = AltairPlotData
@@ -111,7 +108,7 @@ class LinePlot(Plot):
             interactive: Whether users should be able to interact with the plot by panning or zooming with their mouse or trackpad.
             label: The (optional) label to display on the top left corner of the plot.
             show_label: Whether the label should be displayed.
-            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. Queue must be enabled. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
+            every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             visible: Whether the plot should be visible.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -204,6 +201,8 @@ class LinePlot(Plot):
         interactive: bool | None = None,
     ):
         """Helper for creating the scatter plot."""
+        import altair as alt
+
         interactive = True if interactive is None else interactive
         encodings = {
             "x": alt.X(
@@ -286,9 +285,24 @@ class LinePlot(Plot):
 
         return chart
 
+    def preprocess(self, payload: AltairPlotData | None) -> AltairPlotData | None:
+        """
+        Parameters:
+            payload: The data to display in a line plot.
+        Returns:
+            (Rarely used) passes the data displayed in the line plot as an AltairPlotData dataclass, which includes the plot information as a JSON string, as well as the type of plot (in this case, "line").
+        """
+        return payload
+
     def postprocess(
         self, value: pd.DataFrame | dict | None
     ) -> AltairPlotData | dict | None:
+        """
+        Parameters:
+            value: Expects a pandas DataFrame containing the data to display in the line plot. The DataFrame should contain at least two columns, one for the x-axis (corresponding to this component's `x` argument) and one for the y-axis (corresponding to `y`).
+        Returns:
+            The data to display in a line plot, in the form of an AltairPlotData dataclass, which includes the plot information as a JSON string, as well as the type of plot (in this case, "line").
+        """
         # if None or update
         if value is None or isinstance(value, dict):
             return value
@@ -320,8 +334,10 @@ class LinePlot(Plot):
 
         return AltairPlotData(type="altair", plot=chart.to_json(), chart="line")
 
-    def example_inputs(self) -> Any:
+    def example_payload(self) -> Any:
         return None
 
-    def preprocess(self, value: AltairPlotData | None) -> AltairPlotData | None:
-        return value
+    def example_value(self) -> Any:
+        import pandas as pd
+
+        return pd.DataFrame({self.x: [1, 2, 3], self.y: [4, 5, 6]})

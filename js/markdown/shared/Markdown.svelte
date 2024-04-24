@@ -16,6 +16,7 @@
 		right: string;
 		display: boolean;
 	}[];
+	export let header_links = false;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -36,6 +37,7 @@
 		{sanitize_html}
 		{line_breaks}
 		chatbot={false}
+		{header_links}
 	/>
 </div>
 
@@ -55,7 +57,6 @@
 
 	div {
 		max-width: 100%;
-		overflow-x: auto;
 	}
 
 	.min {

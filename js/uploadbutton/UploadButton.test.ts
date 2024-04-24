@@ -18,7 +18,6 @@ describe("UploadButton", () => {
 
 			return {
 				...actual,
-				get_fetchable_url_or_file: () => "",
 				prepare_files: () => [],
 				// upload: vi.fn((f) => new Promise((res) => res([]))),
 				upload_files: vi.fn((f) => new Promise((res) => res({})))
@@ -51,7 +50,6 @@ describe("UploadButton", () => {
 
 			return {
 				...actual,
-				get_fetchable_url_or_file: () => "",
 				prepare_files: () => [],
 				// upload: vi.fn((f) => new Promise((res) => res([]))),
 				upload_files: vi.fn((f) => new Promise((res) => res({})))

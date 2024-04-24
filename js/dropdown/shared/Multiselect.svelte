@@ -3,7 +3,7 @@
 	import { _, number } from "svelte-i18n";
 	import { BlockTitle } from "@gradio/atoms";
 	import { Remove, DropdownArrow } from "@gradio/icons";
-	import type { SelectData, I18nFormatter } from "@gradio/utils";
+	import type { KeyUpData, SelectData, I18nFormatter } from "@gradio/utils";
 	import DropdownOptions from "./DropdownOptions.svelte";
 	import { handle_filter, handle_change, handle_shared_keys } from "./utils";
 
@@ -42,6 +42,7 @@
 		select: SelectData;
 		blur: undefined;
 		focus: undefined;
+		key_up: KeyUpData;
 	}>();
 
 	// Setting the initial value of the multiselect dropdown
@@ -259,6 +260,11 @@
 					bind:value={input_text}
 					bind:this={filter_input}
 					on:keydown={handle_key_down}
+					on:keyup={(e) =>
+						dispatch("key_up", {
+							key: e.key,
+							input_value: input_text
+						})}
 					on:blur={handle_blur}
 					on:focus={handle_focus}
 					readonly={!filterable}
@@ -351,6 +357,7 @@
 		font-weight: var(--checkbox-label-text-weight);
 		font-size: var(--checkbox-label-text-size);
 		line-height: var(--line-md);
+		word-break: break-word;
 	}
 
 	.token > * + * {
@@ -369,6 +376,7 @@
 		padding: var(--size-0-5);
 		width: 16px;
 		height: 16px;
+		flex-shrink: 0;
 	}
 
 	.secondary-wrap {

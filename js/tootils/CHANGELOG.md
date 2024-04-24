@@ -1,5 +1,89 @@
 # @gradio/tootils
 
+## 0.2.8
+
+### Dependency updates
+
+- @gradio/utils@0.3.2
+- @gradio/statustracker@0.4.12
+
+## 0.2.7
+
+### Dependency updates
+
+- @gradio/utils@0.3.1
+- @gradio/statustracker@0.4.11
+
+## 0.2.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.4.10
+
+## 0.2.5
+
+### Dependency updates
+
+- @gradio/statustracker@0.4.9
+
+## 0.2.4
+
+### Features
+
+- [#7345](https://github.com/gradio-app/gradio/pull/7345) [`561579d`](https://github.com/gradio-app/gradio/commit/561579d9b7b860c5cb3f8131e0dced0c8114463f) - fix-tests.  Thanks [@pngwn](https://github.com/pngwn)!
+
+## 0.2.3
+
+### Patch Changes
+
+- Updated dependencies [[`98a2719`](https://github.com/gradio-app/gradio/commit/98a2719bfb9c64338caf9009891b6c6b0b33ea89)]:
+  - @gradio/statustracker@0.4.8
+
+## 0.2.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @gradio/statustracker@0.4.7
+
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [[`065c5b1`](https://github.com/gradio-app/gradio/commit/065c5b163c4badb9d9cbd06d627fb4ba086003e7)]:
+  - @gradio/utils@0.3.0
+  - @gradio/statustracker@0.4.6
+
+## 0.2.0
+
+### Features
+
+- [#6890](https://github.com/gradio-app/gradio/pull/6890) [`cccab27`](https://github.com/gradio-app/gradio/commit/cccab27fe8b6ae6860b3fff68694fa33060e18a7) - E2E tests for Lite. Thanks [@whitphx](https://github.com/whitphx)!
+- [#7342](https://github.com/gradio-app/gradio/pull/7342) [`0db7272`](https://github.com/gradio-app/gradio/commit/0db7272694f307890afa569c80619828c173c3d5) - Fix lite tests. Thanks [@pngwn](https://github.com/pngwn)!
+
+## 0.1.9
+
+### Patch Changes
+
+- Updated dependencies [[`fdd1521`](https://github.com/gradio-app/gradio/commit/fdd15213c24b9cbc58bbc1b6beb4af7c18f48557)]:
+  - @gradio/utils@0.2.2
+  - @gradio/statustracker@0.4.5
+
+## 0.1.8
+
+### Patch Changes
+
+- Updated dependencies [[`5727b92`](https://github.com/gradio-app/gradio/commit/5727b92abc8a00a675bfc0a921b38de771af947b)]:
+  - @gradio/utils@0.2.1
+  - @gradio/statustracker@0.4.4
+
+## 0.1.7
+
+### Patch Changes
+
+- Updated dependencies [[`828fb9e`](https://github.com/gradio-app/gradio/commit/828fb9e6ce15b6ea08318675a2361117596a1b5d)]:
+  - @gradio/statustracker@0.4.3
+
 ## 0.1.6
 
 ### Patch Changes
