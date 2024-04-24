@@ -39,13 +39,11 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
-		callback?: () => void;
 	}) => void;
 	rerender_layout: (args: {
 		components: ComponentMeta[];
 		layout: LayoutNode;
 		root: string;
-		callback?: () => void;
 	}) => void;
 } {
 	let _component_map: Map<number, ComponentMeta>;
@@ -60,8 +58,9 @@ export function create_components(): {
 		create_loading_status_store();
 	const layout_store: Writable<ComponentMeta> = writable();
 	let root: string;
-	let _components: ComponentMeta[];
+	let _components: ComponentMeta[] = [];
 	let app: client_return;
+	let keyed_component_values: Record<string | number, any> = {};
 
 	function create_layout({
 		app: _app,
@@ -69,8 +68,7 @@ export function create_components(): {
 		layout,
 		dependencies,
 		root,
-		options,
-		callback
+		options
 	}: {
 		app: client_return;
 		components: ComponentMeta[];
@@ -80,9 +78,10 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
-		callback?: () => void;
 	}): void {
 		app = _app;
+		store_keyed_values(_components);
+
 		_components = components;
 		inputs = new Set();
 		outputs = new Set();
@@ -131,26 +130,18 @@ export function create_components(): {
 
 		walk_layout(layout, root).then(() => {
 			layout_store.set(_rootNode);
-			if (callback) {
-				callback();
-			}
 		});
 	}
 
 	function rerender_layout({
 		components,
 		layout,
-		root,
-		callback
+		root
 	}: {
 		components: ComponentMeta[];
 		layout: LayoutNode;
 		root: string;
-		callback?: () => void;
 	}): void {
-		console.log("rerender");
-		_components = components;
-
 		target_map.set(_target_map);
 
 		let _constructor_map = preload_all_components(components, root);
@@ -159,24 +150,30 @@ export function create_components(): {
 		});
 
 		let current_element = instance_map[layout.id];
-		console.log(current_element);
+		let all_current_children: ComponentMeta[] = [];
+		const add_to_current_children = (component: ComponentMeta) => {
+			all_current_children.push(component);
+			if (component.children) {
+				component.children.forEach((child) => {
+					add_to_current_children(child);
+				});
+			}
+		};
+		add_to_current_children(current_element);
+		store_keyed_values(all_current_children);
+
 		components.forEach((c) => {
 			instance_map[c.id] = c;
 			_component_map.set(c.id, c);
 		});
 		if (current_element.parent) {
-			console.log("swap");
 			current_element.parent.children![
 				current_element.parent.children!.indexOf(current_element)
 			] = instance_map[layout.id];
-			console.log("swap");
 		}
 
 		walk_layout(layout, root, current_element.parent).then(() => {
 			layout_store.set(instance_map[0]);
-			if (callback) {
-				callback();
-			}
 		});
 	}
 
@@ -220,6 +217,13 @@ export function create_components(): {
 			app
 		);
 
+		if (
+			instance.key != null &&
+			keyed_component_values[instance.key] !== undefined
+		) {
+			instance.props.value = keyed_component_values[instance.key];
+		}
+
 		_component_map.set(instance.id, instance);
 
 		if (node.children) {
@@ -233,6 +237,14 @@ export function create_components(): {
 
 	let update_scheduled = false;
 	let update_scheduled_store = writable(false);
+
+	function store_keyed_values(components: ComponentMeta[]): void {
+		components.forEach((c) => {
+			if (c.key != null) {
+				keyed_component_values[c.key] = c.props.value;
+			}
+		});
+	}
 
 	function flush(): void {
 		layout_store.update((layout) => {
@@ -541,23 +553,3 @@ export function preload_all_components(
 
 	return constructor_map;
 }
-
-export const restore_keyed_values = (
-	old_components: ComponentMeta[],
-	new_components: ComponentMeta[]
-): void => {
-	let component_values_by_key: Record<string | number, ComponentMeta> = {};
-	old_components.forEach((component) => {
-		if (component.key) {
-			component_values_by_key[component.key] = component;
-		}
-	});
-	new_components.forEach((component) => {
-		if (component.key) {
-			const old_component = component_values_by_key[component.key];
-			if (old_component) {
-				component.props.value = old_component.props.value;
-			}
-		}
-	});
-};
