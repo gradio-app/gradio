@@ -19,7 +19,6 @@
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import { create_components, AsyncFunction } from "./init";
-	import type { SubmitReturn } from "client/js/src/types";
 
 	setupi18n();
 
@@ -260,7 +259,7 @@
 				api_calls = [...api_calls, payload];
 			}
 
-			let submission: SubmitReturn;
+			let submission: ReturnType<typeof app.submit>;
 			try {
 				submission = app.submit(
 					payload.fn_index,
