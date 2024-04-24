@@ -77,7 +77,7 @@ class JSON(Component):
     def postprocess(self, value: dict | list | str | None) -> dict | list | None:
         """
         Parameters:
-            value: Expects a `str` filepath to a file containing valid JSON -- or a `list` or `dict` that is valid JSON. The JSON value can contain NumPy arrays.
+            value: Expects a valid JSON `str` -- or a `list` or `dict` that can be serialized to a JSON string. The `list` or `dict` value can contain NumPy arrays.
         Returns:
             Returns the JSON as a `list` or `dict`.
         """
