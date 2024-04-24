@@ -19,6 +19,7 @@
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import { create_components, AsyncFunction } from "./init";
+	import type { SubmitReturn } from "client/js/src/types";
 
 	setupi18n();
 
@@ -258,13 +259,30 @@
 			if (api_recorder_visible) {
 				api_calls = [...api_calls, payload];
 			}
-			const submission = app
-				.submit(
+
+			let submission: SubmitReturn;
+			try {
+				submission = app.submit(
 					payload.fn_index,
 					payload.data as unknown[],
 					payload.event_data,
 					payload.trigger_id
-				)
+				);
+			} catch (e) {
+				const fn_index = 0; // Mock value for fn_index
+				messages = [new_message(String(e), fn_index, "error"), ...messages];
+				loading_status.update({
+					status: "error",
+					fn_index,
+					eta: 0,
+					queue: false,
+					queue_position: null
+				});
+				set_status($loading_status);
+				return;
+			}
+
+			submission
 				.on("data", ({ data, fn_index }) => {
 					if (dep.pending_request && dep.final_event) {
 						dep.pending_request = false;
