@@ -30,7 +30,8 @@
 				"enabled": true, // enables this plugin
 				"assumeIsSvelteProject": false // if true, skip detection and always assume it's a Svelte project
 			}
-		]
+		],
+		"types": ["vite/client"]
 	},
 	"exclude": [
 		"**/_website/**/*",
