@@ -1,5 +1,6 @@
 import { type WorkerProxy, WasmWorkerEventSource } from "@gradio/wasm";
 import { is_self_host } from "@gradio/wasm/network";
+import EventSource from "eventsource";
 
 /**
  * A WebSocket factory that proxies requests to the worker,
@@ -12,7 +13,7 @@ export function wasm_proxied_EventSource_factory(
 ): EventSource {
 	if (!is_self_host(url)) {
 		console.debug("Fallback to original WebSocket");
-		return new EventSource(url);
+		return new EventSource(url.toString());
 	}
 
 	return new WasmWorkerEventSource(worker_proxy, url) as unknown as EventSource;

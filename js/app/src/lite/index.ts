@@ -15,6 +15,7 @@ import Playground from "./Playground.svelte";
 import ErrorDisplay from "./ErrorDisplay.svelte";
 import type { ThemeMode } from "../types";
 import { bootstrap_custom_element } from "./custom-element";
+import EventSource from "eventsource";
 
 // These imports are aliased at built time with Vite. See the `resolve.alias` config in `vite.config.ts`.
 import gradioWheel from "gradio.whl";
