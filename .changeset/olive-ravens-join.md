@@ -1,5 +1,4 @@
 ---
-"@gradio/spaces-test": minor
 "website": minor
 ---
 
