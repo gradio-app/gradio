@@ -637,7 +637,7 @@ class App(FastAPI):
                         if "stop" in done:
                             raise asyncio.CancelledError()
                     except asyncio.CancelledError:
-                        req = Request(request, username)
+                        req = Request(request, username, session_hash=session_hash)
                         root_path = route_utils.get_root_url(
                             request=request,
                             route_path=f"/hearbeat/{session_hash}",
@@ -648,8 +648,8 @@ class App(FastAPI):
                         )
                         unload_fn_indices = [
                             i
-                            for i, dep in enumerate(app.get_blocks().dependencies)
-                            if any(t for t in dep["targets"] if t[1] == "unload")
+                            for i, dep in enumerate(app.get_blocks().fns)
+                            if any(t for t in dep.targets if t[1] == "unload")
                         ]
                         for fn_index in unload_fn_indices:
                             # The task runnning this loop has been cancelled

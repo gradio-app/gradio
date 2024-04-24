@@ -49,11 +49,16 @@ const config = {
 				`/${version}/guides`,
 				`/main/docs`,
 				`/main/guides`,
+				`/3.50.2/docs`,
+				`/3.50.2/docs/gradio/interface`,
+				`/3.50.2/docs/python-client/intro`,
+				`/docs/js`,
+				`/docs/js/storybook`,
+				`/docs/js/`,
 				`/main/docs/js`,
 				`/main/docs/js/storybook`,
 				`/main/docs/js/`,
-				`/3.50.2/docs`,
-				`/3.50.2/guides`,
+
 				...Object.keys(redirects)
 			]
 		},
