@@ -60,10 +60,10 @@
 		white-space: nowrap;
 	}
 
-	:global(img) {
+	/* :global(img) {
 		width: 100px;
 		height: 100px;
-	}
+	} */
 
 	div > :global(p) {
 		font-size: var(--text-lg);

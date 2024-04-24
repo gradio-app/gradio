@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-	// @ts-ignore
+	export { default as BasePlot } from "./shared/Plot.svelte";
 </script>
 
 <script lang="ts">
