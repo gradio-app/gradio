@@ -130,6 +130,7 @@ class Request:
         self,
         request: fastapi.Request | None = None,
         username: str | None = None,
+        session_hash: str | None = None,
         **kwargs,
     ):
         """
@@ -140,6 +141,7 @@ class Request:
         """
         self.request = request
         self.username = username
+        self.session_hash = session_hash
         self.kwargs: dict = kwargs
 
     def dict_to_obj(self, d):
@@ -191,11 +193,15 @@ def compile_gr_request(
         if body.batched:
             gr_request = [Request(username=username, request=request)]
         else:
-            gr_request = Request(username=username, request=body.request)
+            gr_request = Request(
+                username=username, request=body.request, session_hash=body.session_hash
+            )
     else:
         if request is None:
             raise ValueError("request must be provided if body.request is None")
-        gr_request = Request(username=username, request=request)
+        gr_request = Request(
+            username=username, request=request, session_hash=body.session_hash
+        )
 
     return gr_request
 
