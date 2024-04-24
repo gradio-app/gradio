@@ -57,6 +57,8 @@
 			components_length = components.length;
 		}
 		components = components.sort((a, b) => b["likes"] - a["likes"]);
+		const id  = $page.url.searchParams.get("id")
+		selected_component = components.find((component) => component.id === id) ?? null;
 	}
 
 	onMount(fetch_components);
@@ -172,6 +174,9 @@
 			selected_component = null;
 		}}
 	>
+		<button>
+			<a>Share</a>
+		</button>
 		<a
 			href={`https://huggingface.co/spaces/${component.id}`}
 			target="_blank"
