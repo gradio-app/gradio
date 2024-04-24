@@ -29,7 +29,7 @@ export function open_stream(this: Client): void {
 		throw new Error("Cannot connect to sse endpoint: " + url.toString());
 	}
 
-	event_source.onmessage = async function (event) {
+	event_source.onmessage = async function (event: MessageEvent) {
 		let _data = JSON.parse(event.data);
 		if (_data.msg === "close_stream") {
 			close_stream(stream_status, event_source);

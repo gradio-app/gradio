@@ -377,7 +377,7 @@ export function submit(
 						);
 					}
 
-					event_source.onmessage = async function (event) {
+					event_source.onmessage = async function (event: MessageEvent) {
 						const _data = JSON.parse(event.data);
 						const { type, status, data } = handle_message(
 							_data,
