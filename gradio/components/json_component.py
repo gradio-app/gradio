@@ -39,7 +39,7 @@ class JSON(Component):
     ):
         """
         Parameters:
-            value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default value as a valid JSON `str` -- or a `list` or `dict` that can be serialized to a JSON string. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -77,7 +77,7 @@ class JSON(Component):
     def postprocess(self, value: dict | list | str | None) -> dict | list | None:
         """
         Parameters:
-            value: Expects a valid JSON `str` -- or a `list` or `dict` that can be serialized to a JSON string. The `list` or `dict` value can contain NumPy arrays.
+            value: Expects a valid JSON `str` -- or a `list` or `dict` that can be serialized to a JSON string. The `list` or `dict` value can contain numpy arrays.
         Returns:
             Returns the JSON as a `list` or `dict`.
         """
