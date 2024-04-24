@@ -10,6 +10,7 @@ build/
 __tmp/*
 *.pyi
 py.typed
+.ipynb_checkpoints/
 
 # JS build
 gradio/templates/*
