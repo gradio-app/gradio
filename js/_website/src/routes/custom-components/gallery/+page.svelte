@@ -11,6 +11,7 @@
 
 	let components: ComponentData[] = [];
 	let selection: string = "";
+	let link_copied = false;
 
 	let selected_component: ComponentData | null = null;
 	let components_length: number = 0;
@@ -57,6 +58,9 @@
 			components_length = components.length;
 		}
 		components = components.sort((a, b) => b["likes"] - a["likes"]);
+		const id = $page.url.searchParams.get("id");
+		selected_component =
+			components.find((component) => component.id === id) ?? null;
 	}
 
 	onMount(fetch_components);
@@ -65,6 +69,17 @@
 		await tick();
 		e.preventDefault();
 		fetch_components(selection.split(","));
+	}
+
+	function copy_link(id: string) {
+		const url = $page.url;
+		url.searchParams.set("id", id);
+		const link = url.toString();
+		navigator.clipboard.writeText(link).then(() => {
+			window.setTimeout(() => {
+				link_copied = false;
+			}, 1000);
+		});
 	}
 </script>
 
@@ -172,14 +187,32 @@
 			selected_component = null;
 		}}
 	>
-		<a
-			href={`https://huggingface.co/spaces/${component.id}`}
-			target="_blank"
-			class="flex-none self-end mr-8 rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white bg-orange-300 hover:drop-shadow-sm"
-		>
-			Go to Space <span aria-hidden="true">→</span></a
-		>
-
+		<div class="self-end mr-8 flex">
+			{#if !link_copied}
+				<button
+					on:click={(e) => {
+						link_copied = true;
+						copy_link(component.id);
+					}}
+					class="rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white bg-orange-300 hover:drop-shadow-sm mr-4"
+				>
+					Share
+				</button>
+			{:else}
+				<span
+					class="rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white bg-orange-300 hover:drop-shadow-sm mr-4"
+				>
+					Link copied to clipboard!
+				</span>
+			{/if}
+			<a
+				href={`https://huggingface.co/spaces/${component.id}`}
+				target="_blank"
+				class="rounded-md w-fit px-3.5 py-1 text-sm font-semibold text-white bg-orange-300 hover:drop-shadow-sm"
+			>
+				Go to Space <span aria-hidden="true">→</span>
+			</a>
+		</div>
 		<iframe
 			src={`https://${component.subdomain}.hf.space?__theme=light`}
 			height="100%"
