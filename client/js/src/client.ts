@@ -27,6 +27,7 @@ import {
 } from "./helpers/init_helpers";
 import { check_space_status } from "./helpers/spaces";
 import { open_stream } from "./utils/stream";
+import EventSource from "eventsource";
 
 export class NodeBlob extends Blob {
 	constructor(blobParts?: BlobPart[], options?: BlobPropertyBag) {
@@ -60,10 +61,10 @@ export class Client {
 	}
 
 	eventSource_factory(url: URL): EventSource | null {
-		if (typeof window !== undefined && typeof EventSource !== "undefined") {
+		if (typeof EventSource !== "undefined") {
 			return new EventSource(url.toString());
 		}
-		return null; // todo: polyfill eventsource for node envs
+		return null;
 	}
 
 	view_api: () => Promise<ApiInfo<JsApiData>>;
