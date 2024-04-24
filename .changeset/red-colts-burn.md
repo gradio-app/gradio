@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Add EventSource polyfill for Node.js and browser environments
+fix:Add eventsource polyfill for Node.js and browser environments
