@@ -25,7 +25,7 @@ jobs:
       - name: Build packages
         run: |
           . venv/bin/activate
-          pip install -U build hatch packaging>=23.2  # packaging>=23.2 is needed to build Lite due to https://github.com/pypa/hatch/issues/1381
+          pip install -U build hatch
           pnpm --filter @gradio/client --filter @gradio/lite build
       - name: create and publish versions
         id: changesets
