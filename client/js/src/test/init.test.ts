@@ -15,6 +15,8 @@ import { CONFIG_ERROR_MSG, SPACE_METADATA_ERROR_MSG } from "../constants";
 
 const app_reference = "hmb/hello_world";
 const broken_app_reference = "hmb/bye_world";
+const direct_app_reference = "https://hmb-hello-world.hf.space";
+const secret_direct_app_reference = "https://hmb-secret-world.hf.space";
 
 const server = initialise_server();
 
@@ -28,12 +30,17 @@ describe("Client class", () => {
 			const app = await client(app_reference);
 			expect(app.config).toEqual(config_response);
 		});
-		test("connecting to a running app", async () => {
+		test("connecting to a running app with a space reference", async () => {
 			const app = await Client.connect(app_reference);
 			expect(app.config).toEqual(config_response);
 		});
 
-		test("connecting successfully to a private running app", async () => {
+		test("connecting to a running app with a direct app URL", async () => {
+			const app = await Client.connect(direct_app_reference);
+			expect(app.config).toEqual(config_response);
+		});
+
+		test("connecting successfully to a private running app with a space reference", async () => {
 			const app = await Client.connect("hmb/secret_world", {
 				hf_token: "hf_123"
 			});
@@ -44,7 +51,18 @@ describe("Client class", () => {
 			});
 		});
 
-		test("connecting unsuccessfully to a private running app", async () => {
+		test("connecting successfully to a private running app with a direct app URL ", async () => {
+			const app = await Client.connect(secret_direct_app_reference, {
+				hf_token: "hf_123"
+			});
+
+			expect(app.config).toEqual({
+				...config_response,
+				root: "https://hmb-secret-world.hf.space"
+			});
+		});
+
+		test("unsuccessfully attempting to connect to a private running app", async () => {
 			await expect(
 				Client.connect("hmb/secret_world", {
 					hf_token: "hf_bad_token"
