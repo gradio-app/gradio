@@ -1479,25 +1479,10 @@ importers:
         version: link:../../..
       '@tailwindcss/vite':
         specifier: 4.0.0-alpha.14
-        version: 4.0.0-alpha.14(vite@5.2.9)
+        version: 4.0.0-alpha.14(vite@5.2.10)
       tailwindcss:
         specifier: 4.0.0-alpha.14
         version: 4.0.0-alpha.14
-
-  js/preview/test/testyyyy/frontend:
-    dependencies:
-      '@gradio/atoms':
-        specifier: workspace:^
-        version: link:../../../../atoms
-      '@gradio/statustracker':
-        specifier: workspace:^
-        version: link:../../../../statustracker
-      '@gradio/utils':
-        specifier: workspace:^
-        version: link:../../../../utils
-      '@zerodevx/svelte-json-view':
-        specifier: ^1.0.7
-        version: 1.0.7(svelte@4.2.12)
 
   js/radio:
     dependencies:
@@ -6756,7 +6741,7 @@ packages:
       tailwindcss: 3.1.6(postcss@8.4.31)
     dev: true
 
-  /@tailwindcss/vite@4.0.0-alpha.14(vite@5.2.9):
+  /@tailwindcss/vite@4.0.0-alpha.14(vite@5.2.10):
     resolution: {integrity: sha512-tvKPP948JrgSR1Ig5ogLYEn1h4FW36W3p0eCGFGJV++NF7QsBh0j98HydrhvQDxsC9jZ037yGWUOc4VPMbt22g==}
     peerDependencies:
       vite: ^5.2.0
@@ -6764,7 +6749,7 @@ packages:
       '@tailwindcss/oxide': 4.0.0-alpha.14
       lightningcss: 1.24.1
       tailwindcss: 4.0.0-alpha.14
-      vite: 5.2.9(@types/node@20.3.2)(lightningcss@1.21.7)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1)
+      vite: 5.2.10(@types/node@20.3.2)(lightningcss@1.21.7)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1)
     dev: true
 
   /@testing-library/dom@10.0.0:
@@ -14267,7 +14252,7 @@ packages:
       estree-walker: 3.0.3
       is-reference: 3.0.2
       locate-character: 3.0.0
-      magic-string: 0.30.8
+      magic-string: 0.30.10
       periscopic: 3.1.0
 
   /svelte@4.2.2:
