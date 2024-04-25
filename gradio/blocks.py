@@ -120,6 +120,7 @@ class Block:
         self.state_session_capacity = 10000
         self.temp_files: set[str] = set()
         self.GRADIO_CACHE = get_upload_folder()
+        self.key: int | str | None = None
         # Keep tracks of files that should not be deleted when the delete_cache parmaeter is set
         # These files are the default value of the component and files that are used in examples
         self.keep_in_cache = set()
@@ -640,6 +641,7 @@ class BlocksConfig:
                 "props": utils.delete_none(props),
                 "skip_api": block.skip_api,
                 "component_class_id": getattr(block, "component_class_id", None),
+                "key": block.key,
             }
             if not block.skip_api:
                 block_config["api_info"] = block.api_info()  # type: ignore
@@ -2161,6 +2163,11 @@ Received outputs:
 
         self.validate_queue_settings()
         self.max_file_size = utils._parse_file_size(max_file_size)
+
+        if self.dev_mode:
+            for block in self.blocks.values():
+                if block.key is None:
+                    block.key = f"__{block._id}__"
 
         self.config = self.get_config_file()
         self.max_threads = max_threads

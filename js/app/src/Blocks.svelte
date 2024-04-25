@@ -18,12 +18,17 @@
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
-	import { create_components, AsyncFunction } from "./init";
+	import {
+		create_components,
+		AsyncFunction,
+		restore_keyed_values
+	} from "./init";
 
 	setupi18n();
 
 	export let root: string;
 	export let components: ComponentMeta[];
+	let old_components: ComponentMeta[] = components;
 	export let layout: LayoutNode;
 	export let dependencies: Dependency[];
 	export let title = "Gradio";
@@ -60,7 +65,8 @@
 		app,
 		options: {
 			fill_height
-		}
+		},
+		callback: () => restore_keyed_values(old_components, components)
 	});
 
 	$: {

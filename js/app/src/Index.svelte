@@ -307,21 +307,20 @@
 				const { host } = new URL(api_url);
 				let url = new URL(`http://${host}/dev/reload`);
 				eventSource = new EventSource(url);
-				eventSource.onmessage = async function (event) {
-					if (event.data === "CHANGE") {
-						app = await Client.connect(api_url, {
-							status_callback: handle_status
-						});
+				eventSource.addEventListener("reload", async (event) => {
+					app.close();
+					app = await Client.connect(api_url, {
+						status_callback: handle_status
+					});
 
-						if (!app.config) {
-							throw new Error("Could not resolve app config");
-						}
-
-						config = app.config;
-						window.__gradio_space__ = config.space_id;
-						await mount_custom_css(config.css);
+					if (!app.config) {
+						throw new Error("Could not resolve app config");
 					}
-				};
+
+					config = app.config;
+					window.__gradio_space__ = config.space_id;
+					await mount_custom_css(config.css);
+				});
 			}, 200);
 		}
 	});

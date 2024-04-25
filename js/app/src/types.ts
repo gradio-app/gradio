@@ -26,6 +26,7 @@ export interface ComponentMeta {
 	children?: ComponentMeta[];
 	value?: any;
 	component_class_id: string;
+	key: string | number | null;
 }
 
 /** Dictates whether a dependency is continous and/or a generator */
