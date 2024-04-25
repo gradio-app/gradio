@@ -178,17 +178,12 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
         [],
     )
 
-    from gradio.blocks import BlockContext
-
     for x in list(blocks.blocks.values()):
-        blocks_telemetry.append(x.get_block_name()) if isinstance(
-            x, BlockContext
-        ) else blocks_telemetry.append(str(x))
-
+        blocks_telemetry.append(x.get_block_name())
     for x in blocks.fns:
         targets_telemetry = targets_telemetry + [
             # Sometimes the target can be the Blocks object itself, so we need to check if its in blocks.blocks
-            str(blocks.blocks[y[0]])
+            blocks.blocks[y[0]].get_block_name()
             for y in x.targets
             if y[0] in blocks.blocks
         ]
@@ -196,11 +191,21 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
             y[1] for y in x.targets if y[0] in blocks.blocks
         ]
         inputs_telemetry = inputs_telemetry + [
-            str(blocks.blocks[y]) for y in x.inputs if y in blocks.blocks
+            blocks.blocks[y].get_block_name() for y in x.inputs if y in blocks.blocks
         ]
         outputs_telemetry = outputs_telemetry + [
-            str(blocks.blocks[y]) for y in x.outputs if y in blocks.blocks
+            blocks.blocks[y].get_block_name() for y in x.outputs if y in blocks.blocks
         ]
+
+    def get_inputs_outputs(
+        mode: str,
+        components: list[gradio.components.Component] | None,
+        fallback: list[str],
+    ) -> list[str] | None:
+        if mode == "interface":
+            return [b.get_block_name() for b in components] if components else None
+        return fallback
+
     additional_data = {
         "version": get_package_version(),
         "is_kaggle": blocks.is_kaggle,
@@ -210,12 +215,12 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
         "show_api": blocks.show_api,
         "show_error": blocks.show_error,
         "title": blocks.title,
-        "inputs": blocks.input_components
-        if blocks.mode == "interface"
-        else inputs_telemetry,
-        "outputs": blocks.output_components
-        if blocks.mode == "interface"
-        else outputs_telemetry,
+        "inputs": get_inputs_outputs(
+            blocks.mode, blocks.input_components, inputs_telemetry
+        ),
+        "outputs": get_inputs_outputs(
+            blocks.mode, blocks.output_components, outputs_telemetry
+        ),
         "targets": targets_telemetry,
         "blocks": blocks_telemetry,
         "events": events_telemetry,
@@ -225,6 +230,39 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
     data.update(additional_data)
 
     _do_analytics_request(url=f"{ANALYTICS_URL}gradio-launched-telemetry/", data=data)
+
+
+def custom_component_analytics(
+    command: str,
+    template: str | None,
+    upload_pypi: bool | None,
+    upload_demo: bool | None,
+    upload_source: bool | None,
+    generate_docs: bool | None = None,
+    bump_version: bool | None = None,
+    npm_install: str | None = None,
+    python_path: str | None = None,
+    gradio_path: str | None = None,
+) -> None:
+    data = {
+        "command": command,
+        "template": template,
+        "upload_pypi": upload_pypi,
+        "upload_demo": upload_demo,
+        "upload_source": upload_source,
+        "generate_docs": generate_docs,
+        "bump_version": bump_version,
+        "npm_install": npm_install,
+        "python_path": python_path,
+        "gradio_path": gradio_path,
+    }
+    if not analytics_enabled():
+        return
+
+    _do_analytics_request(
+        url=f"{ANALYTICS_URL}gradio-custom-components/",
+        data=data,
+    )
 
 
 def integration_analytics(data: dict[str, Any]) -> None:

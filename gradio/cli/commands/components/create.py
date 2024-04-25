@@ -11,6 +11,8 @@ from rich.prompt import Confirm, Prompt
 from tomlkit import dump, parse
 from typing_extensions import Annotated
 
+from gradio.analytics import custom_component_analytics
+
 from ..display import LivePanelDisplay
 from . import _create_utils
 from .install_component import _get_npm, _install_command
@@ -66,6 +68,14 @@ def _create(
         ),
     ] = True,
 ):
+    custom_component_analytics(
+        "create",
+        template,
+        None,
+        None,
+        None,
+        npm_install=npm_install,
+    )
     if not directory:
         directory = Path(name.lower())
     if not package_name:
