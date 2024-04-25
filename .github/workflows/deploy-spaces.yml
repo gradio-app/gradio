@@ -75,8 +75,6 @@ jobs:
       uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
       with:
         always_install_pnpm: true
-        node_auth_token: ${{ secrets.NPM_TOKEN }}
-        npm_token: ${{ secrets.NPM_TOKEN }}
         skip_build: 'true'
         build_lite: 'true'
     - name: Package Lite NPM package
