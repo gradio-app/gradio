@@ -240,6 +240,9 @@ def custom_component_analytics(
     upload_source: bool | None,
     generate_docs: bool | None = None,
     bump_version: bool | None = None,
+    npm_install: str | None = None,
+    python_path: str | None = None,
+    gradio_path: str | None = None,
 ) -> None:
     data = {
         "command": command,
@@ -249,6 +252,9 @@ def custom_component_analytics(
         "upload_source": upload_source,
         "generate_docs": generate_docs,
         "bump_version": bump_version,
+        "npm_install": npm_install,
+        "python_path": python_path,
+        "gradio_path": gradio_path,
     }
     if not analytics_enabled():
         return

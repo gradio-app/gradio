@@ -57,7 +57,7 @@ def _get_table_items(module):
 
 def _show():
     custom_component_analytics(
-        "publish",
+        "show",
         None,
         upload_demo=None,
         upload_pypi=None,

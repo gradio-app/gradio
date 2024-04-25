@@ -74,6 +74,7 @@ def _create(
         None,
         None,
         None,
+        npm_install=npm_install,
     )
     if not directory:
         directory = Path(name.lower())

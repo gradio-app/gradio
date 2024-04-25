@@ -54,6 +54,8 @@ def _dev(
         None,
         None,
         None,
+        python_path=python_path,
+        gradio_path=gradio_path,
     )
     component_directory = component_directory.resolve()
 
