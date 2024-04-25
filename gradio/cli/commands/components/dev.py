@@ -10,6 +10,7 @@ from rich import print
 from typing_extensions import Annotated
 
 import gradio
+from gradio.analytics import custom_component_analytics
 from gradio.cli.commands.components.install_component import _get_executable_path
 
 gradio_template_path = Path(gradio.__file__).parent / "templates" / "frontend"
@@ -47,6 +48,15 @@ def _dev(
         ),
     ] = None,
 ):
+    custom_component_analytics(
+        "dev",
+        None,
+        None,
+        None,
+        None,
+        python_path=python_path,
+        gradio_path=gradio_path,
+    )
     component_directory = component_directory.resolve()
 
     print(f":recycle: [green]Launching[/] {app} in reload mode\n")
