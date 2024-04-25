@@ -1297,7 +1297,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
     def render(self):
         root_context = get_blocks_context()
-        if root_context is not None:
+        if root_context is not None and Context.root_block is not None:
             if self._id in root_context.blocks:
                 raise DuplicateBlockError(
                     f"A block with id: {self._id} has already been rendered in the current Blocks."
