@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/simpleimage",
-	"version": "0.3.11",
+	"version": "0.3.12",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -17,6 +17,9 @@
 		"cropperjs": "^1.5.12",
 		"lazy-brush": "^1.0.1",
 		"resize-observer-polyfill": "^1.5.1"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
 	},
 	"main_changeset": true,
 	"main": "./Index.svelte",

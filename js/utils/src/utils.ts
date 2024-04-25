@@ -180,6 +180,7 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 	#el: HTMLElement;
 	root: string;
 	autoscroll: boolean;
+	max_file_size: number | null;
 
 	constructor(
 		id: number,
@@ -187,14 +188,17 @@ export class Gradio<T extends Record<string, any> = Record<string, any>> {
 		theme: string,
 		version: string,
 		root: string,
-		autoscroll: boolean
+		autoscroll: boolean,
+		max_file_size: number | null,
+		i18n: I18nFormatter = (x: string): string => x
 	) {
 		this.#id = id;
 		this.theme = theme;
 		this.version = version;
 		this.#el = el;
+		this.max_file_size = max_file_size;
 
-		this.i18n = (x: string): string => x;
+		this.i18n = i18n;
 		this.root = root;
 		this.autoscroll = autoscroll;
 	}

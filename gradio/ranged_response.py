@@ -86,9 +86,9 @@ class RangedFileResponse(Response):
             raise ValueError("No stat result to set range headers with")
         total_length = self.stat_result.st_size
         content_length = len(range)
-        self.headers[
-            "content-range"
-        ] = f"bytes {range.start}-{range.end}/{total_length}"
+        self.headers["content-range"] = (
+            f"bytes {range.start}-{range.end}/{total_length}"
+        )
         self.headers["content-length"] = str(content_length)
         pass
 

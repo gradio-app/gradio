@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Gradio } from "./gradio_helper";
+	import { Gradio, formatter } from "./gradio_helper";
 	import { onMount, createEventDispatcher, setContext } from "svelte";
 	import type { ComponentMeta, ThemeMode } from "./types";
 	import RenderComponent from "./RenderComponent.svelte";
@@ -12,6 +12,7 @@
 	export let theme_mode: ThemeMode;
 	export let version: string;
 	export let autoscroll: boolean;
+	export let max_file_size: number | null;
 
 	const dispatch = createEventDispatcher<{ mount: number; destroy: number }>();
 	let filtered_children: ComponentMeta[] = [];
@@ -74,7 +75,16 @@
 	{...node.props}
 	{theme_mode}
 	{root}
-	gradio={new Gradio(node.id, target, theme_mode, version, root, autoscroll)}
+	gradio={new Gradio(
+		node.id,
+		target,
+		theme_mode,
+		version,
+		root,
+		autoscroll,
+		max_file_size,
+		formatter
+	)}
 >
 	{#if node.children && node.children.length}
 		{#each node.children as _node (_node.id)}
@@ -87,6 +97,7 @@
 				{theme_mode}
 				on:destroy
 				on:mount
+				{max_file_size}
 			/>
 		{/each}
 	{/if}

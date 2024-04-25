@@ -7,6 +7,9 @@
 	"license": "ISC",
 	"private": false,
 	"main_changeset": true,
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
+	},
 	"exports": {
 		".": "./Index.svelte",
 		"./package.json": "./package.json"

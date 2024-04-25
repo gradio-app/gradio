@@ -23,6 +23,7 @@
 		input: never;
 		blur: never;
 		focus: never;
+		clear_status: LoadingStatus;
 	}>;
 	export let value = "";
 	export let value_is_output = false;
@@ -65,6 +66,7 @@
 		autoscroll={gradio.autoscroll}
 		i18n={gradio.i18n}
 		{...loading_status}
+		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 
 	<BlockLabel Icon={CodeIcon} {show_label} {label} float={false} />

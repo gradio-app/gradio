@@ -1,5 +1,5 @@
 <script lang="ts">
-	import DocsNav from "$lib/components/DocsNav.svelte";
+	import DocsNavCustom from "$lib/components/DocsNavCustom.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { page } from "$app/stores";
 
@@ -28,16 +28,17 @@
 
 <main class="container mx-auto px-4 flex gap-4">
 	<div class="flex w-full">
-		<DocsNav
-			current_nav_link={"js-client"}
-			{components}
-			{helpers}
-			{modals}
-			{routes}
-			{py_client}
+		<DocsNavCustom
+			items={{
+				Installation: "#installation",
+				Usage: "#usage",
+				client: "#client",
+				duplicate: "#duplicate"
+			}}
+			title={"JavaScript Client"}
 		/>
 
-		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
+		<div class="flex flex-col w-full min-w-full lg:min-w-0">
 			<div>
 				<p
 					class="lg:ml-10 bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200 px-4 py-1 mr-2 rounded-full text-orange-800 mb-1 w-fit float-left"
@@ -53,27 +54,15 @@
 				</p>
 			</div>
 
-			<div class="lg:ml-10 flex justify-between mt-4">
-				<a
-					href="./job"
-					class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
-				>
-					<div class="text-lg">
-						<span class="text-orange-500">&#8592;</span> Job
-					</div>
-				</a>
-			</div>
+			<div class="lg:ml-10 flex justify-between mt-4"></div>
 			<div class="flex flex-row">
-				<div class="lg:w-3/4 lg:ml-10 lg:mr-24">
+				<div class=" lg:ml-10 lg:mr-24">
 					<div class="prose text-lg max-w-full">
 						{@html readme_html}
 					</div>
 				</div>
 			</div>
 		</div>
-		<div
-			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:w-2/12 lg:block"
-		></div>
 	</div>
 </main>
 

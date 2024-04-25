@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/gallery",
-	"version": "0.8.7",
+	"version": "0.8.8",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -16,6 +16,9 @@
 		"@gradio/utils": "workspace:^",
 		"@gradio/file": "workspace:^",
 		"dequal": "^2.0.2"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
 	},
 	"main": "./Index.svelte",
 	"main_changeset": true,
