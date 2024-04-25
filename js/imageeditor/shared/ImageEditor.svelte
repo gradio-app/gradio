@@ -62,7 +62,7 @@
 	import { create_pixi_app, type ImageBlobs } from "./utils/pixi";
 	import Controls from "./Controls.svelte";
 	export let antialias = true;
-	export let crop_size: [number, number] = [800, 600];
+	export let crop_size: [number, number] | undefined;
 	export let changeable = false;
 	export let history: boolean;
 	export let bg = false;
@@ -75,7 +75,7 @@
 	export let crop_constraint = false;
 	export let canvas_size: [number, number] | undefined;
 
-	let dimensions = writable(crop_size);
+	let dimensions = writable(canvas_size);
 	export let height = 0;
 
 	let editor_box: EditorContext["editor_box"] = writable({
