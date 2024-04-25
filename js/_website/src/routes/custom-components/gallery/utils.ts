@@ -37,9 +37,12 @@ export const classToEmojiMapping: { [key: string]: string } = {
 	Video: "🎥"
 };
 
-export function clickOutside(element: any, callbackFunction: any) {
+export function clickOutside(element: HTMLDivElement, callbackFunction: any) {
 	function onClick(event: any) {
-		if (!element.contains(event.target)) {
+		if (
+			!element.contains(event.target) &&
+			!(event.target.textContent && event.target.textContent === "Share")
+		) {
 			callbackFunction();
 		}
 	}

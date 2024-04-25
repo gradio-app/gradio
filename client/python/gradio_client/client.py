@@ -1,4 +1,5 @@
 """The main Client class for the Python client."""
+
 from __future__ import annotations
 
 import concurrent.futures
@@ -154,9 +155,9 @@ class Client:
             self._login(auth)
 
         self.config = self._get_config()
-        self.protocol: Literal[
-            "ws", "sse", "sse_v1", "sse_v2", "sse_v2.1"
-        ] = self.config.get("protocol", "ws")
+        self.protocol: Literal["ws", "sse", "sse_v1", "sse_v2", "sse_v2.1"] = (
+            self.config.get("protocol", "ws")
+        )
         self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
         self.sse_url = urllib.parse.urljoin(
             self.src, utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL

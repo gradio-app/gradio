@@ -1,5 +1,5 @@
 import adapter from "@sveltejs/adapter-static";
-import { vitePreprocess } from "@sveltejs/kit/vite";
+import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 import { redirects } from "./src/routes/redirects.js";
 import fs from "fs";
 import path from "path";
@@ -49,11 +49,16 @@ const config = {
 				`/${version}/guides`,
 				`/main/docs`,
 				`/main/guides`,
+				`/3.50.2/docs`,
+				`/3.50.2/docs/gradio/interface`,
+				`/3.50.2/docs/python-client/intro`,
+				`/docs/js`,
+				`/docs/js/storybook`,
+				`/docs/js/`,
 				`/main/docs/js`,
 				`/main/docs/js/storybook`,
 				`/main/docs/js/`,
-				`/3.50.2/docs`,
-				`/3.50.2/guides`,
+
 				...Object.keys(redirects)
 			]
 		},
