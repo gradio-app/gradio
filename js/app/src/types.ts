@@ -66,7 +66,6 @@ export interface Dependency {
 	trigger_mode: "once" | "multiple" | "always_last";
 	final_event: Payload | null;
 	show_api: boolean;
-	is_render: boolean;
 }
 
 interface TypeDescription {
