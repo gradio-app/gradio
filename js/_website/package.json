@@ -11,9 +11,9 @@
 		"prepare": "svelte-kit sync"
 	},
 	"devDependencies": {
-		"@sveltejs/adapter-auto": "^2.0.0",
-		"@sveltejs/adapter-static": "^2.0.2",
-		"@sveltejs/kit": "^1.27.6",
+		"@sveltejs/adapter-auto": "^3.2.0",
+		"@sveltejs/adapter-static": "^3.0.1",
+		"@sveltejs/kit": "^2.5.7",
 		"@tailwindcss/forms": "^0.5.0",
 		"@tailwindcss/typography": "^0.5.4",
 		"@types/prismjs": "^1.26.0",
@@ -24,7 +24,7 @@
 	"dependencies": {
 		"@gradio/code": "0.5.11",
 		"@sindresorhus/slugify": "^2.2.0",
-		"@sveltejs/adapter-vercel": "^3.0.3",
+		"@sveltejs/adapter-vercel": "^5.3.0",
 		"hast-util-to-string": "^3.0.0",
 		"mdsvex": "^0.11.0",
 		"postcss": ">=8.3.3 <9.0.0"

@@ -112,7 +112,7 @@ class Request:
     A Gradio request object that can be used to access the request headers, cookies,
     query parameters and other information about the request from within the prediction
     function. The class is a thin wrapper around the fastapi.Request class. Attributes
-    of this class include: `headers`, `client`, `query_params`, and `path_params`. If
+    of this class include: `headers`, `client`, `query_params`, `session_hash`, and `path_params`. If
     auth is enabled, the `username` attribute can be used to get the logged in user.
     Example:
         import gradio as gr
@@ -121,6 +121,7 @@ class Request:
                 print("Request headers dictionary:", request.headers)
                 print("IP address:", request.client.host)
                 print("Query parameters:", dict(request.query_params))
+                print("Session hash:", request.session_hash)
             return text
         io = gr.Interface(echo, "textbox", "textbox").launch()
     Demos: request_ip_headers
@@ -130,6 +131,7 @@ class Request:
         self,
         request: fastapi.Request | None = None,
         username: str | None = None,
+        session_hash: str | None = None,
         **kwargs,
     ):
         """
@@ -137,9 +139,12 @@ class Request:
         attributes (needed for queueing).
         Parameters:
             request: A fastapi.Request
+            username: The username of the logged in user (if auth is enabled)
+            session_hash: The session hash of the current session. It is unique for each page load.
         """
         self.request = request
         self.username = username
+        self.session_hash = session_hash
         self.kwargs: dict = kwargs
 
     def dict_to_obj(self, d):
@@ -191,11 +196,15 @@ def compile_gr_request(
         if body.batched:
             gr_request = [Request(username=username, request=request)]
         else:
-            gr_request = Request(username=username, request=body.request)
+            gr_request = Request(
+                username=username, request=body.request, session_hash=body.session_hash
+            )
     else:
         if request is None:
             raise ValueError("request must be provided if body.request is None")
-        gr_request = Request(username=username, request=request)
+        gr_request = Request(
+            username=username, request=request, session_hash=body.session_hash
+        )
 
     return gr_request
 

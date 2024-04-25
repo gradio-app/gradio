@@ -97,4 +97,4 @@ class Checkbox(FormComponent):
         Returns:
             The same `bool` value that is set as the status of the checkbox
         """
-        return value
+        return bool(value)

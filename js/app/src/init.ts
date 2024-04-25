@@ -39,6 +39,7 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
+		callback?: () => void;
 	}) => void;
 	rerender_layout: (args: {
 		components: ComponentMeta[];
@@ -68,7 +69,8 @@ export function create_components(): {
 		layout,
 		dependencies,
 		root,
-		options
+		options,
+		callback
 	}: {
 		app: client_return;
 		components: ComponentMeta[];
@@ -78,6 +80,7 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
+		callback?: () => void;
 	}): void {
 		app = _app;
 		store_keyed_values(_components);
@@ -130,6 +133,9 @@ export function create_components(): {
 
 		walk_layout(layout, root).then(() => {
 			layout_store.set(_rootNode);
+			if (callback) {
+				callback();
+			}
 		});
 	}
 
@@ -553,3 +559,23 @@ export function preload_all_components(
 
 	return constructor_map;
 }
+
+export const restore_keyed_values = (
+	old_components: ComponentMeta[],
+	new_components: ComponentMeta[]
+): void => {
+	let component_values_by_key: Record<string | number, ComponentMeta> = {};
+	old_components.forEach((component) => {
+		if (component.key) {
+			component_values_by_key[component.key] = component;
+		}
+	});
+	new_components.forEach((component) => {
+		if (component.key) {
+			const old_component = component_values_by_key[component.key];
+			if (old_component) {
+				component.props.value = old_component.props.value;
+			}
+		}
+	});
+};

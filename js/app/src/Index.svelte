@@ -308,6 +308,7 @@
 				let url = new URL(`http://${host}/dev/reload`);
 				eventSource = new EventSource(url);
 				eventSource.addEventListener("reload", async (event) => {
+					app.close();
 					app = await Client.connect(api_url, {
 						status_callback: handle_status
 					});

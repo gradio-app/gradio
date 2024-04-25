@@ -637,7 +637,7 @@ class App(FastAPI):
                         if "stop" in done:
                             raise asyncio.CancelledError()
                     except asyncio.CancelledError:
-                        req = Request(request, username)
+                        req = Request(request, username, session_hash=session_hash)
                         root_path = route_utils.get_root_url(
                             request=request,
                             route_path=f"/hearbeat/{session_hash}",
