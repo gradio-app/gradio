@@ -241,7 +241,10 @@ export interface LogMessage {
 }
 export interface RenderMessage {
 	fn_index: number;
-	data: unknown[];
+	data: {
+		components: any[];
+		layout: any;
+	};
 }
 
 export interface Status {
