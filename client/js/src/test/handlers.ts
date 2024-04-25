@@ -4,7 +4,8 @@ import {
 	API_INFO_URL,
 	CONFIG_URL,
 	RUNTIME_URL,
-	SLEEPTIME_URL
+	SLEEPTIME_URL,
+	BROKEN_CONNECTION_MSG
 } from "../constants";
 import {
 	response_api_info,
@@ -15,8 +16,13 @@ import {
 } from "./test_data";
 
 const root_url = "https://huggingface.co";
+
 const direct_space_url = "https://hmb-hello-world.hf.space";
 const private_space_url = "https://hmb-secret-world.hf.space";
+
+const server_error_space_url = "https://hmb-server-error.hf.space";
+const server_error_reference = "hmb/server_error";
+
 const app_reference = "hmb/hello_world";
 const broken_app_reference = "hmb/bye_world";
 const duplicate_app_reference = "gradio/hello_world";
@@ -75,6 +81,23 @@ export const handlers: RequestHandler[] = [
 			);
 		}
 	),
+	http.get(
+		`${root_url}/api/spaces/${server_error_reference}/${HOST_URL}`,
+		() => {
+			return new HttpResponse(
+				JSON.stringify({
+					subdomain: "hmb-server-error",
+					host: "https://hmb-server-error.hf.space"
+				}),
+				{
+					status: 200,
+					headers: {
+						"Content-Type": "application/json"
+					}
+				}
+			);
+		}
+	),
 	// /info requests
 	http.get(`${direct_space_url}/${API_INFO_URL}`, () => {
 		return new HttpResponse(JSON.stringify(response_api_info), {
@@ -85,6 +108,14 @@ export const handlers: RequestHandler[] = [
 		});
 	}),
 	http.get(`${private_space_url}/${API_INFO_URL}`, () => {
+		return new HttpResponse(JSON.stringify(response_api_info), {
+			status: 200,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
+	http.get(`${server_error_space_url}/${API_INFO_URL}`, () => {
 		return new HttpResponse(JSON.stringify(response_api_info), {
 			status: 200,
 			headers: {
@@ -123,7 +154,14 @@ export const handlers: RequestHandler[] = [
 			}
 		});
 	}),
-
+	http.get(`${server_error_space_url}/${CONFIG_URL}`, () => {
+		return new HttpResponse(JSON.stringify(config_response), {
+			status: 200,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
 	// /whoami requests
 	http.get(`${root_url}/api/whoami-v2`, () => {
 		return new HttpResponse(JSON.stringify(whoami_response), {
@@ -197,5 +235,31 @@ export const handlers: RequestHandler[] = [
 				}
 			});
 		}
-	)
+	),
+	// queue requests
+	http.post(`${direct_space_url}/queue/join`, () => {
+		return new HttpResponse(JSON.stringify({ event_id: "123" }), {
+			status: 200,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
+	// upload requests
+	http.post(`${direct_space_url}/upload`, () => {
+		return new HttpResponse(JSON.stringify(["lion.jpg"]), {
+			status: 200,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
+	http.post(`${server_error_space_url}/upload`, () => {
+		return new HttpResponse(BROKEN_CONNECTION_MSG, {
+			status: 500,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	})
 ];

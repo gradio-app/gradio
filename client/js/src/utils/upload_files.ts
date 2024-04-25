@@ -1,5 +1,5 @@
 import type { Client } from "..";
-import { BROKEN_CONNECTION_MSG } from "../constants";
+import { BROKEN_CONNECTION_MSG, UPLOAD_URL } from "../constants";
 import type { UploadResponse } from "../types";
 
 export async function upload_files(
@@ -25,7 +25,7 @@ export async function upload_files(
 		try {
 			const upload_url = upload_id
 				? `${root_url}/upload?upload_id=${upload_id}`
-				: `${root_url}/upload`;
+				: `${root_url}/${UPLOAD_URL}`;
 			var response = await this.fetch_implementation(upload_url, {
 				method: "POST",
 				body: formData,

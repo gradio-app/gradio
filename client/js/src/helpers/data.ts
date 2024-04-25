@@ -5,7 +5,7 @@ import type {
 	Config,
 	EndpointInfo,
 	JsApiData,
-	ParamType
+	DataType
 } from "../types";
 
 export function update_object(
@@ -31,22 +31,22 @@ export function update_object(
 }
 
 export async function walk_and_store_blobs(
-	param: ParamType,
+	data: DataType,
 	type: string | undefined = undefined,
 	path: string[] = [],
 	root = false,
 	endpoint_info: EndpointInfo<ApiData | JsApiData> | undefined = undefined
 ): Promise<BlobRef[]> {
-	if (Array.isArray(param)) {
+	if (Array.isArray(data)) {
 		let blob_refs: BlobRef[] = [];
 
 		await Promise.all(
-			param.map(async (item) => {
+			data.map(async (item, index) => {
 				let new_path = path.slice();
-				new_path.push(item);
+				new_path.push(index.toString());
 
 				const array_refs = await walk_and_store_blobs(
-					param[item],
+					item,
 					root ? endpoint_info?.parameters[item]?.component || undefined : type,
 					new_path,
 					false,
@@ -58,25 +58,36 @@ export async function walk_and_store_blobs(
 		);
 
 		return blob_refs;
-	} else if (globalThis.Buffer && param instanceof globalThis.Buffer) {
+	} else if (data instanceof globalThis.Buffer) {
 		const is_image = type === "Image";
 		return [
 			{
 				path: path,
-				blob: is_image ? false : new NodeBlob([param]),
-				type
+				blob: is_image ? false : new NodeBlob([data]),
+				type: "Buffer"
 			}
 		];
-	} else if (typeof param === "object") {
+	} else if (data instanceof Blob) {
+		return [{ path: [...path], blob: new NodeBlob([data]), type: data.type }];
+	} else if (typeof data === "object" && data !== null) {
 		let blob_refs: BlobRef[] = [];
-		for (let key in param) {
-			if (param.hasOwnProperty(key)) {
-				let new_path = path.slice();
-				new_path.push(key);
+		for (const key of Object.keys(data)) {
+			const new_path = [...path, key];
+			const value = data[key];
+			if (Array.isArray(value)) {
 				blob_refs = blob_refs.concat(
 					await walk_and_store_blobs(
-						// @ts-ignore
-						param[key],
+						value,
+						undefined,
+						new_path,
+						false,
+						endpoint_info
+					)
+				);
+			} else {
+				blob_refs = blob_refs.concat(
+					await walk_and_store_blobs(
+						value,
 						undefined,
 						new_path,
 						false,
@@ -87,7 +98,14 @@ export async function walk_and_store_blobs(
 		}
 		return blob_refs;
 	}
-	return [];
+
+	return [
+		{
+			path: path,
+			blob: new NodeBlob([JSON.stringify(data)]),
+			type: typeof data
+		}
+	];
 }
 
 export function skip_queue(id: number, config: Config): boolean {
