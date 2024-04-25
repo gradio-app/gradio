@@ -157,7 +157,7 @@ export function create_components(): {
 
 		let current_element = instance_map[layout.id];
 		let all_current_children: ComponentMeta[] = [];
-		const add_to_current_children = (component: ComponentMeta) => {
+		const add_to_current_children = (component: ComponentMeta): void => {
 			all_current_children.push(component);
 			if (component.children) {
 				component.children.forEach((child) => {
