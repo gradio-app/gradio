@@ -87,7 +87,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
 
     from gradio.components.base import Component
-    from gradio.render import Renderable
+    from gradio.renderable import Renderable
 
 BUILT_IN_THEMES: dict[str, Theme] = {
     t.name: t
@@ -964,7 +964,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         with Blocks(theme=theme) as blocks:
             # ID 0 should be the root Blocks component
-            original_mapping[0] = get_blocks_context() or blocks
+            original_mapping[0] = Context.root_block or blocks
 
             iterate_over_children(config["layout"]["children"])
 
@@ -1338,8 +1338,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     ]
                     dependency.fn = get_cancel_function(updated_cancels)[0]
                 root_context.fns.append(dependency)
-            root_context.temp_file_sets.extend(self.temp_file_sets)
-            root_context.proxy_urls.update(self.proxy_urls)
+            Context.root_block.temp_file_sets.extend(self.temp_file_sets)
+            Context.root_block.proxy_urls.update(self.proxy_urls)
 
         render_context = get_render_context()
         if render_context is not None:
@@ -1924,7 +1924,7 @@ Received outputs:
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
             "render_config": None,
         }
-        if block_fn.renderable:
+        if block_fn.renderable and state:
             output["render_config"] = state.blocks_config.get_config(
                 block_fn.renderable
             )

@@ -22,6 +22,7 @@ class Renderable:
 
         self._id = len(Context.root_block.renderables)
         Context.root_block.renderables.append(self)
+        self.column = Column()
         self.column_id = Column()._id
 
         self.fn = fn
@@ -29,8 +30,6 @@ class Renderable:
         self.triggers: list[EventListenerMethod] = []
         if isinstance(triggers, EventListener):
             triggers = [triggers]
-
-        super().__init__()
 
         if triggers:
             self.triggers = [
@@ -59,6 +58,8 @@ class Renderable:
         try:
             self.fn(*args, **kwargs)
             blocks_config = LocalContext.blocks_config.get()
+            if blocks_config is None:
+                raise ValueError("Reactive render must be inside a LocalContext.")
             blocks_config.blocks[self.column_id] = column_copy
         finally:
             LocalContext.is_render.set(False)
