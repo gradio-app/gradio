@@ -66,7 +66,7 @@ demo.launch()
 
 This limits the number of requests processed for this event listener at a single time to 5. By default, the `default_concurrency_limit` is actually set to `1`, which means that when many users are using your app, only a single user's request will be processed at a time. This is because many machine learning functions consume a significant amount of memory and so it is only suitable to have a single user using the demo at a time. However, you can change this parameter in your demo easily.
 
-See the [docs on queueing](/docs/interface#interface-queue) for more details on configuring the queuing parameters.
+See the [docs on queueing](/docs/gradio/interface#interface-queue) for more details on configuring the queuing parameters.
 
 ## Streaming outputs
 

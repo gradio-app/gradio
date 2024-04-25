@@ -18,6 +18,7 @@
 	export let gradio: Gradio<{
 		change: string;
 		input: never;
+		clear_status: LoadingStatus;
 	}>;
 	export let interactive: boolean;
 
@@ -56,6 +57,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 	{/if}
 

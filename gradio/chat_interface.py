@@ -2,7 +2,6 @@
 This file defines a useful high-level abstraction to build Gradio chatbots: ChatInterface.
 """
 
-
 from __future__ import annotations
 
 import inspect
@@ -95,8 +94,8 @@ class ChatInterface(Blocks):
             description: a description for the interface; if provided, appears above the chatbot and beneath the title in regular font. Accepts Markdown and HTML content.
             theme: Theme to use, loaded from gradio.themes.
             css: Custom css as a string or path to a css file. This css will be included in the demo webpage.
-            js: Custom js or path to js file to run when demo is first loaded. This javascript will be included in the demo webpage.
-            head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
+            js: Custom js as a string or path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+            head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             analytics_enabled: Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
             submit_btn: Text to display on the submit button. If None, no button will be displayed. If a Button object, that button will be used.
             stop_btn: Text to display on the stop button, which replaces the submit_btn when the submit_btn or retry_btn is clicked and response is streaming. Clicking on the stop_btn will halt the chatbot response. If set to None, stop button functionality does not appear in the chatbot. If a Button object, that button will be used as the stop button.

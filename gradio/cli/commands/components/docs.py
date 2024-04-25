@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import re
 from pathlib import Path
 from typing import Any, Optional
 
@@ -170,7 +171,14 @@ def run_command(
             docs, name, description, local_version, demo, space, repo, pypi_exists
         )
 
+        readme_content = Path(_readme_path).read_text()
+
         with open(_readme_path, "w") as f:
+            yaml_regex = re.search(
+                "(?:^|[\r\n])---[\n\r]+([\\S\\s]*?)[\n\r]+---([\n\r]|$)", readme_content
+            )
+            if yaml_regex is not None:
+                readme = readme_content[: yaml_regex.span()[-1]] + readme
             f.write(readme)
             if not simple:
                 live.update(

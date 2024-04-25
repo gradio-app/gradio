@@ -15,4 +15,4 @@ demo = gr.Interface(image_mod, gr.Image(type="pil", value=cheetah), "image",
         ])
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(max_file_size="70kb")

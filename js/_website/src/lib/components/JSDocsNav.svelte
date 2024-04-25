@@ -104,18 +104,6 @@
 		{#if version_dropdown}
 			<DropDown docs_type="js"></DropDown>
 		{/if}
-		<select
-			bind:value={docs_type}
-			on:change={() => {
-				if (docs_type == "python") {
-					window.location.href = "../../docs/";
-				}
-			}}
-			class="rounded-md border-gray-200 focus:placeholder-transparent focus:shadow-none focus:border-orange-500 focus:ring-0 text-xs mt-2 py-1 pl-2 pr-7 font-mono"
-		>
-			<option value="js">js</option>
-			<option value="python">python</option>
-		</select>
 	</div>
 
 	<p

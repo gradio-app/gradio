@@ -7,8 +7,6 @@
 	let show_help_menu = false;
 	let show_nav = false;
 	$: show_nav = click_nav || $store?.lg;
-
-	// $: selected_version === version && is_versioned && goto("/guides/quickstart");
 </script>
 
 <!-- 4.0 Launch BANNER  -->
@@ -58,9 +56,6 @@
 			<a class="thin-link flex items-center gap-3" href="/docs"
 				><span>✍️</span> <span>Docs</span>
 			</a>
-			<a class="thin-link flex items-center gap-3" href="/guides"
-				><span>💡</span> <span>Guides</span></a
-			>
 			<a class="thin-link flex items-center gap-3" href="/playground"
 				><span>🎢</span>
 				<span>Playground</span></a
