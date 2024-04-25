@@ -11,6 +11,7 @@ import {
 import { Client, client, duplicate } from "..";
 import { transformed_api_info, config_response } from "./test_data";
 import { initialise_server } from "./server";
+import { CONFIG_ERROR_MSG, SPACE_METADATA_ERROR_MSG } from "../constants";
 
 const app_reference = "hmb/hello_world";
 const broken_app_reference = "hmb/bye_world";
@@ -48,7 +49,7 @@ describe("Client class", () => {
 				Client.connect("hmb/secret_world", {
 					hf_token: "hf_bad_token"
 				})
-			).rejects.toThrow("Error: Space metadata could not be loaded.");
+			).rejects.toThrow(CONFIG_ERROR_MSG);
 		});
 
 		test("viewing the api info of a running app", async () => {
@@ -58,9 +59,7 @@ describe("Client class", () => {
 
 		test("viewing the api info of a non-existent app", async () => {
 			const app = Client.connect(broken_app_reference);
-			await expect(app).rejects.toThrow(
-				"Could not resolve config: Error: Space metadata could not be loaded."
-			);
+			await expect(app).rejects.toThrow(CONFIG_ERROR_MSG);
 		});
 	});
 
@@ -97,9 +96,7 @@ describe("Client class", () => {
 		test("creating a duplicate of a broken app", async () => {
 			const duplicate = Client.duplicate(broken_app_reference);
 
-			await expect(duplicate).rejects.toThrow(
-				"Space metadata could not be loaded"
-			);
+			await expect(duplicate).rejects.toThrow(SPACE_METADATA_ERROR_MSG);
 		});
 	});
 

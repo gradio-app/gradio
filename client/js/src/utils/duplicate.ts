@@ -5,6 +5,7 @@ import {
 } from "../helpers/spaces";
 import type { DuplicateOptions } from "../types";
 import { Client } from "../client";
+import { SPACE_METADATA_ERROR_MSG } from "../constants";
 
 export async function duplicate(
 	app_reference: string,
@@ -52,7 +53,7 @@ export async function duplicate(
 			original_hardware = await get_space_hardware(app_reference, hf_token);
 		}
 	} catch (e) {
-		throw Error("Space metadata could not be loaded: " + (e as Error).message);
+		throw Error(SPACE_METADATA_ERROR_MSG + (e as Error).message);
 	}
 
 	const requested_hardware = hardware || original_hardware || "cpu-basic";

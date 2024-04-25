@@ -1,4 +1,8 @@
-import { RUNTIME_URL, SLEEPTIME_URL } from "../constants";
+import {
+	RUNTIME_URL,
+	SLEEPTIME_URL,
+	SPACE_STATUS_ERROR_MSG
+} from "../constants";
 import type { SpaceStatusCallback } from "../types";
 
 export async function check_space_status(
@@ -23,7 +27,7 @@ export async function check_space_status(
 		status_callback({
 			status: "error",
 			load_status: "error",
-			message: "Could not get space status",
+			message: SPACE_STATUS_ERROR_MSG,
 			detail: "NOT_FOUND"
 		});
 		return;
