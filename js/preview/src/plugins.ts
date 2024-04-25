@@ -5,6 +5,8 @@ import { viteCommonjs } from "@originjs/vite-plugin-commonjs";
 import sucrase from "@rollup/plugin-sucrase";
 import { createLogger } from "vite";
 import { join } from "path";
+import { type ComponentConfig } from "./dev";
+import type { Preprocessor, PreprocessorGroup } from "svelte/compiler";
 
 const svelte_codes_to_ignore: Record<string, string> = {
 	"reactive-component": "Icon"
@@ -13,46 +15,52 @@ const svelte_codes_to_ignore: Record<string, string> = {
 const RE_SVELTE_IMPORT =
 	/import\s+([\w*{},\s]+)\s+from\s+['"](svelte|svelte\/internal)['"]/g;
 const RE_BARE_SVELTE_IMPORT = /import ("|')svelte(\/\w+)*("|')(;)*/g;
-export const plugins: PluginOption[] = [
-	viteCommonjs() as Plugin,
-	svelte({
-		onwarn(warning, handler) {
-			if (
-				svelte_codes_to_ignore.hasOwnProperty(warning.code) &&
-				svelte_codes_to_ignore[warning.code] &&
-				warning.message.includes(svelte_codes_to_ignore[warning.code])
-			) {
-				return;
-			}
-			handler!(warning);
-		},
-		prebundleSvelteLibraries: false,
-		hot: true,
-		compilerOptions: {
-			discloseVersion: false
-		},
-		preprocess: [
-			{
-				script: ({ attributes, filename, content }) => {
-					if (attributes.lang === "ts") {
-						const compiledCode = transform(content, {
-							transforms: ["typescript"],
-							keepUnusedImports: true
-						});
-						return {
-							code: compiledCode.code,
-							map: compiledCode.sourceMap
-						};
-					}
+export function plugins(config: ComponentConfig): PluginOption[] {
+	const _additional_plugins = config.plugins || [];
+	const _additional_svelte_preprocess = config.svelte?.preprocess || [];
+	return [
+		viteCommonjs() as Plugin,
+		svelte({
+			onwarn(warning, handler) {
+				if (
+					svelte_codes_to_ignore.hasOwnProperty(warning.code) &&
+					svelte_codes_to_ignore[warning.code] &&
+					warning.message.includes(svelte_codes_to_ignore[warning.code])
+				) {
+					return;
 				}
-			}
-		]
-	}) as unknown as Plugin,
-	sucrase({
-		transforms: ["typescript"],
-		include: ["**/*.ts", "**/*.tsx"]
-	}) as unknown as Plugin
-];
+				handler!(warning);
+			},
+			prebundleSvelteLibraries: false,
+			hot: true,
+			compilerOptions: {
+				discloseVersion: false
+			},
+			preprocess: [
+				{
+					script: ({ attributes, filename, content }) => {
+						if (attributes.lang === "ts") {
+							const compiledCode = transform(content, {
+								transforms: ["typescript"],
+								keepUnusedImports: true
+							});
+							return {
+								code: compiledCode.code,
+								map: compiledCode.sourceMap
+							};
+						}
+					}
+				},
+				...(_additional_svelte_preprocess as PreprocessorGroup[])
+			]
+		}) as unknown as Plugin,
+		sucrase({
+			transforms: ["typescript"],
+			include: ["**/*.ts", "**/*.tsx"]
+		}) as unknown as Plugin,
+		..._additional_plugins
+	];
+}
 
 interface GradioPluginOptions {
 	mode: "dev" | "build";
