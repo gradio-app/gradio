@@ -199,6 +199,11 @@ OVERRIDES = {
         """
         ),
     ),
+    "ImageEditor": ComponentFiles(
+        template="ImageEditor",
+        python_file_name="image_editor.py",
+        js_dir="imageeditor",
+    ),
 }
 
 
@@ -280,6 +285,10 @@ def _create_frontend(
     source_package_json = _modify_js_deps(source_package_json, "dependencies", p)
     source_package_json = _modify_js_deps(source_package_json, "devDependencies", p)
     (frontend / "package.json").write_text(json.dumps(source_package_json, indent=2))
+    shutil.copy(
+        str(Path(__file__).parent / "files" / "gradio.config.js"),
+        frontend / "gradio.config.js",
+    )
 
 
 def _replace_old_class_name(old_class_name: str, new_class_name: str, content: str):

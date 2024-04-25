@@ -256,6 +256,33 @@ For those interested in design customization, we provide the CSS variables consi
 
 [Storybook Link](https://gradio.app/main/docs/js/storybook)
 
+## Custom configuration
+
+If you want to make use of the vast vite ecosystem, you can use the `gradio.config.js` file to configure your component's build process. This allows you to make use of tools like tailwindcss, mdsvex, and more.
+
+Currently, it is possible to configure the following:
+
+Vite options:
+- `plugins`: A list of vite plugins to use.
+
+Svelte options:
+- `preprocess`: A list of svelte preprocessors to use.
+
+The `gradio.config.js` file should be placed in the root of your component's `frontend` directory. A default config file is created for you when you create a new component. But you can also create your own config file and use it to customize your component's build process.
+
+```typescript
+import tailwindcss from "@tailwindcss/vite";
+import { mdsvex } from "mdsvex";
+
+export default {
+    plugins: [tailwindcss()],
+    svelte: {
+        preprocess: [
+            mdsvex()
+        ]
+    }
+};
+```
 
 ## Conclusion
 

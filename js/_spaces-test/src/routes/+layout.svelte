@@ -1,8 +1,8 @@
-<script>
+<script lang="ts">
 	import "@gradio/theme";
 	import "../../../app/test/mocks/theme.css";
-	import { page } from "$app/stores";
-	import { afterNavigate } from "$app/navigation";
+	// import { page } from "$app/stores";
+	// import { afterNavigate } from "$app";
 
 	const links = [
 		["/embeds", "Embeds"],
@@ -10,7 +10,7 @@
 		["/client-node", "Client-Node"]
 	];
 
-	$: afterNavigate(() => (location.hash = $page.url.pathname.replace("/", "")));
+	// $: afterNavigate(() => (location.hash = $page.url.pathname.replace("/", "")));
 </script>
 
 <svelte:head>
@@ -34,7 +34,7 @@
 	<h1><span style="color: var(--color-accent);">Gradio</span> Test Space</h1>
 	<ul>
 		{#each links as [url, name]}
-			<li><a href={url} class:active={url === $page.route.id}>{name}</a></li>
+			<!-- <li><a href={url} class:active={url === $page.route.id}>{name}</a></li> -->
 		{/each}
 	</ul>
 	<slot />
