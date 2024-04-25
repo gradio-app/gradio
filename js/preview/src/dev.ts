@@ -35,7 +35,11 @@ export async function create_server({
 	python_path
 }: ServerOptions): Promise<void> {
 	process.env.gradio_mode = "dev";
-	const imports = generate_imports(component_dir, root_dir, python_path);
+	const [imports, config] = await generate_imports(
+		component_dir,
+		root_dir,
+		python_path
+	);
 
 	const svelte_dir = join(root_dir, "assets", "svelte");
 
@@ -55,7 +59,7 @@ export async function create_server({
 				}
 			},
 			plugins: [
-				...plugins,
+				...plugins(config),
 				make_gradio_plugin({
 					mode: "dev",
 					backend_port,
@@ -107,11 +111,18 @@ function to_posix(_path: string): string {
 	return _path.replace(/\\/g, "/");
 }
 
-function generate_imports(
+export interface ComponentConfig {
+	plugins: any[];
+	svelte: {
+		preprocess: unknown[];
+	};
+}
+
+async function generate_imports(
 	component_dir: string,
 	root: string,
 	python_path: string
-): string {
+): Promise<[string, ComponentConfig]> {
 	const components = find_frontend_folders(component_dir);
 
 	const component_entries = components.flatMap((component) => {
@@ -122,6 +133,30 @@ function generate_imports(
 			`No custom components were found in ${component_dir}. It is likely that dev mode does not work properly. Please pass the --gradio-path and --python-path CLI arguments so that gradio uses the right executables.`
 		);
 	}
+
+	let component_config = {
+		plugins: [],
+		svelte: {
+			preprocess: []
+		}
+	};
+
+	await Promise.all(
+		component_entries.map(async (component) => {
+			if (
+				component.frontend_dir &&
+				fs.existsSync(join(component.frontend_dir, "gradio.config.js"))
+			) {
+				const m = await import(
+					join(component.frontend_dir, "gradio.config.js")
+				);
+
+				component_config.plugins = m.default.plugins || [];
+				component_config.svelte.preprocess = m.default.svelte?.preprocess || [];
+			} else {
+			}
+		})
+	);
 
 	const imports = component_entries.reduce((acc, component) => {
 		const pkg = JSON.parse(
@@ -151,5 +186,5 @@ function generate_imports(
 			},\n`;
 	}, "");
 
-	return `{${imports}}`;
+	return [`{${imports}}`, component_config];
 }
