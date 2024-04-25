@@ -53,10 +53,3 @@ def get_blocks_context() -> BlocksConfig | None:
         return LocalContext.blocks_config.get()
     elif Context.root_block:
         return Context.root_block.default_config
-
-
-def set_blocks_config(config: BlocksConfig | None):
-    if LocalContext.is_render.get():
-        LocalContext.blocks_config.set(config)
-    elif Context.root_block:
-        Context.root_block.default_config = config
