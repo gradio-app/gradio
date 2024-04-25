@@ -73,6 +73,7 @@
 		change: void;
 	}>();
 	export let crop_constraint = false;
+	export let canvas_size: [number, number] | undefined;
 
 	let dimensions = writable(crop_size);
 	export let height = 0;
@@ -270,7 +271,8 @@
 	}
 
 	onMount(() => {
-		const app = create_pixi_app(pixi_target, ...crop_size, antialias);
+		const _size = canvas_size ? canvas_size : crop_size;
+		const app = create_pixi_app(pixi_target, ..._size, antialias);
 
 		function resize(width: number, height: number): void {
 			app.resize(width, height);

@@ -54,6 +54,7 @@
 	export let server: {
 		accept_blobs: (a: any) => void;
 	};
+	export let canvas_size: [number, number] | undefined;
 
 	export let gradio: Gradio<{
 		change: never;
@@ -175,6 +176,7 @@
 		/>
 
 		<InteractiveImageEditor
+			{canvas_size}
 			on:change={() => handle_history_change()}
 			bind:image_id
 			{crop_size}

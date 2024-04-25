@@ -160,6 +160,7 @@ class ImageEditor(Component):
         brush: Brush | None | Literal[False] = None,
         format: str = "webp",
         layers: bool = True,
+        canvas_size: Tuple[int, int] | None = None,
     ):
         """
         Parameters:
@@ -189,7 +190,7 @@ class ImageEditor(Component):
             brush: The options for the brush tool in the image editor. Should be an instance of the `gr.Brush` class, or None to use the default settings. Can also be False to hide the brush tool, which will also hide the eraser tool.
             format: Format to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image).  The format should be supported by the PIL library. This parameter has no effect on SVG files.
             layers: If True, will allow users to add layers to the image. If False, the layers option will be hidden.
-
+            canvas_size: The size of the default canvas in pixels. If a tuple, the first value is the width and the second value is the height. If None, the canvas size will be the same as the background image or 800 x 600 if no background image is provided.
         """
         self._selectable = _selectable
         self.mirror_webcam = mirror_webcam
@@ -227,6 +228,7 @@ class ImageEditor(Component):
         self.blob_storage: dict[str, EditorDataBlobs] = {}
         self.format = format
         self.layers = layers
+        self.canvas_size = canvas_size
 
         super().__init__(
             label=label,

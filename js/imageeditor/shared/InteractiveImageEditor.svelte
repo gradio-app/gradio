@@ -44,6 +44,7 @@
 	export let layers: boolean;
 	export let accept_blobs: (a: any) => void;
 	export let status: "pending" | "complete" | "error" = "complete";
+	export let canvas_size: [number, number] | undefined;
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;
@@ -199,6 +200,7 @@
 	label={label || i18n("image.image")}
 />
 <ImageEditor
+	{canvas_size}
 	bind:this={editor}
 	bind:height={editor_height}
 	{changeable}
