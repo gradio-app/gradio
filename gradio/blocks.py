@@ -658,8 +658,11 @@ class BlocksConfig:
 
         config["components"] = []
         for _id, block in self.blocks.items():
-            if renderable and _id not in rendered_ids:
-                continue
+            if renderable:
+                if _id not in rendered_ids:
+                    continue
+                if block.key:
+                    block.key = f"{renderable._id}-{block.key}"
             props = block.get_config() if hasattr(block, "get_config") else {}
             block_config = {
                 "id": _id,
