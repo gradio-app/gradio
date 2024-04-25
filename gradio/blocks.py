@@ -573,7 +573,6 @@ class BlockFunction:
             "trigger_mode": self.trigger_mode,
             "show_api": self.show_api,
             "zerogpu": self.zero_gpu,
-            "is_render": self.renderable is not None,
         }
 
 
