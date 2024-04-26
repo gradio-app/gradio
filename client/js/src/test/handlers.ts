@@ -5,7 +5,7 @@ import {
 	CONFIG_URL,
 	RUNTIME_URL,
 	SLEEPTIME_URL,
-	BROKEN_CONNECTION_MSG
+	UPLOAD_URL
 } from "../constants";
 import {
 	response_api_info,
@@ -21,12 +21,14 @@ const direct_space_url = "https://hmb-hello-world.hf.space";
 const private_space_url = "https://hmb-secret-world.hf.space";
 
 const server_error_space_url = "https://hmb-server-error.hf.space";
+const upload_server_test_space_url = "https://hmb-server-test.hf.space";
 const server_error_reference = "hmb/server_error";
 
 const app_reference = "hmb/hello_world";
 const broken_app_reference = "hmb/bye_world";
 const duplicate_app_reference = "gradio/hello_world";
 const private_app_reference = "hmb/secret_world";
+const server_test_app_reference = "hmb/server_test";
 
 export const handlers: RequestHandler[] = [
 	// /host requests
@@ -69,7 +71,7 @@ export const handlers: RequestHandler[] = [
 
 			return new HttpResponse(
 				JSON.stringify({
-					subdomain: "hmb-secret-world",
+					subdomain: private_app_reference,
 					host: private_space_url
 				}),
 				{
@@ -86,8 +88,25 @@ export const handlers: RequestHandler[] = [
 		() => {
 			return new HttpResponse(
 				JSON.stringify({
-					subdomain: "hmb-server-error",
-					host: "https://hmb-server-error.hf.space"
+					subdomain: "hmb-server-test",
+					host: "https://hmb-server-test.hf.space"
+				}),
+				{
+					status: 200,
+					headers: {
+						"Content-Type": "application/json"
+					}
+				}
+			);
+		}
+	),
+	http.get(
+		`${root_url}/api/spaces/${server_test_app_reference}/${HOST_URL}`,
+		() => {
+			return new HttpResponse(
+				JSON.stringify({
+					subdomain: "hmb-server-test",
+					host: "https://hmb-server-test.hf.space"
 				}),
 				{
 					status: 200,
@@ -100,6 +119,14 @@ export const handlers: RequestHandler[] = [
 	),
 	// /info requests
 	http.get(`${direct_space_url}/${API_INFO_URL}`, () => {
+		return new HttpResponse(JSON.stringify(response_api_info), {
+			status: 200,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
+	http.get(`${upload_server_test_space_url}/${API_INFO_URL}`, () => {
 		return new HttpResponse(JSON.stringify(response_api_info), {
 			status: 200,
 			headers: {
@@ -137,6 +164,20 @@ export const handlers: RequestHandler[] = [
 			JSON.stringify({
 				...config_response,
 				root: "https://hmb-secret-world.hf.space"
+			}),
+			{
+				status: 200,
+				headers: {
+					"Content-Type": "application/json"
+				}
+			}
+		);
+	}),
+	http.get(`${upload_server_test_space_url}/${CONFIG_URL}`, () => {
+		return new HttpResponse(
+			JSON.stringify({
+				...config_response,
+				root: "https://hmb-server-test.hf.space"
 			}),
 			{
 				status: 200,
@@ -186,7 +227,7 @@ export const handlers: RequestHandler[] = [
 		`${root_url}/api/spaces/${duplicate_app_reference}/duplicate`,
 		({ request }) => {
 			if (request.headers.get("authorization")?.substring(7) !== "hf_123") {
-				return new HttpResponse(null, {
+				throw new HttpResponse(null, {
 					status: 401,
 					headers: {
 						"Content-Type": "application/json"
@@ -246,7 +287,7 @@ export const handlers: RequestHandler[] = [
 		});
 	}),
 	// upload requests
-	http.post(`${direct_space_url}/upload`, () => {
+	http.post(`${direct_space_url}/${UPLOAD_URL}`, () => {
 		return new HttpResponse(JSON.stringify(["lion.jpg"]), {
 			status: 200,
 			headers: {
@@ -254,9 +295,9 @@ export const handlers: RequestHandler[] = [
 			}
 		});
 	}),
-	http.post(`${server_error_space_url}/upload`, () => {
-		return new HttpResponse(BROKEN_CONNECTION_MSG, {
-			status: 500,
+	http.post(`${upload_server_test_space_url}/${UPLOAD_URL}`, () => {
+		throw new HttpResponse(JSON.parse("Internal Server Error"), {
+			status: 200,
 			headers: {
 				"Content-Type": "application/json"
 			}

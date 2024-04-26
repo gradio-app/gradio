@@ -1,7 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 
 import { Client } from "..";
-import { BROKEN_CONNECTION_MSG } from "../constants";
 import { initialise_server } from "./server";
 import { readFileSync } from "fs";
 import { dirname, join } from "path";
@@ -38,14 +37,14 @@ describe("upload_files", () => {
 		expect(response.files[0]).toBe("lion.jpg");
 	});
 
-	it("should handle a server error", async () => {
-		const root_url = "https://hmb-server-error.hf.space";
+	it("should handle a server error when connected to a running app and uploading files", async () => {
+		const client = await Client.connect("hmb/server_test");
 
-		const client = await Client.connect("hmb/server_error");
+		const root_url = "https://hmb-server-test.hf.space";
 		const files = [new Blob([""], { type: "text/plain" })];
 
-		const response = await client.upload_files(root_url, files);
-
-		expect(response).toEqual({ error: BROKEN_CONNECTION_MSG });
+		await expect(client.upload_files(root_url, files)).rejects.toThrow(
+			"Connection errored out. Failed to fetch"
+		);
 	});
 });

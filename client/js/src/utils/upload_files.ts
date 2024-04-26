@@ -16,6 +16,8 @@ export async function upload_files(
 	}
 	const chunkSize = 1000;
 	const uploadResponses = [];
+	let response: Response;
+
 	for (let i = 0; i < files.length; i += chunkSize) {
 		const chunk = files.slice(i, i + chunkSize);
 		const formData = new FormData();
@@ -26,16 +28,24 @@ export async function upload_files(
 			const upload_url = upload_id
 				? `${root_url}/upload?upload_id=${upload_id}`
 				: `${root_url}/${UPLOAD_URL}`;
-			var response = await this.fetch_implementation(upload_url, {
+
+			response = await this.fetch_implementation(upload_url, {
 				method: "POST",
 				body: formData,
 				headers
 			});
 		} catch (e) {
-			return { error: BROKEN_CONNECTION_MSG };
+			throw new Error(BROKEN_CONNECTION_MSG + (e as Error).message);
 		}
 		if (!response.ok) {
-			return { error: await response.text() };
+			const errorText = await response.text();
+			console.error(
+				"Upload failed with status",
+				response.status,
+				": ",
+				errorText
+			);
+			return { error: `HTTP ${response.status}: ${errorText}` };
 		}
 		const output: UploadResponse["files"] = await response.json();
 		if (output) {
