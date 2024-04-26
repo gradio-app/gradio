@@ -28,7 +28,7 @@ jobs:
         run: | 
           . venv/bin/activate
           pip install build
-          pnpm --filter @gradio/client --filter @gradio/lite build
+          pnpm --filter @gradio/client --filter @gradio/lite --filter @gradio/preview build
       - name: create and publish versions
         id: changesets
         uses: changesets/action@v1
