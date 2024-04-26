@@ -1,5 +1,17 @@
 # @gradio/downloadbutton
 
+## 0.1.9
+
+### Fixes
+
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/client@0.17.0
+- @gradio/button@0.2.32
+- @gradio/utils@0.4.0
+
 ## 0.1.8
 
 ### Dependency updates
