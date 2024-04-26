@@ -1,6 +1,31 @@
 // @ts-nocheck
 import { ApiData, ApiInfo, Config, EndpointInfo } from "../types";
 
+export const runtime_response = {
+	stage: "RUNNING",
+	hardware: {
+		current: "cpu-basic",
+		requested: "cpu-basic"
+	},
+	storage: {
+		current: null,
+		requested: null
+	},
+	gcTimeout: 86400,
+	replicas: {
+		current: 1,
+		requested: 1
+	},
+	devMode: false,
+	domains: [
+		{
+			domain: "hmb-hello-world.hf.space",
+			isCustom: false,
+			stage: "READY"
+		}
+	]
+};
+
 export const transformed_api_info: ApiInfo<ApiData> = {
 	named_endpoints: {
 		"/predict": {
@@ -461,7 +486,7 @@ export const duplicate_response = {
 export const hardware_sleeptime_response = {
 	stage: "RUNNING",
 	hardware: {
-		current: null,
+		current: "cpu-basic",
 		requested: "cpu-upgrade"
 	},
 	storage: null,
@@ -522,4 +547,11 @@ export const endpoint_info: EndpointInfo<ApiData> = {
 		continuous: false,
 		generator: false
 	}
+};
+
+export const discussions_response = {
+	discussions: [],
+	count: 0,
+	start: 0,
+	numClosedDiscussions: 0
 };

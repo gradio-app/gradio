@@ -12,7 +12,9 @@ import {
 	config_response,
 	whoami_response,
 	duplicate_response,
-	hardware_sleeptime_response
+	hardware_sleeptime_response,
+	discussions_response,
+	runtime_response
 } from "./test_data";
 
 const root_url = "https://huggingface.co";
@@ -213,15 +215,6 @@ export const handlers: RequestHandler[] = [
 			}
 		});
 	}),
-	// /runtime requests
-	http.get(`${root_url}/api/spaces/${app_reference}/${RUNTIME_URL}`, () => {
-		return new HttpResponse(JSON.stringify(hardware_sleeptime_response), {
-			status: 200,
-			headers: {
-				"Content-Type": "application/json"
-			}
-		});
-	}),
 	// /duplicate requests
 	http.post(
 		`${root_url}/api/spaces/${duplicate_app_reference}/duplicate`,
@@ -251,6 +244,17 @@ export const handlers: RequestHandler[] = [
 			}
 		});
 	}),
+	http.post(
+		`${root_url}/api/spaces/${server_test_app_reference}/${SLEEPTIME_URL}`,
+		() => {
+			throw new HttpResponse(null, {
+				status: 500,
+				headers: {
+					"Content-Type": "application/json"
+				}
+			});
+		}
+	),
 	// /jwt requests
 	http.get(`${root_url}/api/spaces/${app_reference}/jwt`, () => {
 		return new HttpResponse(
@@ -277,6 +281,14 @@ export const handlers: RequestHandler[] = [
 			});
 		}
 	),
+	http.get(`${root_url}/api/spaces/${app_reference}/${RUNTIME_URL}`, () => {
+		return new HttpResponse(JSON.stringify(hardware_sleeptime_response), {
+			status: 200,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
 	// queue requests
 	http.post(`${direct_space_url}/queue/join`, () => {
 		return new HttpResponse(JSON.stringify({ event_id: "123" }), {
@@ -298,6 +310,91 @@ export const handlers: RequestHandler[] = [
 	http.post(`${upload_server_test_space_url}/${UPLOAD_URL}`, () => {
 		throw new HttpResponse(JSON.parse("Internal Server Error"), {
 			status: 200,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
+	// discussions requests
+	http.head(`${root_url}/api/spaces/${app_reference}/discussions`, () => {
+		return new HttpResponse(JSON.stringify(discussions_response), {
+			status: 200,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
+	http.head(
+		`${root_url}/api/spaces/${broken_app_reference}/discussions`,
+		() => {
+			throw new HttpResponse(
+				JSON.parse("Discussions are disabled for this repo"),
+				{
+					status: 403,
+					headers: {
+						"Content-Type": "application/json"
+					}
+				}
+			);
+		}
+	),
+	// space requests
+	http.get(`${root_url}/api/spaces/${app_reference}`, () => {
+		return new HttpResponse(
+			JSON.stringify({ id: app_reference, runtime: runtime_response }),
+			{
+				status: 200,
+				headers: {
+					"Content-Type": "application/json"
+				}
+			}
+		);
+	}),
+	http.get(`${root_url}/api/spaces/hmb/paused_space`, () => {
+		return new HttpResponse(
+			JSON.stringify({
+				id: app_reference,
+				runtime: { ...runtime_response, stage: "PAUSED" }
+			}),
+			{
+				status: 200,
+				headers: {
+					"Content-Type": "application/json"
+				}
+			}
+		);
+	}),
+	http.get(`${root_url}/api/spaces/hmb/building_space`, () => {
+		return new HttpResponse(
+			JSON.stringify({
+				id: app_reference,
+				runtime: { ...runtime_response, stage: "BUILDING" }
+			}),
+			{
+				status: 200,
+				headers: {
+					"Content-Type": "application/json"
+				}
+			}
+		);
+	}),
+	http.get(`${root_url}/api/spaces/hmb/stopped_space`, () => {
+		return new HttpResponse(
+			JSON.stringify({
+				id: app_reference,
+				runtime: { ...runtime_response, stage: "STOPPED" }
+			}),
+			{
+				status: 200,
+				headers: {
+					"Content-Type": "application/json"
+				}
+			}
+		);
+	}),
+	http.get(`${root_url}/api/spaces/hmb/failed_space`, () => {
+		throw new HttpResponse(null, {
+			status: 500,
 			headers: {
 				"Content-Type": "application/json"
 			}
