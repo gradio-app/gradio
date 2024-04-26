@@ -255,20 +255,6 @@ export const handlers: RequestHandler[] = [
 			});
 		}
 	),
-	// /jwt requests
-	http.get(`${root_url}/api/spaces/${app_reference}/jwt`, () => {
-		return new HttpResponse(
-			JSON.stringify({
-				token: "hf_123"
-			}),
-			{
-				status: 200,
-				headers: {
-					"Content-Type": "application/json"
-				}
-			}
-		);
-	}),
 	// /runtime requests
 	http.get(
 		`${root_url}/api/spaces/${broken_app_reference}/${RUNTIME_URL}`,
@@ -394,6 +380,28 @@ export const handlers: RequestHandler[] = [
 	}),
 	http.get(`${root_url}/api/spaces/hmb/failed_space`, () => {
 		throw new HttpResponse(null, {
+			status: 500,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
+	// jwt requests
+	http.get(`${root_url}/api/spaces/${app_reference}/jwt`, () => {
+		return new HttpResponse(
+			JSON.stringify({
+				token: "jwt_123"
+			}),
+			{
+				status: 200,
+				headers: {
+					"Content-Type": "application/json"
+				}
+			}
+		);
+	}),
+	http.get(`${root_url}/api/spaces/${broken_app_reference}/jwt`, () => {
+		return new HttpResponse(null, {
 			status: 500,
 			headers: {
 				"Content-Type": "application/json"

@@ -38,7 +38,6 @@ export async function get_jwt(
 
 		return jwt || false;
 	} catch (e) {
-		console.error(e);
 		return false;
 	}
 }
