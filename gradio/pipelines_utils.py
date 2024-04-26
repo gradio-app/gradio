@@ -795,4 +795,4 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             "postprocess_takes_inputs": True,
         }
 
-    raise ValueError(f"Unsupported transformers pipeline type: {pipeline.task}")
+    raise ValueError(f"Unsupported transformers_js_py pipeline type: {pipeline.task}")
