@@ -38,14 +38,8 @@ export async function upload_files(
 			throw new Error(BROKEN_CONNECTION_MSG + (e as Error).message);
 		}
 		if (!response.ok) {
-			const errorText = await response.text();
-			console.error(
-				"Upload failed with status",
-				response.status,
-				": ",
-				errorText
-			);
-			return { error: `HTTP ${response.status}: ${errorText}` };
+			const error_text = await response.text();
+			return { error: `HTTP ${response.status}: ${error_text}` };
 		}
 		const output: UploadResponse["files"] = await response.json();
 		if (output) {
