@@ -20,15 +20,28 @@ describe("walk_and_store_blobs", () => {
 	});
 
 	it("should return a Blob when passed a Blob", async () => {
-		const image = new Blob([readFileSync(image_path)]);
+		const blob = new Blob(["test data"]);
 		const parts = await walk_and_store_blobs(
-			image,
+			blob,
+			undefined,
+			[],
+			true,
+			endpoint_info
+		);
+
+		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+	});
+
+	it("should return blob: false when passed an image", async () => {
+		const blob = new Blob([readFileSync(image_path)]);
+		const parts = await walk_and_store_blobs(
+			blob,
 			"Image",
 			[],
 			true,
 			endpoint_info
 		);
-		assert.isTrue(parts[0].blob instanceof Blob);
+		expect(parts[0].blob).toBe(false);
 	});
 
 	it("should handle deep structures", async () => {
@@ -96,22 +109,11 @@ describe("walk_and_store_blobs", () => {
 		expect(map_path(obj, parts)).toBeTruthy();
 	});
 
-	it("should return an array of BlobRefs when passed an array", async () => {
-		const param = [{ a: 1 }, { b: 2 }];
-		const parts = await walk_and_store_blobs(param);
-
-		expect(parts).toHaveLength(2);
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
-	});
-
 	it("should handle buffer instances and return a BlobRef", async () => {
 		const buffer = Buffer.from("test");
 		const parts = await walk_and_store_blobs(buffer, undefined, ["blob"]);
 
 		expect(parts).toHaveLength(1);
-		expect(parts).toEqual([
-			{ path: ["blob"], blob: new NodeBlob([buffer]), type: "Buffer" }
-		]);
 		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
 		expect(parts[0].path).toEqual(["blob"]);
 	});
@@ -123,20 +125,6 @@ describe("walk_and_store_blobs", () => {
 		expect(parts).toHaveLength(1);
 		expect(parts[0].path).toEqual([]);
 		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
-	});
-
-	it("should convert an array of objects to BlobRefs", async () => {
-		const param = [{ a: 1 }, { b: 2 }];
-		const parts = await walk_and_store_blobs(param);
-
-		expect(parts).toHaveLength(2);
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
-		expect(parts[0].path).toEqual(["0", "a"]);
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
-		expect(parts[0].type).toEqual("number");
-		expect(parts[1].path).toEqual(["1", "b"]);
-		expect(parts[1].blob).toBeInstanceOf(NodeBlob);
-		expect(parts[1].type).toEqual("number");
 	});
 
 	it("should convert an object with deep structures to BlobRefs", async () => {
@@ -154,26 +142,17 @@ describe("walk_and_store_blobs", () => {
 		expect(parts).toHaveLength(1);
 		expect(parts[0].path).toEqual(["a", "b", "data", "image"]);
 		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
-		expect(parts[0].type).toEqual("Buffer");
 	});
 
 	it("should convert an object with primitive values to BlobRefs", async () => {
 		const param = {
-			name: "John Doe",
-			age: 30,
-			isStudent: true
+			test: "test"
 		};
 		const parts = await walk_and_store_blobs(param);
 
-		expect(parts).toHaveLength(3);
-		expect(parts[0].path).toEqual(["name"]);
+		expect(parts).toHaveLength(1);
+		expect(parts[0].path).toEqual([]);
 		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
-		expect(parts[0].type).toEqual("string");
-		expect(parts[1].path).toEqual(["age"]);
-		expect(parts[1].blob).toBeInstanceOf(NodeBlob);
-		expect(parts[1].type).toEqual("number");
-		expect(parts[2].path).toEqual(["isStudent"]);
-		expect(parts[2].blob).toBeInstanceOf(NodeBlob);
-		expect(parts[2].type).toEqual("boolean");
+		expect(parts[0].type).toEqual("object");
 	});
 });

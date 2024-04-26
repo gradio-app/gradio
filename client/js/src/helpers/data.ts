@@ -41,12 +41,12 @@ export async function walk_and_store_blobs(
 		let blob_refs: BlobRef[] = [];
 
 		await Promise.all(
-			data.map(async (item, index) => {
+			data.map(async (item) => {
 				let new_path = path.slice();
-				new_path.push(index.toString());
+				new_path.push(item);
 
 				const array_refs = await walk_and_store_blobs(
-					item,
+					data[item],
 					root ? endpoint_info?.parameters[item]?.component || undefined : type,
 					new_path,
 					false,
@@ -58,54 +58,55 @@ export async function walk_and_store_blobs(
 		);
 
 		return blob_refs;
-	} else if (data instanceof globalThis.Buffer) {
+	} else if (
+		(globalThis.Buffer && data instanceof globalThis.Buffer) ||
+		data instanceof Blob
+	) {
 		const is_image = type === "Image";
 		return [
 			{
 				path: path,
 				blob: is_image ? false : new NodeBlob([data]),
-				type: "Buffer"
+				type
 			}
 		];
-	} else if (data instanceof Blob) {
-		return [{ path: [...path], blob: new NodeBlob([data]), type: data.type }];
 	} else if (typeof data === "object" && data !== null) {
 		let blob_refs: BlobRef[] = [];
-		for (const key of Object.keys(data)) {
+		for (const key of Object.keys(data) as (keyof typeof data)[]) {
 			const new_path = [...path, key];
 			const value = data[key];
-			if (Array.isArray(value)) {
-				blob_refs = blob_refs.concat(
-					await walk_and_store_blobs(
-						value,
-						undefined,
-						new_path,
-						false,
-						endpoint_info
-					)
-				);
-			} else {
-				blob_refs = blob_refs.concat(
-					await walk_and_store_blobs(
-						value,
-						undefined,
-						new_path,
-						false,
-						endpoint_info
-					)
-				);
-			}
+
+			blob_refs = blob_refs.concat(
+				await walk_and_store_blobs(
+					value,
+					undefined,
+					new_path,
+					false,
+					endpoint_info
+				)
+			);
+		}
+
+		if (
+			!blob_refs.length &&
+			!(
+				data instanceof Blob ||
+				data instanceof ArrayBuffer ||
+				data instanceof Uint8Array
+			)
+		) {
+			return [
+				{
+					path: path,
+					blob: new NodeBlob([JSON.stringify(data)]),
+					type: typeof data
+				}
+			];
 		}
 		return blob_refs;
 	}
 
-	return [
-		{
-			path: path,
-			blob: new NodeBlob([JSON.stringify(data)]),
-			type: typeof data
-		}
-	];
+	return [];
 }
 
 export function skip_queue(id: number, config: Config): boolean {
