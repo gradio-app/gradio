@@ -1,10 +1,15 @@
-import { describe, it, expect, vi, test, assert } from "vitest";
-import { update_object, walk_and_store_blobs } from "../helpers/data";
+import { describe, it, expect, vi } from "vitest";
+import {
+	update_object,
+	walk_and_store_blobs,
+	skip_queue,
+	post_message
+} from "../helpers/data";
 import { NodeBlob } from "../client";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
-import { endpoint_info } from "./test_data";
+import { config_response, endpoint_info } from "./test_data";
 import { BlobRef } from "../types";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -154,5 +159,129 @@ describe("walk_and_store_blobs", () => {
 		expect(parts[0].path).toEqual([]);
 		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
 		expect(parts[0].type).toEqual("object");
+	});
+});
+describe("update_object", () => {
+	it("should update the value of a nested property", () => {
+		const obj = {
+			a: {
+				b: {
+					c: "old value"
+				}
+			}
+		};
+
+		const stack = ["a", "b", "c"];
+		const new_val = "new value";
+
+		update_object(obj, new_val, stack);
+
+		expect(obj.a.b.c).toBe(new_val);
+	});
+
+	it("should throw an error for invalid key type", () => {
+		const obj = {
+			a: {
+				b: {
+					c: "value"
+				}
+			}
+		};
+
+		const stack = ["a", "b", true];
+		const newValue = "new value";
+
+		expect(() => {
+			// @ts-ignore
+			update_object(obj, newValue, stack);
+		}).toThrowError("Invalid key type");
+	});
+});
+
+describe("skip_queue", () => {
+	const id = 0;
+	const config = config_response;
+
+	it("should not skip queue when global and dependency queue is enabled", () => {
+		config.enable_queue = true;
+		config.dependencies[id].queue = true;
+
+		const result = skip_queue(id, config_response);
+
+		expect(result).toBe(false);
+	});
+
+	it("should not skip queue when global queue is disabled and dependency queue is enabled", () => {
+		config.enable_queue = false;
+		config.dependencies[id].queue = true;
+
+		const result = skip_queue(id, config_response);
+
+		expect(result).toBe(false);
+	});
+
+	it("should should skip queue when global queue and dependency queue is disabled", () => {
+		config.enable_queue = false;
+		config.dependencies[id].queue = false;
+
+		const result = skip_queue(id, config_response);
+
+		expect(result).toBe(true);
+	});
+
+	it("should should skip queue when global queue is enabled and dependency queue is disabled", () => {
+		config.enable_queue = true;
+		config.dependencies[id].queue = false;
+
+		const result = skip_queue(id, config_response);
+
+		expect(result).toBe(true);
+	});
+});
+
+describe("post_message", () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	it("should send a message to the parent window and resolve with received data", async () => {
+		const test_data = { key: "value" };
+		const test_origin = "https://huggingface.co";
+
+		const post_message_mock = vi.fn();
+
+		global.window = {
+			// @ts-ignore
+			parent: {
+				postMessage: post_message_mock
+			}
+		};
+
+		const message_channel_mock = {
+			port1: {
+				onmessage: (handler) => {
+					onmessage = handler;
+				},
+				close: vi.fn()
+			},
+			port2: {}
+		};
+
+		vi.stubGlobal("MessageChannel", function () {
+			this.port1 = message_channel_mock.port1;
+			this.port2 = message_channel_mock.port2;
+			return this;
+		});
+
+		const promise = post_message(test_data, test_origin);
+
+		if (message_channel_mock.port1.onmessage) {
+			message_channel_mock.port1.onmessage({ data: test_data });
+		}
+
+		await expect(promise).resolves.toEqual(test_data);
+		expect(post_message_mock).toHaveBeenCalledWith(test_data, test_origin, [
+			message_channel_mock.port2
+		]);
 	});
 });

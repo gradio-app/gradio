@@ -110,11 +110,10 @@ export async function walk_and_store_blobs(
 }
 
 export function skip_queue(id: number, config: Config): boolean {
-	return (
-		!(config?.dependencies?.[id]?.queue === null
-			? config.enable_queue
-			: config?.dependencies?.[id]?.queue) || false
-	);
+	if (config?.dependencies?.[id]?.queue !== null) {
+		return !config.dependencies[id].queue;
+	}
+	return !config.enable_queue;
 }
 
 // todo: add jsdoc for this function
