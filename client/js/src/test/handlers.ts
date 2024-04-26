@@ -5,7 +5,8 @@ import {
 	CONFIG_URL,
 	RUNTIME_URL,
 	SLEEPTIME_URL,
-	UPLOAD_URL
+	UPLOAD_URL,
+	BROKEN_CONNECTION_MSG
 } from "../constants";
 import {
 	response_api_info,
@@ -402,6 +403,25 @@ export const handlers: RequestHandler[] = [
 	}),
 	http.get(`${root_url}/api/spaces/${broken_app_reference}/jwt`, () => {
 		return new HttpResponse(null, {
+			status: 500,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
+	// post_data requests
+	http.post(`${direct_space_url}`, () => {
+		return new HttpResponse(JSON.stringify({}), {
+			status: 200,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
+
+	// post_data requests
+	http.post(`${private_space_url}`, () => {
+		return new HttpResponse(JSON.stringify(BROKEN_CONNECTION_MSG), {
 			status: 500,
 			headers: {
 				"Content-Type": "application/json"
