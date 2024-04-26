@@ -1,5 +1,13 @@
 # website
 
+## 0.27.0
+
+### Features
+
+- [#8061](https://github.com/gradio-app/gradio/pull/8061) [`17e83c9`](https://github.com/gradio-app/gradio/commit/17e83c958ebb35b3e122ca486067d1bd5ce33a22) - Docs Reorg and Intro Page.  Thanks @aliabd!
+- [#8122](https://github.com/gradio-app/gradio/pull/8122) [`e089e4c`](https://github.com/gradio-app/gradio/commit/e089e4cb4a285e0d15593fc5b13b8f254b86c090) - update dependencies.  Thanks @pngwn!
+- [#8119](https://github.com/gradio-app/gradio/pull/8119) [`38a5482`](https://github.com/gradio-app/gradio/commit/38a5482df4d175d81e2aea319c2ffc525a76c538) - Be able to link to a custom component in the gallery directly.  Thanks @freddyaboulton!
+
 ## 0.26.1
 
 ### Dependency updates

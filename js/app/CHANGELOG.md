@@ -1,5 +1,98 @@
 # @gradio/app
 
+## 1.33.0
+
+### Highlights
+
+#### Setting File Upload Limits ([#7909](https://github.com/gradio-app/gradio/pull/7909) [`2afca65`](https://github.com/gradio-app/gradio/commit/2afca6541912b37dc84f447c7ad4af21607d7c72))
+
+We have added a `max_file_size` size parameter to `launch()` that limits to size of files uploaded to the server. This limit applies to each individual file. This parameter can be specified as a string or an integer (corresponding to the size in bytes).
+
+The following code snippet sets a max file size of 5 megabytes.
+
+```python
+import gradio as gr
+
+demo = gr.Interface(lambda x: x, "image", "image")
+
+demo.launch(max_file_size="5mb")
+# or
+demo.launch(max_file_size=5 * gr.FileSize.MB)
+```
+
+![max_file_size_upload](https://github.com/gradio-app/gradio/assets/41651716/7547330c-a082-4901-a291-3f150a197e45)
+
+
+#### Error states can now be cleared
+
+When a component encounters an error, the error state shown in the UI can now be cleared by clicking on the `x` icon in the top right of the component. This applies to all types of errors, whether it's raised in the UI or the server.
+
+![error_modal_calculator](https://github.com/gradio-app/gradio/assets/41651716/16cb071c-accd-45a6-9c18-0dea27d4bd98)
+
+ Thanks @freddyaboulton!
+
+### Features
+
+- [#8092](https://github.com/gradio-app/gradio/pull/8092) [`659d3c5`](https://github.com/gradio-app/gradio/commit/659d3c51ae8591b8c90879f17b2b10d1d79cb331) - chore(deps): update dependency iframe-resizer to v4.3.11.  Thanks @renovate!
+- [#8067](https://github.com/gradio-app/gradio/pull/8067) [`0fb058e`](https://github.com/gradio-app/gradio/commit/0fb058ec232bfaceb24f1515d16a41fa432a1ee8) - Fix the Lite custom element parser so it doesn't add the .code option when the entrypoint file is already specified.  Thanks @whitphx!
+- [#8051](https://github.com/gradio-app/gradio/pull/8051) [`d665f40`](https://github.com/gradio-app/gradio/commit/d665f409704b4938d57bee6476a2d000617643c8) - Fix custom JS function caller to concat the outputs of a dep to the inputs as the arguments.  Thanks @whitphx!
+- [#8056](https://github.com/gradio-app/gradio/pull/8056) [`2e469a5`](https://github.com/gradio-app/gradio/commit/2e469a5f99e52a5011a010f46e47dde7bb0c7140) - Using keys to preserve values between reloads.  Thanks @aliabid94!
+- [#7646](https://github.com/gradio-app/gradio/pull/7646) [`450b8cc`](https://github.com/gradio-app/gradio/commit/450b8cc898f130f15caa3742f65c17b9f7a8f398) - Refactor JS Client.  Thanks @hannahblair!
+- [#8115](https://github.com/gradio-app/gradio/pull/8115) [`595ebf7`](https://github.com/gradio-app/gradio/commit/595ebf74c5e09ad90fca0ca8a9a312f161a981aa) - Cache an error from app.submit() and show it on frontend.  Thanks @whitphx!
+- [#8084](https://github.com/gradio-app/gradio/pull/8084) [`1c99570`](https://github.com/gradio-app/gradio/commit/1c99570f3cbf28f020d6e92527754dd4cae3bcdb) - Adjust `View Api` container `z-index`.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.1
+- @gradio/client@0.17.0
+- @gradio/audio@0.10.0
+- @gradio/label@0.3.0
+- @gradio/accordion@0.3.10
+- @gradio/annotatedimage@0.5.13
+- @gradio/button@0.2.32
+- @gradio/chatbot@0.9.0
+- @gradio/checkbox@0.3.0
+- @gradio/checkboxgroup@0.5.0
+- @gradio/code@0.6.0
+- @gradio/colorpicker@0.3.0
+- @gradio/column@0.1.1
+- @gradio/dataframe@0.7.0
+- @gradio/dataset@0.1.32
+- @gradio/downloadbutton@0.1.9
+- @gradio/dropdown@0.7.0
+- @gradio/fallback@0.3.0
+- @gradio/file@0.6.0
+- @gradio/fileexplorer@0.4.0
+- @gradio/form@0.1.15
+- @gradio/gallery@0.9.0
+- @gradio/group@0.1.1
+- @gradio/highlightedtext@0.5.0
+- @gradio/html@0.2.0
+- @gradio/image@0.10.0
+- @gradio/imageeditor@0.6.0
+- @gradio/json@0.2.0
+- @gradio/markdown@0.7.0
+- @gradio/model3d@0.9.0
+- @gradio/multimodaltextbox@0.3.0
+- @gradio/number@0.4.0
+- @gradio/paramviewer@0.4.9
+- @gradio/plot@0.4.0
+- @gradio/radio@0.5.0
+- @gradio/row@0.1.2
+- @gradio/simpledropdown@0.2.0
+- @gradio/simpleimage@0.4.0
+- @gradio/simpletextbox@0.2.0
+- @gradio/slider@0.4.0
+- @gradio/statustracker@0.5.0
+- @gradio/tabitem@0.2.7
+- @gradio/tabs@0.2.7
+- @gradio/textbox@0.5.0
+- @gradio/uploadbutton@0.6.0
+- @gradio/video@0.7.0
+- @gradio/upload@0.9.0
+- @gradio/utils@0.4.0
+- @gradio/box@0.1.15
+
 ## 1.32.0
 
 ### Features
