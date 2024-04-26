@@ -483,7 +483,7 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
         from transformers_js_py import as_url, read_audio  # type: ignore
     except ImportError as ie:
         raise ImportError(
-            "transformers_js_py not installed. Please add `transformers_js_py` to the requirements option of your Gradio-Lite app"
+            "transformers_js_py not installed. Please add `transformers_js_py` to the requirements of your Gradio-Lite app"
         ) from ie
 
     ## Natural Language Processing ##
