@@ -2,4 +2,4 @@
 "@gradio/preview": patch
 ---
 
-feat:fix missing dependencies for `@gradio/preview`
+fix:fix missing dependencies for `@gradio/preview`
