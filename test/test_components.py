@@ -102,6 +102,7 @@ class TestTextbox:
             "text_align": None,
             "autofocus": False,
             "_selectable": False,
+            "key": None,
             "info": None,
             "autoscroll": True,
         }
@@ -187,6 +188,7 @@ class TestNumber:
             "info": None,
             "precision": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_component_functions_integer(self):
@@ -220,6 +222,7 @@ class TestNumber:
             "info": None,
             "precision": 0,
             "_selectable": False,
+            "key": None,
         }
 
     def test_component_functions_precision(self):
@@ -316,6 +319,7 @@ class TestSlider:
             "proxy_url": None,
             "info": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_in_interface(self):
@@ -374,6 +378,7 @@ class TestCheckbox:
             "interactive": None,
             "proxy_url": None,
             "_selectable": False,
+            "key": None,
             "info": None,
         }
 
@@ -424,6 +429,7 @@ class TestCheckboxGroup:
             "interactive": None,
             "proxy_url": None,
             "_selectable": False,
+            "key": None,
             "type": "value",
             "info": None,
         }
@@ -473,6 +479,7 @@ class TestRadio:
             "interactive": None,
             "proxy_url": None,
             "_selectable": False,
+            "key": None,
             "type": "value",
             "info": None,
         }
@@ -557,6 +564,7 @@ class TestDropdown:
             "filterable": True,
             "max_choices": 2,
             "_selectable": False,
+            "key": None,
             "type": "value",
             "info": None,
         }
@@ -621,6 +629,7 @@ class TestImageEditor:
             "mirror_webcam": True,
             "show_share_button": False,
             "_selectable": False,
+            "key": None,
             "crop_size": None,
             "transforms": ("crop",),
             "eraser": {"default_size": "auto"},
@@ -691,6 +700,7 @@ class TestImage:
             "proxy_url": None,
             "mirror_webcam": True,
             "_selectable": False,
+            "key": None,
             "streamable": False,
             "type": "pil",
         }
@@ -886,6 +896,7 @@ class TestAudio:
                 "trim_region_color": None,
             },
             "_selectable": False,
+            "key": None,
         }
         assert audio_input.preprocess(None) is None
 
@@ -940,6 +951,7 @@ class TestAudio:
                 "trim_region_color": None,
             },
             "_selectable": False,
+            "key": None,
         }
 
         output1 = audio_output.postprocess(y_audio.name).model_dump()
@@ -1036,6 +1048,7 @@ class TestFile:
             "interactive": None,
             "proxy_url": None,
             "_selectable": False,
+            "key": None,
             "height": None,
             "type": "filepath",
         }
@@ -1151,6 +1164,7 @@ class TestDataframe:
                 "metadata": None,
             },
             "_selectable": False,
+            "key": None,
             "headers": ["Name", "Age", "Member"],
             "row_count": (1, "dynamic"),
             "col_count": (3, "dynamic"),
@@ -1194,6 +1208,7 @@ class TestDataframe:
                 "metadata": None,
             },
             "_selectable": False,
+            "key": None,
             "headers": ["1", "2", "3"],
             "row_count": (1, "dynamic"),
             "col_count": (3, "dynamic"),
@@ -1545,6 +1560,7 @@ class TestVideo:
             "min_length": None,
             "max_length": None,
             "_selectable": False,
+            "key": None,
         }
         assert video_input.preprocess(None) is None
         video_input = gr.Video(format="avi")
@@ -1764,6 +1780,7 @@ class TestLabel:
             "proxy_url": None,
             "color": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_color_argument(self):
@@ -1919,6 +1936,7 @@ class TestHighlightedText:
             "value": None,
             "proxy_url": None,
             "_selectable": False,
+            "key": None,
             "combine_adjacent": False,
             "adjacent_separator": "",
             "interactive": None,
@@ -2007,6 +2025,7 @@ class TestAnnotatedImage:
             "value": None,
             "proxy_url": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_in_interface(self):
@@ -2068,6 +2087,7 @@ class TestChatbot:
             "height": None,
             "proxy_url": None,
             "_selectable": False,
+            "key": None,
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "likeable": False,
             "rtl": False,
@@ -2109,6 +2129,7 @@ class TestJSON:
             "name": "json",
             "proxy_url": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_chatbot_selectable_in_config(self):
@@ -2180,6 +2201,7 @@ class TestHTML:
             "proxy_url": None,
             "name": "html",
             "_selectable": False,
+            "key": None,
         }
 
     def test_in_interface(self):
@@ -2234,6 +2256,7 @@ class TestModel3D:
             "zoom_speed": 1,
             "pan_speed": 1,
             "_selectable": False,
+            "key": None,
         }
 
         file = "test/test_files/Box.gltf"
@@ -2279,6 +2302,7 @@ class TestColorPicker:
             "name": "colorpicker",
             "info": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_in_interface_as_input(self):
@@ -2561,6 +2585,7 @@ class TestScatterPlot:
             "x_label_angle": None,
             "y_label_angle": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_no_color(self):
@@ -2719,6 +2744,7 @@ class TestLinePlot:
             "x_label_angle": None,
             "y_label_angle": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_no_color(self):
@@ -2823,6 +2849,7 @@ class TestBarPlot:
             "y_label_angle": None,
             "sort": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_no_color(self):
@@ -2936,6 +2963,7 @@ class TestCode:
             "interactive": None,
             "proxy_url": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_process_example(self):
