@@ -23,7 +23,7 @@ jobs:
           always_install_pnpm: true
           node_auth_token: ${{ secrets.NPM_TOKEN }}
           npm_token: ${{ secrets.NPM_TOKEN }}
-          skip_build: 'true'
+          skip_build: 'false'
       - name: Build packages
         run: | 
           . venv/bin/activate
