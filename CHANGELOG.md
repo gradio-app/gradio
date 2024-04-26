@@ -1,5 +1,11 @@
 # gradio
 
+## 4.28.3
+
+### Fixes
+
+- [#8144](https://github.com/gradio-app/gradio/pull/8144) [`7ba2780`](https://github.com/gradio-app/gradio/commit/7ba2780dc096a21f790695bf9368d2b39a79e2fa) - fix missing dependencies for `@gradio/preview`.  Thanks @pngwn!
+
 ## 4.28.2
 
 ### Fixes
