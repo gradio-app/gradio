@@ -1,5 +1,11 @@
 # gradio
 
+## 4.28.1
+
+### Fixes
+
+- [#8140](https://github.com/gradio-app/gradio/pull/8140) [`0d41b22`](https://github.com/gradio-app/gradio/commit/0d41b221dc69eb543396504a276b84a485c98901) - fix publish build.  Thanks @pngwn!
+
 ## 4.28.0
 
 ### Highlights
