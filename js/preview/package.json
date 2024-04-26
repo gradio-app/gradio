@@ -17,11 +17,11 @@
 		"@rollup/plugin-json": "^6.0.0",
 		"@rollup/plugin-node-resolve": "^15.1.0",
 		"@rollup/plugin-typescript": "^11.1.2",
-		"rollup": "^3.28.0",
-		"@originjs/vite-plugin-commonjs": "^1.0.3",
-		"@rollup/plugin-sucrase": "^5.0.1"
+		"rollup": "^3.28.0"
 	},
 	"dependencies": {
+		"@originjs/vite-plugin-commonjs": "^1.0.3",
+		"@rollup/plugin-sucrase": "^5.0.1",
 		"@sveltejs/vite-plugin-svelte": "^3.1.0",
 		"@types/which": "^3.0.0",
 		"coffeescript": "^2.7.0",
