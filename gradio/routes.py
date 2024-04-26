@@ -289,11 +289,11 @@ class App(FastAPI):
 
                     if app.change_event and app.change_event.is_set():
                         app.change_event.clear()
-                        yield """data: CHANGE\n\n"""
+                        yield """event: reload\ndata: {}\n\n"""
 
                     await asyncio.sleep(check_rate)
                     if time.perf_counter() - last_heartbeat > heartbeat_rate:
-                        yield """data: HEARTBEAT\n\n"""
+                        yield """event: heartbeat\ndata: {}\n\n"""
                         last_heartbeat = time.time()
 
             return StreamingResponse(
