@@ -417,7 +417,7 @@ class BlockContext(Block):
     def __enter__(self):
         render_context = get_render_context()
         self.parent = render_context
-        render_context = self
+        set_render_context(self)
         return self
 
     def add(self, child: Block):
