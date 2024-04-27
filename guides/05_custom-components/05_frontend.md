@@ -270,6 +270,15 @@ Svelte options:
 
 The `gradio.config.js` file should be placed in the root of your component's `frontend` directory. A default config file is created for you when you create a new component. But you can also create your own config file and use it to customize your component's build process.
 
+### Example for TailwindCSS
+
+If you want to use [TailwindCSS](https://tailwindcss.com) you can install it using version 4.0-alpha. 
+
+```
+npm install tailwindcss@next @tailwindcss/vite@next mdsvex
+```
+
+In `gradio.config.js`
 ```typescript
 import tailwindcss from "@tailwindcss/vite";
 import { mdsvex } from "mdsvex";
@@ -282,6 +291,21 @@ export default {
         ]
     }
 };
+```
+Then create a `style.css` file with the following content:
+
+```
+@import "tailwindcss";
+```
+
+Import this file into `Index.svelte`. 
+
+```
+<script lang="ts">
+[...]
+import "./style.css";
+[...]
+</script>
 ```
 
 ## Conclusion
