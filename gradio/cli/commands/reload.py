@@ -126,7 +126,11 @@ def main(
             GRADIO_WATCH_DEMO_PATH=str(path),
         ),
     )
-    popen.wait()
+    if popen.poll() is None:
+        try:
+            popen.wait()
+        except (KeyboardInterrupt, OSError):
+            print("gradio-cli: Waiting gradio main thread cleaning.")
 
 
 if __name__ == "__main__":
