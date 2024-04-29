@@ -26,6 +26,7 @@ export interface ComponentMeta {
 	children?: ComponentMeta[];
 	value?: any;
 	component_class_id: string;
+	key: string | number | null;
 }
 
 /** Dictates whether a dependency is continous and/or a generator */
@@ -38,8 +39,8 @@ export interface DependencyTypes {
 export interface Payload {
 	fn_index: number;
 	data: unknown[];
-	event_data: unknown | null;
-	trigger_id: number | null;
+	event_data?: unknown | null;
+	trigger_id?: number | null;
 }
 
 /** A dependency as received from the backend */

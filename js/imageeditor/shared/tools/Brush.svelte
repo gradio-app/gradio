@@ -23,7 +23,7 @@
 		color_mode: "fixed" | "defaults";
 	}
 
-	type brush_option_type = "color" | "size";
+	type brush_option_type = boolean;
 </script>
 
 <script lang="ts">
@@ -32,11 +32,9 @@
 
 	import { getContext, onMount, tick } from "svelte";
 	import { type ToolContext, TOOL_KEY } from "./Tools.svelte";
-	import { Palette, BrushSize as SizeIcon } from "@gradio/icons";
 	import { type EditorContext, EDITOR_KEY } from "../ImageEditor.svelte";
 	import { draw_path, type DrawCommand } from "./brush";
-	import BrushColor from "./BrushColor.svelte";
-	import BrushSize from "./BrushSize.svelte";
+	import BrushOptions from "./BrushOptions.svelte";
 	import type { FederatedPointerEvent } from "pixi.js";
 
 	export let default_size: Brush["default_size"];
@@ -46,7 +44,7 @@
 	export let mode: "erase" | "draw";
 
 	const processed_colors = colors
-		? colors.map(process_color).filter((_, i) => i < 5)
+		? colors.map(process_color).filter((_, i) => i < 4)
 		: [];
 
 	let selected_color =
@@ -56,32 +54,7 @@
 			? "black"
 			: process_color(default_color);
 
-	const paint_meta = {
-		color: {
-			icon: Palette,
-			label: "Color",
-			order: 0,
-			id: "brush_color",
-			cb() {
-				current_option = "color";
-			}
-		},
-		size: {
-			icon: SizeIcon,
-			label: "Size",
-			order: 1,
-			id: "brush_size",
-			cb() {
-				current_option = "size";
-			}
-		}
-	} as const;
-
-	let brush_options: (typeof paint_meta)[brush_option_type][];
-	$: brush_options =
-		mode === "draw" ? Object.values(paint_meta) : [paint_meta.size];
-
-	let current_option: brush_option_type | null = null;
+	let brush_options: brush_option_type = false;
 
 	const {
 		pixi,
@@ -90,7 +63,8 @@
 		command_manager,
 		register_context,
 		editor_box,
-		crop
+		crop,
+		toolbar_box
 	} = getContext<EditorContext>(EDITOR_KEY);
 
 	const { active_tool, register_tool, current_color } =
@@ -216,8 +190,7 @@
 
 	onMount(() => {
 		const unregister = register_tool(mode, {
-			default: null,
-			options: brush_options
+			cb: toggle_options
 		});
 
 		return () => {
@@ -232,19 +205,37 @@
 		return tinycolor(color).toRgbString();
 	}
 
-	$: {
-		if ($active_tool !== mode) {
-			current_option = null;
-		}
-	}
-
 	let pos = { x: 0, y: 0 };
 	$: brush_size =
 		(selected_size / $dimensions[0]) * $editor_box.child_width * 2;
+
+	function debounce_toggle(): (should_close?: boolean) => void {
+		let timeout: NodeJS.Timeout | null = null;
+
+		return function executedFunction(should_close?: boolean) {
+			const later = (): void => {
+				if (timeout) {
+					clearTimeout(timeout);
+				}
+				if (should_close !== undefined) {
+					brush_options = should_close;
+					return;
+				}
+				brush_options = !brush_options;
+			};
+
+			if (timeout) {
+				clearTimeout(timeout);
+			}
+			timeout = setTimeout(later, 100);
+		};
+	}
+
+	const toggle_options = debounce_toggle();
 </script>
 
 <svelte:window
-	on:keydown={({ key }) => key === "Escape" && (current_option = null)}
+	on:keydown={({ key }) => key === "Escape" && toggle_options(false)}
 />
 
 <span
@@ -260,23 +251,23 @@
 	style:opacity={brush_cursor ? 1 : 0}
 />
 
-{#if current_option === "color" && colors}
+{#if brush_options}
 	<div>
-		<BrushColor
-			on:click_outside={() => (current_option = null)}
+		<BrushOptions
+			show_swatch={mode === "draw"}
+			on:click_outside={() => toggle_options()}
 			colors={processed_colors}
 			bind:selected_color
 			{color_mode}
 			bind:recent_colors
+			bind:selected_size
+			dimensions={$dimensions}
+			parent_width={$editor_box.parent_width}
+			parent_height={$editor_box.parent_height}
+			parent_left={$editor_box.parent_left}
+			toolbar_box={$toolbar_box}
 		/>
 	</div>
-{:else if current_option === "size"}
-	<BrushSize
-		on:click_outside={() => (current_option = null)}
-		max={$dimensions[0] / 10}
-		min={1}
-		bind:selected_size
-	/>
 {/if}
 
 <style>

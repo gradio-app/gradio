@@ -1,4 +1,5 @@
 """Contains tests for networking.py and app.py"""
+
 import functools
 import os
 import tempfile
@@ -405,6 +406,19 @@ class TestRoutes:
         with TestClient(app) as client:
             assert client.get("/ps").is_success
             assert client.get("/py").is_success
+
+    def test_gradio_app_with_auth_dependency(self):
+        def block_anonymous(request: Request):
+            return request.headers.get("user")
+
+        demo = gr.Interface(lambda s: s, "textbox", "textbox")
+        app, _, _ = demo.launch(
+            auth_dependency=block_anonymous, prevent_thread_lock=True
+        )
+
+        with TestClient(app) as client:
+            assert not client.get("/", headers={}).is_success
+            assert client.get("/", headers={"user": "abubakar"}).is_success
 
     def test_mount_gradio_app_with_auth_dependency(self):
         app = FastAPI()
@@ -1268,3 +1282,17 @@ def test_compare_passwords_securely():
 )
 def test_starts_with_protocol(string, expected):
     assert starts_with_protocol(string) == expected
+
+
+def test_max_file_size_used_in_upload_route(connect):
+    with gr.Blocks() as demo:
+        gr.Markdown("Max file size demo")
+
+    app, _, _ = demo.launch(prevent_thread_lock=True, max_file_size="1kb")
+    test_client = TestClient(app)
+    with open("test/test_files/cheetah1.jpg", "rb") as f:
+        r = test_client.post("/upload", files={"files": f})
+        assert r.status_code == 413
+    with open("test/test_files/alphabet.txt", "rb") as f:
+        r = test_client.post("/upload", files={"files": f})
+        assert r.status_code == 200

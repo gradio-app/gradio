@@ -15,7 +15,7 @@ from gradio.routes import App
 from gradio.utils import SourceFileReloader, watchfn
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio.blocks import Blocks
+    pass
 
 # By default, the local server will try to open on localhost, port 7860.
 # If that is not available, then it will try 7861, 7862, ... 7959.
@@ -69,29 +69,27 @@ class Server(uvicorn.Server):
 
 
 def start_server(
-    blocks: Blocks,
+    app: App,
     server_name: str | None = None,
     server_port: int | None = None,
     ssl_keyfile: str | None = None,
     ssl_certfile: str | None = None,
     ssl_keyfile_password: str | None = None,
-    app_kwargs: dict | None = None,
-) -> tuple[str, int, str, App, Server]:
+) -> tuple[str, int, str, Server]:
     """Launches a local server running the provided Interface
     Parameters:
-        blocks: The Blocks object to run on the server
+        app: the FastAPI app object to run
         server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
         server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
         auth: If provided, username and password (or list of username-password tuples) required to access the Blocks. Can also provide function that takes username and password and returns True if valid login.
         ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
         ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
         ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
-        app_kwargs: Additional keyword arguments to pass to the gradio.routes.App constructor.
 
     Returns:
+        server_name: the name of the server (default is "localhost")
         port: the port number the server is running on
         path_to_local_server: the complete address that the local server can be accessed at
-        app: the FastAPI app object
         server: the server object that is a subclass of uvicorn.Server (used to close the server)
     """
     if ssl_keyfile is not None and ssl_certfile is None:
@@ -107,8 +105,6 @@ def start_server(
         host = server_name[1:-1]
     else:
         host = server_name
-
-    app = App.create_app(blocks, app_kwargs=app_kwargs)
 
     server_ports = (
         [server_port]
@@ -167,4 +163,4 @@ def start_server(
     else:
         path_to_local_server = f"http://{url_host_name}:{port}/"
 
-    return server_name, port, path_to_local_server, app, server
+    return server_name, port, path_to_local_server, server

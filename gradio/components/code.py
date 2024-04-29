@@ -151,7 +151,7 @@ class Code(Component):
         if value is None:
             return None
         elif isinstance(value, tuple):
-            with open(value[0]) as file_data:
+            with open(value[0], encoding="utf-8") as file_data:
                 return file_data.read()
         else:
             return value.strip()

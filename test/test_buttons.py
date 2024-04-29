@@ -13,10 +13,10 @@ class TestClearButton:
                 textbox = gr.Textbox(scale=3, interactive=True)
                 gr.ClearButton([textbox, chatbot], scale=1)
 
-        clear_event_trigger = demo.dependencies.pop()
-        assert not clear_event_trigger["backend_fn"]
-        assert clear_event_trigger["js"]
-        assert clear_event_trigger["outputs"] == [textbox._id, chatbot._id]
+        clear_event_trigger = demo.fns.pop()
+        assert not clear_event_trigger.fn
+        assert clear_event_trigger.js
+        assert clear_event_trigger.outputs == [textbox, chatbot]
 
     def test_clear_event_setup_correctly_with_state(self):
         with gr.Blocks() as demo:
@@ -24,8 +24,8 @@ class TestClearButton:
             state = gr.State("")
             gr.ClearButton([state, chatbot], scale=1)
 
-        clear_event_trigger_state = demo.dependencies.pop()
-        assert clear_event_trigger_state["backend_fn"]
+        clear_event_trigger_state = demo.fns.pop()
+        assert clear_event_trigger_state.fn
 
 
 class TestOAuthButtons:
@@ -47,9 +47,9 @@ class TestOAuthButtons:
         with gr.Blocks() as demo:
             button = gr.LoginButton()
 
-        login_event = demo.dependencies[0]
-        assert login_event["targets"][0][1] == "click"
-        assert not login_event["backend_fn"]  # No Python code
-        assert login_event["js"]  # But JS code instead
-        assert login_event["inputs"] == [button._id]
-        assert login_event["outputs"] == []
+        login_event = demo.fns[0]
+        assert login_event.targets[0][1] == "click"
+        assert not login_event.fn  # No Python code
+        assert login_event.js  # But JS code instead
+        assert login_event.inputs == [button]
+        assert login_event.outputs == []
