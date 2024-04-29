@@ -40,7 +40,7 @@ with gr.Blocks(fill_height=True) as demo:
          ["Video", gr.Video(value="files/world.mp4", render=False)],
          ["Audio", gr.Audio(value="files/cantina.wav", render=False)],
          ["Plot", gr.Plot(value=fig, render=False)],
-         ["Gallery", gr.Gallery(value=["files/avatar.png", "files/avatar.png", "files/avatar.png"], render=False)]],
+         ["Gallery", gr.Gallery(value=["files/lion.jpg", "files/cheetah.jpg", "files/zebra.jpg"], render=False)]],
         elem_id="chatbot",
         height=700,
         bubble_full_width=False,

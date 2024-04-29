@@ -535,6 +535,7 @@
 		margin: var(--size-2);
 		max-height: 200px;
 	}
+
 	.message-wrap .message :global(a) {
 		color: var(--color-text-link);
 		text-decoration: underline;
