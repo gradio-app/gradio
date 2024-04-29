@@ -2,12 +2,6 @@ import { describe, it, expect, afterEach } from "vitest";
 
 import { Client } from "..";
 import { initialise_server } from "./server";
-import { readFileSync } from "fs";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const image_path = join(__dirname, "..", "test", "lion.jpg");
 
 const server = initialise_server();
 
@@ -23,9 +17,7 @@ describe("upload_files", () => {
 			hf_token: "hf_token"
 		});
 
-		const files = [
-			new Blob([readFileSync(image_path)], { type: "image/jpeg" })
-		];
+		const files = [new Blob([], { type: "image/jpeg" })];
 
 		const response = await client.upload_files(root_url, files);
 

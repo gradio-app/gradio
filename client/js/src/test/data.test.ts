@@ -6,14 +6,8 @@ import {
 	post_message
 } from "../helpers/data";
 import { NodeBlob } from "../client";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-import { readFileSync } from "fs";
 import { config_response, endpoint_info } from "./test_data";
 import { BlobRef } from "../types";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const image_path = join(__dirname, "..", "test", "lion.jpg");
 
 describe("walk_and_store_blobs", () => {
 	it("should convert a Buffer to a Blob", async () => {
@@ -38,7 +32,7 @@ describe("walk_and_store_blobs", () => {
 	});
 
 	it("should return blob: false when passed an image", async () => {
-		const blob = new Blob([readFileSync(image_path)]);
+		const blob = new Blob([]);
 		const parts = await walk_and_store_blobs(
 			blob,
 			"Image",
@@ -50,7 +44,7 @@ describe("walk_and_store_blobs", () => {
 	});
 
 	it("should handle deep structures", async () => {
-		const image = new Blob([readFileSync(image_path)]);
+		const image = new Blob([]);
 		const parts = await walk_and_store_blobs({ a: { b: { data: { image } } } });
 
 		expect(parts).toHaveLength(1);
@@ -59,7 +53,7 @@ describe("walk_and_store_blobs", () => {
 	});
 
 	it("should handle deep structures with arrays", async () => {
-		const image = new Blob([readFileSync(image_path)]);
+		const image = new Blob([]);
 		const parts = await walk_and_store_blobs({
 			a: [
 				{
@@ -80,7 +74,7 @@ describe("walk_and_store_blobs", () => {
 	});
 
 	it("should handle deep structures with arrays (with equality check)", async () => {
-		const image = new Blob([readFileSync(image_path)]);
+		const image = new Blob([]);
 
 		const obj = {
 			a: [

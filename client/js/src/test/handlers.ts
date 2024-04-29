@@ -418,8 +418,6 @@ export const handlers: RequestHandler[] = [
 			}
 		});
 	}),
-
-	// post_data requests
 	http.post(`${private_space_url}`, () => {
 		return new HttpResponse(JSON.stringify(BROKEN_CONNECTION_MSG), {
 			status: 500,
