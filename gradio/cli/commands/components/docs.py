@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import re
 from pathlib import Path
 from typing import Any, Optional
 
@@ -9,6 +10,7 @@ import tomlkit as toml
 from typer import Argument, Option
 from typing_extensions import Annotated
 
+from gradio.analytics import custom_component_analytics
 from gradio.cli.commands.display import LivePanelDisplay
 
 from ._docs_assets import css
@@ -48,6 +50,13 @@ def _docs(
     ] = False,
 ):
     """Runs the documentation generator."""
+    custom_component_analytics(
+        "docs",
+        None,
+        None,
+        None,
+        None,
+    )
 
     _component_dir = Path(path).resolve()
     _demo_dir = Path(demo_dir).resolve() if demo_dir else Path("demo").resolve()
@@ -170,7 +179,14 @@ def run_command(
             docs, name, description, local_version, demo, space, repo, pypi_exists
         )
 
+        readme_content = Path(_readme_path).read_text()
+
         with open(_readme_path, "w") as f:
+            yaml_regex = re.search(
+                "(?:^|[\r\n])---[\n\r]+([\\S\\s]*?)[\n\r]+---([\n\r]|$)", readme_content
+            )
+            if yaml_regex is not None:
+                readme = readme_content[: yaml_regex.span()[-1]] + readme
             f.write(readme)
             if not simple:
                 live.update(

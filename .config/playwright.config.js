@@ -39,7 +39,8 @@ const lite = defineConfig(base, {
 		"**/file_component_events.spec.ts",
 		"**/chatbot_multimodal.spec.ts",
 		"**/kitchen_sink.spec.ts",
-		"**/gallery_component_events.spec.ts"
+		"**/gallery_component_events.spec.ts",
+		"**/image_remote_url.spec.ts" // To detect the bugs on Lite fixed in https://github.com/gradio-app/gradio/pull/8011 and https://github.com/gradio-app/gradio/pull/8026
 	],
 	workers: 1,
 	retries: 3

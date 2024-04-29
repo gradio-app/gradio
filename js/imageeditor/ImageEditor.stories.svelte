@@ -122,7 +122,7 @@
 			coords: { clientX: 100, clientY: 100 }
 		});
 
-		await userEvent.click(canvas.getByLabelText("Color button"));
+		await userEvent.click(canvas.getByLabelText("Draw button"));
 
 		var availableColors = document.querySelectorAll(
 			"button.color:not(.empty):not(.selected):not(.hidden)"

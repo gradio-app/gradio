@@ -170,12 +170,7 @@
 
 	$: $editor_box && get_measurements();
 
-	onMount(() =>
-		register_tool("crop", {
-			default: "crop",
-			options: []
-		})
-	);
+	onMount(() => register_tool("crop"));
 </script>
 
 {#if $active_tool === "crop" && measured}
@@ -191,6 +186,3 @@
 		on:crop_end={({ detail }) => handle_crop("stop", detail)}
 	/>
 {/if}
-
-<style>
-</style>

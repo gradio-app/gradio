@@ -25,6 +25,7 @@ export { default as Info } from "./Info.svelte";
 export { default as Image } from "./Image.svelte";
 export { default as ImagePaste } from "./ImagePaste.svelte";
 export { default as JSON } from "./JSON.svelte";
+export { default as Layers } from "./Layers.svelte";
 export { default as Like } from "./Like.svelte";
 export { default as LineChart } from "./LineChart.svelte";
 export { default as Maximise } from "./Maximise.svelte";

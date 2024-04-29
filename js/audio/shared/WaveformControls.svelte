@@ -318,7 +318,12 @@
 			grid-template-areas:
 				"playback playback"
 				"controls editing";
-			overflow: scroll;
+		}
+	}
+
+	@media (max-width: 319px) {
+		.controls {
+			overflow-x: scroll;
 		}
 	}
 

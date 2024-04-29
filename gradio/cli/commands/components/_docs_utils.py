@@ -382,10 +382,10 @@ def extract_docstrings(module):
 
                         # We just want to normalise the arg name to 'value' for the preprocess and postprocess methods
                         if member_name in ("postprocess", "preprocess"):
-                            docs[name]["members"][member_name][
-                                "value"
-                            ] = find_first_non_return_key(
-                                docs[name]["members"][member_name]
+                            docs[name]["members"][member_name]["value"] = (
+                                find_first_non_return_key(
+                                    docs[name]["members"][member_name]
+                                )
                             )
                             additional_refs = get_deep(
                                 docs, ["__meta__", "user_fn_refs", name]

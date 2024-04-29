@@ -4,7 +4,7 @@ import datetime
 import os
 import threading
 from collections import OrderedDict
-from copy import deepcopy
+from copy import copy, deepcopy
 from typing import TYPE_CHECKING, Any, Iterator
 
 if TYPE_CHECKING:
@@ -62,13 +62,13 @@ class StateHolder:
                 component.delete_callback(value)
                 to_delete.append(component._id)
         for component in to_delete:
-            del session_state._data[component]
+            del session_state.state_data[component]
 
 
 class SessionState:
     def __init__(self, blocks: Blocks):
-        self.blocks = blocks
-        self._data = {}
+        self.blocks_config = copy(blocks.default_config)
+        self.state_data: dict[int, Any] = {}
         self._state_ttl = {}
         self.is_closed = False
         # When a session is closed, the state is stored for an hour to give the user time to reopen the session.
@@ -78,39 +78,45 @@ class SessionState:
         )
 
     def __getitem__(self, key: int) -> Any:
-        if key not in self._data:
-            block = self.blocks.blocks[key]
-            if getattr(block, "stateful", False):
-                self._data[key] = deepcopy(getattr(block, "value", None))
-            else:
-                self._data[key] = None
-        return self._data[key]
+        block = self.blocks_config.blocks[key]
+        if block.stateful:
+            if key not in self.state_data:
+                self.state_data[key] = deepcopy(getattr(block, "value", None))
+            return self.state_data[key]
+        else:
+            return block
 
     def __setitem__(self, key: int, value: Any):
         from gradio.components import State
 
-        block = self.blocks.blocks[key]
+        block = self.blocks_config.blocks[key]
         if isinstance(block, State):
             self._state_ttl[key] = (
                 block.time_to_live,
                 datetime.datetime.now(),
             )
-        self._data[key] = value
+            self.state_data[key] = value
+        else:
+            self.blocks_config.blocks[key] = value
 
     def __contains__(self, key: int):
-        return key in self._data
+        block = self.blocks_config.blocks[key]
+        if block.stateful:
+            return key in self.state_data
+        else:
+            return key in self.blocks_config.blocks
 
     @property
     def state_components(self) -> Iterator[tuple[State, Any, bool]]:
         from gradio.components import State
 
-        for id in self._data:
-            block = self.blocks.blocks[id]
+        for id in self.state_data:
+            block = self.blocks_config.blocks[id]
             if isinstance(block, State) and id in self._state_ttl:
                 time_to_live, created_at = self._state_ttl[id]
                 if self.is_closed:
                     time_to_live = self.STATE_TTL_WHEN_CLOSED
-                value = self._data[id]
+                value = self.state_data[id]
                 yield (
                     block,
                     value,

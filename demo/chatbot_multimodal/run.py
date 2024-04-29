@@ -42,8 +42,7 @@ with gr.Blocks(fill_height=True) as demo:
          ["Plot", gr.Plot(value=fig, render=False)],
          ["Gallery", gr.Gallery(value=["files/lion.jpg", "files/cheetah.jpg", "files/zebra.jpg"], render=False)]],
         elem_id="chatbot",
-        height=700,
-        bubble_full_width=False,
+        bubble_full_width=False
     )
 
     chat_input = gr.MultimodalTextbox(interactive=True, file_types=["image"], placeholder="Enter message or upload file...", show_label=False)

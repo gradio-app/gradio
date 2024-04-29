@@ -1,9 +1,11 @@
 """The main Client class for the Python client."""
+
 from __future__ import annotations
 
 import concurrent.futures
 import hashlib
 import json
+import math
 import os
 import re
 import secrets
@@ -17,6 +19,7 @@ import warnings
 from concurrent.futures import Future
 from dataclasses import dataclass
 from datetime import datetime
+from functools import partial
 from pathlib import Path
 from threading import Lock
 from typing import Any, Callable, Literal
@@ -152,9 +155,9 @@ class Client:
             self._login(auth)
 
         self.config = self._get_config()
-        self.protocol: Literal[
-            "ws", "sse", "sse_v1", "sse_v2", "sse_v2.1"
-        ] = self.config.get("protocol", "ws")
+        self.protocol: Literal["ws", "sse", "sse_v1", "sse_v2", "sse_v2.1"] = (
+            self.config.get("protocol", "ws")
+        )
         self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
         self.sse_url = urllib.parse.urljoin(
             self.src, utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL
@@ -1169,7 +1172,7 @@ class Endpoint:
             if self.client.upload_files and self.input_component_types[i].value_is_file:
                 d = utils.traverse(
                     d,
-                    self._upload_file,
+                    partial(self._upload_file, data_index=i),
                     lambda f: utils.is_filepath(f)
                     or utils.is_file_obj_with_meta(f)
                     or utils.is_http_url_like(f),
@@ -1217,7 +1220,7 @@ class Endpoint:
         else:
             return data
 
-    def _upload_file(self, f: str | dict) -> dict[str, str]:
+    def _upload_file(self, f: str | dict, data_index: int) -> dict[str, str]:
         if isinstance(f, str):
             warnings.warn(
                 f'The Client is treating: "{f}" as a file path. In future versions, this behavior will not happen automatically. '
@@ -1228,6 +1231,22 @@ class Endpoint:
         else:
             file_path = f["path"]
         if not utils.is_http_url_like(file_path):
+            component_id = self.dependency["inputs"][data_index]
+            component_config = next(
+                (
+                    c
+                    for c in self.client.config["components"]
+                    if c["id"] == component_id
+                ),
+                {},
+            )
+            max_file_size = self.client.config.get("max_file_size", None)
+            max_file_size = math.inf if max_file_size is None else max_file_size
+            if os.path.getsize(file_path) > max_file_size:
+                raise ValueError(
+                    f"File {file_path} exceeds the maximum file size of {max_file_size} bytes "
+                    f"set in {component_config.get('label', '') + ''} component."
+                )
             with open(file_path, "rb") as f:
                 files = [("files", (Path(file_path).name, f))]
                 r = httpx.post(

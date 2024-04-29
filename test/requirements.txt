@@ -269,7 +269,7 @@ rfc3986[idna2008]==1.5.0
     #   rfc3986
 rich==13.7.0
     # via typer
-ruff==0.2.2
+ruff==0.4.1
     # via
     #   -r requirements.in
     #   gradio

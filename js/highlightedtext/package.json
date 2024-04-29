@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/highlightedtext",
-	"version": "0.4.14",
+	"version": "0.5.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -13,6 +13,9 @@
 		"@gradio/statustracker": "workspace:^",
 		"@gradio/theme": "workspace:^",
 		"@gradio/utils": "workspace:^"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
 	},
 	"main": "./Index.svelte",
 	"exports": {

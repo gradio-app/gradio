@@ -340,7 +340,10 @@
 
 	.message-wrap > div :not(.avatar-container) div :not(.image-button) :global(img) {
 		border-radius: 13px;
+		margin: var(--size-2);
+		width: 400px;
 		max-width: 30vw;
+		max-height: auto;
 	}
 
 	.message-wrap > div :global(p:not(:first-child)) {

@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/column",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -11,5 +11,8 @@
 	"exports": {
 		".": "./Index.svelte",
 		"./package.json": "./package.json"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
 	}
 }

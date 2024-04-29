@@ -24,6 +24,7 @@
 		change: never;
 		upload: never;
 		click: never;
+		error: string;
 	}>;
 	export let interactive: boolean;
 
@@ -53,9 +54,13 @@
 	{disabled}
 	{variant}
 	{label}
+	max_file_size={gradio.max_file_size}
 	on:click={() => gradio.dispatch("click")}
 	on:change={({ detail }) => handle_event(detail, "change")}
 	on:upload={({ detail }) => handle_event(detail, "upload")}
+	on:error={({ detail }) => {
+		gradio.dispatch("error", detail);
+	}}
 >
 	{label ? gradio.i18n(label) : ""}
 </UploadButton>

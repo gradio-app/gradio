@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/audio",
-	"version": "0.9.11",
+	"version": "0.10.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -21,6 +21,9 @@
 		"svelte-range-slider-pips": "^2.0.1",
 		"wavesurfer.js": "^7.4.2",
 		"@types/wavesurfer.js": "^6.0.10"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
 	},
 	"main_changeset": true,
 	"main": "index.ts",

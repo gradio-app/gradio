@@ -55,11 +55,11 @@ if __name__ == "__main__":
                     == get_relative_path(file_location / value.TEMPLATE_DIR)
                 ]
                 if len(found) == 0:
-                    artifacts.append(
-                        os.path.abspath(file_location / value.TEMPLATE_DIR)
+                    artifact = "/" + (os.path.abspath(file_location / value.TEMPLATE_DIR)
                         .replace(os.path.abspath(Path("..")), "")
-                        .lstrip("/")
-                    )
+                        .lstrip("/"))
+                    if artifact not in artifacts:
+                        artifacts.append(artifact)
 
                 print(
                     f"{name}~|~|~|~{os.path.abspath(file_location  / value.TEMPLATE_DIR)}~|~|~|~{os.path.abspath(file_location / value.FRONTEND_DIR)}~|~|~|~{value.get_component_class_id()}"

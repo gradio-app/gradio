@@ -357,6 +357,7 @@
 		font-weight: var(--checkbox-label-text-weight);
 		font-size: var(--checkbox-label-text-size);
 		line-height: var(--line-md);
+		word-break: break-word;
 	}
 
 	.token > * + * {
@@ -375,6 +376,7 @@
 		padding: var(--size-0-5);
 		width: 16px;
 		height: 16px;
+		flex-shrink: 0;
 	}
 
 	.secondary-wrap {

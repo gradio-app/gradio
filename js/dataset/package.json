@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/dataset",
-	"version": "0.1.30",
+	"version": "0.1.32",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -16,5 +16,8 @@
 		"@gradio/client": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@gradio/upload": "workspace:^"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
 	}
 }
