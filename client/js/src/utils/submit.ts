@@ -156,7 +156,7 @@ export function submit(
 			}
 		}
 
-		this.handle_blob(`${config.root}`, data, endpoint_info).then(
+		this.handle_blob(config.root, data, endpoint_info).then(
 			async (_payload) => {
 				payload = {
 					data: _payload || [],

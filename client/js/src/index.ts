@@ -14,4 +14,4 @@ export type {
 
 // todo: remove in @gradio/client v1.0
 export { client } from "./client";
-export { duplicate } from "./utils/duplicate";
+export { duplicate_space as duplicate } from "./client";

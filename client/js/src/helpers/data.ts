@@ -5,7 +5,7 @@ import type {
 	Config,
 	EndpointInfo,
 	JsApiData,
-	ParamType
+	DataType
 } from "../types";
 
 export function update_object(
@@ -31,22 +31,22 @@ export function update_object(
 }
 
 export async function walk_and_store_blobs(
-	param: ParamType,
+	data: DataType,
 	type: string | undefined = undefined,
 	path: string[] = [],
 	root = false,
 	endpoint_info: EndpointInfo<ApiData | JsApiData> | undefined = undefined
 ): Promise<BlobRef[]> {
-	if (Array.isArray(param)) {
+	if (Array.isArray(data)) {
 		let blob_refs: BlobRef[] = [];
 
 		await Promise.all(
-			param.map(async (item) => {
+			data.map(async (item) => {
 				let new_path = path.slice();
 				new_path.push(item);
 
 				const array_refs = await walk_and_store_blobs(
-					param[item],
+					data[item],
 					root ? endpoint_info?.parameters[item]?.component || undefined : type,
 					new_path,
 					false,
@@ -58,44 +58,62 @@ export async function walk_and_store_blobs(
 		);
 
 		return blob_refs;
-	} else if (globalThis.Buffer && param instanceof globalThis.Buffer) {
+	} else if (
+		(globalThis.Buffer && data instanceof globalThis.Buffer) ||
+		data instanceof Blob
+	) {
 		const is_image = type === "Image";
 		return [
 			{
 				path: path,
-				blob: is_image ? false : new NodeBlob([param]),
+				blob: is_image ? false : new NodeBlob([data]),
 				type
 			}
 		];
-	} else if (typeof param === "object") {
+	} else if (typeof data === "object" && data !== null) {
 		let blob_refs: BlobRef[] = [];
-		for (let key in param) {
-			if (param.hasOwnProperty(key)) {
-				let new_path = path.slice();
-				new_path.push(key);
-				blob_refs = blob_refs.concat(
-					await walk_and_store_blobs(
-						// @ts-ignore
-						param[key],
-						undefined,
-						new_path,
-						false,
-						endpoint_info
-					)
-				);
-			}
+		for (const key of Object.keys(data) as (keyof typeof data)[]) {
+			const new_path = [...path, key];
+			const value = data[key];
+
+			blob_refs = blob_refs.concat(
+				await walk_and_store_blobs(
+					value,
+					undefined,
+					new_path,
+					false,
+					endpoint_info
+				)
+			);
+		}
+
+		if (
+			!blob_refs.length &&
+			!(
+				data instanceof Blob ||
+				data instanceof ArrayBuffer ||
+				data instanceof Uint8Array
+			)
+		) {
+			return [
+				{
+					path: path,
+					blob: new NodeBlob([JSON.stringify(data)]),
+					type: typeof data
+				}
+			];
 		}
 		return blob_refs;
 	}
+
 	return [];
 }
 
 export function skip_queue(id: number, config: Config): boolean {
-	return (
-		!(config?.dependencies?.[id]?.queue === null
-			? config.enable_queue
-			: config?.dependencies?.[id]?.queue) || false
-	);
+	if (config?.dependencies?.[id]?.queue !== null) {
+		return !config.dependencies[id].queue;
+	}
+	return !config.enable_queue;
 }
 
 // todo: add jsdoc for this function
