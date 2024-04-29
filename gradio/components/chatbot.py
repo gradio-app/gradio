@@ -152,13 +152,12 @@ class Chatbot(Component):
         elif isinstance(chat_message, (str)):
             return chat_message
         elif isinstance(chat_message, GalleryData):
-            print("GALLERYYY::: ", chat_message)
-            gallery = Gallery()
-            return Gallery.preprocess(gallery, chat_message)
+            value = Gallery().preprocess(chat_message)
+            gallery = Gallery(value=value, render=False)
+            return gallery
         elif isinstance(chat_message, PlotData):
-            print("PLOTTTT::: ", chat_message)
-            plot = Plot()
-            return Plot.preprocess(plot, chat_message)
+            plot = Plot(value=chat_message, render=False)
+            return plot
         else:
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
 
@@ -247,6 +246,8 @@ class Chatbot(Component):
                 raise TypeError(
                     f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
                 )
+            # print("0000000000", self._postprocess_chat_messages(message_pair[0]))
+            # print("1111111111", self._postprocess_chat_messages(message_pair[1]))
             processed_messages.append(
                 [
                     self._postprocess_chat_messages(message_pair[0]),

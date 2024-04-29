@@ -1,8 +1,5 @@
 import gradio as gr
-import matplotlib.pyplot as plt
-import numpy as np
 import plotly.express as px
-
 
 # Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, & video). Plus shows support for streaming text.
 
@@ -16,23 +13,17 @@ def print_like_dislike(x: gr.LikeData):
     print(x.index, x.value, x.liked)
 
 def add_message(history, message):
-    print("history::::: ", history)
     for x in message["files"]:
         history.append(((x,), None))
     if message["text"] is not None:
         history.append((message["text"], None))
     return history, gr.MultimodalTextbox(value=None, interactive=False)
 
-fig = random_plot()
 def bot(history):
-    # audio = gr.Audio(value="files/cantina.wav")
-    # image = gr.Image(value="files/avatar.png")
-    # video = gr.Video(value="files/world.mp4")
-    fig = random_plot()
-    plot = gr.Plot(value=fig),
-    history[-1][1] = plot
+    history[-1][1] = "Cool!"
     return history
 
+fig = random_plot()
 
 with gr.Blocks(fill_height=True) as demo:
     chatbot = gr.Chatbot(
