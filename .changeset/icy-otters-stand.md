@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Add ETag to `/custom_component` route to control browser caching
+fix:Add ETag to `/custom_component` route to control browser caching
