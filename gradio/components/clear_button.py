@@ -9,7 +9,7 @@ from typing import Any, Literal
 from gradio_client.documentation import document
 
 from gradio.components import Button, Component
-from gradio.context import Context
+from gradio.context import get_blocks_context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.utils import resolve_singleton
 
@@ -64,7 +64,7 @@ class ClearButton(Button):
         self.api_name = api_name
         self.show_api = show_api
 
-        if Context.root_block:
+        if get_blocks_context():
             self.add(components)
 
     def add(self, components: None | Component | list[Component]) -> ClearButton:
