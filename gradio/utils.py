@@ -103,19 +103,13 @@ class BaseReloader(ABC):
     def running_app(self) -> App:
         pass
 
-    def queue_changed(self, demo: Blocks):
-        return (
-            hasattr(self.running_app.blocks, "_queue") and not hasattr(demo, "_queue")
-        ) or (
-            not hasattr(self.running_app.blocks, "_queue") and hasattr(demo, "_queue")
-        )
-
     def swap_blocks(self, demo: Blocks):
         assert self.running_app.blocks  # noqa: S101
         # Copy over the blocks to get new components and events but
         # not a new queue
         self.running_app.blocks._queue.block_fns = demo.fns
         demo._queue = self.running_app.blocks._queue
+        demo.max_file_size = self.running_app.blocks.max_file_size
         self.running_app.state_holder.reset(demo)
         self.running_app.blocks = demo
         demo._queue.reload()
@@ -155,7 +149,11 @@ class SourceFileReloader(BaseReloader):
         self.change_event.set()
 
     def swap_blocks(self, demo: Blocks):
+        old_blocks = self.running_app.blocks
         super().swap_blocks(demo)
+        if old_blocks:
+            reassign_keys(old_blocks, demo)
+        demo.config = demo.get_config_file()
         self.alert_change()
 
 
@@ -285,15 +283,46 @@ def watchfn(reloader: SourceFileReloader):
                 mtimes = {}
                 continue
             demo = getattr(module, reloader.demo_name)
-            if reloader.queue_changed(demo):
-                print(
-                    "Reloading failed. The new demo has a queue and the old one doesn't (or vice versa). "
-                    "Please launch your demo again"
-                )
-            else:
-                reloader.swap_blocks(demo)
+            reloader.swap_blocks(demo)
             mtimes = {}
         time.sleep(0.05)
+
+
+def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
+    from gradio.blocks import BlockContext
+
+    assigned_keys = [
+        block.key for block in new_blocks.children if block.key is not None
+    ]
+
+    def reassign_context_keys(
+        old_context: BlockContext | None, new_context: BlockContext
+    ):
+        for i, new_block in enumerate(new_context.children):
+            if old_context and i < len(old_context.children):
+                old_block = old_context.children[i]
+            else:
+                old_block = None
+            if new_block.key is None:
+                if (
+                    old_block.__class__ == new_block.__class__
+                    and old_block is not None
+                    and old_block.key not in assigned_keys
+                ):
+                    new_block.key = old_block.key
+                else:
+                    new_block.key = f"__{new_block._id}__"
+
+            if isinstance(new_block, BlockContext):
+                if (
+                    isinstance(old_block, BlockContext)
+                    and old_block.__class__ == new_block.__class__
+                ):
+                    reassign_context_keys(old_block, new_block)
+                else:
+                    reassign_context_keys(None, new_block)
+
+    reassign_context_keys(old_blocks, new_blocks)
 
 
 def colab_check() -> bool:
