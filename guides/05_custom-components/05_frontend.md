@@ -267,25 +267,29 @@ Vite options:
 
 Svelte options:
 - `preprocess`: A list of svelte preprocessors to use.
+- `extensions`: A list of file extensions to compile to `.svelte` files.
 
-The `gradio.config.js` file should be placed in the root of your component's `frontend` directory. A default config file is created for you when you create a new component. But you can also create your own config file and use it to customize your component's build process.
+The `gradio.config.js` file should be placed in the root of your component's `frontend` directory. A default config file is created for you when you create a new component. But you can also create your own config file, if one doesn't exist, and use it to customize your component's build process.
 
 ### Example for a Vite plugin
 
-Custom components can use Vite plugins to customize the build process. Check out [Vite Docs](https://vitejs.dev/guide/using-plugins.html) for more information. 
-Here we configure [TailwindCSS](https://tailwindcss.com), a utility-first CSS framework. Currently, we need to use version 4.0-alpha. 
+Custom components can use Vite plugins to customize the build process. Check out the [Vite Docs](https://vitejs.dev/guide/using-plugins.html) for more information. 
+
+Here we configure [TailwindCSS](https://tailwindcss.com), a utility-first CSS framework. Setup is easiest using the version 4 prerelease. 
 
 ```
 npm install tailwindcss@next @tailwindcss/vite@next
 ```
 
-In `gradio.config.js`
+In `gradio.config.js`:
+
 ```typescript
 import tailwindcss from "@tailwindcss/vite";
 export default {
     plugins: [tailwindcss()]
 };
 ```
+
 Then create a `style.css` file with the following content:
 
 ```css
@@ -302,20 +306,61 @@ import "./style.css";
 </script>
 ```
 
-### Example for a Svelte plugin
+### Example for Svelte options
 
-In `gradio.config.js` you can also specify what [Svelte preprocessors](https://github.com/sveltejs/svelte-preprocess?tab=readme-ov-file#what-is-it) to use.
-Here we use `mdsvex` a Markdown preprocessor for Svelte.
+In `gradio.config.js` you can also specify a some Svelte options to apply to the Svelte compilation. In this example we will add support for [`mdsvex`](https://mdsvex.pngwn.io), a Markdown preprocessor for Svelte. 
+
+In order to do this we will need to add a [Svelte Preprocessor](https://svelte.dev/docs/svelte-compiler#preprocess) to the `svelte` object in `gradio.config.js` and configure the [`extensions`](https://github.com/sveltejs/vite-plugin-svelte/blob/HEAD/docs/config.md#config-file) field. Other options are not currently supported.
+
+First, install the `mdsvex` plugin:
+
+```bash
+npm install mdsvex
 ```
+
+Then add the following to `gradio.config.js`:
+
+```typescript
 import { mdsvex } from "mdsvex";
 
 export default {
     svelte: {
         preprocess: [
             mdsvex()
-        ]
+        ],
+        extensions: [".svelte", ".svx"]
     }
 };
+```
+
+Now we can create `mdsvex` documents in our component's `frontend` directory and they will be compiled to `.svelte` files.
+
+```md
+<!-- HelloWorld.svx -->
+
+<script lang="ts">
+    import { Block } from "@gradio/atoms";
+
+    export let title = "Hello World";
+</script>
+
+<Block label="Hello World">
+
+# {title}
+
+This is a markdown file.
+
+</Block>
+```
+
+We can then use the `HelloWorld.svx` file in our components:
+
+```svelte
+<script lang="ts">
+    import HelloWorld from "./HelloWorld.svx";
+</script>
+
+<HelloWorld />
 ```
 
 ## Conclusion
