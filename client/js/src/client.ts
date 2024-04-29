@@ -135,7 +135,7 @@ export class Client {
 			await this._resolve_config().then(async ({ config }) => {
 				if (config) {
 					this.config = config;
-					if (this.config) {
+					if (this.config && this.config.connect_heartbeat) {
 						// connect to the heartbeat endpoint via GET request
 						const heartbeat_url = new URL(
 							`${this.config.root}/heartbeat/${this.session_hash}`
