@@ -111,6 +111,6 @@ def load_from_js_pipeline(pipeline) -> dict:
         "fn": fn,
         "inputs": pipeline_info["inputs"],
         "outputs": pipeline_info["outputs"],
-        "title": pipeline.task,
+        "title": f"{pipeline.task} ({pipeline.model.config.model_type})",
     }
     return interface_info
