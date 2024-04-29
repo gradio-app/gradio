@@ -60,12 +60,12 @@ You can also set the number of requests that can be processed in parallel for ea
 
 To do this, set the `concurrency_limit` parameter of any event listener, e.g. `btn.click(..., concurrency_limit=20)` or in the `Interface` or `ChatInterface` classes: e.g. `gr.Interface(..., concurrency_limit=20)`. By default, this parameter is set to the global `default_concurrency_limit`.
 
-### The `max_workers` parameter in `launch()`
 
+### The `max_threads` parameter in `launch()`
 
-If you have maxed out the `concurrency_count` and you'd like to further increase the number of requests that should be processed in parallel, you can increase the number of threads that can process requests from the queue. 
+If your demo uses non-async functions, e.g. `def` instead of `async def`, they will be run in a threadpool. This threadpool has a size of 40 meaning that only 40 threads can be created to run your non-async functions. If you are running into this limit, you can increase the threadpool size with `max_threads`. The default value is 40.
 
-You do this by setting the `max_workers` parameter in the `launch()` method. (The default value is 40.)
+Tip: You should use async functions whenever possible to increase the number of concurrent requests your app can handle. Quick functions that are not CPU-bound are good candidates to be written as `async`. This [guide](https://fastapi.tiangolo.com/async/) is a good primer on the concept.
 
 
 ### The `max_size` parameter in `queue()`
