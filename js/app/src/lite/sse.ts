@@ -12,7 +12,7 @@ export function wasm_proxied_EventSource_factory(
 ): EventSource {
 	if (!is_self_host(url)) {
 		console.debug("Fallback to original WebSocket");
-		return new EventSource(url.toString());
+		return new EventSource(url);
 	}
 
 	return new WasmWorkerEventSource(worker_proxy, url) as unknown as EventSource;
