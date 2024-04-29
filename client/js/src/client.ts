@@ -52,6 +52,7 @@ export class Client {
 	pending_diff_streams: Record<string, any[][]> = {};
 	event_callbacks: Record<string, () => Promise<void>> = {};
 	unclosed_events: Set<string> = new Set();
+	heartbeat_event: EventSource | null = null;
 
 	fetch_implementation(
 		input: RequestInfo | URL,
@@ -130,7 +131,7 @@ export class Client {
 						const heartbeat_url = new URL(
 							`${this.config.root}/heartbeat/${this.session_hash}`
 						);
-						this.eventSource_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
+						this.heartbeat_event = this.eventSource_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
 
 						if (this.config.space_id && this.options.hf_token) {
 							this.jwt = await get_jwt(
@@ -156,6 +157,10 @@ export class Client {
 		const client = new this(app_reference, options); // this refers to the class itself, not the instance
 		await client.init();
 		return client;
+	}
+
+	close(): void {
+		this.heartbeat_event?.close();
 	}
 
 	static async duplicate(

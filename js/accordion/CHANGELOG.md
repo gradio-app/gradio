@@ -1,5 +1,18 @@
 # @gradio/accordion
 
+## 0.3.10
+
+### Fixes
+
+- [#8066](https://github.com/gradio-app/gradio/pull/8066) [`624f9b9`](https://github.com/gradio-app/gradio/commit/624f9b9477f74a581a6c14119234f9efdfcda398) - make gradio dev tools a local dependency rather than bundling.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.1
+- @gradio/column@0.1.1
+- @gradio/statustracker@0.5.0
+- @gradio/utils@0.4.0
+
 ## 0.3.9
 
 ### Dependency updates
