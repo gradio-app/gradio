@@ -270,42 +270,52 @@ Svelte options:
 
 The `gradio.config.js` file should be placed in the root of your component's `frontend` directory. A default config file is created for you when you create a new component. But you can also create your own config file and use it to customize your component's build process.
 
-### Example for TailwindCSS
+### Example for a Vite plugin
 
-If you want to use [TailwindCSS](https://tailwindcss.com) you can install it using version 4.0-alpha. 
+Custom components can use Vite plugins to customize the build process. Check out [Vite Docs](https://vitejs.dev/guide/using-plugins.html) for more information. 
+Here we configure [TailwindCSS](https://tailwindcss.com), a utility-first CSS framework. Currently, we need to use version 4.0-alpha. 
 
 ```
-npm install tailwindcss@next @tailwindcss/vite@next mdsvex
+npm install tailwindcss@next @tailwindcss/vite@next
 ```
 
 In `gradio.config.js`
 ```typescript
 import tailwindcss from "@tailwindcss/vite";
+export default {
+    plugins: [tailwindcss()]
+};
+```
+Then create a `style.css` file with the following content:
+
+```css
+@import "tailwindcss";
+```
+
+Import this file into `Index.svelte`. Note, that you need to import the css file containing `@import` and cannot just use a `<style>` tag and use `@import` there. 
+
+```svelte
+<script lang="ts">
+[...]
+import "./style.css";
+[...]
+</script>
+```
+
+### Example for a Svelte plugin
+
+In `gradio.config.js` you can also specify what [Svelte preprocessors](https://github.com/sveltejs/svelte-preprocess?tab=readme-ov-file#what-is-it) to use.
+Here we use `mdsvex` a Markdown preprocessor for Svelte.
+```
 import { mdsvex } from "mdsvex";
 
 export default {
-    plugins: [tailwindcss()],
     svelte: {
         preprocess: [
             mdsvex()
         ]
     }
 };
-```
-Then create a `style.css` file with the following content:
-
-```
-@import "tailwindcss";
-```
-
-Import this file into `Index.svelte`. 
-
-```
-<script lang="ts">
-[...]
-import "./style.css";
-[...]
-</script>
 ```
 
 ## Conclusion
