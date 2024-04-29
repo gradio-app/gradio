@@ -18,11 +18,7 @@
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
-	import {
-		create_components,
-		AsyncFunction,
-		restore_keyed_values
-	} from "./init";
+	import { create_components, AsyncFunction } from "./init";
 
 	setupi18n();
 
@@ -66,8 +62,7 @@
 		app,
 		options: {
 			fill_height
-		},
-		callback: () => restore_keyed_values(old_components, components)
+		}
 	});
 
 	$: {
