@@ -23,7 +23,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 from gradio import components, oauth, processing_utils, routes, utils, wasm_utils
-from gradio.context import Context, LocalContext
+from gradio.context import Context, LocalContext, get_blocks_context
 from gradio.data_classes import GradioModel, GradioRootModel
 from gradio.events import EventData
 from gradio.exceptions import Error
@@ -289,7 +289,8 @@ class Examples:
                 for i in range(len(self.inputs_with_examples))
             ]
 
-        if Context.root_block:
+        root_block = get_blocks_context()
+        if root_block:
             self.load_input_event = self.dataset.click(
                 load_example,
                 inputs=[self.dataset],
@@ -300,7 +301,7 @@ class Examples:
                 api_name=self.api_name,
                 show_api=False,
             )
-            self.load_input_event_id = len(Context.root_block.fns) - 1
+            self.load_input_event_id = len(root_block.fns) - 1
             if self.run_on_click and not self.cache_examples:
                 if self.fn is None:
                     raise ValueError("Cannot run_on_click if no function is provided")
@@ -429,7 +430,8 @@ class Examples:
         """
         Caches examples so that their predictions can be shown immediately.
         """
-        if Context.root_block is None:
+        blocks_config = get_blocks_context()
+        if blocks_config is None:
             raise ValueError("Cannot cache examples if not in a Blocks context")
         if Path(self.cached_file).exists():
             print(
@@ -465,7 +467,7 @@ class Examples:
             # create a fake dependency to process the examples and get the predictions
             from gradio.events import EventListenerMethod
 
-            dependency, fn_index = Context.root_block.set_event_trigger(
+            dependency, fn_index = blocks_config.set_event_trigger(
                 [EventListenerMethod(Context.root_block, "load")],
                 fn=fn,
                 inputs=self.inputs_with_examples,  # type: ignore
@@ -497,12 +499,12 @@ class Examples:
                     output = [value[0] for value in output]
                 self.cache_logger.flag(output)
             # Remove the "fake_event" to prevent bugs in loading interfaces from spaces
-            Context.root_block.fns.pop(fn_index)
+            blocks_config.fns.pop(fn_index)
 
         # Remove the original load_input_event and replace it with one that
         # also populates the input. We do it this way to to allow the cache()
         # method to be called independently of the create() method
-        Context.root_block.fns.pop(self.load_input_event_id)
+        blocks_config.fns.pop(self.load_input_event_id)
 
         def load_example(example_id):
             processed_example = self.non_none_processed_examples[
@@ -520,7 +522,7 @@ class Examples:
             api_name=self.api_name,
             show_api=False,
         )
-        self.load_input_event_id = len(Context.root_block.fns) - 1
+        self.load_input_event_id = len(blocks_config.fns) - 1
 
     def load_from_cache(self, example_id: int) -> list[Any]:
         """Loads a particular cached example for the interface.

@@ -39,7 +39,7 @@ class Renderable:
                 )
                 for t in triggers
             ]
-            Context.root_block.set_event_trigger(
+            Context.root_block.default_config.set_event_trigger(
                 self.triggers,
                 self.apply,
                 self.inputs,
@@ -53,7 +53,7 @@ class Renderable:
     def apply(self, *args, **kwargs):
         column_copy = Column(render=False)
         column_copy._id = self.column_id
-        LocalContext.is_render.set(True)
+        LocalContext.renderable.set(self)
         LocalContext.render_block.set(column_copy)
         try:
             self.fn(*args, **kwargs)
@@ -62,7 +62,7 @@ class Renderable:
                 raise ValueError("Reactive render must be inside a LocalContext.")
             blocks_config.blocks[self.column_id] = column_copy
         finally:
-            LocalContext.is_render.set(False)
+            LocalContext.renderable.set(None)
             LocalContext.render_block.set(None)
 
 
