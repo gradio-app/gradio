@@ -1,6 +1,5 @@
 import { BROKEN_CONNECTION_MSG } from "../constants";
 import type { Client } from "../client";
-import EventSource from "eventsource";
 
 export function open_stream(this: Client): void {
 	let {

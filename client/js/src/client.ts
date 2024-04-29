@@ -27,13 +27,22 @@ import {
 } from "./helpers/init_helpers";
 import { check_space_status } from "./helpers/spaces";
 import { open_stream } from "./utils/stream";
-import EventSource from "eventsource";
 import { API_INFO_ERROR_MSG, CONFIG_ERROR_MSG } from "./constants";
 
 export class NodeBlob extends Blob {
 	constructor(blobParts?: BlobPart[], options?: BlobPropertyBag) {
 		super(blobParts, options);
 	}
+}
+
+if (typeof window === "undefined") {
+	import("eventsource")
+		.then((EventSourceModule) => {
+			global.EventSource = EventSourceModule.default as any;
+		})
+		.catch((error) =>
+			console.error("Failed to load EventSource module:", error)
+		);
 }
 
 export class Client {
@@ -63,8 +72,10 @@ export class Client {
 	}
 
 	eventSource_factory(url: URL): EventSource | null {
-		if (typeof EventSource !== "undefined") {
+		if (typeof window !== "undefined" && "EventSource" in window) {
 			return new EventSource(url.toString());
+		} else if (typeof global !== "undefined" && global.EventSource) {
+			return new global.EventSource(url.toString());
 		}
 		return null;
 	}

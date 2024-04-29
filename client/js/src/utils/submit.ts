@@ -20,7 +20,6 @@ import { handle_message, process_endpoint } from "../helpers/api_info";
 import { BROKEN_CONNECTION_MSG, QUEUE_FULL_MSG } from "../constants";
 import { apply_diff_stream, close_stream } from "./stream";
 import { Client } from "../client";
-import EventSource from "eventsource";
 
 export function submit(
 	this: Client,
