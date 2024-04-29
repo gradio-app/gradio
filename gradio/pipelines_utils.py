@@ -602,7 +602,7 @@ def handle_transformers_js_pipeline(pipeline: Any) -> Dict[str, Any]:
             "inputs": components.Textbox(label="Input"),
             "outputs": components.Dataframe(label="Output"),
             "preprocess": None,
-            "postprocess": lambda tensor: tensor.to_numpy(),
+            "postprocess": lambda tensor: tensor.to_numpy()[0],
         }
 
     ## Vision ##
