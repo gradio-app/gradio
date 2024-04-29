@@ -82,7 +82,7 @@ Navigate to `Index.svelte` and delete mentions of `JSONView`
 import { JsonView } from "@zerodevx/svelte-json-view";
 ```
 
-```ts
+```svelte
 <JsonView json={value} />
 ```
 
@@ -148,7 +148,7 @@ If it is loaded, we want to display it underneath a "clear" button that lets our
 We're going to use the `Upload` and `ModifyUpload` components that come with the `@gradio/upload` package to do this.
 Underneath the `</script>` tag, delete all the current code and add the following:
 
-```ts
+```svelte
 <Block {visible} {elem_id} {elem_classes} {container} {scale} {min_width}>
     {#if loading_status}
         <StatusTracker
@@ -192,7 +192,7 @@ Its creating a new div to display our "upload text" with some custom styling.
 Tip: Notice that we're leveraging Gradio core's existing css variables here: `var(--size-60)` and `var(--body-text-color-subdued)`. This allows our component to work nicely in light mode and dark mode, as well as with Gradio's built-in themes.
 
 
-```ts
+```svelte
 <script lang="ts">
 	import { Upload as UploadIcon } from "@gradio/icons";
 	export let hovered = false;
@@ -243,7 +243,7 @@ Tip: Notice that we're leveraging Gradio core's existing css variables here: `va
 
 Now import `PdfUploadText.svelte` in your `<script>` and pass it to the `Upload` component!
 
-```ts
+```svelte
 	import PdfUploadText from "./PdfUploadText.svelte";
 
 ...
@@ -330,7 +330,7 @@ Tip: The `$:` syntax in svelte is how you declare statements to be reactive. Whe
 
 Now place the `canvas` underneath the `ModifyUpload` component:
 
-```ts
+```svelte
 <div class="pdf-canvas" style="height: {height}px">
     <canvas bind:this={canvasRef}></canvas>
 </div>
@@ -338,7 +338,7 @@ Now place the `canvas` underneath the `ModifyUpload` component:
 
 And add the following styles to the `<style>` tag:
 
-```ts
+```svelte
 <style>
     .pdf-canvas {
         display: flex;
@@ -373,7 +373,7 @@ Tip: The `gradio.dispatch` method is actually what is triggering the `change` or
 
 Now we will run these functions whenever the `Upload` component uploads a file and whenever the `ModifyUpload` component clears the current file. The `<Upload>` component dispatches a `load` event with a payload of type `FileData` corresponding to the uploaded file. The `on:load` syntax tells `Svelte` to automatically run this function in response to the event.
 
-```ts
+```svelte
     <ModifyUpload i18n={gradio.i18n} on:clear={handle_clear} absolute />
     
     ...
@@ -424,7 +424,7 @@ Import the `BaseButton` and add the following functions that will render the nex
 
 Now we will add them underneath the canvas in a separate `<div>`
 
-```ts
+```svelte
     ...
 
     <ModifyUpload i18n={gradio.i18n} on:clear={handle_clear} absolute />
@@ -469,7 +469,7 @@ We're going to want users of our component to get a preview of the PDF if its us
 To do so, we're going to add some of the pdf rendering logic in `Index.svelte` to `Example.svelte`.
 
 
-```ts
+```svelte
 <script lang="ts">
 	export let value: string;
 	export let type: "gallery" | "table";

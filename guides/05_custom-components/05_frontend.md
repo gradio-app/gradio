@@ -55,7 +55,7 @@ export let mode: "static" | "interactive";
 
 A minimal `Index.svelte` file would look like:
 
-```typescript
+```svelte
 <script lang="ts">
 	import type { LoadingStatus } from "@gradio/statustracker";
     import { Block } from "@gradio/atoms";
@@ -119,7 +119,7 @@ The `Example.svelte` file should expose the following props:
 
 This is the `Example.svelte` file for the code `Radio` component:
 
-```typescript
+```svelte
 <script lang="ts">
 	export let value: string;
 	export let type: "gallery" | "table";
@@ -154,9 +154,8 @@ The `upload` function will upload an array of `FileData` values to the server.
 Here's an example of loading files from an `<input>` element when its value changes.
 
 
-```typescript
+```svelte
 <script lang="ts">
-
     import { upload, prepare_files, type FileData } from "@gradio/client";
     export let root;
     export let value;
@@ -218,7 +217,7 @@ This means that you can use them to save yourself time while incorporating commo
 For example, the `@gradio/upload` package has `Upload` and `ModifyUpload` components for properly uploading files to the Gradio server. 
 Here is how you can use them to create a user interface to upload and display PDF files.
 
-```typescript
+```svelte
 <script>
 	import { type FileData, Upload, ModifyUpload } from "@gradio/upload";
 	import { Empty, UploadText, BlockLabel } from "@gradio/atoms";
