@@ -2,15 +2,9 @@ name: 'install all deps'
 description: 'Install all deps'
 
 inputs:
-  always_install_pnpm: 
+  always_install_pnpm:
     description: 'Dictates whether or not we should install pnpm & dependencies, regardless of the cache'
     default: 'false'
-  node_auth_token:
-    description: 'Node auth token'
-    default: ""
-  npm_token:
-    description: 'npm token'
-    default: ""
   skip_build:
     description: 'Skip build'
     default: 'false'
@@ -85,14 +79,12 @@ runs:
       shell: bash
       run: |
         . ${{ env.VENV_ACTIVATE }}
-        python -m pip install -e client/python  
+        python -m pip install -e client/python
         python -m pip install -e ".[oauth]"
     - name: install-frontend
       uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
       with:
         always_install_pnpm: ${{ inputs.always_install_pnpm }}
-        node_auth_token: ${{ inputs.node_auth_token }}
-        npm_token: ${{ inputs.npm_token }}
         skip_build: ${{ inputs.skip_build }}
         build_lite: ${{ inputs.build_lite }}
     - name: generate json

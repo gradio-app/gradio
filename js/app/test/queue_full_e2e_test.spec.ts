@@ -18,7 +18,7 @@ test("When the queue is full the queue full message gets shown. Also when there 
 	const all_text = await Promise.all(all_toast);
 
 	expect(all_text.join("\n")).toContain("This is a gradio error");
-	expect(all_text.join("\n")).toContain("application is too busy");
+	expect(all_text.join("\n")).toContain("This application is currently busy");
 
 	await expect
 		.poll(async () => page.getByLabel("First Result").inputValue())

@@ -5,6 +5,7 @@ import {
 } from "../helpers/spaces";
 import type { DuplicateOptions } from "../types";
 import { Client } from "../client";
+import { SPACE_METADATA_ERROR_MSG } from "../constants";
 
 export async function duplicate(
 	app_reference: string,
@@ -47,8 +48,12 @@ export async function duplicate(
 
 	let original_hardware;
 
-	if (!hardware) {
-		original_hardware = await get_space_hardware(app_reference, hf_token);
+	try {
+		if (!hardware) {
+			original_hardware = await get_space_hardware(app_reference, hf_token);
+		}
+	} catch (e) {
+		throw Error(SPACE_METADATA_ERROR_MSG + (e as Error).message);
 	}
 
 	const requested_hardware = hardware || original_hardware || "cpu-basic";
@@ -80,8 +85,20 @@ export async function duplicate(
 		const duplicated_space = await response.json();
 
 		await set_space_timeout(`${user}/${space_name}`, timeout || 300, hf_token);
-		return await Client.connect(duplicated_space.url, options);
+
+		return await Client.connect(
+			get_space_reference(duplicated_space.url),
+			options
+		);
 	} catch (e: any) {
 		throw new Error(e);
+	}
+}
+
+function get_space_reference(url: string): any {
+	const regex = /https:\/\/huggingface.co\/spaces\/([^/]+\/[^/]+)/;
+	const match = url.match(regex);
+	if (match) {
+		return match[1];
 	}
 }
