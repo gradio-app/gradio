@@ -8,9 +8,10 @@ import os
 import threading
 import warnings
 from typing import Any
+from urllib.parse import quote
 
-import anyio
 import httpx
+from huggingface_hub.utils import build_hf_headers
 from huggingface_hub.utils._telemetry import _send_telemetry_in_thread
 from packaging.version import Version
 
@@ -101,14 +102,19 @@ def _do_normal_analytics_request(topic: str, data: dict[str, Any]) -> None:
 async def _do_wasm_analytics_request(topic: str, data: dict[str, Any]) -> None:
     data["ip_address"] = await get_local_ip_address_wasm()
     try:
-        await anyio.to_thread.run_sync(
-            _send_telemetry_in_thread,
-            topic,
-            "gradio",
-            data.get("version"),
-            data,
+        path = "/".join(quote(part) for part in topic.split("/") if len(part) > 0)
+        url = f"https://huggingface.co/api/telemetry/{path}"
+        headers = build_hf_headers(
+            token=False,  # no need to send a token for telemetry
+            library_name="gradio",
+            library_version=data.get("version"),
+            user_agent=data,
         )
-    except (Exception, BaseException):
+        await asyncio.wait_for(
+            pyodide_pyfetch(url, method="HEAD", headers=headers),
+            timeout=5,
+        )
+    except (Exception, BaseException, asyncio.TimeoutError):
         pass
 
 
