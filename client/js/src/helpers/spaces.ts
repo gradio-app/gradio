@@ -1,3 +1,8 @@
+import {
+	RUNTIME_URL,
+	SLEEPTIME_URL,
+	SPACE_STATUS_ERROR_MSG
+} from "../constants";
 import type { SpaceStatusCallback } from "../types";
 
 export async function check_space_status(
@@ -22,7 +27,7 @@ export async function check_space_status(
 		status_callback({
 			status: "error",
 			load_status: "error",
-			message: "Could not get space status",
+			message: SPACE_STATUS_ERROR_MSG,
 			detail: "NOT_FOUND"
 		});
 		return;
@@ -121,7 +126,7 @@ export async function get_space_hardware(
 
 	try {
 		const res = await fetch(
-			`https://huggingface.co/api/spaces/${space_id}/runtime`,
+			`https://huggingface.co/api/spaces/${space_id}/${RUNTIME_URL}`,
 			{ headers }
 		);
 
@@ -154,7 +159,7 @@ export async function set_space_timeout(
 
 	try {
 		const res = await fetch(
-			`https://huggingface.co/api/spaces/${space_id}/sleeptime`,
+			`https://huggingface.co/api/spaces/${space_id}/${SLEEPTIME_URL}`,
 			{
 				method: "POST",
 				headers: { "Content-Type": "application/json", ...headers },
