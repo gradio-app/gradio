@@ -219,6 +219,9 @@ importers:
       bufferutil:
         specifier: ^4.0.7
         version: 4.0.7
+      msw:
+        specifier: ^2.2.1
+        version: 2.2.8(typescript@5.4.3)
       semiver:
         specifier: ^1.1.0
         version: 1.1.0
@@ -12044,6 +12047,37 @@ packages:
       strict-event-emitter: 0.5.1
       type-fest: 4.13.0
       typescript: 5.0.2
+      yargs: 17.7.2
+    dev: false
+
+  /msw@2.2.8(typescript@5.4.3):
+    resolution: {integrity: sha512-K2LvWq2Lgfo6lEvn4eXj9uOCXuXZdZdHtNzyx+UBZY+iaQ5fdBaev3TLmUyLOUY4N8p0pYf3Iy7RA8sDnQ1M1Q==}
+    engines: {node: '>=18'}
+    hasBin: true
+    requiresBuild: true
+    peerDependencies:
+      typescript: '>= 4.7.x'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+    dependencies:
+      '@bundled-es-modules/cookie': 2.0.0
+      '@bundled-es-modules/statuses': 1.0.1
+      '@inquirer/confirm': 3.1.0
+      '@mswjs/cookies': 1.1.0
+      '@mswjs/interceptors': 0.25.16
+      '@open-draft/until': 2.1.0
+      '@types/cookie': 0.6.0
+      '@types/statuses': 2.0.4
+      chalk: 4.1.2
+      graphql: 16.8.1
+      headers-polyfill: 4.0.2
+      is-node-process: 1.2.0
+      outvariant: 1.4.2
+      path-to-regexp: 6.2.1
+      strict-event-emitter: 0.5.1
+      type-fest: 4.13.0
+      typescript: 5.4.3
       yargs: 17.7.2
     dev: false
 
