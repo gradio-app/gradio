@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling",]
+build-backend = "hatchling.build"
+
+[project]
+name = "lite-builder"
+description = "Python library for easily interacting with trained machine learning models"
+license = "Apache-2.0"
+version = "0.0.2"
+requires-python = ">=3.8"
+authors = [
+  { name = "Abubakar Abid", email = "gradio-team@huggingface.co" },
+  { name = "Ali Abid", email = "gradio-team@huggingface.co" },
+  { name = "Ali Abdalla", email = "gradio-team@huggingface.co" },
+  { name = "Dawood Khan", email = "gradio-team@huggingface.co" },
+  { name = "Ahsen Khaliq", email = "gradio-team@huggingface.co" },
+  { name = "Pete Allen", email = "gradio-team@huggingface.co" },
+  { name = "Ömer Faruk Özdemir", email = "gradio-team@huggingface.co" },
+  { name = "Freddy A Boulton", email = "gradio-team@huggingface.co" },
+  { name = "Hannah Blair", email = "gradio-team@huggingface.co" },
+]
+keywords = ["machine learning", "reproducibility", "visualization"]
+
+classifiers = [
+  'Development Status :: 5 - Production/Stable',
+]
+
+[tool.hatch.build]
+sources = ["src"]
+only-packages = true
+
+[project.entry-points.hatch]
+lite_builder = "lite_builder.hooks"
