@@ -247,7 +247,6 @@ export function create_components(): {
 	function store_keyed_values(components: ComponentMeta[]): void {
 		components.forEach((c) => {
 			if (c.key != null) {
-				console.log(c.key, c.props.value);
 				keyed_component_values[c.key] = c.props.value;
 			}
 		});
