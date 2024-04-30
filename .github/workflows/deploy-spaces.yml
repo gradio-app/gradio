@@ -58,25 +58,14 @@ jobs:
       with:
         ref: ${{ needs.changes.outputs.merge_sha }}
         repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
-    - name: Install Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.9'
-    - name: Install pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: 8.15
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 18
-        cache: pnpm
-        cache-dependency-path: pnpm-lock.yaml
 
     - name: install dependencies
       uses: "gradio-app/gradio/.github/actions/install-all-deps@lite-wheel-contents-optimization"
       with:
         always_install_pnpm: true
+        python_version: '3.9'
         build_lite: 'true'
+
     - name: Package Lite NPM package
       working-directory: js/lite
       run: pnpm pack --pack-destination .
