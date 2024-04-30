@@ -10,7 +10,7 @@
 		"dev:lite:worker": "pnpm --filter @gradio/wasm dev",
 		"build": "vite build --mode production --emptyOutDir",
 		"cssbuild": "python ../../scripts/generate_theme.py --outfile ./src/lite/theme.css",
-		"pybuild:gradio": "python -m pip install -U hatch packaging>=23.2 && cd ../../  && hatch build -t lite",
+		"pybuild:gradio": "cd ../../ && hatch build -t lite",
 		"pybuild:gradio-client": "cd ../../client/python && python -m build",
 		"pybuild": "run-p pybuild:*",
 		"build:lite": "pnpm pybuild && pnpm cssbuild && pnpm --filter @gradio/client build && pnpm --filter @gradio/wasm build && vite build --mode production:lite",
