@@ -41,7 +41,7 @@ export interface BlobRef {
 	blob: Blob | false;
 }
 
-export type ParamType = string | Buffer | Record<string, any> | any[];
+export type DataType = string | Buffer | Record<string, any> | any[];
 
 // Event and Submission Types
 
