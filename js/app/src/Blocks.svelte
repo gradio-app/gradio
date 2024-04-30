@@ -296,11 +296,13 @@
 				.on("render", ({ data, fn_index }) => {
 					let _components: ComponentMeta[] = data.components;
 					let render_layout: LayoutNode = data.layout;
+					let dependencies: Dependency[] = data.dependencies;
 
 					rerender_layout({
 						components: _components,
 						layout: render_layout,
-						root: root
+						root: root,
+						dependencies: dependencies,
 					});
 				})
 				.on("status", ({ fn_index, ...status }) => {
