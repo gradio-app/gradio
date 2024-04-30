@@ -44,10 +44,8 @@ export function open_stream(this: Client): void {
 		const event_id = _data.event_id;
 		if (!event_id) {
 			await Promise.all(
-				Object.keys(event_callbacks).map(
-					(event_id) =>
-						// @ts-ignore
-						event_callbacks[event_id](_data) // todo: check event_callbacks
+				Object.keys(event_callbacks).map((event_id) =>
+					event_callbacks[event_id](_data)
 				)
 			);
 		} else if (event_callbacks[event_id] && config) {
@@ -77,7 +75,6 @@ export function open_stream(this: Client): void {
 	event_source.onerror = async function () {
 		await Promise.all(
 			Object.keys(event_callbacks).map((event_id) =>
-				// @ts-ignore
 				event_callbacks[event_id]({
 					msg: "unexpected_error",
 					message: BROKEN_CONNECTION_MSG
