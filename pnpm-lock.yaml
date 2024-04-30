@@ -274,6 +274,9 @@ importers:
       postcss:
         specifier: '>=8.3.3 <9.0.0'
         version: 8.4.31
+      prism-svelte:
+        specifier: ^0.5.0
+        version: 0.5.0
     devDependencies:
       '@sveltejs/adapter-auto':
         specifier: ^3.2.0
@@ -12820,6 +12823,10 @@ packages:
 
   /prism-svelte@0.4.7:
     resolution: {integrity: sha512-yABh19CYbM24V7aS7TuPYRNMqthxwbvx6FF/Rw920YbyBWO3tnyPIqRMgHuSVsLmuHkkBS1Akyof463FVdkeDQ==}
+    dev: false
+
+  /prism-svelte@0.5.0:
+    resolution: {integrity: sha512-db91Bf3pRGKDPz1lAqLFSJXeW13mulUJxhycysFpfXV5MIK7RgWWK2E5aPAa71s8TCzQUXxF5JOV42/iOs6QkA==}
     dev: false
 
   /prismjs@1.29.0:
