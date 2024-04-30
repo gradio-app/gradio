@@ -27,6 +27,7 @@
 		"@sveltejs/adapter-vercel": "^5.3.0",
 		"hast-util-to-string": "^3.0.0",
 		"mdsvex": "^0.11.0",
-		"postcss": ">=8.3.3 <9.0.0"
+		"postcss": ">=8.3.3 <9.0.0",
+		"prism-svelte": "^0.5.0"
 	}
 }
