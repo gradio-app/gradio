@@ -82,7 +82,7 @@ runs:
         python -m pip install -e client/python
         python -m pip install -e ".[oauth]"
     - name: install-frontend
-      uses: "gradio-app/gradio/.github/actions/install-frontend-deps@lite-wheel-contents-optimization"
+      uses: "gradio-app/gradio/.github/actions/install-frontend-deps@main"
       with:
         always_install_pnpm: ${{ inputs.always_install_pnpm }}
         skip_build: ${{ inputs.skip_build }}

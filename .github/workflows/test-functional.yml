@@ -1,18 +1,17 @@
 name: "test / functional"
 
 on:
-  # workflow_run:
-  #   workflows: ["trigger"]
-  #   types:
-  #     - requested
-  pull_request
+  workflow_run:
+    workflows: ["trigger"]
+    types:
+      - requested
 
 permissions:
   statuses: write
 
-# concurrency:
-#   group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
-#   cancel-in-progress: true
+concurrency:
+  group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
+  cancel-in-progress: true
 
 jobs:
   changes:
@@ -50,7 +49,7 @@ jobs:
           repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
       - name: install dependencies
         id: install_deps
-        uses: "gradio-app/gradio/.github/actions/install-all-deps@lite-wheel-contents-optimization"
+        uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           always_install_pnpm: true
           build_lite: true
