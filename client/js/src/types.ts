@@ -244,6 +244,7 @@ export interface RenderMessage {
 	data: {
 		components: any[];
 		layout: any;
+		dependencies: Dependency[];
 	};
 }
 

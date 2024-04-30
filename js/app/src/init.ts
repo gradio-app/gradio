@@ -39,12 +39,12 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
-		callback?: () => void;
 	}) => void;
 	rerender_layout: (args: {
 		components: ComponentMeta[];
 		layout: LayoutNode;
 		root: string;
+		dependencies: Dependency[];
 	}) => void;
 } {
 	let _component_map: Map<number, ComponentMeta>;
@@ -70,7 +70,6 @@ export function create_components(): {
 		dependencies,
 		root,
 		options,
-		callback
 	}: {
 		app: client_return;
 		components: ComponentMeta[];
@@ -80,7 +79,6 @@ export function create_components(): {
 		options: {
 			fill_height: boolean;
 		};
-		callback?: () => void;
 	}): void {
 		app = _app;
 		store_keyed_values(_components);
@@ -133,23 +131,20 @@ export function create_components(): {
 
 		walk_layout(layout, root).then(() => {
 			layout_store.set(_rootNode);
-			if (callback) {
-				callback();
-			}
 		});
 	}
 
 	function rerender_layout({
 		components,
 		layout,
-		root
+		root,
+		dependencies,
 	}: {
 		components: ComponentMeta[];
 		layout: LayoutNode;
 		root: string;
+		dependencies: Dependency[];
 	}): void {
-		target_map.set(_target_map);
-
 		let _constructor_map = preload_all_components(components, root);
 		_constructor_map.forEach((v, k) => {
 			constructor_map.set(k, v);
