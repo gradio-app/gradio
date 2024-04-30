@@ -12,6 +12,7 @@ if sys.version_info >= (3, 9):
     from importlib.resources import files
 else:
     from importlib_resources import files
+import hashlib
 import inspect
 import json
 import mimetypes
@@ -180,6 +181,7 @@ class App(FastAPI):
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
         kwargs.setdefault("redoc_url", None)
+        self.custom_component_hashes: dict[str, str] = {}
         super().__init__(**kwargs)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -426,7 +428,9 @@ class App(FastAPI):
             return FileResponse(static_file)
 
         @app.get("/custom_component/{id}/{type}/{file_name}")
-        def custom_component_path(id: str, type: str, file_name: str):
+        def custom_component_path(
+            id: str, type: str, file_name: str, req: fastapi.Request
+        ):
             config = app.get_blocks().config
             components = config["components"]
             location = next(
@@ -444,12 +448,27 @@ class App(FastAPI):
             if module_path is None or component_instance is None:
                 raise HTTPException(status_code=404, detail="Component not found.")
 
-            return FileResponse(
-                safe_join(
-                    str(Path(module_path).parent),
-                    f"{component_instance.__class__.TEMPLATE_DIR}/{type}/{file_name}",
-                )
+            path = safe_join(
+                str(Path(module_path).parent),
+                f"{component_instance.__class__.TEMPLATE_DIR}/{type}/{file_name}",
             )
+
+            key = f"{id}-{type}-{file_name}"
+
+            if key not in app.custom_component_hashes:
+                app.custom_component_hashes[key] = hashlib.md5(
+                    Path(path).read_text().encode()
+                ).hexdigest()
+
+            version = app.custom_component_hashes.get(key)
+            headers = {"Cache-Control": "max-age=0, must-revalidate"}
+            if version:
+                headers["ETag"] = version
+
+            if version and req.headers.get("if-none-match") == version:
+                return PlainTextResponse(status_code=304, headers=headers)
+
+            return FileResponse(path, headers=headers)
 
         @app.get("/assets/{path:path}")
         def build_resource(path: str):
