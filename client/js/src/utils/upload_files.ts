@@ -1,4 +1,4 @@
-import { Client } from "..";
+import type { Client } from "..";
 import { BROKEN_CONNECTION_MSG } from "../constants";
 import type { UploadResponse } from "../types";
 
