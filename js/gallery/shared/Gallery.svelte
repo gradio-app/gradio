@@ -31,6 +31,7 @@
 	export let i18n: I18nFormatter;
 	export let selected_index: number | null = null;
 	export let interactive: boolean;
+	export let fetch_implementation: typeof fetch;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -166,7 +167,7 @@
 	// and their remote URLs are directly passed to the client as `value[].image.url`.
 	// The `download` attribute of the <a> tag doesn't work for remote URLs (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#download),
 	// so we need to download the image via JS as below.
-	const fetch_implementation = getContext<typeof fetch>("fetch_implementation");
+	// const fetch_implementation = getContext<typeof fetch>("fetch_implementation");
 	async function download(file_url: string, name: string): Promise<void> {
 		let response;
 		try {

@@ -1,16 +1,12 @@
 import type { UploadResponse } from "./types";
-import { upload_files } from ".";
+import type { Client } from "./client";
 
 export async function upload(
+	this: Client,
 	file_data: FileData[],
 	root_url: string,
 	upload_id?: string,
-	max_file_size?: number,
-	upload_fn: (
-		root_url: string,
-		files: (Blob | File)[],
-		upload_id?: string
-	) => Promise<UploadResponse> = upload_files
+	max_file_size?: number
 ): Promise<(FileData | null)[] | null> {
 	let files = (Array.isArray(file_data) ? file_data : [file_data]).map(
 		(file_data) => file_data.blob!
@@ -28,7 +24,7 @@ export async function upload(
 	}
 
 	return await Promise.all(
-		await upload_fn(root_url, files, upload_id).then(
+		await this.upload_files(root_url, files, upload_id).then(
 			async (response: { files?: string[]; error?: string }) => {
 				if (response.error) {
 					throw new Error(response.error);

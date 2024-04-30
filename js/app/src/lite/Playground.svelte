@@ -23,9 +23,7 @@
 	export let mount_css: typeof default_mount_css = default_mount_css;
 	export let Client: typeof ClientType;
 	export let worker_proxy: WorkerProxy | undefined = undefined;
-	export let fetch_implementation: typeof fetch = fetch;
-	export let EventSource_factory: (url: URL) => EventSource = (url) =>
-		new EventSource(url);
+
 	export let space: string | null;
 	export let host: string | null;
 	export let src: string | null;
@@ -217,8 +215,6 @@
 								{mount_css}
 								{Client}
 								bind:worker_proxy
-								{fetch_implementation}
-								{EventSource_factory}
 								{space}
 								{host}
 								{src}
