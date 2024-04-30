@@ -7,7 +7,8 @@ export function open_stream(this: Client): void {
 		unclosed_events,
 		pending_stream_messages,
 		stream_status,
-		config
+		config,
+		jwt
 	} = this;
 
 	if (!config) {
@@ -22,10 +23,16 @@ export function open_stream(this: Client): void {
 	}).toString();
 
 	let url = new URL(`${config.root}/queue/data?${params}`);
+
+	if (jwt) {
+		url.searchParams.set("__sign", jwt);
+	}
+
 	event_source = this.eventSource_factory(url);
 
 	if (!event_source) {
-		throw new Error("Cannot connect to sse endpoint: " + url.toString());
+		console.warn("Cannot connect to SSE endpoint: " + url.toString());
+		return;
 	}
 
 	event_source.onmessage = async function (event: MessageEvent) {
