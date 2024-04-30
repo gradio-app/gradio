@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Refactor analytics to not use api.gradio.app
+fix:Refactor analytics to not use api.gradio.app
