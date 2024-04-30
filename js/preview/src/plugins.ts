@@ -1,9 +1,6 @@
 import type { Plugin, PluginOption } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
-import { transform } from "sucrase";
-import { viteCommonjs } from "@originjs/vite-plugin-commonjs";
-import sucrase from "@rollup/plugin-sucrase";
-import { createLogger } from "vite";
+import preprocess from "svelte-preprocess";
 import { join } from "path";
 import { type ComponentConfig } from "./dev";
 import type { Preprocessor, PreprocessorGroup } from "svelte/compiler";
@@ -18,8 +15,20 @@ const RE_BARE_SVELTE_IMPORT = /import ("|')svelte(\/\w+)*("|')(;)*/g;
 export function plugins(config: ComponentConfig): PluginOption[] {
 	const _additional_plugins = config.plugins || [];
 	const _additional_svelte_preprocess = config.svelte?.preprocess || [];
+	const _svelte_extensions = (config.svelte?.extensions || [".svelte"]).map(
+		(ext) => {
+			if (ext.trim().startsWith(".")) {
+				return ext;
+			}
+			return `.${ext.trim()}`;
+		}
+	);
+
+	if (!_svelte_extensions.includes(".svelte")) {
+		_svelte_extensions.push(".svelte");
+	}
+
 	return [
-		viteCommonjs() as Plugin,
 		svelte({
 			onwarn(warning, handler) {
 				if (
@@ -36,28 +45,12 @@ export function plugins(config: ComponentConfig): PluginOption[] {
 			compilerOptions: {
 				discloseVersion: false
 			},
+			extensions: _svelte_extensions,
 			preprocess: [
-				{
-					script: ({ attributes, filename, content }) => {
-						if (attributes.lang === "ts") {
-							const compiledCode = transform(content, {
-								transforms: ["typescript"],
-								keepUnusedImports: true
-							});
-							return {
-								code: compiledCode.code,
-								map: compiledCode.sourceMap
-							};
-						}
-					}
-				},
+				preprocess(),
 				...(_additional_svelte_preprocess as PreprocessorGroup[])
 			]
-		}) as unknown as Plugin,
-		sucrase({
-			transforms: ["typescript"],
-			include: ["**/*.ts", "**/*.tsx"]
-		}) as unknown as Plugin,
+		}),
 		..._additional_plugins
 	];
 }

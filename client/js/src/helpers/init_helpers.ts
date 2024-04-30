@@ -1,5 +1,5 @@
 import type { Config } from "../types";
-import { CONFIG_URL } from "../constants";
+import { CONFIG_ERROR_MSG, CONFIG_URL } from "../constants";
 import { Client } from "..";
 
 /**
@@ -38,7 +38,6 @@ export async function get_jwt(
 
 		return jwt || false;
 	} catch (e) {
-		console.error(e);
 		return false;
 	}
 }
@@ -89,10 +88,10 @@ export async function resolve_config(
 			config.root = endpoint;
 			return config;
 		}
-		throw new Error("Could not get config.");
+		throw new Error(CONFIG_ERROR_MSG);
 	}
 
-	throw new Error("No config or app endpoint found");
+	throw new Error(CONFIG_ERROR_MSG);
 }
 
 export function determine_protocol(endpoint: string): {
