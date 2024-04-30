@@ -23,7 +23,7 @@ const preview: Preview = {
 			null,
 			formatter,
 			// @ts-ignore
-			null
+			{ client: { fetch_implementation() {}, upload() {} } }
 		)
 	},
 	argTypes: {
