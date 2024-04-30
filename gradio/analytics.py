@@ -6,11 +6,12 @@ import asyncio
 import json
 import os
 import threading
-import urllib.parse
 import warnings
 from typing import Any
 
+import anyio
 import httpx
+from huggingface_hub.utils._telemetry import _send_telemetry_in_thread
 from packaging.version import Version
 
 import gradio
@@ -29,8 +30,34 @@ except ImportError:
         )
 
 
-ANALYTICS_URL = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
+
+
+def get_block_name(class_name) -> str:
+    """
+    This will return "matrix" for Matrix template, and ensures that any component name that is sent from the gradio app is part of the the core components list (no false positives for custom components).
+    """
+    return class_name.__name__.lower()
+
+
+def core_gradio_components():
+    import gradio as gr
+
+    classes_to_check = (
+        gr.components.Component.__subclasses__()
+        + gr.blocks.BlockContext.__subclasses__()  # type: ignore
+    )
+    subclasses = []
+
+    while classes_to_check:
+        subclass = classes_to_check.pop()
+        children = subclass.__subclasses__()
+        if children:
+            classes_to_check.extend(children)
+        if subclass.__module__.startswith("gradio."):
+            subclasses.append(get_block_name(subclass))
+
+    return subclasses
 
 
 def analytics_enabled() -> bool:
@@ -40,11 +67,11 @@ def analytics_enabled() -> bool:
     return os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
 
 
-def _do_analytics_request(url: str, data: dict[str, Any]) -> None:
+def _do_analytics_request(topic: str, data: dict[str, Any]) -> None:
     if wasm_utils.IS_WASM:
         asyncio.ensure_future(
             _do_wasm_analytics_request(
-                url=url,
+                topic=topic,
                 data=data,
             )
         )
@@ -52,37 +79,37 @@ def _do_analytics_request(url: str, data: dict[str, Any]) -> None:
         threading.Thread(
             target=_do_normal_analytics_request,
             kwargs={
-                "url": url,
+                "topic": topic,
                 "data": data,
             },
         ).start()
 
 
-def _do_normal_analytics_request(url: str, data: dict[str, Any]) -> None:
+def _do_normal_analytics_request(topic: str, data: dict[str, Any]) -> None:
     data["ip_address"] = get_local_ip_address()
     try:
-        httpx.post(url, data=data, timeout=5)
-    except (httpx.ConnectError, httpx.ReadTimeout):
-        pass  # do not push analytics if no network
-
-
-async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
-    data["ip_address"] = await get_local_ip_address_wasm()
-
-    # We use urllib.parse.urlencode to encode the data as a form.
-    # Ref: https://docs.python.org/3/library/urllib.request.html#urllib-examples
-    body = urllib.parse.urlencode(data).encode("ascii")
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded",
-    }
-
-    try:
-        await asyncio.wait_for(
-            pyodide_pyfetch(url, method="POST", headers=headers, body=body),
-            timeout=5,
+        _send_telemetry_in_thread(
+            topic=topic,
+            library_name="gradio",
+            library_version=data.get("version"),
+            user_agent=data,
         )
-    except asyncio.TimeoutError:
-        pass  # do not push analytics if no network
+    except Exception:
+        pass
+
+
+async def _do_wasm_analytics_request(topic: str, data: dict[str, Any]) -> None:
+    data["ip_address"] = await get_local_ip_address_wasm()
+    try:
+        await anyio.to_thread.run_sync(
+            _send_telemetry_in_thread,
+            topic,
+            "gradio",
+            data.get("version"),
+            data,
+        )
+    except (Exception, BaseException):
+        pass
 
 
 def version_check():
@@ -155,7 +182,7 @@ def initiated_analytics(data: dict[str, Any]) -> None:
         return
 
     _do_analytics_request(
-        url=f"{ANALYTICS_URL}gradio-initiated-analytics/",
+        topic="gradio/initiated",
         data=data,
     )
 
@@ -206,6 +233,8 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
             return [b.get_block_name() for b in components] if components else None
         return fallback
 
+    core_components = core_gradio_components()
+
     additional_data = {
         "version": get_package_version(),
         "is_kaggle": blocks.is_kaggle,
@@ -226,10 +255,14 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
         "events": events_telemetry,
         "is_wasm": wasm_utils.IS_WASM,
     }
+    custom_components = [b for b in blocks_telemetry if b not in core_components]
+    using_custom_component = len(custom_components) > 0
+    additional_data["using_custom_component"] = using_custom_component
+    additional_data["custom_components"] = custom_components
 
     data.update(additional_data)
 
-    _do_analytics_request(url=f"{ANALYTICS_URL}gradio-launched-telemetry/", data=data)
+    _do_analytics_request("gradio/launched", data=data)
 
 
 def custom_component_analytics(
@@ -260,7 +293,7 @@ def custom_component_analytics(
         return
 
     _do_analytics_request(
-        url=f"{ANALYTICS_URL}gradio-custom-components/",
+        topic="gradio/custom-components",
         data=data,
     )
 
@@ -270,7 +303,7 @@ def integration_analytics(data: dict[str, Any]) -> None:
         return
 
     _do_analytics_request(
-        url=f"{ANALYTICS_URL}gradio-integration-analytics/",
+        topic="gradio/integration",
         data=data,
     )
 
@@ -287,6 +320,6 @@ def error_analytics(message: str) -> None:
     data = {"error": message}
 
     _do_analytics_request(
-        url=f"{ANALYTICS_URL}gradio-error-analytics/",
+        topic="gradio/error",
         data=data,
     )
