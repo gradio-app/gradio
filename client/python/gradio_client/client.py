@@ -1119,9 +1119,7 @@ class Endpoint:
             }
 
             if self.protocol == "sse":
-                result = utils.synchronize_async(
-                    self._sse_fn_v0, data, hash_data, helper
-                )
+                result = self._sse_fn_v0(data, hash_data, helper)  # type: ignore
             elif self.protocol in ("sse_v1", "sse_v2", "sse_v2.1", "sse_v3"):
                 event_id = self.client.send_data(data, hash_data, self.protocol)
                 self.client.pending_event_ids.add(event_id)
