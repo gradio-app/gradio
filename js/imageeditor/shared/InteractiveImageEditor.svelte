@@ -205,6 +205,7 @@
 />
 <ImageEditor
 	{canvas_size}
+	crop_size={Array.isArray(crop_size) ? crop_size : undefined}
 	bind:this={editor}
 	bind:height={editor_height}
 	{changeable}
