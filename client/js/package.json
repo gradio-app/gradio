@@ -29,8 +29,9 @@
 		"bundle": "vite build --ssr",
 		"generate_types": "tsc",
 		"build": "pnpm bundle && pnpm generate_types",
-		"test:client": "pnpm vitest -c vite.config.js",
-		"test:client:node": "pnpm vitest -c vite.config.js --mode=test_node"
+		"test": "pnpm test:client && pnpm test:client:node",
+		"test:client": "vitest run -c vite.config.js",
+		"test:client:node": "TEST_MODE=node vitest run -c vite.config.js"
 	},
 	"engines": {
 		"node": ">=18.0.0"
