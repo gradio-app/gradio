@@ -309,6 +309,7 @@
 				eventSource = new EventSource(url);
 				eventSource.addEventListener("error", async (e) => {
 					new_message_fn("Error reloading app", "error");
+					// @ts-ignore
 					console.error(JSON.parse(e.data));
 				});
 				eventSource.addEventListener("reload", async (event) => {
