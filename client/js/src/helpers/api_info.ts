@@ -29,16 +29,16 @@ export async function process_endpoint(
 				{ headers }
 			);
 
-			if (res.status !== 200)
-				throw new Error("Space metadata could not be loaded.");
 			const _host = (await res.json()).host;
 
 			return {
 				space_id: app_reference,
 				...determine_protocol(_host)
 			};
-		} catch (e: any) {
-			throw new Error("Space metadata could not be loaded." + e.message);
+		} catch (e) {
+			throw new Error(
+				"Space metadata could not be loaded. " + (e as Error).message
+			);
 		}
 	}
 

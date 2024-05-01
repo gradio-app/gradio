@@ -1,6 +1,6 @@
 {
 	"name": "gradio_test",
-	"version": "0.3.12",
+	"version": "0.4.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -13,12 +13,14 @@
 		"./package.json": "./package.json"
 	},
 	"dependencies": {
-		"@gradio/atoms": "0.7.0",
-		"@gradio/statustracker": "0.4.12",
-		"@gradio/utils": "0.3.2",
+		"@gradio/atoms": "0.7.1",
+		"@gradio/statustracker": "0.5.0",
+		"@gradio/utils": "0.4.0",
 		"@zerodevx/svelte-json-view": "^1.0.7"
 	},
 	"devDependencies": {
-		"@gradio/preview": "workspace:^"
+		"@gradio/preview": "workspace:^",
+		"@tailwindcss/vite": "4.0.0-alpha.14",
+		"tailwindcss": "4.0.0-alpha.14"
 	}
 }

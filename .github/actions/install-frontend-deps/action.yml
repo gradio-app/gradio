@@ -5,21 +5,12 @@ inputs:
   always_install_pnpm:
     description: 'Dictates whether or not we should install pnpm & dependencies, regardless of the cache'
     default: 'false'
-  node_auth_token:
-    description: 'Node auth token'
-    default: ""
-  npm_token:
-    description: 'npm token'
-    default: ""
   skip_build:
     description: 'Skip build'
     default: 'false'
   build_lite:
     description: 'Build lite'
     default: 'false'
-  os:
-    description: 'OS'
-    default: 'ubuntu-latest'
 
 runs:
   using: "composite"
@@ -56,5 +47,5 @@ runs:
       shell: bash
       run: |
         . venv/bin/activate
-        python -m pip install build
+        python -m pip install -U build hatch packaging>=23.2  # packaging>=23.2 is needed to build Lite due to https://github.com/pypa/hatch/issues/1381
         pnpm --filter @gradio/app build:lite
