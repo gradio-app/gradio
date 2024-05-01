@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
-	import type { FileData } from "@gradio/client";
+	import type { FileData, Client } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 
@@ -19,6 +19,8 @@
 	export let height: number | undefined = undefined;
 	export let i18n: I18nFormatter;
 	export let max_file_size: number | null = null;
+	export let upload: Client["upload"];
+	export let stream_handler: Client["eventSource_factory"];
 
 	async function handle_upload({
 		detail
@@ -67,6 +69,8 @@
 		{root}
 		bind:dragging
 		on:error
+		{stream_handler}
+		{upload}
 	>
 		<slot />
 	</Upload>

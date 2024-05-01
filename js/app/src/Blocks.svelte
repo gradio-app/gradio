@@ -2,7 +2,6 @@
 	import { tick } from "svelte";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
-	import { setContext } from "svelte";
 
 	import type { LoadingStatus, LoadingStatusCollection } from "./stores";
 
@@ -522,8 +521,6 @@
 	function isCustomEvent(event: Event): event is CustomEvent {
 		return "detail" in event;
 	}
-
-	setContext("upload_files", app.upload_files);
 </script>
 
 <svelte:head>
@@ -562,6 +559,7 @@
 				{version}
 				{autoscroll}
 				max_file_size={app.config.max_file_size}
+				client={app}
 			/>
 		{/if}
 	</div>

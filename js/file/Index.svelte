@@ -87,6 +87,8 @@
 		/>
 	{:else}
 		<FileUpload
+			upload={gradio.client.upload}
+			stream_handler={gradio.client.eventSource_factory}
 			{label}
 			{show_label}
 			{value}

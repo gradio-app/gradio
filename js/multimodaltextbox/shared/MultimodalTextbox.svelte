@@ -9,7 +9,7 @@
 	import { BlockTitle } from "@gradio/atoms";
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
-	import type { FileData, upload } from "@gradio/client";
+	import type { FileData, Client } from "@gradio/client";
 	import { Clear, File, Music, Video, Send } from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 
@@ -35,6 +35,8 @@
 	export let root: string;
 	export let file_types: string[] | null = null;
 	export let max_file_size: number | null = null;
+	export let upload: Client["upload"];
+	export let stream_handler: Client["eventSource_factory"];
 
 	let upload_component: Upload;
 	let hidden_upload: HTMLInputElement;
@@ -215,6 +217,8 @@
 			disable_click={true}
 			bind:hidden_upload
 			on:error
+			{upload}
+			{stream_handler}
 		>
 			{#if submit_btn !== null}
 				<button class:disabled class="submit-button" on:click={handle_submit}

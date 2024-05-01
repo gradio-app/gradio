@@ -809,6 +809,9 @@ importers:
       '@gradio/button':
         specifier: workspace:^
         version: link:../button
+      '@gradio/client':
+        specifier: workspace:^
+        version: link:../../client/js
       '@gradio/markdown':
         specifier: workspace:^
         version: link:../markdown
