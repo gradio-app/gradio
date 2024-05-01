@@ -244,7 +244,7 @@ class Communicator:
     reset_url: str
     should_cancel: bool = False
     event_id: str | None = None
-    prediction_complete: bool = False
+    thread_complete: bool = False
 
 
 ########################
@@ -361,7 +361,7 @@ def get_pred_from_sse_v0(
     cookies: dict[str, str] | None,
     ssl_verify: bool,
 ) -> dict[str, Any] | None:
-    helper.prediction_complete = False
+    helper.thread_complete = False
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_cancel = executor.submit(
             check_for_cancel, helper, headers, cookies, ssl_verify
@@ -381,7 +381,7 @@ def get_pred_from_sse_v0(
             [future_cancel, future_sse],  # type: ignore
             return_when=concurrent.futures.FIRST_COMPLETED,
         )
-        helper.prediction_complete = True
+        helper.thread_complete = True
 
     if len(done) != 1:
         raise ValueError(f"Did not expect {len(done)} tasks to be done.")
@@ -398,7 +398,7 @@ def get_pred_from_sse_v1plus(
     protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
     ssl_verify: bool,
 ) -> dict[str, Any] | None:
-    helper.prediction_complete = False
+    helper.thread_complete = False
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_cancel = executor.submit(
             check_for_cancel, helper, headers, cookies, ssl_verify
@@ -410,7 +410,7 @@ def get_pred_from_sse_v1plus(
             [future_cancel, future_sse],  # type: ignore
             return_when=concurrent.futures.FIRST_COMPLETED,
         )
-        helper.prediction_complete = True
+        helper.thread_complete = True
 
     if len(done) != 1:
         raise ValueError(f"Did not expect {len(done)} tasks to be done.")
@@ -432,8 +432,8 @@ def check_for_cancel(
         with helper.lock:
             if helper.should_cancel:
                 break
-            if helper.prediction_complete:
-                return
+            if helper.thread_complete:
+                raise concurrent.futures.CancelledError()
     if helper.event_id:
         httpx.post(
             helper.reset_url,
@@ -492,7 +492,8 @@ def stream_sse_v0(
                                 result = [e]
                             helper.job.outputs.append(result)
                         helper.job.latest_status = status_update
-
+                    if helper.thread_complete:
+                        raise concurrent.futures.CancelledError()
                     if resp["msg"] == "queue_full":
                         raise QueueError("Queue is full! Please try again.")
                     elif resp["msg"] == "send_data":
@@ -510,7 +511,7 @@ def stream_sse_v0(
                 else:
                     raise ValueError(f"Unexpected message: {line}")
         raise ValueError("Did not receive process_completed message.")
-    except asyncio.CancelledError:
+    except concurrent.futures.CancelledError:
         raise
 
 
@@ -531,7 +532,7 @@ def stream_sse_v1plus(
                 time.sleep(0.05)
                 continue
 
-            if msg is None:
+            if msg is None or helper.thread_complete:
                 raise concurrent.futures.CancelledError()
 
             with helper.lock:
