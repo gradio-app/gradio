@@ -348,8 +348,8 @@ async def get_pred_from_ws(
     return resp["output"]
 
 
-async def get_pred_from_sse_v0(
-    client: httpx.AsyncClient,
+def get_pred_from_sse_v0(
+    client: httpx.Client,
     data: dict,
     hash_data: dict,
     helper: Communicator,
@@ -359,11 +359,8 @@ async def get_pred_from_sse_v0(
     cookies: dict[str, str] | None,
     ssl_verify: bool,
 ) -> dict[str, Any] | None:
-    done, pending = await asyncio.wait(
-        [
-            asyncio.create_task(check_for_cancel(helper, headers, cookies, ssl_verify)),
-            asyncio.create_task(
-                stream_sse_v0(
+    try:
+        result = stream_sse_v0(
                     client,
                     data,
                     hash_data,
@@ -373,23 +370,12 @@ async def get_pred_from_sse_v0(
                     headers,
                     cookies,
                 )
-            ),
-        ],
-        return_when=asyncio.FIRST_COMPLETED,
-    )
-
-    for task in pending:
-        task.cancel()
-        try:
-            await task
-        except asyncio.CancelledError:
-            pass
-
-    if len(done) != 1:
-        raise ValueError(f"Did not expect {len(done)} tasks to be done.")
-    for task in done:
-        return task.result()
-
+    except Exception as e:
+        if check_for_cancel(helper, headers, cookies, ssl_verify):
+            return None
+        else:
+            raise e
+    return result
 
 async def get_pred_from_sse_v1plus(
     helper: Communicator,
@@ -450,8 +436,8 @@ async def check_for_cancel(
     raise CancelledError()
 
 
-async def stream_sse_v0(
-    client: httpx.AsyncClient,
+def stream_sse_v0(
+    client: httpx.Client,
     data: dict,
     hash_data: dict,
     helper: Communicator,
@@ -461,14 +447,14 @@ async def stream_sse_v0(
     cookies: dict[str, str] | None,
 ) -> dict[str, Any]:
     try:
-        async with client.stream(
+        with client.stream(
             "GET",
             sse_url,
             params=hash_data,
             headers=headers,
             cookies=cookies,
         ) as response:
-            async for line in response.aiter_lines():
+            for line in response.iter_lines():
                 line = line.rstrip("\n")
                 if len(line) == 0:
                     continue
@@ -503,7 +489,7 @@ async def stream_sse_v0(
                     elif resp["msg"] == "send_data":
                         event_id = resp["event_id"]
                         helper.event_id = event_id
-                        req = await client.post(
+                        req = client.post(
                             sse_data_url,
                             json={"event_id": event_id, **data, **hash_data},
                             headers=headers,

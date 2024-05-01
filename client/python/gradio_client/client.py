@@ -225,21 +225,21 @@ class Client:
             except httpx.TransportError:
                 return
 
-    async def stream_messages(
+    def stream_messages(
         self, protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]
     ) -> None:
         try:
-            async with httpx.AsyncClient(
+            with httpx.Client(
                 timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify
             ) as client:
-                async with client.stream(
+                with client.stream(
                     "GET",
                     self.sse_url,
                     params={"session_hash": self.session_hash},
                     headers=self.headers,
                     cookies=self.cookies,
                 ) as response:
-                    async for line in response.aiter_lines():
+                    for line in response.iter_lines():
                         line = line.rstrip("\n")
                         if not len(line):
                             continue
@@ -276,9 +276,9 @@ class Client:
             traceback.print_exc()
             raise e
 
-    async def send_data(self, data, hash_data, protocol):
-        async with httpx.AsyncClient(verify=self.ssl_verify) as client:
-            req = await client.post(
+    def send_data(self, data, hash_data, protocol):
+        with httpx.Client(verify=self.ssl_verify) as client:
+            req = client.post(
                 self.sse_data_url,
                 json={**data, **hash_data},
                 headers=self.headers,
@@ -294,7 +294,7 @@ class Client:
             self.stream_open = True
 
             def open_stream():
-                return utils.synchronize_async(self.stream_messages, protocol)
+                return self.stream_messages(protocol)
 
             def close_stream(_):
                 self.stream_open = False
@@ -1123,9 +1123,7 @@ class Endpoint:
                     self._sse_fn_v0, data, hash_data, helper
                 )
             elif self.protocol in ("sse_v1", "sse_v2", "sse_v2.1", "sse_v3"):
-                event_id = utils.synchronize_async(
-                    self.client.send_data, data, hash_data, self.protocol
-                )
+                event_id = self.client.send_data(data, hash_data, self.protocol)
                 self.client.pending_event_ids.add(event_id)
                 self.client.pending_messages_per_event[event_id] = []
                 result = utils.synchronize_async(
@@ -1290,11 +1288,11 @@ class Endpoint:
         shutil.move(temp_dir / Path(url_path).name, dest)
         return str(dest.resolve())
 
-    async def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
-        async with httpx.AsyncClient(
+    def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
+        with httpx.Client(
             timeout=httpx.Timeout(timeout=None), verify=self.client.ssl_verify
         ) as client:
-            return await utils.get_pred_from_sse_v0(
+            return utils.get_pred_from_sse_v0(
                 client,
                 data,
                 hash_data,
