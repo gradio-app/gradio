@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick, getContext } from "svelte";
 	import type { FileData } from "@gradio/client";
-	import { upload_files, upload, prepare_files } from "@gradio/client";
+	import { prepare_files, type Client } from "@gradio/client";
 	import { _ } from "svelte-i18n";
 	import UploadProgress from "./UploadProgress.svelte";
 
@@ -19,13 +19,12 @@
 	export let hidden_upload: HTMLInputElement | null = null;
 	export let show_progress = true;
 	export let max_file_size: number | null = null;
+	export let upload: Client["upload"];
+	export let stream_handler: Client["eventSource_factory"];
 
 	let upload_id: string;
 	let file_data: FileData[];
 	let accept_file_types: string | null;
-
-	// Needed for wasm support
-	const upload_fn = getContext<typeof upload_files>("upload_files");
 
 	const dispatch = createEventDispatcher();
 	const validFileTypes = ["image", "video", "audio", "text", "file"];
@@ -89,8 +88,7 @@
 				file_data,
 				root,
 				upload_id,
-				max_file_size ?? Infinity,
-				upload_fn
+				max_file_size ?? Infinity
 			);
 			dispatch("load", file_count === "single" ? _file_data?.[0] : _file_data);
 			uploading = false;
@@ -201,7 +199,7 @@
 	</button>
 {:else if uploading && show_progress}
 	{#if !hidden}
-		<UploadProgress {root} {upload_id} files={file_data} />
+		<UploadProgress {root} {upload_id} files={file_data} {stream_handler} />
 	{/if}
 {:else}
 	<button

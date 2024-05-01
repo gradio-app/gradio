@@ -61,6 +61,7 @@
 	on:error={({ detail }) => {
 		gradio.dispatch("error", detail);
 	}}
+	upload={gradio.client.upload}
 >
 	{label ? gradio.i18n(label) : ""}
 </UploadButton>
