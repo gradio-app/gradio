@@ -19,7 +19,6 @@ import mimetypes
 import os
 import posixpath
 import secrets
-import threading
 import time
 import traceback
 from pathlib import Path
@@ -31,6 +30,7 @@ from typing import (
     Callable,
     Dict,
     List,
+    Literal,
     Optional,
     Type,
     Union,
@@ -173,7 +173,9 @@ class App(FastAPI):
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
         self.uploaded_file_dir = get_upload_folder()
-        self.change_event: None | threading.Event = None
+        self.change_count: int = 0
+        self.change_type: Literal["reload", "error"] | None = None
+        self.reload_error_message: str | None = None
         self._asyncio_tasks: list[asyncio.Task] = []
         self.auth_dependency = auth_dependency
         self.api_info = None
@@ -284,14 +286,20 @@ class App(FastAPI):
                 heartbeat_rate = 15
                 check_rate = 0.05
                 last_heartbeat = time.perf_counter()
+                current_count = app.change_count
 
                 while True:
                     if await request.is_disconnected():
                         return
 
-                    if app.change_event and app.change_event.is_set():
-                        app.change_event.clear()
-                        yield """event: reload\ndata: {}\n\n"""
+                    if app.change_count != current_count:
+                        current_count = app.change_count
+                        msg = (
+                            json.dumps(f"{app.reload_error_message}")
+                            if app.change_type == "error"
+                            else "{}"
+                        )
+                        yield f"""event: {app.change_type}\ndata: {msg}\n\n"""
 
                     await asyncio.sleep(check_rate)
                     if time.perf_counter() - last_heartbeat > heartbeat_rate:
