@@ -3,8 +3,8 @@
 	import { Play, Pause, Maximise, Undo } from "@gradio/icons";
 	import Video from "./Video.svelte";
 	import VideoControls from "./VideoControls.svelte";
-	import type { FileData } from "@gradio/client";
-	import { prepare_files, upload } from "@gradio/client";
+	import type { FileData, Client } from "@gradio/client";
+	import { prepare_files } from "@gradio/client";
 	import { format_time } from "@gradio/utils";
 
 	export let root = "";
@@ -16,6 +16,7 @@
 	export let interactive = false;
 	export let handle_change: (video: FileData) => void = () => {};
 	export let handle_reset_value: () => void = () => {};
+	export let upload: Client["upload"];
 
 	const dispatch = createEventDispatcher<{
 		play: undefined;
