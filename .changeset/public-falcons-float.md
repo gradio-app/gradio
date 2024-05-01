@@ -1,4 +1,6 @@
 ---
+"gradio": patch
+"gradio_test": patch
 "website": patch
 ---
 
