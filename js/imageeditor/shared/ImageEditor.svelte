@@ -75,6 +75,8 @@
 	export let crop_constraint = false;
 	export let canvas_size: [number, number] | undefined;
 
+	$: orig_canvas_size = canvas_size;
+
 	let dimensions = writable(canvas_size);
 	export let height = 0;
 
@@ -261,7 +263,10 @@
 	$: $position_spring && get_dimensions(canvas_wrap, pixi_target);
 
 	export function handle_remove(): void {
-		editor_context.reset(true, $dimensions);
+		editor_context.reset(
+			true,
+			orig_canvas_size ? orig_canvas_size : $dimensions
+		);
 		if (!sources.length) {
 			set_tool("draw");
 		} else {
@@ -271,8 +276,12 @@
 	}
 
 	onMount(() => {
-		const _size = canvas_size ? canvas_size : crop_size;
-		const app = create_pixi_app(pixi_target, ..._size, antialias);
+		const _size = (canvas_size ? canvas_size : crop_size) || [800, 600];
+		const app = create_pixi_app({
+			target: pixi_target,
+			dimensions: _size,
+			antialias
+		});
 
 		function resize(width: number, height: number): void {
 			app.resize(width, height);

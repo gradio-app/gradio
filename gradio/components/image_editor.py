@@ -133,7 +133,7 @@ class ImageEditor(Component):
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
         ] = "RGBA",
-        sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (
+        sources: Iterable[Literal["upload", "webcam", "clipboard"]] | None = (
             "upload",
             "webcam",
             "clipboard",
@@ -206,12 +206,15 @@ class ImageEditor(Component):
         valid_sources = ["upload", "webcam", "clipboard"]
         if isinstance(sources, str):
             sources = [sources]  # type: ignore
-        for source in sources:
-            if source not in valid_sources:
-                raise ValueError(
-                    f"`sources` must be a list consisting of elements in {valid_sources}"
-                )
-        self.sources = sources
+        if sources is not None:
+            for source in sources:
+                if source not in valid_sources:
+                    raise ValueError(
+                        f"`sources` must be a list consisting of elements in {valid_sources}"
+                    )
+            self.sources = sources
+        else:
+            self.sources = []
 
         self.show_download_button = show_download_button
 
