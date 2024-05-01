@@ -19,7 +19,6 @@
 		"@zerodevx/svelte-json-view": "^1.0.7"
 	},
 	"devDependencies": {
-		"@gradio/preview": "workspace:^",
 		"@tailwindcss/vite": "4.0.0-alpha.14",
 		"tailwindcss": "4.0.0-alpha.14"
 	}
