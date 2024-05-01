@@ -3273,9 +3273,6 @@ packages:
   '@gradio/statustracker@0.5.0':
     resolution: {integrity: sha512-qjnEDWc1snf7ExNJMa/qcpAK6FBu64YFA815vV0THAcdvuFSCQa/nocC/+K7QF07r7Nl4ThsBtK68TiC4V4XbA==}
 
-  '@gradio/statustracker@0.5.0':
-    resolution: {integrity: sha512-qjnEDWc1snf7ExNJMa/qcpAK6FBu64YFA815vV0THAcdvuFSCQa/nocC/+K7QF07r7Nl4ThsBtK68TiC4V4XbA==}
-
   '@gradio/theme@0.2.2':
     resolution: {integrity: sha512-aOjh7+BWK8WRpQBC2leFZBLyek6D0GO9KkWjystoZRwH1r+l6eBli2BDPPO/ljpJChO3HsOFpJsWA97JjQNe2g==}
 
@@ -10766,15 +10763,6 @@ snapshots:
   '@gradio/column@0.1.1': {}
 
   '@gradio/icons@0.4.0': {}
-
-  '@gradio/statustracker@0.5.0(svelte@4.2.12)':
-    dependencies:
-      '@gradio/atoms': 0.7.1(svelte@4.2.12)
-      '@gradio/column': 0.1.1
-      '@gradio/icons': 0.4.0
-      '@gradio/utils': 0.4.0(svelte@4.2.12)
-    transitivePeerDependencies:
-      - svelte
 
   '@gradio/statustracker@0.5.0(svelte@4.2.12)':
     dependencies:
