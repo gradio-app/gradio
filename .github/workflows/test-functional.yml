@@ -32,12 +32,6 @@ jobs:
         with:
           type: "functional"
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: echo github context
-        if: always()
-        env:
-          FULL_NAME: ${{ github.event.workflow_run.head_repository.full_name }}
-          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
-          WORKFLOW_REF: ${{ github.workflow_ref }}
 
   test-functional:
     name: "test-functional"
