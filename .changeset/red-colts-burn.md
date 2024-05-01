@@ -1,7 +1,7 @@
 ---
-"@gradio/app": patch
-"@gradio/client": patch
-"gradio": patch
+"@gradio/app": minor
+"@gradio/client": minor
+"gradio": minor
 ---
 
-fix:Add eventsource polyfill for Node.js and browser environments
+feat:Add support for keyword args in JS client
