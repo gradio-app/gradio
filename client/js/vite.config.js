@@ -12,12 +12,15 @@ export default defineConfig({
 			input: "src/index.ts",
 			output: {
 				dir: "dist"
-			},
-			external: ["eventsource"]
+			}
 		}
 	},
 	plugins: [svelte()],
 
+	mode: process.env.MODE || "development",
+	test: {
+		environment: "node"
+	},
 	ssr: {
 		target: "node",
 		format: "esm",
