@@ -92,6 +92,7 @@ export async function render<
 		props: {
 			loading_status,
 			...(props || {}),
+			//@ts-ignore
 			gradio: new Gradio(
 				id,
 				target,
@@ -99,7 +100,11 @@ export async function render<
 				"2.0.0",
 				"http://localhost:8000",
 				false,
-				null
+				null,
+				//@ts-ignore
+				(s) => s,
+				// @ts-ignore
+				{ client: {} }
 			)
 		}
 	});
