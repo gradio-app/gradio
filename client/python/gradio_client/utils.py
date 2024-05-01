@@ -361,21 +361,22 @@ def get_pred_from_sse_v0(
 ) -> dict[str, Any] | None:
     try:
         result = stream_sse_v0(
-                    client,
-                    data,
-                    hash_data,
-                    helper,
-                    sse_url,
-                    sse_data_url,
-                    headers,
-                    cookies,
-                )
+            client,
+            data,
+            hash_data,
+            helper,
+            sse_url,
+            sse_data_url,
+            headers,
+            cookies,
+        )
     except Exception as e:
         if check_for_cancel(helper, headers, cookies, ssl_verify):
             return None
         else:
             raise e
     return result
+
 
 async def get_pred_from_sse_v1plus(
     helper: Communicator,
