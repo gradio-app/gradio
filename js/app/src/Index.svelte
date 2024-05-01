@@ -307,6 +307,9 @@
 				const { host } = new URL(api_url);
 				let url = new URL(`http://${host}/dev/reload`);
 				eventSource = new EventSource(url);
+				eventSource.addEventListener("error", async () => {
+					new_message_fn("Error reloading app", "error");
+				});
 				eventSource.addEventListener("reload", async (event) => {
 					app.close();
 					app = await Client.connect(api_url, {
@@ -376,6 +379,8 @@
 			);
 		}
 	};
+
+	let new_message_fn: (message: string, type: string) => void;
 
 	onMount(async () => {
 		intersecting.register(_id, wrapper);
@@ -454,6 +459,7 @@
 			{autoscroll}
 			bind:ready
 			bind:render_complete
+			bind:add_new_message={new_message_fn}
 			show_footer={!is_embed}
 			{app_mode}
 			{version}

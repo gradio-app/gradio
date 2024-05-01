@@ -155,6 +155,10 @@
 		};
 	}
 
+	export function add_new_message(message: string, type: ToastMessage["type"]) {
+		messages = [new_message(message, -1, type), ...messages];
+	}
+
 	let _error_id = -1;
 
 	let user_left_page = false;
