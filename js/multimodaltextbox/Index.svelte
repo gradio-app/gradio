@@ -97,5 +97,7 @@
 			gradio.dispatch("error", detail);
 		}}
 		disabled={!interactive}
+		upload={gradio.client.upload}
+		stream_handler={gradio.client.eventSource_factory}
 	/>
 </Block>

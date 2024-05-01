@@ -16,6 +16,7 @@ import type {
 } from "./types";
 import { view_api } from "./utils/view_api";
 import { upload_files } from "./utils/upload_files";
+import { upload, FileData } from "./upload";
 import { handle_blob } from "./utils/handle_blob";
 import { post_data } from "./utils/post_data";
 import { predict } from "./utils/predict";
@@ -73,13 +74,14 @@ export class Client {
 		return fetch(input, init);
 	}
 
-	eventSource_factory(url: URL): EventSource | null {
-		if (typeof window !== "undefined" && "EventSource" in window) {
+	eventSource_factory(url: URL): EventSource {
+		if (typeof window !== undefined && typeof EventSource !== "undefined") {
 			return new EventSource(url.toString());
 		} else if (typeof global !== "undefined" && global.EventSource) {
 			return new global.EventSource(url.toString());
 		}
-		return null;
+		// @ts-ignore
+		return null; // todo: polyfill eventsource for node envs
 	}
 
 	view_api: () => Promise<ApiInfo<JsApiData>>;
@@ -88,6 +90,12 @@ export class Client {
 		files: (Blob | File)[],
 		upload_id?: string
 	) => Promise<UploadResponse>;
+	upload: (
+		file_data: FileData[],
+		root_url: string,
+		upload_id?: string,
+		max_file_size?: number
+	) => Promise<(FileData | null)[] | null>;
 	handle_blob: (
 		endpoint: string,
 		data: unknown[],
@@ -122,6 +130,7 @@ export class Client {
 		this.predict = predict.bind(this);
 		this.open_stream = open_stream.bind(this);
 		this.resolve_config = resolve_config.bind(this);
+		this.upload = upload.bind(this);
 	}
 
 	private async init(): Promise<void> {
