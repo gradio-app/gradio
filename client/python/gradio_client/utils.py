@@ -244,6 +244,7 @@ class Communicator:
     reset_url: str
     should_cancel: bool = False
     event_id: str | None = None
+    prediction_complete: bool = False
 
 
 ########################
@@ -360,6 +361,7 @@ def get_pred_from_sse_v0(
     cookies: dict[str, str] | None,
     ssl_verify: bool,
 ) -> dict[str, Any] | None:
+    helper.prediction_complete = False
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_cancel = executor.submit(
             check_for_cancel, helper, headers, cookies, ssl_verify
@@ -375,20 +377,11 @@ def get_pred_from_sse_v0(
             headers,
             cookies,
         )
-        done, pending = concurrent.futures.wait(
-            [future_cancel, future_sse], return_when=concurrent.futures.FIRST_COMPLETED
+        done, _ = concurrent.futures.wait(
+            [future_cancel, future_sse],  # type: ignore
+            return_when=concurrent.futures.FIRST_COMPLETED,
         )
-
-        for future in pending:
-            future.cancel()
-
-        concurrent.futures.wait(pending)
-
-        for future in pending:
-            try:
-                future.result()
-            except concurrent.futures.CancelledError:
-                pass
+        helper.prediction_complete = True
 
     if len(done) != 1:
         raise ValueError(f"Did not expect {len(done)} tasks to be done.")
@@ -405,6 +398,7 @@ def get_pred_from_sse_v1plus(
     protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
     ssl_verify: bool,
 ) -> dict[str, Any] | None:
+    helper.prediction_complete = False
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_cancel = executor.submit(
             check_for_cancel, helper, headers, cookies, ssl_verify
@@ -412,20 +406,11 @@ def get_pred_from_sse_v1plus(
         future_sse = executor.submit(
             stream_sse_v1plus, helper, pending_messages_per_event, event_id, protocol
         )
-        done, pending = concurrent.futures.wait(
-            [future_cancel, future_sse], return_when=concurrent.futures.FIRST_COMPLETED
+        done, _ = concurrent.futures.wait(
+            [future_cancel, future_sse],  # type: ignore
+            return_when=concurrent.futures.FIRST_COMPLETED,
         )
-
-    for future in pending:
-        future.cancel()
-
-    concurrent.futures.wait(pending)
-
-    for future in pending:
-        try:
-            future.result()
-        except concurrent.futures.CancelledError:
-            pass
+        helper.prediction_complete = True
 
     if len(done) != 1:
         raise ValueError(f"Did not expect {len(done)} tasks to be done.")
@@ -447,6 +432,8 @@ def check_for_cancel(
         with helper.lock:
             if helper.should_cancel:
                 break
+            if helper.prediction_complete:
+                return
     if helper.event_id:
         httpx.post(
             helper.reset_url,
