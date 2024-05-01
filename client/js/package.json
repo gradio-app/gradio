@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/client",
-	"version": "0.16.0",
+	"version": "0.17.0",
 	"description": "Gradio API client",
 	"type": "module",
 	"main": "dist/index.js",
@@ -14,6 +14,7 @@
 	},
 	"dependencies": {
 		"bufferutil": "^4.0.7",
+		"msw": "^2.2.1",
 		"semiver": "^1.1.0",
 		"typescript": "^5.0.0",
 		"ws": "^8.13.0"

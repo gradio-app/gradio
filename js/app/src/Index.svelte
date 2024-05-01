@@ -63,7 +63,7 @@
 </script>
 
 <script lang="ts">
-	import { onMount, setContext, createEventDispatcher } from "svelte";
+	import { onMount, createEventDispatcher } from "svelte";
 	import type { SpaceStatus } from "@gradio/client";
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./types";
@@ -100,11 +100,6 @@
 			loading_text = (event as CustomEvent).detail + "...";
 		});
 	}
-	export let fetch_implementation: typeof fetch = fetch;
-	setContext("fetch_implementation", fetch_implementation);
-	export let EventSource_factory: (url: URL) => EventSource = (url) =>
-		new EventSource(url);
-	setContext("EventSource_factory", EventSource_factory);
 
 	export let space: string | null;
 	export let host: string | null;
@@ -307,21 +302,20 @@
 				const { host } = new URL(api_url);
 				let url = new URL(`http://${host}/dev/reload`);
 				eventSource = new EventSource(url);
-				eventSource.onmessage = async function (event) {
-					if (event.data === "CHANGE") {
-						app = await Client.connect(api_url, {
-							status_callback: handle_status
-						});
+				eventSource.addEventListener("reload", async (event) => {
+					app.close();
+					app = await Client.connect(api_url, {
+						status_callback: handle_status
+					});
 
-						if (!app.config) {
-							throw new Error("Could not resolve app config");
-						}
-
-						config = app.config;
-						window.__gradio_space__ = config.space_id;
-						await mount_custom_css(config.css);
+					if (!app.config) {
+						throw new Error("Could not resolve app config");
 					}
-				};
+
+					config = app.config;
+					window.__gradio_space__ = config.space_id;
+					await mount_custom_css(config.css);
+				});
 			}, 200);
 		}
 	});

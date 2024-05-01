@@ -1,52 +1,9 @@
-import { compile } from "mdsvex";
+import { compile, code_highlighter } from "mdsvex";
 import anchor from "$lib/assets/img/anchor.svg";
 import { make_slug_processor } from "$lib/utils";
 import { toString as to_string } from "hast-util-to-string";
 import { redirect } from "@sveltejs/kit";
 import { error } from "@sveltejs/kit";
-
-import Prism from "prismjs";
-import "prismjs/components/prism-python";
-import "prismjs/components/prism-bash";
-import "prismjs/components/prism-json";
-import "prismjs/components/prism-typescript";
-import "prismjs/components/prism-csv";
-import "prismjs/components/prism-markup";
-import "prismjs/components/prism-javascript";
-import "prismjs/components/prism-toml";
-import "prismjs/components/prism-docker";
-
-const langs = {
-	python: "python",
-	py: "python",
-	bash: "bash",
-	csv: "csv",
-	html: "html",
-	shell: "bash",
-	json: "json",
-	javascript: "javascript",
-	js: "javascript",
-	typescript: "typescript",
-	ts: "typescript",
-	directory: "json",
-	toml: "toml",
-	docker: "docker",
-	dockerfile: "docker"
-};
-
-function highlight(code: string, lang: string | undefined) {
-	const _lang = langs[lang as keyof typeof langs] || "";
-
-	const highlighted = _lang
-		? `<div class="codeblock"><pre class="language-${lang}"><code>${Prism.highlight(
-				code,
-				Prism.languages[_lang],
-				_lang
-		  )}</code></pre></div>`
-		: code;
-
-	return highlighted;
-}
 
 import version from "$lib/json/version.json";
 export const prerender = true;
@@ -151,7 +108,13 @@ export async function load({ params, url }) {
 	const compiled = await compile(guide.content, {
 		rehypePlugins: [plugin],
 		highlight: {
-			highlighter: highlight
+			highlighter: async (code, lang) => {
+				const h = (await code_highlighter(code, lang, "")).replace(
+					/\{@html `|`\}/g,
+					""
+				);
+				return `<div class="codeblock">${h}</div>`;
+			}
 		}
 	});
 	guide.new_html = compiled?.code;

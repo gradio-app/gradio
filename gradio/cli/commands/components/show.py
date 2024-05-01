@@ -8,6 +8,7 @@ from rich.table import Table
 import gradio._simple_templates
 import gradio.components
 import gradio.layouts
+from gradio.analytics import custom_component_analytics
 from gradio.blocks import BlockContext
 from gradio.components import Component, FormComponent
 
@@ -55,6 +56,13 @@ def _get_table_items(module):
 
 
 def _show():
+    custom_component_analytics(
+        "show",
+        None,
+        upload_demo=None,
+        upload_pypi=None,
+        upload_source=None,
+    )
     items = (
         _get_table_items(gradio._simple_templates)
         + _get_table_items(gradio.components)

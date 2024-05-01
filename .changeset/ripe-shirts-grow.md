@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Refactor JS Client
+feat:Implement JS Client tests

@@ -1,5 +1,5 @@
 import type { Client } from "..";
-import { BROKEN_CONNECTION_MSG } from "../constants";
+import { BROKEN_CONNECTION_MSG, UPLOAD_URL } from "../constants";
 import type { UploadResponse } from "../types";
 
 export async function upload_files(
@@ -11,11 +11,14 @@ export async function upload_files(
 	const headers: {
 		Authorization?: string;
 	} = {};
-	if (this.options.hf_token) {
+	if (this?.options?.hf_token) {
 		headers.Authorization = `Bearer ${this.options.hf_token}`;
 	}
+
 	const chunkSize = 1000;
 	const uploadResponses = [];
+	let response: Response;
+
 	for (let i = 0; i < files.length; i += chunkSize) {
 		const chunk = files.slice(i, i + chunkSize);
 		const formData = new FormData();
@@ -25,17 +28,19 @@ export async function upload_files(
 		try {
 			const upload_url = upload_id
 				? `${root_url}/upload?upload_id=${upload_id}`
-				: `${root_url}/upload`;
-			var response = await this.fetch_implementation(upload_url, {
+				: `${root_url}/${UPLOAD_URL}`;
+
+			response = await this.fetch_implementation(upload_url, {
 				method: "POST",
 				body: formData,
 				headers
 			});
 		} catch (e) {
-			return { error: BROKEN_CONNECTION_MSG };
+			throw new Error(BROKEN_CONNECTION_MSG + (e as Error).message);
 		}
 		if (!response.ok) {
-			return { error: await response.text() };
+			const error_text = await response.text();
+			return { error: `HTTP ${response.status}: ${error_text}` };
 		}
 		const output: UploadResponse["files"] = await response.json();
 		if (output) {
