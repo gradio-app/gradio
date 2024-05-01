@@ -266,14 +266,14 @@ importers:
   js/_website:
     dependencies:
       '@gradio/code':
-        specifier: 0.5.11
-        version: 0.5.11(svelte@4.2.12)
+        specifier: workspace:^
+        version: link:../code
       '@sindresorhus/slugify':
         specifier: ^2.2.0
         version: 2.2.0
       '@sveltejs/adapter-vercel':
         specifier: ^5.3.0
-        version: 5.3.0(@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))
+        version: 5.3.0(@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))
       hast-util-to-string:
         specifier: ^3.0.0
         version: 3.0.0
@@ -281,27 +281,27 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0(svelte@4.2.12)
       postcss:
-        specifier: '>=8.3.3 <9.0.0'
-        version: 8.4.31
+        specifier: ^8.4.27
+        version: 8.4.38
       prism-svelte:
         specifier: ^0.5.0
         version: 0.5.0
     devDependencies:
       '@sveltejs/adapter-auto':
         specifier: ^3.2.0
-        version: 3.2.0(@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))
+        version: 3.2.0(@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))
       '@sveltejs/adapter-static':
         specifier: ^3.0.1
-        version: 3.0.1(@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))
+        version: 3.0.1(@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))
       '@sveltejs/kit':
         specifier: ^2.5.7
-        version: 2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31)))
+        version: 2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
       '@tailwindcss/forms':
         specifier: ^0.5.0
-        version: 0.5.0(tailwindcss@3.1.6(postcss@8.4.31))
+        version: 0.5.0(tailwindcss@3.1.6(postcss@8.4.38))
       '@tailwindcss/typography':
         specifier: ^0.5.4
-        version: 0.5.4(tailwindcss@3.1.6(postcss@8.4.31))
+        version: 0.5.4(tailwindcss@3.1.6(postcss@8.4.38))
       '@types/prismjs':
         specifier: ^1.26.0
         version: 1.26.1
@@ -310,7 +310,7 @@ importers:
         version: 1.29.0
       tailwindcss:
         specifier: ^3.1.6
-        version: 3.1.6(postcss@8.4.31)
+        version: 3.1.6(postcss@8.4.38)
 
   js/accordion:
     dependencies:
@@ -1501,9 +1501,6 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(svelte@4.2.12)
     devDependencies:
-      '@gradio/preview':
-        specifier: workspace:^
-        version: link:../../..
       '@tailwindcss/vite':
         specifier: 4.0.0-alpha.14
         version: 4.0.0-alpha.14(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
@@ -3264,33 +3261,17 @@ packages:
   '@formatjs/intl-localematcher@0.5.0':
     resolution: {integrity: sha512-K1Xpg/8oyfCMxisJQa/fILoeoeyndcM0wcN8QiNG/uM5OAe1BcO1+2yd0gIboDI2tRJEsUi/sSBEYPbgkIdq4A==}
 
-  '@gradio/atoms@0.6.2':
-    resolution: {integrity: sha512-1HlNIX3XzPJEakv9RB5Cn7l/GH618qDtfb30YR7CBw8lljXvn/i1nBCG+DO1mdoNfRA3x/pc3vM7X3G6cuh4PQ==}
-
   '@gradio/atoms@0.7.1':
     resolution: {integrity: sha512-tdQ1B9CYCNBodj1jKRG9aiNdzsQ2w8EszqsMcMxaoMrUNVU3OvBCxGXPNba86mXveP/bDnVoDfk/I9ef+ZYb1Q==}
-
-  '@gradio/client@0.16.0':
-    resolution: {integrity: sha512-kjPTumW/JNnEiHnqon7QLCCajYwTVQbB95GuVY4u1P+Xq2AyASx3dqupz5OAelC8qwr0ZuQybAFUa87/vIGpxg==}
-    engines: {node: '>=18.0.0'}
-
-  '@gradio/code@0.5.11':
-    resolution: {integrity: sha512-LJSOaXPlpgfeucfjUowW+SVSrHsR1UIsW3UpYcIyZKHjMbwCl7G82SeByfNUQXb9sEiDX8N8Du74virv3P1Edw==}
-
-  '@gradio/column@0.1.0':
-    resolution: {integrity: sha512-P24nqqVnMXBaDA1f/zSN5HZRho4PxP8Dq+7VltPHlmxIEiZYik2AJ4J0LeuIha34FDO0guu/16evdrpvGIUAfw==}
 
   '@gradio/column@0.1.1':
     resolution: {integrity: sha512-0+7Nf/PGmbaz4jQ5cxIxneqv7V+iknT17sknL7w1a5pB6B8aqzogkwe8GdACRkq1MjWQb8wZiaJFFJZKnioLhg==}
 
-  '@gradio/icons@0.3.4':
-    resolution: {integrity: sha512-rtH7u3OiYy9UuO1bnebXkTXgc+D62H6BILrMtM4EfsKGgQQICD0n7NPvbPtS0zpi/fz0ppCdlfFIKKIOeVaeFg==}
-
   '@gradio/icons@0.4.0':
     resolution: {integrity: sha512-yQqmgNql1HzN/+NG6EfRBWTyXA7zxKwtKYfP8jiVo1LZXlfd+oUt8pSrUfLGiGgqTsoMUXsbmdQpifVVg9U6yA==}
 
-  '@gradio/statustracker@0.4.12':
-    resolution: {integrity: sha512-wQxbJANz314H0VUGlW71KApqI/iBF4znIBbj2XFyPICB43LZXyO2X9wKSN1JcbIm3ArSQ3qC1PNkbDtSutIhFA==}
+  '@gradio/statustracker@0.5.0':
+    resolution: {integrity: sha512-qjnEDWc1snf7ExNJMa/qcpAK6FBu64YFA815vV0THAcdvuFSCQa/nocC/+K7QF07r7Nl4ThsBtK68TiC4V4XbA==}
 
   '@gradio/statustracker@0.5.0':
     resolution: {integrity: sha512-qjnEDWc1snf7ExNJMa/qcpAK6FBu64YFA815vV0THAcdvuFSCQa/nocC/+K7QF07r7Nl4ThsBtK68TiC4V4XbA==}
@@ -3298,17 +3279,8 @@ packages:
   '@gradio/theme@0.2.2':
     resolution: {integrity: sha512-aOjh7+BWK8WRpQBC2leFZBLyek6D0GO9KkWjystoZRwH1r+l6eBli2BDPPO/ljpJChO3HsOFpJsWA97JjQNe2g==}
 
-  '@gradio/upload@0.8.5':
-    resolution: {integrity: sha512-otIXSVI04lx9zQ4J1obbajjUsCqcx8qwJcUztlE9iZ0n+XvrP9PUzyVlwx5AmUteZgIPdWBXgxLwsuNDOdlROg==}
-
-  '@gradio/utils@0.3.2':
-    resolution: {integrity: sha512-jhBOMbNprctFEo+h394cfaE5M/EuF/0puJaXuH5P8dGXSoRmxwBmhrPYwG3MoMOwCNMB52zZlWrEGZ7VfPmBLw==}
-
   '@gradio/utils@0.4.0':
     resolution: {integrity: sha512-YTxuxQiKnHuTD90yybB+0mOnbE9gNZYLA7cNePP71pMuxWcdQrZdd7Zz1z3vzfpJ86C5cIx3K+rH3P+8weZlfg==}
-
-  '@gradio/wasm@0.10.0':
-    resolution: {integrity: sha512-ephuiuimvMad6KzNPz/3OdnjgE5wsJdVfAAqu+J0qloetbH42LfeRLsVe5WqGo2WpjzXq5MC8I8MJ7lpQMhUpw==}
 
   '@humanwhocodes/config-array@0.11.13':
     resolution: {integrity: sha512-JSBDMiDKSzQVngfRjOdFXgFfklaXI4K9nLF49Auh21lmBWRLIK3+xTErTWD4KU54pb6coM6ESE7Awz/FNU3zgQ==}
@@ -10784,13 +10756,6 @@ snapshots:
     dependencies:
       tslib: 2.6.2
 
-  '@gradio/atoms@0.6.2(svelte@4.2.12)':
-    dependencies:
-      '@gradio/icons': 0.3.4
-      '@gradio/utils': 0.3.2(svelte@4.2.12)
-    transitivePeerDependencies:
-      - svelte
-
   '@gradio/atoms@0.7.1(svelte@4.2.12)':
     dependencies:
       '@gradio/icons': 0.4.0
@@ -10798,60 +10763,16 @@ snapshots:
     transitivePeerDependencies:
       - svelte
 
-  '@gradio/client@0.16.0':
-    dependencies:
-      bufferutil: 4.0.7
-      semiver: 1.1.0
-      ws: 8.16.0(bufferutil@4.0.7)
-    transitivePeerDependencies:
-      - utf-8-validate
-
-  '@gradio/code@0.5.11(svelte@4.2.12)':
-    dependencies:
-      '@codemirror/autocomplete': 6.3.0(@codemirror/language@6.6.0)(@codemirror/state@6.1.2)(@codemirror/view@6.4.1)(@lezer/common@1.0.2)
-      '@codemirror/commands': 6.1.2
-      '@codemirror/lang-css': 6.1.0(@codemirror/view@6.4.1)(@lezer/common@1.0.2)
-      '@codemirror/lang-html': 6.4.2
-      '@codemirror/lang-javascript': 6.1.4
-      '@codemirror/lang-json': 6.0.1
-      '@codemirror/lang-markdown': 6.1.0
-      '@codemirror/lang-python': 6.0.4
-      '@codemirror/language': 6.6.0
-      '@codemirror/legacy-modes': 6.3.1
-      '@codemirror/lint': 6.0.0
-      '@codemirror/search': 6.2.2
-      '@codemirror/state': 6.1.2
-      '@codemirror/view': 6.4.1
-      '@gradio/atoms': 0.6.2(svelte@4.2.12)
-      '@gradio/icons': 0.3.4
-      '@gradio/statustracker': 0.4.12(svelte@4.2.12)
-      '@gradio/upload': 0.8.5(svelte@4.2.12)
-      '@gradio/utils': 0.3.2(svelte@4.2.12)
-      '@gradio/wasm': 0.10.0
-      '@lezer/common': 1.0.2
-      '@lezer/highlight': 1.1.3
-      '@lezer/markdown': 1.0.2
-      cm6-theme-basic-dark: 0.2.0(@codemirror/language@6.6.0)(@codemirror/state@6.1.2)(@codemirror/view@6.4.1)(@lezer/highlight@1.1.3)
-      cm6-theme-basic-light: 0.2.0(@codemirror/language@6.6.0)(@codemirror/state@6.1.2)(@codemirror/view@6.4.1)(@lezer/highlight@1.1.3)
-      codemirror: 6.0.1(@lezer/common@1.0.2)
-    transitivePeerDependencies:
-      - svelte
-      - utf-8-validate
-
-  '@gradio/column@0.1.0': {}
-
   '@gradio/column@0.1.1': {}
-
-  '@gradio/icons@0.3.4': {}
 
   '@gradio/icons@0.4.0': {}
 
-  '@gradio/statustracker@0.4.12(svelte@4.2.12)':
+  '@gradio/statustracker@0.5.0(svelte@4.2.12)':
     dependencies:
       '@gradio/atoms': 0.7.1(svelte@4.2.12)
-      '@gradio/column': 0.1.0
+      '@gradio/column': 0.1.1
       '@gradio/icons': 0.4.0
-      '@gradio/utils': 0.3.2(svelte@4.2.12)
+      '@gradio/utils': 0.4.0(svelte@4.2.12)
     transitivePeerDependencies:
       - svelte
 
@@ -10866,35 +10787,12 @@ snapshots:
 
   '@gradio/theme@0.2.2': {}
 
-  '@gradio/upload@0.8.5(svelte@4.2.12)':
-    dependencies:
-      '@gradio/atoms': 0.7.1(svelte@4.2.12)
-      '@gradio/client': 0.16.0
-      '@gradio/icons': 0.4.0
-      '@gradio/utils': 0.3.2(svelte@4.2.12)
-      '@gradio/wasm': 0.10.0
-    transitivePeerDependencies:
-      - svelte
-      - utf-8-validate
-
-  '@gradio/utils@0.3.2(svelte@4.2.12)':
-    dependencies:
-      '@gradio/theme': 0.2.2
-      svelte-i18n: 3.6.0(svelte@4.2.12)
-    transitivePeerDependencies:
-      - svelte
-
   '@gradio/utils@0.4.0(svelte@4.2.12)':
     dependencies:
       '@gradio/theme': 0.2.2
       svelte-i18n: 3.6.0(svelte@4.2.12)
     transitivePeerDependencies:
       - svelte
-
-  '@gradio/wasm@0.10.0':
-    dependencies:
-      '@types/path-browserify': 1.0.0
-      path-browserify: 1.0.1
 
   '@humanwhocodes/config-array@0.11.13':
     dependencies:
@@ -12136,27 +12034,27 @@ snapshots:
       '@types/express': 4.17.21
       file-system-cache: 2.3.0
 
-  '@sveltejs/adapter-auto@3.2.0(@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))':
+  '@sveltejs/adapter-auto@3.2.0(@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))':
     dependencies:
-      '@sveltejs/kit': 2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31)))
+      '@sveltejs/kit': 2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
       import-meta-resolve: 4.0.0
 
-  '@sveltejs/adapter-static@3.0.1(@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))':
+  '@sveltejs/adapter-static@3.0.1(@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))':
     dependencies:
-      '@sveltejs/kit': 2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31)))
+      '@sveltejs/kit': 2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
 
-  '@sveltejs/adapter-vercel@5.3.0(@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))':
+  '@sveltejs/adapter-vercel@5.3.0(@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))':
     dependencies:
-      '@sveltejs/kit': 2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31)))
+      '@sveltejs/kit': 2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
       '@vercel/nft': 0.26.4
       esbuild: 0.20.2
     transitivePeerDependencies:
       - encoding
       - supports-color
 
-  '@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31)))':
+  '@sveltejs/kit@2.5.7(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte': 3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31)))
+      '@sveltejs/vite-plugin-svelte': 3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
       '@types/cookie': 0.6.0
       cookie: 0.6.0
       devalue: 5.0.0
@@ -12170,7 +12068,7 @@ snapshots:
       sirv: 2.0.4
       svelte: 4.2.12
       tiny-glob: 0.2.9
-      vite: 5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))
+      vite: 5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))
 
   '@sveltejs/vite-plugin-svelte-inspector@1.0.4(@sveltejs/vite-plugin-svelte@2.5.2(svelte@4.2.2)(vite@5.2.9(@types/node@20.3.2)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))(svelte@4.2.2)(vite@5.2.9(@types/node@20.3.2)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31)))':
     dependencies:
@@ -12190,12 +12088,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@sveltejs/vite-plugin-svelte-inspector@2.1.0(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31)))':
+  '@sveltejs/vite-plugin-svelte-inspector@2.1.0(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte': 3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31)))
+      '@sveltejs/vite-plugin-svelte': 3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
       debug: 4.3.4
       svelte: 4.2.12
-      vite: 5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))
+      vite: 5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))
     transitivePeerDependencies:
       - supports-color
 
@@ -12236,17 +12134,17 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31)))':
+  '@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte-inspector': 2.1.0(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31)))
+      '@sveltejs/vite-plugin-svelte-inspector': 2.1.0(@sveltejs/vite-plugin-svelte@3.1.0(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))))(svelte@4.2.12)(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
       debug: 4.3.4
       deepmerge: 4.3.1
       kleur: 4.1.5
       magic-string: 0.30.10
       svelte: 4.2.12
       svelte-hmr: 0.16.0(svelte@4.2.12)
-      vite: 5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))
-      vitefu: 0.2.5(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31)))
+      vite: 5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))
+      vitefu: 0.2.5(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
     transitivePeerDependencies:
       - supports-color
 
@@ -12268,6 +12166,11 @@ snapshots:
     dependencies:
       mini-svg-data-uri: 1.4.4
       tailwindcss: 3.1.6(postcss@8.4.31)
+
+  '@tailwindcss/forms@0.5.0(tailwindcss@3.1.6(postcss@8.4.38))':
+    dependencies:
+      mini-svg-data-uri: 1.4.4
+      tailwindcss: 3.1.6(postcss@8.4.38)
 
   '@tailwindcss/oxide-android-arm64@4.0.0-alpha.14':
     optional: true
@@ -12312,12 +12215,12 @@ snapshots:
       '@tailwindcss/oxide-linux-x64-musl': 4.0.0-alpha.14
       '@tailwindcss/oxide-win32-x64-msvc': 4.0.0-alpha.14
 
-  '@tailwindcss/typography@0.5.4(tailwindcss@3.1.6(postcss@8.4.31))':
+  '@tailwindcss/typography@0.5.4(tailwindcss@3.1.6(postcss@8.4.38))':
     dependencies:
       lodash.castarray: 4.4.0
       lodash.isplainobject: 4.0.6
       lodash.merge: 4.6.2
-      tailwindcss: 3.1.6(postcss@8.4.31)
+      tailwindcss: 3.1.6(postcss@8.4.38)
 
   '@tailwindcss/vite@4.0.0-alpha.14(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))':
     dependencies:
@@ -16011,10 +15914,22 @@ snapshots:
       read-cache: 1.0.0
       resolve: 1.22.8
 
+  postcss-import@14.1.0(postcss@8.4.38):
+    dependencies:
+      postcss: 8.4.38
+      postcss-value-parser: 4.2.0
+      read-cache: 1.0.0
+      resolve: 1.22.8
+
   postcss-js@4.0.1(postcss@8.4.31):
     dependencies:
       camelcase-css: 2.0.1
       postcss: 8.4.31
+
+  postcss-js@4.0.1(postcss@8.4.38):
+    dependencies:
+      camelcase-css: 2.0.1
+      postcss: 8.4.38
 
   postcss-less@6.0.0(postcss@8.4.31):
     dependencies:
@@ -16033,11 +15948,15 @@ snapshots:
       yaml: 1.10.2
     optionalDependencies:
       postcss: 8.4.38
-    optional: true
 
   postcss-nested@5.0.6(postcss@8.4.31):
     dependencies:
       postcss: 8.4.31
+      postcss-selector-parser: 6.0.13
+
+  postcss-nested@5.0.6(postcss@8.4.38):
+    dependencies:
+      postcss: 8.4.38
       postcss-selector-parser: 6.0.13
 
   postcss-prefix-selector@1.16.0(postcss@8.4.31):
@@ -16051,6 +15970,10 @@ snapshots:
   postcss-scss@4.0.9(postcss@8.4.31):
     dependencies:
       postcss: 8.4.31
+
+  postcss-scss@4.0.9(postcss@8.4.38):
+    dependencies:
+      postcss: 8.4.38
 
   postcss-selector-parser@6.0.13:
     dependencies:
@@ -16902,8 +16825,8 @@ snapshots:
       eslint-scope: 7.2.2
       eslint-visitor-keys: 3.4.3
       espree: 9.6.1
-      postcss: 8.4.31
-      postcss-scss: 4.0.9(postcss@8.4.31)
+      postcss: 8.4.38
+      postcss-scss: 4.0.9(postcss@8.4.38)
     optionalDependencies:
       svelte: 4.2.2
 
@@ -17096,6 +17019,33 @@ snapshots:
       postcss-js: 4.0.1(postcss@8.4.31)
       postcss-load-config: 3.1.4(postcss@8.4.31)
       postcss-nested: 5.0.6(postcss@8.4.31)
+      postcss-selector-parser: 6.0.13
+      postcss-value-parser: 4.2.0
+      quick-lru: 5.1.1
+      resolve: 1.22.8
+    transitivePeerDependencies:
+      - ts-node
+
+  tailwindcss@3.1.6(postcss@8.4.38):
+    dependencies:
+      arg: 5.0.2
+      chokidar: 3.5.3
+      color-name: 1.1.4
+      detective: 5.2.1
+      didyoumean: 1.2.2
+      dlv: 1.1.3
+      fast-glob: 3.3.2
+      glob-parent: 6.0.2
+      is-glob: 4.0.3
+      lilconfig: 2.1.0
+      normalize-path: 3.0.0
+      object-hash: 3.0.0
+      picocolors: 1.0.0
+      postcss: 8.4.38
+      postcss-import: 14.1.0(postcss@8.4.38)
+      postcss-js: 4.0.1(postcss@8.4.38)
+      postcss-load-config: 3.1.4(postcss@8.4.38)
+      postcss-nested: 5.0.6(postcss@8.4.38)
       postcss-selector-parser: 6.0.13
       postcss-value-parser: 4.2.0
       quick-lru: 5.1.1
@@ -17793,7 +17743,7 @@ snapshots:
   vite@4.5.3(@types/node@20.3.2)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31)):
     dependencies:
       esbuild: 0.18.20
-      postcss: 8.4.31
+      postcss: 8.4.38
       rollup: 3.29.4
     optionalDependencies:
       '@types/node': 20.3.2
@@ -17815,19 +17765,6 @@ snapshots:
       sass: 1.66.1
       stylus: 0.63.0
       sugarss: 4.0.1(postcss@8.4.38)
-
-  vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31)):
-    dependencies:
-      esbuild: 0.20.2
-      postcss: 8.4.38
-      rollup: 4.14.3
-    optionalDependencies:
-      '@types/node': 20.11.30
-      fsevents: 2.3.3
-      lightningcss: 1.24.1
-      sass: 1.66.1
-      stylus: 0.63.0
-      sugarss: 4.0.1(postcss@8.4.31)
 
   vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)):
     dependencies:
@@ -17859,9 +17796,9 @@ snapshots:
     optionalDependencies:
       vite: 5.2.9(@types/node@20.11.30)(lightningcss@1.21.7)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))
 
-  vitefu@0.2.5(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))):
+  vitefu@0.2.5(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))):
     optionalDependencies:
-      vite: 5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))
+      vite: 5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))
 
   vitefu@0.2.5(vite@5.2.9(@types/node@20.3.2)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.31))):
     optionalDependencies:
