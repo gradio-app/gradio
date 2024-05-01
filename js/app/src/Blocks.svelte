@@ -155,7 +155,10 @@
 		};
 	}
 
-	export function add_new_message(message: string, type: ToastMessage["type"]) {
+	export function add_new_message(
+		message: string,
+		type: ToastMessage["type"]
+	): void {
 		messages = [new_message(message, -1, type), ...messages];
 	}
 
