@@ -282,6 +282,7 @@ def watchfn(reloader: SourceFileReloader):
                 traceback.print_exc()
                 mtimes = {}
                 reloader.alert_change("error")
+                reloader.app.reload_error_message = traceback.format_exc()
                 continue
             demo = getattr(module, reloader.demo_name)
             reloader.swap_blocks(demo)

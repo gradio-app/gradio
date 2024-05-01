@@ -307,8 +307,9 @@
 				const { host } = new URL(api_url);
 				let url = new URL(`http://${host}/dev/reload`);
 				eventSource = new EventSource(url);
-				eventSource.addEventListener("error", async () => {
+				eventSource.addEventListener("error", async (e) => {
 					new_message_fn("Error reloading app", "error");
+					console.error(JSON.parse(e.data));
 				});
 				eventSource.addEventListener("reload", async (event) => {
 					app.close();

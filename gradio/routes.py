@@ -175,6 +175,7 @@ class App(FastAPI):
         self.uploaded_file_dir = get_upload_folder()
         self.change_count: int = 0
         self.change_type: Literal["reload", "error"] | None = None
+        self.reload_error_message: str | None = None
         self._asyncio_tasks: list[asyncio.Task] = []
         self.auth_dependency = auth_dependency
         self.api_info = None
@@ -293,7 +294,12 @@ class App(FastAPI):
 
                     if app.change_count != current_count:
                         current_count = app.change_count
-                        yield f"""event: {app.change_type}\ndata: {{}}\n\n"""
+                        msg = (
+                            json.dumps(f"{app.reload_error_message}")
+                            if app.change_type == "error"
+                            else "{}"
+                        )
+                        yield f"""event: {app.change_type}\ndata: {msg}\n\n"""
 
                     await asyncio.sleep(check_rate)
                     if time.perf_counter() - last_heartbeat > heartbeat_rate:
