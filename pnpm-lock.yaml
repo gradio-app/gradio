@@ -1489,9 +1489,6 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(svelte@4.2.12)
     devDependencies:
-      '@gradio/preview':
-        specifier: workspace:^
-        version: link:../../..
       '@tailwindcss/vite':
         specifier: 4.0.0-alpha.14
         version: 4.0.0-alpha.14(vite@5.2.9(@types/node@20.11.30)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
