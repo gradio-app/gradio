@@ -278,11 +278,7 @@
 		</button>
 	{/if}
 
-	<div
-		bind:clientHeight={client_height}
-		class="grid-wrap"
-		class:fixed-height={!height || height == "auto"}
-	>
+	<div class="grid-wrap" class:fixed-height={!height || height == "auto"}>
 		<div
 			class="grid-container"
 			style="--grid-cols:{columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"
