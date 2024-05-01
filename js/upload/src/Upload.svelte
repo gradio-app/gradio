@@ -2,7 +2,6 @@
 	import { createEventDispatcher, tick, getContext } from "svelte";
 	import type { FileData } from "@gradio/client";
 	import {
-		type upload_files,
 		prepare_files,
 		type Client
 	} from "@gradio/client";

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick, createEventDispatcher, getContext } from "svelte";
+	import { tick, createEventDispatcher } from "svelte";
 	import { BaseButton } from "@gradio/button";
 	import { prepare_files, type FileData, type Client } from "@gradio/client";
 

@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { getContext, onDestroy, createEventDispatcher } from "svelte";
+	import { onDestroy, createEventDispatcher } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import {
 		prepare_files,
 		type FileData,
 		type Client,
-		type upload
 	} from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
