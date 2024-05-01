@@ -277,13 +277,12 @@ class Client:
             raise e
 
     def send_data(self, data, hash_data, protocol):
-        with httpx.Client(verify=self.ssl_verify) as client:
-            req = client.post(
-                self.sse_data_url,
-                json={**data, **hash_data},
-                headers=self.headers,
-                cookies=self.cookies,
-            )
+        req = httpx.post(
+            self.sse_data_url,
+            json={**data, **hash_data},
+            headers=self.headers,
+            cookies=self.cookies,
+        )
         if req.status_code == 503:
             raise QueueError("Queue is full! Please try again.")
         req.raise_for_status()
@@ -1124,9 +1123,7 @@ class Endpoint:
                 event_id = self.client.send_data(data, hash_data, self.protocol)
                 self.client.pending_event_ids.add(event_id)
                 self.client.pending_messages_per_event[event_id] = []
-                result = utils.synchronize_async(
-                    self._sse_fn_v1plus, helper, event_id, self.protocol
-                )
+                result = self._sse_fn_v1plus(helper, event_id, self.protocol)
             else:
                 raise ValueError(f"Unsupported protocol: {self.protocol}")
 
@@ -1302,13 +1299,13 @@ class Endpoint:
                 self.client.ssl_verify,
             )
 
-    async def _sse_fn_v1plus(
+    def _sse_fn_v1plus(
         self,
         helper: Communicator,
         event_id: str,
         protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
     ):
-        return await utils.get_pred_from_sse_v1plus(
+        return utils.get_pred_from_sse_v1plus(
             helper,
             self.client.headers,
             self.client.cookies,
