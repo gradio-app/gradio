@@ -38,7 +38,6 @@ jobs:
           FULL_NAME: ${{ github.event.workflow_run.head_repository.full_name }}
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
           WORKFLOW_REF: ${{ github.workflow_ref }}
-        run: echo "$FULL_NAME-$HEAD_BRANCH-$WORKFLOW_REF"
 
   test-functional:
     name: "test-functional"
