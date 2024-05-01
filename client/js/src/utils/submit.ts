@@ -11,7 +11,8 @@ import type {
 	EndpointInfo,
 	ApiInfo,
 	Config,
-	Dependency
+	Dependency,
+	SubmitOptions
 } from "../types";
 
 import { skip_queue, post_message } from "../helpers/data";
@@ -23,7 +24,7 @@ import { Client } from "../client";
 
 export function submit(
 	this: Client,
-	endpoint: string | number,
+	endpoint_or_options: string | number | SubmitOptions,
 	data: unknown[],
 	event_data?: unknown,
 	trigger_id?: number | null
@@ -44,6 +45,22 @@ export function submit(
 			unclosed_events,
 			post_data
 		} = this;
+
+		let endpoint: string | number;
+
+		if (
+			typeof endpoint_or_options === "object" &&
+			endpoint_or_options !== null &&
+			"endpoint" in endpoint_or_options
+		) {
+			endpoint = endpoint_or_options.endpoint;
+			data = endpoint_or_options.data;
+			event_data = endpoint_or_options.event_data;
+			trigger_id = endpoint_or_options.trigger_id;
+		} else {
+			endpoint = endpoint_or_options;
+			data = data || [];
+		}
 
 		if (!api_info) throw new Error("No API found");
 		if (!config) throw new Error("Could not resolve app config");

@@ -6,8 +6,10 @@ import type {
 	DuplicateOptions,
 	EndpointInfo,
 	JsApiData,
+	PredictOptions,
 	SpaceStatus,
 	Status,
+	SubmitOptions,
 	SubmitReturn,
 	UploadResponse,
 	client_return
@@ -97,16 +99,15 @@ export class Client {
 		additional_headers?: any
 	) => Promise<unknown[]>;
 	submit: (
-		endpoint: string | number,
+		endpoint_or_options: string | number | SubmitOptions,
 		data: unknown[],
 		event_data?: unknown,
 		trigger_id?: number | null
 	) => SubmitReturn;
 	predict: (
-		endpoint: string | number,
-		data?: unknown[],
-		event_data?: unknown
-	) => Promise<unknown>;
+		endpoint_or_options: string | number | PredictOptions,
+		data?: unknown[]
+	) => Promise<SubmitReturn>;
 	open_stream: () => void;
 	private resolve_config: (endpoint: string) => Promise<Config | undefined>;
 	constructor(app_reference: string, options: ClientOptions = {}) {

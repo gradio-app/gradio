@@ -50,15 +50,18 @@ type event = <K extends EventType>(
 	listener: EventListener<K>
 ) => SubmitReturn;
 
-type predict = (
-	endpoint: string | number,
-	data?: unknown[],
-	event_data?: unknown
-) => Promise<unknown>;
+export interface PredictOptions {
+	endpoint: string | number;
+	data?: unknown[];
+}
+
+type PredictCall =
+	| PredictOptions
+	| { endpoint: string | number; data?: unknown[] };
 
 export type client_return = {
 	config: Config | undefined;
-	predict: predict;
+	predict: (options: PredictCall) => Promise<SubmitReturn>;
 	submit: (
 		endpoint: string | number,
 		data: unknown[],
@@ -79,6 +82,20 @@ export type SubmitReturn = {
 	cancel: () => Promise<void>;
 	destroy: () => void;
 };
+
+// Function Parameter Types
+
+export interface PredictOptions {
+	endpoint: string | number;
+	data?: unknown[];
+}
+
+export interface SubmitOptions {
+	endpoint: string | number;
+	data: unknown[];
+	event_data?: unknown;
+	trigger_id?: number | null;
+}
 
 // Space Status Types
 
