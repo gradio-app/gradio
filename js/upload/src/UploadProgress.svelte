@@ -42,7 +42,7 @@
 			new URL(`${root}/upload_progress?upload_id=${upload_id}`)
 		);
 
-		if (event_source == null || event_source == undefined) {
+		if (event_source == null) {
 			throw new Error("Event source is not defined");
 		}
 		// Event listener for progress updates

@@ -2,8 +2,7 @@
 	import { createEventDispatcher, onMount } from "svelte";
 	import { Camera, Circle, Square, DropdownArrow } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
-	import type { FileData, Client } from "@gradio/client";
-	import { prepare_files } from "@gradio/client";
+	import { type FileData, type Client, prepare_files } from "@gradio/client";
 	import WebcamPermissions from "./WebcamPermissions.svelte";
 	import { fade } from "svelte/transition";
 	import {

@@ -97,7 +97,7 @@
 		let _audio_blob = new File(blobs, "audio.wav");
 		const val = await prepare_files([_audio_blob], event === "stream");
 		value = (
-			(await upload(val, root, undefined, max_file_size ?? Infinity))?.filter(
+			(await upload(val, root, undefined, max_file_size || undefined))?.filter(
 				Boolean
 			) as FileData[]
 		)[0];

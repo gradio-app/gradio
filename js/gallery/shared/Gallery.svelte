@@ -4,7 +4,7 @@
 	import type { SelectData } from "@gradio/utils";
 	import { Image } from "@gradio/image/shared";
 	import { dequal } from "dequal";
-	import { createEventDispatcher, getContext } from "svelte";
+	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
 
 	import { Download, Image as ImageIcon } from "@gradio/icons";
@@ -160,14 +160,12 @@
 		}
 	}
 
-	let client_height = 0;
 	let window_height = 0;
 
 	// Unlike `gr.Image()`, images specified via remote URLs are not cached in the server
 	// and their remote URLs are directly passed to the client as `value[].image.url`.
 	// The `download` attribute of the <a> tag doesn't work for remote URLs (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#download),
 	// so we need to download the image via JS as below.
-	// const fetch_implementation = getContext<typeof fetch>("fetch_implementation");
 	async function download(file_url: string, name: string): Promise<void> {
 		let response;
 		try {
