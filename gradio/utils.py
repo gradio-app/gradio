@@ -529,9 +529,7 @@ def get_all_components() -> list[type[Component] | type[BlockContext]]:
 
     while classes_to_check:
         subclass = classes_to_check.pop()
-        children = subclass.__subclasses__()
-        if children:
-            classes_to_check.extend(children)
+        classes_to_check.extend(subclass.__subclasses__())
         subclasses.append(subclass)
     return subclasses
 

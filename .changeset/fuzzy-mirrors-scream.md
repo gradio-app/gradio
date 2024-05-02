@@ -3,6 +3,8 @@
 "gradio_client": patch
 ---
 
+highlight:
+
 #### Support custom components in gr.load
 
 It is now possible to load a demo with a custom component with `gr.load`.
