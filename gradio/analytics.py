@@ -17,7 +17,7 @@ from packaging.version import Version
 import gradio
 from gradio import wasm_utils
 from gradio.context import Context
-from gradio.utils import get_package_version
+from gradio.utils import core_gradio_components, get_package_version
 
 # For testability, we import the pyfetch function into this module scope and define a fallback coroutine object to be patched in tests.
 try:
@@ -39,26 +39,6 @@ def get_block_name(class_name) -> str:
     This will return "matrix" for Matrix template, and ensures that any component name that is sent from the gradio app is part of the the core components list (no false positives for custom components).
     """
     return class_name.__name__.lower()
-
-
-def core_gradio_components():
-    import gradio as gr
-
-    classes_to_check = (
-        gr.components.Component.__subclasses__()
-        + gr.blocks.BlockContext.__subclasses__()  # type: ignore
-    )
-    subclasses = []
-
-    while classes_to_check:
-        subclass = classes_to_check.pop()
-        children = subclass.__subclasses__()
-        if children:
-            classes_to_check.extend(children)
-        if subclass.__module__.startswith("gradio."):
-            subclasses.append(get_block_name(subclass))
-
-    return subclasses
 
 
 def analytics_enabled() -> bool:
