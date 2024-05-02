@@ -137,15 +137,12 @@ def start_server(
             )
             reloader = None
             if GRADIO_WATCH_DIRS:
-                change_event = threading.Event()
-                app.change_event = change_event
                 reloader = SourceFileReloader(
                     app=app,
                     watch_dirs=GRADIO_WATCH_DIRS,
                     watch_module_name=GRADIO_WATCH_MODULE_NAME,
                     demo_name=GRADIO_WATCH_DEMO_NAME,
                     stop_event=threading.Event(),
-                    change_event=change_event,
                     demo_file=GRADIO_WATCH_DEMO_PATH,
                 )
             server = Server(config=config, reloader=reloader)

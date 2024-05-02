@@ -150,5 +150,7 @@
 		i18n={gradio.i18n}
 		{line_breaks}
 		{column_widths}
+		upload={gradio.client.upload}
+		stream_handler={gradio.client.eventSource_factory}
 	/>
 </Block>

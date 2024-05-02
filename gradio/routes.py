@@ -12,13 +12,13 @@ if sys.version_info >= (3, 9):
     from importlib.resources import files
 else:
     from importlib_resources import files
+import hashlib
 import inspect
 import json
 import mimetypes
 import os
 import posixpath
 import secrets
-import threading
 import time
 import traceback
 from pathlib import Path
@@ -30,6 +30,7 @@ from typing import (
     Callable,
     Dict,
     List,
+    Literal,
     Optional,
     Type,
     Union,
@@ -172,7 +173,9 @@ class App(FastAPI):
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
         self.uploaded_file_dir = get_upload_folder()
-        self.change_event: None | threading.Event = None
+        self.change_count: int = 0
+        self.change_type: Literal["reload", "error"] | None = None
+        self.reload_error_message: str | None = None
         self._asyncio_tasks: list[asyncio.Task] = []
         self.auth_dependency = auth_dependency
         self.api_info = None
@@ -180,6 +183,7 @@ class App(FastAPI):
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
         kwargs.setdefault("redoc_url", None)
+        self.custom_component_hashes: dict[str, str] = {}
         super().__init__(**kwargs)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -282,14 +286,20 @@ class App(FastAPI):
                 heartbeat_rate = 15
                 check_rate = 0.05
                 last_heartbeat = time.perf_counter()
+                current_count = app.change_count
 
                 while True:
                     if await request.is_disconnected():
                         return
 
-                    if app.change_event and app.change_event.is_set():
-                        app.change_event.clear()
-                        yield """event: reload\ndata: {}\n\n"""
+                    if app.change_count != current_count:
+                        current_count = app.change_count
+                        msg = (
+                            json.dumps(f"{app.reload_error_message}")
+                            if app.change_type == "error"
+                            else "{}"
+                        )
+                        yield f"""event: {app.change_type}\ndata: {msg}\n\n"""
 
                     await asyncio.sleep(check_rate)
                     if time.perf_counter() - last_heartbeat > heartbeat_rate:
@@ -426,7 +436,9 @@ class App(FastAPI):
             return FileResponse(static_file)
 
         @app.get("/custom_component/{id}/{type}/{file_name}")
-        def custom_component_path(id: str, type: str, file_name: str):
+        def custom_component_path(
+            id: str, type: str, file_name: str, req: fastapi.Request
+        ):
             config = app.get_blocks().config
             components = config["components"]
             location = next(
@@ -444,12 +456,27 @@ class App(FastAPI):
             if module_path is None or component_instance is None:
                 raise HTTPException(status_code=404, detail="Component not found.")
 
-            return FileResponse(
-                safe_join(
-                    str(Path(module_path).parent),
-                    f"{component_instance.__class__.TEMPLATE_DIR}/{type}/{file_name}",
-                )
+            path = safe_join(
+                str(Path(module_path).parent),
+                f"{component_instance.__class__.TEMPLATE_DIR}/{type}/{file_name}",
             )
+
+            key = f"{id}-{type}-{file_name}"
+
+            if key not in app.custom_component_hashes:
+                app.custom_component_hashes[key] = hashlib.md5(
+                    Path(path).read_text().encode()
+                ).hexdigest()
+
+            version = app.custom_component_hashes.get(key)
+            headers = {"Cache-Control": "max-age=0, must-revalidate"}
+            if version:
+                headers["ETag"] = version
+
+            if version and req.headers.get("if-none-match") == version:
+                return PlainTextResponse(status_code=304, headers=headers)
+
+            return FileResponse(path, headers=headers)
 
         @app.get("/assets/{path:path}")
         def build_resource(path: str):

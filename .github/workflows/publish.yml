@@ -21,13 +21,11 @@ jobs:
         uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
         with:
           always_install_pnpm: true
-          node_auth_token: ${{ secrets.NPM_TOKEN }}
-          npm_token: ${{ secrets.NPM_TOKEN }}
           skip_build: 'false'
       - name: Build packages
-        run: | 
+        run: |
           . venv/bin/activate
-          pip install build
+          pip install -U build hatch packaging>=23.2  # packaging>=23.2 is needed to build Lite due to https://github.com/pypa/hatch/issues/1381
           pnpm --filter @gradio/client --filter @gradio/lite --filter @gradio/preview build
       - name: create and publish versions
         id: changesets
@@ -43,26 +41,26 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
       - name: add label to skip chromatic build
         if: ${{ steps.changesets.outputs.pullRequestNumber != '' && steps.changesets.outputs.pullRequestNumber != 'undefined' }}
-        run: gh pr edit "$PR_NUMBER" --add-label "no-visual-update" 
+        run: gh pr edit "$PR_NUMBER" --add-label "no-visual-update"
         env:
           PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}
-          GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }} 
+          GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
       - name: add label to run flaky tests
         if: ${{ steps.changesets.outputs.pullRequestNumber != '' && steps.changesets.outputs.pullRequestNumber != 'undefined' }}
-        run: gh pr edit "$PR_NUMBER" --add-label "flaky-tests" 
+        run: gh pr edit "$PR_NUMBER" --add-label "flaky-tests"
         env:
           PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}
-          GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }} 
+          GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
       - name: add label to run backend tests on Windows
         if: ${{ steps.changesets.outputs.pullRequestNumber != '' && steps.changesets.outputs.pullRequestNumber != 'undefined' }}
-        run: gh pr edit "$PR_NUMBER" --add-label "windows-tests" 
+        run: gh pr edit "$PR_NUMBER" --add-label "windows-tests"
         env:
           PR_NUMBER: ${{ steps.changesets.outputs.pullRequestNumber }}
-          GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }} 
+          GITHUB_TOKEN: ${{ secrets.GRADIO_PAT }}
       - name: publish to pypi
         if: steps.changesets.outputs.hasChangesets != 'true'
         uses: "gradio-app/github/actions/publish-pypi@main"
-        env: 
+        env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWSACCESSKEYID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWSSECRETKEY }}
           AWS_DEFAULT_REGION: us-west-2
@@ -72,6 +70,6 @@ jobs:
             gradio:${{ secrets.PYPI_API_TOKEN }}
             gradio_client:${{ secrets.PYPI_GRADIO_CLIENT_TOKEN }}
       - name: trigger spaces deploy workflow
-        env: 
+        env:
           GITHUB_TOKEN: ${{ secrets.COMMENT_TOKEN }}
         run: gh workflow run deploy-spaces.yml
