@@ -142,7 +142,7 @@ The `submit` method provides a more flexible way to call an API endpoint, provid
 import { Client } from "@gradio/client";
 
 const app = await Client.connect("user/space-name");
-const submission = app.submit("/predict", payload);
+const submission = app.submit("/predict", { name: "Chewbacca" });
 ```
 
 The `submit` method accepts the same [`endpoint`](#endpoint) and [`payload`](#payload) arguments as `predict`.
@@ -218,7 +218,7 @@ import { Client } from "@gradio/client";
 const app = await Client.connect("user/space-name");
 const handle_data = (data) => console.log(data);
 
-const submission = app.submit("/predict", payload).on("data", handle_data);
+const submission = app.submit("/predict", { name: "Chewbacca" }).on("data", handle_data);
 
 // later
 submission.destroy();
@@ -233,7 +233,7 @@ import { Client } from "@gradio/client";
 
 const app = await Client.connect("user/space-name");
 const submission = app
-	.submit("/predict", payload)
+	.submit("/predict", { name: "Chewbacca" })
 	.on("data", (data) => console.log(data));
 
 // later
