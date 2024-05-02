@@ -1,6 +1,8 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 
+const TEST_MODE = process.env.TEST_MODE || "happy-dom";
+
 export default defineConfig({
 	build: {
 		lib: {
@@ -17,6 +19,11 @@ export default defineConfig({
 	},
 	plugins: [svelte()],
 
+	mode: process.env.MODE || "development",
+	test: {
+		include: ["./src/test/*.test.*"],
+		environment: TEST_MODE
+	},
 	ssr: {
 		target: "node",
 		format: "esm",
