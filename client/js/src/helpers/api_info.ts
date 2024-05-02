@@ -325,8 +325,6 @@ export const map_data_to_params = (
 	data: unknown[] | Record<string, unknown>,
 	parameters: JsApiData[]
 ): unknown[] => {
-	if (!parameters) return [];
-
 	if (Array.isArray(data)) {
 		if (data.length > parameters.length) {
 			throw new Error("Too many arguments provided for the endpoint.");
