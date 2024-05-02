@@ -63,7 +63,7 @@
 </script>
 
 <script lang="ts">
-	import { onMount, setContext, createEventDispatcher } from "svelte";
+	import { onMount, createEventDispatcher } from "svelte";
 	import type { SpaceStatus } from "@gradio/client";
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./types";
@@ -100,11 +100,6 @@
 			loading_text = (event as CustomEvent).detail + "...";
 		});
 	}
-	export let fetch_implementation: typeof fetch = fetch;
-	setContext("fetch_implementation", fetch_implementation);
-	export let EventSource_factory: (url: URL) => EventSource = (url) =>
-		new EventSource(url);
-	setContext("EventSource_factory", EventSource_factory);
 
 	export let space: string | null;
 	export let host: string | null;
@@ -307,6 +302,11 @@
 				const { host } = new URL(api_url);
 				let url = new URL(`http://${host}/dev/reload`);
 				eventSource = new EventSource(url);
+				eventSource.addEventListener("error", async (e) => {
+					new_message_fn("Error reloading app", "error");
+					// @ts-ignore
+					console.error(JSON.parse(e.data));
+				});
 				eventSource.addEventListener("reload", async (event) => {
 					app.close();
 					app = await Client.connect(api_url, {
@@ -376,6 +376,8 @@
 			);
 		}
 	};
+
+	let new_message_fn: (message: string, type: string) => void;
 
 	onMount(async () => {
 		intersecting.register(_id, wrapper);
@@ -454,6 +456,7 @@
 			{autoscroll}
 			bind:ready
 			bind:render_complete
+			bind:add_new_message={new_message_fn}
 			show_footer={!is_embed}
 			{app_mode}
 			{version}

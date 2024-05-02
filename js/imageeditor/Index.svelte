@@ -199,11 +199,14 @@
 			{brush}
 			{eraser}
 			changeable={attached_events.includes("apply")}
+			realtime={attached_events.includes("change")}
 			i18n={gradio.i18n}
 			{transforms}
 			accept_blobs={server.accept_blobs}
 			{layers}
 			status={loading_status?.status}
+			upload={gradio.client.upload}
+			stream_handler={gradio.client.eventSource_factory}
 		></InteractiveImageEditor>
 	</Block>
 {/if}

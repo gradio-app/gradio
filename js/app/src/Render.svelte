@@ -2,6 +2,7 @@
 	import { Gradio, formatter } from "./gradio_helper";
 	import { onMount, createEventDispatcher, setContext } from "svelte";
 	import type { ComponentMeta, ThemeMode } from "./types";
+	import type { Client } from "@gradio/client";
 	import RenderComponent from "./RenderComponent.svelte";
 
 	export let root: string;
@@ -13,6 +14,7 @@
 	export let version: string;
 	export let autoscroll: boolean;
 	export let max_file_size: number | null;
+	export let client: Client;
 
 	const dispatch = createEventDispatcher<{ mount: number; destroy: number }>();
 	let filtered_children: ComponentMeta[] = [];
@@ -45,12 +47,6 @@
 
 	setContext("BLOCK_KEY", parent);
 
-	function handle_prop_change(e: { detail: Record<string, any> }): void {
-		// for (const k in e.detail) {
-		// 	instance_map[id].props[k] = e.detail[k];
-		// }
-	}
-
 	$: {
 		if (node.type === "form") {
 			if (node.children?.every((c) => !c.props.visible)) {
@@ -70,7 +66,6 @@
 	elem_id={("elem_id" in node.props && node.props.elem_id) ||
 		`component-${node.id}`}
 	elem_classes={("elem_classes" in node.props && node.props.elem_classes) || []}
-	on:prop_change={handle_prop_change}
 	{target}
 	{...node.props}
 	{theme_mode}
@@ -83,7 +78,8 @@
 		root,
 		autoscroll,
 		max_file_size,
-		formatter
+		formatter,
+		client
 	)}
 >
 	{#if node.children && node.children.length}
@@ -98,6 +94,7 @@
 				on:destroy
 				on:mount
 				{max_file_size}
+				{client}
 			/>
 		{/each}
 	{/if}

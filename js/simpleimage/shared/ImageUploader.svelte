@@ -4,15 +4,17 @@
 	import { Image as ImageIcon } from "@gradio/icons";
 
 	import { Upload } from "@gradio/upload";
-	import type { FileData } from "@gradio/client";
+	import type { FileData, Client } from "@gradio/client";
 	import ClearImage from "./ClearImage.svelte";
 
 	export let value: null | FileData;
 	export let label: string | undefined = undefined;
 	export let show_label: boolean;
 	export let root: string;
+	export let upload: Client["upload"];
+	export let stream_handler: Client["eventSource_factory"];
 
-	let upload: Upload;
+	let upload_component: Upload;
 	let uploading = false;
 
 	function handle_upload({ detail }: CustomEvent<FileData>): void {
@@ -45,8 +47,10 @@
 	{/if}
 	<div class="upload-container">
 		<Upload
+			{upload}
+			{stream_handler}
 			hidden={value !== null}
-			bind:this={upload}
+			bind:this={upload_component}
 			bind:uploading
 			bind:dragging
 			filetype="image/*"

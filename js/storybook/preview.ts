@@ -21,7 +21,9 @@ const preview: Preview = {
 			"localhost:9876",
 			false,
 			null,
-			formatter
+			formatter,
+			// @ts-ignore
+			{ client: { fetch_implementation() {}, upload() {} } }
 		)
 	},
 	argTypes: {

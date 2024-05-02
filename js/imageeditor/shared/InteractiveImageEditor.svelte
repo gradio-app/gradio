@@ -15,7 +15,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { type I18nFormatter } from "@gradio/utils";
-	import { prepare_files, upload, type FileData } from "@gradio/client";
+	import { prepare_files, type FileData, type Client } from "@gradio/client";
 
 	import ImageEditor from "./ImageEditor.svelte";
 	import Layers from "./layers/Layers.svelte";
@@ -44,6 +44,9 @@
 	export let layers: boolean;
 	export let accept_blobs: (a: any) => void;
 	export let status: "pending" | "complete" | "error" = "complete";
+	export let realtime: boolean;
+	export let upload: Client["upload"];
+	export let stream_handler: Client["eventSource_factory"];
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;
@@ -131,6 +134,7 @@
 	let uploading = false;
 	let pending = false;
 	async function handle_change(e: CustomEvent<Blob | any>): Promise<void> {
+		if (!realtime) return;
 		if (uploading) {
 			pending = true;
 			return;
@@ -217,6 +221,8 @@
 			{i18n}
 			{root}
 			{sources}
+			{upload}
+			{stream_handler}
 			bind:bg
 			bind:active_mode
 			background_file={value?.background || value?.composite || null}

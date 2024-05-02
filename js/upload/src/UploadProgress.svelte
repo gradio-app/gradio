@@ -1,19 +1,15 @@
 <script lang="ts">
-	import { FileData } from "@gradio/client";
-	import {
-		onMount,
-		createEventDispatcher,
-		getContext,
-		onDestroy
-	} from "svelte";
+	import { FileData, type Client } from "@gradio/client";
+	import { onMount, createEventDispatcher, onDestroy } from "svelte";
 
 	type FileDataWithProgress = FileData & { progress: number };
 
 	export let upload_id: string;
 	export let root: string;
 	export let files: FileData[];
+	export let stream_handler: Client["eventSource_factory"];
 
-	let event_source: EventSource;
+	let event_source: ReturnType<Client["eventSource_factory"]>;
 	let progress = false;
 	let current_file_upload: FileDataWithProgress;
 	let file_to_display: FileDataWithProgress;
@@ -41,13 +37,14 @@
 		return (file.progress * 100) / (file.size || 0) || 0;
 	}
 
-	const EventSource_factory = getContext<(url: URL) => EventSource>(
-		"EventSource_factory"
-	);
 	onMount(() => {
-		event_source = EventSource_factory(
+		event_source = stream_handler(
 			new URL(`${root}/upload_progress?upload_id=${upload_id}`)
 		);
+
+		if (event_source == null) {
+			throw new Error("Event source is not defined");
+		}
 		// Event listener for progress updates
 		event_source.onmessage = async function (event) {
 			const _data = JSON.parse(event.data);
