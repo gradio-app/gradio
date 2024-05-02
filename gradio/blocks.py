@@ -58,7 +58,7 @@ from gradio.exceptions import (
     InvalidComponentError,
 )
 from gradio.helpers import create_tracker, skip, special_args
-from gradio.state_holder import SessionState
+from gradio.state_holder import SessionState, StateHolder
 from gradio.themes import Default as DefaultTheme
 from gradio.themes import ThemeClass as Theme
 from gradio.tunneling import (
@@ -473,6 +473,7 @@ class BlockFunction:
         postprocess: bool,
         inputs_as_dict: bool,
         targets: list[tuple[int | None, str]],
+        _id: int,
         batch: bool = False,
         max_batch_size: int = 4,
         concurrency_limit: int | None | Literal["default"] = "default",
@@ -494,6 +495,7 @@ class BlockFunction:
         rendered_in: Renderable | None = None,
     ):
         self.fn = fn
+        self._id = _id
         self.inputs = inputs
         self.outputs = outputs
         self.preprocess = preprocess
@@ -553,6 +555,7 @@ class BlockFunction:
 
     def get_config(self):
         return {
+            "id": self._id,
             "targets": self.targets,
             "inputs": [block._id for block in self.inputs],
             "outputs": [block._id for block in self.outputs],
@@ -576,6 +579,7 @@ class BlockFunction:
             "trigger_mode": self.trigger_mode,
             "show_api": self.show_api,
             "zerogpu": self.zero_gpu,
+            "rendered_in": self.rendered_in._id if self.rendered_in else None,
         }
 
 
@@ -636,7 +640,8 @@ class BlocksConfig:
         self._id: int = 0
         self.root_block = root_block
         self.blocks: dict[int, Component | Block] = {}
-        self.fns: list[BlockFunction] = []
+        self.fns: dict[int, BlockFunction] = {}
+        self.fn_id: int = 0
 
     def set_event_trigger(
         self,
@@ -776,7 +781,7 @@ class BlocksConfig:
         if api_name is not False:
             api_name = utils.append_unique_suffix(
                 api_name,
-                [fn.api_name for fn in self.fns if isinstance(fn.api_name, str)],
+                [fn.api_name for fn in self.fns.values() if isinstance(fn.api_name, str)],
             )
         else:
             show_api = False
@@ -795,6 +800,7 @@ class BlocksConfig:
             outputs,
             preprocess,
             postprocess,
+            _id=self.fn_id,
             inputs_as_dict=inputs_as_dict,
             targets=_targets,
             batch=batch,
@@ -818,8 +824,9 @@ class BlocksConfig:
             rendered_in=rendered_in,
         )
 
-        self.fns.append(block_fn)
-        return block_fn, len(self.fns) - 1
+        self.fns[self.fn_id] = block_fn
+        self.fn_id += 1
+        return block_fn, block_fn._id
 
     def get_config(self, renderable: Renderable | None = None):
         config = {}
@@ -868,7 +875,7 @@ class BlocksConfig:
             config["components"].append(block_config)
 
         dependencies = []
-        for fn in self.fns:
+        for fn in self.fns.values():
             if renderable is None or fn.rendered_in == renderable:
                 dependencies.append(fn.get_config())
         config["dependencies"] = dependencies
@@ -879,6 +886,7 @@ class BlocksConfig:
         new = BlocksConfig(self.root_block)
         new.blocks = copy.copy(self.blocks)
         new.fns = copy.copy(self.fns)
+        new.fn_id = self.fn_id
         return new
 
 
@@ -982,6 +990,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         else:
             self.js = js
         self.renderables: list[Renderable] = []
+        self.state_holder: StateHolder
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -1058,11 +1067,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
     @property
     def fns(self) -> list[BlockFunction]:
-        return self.default_config.fns
-
-    @fns.setter
-    def fns(self, value: list[BlockFunction]):
-        self.default_config.fns = value
+        return list(self.default_config.fns.values())
 
     def get_component(self, id: int) -> Component | BlockContext:
         comp = self.blocks[id]
@@ -1423,7 +1428,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
     async def call_function(
         self,
-        fn_index: int,
+        block_fn: BlockFunction,
         processed_input: list[Any],
         iterator: AsyncIterator[Any] | None = None,
         requests: routes.Request | list[routes.Request] | None = None,
@@ -1442,9 +1447,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             event_id: id of event in queue
             event_data: data associated with event trigger
         """
-        block_fn = self.fns[fn_index]
         if not block_fn.fn:
-            raise IndexError(f"function with index {fn_index} not defined.")
+            raise IndexError(f"function has no backend method.")
         is_generating = False
         request = requests[0] if isinstance(requests, list) else requests
         start = time.time()
@@ -1491,7 +1495,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 prediction = await utils.async_iteration(iterator)
                 is_generating = True
             except StopAsyncIteration:
-                n_outputs = len(self.fns[fn_index].outputs)
+                n_outputs = len(block_fn.outputs)
                 prediction = (
                     components._Keywords.FINISHED_ITERATING
                     if n_outputs == 1
@@ -1551,8 +1555,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         return predictions
 
-    def validate_inputs(self, fn_index: int, inputs: list[Any]):
-        block_fn = self.fns[fn_index]
+    def validate_inputs(self, block_fn: BlockFunction, inputs: list[Any]):
 
         dep_inputs = block_fn.inputs
 
@@ -1589,15 +1592,14 @@ Received inputs:
 
     async def preprocess_data(
         self,
-        fn_index: int,
+        block_fn: BlockFunction,
         inputs: list[Any],
         state: SessionState | None,
         explicit_call: bool = False,
     ):
         state = state or SessionState(self)
-        block_fn = self.fns[fn_index]
 
-        self.validate_inputs(fn_index, inputs)
+        self.validate_inputs(block_fn, inputs)
 
         if block_fn.preprocess:
             processed_input = []
@@ -1626,11 +1628,8 @@ Received inputs:
             processed_input = inputs
         return processed_input
 
-    def validate_outputs(self, fn_index: int, predictions: Any | list[Any]):
-        block_fn = self.fns[fn_index]
-        dependency = self.fns[fn_index]
-
-        dep_outputs = dependency.outputs
+    def validate_outputs(self, block_fn: BlockFunction, predictions: Any | list[Any]):
+        dep_outputs = block_fn.outputs
 
         if not isinstance(predictions, (list, tuple)):
             predictions = [predictions]
@@ -1662,10 +1661,9 @@ Received outputs:
             )
 
     async def postprocess_data(
-        self, fn_index: int, predictions: list | dict, state: SessionState | None
+        self, block_fn: BlockFunction, predictions: list | dict, state: SessionState | None
     ):
         state = state or SessionState(self)
-        block_fn = self.fns[fn_index]
 
         if isinstance(predictions, dict) and len(predictions) > 0:
             predictions = convert_component_dict_to_list(
@@ -1677,7 +1675,7 @@ Received outputs:
                 predictions,
             ]
 
-        self.validate_outputs(fn_index, predictions)  # type: ignore
+        self.validate_outputs(block_fn, predictions)  # type: ignore
 
         output = []
         for i, block in enumerate(block_fn.outputs):
@@ -1740,7 +1738,7 @@ Received outputs:
 
     async def handle_streaming_outputs(
         self,
-        fn_index: int,
+        block_fn: BlockFunction,
         data: list,
         session_hash: str | None,
         run: int | None,
@@ -1752,7 +1750,7 @@ Received outputs:
             self.pending_streams[session_hash][run] = {}
         stream_run = self.pending_streams[session_hash][run]
 
-        for i, block in enumerate(self.fns[fn_index].outputs):
+        for i, block in enumerate(block_fn.outputs):
             output_id = block._id
             if isinstance(block, components.StreamingOutput) and block.streaming:
                 first_chunk = output_id not in stream_run
@@ -1777,7 +1775,7 @@ Received outputs:
 
     def handle_streaming_diffs(
         self,
-        fn_index: int,
+        block_fn: BlockFunction,
         data: list,
         session_hash: str | None,
         run: int | None,
@@ -1791,7 +1789,7 @@ Received outputs:
             self.pending_diff_streams[session_hash][run] = [None] * len(data)
         last_diffs = self.pending_diff_streams[session_hash][run]
 
-        for i in range(len(self.fns[fn_index].outputs)):
+        for i in range(len(block_fn.outputs)):
             if final:
                 data[i] = last_diffs[i]
                 continue
@@ -1811,7 +1809,7 @@ Received outputs:
 
     async def process_api(
         self,
-        fn_index: int,
+        block_fn: BlockFunction,
         inputs: list[Any],
         state: SessionState | None = None,
         request: routes.Request | list[routes.Request] | None = None,
@@ -1840,11 +1838,10 @@ Received outputs:
             root_path: if provided, the root path of the server. All file URLs will be prefixed with this path.
         Returns: None
         """
-        block_fn = self.fns[fn_index]
-        batch = self.fns[fn_index].batch
+        batch = block_fn.batch
 
         if batch:
-            max_batch_size = self.fns[fn_index].max_batch_size
+            max_batch_size = block_fn.max_batch_size
             batch_sizes = [len(inp) for inp in inputs]
             batch_size = batch_sizes[0]
             if inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(
@@ -1860,11 +1857,11 @@ Received outputs:
                     f"Batch size ({batch_size}) exceeds the max_batch_size for this function ({max_batch_size})"
                 )
             inputs = [
-                await self.preprocess_data(fn_index, list(i), state, explicit_call)
+                await self.preprocess_data(block_fn, list(i), state, explicit_call)
                 for i in zip(*inputs)
             ]
             result = await self.call_function(
-                fn_index,
+                block_fn,
                 list(zip(*inputs)),
                 None,
                 request,
@@ -1875,7 +1872,7 @@ Received outputs:
             )
             preds = result["prediction"]
             data = [
-                await self.postprocess_data(fn_index, list(o), state)
+                await self.postprocess_data(block_fn, list(o), state)
                 for o in zip(*preds)
             ]
             if root_path is not None:
@@ -1888,11 +1885,11 @@ Received outputs:
                 inputs = []
             else:
                 inputs = await self.preprocess_data(
-                    fn_index, inputs, state, explicit_call
+                    block_fn, inputs, state, explicit_call
                 )
             was_generating = old_iterator is not None
             result = await self.call_function(
-                fn_index,
+                block_fn,
                 inputs,
                 old_iterator,
                 request,
@@ -1901,21 +1898,21 @@ Received outputs:
                 in_event_listener,
                 state,
             )
-            data = await self.postprocess_data(fn_index, result["prediction"], state)
+            data = await self.postprocess_data(block_fn, result["prediction"], state)
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
             if is_generating or was_generating:
                 run = id(old_iterator) if was_generating else id(iterator)
                 data = await self.handle_streaming_outputs(
-                    fn_index,
+                    block_fn,
                     data,
                     session_hash=session_hash,
                     run=run,
                     root_path=root_path,
                 )
                 data = self.handle_streaming_diffs(
-                    fn_index,
+                    block_fn,
                     data,
                     session_hash=session_hash,
                     run=run,
@@ -1937,6 +1934,7 @@ Received outputs:
             output["render_config"] = state.blocks_config.get_config(
                 block_fn.renderable
             )
+            output["render_config"]["render_id"] = block_fn.renderable._id
 
         return output
 
@@ -2065,7 +2063,7 @@ Received outputs:
             concurrency_count=self.max_threads,
             update_intervals=status_update_rate if status_update_rate != "auto" else 1,
             max_size=max_size,
-            block_fns=self.fns,
+            blocks=self,
             default_concurrency_limit=default_concurrency_limit,
         )
         self.config = self.get_config_file()

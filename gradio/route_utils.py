@@ -47,7 +47,7 @@ from gradio.helpers import EventData
 from gradio.state_holder import SessionState
 
 if TYPE_CHECKING:
-    from gradio.blocks import Blocks
+    from gradio.blocks import Blocks, BlockFunction
     from gradio.routes import App
 
 
@@ -184,13 +184,13 @@ def infer_fn_index(app: App, api_name: str, body: PredictBody) -> int:
 def compile_gr_request(
     app: App,
     body: PredictBody,
-    fn_index_inferred: int,
+    fn: BlockFunction,
     username: Optional[str],
     request: Optional[fastapi.Request],
 ):
     # If this fn_index cancels jobs, then the only input we need is the
     # current session hash
-    if app.get_blocks().fns[fn_index_inferred].cancels:
+    if fn.cancels:
         body.data = [body.session_hash]
     if body.request:
         if body.batched:
@@ -249,26 +249,25 @@ async def call_process_api(
     app: App,
     body: PredictBody,
     gr_request: Union[Request, list[Request]],
-    fn_index_inferred: int,
+    fn: BlockFunction,
     root_path: str,
 ):
     session_state, iterator = restore_session_state(app=app, body=body)
 
-    dependency = app.get_blocks().fns[fn_index_inferred]
     event_data = prepare_event_data(app.get_blocks(), body)
     event_id = body.event_id
 
     session_hash = getattr(body, "session_hash", None)
     inputs = body.data
 
-    batch_in_single_out = not body.batched and dependency.batch
+    batch_in_single_out = not body.batched and fn.batch
     if batch_in_single_out:
         inputs = [inputs]
 
     try:
         with utils.MatplotlibBackendMananger():
             output = await app.get_blocks().process_api(
-                fn_index=fn_index_inferred,
+                block_fn=fn,
                 inputs=inputs,
                 request=gr_request,
                 state=session_state,

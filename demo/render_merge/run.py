@@ -1,7 +1,7 @@
 import gradio as gr
 
 with gr.Blocks() as demo:
-    text_count = gr.Slider(1, 10, step=1, label="Textbox Count")
+    text_count = gr.Slider(1, 5, step=1, label="Textbox Count")
 
     @gr.render(inputs=[text_count], triggers=[text_count.change])
     def render_count(count):
@@ -15,7 +15,21 @@ with gr.Blocks() as demo:
         
         merge_btn.click(merge, boxes, output)
 
-    merge_btn = gr.Button("Merge")
+        def clear():
+            return [""] * count
+                
+        clear_btn.click(clear, None, boxes)
+
+        def countup():
+            return [i for i in range(count)]
+        
+        count_btn.click(countup, None, boxes)
+
+    with gr.Row():
+        merge_btn = gr.Button("Merge")
+        clear_btn = gr.Button("Clear")
+        count_btn = gr.Button("Count")
+        
     output = gr.Textbox()
 
 if __name__ == "__main__":
