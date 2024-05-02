@@ -5,6 +5,7 @@ import {
 	set_space_timeout,
 	check_space_status
 } from "../helpers/spaces";
+import { beforeAll, afterEach, afterAll, it, expect, describe } from "vitest";
 
 import { initialise_server } from "./server";
 import { hardware_sleeptime_response } from "./test_data";
