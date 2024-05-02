@@ -77,8 +77,10 @@
 		"@gradio/utils": "workspace:^",
 		"@gradio/video": "workspace:^",
 		"@gradio/wasm": "workspace:^",
+		"@types/eventsource": "^1.1.15",
 		"cross-env": "^7.0.3",
 		"d3-dsv": "^3.0.1",
+		"eventsource": "^2.0.2",
 		"mime-types": "^2.1.34",
 		"postcss": "^8.4.21",
 		"postcss-prefix-selector": "^1.16.0"
