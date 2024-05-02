@@ -3,6 +3,7 @@ import { Client } from "../client";
 import { initialise_server } from "./server";
 import { BROKEN_CONNECTION_MSG } from "../constants";
 const server = initialise_server();
+import { beforeAll, afterEach, afterAll, it, expect, describe } from "vitest";
 
 beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
