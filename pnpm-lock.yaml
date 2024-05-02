@@ -1392,7 +1392,7 @@ importers:
         version: link:../utils
       '@rollup/plugin-json':
         specifier: ^6.0.0
-        version: 6.0.0(rollup@4.17.2)
+        version: 6.0.0(rollup@3.28.0)
       plotly.js-dist-min:
         specifier: ^2.10.1
         version: 2.10.1
@@ -1480,27 +1480,7 @@ importers:
         specifier: ^3.28.0
         version: 3.28.0
 
-  js/preview/test/test/frontend:
-    dependencies:
-      '@gradio/atoms':
-        specifier: 0.7.1
-        version: 0.7.1(svelte@4.2.15)
-      '@gradio/statustracker':
-        specifier: 0.5.0
-        version: 0.5.0(svelte@4.2.15)
-      '@gradio/utils':
-        specifier: 0.4.0
-        version: 0.4.0(svelte@4.2.15)
-      '@zerodevx/svelte-json-view':
-        specifier: ^1.0.7
-        version: 1.0.7(svelte@4.2.15)
-    devDependencies:
-      '@tailwindcss/vite':
-        specifier: 4.0.0-alpha.14
-        version: 4.0.0-alpha.14(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))
-      tailwindcss:
-        specifier: 4.0.0-alpha.14
-        version: 4.0.0-alpha.14
+  js/preview/test/test/frontend: {}
 
   js/radio:
     dependencies:
@@ -3105,24 +3085,6 @@ packages:
   '@formatjs/intl-localematcher@0.5.4':
     resolution: {integrity: sha512-zTwEpWOzZ2CiKcB93BLngUX59hQkuZjT2+SAQEscSm52peDW/getsawMcWF1rGRpMCX6D7nSJA3CzJ8gn13N/g==}
 
-  '@gradio/atoms@0.7.1':
-    resolution: {integrity: sha512-tdQ1B9CYCNBodj1jKRG9aiNdzsQ2w8EszqsMcMxaoMrUNVU3OvBCxGXPNba86mXveP/bDnVoDfk/I9ef+ZYb1Q==}
-
-  '@gradio/column@0.1.1':
-    resolution: {integrity: sha512-0+7Nf/PGmbaz4jQ5cxIxneqv7V+iknT17sknL7w1a5pB6B8aqzogkwe8GdACRkq1MjWQb8wZiaJFFJZKnioLhg==}
-
-  '@gradio/icons@0.4.0':
-    resolution: {integrity: sha512-yQqmgNql1HzN/+NG6EfRBWTyXA7zxKwtKYfP8jiVo1LZXlfd+oUt8pSrUfLGiGgqTsoMUXsbmdQpifVVg9U6yA==}
-
-  '@gradio/statustracker@0.5.0':
-    resolution: {integrity: sha512-qjnEDWc1snf7ExNJMa/qcpAK6FBu64YFA815vV0THAcdvuFSCQa/nocC/+K7QF07r7Nl4ThsBtK68TiC4V4XbA==}
-
-  '@gradio/theme@0.2.2':
-    resolution: {integrity: sha512-aOjh7+BWK8WRpQBC2leFZBLyek6D0GO9KkWjystoZRwH1r+l6eBli2BDPPO/ljpJChO3HsOFpJsWA97JjQNe2g==}
-
-  '@gradio/utils@0.4.0':
-    resolution: {integrity: sha512-YTxuxQiKnHuTD90yybB+0mOnbE9gNZYLA7cNePP71pMuxWcdQrZdd7Zz1z3vzfpJ86C5cIx3K+rH3P+8weZlfg==}
-
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
     engines: {node: '>=10.10.0'}
@@ -4042,79 +4004,10 @@ packages:
     peerDependencies:
       tailwindcss: '>=3.0.0 || >= 3.0.0-alpha.1'
 
-  '@tailwindcss/oxide-android-arm64@4.0.0-alpha.14':
-    resolution: {integrity: sha512-9ssgbWrn0VwcEtni5aBVrP/QXPWhpryXs4HJlqTz1HQTdjWHBF8bObBKxeixq3vVACLvjHm922jHirpvejiUYQ==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [android]
-
-  '@tailwindcss/oxide-darwin-arm64@4.0.0-alpha.14':
-    resolution: {integrity: sha512-TMbwZb2Jg5Xf0KtYRp0CoVzNdTrOGZkhPcdIPbqkHouzhtvynyd/iD6e4aCpm0RqPICg3MLguPu81kO3lEJu9g==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@tailwindcss/oxide-darwin-x64@4.0.0-alpha.14':
-    resolution: {integrity: sha512-aOPlkpptgDmCRbbqqYYhotnFvVDMQ8x6VjRp2kDVNdEtzoCLClAjDutERIC7CGUusX796RvGPLgkKd8YWNi+8w==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [darwin]
-
-  '@tailwindcss/oxide-freebsd-x64@4.0.0-alpha.14':
-    resolution: {integrity: sha512-YVgGduxowoA0qqTvsMZLfTAVm7mwwixlyuTTDyoQiQc4gXm3HhIamFTEiAY9xafUZysbdPMs+ITxXFb22SxIUg==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [freebsd]
-
-  '@tailwindcss/oxide-linux-arm-gnueabihf@4.0.0-alpha.14':
-    resolution: {integrity: sha512-avhbIj1rsXX5VSGlv29wdbNumPjPz86IBmbTRbAbXV6PRqGIDPika/0TZGo3IDAaevsXU2xc1HkVqBeZ/Hj5AQ==}
-    engines: {node: '>= 10'}
-    cpu: [arm]
-    os: [linux]
-
-  '@tailwindcss/oxide-linux-arm64-gnu@4.0.0-alpha.14':
-    resolution: {integrity: sha512-NQKcFIb3xii3CSusisWR/0EH1sJfvF6I90XGi+geTdHXv77bU/McpMshrtPMcMHkbQqVlJbnJ2ttDN+zae3lcA==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [linux]
-
-  '@tailwindcss/oxide-linux-arm64-musl@4.0.0-alpha.14':
-    resolution: {integrity: sha512-bUYWc/jA5Kx2pESuGO7gRA5L1Hy/Jo8/ERbs/Pq5aXdNN+lllh4OEKCCjb02GSQvj7jsmPt8OAJifcur7sYUdg==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [linux]
-
-  '@tailwindcss/oxide-linux-x64-gnu@4.0.0-alpha.14':
-    resolution: {integrity: sha512-+FCUYOLBU9KTCxAY2NNfVgsvJ1dbNfTuhV13iIsrXTuEvu/P69H8YJzoiNB5oTPPgrKnClVj/KWw9n+GycHvEQ==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [linux]
-
-  '@tailwindcss/oxide-linux-x64-musl@4.0.0-alpha.14':
-    resolution: {integrity: sha512-zl3iXwC1of+7pCyByIvYpQ88JZrwfWT0dETfJHuWYSuO8NSjU93oQHFV79UZTYqD9XkUevrQBNQCd5s5/7QS8g==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [linux]
-
-  '@tailwindcss/oxide-win32-x64-msvc@4.0.0-alpha.14':
-    resolution: {integrity: sha512-IKaiQO/XxpuCv7ZpVngMaJEoswCqM7ncByHY68YRXkNH1tBVJl1H2Hz/jej7ziBlvEDvBY4qFgeJJAhh/tOiMQ==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [win32]
-
-  '@tailwindcss/oxide@4.0.0-alpha.14':
-    resolution: {integrity: sha512-KpYsgwFd1I9UeqoCtBF62KXYKkp1RuxJm26M0EGTHVvUV+Cln0KZaouKJ1/7mqH8hD/TrzIwX5cGVMb2ShM4Qg==}
-    engines: {node: '>= 10'}
-
   '@tailwindcss/typography@0.5.4':
     resolution: {integrity: sha512-QEdg40EmGvE7kKoDei8zr5sf4D1pIayHj4R31bH3lX8x2BtTiR+jNejYPOkhbmy3DXgkMF9jC8xqNiGFAuL9Sg==}
     peerDependencies:
       tailwindcss: '>=3.0.0 || insiders'
-
-  '@tailwindcss/vite@4.0.0-alpha.14':
-    resolution: {integrity: sha512-tvKPP948JrgSR1Ig5ogLYEn1h4FW36W3p0eCGFGJV++NF7QsBh0j98HydrhvQDxsC9jZ037yGWUOc4VPMbt22g==}
-    peerDependencies:
-      vite: ^5.2.0
 
   '@testing-library/dom@10.1.0':
     resolution: {integrity: sha512-wdsYKy5zupPyLCW2Je5DLHSxSfbIp6h80WoHOQc+RPtmPGA52O9x5MJEkv92Sjonpq+poOAtUKhh1kBGAXBrNA==}
@@ -8489,9 +8382,6 @@ packages:
     engines: {node: '>=14.0.0'}
     hasBin: true
 
-  tailwindcss@4.0.0-alpha.14:
-    resolution: {integrity: sha512-7qAhQPrsWyaaDk0IjOEhTEdgDWsN0MjB3kk38DxK5vXqPJ7C57FYlARA6vrE36WL0K/mYdAA54vWJbWbDfoVcQ==}
-
   tar-fs@2.1.1:
     resolution: {integrity: sha512-V0r2Y9scmbDRLCNex/+hYzvp/zyYjvFbHPNgVTKfQvVrb6guiE/fxP+XblDNR011utopbkex2nM4dHNV6GDsng==}
 
@@ -10696,35 +10586,6 @@ snapshots:
     dependencies:
       tslib: 2.6.2
 
-  '@gradio/atoms@0.7.1(svelte@4.2.15)':
-    dependencies:
-      '@gradio/icons': 0.4.0
-      '@gradio/utils': 0.4.0(svelte@4.2.15)
-    transitivePeerDependencies:
-      - svelte
-
-  '@gradio/column@0.1.1': {}
-
-  '@gradio/icons@0.4.0': {}
-
-  '@gradio/statustracker@0.5.0(svelte@4.2.15)':
-    dependencies:
-      '@gradio/atoms': 0.7.1(svelte@4.2.15)
-      '@gradio/column': 0.1.1
-      '@gradio/icons': 0.4.0
-      '@gradio/utils': 0.4.0(svelte@4.2.15)
-    transitivePeerDependencies:
-      - svelte
-
-  '@gradio/theme@0.2.2': {}
-
-  '@gradio/utils@0.4.0(svelte@4.2.15)':
-    dependencies:
-      '@gradio/theme': 0.2.2
-      svelte-i18n: 3.6.0(svelte@4.2.15)
-    transitivePeerDependencies:
-      - svelte
-
   '@humanwhocodes/config-array@0.13.0':
     dependencies:
       '@humanwhocodes/object-schema': 2.0.3
@@ -11266,12 +11127,6 @@ snapshots:
     optionalDependencies:
       rollup: 3.28.0
 
-  '@rollup/plugin-json@6.0.0(rollup@4.17.2)':
-    dependencies:
-      '@rollup/pluginutils': 5.0.5(rollup@4.17.2)
-    optionalDependencies:
-      rollup: 4.17.2
-
   '@rollup/plugin-node-resolve@15.1.0(rollup@3.28.0)':
     dependencies:
       '@rollup/pluginutils': 5.0.5(rollup@3.28.0)
@@ -11311,14 +11166,6 @@ snapshots:
       picomatch: 2.3.1
     optionalDependencies:
       rollup: 3.28.0
-
-  '@rollup/pluginutils@5.0.5(rollup@4.17.2)':
-    dependencies:
-      '@types/estree': 1.0.5
-      estree-walker: 2.0.2
-      picomatch: 2.3.1
-    optionalDependencies:
-      rollup: 4.17.2
 
   '@rollup/rollup-android-arm-eabi@4.14.3':
     optional: true
@@ -12129,62 +11976,12 @@ snapshots:
       mini-svg-data-uri: 1.4.4
       tailwindcss: 3.4.3
 
-  '@tailwindcss/oxide-android-arm64@4.0.0-alpha.14':
-    optional: true
-
-  '@tailwindcss/oxide-darwin-arm64@4.0.0-alpha.14':
-    optional: true
-
-  '@tailwindcss/oxide-darwin-x64@4.0.0-alpha.14':
-    optional: true
-
-  '@tailwindcss/oxide-freebsd-x64@4.0.0-alpha.14':
-    optional: true
-
-  '@tailwindcss/oxide-linux-arm-gnueabihf@4.0.0-alpha.14':
-    optional: true
-
-  '@tailwindcss/oxide-linux-arm64-gnu@4.0.0-alpha.14':
-    optional: true
-
-  '@tailwindcss/oxide-linux-arm64-musl@4.0.0-alpha.14':
-    optional: true
-
-  '@tailwindcss/oxide-linux-x64-gnu@4.0.0-alpha.14':
-    optional: true
-
-  '@tailwindcss/oxide-linux-x64-musl@4.0.0-alpha.14':
-    optional: true
-
-  '@tailwindcss/oxide-win32-x64-msvc@4.0.0-alpha.14':
-    optional: true
-
-  '@tailwindcss/oxide@4.0.0-alpha.14':
-    optionalDependencies:
-      '@tailwindcss/oxide-android-arm64': 4.0.0-alpha.14
-      '@tailwindcss/oxide-darwin-arm64': 4.0.0-alpha.14
-      '@tailwindcss/oxide-darwin-x64': 4.0.0-alpha.14
-      '@tailwindcss/oxide-freebsd-x64': 4.0.0-alpha.14
-      '@tailwindcss/oxide-linux-arm-gnueabihf': 4.0.0-alpha.14
-      '@tailwindcss/oxide-linux-arm64-gnu': 4.0.0-alpha.14
-      '@tailwindcss/oxide-linux-arm64-musl': 4.0.0-alpha.14
-      '@tailwindcss/oxide-linux-x64-gnu': 4.0.0-alpha.14
-      '@tailwindcss/oxide-linux-x64-musl': 4.0.0-alpha.14
-      '@tailwindcss/oxide-win32-x64-msvc': 4.0.0-alpha.14
-
   '@tailwindcss/typography@0.5.4(tailwindcss@3.1.6(postcss@8.4.38))':
     dependencies:
       lodash.castarray: 4.4.0
       lodash.isplainobject: 4.0.6
       lodash.merge: 4.6.2
       tailwindcss: 3.1.6(postcss@8.4.38)
-
-  '@tailwindcss/vite@4.0.0-alpha.14(vite@5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38)))':
-    dependencies:
-      '@tailwindcss/oxide': 4.0.0-alpha.14
-      lightningcss: 1.24.1
-      tailwindcss: 4.0.0-alpha.14
-      vite: 5.2.11(@types/node@20.12.8)(lightningcss@1.24.1)(sass@1.66.1)(stylus@0.63.0)(sugarss@4.0.1(postcss@8.4.38))
 
   '@testing-library/dom@10.1.0':
     dependencies:
@@ -15244,6 +15041,7 @@ snapshots:
       lightningcss-linux-x64-gnu: 1.24.1
       lightningcss-linux-x64-musl: 1.24.1
       lightningcss-win32-x64-msvc: 1.24.1
+    optional: true
 
   lilconfig@2.1.0: {}
 
@@ -17071,8 +16869,6 @@ snapshots:
       sucrase: 3.35.0
     transitivePeerDependencies:
       - ts-node
-
-  tailwindcss@4.0.0-alpha.14: {}
 
   tar-fs@2.1.1:
     dependencies:
