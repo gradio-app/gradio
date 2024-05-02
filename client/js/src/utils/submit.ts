@@ -368,11 +368,15 @@ export function submit(
 						}${params}`
 					);
 
+					if (this.jwt) {
+						url.searchParams.set("__sign", this.jwt);
+					}
+
 					event_source = this.eventSource_factory(url);
 
 					if (!event_source) {
-						throw new Error(
-							"Cannot connect to sse endpoint: " + url.toString()
+						return Promise.reject(
+							new Error("Cannot connect to SSE endpoint: " + url.toString())
 						);
 					}
 
