@@ -261,15 +261,16 @@ def watchfn(reloader: SourceFileReloader):
                 # This is because the main demo file may import the changed file and we need the
                 # changes to be reflected in the main demo file.
 
-                changed_in_copy = _remove_no_reload_codeblocks(str(changed))
-                if changed != reloader.demo_file:
-                    changed_module = _find_module(changed)
-                    exec(changed_in_copy, changed_module.__dict__)
-                    top_level_parent = sys.modules[
-                        changed_module.__name__.split(".")[0]
-                    ]
-                    if top_level_parent != changed_module:
-                        importlib.reload(top_level_parent)
+                if changed.suffix == ".py":
+                    changed_in_copy = _remove_no_reload_codeblocks(str(changed))
+                    if changed != reloader.demo_file:
+                        changed_module = _find_module(changed)
+                        exec(changed_in_copy, changed_module.__dict__)
+                        top_level_parent = sys.modules[
+                            changed_module.__name__.split(".")[0]
+                        ]
+                        if top_level_parent != changed_module:
+                            importlib.reload(top_level_parent)
 
                 changed_demo_file = _remove_no_reload_codeblocks(
                     str(reloader.demo_file)
