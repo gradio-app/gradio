@@ -135,8 +135,6 @@
 
 	let submit_map: Map<number, ReturnType<typeof app.submit>> = new Map();
 
-	let handled_dependencies: number[][] = [];
-
 	let messages: (ToastMessage & { fn_index: number })[] = [];
 	function new_message(
 		message: string,
@@ -296,13 +294,29 @@
 				.on("render", ({ data, fn_index }) => {
 					let _components: ComponentMeta[] = data.components;
 					let render_layout: LayoutNode = data.layout;
-					let dependencies: Dependency[] = data.dependencies;
+					let _dependencies: Dependency[] = data.dependencies;
+					let render_id = data.render_id;
+
+					let deps_to_remove: number[] = [];
+					dependencies.forEach((dep, i) => {
+						if (dep.rendered_in === render_id) {
+							deps_to_remove.push(i);
+						}
+					});
+					deps_to_remove.reverse().forEach((i) => {
+						dependencies.splice(i, 1);
+					});
+					_dependencies.forEach((dep) => {
+						dependencies.push(dep);
+					});
+
 
 					rerender_layout({
 						components: _components,
 						layout: render_layout,
 						root: root,
 						dependencies: dependencies,
+						render_id: render_id
 					});
 				})
 				.on("status", ({ fn_index, ...status }) => {
@@ -478,12 +492,6 @@
 		render_complete = true;
 	}
 
-	function handle_destroy(id: number): void {
-		handled_dependencies = handled_dependencies.map((dep) => {
-			return dep.filter((_id) => _id !== id);
-		});
-	}
-
 	$: set_status($loading_status);
 
 	function update_status(
@@ -566,7 +574,6 @@
 				{target}
 				{theme_mode}
 				on:mount={handle_mount}
-				on:destroy={({ detail }) => handle_destroy(detail)}
 				{version}
 				{autoscroll}
 				max_file_size={app.config.max_file_size}

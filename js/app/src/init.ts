@@ -41,6 +41,7 @@ export function create_components(): {
 		};
 	}) => void;
 	rerender_layout: (args: {
+		render_id: number;
 		components: ComponentMeta[];
 		layout: LayoutNode;
 		root: string;
@@ -62,6 +63,7 @@ export function create_components(): {
 	let _components: ComponentMeta[] = [];
 	let app: client_return;
 	let keyed_component_values: Record<string | number, any> = {};
+	let rendered_fns_per_render_id: Record<number, number[]> = {};
 
 	function create_layout({
 		app: _app,
@@ -105,15 +107,15 @@ export function create_components(): {
 
 		components.push(_rootNode);
 		// loading_status = create_loading_status_store();
-		dependencies.forEach((dep, fn_index) => {
-			loading_status.register(fn_index, dep.inputs, dep.outputs);
+		dependencies.forEach(dep => {
+			loading_status.register(dep.id, dep.inputs, dep.outputs);
 			dep.frontend_fn = process_frontend_fn(
 				dep.js,
 				!!dep.backend_fn,
 				dep.inputs.length,
 				dep.outputs.length
 			);
-			create_target_meta(dep.targets, fn_index, _target_map);
+			create_target_meta(dep.targets, dep.id, _target_map);
 			get_inputs_outputs(dep, inputs, outputs);
 		});
 
@@ -135,11 +137,13 @@ export function create_components(): {
 	}
 
 	function rerender_layout({
+		render_id,
 		components,
 		layout,
 		root,
 		dependencies,
 	}: {
+		render_id: number;
 		components: ComponentMeta[];
 		layout: LayoutNode;
 		root: string;
@@ -149,7 +153,33 @@ export function create_components(): {
 		_constructor_map.forEach((v, k) => {
 			constructor_map.set(k, v);
 		});
+		
+		let previous_rendered_fn_ids = rendered_fns_per_render_id[render_id] || [];
+		Object.values(_target_map).forEach((event_fn_ids_map) => {
+			Object.values(event_fn_ids_map).forEach((fn_ids) => {
+				previous_rendered_fn_ids.forEach((fn_id) => {
+					if (fn_ids.includes(fn_id)) {
+						fn_ids.splice(fn_ids.indexOf(fn_id), 1);
+					}
+				});
+			});
+		});
+		_target_map = {}
 
+		dependencies.forEach(dep => {
+			loading_status.register(dep.id, dep.inputs, dep.outputs);
+			dep.frontend_fn = process_frontend_fn(
+				dep.js,
+				!!dep.backend_fn,
+				dep.inputs.length,
+				dep.outputs.length
+			);
+			create_target_meta(dep.targets, dep.id, _target_map);
+			get_inputs_outputs(dep, inputs, outputs);
+		});
+
+		target_map.set(_target_map);
+								
 		let current_element = instance_map[layout.id];
 		let all_current_children: ComponentMeta[] = [];
 		const add_to_current_children = (component: ComponentMeta): void => {
@@ -348,16 +378,16 @@ export function process_frontend_fn(
 }
 
 /**
- * `Dependency.targets` is an array of `[id, trigger]` pairs with the indices as the `fn_index`.
+ * `Dependency.targets` is an array of `[id, trigger]` pairs with the ids as the `fn_id`.
  * This function take a single list of `Dependency.targets` and add those to the target_map.
  * @param targets the targets array
- * @param fn_index the function index
+ * @param fn_id the function index
  * @param target_map the target map
  * @returns the tagert map
  */
 export function create_target_meta(
 	targets: Dependency["targets"],
-	fn_index: number,
+	fn_id: number,
 	target_map: TargetMap
 ): TargetMap {
 	targets.forEach(([id, trigger]) => {
@@ -366,11 +396,11 @@ export function create_target_meta(
 		}
 		if (
 			target_map[id]?.[trigger] &&
-			!target_map[id]?.[trigger].includes(fn_index)
+			!target_map[id]?.[trigger].includes(fn_id)
 		) {
-			target_map[id][trigger].push(fn_index);
+			target_map[id][trigger].push(fn_id);
 		} else {
-			target_map[id][trigger] = [fn_index];
+			target_map[id][trigger] = [fn_id];
 		}
 	});
 

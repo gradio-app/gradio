@@ -245,6 +245,7 @@ export interface RenderMessage {
 		components: any[];
 		layout: any;
 		dependencies: Dependency[];
+		render_id: number;
 	};
 }
 
