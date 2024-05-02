@@ -4,4 +4,4 @@
 "gradio": minor
 ---
 
-feat:Add support for keyword args when passing `data` in JS client
+feat:Add support for passing keyword args to `data` in JS client
