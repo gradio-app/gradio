@@ -1,9 +1,9 @@
 ---
-"gradio": patch
+"gradio": feat
 "gradio_client": patch
 ---
 
-### Support custom components in gr.load
+#### Support custom components in gr.load
 
 It is now possible to load a demo with a custom component with `gr.load`.
 
