@@ -33,6 +33,7 @@ class SimpleTextbox(FormComponent):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        key: int | str | None = None,
     ):
         """
         Parameters:
@@ -65,6 +66,7 @@ class SimpleTextbox(FormComponent):
             elem_classes=elem_classes,
             value=value,
             render=render,
+            key=key,
         )
 
     def preprocess(self, payload: str | None) -> str | None:
