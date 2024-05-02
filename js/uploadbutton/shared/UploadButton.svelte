@@ -1,12 +1,7 @@
 <script lang="ts">
-	import { tick, createEventDispatcher, getContext } from "svelte";
+	import { tick, createEventDispatcher } from "svelte";
 	import { BaseButton } from "@gradio/button";
-	import {
-		upload,
-		prepare_files,
-		type FileData,
-		type upload_files
-	} from "@gradio/client";
+	import { prepare_files, type FileData, type Client } from "@gradio/client";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -23,11 +18,9 @@
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let disabled = false;
 	export let max_file_size: number | null = null;
+	export let upload: Client["upload"];
 
 	const dispatch = createEventDispatcher();
-
-	// Needed for wasm support
-	const upload_fn = getContext<typeof upload_files>("upload_files");
 
 	let hidden_upload: HTMLInputElement;
 	let accept_file_types: string | null;
@@ -63,13 +56,7 @@
 
 		try {
 			all_file_data = (
-				await upload(
-					all_file_data,
-					root,
-					undefined,
-					max_file_size ?? Infinity,
-					upload_fn
-				)
+				await upload(all_file_data, root, undefined, max_file_size ?? Infinity)
 			)?.filter((x) => x !== null) as FileData[];
 		} catch (e) {
 			dispatch("error", (e as Error).message);
