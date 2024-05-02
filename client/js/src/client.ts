@@ -62,12 +62,19 @@ export class Client {
 		return fetch(input, init);
 	}
 
-	eventSource_factory(url: URL): EventSource {
-		if (typeof window !== undefined && typeof EventSource !== "undefined") {
+	eventSource_factory(url: URL): EventSource | null {
+		if (typeof window === "undefined" || typeof EventSource === "undefined") {
+			import("eventsource")
+				.then((EventSourceModule) => {
+					return new EventSourceModule.default(url.toString());
+				})
+				.catch((error) =>
+					console.error("Failed to load EventSource module:", error)
+				);
+		} else {
 			return new EventSource(url.toString());
 		}
-		// @ts-ignore
-		return null; // todo: polyfill eventsource for node envs
+		return null;
 	}
 
 	view_api: () => Promise<ApiInfo<JsApiData>>;

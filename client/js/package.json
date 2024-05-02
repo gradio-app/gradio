@@ -13,7 +13,9 @@
 		"./package.json": "./package.json"
 	},
 	"dependencies": {
+		"@types/eventsource": "^1.1.15",
 		"bufferutil": "^4.0.7",
+		"eventsource": "^2.0.2",
 		"msw": "^2.2.1",
 		"semiver": "^1.1.0",
 		"typescript": "^5.0.0",
@@ -26,7 +28,10 @@
 	"scripts": {
 		"bundle": "vite build --ssr",
 		"generate_types": "tsc",
-		"build": "pnpm bundle && pnpm generate_types"
+		"build": "pnpm bundle && pnpm generate_types",
+		"test": "pnpm test:client && pnpm test:client:node",
+		"test:client": "vitest run -c vite.config.js",
+		"test:client:node": "TEST_MODE=node vitest run -c vite.config.js"
 	},
 	"engines": {
 		"node": ">=18.0.0"

@@ -425,5 +425,14 @@ export const handlers: RequestHandler[] = [
 				"Content-Type": "application/json"
 			}
 		});
+	}),
+	// heartbeat requests
+	http.get(`*/heartbeat/*`, () => {
+		return new HttpResponse(null, {
+			status: 200,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
 	})
 ];

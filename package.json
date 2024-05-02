@@ -15,7 +15,7 @@
 		"ts:check": "svelte-check --tsconfig tsconfig.json --threshold error",
 		"test": "pnpm --filter @gradio/client build && vitest dev --config .config/vitest.config.ts",
 		"test:run": "pnpm --filter @gradio/client build && vitest run --config .config/vitest.config.ts --reporter=verbose",
-		"test:node": "TEST_MODE=node pnpm  vitest run --config .config/vitest.config.ts",
+		"test:client": "pnpm --filter=@gradio/client test",
 		"test:browser": "pnpm --filter @gradio/app test:browser",
 		"test:browser:reload": "CUSTOM_TEST=1 pnpm --filter @gradio/app test:browser:reload",
 		"test:browser:full": "run-s build test:browser",
