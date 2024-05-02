@@ -59,7 +59,7 @@ export function submit(
 			config
 		);
 
-		let resolved_data = map_data_to_params(data, endpoint_info.parameters);
+		let resolved_data = map_data_to_params(data, endpoint_info?.parameters);
 
 		let websocket: WebSocket;
 		let event_source: EventSource | null;
