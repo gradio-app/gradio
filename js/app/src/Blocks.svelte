@@ -2,7 +2,6 @@
 	import { tick } from "svelte";
 	import { _ } from "svelte-i18n";
 	import { Client } from "@gradio/client";
-	import { setContext } from "svelte";
 
 	import type { LoadingStatus, LoadingStatusCollection } from "./stores";
 
@@ -153,6 +152,13 @@
 			type,
 			id: ++_error_id
 		};
+	}
+
+	export function add_new_message(
+		message: string,
+		type: ToastMessage["type"]
+	): void {
+		messages = [new_message(message, -1, type), ...messages];
 	}
 
 	let _error_id = -1;
@@ -522,8 +528,6 @@
 	function isCustomEvent(event: Event): event is CustomEvent {
 		return "detail" in event;
 	}
-
-	setContext("upload_files", app.upload_files);
 </script>
 
 <svelte:head>
@@ -562,6 +566,7 @@
 				{version}
 				{autoscroll}
 				max_file_size={app.config.max_file_size}
+				client={app}
 			/>
 		{/if}
 	</div>

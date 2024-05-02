@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   workflow_run:
     workflows: ["trigger"]
-    types: 
+    types:
       - requested
 
 permissions:
@@ -12,7 +12,7 @@ permissions:
 concurrency:
   group: "${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}-${{ github.workflow_ref }}"
   cancel-in-progress: true
-  
+
 jobs:
   changes:
     name: "changes"
@@ -35,7 +35,7 @@ jobs:
           name: "deploy / spaces"
           token: ${{ secrets.GITHUB_TOKEN }}
           commit_status: false
-  
+
   comment-spaces-start:
     needs: changes
     uses: "./.github/workflows/comment-queue.yml"
@@ -57,19 +57,23 @@ jobs:
       with:
         ref: ${{ needs.changes.outputs.merge_sha }}
         repository: ${{ needs.changes.outputs.mergeable == 'true' &&  github.repository || needs.changes.outputs.source_repo }}
-    - name: Install Python
-      uses: actions/setup-python@v5
+
+    - name: install dependencies
+      uses: "gradio-app/gradio/.github/actions/install-all-deps@main"
       with:
-        python-version: '3.9'
-    - name: Install pnpm
-      uses: pnpm/action-setup@v2
+        always_install_pnpm: true
+        python_version: '3.9'
+        build_lite: 'true'
+
+    - name: Package Lite NPM package
+      working-directory: js/lite
+      run: pnpm pack --pack-destination .
+    - name: Upload Lite NPM package
+      uses: actions/upload-artifact@v4
       with:
-        version: 8.15
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 18
-        cache: pnpm
-        cache-dependency-path: pnpm-lock.yaml
+        name: gradio-lite-${{ github.sha }}
+        path: js/lite/gradio-lite-*.tgz
+
     - name: Install pip
       run: python -m pip install build requests
     - name: Get Gradio Version
@@ -78,17 +82,13 @@ jobs:
         if ${{ github.event_name == 'pull_request' || github.event.workflow_run.event == 'pull_request' }}; then
           echo "GRADIO_VERSION=$(python -c 'import requests;print(requests.get("https://pypi.org/pypi/gradio/json").json()["info"]["version"])')" >> $GITHUB_OUTPUT
           python -c "import os;print(os.environ['GITHUB_REF'].split('/')[2])" > pr_number.txt
-        else 
+        else
           echo "GRADIO_VERSION=$(python -c 'import json; print(json.load(open("gradio/package.json"))["version"])')" >> $GITHUB_OUTPUT
         fi
     - name: Build pr package
       run: |
         python -c 'import json; j = json.load(open("gradio/package.json")); j["version"] = "${{ steps.get_gradio_version.outputs.GRADIO_VERSION }}"; json.dump(j, open("gradio/package.json", "w"))'
-        pnpm i --frozen-lockfile --ignore-scripts
-        pnpm build
         python3 -m build -w
-      env:
-        NODE_OPTIONS: --max_old_space_size=8192
 
     - name: Set up Demos
       run: |
@@ -123,7 +123,7 @@ jobs:
       run: |
         echo ${{github.event.workflow_run.event }}
         echo ${{ github.event.workflow_run.conclusion }}
-    
+
   comment-spaces-success:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [deploy-spaces, changes]

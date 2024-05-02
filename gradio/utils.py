@@ -38,6 +38,7 @@ from typing import (
     Generic,
     Iterable,
     Iterator,
+    Literal,
     Optional,
     TypeVar,
 )
@@ -123,7 +124,6 @@ class SourceFileReloader(BaseReloader):
         watch_module_name: str,
         demo_file: str,
         stop_event: threading.Event,
-        change_event: threading.Event,
         demo_name: str = "demo",
     ) -> None:
         super().__init__()
@@ -131,7 +131,6 @@ class SourceFileReloader(BaseReloader):
         self.watch_dirs = watch_dirs
         self.watch_module_name = watch_module_name
         self.stop_event = stop_event
-        self.change_event = change_event
         self.demo_name = demo_name
         self.demo_file = Path(demo_file)
 
@@ -145,8 +144,9 @@ class SourceFileReloader(BaseReloader):
     def stop(self) -> None:
         self.stop_event.set()
 
-    def alert_change(self):
-        self.change_event.set()
+    def alert_change(self, change_type: Literal["reload", "error"] = "reload"):
+        self.app.change_type = change_type
+        self.app.change_count += 1
 
     def swap_blocks(self, demo: Blocks):
         old_blocks = self.running_app.blocks
@@ -154,7 +154,7 @@ class SourceFileReloader(BaseReloader):
         if old_blocks:
             reassign_keys(old_blocks, demo)
         demo.config = demo.get_config_file()
-        self.alert_change()
+        self.alert_change("reload")
 
 
 NO_RELOAD = True
@@ -261,15 +261,16 @@ def watchfn(reloader: SourceFileReloader):
                 # This is because the main demo file may import the changed file and we need the
                 # changes to be reflected in the main demo file.
 
-                changed_in_copy = _remove_no_reload_codeblocks(str(changed))
-                if changed != reloader.demo_file:
-                    changed_module = _find_module(changed)
-                    exec(changed_in_copy, changed_module.__dict__)
-                    top_level_parent = sys.modules[
-                        changed_module.__name__.split(".")[0]
-                    ]
-                    if top_level_parent != changed_module:
-                        importlib.reload(top_level_parent)
+                if changed.suffix == ".py":
+                    changed_in_copy = _remove_no_reload_codeblocks(str(changed))
+                    if changed != reloader.demo_file:
+                        changed_module = _find_module(changed)
+                        exec(changed_in_copy, changed_module.__dict__)
+                        top_level_parent = sys.modules[
+                            changed_module.__name__.split(".")[0]
+                        ]
+                        if top_level_parent != changed_module:
+                            importlib.reload(top_level_parent)
 
                 changed_demo_file = _remove_no_reload_codeblocks(
                     str(reloader.demo_file)
@@ -281,6 +282,8 @@ def watchfn(reloader: SourceFileReloader):
                 )
                 traceback.print_exc()
                 mtimes = {}
+                reloader.alert_change("error")
+                reloader.app.reload_error_message = traceback.format_exc()
                 continue
             demo = getattr(module, reloader.demo_name)
             reloader.swap_blocks(demo)

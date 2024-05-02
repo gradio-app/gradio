@@ -156,6 +156,7 @@
 			on:share={({ detail }) => gradio.dispatch("share", detail)}
 			on:error={({ detail }) => gradio.dispatch("error", detail)}
 			i18n={gradio.i18n}
+			upload={gradio.client.upload}
 		/>
 	</Block>
 {:else}
@@ -206,6 +207,8 @@
 			on:stop_recording={() => gradio.dispatch("stop_recording")}
 			i18n={gradio.i18n}
 			max_file_size={gradio.max_file_size}
+			upload={gradio.client.upload}
+			stream_handler={gradio.client.eventSource_factory}
 		>
 			<UploadText i18n={gradio.i18n} type="video" />
 		</Video>
