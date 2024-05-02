@@ -6,12 +6,11 @@ import asyncio
 import json
 import os
 import threading
+import urllib.parse
 import warnings
 from typing import Any
-from urllib.parse import quote
 
 import httpx
-from huggingface_hub.utils import build_hf_headers
 from huggingface_hub.utils._telemetry import _send_telemetry_in_thread
 from packaging.version import Version
 
@@ -31,6 +30,7 @@ except ImportError:
         )
 
 
+ANALYTICS_URL = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
 
 
@@ -72,7 +72,7 @@ def _do_analytics_request(topic: str, data: dict[str, Any]) -> None:
     if wasm_utils.IS_WASM:
         asyncio.ensure_future(
             _do_wasm_analytics_request(
-                topic=topic,
+                url=topic,
                 data=data,
             )
         )
@@ -99,23 +99,23 @@ def _do_normal_analytics_request(topic: str, data: dict[str, Any]) -> None:
         pass
 
 
-async def _do_wasm_analytics_request(topic: str, data: dict[str, Any]) -> None:
+async def _do_wasm_analytics_request(url: str, data: dict[str, Any]) -> None:
     data["ip_address"] = await get_local_ip_address_wasm()
+
+    # We use urllib.parse.urlencode to encode the data as a form.
+    # Ref: https://docs.python.org/3/library/urllib.request.html#urllib-examples
+    body = urllib.parse.urlencode(data).encode("ascii")
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+    }
+
     try:
-        path = "/".join(quote(part) for part in topic.split("/") if len(part) > 0)
-        url = f"https://huggingface.co/api/telemetry/{path}"
-        headers = build_hf_headers(
-            token=False,  # no need to send a token for telemetry
-            library_name="gradio",
-            library_version=data.get("version"),
-            user_agent=data,
-        )
         await asyncio.wait_for(
-            pyodide_pyfetch(url, method="HEAD", headers=headers),
+            pyodide_pyfetch(url, method="POST", headers=headers, body=body),
             timeout=5,
         )
-    except (Exception, BaseException, asyncio.TimeoutError):
-        pass
+    except asyncio.TimeoutError:
+        pass  # do not push analytics if no network
 
 
 def version_check():
@@ -187,8 +187,13 @@ def initiated_analytics(data: dict[str, Any]) -> None:
     if not analytics_enabled():
         return
 
+    topic = (
+        "gradio/initiated"
+        if not wasm_utils.IS_WASM
+        else f"{ANALYTICS_URL}gradio-initiated-analytics/"
+    )
     _do_analytics_request(
-        topic="gradio/initiated",
+        topic=topic,
         data=data,
     )
 
@@ -268,7 +273,13 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
 
     data.update(additional_data)
 
-    _do_analytics_request("gradio/launched", data=data)
+    topic = (
+        "gradio/launched"
+        if not wasm_utils.IS_WASM
+        else f"{ANALYTICS_URL}gradio-launched-telemetry/"
+    )
+
+    _do_analytics_request(topic=topic, data=data)
 
 
 def custom_component_analytics(
@@ -308,8 +319,13 @@ def integration_analytics(data: dict[str, Any]) -> None:
     if not analytics_enabled():
         return
 
+    topic = (
+        "gradio/integration"
+        if not wasm_utils.IS_WASM
+        else f"{ANALYTICS_URL}gradio-integration-analytics/"
+    )
     _do_analytics_request(
-        topic="gradio/integration",
+        topic=topic,
         data=data,
     )
 
@@ -324,8 +340,12 @@ def error_analytics(message: str) -> None:
         return
 
     data = {"error": message}
-
+    topic = (
+        "gradio/error"
+        if not wasm_utils.IS_WASM
+        else f"{ANALYTICS_URL}gradio-error-analytics/"
+    )
     _do_analytics_request(
-        topic="gradio/error",
+        topic=topic,
         data=data,
     )
