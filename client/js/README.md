@@ -127,7 +127,11 @@ The `payload` argument is generally required but this depends on the API itself.
 import { Client } from "@gradio/client";
 
 const app = await Client.connect("user/space-name");
-const result = await app.predict("/predict", [1, "Hello", "friends"]);
+const result = await app.predict("/predict", {
+	input: 1,
+	word_1: "Hello",
+	word_2: "friends"
+});
 ```
 
 #### `submit`
@@ -183,7 +187,7 @@ import { Client } from "@gradio/client";
 
 const app = await Client.connect("user/space-name");
 const submission = app
-	.submit("/predict", payload)
+	.submit("/predict", { name: "Chewbacca" })
 	.on("data", (data) => console.log(data))
 	.on("status", (status: Status) => console.log(status));
 ```
@@ -198,7 +202,7 @@ import { Client } from "@gradio/client";
 const app = await Client.connect("user/space-name");
 const handle_data = (data) => console.log(data);
 
-const submission = app.submit("/predict", payload).on("data", handle_data);
+const submission = app.submit("/predict", { name: "Chewbacca" }).on("data", handle_data);
 
 // later
 submission.off("/predict", handle_data);
