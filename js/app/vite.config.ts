@@ -88,11 +88,11 @@ export default defineConfig(({ mode }) => {
 								}
 							}
 						}
-				  }
+					}
 				: {
 						external: ["./svelte/svelte.js"],
 						makeAbsoluteExternalsRelative: false
-				  }
+					}
 		},
 
 		define: {
