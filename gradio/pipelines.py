@@ -78,7 +78,7 @@ def load_from_pipeline(
 
     # define the title/description of the Interface
     interface_info["title"] = (
-        pipeline.model.__class__.__name__
+        pipeline.model.config.name_or_path
         if str(type(pipeline).__module__).startswith("transformers.pipelines")
         else pipeline.__class__.__name__
     )
