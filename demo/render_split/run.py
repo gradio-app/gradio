@@ -13,7 +13,7 @@ with gr.Blocks() as demo:
                 if mode == "textbox":
                     gr.Textbox(letter)
                 else:
-                    gr.Button(letter, mode)
+                    gr.Button(letter)
 
 if __name__ == "__main__":
     demo.launch()

@@ -139,6 +139,9 @@ export function create_components(): {
 		});
 	}
 
+	/**
+	 * Rerender the layout when the config has been modified to attach new components
+	 */
 	function rerender_layout({
 		components,
 		layout,
