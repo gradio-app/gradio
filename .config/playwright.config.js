@@ -33,7 +33,7 @@ const lite = defineConfig(base, {
 	webServer: {
 		command: "pnpm --filter @gradio/app dev:lite",
 		url: "http://localhost:9876/lite.html",
-		reuseExistingServer: true
+		reuseExistingServer: !process.env.CI
 	},
 	testMatch: [
 		"**/file_component_events.spec.ts",
