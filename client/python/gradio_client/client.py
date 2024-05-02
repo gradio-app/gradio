@@ -1297,6 +1297,7 @@ class Endpoint:
                 self.client.headers,
                 self.client.cookies,
                 self.client.ssl_verify,
+                self.client.executor,
             )
 
     def _sse_fn_v1plus(
@@ -1313,6 +1314,7 @@ class Endpoint:
             event_id,
             protocol,
             self.client.ssl_verify,
+            self.client.executor
         )
 
 

@@ -360,28 +360,28 @@ def get_pred_from_sse_v0(
     headers: dict[str, str],
     cookies: dict[str, str] | None,
     ssl_verify: bool,
+    executor: concurrent.futures.ThreadPoolExecutor,
 ) -> dict[str, Any] | None:
     helper.thread_complete = False
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        future_cancel = executor.submit(
-            check_for_cancel, helper, headers, cookies, ssl_verify
-        )
-        future_sse = executor.submit(
-            stream_sse_v0,
-            client,
-            data,
-            hash_data,
-            helper,
-            sse_url,
-            sse_data_url,
-            headers,
-            cookies,
-        )
-        done, _ = concurrent.futures.wait(
-            [future_cancel, future_sse],  # type: ignore
-            return_when=concurrent.futures.FIRST_COMPLETED,
-        )
-        helper.thread_complete = True
+    future_cancel = executor.submit(
+        check_for_cancel, helper, headers, cookies, ssl_verify
+    )
+    future_sse = executor.submit(
+        stream_sse_v0,
+        client,
+        data,
+        hash_data,
+        helper,
+        sse_url,
+        sse_data_url,
+        headers,
+        cookies,
+    )
+    done, _ = concurrent.futures.wait(
+        [future_cancel, future_sse],  # type: ignore
+        return_when=concurrent.futures.FIRST_COMPLETED,
+    )
+    helper.thread_complete = True
 
     if len(done) != 1:
         raise ValueError(f"Did not expect {len(done)} tasks to be done.")
@@ -397,20 +397,20 @@ def get_pred_from_sse_v1plus(
     event_id: str,
     protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
     ssl_verify: bool,
+    executor: concurrent.futures.ThreadPoolExecutor,
 ) -> dict[str, Any] | None:
     helper.thread_complete = False
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        future_cancel = executor.submit(
-            check_for_cancel, helper, headers, cookies, ssl_verify
-        )
-        future_sse = executor.submit(
-            stream_sse_v1plus, helper, pending_messages_per_event, event_id, protocol
-        )
-        done, _ = concurrent.futures.wait(
-            [future_cancel, future_sse],  # type: ignore
-            return_when=concurrent.futures.FIRST_COMPLETED,
-        )
-        helper.thread_complete = True
+    future_cancel = executor.submit(
+        check_for_cancel, helper, headers, cookies, ssl_verify
+    )
+    future_sse = executor.submit(
+        stream_sse_v1plus, helper, pending_messages_per_event, event_id, protocol
+    )
+    done, _ = concurrent.futures.wait(
+        [future_cancel, future_sse],  # type: ignore
+        return_when=concurrent.futures.FIRST_COMPLETED,
+    )
+    helper.thread_complete = True
 
     if len(done) != 1:
         raise ValueError(f"Did not expect {len(done)} tasks to be done.")
