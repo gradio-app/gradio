@@ -27,7 +27,7 @@ export default defineConfig({
 
 		/* Port to use for Playwright component endpoint. */
 		ctPort: 3100,
-		ctViteConfig: config({ mode: "development" })
+		ctViteConfig: config({ mode: "development", command: "build" })
 	},
 	testMatch: "*.component.spec.ts",
 

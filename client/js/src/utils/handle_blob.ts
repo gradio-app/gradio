@@ -29,7 +29,7 @@ export async function handle_blob(
 				path,
 				file_url,
 				type,
-				name: blob?.name
+				name: blob instanceof File ? blob?.name : undefined
 			};
 		})
 	);

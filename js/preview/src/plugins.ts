@@ -30,6 +30,7 @@ export function plugins(config: ComponentConfig): PluginOption[] {
 
 	return [
 		svelte({
+			inspector: false,
 			onwarn(warning, handler) {
 				if (
 					svelte_codes_to_ignore.hasOwnProperty(warning.code) &&
