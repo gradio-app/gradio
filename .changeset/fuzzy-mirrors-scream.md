@@ -1,5 +1,5 @@
 ---
-"gradio": feat
+"gradio": patch
 "gradio_client": patch
 ---
 
