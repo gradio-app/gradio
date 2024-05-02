@@ -4,6 +4,7 @@ import {
 	determine_protocol
 } from "../helpers/init_helpers";
 import { initialise_server } from "./server";
+import { beforeAll, afterEach, afterAll, it, expect, describe } from "vitest";
 
 const server = initialise_server();
 
