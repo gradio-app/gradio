@@ -1314,7 +1314,7 @@ class Endpoint:
             event_id,
             protocol,
             self.client.ssl_verify,
-            self.client.executor
+            self.client.executor,
         )
 
 
