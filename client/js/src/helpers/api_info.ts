@@ -317,7 +317,6 @@ export function handle_message(
  *
  * @throws {Error} - Throws an error:
  *         - If more arguments are provided than are defined in the parameters.
- *         - If a required parameter is missing and no default value is available.
  *         - If an argument is provided that does not match any defined parameter.
  *         - If a parameter value is specified both positionally and as a keyword.
  */
