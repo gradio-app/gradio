@@ -1240,7 +1240,7 @@ class TestEndpoints:
             src="gradio/zip_files",
         )
         url_path = "https://gradio-tests-not-actually-private-spacev4-sse.hf.space/file=lion.jpg"
-        file = client.endpoints[0]._upload_file(url_path)  # type: ignore
+        file = client.endpoints[0]._upload_file(url_path, 0)  # type: ignore
         assert file["path"].endswith(".jpg")
 
     @pytest.mark.flaky
