@@ -514,3 +514,11 @@ def test_use_api_name_in_call_method():
     # app = gr.load(name="spaces/gradio/multiple-api-name-test")
     # assert app(15, api_name="minus_one") == 14
     # assert app(4, api_name="double") == 8
+
+
+def test_load_custom_component():
+    demo = gr.load("spaces/freddyaboulton/gradiopdf")
+    output = demo(
+        "test/test_files/sample_file.pdf", "What does this say?", api_name="predict"
+    )
+    assert isinstance(output, str)
