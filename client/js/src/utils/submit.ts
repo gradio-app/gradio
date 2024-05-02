@@ -374,15 +374,19 @@ export function submit(
 						}${params}`
 					);
 
+					if (this.jwt) {
+						url.searchParams.set("__sign", this.jwt);
+					}
+
 					event_source = this.eventSource_factory(url);
 
 					if (!event_source) {
-						throw new Error(
-							"Cannot connect to sse endpoint: " + url.toString()
+						return Promise.reject(
+							new Error("Cannot connect to SSE endpoint: " + url.toString())
 						);
 					}
 
-					event_source.onmessage = async function (event) {
+					event_source.onmessage = async function (event: MessageEvent) {
 						const _data = JSON.parse(event.data);
 						const { type, status, data } = handle_message(
 							_data,
@@ -482,7 +486,11 @@ export function submit(
 						fn_index,
 						time: new Date()
 					});
-					let hostname = window.location.hostname;
+					let hostname = "";
+					if (typeof window !== "undefined") {
+						hostname = window?.location?.hostname;
+					}
+
 					let hfhubdev = "dev.spaces.huggingface.tech";
 					const origin = hostname.includes(".dev.")
 						? `https://moon-${hostname.split(".")[1]}.${hfhubdev}`
