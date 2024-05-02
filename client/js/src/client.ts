@@ -72,14 +72,11 @@ export class Client {
 		return fetch(input, init);
 	}
 
-	eventSource_factory(url: URL): EventSource {
+	eventSource_factory(url: URL): EventSource | null {
 		if (typeof window !== undefined && typeof EventSource !== "undefined") {
 			return new EventSource(url.toString());
-		} else if (typeof global !== "undefined" && global.EventSource) {
-			return new global.EventSource(url.toString());
 		}
-		// @ts-ignore
-		return null; // todo: polyfill eventsource for node envs
+		return null;
 	}
 
 	view_api: () => Promise<ApiInfo<JsApiData>>;
