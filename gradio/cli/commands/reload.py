@@ -130,7 +130,7 @@ def main(
         try:
             popen.wait()
         except (KeyboardInterrupt, OSError):
-            print("gradio-cli: Waiting gradio main thread cleaning.")
+            pass
 
 
 if __name__ == "__main__":
