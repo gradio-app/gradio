@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import concurrent.futures
 import copy
 import json
 import mimetypes
@@ -10,8 +11,8 @@ import pkgutil
 import secrets
 import shutil
 import tempfile
+import time
 import warnings
-from concurrent.futures import CancelledError
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -243,6 +244,7 @@ class Communicator:
     reset_url: str
     should_cancel: bool = False
     event_id: str | None = None
+    thread_complete: bool = False
 
 
 ########################
@@ -266,7 +268,7 @@ def probe_url(possible_url: str) -> bool:
     headers = {"User-Agent": "gradio (https://gradio.app/; gradio-team@huggingface.co)"}
     try:
         with httpx.Client() as client:
-            head_request = client.head(possible_url, headers=headers)
+            head_request = httpx.head(possible_url, headers=headers)
             if head_request.status_code == 405:
                 return client.get(possible_url, headers=headers).is_success
             return head_request.is_success
@@ -311,7 +313,7 @@ async def get_pred_from_ws(
                             # otherwise will get nasty warning in console
                             task.cancel()
                             await asyncio.gather(task, reset, return_exceptions=True)
-                        raise CancelledError()
+                        raise concurrent.futures.CancelledError()
             # Need to suspend this coroutine so that task actually runs
             await asyncio.sleep(0.01)
         msg = task.result()
@@ -348,8 +350,8 @@ async def get_pred_from_ws(
     return resp["output"]
 
 
-async def get_pred_from_sse_v0(
-    client: httpx.AsyncClient,
+def get_pred_from_sse_v0(
+    client: httpx.Client,
     data: dict,
     hash_data: dict,
     helper: Communicator,
@@ -358,40 +360,36 @@ async def get_pred_from_sse_v0(
     headers: dict[str, str],
     cookies: dict[str, str] | None,
     ssl_verify: bool,
+    executor: concurrent.futures.ThreadPoolExecutor,
 ) -> dict[str, Any] | None:
-    done, pending = await asyncio.wait(
-        [
-            asyncio.create_task(check_for_cancel(helper, headers, cookies, ssl_verify)),
-            asyncio.create_task(
-                stream_sse_v0(
-                    client,
-                    data,
-                    hash_data,
-                    helper,
-                    sse_url,
-                    sse_data_url,
-                    headers,
-                    cookies,
-                )
-            ),
-        ],
-        return_when=asyncio.FIRST_COMPLETED,
+    helper.thread_complete = False
+    future_cancel = executor.submit(
+        check_for_cancel, helper, headers, cookies, ssl_verify
     )
-
-    for task in pending:
-        task.cancel()
-        try:
-            await task
-        except asyncio.CancelledError:
-            pass
+    future_sse = executor.submit(
+        stream_sse_v0,
+        client,
+        data,
+        hash_data,
+        helper,
+        sse_url,
+        sse_data_url,
+        headers,
+        cookies,
+    )
+    done, _ = concurrent.futures.wait(
+        [future_cancel, future_sse],  # type: ignore
+        return_when=concurrent.futures.FIRST_COMPLETED,
+    )
+    helper.thread_complete = True
 
     if len(done) != 1:
         raise ValueError(f"Did not expect {len(done)} tasks to be done.")
-    for task in done:
-        return task.result()
+    for future in done:
+        return future.result()
 
 
-async def get_pred_from_sse_v1plus(
+def get_pred_from_sse_v1plus(
     helper: Communicator,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
@@ -399,59 +397,56 @@ async def get_pred_from_sse_v1plus(
     event_id: str,
     protocol: Literal["sse_v1", "sse_v2", "sse_v2.1"],
     ssl_verify: bool,
+    executor: concurrent.futures.ThreadPoolExecutor,
 ) -> dict[str, Any] | None:
-    done, pending = await asyncio.wait(
-        [
-            asyncio.create_task(check_for_cancel(helper, headers, cookies, ssl_verify)),
-            asyncio.create_task(
-                stream_sse_v1plus(
-                    helper, pending_messages_per_event, event_id, protocol
-                )
-            ),
-        ],
-        return_when=asyncio.FIRST_COMPLETED,
+    helper.thread_complete = False
+    future_cancel = executor.submit(
+        check_for_cancel, helper, headers, cookies, ssl_verify
     )
-
-    for task in pending:
-        task.cancel()
-        try:
-            await task
-        except asyncio.CancelledError:
-            pass
+    future_sse = executor.submit(
+        stream_sse_v1plus, helper, pending_messages_per_event, event_id, protocol
+    )
+    done, _ = concurrent.futures.wait(
+        [future_cancel, future_sse],  # type: ignore
+        return_when=concurrent.futures.FIRST_COMPLETED,
+    )
+    helper.thread_complete = True
 
     if len(done) != 1:
         raise ValueError(f"Did not expect {len(done)} tasks to be done.")
-    for task in done:
-        exception = task.exception()
+    for future in done:
+        exception = future.exception()
         if exception:
             raise exception
-        return task.result()
+        return future.result()
 
 
-async def check_for_cancel(
+def check_for_cancel(
     helper: Communicator,
     headers: dict[str, str],
     cookies: dict[str, str] | None,
     ssl_verify: bool,
 ):
     while True:
-        await asyncio.sleep(0.05)
+        time.sleep(0.05)
         with helper.lock:
             if helper.should_cancel:
                 break
+            if helper.thread_complete:
+                raise concurrent.futures.CancelledError()
     if helper.event_id:
-        async with httpx.AsyncClient(ssl_verify=ssl_verify) as http:
-            await http.post(
-                helper.reset_url,
-                json={"event_id": helper.event_id},
-                headers=headers,
-                cookies=cookies,
-            )
-    raise CancelledError()
+        httpx.post(
+            helper.reset_url,
+            json={"event_id": helper.event_id},
+            headers=headers,
+            cookies=cookies,
+            verify=ssl_verify,
+        )
+    raise concurrent.futures.CancelledError()
 
 
-async def stream_sse_v0(
-    client: httpx.AsyncClient,
+def stream_sse_v0(
+    client: httpx.Client,
     data: dict,
     hash_data: dict,
     helper: Communicator,
@@ -461,14 +456,14 @@ async def stream_sse_v0(
     cookies: dict[str, str] | None,
 ) -> dict[str, Any]:
     try:
-        async with client.stream(
+        with client.stream(
             "GET",
             sse_url,
             params=hash_data,
             headers=headers,
             cookies=cookies,
         ) as response:
-            async for line in response.aiter_lines():
+            for line in response.iter_lines():
                 line = line.rstrip("\n")
                 if len(line) == 0:
                     continue
@@ -497,13 +492,14 @@ async def stream_sse_v0(
                                 result = [e]
                             helper.job.outputs.append(result)
                         helper.job.latest_status = status_update
-
+                    if helper.thread_complete:
+                        raise concurrent.futures.CancelledError()
                     if resp["msg"] == "queue_full":
                         raise QueueError("Queue is full! Please try again.")
                     elif resp["msg"] == "send_data":
                         event_id = resp["event_id"]
                         helper.event_id = event_id
-                        req = await client.post(
+                        req = client.post(
                             sse_data_url,
                             json={"event_id": event_id, **data, **hash_data},
                             headers=headers,
@@ -515,11 +511,11 @@ async def stream_sse_v0(
                 else:
                     raise ValueError(f"Unexpected message: {line}")
         raise ValueError("Did not receive process_completed message.")
-    except asyncio.CancelledError:
+    except concurrent.futures.CancelledError:
         raise
 
 
-async def stream_sse_v1plus(
+def stream_sse_v1plus(
     helper: Communicator,
     pending_messages_per_event: dict[str, list[Message | None]],
     event_id: str,
@@ -533,11 +529,11 @@ async def stream_sse_v1plus(
             if len(pending_messages) > 0:
                 msg = pending_messages.pop(0)
             else:
-                await asyncio.sleep(0.05)
+                time.sleep(0.05)
                 continue
 
-            if msg is None:
-                raise CancelledError()
+            if msg is None or helper.thread_complete:
+                raise concurrent.futures.CancelledError()
 
             with helper.lock:
                 log_message = None
@@ -586,7 +582,7 @@ async def stream_sse_v1plus(
             elif msg["msg"] == ServerMessage.server_stopped:
                 raise ValueError("Server stopped.")
 
-    except asyncio.CancelledError:
+    except concurrent.futures.CancelledError:
         raise
 
 
