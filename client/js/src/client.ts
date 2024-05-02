@@ -66,14 +66,13 @@ export class Client {
 		if (typeof window === "undefined" || typeof EventSource === "undefined") {
 			import("eventsource")
 				.then((EventSourceModule) => {
-					global.EventSource = EventSourceModule.default as any;
-					return new EventSource(url.toString());
+					return new EventSourceModule.default(url.toString());
 				})
 				.catch((error) =>
 					console.error("Failed to load EventSource module:", error)
 				);
 		} else {
-			return new EventSource(url);
+			return new EventSource(url.toString());
 		}
 		return null;
 	}
