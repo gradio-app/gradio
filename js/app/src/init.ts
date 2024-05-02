@@ -178,9 +178,7 @@ export function create_components(): {
 			] = instance_map[layout.id];
 		}
 
-		walk_layout(layout, root, current_element.parent).then(() => {
-			layout_store.set(instance_map[0]);
-		});
+		walk_layout(layout, root, current_element.parent);
 	}
 
 	async function walk_layout(
