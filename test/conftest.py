@@ -22,7 +22,7 @@ def test_file_dir():
 
 @pytest.fixture
 def io_components():
-    all_subclasses = gradio.utils.get_all_components()
+    all_subclasses = gradio.utils.core_gradio_components()
     subclasses = []
     for subclass in all_subclasses:
         if subclass in [
@@ -31,6 +31,8 @@ def io_components():
             gr.LoginButton,
             gr.LogoutButton,
         ]:
+            continue
+        if subclass in gr.components.FormComponent.__subclasses__():
             continue
 
         if "value" in inspect.signature(subclass.__init__).parameters:

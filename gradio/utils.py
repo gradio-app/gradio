@@ -554,15 +554,18 @@ def component_or_layout_class(cls_name: str) -> type[Component] | type[BlockCont
     Returns:
     cls: the component class
     """
-    from gradio.blocks import BlockContext
+    import gradio.components as components_module
     from gradio.components import Component
 
-    components = get_all_components()
-    for cls in components:
-        if cls.__name__.lower() == cls_name.replace("_", "") and (
-            issubclass(cls, Component) or issubclass(cls, BlockContext)
-        ):
-            return cls
+    components = {c.__name__.lower(): c for c in get_all_components()}
+    # add aliases such as 'text'
+    for name, cls in components_module.__dict__.items():
+        if isinstance(cls, type) and issubclass(cls, Component):
+            components[name.lower()] = cls
+
+    if cls_name.replace("_", "") in components:
+        return components[cls_name.replace("_", "")]
+
     raise ValueError(
         f"No such component or layout: {cls_name}. "
         "It is possible it is a custom component, "
