@@ -73,14 +73,11 @@ export async function resolve_config(
 		const config = window.gradio_config;
 		let config_root = resolve_root(endpoint, config.root, false);
 		config.root = config_root;
-		return { ...config, path };
+		return { ...config, path } as Config;
 	} else if (endpoint) {
-		const response = await this.fetch_implementation(
-			`${endpoint}/${CONFIG_URL}`,
-			{
-				headers
-			}
-		);
+		const response = await this.fetch(`${endpoint}/${CONFIG_URL}`, {
+			headers
+		});
 
 		if (response?.status === 200) {
 			let config = await response.json();

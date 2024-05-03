@@ -176,7 +176,7 @@ async function generate_imports(
 		const example = exports.example
 			? `example: () => import("${to_posix(
 					join(component.frontend_dir, exports.example)
-			  )}"),\n`
+				)}"),\n`
 			: "";
 		return `${acc}"${component.component_class_id}": {
 			${example}

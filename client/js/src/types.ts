@@ -38,7 +38,7 @@ export interface ApiInfo<T extends ApiData | JsApiData> {
 export interface BlobRef {
 	path: string[];
 	type: string | undefined;
-	blob: Blob | false;
+	blob: Blob | File | false;
 }
 
 export type DataType = string | Buffer | Record<string, any> | any[];
@@ -70,7 +70,7 @@ export type client_return = {
 		fn_name: string,
 		data: unknown[]
 	) => any;
-	view_api: (fetch_implementation: typeof fetch) => Promise<ApiInfo<JsApiData>>;
+	view_api: (_fetch: typeof fetch) => Promise<ApiInfo<JsApiData>>;
 };
 
 export type SubmitReturn = {
@@ -116,6 +116,7 @@ export type SpaceStatusCallback = (a: SpaceStatus) => void;
 export interface Config {
 	auth_required: boolean;
 	analytics_enabled: boolean;
+	connect_heartbeat: boolean;
 	auth_message: string;
 	components: any[];
 	css: string | null;

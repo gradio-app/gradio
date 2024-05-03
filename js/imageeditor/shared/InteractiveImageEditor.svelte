@@ -44,9 +44,10 @@
 	export let layers: boolean;
 	export let accept_blobs: (a: any) => void;
 	export let status: "pending" | "complete" | "error" = "complete";
+	export let canvas_size: [number, number] | undefined;
 	export let realtime: boolean;
 	export let upload: Client["upload"];
-	export let stream_handler: Client["eventSource_factory"];
+	export let stream_handler: Client["stream_factory"];
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;
@@ -73,7 +74,7 @@
 			? upload(
 					await prepare_files([new File([blobs.background], "background.png")]),
 					root
-			  )
+				)
 			: Promise.resolve(null);
 
 		const layers = blobs.layers
@@ -86,7 +87,7 @@
 			? upload(
 					await prepare_files([new File([blobs.composite], "composite.png")]),
 					root
-			  )
+				)
 			: Promise.resolve(null);
 
 		const [background, composite_, ...layers_] = await Promise.all([
@@ -203,6 +204,8 @@
 	label={label || i18n("image.image")}
 />
 <ImageEditor
+	{canvas_size}
+	crop_size={Array.isArray(crop_size) ? crop_size : undefined}
 	bind:this={editor}
 	bind:height={editor_height}
 	{changeable}

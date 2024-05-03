@@ -35,7 +35,7 @@
 	export let editable = true;
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
-	export let stream_handler: Client["eventSource_factory"];
+	export let stream_handler: Client["stream_factory"];
 
 	$: dispatch("drag", dragging);
 
@@ -124,9 +124,8 @@
 		}
 		if (stream == null) return;
 		if (streaming) {
-			const [{ MediaRecorder, register }, { connect }] = await Promise.all(
-				module_promises
-			);
+			const [{ MediaRecorder, register }, { connect }] =
+				await Promise.all(module_promises);
 			await register(await connect());
 			recorder = new MediaRecorder(stream, { mimeType: "audio/wav" });
 			recorder.addEventListener("dataavailable", handle_chunk);

@@ -28,7 +28,7 @@ export async function view_api(this: Client): Promise<any> {
 		let response: Response;
 
 		if (semiver(config?.version || "2.0.0", "3.30") < 0) {
-			response = await this.fetch_implementation(SPACE_FETCHER_URL, {
+			response = await this.fetch(SPACE_FETCHER_URL, {
 				method: "POST",
 				body: JSON.stringify({
 					serialize: false,
@@ -37,12 +37,9 @@ export async function view_api(this: Client): Promise<any> {
 				headers
 			});
 		} else {
-			response = await this.fetch_implementation(
-				`${config?.root}/${API_INFO_URL}`,
-				{
-					headers
-				}
-			);
+			response = await this.fetch(`${config?.root}/${API_INFO_URL}`, {
+				headers
+			});
 		}
 
 		if (!response.ok) {
