@@ -261,15 +261,16 @@ def watchfn(reloader: SourceFileReloader):
                 # This is because the main demo file may import the changed file and we need the
                 # changes to be reflected in the main demo file.
 
-                changed_in_copy = _remove_no_reload_codeblocks(str(changed))
-                if changed != reloader.demo_file:
-                    changed_module = _find_module(changed)
-                    exec(changed_in_copy, changed_module.__dict__)
-                    top_level_parent = sys.modules[
-                        changed_module.__name__.split(".")[0]
-                    ]
-                    if top_level_parent != changed_module:
-                        importlib.reload(top_level_parent)
+                if changed.suffix == ".py":
+                    changed_in_copy = _remove_no_reload_codeblocks(str(changed))
+                    if changed != reloader.demo_file:
+                        changed_module = _find_module(changed)
+                        exec(changed_in_copy, changed_module.__dict__)
+                        top_level_parent = sys.modules[
+                            changed_module.__name__.split(".")[0]
+                        ]
+                        if top_level_parent != changed_module:
+                            importlib.reload(top_level_parent)
 
                 changed_demo_file = _remove_no_reload_codeblocks(
                     str(reloader.demo_file)
@@ -517,6 +518,30 @@ def resolve_singleton(_list: list[Any] | Any) -> Any:
         return _list
 
 
+def get_all_components() -> list[type[Component] | type[BlockContext]]:
+    import gradio as gr
+
+    classes_to_check = (
+        gr.components.Component.__subclasses__()
+        + gr.blocks.BlockContext.__subclasses__()  # type: ignore
+    )
+    subclasses = []
+
+    while classes_to_check:
+        subclass = classes_to_check.pop()
+        classes_to_check.extend(subclass.__subclasses__())
+        subclasses.append(subclass)
+    return subclasses
+
+
+def core_gradio_components():
+    return [
+        class_
+        for class_ in get_all_components()
+        if class_.__module__.startswith("gradio.")
+    ]
+
+
 def component_or_layout_class(cls_name: str) -> type[Component] | type[BlockContext]:
     """
     Returns the component, template, or layout class with the given class name, or
@@ -527,33 +552,23 @@ def component_or_layout_class(cls_name: str) -> type[Component] | type[BlockCont
     Returns:
     cls: the component class
     """
-    import gradio.blocks
-    import gradio.components
-    import gradio.layouts
-    import gradio.templates
+    import gradio.components as components_module
+    from gradio.components import Component
 
-    components = [
-        (name, cls)
-        for name, cls in gradio.components.__dict__.items()
-        if isinstance(cls, type)
-    ]
-    templates = [
-        (name, cls)
-        for name, cls in gradio.templates.__dict__.items()
-        if isinstance(cls, type)
-    ]
-    layouts = [
-        (name, cls)
-        for name, cls in gradio.layouts.__dict__.items()
-        if isinstance(cls, type)
-    ]
-    for name, cls in components + templates + layouts:
-        if name.lower() == cls_name.replace("_", "") and (
-            issubclass(cls, gradio.components.Component)
-            or issubclass(cls, gradio.blocks.BlockContext)
-        ):
-            return cls
-    raise ValueError(f"No such component or layout: {cls_name}")
+    components = {c.__name__.lower(): c for c in get_all_components()}
+    # add aliases such as 'text'
+    for name, cls in components_module.__dict__.items():
+        if isinstance(cls, type) and issubclass(cls, Component):
+            components[name.lower()] = cls
+
+    if cls_name.replace("_", "") in components:
+        return components[cls_name.replace("_", "")]
+
+    raise ValueError(
+        f"No such component or layout: {cls_name}. "
+        "It is possible it is a custom component, "
+        "in which case make sure it is installed and imported in your python session."
+    )
 
 
 def run_coro_in_background(func: Callable, *args, **kwargs):
