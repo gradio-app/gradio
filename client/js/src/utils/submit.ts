@@ -382,7 +382,7 @@ export function submit(
 						);
 					}
 
-					event_source.onmessage = async function (event) {
+					event_source.onmessage = async function (event: MessageEvent) {
 						const _data = JSON.parse(event.data);
 						const { type, status, data } = handle_message(
 							_data,
@@ -482,7 +482,11 @@ export function submit(
 						fn_index,
 						time: new Date()
 					});
-					let hostname = window.location.hostname;
+					let hostname = "";
+					if (typeof window !== "undefined") {
+						hostname = window?.location?.hostname;
+					}
+
 					let hfhubdev = "dev.spaces.huggingface.tech";
 					const origin = hostname.includes(".dev.")
 						? `https://moon-${hostname.split(".")[1]}.${hfhubdev}`

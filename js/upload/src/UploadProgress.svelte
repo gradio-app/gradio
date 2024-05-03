@@ -50,7 +50,7 @@
 			const _data = JSON.parse(event.data);
 			if (!progress) progress = true;
 			if (_data.msg === "done") {
-				event_source.close();
+				event_source?.close();
 				dispatch("done");
 			} else {
 				current_file_upload = _data;
