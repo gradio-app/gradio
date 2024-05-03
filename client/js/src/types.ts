@@ -70,7 +70,7 @@ export type client_return = {
 		fn_name: string,
 		data: unknown[]
 	) => any;
-	view_api: (fetch: typeof fetch) => Promise<ApiInfo<JsApiData>>;
+	view_api: (_fetch: typeof fetch) => Promise<ApiInfo<JsApiData>>;
 };
 
 export type SubmitReturn = {
