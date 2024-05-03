@@ -2052,7 +2052,7 @@ Received outputs:
         ssl_keyfile_password: str | None = None,
         ssl_verify: bool = True,
         quiet: bool = False,
-        show_api: bool = True,
+        show_api: bool = not wasm_utils.IS_WASM,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
         root_path: str | None = None,
