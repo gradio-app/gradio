@@ -65,14 +65,11 @@ export class Client {
 	unclosed_events: Set<string> = new Set();
 	heartbeat_event: EventSource | null = null;
 
-	fetch_implementation(
-		input: RequestInfo | URL,
-		init?: RequestInit
-	): Promise<Response> {
+	fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 		return fetch(input, init);
 	}
 
-	eventSource_factory(url: URL): EventSource | null {
+	stream_factory(url: URL): EventSource | null {
 		if (typeof window === "undefined" || typeof EventSource === "undefined") {
 			import("eventsource")
 				.then((EventSourceModule) => {
@@ -157,7 +154,7 @@ export class Client {
 						const heartbeat_url = new URL(
 							`${this.config.root}/heartbeat/${this.session_hash}`
 						);
-						this.heartbeat_event = this.eventSource_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
+						this.heartbeat_event = this.stream_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
 
 						if (this.config.space_id && this.options.hf_token) {
 							this.jwt = await get_jwt(
@@ -342,14 +339,11 @@ export class Client {
 		}
 
 		try {
-			const response = await this.fetch_implementation(
-				`${root_url}/component_server/`,
-				{
-					method: "POST",
-					body: body,
-					headers
-				}
-			);
+			const response = await this.fetch(`${root_url}/component_server/`, {
+				method: "POST",
+				body: body,
+				headers
+			});
 
 			if (!response.ok) {
 				throw new Error(

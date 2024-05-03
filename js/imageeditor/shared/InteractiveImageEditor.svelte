@@ -47,7 +47,7 @@
 	export let canvas_size: [number, number] | undefined;
 	export let realtime: boolean;
 	export let upload: Client["upload"];
-	export let stream_handler: Client["eventSource_factory"];
+	export let stream_handler: Client["stream_factory"];
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;

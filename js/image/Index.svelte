@@ -157,7 +157,7 @@
 			max_file_size={gradio.max_file_size}
 			i18n={gradio.i18n}
 			upload={gradio.client.upload}
-			stream_handler={gradio.client.eventSource_factory}
+			stream_handler={gradio.client.stream_factory}
 		>
 			{#if active_source === "upload" || !active_source}
 				<UploadText i18n={gradio.i18n} type="image" />
