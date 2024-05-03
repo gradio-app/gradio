@@ -31,7 +31,7 @@ export function submit(
 	try {
 		const { hf_token } = this.options;
 		const {
-			fetch_implementation,
+			fetch,
 			app_reference,
 			config,
 			session_hash,
@@ -134,7 +134,7 @@ export function submit(
 					throw new Error("Could not resolve app config");
 				}
 
-				await fetch_implementation(`${config.root}/reset`, {
+				await fetch(`${config.root}/reset`, {
 					headers: { "Content-Type": "application/json" },
 					method: "POST",
 					body: JSON.stringify(cancel_request)

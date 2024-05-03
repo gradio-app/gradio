@@ -55,10 +55,7 @@ export class Client {
 	unclosed_events: Set<string> = new Set();
 	heartbeat_event: EventSource | null = null;
 
-	fetch_implementation(
-		input: RequestInfo | URL,
-		init?: RequestInit
-	): Promise<Response> {
+	fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 		return fetch(input, init);
 	}
 
@@ -332,14 +329,11 @@ export class Client {
 		}
 
 		try {
-			const response = await this.fetch_implementation(
-				`${root_url}/component_server/`,
-				{
-					method: "POST",
-					body: body,
-					headers
-				}
-			);
+			const response = await this.fetch(`${root_url}/component_server/`, {
+				method: "POST",
+				body: body,
+				headers
+			});
 
 			if (!response.ok) {
 				throw new Error(

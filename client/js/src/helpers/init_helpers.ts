@@ -75,12 +75,9 @@ export async function resolve_config(
 		config.root = config_root;
 		return { ...config, path };
 	} else if (endpoint) {
-		const response = await this.fetch_implementation(
-			`${endpoint}/${CONFIG_URL}`,
-			{
-				headers
-			}
-		);
+		const response = await this.fetch(`${endpoint}/${CONFIG_URL}`, {
+			headers
+		});
 
 		if (response?.status === 200) {
 			let config = await response.json();

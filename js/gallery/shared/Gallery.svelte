@@ -31,7 +31,7 @@
 	export let i18n: I18nFormatter;
 	export let selected_index: number | null = null;
 	export let interactive: boolean;
-	export let fetch_implementation: typeof fetch;
+	export let fetch: typeof fetch;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -49,7 +49,7 @@
 			? null
 			: value.map((data) => ({
 					image: data.image as FileData,
-					caption: data.caption
+					caption: data.caption,
 			  }));
 
 	let prev_value: GalleryData | null = value;
@@ -119,7 +119,7 @@
 			if (selected_index !== null) {
 				dispatch("select", {
 					index: selected_index,
-					value: resolved_value?.[selected_index]
+					value: resolved_value?.[selected_index],
 				});
 			}
 		}
@@ -155,7 +155,7 @@
 		if (container_element && typeof container_element.scrollTo === "function") {
 			container_element.scrollTo({
 				left: pos < 0 ? 0 : pos,
-				behavior: "smooth"
+				behavior: "smooth",
 			});
 		}
 	}
@@ -169,7 +169,7 @@
 	async function download(file_url: string, name: string): Promise<void> {
 		let response;
 		try {
-			response = await fetch_implementation(file_url);
+			response = await fetch(file_url);
 		} catch (error) {
 			if (error instanceof TypeError) {
 				// If CORS is not allowed (https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#checking_that_the_fetch_was_successful),

@@ -112,7 +112,7 @@
 			{show_share_button}
 			{show_download_button}
 			i18n={gradio.i18n}
-			fetch_implementation={gradio.client.fetch_implementation}
+			fetch={gradio.client.fetch}
 		/>
 	{/if}
 </Block>

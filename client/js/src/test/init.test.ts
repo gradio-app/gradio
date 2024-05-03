@@ -129,7 +129,7 @@ describe("Client class", () => {
 			);
 
 			class CustomClient extends Client {
-				fetch_implementation = mocked_fetch;
+				fetch = mocked_fetch;
 			}
 
 			await CustomClient.connect("hmb/hello_world");

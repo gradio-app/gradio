@@ -127,10 +127,7 @@ export function create(options: Options): GradioAppController {
 	mount_prebuilt_css(document.head);
 
 	class LiteClient extends Client {
-		fetch_implementation(
-			input: RequestInfo | URL,
-			init?: RequestInit
-		): Promise<Response> {
+		fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 			return wasm_proxied_fetch(worker_proxy, input, init);
 		}
 
