@@ -31,7 +31,7 @@ const config: StorybookConfig = {
 							turbosnap({
 								rootDir: `${process.cwd()}/js/storybook`
 							})
-					  ]
+						]
 					: []
 		});
 	}

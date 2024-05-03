@@ -107,7 +107,8 @@
 			return;
 		}
 		let _files: File[] = files.map(
-			(f) => new File([f], f.name, { type: f.type })
+			(f) =>
+				new File([f], f instanceof File ? f.name : "file", { type: f.type })
 		);
 		file_data = await prepare_files(_files);
 		return await handle_upload(file_data);
