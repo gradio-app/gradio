@@ -10,7 +10,7 @@ jq_required
 
 GRADIO_VERSION=$(jq -r .version ${ROOTDIR}/gradio/package.json)
 GRADIO_CLIENT_VERSION=$(jq -r .version ${ROOTDIR}/client/python/gradio_client/package.json)
-GRADIO_WHEEL_PATH="${ROOTDIR}/dist/gradio-${GRADIO_VERSION}-py3-none-any.whl"
+GRADIO_WHEEL_PATH="${ROOTDIR}/dist-lite/gradio-${GRADIO_VERSION}-py3-none-any.whl"
 GRADIO_CLIENT_FILE_PATH="${ROOTDIR}/client/python/dist/gradio_client-${GRADIO_CLIENT_VERSION}-py3-none-any.whl"
 
 echo "Checking for gradio and gradio_client wheel files..."

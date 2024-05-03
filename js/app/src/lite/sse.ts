@@ -6,7 +6,7 @@ import { is_self_host } from "@gradio/wasm/network";
  * which also falls back to the original WebSocket() for external resource requests.
  */
 
-export function wasm_proxied_EventSource_factory(
+export function wasm_proxied_stream_factory(
 	worker_proxy: WorkerProxy,
 	url: URL
 ): EventSource {

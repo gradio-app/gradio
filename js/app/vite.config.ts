@@ -88,11 +88,11 @@ export default defineConfig(({ mode }) => {
 								}
 							}
 						}
-				  }
+					}
 				: {
 						external: ["./svelte/svelte.js"],
 						makeAbsoluteExternalsRelative: false
-				  }
+					}
 		},
 
 		define: {
@@ -135,7 +135,7 @@ export default defineConfig(({ mode }) => {
 			resolve_svelte(development && !is_lite),
 
 			svelte({
-				inspector: true,
+				inspector: false,
 				compilerOptions: {
 					dev: true,
 					discloseVersion: false,

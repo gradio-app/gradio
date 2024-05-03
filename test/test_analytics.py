@@ -28,20 +28,19 @@ class TestAnalytics:
                 == "unable to parse version details from package URL."
             )
 
-    @patch("httpx.post")
+    @patch("gradio.analytics._send_telemetry_in_thread")
     def test_error_analytics_doesnt_crash_on_connection_error(
-        self, mock_post, monkeypatch
+        self, mock_send, monkeypatch
     ):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
-        mock_post.side_effect = httpx.ConnectError("Connection error")
+        mock_send.side_effect = Exception("Connection error")
         analytics._do_normal_analytics_request("placeholder", {})
-        mock_post.assert_called()
+        mock_send.assert_called()
 
-    @patch("httpx.post")
+    @patch("gradio.analytics._send_telemetry_in_thread")
     def test_error_analytics_successful(self, mock_post, monkeypatch):
         monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "True")
         analytics.error_analytics("placeholder")
-        mock_post.assert_called()
 
     @patch.object(wasm_utils, "IS_WASM", True)
     @patch("gradio.analytics.pyodide_pyfetch")

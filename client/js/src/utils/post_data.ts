@@ -16,7 +16,7 @@ export async function post_data(
 		headers.Authorization = `Bearer ${this.options.hf_token}`;
 	}
 	try {
-		var response = await this.fetch_implementation(url, {
+		var response = await this.fetch(url, {
 			method: "POST",
 			body: JSON.stringify(body),
 			headers: { ...headers, ...additional_headers }

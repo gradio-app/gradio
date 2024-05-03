@@ -112,6 +112,7 @@ class Sketchpad(components.ImageEditor):
         brush: Brush | None = None,
         format: str = "webp",
         layers: bool = True,
+        canvas_size: tuple[int, int] | None = None,
     ):
         if not brush:
             brush = Brush(colors=["#000000"], color_mode="fixed")
@@ -144,6 +145,7 @@ class Sketchpad(components.ImageEditor):
             brush=brush,
             format=format,
             layers=layers,
+            canvas_size=canvas_size,
         )
 
 
@@ -187,6 +189,7 @@ class Paint(components.ImageEditor):
         brush: Brush | None = None,
         format: str = "webp",
         layers: bool = True,
+        canvas_size: tuple[int, int] | None = None,
     ):
         super().__init__(
             value=value,
@@ -217,6 +220,7 @@ class Paint(components.ImageEditor):
             brush=brush,
             format=format,
             layers=layers,
+            canvas_size=canvas_size,
         )
 
 
@@ -264,6 +268,7 @@ class ImageMask(components.ImageEditor):
         brush: Brush | None = None,
         format: str = "webp",
         layers: bool = True,
+        canvas_size: tuple[int, int] | None = None,
     ):
         if not brush:
             brush = Brush(colors=["#000000"], color_mode="fixed")
@@ -296,6 +301,7 @@ class ImageMask(components.ImageEditor):
             brush=brush,
             format=format,
             layers=layers,
+            canvas_size=canvas_size,
         )
 
 

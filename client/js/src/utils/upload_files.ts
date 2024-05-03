@@ -30,7 +30,7 @@ export async function upload_files(
 				? `${root_url}/upload?upload_id=${upload_id}`
 				: `${root_url}/${UPLOAD_URL}`;
 
-			response = await this.fetch_implementation(upload_url, {
+			response = await this.fetch(upload_url, {
 				method: "POST",
 				body: formData,
 				headers

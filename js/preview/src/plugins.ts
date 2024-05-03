@@ -30,6 +30,7 @@ export function plugins(config: ComponentConfig): PluginOption[] {
 
 	return [
 		svelte({
+			inspector: false,
 			onwarn(warning, handler) {
 				if (
 					svelte_codes_to_ignore.hasOwnProperty(warning.code) &&
@@ -106,7 +107,7 @@ export function make_gradio_plugin({
         window.__GRADIO__SERVER_PORT__ = ${backend_port};
         window.__GRADIO__CC__ = ${imports};`
 						}
-				  ]
+					]
 				: undefined;
 		}
 	};

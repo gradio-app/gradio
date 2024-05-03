@@ -1171,7 +1171,11 @@ class Endpoint:
                     or utils.is_http_url_like(f),
                 )
             elif not self.client.upload_files:
-                d = utils.traverse(d, self._upload_file, utils.is_file_obj_with_meta)
+                d = utils.traverse(
+                    d,
+                    partial(self._upload_file, data_index=i),
+                    utils.is_file_obj_with_meta,
+                )
             data_.append(d)
         return tuple(data_)
 
