@@ -73,12 +73,18 @@ async function initializeEnvironment(
 	];
 	console.debug("Loading Gradio wheels.", gradioWheelUrls);
 	updateProgress("Loading Gradio wheels");
-	await micropip.add_mock_package("ffmpy", "0.3.0");
 	await pyodide.loadPackage(["ssl", "setuptools"]);
-	await micropip.install(["typing-extensions>=4.8.0"]); // Typing extensions needs to be installed first otherwise the versions from the pyodide lockfile is used which is incompatible with the latest fastapi.
-	await micropip.install(["markdown-it-py[linkify]~=2.2.0"]); // On 3rd June 2023, markdown-it-py 3.0.0 has been released. The `gradio` package depends on its `>=2.0.0` version so its 3.x will be resolved. However, it conflicts with `mdit-py-plugins`'s dependency `markdown-it-py >=1.0.0,<3.0.0` and micropip currently can't resolve it. So we explicitly install the compatible version of the library here.
-	await micropip.install(["anyio==3.*"]); // `fastapi` depends on `anyio>=3.4.0,<5` so its 4.* can be installed, but it conflicts with the anyio version `httpx` depends on, `==3.*`. Seems like micropip can't resolve it for now, so we explicitly install the compatible version of the library here.
+	await micropip.add_mock_package("ffmpy", "0.3.0");
 	await micropip.add_mock_package("pydantic", "2.4.2"); // PydanticV2 is not supported on Pyodide yet. Mock it here for installing the `gradio` package to pass the version check. Then, install PydanticV1 below.
+	await micropip.install.callKwargs(
+		[
+			"typing-extensions>=4.8.0", // Typing extensions needs to be installed first otherwise the versions from the pyodide lockfile is used which is incompatible with the latest fastapi.
+			"markdown-it-py[linkify]~=2.2.0", // On 3rd June 2023, markdown-it-py 3.0.0 has been released. The `gradio` package depends on its `>=2.0.0` version so its 3.x will be resolved. However, it conflicts with `mdit-py-plugins`'s dependency `markdown-it-py >=1.0.0,<3.0.0` and micropip currently can't resolve it. So we explicitly install the compatible version of the library here.
+			"anyio==3.*", // `fastapi` depends on `anyio>=3.4.0,<5` so its 4.* can be installed, but it conflicts with the anyio version `httpx` depends on, `==3.*`. Seems like micropip can't resolve it for now, so we explicitly install the compatible version of the library here.
+			"fastapi<0.111.0" // `fastapi==0.111.0` added `ujson` as a dependency, but it's not available on Pyodide yet.
+		],
+		{ keep_going: true }
+	);
 	await micropip.install.callKwargs(gradioWheelUrls, {
 		keep_going: true
 	});
