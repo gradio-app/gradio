@@ -56,7 +56,7 @@ export function submit(
 		);
 
 		let websocket: WebSocket;
-		let event_source: EventSource | null;
+		let stream: EventSource | null;
 		let protocol = config.protocol ?? "ws";
 
 		const _endpoint = typeof endpoint === "number" ? "/predict" : endpoint;
@@ -125,7 +125,7 @@ export function submit(
 				}
 				cancel_request = { fn_index, session_hash };
 			} else {
-				event_source?.close();
+				stream?.close();
 				cancel_request = { event_id };
 			}
 
@@ -368,15 +368,15 @@ export function submit(
 						}${params}`
 					);
 
-					event_source = this.eventSource_factory(url);
+					stream = this.stream_factory(url);
 
-					if (!event_source) {
+					if (!stream) {
 						throw new Error(
 							"Cannot connect to sse endpoint: " + url.toString()
 						);
 					}
 
-					event_source.onmessage = async function (event: MessageEvent) {
+					stream.onmessage = async function (event: MessageEvent) {
 						const _data = JSON.parse(event.data);
 						const { type, status, data } = handle_message(
 							_data,
@@ -393,7 +393,7 @@ export function submit(
 								...status
 							});
 							if (status.stage === "error") {
-								event_source?.close();
+								stream?.close();
 							}
 						} else if (type === "data") {
 							event_id = _data.event_id as string;
@@ -412,7 +412,7 @@ export function submit(
 									fn_index,
 									time: new Date()
 								});
-								event_source?.close();
+								stream?.close();
 							}
 						} else if (type === "complete") {
 							complete = status;
@@ -456,7 +456,7 @@ export function submit(
 									endpoint: _endpoint,
 									fn_index
 								});
-								event_source?.close();
+								stream?.close();
 							}
 						}
 					};
@@ -627,7 +627,7 @@ export function submit(
 										time: new Date()
 									});
 									if (["sse_v2", "sse_v2.1"].includes(protocol)) {
-										close_stream(stream_status, event_source);
+										close_stream(stream_status, stream);
 										stream_status.open = false;
 									}
 								}

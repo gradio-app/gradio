@@ -16,22 +16,22 @@ export function open_stream(this: Client): void {
 
 	stream_status.open = true;
 
-	let event_source: EventSource | null = null;
+	let stream: EventSource | null = null;
 	let params = new URLSearchParams({
 		session_hash: this.session_hash
 	}).toString();
 
 	let url = new URL(`${config.root}/queue/data?${params}`);
-	event_source = this.eventSource_factory(url);
+	stream = this.stream_factory(url);
 
-	if (!event_source) {
+	if (!stream) {
 		throw new Error("Cannot connect to sse endpoint: " + url.toString());
 	}
 
-	event_source.onmessage = async function (event: MessageEvent) {
+	stream.onmessage = async function (event: MessageEvent) {
 		let _data = JSON.parse(event.data);
 		if (_data.msg === "close_stream") {
-			close_stream(stream_status, event_source);
+			close_stream(stream_status, stream);
 			return;
 		}
 		const event_id = _data.event_id;
@@ -50,7 +50,7 @@ export function open_stream(this: Client): void {
 			) {
 				unclosed_events.delete(event_id);
 				if (unclosed_events.size === 0) {
-					close_stream(stream_status, event_source);
+					close_stream(stream_status, stream);
 				}
 			}
 			let fn: (data: any) => void = event_callbacks[event_id];
@@ -67,7 +67,7 @@ export function open_stream(this: Client): void {
 			pending_stream_messages[event_id].push(_data);
 		}
 	};
-	event_source.onerror = async function () {
+	stream.onerror = async function () {
 		await Promise.all(
 			Object.keys(event_callbacks).map((event_id) =>
 				// @ts-ignore
@@ -77,17 +77,17 @@ export function open_stream(this: Client): void {
 				})
 			)
 		);
-		close_stream(stream_status, event_source);
+		close_stream(stream_status, stream);
 	};
 }
 
 export function close_stream(
 	stream_status: { open: boolean },
-	event_source: EventSource | null
+	stream: EventSource | null
 ): void {
-	if (stream_status && event_source) {
+	if (stream_status && stream) {
 		stream_status.open = false;
-		event_source?.close();
+		stream?.close();
 	}
 }
 

@@ -87,7 +87,7 @@
 	export let container: boolean;
 	export let info: boolean;
 	export let eager: boolean;
-	let eventSource: EventSource;
+	let stream: EventSource;
 
 	// These utilities are exported to be injectable for the Wasm version.
 	export let mount_css: typeof default_mount_css = default_mount_css;
@@ -301,13 +301,13 @@
 			setTimeout(() => {
 				const { host } = new URL(api_url);
 				let url = new URL(`http://${host}/dev/reload`);
-				eventSource = new EventSource(url);
-				eventSource.addEventListener("error", async (e) => {
+				stream = new EventSource(url);
+				stream.addEventListener("error", async (e) => {
 					new_message_fn("Error reloading app", "error");
 					// @ts-ignore
 					console.error(JSON.parse(e.data));
 				});
-				eventSource.addEventListener("reload", async (event) => {
+				stream.addEventListener("reload", async (event) => {
 					app.close();
 					app = await Client.connect(api_url, {
 						status_callback: handle_status

@@ -6,7 +6,7 @@ import type { SvelteComponent } from "svelte";
 import { WorkerProxy, type WorkerProxyOptions } from "@gradio/wasm";
 import { Client } from "@gradio/client";
 import { wasm_proxied_fetch } from "./fetch";
-import { wasm_proxied_EventSource_factory } from "./sse";
+import { wasm_proxied_stream_factory } from "./sse";
 import { wasm_proxied_mount_css, mount_prebuilt_css } from "./css";
 import type { mount_css } from "../css";
 import Index from "../Index.svelte";
@@ -134,8 +134,8 @@ export function create(options: Options): GradioAppController {
 			return wasm_proxied_fetch(worker_proxy, input, init);
 		}
 
-		eventSource_factory(url: URL): EventSource {
-			return wasm_proxied_EventSource_factory(worker_proxy, url);
+		stream_factory(url: URL): EventSource {
+			return wasm_proxied_stream_factory(worker_proxy, url);
 		}
 	}
 
