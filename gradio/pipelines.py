@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from gradio.pipelines_utils import (
     handle_diffusers_pipeline,
+    handle_transformers_js_pipeline,
     handle_transformers_pipeline,
 )
 
@@ -77,9 +78,39 @@ def load_from_pipeline(
 
     # define the title/description of the Interface
     interface_info["title"] = (
-        pipeline.model.__class__.__name__
+        pipeline.model.config.name_or_path
         if str(type(pipeline).__module__).startswith("transformers.pipelines")
         else pipeline.__class__.__name__
     )
 
+    return interface_info
+
+
+def load_from_js_pipeline(pipeline) -> dict:
+    if str(type(pipeline).__module__).startswith("transformers_js_py."):
+        pipeline_info = handle_transformers_js_pipeline(pipeline)
+    else:
+        raise ValueError("pipeline must be a transformers_js_py's pipeline")
+
+    async def fn(*params):
+        preprocess = pipeline_info["preprocess"]
+        postprocess = pipeline_info["postprocess"]
+        postprocess_takes_inputs = pipeline_info.get("postprocess_takes_inputs", False)
+
+        preprocessed_params = preprocess(*params) if preprocess else params
+        pipeline_output = await pipeline(*preprocessed_params)
+        postprocessed_output = (
+            postprocess(pipeline_output, *(params if postprocess_takes_inputs else ()))
+            if postprocess
+            else pipeline_output
+        )
+
+        return postprocessed_output
+
+    interface_info = {
+        "fn": fn,
+        "inputs": pipeline_info["inputs"],
+        "outputs": pipeline_info["outputs"],
+        "title": f"{pipeline.task} ({pipeline.model.config._name_or_path})",
+    }
     return interface_info
