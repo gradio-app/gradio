@@ -78,7 +78,7 @@
 			file_types={["image"]}
 			i18n={gradio.i18n}
 			upload={gradio.client.upload}
-			stream_handler={gradio.client.eventSource_factory}
+			stream_handler={gradio.client.stream_factory}
 			on:upload={(e) => {
 				const files = Array.isArray(e.detail) ? e.detail : [e.detail];
 				value = files.map((x) => ({ image: x, caption: null }));
@@ -112,7 +112,7 @@
 			{show_share_button}
 			{show_download_button}
 			i18n={gradio.i18n}
-			fetch_implementation={gradio.client.fetch_implementation}
+			_fetch={gradio.client.fetch}
 		/>
 	{/if}
 </Block>
