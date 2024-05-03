@@ -11,7 +11,7 @@ You will just write Python code within a static HTML file and host it without se
 
 ### Gradio-Lite
 
-Gradio-Lite is the serverless version of Gradio, allowing you to build serverless web UI applications by embedding Python code within HTML. For a detailed introduction to Gradio-Lite itself, please read [this article](./gradio-lite).
+Gradio-Lite is the serverless version of Gradio, allowing you to build serverless web UI applications by embedding Python code within HTML. For a detailed introduction to Gradio-Lite itself, please read [this Guide](./gradio-lite).
 
 ### Transformers.js and Transformers.js.py
 
@@ -49,7 +49,7 @@ transformers-js-py
 </html>
 ```
 
-Here is a running example of the code above:
+Here is a running example of the code above (after the app has loaded, you could disconnect your Internet connection and the app will still work since its running entirely in your browser):
 
 <gradio-lite shared-worker>
 import gradio as gr
@@ -80,7 +80,7 @@ For more information on the available pipeline types and usage, please refer to 
 
 Finally, `demo.launch()` launches the created app.
 
-## Customizing the Sample
+## Customizing the Model or Pipeline
 
 You can modify the line `pipe = await pipeline('sentiment-analysis')` in the sample above to try different models or tasks.
 
@@ -120,9 +120,13 @@ transformers-js-py
 </gradio-requirements>
 </gradio-lite>
 
-## Another Sample: Defining the Interface Manually
+<br>
 
-Instead of using `gr.Interface.from_pipeline()`, you can define the interface using Gradio's regular API.
+**Note**: If you use an audio pipeline, such as `automatic-speech-recognition`, you will need to put `transformers-js-py[audio]` in your `<gradio-requirements>` as there are additional requirements needed to process audio files.
+
+## Customizing the UI
+
+Instead of using `gr.Interface.from_pipeline()`, you can define the user interface using Gradio's regular API.
 Here's an example where the Python code inside the `<gradio-lite>` tag has been modified from the previous sample:
 
 ```html
@@ -158,7 +162,7 @@ transformers-js-py
 </html>
 ```
 
-In this example, we modified the code to construct the Gradio interface manually that takes a text input and outputs the result as JSON.
+In this example, we modified the code to construct the Gradio user interface manually so that we could output the result as JSON.
 
 <gradio-lite shared-worker>
 import gradio as gr
@@ -191,4 +195,4 @@ This method automatically constructs the interface based on the pipeline's task 
 
 Alternatively, you can define the interface manually using Gradio's regular API, as shown in the second example.
 
-By using these libraries, you can build and deploy machine learning applications without the need for server-side Python setup.
+By using these libraries, you can build and deploy machine learning applications without the need for server-side Python setup or external dependencies.
