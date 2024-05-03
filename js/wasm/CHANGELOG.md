@@ -1,5 +1,11 @@
 # @gradio/wasm
 
+## 0.10.1
+
+### Fixes
+
+- [#8204](https://github.com/gradio-app/gradio/pull/8204) [`376dfaa`](https://github.com/gradio-app/gradio/commit/376dfaaa808866cc114eff3cf1635746c3c50c5d) - Specify the fastapi version on Lite to avoid ujson installation which is not available on Pyodide yet.  Thanks @whitphx!
+
 ## 0.10.0
 
 ### Features

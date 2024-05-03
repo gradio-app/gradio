@@ -1,5 +1,17 @@
 # website
 
+## 0.28.0
+
+### Features
+
+- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9.  Thanks @renovate!
+- [#8189](https://github.com/gradio-app/gradio/pull/8189) [`68dcae5`](https://github.com/gradio-app/gradio/commit/68dcae512c0fb699304446c3b1ae2afaba1a63d2) - Use workspace version for code in _website.  Thanks @aliabd!
+- [#8152](https://github.com/gradio-app/gradio/pull/8152) [`989fe25`](https://github.com/gradio-app/gradio/commit/989fe2566fc93e4f67dc86a869dc30e83404c7ab) - Make guide for tailwind more verbose.  Thanks @duerrsimon!
+
+### Dependency updates
+
+- @gradio/code@0.6.1
+
 ## 0.27.0
 
 ### Features

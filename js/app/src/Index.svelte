@@ -63,7 +63,7 @@
 </script>
 
 <script lang="ts">
-	import { onMount, setContext, createEventDispatcher } from "svelte";
+	import { onMount, createEventDispatcher } from "svelte";
 	import type { SpaceStatus } from "@gradio/client";
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./types";
@@ -87,7 +87,7 @@
 	export let container: boolean;
 	export let info: boolean;
 	export let eager: boolean;
-	let eventSource: EventSource;
+	let stream: EventSource;
 
 	// These utilities are exported to be injectable for the Wasm version.
 	export let mount_css: typeof default_mount_css = default_mount_css;
@@ -100,11 +100,6 @@
 			loading_text = (event as CustomEvent).detail + "...";
 		});
 	}
-	export let fetch_implementation: typeof fetch = fetch;
-	setContext("fetch_implementation", fetch_implementation);
-	export let EventSource_factory: (url: URL) => EventSource = (url) =>
-		new EventSource(url);
-	setContext("EventSource_factory", EventSource_factory);
 
 	export let space: string | null;
 	export let host: string | null;
@@ -274,7 +269,7 @@
 			BUILD_MODE === "dev" || gradio_dev_mode === "dev"
 				? `http://localhost:${
 						typeof server_port === "number" ? server_port : 7860
-				  }`
+					}`
 				: host || space || src || location.origin;
 
 		app = await Client.connect(api_url, {
@@ -306,8 +301,13 @@
 			setTimeout(() => {
 				const { host } = new URL(api_url);
 				let url = new URL(`http://${host}/dev/reload`);
-				eventSource = new EventSource(url);
-				eventSource.addEventListener("reload", async (event) => {
+				stream = new EventSource(url);
+				stream.addEventListener("error", async (e) => {
+					new_message_fn("Error reloading app", "error");
+					// @ts-ignore
+					console.error(JSON.parse(e.data));
+				});
+				stream.addEventListener("reload", async (event) => {
 					app.close();
 					app = await Client.connect(api_url, {
 						status_callback: handle_status
@@ -329,8 +329,8 @@
 		!ready && status.load_status !== "error"
 			? "pending"
 			: !ready && status.load_status === "error"
-			? "error"
-			: status.load_status;
+				? "error"
+				: status.load_status;
 
 	$: config && (eager || $intersecting[_id]) && load_demo();
 
@@ -376,6 +376,8 @@
 			);
 		}
 	};
+
+	let new_message_fn: (message: string, type: string) => void;
 
 	onMount(async () => {
 		intersecting.register(_id, wrapper);
@@ -454,6 +456,7 @@
 			{autoscroll}
 			bind:ready
 			bind:render_complete
+			bind:add_new_message={new_message_fn}
 			show_footer={!is_embed}
 			{app_mode}
 			{version}

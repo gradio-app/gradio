@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/app",
-	"version": "1.33.0",
+	"version": "1.34.0",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -10,7 +10,7 @@
 		"dev:lite:worker": "pnpm --filter @gradio/wasm dev",
 		"build": "vite build --mode production --emptyOutDir",
 		"cssbuild": "python ../../scripts/generate_theme.py --outfile ./src/lite/theme.css",
-		"pybuild:gradio": "cd ../../  && python -m build",
+		"pybuild:gradio": "cd ../../ && hatch build -t lite",
 		"pybuild:gradio-client": "cd ../../client/python && python -m build",
 		"pybuild": "run-p pybuild:*",
 		"build:lite": "pnpm pybuild && pnpm cssbuild && pnpm --filter @gradio/client build && pnpm --filter @gradio/wasm build && vite build --mode production:lite",
@@ -77,8 +77,10 @@
 		"@gradio/utils": "workspace:^",
 		"@gradio/video": "workspace:^",
 		"@gradio/wasm": "workspace:^",
+		"@types/eventsource": "^1.1.15",
 		"cross-env": "^7.0.3",
 		"d3-dsv": "^3.0.1",
+		"eventsource": "^2.0.2",
 		"mime-types": "^2.1.34",
 		"postcss": "^8.4.21",
 		"postcss-prefix-selector": "^1.16.0"

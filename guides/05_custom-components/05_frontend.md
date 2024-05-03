@@ -55,7 +55,7 @@ export let mode: "static" | "interactive";
 
 A minimal `Index.svelte` file would look like:
 
-```typescript
+```svelte
 <script lang="ts">
 	import type { LoadingStatus } from "@gradio/statustracker";
     import { Block } from "@gradio/atoms";
@@ -119,7 +119,7 @@ The `Example.svelte` file should expose the following props:
 
 This is the `Example.svelte` file for the code `Radio` component:
 
-```typescript
+```svelte
 <script lang="ts">
 	export let value: string;
 	export let type: "gallery" | "table";
@@ -154,9 +154,8 @@ The `upload` function will upload an array of `FileData` values to the server.
 Here's an example of loading files from an `<input>` element when its value changes.
 
 
-```typescript
+```svelte
 <script lang="ts">
-
     import { upload, prepare_files, type FileData } from "@gradio/client";
     export let root;
     export let value;
@@ -218,7 +217,7 @@ This means that you can use them to save yourself time while incorporating commo
 For example, the `@gradio/upload` package has `Upload` and `ModifyUpload` components for properly uploading files to the Gradio server. 
 Here is how you can use them to create a user interface to upload and display PDF files.
 
-```typescript
+```svelte
 <script>
 	import { type FileData, Upload, ModifyUpload } from "@gradio/upload";
 	import { Empty, UploadText, BlockLabel } from "@gradio/atoms";
@@ -267,21 +266,100 @@ Vite options:
 
 Svelte options:
 - `preprocess`: A list of svelte preprocessors to use.
+- `extensions`: A list of file extensions to compile to `.svelte` files.
 
-The `gradio.config.js` file should be placed in the root of your component's `frontend` directory. A default config file is created for you when you create a new component. But you can also create your own config file and use it to customize your component's build process.
+The `gradio.config.js` file should be placed in the root of your component's `frontend` directory. A default config file is created for you when you create a new component. But you can also create your own config file, if one doesn't exist, and use it to customize your component's build process.
+
+### Example for a Vite plugin
+
+Custom components can use Vite plugins to customize the build process. Check out the [Vite Docs](https://vitejs.dev/guide/using-plugins.html) for more information. 
+
+Here we configure [TailwindCSS](https://tailwindcss.com), a utility-first CSS framework. Setup is easiest using the version 4 prerelease. 
+
+```
+npm install tailwindcss@next @tailwindcss/vite@next
+```
+
+In `gradio.config.js`:
 
 ```typescript
 import tailwindcss from "@tailwindcss/vite";
+export default {
+    plugins: [tailwindcss()]
+};
+```
+
+Then create a `style.css` file with the following content:
+
+```css
+@import "tailwindcss";
+```
+
+Import this file into `Index.svelte`. Note, that you need to import the css file containing `@import` and cannot just use a `<style>` tag and use `@import` there. 
+
+```svelte
+<script lang="ts">
+[...]
+import "./style.css";
+[...]
+</script>
+```
+
+### Example for Svelte options
+
+In `gradio.config.js` you can also specify a some Svelte options to apply to the Svelte compilation. In this example we will add support for [`mdsvex`](https://mdsvex.pngwn.io), a Markdown preprocessor for Svelte. 
+
+In order to do this we will need to add a [Svelte Preprocessor](https://svelte.dev/docs/svelte-compiler#preprocess) to the `svelte` object in `gradio.config.js` and configure the [`extensions`](https://github.com/sveltejs/vite-plugin-svelte/blob/HEAD/docs/config.md#config-file) field. Other options are not currently supported.
+
+First, install the `mdsvex` plugin:
+
+```bash
+npm install mdsvex
+```
+
+Then add the following to `gradio.config.js`:
+
+```typescript
 import { mdsvex } from "mdsvex";
 
 export default {
-    plugins: [tailwindcss()],
     svelte: {
         preprocess: [
             mdsvex()
-        ]
+        ],
+        extensions: [".svelte", ".svx"]
     }
 };
+```
+
+Now we can create `mdsvex` documents in our component's `frontend` directory and they will be compiled to `.svelte` files.
+
+```md
+<!-- HelloWorld.svx -->
+
+<script lang="ts">
+    import { Block } from "@gradio/atoms";
+
+    export let title = "Hello World";
+</script>
+
+<Block label="Hello World">
+
+# {title}
+
+This is a markdown file.
+
+</Block>
+```
+
+We can then use the `HelloWorld.svx` file in our components:
+
+```svelte
+<script lang="ts">
+    import HelloWorld from "./HelloWorld.svx";
+</script>
+
+<HelloWorld />
 ```
 
 ## Conclusion

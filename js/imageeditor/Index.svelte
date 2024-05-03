@@ -54,6 +54,7 @@
 	export let server: {
 		accept_blobs: (a: any) => void;
 	};
+	export let canvas_size: [number, number] | undefined;
 
 	export let gradio: Gradio<{
 		change: never;
@@ -175,6 +176,7 @@
 		/>
 
 		<InteractiveImageEditor
+			{canvas_size}
 			on:change={() => handle_history_change()}
 			bind:image_id
 			{crop_size}
@@ -199,11 +201,14 @@
 			{brush}
 			{eraser}
 			changeable={attached_events.includes("apply")}
+			realtime={attached_events.includes("change")}
 			i18n={gradio.i18n}
 			{transforms}
 			accept_blobs={server.accept_blobs}
 			{layers}
 			status={loading_status?.status}
+			upload={gradio.client.upload}
+			stream_handler={gradio.client.stream_factory}
 		></InteractiveImageEditor>
 	</Block>
 {/if}

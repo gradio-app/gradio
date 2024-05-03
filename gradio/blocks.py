@@ -1957,6 +1957,7 @@ Received outputs:
             "analytics_enabled": self.analytics_enabled,
             "components": [],
             "css": self.css,
+            "connect_heartbeat": False,
             "js": self.js,
             "head": self.head,
             "title": self.title or "Gradio",
@@ -1984,6 +1985,17 @@ Received outputs:
             "fill_height": self.fill_height,
         }
         config.update(self.default_config.get_config())
+        any_state = any(
+            isinstance(block, components.State) for block in self.blocks.values()
+        )
+        any_unload = False
+        for dep in config["dependencies"]:
+            for target in dep["targets"]:
+                if isinstance(target, (list, tuple)) and len(target) == 2:
+                    any_unload = target[1] == "unload"
+                    if any_unload:
+                        break
+        config["connect_heartbeat"] = any_state or any_unload
 
         return config
 
@@ -2106,7 +2118,7 @@ Received outputs:
         ssl_keyfile_password: str | None = None,
         ssl_verify: bool = True,
         quiet: bool = False,
-        show_api: bool = True,
+        show_api: bool = not wasm_utils.IS_WASM,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
         root_path: str | None = None,
@@ -2481,18 +2493,21 @@ Received outputs:
             }
             analytics.launched_analytics(self, data)
 
-        # Block main thread if debug==True
-        if debug or int(os.getenv("GRADIO_DEBUG", "0")) == 1 and not wasm_utils.IS_WASM:
-            self.block_thread()
-        # Block main thread if running in a script to stop script from exiting
         is_in_interactive_mode = bool(getattr(sys, "ps1", sys.flags.interactive))
 
+        # Block main thread if debug==True
         if (
-            not prevent_thread_lock
-            and not is_in_interactive_mode
-            # In the Wasm env, we don't have to block the main thread because the server won't be shut down after the execution finishes.
-            # Moreover, we MUST NOT do it because there is only one thread in the Wasm env and blocking it will stop the subsequent code from running.
+            debug
+            or int(os.getenv("GRADIO_DEBUG", "0")) == 1
             and not wasm_utils.IS_WASM
+            or (
+                # Block main thread if running in a script to stop script from exiting
+                not prevent_thread_lock
+                and not is_in_interactive_mode
+                # In the Wasm env, we don't have to block the main thread because the server won't be shut down after the execution finishes.
+                # Moreover, we MUST NOT do it because there is only one thread in the Wasm env and blocking it will stop the subsequent code from running.
+                and not wasm_utils.IS_WASM
+            )
         ):
             self.block_thread()
 
