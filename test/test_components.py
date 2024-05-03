@@ -641,6 +641,7 @@ class TestImageEditor:
             "server_fns": ["accept_blobs"],
             "format": "webp",
             "layers": True,
+            "canvas_size": None,
         }
 
     def test_process_example(self):

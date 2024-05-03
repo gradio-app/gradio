@@ -133,7 +133,7 @@ class ImageEditor(Component):
         image_mode: Literal[
             "1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "LAB", "HSV", "I", "F"
         ] = "RGBA",
-        sources: Iterable[Literal["upload", "webcam", "clipboard"]] = (
+        sources: Iterable[Literal["upload", "webcam", "clipboard"]] | None = (
             "upload",
             "webcam",
             "clipboard",
@@ -160,12 +160,13 @@ class ImageEditor(Component):
         brush: Brush | None | Literal[False] = None,
         format: str = "webp",
         layers: bool = True,
+        canvas_size: tuple[int, int] | None = None,
     ):
         """
         Parameters:
             value: Optional initial image(s) to populate the image editor. Should be a dictionary with keys: `background`, `layers`, and `composite`. The values corresponding to `background` and `composite` should be images or None, while `layers` should be a list of images. Images can be of type PIL.Image, np.array, or str filepath/URL. Or, the value can be a callable, in which case the function will be called whenever the app loads to set the initial value of the component.
-            height: The height of the displayed images, specified in pixels if a number is passed, or in CSS units if a string is passed.
-            width: The width of the displayed images, specified in pixels if a number is passed, or in CSS units if a string is passed.
+            height: The height of the component container, specified in pixels if a number is passed, or in CSS units if a string is passed.
+            width: The width of the component container, specified in pixels if a number is passed, or in CSS units if a string is passed.
             image_mode: "RGB" if color, or "L" if black and white. See https://pillow.readthedocs.io/en/stable/handbook/concepts.html for other supported image modes and their meaning.
             sources: List of sources that can be used to set the background image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "clipboard" allows users to paste an image from the clipboard.
             type: The format the images are converted to before being passed into the prediction function. "numpy" converts the images to numpy arrays with shape (height, width, 3) and values from 0 to 255, "pil" converts the images to PIL image objects, "filepath" passes images as str filepaths to temporary copies of the images.
@@ -189,7 +190,7 @@ class ImageEditor(Component):
             brush: The options for the brush tool in the image editor. Should be an instance of the `gr.Brush` class, or None to use the default settings. Can also be False to hide the brush tool, which will also hide the eraser tool.
             format: Format to save image if it does not already have a valid format (e.g. if the image is being returned to the frontend as a numpy array or PIL Image).  The format should be supported by the PIL library. This parameter has no effect on SVG files.
             layers: If True, will allow users to add layers to the image. If False, the layers option will be hidden.
-
+            canvas_size: The size of the default canvas in pixels. If a tuple, the first value is the width and the second value is the height. If None, the canvas size will be the same as the background image or 800 x 600 if no background image is provided.
         """
         self._selectable = _selectable
         self.mirror_webcam = mirror_webcam
@@ -205,12 +206,15 @@ class ImageEditor(Component):
         valid_sources = ["upload", "webcam", "clipboard"]
         if isinstance(sources, str):
             sources = [sources]  # type: ignore
-        for source in sources:
-            if source not in valid_sources:
-                raise ValueError(
-                    f"`sources` must be a list consisting of elements in {valid_sources}"
-                )
-        self.sources = sources
+        if sources is not None:
+            for source in sources:
+                if source not in valid_sources:
+                    raise ValueError(
+                        f"`sources` must be a list consisting of elements in {valid_sources}"
+                    )
+            self.sources = sources
+        else:
+            self.sources = []
 
         self.show_download_button = show_download_button
 
@@ -227,6 +231,7 @@ class ImageEditor(Component):
         self.blob_storage: dict[str, EditorDataBlobs] = {}
         self.format = format
         self.layers = layers
+        self.canvas_size = canvas_size
 
         super().__init__(
             label=label,
