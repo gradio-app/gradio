@@ -17,7 +17,7 @@ describe("open_stream", () => {
 
 	beforeEach(async () => {
 		app = await Client.connect("hmb/hello_world");
-		app.eventSource_factory = vi.fn().mockImplementation(() => {
+		app.stream_factory = vi.fn().mockImplementation(() => {
 			mock_eventsource = new EventSource("");
 			return mock_eventsource;
 		});
@@ -38,13 +38,13 @@ describe("open_stream", () => {
 	it("should connect to the SSE endpoint and handle messages", async () => {
 		app.open_stream();
 
-		const eventsource_mock_call = app.eventSource_factory.mock.calls[0][0];
+		const eventsource_mock_call = app.stream_factory.mock.calls[0][0];
 
 		expect(eventsource_mock_call.href).toMatch(
 			/https:\/\/hmb-hello-world\.hf\.space\/queue\/data\?session_hash/
 		);
 
-		expect(app.eventSource_factory).toHaveBeenCalledWith(eventsource_mock_call);
+		expect(app.stream_factory).toHaveBeenCalledWith(eventsource_mock_call);
 
 		const onMessageCallback = mock_eventsource.onmessage;
 		const onErrorCallback = mock_eventsource.onerror;
