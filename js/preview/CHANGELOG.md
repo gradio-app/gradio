@@ -1,5 +1,11 @@
 # @gradio/preview
 
+## 0.9.0
+
+### Features
+
+- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9.  Thanks @renovate!
+
 ## 0.8.3
 
 ### Fixes
