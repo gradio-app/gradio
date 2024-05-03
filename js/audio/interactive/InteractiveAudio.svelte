@@ -1,12 +1,7 @@
 <script lang="ts">
-	import { getContext, onDestroy, createEventDispatcher } from "svelte";
+	import { onDestroy, createEventDispatcher } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
-	import {
-		upload,
-		prepare_files,
-		type FileData,
-		type upload_files
-	} from "@gradio/client";
+	import { prepare_files, type FileData, type Client } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Music } from "@gradio/icons";
 	import AudioPlayer from "../player/AudioPlayer.svelte";
@@ -39,9 +34,8 @@
 	export let handle_reset_value: () => void = () => {};
 	export let editable = true;
 	export let max_file_size: number | null = null;
-
-	// Needed for wasm support
-	const upload_fn = getContext<typeof upload_files>("upload_files");
+	export let upload: Client["upload"];
+	export let stream_handler: Client["stream_factory"];
 
 	$: dispatch("drag", dragging);
 
@@ -98,9 +92,9 @@
 		let _audio_blob = new File(blobs, "audio.wav");
 		const val = await prepare_files([_audio_blob], event === "stream");
 		value = (
-			(
-				await upload(val, root, undefined, max_file_size ?? Infinity, upload_fn)
-			)?.filter(Boolean) as FileData[]
+			(await upload(val, root, undefined, max_file_size || undefined))?.filter(
+				Boolean
+			) as FileData[]
 		)[0];
 
 		dispatch(event, value);
@@ -130,9 +124,8 @@
 		}
 		if (stream == null) return;
 		if (streaming) {
-			const [{ MediaRecorder, register }, { connect }] = await Promise.all(
-				module_promises
-			);
+			const [{ MediaRecorder, register }, { connect }] =
+				await Promise.all(module_promises);
 			await register(await connect());
 			recorder = new MediaRecorder(stream, { mimeType: "audio/wav" });
 			recorder.addEventListener("dataavailable", handle_chunk);
@@ -257,6 +250,8 @@
 				on:error={({ detail }) => dispatch("error", detail)}
 				{root}
 				{max_file_size}
+				{upload}
+				{stream_handler}
 			>
 				<slot />
 			</Upload>

@@ -1,5 +1,33 @@
 # gradio_client
 
+## 0.16.1
+
+### Highlights
+
+#### Support custom components in gr.load ([#8200](https://github.com/gradio-app/gradio/pull/8200) [`72039be`](https://github.com/gradio-app/gradio/commit/72039be93acda856d92ceac7f21f1ec1a054fae2))
+
+It is now possible to load a demo with a custom component with `gr.load`.
+
+The custom component must be installed in your system and imported in your python session.
+
+```python
+import gradio as gr
+import gradio_pdf
+
+demo = gr.load("freddyaboulton/gradiopdf", src="spaces")
+
+if __name__ == "__main__":
+    demo.launch()
+```
+
+<img width="1284" alt="image" src="https://github.com/gradio-app/gradio/assets/41651716/9c3e846b-f3f2-4c1c-8cb6-53a6d186aaa0">
+
+ Thanks @freddyaboulton!
+
+### Fixes
+
+- [#8182](https://github.com/gradio-app/gradio/pull/8182) [`39791eb`](https://github.com/gradio-app/gradio/commit/39791eb186d3a4ce82c8c27979a28311c37a4067) - Convert sse calls in client from async to sync.  Thanks @abidlabs!
+
 ## 0.16.0
 
 ### Highlights

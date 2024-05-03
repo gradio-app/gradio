@@ -228,7 +228,7 @@ Now for the fun part, actually rendering the text and files in the same message!
 
 You should see some code like the following that determines whether a file or a markdown message should be displayed depending on the type of the message:
 
-```ts
+```svelte
 {#if typeof message === "string"}
     <Markdown
         {message}
@@ -248,7 +248,7 @@ You should see some code like the following that determines whether a file or a 
 
 We will modify this code to always display the text message and then loop through the files and display all of them that are present:
 
-```ts
+```svelte
 <Markdown
     message={message.text}
     {latex_delimiters}

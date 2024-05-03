@@ -1,5 +1,74 @@
 # @gradio/app
 
+## 1.34.0
+
+### Features
+
+- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9.  Thanks @renovate!
+- [#8174](https://github.com/gradio-app/gradio/pull/8174) [`a81e369`](https://github.com/gradio-app/gradio/commit/a81e36967c0973012e90ec7cf03b99cf3fea88ec) - Remove hatch installation in js/app/package.json which is no longer needed.  Thanks @whitphx!
+- [#8209](https://github.com/gradio-app/gradio/pull/8209) [`b9afe93`](https://github.com/gradio-app/gradio/commit/b9afe93915401df5bd6737c89395c2477acfa585) - Rename `eventSource_Factory` and `fetch_implementation`.  Thanks @hannahblair!
+- [#8109](https://github.com/gradio-app/gradio/pull/8109) [`bed2f82`](https://github.com/gradio-app/gradio/commit/bed2f82e2297b50f7b59423a3de05af0b9910724) - Implement JS Client tests.  Thanks @hannahblair!
+- [#8106](https://github.com/gradio-app/gradio/pull/8106) [`d0a759f`](https://github.com/gradio-app/gradio/commit/d0a759f3df8b564e2f21421d448b24fecf287306) - Pass Error status in /dev/reload stream.  Thanks @freddyaboulton!
+- [#7855](https://github.com/gradio-app/gradio/pull/7855) [`611c927`](https://github.com/gradio-app/gradio/commit/611c9273a301e925b5aad93a19272dccd53c39fa) - Lite wheel optimization.  Thanks @whitphx!
+
+### Fixes
+
+- [#8179](https://github.com/gradio-app/gradio/pull/8179) [`6a218b4`](https://github.com/gradio-app/gradio/commit/6a218b4148095aaa0c58d8c20973ba01c8764fc2) - rework upload to be a class method + pass client into each component.  Thanks @pngwn!
+- [#8181](https://github.com/gradio-app/gradio/pull/8181) [`cf52ca6`](https://github.com/gradio-app/gradio/commit/cf52ca6a51320ece97f009a177792840b5fbc785) - Ensure connectivity to private HF spaces with SSE protocol.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/code@0.6.1
+- @gradio/atoms@0.7.2
+- @gradio/client@0.18.0
+- @gradio/upload@0.10.0
+- @gradio/utils@0.4.1
+- @gradio/wasm@0.10.1
+- @gradio/statustracker@0.5.1
+- @gradio/annotatedimage@0.6.0
+- @gradio/audio@0.11.0
+- @gradio/chatbot@0.10.0
+- @gradio/dataframe@0.8.0
+- @gradio/gallery@0.10.0
+- @gradio/highlightedtext@0.6.0
+- @gradio/image@0.11.0
+- @gradio/imageeditor@0.7.0
+- @gradio/multimodaltextbox@0.4.0
+- @gradio/textbox@0.6.0
+- @gradio/video@0.8.0
+- @gradio/file@0.7.0
+- @gradio/model3d@0.10.0
+- @gradio/simpleimage@0.5.0
+- @gradio/uploadbutton@0.6.1
+- @gradio/button@0.2.33
+- @gradio/dataset@0.1.33
+- @gradio/downloadbutton@0.1.10
+- @gradio/fileexplorer@0.4.1
+- @gradio/accordion@0.3.11
+- @gradio/checkbox@0.3.1
+- @gradio/checkboxgroup@0.5.1
+- @gradio/colorpicker@0.3.1
+- @gradio/column@0.1.1
+- @gradio/dropdown@0.7.1
+- @gradio/fallback@0.3.1
+- @gradio/form@0.1.16
+- @gradio/group@0.1.1
+- @gradio/html@0.2.1
+- @gradio/json@0.2.1
+- @gradio/label@0.3.1
+- @gradio/markdown@0.7.1
+- @gradio/number@0.4.1
+- @gradio/paramviewer@0.4.10
+- @gradio/plot@0.4.1
+- @gradio/radio@0.5.1
+- @gradio/row@0.1.2
+- @gradio/simpledropdown@0.2.1
+- @gradio/simpletextbox@0.2.1
+- @gradio/slider@0.4.1
+- @gradio/tabitem@0.2.8
+- @gradio/tabs@0.2.8
+- @gradio/box@0.1.16
+
 ## 1.33.0
 
 ### Highlights

@@ -88,11 +88,11 @@ export default defineConfig(({ mode }) => {
 								}
 							}
 						}
-				  }
+					}
 				: {
 						external: ["./svelte/svelte.js"],
 						makeAbsoluteExternalsRelative: false
-				  }
+					}
 		},
 
 		define: {
@@ -135,7 +135,7 @@ export default defineConfig(({ mode }) => {
 			resolve_svelte(development && !is_lite),
 
 			svelte({
-				inspector: true,
+				inspector: false,
 				compilerOptions: {
 					dev: true,
 					discloseVersion: false,
@@ -185,7 +185,7 @@ export default defineConfig(({ mode }) => {
 				// For the Wasm app to import the wheel file URLs.
 				"gradio.whl": resolve(
 					__dirname,
-					`../../dist/gradio-${version_raw}-py3-none-any.whl`
+					`../../dist-lite/gradio-${version_raw}-py3-none-any.whl`
 				),
 				"gradio_client.whl": resolve(
 					__dirname,

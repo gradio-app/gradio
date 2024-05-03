@@ -15,7 +15,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { type I18nFormatter } from "@gradio/utils";
-	import { prepare_files, upload, type FileData } from "@gradio/client";
+	import { prepare_files, type FileData, type Client } from "@gradio/client";
 
 	import ImageEditor from "./ImageEditor.svelte";
 	import Layers from "./layers/Layers.svelte";
@@ -44,6 +44,10 @@
 	export let layers: boolean;
 	export let accept_blobs: (a: any) => void;
 	export let status: "pending" | "complete" | "error" = "complete";
+	export let canvas_size: [number, number] | undefined;
+	export let realtime: boolean;
+	export let upload: Client["upload"];
+	export let stream_handler: Client["stream_factory"];
 
 	const dispatch = createEventDispatcher<{
 		clear?: never;
@@ -70,7 +74,7 @@
 			? upload(
 					await prepare_files([new File([blobs.background], "background.png")]),
 					root
-			  )
+				)
 			: Promise.resolve(null);
 
 		const layers = blobs.layers
@@ -83,7 +87,7 @@
 			? upload(
 					await prepare_files([new File([blobs.composite], "composite.png")]),
 					root
-			  )
+				)
 			: Promise.resolve(null);
 
 		const [background, composite_, ...layers_] = await Promise.all([
@@ -131,6 +135,7 @@
 	let uploading = false;
 	let pending = false;
 	async function handle_change(e: CustomEvent<Blob | any>): Promise<void> {
+		if (!realtime) return;
 		if (uploading) {
 			pending = true;
 			return;
@@ -199,6 +204,8 @@
 	label={label || i18n("image.image")}
 />
 <ImageEditor
+	{canvas_size}
+	crop_size={Array.isArray(crop_size) ? crop_size : undefined}
 	bind:this={editor}
 	bind:height={editor_height}
 	{changeable}
@@ -217,6 +224,8 @@
 			{i18n}
 			{root}
 			{sources}
+			{upload}
+			{stream_handler}
 			bind:bg
 			bind:active_mode
 			background_file={value?.background || value?.composite || null}

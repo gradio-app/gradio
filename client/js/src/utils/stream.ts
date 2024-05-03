@@ -7,7 +7,8 @@ export function open_stream(this: Client): void {
 		unclosed_events,
 		pending_stream_messages,
 		stream_status,
-		config
+		config,
+		jwt
 	} = this;
 
 	if (!config) {
@@ -16,31 +17,35 @@ export function open_stream(this: Client): void {
 
 	stream_status.open = true;
 
-	let event_source: EventSource | null = null;
+	let stream: EventSource | null = null;
 	let params = new URLSearchParams({
 		session_hash: this.session_hash
 	}).toString();
 
 	let url = new URL(`${config.root}/queue/data?${params}`);
-	event_source = this.eventSource_factory(url);
 
-	if (!event_source) {
-		throw new Error("Cannot connect to sse endpoint: " + url.toString());
+	if (jwt) {
+		url.searchParams.set("__sign", jwt);
 	}
 
-	event_source.onmessage = async function (event) {
+	stream = this.stream_factory(url);
+
+	if (!stream) {
+		console.warn("Cannot connect to SSE endpoint: " + url.toString());
+		return;
+	}
+
+	stream.onmessage = async function (event: MessageEvent) {
 		let _data = JSON.parse(event.data);
 		if (_data.msg === "close_stream") {
-			close_stream(stream_status, event_source);
+			close_stream(stream_status, stream);
 			return;
 		}
 		const event_id = _data.event_id;
 		if (!event_id) {
 			await Promise.all(
-				Object.keys(event_callbacks).map(
-					(event_id) =>
-						// @ts-ignore
-						event_callbacks[event_id](_data) // todo: check event_callbacks
+				Object.keys(event_callbacks).map((event_id) =>
+					event_callbacks[event_id](_data)
 				)
 			);
 		} else if (event_callbacks[event_id] && config) {
@@ -50,11 +55,16 @@ export function open_stream(this: Client): void {
 			) {
 				unclosed_events.delete(event_id);
 				if (unclosed_events.size === 0) {
-					close_stream(stream_status, event_source);
+					close_stream(stream_status, stream);
 				}
 			}
-			let fn = event_callbacks[event_id];
-			window.setTimeout(fn, 0, _data); // need to do this to put the event on the end of the event loop, so the browser can refresh between callbacks and not freeze in case of quick generations. See https://github.com/gradio-app/gradio/pull/7055
+			let fn: (data: any) => void = event_callbacks[event_id];
+
+			if (typeof window !== "undefined") {
+				window.setTimeout(fn, 0, _data); // need to do this to put the event on the end of the event loop, so the browser can refresh between callbacks and not freeze in case of quick generations. See https://github.com/gradio-app/gradio/pull/7055
+			} else {
+				setImmediate(fn, _data);
+			}
 		} else {
 			if (!pending_stream_messages[event_id]) {
 				pending_stream_messages[event_id] = [];
@@ -62,27 +72,26 @@ export function open_stream(this: Client): void {
 			pending_stream_messages[event_id].push(_data);
 		}
 	};
-	event_source.onerror = async function () {
+	stream.onerror = async function () {
 		await Promise.all(
 			Object.keys(event_callbacks).map((event_id) =>
-				// @ts-ignore
 				event_callbacks[event_id]({
 					msg: "unexpected_error",
 					message: BROKEN_CONNECTION_MSG
 				})
 			)
 		);
-		close_stream(stream_status, event_source);
+		close_stream(stream_status, stream);
 	};
 }
 
 export function close_stream(
 	stream_status: { open: boolean },
-	event_source: EventSource | null
+	stream: EventSource | null
 ): void {
-	if (stream_status && event_source) {
+	if (stream_status && stream) {
 		stream_status.open = false;
-		event_source?.close();
+		stream?.close();
 	}
 }
 

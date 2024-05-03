@@ -37,8 +37,8 @@
 					target.value === ""
 						? null
 						: isScoresMode
-						? Number(target.value)
-						: target.value
+							? Number(target.value)
+							: target.value
 			},
 			...value.slice(elementIndex + 1)
 		];

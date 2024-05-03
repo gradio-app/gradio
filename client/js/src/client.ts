@@ -14,6 +14,7 @@ import type {
 } from "./types";
 import { view_api } from "./utils/view_api";
 import { upload_files } from "./utils/upload_files";
+import { upload, FileData } from "./upload";
 import { handle_blob } from "./utils/handle_blob";
 import { post_data } from "./utils/post_data";
 import { predict } from "./utils/predict";
@@ -27,6 +28,7 @@ import {
 } from "./helpers/init_helpers";
 import { check_space_status } from "./helpers/spaces";
 import { open_stream } from "./utils/stream";
+import { API_INFO_ERROR_MSG, CONFIG_ERROR_MSG } from "./constants";
 
 export class NodeBlob extends Blob {
 	constructor(blobParts?: BlobPart[], options?: BlobPropertyBag) {
@@ -49,22 +51,27 @@ export class Client {
 	stream_status = { open: false };
 	pending_stream_messages: Record<string, any[][]> = {};
 	pending_diff_streams: Record<string, any[][]> = {};
-	event_callbacks: Record<string, () => Promise<void>> = {};
+	event_callbacks: Record<string, (data?: unknown) => Promise<void>> = {};
 	unclosed_events: Set<string> = new Set();
 	heartbeat_event: EventSource | null = null;
 
-	fetch_implementation(
-		input: RequestInfo | URL,
-		init?: RequestInit
-	): Promise<Response> {
+	fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 		return fetch(input, init);
 	}
 
-	eventSource_factory(url: URL): EventSource | null {
-		if (typeof window !== undefined && typeof EventSource !== "undefined") {
+	stream_factory(url: URL): EventSource | null {
+		if (typeof window === "undefined" || typeof EventSource === "undefined") {
+			import("eventsource")
+				.then((EventSourceModule) => {
+					return new EventSourceModule.default(url.toString());
+				})
+				.catch((error) =>
+					console.error("Failed to load EventSource module:", error)
+				);
+		} else {
 			return new EventSource(url.toString());
 		}
-		return null; // todo: polyfill eventsource for node envs
+		return null;
 	}
 
 	view_api: () => Promise<ApiInfo<JsApiData>>;
@@ -73,6 +80,12 @@ export class Client {
 		files: (Blob | File)[],
 		upload_id?: string
 	) => Promise<UploadResponse>;
+	upload: (
+		file_data: FileData[],
+		root_url: string,
+		upload_id?: string,
+		max_file_size?: number
+	) => Promise<(FileData | null)[] | null>;
 	handle_blob: (
 		endpoint: string,
 		data: unknown[],
@@ -95,7 +108,7 @@ export class Client {
 		event_data?: unknown
 	) => Promise<unknown>;
 	open_stream: () => void;
-	resolve_config: (endpoint: string) => Promise<Config | undefined>;
+	private resolve_config: (endpoint: string) => Promise<Config | undefined>;
 	constructor(app_reference: string, options: ClientOptions = {}) {
 		this.app_reference = app_reference;
 		this.options = options;
@@ -108,6 +121,7 @@ export class Client {
 		this.predict = predict.bind(this);
 		this.open_stream = open_stream.bind(this);
 		this.resolve_config = resolve_config.bind(this);
+		this.upload = upload.bind(this);
 	}
 
 	private async init(): Promise<void> {
@@ -125,12 +139,12 @@ export class Client {
 			await this._resolve_config().then(async ({ config }) => {
 				if (config) {
 					this.config = config;
-					if (this.config) {
+					if (this.config && this.config.connect_heartbeat) {
 						// connect to the heartbeat endpoint via GET request
 						const heartbeat_url = new URL(
 							`${this.config.root}/heartbeat/${this.session_hash}`
 						);
-						this.heartbeat_event = this.eventSource_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
+						this.heartbeat_event = this.stream_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
 
 						if (this.config.space_id && this.options.hf_token) {
 							this.jwt = await get_jwt(
@@ -142,7 +156,7 @@ export class Client {
 				}
 			});
 		} catch (e) {
-			throw Error(`Could not resolve config: ${e}`);
+			throw Error(CONFIG_ERROR_MSG + (e as Error).message);
 		}
 
 		this.api_info = await this.view_api();
@@ -182,7 +196,7 @@ export class Client {
 			config = await this.resolve_config(`${http_protocol}//${host}`);
 
 			if (!config) {
-				throw new Error("Could not resolve app config");
+				throw new Error(CONFIG_ERROR_MSG);
 			}
 
 			return this.config_success(config);
@@ -224,7 +238,7 @@ export class Client {
 		try {
 			this.api_info = await this.view_api();
 		} catch (e) {
-			console.error(`Could not get API details: ${(e as Error).message}`);
+			console.error(API_INFO_ERROR_MSG + (e as Error).message);
 		}
 
 		return this.prepare_return_obj();
@@ -237,7 +251,7 @@ export class Client {
 			try {
 				this.config = await this._resolve_config();
 				if (!this.config) {
-					throw new Error("Could not resolve app config");
+					throw new Error(CONFIG_ERROR_MSG);
 				}
 
 				const _config = await this.config_success(this.config);
@@ -263,7 +277,7 @@ export class Client {
 		data: unknown[] | { binary: boolean; data: Record<string, any> }
 	): Promise<unknown> {
 		if (!this.config) {
-			throw new Error("Could not resolve app config");
+			throw new Error(CONFIG_ERROR_MSG);
 		}
 
 		const headers: {
@@ -315,14 +329,11 @@ export class Client {
 		}
 
 		try {
-			const response = await this.fetch_implementation(
-				`${root_url}/component_server/`,
-				{
-					method: "POST",
-					body: body,
-					headers
-				}
-			);
+			const response = await this.fetch(`${root_url}/component_server/`, {
+				method: "POST",
+				body: body,
+				headers
+			});
 
 			if (!response.ok) {
 				throw new Error(
@@ -361,6 +372,21 @@ export async function client(
 	options: ClientOptions = {}
 ): Promise<Client> {
 	return await Client.connect(app_reference, options);
+}
+
+/**
+ * @deprecated This method will be removed in v1.0. Use `Client.duplicate()` instead.
+ * Creates a duplicate of a space and returns a client instance for the duplicated space.
+ *
+ * @param {string} app_reference - The reference or URL to a Gradio space or app to duplicate.
+ * @param {DuplicateOptions} options - Configuration options for the client.
+ * @returns {Promise<Client>} A promise that resolves to a `Client` instance.
+ */
+export async function duplicate_space(
+	app_reference: string,
+	options: DuplicateOptions
+): Promise<Client> {
+	return await Client.duplicate(app_reference, options);
 }
 
 export type ClientInstance = Client;

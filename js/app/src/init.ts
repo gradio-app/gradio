@@ -136,6 +136,9 @@ export function create_components(): {
 		});
 	}
 
+	/**
+	 * Rerender the layout when the config has been modified to attach new components
+	 */
 	function rerender_layout({
 		render_id,
 		components,
@@ -203,9 +206,7 @@ export function create_components(): {
 			] = instance_map[layout.id];
 		}
 
-		walk_layout(layout, root, current_element.parent).then(() => {
-			layout_store.set(instance_map[0]);
-		});
+		walk_layout(layout, root, current_element.parent);
 	}
 
 	async function walk_layout(
@@ -272,7 +273,6 @@ export function create_components(): {
 	function store_keyed_values(components: ComponentMeta[]): void {
 		components.forEach((c) => {
 			if (c.key != null) {
-				console.log(c.key, c.props.value);
 				keyed_component_values[c.key] = c.props.value;
 			}
 		});

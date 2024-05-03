@@ -89,7 +89,7 @@ const test_lite = base.extend<{ setup: void }>({
 			);
 			console.debug("Controller obtained. Setting up the app.");
 			await controllerHandle.evaluate(
-				async (controller: any, files: [string, string][]) => {
+				async (controller: any, files: string[][]) => {
 					function base64ToUint8Array(base64: string): Uint8Array {
 						// Ref: https://stackoverflow.com/a/21797381/13103190
 						const binaryString = atob(base64);
