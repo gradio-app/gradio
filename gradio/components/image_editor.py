@@ -160,7 +160,7 @@ class ImageEditor(Component):
         brush: Brush | None | Literal[False] = None,
         format: str = "webp",
         layers: bool = True,
-        canvas_size: Tuple[int, int] | None = None,
+        canvas_size: tuple[int, int] | None = None,
     ):
         """
         Parameters:
