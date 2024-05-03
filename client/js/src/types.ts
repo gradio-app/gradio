@@ -44,7 +44,7 @@ export interface ApiInfo<T extends ApiData | JsApiData> {
 export interface BlobRef {
 	path: string[];
 	type: string | undefined;
-	blob: Blob | false;
+	blob: Blob | File | false;
 }
 
 export type DataType = string | Buffer | Record<string, any> | any[];
@@ -80,7 +80,7 @@ export type client_return = {
 		fn_name: string,
 		data: unknown[]
 	) => any;
-	view_api: (fetch_implementation: typeof fetch) => Promise<ApiInfo<JsApiData>>;
+	view_api: (_fetch: typeof fetch) => Promise<ApiInfo<JsApiData>>;
 };
 
 export type SubmitReturn = {

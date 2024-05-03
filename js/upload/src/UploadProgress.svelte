@@ -7,9 +7,9 @@
 	export let upload_id: string;
 	export let root: string;
 	export let files: FileData[];
-	export let stream_handler: Client["eventSource_factory"];
+	export let stream_handler: Client["stream_factory"];
 
-	let event_source: ReturnType<Client["eventSource_factory"]>;
+	let stream: ReturnType<Client["stream_factory"]>;
 	let progress = false;
 	let current_file_upload: FileDataWithProgress;
 	let file_to_display: FileDataWithProgress;
@@ -38,19 +38,19 @@
 	}
 
 	onMount(() => {
-		event_source = stream_handler(
+		stream = stream_handler(
 			new URL(`${root}/upload_progress?upload_id=${upload_id}`)
 		);
 
-		if (event_source == null) {
+		if (stream == null) {
 			throw new Error("Event source is not defined");
 		}
 		// Event listener for progress updates
-		event_source.onmessage = async function (event) {
+		stream.onmessage = async function (event) {
 			const _data = JSON.parse(event.data);
 			if (!progress) progress = true;
 			if (_data.msg === "done") {
-				event_source?.close();
+				stream?.close();
 				dispatch("done");
 			} else {
 				current_file_upload = _data;
@@ -59,7 +59,7 @@
 		};
 	});
 	onDestroy(() => {
-		if (event_source != null || event_source != undefined) event_source.close();
+		if (stream != null || stream != undefined) stream.close();
 	});
 
 	function calculateTotalProgress(files: FileData[]): number {

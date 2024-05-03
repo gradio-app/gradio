@@ -87,7 +87,7 @@
 	export let container: boolean;
 	export let info: boolean;
 	export let eager: boolean;
-	let eventSource: EventSource;
+	let stream: EventSource;
 
 	// These utilities are exported to be injectable for the Wasm version.
 	export let mount_css: typeof default_mount_css = default_mount_css;
@@ -269,7 +269,7 @@
 			BUILD_MODE === "dev" || gradio_dev_mode === "dev"
 				? `http://localhost:${
 						typeof server_port === "number" ? server_port : 7860
-				  }`
+					}`
 				: host || space || src || location.origin;
 
 		app = await Client.connect(api_url, {
@@ -301,13 +301,13 @@
 			setTimeout(() => {
 				const { host } = new URL(api_url);
 				let url = new URL(`http://${host}/dev/reload`);
-				eventSource = new EventSource(url);
-				eventSource.addEventListener("error", async (e) => {
+				stream = new EventSource(url);
+				stream.addEventListener("error", async (e) => {
 					new_message_fn("Error reloading app", "error");
 					// @ts-ignore
 					console.error(JSON.parse(e.data));
 				});
-				eventSource.addEventListener("reload", async (event) => {
+				stream.addEventListener("reload", async (event) => {
 					app.close();
 					app = await Client.connect(api_url, {
 						status_callback: handle_status
@@ -329,8 +329,8 @@
 		!ready && status.load_status !== "error"
 			? "pending"
 			: !ready && status.load_status === "error"
-			? "error"
-			: status.load_status;
+				? "error"
+				: status.load_status;
 
 	$: config && (eager || $intersecting[_id]) && load_demo();
 

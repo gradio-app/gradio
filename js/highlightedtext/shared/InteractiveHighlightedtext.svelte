@@ -209,8 +209,8 @@
 								(active && active !== class_or_confidence)
 									? ""
 									: class_or_confidence && _color_map[class_or_confidence]
-									? _color_map[class_or_confidence].secondary
-									: ""}
+										? _color_map[class_or_confidence].secondary
+										: ""}
 								class:no-cat={class_or_confidence === null ||
 									(active && active !== class_or_confidence)}
 								class:hl={class_or_confidence !== null}
