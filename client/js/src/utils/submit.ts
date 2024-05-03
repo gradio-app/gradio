@@ -684,9 +684,7 @@ function get_endpoint_info(
 
 	if (typeof endpoint === "number") {
 		fn_index = endpoint;
-		endpoint_info =
-			api_info.unnamed_endpoints[fn_index] ||
-			Object.values(api_info.named_endpoints)[fn_index];
+		endpoint_info = api_info.unnamed_endpoints[fn_index];
 		dependency = config.dependencies[endpoint];
 	} else {
 		const trimmed_endpoint = endpoint.replace(/^\//, "");
