@@ -36,16 +36,6 @@ export class NodeBlob extends Blob {
 	}
 }
 
-if (typeof window === "undefined") {
-	import("eventsource")
-		.then((EventSourceModule) => {
-			global.EventSource = EventSourceModule.default as any;
-		})
-		.catch((error) =>
-			console.error("Failed to load EventSource module:", error)
-		);
-}
-
 export class Client {
 	app_reference: string;
 	options: ClientOptions;
