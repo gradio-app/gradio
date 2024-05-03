@@ -77,7 +77,7 @@
 				typeof bot_msg === "string"
 					? redirect_src_url(bot_msg)
 					: normalize_messages(bot_msg)
-		  ])
+			])
 		: [];
 
 	export let loading_status: LoadingStatus | undefined = undefined;

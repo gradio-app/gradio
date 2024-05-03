@@ -74,7 +74,7 @@
 			? upload(
 					await prepare_files([new File([blobs.background], "background.png")]),
 					root
-			  )
+				)
 			: Promise.resolve(null);
 
 		const layers = blobs.layers
@@ -87,7 +87,7 @@
 			? upload(
 					await prepare_files([new File([blobs.composite], "composite.png")]),
 					root
-			  )
+				)
 			: Promise.resolve(null);
 
 		const [background, composite_, ...layers_] = await Promise.all([
