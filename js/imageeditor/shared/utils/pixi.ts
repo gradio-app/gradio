@@ -73,12 +73,15 @@ export interface PixiApp {
  * @param antialias Whether to use antialiasing
  * @returns object with pixi container and renderer
  */
-export function create_pixi_app(
-	target: HTMLElement,
-	width: number,
-	height: number,
-	antialias: boolean
-): PixiApp {
+export function create_pixi_app({
+	target,
+	dimensions: [width, height],
+	antialias
+}: {
+	target: HTMLElement;
+	dimensions: [number, number];
+	antialias: boolean;
+}): PixiApp {
 	const ratio = window.devicePixelRatio || 1;
 	const app = new Application({
 		width,
