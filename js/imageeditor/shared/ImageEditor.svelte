@@ -77,7 +77,7 @@
 
 	$: orig_canvas_size = canvas_size;
 
-	const BASE_DIMENSIONS: [number, number] =  canvas_size || [800, 600];
+	const BASE_DIMENSIONS: [number, number] = canvas_size || [800, 600];
 
 	let dimensions = writable(BASE_DIMENSIONS);
 	export let height = 0;
