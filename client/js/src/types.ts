@@ -116,6 +116,7 @@ export type SpaceStatusCallback = (a: SpaceStatus) => void;
 export interface Config {
 	auth_required: boolean;
 	analytics_enabled: boolean;
+	connect_heartbeat: boolean;
 	auth_message: string;
 	components: any[];
 	css: string | null;
