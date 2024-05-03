@@ -13,6 +13,7 @@ export default defineConfig({
 
 	plugins: [
 		svelte({
+			inspector: false,
 			hot: {
 				preserveLocalState: true
 			},
