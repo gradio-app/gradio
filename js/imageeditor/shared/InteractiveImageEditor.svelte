@@ -44,6 +44,7 @@
 	export let layers: boolean;
 	export let accept_blobs: (a: any) => void;
 	export let status: "pending" | "complete" | "error" = "complete";
+	export let canvas_size: [number, number] | undefined;
 	export let realtime: boolean;
 	export let upload: Client["upload"];
 	export let stream_handler: Client["eventSource_factory"];
@@ -203,6 +204,8 @@
 	label={label || i18n("image.image")}
 />
 <ImageEditor
+	{canvas_size}
+	crop_size={Array.isArray(crop_size) ? crop_size : undefined}
 	bind:this={editor}
 	bind:height={editor_height}
 	{changeable}
