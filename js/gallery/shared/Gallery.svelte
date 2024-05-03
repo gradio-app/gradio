@@ -31,7 +31,7 @@
 	export let i18n: I18nFormatter;
 	export let selected_index: number | null = null;
 	export let interactive: boolean;
-	export let fetch: typeof fetch;
+	export let _fetch: typeof fetch;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -169,7 +169,7 @@
 	async function download(file_url: string, name: string): Promise<void> {
 		let response;
 		try {
-			response = await fetch(file_url);
+			response = await _fetch(file_url);
 		} catch (error) {
 			if (error instanceof TypeError) {
 				// If CORS is not allowed (https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#checking_that_the_fetch_was_successful),

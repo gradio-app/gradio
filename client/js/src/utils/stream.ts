@@ -7,7 +7,8 @@ export function open_stream(this: Client): void {
 		unclosed_events,
 		pending_stream_messages,
 		stream_status,
-		config
+		config,
+		jwt
 	} = this;
 
 	if (!config) {
@@ -22,10 +23,16 @@ export function open_stream(this: Client): void {
 	}).toString();
 
 	let url = new URL(`${config.root}/queue/data?${params}`);
+
+	if (jwt) {
+		url.searchParams.set("__sign", jwt);
+	}
+
 	stream = this.stream_factory(url);
 
 	if (!stream) {
-		throw new Error("Cannot connect to sse endpoint: " + url.toString());
+		console.warn("Cannot connect to SSE endpoint: " + url.toString());
+		return;
 	}
 
 	stream.onmessage = async function (event: MessageEvent) {
@@ -37,10 +44,8 @@ export function open_stream(this: Client): void {
 		const event_id = _data.event_id;
 		if (!event_id) {
 			await Promise.all(
-				Object.keys(event_callbacks).map(
-					(event_id) =>
-						// @ts-ignore
-						event_callbacks[event_id](_data) // todo: check event_callbacks
+				Object.keys(event_callbacks).map((event_id) =>
+					event_callbacks[event_id](_data)
 				)
 			);
 		} else if (event_callbacks[event_id] && config) {
@@ -70,7 +75,6 @@ export function open_stream(this: Client): void {
 	stream.onerror = async function () {
 		await Promise.all(
 			Object.keys(event_callbacks).map((event_id) =>
-				// @ts-ignore
 				event_callbacks[event_id]({
 					msg: "unexpected_error",
 					message: BROKEN_CONNECTION_MSG
