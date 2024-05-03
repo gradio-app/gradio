@@ -30,7 +30,7 @@
 	export let handle_reset_value: () => void = () => {};
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
-	export let stream_handler: Client["eventSource_factory"];
+	export let stream_handler: Client["stream_factory"];
 
 	const dispatch = createEventDispatcher<{
 		change: FileData | null;
