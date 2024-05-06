@@ -80,6 +80,10 @@ jobs:
         run: |
           . venv/bin/activate
           pnpm --filter @gradio/app test:browser:lite
+      - name: Get the performance result
+        run: |
+          export LITE_APP_LOAD_TIME=$(jq -r '.app_load_time' .lite-perf.json)
+          echo "LITE_APP_LOAD_TIME=$LITE_APP_LOAD_TIME" >> $GITHUB_ENV
       - name: do check
         if: always()
         uses: "gradio-app/github/actions/commit-status@main"
