@@ -70,7 +70,7 @@
 
 					selected_device = used_devices
 						? devices.find((device) => device.deviceId === used_devices) ||
-						  available_video_devices[0]
+							available_video_devices[0]
 						: available_video_devices[0];
 				});
 

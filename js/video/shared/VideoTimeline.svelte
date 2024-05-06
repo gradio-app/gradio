@@ -9,7 +9,7 @@
 
 	let thumbnails: string[] = [];
 	let numberOfThumbnails = 10;
-	let intervalId: number | NodeJS.Timer;
+	let intervalId: ReturnType<typeof setInterval> | undefined;
 	let videoDuration: number;
 
 	let leftHandlePosition = 0;
@@ -136,7 +136,7 @@
 		window.removeEventListener("mouseup", stopDragging);
 		window.removeEventListener("keydown", moveHandle);
 
-		if (intervalId) {
+		if (intervalId !== undefined) {
 			clearInterval(intervalId);
 		}
 	});

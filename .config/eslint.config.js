@@ -1,6 +1,7 @@
 import globals from "globals";
 import ts_plugin from "@typescript-eslint/eslint-plugin";
 import js_plugin from "@eslint/js";
+import jsdoc from "eslint-plugin-jsdoc";
 
 import typescriptParser from "@typescript-eslint/parser";
 import sveltePlugin from "eslint-plugin-svelte";
@@ -16,6 +17,13 @@ const js_rules_disabled = Object.fromEntries(
 	Object.keys(js_plugin.configs.all.rules).map((rule) => [rule, "off"])
 );
 
+const jsdoc_rules_disabled = Object.fromEntries(
+	Object.keys(jsdoc.configs.recommended.rules).map((rule) => [
+		`jsdoc/${rule}`,
+		"off"
+	])
+);
+
 const js_rules = {
 	...js_rules_disabled,
 	"no-console": ["error", { allow: ["warn", "error", "debug", "info"] }],
@@ -24,22 +32,11 @@ const js_rules = {
 	"no-extra-boolean-cast": "error",
 	"no-unexpected-multiline": "error",
 	"no-unreachable": "error",
-	"valid-jsdoc": "error",
 	"array-callback-return": "error",
 	complexity: "error",
 	"no-else-return": "error",
 	"no-useless-return": "error",
-	"no-undef": "error",
-	"valid-jsdoc": [
-		"error",
-		{
-			requireReturn: false,
-			requireParamDescription: true,
-			requireReturnDescription: true,
-			requireReturnType: false,
-			requireParamType: false
-		}
-	]
+	"no-undef": "error"
 };
 
 const ts_rules = {
@@ -53,6 +50,12 @@ const ts_rules = {
 	"@typescript-eslint/ban-types": "error",
 	"@typescript-eslint/array-type": "error",
 	"@typescript-eslint/no-inferrable-types": "error"
+};
+
+const jsdoc_rules = {
+	...jsdoc_rules_disabled,
+	"jsdoc/require-param-description": "error",
+	"jsdoc/require-returns-description": "error"
 };
 
 const { browser, es2021, node } = globals;
@@ -85,9 +88,10 @@ export default [
 		},
 
 		plugins: {
-			"eslint:recommended": js_plugin
+			"eslint:recommended": js_plugin,
+			jsdoc
 		},
-		rules: js_rules
+		rules: { ...js_rules, ...jsdoc_rules }
 	},
 
 	{
@@ -107,11 +111,13 @@ export default [
 
 		plugins: {
 			"@typescript-eslint": ts_plugin,
-			"eslint:recommended": js_plugin
+			"eslint:recommended": js_plugin,
+			jsdoc
 		},
 		rules: {
 			...ts_rules,
 			...js_rules,
+			...jsdoc_rules,
 			"no-undef": "off"
 		}
 	},
@@ -140,11 +146,13 @@ export default [
 		plugins: {
 			svelte: sveltePlugin,
 			"@typescript-eslint": ts_plugin,
-			"eslint:recommended": js_plugin
+			"eslint:recommended": js_plugin,
+			jsdoc
 		},
 		rules: {
 			...ts_rules,
 			...js_rules,
+			...jsdoc_rules,
 			...sveltePlugin.configs.recommended.rules,
 			"svelte/no-at-html-tags": "off",
 			"no-undef": "off"

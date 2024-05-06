@@ -51,8 +51,8 @@
 		default_color === "auto"
 			? processed_colors[0]
 			: !default_color
-			? "black"
-			: process_color(default_color);
+				? "black"
+				: process_color(default_color);
 
 	let brush_options: brush_option_type = false;
 
