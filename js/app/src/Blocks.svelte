@@ -17,11 +17,7 @@
 
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
-	import {
-		create_components,
-		AsyncFunction,
-		restore_keyed_values
-	} from "./init";
+	import { create_components, AsyncFunction } from "./init";
 
 	setupi18n();
 
@@ -53,7 +49,8 @@
 		get_data,
 		loading_status,
 		scheduled_updates,
-		create_layout
+		create_layout,
+		rerender_layout
 	} = create_components();
 
 	$: create_layout({
@@ -64,8 +61,7 @@
 		app,
 		options: {
 			fill_height
-		},
-		callback: () => restore_keyed_values(old_components, components)
+		}
 	});
 
 	$: {
@@ -302,6 +298,16 @@
 					dep.pending_request = false;
 					handle_update(data, fn_index);
 					set_status($loading_status);
+				})
+				.on("render", ({ data, fn_index }) => {
+					let _components: ComponentMeta[] = data.components;
+					let render_layout: LayoutNode = data.layout;
+
+					rerender_layout({
+						components: _components,
+						layout: render_layout,
+						root: root
+					});
 				})
 				.on("status", ({ fn_index, ...status }) => {
 					//@ts-ignore
