@@ -7,7 +7,7 @@
 
 	const API = "https://gradio-custom-component-gallery-backend.hf.space/";
 	const OFFSET = 0;
-	const LIMIT = 50;
+	const LIMIT = 100;
 
 	let components: ComponentData[] = [];
 	let selection: string = "";
