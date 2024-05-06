@@ -594,6 +594,14 @@ export function submit(
 											endpoint: _endpoint,
 											fn_index
 										});
+										if (data.render_config) {
+											fire_event({
+												type: "render",
+												data: data.render_config,
+												endpoint: _endpoint,
+												fn_index
+											});
+										}
 
 										if (complete) {
 											fire_event({
