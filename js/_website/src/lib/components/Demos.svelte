@@ -28,7 +28,7 @@
 			>
 	</pre>
 	</div>
-{:else }
+{:else}
 	<div class="py-2 max-h-[750px] overflow-y-scroll">
 		{#key name}
 			<button
@@ -47,7 +47,6 @@
 		{/key}
 	</div>
 {/if}
-
 
 <style>
 	.open-btn {
