@@ -41,7 +41,7 @@
 				Open in 🎢 ↗
 			</button>
 
-			<gradio-lite playground shared-worker class="p-2">
+			<gradio-lite playground shared-worker layout="vertical" class="p-2">
 				{code}
 			</gradio-lite>
 		{/key}
@@ -57,16 +57,5 @@
 		background: #eaecef;
 		color: #374151;
 		font-weight: 500;
-	}
-
-	:global(.child-container) {
-		flex-direction: column !important;
-	}
-
-	:global(.code-editor) {
-		border-bottom: 1px solid rgb(229 231 235);
-		height: 300px;
-		overflow-y: scroll;
-		flex: none !important;
 	}
 </style>
