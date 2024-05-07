@@ -59,6 +59,7 @@ class TestLabel:
             "proxy_url": None,
             "color": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_color_argument(self):

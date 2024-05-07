@@ -33,6 +33,7 @@ class TestSlider:
             "proxy_url": None,
             "info": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_in_interface(self):

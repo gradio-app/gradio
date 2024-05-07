@@ -33,6 +33,7 @@ class TestNumber:
             "info": None,
             "precision": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_component_functions_integer(self):
@@ -66,6 +67,7 @@ class TestNumber:
             "info": None,
             "precision": 0,
             "_selectable": False,
+            "key": None,
         }
 
     def test_component_functions_precision(self):

@@ -46,6 +46,7 @@ class TestChatbot:
             "height": None,
             "proxy_url": None,
             "_selectable": False,
+            "key": None,
             "latex_delimiters": [{"display": True, "left": "$$", "right": "$$"}],
             "likeable": False,
             "rtl": False,

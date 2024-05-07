@@ -41,6 +41,7 @@ class TestFile:
             "interactive": None,
             "proxy_url": None,
             "_selectable": False,
+            "key": None,
             "height": None,
             "type": "filepath",
         }

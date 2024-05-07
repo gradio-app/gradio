@@ -50,6 +50,7 @@ class TestImage:
             "proxy_url": None,
             "mirror_webcam": True,
             "_selectable": False,
+            "key": None,
             "streamable": False,
             "type": "pil",
         }

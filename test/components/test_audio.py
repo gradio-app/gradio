@@ -68,6 +68,7 @@ class TestAudio:
                 "trim_region_color": None,
             },
             "_selectable": False,
+            "key": None,
         }
         assert audio_input.preprocess(None) is None
 
@@ -122,6 +123,7 @@ class TestAudio:
                 "trim_region_color": None,
             },
             "_selectable": False,
+            "key": None,
         }
 
         output1 = audio_output.postprocess(y_audio.name).model_dump()

@@ -30,6 +30,7 @@ class TestRadio:
             "interactive": None,
             "proxy_url": None,
             "_selectable": False,
+            "key": None,
             "type": "value",
             "info": None,
         }

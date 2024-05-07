@@ -17,6 +17,7 @@ class TestHTML:
             "proxy_url": None,
             "name": "html",
             "_selectable": False,
+            "key": None,
         }
 
     def test_in_interface(self):

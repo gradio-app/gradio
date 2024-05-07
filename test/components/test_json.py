@@ -26,6 +26,7 @@ class TestJSON:
             "name": "json",
             "proxy_url": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_chatbot_selectable_in_config(self):

@@ -28,6 +28,7 @@ class TestModel3D:
             "zoom_speed": 1,
             "pan_speed": 1,
             "_selectable": False,
+            "key": None,
         }
 
         file = "test/test_files/Box.gltf"

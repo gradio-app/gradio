@@ -57,6 +57,7 @@ class TestAnnotatedImage:
             "value": None,
             "proxy_url": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_in_interface(self):

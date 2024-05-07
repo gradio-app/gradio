@@ -27,6 +27,7 @@ class TestColorPicker:
             "name": "colorpicker",
             "info": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_in_interface_as_input(self):

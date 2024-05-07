@@ -37,6 +37,7 @@ class TestTextbox:
             "text_align": None,
             "autofocus": False,
             "_selectable": False,
+            "key": None,
             "info": None,
             "autoscroll": True,
         }

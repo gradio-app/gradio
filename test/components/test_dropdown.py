@@ -61,6 +61,7 @@ class TestDropdown:
             "filterable": True,
             "max_choices": 2,
             "_selectable": False,
+            "key": None,
             "type": "value",
             "info": None,
         }

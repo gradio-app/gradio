@@ -25,6 +25,7 @@ class TestCheckbox:
             "interactive": None,
             "proxy_url": None,
             "_selectable": False,
+            "key": None,
             "info": None,
         }
 

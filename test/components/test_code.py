@@ -46,6 +46,7 @@ class TestCode:
             "interactive": None,
             "proxy_url": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_process_example(self):

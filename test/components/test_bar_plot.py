@@ -44,6 +44,7 @@ class TestBarPlot:
             "y_label_angle": None,
             "sort": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_no_color(self):

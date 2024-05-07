@@ -122,6 +122,7 @@ class TestHighlightedText:
             "value": None,
             "proxy_url": None,
             "_selectable": False,
+            "key": None,
             "combine_adjacent": False,
             "adjacent_separator": "",
             "interactive": None,

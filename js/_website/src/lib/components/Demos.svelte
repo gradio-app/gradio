@@ -13,25 +13,7 @@
 	/>
 </svelte:head>
 
-{#if url_version === "main"}
-	<div class="py-2 max-h-[750px] overflow-y-scroll">
-		{#key name}
-			<button
-				class="open-btn bg-gray-200 text-gray-500 font-bold px-2 rounded mx-4 my-2"
-				on:click={() => {
-					let code_b64 = btoa(code);
-					window.open("/playground?demo=Blank&code=" + code_b64, "_blank");
-				}}
-			>
-				Open in 🎢 ↗
-			</button>
-
-			<gradio-lite playground shared-worker class="p-2">
-				{code}
-			</gradio-lite>
-		{/key}
-	</div>
-{:else}
+{#if url_version === "3.50.2"}
 	<div class="codeblock" id="{name}_code">
 		<a
 			class="clipboard-button m-2"
@@ -46,13 +28,24 @@
 			>
 	</pre>
 	</div>
-	{#key name}
-		{#if url_version === "3.50.2"}
-			<gradio-app space={"gradio/" + name + "_3-x"} />
-		{:else}
-			<gradio-app space={"gradio/" + name} />
-		{/if}
-	{/key}
+{:else}
+	<div class="py-2 max-h-[750px] overflow-y-scroll">
+		{#key name}
+			<button
+				class="open-btn bg-gray-200 text-gray-500 font-bold px-2 rounded mx-4 my-2"
+				on:click={() => {
+					let code_b64 = btoa(code);
+					window.open("/playground?demo=Blank&code=" + code_b64, "_blank");
+				}}
+			>
+				Open in 🎢 ↗
+			</button>
+
+			<gradio-lite playground shared-worker layout="vertical" class="p-2">
+				{code}
+			</gradio-lite>
+		{/key}
+	</div>
 {/if}
 
 <style>
@@ -63,16 +56,5 @@
 		background: #eaecef;
 		color: #374151;
 		font-weight: 500;
-	}
-
-	:global(.child-container) {
-		flex-direction: column !important;
-	}
-
-	:global(.code-editor) {
-		border-bottom: 1px solid rgb(229 231 235);
-		height: 300px;
-		overflow-y: scroll;
-		flex: none !important;
 	}
 </style>

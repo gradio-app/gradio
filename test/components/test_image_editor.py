@@ -47,6 +47,7 @@ class TestImageEditor:
             "mirror_webcam": True,
             "show_share_button": False,
             "_selectable": False,
+            "key": None,
             "crop_size": None,
             "transforms": ("crop",),
             "eraser": {"default_size": "auto"},

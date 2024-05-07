@@ -45,6 +45,7 @@ class TestLinePlot:
             "x_label_angle": None,
             "y_label_angle": None,
             "_selectable": False,
+            "key": None,
         }
 
     def test_no_color(self):
