@@ -159,7 +159,7 @@
 						@{component.author}
 					</span>
 				</p>
-				{#if component.template != "Fallback"}
+				{#if component.template && component.template != "Fallback"}
 					<p
 						class="text-sm font-light py-1"
 						style="position: absolute; bottom: 5%; right: 5%"
