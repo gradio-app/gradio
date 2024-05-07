@@ -2,4 +2,4 @@
 "website": patch
 ---
 
-feat:Convert all demos on docs to lite
+fix:Convert all demos on docs to lite
