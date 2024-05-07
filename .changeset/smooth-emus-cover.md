@@ -1,7 +1,7 @@
 ---
-"@gradio/icons": minor
-"@gradio/multimodaltextbox": minor
-"gradio": minor
+"@gradio/icons": patch
+"@gradio/multimodaltextbox": patch
+"gradio": patch
 ---
 
 feat:Change upload icon for MultimodalTextbox
