@@ -2,4 +2,4 @@
 "website": minor
 ---
 
-feat:Fix cc gallery
+feat:Display all custom components in the gallery
