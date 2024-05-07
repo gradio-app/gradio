@@ -312,7 +312,8 @@ def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
                     old_block.__class__ == new_block.__class__
                     and old_block is not None
                     and old_block.key not in assigned_keys
-                    and json.dumps(old_block.get_config()) == json.dumps(new_block.get_config())
+                    and json.dumps(old_block.get_config())
+                    == json.dumps(new_block.get_config())
                 ):
                     new_block.key = old_block.key
                 else:
