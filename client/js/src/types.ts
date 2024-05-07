@@ -126,6 +126,7 @@ export type SpaceStatusCallback = (a: SpaceStatus) => void;
 export interface Config {
 	auth_required: boolean;
 	analytics_enabled: boolean;
+	connect_heartbeat: boolean;
 	auth_message: string;
 	components: any[];
 	css: string | null;
@@ -229,12 +230,13 @@ export interface FileData {
 
 // Event and Listener Types
 
-export type EventType = "data" | "status" | "log";
+export type EventType = "data" | "status" | "log" | "render";
 
 export interface EventMap {
 	data: Payload;
 	status: Status;
 	log: LogMessage;
+	render: RenderMessage;
 }
 
 export type Event<K extends EventType> = {
@@ -247,6 +249,13 @@ export type ListenerMap<K extends EventType> = {
 export interface LogMessage {
 	log: string;
 	level: "warning" | "info";
+}
+export interface RenderMessage {
+	fn_index: number;
+	data: {
+		components: any[];
+		layout: any;
+	};
 }
 
 export interface Status {

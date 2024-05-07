@@ -128,10 +128,10 @@ def create_or_modify_pyi(
                 pyi_file.write_text(contents)
 
 
-def in_event_listener():
+def get_local_contexts():
     from gradio.context import LocalContext
 
-    return LocalContext.in_event_listener.get()
+    return LocalContext.in_event_listener.get(), LocalContext.is_render.get()
 
 
 def updateable(fn):
@@ -153,7 +153,8 @@ def updateable(fn):
             arg_name = fn_args[i]
             kwargs[arg_name] = arg
         self._constructor_args.append(kwargs)
-        if in_event_listener() and initialized_before:
+        in_event_listener, is_render = get_local_contexts()
+        if in_event_listener and initialized_before and not is_render:
             return None
         else:
             return fn(self, **kwargs)

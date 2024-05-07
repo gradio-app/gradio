@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/chatbot",
-	"version": "0.9.0",
+	"version": "0.10.0",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -20,7 +20,7 @@
 		"@gradio/video": "workspace:^",
 		"@types/dompurify": "^3.0.2",
 		"@types/katex": "^0.16.0",
-		"@types/prismjs": "1.26.3",
+		"@types/prismjs": "1.26.4",
 		"dequal": "^2.0.2"
 	},
 	"devDependencies": {

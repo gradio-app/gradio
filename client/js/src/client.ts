@@ -36,16 +36,6 @@ export class NodeBlob extends Blob {
 	}
 }
 
-if (typeof window === "undefined") {
-	import("eventsource")
-		.then((EventSourceModule) => {
-			global.EventSource = EventSourceModule.default as any;
-		})
-		.catch((error) =>
-			console.error("Failed to load EventSource module:", error)
-		);
-}
-
 export class Client {
 	app_reference: string;
 	options: ClientOptions;
@@ -149,7 +139,7 @@ export class Client {
 			await this._resolve_config().then(async ({ config }) => {
 				if (config) {
 					this.config = config;
-					if (this.config) {
+					if (this.config && this.config.connect_heartbeat) {
 						// connect to the heartbeat endpoint via GET request
 						const heartbeat_url = new URL(
 							`${this.config.root}/heartbeat/${this.session_hash}`
