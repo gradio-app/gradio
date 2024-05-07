@@ -10,7 +10,7 @@
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
 	import type { FileData, Client } from "@gradio/client";
-	import { Clear, File, Music, Video, Send } from "@gradio/icons";
+	import { Clear, File, Music, Paperclip, Video, Send } from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 
 	export let value: { text: string; files: FileData[] } = {
@@ -230,7 +230,7 @@
 				>
 			{/if}
 			<button class:disabled class="plus-button" on:click={handle_upload_click}
-				>+</button
+				><Paperclip /></button
 			>
 			{#if value.files.length > 0 || uploading}
 				<div
@@ -380,6 +380,12 @@
 	.plus-button {
 		left: 10px;
 		margin-right: 5px;
+	}
+
+	.plus-button :global(svg) {
+		height: 23px;
+		width: 23px;
+		padding-left: 7px;
 	}
 
 	.loader {
