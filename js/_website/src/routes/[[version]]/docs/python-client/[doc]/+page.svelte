@@ -440,15 +440,7 @@
 											class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {data
 												.COLOR_SETS[i][0]} {data.COLOR_SETS[i][1]}"
 											target="_blank"
-<<<<<<< HEAD
-<<<<<<< HEAD:js/_website/src/routes/[[version]]/docs/python-client/[doc]/+page.svelte
 											href={guide.url}
-=======
-											href="../..{guide.url}"
->>>>>>> main:js/_website/src/routes/[[version]]/docs/gradio/[doc]/+page.svelte
-=======
-											href={guide.url}
->>>>>>> main
 										>
 											<div class="flex flex-col p-4 h-min">
 												<p class="group-hover:underline text-l">
