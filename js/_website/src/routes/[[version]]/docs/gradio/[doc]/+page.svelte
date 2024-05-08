@@ -1,19 +1,11 @@
 <script lang="ts">
 	import Demos from "$lib/components/Demos.svelte";
 	import DocsNav from "$lib/components/DocsNav.svelte";
-<<<<<<< HEAD
-=======
-	import DocsNavCustom from "$lib/components/DocsNavCustom.svelte";
->>>>>>> main
 	import FunctionDoc from "$lib/components/FunctionDoc.svelte";
 	import EventListeners from "$lib/components/EventListeners.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import anchor from "$lib/assets/img/anchor.svg";
-<<<<<<< HEAD
 	import { SvelteComponent, onDestroy, onMount } from "svelte";
-=======
-	import { onDestroy } from "svelte";
->>>>>>> main
 	import { page } from "$app/stores";
 
 	export let data: any = {};
@@ -66,7 +58,6 @@
 	$: routes = data.routes;
 	$: py_client = data.py_client;
 	$: url_version = data.url_version;
-<<<<<<< HEAD
 
 	let import_promise: any = null;
 	let component_name = $page.params?.doc;
@@ -79,8 +70,6 @@
 
 	$: import_component(component_name);
 
-=======
->>>>>>> main
 </script>
 
 <MetaTags
@@ -94,7 +83,6 @@
 
 <main class="container mx-auto px-4 flex gap-4">
 	<div class="flex w-full">
-<<<<<<< HEAD
 		<DocsNav
 			current_nav_link={obj.name.toLowerCase()}
 			{components}
@@ -102,16 +90,6 @@
 			{modals}
 			{routes}
 			{py_client}
-=======
-		<DocsNavCustom
-			current_nav_link={obj.name}
-			items={{
-				Intro: "intro",
-				Client: "client",
-				Job: "job"
-			}}
-			title={"Python Client"}
->>>>>>> main
 		/>
 
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
@@ -178,7 +156,6 @@
 				{/if}
 			</div>
 
-<<<<<<< HEAD
 				<div class="flex flex-row">
 					<div class="lg:ml-10">
 						<div class="obj" id={obj.slug}>
@@ -191,321 +168,7 @@
 						</div>
 					</div>
 				</div>
-=======
-			<div class="flex flex-row">
-				<div class="lg:ml-10">
-					<div class="obj" id={obj.slug}>
-						<div class="flex flex-row items-center justify-between">
-							<h3 id="{obj.slug}-header" class="group text-3xl font-light py-4">
-								{obj.name}
-								<a
-									href="#{obj.slug}-header"
-									class="invisible group-hover-visible"
-									><img class="anchor-img" src={anchor} /></a
-								>
-							</h3>
-						</div>
 
-						<div class="codeblock">
-							{#if obj.override_signature}
-								<pre><code class="code language-python"
-										>{obj.override_signature}</code
-									></pre>
-							{:else}
-								<pre><code class="code language-python"
-										>{obj.parent}.<span>{obj.name}&lpar;</span
-										><!--
-                -->{#each obj.parameters as param}<!--
-                  -->{#if !("kwargs" in param) && !("default" in param) && param.name != "self"}<!--
-                    -->{param.name}, <!--
-                  -->{/if}<!--
-                -->{/each}<!--  
-                -->···<span
-											>&rpar;</span
-										></code
-									></pre>
-							{/if}
-						</div>
-
-						<div id="description">
-							<h4 class="mt-8 text-xl text-orange-500 font-light group">
-								Description
-								<a href="#description" class="invisible group-hover-visible"
-									><img class="anchor-img-small" src={anchor} /></a
-								>
-							</h4>
-							<p class="mb-2 text-lg text-gray-600">{@html obj.description}</p>
-						</div>
-
-						{#if mode === "components"}
-							<div id="behavior">
-								<h4 class="mt-4 text-xl text-orange-500 font-light group">
-									Behavior
-									<a href="#behavior" class="invisible group-hover-visible"
-										><img class="anchor-img-small" src={anchor} /></a
-									>
-								</h4>
-								<p class="text-lg text-gray-500">
-									<span class="text-gray-700">As input: </span>
-									{@html obj.tags.preprocessing}
-								</p>
-								<p class="text-lg text-gray-500">
-									<span class="text-gray-700">As output:</span>
-									{@html obj.tags.postprocessing}
-								</p>
-								{#if obj.tags.examples_format}
-									<p class="text-lg text-gray-500">
-										<span class="text-gray-700"
-											>Format expected for examples:</span
-										>
-										{@html obj.tags.examples_format}
-									</p>
-								{/if}
-								{#if obj.tags.events && obj.tags.events.length > 0}
-									<p class="text-lg text-gray-500">
-										<span class="text-gray-700">Supported events:</span>
-										<em>{@html obj.tags.events}</em>
-									</p>
-								{/if}
-							</div>
-						{/if}
-
-						{#if obj.example}
-							<div id="example-usage">
-								<h4 class="mt-4 text-xl text-orange-500 font-light group">
-									Example Usage
-									<a href="#example-usage" class="invisible group-hover-visible"
-										><img class="anchor-img-small" src={anchor} /></a
-									>
-								</h4>
-								<div class="codeblock">
-									<pre><code class="code language-python"
-											>{@html obj.highlighted_example}</code
-										></pre>
-								</div>
-							</div>
-						{/if}
-
-						{#if (obj.parameters.length > 0 && obj.parameters[0].name != "self") || obj.parameters.length > 1}
-							<div id="initialization">
-								<h4 class="mt-6 text-xl text-orange-500 font-light group">
-									Initialization
-									<a
-										href="#initialization"
-										class="invisible group-hover-visible"
-										><img class="anchor-img-small" src={anchor} /></a
-									>
-								</h4>
-								<table class="table-fixed w-full leading-loose">
-									<thead class="text-left">
-										<tr>
-											<th class="px-3 pb-3 w-2/5 text-gray-700 font-semibold"
-												>Parameter</th
-											>
-											<th class="px-3 pb-3 text-gray-700 font-semibold"
-												>Description</th
-											>
-										</tr>
-									</thead>
-									<tbody
-										class=" rounded-lg bg-gray-50 border border-gray-100 overflow-hidden text-left align-top divide-y"
-									>
-										{#each obj.parameters as param}
-											{#if param["name"] != "self"}
-												<tr
-													class="group hover:bg-gray-200/60 odd:bg-gray-100/80"
-												>
-													<td class="p-3 w-2/5 break-words">
-														<code class="block">
-															{param["name"]}
-														</code>
-														<p class="text-gray-500 italic">
-															{param["annotation"]}
-														</p>
-														{#if "default" in param}
-															<p class="text-gray-500 font-semibold">
-																default: {param["default"]}
-															</p>
-														{:else if !("kwargs" in param)}
-															<p class="text-orange-600 font-semibold italic">
-																required
-															</p>
-														{/if}
-													</td>
-													<td class="p-3 text-gray-700 break-words">
-														<p>{@html param["doc"] || ""}</p>
-													</td>
-												</tr>
-											{/if}
-										{/each}
-									</tbody>
-								</table>
-							</div>
-						{/if}
-
-						{#if mode === "components" && obj.string_shortcuts}
-							<div id="shortcuts">
-								<h4 class="mt-6 text-xl text-orange-500 font-light group">
-									Shortcuts
-									<a href="#shortcuts" class="invisible group-hover-visible"
-										><img class="anchor-img-small" src={anchor} /></a
-									>
-								</h4>
-								<table class="mb-4 table-fixed w-full">
-									<thead class="text-left">
-										<tr>
-											<th class="px-3 pb-3 text-gray-700 font-semibold w-2/5"
-												>Class</th
-											>
-											<th class="px-3 pb-3 text-gray-700 font-semibold"
-												>Interface String Shortcut</th
-											>
-											<th class="px-3 pb-3 text-gray-700 font-semibold"
-												>Initialization</th
-											>
-										</tr>
-									</thead>
-									<tbody
-										class="text-left divide-y rounded-lg bg-gray-50 border border-gray-100 overflow-hidden"
-									>
-										{#each obj.string_shortcuts as shortcut}
-											<tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
-												<td class="p-3 w-2/5 break-words">
-													<p>
-														<code class="lang-python">gradio.{shortcut[0]}</code
-														>
-													</p>
-												</td>
-												<td class="p-3 w-2/5 break-words">
-													<p>"{shortcut[1]}"</p>
-												</td>
-												<td class="p-3 text-gray-700 break-words">
-													{shortcut[2]}
-												</td>
-											</tr>
-										{/each}
-									</tbody>
-								</table>
-							</div>
-						{/if}
-
-						{#if obj.demos}
-							<div id="demos">
-								<div class="category my-8" id="examples">
-									<h4 class="text-xl text-orange-500 font-light group">
-										Demos
-										<a href="#demos" class="invisible group-hover-visible"
-											><img class="anchor-img-small" src={anchor} /></a
-										>
-									</h4>
-									<div>
-										<div class="demo-window overflow-y-auto h-full w-full mb-4">
-											<div
-												class="relative mx-auto my-auto rounded-md bg-white"
-												style="top: 5%; height: 90%"
-											>
-												<div class="flex overflow-auto pt-4">
-													{#each obj.demos as demo, i}
-														<button
-															on:click={() => (current_selection = i)}
-															class:selected-demo-tab={current_selection == i}
-															class="demo-btn px-4 py-2 text-lg min-w-max text-gray-600 hover:text-orange-500"
-															name={demo[0]}>{demo[0]}</button
-														>
-													{/each}
-												</div>
-												{#each obj.demos as demo, i}
-													<div
-														class:hidden={current_selection !== i}
-														class:selected-demo-window={current_selection == i}
-														class="demo-content px-4"
-													>
-														<Demos
-															name={demo[0]}
-															code={demo[1]}
-															highlighted_code={demo[2]}
-															{url_version}
-														/>
-													</div>
-												{/each}
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						{/if}
-
-						{#if obj.fns && obj.fns.length > 0}
-							{#if mode === "components"}
-								<div id="event-listeners">
-									<h4 class="mt-4 p-3 text-xl text-orange-500 font-light group">
-										Event Listeners
-										<a
-											href="#event-listeners"
-											class="invisible group-hover-visible"
-											><img class="anchor-img-small" src={anchor} /></a
-										>
-									</h4>
-									<div class="flex flex-col gap-8 pl-12">
-										<EventListeners fns={obj.fns} />
-										<div class="ml-12" />
-									</div>
-								</div>
-							{:else}
-								<div id="methods">
-									<h4 class="mt-4 p-3 text-xl text-orange-500 font-light group">
-										Methods
-										<a href="#methods" class="invisible group-hover-visible"
-											><img class="anchor-img-small" src={anchor} /></a
-										>
-									</h4>
-									<div class="flex flex-col gap-8 pl-12">
-										{#each obj.fns as fn}
-											<FunctionDoc {fn} />
-										{/each}
-										<div class="ml-12" />
-									</div>
-								</div>
-							{/if}
-						{/if}
-
-						{#if obj.guides && obj.guides.length > 0}
-							<div id="guides">
-								<h4 class="mt-4 p-3 text-xl text-orange-500 font-light group">
-									Guides
-									<a href="#guides" class="invisible group-hover-visible"
-										><img class="anchor-img-small" src={anchor} /></a
-									>
-								</h4>
-
-								<div
-									class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4 pb-3 px-3"
-								>
-									{#each obj.guides as guide, i}
-										<a
-											class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {data
-												.COLOR_SETS[i][0]} {data.COLOR_SETS[i][1]}"
-											target="_blank"
-<<<<<<< HEAD:js/_website/src/routes/[[version]]/docs/python-client/[doc]/+page.svelte
-											href={guide.url}
-=======
-											href="../..{guide.url}"
->>>>>>> main:js/_website/src/routes/[[version]]/docs/gradio/[doc]/+page.svelte
-										>
-											<div class="flex flex-col p-4 h-min">
-												<p class="group-hover:underline text-l">
-													{guide.pretty_name}
-												</p>
-											</div>
-										</a>
-									{/each}
-								</div>
-							</div>
-						{/if}
-					</div>
-				</div>
-			</div>
->>>>>>> main
 
 			<div class="lg:ml-10 flex justify-between my-4">
 				{#if obj.prev_obj}
@@ -584,11 +247,7 @@
 	</div>
 </main>
 
-<<<<<<< HEAD
-<style type="text/tailwindcss">
-=======
 <style>
->>>>>>> main
 	.sub-link {
 		border-color: #f3f4f6 !important;
 	}
