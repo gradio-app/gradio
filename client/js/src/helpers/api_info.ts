@@ -323,8 +323,12 @@ export function handle_message(
 
 export const map_data_to_params = (
 	data: unknown[] | Record<string, unknown>,
-	parameters: JsApiData[]
+	api_info: ApiInfo<JsApiData>
 ): unknown[] => {
+	const parameters = Object.values(api_info.named_endpoints).flatMap(
+		(values) => values.parameters
+	);
+
 	if (Array.isArray(data)) {
 		if (data.length > parameters.length) {
 			throw new Error("Too many arguments provided for the endpoint.");
