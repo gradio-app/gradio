@@ -155,19 +155,28 @@
 		class="component-wrapper"
 		data-testid={label ? "waveform-" + label : "unlabelled-audio"}
 	>
-		<div class="waveform-container">
-			<div id="waveform" bind:this={container} />
-		</div>
-
-		<div class="timestamps">
-			<time bind:this={timeRef} id="time">0:00</time>
-			<div>
-				{#if mode === "edit" && trimDuration > 0}
-					<time id="trim-duration">{format_time(trimDuration)}</time>
-				{/if}
-				<time bind:this={durationRef} id="duration">0:00</time>
+		{#if waveform_options.show_player_waveform === false}
+			<audio
+				class="standard-player"
+				src={value.url}
+				controls
+				autoplay={waveform_settings.autoplay}
+			/>
+		{:else}
+			<div class="waveform-container">
+				<div id="waveform" bind:this={container} />
 			</div>
-		</div>
+
+			<div class="timestamps">
+				<time bind:this={timeRef} id="time">0:00</time>
+				<div>
+					{#if mode === "edit" && trimDuration > 0}
+						<time id="trim-duration">{format_time(trimDuration)}</time>
+					{/if}
+					<time bind:this={durationRef} id="duration">0:00</time>
+				</div>
+			</div>
+		{/if}
 
 		{#if waveform}
 			<WaveformControls
@@ -232,6 +241,10 @@
 		width: 100%;
 		height: 100%;
 		position: relative;
+	}
+
+	.hidden {
+		display: none;
 	}
 
 	.standard-player {

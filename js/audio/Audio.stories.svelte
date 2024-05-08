@@ -73,6 +73,23 @@
 />
 
 <Story
+	name="output with hidden waveform"
+	args={{
+		value: {
+			path: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+			url: "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+			orig_name: "sample-0.mp3"
+		},
+		interactive: false,
+		show_download_button: false,
+		label: "Audio Player",
+		waveform_options: {
+			show_player_waveform: false
+		}
+	}}
+/>
+
+<Story
 	name="Upload Audio"
 	args={{
 		value: null,

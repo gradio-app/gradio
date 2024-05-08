@@ -28,6 +28,7 @@ class WaveformOptions:
         waveform_progress_color: The color (as a hex string or valid CSS color) that the waveform fills with to as the audio plays. Defaults to the accent color.
         trim_region_color: The color (as a hex string or valid CSS color) of the trim region. Defaults to the accent color.
         show_recording_waveform: Whether to show the waveform when recording audio. Defaults to True.
+        show_player_waveform: Whether to show the audio as a waveform in the audio player. Audio cannot be interactive when this is set to False. Defaults to True.
         show_controls: Whether to show the standard HTML audio player below the waveform when recording audio or playing recorded audio. Defaults to False.
         skip_length: The percentage (between 0 and 100) of the audio to skip when clicking on the skip forward / skip backward buttons. Defaults to 5.
         sample_rate: The output sample rate (in Hz) of the audio after editing. Defaults to 44100.
@@ -37,6 +38,7 @@ class WaveformOptions:
     waveform_progress_color: str | None = None
     trim_region_color: str | None = None
     show_recording_waveform: bool = True
+    show_player_waveform: bool = True
     show_controls: bool = False
     skip_length: int | float = 5
     sample_rate: int = 44100

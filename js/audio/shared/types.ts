@@ -5,5 +5,6 @@ export type WaveformOptions = {
 	skip_length?: number;
 	trim_region_color?: string;
 	show_recording_waveform?: boolean;
+	show_player_waveform?: boolean;
 	sample_rate?: number;
 };
