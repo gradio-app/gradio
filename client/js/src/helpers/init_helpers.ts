@@ -47,8 +47,8 @@ export function map_names_to_ids(
 ): Record<string, number> {
 	let apis: Record<string, number> = {};
 
-	fns.forEach(({ api_name }, i: number) => {
-		if (api_name) apis[api_name] = i;
+	fns.forEach(({ api_name, id }) => {
+		if (api_name) apis[api_name] = id;
 	});
 	return apis;
 }

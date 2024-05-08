@@ -77,13 +77,13 @@ export function transform_api_info(
 			Object.entries(api_info[category]).forEach(
 				([endpoint, { parameters, returns }]) => {
 					const dependencyIndex =
-						config.dependencies.findIndex((dep) => dep.api_name === endpoint) ||
+						config.dependencies.find((dep) => dep.api_name === endpoint)?.id ||
 						api_map[endpoint.replace("/", "")] ||
 						-1;
 
 					const dependencyTypes =
 						dependencyIndex !== -1
-							? config.dependencies[dependencyIndex].types
+							? config.dependencies.find(dep => dep.id == dependencyIndex)?.types
 							: { continuous: false, generator: false };
 
 					const transform_type = (

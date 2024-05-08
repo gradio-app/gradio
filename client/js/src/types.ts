@@ -144,6 +144,7 @@ export interface Config {
 }
 
 export interface Dependency {
+	id: number;
 	targets: [number, string][];
 	inputs: number[];
 	outputs: number[];

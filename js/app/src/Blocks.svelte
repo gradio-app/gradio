@@ -23,7 +23,6 @@
 
 	export let root: string;
 	export let components: ComponentMeta[];
-	let old_components: ComponentMeta[] = components;
 	export let layout: LayoutNode;
 	export let dependencies: Dependency[];
 	export let title = "Gradio";
@@ -41,6 +40,12 @@
 	export let js: string | null;
 	export let fill_height = false;
 	export let ready: boolean;
+	
+	let dependencies_by_id: Record<number, Dependency>
+	dependencies_by_id = dependencies.reduce((acc, dep) => {
+		acc[dep.id] = dep;
+		return acc;
+	}, {} as Record<number, Dependency>);
 
 	const {
 		layout: _layout,
@@ -53,10 +58,10 @@
 		rerender_layout
 	} = create_components();
 
-	$: create_layout({
+	create_layout({
 		components,
 		layout,
-		dependencies,
+		dependencies_by_id,
 		root,
 		app,
 		options: {
@@ -86,7 +91,7 @@
 
 	export let render_complete = false;
 	async function handle_update(data: any, fn_index: number): Promise<void> {
-		const outputs = dependencies[fn_index].outputs;
+		const outputs = dependencies_by_id[fn_index].outputs;
 
 		const meta_updates = data?.map((value: any, i: number) => {
 			return {
@@ -205,7 +210,7 @@
 		trigger_id: number | null = null,
 		event_data: unknown = null
 	): Promise<void> {
-		let dep = dependencies[dep_index];
+		let dep = dependencies_by_id[dep_index];
 
 		const current_status = loading_status.get_status_for_fn(dep_index);
 		messages = messages.filter(({ fn_index }) => fn_index !== dep_index);
@@ -304,28 +309,29 @@
 					let render_id = data.render_id;
 
 					let deps_to_remove: number[] = [];
-					dependencies.forEach((dep, i) => {
+					Object.values(dependencies_by_id).forEach(dep => {
 						if (dep.rendered_in === render_id) {
-							deps_to_remove.push(i);
+							deps_to_remove.push(dep.id);
 						}
 					});
+					console.log("removing", deps_to_remove)
 					deps_to_remove.reverse().forEach((i) => {
-						dependencies.splice(i, 1);
+						delete dependencies_by_id[i];
 					});
 					_dependencies.forEach((dep) => {
-						dependencies.push(dep);
+						dependencies_by_id[dep.id] = dep;
 					});
-
 
 					rerender_layout({
 						components: _components,
 						layout: render_layout,
 						root: root,
-						dependencies: dependencies,
+						dependencies_by_id: dependencies_by_id,
 						render_id: render_id
 					});
 				})
 				.on("status", ({ fn_index, ...status }) => {
+					console.log("status", fn_index)
 					//@ts-ignore
 					loading_status.update({
 						...status,
@@ -362,9 +368,9 @@
 					}
 
 					if (status.stage === "complete") {
-						dependencies.map(async (dep, i) => {
+						Object.values(dependencies_by_id).forEach(async (dep) => {
 							if (dep.trigger_after === fn_index) {
-								wait_then_trigger_api_call(i, payload.trigger_id);
+								wait_then_trigger_api_call(dep.id, payload.trigger_id);
 							}
 						});
 
@@ -394,12 +400,12 @@
 								...messages
 							];
 						}
-						dependencies.map(async (dep, i) => {
+						Object.values(dependencies_by_id).map(async (dep) => {
 							if (
 								dep.trigger_after === fn_index &&
 								!dep.trigger_only_on_success
 							) {
-								wait_then_trigger_api_call(i, payload.trigger_id);
+								wait_then_trigger_api_call(dep.id, payload.trigger_id);
 							}
 						});
 
@@ -459,7 +465,7 @@
 		}
 
 		// handle load triggers
-		dependencies.forEach((dep, i) => {
+		Object.values(dependencies_by_id).forEach((dep, i) => {
 			if (dep.targets[0][1] === "load") {
 				wait_then_trigger_api_call(i);
 			}
@@ -517,7 +523,10 @@
 
 	function set_status(statuses: LoadingStatusCollection): void {
 		const updates = Object.entries(statuses).map(([id, loading_status]) => {
-			let dependency = dependencies[loading_status.fn_index];
+			let dependency = dependencies_by_id[loading_status.fn_index];
+			if (!dependency) {
+				return;
+			}
 			loading_status.scroll_to_output = dependency.scroll_to_output;
 			loading_status.show_progress = dependency.show_progress;
 			return {
