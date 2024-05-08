@@ -7,9 +7,10 @@ import {
 	process_endpoint,
 	map_data_to_params
 } from "../helpers/api_info";
-import { EndpointInfo, JsApiData } from "../types";
 import { initialise_server } from "./server";
-import { beforeAll, afterEach, afterAll, it, expect, describe } from "vitest";
+import { transformed_api_info } from "./test_data";
+import { J } from "vitest/dist/reporters-BXNXFKfg.js";
+import { ApiData, ApiInfo, JsApiData } from "../types";
 
 const server = initialise_server();
 
@@ -459,16 +460,20 @@ describe("process_endpoint", () => {
 });
 
 describe("map_data_params", () => {
-	let parameters: EndpointInfo<JsApiData>["parameters"] = [
+	let test_data = transformed_api_info as ApiInfo<ApiData>;
+
+	test_data.named_endpoints["/predict"].parameters = [
 		{
 			parameter_name: "param1",
 			parameter_has_default: false,
 			label: "",
-			type: "",
-			description: "",
 			component: "",
 			serializer: "",
 			python_type: {
+				type: "",
+				description: ""
+			},
+			type: {
 				type: "",
 				description: ""
 			}
@@ -477,8 +482,10 @@ describe("map_data_params", () => {
 			parameter_name: "param2",
 			parameter_has_default: false,
 			label: "",
-			type: "",
-			description: "",
+			type: {
+				type: "",
+				description: ""
+			},
 			component: "",
 			serializer: "",
 			python_type: {
@@ -491,8 +498,10 @@ describe("map_data_params", () => {
 			parameter_has_default: true,
 			parameter_default: 3,
 			label: "",
-			type: "",
-			description: "",
+			type: {
+				type: "",
+				description: ""
+			},
 			component: "",
 			serializer: "",
 			python_type: {
@@ -505,14 +514,14 @@ describe("map_data_params", () => {
 	it("should return an array of data when data is an array", () => {
 		const data = [1, 2];
 
-		const result = map_data_to_params(data, parameters);
+		const result = map_data_to_params(data, transformed_api_info);
 		expect(result).toEqual(data);
 	});
 
 	it("should throw an error when too many arguments are provided for the endpoint", () => {
 		const data = [1, 2, 3, 4];
 
-		expect(() => map_data_to_params(data, parameters)).toThrow(
+		expect(() => map_data_to_params(data, transformed_api_info)).toThrow(
 			"Too many arguments provided for the endpoint."
 		);
 	});
@@ -524,7 +533,7 @@ describe("map_data_params", () => {
 			param3: 3
 		};
 
-		const result = map_data_to_params(data, parameters);
+		const result = map_data_to_params(data, transformed_api_info);
 		expect(result).toEqual([1, 2, 3]);
 	});
 
@@ -534,7 +543,7 @@ describe("map_data_params", () => {
 			param2: 2
 		};
 
-		const result = map_data_to_params(data, parameters);
+		const result = map_data_to_params(data, transformed_api_info);
 		expect(result).toEqual([1, 2, 3]);
 	});
 
@@ -546,7 +555,7 @@ describe("map_data_params", () => {
 			param4: 4
 		};
 
-		expect(() => map_data_to_params(data, parameters)).toThrowError(
+		expect(() => map_data_to_params(data, transformed_api_info)).toThrowError(
 			"Parameter `param4` is not a valid keyword argument. Please refer to the API for usage."
 		);
 	});
@@ -554,7 +563,7 @@ describe("map_data_params", () => {
 	it("should throw an error when no value is provided for a required parameter", () => {
 		const data = {};
 
-		expect(() => map_data_to_params(data, parameters)).toThrowError(
+		expect(() => map_data_to_params(data, transformed_api_info)).toThrowError(
 			"No value provided for required parameter: param1"
 		);
 	});
