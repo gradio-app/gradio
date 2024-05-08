@@ -118,7 +118,7 @@ class ServerMessage(str, Enum):
     log = "log"
     progress = "progress"
     heartbeat = "heartbeat"
-    server_stopped = "server_stopped"
+    server_stopped = "Server stopped unexpectedly."
     unexpected_error = "unexpected_error"
     close_stream = "close_stream"
 

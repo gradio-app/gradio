@@ -247,7 +247,9 @@ class Client:
                             resp = json.loads(line[5:])
                             if resp["msg"] == ServerMessage.heartbeat:
                                 continue
-                            elif resp["msg"] == ServerMessage.server_stopped:
+                            elif (
+                                resp.get("message", "") == ServerMessage.server_stopped
+                            ):
                                 for (
                                     pending_messages
                                 ) in self.pending_messages_per_event.values():
@@ -271,6 +273,11 @@ class Client:
                         else:
                             raise ValueError(f"Unexpected SSE line: '{line}'")
         except BaseException as e:
+            # If the job is cancelled the stream will close so we
+            # should not raise this httpx exception that comes from the
+            # stream abruply closing
+            if isinstance(e, httpx.RemoteProtocolError):
+                return
             import traceback
 
             traceback.print_exc()
@@ -496,6 +503,14 @@ class Client:
             >> 9.0
         """
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
+        cancellable = False
+        cancel_fn_index = None
+        for i, dep in enumerate(self.config["dependencies"]):
+            if inferred_fn_index in dep["cancels"]:
+                cancellable = True
+                cancel_fn_index = i
+                break
+
         endpoint = self.endpoints[inferred_fn_index]
 
         if isinstance(endpoint, Endpoint):
@@ -514,8 +529,16 @@ class Client:
         end_to_end_fn = endpoint.make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
 
+        cancel_fn = None
+        if cancellable:
+            cancel_fn = endpoint.make_cancel(cancel_fn_index)
+
         job = Job(
-            future, communicator=helper, verbose=self.verbose, space_id=self.space_id
+            future,
+            communicator=helper,
+            verbose=self.verbose,
+            space_id=self.space_id,
+            _cancel_fn=cancel_fn,
         )
 
         if result_callbacks:
@@ -1104,6 +1127,22 @@ class Endpoint:
 
         return _inner
 
+    def make_cancel(self, fn_index):
+        def _cancel():
+            data = {
+                "data": [],
+                "fn_index": fn_index,
+                "session_hash": self.client.session_hash,
+            }
+            httpx.post(
+                self.client.api_url,
+                json=data,
+                headers=self.client.headers,
+                cookies=self.client.cookies,
+            )
+
+        return _cancel
+
     def make_predict(self, helper: Communicator | None = None):
         def _predict(*data) -> tuple:
             data = {
@@ -1340,6 +1379,7 @@ class Job(Future):
         communicator: Communicator | None = None,
         verbose: bool = True,
         space_id: str | None = None,
+        _cancel_fn: Callable[None, None] = None,
     ):
         """
         Parameters:
@@ -1353,6 +1393,7 @@ class Job(Future):
         self._counter = 0
         self.verbose = verbose
         self.space_id = space_id
+        self.cancel_fn = _cancel_fn
 
     def __iter__(self) -> Job:
         return self
@@ -1491,10 +1532,6 @@ class Job(Future):
                     )
                 return self.communicator.job.latest_status
 
-    def __getattr__(self, name):
-        """Forwards any properties to the Future class."""
-        return getattr(self.future, name)
-
     def cancel(self) -> bool:
         """Cancels the job as best as possible.
 
@@ -1513,5 +1550,11 @@ class Job(Future):
         if self.communicator:
             with self.communicator.lock:
                 self.communicator.should_cancel = True
+                if self.cancel_fn:
+                    self.cancel_fn()
                 return True
         return self.future.cancel()
+
+    def __getattr__(self, name):
+        """Forwards any properties to the Future class."""
+        return getattr(self.future, name)
