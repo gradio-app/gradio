@@ -1,11 +1,7 @@
 <script lang="ts">
-	import Demos from "$lib/components/Demos.svelte";
 	import DocsNav from "$lib/components/DocsNav.svelte";
-	import FunctionDoc from "$lib/components/FunctionDoc.svelte";
-	import EventListeners from "$lib/components/EventListeners.svelte";
 	import MetaTags from "$lib/components/MetaTags.svelte";
-	import anchor from "$lib/assets/img/anchor.svg";
-	import { SvelteComponent, onDestroy, onMount } from "svelte";
+	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
 
 	export let data: any = {};
