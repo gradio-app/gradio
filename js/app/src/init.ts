@@ -34,7 +34,7 @@ export function create_components(): {
 		app: client_return;
 		components: ComponentMeta[];
 		layout: LayoutNode;
-		dependencies: Dependency[];
+		dependencies_by_id: Record<number, Dependency>;
 		root: string;
 		options: {
 			fill_height: boolean;
@@ -45,7 +45,7 @@ export function create_components(): {
 		components: ComponentMeta[];
 		layout: LayoutNode;
 		root: string;
-		dependencies: Dependency[];
+		dependencies_by_id: Record<number, Dependency>;
 	}) => void;
 } {
 	let _component_map: Map<number, ComponentMeta>;
@@ -59,7 +59,6 @@ export function create_components(): {
 	let loading_status: ReturnType<typeof create_loading_status_store> =
 		create_loading_status_store();
 	const layout_store: Writable<ComponentMeta> = writable();
-	let root: string;
 	let _components: ComponentMeta[] = [];
 	let app: client_return;
 	let keyed_component_values: Record<string | number, any> = {};
@@ -69,14 +68,14 @@ export function create_components(): {
 		app: _app,
 		components,
 		layout,
-		dependencies,
+		dependencies_by_id,
 		root,
 		options,
 	}: {
 		app: client_return;
 		components: ComponentMeta[];
 		layout: LayoutNode;
-		dependencies: Dependency[];
+		dependencies_by_id: Record<number, Dependency>;
 		root: string;
 		options: {
 			fill_height: boolean;
@@ -107,7 +106,7 @@ export function create_components(): {
 
 		components.push(_rootNode);
 		// loading_status = create_loading_status_store();
-		dependencies.forEach(dep => {
+		Object.values(dependencies_by_id).forEach(dep => {
 			loading_status.register(dep.id, dep.inputs, dep.outputs);
 			dep.frontend_fn = process_frontend_fn(
 				dep.js,
@@ -144,13 +143,13 @@ export function create_components(): {
 		components,
 		layout,
 		root,
-		dependencies,
+		dependencies_by_id,
 	}: {
 		render_id: number;
 		components: ComponentMeta[];
 		layout: LayoutNode;
 		root: string;
-		dependencies: Dependency[];
+		dependencies_by_id: Record<number, Dependency>;
 	}): void {
 		let _constructor_map = preload_all_components(components, root);
 		_constructor_map.forEach((v, k) => {
@@ -169,7 +168,7 @@ export function create_components(): {
 		});
 		_target_map = {}
 
-		dependencies.forEach(dep => {
+		Object.values(dependencies_by_id).forEach(dep => {
 			loading_status.register(dep.id, dep.inputs, dep.outputs);
 			dep.frontend_fn = process_frontend_fn(
 				dep.js,
@@ -181,6 +180,7 @@ export function create_components(): {
 			get_inputs_outputs(dep, inputs, outputs);
 		});
 
+		console.log("tm", _target_map)
 		target_map.set(_target_map);
 								
 		let current_element = instance_map[layout.id];
@@ -283,6 +283,7 @@ export function create_components(): {
 			for (let i = 0; i < pending_updates.length; i++) {
 				for (let j = 0; j < pending_updates[i].length; j++) {
 					const update = pending_updates[i][j];
+					if (!update) continue;
 					const instance = instance_map[update.id];
 					if (!instance) continue;
 					let new_value;
