@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/tabs",
-	"version": "0.2.5",
+	"version": "0.2.8",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -14,5 +14,8 @@
 	},
 	"dependencies": {
 		"@gradio/utils": "workspace:^"
+	},
+	"devDependencies": {
+		"@gradio/preview": "workspace:^"
 	}
 }

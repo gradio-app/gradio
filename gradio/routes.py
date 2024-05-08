@@ -5,19 +5,20 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import math
 import sys
 
 if sys.version_info >= (3, 9):
     from importlib.resources import files
 else:
     from importlib_resources import files
+import hashlib
 import inspect
 import json
 import mimetypes
 import os
 import posixpath
 import secrets
-import threading
 import time
 import traceback
 from pathlib import Path
@@ -29,6 +30,7 @@ from typing import (
     Callable,
     Dict,
     List,
+    Literal,
     Optional,
     Type,
     Union,
@@ -171,7 +173,9 @@ class App(FastAPI):
         self.queue_token = secrets.token_urlsafe(32)
         self.startup_events_triggered = False
         self.uploaded_file_dir = get_upload_folder()
-        self.change_event: None | threading.Event = None
+        self.change_count: int = 0
+        self.change_type: Literal["reload", "error"] | None = None
+        self.reload_error_message: str | None = None
         self._asyncio_tasks: list[asyncio.Task] = []
         self.auth_dependency = auth_dependency
         self.api_info = None
@@ -179,6 +183,7 @@ class App(FastAPI):
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
         kwargs.setdefault("redoc_url", None)
+        self.custom_component_hashes: dict[str, str] = {}
         super().__init__(**kwargs)
 
     def configure_app(self, blocks: gradio.Blocks) -> None:
@@ -281,18 +286,24 @@ class App(FastAPI):
                 heartbeat_rate = 15
                 check_rate = 0.05
                 last_heartbeat = time.perf_counter()
+                current_count = app.change_count
 
                 while True:
                     if await request.is_disconnected():
                         return
 
-                    if app.change_event and app.change_event.is_set():
-                        app.change_event.clear()
-                        yield """data: CHANGE\n\n"""
+                    if app.change_count != current_count:
+                        current_count = app.change_count
+                        msg = (
+                            json.dumps(f"{app.reload_error_message}")
+                            if app.change_type == "error"
+                            else "{}"
+                        )
+                        yield f"""event: {app.change_type}\ndata: {msg}\n\n"""
 
                     await asyncio.sleep(check_rate)
                     if time.perf_counter() - last_heartbeat > heartbeat_rate:
-                        yield """data: HEARTBEAT\n\n"""
+                        yield """event: heartbeat\ndata: {}\n\n"""
                         last_heartbeat = time.time()
 
             return StreamingResponse(
@@ -425,7 +436,9 @@ class App(FastAPI):
             return FileResponse(static_file)
 
         @app.get("/custom_component/{id}/{type}/{file_name}")
-        def custom_component_path(id: str, type: str, file_name: str):
+        def custom_component_path(
+            id: str, type: str, file_name: str, req: fastapi.Request
+        ):
             config = app.get_blocks().config
             components = config["components"]
             location = next(
@@ -443,12 +456,27 @@ class App(FastAPI):
             if module_path is None or component_instance is None:
                 raise HTTPException(status_code=404, detail="Component not found.")
 
-            return FileResponse(
-                safe_join(
-                    str(Path(module_path).parent),
-                    f"{component_instance.__class__.TEMPLATE_DIR}/{type}/{file_name}",
-                )
+            path = safe_join(
+                str(Path(module_path).parent),
+                f"{component_instance.__class__.TEMPLATE_DIR}/{type}/{file_name}",
             )
+
+            key = f"{id}-{type}-{file_name}"
+
+            if key not in app.custom_component_hashes:
+                app.custom_component_hashes[key] = hashlib.md5(
+                    Path(path).read_text().encode()
+                ).hexdigest()
+
+            version = app.custom_component_hashes.get(key)
+            headers = {"Cache-Control": "max-age=0, must-revalidate"}
+            if version:
+                headers["ETag"] = version
+
+            if version and req.headers.get("if-none-match") == version:
+                return PlainTextResponse(status_code=304, headers=headers)
+
+            return FileResponse(path, headers=headers)
 
         @app.get("/assets/{path:path}")
         def build_resource(path: str):
@@ -636,7 +664,7 @@ class App(FastAPI):
                         if "stop" in done:
                             raise asyncio.CancelledError()
                     except asyncio.CancelledError:
-                        req = Request(request, username)
+                        req = Request(request, username, session_hash=session_hash)
                         root_path = route_utils.get_root_url(
                             request=request,
                             route_path=f"/hearbeat/{session_hash}",
@@ -647,8 +675,8 @@ class App(FastAPI):
                         )
                         unload_fn_indices = [
                             i
-                            for i, dep in enumerate(app.get_blocks().dependencies)
-                            if any(t for t in dep["targets"] if t[1] == "unload")
+                            for i, dep in enumerate(app.get_blocks().fns)
+                            if any(t for t in dep.targets if t[1] == "unload")
                         ]
                         for fn_index in unload_fn_indices:
                             # The task runnning this loop has been cancelled
@@ -1043,21 +1071,26 @@ class App(FastAPI):
             try:
                 if upload_id:
                     file_upload_statuses.track(upload_id)
+                max_file_size = app.get_blocks().max_file_size
+                max_file_size = max_file_size if max_file_size is not None else math.inf
                 multipart_parser = GradioMultiPartParser(
                     request.headers,
                     request.stream(),
                     max_files=1000,
                     max_fields=1000,
+                    max_file_size=max_file_size,
                     upload_id=upload_id if upload_id else None,
                     upload_progress=file_upload_statuses if upload_id else None,
                 )
                 form = await multipart_parser.parse()
             except MultiPartException as exc:
-                raise HTTPException(status_code=400, detail=exc.message) from exc
+                code = 413 if "maximum allowed size" in exc.message else 400
+                return PlainTextResponse(exc.message, status_code=code)
 
             output_files = []
             files_to_copy = []
             locations: list[str] = []
+
             for temp_file in form.getlist("files"):
                 if not isinstance(temp_file, GradioUploadFile):
                     raise TypeError("File is not an instance of GradioUploadFile")
@@ -1172,6 +1205,7 @@ def mount_gradio_app(
     blocked_paths: list[str] | None = None,
     favicon_path: str | None = None,
     show_error: bool = True,
+    max_file_size: str | int | None = None,
 ) -> fastapi.FastAPI:
     """Mount a gradio.Blocks to an existing FastAPI application.
 
@@ -1188,6 +1222,7 @@ def mount_gradio_app(
         blocked_paths: List of complete filepaths or parent directories that this gradio app is not allowed to serve (i.e. users of your app are not allowed to access). Must be absolute paths. Warning: takes precedence over `allowed_paths` and all other directories exposed by Gradio by default.
         favicon_path: If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for this gradio app's page.
         show_error: If True, any errors in the gradio app will be displayed in an alert modal and printed in the browser console log. Otherwise, errors will only be visible in the terminal session running the Gradio app.
+        max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
     Example:
         from fastapi import FastAPI
         import gradio as gr
@@ -1200,6 +1235,7 @@ def mount_gradio_app(
         # Then run `uvicorn run:app` from the terminal and navigate to http://localhost:8000/gradio.
     """
     blocks.dev_mode = False
+    blocks.max_file_size = utils._parse_file_size(max_file_size)
     blocks.config = blocks.get_config_file()
     blocks.validate_queue_settings()
     if auth is not None and auth_dependency is not None:

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from typing import Any, Callable
 
+import orjson
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
@@ -35,10 +36,11 @@ class JSON(Component):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        key: int | str | None = None,
     ):
         """
         Parameters:
-            value: Default value. If callable, the function will be called whenever the app loads to set the initial value of the component.
+            value: Default value as a valid JSON `str` -- or a `list` or `dict` that can be serialized to a JSON string. If callable, the function will be called whenever the app loads to set the initial value of the component.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
             every: If `value` is a callable, run the function 'every' number of seconds while the client connection is open. Has no effect otherwise. The event can be accessed (e.g. to cancel it) via this component's .load_event attribute.
             show_label: if True, will display label.
@@ -49,6 +51,7 @@ class JSON(Component):
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
             elem_classes: An optional list of strings that are assigned as the classes of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, component will not render be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
+            key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
         """
         super().__init__(
             label=label,
@@ -61,6 +64,7 @@ class JSON(Component):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
+            key=key,
             value=value,
         )
 
@@ -76,16 +80,25 @@ class JSON(Component):
     def postprocess(self, value: dict | list | str | None) -> dict | list | None:
         """
         Parameters:
-            value: Expects a `str` filepath to a file containing valid JSON -- or a `list` or `dict` that is valid JSON
+            value: Expects a valid JSON `str` -- or a `list` or `dict` that can be serialized to a JSON string. The `list` or `dict` value can contain numpy arrays.
         Returns:
             Returns the JSON as a `list` or `dict`.
         """
         if value is None:
             return None
         if isinstance(value, str):
-            return json.loads(value)
+            return orjson.loads(value)
         else:
-            return value
+            # Use orjson to convert NumPy arrays and datetime objects to JSON.
+            # This ensures a backward compatibility with the previous behavior.
+            # See https://github.com/gradio-app/gradio/pull/8041
+            return orjson.loads(
+                orjson.dumps(
+                    value,
+                    option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_PASSTHROUGH_DATETIME,
+                    default=str,
+                )
+            )
 
     def example_payload(self) -> Any:
         return {"foo": "bar"}

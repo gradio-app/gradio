@@ -1,9 +1,11 @@
 """The main Client class for the Python client."""
+
 from __future__ import annotations
 
 import concurrent.futures
 import hashlib
 import json
+import math
 import os
 import re
 import secrets
@@ -17,6 +19,7 @@ import warnings
 from concurrent.futures import Future
 from dataclasses import dataclass
 from datetime import datetime
+from functools import partial
 from pathlib import Path
 from threading import Lock
 from typing import Any, Callable, Literal
@@ -152,9 +155,9 @@ class Client:
             self._login(auth)
 
         self.config = self._get_config()
-        self.protocol: Literal[
-            "ws", "sse", "sse_v1", "sse_v2", "sse_v2.1"
-        ] = self.config.get("protocol", "ws")
+        self.protocol: Literal["ws", "sse", "sse_v1", "sse_v2", "sse_v2.1"] = (
+            self.config.get("protocol", "ws")
+        )
         self.api_url = urllib.parse.urljoin(self.src, utils.API_URL)
         self.sse_url = urllib.parse.urljoin(
             self.src, utils.SSE_URL_V0 if self.protocol == "sse" else utils.SSE_URL
@@ -222,21 +225,21 @@ class Client:
             except httpx.TransportError:
                 return
 
-    async def stream_messages(
+    def stream_messages(
         self, protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"]
     ) -> None:
         try:
-            async with httpx.AsyncClient(
+            with httpx.Client(
                 timeout=httpx.Timeout(timeout=None), verify=self.ssl_verify
             ) as client:
-                async with client.stream(
+                with client.stream(
                     "GET",
                     self.sse_url,
                     params={"session_hash": self.session_hash},
                     headers=self.headers,
                     cookies=self.cookies,
                 ) as response:
-                    async for line in response.aiter_lines():
+                    for line in response.iter_lines():
                         line = line.rstrip("\n")
                         if not len(line):
                             continue
@@ -273,14 +276,13 @@ class Client:
             traceback.print_exc()
             raise e
 
-    async def send_data(self, data, hash_data, protocol):
-        async with httpx.AsyncClient(verify=self.ssl_verify) as client:
-            req = await client.post(
-                self.sse_data_url,
-                json={**data, **hash_data},
-                headers=self.headers,
-                cookies=self.cookies,
-            )
+    def send_data(self, data, hash_data, protocol):
+        req = httpx.post(
+            self.sse_data_url,
+            json={**data, **hash_data},
+            headers=self.headers,
+            cookies=self.cookies,
+        )
         if req.status_code == 503:
             raise QueueError("Queue is full! Please try again.")
         req.raise_for_status()
@@ -291,7 +293,7 @@ class Client:
             self.stream_open = True
 
             def open_stream():
-                return utils.synchronize_async(self.stream_messages, protocol)
+                return self.stream_messages(protocol)
 
             def close_stream(_):
                 self.stream_open = False
@@ -1116,18 +1118,12 @@ class Endpoint:
             }
 
             if self.protocol == "sse":
-                result = utils.synchronize_async(
-                    self._sse_fn_v0, data, hash_data, helper
-                )
+                result = self._sse_fn_v0(data, hash_data, helper)  # type: ignore
             elif self.protocol in ("sse_v1", "sse_v2", "sse_v2.1", "sse_v3"):
-                event_id = utils.synchronize_async(
-                    self.client.send_data, data, hash_data, self.protocol
-                )
+                event_id = self.client.send_data(data, hash_data, self.protocol)
                 self.client.pending_event_ids.add(event_id)
                 self.client.pending_messages_per_event[event_id] = []
-                result = utils.synchronize_async(
-                    self._sse_fn_v1plus, helper, event_id, self.protocol
-                )
+                result = self._sse_fn_v1plus(helper, event_id, self.protocol)
             else:
                 raise ValueError(f"Unsupported protocol: {self.protocol}")
 
@@ -1169,13 +1165,17 @@ class Endpoint:
             if self.client.upload_files and self.input_component_types[i].value_is_file:
                 d = utils.traverse(
                     d,
-                    self._upload_file,
+                    partial(self._upload_file, data_index=i),
                     lambda f: utils.is_filepath(f)
                     or utils.is_file_obj_with_meta(f)
                     or utils.is_http_url_like(f),
                 )
             elif not self.client.upload_files:
-                d = utils.traverse(d, self._upload_file, utils.is_file_obj_with_meta)
+                d = utils.traverse(
+                    d,
+                    partial(self._upload_file, data_index=i),
+                    utils.is_file_obj_with_meta,
+                )
             data_.append(d)
         return tuple(data_)
 
@@ -1217,7 +1217,7 @@ class Endpoint:
         else:
             return data
 
-    def _upload_file(self, f: str | dict) -> dict[str, str]:
+    def _upload_file(self, f: str | dict, data_index: int) -> dict[str, str]:
         if isinstance(f, str):
             warnings.warn(
                 f'The Client is treating: "{f}" as a file path. In future versions, this behavior will not happen automatically. '
@@ -1228,6 +1228,22 @@ class Endpoint:
         else:
             file_path = f["path"]
         if not utils.is_http_url_like(file_path):
+            component_id = self.dependency["inputs"][data_index]
+            component_config = next(
+                (
+                    c
+                    for c in self.client.config["components"]
+                    if c["id"] == component_id
+                ),
+                {},
+            )
+            max_file_size = self.client.config.get("max_file_size", None)
+            max_file_size = math.inf if max_file_size is None else max_file_size
+            if os.path.getsize(file_path) > max_file_size:
+                raise ValueError(
+                    f"File {file_path} exceeds the maximum file size of {max_file_size} bytes "
+                    f"set in {component_config.get('label', '') + ''} component."
+                )
             with open(file_path, "rb") as f:
                 files = [("files", (Path(file_path).name, f))]
                 r = httpx.post(
@@ -1271,11 +1287,11 @@ class Endpoint:
         shutil.move(temp_dir / Path(url_path).name, dest)
         return str(dest.resolve())
 
-    async def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
-        async with httpx.AsyncClient(
+    def _sse_fn_v0(self, data: dict, hash_data: dict, helper: Communicator):
+        with httpx.Client(
             timeout=httpx.Timeout(timeout=None), verify=self.client.ssl_verify
         ) as client:
-            return await utils.get_pred_from_sse_v0(
+            return utils.get_pred_from_sse_v0(
                 client,
                 data,
                 hash_data,
@@ -1285,15 +1301,16 @@ class Endpoint:
                 self.client.headers,
                 self.client.cookies,
                 self.client.ssl_verify,
+                self.client.executor,
             )
 
-    async def _sse_fn_v1plus(
+    def _sse_fn_v1plus(
         self,
         helper: Communicator,
         event_id: str,
         protocol: Literal["sse_v1", "sse_v2", "sse_v2.1", "sse_v3"],
     ):
-        return await utils.get_pred_from_sse_v1plus(
+        return utils.get_pred_from_sse_v1plus(
             helper,
             self.client.headers,
             self.client.cookies,
@@ -1301,6 +1318,7 @@ class Endpoint:
             event_id,
             protocol,
             self.client.ssl_verify,
+            self.client.executor,
         )
 
 

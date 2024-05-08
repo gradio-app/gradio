@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
 	import { writable } from "svelte/store";
 	import { mount_css as default_mount_css, prefix_css } from "./css";
+	import type { Client as ClientType } from "@gradio/client";
 
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 
@@ -62,8 +63,8 @@
 </script>
 
 <script lang="ts">
-	import { onMount, setContext, createEventDispatcher } from "svelte";
-	import type { api_factory, SpaceStatus } from "@gradio/client";
+	import { onMount, createEventDispatcher } from "svelte";
+	import type { SpaceStatus } from "@gradio/client";
 	import Embed from "./Embed.svelte";
 	import type { ThemeMode } from "./types";
 	import { StatusTracker } from "@gradio/statustracker";
@@ -86,12 +87,11 @@
 	export let container: boolean;
 	export let info: boolean;
 	export let eager: boolean;
-	let eventSource: EventSource;
+	let stream: EventSource;
 
 	// These utilities are exported to be injectable for the Wasm version.
 	export let mount_css: typeof default_mount_css = default_mount_css;
-	export let client: ReturnType<typeof api_factory>["client"];
-	export let upload_files: ReturnType<typeof api_factory>["upload_files"];
+	export let Client: typeof ClientType;
 	export let worker_proxy: WorkerProxy | undefined = undefined;
 	if (worker_proxy) {
 		setWorkerProxyContext(worker_proxy);
@@ -100,11 +100,6 @@
 			loading_text = (event as CustomEvent).detail + "...";
 		});
 	}
-	export let fetch_implementation: typeof fetch = fetch;
-	setContext("fetch_implementation", fetch_implementation);
-	export let EventSource_factory: (url: URL) => EventSource = (url) =>
-		new EventSource(url);
-	setContext("EventSource_factory", EventSource_factory);
 
 	export let space: string | null;
 	export let host: string | null;
@@ -257,7 +252,7 @@
 		detail: "SLEEPING"
 	};
 
-	let app: Awaited<ReturnType<typeof client>>;
+	let app: ClientType;
 	let css_ready = false;
 	function handle_status(_status: SpaceStatus): void {
 		status = _status;
@@ -274,12 +269,17 @@
 			BUILD_MODE === "dev" || gradio_dev_mode === "dev"
 				? `http://localhost:${
 						typeof server_port === "number" ? server_port : 7860
-				  }`
+					}`
 				: host || space || src || location.origin;
 
-		app = await client(api_url, {
+		app = await Client.connect(api_url, {
 			status_callback: handle_status
 		});
+
+		if (!app.config) {
+			throw new Error("Could not resolve app config");
+		}
+
 		config = app.config;
 		window.__gradio_space__ = config.space_id;
 
@@ -301,30 +301,36 @@
 			setTimeout(() => {
 				const { host } = new URL(api_url);
 				let url = new URL(`http://${host}/dev/reload`);
-				eventSource = new EventSource(url);
-				eventSource.onmessage = async function (event) {
-					if (event.data === "CHANGE") {
-						app = await client(api_url, {
-							status_callback: handle_status
-						});
+				stream = new EventSource(url);
+				stream.addEventListener("error", async (e) => {
+					new_message_fn("Error reloading app", "error");
+					// @ts-ignore
+					console.error(JSON.parse(e.data));
+				});
+				stream.addEventListener("reload", async (event) => {
+					app.close();
+					app = await Client.connect(api_url, {
+						status_callback: handle_status
+					});
 
-						config = app.config;
-						window.__gradio_space__ = config.space_id;
-						await mount_custom_css(config.css);
+					if (!app.config) {
+						throw new Error("Could not resolve app config");
 					}
-				};
+
+					config = app.config;
+					window.__gradio_space__ = config.space_id;
+					await mount_custom_css(config.css);
+				});
 			}, 200);
 		}
 	});
-
-	setContext("upload_files", upload_files);
 
 	$: loader_status =
 		!ready && status.load_status !== "error"
 			? "pending"
 			: !ready && status.load_status === "error"
-			? "error"
-			: status.load_status;
+				? "error"
+				: status.load_status;
 
 	$: config && (eager || $intersecting[_id]) && load_demo();
 
@@ -370,6 +376,8 @@
 			);
 		}
 	};
+
+	let new_message_fn: (message: string, type: string) => void;
 
 	onMount(async () => {
 		intersecting.register(_id, wrapper);
@@ -448,6 +456,7 @@
 			{autoscroll}
 			bind:ready
 			bind:render_complete
+			bind:add_new_message={new_message_fn}
 			show_footer={!is_embed}
 			{app_mode}
 			{version}

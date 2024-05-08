@@ -67,6 +67,7 @@ def test_interface_in_blocks():
     demo.close()
 
 
+@pytest.mark.flaky
 def test_transformers_load_from_pipeline():
     from transformers import pipeline
 

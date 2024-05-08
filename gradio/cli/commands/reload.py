@@ -5,6 +5,7 @@ Contains the functions that run when `gradio` is called from the command line. S
 $ gradio app.py, to run app.py in reload mode where any changes in the app.py file or Gradio library reloads the demo.
 $ gradio app.py my_demo, to use variable names other than "demo"
 """
+
 from __future__ import annotations
 
 import inspect
@@ -125,7 +126,11 @@ def main(
             GRADIO_WATCH_DEMO_PATH=str(path),
         ),
     )
-    popen.wait()
+    if popen.poll() is None:
+        try:
+            popen.wait()
+        except (KeyboardInterrupt, OSError):
+            pass
 
 
 if __name__ == "__main__":

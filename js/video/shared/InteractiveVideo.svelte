@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
-	import type { FileData } from "@gradio/client";
+	import type { FileData, Client } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
 	import { Webcam } from "@gradio/image";
 	import { Video } from "@gradio/icons";
@@ -28,6 +28,9 @@
 	export let i18n: I18nFormatter;
 	export let active_source: "webcam" | "upload" = "webcam";
 	export let handle_reset_value: () => void = () => {};
+	export let max_file_size: number | null = null;
+	export let upload: Client["upload"];
+	export let stream_handler: Client["stream_factory"];
 
 	const dispatch = createEventDispatcher<{
 		change: FileData | null;
@@ -77,8 +80,11 @@
 					bind:dragging
 					filetype="video/x-m4v,video/*"
 					on:load={handle_load}
+					{max_file_size}
 					on:error={({ detail }) => dispatch("error", detail)}
 					{root}
+					{upload}
+					{stream_handler}
 				>
 					<slot />
 				</Upload>
@@ -93,6 +99,7 @@
 					on:start_recording
 					on:stop_recording
 					{i18n}
+					{upload}
 				/>
 			{/if}
 		</div>
@@ -105,6 +112,7 @@
 		{#if playable()}
 			{#key value?.url}
 				<Player
+					{upload}
 					{root}
 					interactive
 					{autoplay}

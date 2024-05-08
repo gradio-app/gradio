@@ -58,56 +58,56 @@
 		>
 			<a class="mt-auto mb-2 flex-grow" href="./docs/gradio/" target="_self">
 				<div class="text-lg">
-					<p class="">Gradio</p>
+					<p class="font-semibold">Gradio</p>
 				</div>
 
-				<code class="font-light text-xs mb-2 text-gray-500">gradio</code>
-				<div class="  relative pr-4 text-smd font-normal text-gray-400">
-					Build and share machine learning demos and web apps, in just a few
-					lines of Python.
+				<code class="font-light text-md mb-2">gradio</code>
+				<div class="  relative pr-4 text-lg font-light mt-2">
+					Build and share machine learning demos and web applications using the
+					core Gradio Python library.
 				</div>
 			</a>
 			<div class="hidden lg:flex flex-wrap mx-auto justify-center">
 				<a
 					href="./docs/gradio/interface"
 					target="_self"
-					class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
 					>Interface
 				</a>
 				<a
 					href="./docs/gradio/blocks"
 					target="_self"
-					class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
 					>Blocks
 				</a>
 				<a
 					href="./docs/gradio/chatinterface"
 					target="_self"
-					class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
 					>ChatInterface
 				</a>
 				<a
 					href="./docs/gradio/textbox"
 					target="_self"
-					class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
 					>Textbox
 				</a>
 				<a
 					href="./docs/gradio/image"
 					target="_self"
-					class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
 					>Image
 				</a>
 				<a
 					href="./docs/gradio/audio"
 					target="_self"
-					class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
 					>Audio
 				</a>
 				<a
 					href="./docs/gradio/dataframe"
 					target="_self"
-					class="shadow-alternate quick-link rounded-full px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
+					class="shadow-alternate quick-link rounded-xl px-3.5 py-1 m-2 text-md font-semibold text-white bg-orange-300 hover:drop-shadow-md"
 					>Dataframe
 				</a>
 			</div>
@@ -118,12 +118,13 @@
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
 				.COLOR_SETS[1]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 		>
-			<div class="relative mb-2 flex items-center text-lg">
+			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Python Client</span>
 			</div>
-			<code class="font-light text-xs mb-2 text-gray-500">gradio-client</code>
-			<div class="relative pr-4 text-smd font-normal text-gray-400">
-				Turn any Gradio app into an API.
+			<code class="font-light text-md mb-2">gradio-client</code>
+			<div class="relative pr-4 text-lg font-light">
+				Make programmatic requests to Gradio applications from Python
+				environments.
 			</div>
 		</a>
 
@@ -133,12 +134,13 @@
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
 				.COLOR_SETS[0]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 		>
-			<div class="relative mb-2 flex items-center text-lg">
+			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Javascript Client</span>
 			</div>
-			<code class="font-light text-xs mb-2 text-gray-500">@gradio/client</code>
-			<div class="relative pr-4 text-smd font-normal text-gray-400">
-				A Javascript (and Typescript) client to call Gradio APIs.
+			<code class=" text-md mb-2">@gradio/client</code>
+			<div class="relative pr-4 text-lg font-light">
+				Make programmatic requests to Gradio applications in JavaScript
+				(TypeScript) from the browser or server-side.
 			</div>
 		</a>
 		{#if $page.params?.version !== "3.50.2"}
@@ -148,12 +150,12 @@
 				class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
 					.COLOR_SETS[3]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 			>
-				<div class="relative mb-2 flex items-center text-lg">
+				<div class="relative mb-2 flex items-center text-lg font-semibold">
 					<span>Javascript Components</span>
 				</div>
-				<div class="relative pr-4 text-smd font-normal text-gray-400">
-					Use Gradio's Javascript components in custom components or outside the
-					context of Gradio.
+				<div class="relative pr-4 text-lg font-light">
+					Use Gradio's UI components in standalone JavaScript applications
+					outside of the Gradio environment.
 				</div>
 			</a>
 			<a
@@ -162,11 +164,12 @@
 				class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
 					.COLOR_SETS[5]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 			>
-				<div class="relative mb-2 flex items-center text-lg">
+				<div class="relative mb-2 flex items-center text-lg font-semibold">
 					<span>Custom Components</span>
 				</div>
-				<div class="relative pr-4 text-smd font-normal text-gray-400">
-					Create, use and share your own custom components.
+				<div class="relative pr-4 text-lg font-light">
+					Create, use, and share your own custom components within a Gradio
+					application.
 				</div>
 			</a>
 		{/if}
@@ -176,13 +179,14 @@
 			class="shadow-alternate hover:scale-[1.02] group group relative flex flex-col overflow-hidden md:first:row-span-2 rounded-xl bg-gradient-to-r px-3 py-4 dark:border-gray-900 from-{data
 				.COLOR_SETS[4]}-50 hover:shadow-alternate to-white shadow-none transition-shadow dark:from-gray-850 dark:to-gray-950 dark:hover:from-gray-800"
 		>
-			<div class="relative mb-2 flex items-center text-lg">
+			<div class="relative mb-2 flex items-center text-lg font-semibold">
 				<span>Gradio Lite</span>
 			</div>
-			<code class="font-light text-xs mb-2 text-gray-500">@gradio/lite</code>
+			<code class="font-light text-md mb-2">@gradio/lite</code>
 
-			<div class="relative pr-4 text-smd font-normal text-gray-400">
-				Serverless Gradio running entirely in your browser.
+			<div class="relative pr-4 text-lg font-light">
+				Run Gradio's Python code serverless (entirely in your browser) using
+				WebAssembly.
 			</div>
 		</a>
 	</div>
@@ -217,7 +221,7 @@
 
 	{#each data.guides_by_category as { category, guides }, i (category)}
 		<div class="category py-4">
-			<h2 class="mb-4 text-xl font-thin block">
+			<h2 class="mb-4 text-xl font-normal block">
 				{category}
 			</h2>
 			<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

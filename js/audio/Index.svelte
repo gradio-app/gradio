@@ -52,6 +52,7 @@
 		upload: never;
 		clear: never;
 		share: ShareData;
+		clear_status: LoadingStatus;
 	}>;
 
 	let old_value: null | FileData = null;
@@ -151,6 +152,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 
 		<StaticAudio
@@ -187,6 +189,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 		<InteractiveAudio
 			{label}
@@ -204,6 +207,7 @@
 			{active_source}
 			{pending}
 			{streaming}
+			max_file_size={gradio.max_file_size}
 			{handle_reset_value}
 			{editable}
 			bind:dragging
@@ -221,6 +225,8 @@
 			{waveform_settings}
 			{waveform_options}
 			{trim_region_settings}
+			upload={gradio.client.upload}
+			stream_handler={gradio.client.stream_factory}
 		>
 			<UploadText i18n={gradio.i18n} type="audio" />
 		</InteractiveAudio>

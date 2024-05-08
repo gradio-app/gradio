@@ -1,12 +1,7 @@
 <script lang="ts">
-	import { tick, createEventDispatcher, getContext } from "svelte";
+	import { tick, createEventDispatcher } from "svelte";
 	import { BaseButton } from "@gradio/button";
-	import {
-		upload,
-		prepare_files,
-		type FileData,
-		type upload_files
-	} from "@gradio/client";
+	import { prepare_files, type FileData, type Client } from "@gradio/client";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -22,11 +17,10 @@
 	export let min_width: number | undefined = undefined;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let disabled = false;
+	export let max_file_size: number | null = null;
+	export let upload: Client["upload"];
 
 	const dispatch = createEventDispatcher();
-
-	// Needed for wasm support
-	const upload_fn = getContext<typeof upload_files>("upload_files");
 
 	let hidden_upload: HTMLInputElement;
 	let accept_file_types: string | null;
@@ -50,6 +44,7 @@
 
 	async function load_files(files: FileList): Promise<void> {
 		let _files: File[] = Array.from(files);
+
 		if (!files.length) {
 			return;
 		}
@@ -59,9 +54,14 @@
 		let all_file_data = await prepare_files(_files);
 		await tick();
 
-		all_file_data = (
-			await upload(all_file_data, root, undefined, upload_fn)
-		)?.filter((x) => x !== null) as FileData[];
+		try {
+			all_file_data = (
+				await upload(all_file_data, root, undefined, max_file_size ?? Infinity)
+			)?.filter((x) => x !== null) as FileData[];
+		} catch (e) {
+			dispatch("error", (e as Error).message);
+			return;
+		}
 		value = file_count === "single" ? all_file_data?.[0] : all_file_data;
 		dispatch("change", value);
 		dispatch("upload", value);

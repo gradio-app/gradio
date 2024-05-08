@@ -1,26 +1,30 @@
-import { upload_files } from "./client";
-
-function is_url(str: string): boolean {
-	try {
-		const url = new URL(str);
-		return url.protocol === "http:" || url.protocol === "https:";
-	} catch {
-		return false;
-	}
-}
+import type { UploadResponse } from "./types";
+import type { Client } from "./client";
 
 export async function upload(
+	this: Client,
 	file_data: FileData[],
-	root: string,
+	root_url: string,
 	upload_id?: string,
-	upload_fn: typeof upload_files = upload_files
+	max_file_size?: number
 ): Promise<(FileData | null)[] | null> {
 	let files = (Array.isArray(file_data) ? file_data : [file_data]).map(
 		(file_data) => file_data.blob!
 	);
 
+	const oversized_files = files.filter(
+		(f) => f.size > (max_file_size ?? Infinity)
+	);
+	if (oversized_files.length) {
+		throw new Error(
+			`File size exceeds the maximum allowed size of ${max_file_size} bytes: ${oversized_files
+				.map((f) => f.name)
+				.join(", ")}`
+		);
+	}
+
 	return await Promise.all(
-		await upload_fn(root, files, undefined, upload_id).then(
+		await this.upload_files(root_url, files, upload_id).then(
 			async (response: { files?: string[]; error?: string }) => {
 				if (response.error) {
 					throw new Error(response.error);
@@ -30,7 +34,7 @@ export async function upload(
 							const file = new FileData({
 								...file_data[i],
 								path: f,
-								url: root + "/file=" + f
+								url: root_url + "/file=" + f
 							});
 							return file;
 						});
@@ -48,7 +52,7 @@ export async function prepare_files(
 	is_stream?: boolean
 ): Promise<FileData[]> {
 	return files.map(
-		(f, i) =>
+		(f) =>
 			new FileData({
 				path: f.name,
 				orig_name: f.name,

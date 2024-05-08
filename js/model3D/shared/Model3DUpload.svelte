@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
-	import type { FileData } from "@gradio/client";
+	import type { FileData, Client } from "@gradio/client";
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 	import type { I18nFormatter } from "@gradio/utils";
@@ -16,6 +16,7 @@
 	export let i18n: I18nFormatter;
 	export let zoom_speed = 1;
 	export let pan_speed = 1;
+	export let max_file_size: number | null = null;
 
 	// alpha, beta, radius
 	export let camera_position: [number | null, number | null, number | null] = [
@@ -23,6 +24,8 @@
 		null,
 		null
 	];
+	export let upload: Client["upload"];
+	export let stream_handler: Client["stream_factory"];
 
 	async function handle_upload({
 		detail
@@ -85,10 +88,14 @@
 
 {#if value === null}
 	<Upload
+		{upload}
+		{stream_handler}
 		on:load={handle_upload}
 		{root}
+		{max_file_size}
 		filetype={[".stl", ".obj", ".gltf", ".glb", "model/obj", ".splat", ".ply"]}
 		bind:dragging
+		on:error
 	>
 		<slot />
 	</Upload>

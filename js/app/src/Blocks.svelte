@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { tick } from "svelte";
 	import { _ } from "svelte-i18n";
-	import { client } from "@gradio/client";
+	import { Client } from "@gradio/client";
 
-	import type { LoadingStatusCollection } from "./stores";
+	import type { LoadingStatus, LoadingStatusCollection } from "./stores";
 
 	import type { ComponentMeta, Dependency, LayoutNode } from "./types";
 	import type { UpdateTransaction } from "./init";
@@ -23,6 +23,7 @@
 
 	export let root: string;
 	export let components: ComponentMeta[];
+	let old_components: ComponentMeta[] = components;
 	export let layout: LayoutNode;
 	export let dependencies: Dependency[];
 	export let title = "Gradio";
@@ -34,7 +35,7 @@
 	export let control_page_title = false;
 	export let app_mode: boolean;
 	export let theme_mode: ThemeMode;
-	export let app: Awaited<ReturnType<typeof client>>;
+	export let app: Awaited<ReturnType<typeof Client.connect>>;
 	export let space_id: string | null;
 	export let version: string;
 	export let js: string | null;
@@ -48,7 +49,8 @@
 		get_data,
 		loading_status,
 		scheduled_updates,
-		create_layout
+		create_layout,
+		rerender_layout
 	} = create_components();
 
 	$: create_layout({
@@ -148,6 +150,13 @@
 		};
 	}
 
+	export function add_new_message(
+		message: string,
+		type: ToastMessage["type"]
+	): void {
+		messages = [new_message(message, -1, type), ...messages];
+	}
+
 	let _error_id = -1;
 
 	let user_left_page = false;
@@ -226,7 +235,7 @@
 			dep
 				.frontend_fn(
 					payload.data.concat(
-						await Promise.all(dep.inputs.map((id) => get_data(id)))
+						await Promise.all(dep.outputs.map((id) => get_data(id)))
 					)
 				)
 				.then((v: unknown[]) => {
@@ -257,13 +266,30 @@
 			if (api_recorder_visible) {
 				api_calls = [...api_calls, payload];
 			}
-			const submission = app
-				.submit(
+
+			let submission: ReturnType<typeof app.submit>;
+			try {
+				submission = app.submit(
 					payload.fn_index,
 					payload.data as unknown[],
 					payload.event_data,
 					payload.trigger_id
-				)
+				);
+			} catch (e) {
+				const fn_index = 0; // Mock value for fn_index
+				messages = [new_message(String(e), fn_index, "error"), ...messages];
+				loading_status.update({
+					status: "error",
+					fn_index,
+					eta: 0,
+					queue: false,
+					queue_position: null
+				});
+				set_status($loading_status);
+				return;
+			}
+
+			submission
 				.on("data", ({ data, fn_index }) => {
 					if (dep.pending_request && dep.final_event) {
 						dep.pending_request = false;
@@ -272,6 +298,16 @@
 					dep.pending_request = false;
 					handle_update(data, fn_index);
 					set_status($loading_status);
+				})
+				.on("render", ({ data, fn_index }) => {
+					let _components: ComponentMeta[] = data.components;
+					let render_layout: LayoutNode = data.layout;
+
+					rerender_layout({
+						components: _components,
+						layout: render_layout,
+						root: root
+					});
 				})
 				.on("status", ({ fn_index, ...status }) => {
 					//@ts-ignore
@@ -430,6 +466,8 @@
 				trigger_share(title, description);
 			} else if (event === "error" || event === "warning") {
 				messages = [new_message(data, -1, event), ...messages];
+			} else if (event == "clear_status") {
+				update_status(id, "complete", data);
 			} else {
 				const deps = $targets[id]?.[event];
 
@@ -451,6 +489,21 @@
 	}
 
 	$: set_status($loading_status);
+
+	function update_status(
+		id: number,
+		status: "error" | "complete" | "pending",
+		data: LoadingStatus
+	): void {
+		data.status = status;
+		update_value([
+			{
+				id,
+				prop: "loading_status",
+				value: data
+			}
+		]);
+	}
 
 	function set_status(statuses: LoadingStatusCollection): void {
 		const updates = Object.entries(statuses).map(([id, loading_status]) => {
@@ -508,7 +561,7 @@
 
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
 	<div class="contain" style:flex-grow={app_mode ? "1" : "auto"}>
-		{#if $_layout}
+		{#if $_layout && app.config}
 			<MountComponents
 				rootNode={$_layout}
 				{root}
@@ -518,6 +571,8 @@
 				on:destroy={({ detail }) => handle_destroy(detail)}
 				{version}
 				{autoscroll}
+				max_file_size={app.config.max_file_size}
+				client={app}
 			/>
 		{/if}
 	</div>
@@ -658,7 +713,7 @@
 		position: fixed;
 		top: 0;
 		right: 0;
-		z-index: var(--layer-5);
+		z-index: var(--layer-top);
 		background: rgba(0, 0, 0, 0.5);
 		width: var(--size-screen);
 		height: var(--size-screen-h);

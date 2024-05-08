@@ -2,6 +2,7 @@
 .eggs/
 gradio.egg-info
 dist/
+dist-lite/
 *.pyc
 __pycache__/
 *.py[cod]
@@ -10,6 +11,7 @@ build/
 __tmp/*
 *.pyi
 py.typed
+.ipynb_checkpoints/
 
 # JS build
 gradio/templates/*
@@ -71,6 +73,7 @@ gradio/frpc_*
 node_modules
 public/build/
 test-results
+client/js/dist/*
 client/js/test.js
 .config/test.py
 

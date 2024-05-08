@@ -4,7 +4,7 @@
 	import type { SelectData } from "@gradio/utils";
 	import { Image } from "@gradio/image/shared";
 	import { dequal } from "dequal";
-	import { createEventDispatcher, getContext } from "svelte";
+	import { createEventDispatcher } from "svelte";
 	import { tick } from "svelte";
 
 	import { Download, Image as ImageIcon } from "@gradio/icons";
@@ -31,6 +31,7 @@
 	export let i18n: I18nFormatter;
 	export let selected_index: number | null = null;
 	export let interactive: boolean;
+	export let _fetch: typeof fetch;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -49,7 +50,7 @@
 			: value.map((data) => ({
 					image: data.image as FileData,
 					caption: data.caption
-			  }));
+				}));
 
 	let prev_value: GalleryData | null = value;
 	if (selected_index == null && preview && value?.length) {
@@ -159,18 +160,16 @@
 		}
 	}
 
-	let client_height = 0;
 	let window_height = 0;
 
 	// Unlike `gr.Image()`, images specified via remote URLs are not cached in the server
 	// and their remote URLs are directly passed to the client as `value[].image.url`.
 	// The `download` attribute of the <a> tag doesn't work for remote URLs (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#download),
 	// so we need to download the image via JS as below.
-	const fetch_implementation = getContext<typeof fetch>("fetch_implementation");
 	async function download(file_url: string, name: string): Promise<void> {
 		let response;
 		try {
-			response = await fetch_implementation(file_url);
+			response = await _fetch(file_url);
 		} catch (error) {
 			if (error instanceof TypeError) {
 				// If CORS is not allowed (https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#checking_that_the_fetch_was_successful),
@@ -279,11 +278,7 @@
 		</button>
 	{/if}
 
-	<div
-		bind:clientHeight={client_height}
-		class="grid-wrap"
-		class:fixed-height={!height || height == "auto"}
-	>
+	<div class="grid-wrap" class:fixed-height={!height || height == "auto"}>
 		<div
 			class="grid-container"
 			style="--grid-cols:{columns}; --grid-rows:{rows}; --object-fit: {object_fit}; height: {height};"

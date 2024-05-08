@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, tick, getContext } from "svelte";
 	import type { FileData } from "@gradio/client";
-	import { upload_files, upload, prepare_files } from "@gradio/client";
+	import { prepare_files, type Client } from "@gradio/client";
 	import { _ } from "svelte-i18n";
 	import UploadProgress from "./UploadProgress.svelte";
 
@@ -18,13 +18,13 @@
 	export let uploading = false;
 	export let hidden_upload: HTMLInputElement | null = null;
 	export let show_progress = true;
+	export let max_file_size: number | null = null;
+	export let upload: Client["upload"];
+	export let stream_handler: Client["stream_factory"];
 
 	let upload_id: string;
 	let file_data: FileData[];
 	let accept_file_types: string | null;
-
-	// Needed for wasm support
-	const upload_fn = getContext<typeof upload_files>("upload_files");
 
 	const dispatch = createEventDispatcher();
 	const validFileTypes = ["image", "video", "audio", "text", "file"];
@@ -83,10 +83,21 @@
 		await tick();
 		upload_id = Math.random().toString(36).substring(2, 15);
 		uploading = true;
-		const _file_data = await upload(file_data, root, upload_id, upload_fn);
-		dispatch("load", file_count === "single" ? _file_data?.[0] : _file_data);
-		uploading = false;
-		return _file_data || [];
+		try {
+			const _file_data = await upload(
+				file_data,
+				root,
+				upload_id,
+				max_file_size ?? Infinity
+			);
+			dispatch("load", file_count === "single" ? _file_data?.[0] : _file_data);
+			uploading = false;
+			return _file_data || [];
+		} catch (e) {
+			dispatch("error", (e as Error).message);
+			uploading = false;
+			return [];
+		}
 	}
 
 	export async function load_files(
@@ -96,7 +107,8 @@
 			return;
 		}
 		let _files: File[] = files.map(
-			(f) => new File([f], f.name, { type: f.type })
+			(f) =>
+				new File([f], f instanceof File ? f.name : "file", { type: f.type })
 		);
 		file_data = await prepare_files(_files);
 		return await handle_upload(file_data);
@@ -188,7 +200,7 @@
 	</button>
 {:else if uploading && show_progress}
 	{#if !hidden}
-		<UploadProgress {root} {upload_id} files={file_data} />
+		<UploadProgress {root} {upload_id} files={file_data} {stream_handler} />
 	{/if}
 {:else}
 	<button

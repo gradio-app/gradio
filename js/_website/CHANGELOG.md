@@ -1,5 +1,31 @@
 # website
 
+## 0.28.0
+
+### Features
+
+- [#8121](https://github.com/gradio-app/gradio/pull/8121) [`f5b710c`](https://github.com/gradio-app/gradio/commit/f5b710c919b0ce604ea955f0d5f4faa91095ca4a) - chore(deps): update dependency eslint to v9.  Thanks @renovate!
+- [#8189](https://github.com/gradio-app/gradio/pull/8189) [`68dcae5`](https://github.com/gradio-app/gradio/commit/68dcae512c0fb699304446c3b1ae2afaba1a63d2) - Use workspace version for code in _website.  Thanks @aliabd!
+- [#8152](https://github.com/gradio-app/gradio/pull/8152) [`989fe25`](https://github.com/gradio-app/gradio/commit/989fe2566fc93e4f67dc86a869dc30e83404c7ab) - Make guide for tailwind more verbose.  Thanks @duerrsimon!
+
+### Dependency updates
+
+- @gradio/code@0.6.1
+
+## 0.27.0
+
+### Features
+
+- [#8061](https://github.com/gradio-app/gradio/pull/8061) [`17e83c9`](https://github.com/gradio-app/gradio/commit/17e83c958ebb35b3e122ca486067d1bd5ce33a22) - Docs Reorg and Intro Page.  Thanks @aliabd!
+- [#8122](https://github.com/gradio-app/gradio/pull/8122) [`e089e4c`](https://github.com/gradio-app/gradio/commit/e089e4cb4a285e0d15593fc5b13b8f254b86c090) - update dependencies.  Thanks @pngwn!
+- [#8119](https://github.com/gradio-app/gradio/pull/8119) [`38a5482`](https://github.com/gradio-app/gradio/commit/38a5482df4d175d81e2aea319c2ffc525a76c538) - Be able to link to a custom component in the gallery directly.  Thanks @freddyaboulton!
+
+## 0.26.1
+
+### Dependency updates
+
+- @gradio/code@0.5.12
+
 ## 0.26.0
 
 ### Features

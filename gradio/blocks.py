@@ -39,7 +39,12 @@ from gradio import (
     wasm_utils,
 )
 from gradio.blocks_events import BlocksEvents, BlocksMeta
-from gradio.context import Context
+from gradio.context import (
+    Context,
+    get_blocks_context,
+    get_render_context,
+    set_render_context,
+)
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import (
     EventData,
@@ -49,7 +54,6 @@ from gradio.events import (
 from gradio.exceptions import (
     DuplicateBlockError,
     InvalidApiNameError,
-    InvalidBlockError,
     InvalidComponentError,
 )
 from gradio.helpers import create_tracker, skip, special_args
@@ -83,6 +87,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
 
     from gradio.components.base import Component
+    from gradio.renderable import Renderable
 
 BUILT_IN_THEMES: dict[str, Theme] = {
     t.name: t
@@ -103,6 +108,7 @@ class Block:
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        key: int | str | None = None,
         visible: bool = True,
         proxy_url: str | None = None,
     ):
@@ -121,6 +127,7 @@ class Block:
         self.state_session_capacity = 10000
         self.temp_files: set[str] = set()
         self.GRADIO_CACHE = get_upload_folder()
+        self.key = key
         # Keep tracks of files that should not be deleted when the delete_cache parmaeter is set
         # These files are the default value of the component and files that are used in examples
         self.keep_in_cache = set()
@@ -156,17 +163,19 @@ class Block:
         """
         Adds self into appropriate BlockContext
         """
-        if Context.root_block is not None and self._id in Context.root_block.blocks:
+        root_context = get_blocks_context()
+        render_context = get_render_context()
+        if root_context is not None and self._id in root_context.blocks:
             raise DuplicateBlockError(
                 f"A block with id: {self._id} has already been rendered in the current Blocks."
             )
-        if Context.block is not None:
-            Context.block.add(self)
-        if Context.root_block is not None:
-            Context.root_block.blocks[self._id] = self
+        if render_context is not None:
+            render_context.add(self)
+        if root_context is not None:
+            root_context.blocks[self._id] = self
             self.is_rendered = True
             if isinstance(self, components.Component):
-                Context.root_block.temp_file_sets.append(self.temp_files)
+                root_context.root_block.temp_file_sets.append(self.temp_files)
         return self
 
     def unrender(self):
@@ -174,14 +183,16 @@ class Block:
         Removes self from BlockContext if it has been rendered (otherwise does nothing).
         Removes self from the layout and collection of blocks, but does not delete any event triggers.
         """
-        if Context.block is not None:
+        root_context = get_blocks_context()
+        render_context = get_render_context()
+        if render_context is not None:
             try:
-                Context.block.children.remove(self)
+                render_context.children.remove(self)
             except ValueError:
                 pass
-        if Context.root_block is not None:
+        if root_context is not None:
             try:
-                del Context.root_block.blocks[self._id]
+                del root_context.blocks[self._id]
                 self.is_rendered = False
             except KeyError:
                 pass
@@ -404,8 +415,9 @@ class BlockContext(Block):
         self.children.append(child)
 
     def __enter__(self):
-        self.parent = Context.block
-        Context.block = self
+        render_context = get_render_context()
+        self.parent = render_context
+        set_render_context(self)
         return self
 
     def add(self, child: Block):
@@ -413,6 +425,7 @@ class BlockContext(Block):
         self.children.append(child)
 
     def fill_expected_parents(self):
+        root_context = get_blocks_context()
         children = []
         pseudo_parent = None
         for child in self.children:
@@ -430,13 +443,13 @@ class BlockContext(Block):
                     pseudo_parent.parent = self
                     children.append(pseudo_parent)
                     pseudo_parent.add_child(child)
-                    if Context.root_block:
-                        Context.root_block.blocks[pseudo_parent._id] = pseudo_parent
+                    if root_context:
+                        root_context.blocks[pseudo_parent._id] = pseudo_parent
                 child.parent = pseudo_parent
         self.children = children
 
     def __exit__(self, exc_type: type[BaseException] | None = None, *args):
-        Context.block = self.parent
+        set_render_context(self.parent)
         if exc_type is not None:
             return
         if getattr(self, "allow_expected_parents", True):
@@ -458,11 +471,25 @@ class BlockFunction:
         preprocess: bool,
         postprocess: bool,
         inputs_as_dict: bool,
+        targets: list[tuple[int | None, str]],
         batch: bool = False,
         max_batch_size: int = 4,
         concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
         tracks_progress: bool = False,
+        api_name: str | Literal[False] = False,
+        js: str | None = None,
+        show_progress: Literal["full", "minimal", "hidden"] = "full",
+        every: float | None = None,
+        cancels: list[int] | None = None,
+        collects_event_data: bool = False,
+        trigger_after: int | None = None,
+        trigger_only_on_success: bool = False,
+        trigger_mode: Literal["always_last", "once", "multiple"] = "once",
+        queue: bool | None = None,
+        scroll_to_output: bool = False,
+        show_api: bool = True,
+        renderable: Renderable | None = None,
     ):
         self.fn = fn
         self.inputs = inputs
@@ -477,7 +504,29 @@ class BlockFunction:
         self.total_runtime = 0
         self.total_runs = 0
         self.inputs_as_dict = inputs_as_dict
+        self.targets = targets
         self.name = getattr(fn, "__name__", "fn") if fn is not None else None
+        self.api_name = api_name
+        self.js = js
+        self.show_progress = show_progress
+        self.every = every
+        self.cancels = cancels or []
+        self.collects_event_data = collects_event_data
+        self.trigger_after = trigger_after
+        self.trigger_only_on_success = trigger_only_on_success
+        self.trigger_mode = trigger_mode
+        self.queue = False if fn is None else queue
+        self.scroll_to_output = False if utils.get_space() else scroll_to_output
+        self.show_api = show_api
+        self.zero_gpu = hasattr(self.fn, "zerogpu")
+        self.types_continuous = bool(self.every)
+        self.types_generator = (
+            inspect.isgeneratorfunction(self.fn)
+            or inspect.isasyncgenfunction(self.fn)
+            or bool(self.every)
+        )
+        self.renderable = renderable
+
         self.spaces_auto_wrap()
 
     def spaces_auto_wrap(self):
@@ -498,6 +547,33 @@ class BlockFunction:
 
     def __repr__(self):
         return str(self)
+
+    def get_config(self):
+        return {
+            "targets": self.targets,
+            "inputs": [block._id for block in self.inputs],
+            "outputs": [block._id for block in self.outputs],
+            "backend_fn": self.fn is not None,
+            "js": self.js,
+            "queue": self.queue,
+            "api_name": self.api_name,
+            "scroll_to_output": self.scroll_to_output,
+            "show_progress": self.show_progress,
+            "every": self.every,
+            "batch": self.batch,
+            "max_batch_size": self.max_batch_size,
+            "cancels": self.cancels,
+            "types": {
+                "continuous": self.types_continuous,
+                "generator": self.types_generator,
+            },
+            "collects_event_data": self.collects_event_data,
+            "trigger_after": self.trigger_after,
+            "trigger_only_on_success": self.trigger_only_on_success,
+            "trigger_mode": self.trigger_mode,
+            "show_api": self.show_api,
+            "zerogpu": self.zero_gpu,
+        }
 
 
 def postprocess_update_dict(
@@ -550,6 +626,70 @@ def convert_component_dict_to_list(
             "Returned dictionary included some keys as Components. Either all keys must be Components to assign Component values, or return a List of values to assign output values in order."
         )
     return predictions
+
+
+class BlocksConfig:
+    def __init__(self, root_block: Blocks):
+        self._id: int = 0
+        self.root_block = root_block
+        self.blocks: dict[int, Component | Block] = {}
+        self.fns: list[BlockFunction] = []
+
+    def get_config(self, renderable: Renderable | None = None):
+        config = {}
+
+        rendered_ids = []
+
+        def get_layout(block: Block):
+            rendered_ids.append(block._id)
+            if not isinstance(block, BlockContext):
+                return {"id": block._id}
+            children_layout = []
+            for child in block.children:
+                children_layout.append(get_layout(child))
+            return {"id": block._id, "children": children_layout}
+
+        if renderable:
+            root_block = self.blocks[renderable.column_id]
+        else:
+            root_block = self.root_block
+        config["layout"] = get_layout(root_block)
+
+        config["components"] = []
+        for _id, block in self.blocks.items():
+            if renderable:
+                if _id not in rendered_ids:
+                    continue
+                if block.key:
+                    block.key = f"{renderable._id}-{block.key}"
+            props = block.get_config() if hasattr(block, "get_config") else {}
+            block_config = {
+                "id": _id,
+                "type": block.get_block_name(),
+                "props": utils.delete_none(props),
+                "skip_api": block.skip_api,
+                "component_class_id": getattr(block, "component_class_id", None),
+                "key": block.key,
+            }
+            if renderable:
+                block_config["renderable"] = renderable._id
+            if not block.skip_api:
+                block_config["api_info"] = block.api_info()  # type: ignore
+                # .example_inputs() has been renamed .example_payload() but
+                # we use the old name for backwards compatibility with custom components
+                # created on Gradio 4.20.0 or earlier
+                block_config["example_inputs"] = block.example_inputs()  # type: ignore
+            config["components"].append(block_config)
+
+        config["dependencies"] = [fn.get_config() for fn in self.fns]
+
+        return config
+
+    def __copy__(self):
+        new = BlocksConfig(self.root_block)
+        new.blocks = copy.copy(self.blocks)
+        new.fns = copy.copy(self.fns)
+        return new
 
 
 @document("launch", "queue", "integrate", "load", "unload")
@@ -608,8 +748,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             mode: A human-friendly name for the kind of Blocks or Interface being created. Used internally for analytics.
             title: The tab title to display when this is opened in a browser window.
             css: Custom css as a string or path to a css file. This css will be included in the demo webpage.
-            js: Custom js or path to js file to run when demo is first loaded. This javascript will be included in the demo webpage.
-            head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, scripts, stylesheets, etc. to the page.
+            js: Custom js as a string or path to a js file. The custom js should be in the form of a single js function. This function will automatically be executed when the page loads. For more flexibility, use the head parameter to insert js inside <script> tags.
+            head: Custom html to insert into the head of the demo webpage. This can be used to add custom meta tags, multiple scripts, stylesheets, etc. to the page.
             fill_height: Whether to vertically expand top-level child components to the height of the window. If True, expansion occurs when the scale value of the child components >= 1.
             delete_cache: A tuple corresponding [frequency, age] both expressed in number of seconds. Every `frequency` seconds, the temporary files created by this Blocks instance will be deleted if more than `age` seconds have passed since the file was created. For example, setting this to (86400, 86400) will delete temporary files every day. The cache will be deleted entirely when the server restarts. If None, no cache deletion will occur.
         """
@@ -651,6 +791,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 self.js = js_file.read()
         else:
             self.js = js
+        self.renderables: list[Renderable] = []
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -665,12 +806,11 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 t.start()
         else:
             os.environ["HF_HUB_DISABLE_TELEMETRY"] = "True"
-        super().__init__(render=False, **kwargs)
-        self.blocks: dict[int, Component | Block] = {}
-        self.fns: list[BlockFunction] = []
-        self.dependencies = []
-        self.mode = mode
 
+        self.default_config = BlocksConfig(self)
+        super().__init__(render=False, **kwargs)
+
+        self.mode = mode
         self.is_running = False
         self.local_url = None
         self.share_url = None
@@ -717,6 +857,22 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             analytics.initiated_analytics(data)
 
         self.queue()
+
+    @property
+    def blocks(self) -> dict[int, Component | Block]:
+        return self.default_config.blocks
+
+    @blocks.setter
+    def blocks(self, value: dict[int, Component | Block]):
+        self.default_config.blocks = value
+
+    @property
+    def fns(self) -> list[BlockFunction]:
+        return self.default_config.fns
+
+    @fns.setter
+    def fns(self, value: list[BlockFunction]):
+        self.default_config.fns = value
 
     def get_component(self, id: int) -> Component | BlockContext:
         comp = self.blocks[id]
@@ -850,7 +1006,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     original_mapping[o] for o in dependency["outputs"]
                 ]
                 dependency.pop("status_tracker", None)
-                dependency.pop("zerogpu")
+                dependency.pop("zerogpu", None)
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
                 if is_then_event:
@@ -884,14 +1040,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     first_dependency = dependency
 
             # Allows some use of Interface-specific methods with loaded Spaces
-            if first_dependency and Context.root_block:
+            if first_dependency and get_blocks_context():
                 blocks.predict = [fns[0]]
-                blocks.input_components = [
-                    Context.root_block.blocks[i] for i in first_dependency["inputs"]
-                ]
-                blocks.output_components = [
-                    Context.root_block.blocks[o] for o in first_dependency["outputs"]
-                ]
+                blocks.input_components = first_dependency.inputs
+                blocks.output_components = first_dependency.outputs
                 blocks.__name__ = "Interface"
                 blocks.api_mode = True
         blocks.proxy_urls = proxy_urls
@@ -901,19 +1053,19 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         return self.__repr__()
 
     def __repr__(self):
-        num_backend_fns = len([d for d in self.dependencies if d["backend_fn"]])
+        num_backend_fns = len([d for d in self.fns if d.fn])
         repr = f"Gradio Blocks instance: {num_backend_fns} backend functions"
         repr += f"\n{'-' * len(repr)}"
-        for d, dependency in enumerate(self.dependencies):
-            if dependency["backend_fn"]:
+        for d, dependency in enumerate(self.fns):
+            if dependency.fn:
                 repr += f"\nfn_index={d}"
                 repr += "\n inputs:"
-                for input_id in dependency["inputs"]:
-                    block = self.blocks[input_id]
+                for block in dependency.inputs:
+                    block = self.blocks[block._id]
                     repr += f"\n |-{block}"
                 repr += "\n outputs:"
-                for output_id in dependency["outputs"]:
-                    block = self.blocks[output_id]
+                for block in dependency.outputs:
+                    block = self.blocks[block._id]
                     repr += f"\n |-{block}"
         return repr
 
@@ -987,7 +1139,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
         show_api: bool = True,
-    ) -> tuple[dict[str, Any], int]:
+        renderable: Renderable | None = None,
+    ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
         Parameters:
@@ -1075,21 +1228,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         _, progress_index, event_data_index = (
             special_args(fn) if fn else (None, None, None)
         )
-        self.fns.append(
-            BlockFunction(
-                fn,
-                inputs,
-                outputs,
-                preprocess,
-                postprocess,
-                inputs_as_dict=inputs_as_dict,
-                concurrency_limit=concurrency_limit,
-                concurrency_id=concurrency_id,
-                batch=batch,
-                max_batch_size=max_batch_size,
-                tracks_progress=progress_index is not None,
-            )
-        )
 
         # If api_name is None or empty string, use the function name
         if api_name is None or isinstance(api_name, str) and api_name.strip() == "":
@@ -1113,7 +1251,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         if api_name is not False:
             api_name = utils.append_unique_suffix(
-                api_name, [dep["api_name"] for dep in self.dependencies]
+                api_name,
+                [fn.api_name for fn in self.fns if isinstance(fn.api_name, str)],
             )
         else:
             show_api = False
@@ -1124,43 +1263,45 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         if collects_event_data is None:
             collects_event_data = event_data_index is not None
 
-        dependency = {
-            "targets": _targets,
-            "inputs": [block._id for block in inputs],
-            "outputs": [block._id for block in outputs],
-            "backend_fn": fn is not None,
-            "js": js,
-            "queue": False if fn is None else queue,
-            "api_name": api_name,
-            "scroll_to_output": False if utils.get_space() else scroll_to_output,
-            "show_progress": show_progress,
-            "every": every,
-            "batch": batch,
-            "max_batch_size": max_batch_size,
-            "cancels": cancels or [],
-            "types": {
-                "continuous": bool(every),
-                "generator": inspect.isgeneratorfunction(fn)
-                or inspect.isasyncgenfunction(fn)
-                or bool(every),
-            },
-            "collects_event_data": collects_event_data,
-            "trigger_after": trigger_after,
-            "trigger_only_on_success": trigger_only_on_success,
-            "trigger_mode": trigger_mode,
-            "show_api": show_api,
-            "zerogpu": hasattr(fn, "zerogpu"),
-        }
-        self.dependencies.append(dependency)
-        return dependency, len(self.dependencies) - 1
+        block_fn = BlockFunction(
+            fn,
+            inputs,
+            outputs,
+            preprocess,
+            postprocess,
+            inputs_as_dict=inputs_as_dict,
+            targets=_targets,
+            batch=batch,
+            max_batch_size=max_batch_size,
+            concurrency_limit=concurrency_limit,
+            concurrency_id=concurrency_id,
+            tracks_progress=progress_index is not None,
+            api_name=api_name,
+            js=js,
+            show_progress=show_progress,
+            every=every,
+            cancels=cancels,
+            collects_event_data=collects_event_data,
+            trigger_after=trigger_after,
+            trigger_only_on_success=trigger_only_on_success,
+            trigger_mode=trigger_mode,
+            queue=queue,
+            scroll_to_output=scroll_to_output,
+            show_api=show_api,
+            renderable=renderable,
+        )
+
+        self.fns.append(block_fn)
+        return block_fn, len(self.fns) - 1
 
     def render(self):
-        if Context.root_block is not None:
-            if self._id in Context.root_block.blocks:
+        root_context = get_blocks_context()
+        if root_context is not None and Context.root_block is not None:
+            if self._id in root_context.blocks:
                 raise DuplicateBlockError(
                     f"A block with id: {self._id} has already been rendered in the current Blocks."
                 )
-            overlapping_ids = set(Context.root_block.blocks).intersection(self.blocks)
+            overlapping_ids = set(root_context.blocks).intersection(self.blocks)
             for id in overlapping_ids:
                 # State components are allowed to be reused between Blocks
                 if not isinstance(self.blocks[id], components.State):
@@ -1168,65 +1309,55 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         "At least one block in this Blocks has already been rendered."
                     )
 
-            Context.root_block.blocks.update(self.blocks)
-            Context.root_block.fns.extend(self.fns)
-            dependency_offset = len(Context.root_block.dependencies)
-            for i, dependency in enumerate(self.dependencies):
-                api_name = dependency["api_name"]
-                if api_name is not None and api_name is not False:
+            root_context.blocks.update(self.blocks)
+            dependency_offset = len(root_context.fns)
+            existing_api_names = [
+                dep.api_name
+                for dep in root_context.fns
+                if isinstance(dep.api_name, str)
+            ]
+            for dependency in self.fns:
+                api_name = dependency.api_name
+                if isinstance(api_name, str):
                     api_name_ = utils.append_unique_suffix(
                         api_name,
-                        [dep["api_name"] for dep in Context.root_block.dependencies],
+                        existing_api_names,
                     )
                     if api_name != api_name_:
-                        dependency["api_name"] = api_name_
-                dependency["cancels"] = [
-                    c + dependency_offset for c in dependency["cancels"]
-                ]
-                if dependency.get("trigger_after") is not None:
-                    dependency["trigger_after"] += dependency_offset
+                        dependency.api_name = api_name_
+                dependency.cancels = [c + dependency_offset for c in dependency.cancels]
+                if dependency.trigger_after is not None:
+                    dependency.trigger_after += dependency_offset
                 # Recreate the cancel function so that it has the latest
                 # dependency fn indices. This is necessary to properly cancel
                 # events in the backend
-                if dependency["cancels"]:
+                if dependency.cancels:
                     updated_cancels = [
-                        Context.root_block.dependencies[i]
-                        for i in dependency["cancels"]
+                        root_context.fns[i].get_config() for i in dependency.cancels
                     ]
-                    new_fn = BlockFunction(
-                        get_cancel_function(updated_cancels)[0],
-                        [],
-                        [],
-                        False,
-                        True,
-                        False,
-                    )
-                    Context.root_block.fns[dependency_offset + i] = new_fn
-                Context.root_block.dependencies.append(dependency)
+                    dependency.fn = get_cancel_function(updated_cancels)[0]
+                root_context.fns.append(dependency)
             Context.root_block.temp_file_sets.extend(self.temp_file_sets)
             Context.root_block.proxy_urls.update(self.proxy_urls)
 
-        if Context.block is not None:
-            Context.block.children.extend(self.children)
+        render_context = get_render_context()
+        if render_context is not None:
+            render_context.children.extend(self.children)
         return self
 
     def is_callable(self, fn_index: int = 0) -> bool:
         """Checks if a particular Blocks function is callable (i.e. not stateful or a generator)."""
         block_fn = self.fns[fn_index]
-        dependency = self.dependencies[fn_index]
+        dependency = self.fns[fn_index]
 
         if inspect.isasyncgenfunction(block_fn.fn):
             return False
         if inspect.isgeneratorfunction(block_fn.fn):
             return False
-        for input_id in dependency["inputs"]:
-            block = self.blocks[input_id]
-            if getattr(block, "stateful", False):
-                return False
-        for output_id in dependency["outputs"]:
-            block = self.blocks[output_id]
-            if getattr(block, "stateful", False):
-                return False
+        if any(block.stateful for block in dependency.inputs):
+            return False
+        if any(block.stateful for block in dependency.outputs):
+            return False
 
         return True
 
@@ -1243,11 +1374,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         """
         if api_name is not None:
             inferred_fn_index = next(
-                (
-                    i
-                    for i, d in enumerate(self.dependencies)
-                    if d.get("api_name") == api_name
-                ),
+                (i for i, d in enumerate(self.fns) if d.api_name == api_name),
                 None,
             )
             if inferred_fn_index is None:
@@ -1262,7 +1389,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         inputs = list(inputs)
         processed_inputs = self.serialize_data(fn_index, inputs)
-        batch = self.dependencies[fn_index]["batch"]
+        batch = self.fns[fn_index].batch
         if batch:
             processed_inputs = [[inp] for inp in processed_inputs]
 
@@ -1293,6 +1420,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         event_id: str | None = None,
         event_data: EventData | None = None,
         in_event_listener: bool = False,
+        state: SessionState | None = None,
     ):
         """
         Calls function with given index and preprocessed input, and measures process time.
@@ -1317,6 +1445,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             event_id=event_id,
             in_event_listener=in_event_listener,
             request=request,
+            state=state,
         )
 
         if iterator is None:  # If not a generator function that has already run
@@ -1352,7 +1481,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 prediction = await utils.async_iteration(iterator)
                 is_generating = True
             except StopAsyncIteration:
-                n_outputs = len(self.dependencies[fn_index].get("outputs"))
+                n_outputs = len(self.fns[fn_index].outputs)
                 prediction = (
                     components._Keywords.FINISHED_ITERATING
                     if n_outputs == 1
@@ -1370,22 +1499,16 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         }
 
     def serialize_data(self, fn_index: int, inputs: list[Any]) -> list[Any]:
-        dependency = self.dependencies[fn_index]
+        dependency = self.fns[fn_index]
         processed_input = []
 
         def format_file(s):
             return FileData(path=s).model_dump()
 
-        for i, input_id in enumerate(dependency["inputs"]):
-            try:
-                block = self.blocks[input_id]
-            except KeyError as e:
-                raise InvalidBlockError(
-                    f"Input component with id {input_id} used in {dependency['trigger']}() event is not defined in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
-                ) from e
+        for i, block in enumerate(dependency.inputs):
             if not isinstance(block, components.Component):
                 raise InvalidComponentError(
-                    f"{block.__class__} Component with id {input_id} not a valid input component."
+                    f"{block.__class__} Component not a valid input component."
                 )
             api_info = block.api_info()
             if client_utils.value_is_file(api_info):
@@ -1402,19 +1525,13 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         return processed_input
 
     def deserialize_data(self, fn_index: int, outputs: list[Any]) -> list[Any]:
-        dependency = self.dependencies[fn_index]
+        dependency = self.fns[fn_index]
         predictions = []
 
-        for o, output_id in enumerate(dependency["outputs"]):
-            try:
-                block = self.blocks[output_id]
-            except KeyError as e:
-                raise InvalidBlockError(
-                    f"Output component with id {output_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
-                ) from e
+        for o, block in enumerate(dependency.outputs):
             if not isinstance(block, components.Component):
                 raise InvalidComponentError(
-                    f"{block.__class__} Component with id {output_id} not a valid output component."
+                    f"{block.__class__} Component not a valid output component."
                 )
 
             deserialized = client_utils.traverse(
@@ -1426,9 +1543,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
     def validate_inputs(self, fn_index: int, inputs: list[Any]):
         block_fn = self.fns[fn_index]
-        dependency = self.dependencies[fn_index]
 
-        dep_inputs = dependency["inputs"]
+        dep_inputs = block_fn.inputs
 
         # This handles incorrect inputs when args are changed by a JS function
         # Only check not enough args case, ignore extra arguments (for now)
@@ -1442,8 +1558,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
             wanted_args = []
             received_args = []
-            for input_id in dep_inputs:
-                block = self.blocks[input_id]
+            for block in dep_inputs:
                 wanted_args.append(str(block))
             for inp in inputs:
                 v = f'"{inp}"' if isinstance(inp, str) else str(inp)
@@ -1471,28 +1586,21 @@ Received inputs:
     ):
         state = state or SessionState(self)
         block_fn = self.fns[fn_index]
-        dependency = self.dependencies[fn_index]
 
         self.validate_inputs(fn_index, inputs)
 
         if block_fn.preprocess:
             processed_input = []
-            for i, input_id in enumerate(dependency["inputs"]):
-                try:
-                    block = self.blocks[input_id]
-                except KeyError as e:
-                    raise InvalidBlockError(
-                        f"Input component with id {input_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
-                    ) from e
+            for i, block in enumerate(block_fn.inputs):
                 if not isinstance(block, components.Component):
                     raise InvalidComponentError(
-                        f"{block.__class__} Component with id {input_id} not a valid input component."
+                        f"{block.__class__} Component not a valid input component."
                     )
-                if getattr(block, "stateful", False):
-                    processed_input.append(state[input_id])
+                if block.stateful:
+                    processed_input.append(state[block._id])
                 else:
-                    if input_id in state:
-                        block = state[input_id]
+                    if block._id in state:
+                        block = state[block._id]
                     inputs_cached = await processing_utils.async_move_files_to_cache(
                         inputs[i],
                         block,
@@ -1510,9 +1618,9 @@ Received inputs:
 
     def validate_outputs(self, fn_index: int, predictions: Any | list[Any]):
         block_fn = self.fns[fn_index]
-        dependency = self.dependencies[fn_index]
+        dependency = self.fns[fn_index]
 
-        dep_outputs = dependency["outputs"]
+        dep_outputs = dependency.outputs
 
         if not isinstance(predictions, (list, tuple)):
             predictions = [predictions]
@@ -1526,8 +1634,7 @@ Received inputs:
 
             wanted_args = []
             received_args = []
-            for output_id in dep_outputs:
-                block = self.blocks[output_id]
+            for block in dep_outputs:
                 wanted_args.append(str(block))
             for pred in predictions:
                 v = f'"{pred}"' if isinstance(pred, str) else str(pred)
@@ -1549,15 +1656,13 @@ Received outputs:
     ):
         state = state or SessionState(self)
         block_fn = self.fns[fn_index]
-        dependency = self.dependencies[fn_index]
-        batch = dependency["batch"]
 
         if isinstance(predictions, dict) and len(predictions) > 0:
             predictions = convert_component_dict_to_list(
-                dependency["outputs"], predictions
+                [block._id for block in block_fn.outputs], predictions
             )
 
-        if len(dependency["outputs"]) == 1 and not (batch):
+        if len(block_fn.outputs) == 1 and not block_fn.batch:
             predictions = [
                 predictions,
             ]
@@ -1565,7 +1670,7 @@ Received outputs:
         self.validate_outputs(fn_index, predictions)  # type: ignore
 
         output = []
-        for i, output_id in enumerate(dependency["outputs"]):
+        for i, block in enumerate(block_fn.outputs):
             try:
                 if predictions[i] is components._Keywords.FINISHED_ITERATING:
                     output.append(None)
@@ -1576,16 +1681,9 @@ Received outputs:
                     f"of values returned from from function {block_fn.name}"
                 ) from err
 
-            try:
-                block = self.blocks[output_id]
-            except KeyError as e:
-                raise InvalidBlockError(
-                    f"Output component with id {output_id} used in {dependency['trigger']}() event not found in this gr.Blocks context. You are allowed to nest gr.Blocks contexts, but there must be a gr.Blocks context that contains all components and events."
-                ) from e
-
             if block.stateful:
                 if not utils.is_update(predictions[i]):
-                    state[output_id] = predictions[i]
+                    state[block._id] = predictions[i]
                 output.append(None)
             else:
                 prediction_value = predictions[i]
@@ -1600,28 +1698,25 @@ Received outputs:
                     prediction_value = prediction_value.constructor_args.copy()
                     prediction_value["__type__"] = "update"
                 if utils.is_update(prediction_value):
-                    if output_id in state:
-                        kwargs = state[output_id].constructor_args.copy()
-                    else:
-                        kwargs = self.blocks[output_id].constructor_args.copy()
+                    kwargs = state[block._id].constructor_args.copy()
                     kwargs.update(prediction_value)
                     kwargs.pop("value", None)
                     kwargs.pop("__type__")
                     kwargs["render"] = False
-                    state[output_id] = self.blocks[output_id].__class__(**kwargs)
+                    state[block._id] = block.__class__(**kwargs)
 
                     prediction_value = postprocess_update_dict(
-                        block=state[output_id],
+                        block=state[block._id],
                         update_dict=prediction_value,
                         postprocess=block_fn.postprocess,
                     )
                 elif block_fn.postprocess:
                     if not isinstance(block, components.Component):
                         raise InvalidComponentError(
-                            f"{block.__class__} Component with id {output_id} not a valid output component."
+                            f"{block.__class__} Component not a valid output component."
                         )
-                    if output_id in state:
-                        block = state[output_id]
+                    if block._id in state:
+                        block = state[block._id]
                     prediction_value = block.postprocess(prediction_value)
 
                 outputs_cached = await processing_utils.async_move_files_to_cache(
@@ -1647,8 +1742,8 @@ Received outputs:
             self.pending_streams[session_hash][run] = {}
         stream_run = self.pending_streams[session_hash][run]
 
-        for i, output_id in enumerate(self.dependencies[fn_index]["outputs"]):
-            block = self.blocks[output_id]
+        for i, block in enumerate(self.fns[fn_index].outputs):
+            output_id = block._id
             if isinstance(block, components.StreamingOutput) and block.streaming:
                 first_chunk = output_id not in stream_run
                 binary_data, output_data = block.stream_output(
@@ -1686,7 +1781,7 @@ Received outputs:
             self.pending_diff_streams[session_hash][run] = [None] * len(data)
         last_diffs = self.pending_diff_streams[session_hash][run]
 
-        for i in range(len(self.dependencies[fn_index]["outputs"])):
+        for i in range(len(self.fns[fn_index].outputs)):
             if final:
                 data[i] = last_diffs[i]
                 continue
@@ -1736,10 +1831,10 @@ Received outputs:
         Returns: None
         """
         block_fn = self.fns[fn_index]
-        batch = self.dependencies[fn_index]["batch"]
+        batch = self.fns[fn_index].batch
 
         if batch:
-            max_batch_size = self.dependencies[fn_index]["max_batch_size"]
+            max_batch_size = self.fns[fn_index].max_batch_size
             batch_sizes = [len(inp) for inp in inputs]
             batch_size = batch_sizes[0]
             if inspect.isasyncgenfunction(block_fn.fn) or inspect.isgeneratorfunction(
@@ -1766,6 +1861,7 @@ Received outputs:
                 event_id,
                 event_data,
                 in_event_listener,
+                state,
             )
             preds = result["prediction"]
             data = [
@@ -1793,6 +1889,7 @@ Received outputs:
                 event_id,
                 event_data,
                 in_event_listener,
+                state,
             )
             data = await self.postprocess_data(fn_index, result["prediction"], state)
             if root_path is not None:
@@ -1818,13 +1915,20 @@ Received outputs:
 
         block_fn.total_runtime += result["duration"]
         block_fn.total_runs += 1
-        return {
+        output = {
             "data": data,
             "is_generating": is_generating,
             "iterator": iterator,
             "duration": result["duration"],
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
+            "render_config": None,
         }
+        if block_fn.renderable and state:
+            output["render_config"] = state.blocks_config.get_config(
+                block_fn.renderable
+            )
+
+        return output
 
     def create_limiter(self):
         self.limiter = (
@@ -1845,6 +1949,7 @@ Received outputs:
             "analytics_enabled": self.analytics_enabled,
             "components": [],
             "css": self.css,
+            "connect_heartbeat": False,
             "js": self.js,
             "head": self.head,
             "title": self.title or "Gradio",
@@ -1853,6 +1958,7 @@ Received outputs:
             "show_error": getattr(self, "show_error", False),
             "show_api": self.show_api,
             "is_colab": utils.colab_check(),
+            "max_file_size": getattr(self, "max_file_size", None),
             "stylesheets": self.stylesheets,
             "theme": self.theme.name,
             "protocol": "sse_v3",
@@ -1870,54 +1976,37 @@ Received outputs:
             },
             "fill_height": self.fill_height,
         }
+        config.update(self.default_config.get_config())
+        any_state = any(
+            isinstance(block, components.State) for block in self.blocks.values()
+        )
+        any_unload = False
+        for dep in config["dependencies"]:
+            for target in dep["targets"]:
+                if isinstance(target, (list, tuple)) and len(target) == 2:
+                    any_unload = target[1] == "unload"
+                    if any_unload:
+                        break
+        config["connect_heartbeat"] = any_state or any_unload
 
-        def get_layout(block):
-            if not isinstance(block, BlockContext):
-                return {"id": block._id}
-            children_layout = []
-            for child in block.children:
-                children_layout.append(get_layout(child))
-            return {"id": block._id, "children": children_layout}
-
-        config["layout"] = get_layout(self)
-
-        for _id, block in self.blocks.items():
-            props = block.get_config() if hasattr(block, "get_config") else {}
-            block_config = {
-                "id": _id,
-                "type": block.get_block_name(),
-                "props": utils.delete_none(props),
-            }
-            block_config["skip_api"] = block.skip_api
-            block_config["component_class_id"] = getattr(
-                block, "component_class_id", None
-            )
-
-            if not block.skip_api:
-                block_config["api_info"] = block.api_info()  # type: ignore
-                # .example_inputs() has been renamed .example_payload() but
-                # we use the old name for backwards compatibility with custom components
-                # created on Gradio 4.20.0 or earlier
-                block_config["example_inputs"] = block.example_inputs()  # type: ignore
-            config["components"].append(block_config)
-        config["dependencies"] = self.dependencies
         return config
 
     def __enter__(self):
-        if Context.block is None:
+        render_context = get_render_context()
+        if render_context is None:
             Context.root_block = self
-        self.parent = Context.block
-        Context.block = self
+        self.parent = render_context
+        set_render_context(self)
         self.exited = False
         return self
 
     def __exit__(self, exc_type: type[BaseException] | None = None, *args):
         if exc_type is not None:
-            Context.block = None
+            set_render_context(None)
             Context.root_block = None
             return
         super().fill_expected_parents()
-        Context.block = self.parent
+        set_render_context(self.parent)
         # Configure the load events before root_block is reset
         self.attach_load_events()
         if self.parent is None:
@@ -1931,9 +2020,8 @@ Received outputs:
 
     def clear(self):
         """Resets the layout of the Blocks object."""
-        self.blocks = {}
-        self.fns = []
-        self.dependencies = []
+        self.default_config.blocks = {}
+        self.default_config.fns = []
         self.children = []
         return self
 
@@ -1987,8 +2075,8 @@ Received outputs:
         return self
 
     def validate_queue_settings(self):
-        for dep in self.dependencies:
-            for i in dep["cancels"]:
+        for dep in self.fns:
+            for i in dep.cancels:
                 if not self.queue_enabled_for_fn(i):
                     raise ValueError(
                         "Queue needs to be enabled! "
@@ -1997,7 +2085,7 @@ Received outputs:
                         "another event without enabling the queue. Both can be solved by calling .queue() "
                         "before .launch()"
                     )
-            if dep["batch"] and dep["queue"] is False:
+            if dep.batch and dep.queue is False:
                 raise ValueError("In order to use batching, the queue must be enabled.")
 
     def launch(
@@ -2022,7 +2110,7 @@ Received outputs:
         ssl_keyfile_password: str | None = None,
         ssl_verify: bool = True,
         quiet: bool = False,
-        show_api: bool = True,
+        show_api: bool = not wasm_utils.IS_WASM,
         allowed_paths: list[str] | None = None,
         blocked_paths: list[str] | None = None,
         root_path: str | None = None,
@@ -2031,6 +2119,7 @@ Received outputs:
         share_server_address: str | None = None,
         share_server_protocol: Literal["http", "https"] | None = None,
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
+        max_file_size: str | int | None = None,
         _frontend: bool = True,
     ) -> tuple[FastAPI, str, str]:
         """
@@ -2066,6 +2155,7 @@ Received outputs:
             share_server_address: Use this to specify a custom FRP server and port for sharing Gradio apps (only applies if share=True). If not provided, will use the default FRP server at https://gradio.live. See https://github.com/huggingface/frp for more information.
             share_server_protocol: Use this to specify the protocol to use for the share links. Defaults to "https", unless a custom share_server_address is provided, in which case it defaults to "http". If you are using a custom share_server_address and want to use https, you must set this to "https".
             auth_dependency: A function that takes a FastAPI request and returns a string user ID or None. If the function returns None for a specific request, that user is not authorized to access the app (they will see a 401 Unauthorized response). To be used with external authentication systems like OAuth. Cannot be used with `auth`.
+            max_file_size: The maximum file size in bytes that can be uploaded. Can be a string of the form "<value><unit>", where value is any positive integer and unit is one of "b", "kb", "mb", "gb", "tb". If None, no limit is set.
         Returns:
             app: FastAPI app object that is running the demo
             local_url: Locally accessible link to the demo
@@ -2085,6 +2175,8 @@ Received outputs:
             demo = gr.Interface(reverse, "text", "text")
             demo.launch(share=True, auth=("username", "password"))
         """
+        from gradio.routes import App
+
         if self._is_running_in_reload_thread:
             # We have already launched the demo
             return None, None, None  # type: ignore
@@ -2128,10 +2220,20 @@ Received outputs:
             raise ValueError("`blocked_paths` must be a list of directories.")
 
         self.validate_queue_settings()
+        self.max_file_size = utils._parse_file_size(max_file_size)
+
+        if self.dev_mode:
+            for block in self.blocks.values():
+                if block.key is None:
+                    block.key = f"__{block._id}__"
 
         self.config = self.get_config_file()
         self.max_threads = max_threads
         self._queue.max_thread_count = max_threads
+        # self.server_app is included for backwards compatibility
+        self.server_app = self.app = App.create_app(
+            self, auth_dependency=auth_dependency, app_kwargs=app_kwargs
+        )
 
         if self.is_running:
             if not isinstance(self.local_url, str):
@@ -2146,18 +2248,10 @@ Received outputs:
                 server_port = 99999
                 local_url = ""
                 server = None
-
                 # In the Wasm environment, we only need the app object
                 # which the frontend app will directly communicate with through the Worker API,
                 # and we don't need to start a server.
-                # So we just create the app object and register it here,
-                # and avoid using `networking.start_server` that would start a server that don't work in the Wasm env.
-                from gradio.routes import App
-
-                app = App.create_app(
-                    self, auth_dependency=auth_dependency, app_kwargs=app_kwargs
-                )
-                wasm_utils.register_app(app)
+                wasm_utils.register_app(self.app)
             else:
                 from gradio import http_server
 
@@ -2165,23 +2259,18 @@ Received outputs:
                     server_name,
                     server_port,
                     local_url,
-                    app,
                     server,
                 ) = http_server.start_server(
-                    self,
-                    server_name,
-                    server_port,
-                    ssl_keyfile,
-                    ssl_certfile,
-                    ssl_keyfile_password,
-                    app_kwargs=app_kwargs,
+                    app=self.app,
+                    server_name=server_name,
+                    server_port=server_port,
+                    ssl_keyfile=ssl_keyfile,
+                    ssl_certfile=ssl_certfile,
+                    ssl_keyfile_password=ssl_keyfile_password,
                 )
             self.server_name = server_name
             self.local_url = local_url
             self.server_port = server_port
-            self.server_app = (
-                self.app
-            ) = app  # server_app is included for backwards compatibility
             self.server = server
             self.is_running = True
             self.is_colab = utils.colab_check()
@@ -2396,18 +2485,21 @@ Received outputs:
             }
             analytics.launched_analytics(self, data)
 
-        # Block main thread if debug==True
-        if debug or int(os.getenv("GRADIO_DEBUG", "0")) == 1 and not wasm_utils.IS_WASM:
-            self.block_thread()
-        # Block main thread if running in a script to stop script from exiting
         is_in_interactive_mode = bool(getattr(sys, "ps1", sys.flags.interactive))
 
+        # Block main thread if debug==True
         if (
-            not prevent_thread_lock
-            and not is_in_interactive_mode
-            # In the Wasm env, we don't have to block the main thread because the server won't be shut down after the execution finishes.
-            # Moreover, we MUST NOT do it because there is only one thread in the Wasm env and blocking it will stop the subsequent code from running.
+            debug
+            or int(os.getenv("GRADIO_DEBUG", "0")) == 1
             and not wasm_utils.IS_WASM
+            or (
+                # Block main thread if running in a script to stop script from exiting
+                not prevent_thread_lock
+                and not is_in_interactive_mode
+                # In the Wasm env, we don't have to block the main thread because the server won't be shut down after the execution finishes.
+                # Moreover, we MUST NOT do it because there is only one thread in the Wasm env and blocking it will stop the subsequent code from running.
+                and not wasm_utils.IS_WASM
+            )
         ):
             self.block_thread()
 
@@ -2514,8 +2606,9 @@ Received outputs:
 
     def attach_load_events(self):
         """Add a load event for every component whose initial value should be randomized."""
-        if Context.root_block:
-            for component in Context.root_block.blocks.values():
+        root_context = Context.root_block
+        if root_context:
+            for component in root_context.blocks.values():
                 if (
                     isinstance(component, components.Component)
                     and component.load_event_to_attach
@@ -2536,7 +2629,7 @@ Received outputs:
                         queue=False if every is None else None,
                         every=every,
                     )[0]
-                    component.load_event = dep
+                    component.load_event = dep.get_config()
 
     def startup_events(self):
         """Events that should be run when the app containing this block starts up."""
@@ -2547,7 +2640,7 @@ Received outputs:
         self.create_limiter()
 
     def queue_enabled_for_fn(self, fn_index: int):
-        return self.dependencies[fn_index]["queue"] is not False
+        return self.fns[fn_index].queue is not False
 
     def get_api_info(self):
         """
@@ -2556,22 +2649,18 @@ Received outputs:
         config = self.config
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
-        for dependency, fn in zip(config["dependencies"], self.fns):
-            if (
-                not dependency["backend_fn"]
-                or not dependency["show_api"]
-                or dependency["api_name"] is False
-            ):
+        for fn in self.fns:
+            if not fn.fn or not fn.show_api or fn.api_name is False:
                 continue
 
             dependency_info = {"parameters": [], "returns": []}
             fn_info = utils.get_function_params(fn.fn)  # type: ignore
             skip_endpoint = False
 
-            inputs = dependency["inputs"]
-            for index, input_id in enumerate(inputs):
+            inputs = fn.inputs
+            for index, input_block in enumerate(inputs):
                 for component in config["components"]:
-                    if component["id"] == input_id:
+                    if component["id"] == input_block._id:
                         break
                 else:
                     skip_endpoint = True  # if component not found, skip endpoint
@@ -2579,7 +2668,7 @@ Received outputs:
                 type = component["props"]["name"]
                 if self.blocks[component["id"]].skip_api:
                     continue
-                label = component["props"].get("label", f"parameter_{input_id}")
+                label = component["props"].get("label", f"parameter_{input_block._id}")
                 comp = self.get_component(component["id"])
                 if not isinstance(comp, components.Component):
                     raise TypeError(f"{comp!r} is not a Component")
@@ -2591,7 +2680,7 @@ Received outputs:
                 # "result_callbacks" to specify the callbacks, we need to make sure that no parameters
                 # have those names. Hence the final checks.
                 if (
-                    dependency["backend_fn"]
+                    fn.fn
                     and index < len(fn_info)
                     and fn_info[index][0]
                     not in ["api_name", "fn_index", "result_callbacks"]
@@ -2608,7 +2697,7 @@ Received outputs:
                     parameter_has_default = True
                     parameter_default = component["props"]["value"]
                 elif (
-                    dependency["backend_fn"]
+                    fn.fn
                     and index < len(fn_info)
                     and fn_info[index][1]
                     and fn_info[index][2] is None
@@ -2635,10 +2724,10 @@ Received outputs:
                     }
                 )
 
-            outputs = dependency["outputs"]
+            outputs = fn.outputs
             for o in outputs:
                 for component in config["components"]:
-                    if component["id"] == o:
+                    if component["id"] == o._id:
                         break
                 else:
                     skip_endpoint = True  # if component not found, skip endpoint
@@ -2646,7 +2735,7 @@ Received outputs:
                 type = component["props"]["name"]
                 if self.blocks[component["id"]].skip_api:
                     continue
-                label = component["props"].get("label", f"value_{o}")
+                label = component["props"].get("label", f"value_{o._id}")
                 comp = self.get_component(component["id"])
                 if not isinstance(comp, components.Component):
                     raise TypeError(f"{comp!r} is not a Component")
@@ -2666,8 +2755,6 @@ Received outputs:
                 )
 
             if not skip_endpoint:
-                api_info["named_endpoints"][
-                    f"/{dependency['api_name']}"
-                ] = dependency_info
+                api_info["named_endpoints"][f"/{fn.api_name}"] = dependency_info
 
         return api_info

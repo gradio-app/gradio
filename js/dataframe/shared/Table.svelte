@@ -8,6 +8,7 @@
 	import EditableCell from "./EditableCell.svelte";
 	import type { SelectData } from "@gradio/utils";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
+	import { type Client } from "@gradio/client";
 	import VirtualTable from "./VirtualTable.svelte";
 	import type {
 		Headers,
@@ -38,6 +39,8 @@
 	export let height = 500;
 	export let line_breaks = true;
 	export let column_widths: string[] = [];
+	export let upload: Client["upload"];
+	export let stream_handler: Client["stream_factory"];
 
 	let selected: false | [number, number] = false;
 	export let display_value: string[][] | null = null;
@@ -113,8 +116,8 @@
 			row_count[1] === "fixed"
 				? row_count[0]
 				: data_row_length < row_count[0]
-				? row_count[0]
-				: data_row_length
+					? row_count[0]
+					: data_row_length
 		)
 			.fill(0)
 			.map((_, i) =>
@@ -122,8 +125,8 @@
 					col_count[1] === "fixed"
 						? col_count[0]
 						: data_row_length > 0
-						? _values[0].length
-						: headers.length
+							? _values[0].length
+							: headers.length
 				)
 					.fill(0)
 					.map((_, j) => {
@@ -722,6 +725,8 @@
 			</tbody>
 		</table>
 		<Upload
+			{upload}
+			{stream_handler}
 			flex={false}
 			center={false}
 			boundedheight={false}

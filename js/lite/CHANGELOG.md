@@ -1,5 +1,46 @@
 # @gradio/lite
 
+## 4.29.0
+
+### Features
+
+- [#8052](https://github.com/gradio-app/gradio/pull/8052) [`1435d1d`](https://github.com/gradio-app/gradio/commit/1435d1d2dcfd1accf742726396f2213a54ae0837) - Extend Interface.from_pipeline() to support Transformers.js.py pipelines on Lite.  Thanks @whitphx!
+
+### Dependency updates
+
+- @gradio/wasm@0.10.1
+- gradio@4.29.0
+
+## 4.28.3
+
+### Dependency updates
+
+- gradio@4.28.3
+
+## 4.28.2
+
+### Dependency updates
+
+- gradio@4.28.2
+
+## 4.28.1
+
+### Dependency updates
+
+- gradio@4.28.1
+
+## 4.28.0
+
+### Dependency updates
+
+- gradio@4.28.0
+
+## 4.27.0
+
+### Dependency updates
+
+- gradio@4.27.0
+
 ## 4.26.0
 
 ### Features

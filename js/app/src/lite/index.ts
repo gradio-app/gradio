@@ -4,9 +4,9 @@ import "@gradio/theme/src/pollen.css";
 import "@gradio/theme/src/typography.css";
 import type { SvelteComponent } from "svelte";
 import { WorkerProxy, type WorkerProxyOptions } from "@gradio/wasm";
-import { api_factory } from "@gradio/client";
+import { Client } from "@gradio/client";
 import { wasm_proxied_fetch } from "./fetch";
-import { wasm_proxied_EventSource_factory } from "./sse";
+import { wasm_proxied_stream_factory } from "./sse";
 import { wasm_proxied_mount_css, mount_prebuilt_css } from "./css";
 import type { mount_css } from "../css";
 import Index from "../Index.svelte";
@@ -126,16 +126,16 @@ export function create(options: Options): GradioAppController {
 
 	mount_prebuilt_css(document.head);
 
-	const overridden_fetch: typeof fetch = (input, init?) => {
-		return wasm_proxied_fetch(worker_proxy, input, init);
-	};
-	const EventSource_factory = (url: URL): EventSource => {
-		return wasm_proxied_EventSource_factory(worker_proxy, url);
-	};
-	const { client, upload_files } = api_factory(
-		overridden_fetch,
-		EventSource_factory
-	);
+	class LiteClient extends Client {
+		fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+			return wasm_proxied_fetch(worker_proxy, input, init);
+		}
+
+		stream_factory(url: URL): EventSource {
+			return wasm_proxied_stream_factory(worker_proxy, url);
+		}
+	}
+
 	const overridden_mount_css: typeof mount_css = async (url, target) => {
 		return wasm_proxied_mount_css(worker_proxy, url, target);
 	};
@@ -210,11 +210,8 @@ export function create(options: Options): GradioAppController {
 			app_mode: options.appMode,
 			// For Wasm mode
 			worker_proxy,
-			client,
-			upload_files,
+			Client: LiteClient,
 			mount_css: overridden_mount_css,
-			fetch_implementation: overridden_fetch,
-			EventSource_factory,
 			// For playground
 			layout: options.layout
 		};

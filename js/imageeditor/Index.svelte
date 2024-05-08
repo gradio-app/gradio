@@ -49,11 +49,12 @@
 	export let eraser: Eraser;
 	export let crop_size: [number, number] | `${string}:${string}` | null = null;
 	export let transforms: "crop"[] = ["crop"];
-
+	export let layers = true;
 	export let attached_events: string[] = [];
 	export let server: {
 		accept_blobs: (a: any) => void;
 	};
+	export let canvas_size: [number, number] | undefined;
 
 	export let gradio: Gradio<{
 		change: never;
@@ -66,6 +67,7 @@
 		clear: never;
 		select: SelectData;
 		share: ShareData;
+		clear_status: LoadingStatus;
 	}>;
 
 	let editor_instance: InteractiveImageEditor;
@@ -77,11 +79,8 @@
 			image_id = null;
 			return val;
 		}
-		// @ts-ignore
-		loading_status = { status: "pending" };
+
 		const blobs = await editor_instance.get_data();
-		// @ts-ignore
-		loading_status = { status: "complete" };
 
 		return blobs;
 	}
@@ -90,7 +89,15 @@
 
 	$: value && handle_change();
 
-	function handle_change(): void {
+	function wait_for_next_frame(): Promise<void> {
+		return new Promise((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+	}
+
+	async function handle_change(): Promise<void> {
+		await wait_for_next_frame();
+
 		if (
 			value &&
 			(value.background || value.layers?.length || value.composite)
@@ -131,6 +138,7 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 		<StaticImage
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
@@ -164,9 +172,11 @@
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
 			{...loading_status}
+			on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 		/>
 
 		<InteractiveImageEditor
+			{canvas_size}
 			on:change={() => handle_history_change()}
 			bind:image_id
 			{crop_size}
@@ -191,9 +201,14 @@
 			{brush}
 			{eraser}
 			changeable={attached_events.includes("apply")}
+			realtime={attached_events.includes("change")}
 			i18n={gradio.i18n}
 			{transforms}
 			accept_blobs={server.accept_blobs}
+			{layers}
+			status={loading_status?.status}
+			upload={gradio.client.upload}
+			stream_handler={gradio.client.stream_factory}
 		></InteractiveImageEditor>
 	</Block>
 {/if}

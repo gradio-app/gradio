@@ -1,7 +1,9 @@
 """Predefined button to sign in with Hugging Face in a Gradio Space."""
+
 from __future__ import annotations
 
 import json
+import time
 import warnings
 from typing import Literal
 
@@ -36,6 +38,7 @@ class LoginButton(Button):
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         render: bool = True,
+        key: int | str | None = None,
         scale: int | None = 0,
         min_width: int | None = None,
         signed_in_value: str = "Signed in as {}",
@@ -61,6 +64,7 @@ class LoginButton(Button):
             elem_id=elem_id,
             elem_classes=elem_classes,
             render=render,
+            key=key,
             scale=scale,
             min_width=min_width,
         )
@@ -87,12 +91,21 @@ class LoginButton(Button):
         session = getattr(request, "session", None) or getattr(
             request.request, "session", None
         )
+
         if session is None or "oauth_info" not in session:
-            return LoginButton(value=self.value, interactive=True)  # type: ignore
-        else:
-            username = session["oauth_info"]["userinfo"]["preferred_username"]
-            logout_text = self.logout_value.format(username)
-            return LoginButton(logout_text, interactive=True)
+            # Cookie set but user not logged in
+            return LoginButton(self.value, interactive=True)
+
+        oauth_info = session["oauth_info"]
+        expires_at = oauth_info.get("expires_at")
+        if expires_at is not None and expires_at < time.time():
+            # User is logged in but token has expired => logout
+            session.pop("oauth_info", None)
+            return LoginButton(self.value, interactive=True)
+
+        # User is correctly logged in
+        username = oauth_info["userinfo"]["preferred_username"]
+        return LoginButton(self.logout_value.format(username), interactive=True)
 
 
 # JS code to redirects to /login/huggingface if user is not logged in.

@@ -39,6 +39,7 @@
 		upload: never;
 		clear: never;
 		select: SelectData;
+		clear_status: LoadingStatus;
 	}>;
 	export let file_count: string;
 	export let file_types: string[] = ["file"];
@@ -72,6 +73,7 @@
 		status={pending_upload
 			? "generating"
 			: loading_status?.status || "complete"}
+		on:clear_status={() => gradio.dispatch("clear_status", loading_status)}
 	/>
 	{#if !interactive}
 		<File
@@ -85,6 +87,8 @@
 		/>
 	{:else}
 		<FileUpload
+			upload={gradio.client.upload}
+			stream_handler={gradio.client.stream_factory}
 			{label}
 			{show_label}
 			{value}
@@ -93,6 +97,7 @@
 			selectable={_selectable}
 			{root}
 			{height}
+			max_file_size={gradio.max_file_size}
 			on:change={({ detail }) => {
 				value = detail;
 			}}
@@ -100,6 +105,11 @@
 			on:clear={() => gradio.dispatch("clear")}
 			on:select={({ detail }) => gradio.dispatch("select", detail)}
 			on:upload={() => gradio.dispatch("upload")}
+			on:error={({ detail }) => {
+				loading_status = loading_status || {};
+				loading_status.status = "error";
+				gradio.dispatch("error", detail);
+			}}
 			i18n={gradio.i18n}
 		>
 			<UploadText i18n={gradio.i18n} type="file" />

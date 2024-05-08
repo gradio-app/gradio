@@ -1,0 +1,67 @@
+import type { ApiInfo, ApiData } from "../types";
+import semiver from "semiver";
+import { API_INFO_URL, BROKEN_CONNECTION_MSG } from "../constants";
+import { Client } from "../client";
+import { SPACE_FETCHER_URL } from "../constants";
+import { transform_api_info } from "../helpers/api_info";
+
+export async function view_api(this: Client): Promise<any> {
+	if (this.api_info) return this.api_info;
+
+	const { hf_token } = this.options;
+	const { config } = this;
+
+	const headers: {
+		Authorization?: string;
+		"Content-Type": "application/json";
+	} = { "Content-Type": "application/json" };
+
+	if (hf_token) {
+		headers.Authorization = `Bearer ${hf_token}`;
+	}
+
+	if (!config) {
+		return;
+	}
+
+	try {
+		let response: Response;
+
+		if (semiver(config?.version || "2.0.0", "3.30") < 0) {
+			response = await this.fetch(SPACE_FETCHER_URL, {
+				method: "POST",
+				body: JSON.stringify({
+					serialize: false,
+					config: JSON.stringify(config)
+				}),
+				headers
+			});
+		} else {
+			response = await this.fetch(`${config?.root}/${API_INFO_URL}`, {
+				headers
+			});
+		}
+
+		if (!response.ok) {
+			throw new Error(BROKEN_CONNECTION_MSG);
+		}
+
+		let api_info = (await response.json()) as
+			| ApiInfo<ApiData>
+			| { api: ApiInfo<ApiData> };
+		if ("api" in api_info) {
+			api_info = api_info.api;
+		}
+
+		if (
+			api_info.named_endpoints["/predict"] &&
+			!api_info.unnamed_endpoints["0"]
+		) {
+			api_info.unnamed_endpoints[0] = api_info.named_endpoints["/predict"];
+		}
+
+		return transform_api_info(api_info, config, this.api_map);
+	} catch (e) {
+		"Could not get API info. " + (e as Error).message;
+	}
+}

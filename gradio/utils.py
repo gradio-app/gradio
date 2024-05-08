@@ -38,6 +38,7 @@ from typing import (
     Generic,
     Iterable,
     Iterator,
+    Literal,
     Optional,
     TypeVar,
 )
@@ -57,6 +58,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext, Blocks
     from gradio.components import Component
     from gradio.routes import App, Request
+    from gradio.state_holder import SessionState
 
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
@@ -103,19 +105,13 @@ class BaseReloader(ABC):
     def running_app(self) -> App:
         pass
 
-    def queue_changed(self, demo: Blocks):
-        return (
-            hasattr(self.running_app.blocks, "_queue") and not hasattr(demo, "_queue")
-        ) or (
-            not hasattr(self.running_app.blocks, "_queue") and hasattr(demo, "_queue")
-        )
-
     def swap_blocks(self, demo: Blocks):
         assert self.running_app.blocks  # noqa: S101
         # Copy over the blocks to get new components and events but
         # not a new queue
         self.running_app.blocks._queue.block_fns = demo.fns
         demo._queue = self.running_app.blocks._queue
+        demo.max_file_size = self.running_app.blocks.max_file_size
         self.running_app.state_holder.reset(demo)
         self.running_app.blocks = demo
         demo._queue.reload()
@@ -129,7 +125,6 @@ class SourceFileReloader(BaseReloader):
         watch_module_name: str,
         demo_file: str,
         stop_event: threading.Event,
-        change_event: threading.Event,
         demo_name: str = "demo",
     ) -> None:
         super().__init__()
@@ -137,7 +132,6 @@ class SourceFileReloader(BaseReloader):
         self.watch_dirs = watch_dirs
         self.watch_module_name = watch_module_name
         self.stop_event = stop_event
-        self.change_event = change_event
         self.demo_name = demo_name
         self.demo_file = Path(demo_file)
 
@@ -151,12 +145,17 @@ class SourceFileReloader(BaseReloader):
     def stop(self) -> None:
         self.stop_event.set()
 
-    def alert_change(self):
-        self.change_event.set()
+    def alert_change(self, change_type: Literal["reload", "error"] = "reload"):
+        self.app.change_type = change_type
+        self.app.change_count += 1
 
     def swap_blocks(self, demo: Blocks):
+        old_blocks = self.running_app.blocks
         super().swap_blocks(demo)
-        self.alert_change()
+        if old_blocks:
+            reassign_keys(old_blocks, demo)
+        demo.config = demo.get_config_file()
+        self.alert_change("reload")
 
 
 NO_RELOAD = True
@@ -169,7 +168,7 @@ def _remove_no_reload_codeblocks(file_path: str):
         file_path (str): The path to the file to remove the no_reload code blocks from.
     """
 
-    with open(file_path) as file:
+    with open(file_path, encoding="utf-8") as file:
         code = file.read()
 
     tree = ast.parse(code)
@@ -263,15 +262,16 @@ def watchfn(reloader: SourceFileReloader):
                 # This is because the main demo file may import the changed file and we need the
                 # changes to be reflected in the main demo file.
 
-                changed_in_copy = _remove_no_reload_codeblocks(str(changed))
-                if changed != reloader.demo_file:
-                    changed_module = _find_module(changed)
-                    exec(changed_in_copy, changed_module.__dict__)
-                    top_level_parent = sys.modules[
-                        changed_module.__name__.split(".")[0]
-                    ]
-                    if top_level_parent != changed_module:
-                        importlib.reload(top_level_parent)
+                if changed.suffix == ".py":
+                    changed_in_copy = _remove_no_reload_codeblocks(str(changed))
+                    if changed != reloader.demo_file:
+                        changed_module = _find_module(changed)
+                        exec(changed_in_copy, changed_module.__dict__)
+                        top_level_parent = sys.modules[
+                            changed_module.__name__.split(".")[0]
+                        ]
+                        if top_level_parent != changed_module:
+                            importlib.reload(top_level_parent)
 
                 changed_demo_file = _remove_no_reload_codeblocks(
                     str(reloader.demo_file)
@@ -283,17 +283,50 @@ def watchfn(reloader: SourceFileReloader):
                 )
                 traceback.print_exc()
                 mtimes = {}
+                reloader.alert_change("error")
+                reloader.app.reload_error_message = traceback.format_exc()
                 continue
             demo = getattr(module, reloader.demo_name)
-            if reloader.queue_changed(demo):
-                print(
-                    "Reloading failed. The new demo has a queue and the old one doesn't (or vice versa). "
-                    "Please launch your demo again"
-                )
-            else:
-                reloader.swap_blocks(demo)
+            reloader.swap_blocks(demo)
             mtimes = {}
         time.sleep(0.05)
+
+
+def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
+    from gradio.blocks import BlockContext
+
+    assigned_keys = [
+        block.key for block in new_blocks.children if block.key is not None
+    ]
+
+    def reassign_context_keys(
+        old_context: BlockContext | None, new_context: BlockContext
+    ):
+        for i, new_block in enumerate(new_context.children):
+            if old_context and i < len(old_context.children):
+                old_block = old_context.children[i]
+            else:
+                old_block = None
+            if new_block.key is None:
+                if (
+                    old_block.__class__ == new_block.__class__
+                    and old_block is not None
+                    and old_block.key not in assigned_keys
+                ):
+                    new_block.key = old_block.key
+                else:
+                    new_block.key = f"__{new_block._id}__"
+
+            if isinstance(new_block, BlockContext):
+                if (
+                    isinstance(old_block, BlockContext)
+                    and old_block.__class__ == new_block.__class__
+                ):
+                    reassign_context_keys(old_block, new_block)
+                else:
+                    reassign_context_keys(None, new_block)
+
+    reassign_context_keys(old_blocks, new_blocks)
 
 
 def colab_check() -> bool:
@@ -486,6 +519,30 @@ def resolve_singleton(_list: list[Any] | Any) -> Any:
         return _list
 
 
+def get_all_components() -> list[type[Component] | type[BlockContext]]:
+    import gradio as gr
+
+    classes_to_check = (
+        gr.components.Component.__subclasses__()
+        + gr.blocks.BlockContext.__subclasses__()  # type: ignore
+    )
+    subclasses = []
+
+    while classes_to_check:
+        subclass = classes_to_check.pop()
+        classes_to_check.extend(subclass.__subclasses__())
+        subclasses.append(subclass)
+    return subclasses
+
+
+def core_gradio_components():
+    return [
+        class_
+        for class_ in get_all_components()
+        if class_.__module__.startswith("gradio.")
+    ]
+
+
 def component_or_layout_class(cls_name: str) -> type[Component] | type[BlockContext]:
     """
     Returns the component, template, or layout class with the given class name, or
@@ -496,33 +553,23 @@ def component_or_layout_class(cls_name: str) -> type[Component] | type[BlockCont
     Returns:
     cls: the component class
     """
-    import gradio.blocks
-    import gradio.components
-    import gradio.layouts
-    import gradio.templates
+    import gradio.components as components_module
+    from gradio.components import Component
 
-    components = [
-        (name, cls)
-        for name, cls in gradio.components.__dict__.items()
-        if isinstance(cls, type)
-    ]
-    templates = [
-        (name, cls)
-        for name, cls in gradio.templates.__dict__.items()
-        if isinstance(cls, type)
-    ]
-    layouts = [
-        (name, cls)
-        for name, cls in gradio.layouts.__dict__.items()
-        if isinstance(cls, type)
-    ]
-    for name, cls in components + templates + layouts:
-        if name.lower() == cls_name.replace("_", "") and (
-            issubclass(cls, gradio.components.Component)
-            or issubclass(cls, gradio.blocks.BlockContext)
-        ):
-            return cls
-    raise ValueError(f"No such component or layout: {cls_name}")
+    components = {c.__name__.lower(): c for c in get_all_components()}
+    # add aliases such as 'text'
+    for name, cls in components_module.__dict__.items():
+        if isinstance(cls, type) and issubclass(cls, Component):
+            components[name.lower()] = cls
+
+    if cls_name.replace("_", "") in components:
+        return components[cls_name.replace("_", "")]
+
+    raise ValueError(
+        f"No such component or layout: {cls_name}. "
+        "It is possible it is a custom component, "
+        "in which case make sure it is installed and imported in your python session."
+    )
 
 
 def run_coro_in_background(func: Callable, *args, **kwargs):
@@ -770,6 +817,7 @@ def get_function_with_locals(
     event_id: str | None,
     in_event_listener: bool,
     request: Request | None,
+    state: SessionState | None,
 ):
     def before_fn(blocks, event_id):
         from gradio.context import LocalContext
@@ -778,12 +826,15 @@ def get_function_with_locals(
         LocalContext.in_event_listener.set(in_event_listener)
         LocalContext.event_id.set(event_id)
         LocalContext.request.set(request)
+        if state:
+            LocalContext.blocks_config.set(state.blocks_config)
 
     def after_fn():
         from gradio.context import LocalContext
 
         LocalContext.in_event_listener.set(False)
         LocalContext.request.set(None)
+        LocalContext.blocks_config.set(None)
 
     return function_wrapper(
         fn,
@@ -814,7 +865,7 @@ def get_cancel_function(
     for dep in dependencies:
         if Context.root_block:
             fn_index = next(
-                i for i, d in enumerate(Context.root_block.dependencies) if d == dep
+                i for i, d in enumerate(Context.root_block.fns) if d.get_config() == dep
             )
             fn_to_comp[fn_index] = [
                 Context.root_block.blocks[o] for o in dep["outputs"]
@@ -1280,3 +1331,27 @@ def async_lambda(f: Callable) -> Callable:
         return f(*args, **kwargs)
 
     return function_wrapper
+
+
+class FileSize:
+    B = 1
+    KB = 1024 * B
+    MB = 1024 * KB
+    GB = 1024 * MB
+    TB = 1024 * GB
+
+
+def _parse_file_size(size: str | int | None) -> int | None:
+    if isinstance(size, int) or size is None:
+        return size
+
+    size = size.replace(" ", "")
+
+    last_digit_index = next(
+        (i for i, c in enumerate(size) if not c.isdigit()), len(size)
+    )
+    size_int, unit = int(size[:last_digit_index]), size[last_digit_index:].upper()
+    multiple = getattr(FileSize, unit, None)
+    if not multiple:
+        raise ValueError(f"Invalid file size unit: {unit}")
+    return multiple * size_int

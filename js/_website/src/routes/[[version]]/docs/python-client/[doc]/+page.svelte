@@ -181,34 +181,6 @@
 							{/if}
 						</div>
 
-						{#if mode === "components"}
-							<div class="embedded-component">
-								{#key obj.name}
-									{#if obj.name !== "State"}
-										{#if url_version === "main"}
-											<gradio-app
-												space={"gradio/" +
-													obj.name.toLowerCase() +
-													"_component_main"}
-											/>
-										{:else if url_version === "3.50.2"}
-											<gradio-app
-												space={"gradio/" +
-													obj.name.toLowerCase() +
-													"_component_3-x"}
-											/>
-										{:else}
-											<gradio-app
-												space={"gradio/" +
-													obj.name.toLowerCase() +
-													"_component"}
-											/>
-										{/if}
-									{/if}
-								{/key}
-							</div>
-						{/if}
-
 						<div id="description">
 							<h4 class="mt-8 text-xl text-orange-500 font-light group">
 								Description
@@ -468,7 +440,15 @@
 											class="guide-box flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow bg-gradient-to-r {data
 												.COLOR_SETS[i][0]} {data.COLOR_SETS[i][1]}"
 											target="_blank"
+<<<<<<< HEAD
+<<<<<<< HEAD:js/_website/src/routes/[[version]]/docs/python-client/[doc]/+page.svelte
 											href={guide.url}
+=======
+											href="../..{guide.url}"
+>>>>>>> main:js/_website/src/routes/[[version]]/docs/gradio/[doc]/+page.svelte
+=======
+											href={guide.url}
+>>>>>>> main
 										>
 											<div class="flex flex-col p-4 h-min">
 												<p class="group-hover:underline text-l">
