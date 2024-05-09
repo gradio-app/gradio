@@ -170,6 +170,7 @@ export interface Dependency {
 	final_event: Payload | null;
 	show_api: boolean;
 	zerogpu?: boolean;
+	rendered_in: number | null;
 }
 
 export interface DependencyTypes {
