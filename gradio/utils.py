@@ -50,7 +50,7 @@ from gradio_client.documentation import document
 from typing_extensions import ParamSpec
 
 import gradio
-from gradio.context import Context, get_blocks_context
+from gradio.context import get_blocks_context
 from gradio.data_classes import FileData
 from gradio.strings import en
 

@@ -1455,7 +1455,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             event_data: data associated with event trigger
         """
         if not block_fn.fn:
-            raise IndexError(f"function has no backend method.")
+            raise IndexError("function has no backend method.")
         is_generating = False
         request = requests[0] if isinstance(requests, list) else requests
         start = time.time()

@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext, Blocks, BlocksConfig
     from gradio.helpers import Progress
-    from gradio.routes import Request
     from gradio.renderable import Renderable
+    from gradio.routes import Request
 
 
 class Context:
