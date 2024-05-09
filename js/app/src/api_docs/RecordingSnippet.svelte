@@ -15,6 +15,7 @@
 
 	function format_api_call(call: Payload): string {
 		const api_name = `/${dependencies[call.fn_index].api_name}`;
+		console.log("call.data", call.data)
 		const params = call.data
 			.map((param, index) => {
 				console.log("api", api_name, endpoints_info[api_name])
