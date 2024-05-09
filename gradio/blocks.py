@@ -990,7 +990,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 # This assumes that you cannot combine multiple .then() events in a single
                 # gr.on() event, which is true for now. If this changes, we will need to
                 # update this code.
-                if not isinstance(_targets[0], int) and _targets[0][1] == "then":
+                if not isinstance(_targets[0], int) and _targets[0][1] in [
+                    "then",
+                    "success",
+                ]:
                     if len(_targets) != 1:
                         raise ValueError(
                             "This logic assumes that .then() events are not combined with other events in a single gr.on() event"
