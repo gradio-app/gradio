@@ -379,7 +379,7 @@ export function submit(
 						url.searchParams.set("__sign", this.jwt);
 					}
 
-					stream = this.stream_factory(url);
+					stream = await this.stream(url);
 
 					if (!stream) {
 						return Promise.reject(
@@ -510,7 +510,7 @@ export function submit(
 							headers
 						);
 					});
-					post_data_promise.then(([response, status]: any) => {
+					post_data_promise.then(async ([response, status]: any) => {
 						if (status === 503) {
 							fire_event({
 								type: "status",
@@ -662,7 +662,7 @@ export function submit(
 							event_callbacks[event_id] = callback;
 							unclosed_events.add(event_id);
 							if (!stream_status.open) {
-								this.open_stream();
+								await this.open_stream();
 							}
 						}
 					});
