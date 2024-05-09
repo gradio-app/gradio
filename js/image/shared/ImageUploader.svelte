@@ -27,7 +27,7 @@
 	export let i18n: I18nFormatter;
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
-	export let stream_handler: Client["stream_factory"];
+	export let stream_handler: Client["stream"];
 
 	let upload_input: Upload;
 	let uploading = false;
@@ -47,7 +47,7 @@
 	async function handle_save(img_blob: Blob | any): Promise<void> {
 		pending = true;
 		const f = await upload_input.load_files([
-			new File([img_blob], `webcam.png`)
+			new File([img_blob], `webcam.png`),
 		]);
 
 		value = f?.[0] || null;
@@ -86,7 +86,7 @@
 	}
 
 	async function handle_select_source(
-		source: (typeof sources)[number]
+		source: (typeof sources)[number],
 	): Promise<void> {
 		switch (source) {
 			case "clipboard":

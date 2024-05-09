@@ -3,7 +3,7 @@
 		beforeUpdate,
 		afterUpdate,
 		createEventDispatcher,
-		tick
+		tick,
 	} from "svelte";
 	import { text_area_resize, resize } from "../shared/utils";
 	import { BlockTitle } from "@gradio/atoms";
@@ -15,7 +15,7 @@
 
 	export let value: { text: string; files: FileData[] } = {
 		text: "",
-		files: []
+		files: [],
 	};
 
 	export let value_is_output = false;
@@ -36,7 +36,7 @@
 	export let file_types: string[] | null = null;
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
-	export let stream_handler: Client["stream_factory"];
+	export let stream_handler: Client["stream"];
 
 	let upload_component: Upload;
 	let hidden_upload: HTMLInputElement;
@@ -117,7 +117,7 @@
 		const text = target.value;
 		const index: [number, number] = [
 			target.selectionStart as number,
-			target.selectionEnd as number
+			target.selectionEnd as number,
 		];
 		dispatch("select", { value: text.substring(...index), index: index });
 	}
@@ -154,7 +154,7 @@
 	}
 
 	async function handle_upload({
-		detail
+		detail,
 	}: CustomEvent<FileData | FileData[]>): Promise<void> {
 		handle_change();
 		if (Array.isArray(detail)) {
@@ -275,7 +275,7 @@
 				use:text_area_resize={{
 					text: value.text,
 					lines: lines,
-					max_lines: max_lines
+					max_lines: max_lines,
 				}}
 				class="scroll-hide"
 				dir={rtl ? "rtl" : "ltr"}
