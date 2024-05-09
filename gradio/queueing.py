@@ -197,8 +197,11 @@ class Queue:
                 f"Queue is full. Max size is {self.max_size} and size is {len(self)}.",
             )
 
-        session_state = self.blocks.state_holder[body.session_hash]
-        fn = session_state.blocks_config.fns[body.fn_index]
+        if body.session_hash:
+            session_state = self.blocks.state_holder[body.session_hash]
+            fn = session_state.blocks_config.fns[body.fn_index]
+        else:
+            fn = self.blocks.fns[body.fn_index]
         self.create_event_queue_for_fn(fn)
         event = Event(
             body.session_hash,
