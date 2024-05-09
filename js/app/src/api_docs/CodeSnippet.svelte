@@ -88,7 +88,7 @@ const example{component} = await response_{i}.blob();
 const app = await Client.connect(<span class="token string">"{root}"</span>);
 const result = await app.predict({#if named}<span class="api-name"
 								>"/{dependency.api_name}"</span
-							>{:else}{dependency_index}{/if}, <!--
+							>{:else}{dependency_index}{/if}, &lbrace; <!--
 -->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
 		-->{#if blob_components.includes(component)}<!--
 	-->
@@ -122,7 +122,7 @@ const result = await app.predict({#if named}<span class="api-name"
 								><!--
 -->{/if}
 						{/each}
-	);
+	&rbrace;);
 
 console.log(result.data);
 </pre>
