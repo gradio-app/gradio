@@ -41,9 +41,9 @@ export async function load({ params, parent }) {
 	let method_headers = [];
 	const get_slug = make_slug_processor();
 
-	if (!pages.some((p: string) => p === params.doc)) {
-		throw error(404);
-	}
+	// if (!pages.some((p: string) => p === params.doc)) {
+	// 	throw error(404);
+	// }
 
 	for (const key in docs) {
 		for (const o in docs[key]) {

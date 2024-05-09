@@ -4,6 +4,7 @@
 	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
 
+
 	export let data: any = {};
 
 	let name: string = data.name;
@@ -18,11 +19,6 @@
 	let wheel: string = data.wheel;
 	let url_version: string = data.url_version;
 
-	let headers: [string, string][];
-	let method_headers: [string, string][];
-	$: headers = data.headers;
-	$: method_headers = data.method_headers;
-
 	let current_selection = 0;
 
 	let y: number;
@@ -33,16 +29,22 @@
 		header_targets = {};
 	});
 
+	let current_target: HTMLElement;
+
 	$: for (const target in header_targets) {
 		target_elem = document.querySelector(`#${target}`) as HTMLElement;
 		if (
 			y > target_elem?.offsetTop - 50 &&
 			y < target_elem?.offsetTop + target_elem?.offsetHeight
 		) {
-			header_targets[target]?.classList.add("current-nav-link");
-		} else {
-			header_targets[target]?.classList.remove("current-nav-link");
-		}
+			current_target = header_targets[target];
+			current_target.classList.add("text-orange-500");
+			Object.values(header_targets).forEach((target) => {
+				if (target !== current_target) {
+					target.classList.remove("text-orange-500");
+				}
+			});
+		} 
 	}
 
 	$: obj = data.obj;
@@ -65,6 +67,24 @@
 	}
 
 	$: import_component(component_name);
+		
+	
+	function get_headers() {
+		let headers : any[] = []
+		const h3_elements = document.querySelectorAll('h3');
+		console.log("h3_elements", h3_elements);
+		h3_elements.forEach((element) => {
+			headers.push({ title: element.textContent, id: element.id });
+	});
+		return headers;
+	}
+	var headers : any[] = []
+
+	var dynamic_component: any = null;
+
+	$: if (dynamic_component) {
+		headers = get_headers();
+	}
 
 </script>
 
@@ -158,7 +178,7 @@
 							{#if import_promise}
 								{#await import_promise}
 								{:then {default: def}}
-								<svelte:component this={def} />
+								<svelte:component this={def} bind:this={dynamic_component} />
 								{/await}
 							{/if}
 						</div>
@@ -202,19 +222,21 @@
 			<div class="mx-8">
 				<a class="thin-link py-2 block text-lg" href="#{obj.slug}">{obj.name}</a
 				>
-				{#if headers.length > 0}
+				{#if headers && headers.length > 0}
 					<ul class="text-slate-700 text-lg leading-6">
 						{#each headers as header}
 							<li>
 								<a
-									bind:this={header_targets[header[1]]}
-									href="#{header[1]}"
+									bind:this={header_targets[header.id]}
+									href="#{header.id}"
 									class="thin-link block py-2 font-light second-nav-link"
-									>{header[0]}</a
+									>{header.title}</a
 								>
 							</li>
 						{/each}
-						{#if method_headers.length > 0}
+					</ul>
+				{/if}
+						<!-- {#if method_headers.length > 0}
 							{#each method_headers as method_header}
 								<li class="">
 									<a
@@ -225,8 +247,8 @@
 									>
 								</li>
 							{/each}
-						{/if}
-						{#if obj.guides && obj.guides.length > 0}
+						{/if} -->
+						<!-- {#if obj.guides && obj.guides.length > 0}
 							<li>
 								<a
 									bind:this={header_targets["guides"]}
@@ -237,7 +259,7 @@
 							</li>
 						{/if}
 					</ul>
-				{/if}
+				{/if} -->
 			</div>
 		</div>
 	</div>

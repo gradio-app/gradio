@@ -5,6 +5,9 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import {mdsvex} from "mdsvex";
+import slugify from "@sindresorhus/slugify";
+import { toString as to_string } from "hast-util-to-string";
+
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 let version = "4.0.0";
@@ -38,11 +41,66 @@ const get_version = async () => {
 
 get_version();
 
+export function make_slug_processor() {
+	return function (name) {
+		const slug = slugify(name, { separator: "-", lowercase: true });
+		return slug;
+		};
+}
+const doc_slug = [];
+function plugin() {
+	const get_slug = make_slug_processor();
+	return function transform(tree) {
+		tree.children.forEach((n) => {
+			if (
+				n.type === "element" &&
+				["h3"].includes(n.tagName)
+			) {
+				const str_of_heading = to_string(n);
+				const slug = get_slug(str_of_heading);
+
+				doc_slug.push({
+					text: str_of_heading,
+					href: `#${slug}`,
+					level: parseInt(n.tagName.replace("h", ""))
+				});
+
+				if (!n.children) n.children = [];
+				n.properties.className = ["group", "header-tag"];
+				n.properties.id = [slug];
+				n.children.push({
+					type: "element",
+					tagName: "a",
+					properties: {
+						href: `#${slug}`,
+						className: ["invisible", "group-hover-visible"]
+					},
+					children: [
+						{
+							type: "element",
+							tagName: "img",
+							properties: {
+								src: "https://raw.githubusercontent.com/gradio-app/gradio/main/js/_website/src/lib/assets/img/anchor.svg",
+								className: ["anchor-img"]
+							},
+							children: []
+						}
+					]
+				});
+			}
+		});
+	};
+}
+
+
+
+
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	extensions: [".svelte", ".svx"],
 	preprocess: [mdsvex({
 		extensions: ['.svx'],
+		rehypePlugins: [plugin]
 	}), vitePreprocess()],
 	kit: {
 		prerender: {
