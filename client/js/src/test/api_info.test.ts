@@ -516,12 +516,11 @@ describe("map_data_params", () => {
 		expect(result).toEqual(data);
 	});
 
-	it("should throw an error when too many arguments are provided for the endpoint", () => {
+	it("should return the data when too many arguments are provided for the endpoint", () => {
 		const data = [1, 2, 3, 4];
 
-		expect(() => map_data_to_params(data, transformed_api_info)).toThrow(
-			"Too many arguments provided for the endpoint."
-		);
+		const result = map_data_to_params(data, transformed_api_info);
+		expect(result).toEqual(data);
 	});
 
 	it("should return an array of resolved data when data is an object", () => {
