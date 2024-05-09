@@ -89,7 +89,7 @@
 	let waveform_settings: Record<string, any>;
 
 	let color_accent = getComputedStyle(
-		document.documentElement,
+		document.documentElement
 	).getPropertyValue("--color-accent");
 
 	$: waveform_settings = {
@@ -106,19 +106,19 @@
 		normalize: true,
 		minPxPerSec: 20,
 		mediaControls: waveform_options.show_controls,
-		sampleRate: waveform_options.sample_rate || 44100,
+		sampleRate: waveform_options.sample_rate || 44100
 	};
 
 	const trim_region_settings = {
 		color: waveform_options.trim_region_color,
 		drag: true,
-		resize: true,
+		resize: true
 	};
 
 	function set_trim_region_colour(): void {
 		document.documentElement.style.setProperty(
 			"--trim-region-color",
-			trim_region_settings.color || color_accent,
+			trim_region_settings.color || color_accent
 		);
 	}
 

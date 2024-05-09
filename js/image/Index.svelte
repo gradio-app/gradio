@@ -43,7 +43,7 @@
 	export let sources: ("clipboard" | "webcam" | "upload")[] = [
 		"upload",
 		"clipboard",
-		"webcam",
+		"webcam"
 	];
 	export let interactive: boolean;
 	export let streaming: boolean;

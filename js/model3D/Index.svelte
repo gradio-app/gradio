@@ -35,7 +35,7 @@
 	export let camera_position: [number | null, number | null, number | null] = [
 		null,
 		null,
-		null,
+		null
 	];
 	export let interactive: boolean;
 
