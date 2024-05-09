@@ -36,7 +36,7 @@
 	export let file_types: string[] | null = null;
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
-	export let stream_handler: Client["stream_factory"];
+	export let stream_handler: Client["stream"];
 
 	let upload_component: Upload;
 	let hidden_upload: HTMLInputElement;
