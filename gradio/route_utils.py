@@ -47,7 +47,7 @@ from gradio.helpers import EventData
 from gradio.state_holder import SessionState
 
 if TYPE_CHECKING:
-    from gradio.blocks import Blocks, BlockFunction
+    from gradio.blocks import BlockFunction, Blocks
     from gradio.routes import App
 
 
@@ -182,7 +182,6 @@ def infer_fn_index(app: App, api_name: str, body: PredictBody) -> int:
 
 
 def compile_gr_request(
-    app: App,
     body: PredictBody,
     fn: BlockFunction,
     username: Optional[str],

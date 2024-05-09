@@ -720,7 +720,6 @@ class App(FastAPI):
                 )
 
             gr_request = route_utils.compile_gr_request(
-                app,
                 body,
                 fn_index_inferred=fn_index_inferred,
                 username=username,

@@ -33,7 +33,7 @@ from gradio.server_messages import (
 from gradio.utils import LRUCache, run_coro_in_background, safe_get_lock, set_task_name
 
 if TYPE_CHECKING:
-    from gradio.blocks import Blocks, BlockFunction
+    from gradio.blocks import BlockFunction, Blocks
 
 
 class Event:
@@ -505,7 +505,6 @@ class Queue:
                 raise Exception("Server app has not been set.")
 
             gr_request = route_utils.compile_gr_request(
-                app=app,
                 body=body,
                 fn=fn,
                 username=username,
