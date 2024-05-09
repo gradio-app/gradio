@@ -98,6 +98,6 @@
 		}}
 		disabled={!interactive}
 		upload={gradio.client.upload}
-		stream_handler={gradio.client.stream_factory}
+		stream_handler={gradio.client.stream}
 	/>
 </Block>

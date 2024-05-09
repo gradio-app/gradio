@@ -65,6 +65,8 @@ jobs:
         run: pnpm ts:check
       - name: unit tests
         run: pnpm test:run
+      - name: client tests
+        run: pnpm --filter @gradio/client test
       - name: do check
         if: always()
         uses: "gradio-app/github/actions/commit-status@main"
