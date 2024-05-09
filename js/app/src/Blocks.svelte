@@ -303,9 +303,9 @@
 					let render_id = data.render_id;
 
 					let deps_to_remove: number[] = [];
-					dependencies.forEach((dep) => {
+					dependencies.forEach((dep, i) => {
 						if (dep.rendered_in === render_id) {
-							deps_to_remove.push(dep.id);
+							deps_to_remove.push(i);
 						}
 					});
 					deps_to_remove.reverse().forEach((i) => {

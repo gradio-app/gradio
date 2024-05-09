@@ -198,7 +198,7 @@ describe("skip_queue", () => {
 
 	it("should not skip queue when global and dependency queue is enabled", () => {
 		config.enable_queue = true;
-		config.dependencies[id].queue = true;
+		config.dependencies.find((dep) => dep.id === id)!.queue = true;
 
 		const result = skip_queue(id, config_response);
 
@@ -207,7 +207,7 @@ describe("skip_queue", () => {
 
 	it("should not skip queue when global queue is disabled and dependency queue is enabled", () => {
 		config.enable_queue = false;
-		config.dependencies[id].queue = true;
+		config.dependencies.find((dep) => dep.id === id)!.queue = true;
 
 		const result = skip_queue(id, config_response);
 
@@ -216,7 +216,7 @@ describe("skip_queue", () => {
 
 	it("should should skip queue when global queue and dependency queue is disabled", () => {
 		config.enable_queue = false;
-		config.dependencies[id].queue = false;
+		config.dependencies.find((dep) => dep.id === id)!.queue = false;
 
 		const result = skip_queue(id, config_response);
 
@@ -225,7 +225,7 @@ describe("skip_queue", () => {
 
 	it("should should skip queue when global queue is enabled and dependency queue is disabled", () => {
 		config.enable_queue = true;
-		config.dependencies[id].queue = false;
+		config.dependencies.find((dep) => dep.id === id)!.queue = false;
 
 		const result = skip_queue(id, config_response);
 
