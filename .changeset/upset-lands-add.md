@@ -10,6 +10,7 @@
 "@gradio/model3d": patch
 "@gradio/multimodaltextbox": patch
 "@gradio/simpleimage": patch
+"@gradio/upload": patch
 "@gradio/video": patch
 "gradio": patch
 ---
