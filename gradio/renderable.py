@@ -22,7 +22,7 @@ class Renderable:
 
         self._id = len(Context.root_block.renderables)
         Context.root_block.renderables.append(self)
-        self.column = Column()
+        self.column = Column(render=False)
         self.column_id = Column()._id
 
         self.fn = fn
@@ -54,10 +54,6 @@ class Renderable:
         blocks_config = LocalContext.blocks_config.get()
         if blocks_config is None:
             raise ValueError("Reactive render must be inside a LocalContext.")
-        column_copy = Column(render=False)
-        column_copy._id = self.column_id
-        LocalContext.renderable.set(self)
-        LocalContext.render_block.set(column_copy)
 
         fn_ids_to_remove_from_last_render = []
         for _id, fn in blocks_config.fns.items():
@@ -66,12 +62,16 @@ class Renderable:
         for _id in fn_ids_to_remove_from_last_render:
             del blocks_config.fns[_id]
 
+        column_copy = Column(render=False)
+        column_copy._id = self.column_id
+        LocalContext.renderable.set(self)
+
         try:
-            self.fn(*args, **kwargs)
-            blocks_config.blocks[self.column_id] = column_copy
+            with column_copy:
+                self.fn(*args, **kwargs)
+                blocks_config.blocks[self.column_id] = column_copy
         finally:
             LocalContext.renderable.set(None)
-            LocalContext.render_block.set(None)
 
 
 def render(
