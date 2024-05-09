@@ -112,7 +112,7 @@ export async function walk_and_store_blobs(
 export function skip_queue(id: number, config: Config): boolean {
 	let fn_queue = config?.dependencies?.find((dep) => dep.id == id)?.queue;
 	if (fn_queue != null) {
-		return fn_queue;
+		return !fn_queue;
 	}
 	return !config.enable_queue;
 }
