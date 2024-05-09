@@ -9,8 +9,6 @@ import {
 } from "../helpers/api_info";
 import { initialise_server } from "./server";
 import { transformed_api_info } from "./test_data";
-import { J } from "vitest/dist/reporters-BXNXFKfg.js";
-import { ApiData, ApiInfo, JsApiData } from "../types";
 
 const server = initialise_server();
 
