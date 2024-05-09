@@ -75,6 +75,9 @@ class EndpointV3Compatibility:
 
         return _inner
 
+    def make_cancel(self):
+        return None
+
     def make_predict(self, helper: Communicator | None = None):
         def _predict(*data) -> tuple:
             data = json.dumps(

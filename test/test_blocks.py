@@ -113,8 +113,7 @@ class TestBlocksMethods:
             o = gr.Textbox()
             t.change(greet_upper_case, t, o)
 
-        # Cancel function automatically added
-        assert len(demo.fns) == 2
+        assert len(demo.fns) == 1
         assert "fn" in str(demo.fns[0])
 
     @pytest.mark.asyncio
@@ -243,7 +242,7 @@ class TestBlocksMethods:
 
         with connect(demo) as client:
             job_1 = client.submit(3, fn_index=0)
-            job_2 = client.submit(4, fn_index=2)
+            job_2 = client.submit(4, fn_index=1)
             wait([job_1, job_2])
 
             assert job_1.outputs()[-1] == 2
@@ -348,13 +347,13 @@ class TestBlocksMethods:
             demo.load(continuous_fn, inputs=None, outputs=[meaning_of_life], every=1)
 
         for i, dependency in enumerate(demo.config["dependencies"]):
-            if i == 5:
-                assert dependency["types"] == {"continuous": False, "generator": False}
+            if i == 3:
+                assert dependency["types"] == {"continuous": True, "generator": True}
             if i == 0:
                 assert dependency["types"] == {"continuous": False, "generator": False}
-            if i == 2:
+            if i == 1:
                 assert dependency["types"] == {"continuous": False, "generator": True}
-            if i == 4:
+            if i == 2:
                 assert dependency["types"] == {"continuous": True, "generator": True}
 
     @patch(
@@ -886,9 +885,9 @@ class TestCallFunction:
         output = demo("World")
         assert output == "Hello, World"
 
-        output = await demo.call_function(2, ["World"])
+        output = await demo.call_function(1, ["World"])
         assert output["prediction"] == "Hi, World"
-        output = demo("World", fn_index=2)  # fn_index must be a keyword argument
+        output = demo("World", fn_index=1)  # fn_index must be a keyword argument
         assert output == "Hi, World"
 
     @pytest.mark.asyncio
@@ -904,7 +903,7 @@ class TestCallFunction:
 
         output = await demo.call_function(0, ["Adam"])
         assert output["prediction"] == "Hello Adam"
-        output = await demo.call_function(2, ["Adam"])
+        output = await demo.call_function(1, ["Adam"])
         assert output["prediction"] == "Hello Adam"
 
     @pytest.mark.asyncio
@@ -962,16 +961,16 @@ class TestCallFunction:
         output = await demo.call_function(0, [-1])
         assert output["prediction"] == -2
 
-        output = await demo.call_function(2, [3])
+        output = await demo.call_function(1, [3])
         assert output["prediction"] == (0, 3)
-        output = await demo.call_function(2, [3], iterator=output["iterator"])
+        output = await demo.call_function(1, [3], iterator=output["iterator"])
         assert output["prediction"] == (1, 3)
-        output = await demo.call_function(2, [3], iterator=output["iterator"])
+        output = await demo.call_function(1, [3], iterator=output["iterator"])
         assert output["prediction"] == (2, 3)
-        output = await demo.call_function(2, [3], iterator=output["iterator"])
+        output = await demo.call_function(1, [3], iterator=output["iterator"])
         assert output["prediction"] == (gr.components._Keywords.FINISHED_ITERATING,) * 2
         assert output["iterator"] is None
-        output = await demo.call_function(2, [3], iterator=output["iterator"])
+        output = await demo.call_function(1, [3], iterator=output["iterator"])
         assert output["prediction"] == (0, 3)
 
 
@@ -1054,12 +1053,12 @@ class TestBatchProcessing:
         output = demo("Abubakar", "Abid")
         assert output
 
-        output = await demo.call_function(2, [["Adam", "Mary"], [3, 5]])
+        output = await demo.call_function(1, [["Adam", "Mary"], [3, 5]])
         assert output["prediction"] == (
             ["Ada", "Mary"],
             [True, False],
         )
-        output = demo("Abubakar", 3, fn_index=2)
+        output = demo("Abubakar", 3, fn_index=1)
         assert output == ["Abu", True]
 
     @pytest.mark.asyncio
@@ -1144,7 +1143,7 @@ class TestUpdate:
             "__type__": "update",
         }
         result = await demo.process_api(
-            fn_index=2, inputs=[None], request=None, state=None
+            fn_index=1, inputs=[None], request=None, state=None
         )
         assert result["data"][0] == {
             "open": False,

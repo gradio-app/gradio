@@ -503,16 +503,6 @@ class Client:
             >> 9.0
         """
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
-        cancel_fn_index = None
-        candidates: list[tuple[int, list[int]]] = []
-        for i, dep in enumerate(self.config["dependencies"]):
-            if inferred_fn_index in dep["cancels"]:
-                candidates.append(
-                    (i, [d for d in dep["cancels"] if d != inferred_fn_index])
-                )
-        cancel_fn_index, other_cancelled = (
-            min(candidates, key=lambda x: len(x[1])) if candidates else (None, None)
-        )
 
         endpoint = self.endpoints[inferred_fn_index]
 
@@ -532,19 +522,7 @@ class Client:
         end_to_end_fn = endpoint.make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
 
-        cancel_fn = None
-        cancel_msg = None
-        if other_cancelled:
-            other_api_names = [
-                "/" + self.config["dependencies"][i].get("api_name")
-                for i in other_cancelled
-            ]
-            cancel_msg = (
-                f"Cancelled this job will also cancel any jobs for {', '.join(other_api_names)} "
-                "that are currently running."
-            )
-        if cancel_fn_index is not None and isinstance(endpoint, Endpoint):
-            cancel_fn = endpoint.make_cancel(cancel_fn_index, cancel_msg)
+        cancel_fn = endpoint.make_cancel()
 
         job = Job(
             future,
@@ -1140,21 +1118,63 @@ class Endpoint:
 
         return _inner
 
-    def make_cancel(self, fn_index: int, cancel_msg: str | None):
-        def _cancel():
-            if cancel_msg:
-                warnings.warn(cancel_msg)
+    def make_cancel(
+        self,
+    ):
+        if self.client.app_version > version.Version("4.29.0"):
+            url = urllib.parse.urljoin(self.client.src, utils.CANCEL_URL)
+            data = {
+                "fn_index": self.fn_index,
+                "session_hash": self.client.session_hash,
+            }
+            cancel_msg = None
+            cancellable = True
+        else:
+            candidates: list[tuple[int, list[int]]] = []
+            for i, dep in enumerate(self.client.config["dependencies"]):
+                if self.fn_index in dep["cancels"]:
+                    candidates.append(
+                        (i, [d for d in dep["cancels"] if d != self.fn_index])
+                    )
+
+            fn_index, other_cancelled = (
+                min(candidates, key=lambda x: len(x[1])) if candidates else (None, None)
+            )
+            cancel_msg = None
+            cancellable = fn_index is not None
+            cancel_msg = (
+                "Cancelling this job will not stop the server from running. "
+                "To fix this, an event must be added to the upstream app that explicitly cancels this one or "
+                "the upstream app must be running Gradio 4.29.0 and greater."
+            )
+
+            if cancellable and other_cancelled:
+                other_api_names = [
+                    "/" + self.client.config["dependencies"][i].get("api_name")
+                    for i in other_cancelled
+                ]
+                cancel_msg = (
+                    f"Cancelled this job will also cancel any jobs for {', '.join(other_api_names)} "
+                    "that are currently running."
+                )
+
             data = {
                 "data": [],
                 "fn_index": fn_index,
                 "session_hash": self.client.session_hash,
             }
-            httpx.post(
-                self.client.api_url,
-                json=data,
-                headers=self.client.headers,
-                cookies=self.client.cookies,
-            )
+            url = self.client.api_url
+
+        def _cancel():
+            if cancel_msg:
+                warnings.warn(cancel_msg)
+            if cancellable:
+                httpx.post(
+                    url,
+                    json=data,
+                    headers=self.client.headers,
+                    cookies=self.client.cookies,
+                )
 
         return _cancel
 

@@ -44,6 +44,7 @@ SPACE_FETCHER_URL = "https://gradio-space-api-fetcher-v2.hf.space/api"
 RESET_URL = "reset"
 SPACE_URL = "https://hf.space/{}"
 HEARTBEAT_URL = "heartbeat/{session_hash}"
+CANCEL_URL = "cancel"
 
 STATE_COMPONENT = "state"
 INVALID_RUNTIME = [

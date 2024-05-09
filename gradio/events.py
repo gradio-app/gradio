@@ -320,16 +320,7 @@ class EventListener(str):
             )
             if _callback:
                 _callback(block)
-            dep_obj = Dependency(block, dep.get_config(), dep_index, fn)
-            if queue is not False and fn is not None:
-                try:
-                    set_cancel_events(
-                        [EventListenerMethod(None, "cancel_internal")], [dep_obj]
-                    )
-                # For invalid blocks case
-                except KeyError:
-                    pass
-            return dep_obj
+            return Dependency(block, dep.get_config(), dep_index, fn)
 
         event_trigger.event_name = _event_name
         event_trigger.has_trigger = _has_trigger

@@ -68,6 +68,7 @@ import gradio
 from gradio import ranged_response, route_utils, utils, wasm_utils
 from gradio.context import Context
 from gradio.data_classes import (
+    CancelBody,
     ComponentServerBlobBody,
     ComponentServerJSONBody,
     DataWithFiles,
@@ -100,7 +101,7 @@ from gradio.server_messages import (
     UnexpectedErrorMessage,
 )
 from gradio.state_holder import StateHolder
-from gradio.utils import get_package_version, get_upload_folder
+from gradio.utils import cancel_tasks, get_package_version, get_upload_folder
 
 if TYPE_CHECKING:
     from gradio.blocks import Block
@@ -801,6 +802,11 @@ class App(FastAPI):
                 )
                 raise HTTPException(status_code=status_code, detail=event_id)
             return {"event_id": event_id}
+
+        @app.post("/cancel")
+        async def cancel_event(body: CancelBody):
+            await cancel_tasks({f"{body.session_hash}_{body.fn_index}"})
+            return {"success": True}
 
         @app.get("/call/{api_name}/{event_id}", dependencies=[Depends(login_check)])
         async def simple_predict_get(
