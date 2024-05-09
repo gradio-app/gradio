@@ -62,7 +62,9 @@ class EventQueue:
         self.concurrency_id = concurrency_id
         self.concurrency_limit = concurrency_limit
         self.current_concurrency = 0
-        self.start_times_per_fn: defaultdict[BlockFunction, set[float]] = defaultdict(set)
+        self.start_times_per_fn: defaultdict[BlockFunction, set[float]] = defaultdict(
+            set
+        )
 
 
 class ProcessTime:
@@ -135,9 +137,7 @@ class Queue:
         elif (
             concurrency_limit is not None
         ):  # Update concurrency limit if it is lower than existing limit
-            existing_event_queue = self.event_queue_per_concurrency_id[
-                concurrency_id
-            ]
+            existing_event_queue = self.event_queue_per_concurrency_id[concurrency_id]
             if (
                 existing_event_queue.concurrency_limit is None
                 or concurrency_limit < existing_event_queue.concurrency_limit
@@ -291,9 +291,7 @@ class Queue:
                     event_queue = self.event_queue_per_concurrency_id[concurrency_id]
                     event_queue.current_concurrency += 1
                     start_time = time.time()
-                    event_queue.start_times_per_fn[events[0].fn].add(
-                        start_time
-                    )
+                    event_queue.start_times_per_fn[events[0].fn].add(start_time)
                     process_event_task = run_coro_in_background(
                         self.process_events, events, batch, start_time
                     )
@@ -596,9 +594,7 @@ class Queue:
                     )
             end_time = time.time()
             if response is not None:
-                self.process_time_per_fn[events[0].fn].add(
-                    end_time - begin_time
-                )
+                self.process_time_per_fn[events[0].fn].add(end_time - begin_time)
         except Exception as e:
             traceback.print_exc()
         finally:

@@ -595,8 +595,14 @@ export function submit(
 											fn_index
 										});
 										if (data.render_config) {
-											config.components = [...config.components, ...data.render_config.components];
-											config.dependencies = [...config.dependencies, ...data.render_config.dependencies];
+											config.components = [
+												...config.components,
+												...data.render_config.components
+											];
+											config.dependencies = [
+												...config.dependencies,
+												...data.render_config.dependencies
+											];
 											fire_event({
 												type: "render",
 												data: data.render_config,
@@ -689,14 +695,16 @@ function get_endpoint_info(
 	if (typeof endpoint === "number") {
 		fn_index = endpoint;
 		endpoint_info = api_info.unnamed_endpoints[fn_index];
-		dependency = config.dependencies.find(dep => dep.id == endpoint)!;
+		dependency = config.dependencies.find((dep) => dep.id == endpoint)!;
 		console.log("looking for dependency", endpoint, "and got", dependency);
 	} else {
 		const trimmed_endpoint = endpoint.replace(/^\//, "");
 
 		fn_index = api_map[trimmed_endpoint];
 		endpoint_info = api_info.named_endpoints[endpoint.trim()];
-		dependency = config.dependencies.find(dep => dep.id == api_map[trimmed_endpoint])!;
+		dependency = config.dependencies.find(
+			(dep) => dep.id == api_map[trimmed_endpoint]
+		)!;
 	}
 
 	if (typeof fn_index !== "number") {

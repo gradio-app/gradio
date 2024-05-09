@@ -83,7 +83,8 @@ export function transform_api_info(
 
 					const dependencyTypes =
 						dependencyIndex !== -1
-							? config.dependencies.find(dep => dep.id == dependencyIndex)?.types
+							? config.dependencies.find((dep) => dep.id == dependencyIndex)
+									?.types
 							: { continuous: false, generator: false };
 
 					const transform_type = (

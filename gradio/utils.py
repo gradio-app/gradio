@@ -868,9 +868,7 @@ def get_cancel_function(
             fn_index = next(
                 i for i, d in enumerate(root_block.fns) if d.get_config() == dep
             )
-            fn_to_comp[fn_index] = [
-                root_block.blocks[o] for o in dep["outputs"]
-            ]
+            fn_to_comp[fn_index] = [root_block.blocks[o] for o in dep["outputs"]]
 
     async def cancel(session_hash: str) -> None:
         task_ids = {f"{session_hash}_{fn}" for fn in fn_to_comp}
