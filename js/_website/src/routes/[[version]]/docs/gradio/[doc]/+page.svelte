@@ -180,34 +180,6 @@
 							{/if}
 						</div>
 
-						{#if mode === "components"}
-							<div class="embedded-component">
-								{#key obj.name}
-									{#if obj.name !== "State"}
-										{#if url_version === "main"}
-											<gradio-app
-												space={"gradio/" +
-													obj.name.toLowerCase() +
-													"_component_main"}
-											/>
-										{:else if url_version === "3.50.2"}
-											<gradio-app
-												space={"gradio/" +
-													obj.name.toLowerCase() +
-													"_component_3-x"}
-											/>
-										{:else}
-											<gradio-app
-												space={"gradio/" +
-													obj.name.toLowerCase() +
-													"_component"}
-											/>
-										{/if}
-									{/if}
-								{/key}
-							</div>
-						{/if}
-
 						<div id="description">
 							<h4 class="mt-8 text-xl text-orange-500 font-light group">
 								Description
