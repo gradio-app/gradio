@@ -91,7 +91,7 @@
 
 		<ImageUploader
 			upload={gradio.client.upload}
-			stream_handler={gradio.client.stream_factory}
+			stream_handler={gradio.client.stream}
 			bind:value
 			{root}
 			on:clear={() => gradio.dispatch("clear")}

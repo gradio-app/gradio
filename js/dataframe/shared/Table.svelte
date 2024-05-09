@@ -40,7 +40,7 @@
 	export let line_breaks = true;
 	export let column_widths: string[] = [];
 	export let upload: Client["upload"];
-	export let stream_handler: Client["stream_factory"];
+	export let stream_handler: Client["stream"];
 
 	let selected: false | [number, number] = false;
 	export let display_value: string[][] | null = null;
