@@ -686,7 +686,7 @@ class App(FastAPI):
                                 app=app,
                                 body=body,
                                 gr_request=req,
-                                fn_index_inferred=fn_index,
+                                fn=app.get_blocks().fns[fn_index],
                                 root_path=root_path,
                             )
                         # This will mark the state to be deleted in an hour
@@ -719,9 +719,10 @@ class App(FastAPI):
                     status_code=status.HTTP_404_NOT_FOUND,
                 )
 
+            fn = app.get_blocks().fns[fn_index_inferred]
             gr_request = route_utils.compile_gr_request(
                 body,
-                fn_index_inferred=fn_index_inferred,
+                fn=fn,
                 username=username,
                 request=request,
             )
@@ -733,7 +734,7 @@ class App(FastAPI):
                     app=app,
                     body=body,
                     gr_request=gr_request,
-                    fn_index_inferred=fn_index_inferred,
+                    fn=fn,
                     root_path=root_path,
                 )
             except BaseException as error:

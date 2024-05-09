@@ -144,9 +144,6 @@ class Queue:
             ):
                 existing_event_queue.concurrency_limit = concurrency_limit
 
-    def reload(self):
-        self.set_event_queue_per_concurrency_id()
-
     def close(self):
         self.stopped = True
 
