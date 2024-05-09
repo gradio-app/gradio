@@ -47,11 +47,6 @@ export function create_components(): {
 		root: string;
 		dependencies: Dependency[];
 	}) => void;
-	rerender_layout: (args: {
-		components: ComponentMeta[];
-		layout: LayoutNode;
-		root: string;
-	}) => void;
 } {
 	let _component_map: Map<number, ComponentMeta>;
 
