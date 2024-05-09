@@ -376,6 +376,7 @@ export const config_response: Config = {
 	},
 	dependencies: [
 		{
+			id: 0,
 			targets: [
 				[9, "click"],
 				[1, "submit"]
@@ -404,6 +405,7 @@ export const config_response: Config = {
 			zerogpu: false
 		},
 		{
+			id: 1,
 			targets: [[8, "click"]],
 			inputs: [],
 			outputs: [1, 2],
@@ -429,6 +431,7 @@ export const config_response: Config = {
 			zerogpu: false
 		},
 		{
+			id: 2,
 			targets: [[8, "click"]],
 			inputs: [],
 			outputs: [5],
