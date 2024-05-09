@@ -503,13 +503,16 @@ class Client:
             >> 9.0
         """
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
-        cancellable = False
         cancel_fn_index = None
+        candidates: list[tuple[int, list[int]]] = []
         for i, dep in enumerate(self.config["dependencies"]):
             if inferred_fn_index in dep["cancels"]:
-                cancellable = True
-                cancel_fn_index = i
-                break
+                candidates.append(
+                    (i, [d for d in dep["cancels"] if d != inferred_fn_index])
+                )
+        cancel_fn_index, other_cancelled = (
+            min(candidates, key=lambda x: len(x[1])) if candidates else (None, None)
+        )
 
         endpoint = self.endpoints[inferred_fn_index]
 
@@ -530,8 +533,18 @@ class Client:
         future = self.executor.submit(end_to_end_fn, *args)
 
         cancel_fn = None
-        if cancellable:
-            cancel_fn = endpoint.make_cancel(cancel_fn_index)
+        cancel_msg = None
+        if other_cancelled:
+            other_api_names = [
+                "/" + self.config["dependencies"][i].get("api_name")
+                for i in other_cancelled
+            ]
+            cancel_msg = (
+                f"Cancelled this job will also cancel any jobs for {', '.join(other_api_names)} "
+                "that are currently running."
+            )
+        if cancel_fn_index is not None and isinstance(endpoint, Endpoint):
+            cancel_fn = endpoint.make_cancel(cancel_fn_index, cancel_msg)
 
         job = Job(
             future,
@@ -1127,8 +1140,10 @@ class Endpoint:
 
         return _inner
 
-    def make_cancel(self, fn_index):
+    def make_cancel(self, fn_index: int, cancel_msg: str | None):
         def _cancel():
+            if cancel_msg:
+                warnings.warn(cancel_msg)
             data = {
                 "data": [],
                 "fn_index": fn_index,
@@ -1379,7 +1394,7 @@ class Job(Future):
         communicator: Communicator | None = None,
         verbose: bool = True,
         space_id: str | None = None,
-        _cancel_fn: Callable[None, None] = None,
+        _cancel_fn: Callable[[], None] | None = None,
     ):
         """
         Parameters:
