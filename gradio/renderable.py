@@ -62,10 +62,10 @@ class Renderable:
         fn_ids_to_remove_from_last_render = []
         for _id, fn in blocks_config.fns.items():
             if fn.rendered_in is self:
-                fn_ids_to_remove_from_last_render.append(_id)        
+                fn_ids_to_remove_from_last_render.append(_id)
         for _id in fn_ids_to_remove_from_last_render:
             del blocks_config.fns[_id]
-        
+
         try:
             self.fn(*args, **kwargs)
             blocks_config.blocks[self.column_id] = column_copy

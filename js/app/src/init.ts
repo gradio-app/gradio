@@ -75,7 +75,7 @@ export function create_components(): {
 		layout,
 		dependencies,
 		root,
-		options,
+		options
 	}: {
 		app: client_return;
 		components: ComponentMeta[];
@@ -111,7 +111,7 @@ export function create_components(): {
 
 		components.push(_rootNode);
 
-		dependencies.forEach(dep => {
+		dependencies.forEach((dep) => {
 			loading_status.register(dep.id, dep.inputs, dep.outputs);
 			dep.frontend_fn = process_frontend_fn(
 				dep.js,
@@ -148,7 +148,7 @@ export function create_components(): {
 		components,
 		layout,
 		root,
-		dependencies,
+		dependencies
 	}: {
 		render_id: number;
 		components: ComponentMeta[];
@@ -160,7 +160,7 @@ export function create_components(): {
 		_constructor_map.forEach((v, k) => {
 			constructor_map.set(k, v);
 		});
-		
+
 		let previous_rendered_fn_ids = rendered_fns_per_render_id[render_id] || [];
 		Object.values(_target_map).forEach((event_fn_ids_map) => {
 			Object.values(event_fn_ids_map).forEach((fn_ids) => {
@@ -171,9 +171,9 @@ export function create_components(): {
 				});
 			});
 		});
-		_target_map = {}
+		_target_map = {};
 
-		dependencies.forEach(dep => {
+		dependencies.forEach((dep) => {
 			loading_status.register(dep.id, dep.inputs, dep.outputs);
 			dep.frontend_fn = process_frontend_fn(
 				dep.js,
@@ -186,7 +186,7 @@ export function create_components(): {
 		});
 
 		target_map.set(_target_map);
-								
+
 		let current_element = instance_map[layout.id];
 		let all_current_children: ComponentMeta[] = [];
 		const add_to_current_children = (component: ComponentMeta): void => {

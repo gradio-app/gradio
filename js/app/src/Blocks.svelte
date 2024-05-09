@@ -40,7 +40,7 @@
 	export let js: string | null;
 	export let fill_height = false;
 	export let ready: boolean;
-	
+
 	const {
 		layout: _layout,
 		targets,
@@ -85,7 +85,7 @@
 
 	export let render_complete = false;
 	async function handle_update(data: any, fn_index: number): Promise<void> {
-		const outputs = dependencies.find(dep => dep.id == fn_index)!.outputs;
+		const outputs = dependencies.find((dep) => dep.id == fn_index)!.outputs;
 
 		const meta_updates = data?.map((value: any, i: number) => {
 			return {
@@ -303,7 +303,7 @@
 					let render_id = data.render_id;
 
 					let deps_to_remove: number[] = [];
-					dependencies.forEach(dep => {
+					dependencies.forEach((dep) => {
 						if (dep.rendered_in === render_id) {
 							deps_to_remove.push(dep.id);
 						}
@@ -375,11 +375,7 @@
 								...messages
 							];
 						}, 0);
-						wait_then_trigger_api_call(
-							dep.id,
-							payload.trigger_id,
-							event_data
-						);
+						wait_then_trigger_api_call(dep.id, payload.trigger_id, event_data);
 						user_left_page = false;
 					} else if (status.stage === "error") {
 						if (status.message) {
@@ -515,7 +511,9 @@
 
 	function set_status(statuses: LoadingStatusCollection): void {
 		const updates = Object.entries(statuses).map(([id, loading_status]) => {
-			let dependency = dependencies.find(dep => dep.id == loading_status.fn_index);
+			let dependency = dependencies.find(
+				(dep) => dep.id == loading_status.fn_index
+			);
 			if (!dependency) {
 				return;
 			}

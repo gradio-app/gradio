@@ -781,7 +781,11 @@ class BlocksConfig:
         if api_name is not False:
             api_name = utils.append_unique_suffix(
                 api_name,
-                [fn.api_name for fn in self.fns.values() if isinstance(fn.api_name, str)],
+                [
+                    fn.api_name
+                    for fn in self.fns.values()
+                    if isinstance(fn.api_name, str)
+                ],
             )
         else:
             show_api = False
@@ -1559,7 +1563,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         return predictions
 
     def validate_inputs(self, block_fn: BlockFunction, inputs: list[Any]):
-
         dep_inputs = block_fn.inputs
 
         # This handles incorrect inputs when args are changed by a JS function
@@ -1664,7 +1667,10 @@ Received outputs:
             )
 
     async def postprocess_data(
-        self, block_fn: BlockFunction, predictions: list | dict, state: SessionState | None
+        self,
+        block_fn: BlockFunction,
+        predictions: list | dict,
+        state: SessionState | None,
     ):
         state = state or SessionState(self)
 
