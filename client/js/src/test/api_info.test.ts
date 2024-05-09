@@ -460,7 +460,7 @@ describe("process_endpoint", () => {
 });
 
 describe("map_data_params", () => {
-	let test_data = transformed_api_info as ApiInfo<ApiData>;
+	let test_data = transformed_api_info;
 
 	test_data.named_endpoints["/predict"].parameters = [
 		{

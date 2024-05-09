@@ -323,7 +323,7 @@ export function handle_message(
 
 export const map_data_to_params = (
 	data: unknown[] | Record<string, unknown>,
-	api_info: ApiInfo<JsApiData>
+	api_info: ApiInfo<JsApiData | ApiData>
 ): unknown[] => {
 	const parameters = Object.values(api_info.named_endpoints).flatMap(
 		(values) => values.parameters
