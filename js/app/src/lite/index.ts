@@ -131,7 +131,7 @@ export function create(options: Options): GradioAppController {
 			return wasm_proxied_fetch(worker_proxy, input, init);
 		}
 
-		stream_factory(url: URL): EventSource {
+		stream(url: URL): EventSource {
 			return wasm_proxied_stream_factory(worker_proxy, url);
 		}
 	}
