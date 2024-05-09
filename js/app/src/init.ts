@@ -1,4 +1,4 @@
-import { writable, type Writable } from "svelte/store";
+import { writable, type Writable, get } from "svelte/store";
 import type {
 	ComponentMeta,
 	Dependency,
@@ -9,6 +9,7 @@ import type {
 import { load_component } from "virtual:component-loader";
 import type { client_return } from "@gradio/client";
 import { create_loading_status_store } from "./stores";
+import { _ } from "svelte-i18n";
 
 export interface UpdateTransaction {
 	id: number;
@@ -40,6 +41,11 @@ export function create_components(): {
 		};
 		callback?: () => void;
 	}) => void;
+	rerender_layout: (args: {
+		components: ComponentMeta[];
+		layout: LayoutNode;
+		root: string;
+	}) => void;
 } {
 	let _component_map: Map<number, ComponentMeta>;
 
@@ -53,8 +59,9 @@ export function create_components(): {
 		create_loading_status_store();
 	const layout_store: Writable<ComponentMeta> = writable();
 	let root: string;
-	let _components: ComponentMeta[];
+	let _components: ComponentMeta[] = [];
 	let app: client_return;
+	let keyed_component_values: Record<string | number, any> = {};
 
 	function create_layout({
 		app: _app,
@@ -76,6 +83,8 @@ export function create_components(): {
 		callback?: () => void;
 	}): void {
 		app = _app;
+		store_keyed_values(_components);
+
 		_components = components;
 		inputs = new Set();
 		outputs = new Set();
@@ -130,15 +139,62 @@ export function create_components(): {
 		});
 	}
 
+	/**
+	 * Rerender the layout when the config has been modified to attach new components
+	 */
+	function rerender_layout({
+		components,
+		layout,
+		root
+	}: {
+		components: ComponentMeta[];
+		layout: LayoutNode;
+		root: string;
+	}): void {
+		target_map.set(_target_map);
+
+		let _constructor_map = preload_all_components(components, root);
+		_constructor_map.forEach((v, k) => {
+			constructor_map.set(k, v);
+		});
+
+		let current_element = instance_map[layout.id];
+		let all_current_children: ComponentMeta[] = [];
+		const add_to_current_children = (component: ComponentMeta): void => {
+			all_current_children.push(component);
+			if (component.children) {
+				component.children.forEach((child) => {
+					add_to_current_children(child);
+				});
+			}
+		};
+		add_to_current_children(current_element);
+		store_keyed_values(all_current_children);
+
+		components.forEach((c) => {
+			instance_map[c.id] = c;
+			_component_map.set(c.id, c);
+		});
+		if (current_element.parent) {
+			current_element.parent.children![
+				current_element.parent.children!.indexOf(current_element)
+			] = instance_map[layout.id];
+		}
+
+		walk_layout(layout, root, current_element.parent);
+	}
+
 	async function walk_layout(
 		node: LayoutNode,
-		root: string
+		root: string,
+		parent?: ComponentMeta
 	): Promise<ComponentMeta> {
 		const instance = instance_map[node.id];
 
 		instance.component = (await constructor_map.get(
 			instance.component_class_id
 		))!?.default;
+		instance.parent = parent;
 
 		if (instance.type === "dataset") {
 			instance.props.component_map = get_component(
@@ -168,11 +224,18 @@ export function create_components(): {
 			app
 		);
 
+		if (
+			instance.key != null &&
+			keyed_component_values[instance.key] !== undefined
+		) {
+			instance.props.value = keyed_component_values[instance.key];
+		}
+
 		_component_map.set(instance.id, instance);
 
 		if (node.children) {
 			instance.children = await Promise.all(
-				node.children.map((v) => walk_layout(v, root))
+				node.children.map((v) => walk_layout(v, root, instance))
 			);
 		}
 
@@ -181,6 +244,14 @@ export function create_components(): {
 
 	let update_scheduled = false;
 	let update_scheduled_store = writable(false);
+
+	function store_keyed_values(components: ComponentMeta[]): void {
+		components.forEach((c) => {
+			if (c.key != null) {
+				keyed_component_values[c.key] = c.props.value;
+			}
+		});
+	}
 
 	function flush(): void {
 		layout_store.update((layout) => {
@@ -239,7 +310,8 @@ export function create_components(): {
 		loading_status,
 		scheduled_updates: update_scheduled_store,
 		create_layout: (...args) =>
-			requestAnimationFrame(() => create_layout(...args))
+			requestAnimationFrame(() => create_layout(...args)),
+		rerender_layout
 	};
 }
 
@@ -488,23 +560,3 @@ export function preload_all_components(
 
 	return constructor_map;
 }
-
-export const restore_keyed_values = (
-	old_components: ComponentMeta[],
-	new_components: ComponentMeta[]
-): void => {
-	let component_values_by_key: Record<string | number, ComponentMeta> = {};
-	old_components.forEach((component) => {
-		if (component.key) {
-			component_values_by_key[component.key] = component;
-		}
-	});
-	new_components.forEach((component) => {
-		if (component.key) {
-			const old_component = component_values_by_key[component.key];
-			if (old_component) {
-				component.props.value = old_component.props.value;
-			}
-		}
-	});
-};
