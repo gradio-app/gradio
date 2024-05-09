@@ -225,7 +225,7 @@
 											show_label={false}
 											i18n={i18n}
 										/>
-									{:else if message !== null && "file" in message && message.file.mime_type?.includes("audio")}
+									{:else if message !== null && "file" in message && message.file !== undefined && !Array.isArray(message.file) && "mime_type" in message.file && message.file.mime_type !== undefined && message.file.mime_type?.includes("audio")}
 										<BaseStaticAudio
 											value={message.file}
 											show_label={false}
@@ -235,7 +235,7 @@
 											waveform_settings={{}}
 											waveform_options={{}}
 										/>
-									{:else if message !== null && "file" in message && message.file.mime_type?.includes("video")}
+									{:else if message !== null && "file" in message && message.file !== undefined && !Array.isArray(message.file) && "mime_type" in message.file && message.file.mime_type !== undefined && message.file.mime_type?.includes("video")}
 										<BaseStaticVideo
 											autoplay={true}
 											value={message.file}
@@ -245,14 +245,14 @@
 										>
 											<track kind="captions" />
 										</BaseStaticVideo>
-									{:else if message !== null && "file" in message && message.file.mime_type?.includes("image")}
+									{:else if message !== null && "file" in message && message.file !== undefined && !Array.isArray(message.file) && "mime_type" in message.file && message.file.mime_type !== undefined && message.file.mime_type?.includes("image")}
 										<BaseStaticImage
 											value={message.file}
 											show_label={false}
 											show_share_button={true}
 											i18n={i18n}
 										/>
-									{:else if message !== null && "file" in message && message.file.url !== null}
+									{:else if message !== null && "file" in message && message.file !== undefined && !Array.isArray(message.file) && message.file.url !== undefined && message.file.url !== null}
 										<a
 											data-testid="chatbot-file"
 											href={message.file?.url}
@@ -611,7 +611,7 @@
 
 	.message-wrap :global(.grid-wrap) {
 		max-height: 80% !important;
-		min-width: 600px;
+		max-width: 600px;
 		object-fit: contain;
 	}
 	.message :global(.preview) {
