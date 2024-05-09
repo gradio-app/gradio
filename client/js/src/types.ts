@@ -220,12 +220,13 @@ export interface FileData {
 
 // Event and Listener Types
 
-export type EventType = "data" | "status" | "log";
+export type EventType = "data" | "status" | "log" | "render";
 
 export interface EventMap {
 	data: Payload;
 	status: Status;
 	log: LogMessage;
+	render: RenderMessage;
 }
 
 export type Event<K extends EventType> = {
@@ -238,6 +239,13 @@ export type ListenerMap<K extends EventType> = {
 export interface LogMessage {
 	log: string;
 	level: "warning" | "info";
+}
+export interface RenderMessage {
+	fn_index: number;
+	data: {
+		components: any[];
+		layout: any;
+	};
 }
 
 export interface Status {

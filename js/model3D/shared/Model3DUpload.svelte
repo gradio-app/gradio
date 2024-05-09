@@ -25,7 +25,7 @@
 		null
 	];
 	export let upload: Client["upload"];
-	export let stream_handler: Client["stream_factory"];
+	export let stream_handler: Client["stream"];
 
 	async function handle_upload({
 		detail

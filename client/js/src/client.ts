@@ -59,19 +59,18 @@ export class Client {
 		return fetch(input, init);
 	}
 
-	stream_factory(url: URL): EventSource | null {
+	async stream(url: URL): Promise<EventSource> {
 		if (typeof window === "undefined" || typeof EventSource === "undefined") {
-			import("eventsource")
-				.then((EventSourceModule) => {
-					return new EventSourceModule.default(url.toString());
-				})
-				.catch((error) =>
-					console.error("Failed to load EventSource module:", error)
-				);
+			try {
+				const EventSourceModule = await import("eventsource");
+				return new EventSourceModule.default(url.toString()) as EventSource;
+			} catch (error) {
+				console.error("Failed to load EventSource module:", error);
+				throw error;
+			}
 		} else {
 			return new EventSource(url.toString());
 		}
-		return null;
 	}
 
 	view_api: () => Promise<ApiInfo<JsApiData>>;
@@ -107,7 +106,7 @@ export class Client {
 		data?: unknown[],
 		event_data?: unknown
 	) => Promise<unknown>;
-	open_stream: () => void;
+	open_stream: () => Promise<void>;
 	private resolve_config: (endpoint: string) => Promise<Config | undefined>;
 	constructor(app_reference: string, options: ClientOptions = {}) {
 		this.app_reference = app_reference;
@@ -144,7 +143,7 @@ export class Client {
 						const heartbeat_url = new URL(
 							`${this.config.root}/heartbeat/${this.session_hash}`
 						);
-						this.heartbeat_event = this.stream_factory(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
+						this.heartbeat_event = await this.stream(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
 
 						if (this.config.space_id && this.options.hf_token) {
 							this.jwt = await get_jwt(

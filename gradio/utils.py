@@ -58,6 +58,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.blocks import BlockContext, Blocks
     from gradio.components import Component
     from gradio.routes import App, Request
+    from gradio.state_holder import SessionState
 
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
@@ -311,6 +312,8 @@ def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
                     old_block.__class__ == new_block.__class__
                     and old_block is not None
                     and old_block.key not in assigned_keys
+                    and json.dumps(getattr(old_block, "value", None))
+                    == json.dumps(getattr(new_block, "value", None))
                 ):
                     new_block.key = old_block.key
                 else:
@@ -816,6 +819,7 @@ def get_function_with_locals(
     event_id: str | None,
     in_event_listener: bool,
     request: Request | None,
+    state: SessionState | None,
 ):
     def before_fn(blocks, event_id):
         from gradio.context import LocalContext
@@ -824,12 +828,15 @@ def get_function_with_locals(
         LocalContext.in_event_listener.set(in_event_listener)
         LocalContext.event_id.set(event_id)
         LocalContext.request.set(request)
+        if state:
+            LocalContext.blocks_config.set(state.blocks_config)
 
     def after_fn():
         from gradio.context import LocalContext
 
         LocalContext.in_event_listener.set(False)
         LocalContext.request.set(None)
+        LocalContext.blocks_config.set(None)
 
     return function_wrapper(
         fn,

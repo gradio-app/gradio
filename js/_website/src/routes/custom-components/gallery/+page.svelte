@@ -6,8 +6,6 @@
 	import { clickOutside } from "./utils";
 
 	const API = "https://gradio-custom-component-gallery-backend.hf.space/";
-	const OFFSET = 0;
-	const LIMIT = 50;
 
 	let components: ComponentData[] = [];
 	let selection: string = "";
@@ -47,9 +45,7 @@
 
 	async function fetch_components(selection: string[] = []) {
 		components = await fetch(
-			`${API}components?offset=${OFFSET}&limit=${LIMIT}&name_or_tags=${selection.join(
-				","
-			)}`
+			`${API}components?name_or_tags=${selection.join(",")}`
 		)
 			.then((response) => response.json())
 			.catch((error) => `Error: ${error}`);
@@ -163,7 +159,7 @@
 						@{component.author}
 					</span>
 				</p>
-				{#if component.template != "Fallback"}
+				{#if component.template && component.template != "Fallback"}
 					<p
 						class="text-sm font-light py-1"
 						style="position: absolute; bottom: 5%; right: 5%"

@@ -24,6 +24,7 @@ export interface ComponentMeta {
 	component: ComponentType<SvelteComponent>;
 	documentation?: Documentation;
 	children?: ComponentMeta[];
+	parent?: ComponentMeta;
 	value?: any;
 	component_class_id: string;
 	key: string | number | null;

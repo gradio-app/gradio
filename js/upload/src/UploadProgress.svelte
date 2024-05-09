@@ -7,9 +7,9 @@
 	export let upload_id: string;
 	export let root: string;
 	export let files: FileData[];
-	export let stream_handler: Client["stream_factory"];
+	export let stream_handler: Client["stream"];
 
-	let stream: ReturnType<Client["stream_factory"]>;
+	let stream: Awaited<ReturnType<Client["stream"]>>;
 	let progress = false;
 	let current_file_upload: FileDataWithProgress;
 	let file_to_display: FileDataWithProgress;
@@ -37,8 +37,8 @@
 		return (file.progress * 100) / (file.size || 0) || 0;
 	}
 
-	onMount(() => {
-		stream = stream_handler(
+	onMount(async () => {
+		stream = await stream_handler(
 			new URL(`${root}/upload_progress?upload_id=${upload_id}`)
 		);
 
