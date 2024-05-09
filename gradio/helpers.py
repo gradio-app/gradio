@@ -327,7 +327,7 @@ class Examples:
             [output.render() for output in self.outputs]
             demo.load(self.fn, self.inputs, self.outputs)
         demo.unrender()
-        return await demo.postprocess_data(0, output, None)
+        return await demo.postprocess_data(demo.default_config.fns[0], output, None)
 
     def _get_cached_index_if_cached(self, example_index) -> int | None:
         if Path(self.cached_indices_file).exists():
@@ -431,7 +431,7 @@ class Examples:
         Caches examples so that their predictions can be shown immediately.
         """
         blocks_config = get_blocks_context()
-        if blocks_config is None:
+        if blocks_config is None or Context.root_block is None:
             raise ValueError("Cannot cache examples if not in a Blocks context")
         if Path(self.cached_file).exists():
             print(
@@ -486,7 +486,7 @@ class Examples:
                     processed_input = [[value] for value in processed_input]
                 with utils.MatplotlibBackendMananger():
                     prediction = await Context.root_block.process_api(
-                        fn_index=fn_index,
+                        block_fn=blocks_config.fns[fn_index],
                         inputs=processed_input,
                         request=None,
                     )

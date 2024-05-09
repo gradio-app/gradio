@@ -1335,7 +1335,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             dependency_offset = len(root_context.fns)
             existing_api_names = [
                 dep.api_name
-                for dep in root_context.fns
+                for dep in root_context.fns.values()
                 if isinstance(dep.api_name, str)
             ]
             for dependency in self.fns:
@@ -1358,7 +1358,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         root_context.fns[i].get_config() for i in dependency.cancels
                     ]
                     dependency.fn = get_cancel_function(updated_cancels)[0]
-                root_context.fns.append(dependency)
+                root_context.fns[root_context.fn_id] = dependency
+                root_context.fn_id += 1
             Context.root_block.temp_file_sets.extend(self.temp_file_sets)
             Context.root_block.proxy_urls.update(self.proxy_urls)
 
@@ -2038,7 +2039,7 @@ Received outputs:
     def clear(self):
         """Resets the layout of the Blocks object."""
         self.default_config.blocks = {}
-        self.default_config.fns = []
+        self.default_config.fns = {}
         self.children = []
         return self
 
