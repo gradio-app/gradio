@@ -32,13 +32,13 @@ interface LoadingStatusStore {
 export function create_loading_status_store(): LoadingStatusStore {
 	const store = writable<LoadingStatusCollection>({});
 
-	const fn_inputs: number[][] = [];
-	const fn_outputs: number[][] = [];
+	const fn_inputs: Record<number, number[]> = {};
+	const fn_outputs: Record<number, number[]> = {};
 	const pending_outputs = new Map<number, number>();
 	const pending_inputs = new Map<number, number>();
 
 	const inputs_to_update = new Map<number, string>();
-	const fn_status: LoadingStatus["status"][] = [];
+	const fn_status: Record<number, LoadingStatus["status"]> = {};
 
 	function update({
 		fn_index,

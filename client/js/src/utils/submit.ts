@@ -696,7 +696,6 @@ function get_endpoint_info(
 		fn_index = endpoint;
 		endpoint_info = api_info.unnamed_endpoints[fn_index];
 		dependency = config.dependencies.find((dep) => dep.id == endpoint)!;
-		console.log("looking for dependency", endpoint, "and got", dependency);
 	} else {
 		const trimmed_endpoint = endpoint.replace(/^\//, "");
 

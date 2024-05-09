@@ -510,20 +510,25 @@
 	}
 
 	function set_status(statuses: LoadingStatusCollection): void {
-		const updates = Object.entries(statuses).map(([id, loading_status]) => {
+		let updates: {
+			id: number;
+			prop: string;
+			value: LoadingStatus;
+		}[] = [];
+		Object.entries(statuses).forEach(([id, loading_status]) => {
 			let dependency = dependencies.find(
 				(dep) => dep.id == loading_status.fn_index
 			);
-			if (!dependency) {
+			if (dependency === undefined) {
 				return;
 			}
 			loading_status.scroll_to_output = dependency.scroll_to_output;
 			loading_status.show_progress = dependency.show_progress;
-			return {
+			updates.push({
 				id: parseInt(id),
 				prop: "loading_status",
 				value: loading_status
-			};
+			});
 		});
 
 		const inputs_to_update = loading_status.get_inputs_to_update();
