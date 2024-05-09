@@ -639,6 +639,9 @@ importers:
       '@gradio/client':
         specifier: workspace:^
         version: link:../../client/js
+      '@gradio/gallery':
+        specifier: workspace:^
+        version: link:../gallery
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
@@ -648,6 +651,9 @@ importers:
       '@gradio/markdown':
         specifier: workspace:^
         version: link:../markdown
+      '@gradio/plot':
+        specifier: workspace:^
+        version: link:../plot
       '@gradio/statustracker':
         specifier: workspace:^
         version: link:../statustracker

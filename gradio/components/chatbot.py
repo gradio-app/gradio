@@ -249,8 +249,6 @@ class Chatbot(Component):
                 raise TypeError(
                     f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
                 )
-            # print("0000000000", self._postprocess_chat_messages(message_pair[0]))
-            # print("1111111111", self._postprocess_chat_messages(message_pair[1]))
             processed_messages.append(
                 [
                     self._postprocess_chat_messages(message_pair[0]),
