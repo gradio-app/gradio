@@ -41,12 +41,6 @@
 	export let fill_height = false;
 	export let ready: boolean;
 	
-	let dependencies_by_id: Record<number, Dependency>
-	dependencies_by_id = dependencies.reduce((acc, dep) => {
-		acc[dep.id] = dep;
-		return acc;
-	}, {} as Record<number, Dependency>);
-
 	const {
 		layout: _layout,
 		targets,
@@ -58,10 +52,10 @@
 		rerender_layout
 	} = create_components();
 
-	create_layout({
+	$: create_layout({
 		components,
 		layout,
-		dependencies_by_id,
+		dependencies,
 		root,
 		app,
 		options: {
@@ -91,7 +85,7 @@
 
 	export let render_complete = false;
 	async function handle_update(data: any, fn_index: number): Promise<void> {
-		const outputs = dependencies_by_id[fn_index].outputs;
+		const outputs = dependencies.find(dep => dep.id == fn_index)!.outputs;
 
 		const meta_updates = data?.map((value: any, i: number) => {
 			return {
@@ -210,7 +204,7 @@
 		trigger_id: number | null = null,
 		event_data: unknown = null
 	): Promise<void> {
-		let dep = dependencies_by_id[dep_index];
+		let dep = dependencies.find((dep) => dep.id === dep_index)!;
 
 		const current_status = loading_status.get_status_for_fn(dep_index);
 		messages = messages.filter(({ fn_index }) => fn_index !== dep_index);
@@ -309,29 +303,27 @@
 					let render_id = data.render_id;
 
 					let deps_to_remove: number[] = [];
-					Object.values(dependencies_by_id).forEach(dep => {
+					dependencies.forEach(dep => {
 						if (dep.rendered_in === render_id) {
 							deps_to_remove.push(dep.id);
 						}
 					});
-					console.log("removing", deps_to_remove)
 					deps_to_remove.reverse().forEach((i) => {
-						delete dependencies_by_id[i];
+						dependencies.splice(i, 1);
 					});
 					_dependencies.forEach((dep) => {
-						dependencies_by_id[dep.id] = dep;
+						dependencies.push(dep);
 					});
 
 					rerender_layout({
 						components: _components,
 						layout: render_layout,
 						root: root,
-						dependencies_by_id: dependencies_by_id,
+						dependencies: dependencies,
 						render_id: render_id
 					});
 				})
 				.on("status", ({ fn_index, ...status }) => {
-					console.log("status", fn_index)
 					//@ts-ignore
 					loading_status.update({
 						...status,
@@ -368,7 +360,7 @@
 					}
 
 					if (status.stage === "complete") {
-						Object.values(dependencies_by_id).forEach(async (dep) => {
+						dependencies.forEach(async (dep) => {
 							if (dep.trigger_after === fn_index) {
 								wait_then_trigger_api_call(dep.id, payload.trigger_id);
 							}
@@ -384,7 +376,7 @@
 							];
 						}, 0);
 						wait_then_trigger_api_call(
-							dep_index,
+							dep.id,
 							payload.trigger_id,
 							event_data
 						);
@@ -400,7 +392,7 @@
 								...messages
 							];
 						}
-						Object.values(dependencies_by_id).map(async (dep) => {
+						dependencies.map(async (dep) => {
 							if (
 								dep.trigger_after === fn_index &&
 								!dep.trigger_only_on_success
@@ -465,9 +457,9 @@
 		}
 
 		// handle load triggers
-		Object.values(dependencies_by_id).forEach((dep, i) => {
+		dependencies.forEach((dep) => {
 			if (dep.targets[0][1] === "load") {
-				wait_then_trigger_api_call(i);
+				wait_then_trigger_api_call(dep.id);
 			}
 		});
 
@@ -523,7 +515,7 @@
 
 	function set_status(statuses: LoadingStatusCollection): void {
 		const updates = Object.entries(statuses).map(([id, loading_status]) => {
-			let dependency = dependencies_by_id[loading_status.fn_index];
+			let dependency = dependencies.find(dep => dep.id == loading_status.fn_index);
 			if (!dependency) {
 				return;
 			}
