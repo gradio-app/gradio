@@ -4,7 +4,7 @@
 	import type { Brush, Eraser } from "./shared/tools/Brush.svelte";
 	import type {
 		EditorData,
-		ImageBlobs
+		ImageBlobs,
 	} from "./shared/InteractiveImageEditor.svelte";
 
 	import type { Gradio, SelectData } from "@gradio/utils";
@@ -21,7 +21,7 @@
 	export let value: EditorData | null = {
 		background: null,
 		layers: [],
-		composite: null
+		composite: null,
 	};
 	export let label: string;
 	export let show_label: boolean;
@@ -41,7 +41,7 @@
 	export let sources: ("clipboard" | "webcam" | "upload")[] = [
 		"upload",
 		"clipboard",
-		"webcam"
+		"webcam",
 	];
 	export let interactive: boolean;
 
@@ -208,7 +208,7 @@
 			{layers}
 			status={loading_status?.status}
 			upload={gradio.client.upload}
-			stream_handler={gradio.client.stream_factory}
+			stream_handler={gradio.client.stream}
 		></InteractiveImageEditor>
 	</Block>
 {/if}
