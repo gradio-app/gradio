@@ -17,6 +17,7 @@
 		const api_name = `/${dependencies[call.fn_index].api_name}`;
 		const params = call.data
 			.map((param, index) => {
+				console.log("api", api_name, endpoints_info[api_name])
 				const param_info = endpoints_info[api_name].parameters[index];
 				const param_name = param_info.parameter_name;
 				const python_type = param_info.python_type.type;
