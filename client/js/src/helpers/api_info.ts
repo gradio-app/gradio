@@ -20,7 +20,7 @@ export async function process_endpoint(
 		headers.Authorization = `Bearer ${hf_token}`;
 	}
 
-	const _app_reference = app_reference.trim();
+	const _app_reference = app_reference.trim().replace(/\/$/, "");
 
 	if (RE_SPACE_NAME.test(_app_reference)) {
 		try {
@@ -54,9 +54,12 @@ export async function process_endpoint(
 		};
 	}
 
+	const url = new URL(_app_reference);
+
 	return {
 		space_id: false,
-		...determine_protocol(_app_reference)
+		...determine_protocol(_app_reference),
+		host: url.host + url.pathname
 	};
 }
 
