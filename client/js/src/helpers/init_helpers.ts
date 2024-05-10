@@ -1,6 +1,7 @@
 import type { Config } from "../types";
 import { CONFIG_ERROR_MSG, CONFIG_URL } from "../constants";
 import { Client } from "..";
+import { join_urls } from "./api_info";
 
 /**
  * This function is used to resolve the URL for making requests when the app has a root path.
@@ -75,7 +76,8 @@ export async function resolve_config(
 		config.root = config_root;
 		return { ...config, path } as Config;
 	} else if (endpoint) {
-		const response = await this.fetch(`${endpoint}/${CONFIG_URL}`, {
+		const config_url = join_urls(endpoint, CONFIG_URL);
+		const response = await this.fetch(config_url, {
 			headers
 		});
 

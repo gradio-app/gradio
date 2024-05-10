@@ -1,9 +1,9 @@
 import type { Status } from "../types";
-import { QUEUE_FULL_MSG } from "../constants";
+import { HOST_URL, QUEUE_FULL_MSG } from "../constants";
 import type { ApiData, ApiInfo, Config, JsApiData } from "../types";
 import { determine_protocol } from "./init_helpers";
 
-export const RE_SPACE_NAME = /^[^\/]*\/[^\/]*$/;
+export const RE_SPACE_NAME = /^[a-zA-Z0-9_\-]+\/[a-zA-Z0-9_\-]+$/;
 export const RE_SPACE_DOMAIN = /.*hf\.space\/{0,1}$/;
 
 export async function process_endpoint(
@@ -25,7 +25,7 @@ export async function process_endpoint(
 	if (RE_SPACE_NAME.test(_app_reference)) {
 		try {
 			const res = await fetch(
-				`https://huggingface.co/api/spaces/${_app_reference}/host`,
+				`https://huggingface.co/api/spaces/${_app_reference}/${HOST_URL}`,
 				{ headers }
 			);
 
@@ -62,6 +62,12 @@ export async function process_endpoint(
 		host: url.host + url.pathname
 	};
 }
+
+export const join_urls = (...urls: string[]): string => {
+	return urls.reduce((acc, part) => {
+		return `${acc.replace(/\/+$/, "")}/${part.replace(/^\/+/, "")}`;
+	});
+};
 
 export function transform_api_info(
 	api_info: ApiInfo<ApiData>,
