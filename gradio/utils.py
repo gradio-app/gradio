@@ -846,18 +846,25 @@ def get_function_with_locals(
     )
 
 
-async def cancel_tasks(task_ids: set[str]):
-    matching_tasks = [
-        task for task in asyncio.all_tasks() if task.get_name() in task_ids
-    ]
-    for task in matching_tasks:
-        task.cancel()
+async def cancel_tasks(task_ids: set[str]) -> list[str]:
+    tasks = [(task, task.get_name()) for task in asyncio.all_tasks()]
+    event_ids = []
+    matching_tasks = []
+    for task, name in tasks:
+        if "<gradio-sep>" not in name:
+            continue
+        task_id, event_id = name.split("<gradio-sep>")
+        if task_id in task_ids:
+            matching_tasks.append(task)
+            event_ids.append(event_id)
+            task.cancel()
     await asyncio.gather(*matching_tasks, return_exceptions=True)
+    return event_ids
 
 
-def set_task_name(task, session_hash: str, fn_index: int, batch: bool):
+def set_task_name(task, session_hash: str, fn_index: int, event_id: str, batch: bool):
     if not batch:
-        task.set_name(f"{session_hash}_{fn_index}")
+        task.set_name(f"{session_hash}_{fn_index}<gradio-sep>{event_id}")
 
 
 def get_cancel_function(
@@ -873,9 +880,10 @@ def get_cancel_function(
                 Context.root_block.blocks[o] for o in dep["outputs"]
             ]
 
-    async def cancel(session_hash: str) -> None:
+    async def cancel(session_hash: str) -> list[str]:
         task_ids = {f"{session_hash}_{fn}" for fn in fn_to_comp}
-        await cancel_tasks(task_ids)
+        event_ids = await cancel_tasks(task_ids)
+        return event_ids
 
     return (
         cancel,
