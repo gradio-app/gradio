@@ -522,7 +522,7 @@ class Client:
         end_to_end_fn = endpoint.make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
 
-        cancel_fn = endpoint.make_cancel()
+        cancel_fn = endpoint.make_cancel(helper)
 
         job = Job(
             future,
@@ -1120,13 +1120,22 @@ class Endpoint:
 
     def make_cancel(
         self,
+        helper: Communicator | None,
     ):
+        if helper is None:
+            return
         if self.client.app_version > version.Version("4.29.0"):
             url = urllib.parse.urljoin(self.client.src, utils.CANCEL_URL)
-            data = {
-                "fn_index": self.fn_index,
-                "session_hash": self.client.session_hash,
-            }
+
+            # The event_id won't be set on the helper until later
+            # so need to create the data in a function that's run at cancel time
+            def post_data():
+                return {
+                    "fn_index": self.fn_index,
+                    "session_hash": self.client.session_hash,
+                    "event_id": helper.event_id,
+                }
+
             cancel_msg = None
             cancellable = True
         else:
@@ -1140,14 +1149,8 @@ class Endpoint:
             fn_index, other_cancelled = (
                 min(candidates, key=lambda x: len(x[1])) if candidates else (None, None)
             )
-            cancel_msg = None
             cancellable = fn_index is not None
-            cancel_msg = (
-                "Cancelling this job will not stop the server from running. "
-                "To fix this, an event must be added to the upstream app that explicitly cancels this one or "
-                "the upstream app must be running Gradio 4.29.0 and greater."
-            )
-
+            cancel_msg = None
             if cancellable and other_cancelled:
                 other_api_names = [
                     "/" + self.client.config["dependencies"][i].get("api_name")
@@ -1157,12 +1160,20 @@ class Endpoint:
                     f"Cancelled this job will also cancel any jobs for {', '.join(other_api_names)} "
                     "that are currently running."
                 )
+            elif not cancellable:
+                cancel_msg = (
+                    "Cancelling this job will not stop the server from running. "
+                    "To fix this, an event must be added to the upstream app that explicitly cancels this one or "
+                    "the upstream app must be running Gradio 4.29.0 and greater."
+                )
 
-            data = {
-                "data": [],
-                "fn_index": fn_index,
-                "session_hash": self.client.session_hash,
-            }
+            def post_data():
+                return {
+                    "data": [],
+                    "fn_index": fn_index,
+                    "session_hash": self.client.session_hash,
+                }
+
             url = self.client.api_url
 
         def _cancel():
@@ -1171,7 +1182,7 @@ class Endpoint:
             if cancellable:
                 httpx.post(
                     url,
-                    json=data,
+                    json=post_data(),
                     headers=self.client.headers,
                     cookies=self.client.cookies,
                 )
@@ -1197,6 +1208,7 @@ class Endpoint:
                 event_id = self.client.send_data(data, hash_data, self.protocol)
                 self.client.pending_event_ids.add(event_id)
                 self.client.pending_messages_per_event[event_id] = []
+                helper.event_id = event_id
                 result = self._sse_fn_v1plus(helper, event_id, self.protocol)
             else:
                 raise ValueError(f"Unsupported protocol: {self.protocol}")

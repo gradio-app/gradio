@@ -806,6 +806,15 @@ class App(FastAPI):
         @app.post("/cancel")
         async def cancel_event(body: CancelBody):
             await cancel_tasks({f"{body.session_hash}_{body.fn_index}"})
+            blocks = app.get_blocks()
+            # Need to complete the job so that the client disconnects
+            if body.session_hash in blocks._queue.pending_messages_per_session:
+                message = ProcessCompletedMessage(
+                    output={}, success=True, event_id=body.event_id
+                )
+                blocks._queue.pending_messages_per_session[
+                    body.session_hash
+                ].put_nowait(message)
             return {"success": True}
 
         @app.get("/call/{api_name}/{event_id}", dependencies=[Depends(login_check)])

@@ -78,6 +78,7 @@ else:
 class CancelBody(BaseModel):
     session_hash: str
     fn_index: int
+    event_id: str
 
 
 class SimplePredictBody(BaseModel):
