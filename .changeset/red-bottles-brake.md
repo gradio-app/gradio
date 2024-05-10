@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Send ProcessCompleted message when job is cancelled
+fix:Send ProcessCompleted message when job is cancelled
