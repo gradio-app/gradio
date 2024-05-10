@@ -317,8 +317,8 @@ export function handle_message(
  *
  * @throws {Error} - Throws an error:
  *         - If more arguments are provided than are defined in the parameters.
+ *  *      - If no parameter value is provided for a required parameter and no default value is defined.
  *         - If an argument is provided that does not match any defined parameter.
- *         - If a parameter value is specified both positionally and as a keyword.
  */
 
 export const map_data_to_params = (
@@ -345,7 +345,9 @@ export const map_data_to_params = (
 		} else if (param.parameter_has_default) {
 			resolved_data[index] = param.parameter_default;
 		} else {
-			resolved_data[index] = undefined;
+			throw new Error(
+				`No value provided for required parameter: ${param.parameter_name}`
+			);
 		}
 	});
 

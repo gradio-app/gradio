@@ -18,7 +18,6 @@
 	export let dependency_index: number;
 	export let root: string;
 	export let endpoint_parameters: any;
-	export let js_parameters: any;
 	export let named: boolean;
 
 	export let current_language: "python" | "javascript";
@@ -85,8 +84,8 @@ const response_{i} = await fetch("{example_input.url}");
 const example{component} = await response_{i}.blob();
 						{/each}<!--
 -->
-const app = await Client.connect(<span class="token string">"{root}"</span>);
-const result = await app.predict({#if named}<span class="api-name"
+const client = await Client.connect(<span class="token string">"{root}"</span>);
+const result = await client.predict({#if named}<span class="api-name"
 								>"/{dependency.api_name}"</span
 							>{:else}{dependency_index}{/if}, &lbrace; <!--
 -->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
@@ -111,18 +110,10 @@ const result = await app.predict({#if named}<span class="api-name"
 										"js"
 									)}</span
 								>, <!--
---><span class="desc"
-									><!--
--->// {js_parameters[i]
-										.type} {#if js_parameters[i].description}({js_parameters[i]
-											.description}){/if}<!--
---> in '{label}' <!--
--->{component} component<!--
---></span
-								><!--
+--><!--
 -->{/if}
 						{/each}
-	&rbrace;);
+&rbrace;);
 
 console.log(result.data);
 </pre>

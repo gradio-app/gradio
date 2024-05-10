@@ -21,7 +21,7 @@
 		<div style="margin:10px;">
 			<p style="white-space: nowrap; overflow-x: auto;">
 				<span class="code" style="margin-right: 10px;"
-					>{parameter_name && current_language == "python"
+					>{parameter_name
 						? parameter_name
 						: "[" + i + "]"}</span
 				>
