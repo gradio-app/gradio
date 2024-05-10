@@ -229,7 +229,7 @@
 					><Send /></button
 				>
 			{/if}
-			<button class:disabled class="plus-button" on:click={handle_upload_click}
+			<button data-testid="upload-button" class="upload-button" on:click={handle_upload_click}
 				><Paperclip /></button
 			>
 			{#if value.files.length > 0 || uploading}
@@ -337,7 +337,7 @@
 		color: var(--input-placeholder-color);
 	}
 
-	.plus-button,
+	.upload-button,
 	.submit-button {
 		position: absolute;
 		background: var(--button-secondary-background-fill);
@@ -353,12 +353,12 @@
 		bottom: 15px;
 	}
 
-	.plus-button:hover,
+	.upload-button:hover,
 	.submit-button:hover {
 		background: var(--button-secondary-background-fill-hover);
 	}
 
-	.plus-button:active,
+	.upload-button:active,
 	.submit-button:active {
 		box-shadow: var(--button-shadow-active);
 	}
@@ -377,12 +377,12 @@
 		padding-top: 2px;
 	}
 
-	.plus-button {
+	.upload-button {
 		left: 10px;
 		margin-right: 5px;
 	}
 
-	.plus-button :global(svg) {
+	.upload-button :global(svg) {
 		height: 23px;
 		width: 23px;
 		padding-left: 7px;
