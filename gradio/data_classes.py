@@ -75,6 +75,12 @@ else:
     RootModel.model_json_schema = RootModel.schema  # type: ignore
 
 
+class CancelBody(BaseModel):
+    session_hash: str
+    fn_index: int
+    event_id: str
+
+
 class SimplePredictBody(BaseModel):
     data: List[Any]
     session_hash: Optional[str] = None
