@@ -298,3 +298,74 @@ export function handle_message(
 
 	return { type: "none", status: { stage: "error", queue } };
 }
+
+/**
+ * Maps the provided `data` to the parameters defined by the `/info` endpoint response.
+ * This allows us to support both positional and keyword arguments passed to the client
+ * and ensures that all parameters are either directly provided or have default values assigned.
+ *
+ * @param {unknown[] | Record<string, unknown>} data - The input data for the function,
+ *        which can be either an array of values for positional arguments or an object
+ *        with key-value pairs for keyword arguments.
+ * @param {JsApiData[]} parameters - Array of parameter descriptions retrieved from the
+ *        `/info` endpoint.
+ *
+ * @returns {unknown[]} - Returns an array of resolved data where each element corresponds
+ *         to the expected parameter from the API. The `parameter_default` value is used where
+ *         a value is not provided for a parameter, and optional parameters without defaults are
+ * 		   set to `undefined`.
+ *
+ * @throws {Error} - Throws an error:
+ *         - If more arguments are provided than are defined in the parameters.
+ *  *      - If no parameter value is provided for a required parameter and no default value is defined.
+ *         - If an argument is provided that does not match any defined parameter.
+ */
+
+export const map_data_to_params = (
+	data: unknown[] | Record<string, unknown>,
+	api_info: ApiInfo<JsApiData | ApiData>
+): unknown[] => {
+	const parameters = Object.values(api_info.named_endpoints).flatMap(
+		(values) => values.parameters
+	);
+
+	if (Array.isArray(data)) {
+		if (data.length > parameters.length) {
+			console.warn("Too many arguments provided for the endpoint.");
+		}
+		return data;
+	}
+
+	const resolved_data: unknown[] = [];
+	const provided_keys = Object.keys(data);
+
+	parameters.forEach((param, index) => {
+		if (data.hasOwnProperty(param.parameter_name)) {
+			resolved_data[index] = data[param.parameter_name];
+		} else if (param.parameter_has_default) {
+			resolved_data[index] = param.parameter_default;
+		} else {
+			throw new Error(
+				`No value provided for required parameter: ${param.parameter_name}`
+			);
+		}
+	});
+
+	provided_keys.forEach((key) => {
+		if (!parameters.some((param) => param.parameter_name === key)) {
+			throw new Error(
+				`Parameter \`${key}\` is not a valid keyword argument. Please refer to the API for usage.`
+			);
+		}
+	});
+
+	resolved_data.forEach((value, idx) => {
+		if (value === undefined && !parameters[idx].parameter_has_default) {
+			throw new Error(
+				`No value provided for required parameter: ${parameters[idx].parameter_name}`
+			);
+		}
+	});
+
+	return resolved_data;
+};
