@@ -229,8 +229,10 @@
 					><Send /></button
 				>
 			{/if}
-			<button data-testid="upload-button" class="upload-button" on:click={handle_upload_click}
-				><Paperclip /></button
+			<button
+				data-testid="upload-button"
+				class="upload-button"
+				on:click={handle_upload_click}><Paperclip /></button
 			>
 			{#if value.files.length > 0 || uploading}
 				<div
