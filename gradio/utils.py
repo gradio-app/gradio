@@ -863,10 +863,10 @@ def get_cancel_function(
 ) -> tuple[Callable, list[int]]:
     fn_to_comp = {}
     for dep in dependencies:
-        root_block = get_blocks_context
+        root_block = get_blocks_context()
         if root_block:
             fn_index = next(
-                i for i, d in enumerate(root_block.fns) if d.get_config() == dep
+                i for i, d in root_block.fns.items() if d.get_config() == dep
             )
             fn_to_comp[fn_index] = [root_block.blocks[o] for o in dep["outputs"]]
 
