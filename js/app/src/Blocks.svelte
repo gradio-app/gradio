@@ -540,23 +540,6 @@
 	{#if control_page_title}
 		<title>{title}</title>
 	{/if}
-	{#if analytics_enabled}
-		<script
-			async
-			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
-		></script>
-		<script>
-			window.dataLayer = window.dataLayer || [];
-			function gtag() {
-				dataLayer.push(arguments);
-			}
-			gtag("js", new Date());
-			gtag("config", "UA-156449732-1", {
-				cookie_flags: "samesite=none;secure"
-			});
-		</script>
-	{/if}
 </svelte:head>
 
 <div class="wrap" style:min-height={app_mode ? "100%" : "auto"}>
