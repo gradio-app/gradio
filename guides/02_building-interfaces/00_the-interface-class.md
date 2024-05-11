@@ -11,7 +11,24 @@ We see that the `Interface` class is initialized with three required parameters:
 - `inputs`: which Gradio component(s) to use for the input. The number of components should match the number of arguments in your function.
 - `outputs`: which Gradio component(s) to use for the output. The number of components should match the number of return values from your function.
 
-Let's take a closer look at these components used to provide input and output.
+Let's get a better understanding of Gradio components.
+
+## Gradio Components
+
+Gradio includes more than 30 pre-built components (as well as many [community-built _custom components_](https://www.gradio.app/custom-components/gallery)) that can be used as inputs or outputs in your demo. These components correspond to common data types in machine learning and data science, e.g. the `gr.Image` component is designed to handle input or output images, the `gr.Label` component displays classification labels and probabilities, the `gr.Plot` component displays various kinds of plots, and so on.
+
+**Static and Interactive Components**
+
+Every component has a _static_ version that is designed to *display* data, and most components also have an _interactive_ version designed to let users input or modify the data. Typically, you don't need to think about this distinction, because when you build a Gradio demo, Gradio automatically figures out whether the component should be static or interactive based on whether it is being used as an input or output. However, you can set this manually using the `interactive` argument that every component supports.
+
+**Preprocessing and Postprocessing**
+
+When a component is used as an input, Gradio automatically handles the _preprocessing_ needed to convert the data from a type sent by the user's browser (such as an uploaded image) to a form that can be accepted by your function (such as a `numpy` array).
+
+
+Similarly, when a component is used as an output, Gradio automatically handles the _postprocessing_ needed to convert the data from what is returned by your function (such as a list of image paths) to a form that can be displayed in the user's browser (a gallery of images).
+
+Preprocessing and postprocessing are discussed in more detail below.
 
 ## Components Attributes
 
