@@ -1129,11 +1129,15 @@ class Endpoint:
 
             if "error" in result:
                 if result["error"] is None:
-                    raise AppError("The upstream Gradio app has raised an exception but has not enabled "
-                                   "verbose error reporting. To enable, set show_error=True in launch().")
+                    raise AppError(
+                        "The upstream Gradio app has raised an exception but has not enabled "
+                        "verbose error reporting. To enable, set show_error=True in launch()."
+                    )
                 else:
-                    raise AppError("The upstream Gradio app has raised an exception: " + result["error"])
-
+                    raise AppError(
+                        "The upstream Gradio app has raised an exception: "
+                        + result["error"]
+                    )
 
             try:
                 output = result["data"]
