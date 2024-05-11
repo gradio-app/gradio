@@ -1,5 +1,19 @@
 # website
 
+## 0.29.0
+
+### Features
+
+- [#8224](https://github.com/gradio-app/gradio/pull/8224) [`6ee1f1f`](https://github.com/gradio-app/gradio/commit/6ee1f1f7215bc557c138e1f43d5a835775deacfc) - Display all custom components in the gallery.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#8220](https://github.com/gradio-app/gradio/pull/8220) [`f176e1b`](https://github.com/gradio-app/gradio/commit/f176e1b509b7687b02c9173db1cd1ce25c3cd8f6) - Convert all demos on docs to lite.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.6.2
+
 ## 0.28.0
 
 ### Features

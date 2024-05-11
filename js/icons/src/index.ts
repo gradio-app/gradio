@@ -32,6 +32,7 @@ export { default as Maximise } from "./Maximise.svelte";
 export { default as Microphone } from "./Microphone.svelte";
 export { default as Music } from "./Music.svelte";
 export { default as Palette } from "./Palette.svelte";
+export { default as Paperclip } from "./Paperclip.svelte";
 export { default as Pause } from "./Pause.svelte";
 export { default as Play } from "./Play.svelte";
 export { default as Plot } from "./Plot.svelte";
