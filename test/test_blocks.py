@@ -550,7 +550,9 @@ class TestBlocksPostprocessing:
                 outputs=text,
             )
 
-        output = await demo.postprocess_data(demo.fns[0], gr.update(value="NO_VALUE"), state=None)
+        output = await demo.postprocess_data(
+            demo.fns[0], gr.update(value="NO_VALUE"), state=None
+        )
         assert output[0]["value"] == "NO_VALUE"
 
     @pytest.mark.asyncio
@@ -584,7 +586,9 @@ class TestBlocksPostprocessing:
 
             update.click(update_values, inputs=[num], outputs=[num2])
 
-        output = await demo.postprocess_data(demo.fns[0], {num2: gr.Number(value=42)}, state=None)
+        output = await demo.postprocess_data(
+            demo.fns[0], {num2: gr.Number(value=42)}, state=None
+        )
         assert output[0]["value"] == 42
 
         output = await demo.postprocess_data(demo.fns[0], {num2: 23}, state=None)
