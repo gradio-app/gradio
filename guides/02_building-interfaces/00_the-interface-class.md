@@ -34,7 +34,7 @@ We used the default versions of the `gr.Textbox` and `gr.Slider`, but what if yo
 
 Let's say you want to customize the slider to have values from 1 to 10, with a default of 2. And you wanted to customize the output text field — you want it to be larger and have a label.
 
-If you use the actual class for `gr.Textbox` and `gr.Slider` instead of using the string shortcut, you have access to much more customizability through component attributes.
+If you use the actual classes for `gr.Textbox` and `gr.Slider` instead of the string shortcuts, you have access to much more customizability through component attributes.
 
 $code_hello_world_2
 $demo_hello_world_2
