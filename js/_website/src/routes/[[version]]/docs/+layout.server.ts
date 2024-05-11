@@ -38,7 +38,7 @@ export async function load({ params, url }) {
 	let js_client = docs_json.js_client;
 	let on_main = params.version === "main";
 	let wheel: string = WHEEL;
-	let pages: string[] = docs_json.pages;
+	let pages: any = docs_json.pages;
 
 	let url_version = params?.version || VERSION;
 

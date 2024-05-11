@@ -41,9 +41,24 @@ export async function load({ params, parent }) {
 	let method_headers = [];
 	const get_slug = make_slug_processor();
 
-	// if (!pages.some((p: string) => p === params.doc)) {
+	// if (!pages.gradio.flatMap((cat: { pages: any; }) => cat.pages).some((page: { name: string; }) => page.name === params.doc)) {
 	// 	throw error(404);
 	// }
+
+	let page_path : string | null = null;
+
+	for (const category of pages.gradio) {
+		for (const page of category.pages) {
+			if (page.name === params.doc) {
+				page_path = page.path;
+			}
+		}
+	}
+
+	if (page_path === null) {
+		throw error(404);
+	}
+	
 
 	for (const key in docs) {
 		for (const o in docs[key]) {
@@ -199,6 +214,8 @@ export async function load({ params, parent }) {
 		method_headers,
 		on_main,
 		wheel,
-		url_version
+		url_version,
+		pages,
+		page_path
 	};
 }

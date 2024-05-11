@@ -4,7 +4,6 @@
 	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
 
-
 	export let data: any = {};
 
 	let name: string = data.name;
@@ -56,17 +55,32 @@
 	$: routes = data.routes;
 	$: py_client = data.py_client;
 	$: url_version = data.url_version;
+	$: pages = data.pages.gradio;
+	$: page_path = data.page_path;
+
+	$: flattened_pages = pages.map((category: any) => category.pages).flat();
+	$: prev_obj =
+	flattened_pages[
+		flattened_pages.findIndex((page: any) => page.name === $page.params?.doc) - 1
+		];
+	$: next_obj =
+		flattened_pages[
+			flattened_pages.findIndex((page: any) => page.name === $page.params?.doc) + 1
+		];
+
 
 	let import_promise: any = null;
 	let component_name = $page.params?.doc;
 
 	$: component_name = $page.params?.doc;
 
-	function import_component(component_name: string) {
-		import_promise = import(`/src/lib/templates/gradio/${component_name}.svx`)
+	function import_component(page_path: string) {
+		import_promise = import(`/src/lib/templates/${page_path.slice(0, page_path.length - 4)}.svx`)
+		// import_promise = import(`/src/lib/templates/gradio/03_components/chatbot.svx`);
 	}
+	$: console.log("import path", `/src/lib/templates/${page_path}`);
 
-	$: import_component(component_name);
+	$: import_component(page_path);
 		
 	
 	function get_headers() {
@@ -101,11 +115,7 @@
 	<div class="flex w-full">
 		<DocsNav
 			current_nav_link={obj.name.toLowerCase()}
-			{components}
-			{helpers}
-			{modals}
-			{routes}
-			{py_client}
+			library_pages={pages}
 		/>
 
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
@@ -144,26 +154,26 @@
 			{/if}
 
 			<div class="flex justify-between mt-4 lg:ml-10">
-				{#if obj.prev_obj}
+				{#if prev_obj}
 					<a
-						href="./{obj.prev_obj.toLowerCase()}"
+						href="./{prev_obj.name}"
 						class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
 					>
 						<div class="text-lg">
 							<span class="text-orange-500">&#8592;</span>
-							{obj.prev_obj.replace("-", " ")}
+							{prev_obj.pretty_name}
 						</div>
 					</a>
 				{:else}
 					<div />
 				{/if}
-				{#if obj.next_obj}
+				{#if next_obj}
 					<a
-						href="./{obj.next_obj.toLowerCase()}"
+						href="./{next_obj.name}"
 						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
 					>
 						<div class="text-lg">
-							{obj.next_obj.replace("-", " ")}
+							{next_obj.pretty_name}
 							<span class="text-orange-500">&#8594;</span>
 						</div>
 					</a>
@@ -186,34 +196,34 @@
 				</div>
 
 
-			<div class="lg:ml-10 flex justify-between my-4">
-				{#if obj.prev_obj}
-					<a
-						href="./{obj.prev_obj.toLowerCase()}"
-						class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
-					>
-						<div class="text-lg">
-							<span class="text-orange-500">&#8592;</span>
-							{obj.prev_obj.replace("-", " ")}
-						</div>
-					</a>
-				{:else}
-					<div />
-				{/if}
-				{#if obj.next_obj}
-					<a
-						href="./{obj.next_obj.toLowerCase()}"
-						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
-					>
-						<div class="text-lg">
-							{obj.next_obj.replace("-", " ")}
-							<span class="text-orange-500">&#8594;</span>
-						</div>
-					</a>
-				{:else}
-					<div />
-				{/if}
-			</div>
+				<div class="flex justify-between mt-4 lg:ml-10">
+					{#if prev_obj}
+						<a
+							href="./{prev_obj.name}"
+							class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
+						>
+							<div class="text-lg">
+								<span class="text-orange-500">&#8592;</span>
+								{prev_obj.pretty_name}
+							</div>
+						</a>
+					{:else}
+						<div />
+					{/if}
+					{#if next_obj}
+						<a
+							href="./{next_obj.name}"
+							class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
+						>
+							<div class="text-lg">
+								{next_obj.pretty_name}
+								<span class="text-orange-500">&#8594;</span>
+							</div>
+						</a>
+					{:else}
+						<div />
+					{/if}
+				</div>
 		</div>
 
 		<div

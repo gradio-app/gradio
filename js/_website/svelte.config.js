@@ -99,6 +99,9 @@ function plugin() {
 const config = {
 	extensions: [".svelte", ".svx"],
 	preprocess: [mdsvex({
+		files: {
+			lib: "src/lib"
+		},
 		extensions: ['.svx'],
 		rehypePlugins: [plugin]
 	}), vitePreprocess()],

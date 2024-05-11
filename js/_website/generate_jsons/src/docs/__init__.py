@@ -1,6 +1,7 @@
 import html
 import json
 import os
+import re
 
 from gradio_client.documentation import document_cls, generate_documentation
 import gradio
@@ -12,6 +13,7 @@ DIR = os.path.dirname(__file__)
 DEMOS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo"))
 JS_CLIENT_README = os.path.abspath(os.path.join(DIR, "../../../../../client/js/README.md"))
 JS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../js/"))
+TEMPLATES_DIR = os.path.abspath(os.path.join(DIR, "../../../src/lib/templates"))
 
 docs = generate_documentation()
 docs["component"].sort(key=lambda x: x["name"])
@@ -128,22 +130,6 @@ def escape_html_string_fields():
 
 escape_html_string_fields()
 
-
-def override_signature(name, signature):
-    for mode in docs:
-        for cls in docs[mode]:
-            if cls["name"] == name:
-                cls["override_signature"] = signature
-
-
-override_signature("Blocks", "with gradio.Blocks():")
-override_signature("Row", "with gradio.Row():")
-override_signature("Column", "with gradio.Column():")
-override_signature("Tab", "with gradio.Tab():")
-override_signature("Group", "with gradio.Group():")
-override_signature("Dataset", "gr.Dataset(components, samples)")
-
-
 def find_cls(target_cls):
     for mode in docs:
         for cls in docs[mode]:
@@ -163,7 +149,6 @@ def organize_docs(d):
         "py-client": {},
         "chatinterface": {}
     }
-    pages = []
     for mode in d:
         for c in d[mode]:
             c["parent"] = "gradio"
@@ -183,16 +168,41 @@ def organize_docs(d):
                         p["default"] = str(p["default"])
             if mode == "component":
                 organized["components"][c["name"].lower()] = c
-                pages.append(c["name"].lower())
             elif mode in ["helpers", "routes", "py-client", "chatinterface", "modals"]:
-                organized[mode][c["name"].lower()] = c
-                pages.append(c["name"].lower())
-                
+                organized[mode][c["name"].lower()] = c                
             else:
-                # if mode not in organized["building"]:
-                #     organized["building"][mode] = {}
                 organized["building"][c["name"].lower()] = c
-                pages.append(c["name"].lower())
+    
+
+    def format_name(page_name):
+        index = None
+        page_path = page_name
+        if re.match("^[0-9]+_", page_name):
+            index = int(page_name[: page_name.index("_")])
+            page_name = page_name[page_name.index("_") + 1 :]
+        if page_name.lower().endswith(".svx"):
+            page_name = page_name[:-4]
+        pretty_page_name = " ".join([word[0].upper() + word[1:] for word in page_name.split("-")])
+        return index, page_name, pretty_page_name, page_path
+    
+    
+    def organize_pages(): 
+        pages = {"gradio": [], "python-client": []}
+        absolute_index = -1;
+        for library in pages:
+            library_templates_dir = os.path.join(TEMPLATES_DIR, library)
+            page_folders = sorted(os.listdir(library_templates_dir))
+            for page_folder in page_folders:
+                page_list = sorted(os.listdir(os.path.join(library_templates_dir, page_folder)))
+                _, page_category, pretty_page_category, category_path = format_name(page_folder)
+                category_path = os.path.join(library, category_path)
+                pages[library].append({"category": pretty_page_category, "pages": []})
+                for page_file in page_list:
+                    page_index, page_name, pretty_page_name, page_path = format_name(page_file)
+                    pages[library][-1]["pages"].append({"name": page_name, "pretty_name": pretty_page_name, "path": os.path.join(category_path, page_path), "page_index": page_index, "abolute_index": absolute_index + 1})
+        return pages
+
+    pages = organize_pages()
 
     c_keys = list(organized["components"].keys())
     for i, cls in enumerate(organized["components"]):

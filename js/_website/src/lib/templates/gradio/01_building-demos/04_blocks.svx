@@ -1,0 +1,42 @@
+
+<script lang="ts">
+    import {get_object} from "$lib/components/process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+
+
+    let obj = get_object("blocks");
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage and Embedded Component -->
+<div class="codeblock"><pre><code class="code language-python">{obj.parent}.{obj.name}(···)</code></pre></div>
+
+<!--- Description -->
+### Description
+## {obj.description}
+
+<!-- Example Usage --> 
+### Example Usage
+<div class="codeblock"><pre><code class="code language-python">{obj.example}</code></pre></div>
+
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj.parameters} />
+
+<!--- Demos -->
+### Demos 
+<DemosSection demos={obj.demos} />
+
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+
+<!--- Guides -->
+### Guides
+<GuidesSection guides={obj.guides}/>
