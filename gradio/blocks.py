@@ -1209,6 +1209,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 ]
                 dependency.pop("status_tracker", None)
                 dependency.pop("zerogpu", None)
+                dependency.pop("id", None)
+                dependency.pop("rendered_in", None)
                 dependency["preprocess"] = False
                 dependency["postprocess"] = False
                 if is_then_event:
@@ -1412,13 +1414,13 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
         inputs = list(inputs)
         processed_inputs = self.serialize_data(fn_index, inputs)
-        batch = self.fns[fn_index].batch
-        if batch:
+        fn = self.fns[fn_index]
+        if fn.batch:
             processed_inputs = [[inp] for inp in processed_inputs]
 
         outputs = client_utils.synchronize_async(
             self.process_api,
-            fn_index=fn_index,
+            block_fn=fn,
             inputs=processed_inputs,
             request=None,
             state={},
@@ -1426,7 +1428,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         )
         outputs = outputs["data"]
 
-        if batch:
+        if fn.batch:
             outputs = [out[0] for out in outputs]
 
         outputs = self.deserialize_data(fn_index, outputs)
@@ -1436,7 +1438,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
 
     async def call_function(
         self,
-        block_fn: BlockFunction,
+        block_fn: BlockFunction | int,
         processed_input: list[Any],
         iterator: AsyncIterator[Any] | None = None,
         requests: routes.Request | list[routes.Request] | None = None,
@@ -1455,6 +1457,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             event_id: id of event in queue
             event_data: data associated with event trigger
         """
+        if isinstance(block_fn, int):
+            block_fn = self.fns[block_fn]
         if not block_fn.fn:
             raise IndexError("function has no backend method.")
         is_generating = False
@@ -1819,7 +1823,7 @@ Received outputs:
 
     async def process_api(
         self,
-        block_fn: BlockFunction,
+        block_fn: BlockFunction | int,
         inputs: list[Any],
         state: SessionState | None = None,
         request: routes.Request | list[routes.Request] | None = None,
@@ -1848,6 +1852,8 @@ Received outputs:
             root_path: if provided, the root path of the server. All file URLs will be prefixed with this path.
         Returns: None
         """
+        if isinstance(block_fn, int):
+            block_fn = self.fns[block_fn]
         batch = block_fn.batch
 
         if batch:
