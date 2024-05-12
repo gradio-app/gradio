@@ -1271,7 +1271,7 @@ class TestCancel:
             cancel = gr.Button(value="Cancel")
             cancel.click(None, None, None, cancels=[click])
 
-        cancel_fun = demo.fns[-1].fn
+        cancel_fun = demo.fns[demo.default_config.fn_id - 1].fn
         task = asyncio.create_task(long_job())
         task.set_name("foo_0")
         # If cancel_fun didn't cancel long_job the message would be printed to the console
@@ -1302,7 +1302,7 @@ class TestCancel:
             with gr.Tab("Demo 2"):
                 demo2.render()
 
-        cancel_fun = demo.fns[-1].fn
+        cancel_fun = demo.fns[demo.default_config.fn_id - 1].fn
 
         task = asyncio.create_task(long_job())
         task.set_name("foo_1")
