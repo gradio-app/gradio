@@ -671,7 +671,7 @@ class TestClientPredictionsWithKwargs:
     def test_missing_params(self, calculator_demo):
         with connect(calculator_demo) as client:
             with pytest.raises(
-                ValueError, match="No value provided for required argument: num2"
+                TypeError, match="No value provided for required argument: num2"
             ):
                 client.predict(num1=3, operation="add", api_name="/predict")
 
