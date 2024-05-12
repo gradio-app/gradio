@@ -12,22 +12,43 @@
 	import { BasePlot } from "@gradio/plot";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
-	import { type FileData } from "@gradio/client";
+	import { type FileData, type Client } from "@gradio/client";
 	import Copy from "./Copy.svelte";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import LikeDislike from "./LikeDislike.svelte";
 	import Pending from "./Pending.svelte";
+	import { isArray } from "vega";
 
 	export let value:
 		| [
-				string | { file: FileData| FileData[]; alt_text: string | null } | { type: string; plot: string | null } | null,
-				string | { file: FileData| FileData[]; alt_text: string | null } | { type: string; plot: string | null } | null
+				(
+					| string
+					| { file: FileData | FileData[]; alt_text: string | null }
+					| { type: string; plot: string | null }
+					| null
+				),
+				(
+					| string
+					| { file: FileData | FileData[]; alt_text: string | null }
+					| { type: string; plot: string | null }
+					| null
+				)
 		  ][]
 		| null;
 	let old_value:
 		| [
-				string | { file: FileData| FileData[]; alt_text: string | null } | { type: string; plot: string | null } | null,
-				string | { file: FileData| FileData[]; alt_text: string | null } | { type: string; plot: string | null } | null
+				(
+					| string
+					| { file: FileData | FileData[]; alt_text: string | null }
+					| { type: string; plot: string | null }
+					| null
+				),
+				(
+					| string
+					| { file: FileData | FileData[]; alt_text: string | null }
+					| { type: string; plot: string | null }
+					| null
+				)
 		  ][]
 		| null = null;
 	export let latex_delimiters: {
@@ -49,7 +70,8 @@
 	export let i18n: I18nFormatter;
 	export let layout: "bubble" | "panel" = "bubble";
 	export let placeholder: string | null = null;
-	let target = document.querySelector('div.gradio-container');
+	export let upload: Client["upload"];
+	let target = document.querySelector("div.gradio-container");
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
@@ -119,7 +141,11 @@
 	function handle_select(
 		i: number,
 		j: number,
-		message: string | { file: FileData; alt_text: string | null } | null
+		message:
+			| string
+			| { file: FileData | FileData[]; alt_text: string | null }
+			| { type: string; plot: string | null }
+			| null
 	): void {
 		dispatch("select", {
 			index: [i, j],
@@ -130,7 +156,11 @@
 	function handle_like(
 		i: number,
 		j: number,
-		message: string | { file: FileData; alt_text: string | null } | null,
+		message:
+			| string
+			| { file: FileData | FileData[]; alt_text: string | null }
+			| { type: string; plot: string | null }
+			| null,
 		selected: string | null
 	): void {
 		dispatch("like", {
@@ -151,7 +181,6 @@
 			{value}
 		/>
 	</div>
-
 {/if}
 
 <div
@@ -204,11 +233,15 @@
 										"'s message: " +
 										(typeof message === "string"
 											? message
-											: `a file of type ${message.file?.mime_type}, ${
-													message.file?.alt_text ??
-													message.file?.orig_name ??
-													""
-												}`)}
+											: "file" in message &&
+												  message.file !== undefined &&
+												  !Array.isArray(message.file)
+												? `a file of type ${message.file?.mime_type}, ${
+														message.file?.alt_text ??
+														message.file?.orig_name ??
+														""
+													}`
+												: "")}
 								>
 									{#if typeof message === "string"}
 										<Markdown
@@ -223,14 +256,14 @@
 										<BaseGallery
 											value={message.file}
 											show_label={false}
-											i18n={i18n}
+											{i18n}
 										/>
 									{:else if message !== null && "file" in message && message.file !== undefined && !Array.isArray(message.file) && "mime_type" in message.file && message.file.mime_type !== undefined && message.file.mime_type?.includes("audio")}
 										<BaseStaticAudio
 											value={message.file}
 											show_label={false}
 											show_share_button={true}
-											i18n={i18n}
+											{i18n}
 											label=""
 											waveform_settings={{}}
 											waveform_options={{}}
@@ -241,7 +274,8 @@
 											value={message.file}
 											show_label={false}
 											show_share_button={true}
-											i18n={i18n}
+											{i18n}
+											{upload}
 										>
 											<track kind="captions" />
 										</BaseStaticVideo>
@@ -250,7 +284,7 @@
 											value={message.file}
 											show_label={false}
 											show_share_button={true}
-											i18n={i18n}
+											{i18n}
 										/>
 									{:else if message !== null && "file" in message && message.file !== undefined && !Array.isArray(message.file) && message.file.url !== undefined && message.file.url !== null}
 										<a
@@ -267,8 +301,8 @@
 										<BasePlot
 											value={message}
 											show_label={false}
-											target={target}
-											i18n={i18n}
+											{target}
+											{i18n}
 											label=""
 										/>
 									{/if}
@@ -338,7 +372,12 @@
 		gap: calc(var(--spacing-xxl) + var(--spacing-lg));
 	}
 
-	.message-wrap > div :not(.avatar-container) div :not(.image-button) :global(img) {
+	.message-wrap
+		> div
+		:not(.avatar-container)
+		div
+		:not(.image-button)
+		:global(img) {
 		border-radius: 13px;
 		margin: var(--size-2);
 		width: 400px;
