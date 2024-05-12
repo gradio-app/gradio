@@ -143,7 +143,7 @@ class Chatbot(Component):
         self.placeholder = placeholder
 
     def _preprocess_chat_messages(
-        self, chat_message: str | FileMessage | GalleryData | PlotData | None
+        self, chat_message: str | FileMessage | List[FileMessage] | GalleryData | PlotData | None
     ) -> str | GradioComponent | tuple[str | None] | tuple[str | None, str] | None:
         if chat_message is None:
             return None
@@ -156,10 +156,10 @@ class Chatbot(Component):
             return chat_message
         elif isinstance(chat_message, GalleryData):
             value = Gallery().preprocess(chat_message)
-            gallery = Gallery(value=value, render=False)
+            gallery = Gallery(value=value)
             return gallery
         elif isinstance(chat_message, PlotData):
-            plot = Plot(value=chat_message, render=False)
+            plot = Plot(value=chat_message)
             return plot
         else:
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
@@ -207,16 +207,14 @@ class Chatbot(Component):
         if chat_message is None:
             return None
         elif isinstance(chat_message, (tuple, list)):
-            if type(chat_message[0]) == Plot:
-                return Plot.postprocess(chat_message[0], chat_message[0]._constructor_args[1]["value"])
+            if isinstance(chat_message[0], GradioComponent):
+                return type(chat_message[0]).postprocess(chat_message[0], chat_message[0]._constructor_args[1]["value"])
             else:
                 filepath = str(chat_message[0])
                 return create_file_message(chat_message, filepath)
         elif isinstance(chat_message, GradioComponent):
-            if type(chat_message) == Plot:
-                return Plot.postprocess(chat_message, chat_message._constructor_args[1]["value"])
-            elif type(chat_message) == Gallery:
-                return Gallery.postprocess(chat_message, chat_message._constructor_args[1]["value"])
+            if type(chat_message) == Plot or type(chat_message) == Gallery:
+                return type(chat_message).postprocess(chat_message, chat_message._constructor_args[1]["value"]) # type: ignore
             else:
                 filepath = chat_message._constructor_args[1]["value"]
                 return create_file_message(chat_message, filepath)
