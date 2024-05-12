@@ -1,21 +1,15 @@
 import gradio as gr
 
+
+def greet(name):
+    return "Hello " + name + "!"
+
+
 with gr.Blocks() as demo:
-    def combine(a, b):
-        return a + " " + b
+    name = gr.Textbox(label="Name")
+    output = gr.Textbox(label="Output Box")
+    greet_btn = gr.Button("Greet")
+    greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
 
-    txt = gr.Textbox(label="Input")
-    txt_2 = gr.Textbox(label="Input 2")
-    txt_3 = gr.Textbox(value="", label="Output")
-    btn = gr.Button(value="Submit")
-    btn.click(combine, inputs=[txt, txt_2], outputs=[txt_3])
-    gr.Examples(
-        [["hi", "Adam"], ["hello", "Eve"]],
-        [txt, txt_2],
-        txt_3,
-        combine,
-        cache_examples=True,
-        api_name="examples",
-    )
-
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()
