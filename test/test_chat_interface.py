@@ -81,7 +81,7 @@ class TestInit:
 
     def test_events_attached(self):
         chatbot = gr.ChatInterface(double)
-        dependencies = chatbot.fns
+        dependencies = chatbot.fns.values()
         textbox = chatbot.textbox._id
         submit_btn = chatbot.submit_btn._id
         assert next(

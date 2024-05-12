@@ -69,6 +69,7 @@ class StateHolder:
 class SessionState:
     def __init__(self, blocks: Blocks):
         self.blocks_config = copy(blocks.default_config)
+        print("copying fns", blocks.default_config.fns.keys())
         self.state_data: dict[int, Any] = {}
         self._state_ttl = {}
         self.is_closed = False
