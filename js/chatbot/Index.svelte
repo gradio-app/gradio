@@ -16,8 +16,18 @@
 	export let elem_classes: string[] = [];
 	export let visible = true;
 	export let value: [
-		string | { file: FileData | FileData[]; alt_text: string | null } | { type: string; plot: string | null } | null,
-		string | { file: FileData| FileData[]; alt_text: string | null } | { type: string; plot: string | null } | null
+		(
+			| string
+			| { file: FileData | FileData[]; alt_text: string | null }
+			| { type: string; plot: string | null }
+			| null
+		),
+		(
+			| string
+			| { file: FileData | FileData[]; alt_text: string | null }
+			| { type: string; plot: string | null }
+			| null
+		)
 	][] = [];
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
@@ -50,8 +60,18 @@
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 
 	let _value: [
-		string | { file: FileData | FileData[]; alt_text: string | null } | { type: string; plot: string | null } | null,
-		string | { file: FileData| FileData[]; alt_text: string | null } | { type: string; plot: string | null } | null
+		(
+			| string
+			| { file: FileData | FileData[]; alt_text: string | null }
+			| { type: string; plot: string | null }
+			| null
+		),
+		(
+			| string
+			| { file: FileData | FileData[]; alt_text: string | null }
+			| { type: string; plot: string | null }
+			| null
+		)
 	][];
 
 	const redirect_src_url = (src: string): string =>
@@ -76,19 +96,19 @@
 	}
 
 	$: _value = value
-	? value.map(([user_msg, bot_msg]) => [
-		typeof user_msg === "string"
-			? redirect_src_url(user_msg)
-			: user_msg != null && 'plot' in user_msg
-				? user_msg
-				: normalize_messages(user_msg),
-		typeof bot_msg === "string" && bot_msg != null
-			? redirect_src_url(bot_msg)
-				: bot_msg != null && 'plot' in bot_msg
-					? bot_msg
-					: normalize_messages(bot_msg),
-	])
-	: [];
+		? value.map(([user_msg, bot_msg]) => [
+				typeof user_msg === "string"
+					? redirect_src_url(user_msg)
+					: user_msg != null && "plot" in user_msg
+						? user_msg
+						: normalize_messages(user_msg),
+				typeof bot_msg === "string" && bot_msg != null
+					? redirect_src_url(bot_msg)
+					: bot_msg != null && "plot" in bot_msg
+						? bot_msg
+						: normalize_messages(bot_msg)
+			])
+		: [];
 
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;
@@ -147,6 +167,7 @@
 			{line_breaks}
 			{layout}
 			{placeholder}
+			upload={gradio.client.upload}
 		/>
 	</div>
 </Block>
