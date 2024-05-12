@@ -62,6 +62,7 @@ class ChatInterface(Blocks):
         additional_inputs_accordion: str | Accordion | None = None,
         examples: list[str] | list[dict[str, str | list]] | list[list] | None = None,
         cache_examples: bool | Literal["lazy"] | None = None,
+        examples_per_page: int = 10,
         title: str | None = None,
         description: str | None = None,
         theme: Theme | str | None = None,
@@ -88,8 +89,9 @@ class ChatInterface(Blocks):
             additional_inputs: An instance or list of instances of gradio components (or their string shortcuts) to use as additional inputs to the chatbot. If components are not already rendered in a surrounding Blocks, then the components will be displayed under the chatbot, in an accordion.
             additional_inputs_accordion_name: Deprecated. Will be removed in a future version of Gradio. Use the `additional_inputs_accordion` parameter instead.
             additional_inputs_accordion: If a string is provided, this is the label of the `gr.Accordion` to use to contain additional inputs. A `gr.Accordion` object can be provided as well to configure other properties of the container holding the additional inputs. Defaults to a `gr.Accordion(label="Additional Inputs", open=False)`. This parameter is only used if `additional_inputs` is provided.
-            examples: Sample inputs for the function; if provided, appear below the chatbot and can be clicked to populate the chatbot input.
+            examples: Sample inputs for the function; if provided, appear below the chatbot and can be clicked to populate the chatbot input. Should be a list of strings if `multimodal` is False, and a list of dictionaries (with keys `text` and `files`) if `multimodal` is True.
             cache_examples: If True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
+            examples_per_page: If examples are provided, how many to display per page.
             title: a title for the interface; if provided, appears above chatbot in large font. Also used as the tab title when opened in a browser window.
             description: a description for the interface; if provided, appears above the chatbot and beneath the title in regular font. Accepts Markdown and HTML content.
             theme: Theme to use, loaded from gradio.themes.
@@ -285,6 +287,7 @@ class ChatInterface(Blocks):
                     fn=examples_fn,
                     cache_examples=self.cache_examples,
                     _defer_caching=True,
+                    examples_per_page=examples_per_page,
                 )
 
             any_unrendered_inputs = any(

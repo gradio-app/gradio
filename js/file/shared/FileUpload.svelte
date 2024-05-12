@@ -20,7 +20,7 @@
 	export let i18n: I18nFormatter;
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
-	export let stream_handler: Client["stream_factory"];
+	export let stream_handler: Client["stream"];
 
 	async function handle_upload({
 		detail

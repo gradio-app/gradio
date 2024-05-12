@@ -90,28 +90,6 @@ export function create(options: Options): GradioAppController {
 		showError((event as CustomEvent).detail);
 	});
 
-	function clean_indent(code: string): string {
-		const lines = code.split("\n");
-		let min_indent: any = null;
-		lines.forEach((line) => {
-			const current_indent = line.match(/^(\s*)\S/);
-			if (current_indent) {
-				const indent_length = current_indent[1].length;
-				min_indent =
-					min_indent !== null
-						? Math.min(min_indent, indent_length)
-						: indent_length;
-			}
-		});
-		if (min_indent === null || min_indent === 0) {
-			return code.trim();
-		}
-		const normalized_lines = lines.map((line) => line.substring(min_indent));
-		return normalized_lines.join("\n").trim();
-	}
-
-	options.code = options.code ? clean_indent(options.code) : options.code;
-
 	// Internally, the execution of `runPythonCode()` or `runPythonFile()` is queued
 	// and its promise will be resolved after the Pyodide is loaded and the worker initialization is done
 	// (see the await in the `onmessage` callback in the webworker code)
@@ -131,7 +109,7 @@ export function create(options: Options): GradioAppController {
 			return wasm_proxied_fetch(worker_proxy, input, init);
 		}
 
-		stream_factory(url: URL): EventSource {
+		async stream(url: URL): Promise<EventSource> {
 			return wasm_proxied_stream_factory(worker_proxy, url);
 		}
 	}
@@ -162,11 +140,11 @@ export function create(options: Options): GradioAppController {
 					loaded: true
 				}
 			});
-			app.$on("code", (code) => {
-				options.code = clean_indent(code.detail.code);
+			app.$on("code", (event) => {
+				options.code = event.detail.code;
 				loaded = true;
 				worker_proxy
-					.runPythonCode(options.code)
+					.runPythonCode(event.detail.code)
 					.then(launchNewApp)
 					.catch((e) => {
 						showError(e);
@@ -226,11 +204,11 @@ export function create(options: Options): GradioAppController {
 					loaded: loaded
 				}
 			});
-			app.$on("code", (code) => {
-				options.code = clean_indent(code.detail.code);
+			app.$on("code", (event) => {
+				options.code = event.detail.code;
 				loaded = true;
 				worker_proxy
-					.runPythonCode(options.code)
+					.runPythonCode(event.detail.code)
 					.then(launchNewApp)
 					.catch((e) => {
 						showError(e);
@@ -255,7 +233,6 @@ export function create(options: Options): GradioAppController {
 
 	return {
 		run_code: (code: string) => {
-			code = clean_indent(code);
 			return worker_proxy
 				.runPythonCode(code)
 				.then(launchNewApp)

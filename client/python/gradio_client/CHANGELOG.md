@@ -1,5 +1,11 @@
 # gradio_client
 
+## 0.16.2
+
+### Fixes
+
+- [#8245](https://github.com/gradio-app/gradio/pull/8245) [`c562a3d`](https://github.com/gradio-app/gradio/commit/c562a3d9a440c8f94ca070bd07b8d4121d6ab7b3) - Cancel  server progress from the python client.  Thanks @freddyaboulton!
+
 ## 0.16.1
 
 ### Highlights

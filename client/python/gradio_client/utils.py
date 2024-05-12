@@ -44,6 +44,7 @@ SPACE_FETCHER_URL = "https://gradio-space-api-fetcher-v2.hf.space/api"
 RESET_URL = "reset"
 SPACE_URL = "https://hf.space/{}"
 HEARTBEAT_URL = "heartbeat/{session_hash}"
+CANCEL_URL = "cancel"
 
 STATE_COMPONENT = "state"
 INVALID_RUNTIME = [
@@ -118,7 +119,7 @@ class ServerMessage(str, Enum):
     log = "log"
     progress = "progress"
     heartbeat = "heartbeat"
-    server_stopped = "server_stopped"
+    server_stopped = "Server stopped unexpectedly."
     unexpected_error = "unexpected_error"
     close_stream = "close_stream"
 
