@@ -1399,7 +1399,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         """
         if api_name is not None:
             inferred_fn_index = next(
-                (i for i, d in enumerate(self.fns) if d.api_name == api_name),
+                (i for i, d in self.fns.items() if d.api_name == api_name),
                 None,
             )
             if inferred_fn_index is None:
