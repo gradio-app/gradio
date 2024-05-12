@@ -198,7 +198,7 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
 
     for x in list(blocks.blocks.values()):
         blocks_telemetry.append(x.get_block_name())
-    for x in blocks.fns:
+    for x in blocks.fns.values():
         targets_telemetry = targets_telemetry + [
             # Sometimes the target can be the Blocks object itself, so we need to check if its in blocks.blocks
             blocks.blocks[y[0]].get_block_name()

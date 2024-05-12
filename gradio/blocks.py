@@ -1070,8 +1070,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.default_config.blocks = value
 
     @property
-    def fns(self) -> list[BlockFunction]:
-        return list(self.default_config.fns.values())
+    def fns(self) -> dict[int, BlockFunction]:
+        return self.default_config.fns
 
     def get_component(self, id: int) -> Component | BlockContext:
         comp = self.blocks[id]
@@ -1257,10 +1257,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         return self.__repr__()
 
     def __repr__(self):
-        num_backend_fns = len([d for d in self.fns if d.fn])
+        num_backend_fns = len([d for d in self.fns.values() if d.fn])
         repr = f"Gradio Blocks instance: {num_backend_fns} backend functions"
         repr += f"\n{'-' * len(repr)}"
-        for d, dependency in enumerate(self.fns):
+        for d, dependency in self.fns.items():
             if dependency.fn:
                 repr += f"\nfn_index={d}"
                 repr += "\n inputs:"
@@ -1340,7 +1340,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 for dep in root_context.fns.values()
                 if isinstance(dep.api_name, str)
             ]
-            for dependency in self.fns:
+            for dependency in self.fns.values():
                 api_name = dependency.api_name
                 if isinstance(api_name, str):
                     api_name_ = utils.append_unique_suffix(
@@ -2039,7 +2039,9 @@ Received outputs:
             self.parent.children.extend(self.children)
         self.config = self.get_config_file()
         self.app = routes.App.create_app(self)
-        self.progress_tracking = any(block_fn.tracks_progress for block_fn in self.fns)
+        self.progress_tracking = any(
+            block_fn.tracks_progress for block_fn in self.fns.values()
+        )
         self.exited = True
 
     def clear(self):
@@ -2099,7 +2101,7 @@ Received outputs:
         return self
 
     def validate_queue_settings(self):
-        for dep in self.fns:
+        for dep in self.fns.values():
             for i in dep.cancels:
                 if not self.queue_enabled_for_fn(i):
                     raise ValueError(
@@ -2673,7 +2675,7 @@ Received outputs:
         config = self.config
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
-        for fn in self.fns:
+        for fn in self.fns.values():
             if not fn.fn or not fn.show_api or fn.api_name is False:
                 continue
 
