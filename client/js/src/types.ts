@@ -4,6 +4,9 @@ import { hardware_types } from "./helpers/spaces";
 
 export interface ApiData {
 	label: string;
+	parameter_name: string;
+	parameter_default?: any;
+	parameter_has_default?: boolean;
 	type: {
 		type: any;
 		description: string;
@@ -16,6 +19,9 @@ export interface ApiData {
 
 export interface JsApiData {
 	label: string;
+	parameter_name: string;
+	parameter_default?: any;
+	parameter_has_default?: boolean;
 	type: string;
 	description: string;
 	component: string;
@@ -43,6 +49,21 @@ export interface BlobRef {
 
 export type DataType = string | Buffer | Record<string, any> | any[];
 
+// Function Signature Types
+
+export type SubmitFunction = (
+	endpoint: string | number,
+	data: unknown[] | Record<string, unknown>,
+	event_data?: unknown,
+	trigger_id?: number | null
+) => SubmitReturn;
+
+export type PredictFunction = (
+	endpoint: string | number,
+	data: unknown[] | Record<string, unknown>,
+	event_data?: unknown
+) => Promise<SubmitReturn>;
+
 // Event and Submission Types
 
 type event = <K extends EventType>(
@@ -50,21 +71,10 @@ type event = <K extends EventType>(
 	listener: EventListener<K>
 ) => SubmitReturn;
 
-type predict = (
-	endpoint: string | number,
-	data?: unknown[],
-	event_data?: unknown
-) => Promise<unknown>;
-
 export type client_return = {
 	config: Config | undefined;
-	predict: predict;
-	submit: (
-		endpoint: string | number,
-		data: unknown[],
-		event_data?: unknown,
-		trigger_id?: number | null
-	) => SubmitReturn;
+	predict: PredictFunction;
+	submit: SubmitFunction;
 	component_server: (
 		component_id: number,
 		fn_name: string,

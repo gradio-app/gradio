@@ -192,9 +192,6 @@
 								endpoint_parameters={info.named_endpoints[
 									"/" + dependency.api_name
 								].parameters}
-								js_parameters={js_info.named_endpoints[
-									"/" + dependency.api_name
-								].parameters}
 								{dependency}
 								{dependency_index}
 								{current_language}

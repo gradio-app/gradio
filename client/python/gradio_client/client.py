@@ -247,7 +247,9 @@ class Client:
                             resp = json.loads(line[5:])
                             if resp["msg"] == ServerMessage.heartbeat:
                                 continue
-                            elif resp["msg"] == ServerMessage.server_stopped:
+                            elif (
+                                resp.get("message", "") == ServerMessage.server_stopped
+                            ):
                                 for (
                                     pending_messages
                                 ) in self.pending_messages_per_event.values():
@@ -271,6 +273,11 @@ class Client:
                         else:
                             raise ValueError(f"Unexpected SSE line: '{line}'")
         except BaseException as e:
+            # If the job is cancelled the stream will close so we
+            # should not raise this httpx exception that comes from the
+            # stream abruply closing
+            if isinstance(e, httpx.RemoteProtocolError):
+                return
             import traceback
 
             traceback.print_exc()
@@ -496,6 +503,7 @@ class Client:
             >> 9.0
         """
         inferred_fn_index = self._infer_fn_index(api_name, fn_index)
+
         endpoint = self.endpoints[inferred_fn_index]
 
         if isinstance(endpoint, Endpoint):
@@ -514,8 +522,14 @@ class Client:
         end_to_end_fn = endpoint.make_end_to_end_fn(helper)
         future = self.executor.submit(end_to_end_fn, *args)
 
+        cancel_fn = endpoint.make_cancel(helper)
+
         job = Job(
-            future, communicator=helper, verbose=self.verbose, space_id=self.space_id
+            future,
+            communicator=helper,
+            verbose=self.verbose,
+            space_id=self.space_id,
+            _cancel_fn=cancel_fn,
         )
 
         if result_callbacks:
@@ -1104,6 +1118,77 @@ class Endpoint:
 
         return _inner
 
+    def make_cancel(
+        self,
+        helper: Communicator | None,
+    ):
+        if helper is None:
+            return
+        if self.client.app_version > version.Version("4.29.0"):
+            url = urllib.parse.urljoin(self.client.src, utils.CANCEL_URL)
+
+            # The event_id won't be set on the helper until later
+            # so need to create the data in a function that's run at cancel time
+            def post_data():
+                return {
+                    "fn_index": self.fn_index,
+                    "session_hash": self.client.session_hash,
+                    "event_id": helper.event_id,
+                }
+
+            cancel_msg = None
+            cancellable = True
+        else:
+            candidates: list[tuple[int, list[int]]] = []
+            for i, dep in enumerate(self.client.config["dependencies"]):
+                if self.fn_index in dep["cancels"]:
+                    candidates.append(
+                        (i, [d for d in dep["cancels"] if d != self.fn_index])
+                    )
+
+            fn_index, other_cancelled = (
+                min(candidates, key=lambda x: len(x[1])) if candidates else (None, None)
+            )
+            cancellable = fn_index is not None
+            cancel_msg = None
+            if cancellable and other_cancelled:
+                other_api_names = [
+                    "/" + self.client.config["dependencies"][i].get("api_name")
+                    for i in other_cancelled
+                ]
+                cancel_msg = (
+                    f"Cancelled this job will also cancel any jobs for {', '.join(other_api_names)} "
+                    "that are currently running."
+                )
+            elif not cancellable:
+                cancel_msg = (
+                    "Cancelling this job will not stop the server from running. "
+                    "To fix this, an event must be added to the upstream app that explicitly cancels this one or "
+                    "the upstream app must be running Gradio 4.29.0 and greater."
+                )
+
+            def post_data():
+                return {
+                    "data": [],
+                    "fn_index": fn_index,
+                    "session_hash": self.client.session_hash,
+                }
+
+            url = self.client.api_url
+
+        def _cancel():
+            if cancel_msg:
+                warnings.warn(cancel_msg)
+            if cancellable:
+                httpx.post(
+                    url,
+                    json=post_data(),
+                    headers=self.client.headers,
+                    cookies=self.client.cookies,
+                )
+
+        return _cancel
+
     def make_predict(self, helper: Communicator | None = None):
         def _predict(*data) -> tuple:
             data = {
@@ -1123,6 +1208,7 @@ class Endpoint:
                 event_id = self.client.send_data(data, hash_data, self.protocol)
                 self.client.pending_event_ids.add(event_id)
                 self.client.pending_messages_per_event[event_id] = []
+                helper.event_id = event_id
                 result = self._sse_fn_v1plus(helper, event_id, self.protocol)
             else:
                 raise ValueError(f"Unsupported protocol: {self.protocol}")
@@ -1340,6 +1426,7 @@ class Job(Future):
         communicator: Communicator | None = None,
         verbose: bool = True,
         space_id: str | None = None,
+        _cancel_fn: Callable[[], None] | None = None,
     ):
         """
         Parameters:
@@ -1353,6 +1440,7 @@ class Job(Future):
         self._counter = 0
         self.verbose = verbose
         self.space_id = space_id
+        self.cancel_fn = _cancel_fn
 
     def __iter__(self) -> Job:
         return self
@@ -1491,10 +1579,6 @@ class Job(Future):
                     )
                 return self.communicator.job.latest_status
 
-    def __getattr__(self, name):
-        """Forwards any properties to the Future class."""
-        return getattr(self.future, name)
-
     def cancel(self) -> bool:
         """Cancels the job as best as possible.
 
@@ -1513,5 +1597,11 @@ class Job(Future):
         if self.communicator:
             with self.communicator.lock:
                 self.communicator.should_cancel = True
+                if self.cancel_fn:
+                    self.cancel_fn()
                 return True
         return self.future.cancel()
+
+    def __getattr__(self, name):
+        """Forwards any properties to the Future class."""
+        return getattr(self.future, name)

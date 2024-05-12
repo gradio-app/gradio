@@ -125,6 +125,17 @@ gr.ChatInterface(
 ).launch()
 ```
 
+In particular, if you'd like to add a "placeholder" for your chat interface, which appears before the user has started chatting, you can do so using the `placeholder` argument of `gr.Chatbot`, which accepts Markdown or HTML. 
+
+```python
+gr.ChatInterface(
+    yes_man,
+    chatbot=gr.Chatbot(placeholder="<strong>Your Personal Yes-Man</strong><br>Ask Me Anything"),
+...
+```
+
+The placeholder appears vertically and horizontally centered in the chatbot.
+
 ## Add Multimodal Capability to your chatbot
 
 You may want to add multimodal capability to your chatbot. For example, you may want users to be able to easily upload images or files to your chatbot and ask questions about it. You can make your chatbot "multimodal" by passing in a single parameter (`multimodal=True`) to the `gr.ChatInterface` class.
@@ -143,8 +154,7 @@ demo = gr.ChatInterface(fn=count_files, examples=[{"text": "Hello", "files": []}
 demo.launch()
 ```
 
-When `multimodal=True`, the first parameter of your function should receives a dictionary consisting of the submitted text and uploaded files that looks like this: `{"text": "user input", "file": ["file_path1", "file_path2", ...]}`.
-
+When `multimodal=True`, the signature of `fn` changes slightly. The first parameter of your function should accept a dictionary consisting of the submitted text and uploaded files that looks like this: `{"text": "user input", "file": ["file_path1", "file_path2", ...]}`. Similarly, any examples you provide should be in a dictionary of this form. Your function should still return a single `str` message. 
 
 Tip: If you'd like to customize the UI/UX of the textbox for your multimodal chatbot, you should pass in an instance of `gr.MultimodalTextbox` to the `textbox` argument of `ChatInterface` instead of an instance of `gr.Textbox`.
 

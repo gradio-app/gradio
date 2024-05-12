@@ -49,29 +49,13 @@ transformers-js-py
 </html>
 ```
 
-Here is a running example of the code above (after the app has loaded, you could disconnect your Internet connection and the app will still work since its running entirely in your browser):
-
-<gradio-lite shared-worker>
-import gradio as gr
-from transformers_js_py import pipeline
-
-pipe = await pipeline('sentiment-analysis')
-
-demo = gr.Interface.from_pipeline(pipe)
-
-demo.launch()
-
-<gradio-requirements>
-transformers-js-py
-</gradio-requirements>
-</gradio-lite>
-
-And you you can open your HTML file in a browser to see the Gradio app running!
+You can open your HTML file in a browser to see the Gradio app running!
 
 The Python code inside the `<gradio-lite>` tag is the Gradio application code. For more details on this part, please refer to [this article](./gradio-lite).
 The `<gradio-requirements>` tag is used to specify packages to be installed in addition to Gradio-Lite and its dependencies. In this case, we are using Transformers.js.py (`transformers-js-py`), so it is specified here.
 
 Let's break down the code:
+
 `pipe = await pipeline('sentiment-analysis')` creates a Transformers.js pipeline.
 In this example, we create a sentiment analysis pipeline.
 For more information on the available pipeline types and usage, please refer to the [Transformers.js documentation](https://huggingface.co/docs/transformers.js/index).
@@ -87,38 +71,8 @@ You can modify the line `pipe = await pipeline('sentiment-analysis')` in the sam
 For example, if you change it to `pipe = await pipeline('sentiment-analysis', 'Xenova/bert-base-multilingual-uncased-sentiment')`, you can test the same sentiment analysis task but with a different model. The second argument of the `pipeline` function specifies the model name.
 If it's not specified like in the first example, the default model is used. For more details on these specs, refer to the [Transformers.js documentation](https://huggingface.co/docs/transformers.js/index).
 
-<gradio-lite shared-worker>
-import gradio as gr
-from transformers_js_py import pipeline
-
-pipe = await pipeline('sentiment-analysis', 'Xenova/bert-base-multilingual-uncased-sentiment')
-
-demo = gr.Interface.from_pipeline(pipe)
-
-demo.launch()
-
-<gradio-requirements>
-transformers-js-py
-</gradio-requirements>
-</gradio-lite>
-
 As another example, changing it to `pipe = await pipeline('image-classification')` creates a pipeline for image classification instead of sentiment analysis.
 In this case, the interface created with `demo = gr.Interface.from_pipeline(pipe)` will have a UI for uploading an image and displaying the classification result. The `gr.Interface.from_pipeline` function automatically creates an appropriate UI based on the type of pipeline.
-
-<gradio-lite shared-worker>
-import gradio as gr
-from transformers_js_py import pipeline
-
-pipe = await pipeline('image-classification')
-
-demo = gr.Interface.from_pipeline(pipe)
-
-demo.launch()
-
-<gradio-requirements>
-transformers-js-py
-</gradio-requirements>
-</gradio-lite>
 
 <br>
 
@@ -163,28 +117,6 @@ transformers-js-py
 ```
 
 In this example, we modified the code to construct the Gradio user interface manually so that we could output the result as JSON.
-
-<gradio-lite shared-worker>
-import gradio as gr
-from transformers_js_py import pipeline
-
-pipe = await pipeline('sentiment-analysis')
-
-async def fn(text):
-	result = await pipe(text)
-	return result
-
-demo = gr.Interface(
-	fn=fn,
-	inputs=gr.Textbox(),
-	outputs=gr.JSON(),
-)
-
-demo.launch()
-<gradio-requirements>
-transformers-js-py
-</gradio-requirements>
-</gradio-lite>
 
 ## Conclusion
 

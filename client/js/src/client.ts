@@ -97,15 +97,15 @@ export class Client {
 	) => Promise<unknown[]>;
 	submit: (
 		endpoint: string | number,
-		data: unknown[],
+		data: unknown[] | Record<string, unknown>,
 		event_data?: unknown,
 		trigger_id?: number | null
 	) => SubmitReturn;
 	predict: (
 		endpoint: string | number,
-		data?: unknown[],
+		data: unknown[] | Record<string, unknown>,
 		event_data?: unknown
-	) => Promise<unknown>;
+	) => Promise<SubmitReturn>;
 	open_stream: () => Promise<void>;
 	private resolve_config: (endpoint: string) => Promise<Config | undefined>;
 	constructor(app_reference: string, options: ClientOptions = {}) {

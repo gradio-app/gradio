@@ -79,7 +79,7 @@ test("gr.Model3D() triggers the gr.Error modal when an uploaded file exceeds max
 test("gr.MultimodalTextBox() triggers the gr.Error modal when an uploaded file exceeds max_file_size ", async ({
 	page
 }) => {
-	const locator = page.getByRole("button", { name: "+" });
+	const locator = page.getByTestId("upload-button").first();
 	const file_chooser = await get_file_selector(page, locator);
 	await file_chooser.setFiles(["./test/files/face.obj"]);
 	await error_modal_showed(page);
