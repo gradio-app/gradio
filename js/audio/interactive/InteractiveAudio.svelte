@@ -35,7 +35,7 @@
 	export let editable = true;
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
-	export let stream_handler: Client["stream_factory"];
+	export let stream_handler: Client["stream"];
 
 	$: dispatch("drag", dragging);
 

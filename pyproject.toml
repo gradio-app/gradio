@@ -169,6 +169,9 @@ ignore = [
   "ARG",
   "S101", # tests may use assertions
 ]
+"client/python/test/test_client.py" = [
+  "PLW0603" # using global to keep track of server progress
+]
 
 [tool.pytest.ini_options]
 GRADIO_ANALYTICS_ENABLED = "False"

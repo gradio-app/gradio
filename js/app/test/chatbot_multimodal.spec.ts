@@ -24,7 +24,7 @@ test("images uploaded by a user should be shown in the chat", async ({
 	page
 }) => {
 	const fileChooserPromise = page.waitForEvent("filechooser");
-	await page.getByRole("button", { name: "+", exact: true }).click();
+	await page.getByTestId("upload-button").click();
 	const fileChooser = await fileChooserPromise;
 	await fileChooser.setFiles("./test/files/cheetah1.jpg");
 	await page.getByTestId("textbox").click();
@@ -46,7 +46,7 @@ test("audio uploaded by a user should be shown in the chatbot", async ({
 	page
 }) => {
 	const fileChooserPromise = page.waitForEvent("filechooser");
-	await page.getByRole("button", { name: "+" }).click();
+	await page.getByTestId("upload-button").click();
 	const fileChooser = await fileChooserPromise;
 	await fileChooser.setFiles("../../test/test_files/audio_sample.wav");
 	await page.getByTestId("textbox").click();
@@ -67,7 +67,7 @@ test("videos uploaded by a user should be shown in the chatbot", async ({
 	page
 }) => {
 	const fileChooserPromise = page.waitForEvent("filechooser");
-	await page.getByRole("button", { name: "+" }).click();
+	await page.getByTestId("upload-button").click();
 	const fileChooser = await fileChooserPromise;
 	await fileChooser.setFiles("../../test/test_files/video_sample.mp4");
 	await page.getByTestId("textbox").click();
