@@ -4,7 +4,7 @@ import type { Dependency, SubmitReturn } from "../types";
 export async function predict(
 	this: Client,
 	endpoint: string | number,
-	data?: unknown[]
+	data: unknown[] | Record<string, unknown>
 ): Promise<SubmitReturn> {
 	let data_returned = false;
 	let status_complete = false;
@@ -28,7 +28,7 @@ export async function predict(
 	}
 
 	return new Promise(async (resolve, reject) => {
-		const app = this.submit(endpoint, data || []);
+		const app = this.submit(endpoint, data);
 		let result: unknown;
 
 		app
