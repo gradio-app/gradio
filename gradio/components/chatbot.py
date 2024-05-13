@@ -24,8 +24,14 @@ class FileMessage(GradioModel):
     file: FileData
     alt_text: Optional[str] = None
 
+
 class ChatbotData(GradioRootModel):
-    root: List[Tuple[Union[str, FileMessage, List[FileMessage], PlotData, GalleryData, None], Union[str, FileMessage, List[FileMessage], PlotData, GalleryData, None]]]
+    root: List[
+        Tuple[
+            Union[str, FileMessage, List[FileMessage], PlotData, GalleryData, None],
+            Union[str, FileMessage, List[FileMessage], PlotData, GalleryData, None],
+        ]
+    ]
 
 
 @document()
@@ -44,7 +50,9 @@ class Chatbot(Component):
 
     def __init__(
         self,
-        value: list[list[str | GradioComponent | tuple[str] | tuple[str | Path, str] | None]]
+        value: list[
+            list[str | GradioComponent | tuple[str] | tuple[str | Path, str] | None]
+        ]
         | Callable
         | None = None,
         *,
@@ -143,7 +151,13 @@ class Chatbot(Component):
         self.placeholder = placeholder
 
     def _preprocess_chat_messages(
-        self, chat_message: str | FileMessage | List[FileMessage] | GalleryData | PlotData | None
+        self,
+        chat_message: str
+        | FileMessage
+        | List[FileMessage]
+        | GalleryData
+        | PlotData
+        | None,
     ) -> str | GradioComponent | tuple[str | None] | tuple[str | None, str] | None:
         if chat_message is None:
             return None
@@ -194,7 +208,6 @@ class Chatbot(Component):
             )
         return processed_messages
 
-
     def _postprocess_chat_messages(
         self, chat_message: str | tuple | list | GradioComponent | None
     ) -> str | FileMessage | List[FileMessage] | PlotData | GalleryData | None:
@@ -202,19 +215,27 @@ class Chatbot(Component):
             mime_type = client_utils.get_mimetype(filepath)
             return FileMessage(
                 file=FileData(path=filepath, mime_type=mime_type),
-                alt_text=chat_message[1] if not isinstance(chat_message, GradioComponent) and len(chat_message) > 1 else None,
+                alt_text=chat_message[1]
+                if not isinstance(chat_message, GradioComponent)
+                and len(chat_message) > 1
+                else None,
             )
+
         if chat_message is None:
             return None
         elif isinstance(chat_message, (tuple, list)):
             if isinstance(chat_message[0], GradioComponent):
-                return type(chat_message[0]).postprocess(chat_message[0], chat_message[0]._constructor_args[1]["value"])
+                return type(chat_message[0]).postprocess(
+                    chat_message[0], chat_message[0]._constructor_args[1]["value"]
+                )
             else:
                 filepath = str(chat_message[0])
                 return create_file_message(chat_message, filepath)
         elif isinstance(chat_message, GradioComponent):
             if type(chat_message) == Plot or type(chat_message) == Gallery:
-                return type(chat_message).postprocess(chat_message, chat_message._constructor_args[1]["value"]) # type: ignore
+                return type(chat_message).postprocess(
+                    chat_message, chat_message._constructor_args[1]["value"]
+                )  # type: ignore
             else:
                 filepath = chat_message._constructor_args[1]["value"]
                 return create_file_message(chat_message, filepath)
@@ -226,7 +247,10 @@ class Chatbot(Component):
 
     def postprocess(
         self,
-        value: list[list[str | GradioComponent | tuple[str] | tuple[str, str] | None] | tuple] | None,
+        value: list[
+            list[str | GradioComponent | tuple[str] | tuple[str, str] | None] | tuple
+        ]
+        | None,
     ) -> ChatbotData:
         """
         Parameters:
