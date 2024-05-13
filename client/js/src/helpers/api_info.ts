@@ -54,7 +54,17 @@ export async function process_endpoint(
 		};
 	}
 
-	const url = new URL(_app_reference);
+	let url;
+
+	// check for relative path URLs
+	if (app_reference.startsWith("/")) {
+		// assume app is served locally if there's no protocol
+		// uses origin as URL base if in browser environment
+		const base = typeof window !== "undefined" ? window.location.origin : "";
+		url = new URL(app_reference.trim(), base);
+	} else {
+		url = new URL(_app_reference);
+	}
 
 	return {
 		space_id: false,

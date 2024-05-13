@@ -4,7 +4,8 @@ import {
 	handle_message,
 	get_description,
 	get_type,
-	process_endpoint
+	process_endpoint,
+	join_urls
 } from "../helpers/api_info";
 import { initialise_server } from "./server";
 
@@ -452,5 +453,58 @@ describe("process_endpoint", () => {
 
 		const result = await process_endpoint("hmb/hello_world");
 		expect(result).toEqual(expected);
+	});
+
+	it("processes local server URLs correctly", async () => {
+		const local_path = "/";
+		const response_1 = await process_endpoint(local_path);
+		expect(response_1.space_id).toBe(false);
+		expect(response_1.host).toBe(window.location.host + "/");
+
+		const gradio_path = "/gradio";
+		const response_gradio = await process_endpoint(gradio_path);
+		expect(response_gradio.space_id).toBe(false);
+		expect(response_gradio.host).toBe(window.location.host + "/gradio");
+
+		const local_url = "http://localhost:7860/gradio";
+		const response = await process_endpoint(local_url);
+		expect(response.space_id).toBe(false);
+		expect(response.host).toBe("localhost:7860/gradio");
+
+		const local_url_2 = "http://localhost:7860/gradio/";
+		const response_2 = await process_endpoint(local_url_2);
+		expect(response_2.space_id).toBe(false);
+		expect(response_2.host).toBe("localhost:7860/gradio");
+	});
+
+	it("handles hugging face space references", async () => {
+		const space_id = "hmb/hello_world";
+
+		const response = await process_endpoint(space_id);
+		expect(response.space_id).toBe(space_id);
+		expect(response.host).toContain("hf.space");
+	});
+
+	it("handles hugging face domain URLs", async () => {
+		const app_reference = "https://hmb-hello-world.hf.space/";
+		const response = await process_endpoint(app_reference);
+		expect(response.space_id).toBe("hmb-hello-world");
+		expect(response.host).toBe("hmb-hello-world.hf.space");
+	});
+});
+
+describe("join_urls", () => {
+	it("joins URLs correctly", () => {
+		expect(join_urls("localhost:7860", "/gradio")).toBe(
+			"localhost:7860/gradio"
+		);
+
+		expect(join_urls("localhost:7860/", "/gradio")).toBe(
+			"localhost:7860/gradio"
+		);
+
+		expect(join_urls("localhost:7860/", "/app/", "/gradio/")).toBe(
+			"localhost:7860/app/gradio/"
+		);
 	});
 });
