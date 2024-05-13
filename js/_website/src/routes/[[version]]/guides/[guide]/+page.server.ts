@@ -115,7 +115,8 @@ export async function load({ params, url }) {
 				);
 				return `<div class="codeblock">${h}</div>`;
 			}
-		}
+		},
+		smartypants: false
 	});
 	guide.new_html = compiled?.code;
 
