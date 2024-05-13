@@ -234,7 +234,6 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
         "dev_mode": blocks.dev_mode,
         "show_api": blocks.show_api,
         "show_error": blocks.show_error,
-        "title": blocks.title,
         "inputs": get_inputs_outputs(
             blocks.mode, blocks.input_components, inputs_telemetry
         ),

@@ -2500,10 +2500,6 @@ Received outputs:
                 "launch_method": "browser" if inbrowser else "inline",
                 "is_google_colab": self.is_colab,
                 "is_sharing_on": self.share,
-                "share_url": self.share_url,
-                "enable_queue": True,
-                "server_name": server_name,
-                "server_port": server_port,
                 "is_space": self.space_id is not None,
                 "mode": self.mode,
             }
