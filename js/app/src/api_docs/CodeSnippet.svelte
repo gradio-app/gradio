@@ -29,11 +29,11 @@
 	let bash_get_code: HTMLElement;
 
 	let has_file_path = endpoint_parameters.some((param: EndpointParameter) =>
-		is_potentially_nested_file_data(param.example_input),
+		is_potentially_nested_file_data(param.example_input)
 	);
 	let blob_components = ["Audio", "File", "Image", "Video"];
 	let blob_examples: any[] = endpoint_parameters.filter(
-		(param: EndpointParameter) => blob_components.includes(param.component),
+		(param: EndpointParameter) => blob_components.includes(param.component)
 	);
 </script>
 
@@ -65,7 +65,7 @@ result = client.<span class="highlight">predict</span
 								>{represent_value(
 									parameter_has_default ? parameter_default : example_input,
 									python_type.type,
-									"py",
+									"py"
 								)}</span
 							>,{/each}<!--
 
@@ -114,7 +114,7 @@ const result = await client.predict({#if named}<span class="api-name"
 									>{parameter_name}: {represent_value(
 										example_input,
 										python_type.type,
-										"js",
+										"js"
 									)}</span
 								>, <!--
 --><!--
