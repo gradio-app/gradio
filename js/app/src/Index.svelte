@@ -257,11 +257,12 @@
 	function handle_status(_status: SpaceStatus): void {
 		status = _status;
 	}
+	//@ts-ignore
+	const gradio_dev_mode = window.__GRADIO_DEV__;
+
 	onMount(async () => {
 		active_theme_mode = handle_theme_mode(wrapper);
 
-		//@ts-ignore
-		const gradio_dev_mode = window.__GRADIO_DEV__;
 		//@ts-ignore
 		const server_port = window.__GRADIO__SERVER_PORT__;
 
@@ -416,6 +417,13 @@
 			i18n={$_}
 			{autoscroll}
 		>
+		<div class="load-text" slot="additional-loading-text">
+			{#if gradio_dev_mode === "dev"}
+				<p>
+					If your custom component never loads, consult the trouble shooting <a style='color: blue;'href='https://www.gradio.app/guides/frequently-asked-questions#the-development-server-didnt-work-for-me'>guide</a>.
+				</p>
+			{/if}
+		</div>
 			<!-- todo: translate message text -->
 			<div class="error" slot="error">
 				<p><strong>{status?.message || ""}</strong></p>
@@ -465,6 +473,11 @@
 </Embed>
 
 <style>
+
+	.load-text {
+		z-index: var(--layer-2);
+		color: var(--body-text-color);
+	}
 	.error {
 		position: relative;
 		padding: var(--size-4);
