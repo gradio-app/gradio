@@ -17,7 +17,6 @@
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import LikeDislike from "./LikeDislike.svelte";
 	import Pending from "./Pending.svelte";
-	import { isArray } from "vega";
 
 	export let value:
 		| [
