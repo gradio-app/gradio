@@ -38,7 +38,7 @@ from gradio_client import utils
 from gradio_client.compatibility import EndpointV3Compatibility
 from gradio_client.data_classes import ParameterInfo
 from gradio_client.documentation import document
-from gradio_client.exceptions import AuthenticationError
+from gradio_client.exceptions import AppError, AuthenticationError
 from gradio_client.utils import (
     Communicator,
     JobStatus,
@@ -289,6 +289,7 @@ class Client:
             json={**data, **hash_data},
             headers=self.headers,
             cookies=self.cookies,
+            verify=self.ssl_verify,
         )
         if req.status_code == 503:
             raise QueueError("Queue is full! Please try again.")
@@ -1185,6 +1186,7 @@ class Endpoint:
                     json=post_data(),
                     headers=self.client.headers,
                     cookies=self.client.cookies,
+                    verify=self.client.ssl_verify,
                 )
 
         return _cancel
@@ -1214,7 +1216,16 @@ class Endpoint:
                 raise ValueError(f"Unsupported protocol: {self.protocol}")
 
             if "error" in result:
-                raise ValueError(result["error"])
+                if result["error"] is None:
+                    raise AppError(
+                        "The upstream Gradio app has raised an exception but has not enabled "
+                        "verbose error reporting. To enable, set show_error=True in launch()."
+                    )
+                else:
+                    raise AppError(
+                        "The upstream Gradio app has raised an exception: "
+                        + result["error"]
+                    )
 
             try:
                 output = result["data"]
