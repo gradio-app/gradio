@@ -174,7 +174,6 @@ def infer_fn_index(app: App, api_name: str, body: PredictBody) -> int:
     if body.fn_index is None:
         for i, fn in app.get_blocks().fns.items():
             if fn.api_name == api_name:
-                print("inferred", i, fn._id)
                 return i
 
         raise FnIndexInferError(f"Could not infer fn_index for api_name {api_name}.")
