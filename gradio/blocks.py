@@ -1689,7 +1689,7 @@ Received outputs:
         block_fn: BlockFunction,
         predictions: list | dict,
         state: SessionState | None,
-    ):
+    ) -> Any:
         state = state or SessionState(self)
 
         # If the function is a cancel function, 'predictions' are the ids of
