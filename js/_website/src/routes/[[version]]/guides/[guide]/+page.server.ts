@@ -116,7 +116,7 @@ export async function load({ params, url }) {
 				return `<div class="codeblock">${h}</div>`;
 			}
 		},
-		smartypants: false
+		smartypants: false // This option converts `"` to `“` and `”` which breaks the code inside `<gradio-lite>` tags, so we disable it.
 	});
 	guide.new_html = compiled?.code;
 
