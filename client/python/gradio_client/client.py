@@ -1186,6 +1186,7 @@ class Endpoint:
                     json=post_data(),
                     headers=self.client.headers,
                     cookies=self.client.cookies,
+                    verify=self.client.ssl_verify,
                 )
 
         return _cancel
