@@ -301,7 +301,6 @@ class Examples:
                 api_name=self.api_name,
                 show_api=False,
             )
-            self.load_input_event_id = len(root_block.fns) - 1
             if self.run_on_click and not self.cache_examples:
                 if self.fn is None:
                     raise ValueError("Cannot run_on_click if no function is provided")
@@ -504,7 +503,7 @@ class Examples:
         # Remove the original load_input_event and replace it with one that
         # also populates the input. We do it this way to to allow the cache()
         # method to be called independently of the create() method
-        blocks_config.fns.pop(self.load_input_event_id)
+        blocks_config.fns.pop(self.load_input_event["id"])
 
         def load_example(example_id):
             processed_example = self.non_none_processed_examples[
@@ -522,7 +521,6 @@ class Examples:
             api_name=self.api_name,
             show_api=False,
         )
-        self.load_input_event_id = len(blocks_config.fns) - 1
 
     def load_from_cache(self, example_id: int) -> list[Any]:
         """Loads a particular cached example for the interface.
