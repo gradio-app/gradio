@@ -34,11 +34,6 @@ If the `window.__GRADIO__CC` variable is not empty (see below for an example), t
 **4. Make sure you are using a virtual environment**
 It is highly recommended you use a virtual environment to prevent conflicts with other python dependencies installed in your system.
 
-**5. Add code**
-
-
-
-
 
 ## Do I need to host my custom component on HuggingFace Spaces?
 You can develop and build your custom component without hosting or connecting to HuggingFace.
