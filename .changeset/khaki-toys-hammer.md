@@ -1,5 +1,5 @@
 ---
-"website": minor
+"website": patch
 ---
 
-feat:In page lite example
+feat:Embedded Lite example apps in the docs
