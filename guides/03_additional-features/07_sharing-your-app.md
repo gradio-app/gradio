@@ -1,6 +1,6 @@
 # Sharing Your App
 
-How to share your Gradio app:
+In this Guide, we dive more deeply into the various aspects of sharing a Gradio app with others. We will cover:
 
 1. [Sharing demos with the share parameter](#sharing-demos)
 2. [Hosting on HF Spaces](#hosting-on-hf-spaces)

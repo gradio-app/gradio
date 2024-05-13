@@ -299,6 +299,7 @@ class Queue:
                         process_event_task,
                         events[0].session_hash,
                         events[0].fn._id,
+                        events[0]._id,
                         batch,
                     )
 

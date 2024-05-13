@@ -1273,7 +1273,7 @@ class TestCancel:
 
         cancel_fun = demo.fns[demo.default_config.fn_id - 1].fn
         task = asyncio.create_task(long_job())
-        task.set_name("foo_0")
+        task.set_name("foo_0<gradio-sep>event")
         # If cancel_fun didn't cancel long_job the message would be printed to the console
         # The test would also take 10 seconds
         await asyncio.gather(task, cancel_fun("foo"), return_exceptions=True)
@@ -1305,7 +1305,7 @@ class TestCancel:
         cancel_fun = demo.fns[demo.default_config.fn_id - 1].fn
 
         task = asyncio.create_task(long_job())
-        task.set_name("foo_1")
+        task.set_name("foo_1<gradio-sep>event")
         await asyncio.gather(task, cancel_fun("foo"), return_exceptions=True)
         captured = capsys.readouterr()
         assert "HELLO FROM LONG JOB" not in captured.out
