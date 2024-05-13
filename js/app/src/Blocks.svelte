@@ -27,7 +27,6 @@
 	export let layout: LayoutNode;
 	export let dependencies: Dependency[];
 	export let title = "Gradio";
-	export let analytics_enabled = false;
 	export let target: HTMLElement;
 	export let autoscroll: boolean;
 	export let show_api = true;
