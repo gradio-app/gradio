@@ -234,8 +234,8 @@ class Chatbot(Component):
         elif isinstance(chat_message, GradioComponent):
             if type(chat_message) == Plot or type(chat_message) == Gallery:
                 return type(chat_message).postprocess(
-                    chat_message, chat_message._constructor_args[1]["value"]
-                )  # type: ignore
+                    chat_message, chat_message._constructor_args[1]["value"] # type: ignore
+                )
             else:
                 filepath = chat_message._constructor_args[1]["value"]
                 return create_file_message(chat_message, filepath)
