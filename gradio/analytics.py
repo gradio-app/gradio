@@ -224,7 +224,7 @@ def launched_analytics(blocks: gradio.Blocks, data: dict[str, Any]) -> None:
             return [b.get_block_name() for b in components] if components else None
         return fallback
 
-    core_components = core_gradio_components()
+    core_components = [get_block_name(c) for c in core_gradio_components()]
 
     additional_data = {
         "version": get_package_version(),

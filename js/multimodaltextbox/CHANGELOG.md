@@ -1,5 +1,24 @@
 # @gradio/multimodaltextbox
 
+## 0.4.1
+
+### Features
+
+- [#8236](https://github.com/gradio-app/gradio/pull/8236) [`bf909bd`](https://github.com/gradio-app/gradio/commit/bf909bd14532a27e119fb401003a7d94c0618ffb) - Change upload icon for MultimodalTextbox.  Thanks @dawoodkhan82!
+
+### Fixes
+
+- [#8252](https://github.com/gradio-app/gradio/pull/8252) [`22df61a`](https://github.com/gradio-app/gradio/commit/22df61a26adf8023f6dd49c051979990e8d3879a) - Client node fix.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.3
+- @gradio/statustracker@0.5.2
+- @gradio/client@0.19.0
+- @gradio/icons@0.4.1
+- @gradio/image@0.11.1
+- @gradio/upload@0.10.1
+
 ## 0.4.0
 
 ### Features

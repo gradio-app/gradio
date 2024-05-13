@@ -372,6 +372,37 @@ class TestClientPredictions:
             assert all(o in [0, 1, 2, 3, 4, 5] for o in job.outputs())
             assert job.status().code == Status.CANCELLED
 
+    def test_job_cancel_stops_upstream_server_if_cancel_event_defined(self):
+        global current_step
+        current_step = 0
+
+        def iteration_quick():
+            for i in range(20):
+                print(f"i: {i}")
+                global current_step
+                current_step = i
+                yield i
+                time.sleep(0.1)
+
+        with gr.Blocks() as demo:
+            num = gr.Number()
+
+            btn = gr.Button(value="Iterate")
+            iterate_quick = btn.click(
+                iteration_quick, None, num, api_name="iterate_quick"
+            )
+            btn3 = gr.Button(value="Cancel")
+            btn3.click(None, None, None, cancels=[iterate_quick])
+
+        with connect(demo) as client:
+            job = client.submit(api_name="/iterate_quick")
+            while len(job.outputs()) < 5:
+                time.sleep(0.1)
+            job.cancel()
+            time.sleep(2)
+
+        assert current_step < 19
+
     def test_cancel_subsequent_jobs_state_reset(self, yield_demo):
         with connect(yield_demo) as client:
             job1 = client.submit("abcdefefadsadfs", api_name="/predict")

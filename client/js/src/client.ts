@@ -97,15 +97,15 @@ export class Client {
 	) => Promise<unknown[]>;
 	submit: (
 		endpoint: string | number,
-		data: unknown[],
+		data: unknown[] | Record<string, unknown>,
 		event_data?: unknown,
 		trigger_id?: number | null
 	) => SubmitReturn;
 	predict: (
 		endpoint: string | number,
-		data?: unknown[],
+		data: unknown[] | Record<string, unknown>,
 		event_data?: unknown
-	) => Promise<unknown>;
+	) => Promise<SubmitReturn>;
 	open_stream: () => Promise<void>;
 	private resolve_config: (endpoint: string) => Promise<Config | undefined>;
 	constructor(app_reference: string, options: ClientOptions = {}) {
@@ -139,18 +139,24 @@ export class Client {
 				if (config) {
 					this.config = config;
 					if (this.config && this.config.connect_heartbeat) {
-						// connect to the heartbeat endpoint via GET request
-						const heartbeat_url = new URL(
-							`${this.config.root}/heartbeat/${this.session_hash}`
-						);
-						this.heartbeat_event = await this.stream(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
-
 						if (this.config.space_id && this.options.hf_token) {
 							this.jwt = await get_jwt(
 								this.config.space_id,
 								this.options.hf_token
 							);
 						}
+
+						// connect to the heartbeat endpoint via GET request
+						const heartbeat_url = new URL(
+							`${this.config.root}/heartbeat/${this.session_hash}`
+						);
+
+						// if the jwt is available, add it to the query params
+						if (this.jwt) {
+							heartbeat_url.searchParams.set("jwt", this.jwt);
+						}
+
+						this.heartbeat_event = await this.stream(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
 					}
 				}
 			});
