@@ -738,6 +738,21 @@ class App(FastAPI):
                     fn_index_inferred=fn_index_inferred,
                     root_path=root_path,
                 )
+                if (  # noqa: SIM102
+                    (blocks := app.get_blocks())
+                    .fns[fn_index_inferred]
+                    .is_cancel_function
+                ):
+                    # Need to complete the job so that the client disconnects
+                    if body.session_hash in blocks._queue.pending_messages_per_session:
+                        for event_id in output["data"]:
+                            message = ProcessCompletedMessage(
+                                output={}, success=True, event_id=event_id
+                            )
+                            blocks._queue.pending_messages_per_session[  # type: ignore
+                                body.session_hash
+                            ].put_nowait(message)
+
             except BaseException as error:
                 show_error = app.get_blocks().show_error or isinstance(error, Error)
                 traceback.print_exc()
