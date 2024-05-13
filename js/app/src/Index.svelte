@@ -417,13 +417,17 @@
 			i18n={$_}
 			{autoscroll}
 		>
-		<div class="load-text" slot="additional-loading-text">
-			{#if gradio_dev_mode === "dev"}
-				<p>
-					If your custom component never loads, consult the trouble shooting <a style='color: blue;'href='https://www.gradio.app/guides/frequently-asked-questions#the-development-server-didnt-work-for-me'>guide</a>.
-				</p>
-			{/if}
-		</div>
+			<div class="load-text" slot="additional-loading-text">
+				{#if gradio_dev_mode === "dev"}
+					<p>
+						If your custom component never loads, consult the trouble shooting <a
+							style="color: blue;"
+							href="https://www.gradio.app/guides/frequently-asked-questions#the-development-server-didnt-work-for-me"
+							>guide</a
+						>.
+					</p>
+				{/if}
+			</div>
 			<!-- todo: translate message text -->
 			<div class="error" slot="error">
 				<p><strong>{status?.message || ""}</strong></p>
@@ -473,7 +477,6 @@
 </Embed>
 
 <style>
-
 	.load-text {
 		z-index: var(--layer-2);
 		color: var(--body-text-color);
