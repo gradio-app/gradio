@@ -78,7 +78,7 @@ result = client.<span class="highlight">predict</span
 				</div>
 				<div bind:this={js_code}>
 					<pre>import &lbrace; Client &rbrace; from "@gradio/client";
-{#each blob_examples as { label, type, python_type, component, example_input, serializer }, i}<!--
+{#each blob_examples as { component, example_input }, i}<!--
 -->
 const response_{i} = await fetch("{example_input.url}");
 const example{component} = await response_{i}.blob();
@@ -88,11 +88,12 @@ const client = await Client.connect(<span class="token string">"{root}"</span>);
 const result = await client.predict({#if named}<span class="api-name"
 								>"/{dependency.api_name}"</span
 							>{:else}{dependency_index}{/if}, &lbrace; <!--
--->{#each endpoint_parameters as { label, type, python_type, component, example_input, serializer }, i}<!--
+-->{#each endpoint_parameters as { label, parameter_name, type, python_type, component, example_input, serializer }, i}<!--
 		-->{#if blob_components.includes(component)}<!--
 	-->
 				<span
-									class="example-inputs">{label}: example{component}</span
+									class="example-inputs"
+									>{parameter_name}: example{component}</span
 								>, <!--
 		--><span class="desc"
 									><!--
@@ -104,7 +105,7 @@ const result = await client.predict({#if named}<span class="api-name"
 		-->{:else}<!--
 	-->		
 				<span class="example-inputs"
-									>{label}: {represent_value(
+									>{parameter_name}: {represent_value(
 										example_input,
 										python_type.type,
 										"js"
