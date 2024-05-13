@@ -16,7 +16,12 @@ import type {
 
 import { skip_queue, post_message } from "../helpers/data";
 import { resolve_root } from "../helpers/init_helpers";
-import { handle_message, process_endpoint } from "../helpers/api_info";
+import {
+	handle_message,
+	map_data_to_params,
+	process_endpoint
+} from "../helpers/api_info";
+import semiver from "semiver";
 import { BROKEN_CONNECTION_MSG, QUEUE_FULL_MSG } from "../constants";
 import { apply_diff_stream, close_stream } from "./stream";
 import { Client } from "../client";
@@ -24,7 +29,7 @@ import { Client } from "../client";
 export function submit(
 	this: Client,
 	endpoint: string | number,
-	data: unknown[],
+	data: unknown[] | Record<string, unknown>,
 	event_data?: unknown,
 	trigger_id?: number | null
 ): SubmitReturn {
@@ -54,6 +59,8 @@ export function submit(
 			api_map,
 			config
 		);
+
+		let resolved_data = map_data_to_params(data, api_info);
 
 		let websocket: WebSocket;
 		let stream: EventSource | null;
@@ -155,7 +162,7 @@ export function submit(
 			}
 		}
 
-		this.handle_blob(config.root, data, endpoint_info).then(
+		this.handle_blob(config.root, resolved_data, endpoint_info).then(
 			async (_payload) => {
 				payload = {
 					data: _payload || [],
