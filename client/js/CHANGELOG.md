@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 0.19.1
+
+### Fixes
+
+- [#8272](https://github.com/gradio-app/gradio/pull/8272) [`fbf4edd`](https://github.com/gradio-app/gradio/commit/fbf4edde7c896cdf4c903463e44c31ed96111b3c) - ensure client works for private spaces.  Thanks @pngwn!
+
 ## 0.19.0
 
 ### Features

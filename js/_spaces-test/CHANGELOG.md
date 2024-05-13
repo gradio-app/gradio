@@ -4,6 +4,12 @@
 
 ### Dependency updates
 
+- @gradio/client@0.19.1
+
+## 0.0.1
+
+### Dependency updates
+
 - @gradio/client@0.19.0
 - @gradio/form@0.1.17
 
