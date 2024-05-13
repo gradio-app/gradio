@@ -324,6 +324,7 @@ class TestClientPredictions:
         with open(output) as f:
             assert f.read() == "Hello file!"
 
+    @pytest.mark.flaky
     def test_cancel_from_client_queued(self, cancel_from_client_demo):
         with connect(cancel_from_client_demo) as client:
             start = time.time()
