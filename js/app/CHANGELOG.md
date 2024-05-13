@@ -1,5 +1,58 @@
 # @gradio/app
 
+## 1.35.1
+
+### Features
+
+- [#8263](https://github.com/gradio-app/gradio/pull/8263) [`de52f0e`](https://github.com/gradio-app/gradio/commit/de52f0e5af75688713e4e96a195208576a4d64ad) - Reduce the analytics that are collected in Gradio.  Thanks @abidlabs!
+
+### Fixes
+
+- [#8272](https://github.com/gradio-app/gradio/pull/8272) [`fbf4edd`](https://github.com/gradio-app/gradio/commit/fbf4edde7c896cdf4c903463e44c31ed96111b3c) - ensure client works for private spaces.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/code@0.6.3
+- @gradio/statustracker@0.5.3
+- @gradio/client@0.19.1
+- @gradio/accordion@0.3.13
+- @gradio/annotatedimage@0.6.2
+- @gradio/audio@0.11.2
+- @gradio/chatbot@0.10.2
+- @gradio/checkbox@0.3.3
+- @gradio/checkboxgroup@0.5.3
+- @gradio/colorpicker@0.3.3
+- @gradio/dataframe@0.8.2
+- @gradio/dropdown@0.7.3
+- @gradio/fallback@0.3.3
+- @gradio/file@0.7.2
+- @gradio/fileexplorer@0.4.3
+- @gradio/gallery@0.10.2
+- @gradio/highlightedtext@0.6.2
+- @gradio/html@0.2.3
+- @gradio/image@0.11.2
+- @gradio/imageeditor@0.7.2
+- @gradio/json@0.2.3
+- @gradio/label@0.3.3
+- @gradio/markdown@0.7.3
+- @gradio/model3d@0.10.2
+- @gradio/multimodaltextbox@0.4.2
+- @gradio/number@0.4.3
+- @gradio/paramviewer@0.4.12
+- @gradio/plot@0.4.3
+- @gradio/radio@0.5.3
+- @gradio/simpledropdown@0.2.3
+- @gradio/simpleimage@0.5.2
+- @gradio/simpletextbox@0.2.3
+- @gradio/slider@0.4.3
+- @gradio/textbox@0.6.2
+- @gradio/video@0.8.2
+- @gradio/button@0.2.35
+- @gradio/dataset@0.1.35
+- @gradio/downloadbutton@0.1.12
+- @gradio/upload@0.10.2
+- @gradio/uploadbutton@0.6.3
+
 ## 1.35.0
 
 ### Features
