@@ -330,6 +330,7 @@
 		border: 2px solid var(--color-accent);
 		background: transparent;
 		z-index: var(--layer-1);
+		pointer-events: none;
 	}
 
 	.translucent {
