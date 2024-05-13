@@ -289,6 +289,7 @@ class Client:
             json={**data, **hash_data},
             headers=self.headers,
             cookies=self.cookies,
+            verify=self.ssl_verify,
         )
         if req.status_code == 503:
             raise QueueError("Queue is full! Please try again.")
@@ -1185,6 +1186,7 @@ class Endpoint:
                     json=post_data(),
                     headers=self.client.headers,
                     cookies=self.client.cookies,
+                    verify=self.client.ssl_verify,
                 )
 
         return _cancel
