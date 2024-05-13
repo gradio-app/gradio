@@ -77,7 +77,11 @@ export function transform_api_info(
 			Object.entries(api_info[category]).forEach(
 				([endpoint, { parameters, returns }]) => {
 					const dependencyIndex =
-						config.dependencies.findIndex((dep) => dep.api_name === endpoint) ||
+						config.dependencies.findIndex(
+							(dep) =>
+								dep.api_name === endpoint ||
+								dep.api_name === endpoint.replace("/", "")
+						) ||
 						api_map[endpoint.replace("/", "")] ||
 						-1;
 
@@ -86,6 +90,34 @@ export function transform_api_info(
 							? config.dependencies[dependencyIndex].types
 							: { continuous: false, generator: false };
 
+					if (
+						dependencyIndex !== -1 &&
+						config.dependencies[dependencyIndex]?.inputs?.length !==
+							parameters.length
+					) {
+						const components = config.dependencies[dependencyIndex].inputs.map(
+							(input) => config.components.find((c) => c.id === input)?.type
+						);
+
+						try {
+							components.forEach((comp, idx) => {
+								if (comp === "state") {
+									const new_param = {
+										component: "state",
+										example: null,
+										parameter_default: null,
+										parameter_has_default: true,
+										parameter_name: null,
+										hidden: true
+									};
+
+									// @ts-ignore
+									parameters.splice(idx, 0, new_param);
+								}
+							});
+						} catch (e) {}
+					}
+
 					const transform_type = (
 						data: ApiData,
 						component: string,
@@ -93,17 +125,17 @@ export function transform_api_info(
 						signature_type: "return" | "parameter"
 					): JsApiData => ({
 						...data,
-						description: get_description(data.type, serializer),
+						description: get_description(data?.type, serializer),
 						type:
-							get_type(data.type, component, serializer, signature_type) || ""
+							get_type(data?.type, component, serializer, signature_type) || ""
 					});
 
 					transformed_info[category][endpoint] = {
 						parameters: parameters.map((p: ApiData) =>
-							transform_type(p, p.component, p.serializer, "parameter")
+							transform_type(p, p?.component, p?.serializer, "parameter")
 						),
 						returns: returns.map((r: ApiData) =>
-							transform_type(r, r.component, r.serializer, "return")
+							transform_type(r, r?.component, r?.serializer, "return")
 						),
 						type: dependencyTypes
 					};
@@ -121,7 +153,7 @@ export function get_type(
 	serializer: string,
 	signature_type: "return" | "parameter"
 ): string | undefined {
-	switch (type.type) {
+	switch (type?.type) {
 		case "string":
 			return "string";
 		case "boolean":
@@ -166,7 +198,7 @@ export function get_description(
 	} else if (serializer === "FileSerializable") {
 		return "array of files or single file";
 	}
-	return type.description;
+	return type?.description;
 }
 
 export function handle_message(
