@@ -5,9 +5,11 @@ import {
 	get_description,
 	get_type,
 	process_endpoint,
-	join_urls
+	join_urls,
+	map_data_to_params
 } from "../helpers/api_info";
 import { initialise_server } from "./server";
+import { transformed_api_info } from "./test_data";
 
 const server = initialise_server();
 
@@ -505,6 +507,115 @@ describe("join_urls", () => {
 
 		expect(join_urls("localhost:7860/", "/app/", "/gradio/")).toBe(
 			"localhost:7860/app/gradio/"
+		);
+	});
+});
+
+describe("map_data_params", () => {
+	let test_data = transformed_api_info;
+
+	test_data.named_endpoints["/predict"].parameters = [
+		{
+			parameter_name: "param1",
+			parameter_has_default: false,
+			label: "",
+			component: "",
+			serializer: "",
+			python_type: {
+				type: "",
+				description: ""
+			},
+			type: {
+				type: "",
+				description: ""
+			}
+		},
+		{
+			parameter_name: "param2",
+			parameter_has_default: false,
+			label: "",
+			type: {
+				type: "",
+				description: ""
+			},
+			component: "",
+			serializer: "",
+			python_type: {
+				type: "",
+				description: ""
+			}
+		},
+		{
+			parameter_name: "param3",
+			parameter_has_default: true,
+			parameter_default: 3,
+			label: "",
+			type: {
+				type: "",
+				description: ""
+			},
+			component: "",
+			serializer: "",
+			python_type: {
+				type: "",
+				description: ""
+			}
+		}
+	];
+
+	it("should return an array of data when data is an array", () => {
+		const data = [1, 2];
+
+		const result = map_data_to_params(data, transformed_api_info);
+		expect(result).toEqual(data);
+	});
+
+	it("should return the data when too many arguments are provided for the endpoint", () => {
+		const data = [1, 2, 3, 4];
+
+		const result = map_data_to_params(data, transformed_api_info);
+		expect(result).toEqual(data);
+	});
+
+	it("should return an array of resolved data when data is an object", () => {
+		const data = {
+			param1: 1,
+			param2: 2,
+			param3: 3
+		};
+
+		const result = map_data_to_params(data, transformed_api_info);
+		expect(result).toEqual([1, 2, 3]);
+	});
+
+	it("should use the default value when a keyword argument is not provided and has a default value", () => {
+		const data = {
+			param1: 1,
+			param2: 2
+		};
+
+		const result = map_data_to_params(data, transformed_api_info);
+		expect(result).toEqual([1, 2, 3]);
+	});
+
+	it("should throw an error when an invalid keyword argument is provided", () => {
+		const data = {
+			param1: 1,
+			param2: 2,
+			param3: 3,
+			param4: 4
+		};
+
+		expect(() => map_data_to_params(data, transformed_api_info)).toThrowError(
+			"Parameter `param4` is not a valid keyword argument. Please refer to the API for usage."
+		);
+	});
+
+	it("should throw an error when no value is provided for a required parameter", () => {
+		const data = {};
+
+		expect(() => map_data_to_params(data, transformed_api_info)).toThrowError(
+			"No value provided for required parameter: param1"
 		);
 	});
 });
