@@ -289,6 +289,7 @@ class Client:
             json={**data, **hash_data},
             headers=self.headers,
             cookies=self.cookies,
+            verify=self.ssl_verify,
         )
         if req.status_code == 503:
             raise QueueError("Queue is full! Please try again.")
