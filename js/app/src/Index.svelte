@@ -420,7 +420,7 @@
 			<div class="load-text" slot="additional-loading-text">
 				{#if gradio_dev_mode === "dev"}
 					<p>
-						If your custom component never loads, consult the trouble shooting <a
+						If your custom component never loads, consult the troubleshooting <a
 							style="color: blue;"
 							href="https://www.gradio.app/guides/frequently-asked-questions#the-development-server-didnt-work-for-me"
 							>guide</a
