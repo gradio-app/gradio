@@ -111,7 +111,7 @@ export function determine_protocol(endpoint: string): {
 		return {
 			ws_protocol: protocol === "https:" ? "wss" : "ws",
 			http_protocol: protocol as "http:" | "https:",
-			host: host + pathname
+			host: host + (pathname !== "/" ? pathname : "")
 		};
 	} else if (endpoint.startsWith("file:")) {
 		// This case is only expected to be used for the Wasm mode (Gradio-lite),

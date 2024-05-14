@@ -460,16 +460,6 @@ describe("process_endpoint", () => {
 
 	it("processes local server URLs correctly", async () => {
 		if (!IS_NODE) {
-			const local_path = "/";
-			const response_1 = await process_endpoint(local_path);
-			expect(response_1.space_id).toBe(false);
-			expect(response_1.host).toBe(window.location.host + "/");
-
-			const gradio_path = "/gradio";
-			const response_gradio = await process_endpoint(gradio_path);
-			expect(response_gradio.space_id).toBe(false);
-			expect(response_gradio.host).toBe(window.location.host + "/gradio");
-
 			const local_url = "http://localhost:7860/gradio";
 			const response_local_url = await process_endpoint(local_url);
 			expect(response_local_url.space_id).toBe(false);

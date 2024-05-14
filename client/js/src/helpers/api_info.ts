@@ -20,8 +20,7 @@ export async function process_endpoint(
 		headers.Authorization = `Bearer ${hf_token}`;
 	}
 
-	// remove whitespace and trailing slash from app_reference, except if its the only character
-	const _app_reference = app_reference.trim().replace(/(.)\/$/, "$1");
+	const _app_reference = app_reference.trim().replace(/\/$/, "");
 
 	if (RE_SPACE_NAME.test(_app_reference)) {
 		// app_reference is a HF space name
@@ -55,27 +54,6 @@ export async function process_endpoint(
 			http_protocol,
 			host
 		};
-	}
-
-	if (_app_reference.startsWith("/")) {
-		// app_reference is a relative path
-
-		let base = "";
-		let url: URL;
-		if (typeof window !== "undefined") {
-			base = window.location.origin;
-			url = new URL(app_reference.trim(), base);
-
-			return {
-				space_id: false,
-				...determine_protocol(_app_reference),
-				host: url.host + url.pathname
-			};
-		}
-
-		throw new Error(
-			"Cannot determine base URL for app space. Please provide a valid URL."
-		);
 	}
 
 	return {
