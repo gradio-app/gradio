@@ -74,8 +74,8 @@ export async function process_endpoint(
 }
 
 export const join_urls = (...urls: string[]): string => {
-	return urls.reduce((acc, part) => {
-		return `${acc.replace(/\/+$/, "")}/${part.replace(/^\/+/, "")}`;
+	return urls.reduce((base_url, part) => {
+		return `${base_url.replace(/\/+$/, "")}/${part.replace(/^\/+/, "")}`;
 	});
 };
 

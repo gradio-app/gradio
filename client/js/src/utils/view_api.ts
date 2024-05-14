@@ -3,7 +3,7 @@ import semiver from "semiver";
 import { API_INFO_URL, BROKEN_CONNECTION_MSG } from "../constants";
 import { Client } from "../client";
 import { SPACE_FETCHER_URL } from "../constants";
-import { transform_api_info } from "../helpers/api_info";
+import { join_urls, transform_api_info } from "../helpers/api_info";
 
 export async function view_api(this: Client): Promise<any> {
 	if (this.api_info) return this.api_info;
@@ -37,7 +37,8 @@ export async function view_api(this: Client): Promise<any> {
 				headers
 			});
 		} else {
-			response = await this.fetch(`${config?.root}/${API_INFO_URL}`, {
+			const url = join_urls(config.root, API_INFO_URL);
+			response = await this.fetch(url, {
 				headers
 			});
 		}
