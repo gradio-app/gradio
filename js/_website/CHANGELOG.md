@@ -1,5 +1,16 @@
 # website
 
+## 0.30.0
+
+### Features
+
+- [#8278](https://github.com/gradio-app/gradio/pull/8278) [`4ae17a4`](https://github.com/gradio-app/gradio/commit/4ae17a4653fcf60de7b646e6243f1b77d7f8cd27) - Embedded Lite example apps in the docs.  Thanks @whitphx!
+- [#8262](https://github.com/gradio-app/gradio/pull/8262) [`d708ca8`](https://github.com/gradio-app/gradio/commit/d708ca8fca8c39bf878c70117c2910730a1bb76c) - Reorganize Guides in a more logical order.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/code@0.6.3
+
 ## 0.29.0
 
 ### Features
