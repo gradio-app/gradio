@@ -12,6 +12,7 @@ import { initialise_server } from "./server";
 import { transformed_api_info } from "./test_data";
 
 const server = initialise_server();
+const IS_NODE = process.env.TEST_MODE === "node";
 
 beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
@@ -458,25 +459,27 @@ describe("process_endpoint", () => {
 	});
 
 	it("processes local server URLs correctly", async () => {
-		const local_path = "/";
-		const response_1 = await process_endpoint(local_path);
-		expect(response_1.space_id).toBe(false);
-		expect(response_1.host).toBe(window.location.host + "/");
+		if (!IS_NODE) {
+			const local_path = "/";
+			const response_1 = await process_endpoint(local_path);
+			expect(response_1.space_id).toBe(false);
+			expect(response_1.host).toBe(window.location.host + "/");
 
-		const gradio_path = "/gradio";
-		const response_gradio = await process_endpoint(gradio_path);
-		expect(response_gradio.space_id).toBe(false);
-		expect(response_gradio.host).toBe(window.location.host + "/gradio");
+			const gradio_path = "/gradio";
+			const response_gradio = await process_endpoint(gradio_path);
+			expect(response_gradio.space_id).toBe(false);
+			expect(response_gradio.host).toBe(window.location.host + "/gradio");
 
-		const local_url = "http://localhost:7860/gradio";
-		const response = await process_endpoint(local_url);
-		expect(response.space_id).toBe(false);
-		expect(response.host).toBe("localhost:7860/gradio");
+			const local_url = "http://localhost:7860/gradio";
+			const response = await process_endpoint(local_url);
+			expect(response.space_id).toBe(false);
+			expect(response.host).toBe("localhost:7860/gradio");
 
-		const local_url_2 = "http://localhost:7860/gradio/";
-		const response_2 = await process_endpoint(local_url_2);
-		expect(response_2.space_id).toBe(false);
-		expect(response_2.host).toBe("localhost:7860/gradio");
+			const local_url_2 = "http://localhost:7860/gradio/";
+			const response_2 = await process_endpoint(local_url_2);
+			expect(response_2.space_id).toBe(false);
+			expect(response_2.host).toBe("localhost:7860/gradio");
+		}
 	});
 
 	it("handles hugging face space references", async () => {

@@ -23,6 +23,7 @@ export async function process_endpoint(
 	const _app_reference = app_reference.trim().replace(/\/$/, "");
 
 	if (RE_SPACE_NAME.test(_app_reference)) {
+		// app_reference is a HF space name
 		try {
 			const res = await fetch(
 				`https://huggingface.co/api/spaces/${_app_reference}/${HOST_URL}`,
@@ -43,6 +44,7 @@ export async function process_endpoint(
 	}
 
 	if (RE_SPACE_DOMAIN.test(_app_reference)) {
+		// app_reference is a direct HF space domain
 		const { ws_protocol, http_protocol, host } =
 			determine_protocol(_app_reference);
 
@@ -54,22 +56,26 @@ export async function process_endpoint(
 		};
 	}
 
-	let url;
+	let url: URL | undefined;
 
-	// check for relative path URLs
 	if (app_reference.startsWith("/")) {
-		// assume app is served locally if there's no protocol
-		// uses origin as URL base if in browser environment
-		const base = typeof window !== "undefined" ? window.location.origin : "";
-		url = new URL(app_reference.trim(), base);
-	} else {
-		url = new URL(_app_reference);
+		// app_reference is a relative path
+
+		let base = "";
+		if (typeof window !== "undefined") {
+			base = window.location.origin;
+			url = new URL(app_reference.trim(), base);
+		} else {
+			throw new Error(
+				"Cannot determine base URL for relative path. Please provide a valid URL."
+			);
+		}
 	}
 
 	return {
 		space_id: false,
 		...determine_protocol(_app_reference),
-		host: url.host + url.pathname
+		...(url ? { host: url.host + url.pathname } : {})
 	};
 }
 
