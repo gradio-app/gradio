@@ -93,12 +93,14 @@ export function transform_api_info(
 
 					if (
 						dependencyIndex !== -1 &&
-						config.dependencies[dependencyIndex]?.inputs?.length !==
-							parameters.length
+						config.dependencies.find((dep) => dep.id == dependencyIndex)?.inputs
+							?.length !== parameters.length
 					) {
-						const components = config.dependencies[dependencyIndex].inputs.map(
-							(input) => config.components.find((c) => c.id === input)?.type
-						);
+						const components = config.dependencies
+							.find((dep) => dep.id == dependencyIndex)!
+							.inputs.map(
+								(input) => config.components.find((c) => c.id === input)?.type
+							);
 
 						try {
 							components.forEach((comp, idx) => {
@@ -116,7 +118,9 @@ export function transform_api_info(
 									parameters.splice(idx, 0, new_param);
 								}
 							});
-						} catch (e) {}
+						} catch (e) {
+							console.error(e);
+						}
 					}
 
 					const transform_type = (
