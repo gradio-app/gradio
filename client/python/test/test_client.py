@@ -22,7 +22,7 @@ from huggingface_hub.utils import RepositoryNotFoundError
 
 from gradio_client import Client, file
 from gradio_client.client import DEFAULT_TEMP_DIR
-from gradio_client.exceptions import AuthenticationError
+from gradio_client.exceptions import AppError, AuthenticationError
 from gradio_client.utils import (
     Communicator,
     ProgressUnit,
@@ -39,9 +39,9 @@ def connect(
     demo: gr.Blocks,
     serialize: bool = True,
     output_dir: str = DEFAULT_TEMP_DIR,
-    max_file_size=None,
+    **kwargs,
 ):
-    _, local_url, _ = demo.launch(prevent_thread_lock=True, max_file_size=max_file_size)
+    _, local_url, _ = demo.launch(prevent_thread_lock=True, **kwargs)
     try:
         yield Client(local_url, serialize=serialize, output_dir=output_dir)
     finally:
@@ -228,17 +228,6 @@ class TestClientPredictions:
                 outputs.append(o)
             assert outputs == [str(i) for i in range(3)]
 
-    @pytest.mark.flaky
-    def test_intermediate_outputs_with_exception(self, count_generator_demo_exception):
-        with connect(count_generator_demo_exception) as client:
-            with pytest.raises(Exception):
-                client.predict(7, api_name="/count")
-
-            with pytest.raises(
-                ValueError, match="Cannot call predict on this function"
-            ):
-                client.predict(5, api_name="/count_forever")
-
     def test_break_in_loop_if_error(self, calculator_demo):
         with connect(calculator_demo) as client:
             job = client.submit("foo", "add", 4, fn_index=0)
@@ -335,6 +324,7 @@ class TestClientPredictions:
         with open(output) as f:
             assert f.read() == "Hello file!"
 
+    @pytest.mark.flaky
     def test_cancel_from_client_queued(self, cancel_from_client_demo):
         with connect(cancel_from_client_demo) as client:
             start = time.time()
@@ -682,7 +672,7 @@ class TestClientPredictionsWithKwargs:
     def test_missing_params(self, calculator_demo):
         with connect(calculator_demo) as client:
             with pytest.raises(
-                ValueError, match="No value provided for required argument: num2"
+                TypeError, match="No value provided for required argument: num2"
             ):
                 client.predict(num1=3, operation="add", api_name="/predict")
 
@@ -1371,3 +1361,21 @@ class TestDuplication:
                 "test_value2",
                 token=HF_TOKEN,
             )
+
+
+def test_upstream_exceptions(count_generator_demo_exception):
+    with connect(count_generator_demo_exception, show_error=True) as client:
+        with pytest.raises(
+            AppError, match="The upstream Gradio app has raised an exception: Oh no!"
+        ):
+            client.predict(7, api_name="/count")
+
+    with connect(count_generator_demo_exception) as client:
+        with pytest.raises(
+            AppError,
+            match="The upstream Gradio app has raised an exception but has not enabled verbose error reporting.",
+        ):
+            client.predict(7, api_name="/count")
+
+        with pytest.raises(ValueError, match="Cannot call predict on this function"):
+            client.predict(5, api_name="/count_forever")
