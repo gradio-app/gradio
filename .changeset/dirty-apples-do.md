@@ -1,6 +1,6 @@
 ---
-"@gradio/client": minor
-"gradio": minor
+"@gradio/client": patch
+"gradio": patch
 ---
 
-feat:Jwt client fix
+fix:use the correct query param to pass the jwt to the heartbeat event
