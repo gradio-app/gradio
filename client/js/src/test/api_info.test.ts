@@ -459,17 +459,15 @@ describe("process_endpoint", () => {
 	});
 
 	it("processes local server URLs correctly", async () => {
-		if (!IS_NODE) {
-			const local_url = "http://localhost:7860/gradio";
-			const response_local_url = await process_endpoint(local_url);
-			expect(response_local_url.space_id).toBe(false);
-			expect(response_local_url.host).toBe("localhost:7860/gradio");
+		const local_url = "http://localhost:7860/gradio";
+		const response_local_url = await process_endpoint(local_url);
+		expect(response_local_url.space_id).toBe(false);
+		expect(response_local_url.host).toBe("localhost:7860/gradio");
 
-			const local_url_2 = "http://localhost:7860/gradio/";
-			const response_local_url_2 = await process_endpoint(local_url_2);
-			expect(response_local_url_2.space_id).toBe(false);
-			expect(response_local_url_2.host).toBe("localhost:7860/gradio");
-		}
+		const local_url_2 = "http://localhost:7860/gradio/";
+		const response_local_url_2 = await process_endpoint(local_url_2);
+		expect(response_local_url_2.space_id).toBe(false);
+		expect(response_local_url_2.host).toBe("localhost:7860/gradio");
 	});
 
 	it("handles hugging face space references", async () => {
