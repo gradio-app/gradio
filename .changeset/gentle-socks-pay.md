@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Ensure JSON component outputs handled properly in postprocess
+fix:Ensure JSON component outputs handled properly in postprocess
