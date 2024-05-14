@@ -20,7 +20,7 @@ Make sure there are no syntax errors or other obvious problems in your code. Exc
 
 **2. Are you developing on Windows?**
 
-Chrome on Windows will block the local compiled svelte files for security reasons. We recommend developing your custom component in the windows subsystem for linux (WSL) while we the teams looks at this issue.
+Chrome on Windows will block the local compiled svelte files for security reasons. We recommend developing your custom component in the windows subsystem for linux (WSL) while the team looks at this issue.
 
 **3. Inspect the window.__GRADIO_CC__ variable**
 
