@@ -24,7 +24,7 @@ Chrome on Windows will block the local compiled svelte files for security reason
 
 **3. Inspect the window.__GRADIO_CC__ variable**
 
-In the browser console, print the `window.__GRADIO__CC` varible (just type it into the console). If it is an empty object, that means
+In the browser console, print the `window.__GRADIO__CC` variable (just type it into the console). If it is an empty object, that means
 that the CLI could not find your custom component source code. Typically, this happens when the custom component is installed in a different virtual environment than the one used to run the dev command. Please use the `--python-path` and `gradio-path` CLI arguments to specify the path of the python and gradio executables for the environment your component is installed in. For example, if you are using a virtualenv located at `/Users/mary/venv`, pass in `/Users/mary/bin/python` and `/Users/mary/bin/gradio` respectively.
 
 If the `window.__GRADIO__CC` variable is not empty (see below for an example), then the dev server should be working correctly. 
