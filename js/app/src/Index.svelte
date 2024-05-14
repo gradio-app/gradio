@@ -477,10 +477,6 @@
 </Embed>
 
 <style>
-	.load-text {
-		z-index: var(--layer-2);
-		color: var(--body-text-color);
-	}
 	.error {
 		position: relative;
 		padding: var(--size-4);
