@@ -153,7 +153,7 @@ export class Client {
 
 						// if the jwt is available, add it to the query params
 						if (this.jwt) {
-							heartbeat_url.searchParams.set("jwt", this.jwt);
+							heartbeat_url.searchParams.set("__sign", this.jwt);
 						}
 
 						this.heartbeat_event = await this.stream(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
