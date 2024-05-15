@@ -25,11 +25,16 @@ class FileMessage(GradioModel):
     alt_text: Optional[str] = None
 
 
+class ComponentMessage(GradioModel):
+    component: Literal["plot", "gallery", "audio", "video", "image"]
+    value: Union[PlotData, GalleryData, FileMessage]
+
+
 class ChatbotData(GradioRootModel):
     root: List[
         Tuple[
-            Union[str, FileMessage, List[FileMessage], PlotData, GalleryData, None],
-            Union[str, FileMessage, List[FileMessage], PlotData, GalleryData, None],
+            Union[str, FileMessage, ComponentMessage, None],
+            Union[str, FileMessage, ComponentMessage, None],
         ]
     ]
 
@@ -152,12 +157,7 @@ class Chatbot(Component):
 
     def _preprocess_chat_messages(
         self,
-        chat_message: str
-        | FileMessage
-        | List[FileMessage]
-        | GalleryData
-        | PlotData
-        | None,
+        chat_message: str | FileMessage | ComponentMessage | None,
     ) -> str | GradioComponent | tuple[str | None] | tuple[str | None, str] | None:
         if chat_message is None:
             return None
@@ -168,13 +168,21 @@ class Chatbot(Component):
                 return (chat_message.file.path,)
         elif isinstance(chat_message, (str)):
             return chat_message
-        elif isinstance(chat_message, GalleryData):
-            value = Gallery().preprocess(chat_message)
-            gallery = Gallery(value=value)
-            return gallery
-        elif isinstance(chat_message, PlotData):
-            plot = Plot(value=chat_message)
-            return plot
+        elif isinstance(chat_message, ComponentMessage):
+            if chat_message.component == "plot":
+                plot = Plot(value=chat_message.value)
+                return plot
+            elif chat_message.component == "gallery":
+                test = [x.image.path for x in chat_message.value.root]
+                gallery = Gallery(value=test)
+                return gallery
+            elif chat_message.component == "plot":
+                plot = Plot(value=chat_message)
+                return plot
+            else:
+                raise ValueError(
+                    f"Invalid component for Chatbot component: {chat_message.component}"
+                )
         else:
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
 
@@ -210,7 +218,7 @@ class Chatbot(Component):
 
     def _postprocess_chat_messages(
         self, chat_message: str | tuple | list | GradioComponent | None
-    ) -> str | FileMessage | List[FileMessage] | PlotData | GalleryData | None:
+    ) -> str | FileMessage | ComponentMessage | None:
         def create_file_message(chat_message, filepath):
             mime_type = client_utils.get_mimetype(filepath)
             return FileMessage(
@@ -232,9 +240,13 @@ class Chatbot(Component):
                 filepath = str(chat_message[0])
                 return create_file_message(chat_message, filepath)
         elif isinstance(chat_message, GradioComponent):
-            if type(chat_message) == Plot or type(chat_message) == Gallery:
-                return type(chat_message).postprocess(
-                    chat_message, chat_message._constructor_args[1]["value"] # type: ignore
+            if isinstance(chat_message, (Plot, Gallery)):
+                return ComponentMessage(
+                    component=type(chat_message).__name__.lower(),
+                    value=type(chat_message).postprocess(
+                        chat_message,
+                        chat_message._constructor_args[1]["value"],
+                    ),
                 )
             else:
                 filepath = chat_message._constructor_args[1]["value"]
