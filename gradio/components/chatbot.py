@@ -223,22 +223,14 @@ class Chatbot(Component):
             mime_type = client_utils.get_mimetype(filepath)
             return FileMessage(
                 file=FileData(path=filepath, mime_type=mime_type),
-                alt_text=chat_message[1]
-                if not isinstance(chat_message, GradioComponent)
-                and len(chat_message) > 1
-                else None,
+                alt_text=chat_message[1],
             )
 
         if chat_message is None:
             return None
         elif isinstance(chat_message, (tuple, list)):
-            if isinstance(chat_message[0], GradioComponent):
-                return type(chat_message[0]).postprocess(
-                    chat_message[0], chat_message[0]._constructor_args[1]["value"]
-                )
-            else:
-                filepath = str(chat_message[0])
-                return create_file_message(chat_message, filepath)
+            filepath = str(chat_message[0])
+            return create_file_message(chat_message, filepath)
         elif isinstance(chat_message, GradioComponent):
             if isinstance(chat_message, (Plot, Gallery)):
                 return ComponentMessage(
