@@ -137,6 +137,7 @@
 							{api_calls}
 							{dependencies}
 							root={space_id || root}
+							endpoints_info={info.named_endpoints}
 						/>
 						<p>
 							Note: the above list may include extra API calls that affect the

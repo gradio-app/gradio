@@ -668,7 +668,8 @@ class Client:
         human_info += f"Named API endpoints: {num_named_endpoints}\n"
 
         for api_name, endpoint_info in self._info["named_endpoints"].items():
-            human_info += self._render_endpoints_info(api_name, endpoint_info)
+            if endpoint_info.get("show_api", True):
+                human_info += self._render_endpoints_info(api_name, endpoint_info)
 
         if all_endpoints:
             human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}\n"
