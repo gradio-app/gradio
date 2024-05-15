@@ -16,12 +16,13 @@
 	function format_api_call(call: Payload): string {
 		const api_name = `/${dependencies[call.fn_index].api_name}`;
 		// If an input is undefined (distinct from null) then it corresponds to a State component.
-		let call_data_excluding_state = call.data.filter(d => typeof d !== "undefined");
+		let call_data_excluding_state = call.data.filter(
+			(d) => typeof d !== "undefined"
+		);
 
 		const params = call_data_excluding_state
 			.map((param, index) => {
-				if (endpoints_info[api_name])
-				{
+				if (endpoints_info[api_name]) {
 					const param_info = endpoints_info[api_name].parameters[index];
 					if (!param_info) {
 						return undefined;
@@ -33,10 +34,11 @@
 						python_type,
 						"py"
 					)}`;
-				} 
+				}
 				return `  ${represent_value(param as string, undefined, "py")}`;
 			})
-			.filter(d => typeof d !== "undefined").join(",\n");
+			.filter((d) => typeof d !== "undefined")
+			.join(",\n");
 		if (params) {
 			return `${params},\n`;
 		}
