@@ -807,7 +807,6 @@ class Client:
                 if e.is_valid
                 and e.api_name is not None
                 and e.backend_fn is not None
-                and e.show_api
             ]
             if len(valid_endpoints) == 1:
                 inferred_fn_index = valid_endpoints[0].fn_index

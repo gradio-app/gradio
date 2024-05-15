@@ -2670,10 +2670,10 @@ Received outputs:
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
         for fn in self.fns:
-            if not fn.fn or not fn.show_api or fn.api_name is False:
+            if not fn.fn or fn.api_name is False:
                 continue
 
-            dependency_info = {"parameters": [], "returns": []}
+            dependency_info = {"parameters": [], "returns": [], "show_api": fn.show_api}
             fn_info = utils.get_function_params(fn.fn)  # type: ignore
             skip_endpoint = False
 

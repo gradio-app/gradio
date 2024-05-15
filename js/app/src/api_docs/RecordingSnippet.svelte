@@ -18,16 +18,25 @@
 		// If an input is undefined (distinct from null) then it corresponds to a State component.
 		let call_data_excluding_state = call.data.filter(d => typeof d !== "undefined");
 
+		if (endpoints_info[api_name]) {
+			
+		}
 		const params = call_data_excluding_state
 			.map((param, index) => {
-				const param_info = endpoints_info[api_name].parameters[index];
-				const param_name = param_info.parameter_name;
-				const python_type = param_info.python_type.type;
-				return `  ${param_name}=${represent_value(
-					param as string,
-					python_type,
-					"py"
-				)}`;
+				console.log("api", api_name, endpoints_info[api_name])
+				console.log("call", call_data_excluding_state)
+				if (endpoints_info[api_name])
+				{
+					const param_info = endpoints_info[api_name].parameters[index];
+					const param_name = param_info.parameter_name;
+					const python_type = param_info.python_type.type;
+					return `  ${param_name}=${represent_value(
+						param as string,
+						python_type,
+						"py"
+					)}`;
+				} 
+				return `  ${param as string}`
 			})
 			.join(",\n");
 		if (params) {
