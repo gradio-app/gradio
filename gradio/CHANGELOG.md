@@ -1,5 +1,17 @@
 # gradio
 
+## 4.31.3
+
+### Features
+
+- [#8229](https://github.com/gradio-app/gradio/pull/8229) [`7c81897`](https://github.com/gradio-app/gradio/commit/7c81897076ddcd0bb05e0e4ffec35bb9a986d330) - chore(deps): update dependency esbuild to ^0.21.0.  Thanks @renovate!
+- [#8279](https://github.com/gradio-app/gradio/pull/8279) [`4350215`](https://github.com/gradio-app/gradio/commit/4350215348981aba6dea473884b047f096dcdf0f) - Link to troubleshooting guide in the custom component loading status.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#8292](https://github.com/gradio-app/gradio/pull/8292) [`ee1e294`](https://github.com/gradio-app/gradio/commit/ee1e2942e0a1ae84a08a05464e41c8108a03fa9c) - Ensure JSON component outputs handled properly in postprocess.  Thanks @freddyaboulton!
+- [#8296](https://github.com/gradio-app/gradio/pull/8296) [`929d216`](https://github.com/gradio-app/gradio/commit/929d216d49aa05614bc83f0761cf7b1cd803d8fe) - always create a jwt when connecting to a space if a hf_token is present.  Thanks @pngwn!
+
 ## 4.31.2
 
 ### Fixes
