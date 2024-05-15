@@ -1,5 +1,15 @@
 # gradio_client
 
+## 0.16.3
+
+### Features
+
+- [#8264](https://github.com/gradio-app/gradio/pull/8264) [`a9e1a8a`](https://github.com/gradio-app/gradio/commit/a9e1a8ac5633c5336fea1c63d7f66a9883e7e6e1) - Make exceptions in the Client more specific.  Thanks @abidlabs!
+
+### Fixes
+
+- [#8276](https://github.com/gradio-app/gradio/pull/8276) [`0bf3d1a`](https://github.com/gradio-app/gradio/commit/0bf3d1a992db2753c1a55452b569027190f26ef6) - Fix bug where client could not connect to apps that had self signed certificates.  Thanks @freddyaboulton!
+
 ## 0.16.2
 
 ### Fixes
