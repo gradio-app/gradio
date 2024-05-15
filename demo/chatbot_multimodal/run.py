@@ -1,4 +1,5 @@
 import gradio as gr
+import os
 import plotly.express as px
 
 # Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, & video). Plus shows support for streaming text.
@@ -27,11 +28,13 @@ fig = random_plot()
 
 with gr.Blocks(fill_height=True) as demo:
     chatbot = gr.Chatbot(
-        [["Image", gr.Image(value="files/avatar.png", render=False)],
-         ["Video", gr.Video(value="files/world.mp4", render=False)],
-         ["Audio", gr.Audio(value="files/cantina.wav", render=False)],
+        [["Image", gr.Image(value=os.path.join(os.path.dirname(__file__), "files/avatar.png"), render=False)],
+         ["Video", gr.Video(value=os.path.join(os.path.dirname(__file__), "files/world.mp4"), render=False)],
+         ["Audio", gr.Audio(value=os.path.join(os.path.dirname(__file__), "files/cantina.wav"), render=False)],
          ["Plot", gr.Plot(value=fig, render=False)],
-         ["Gallery", gr.Gallery(value=["files/lion.jpg", "files/cheetah.jpg", "files/zebra.jpg"], render=False)]],
+         ["Gallery", gr.Gallery(value=[os.path.join(os.path.dirname(__file__), "files/lion.jpg"),
+                                os.path.join(os.path.dirname(__file__), "files/cheetah.jpg"),
+                                os.path.join(os.path.dirname(__file__), "files/zebra.jpg")], render=False)]],
         elem_id="chatbot",
         bubble_full_width=False,
         scale=1,

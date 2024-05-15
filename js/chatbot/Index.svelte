@@ -19,13 +19,13 @@
 		(
 			| string
 			| { file: FileData | FileData[]; alt_text: string | null }
-			| { type: string; plot: string | null }
+			| { component: string; value: any }
 			| null
 		),
 		(
 			| string
 			| { file: FileData | FileData[]; alt_text: string | null }
-			| { type: string; plot: string | null }
+			| { component: string; value: any }
 			| null
 		)
 	][] = [];
@@ -63,13 +63,13 @@
 		(
 			| string
 			| { file: FileData | FileData[]; alt_text: string | null }
-			| { type: string; plot: string | null }
+			| { component: string; value: any }
 			| null
 		),
 		(
 			| string
 			| { file: FileData | FileData[]; alt_text: string | null }
-			| { type: string; plot: string | null }
+			| { component: string; value: any }
 			| null
 		)
 	][];
@@ -99,14 +99,14 @@
 		? value.map(([user_msg, bot_msg]) => [
 				typeof user_msg === "string"
 					? redirect_src_url(user_msg)
-					: user_msg != null && "plot" in user_msg
-						? user_msg
-						: normalize_messages(user_msg),
+					: user_msg != null && "file" in user_msg
+						? normalize_messages(user_msg)
+						: user_msg,
 				typeof bot_msg === "string" && bot_msg != null
 					? redirect_src_url(bot_msg)
-					: bot_msg != null && "plot" in bot_msg
-						? bot_msg
-						: normalize_messages(bot_msg)
+					: bot_msg != null && "file" in bot_msg
+						? normalize_messages(bot_msg)
+						: bot_msg
 			])
 		: [];
 

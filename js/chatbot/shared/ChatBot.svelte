@@ -7,6 +7,7 @@
 	import { ShareButton } from "@gradio/atoms";
 	import { BaseStaticAudio } from "@gradio/audio";
 	import { BaseGallery } from "@gradio/gallery";
+	import { Image } from "@gradio/image/shared";
 	import { BaseStaticImage } from "@gradio/image";
 	import { BaseStaticVideo } from "@gradio/video";
 	import { BasePlot } from "@gradio/plot";
@@ -23,13 +24,13 @@
 				(
 					| string
 					| { file: FileData | FileData[]; alt_text: string | null }
-					| { type: string; plot: string | null }
+					| { component: string; value: any }
 					| null
 				),
 				(
 					| string
 					| { file: FileData | FileData[]; alt_text: string | null }
-					| { type: string; plot: string | null }
+					| { component: string; value: any }
 					| null
 				)
 		  ][]
@@ -39,13 +40,13 @@
 				(
 					| string
 					| { file: FileData | FileData[]; alt_text: string | null }
-					| { type: string; plot: string | null }
+					| { component: string; value: any }
 					| null
 				),
 				(
 					| string
 					| { file: FileData | FileData[]; alt_text: string | null }
-					| { type: string; plot: string | null }
+					| { component: string; value: any }
 					| null
 				)
 		  ][]
@@ -251,12 +252,22 @@
 											{line_breaks}
 											on:load={scroll}
 										/>
-									{:else if message !== null && "file" in message && Array.isArray(message.file)}
-										<BaseGallery
-											value={message.file}
-											show_label={false}
-											{i18n}
-										/>
+									{:else if message !== null && "component" in message}
+										{#if message.component == "gallery"}
+											<BaseGallery
+												value={message.value}
+												show_label={false}
+												{i18n}
+											/>
+										{:else if message.component == "plot"}
+											<BasePlot
+												value={message.value}
+												show_label={false}
+												{target}
+												{i18n}
+												label=""
+											/>
+										{/if}
 									{:else if message !== null && "file" in message && message.file !== undefined && !Array.isArray(message.file) && "mime_type" in message.file && message.file.mime_type !== undefined && message.file.mime_type?.includes("audio")}
 										<BaseStaticAudio
 											value={message.file}
@@ -296,14 +307,6 @@
 										>
 											{message.file?.orig_name || message.file?.path}
 										</a>
-									{:else if message !== null && "plot" in message}
-										<BasePlot
-											value={message}
-											show_label={false}
-											{target}
-											{i18n}
-											label=""
-										/>
 									{/if}
 								</button>
 							</div>
