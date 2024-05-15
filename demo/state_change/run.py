@@ -20,10 +20,10 @@ with gr.Blocks() as demo:
 
     @gr.render(inputs=[state_a, state_b])
     def render(a, b):
-        for _ in range(a):
+        for x in range(a):
             with gr.Row():
-                for _ in range(b):
-                    gr.Button(f"Button {a}, {b}")
+                for y in range(b):
+                    gr.Button(f"Button {x}, {y}")
 
 if __name__ == "__main__":
     demo.launch()
