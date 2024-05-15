@@ -1,6 +1,6 @@
 ---
-"@gradio/client": minor
-"gradio": minor
+"@gradio/client": patch
+"gradio": patch
 ---
 
-feat:always create a jwt when connecting to a space if a hf_token is present
+fix:always create a jwt when connecting to a space if a hf_token is present
