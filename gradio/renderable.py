@@ -12,7 +12,7 @@ class Renderable:
     def __init__(
         self,
         fn: Callable,
-        inputs: list[Component] | Component | None = None,
+        inputs: list[Component] | None = None,
         triggers: EventListener | Sequence[EventListener] | None = None,
         concurrency_limit: int | None | Literal["default"] = "default",
         concurrency_id: str | None = None,
@@ -26,7 +26,7 @@ class Renderable:
         self.column_id = Column()._id
 
         self.fn = fn
-        self.inputs = [inputs] if isinstance(inputs, Component) else inputs
+        self.inputs = inputs
         self.triggers: list[EventListenerMethod] = []
         if isinstance(triggers, EventListener):
             triggers = [triggers]
@@ -80,6 +80,13 @@ def render(
     concurrency_limit: int | None | Literal["default"] = None,
     concurrency_id: str | None = None,
 ):
+    inputs = [inputs] if isinstance(inputs, Component) else inputs
+    if triggers is None and inputs is not None:
+        triggers = []
+        for input in inputs:
+            if hasattr(input, "change"):
+                triggers.append(input.change)
+
     def wrapper_function(fn):
         Renderable(fn, inputs, triggers, concurrency_limit, concurrency_id)
         return fn
