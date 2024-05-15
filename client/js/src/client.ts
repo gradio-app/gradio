@@ -136,11 +136,8 @@ export class Client {
 
 		try {
 			await this._resolve_config().then(async ({ config }) => {
-				if (!config) {
-					throw new Error();
-				}
-
 				this.config = config;
+
 				if (config.space_id && this.options.hf_token) {
 					this.jwt = await get_jwt(config.space_id, this.options.hf_token);
 				}
