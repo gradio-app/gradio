@@ -242,7 +242,7 @@ def count_generator_no_api():
 def count_generator_demo_exception():
     def count(n):
         for i in range(int(n)):
-            time.sleep(0.1)
+            time.sleep(0.01)
             if i == 5:
                 raise ValueError("Oh no!")
             yield i

@@ -10,7 +10,7 @@
 	import { Upload } from "@gradio/upload";
 	import { Image } from "@gradio/image/shared";
 	import type { FileData, Client } from "@gradio/client";
-	import { Clear, File, Music, Video, Send } from "@gradio/icons";
+	import { Clear, File, Music, Paperclip, Video, Send } from "@gradio/icons";
 	import type { SelectData } from "@gradio/utils";
 
 	export let value: { text: string; files: FileData[] } = {
@@ -36,7 +36,7 @@
 	export let file_types: string[] | null = null;
 	export let max_file_size: number | null = null;
 	export let upload: Client["upload"];
-	export let stream_handler: Client["stream_factory"];
+	export let stream_handler: Client["stream"];
 
 	let upload_component: Upload;
 	let hidden_upload: HTMLInputElement;
@@ -229,8 +229,10 @@
 					><Send /></button
 				>
 			{/if}
-			<button class:disabled class="plus-button" on:click={handle_upload_click}
-				>+</button
+			<button
+				data-testid="upload-button"
+				class="upload-button"
+				on:click={handle_upload_click}><Paperclip /></button
 			>
 			{#if value.files.length > 0 || uploading}
 				<div
@@ -337,7 +339,7 @@
 		color: var(--input-placeholder-color);
 	}
 
-	.plus-button,
+	.upload-button,
 	.submit-button {
 		position: absolute;
 		background: var(--button-secondary-background-fill);
@@ -353,12 +355,12 @@
 		bottom: 15px;
 	}
 
-	.plus-button:hover,
+	.upload-button:hover,
 	.submit-button:hover {
 		background: var(--button-secondary-background-fill-hover);
 	}
 
-	.plus-button:active,
+	.upload-button:active,
 	.submit-button:active {
 		box-shadow: var(--button-shadow-active);
 	}
@@ -377,9 +379,15 @@
 		padding-top: 2px;
 	}
 
-	.plus-button {
+	.upload-button {
 		left: 10px;
 		margin-right: 5px;
+	}
+
+	.upload-button :global(svg) {
+		height: 23px;
+		width: 23px;
+		padding-left: 7px;
 	}
 
 	.loader {

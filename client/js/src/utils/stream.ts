@@ -1,7 +1,7 @@
 import { BROKEN_CONNECTION_MSG } from "../constants";
 import type { Client } from "../client";
 
-export function open_stream(this: Client): void {
+export async function open_stream(this: Client): Promise<void> {
 	let {
 		event_callbacks,
 		unclosed_events,
@@ -28,7 +28,7 @@ export function open_stream(this: Client): void {
 		url.searchParams.set("__sign", jwt);
 	}
 
-	stream = this.stream_factory(url);
+	stream = await this.stream(url);
 
 	if (!stream) {
 		console.warn("Cannot connect to SSE endpoint: " + url.toString());

@@ -11,7 +11,22 @@ We see that the `Interface` class is initialized with three required parameters:
 - `inputs`: which Gradio component(s) to use for the input. The number of components should match the number of arguments in your function.
 - `outputs`: which Gradio component(s) to use for the output. The number of components should match the number of return values from your function.
 
-Let's take a closer look at these components used to provide input and output.
+In this Guide, we'll dive into `gr.Interface` and the various ways it can be customized, but before we do that, let's get a better understanding of Gradio components.
+
+## Gradio Components
+
+Gradio includes more than 30 pre-built components (as well as many [community-built _custom components_](https://www.gradio.app/custom-components/gallery)) that can be used as inputs or outputs in your demo. These components correspond to common data types in machine learning and data science, e.g. the `gr.Image` component is designed to handle input or output images, the `gr.Label` component displays classification labels and probabilities, the `gr.Plot` component displays various kinds of plots, and so on. 
+
+**Static and Interactive Components**
+
+Every component has a _static_ version that is designed to *display* data, and most components also have an _interactive_ version designed to let users input or modify the data. Typically, you don't need to think about this distinction, because when you build a Gradio demo, Gradio automatically figures out whether the component should be static or interactive based on whether it is being used as an input or output. However, you can set this manually using the `interactive` argument that every component supports.
+
+**Preprocessing and Postprocessing**
+
+When a component is used as an input, Gradio automatically handles the _preprocessing_ needed to convert the data from a type sent by the user's browser (such as an uploaded image) to a form that can be accepted by your function (such as a `numpy` array).
+
+
+Similarly, when a component is used as an output, Gradio automatically handles the _postprocessing_ needed to convert the data from what is returned by your function (such as a list of image paths) to a form that can be displayed in the user's browser (a gallery of images).
 
 ## Components Attributes
 
@@ -19,7 +34,7 @@ We used the default versions of the `gr.Textbox` and `gr.Slider`, but what if yo
 
 Let's say you want to customize the slider to have values from 1 to 10, with a default of 2. And you wanted to customize the output text field — you want it to be larger and have a label.
 
-If you use the actual class for `gr.Textbox` and `gr.Slider` instead of using the string shortcut, you have access to much more customizability through component attributes.
+If you use the actual classes for `gr.Textbox` and `gr.Slider` instead of the string shortcuts, you have access to much more customizability through component attributes.
 
 $code_hello_world_2
 $demo_hello_world_2
@@ -40,17 +55,15 @@ Gradio supports many types of components, such as `Image`, `DataFrame`, `Video`,
 $code_sepia_filter
 $demo_sepia_filter
 
-When using the `Image` component as input, your function will receive a NumPy array with the shape `(height, width, 3)`, where the last dimension represents the RGB values. We'll return an image as well in the form of a NumPy array.
+When using the `Image` component as input, your function will receive a NumPy array with the shape `(height, width, 3)`, where the last dimension represents the RGB values. We'll return an image as well in the form of a NumPy array. 
 
-You can also set the datatype used by the component with the `type=` keyword argument. For example, if you wanted your function to take a file path to an image instead of a NumPy array, the input `Image` component could be written as:
+As mentioned above, Gradio handles the preprocessing and postprocessing to convert images to NumPy arrays and vice versa. You can also control the preprocessing performed with the `type=` keyword argument. For example, if you wanted your function to take a file path to an image instead of a NumPy array, the input `Image` component could be written as:
 
 ```python
 gr.Image(type="filepath", shape=...)
 ```
 
-Also note that our input `Image` component comes with an edit button 🖉, which allows for cropping and zooming into images. Manipulating images in this way can help reveal biases or hidden flaws in a machine learning model!
-
-You can read more about the many components and how to use them in the [Gradio docs](https://gradio.app/docs).
+You can read more about the built-in Gradio components and how to customize them in the [Gradio docs](https://gradio.app/docs).
 
 ## Example Inputs
 
@@ -75,7 +88,7 @@ There are three arguments in the `Interface` constructor to specify where this c
 
 ![annotated](https://github.com/gradio-app/gradio/blob/main/guides/assets/annotated.png?raw=true)
 
-If you're using the `Blocks` API instead, you can insert text, markdown, or HTML anywhere using the `gr.Markdown(...)` or `gr.HTML(...)` components, with descriptive content inside the `Component` constructor.
+Note: if you're using the `Blocks` class, you can insert text, markdown, or HTML anywhere in your application using the `gr.Markdown(...)` or `gr.HTML(...)` components.
 
 Another useful keyword argument is `label=`, which is present in every `Component`. This modifies the label text at the top of each `Component`. You can also add the `info=` keyword argument to form elements like `Textbox` or `Radio` to provide further information on their usage.
 
@@ -93,50 +106,4 @@ Here's an example:
 
 $code_interface_with_additional_inputs
 $demo_interface_with_additional_inputs
-
-
-## Flagging
-
-By default, an `Interface` will have "Flag" button. When a user testing your `Interface` sees input with interesting output, such as erroneous or unexpected model behaviour, they can flag the input for you to review. Within the directory provided by the `flagging_dir=` argument to the `Interface` constructor, a CSV file will log the flagged inputs. If the interface involves file data, such as for Image and Audio components, folders will be created to store those flagged data as well.
-
-For example, with the calculator interface shown above, we would have the flagged data stored in the flagged directory shown below:
-
-```directory
-+-- calculator.py
-+-- flagged/
-|   +-- logs.csv
-```
-
-_flagged/logs.csv_
-
-```csv
-num1,operation,num2,Output
-5,add,7,12
-6,subtract,1.5,4.5
-```
-
-With the sepia interface shown earlier, we would have the flagged data stored in the flagged directory shown below:
-
-```directory
-+-- sepia.py
-+-- flagged/
-|   +-- logs.csv
-|   +-- im/
-|   |   +-- 0.png
-|   |   +-- 1.png
-|   +-- Output/
-|   |   +-- 0.png
-|   |   +-- 1.png
-```
-
-_flagged/logs.csv_
-
-```csv
-im,Output
-im/0.png,Output/0.png
-im/1.png,Output/1.png
-```
-
-If you wish for the user to provide a reason for flagging, you can pass a list of strings to the `flagging_options` argument of Interface. Users will have to select one of the strings when flagging, which will be saved as an additional column to the CSV.
-
 

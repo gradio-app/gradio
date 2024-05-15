@@ -4,7 +4,7 @@ In the [previous Guide](/main/guides/the-interface-class), we discussed how to p
 
 ## Providing Examples
 
-As covered in the [Key Features](/guides/key-features/#example-inputs) guide, adding examples to an Interface is as easy as providing a list of lists to the `examples`
+Adding examples to an Interface is as easy as providing a list of lists to the `examples`
 keyword argument.
 Each sublist is a data sample, where each element corresponds to an input of the prediction function.
 The inputs must be ordered in the same order as the prediction function expects them.

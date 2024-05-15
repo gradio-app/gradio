@@ -1,5 +1,36 @@
 # website
 
+## 0.30.1
+
+### Dependency updates
+
+- @gradio/code@0.6.4
+
+## 0.30.0
+
+### Features
+
+- [#8278](https://github.com/gradio-app/gradio/pull/8278) [`4ae17a4`](https://github.com/gradio-app/gradio/commit/4ae17a4653fcf60de7b646e6243f1b77d7f8cd27) - Embedded Lite example apps in the docs.  Thanks @whitphx!
+- [#8262](https://github.com/gradio-app/gradio/pull/8262) [`d708ca8`](https://github.com/gradio-app/gradio/commit/d708ca8fca8c39bf878c70117c2910730a1bb76c) - Reorganize Guides in a more logical order.  Thanks @abidlabs!
+
+### Dependency updates
+
+- @gradio/code@0.6.3
+
+## 0.29.0
+
+### Features
+
+- [#8224](https://github.com/gradio-app/gradio/pull/8224) [`6ee1f1f`](https://github.com/gradio-app/gradio/commit/6ee1f1f7215bc557c138e1f43d5a835775deacfc) - Display all custom components in the gallery.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#8220](https://github.com/gradio-app/gradio/pull/8220) [`f176e1b`](https://github.com/gradio-app/gradio/commit/f176e1b509b7687b02c9173db1cd1ce25c3cd8f6) - Convert all demos on docs to lite.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.6.2
+
 ## 0.28.0
 
 ### Features

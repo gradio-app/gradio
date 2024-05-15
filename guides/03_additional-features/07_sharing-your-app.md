@@ -1,6 +1,6 @@
 # Sharing Your App
 
-How to share your Gradio app:
+In this Guide, we dive more deeply into the various aspects of sharing a Gradio app with others. We will cover:
 
 1. [Sharing demos with the share parameter](#sharing-demos)
 2. [Hosting on HF Spaces](#hosting-on-hf-spaces)
@@ -10,6 +10,7 @@ How to share your Gradio app:
 6. [Mounting within FastAPI](#mounting-within-another-fast-api-app)
 7. [Authentication](#authentication)
 8. [Security and file access](#security-and-file-access)
+9. [Analytics](#analytics)
 
 ## Sharing Demos
 
@@ -464,3 +465,17 @@ demo.launch(max_file_size=5 * gr.FileSize.MB)
 ```
 
 Please make sure you are running the latest version of `gradio` for these security settings to apply.
+
+## Analytics
+
+By default, Gradio collects certain analytics to help us better understand the usage of the `gradio` library. This includes the following information:
+
+* What environment the Gradio app is running on (e.g. Colab Notebook, Hugging Face Spaces)
+* What input/output components are being used in the Gradio app
+* Whether the Gradio app is utilizing certain advanced features, such as `auth` or `show_error` 
+* The IP address which is used solely to measure the number of unique developers using Gradio 
+* The version of Gradio that is running 
+
+No information is collected from _users_ of your Gradio app. If you'd like to diable analytics altogether, you can do so by setting the `analytics_enabled` parameter to `False` in `gr.Blocks`, `gr.Interface`, or `gr.ChatInterface`. Or, you can set the GRADIO_ANALYTICS_ENABLED environment variable to `"False"` to apply this to all Gradio apps created across your system.
+
+*Note*: this reflects the analytics policy as of `gradio>=4.32.0`. 
