@@ -342,10 +342,6 @@ def move_resource_to_block_cache(
     return block.move_resource_to_block_cache(url_or_file_path)
 
 
-def is_file_obj(data: dict | JsonData):
-    return isinstance(data, dict) and client_utils.is_file_obj(data)
-
-
 def check_all_files_in_cache(data: JsonData):
     def _in_cache(d: dict):
         if (
@@ -357,7 +353,7 @@ def check_all_files_in_cache(data: JsonData):
                 f"File {path} is not in the cache folder and cannot be accessed."
             )
 
-    client_utils.traverse(data, _in_cache, is_file_obj)
+    client_utils.traverse(data, _in_cache, client_utils.is_file_obj)
 
 
 def move_files_to_cache(
@@ -425,7 +421,7 @@ def move_files_to_cache(
     if isinstance(data, (GradioRootModel, GradioModel)):
         data = data.model_dump()
 
-    return client_utils.traverse(data, _move_to_cache, is_file_obj)
+    return client_utils.traverse(data, _move_to_cache, client_utils.is_file_obj)
 
 
 async def async_move_files_to_cache(
@@ -494,7 +490,9 @@ async def async_move_files_to_cache(
 
     if isinstance(data, (GradioRootModel, GradioModel)):
         data = data.model_dump()
-    return await client_utils.async_traverse(data, _move_to_cache, is_file_obj)
+    return await client_utils.async_traverse(
+        data, _move_to_cache, client_utils.is_file_obj
+    )
 
 
 def add_root_url(data: dict | list, root_url: str, previous_root_url: str | None):

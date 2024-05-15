@@ -96,7 +96,7 @@ class TestJSON:
         json_component = gr.JSON()
         postprocessed_value = json_component.postprocess(value)
         if postprocessed_value is None:
-            assert postprocessed_value is None
-            return
-        assert postprocessed_value.model_dump() == expected
-        assert json.loads(json.dumps(postprocessed_value.model_dump())) == expected
+            assert value is None
+        else:
+            assert postprocessed_value.model_dump() == expected
+            assert json.loads(json.dumps(postprocessed_value.model_dump())) == expected
