@@ -1126,18 +1126,18 @@ def construct_args(
     for key, value in kwargs.items():
         if key in kwarg_arg_mapping:
             if kwarg_arg_mapping[key] < num_args:
-                raise ValueError(
+                raise TypeError(
                     f"Parameter `{key}` is already set as a positional argument. Please click on 'view API' in the footer of the Gradio app to see usage."
                 )
             else:
                 _args[kwarg_arg_mapping[key]] = value
         else:
-            raise ValueError(
+            raise TypeError(
                 f"Parameter `{key}` is not a valid key-word argument. Please click on 'view API' in the footer of the Gradio app to see usage."
             )
 
     if _Keywords.NO_VALUE in _args:
-        raise ValueError(
+        raise TypeError(
             f"No value provided for required argument: {kwarg_names[_args.index(_Keywords.NO_VALUE)]}"
         )
 

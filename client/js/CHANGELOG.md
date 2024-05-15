@@ -1,5 +1,17 @@
 # @gradio/client
 
+## 0.19.2
+
+### Fixes
+
+- [#8285](https://github.com/gradio-app/gradio/pull/8285) [`7d9d8ea`](https://github.com/gradio-app/gradio/commit/7d9d8eab50d36cbecbb84c6a0f3cc1bca7215604) - use the correct query param to pass the jwt to the heartbeat event.  Thanks @pngwn!
+
+## 0.19.1
+
+### Fixes
+
+- [#8272](https://github.com/gradio-app/gradio/pull/8272) [`fbf4edd`](https://github.com/gradio-app/gradio/commit/fbf4edde7c896cdf4c903463e44c31ed96111b3c) - ensure client works for private spaces.  Thanks @pngwn!
+
 ## 0.19.0
 
 ### Features

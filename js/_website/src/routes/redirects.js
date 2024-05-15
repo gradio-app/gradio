@@ -108,6 +108,7 @@ export const redirects = {
 	"/gradio-and-llm-agents": "/guides/gradio-and-llm-agents",
 	"/fastapi-app-with-the-gradio-client":
 		"/guides/fastapi-app-with-the-gradio-client",
+	"guides/key-features": "guides/queuing",
 	"/docs/client": "/docs/python-client/client",
 	"/docs/job": "/docs/python-client/job",
 	"/docs/set_static_paths": "/docs/gradio/set_static_paths",

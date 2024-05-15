@@ -1,5 +1,11 @@
 # @gradio/statustracker
 
+## 0.5.3
+
+### Fixes
+
+- [#8261](https://github.com/gradio-app/gradio/pull/8261) [`719d596`](https://github.com/gradio-app/gradio/commit/719d5962bb7018412f073b55eb3b62d8b4e02d63) - Fix bug where status tracker was the target of pointer events.  Thanks @freddyaboulton!
+
 ## 0.5.2
 
 ### Dependency updates

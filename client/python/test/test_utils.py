@@ -230,20 +230,20 @@ class TestConstructArgs:
     def test_positional_arg_and_kwarg_for_same_parameter(self):
         parameters_info = [{"label": "param1", "parameter_name": "a"}]
         with pytest.raises(
-            ValueError, match="Parameter `a` is already set as a positional argument."
+            TypeError, match="Parameter `a` is already set as a positional argument."
         ):
             utils.construct_args(parameters_info, (1,), {"a": 2})
 
     def test_invalid_kwarg(self):
         parameters_info = [{"label": "param1", "parameter_name": "a"}]
         with pytest.raises(
-            ValueError, match="Parameter `b` is not a valid key-word argument."
+            TypeError, match="Parameter `b` is not a valid key-word argument."
         ):
             utils.construct_args(parameters_info, (), {"b": 1})
 
     def test_required_arg_missing(self):
         parameters_info = [{"label": "param1", "parameter_name": "a"}]
         with pytest.raises(
-            ValueError, match="No value provided for required argument: a"
+            TypeError, match="No value provided for required argument: a"
         ):
             utils.construct_args(parameters_info, (), {})

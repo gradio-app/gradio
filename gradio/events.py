@@ -38,6 +38,7 @@ def set_cancel_events(
             preprocess=False,
             show_api=False,
             cancels=fn_indices_to_cancel,
+            is_cancel_function=True,
         )
 
 
