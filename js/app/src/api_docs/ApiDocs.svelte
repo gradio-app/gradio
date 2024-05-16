@@ -122,6 +122,7 @@
 				{#if api_calls.length}
 					<div>
 						<p
+							id="num-recorded-api-calls"
 							style="font-size: var(--text-lg); font-weight:bold; margin: 10px 0px;"
 						>
 							🪄 Recorded API Calls ({api_calls.length})
