@@ -131,14 +131,17 @@ export async function get_cookie_header(
 	const formData = new FormData();
 	formData.append("username", auth?.[0]);
 	formData.append("password", auth?.[1]);
+	try {
+		const res = await _fetch(`${http_protocol}//${host}/${LOGIN_URL}`, {
+			method: "POST",
+			body: formData,
+			credentials: "include"
+		});
 
-	const res = await _fetch(`${http_protocol}//${host}/${LOGIN_URL}`, {
-		method: "POST",
-		body: formData,
-		credentials: "include"
-	});
-
-	return res.headers.get("set-cookie");
+		return res.headers.get("set-cookie");
+	} catch (e) {
+		throw Error((e as Error).message);
+	}
 }
 
 export function determine_protocol(endpoint: string): {
