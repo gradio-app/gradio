@@ -67,7 +67,6 @@
 		if (JSON.stringify(value) !== JSON.stringify(old_value)) {
 			old_value = value;
 			gradio.dispatch("change");
-			console.log("new value", value);
 		}
 	}
 

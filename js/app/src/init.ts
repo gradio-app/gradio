@@ -299,7 +299,6 @@ export function create_components(): {
 		if (comp.instance.get_value) {
 			return comp.instance.get_value() as Promise<any>;
 		}
-		console.log("get data", comp.props.value)
 		return comp.props.value;
 	}
 
