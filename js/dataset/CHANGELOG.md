@@ -1,5 +1,12 @@
 # @gradio/dataset
 
+## 0.1.37
+
+### Dependency updates
+
+- @gradio/client@0.19.3
+- @gradio/upload@0.10.4
+
 ## 0.1.36
 
 ### Dependency updates
