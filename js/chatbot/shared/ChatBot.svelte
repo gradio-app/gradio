@@ -267,35 +267,35 @@
 												{i18n}
 												label=""
 											/>
+										{:else if message.component == "audio"}
+											<BaseStaticAudio
+												value={message.value.file}
+												show_label={false}
+												show_share_button={true}
+												{i18n}
+												label=""
+												waveform_settings={{}}
+												waveform_options={{}}
+											/>
+										{:else if message.component == "video"}
+											<BaseStaticVideo
+												autoplay={true}
+												value={message.value.video}
+												show_label={false}
+												show_share_button={true}
+												{i18n}
+												{upload}
+											>
+												<track kind="captions" />
+											</BaseStaticVideo>
+										{:else if message.component == "image"}
+											<BaseStaticImage
+												value={message.value.file}
+												show_label={false}
+												show_share_button={true}
+												{i18n}
+											/>
 										{/if}
-									{:else if message !== null && "file" in message && message.file !== undefined && !Array.isArray(message.file) && "mime_type" in message.file && message.file.mime_type !== undefined && message.file.mime_type?.includes("audio")}
-										<BaseStaticAudio
-											value={message.file}
-											show_label={false}
-											show_share_button={true}
-											{i18n}
-											label=""
-											waveform_settings={{}}
-											waveform_options={{}}
-										/>
-									{:else if message !== null && "file" in message && message.file !== undefined && !Array.isArray(message.file) && "mime_type" in message.file && message.file.mime_type !== undefined && message.file.mime_type?.includes("video")}
-										<BaseStaticVideo
-											autoplay={true}
-											value={message.file}
-											show_label={false}
-											show_share_button={true}
-											{i18n}
-											{upload}
-										>
-											<track kind="captions" />
-										</BaseStaticVideo>
-									{:else if message !== null && "file" in message && message.file !== undefined && !Array.isArray(message.file) && "mime_type" in message.file && message.file.mime_type !== undefined && message.file.mime_type?.includes("image")}
-										<BaseStaticImage
-											value={message.file}
-											show_label={false}
-											show_share_button={true}
-											{i18n}
-										/>
 									{:else if message !== null && "file" in message && message.file !== undefined && !Array.isArray(message.file) && message.file.url !== undefined && message.file.url !== null}
 										<a
 											data-testid="chatbot-file"

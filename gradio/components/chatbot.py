@@ -13,9 +13,12 @@ from gradio import utils
 from gradio.components import (
     Component as GradioComponent,
 )
+from gradio.components.audio import Audio
 from gradio.components.base import Component
 from gradio.components.gallery import Gallery, GalleryData
+from gradio.components.image import Image
 from gradio.components.plot import Plot, PlotData
+from gradio.components.video import Video, VideoData
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
 
@@ -27,7 +30,7 @@ class FileMessage(GradioModel):
 
 class ComponentMessage(GradioModel):
     component: Literal["plot", "gallery", "audio", "video", "image"]
-    value: Union[PlotData, GalleryData, FileMessage]
+    value: Union[PlotData, GalleryData, VideoData, FileMessage]
 
 
 class ChatbotData(GradioRootModel):
@@ -173,12 +176,18 @@ class Chatbot(Component):
                 plot = Plot(value=chat_message.value)
                 return plot
             elif chat_message.component == "gallery":
-                test = [x.image.path for x in chat_message.value.root]
-                gallery = Gallery(value=test)
+                value = [x.image.path for x in chat_message.value.root]
+                gallery = Gallery(value=value)
                 return gallery
-            elif chat_message.component == "plot":
-                plot = Plot(value=chat_message)
-                return plot
+            elif chat_message.component == "image":
+                image = Image(value=chat_message.value.file.path)
+                return image
+            elif chat_message.component == "video":
+                video = Video(value=chat_message.value.video.path)
+                return video
+            elif chat_message.component == "audio":
+                audio = Audio(value=chat_message.value.file.path)
+                return audio
             else:
                 raise ValueError(
                     f"Invalid component for Chatbot component: {chat_message.component}"
@@ -223,16 +232,16 @@ class Chatbot(Component):
             mime_type = client_utils.get_mimetype(filepath)
             return FileMessage(
                 file=FileData(path=filepath, mime_type=mime_type),
-                alt_text=chat_message[1],
+                alt_text=chat_message[1]
+                if not isinstance(chat_message, GradioComponent)
+                and len(chat_message) > 1
+                else None,
             )
 
         if chat_message is None:
             return None
-        elif isinstance(chat_message, (tuple, list)):
-            filepath = str(chat_message[0])
-            return create_file_message(chat_message, filepath)
         elif isinstance(chat_message, GradioComponent):
-            if isinstance(chat_message, (Plot, Gallery)):
+            if isinstance(chat_message, (Plot, Gallery, Video)):
                 return ComponentMessage(
                     component=type(chat_message).__name__.lower(),
                     value=type(chat_message).postprocess(
@@ -240,9 +249,19 @@ class Chatbot(Component):
                         chat_message._constructor_args[1]["value"],
                     ),
                 )
-            else:
+            elif isinstance(chat_message, (Image, Audio)):
                 filepath = chat_message._constructor_args[1]["value"]
-                return create_file_message(chat_message, filepath)
+                return ComponentMessage(
+                    component=type(chat_message).__name__.lower(),
+                    value=create_file_message(chat_message, filepath),
+                )
+            else:
+                raise ValueError(
+                    f"Chatbot does not currently support this component: {chat_message}"
+                )
+        elif isinstance(chat_message, (tuple, list)):
+            filepath = str(chat_message[0])
+            return create_file_message(chat_message, filepath)
         elif isinstance(chat_message, str):
             chat_message = inspect.cleandoc(chat_message)
             return chat_message
