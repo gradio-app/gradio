@@ -120,6 +120,16 @@ describe("resolve_cookies", () => {
 		expect((await api).named_endpoints["/predict"]).toBeDefined();
 	});
 
+	it("should connect to a private and authenticated space", async () => {
+		const client = await Client.connect("hmb/private_auth_space", {
+			hf_token: "hf_123",
+			auth: ["admin", "pass1234"]
+		});
+
+		const api = client.view_api();
+		expect((await api).named_endpoints["/predict"]).toBeDefined();
+	});
+
 	it("should not set the cookies when auth credentials are invalid", async () => {
 		await expect(
 			Client.connect("hmb/invalid_auth_space", {

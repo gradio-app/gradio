@@ -23,6 +23,7 @@ const root_url = "https://huggingface.co";
 
 const direct_space_url = "https://hmb-hello-world.hf.space";
 const private_space_url = "https://hmb-secret-world.hf.space";
+const private_auth_space_url = "https://hmb-private-auth-space.hf.space";
 
 const server_error_space_url = "https://hmb-server-error.hf.space";
 const upload_server_test_space_url = "https://hmb-server-test.hf.space";
@@ -39,6 +40,7 @@ const server_test_app_reference = "hmb/server_test";
 const auth_app_reference = "hmb/auth_space";
 const unauth_app_reference = "hmb/unauth_space";
 const invalid_auth_app_reference = "hmb/invalid_auth_space";
+const private_auth_app_reference = "hmb/private_auth_space";
 
 export const handlers: RequestHandler[] = [
 	// /host requests
@@ -65,6 +67,23 @@ export const handlers: RequestHandler[] = [
 			}
 		});
 	}),
+	http.get(
+		`${root_url}/api/spaces/${private_auth_app_reference}/${HOST_URL}`,
+		() => {
+			return new HttpResponse(
+				JSON.stringify({
+					subdomain: "hmb-private-auth-space",
+					host: "https://hmb-private-auth-space.hf.space"
+				}),
+				{
+					status: 200,
+					headers: {
+						"Content-Type": "application/json"
+					}
+				}
+			);
+		}
+	),
 	http.get(
 		`${root_url}/api/spaces/${private_app_reference}/${HOST_URL}`,
 		({ request }) => {
@@ -230,6 +249,14 @@ export const handlers: RequestHandler[] = [
 			}
 		});
 	}),
+	http.get(`${private_auth_space_url}/${API_INFO_URL}`, async () => {
+		return new HttpResponse(JSON.stringify(response_api_info), {
+			status: 200,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
 	// /config requests
 	http.get(`${direct_space_url}/${CONFIG_URL}`, () => {
 		return new HttpResponse(JSON.stringify(config_response), {
@@ -258,6 +285,20 @@ export const handlers: RequestHandler[] = [
 			JSON.stringify({
 				...config_response,
 				root: "https://hmb-server-test.hf.space"
+			}),
+			{
+				status: 200,
+				headers: {
+					"Content-Type": "application/json"
+				}
+			}
+		);
+	}),
+	http.get(`${private_auth_space_url}/${CONFIG_URL}`, () => {
+		return new HttpResponse(
+			JSON.stringify({
+				...config_response,
+				root: "https://hmb-private-auth-space.hf.space"
 			}),
 			{
 				status: 200,
@@ -599,6 +640,41 @@ export const handlers: RequestHandler[] = [
 		});
 	}),
 	http.post(`${invalid_auth_space_url}/${LOGIN_URL}`, async () => {
+		return new HttpResponse(null, {
+			status: 401,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
+	http.post(`${private_auth_space_url}/${LOGIN_URL}`, async ({ request }) => {
+		let username;
+		let password;
+
+		await request.formData().then((data) => {
+			username = data.get("username");
+			password = data.get("password");
+		});
+
+		if (username === "admin" && password === "pass1234") {
+			return new HttpResponse(
+				JSON.stringify({
+					success: true
+				}),
+				{
+					status: 200,
+					headers: {
+						"Content-Type": "application/json",
+						"Set-Cookie":
+							"access-token-123=abc; HttpOnly; Path=/; SameSite=none; Secure",
+						// @ts-ignore - multiple Set-Cookie headers are returned
+						"Set-Cookie":
+							"access-token-unsecure-123=abc; HttpOnly; Path=/; SameSite=none; Secure"
+					}
+				}
+			);
+		}
+
 		return new HttpResponse(null, {
 			status: 401,
 			headers: {

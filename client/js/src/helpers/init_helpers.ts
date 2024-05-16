@@ -122,7 +122,8 @@ export async function resolve_cookies(this: Client): Promise<void> {
 				http_protocol,
 				host,
 				this.options.auth,
-				this.fetch
+				this.fetch,
+				this.options.hf_token
 			);
 
 			if (cookie_header) this.set_cookies(cookie_header);
@@ -137,13 +138,21 @@ export async function get_cookie_header(
 	http_protocol: string,
 	host: string,
 	auth: [string, string],
-	_fetch: typeof fetch
+	_fetch: typeof fetch,
+	hf_token?: `hf_${string}`
 ): Promise<string | null> {
 	const formData = new FormData();
 	formData.append("username", auth?.[0]);
 	formData.append("password", auth?.[1]);
 
+	let headers: { Authorization?: string } = {};
+
+	if (hf_token) {
+		headers.Authorization = `Bearer ${hf_token}`;
+	}
+
 	const res = await _fetch(`${http_protocol}//${host}/${LOGIN_URL}`, {
+		headers,
 		method: "POST",
 		body: formData,
 		credentials: "include"
