@@ -4,4 +4,4 @@
 "gradio_client": patch
 ---
 
-feat:Fix api recorder
+fix:Fix api recorder
