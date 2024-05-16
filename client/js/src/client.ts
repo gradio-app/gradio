@@ -30,11 +30,7 @@ import {
 } from "./helpers/init_helpers";
 import { check_space_status } from "./helpers/spaces";
 import { open_stream } from "./utils/stream";
-import {
-	API_INFO_ERROR_MSG,
-	CONFIG_ERROR_MSG,
-	INVALID_CREDENTIALS_MSG
-} from "./constants";
+import { API_INFO_ERROR_MSG, CONFIG_ERROR_MSG } from "./constants";
 
 export class NodeBlob extends Blob {
 	constructor(blobParts?: BlobPart[], options?: BlobPropertyBag) {
