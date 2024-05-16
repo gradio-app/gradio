@@ -7,6 +7,7 @@ import {
 import { initialise_server } from "./server";
 import { beforeAll, afterEach, afterAll, it, expect, describe } from "vitest";
 import { Client } from "../client";
+import { INVALID_CREDENTIALS_MSG, MISSING_CREDENTIALS_MSG } from "../constants";
 
 const server = initialise_server();
 
@@ -121,12 +122,15 @@ describe("resolve_cookies", () => {
 
 	it("should not set the cookies when auth credentials are invalid", async () => {
 		await expect(
-			Client.connect("hmb/auth_space", {
+			Client.connect("hmb/invalid_auth_space", {
 				auth: ["admin", "wrong_password"]
 			})
-		).rejects.toThrowError("Invalid credentials");
+		).rejects.toThrowError(INVALID_CREDENTIALS_MSG);
 	});
 
-	// todo: write this test once we know how to check if a space has auth enabled
-	it("should not set the cookies when auth option is not provided in an auth space", async () => {});
+	it("should not set the cookies when auth option is not provided in an auth space", async () => {
+		await expect(Client.connect("hmb/unauth_space")).rejects.toThrowError(
+			MISSING_CREDENTIALS_MSG
+		);
+	});
 });

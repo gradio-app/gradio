@@ -4,6 +4,7 @@ import {
 	CONFIG_URL,
 	INVALID_CREDENTIALS_MSG,
 	LOGIN_URL,
+	MISSING_CREDENTIALS_MSG,
 	SPACE_METADATA_ERROR_MSG
 } from "../constants";
 import { Client } from "..";
@@ -89,6 +90,11 @@ export async function resolve_config(
 			credentials: "include"
 		});
 
+		if (response?.status === 401 && !this.options.auth) {
+			throw new Error(MISSING_CREDENTIALS_MSG);
+		} else if (response?.status === 401 && this.options.auth) {
+			throw new Error(INVALID_CREDENTIALS_MSG);
+		}
 		if (response?.status === 200) {
 			let config = await response.json();
 			config.path = config.path ?? "";
@@ -137,19 +143,19 @@ export async function get_cookie_header(
 	const formData = new FormData();
 	formData.append("username", auth?.[0]);
 	formData.append("password", auth?.[1]);
-	try {
-		const res = await _fetch(`${http_protocol}//${host}/${LOGIN_URL}`, {
-			method: "POST",
-			body: formData,
-			credentials: "include"
-		});
 
-		if (res.status === 401) throw new Error(INVALID_CREDENTIALS_MSG);
-		if (res.status !== 200) throw new Error(SPACE_METADATA_ERROR_MSG);
+	const res = await _fetch(`${http_protocol}//${host}/${LOGIN_URL}`, {
+		method: "POST",
+		body: formData,
+		credentials: "include"
+	});
 
+	if (res.status === 200) {
 		return res.headers.get("set-cookie");
-	} catch (e) {
-		throw Error((e as Error).message);
+	} else if (res.status === 401) {
+		throw new Error(INVALID_CREDENTIALS_MSG);
+	} else {
+		throw new Error(SPACE_METADATA_ERROR_MSG);
 	}
 }
 

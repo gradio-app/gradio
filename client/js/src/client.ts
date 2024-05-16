@@ -150,14 +150,13 @@ export class Client {
 		}
 
 		try {
-			if (this.options.auth)
-				await this.resolve_cookies().catch(() => {
-					throw new Error(INVALID_CREDENTIALS_MSG);
-				});
+			if (this.options.auth) {
+				await this.resolve_cookies();
+			}
 
-			await this._resolve_config().then(async ({ config }) => {
-				if (config) {
-					this.config = config;
+			await this._resolve_config().then(async (res) => {
+				if (res && res.config) {
+					this.config = res.config;
 					if (this.config && this.config.connect_heartbeat) {
 						if (this.config.space_id && this.options.hf_token) {
 							this.jwt = await get_jwt(
@@ -181,8 +180,8 @@ export class Client {
 					}
 				}
 			});
-		} catch (e) {
-			throw Error(CONFIG_ERROR_MSG + (e as Error).message);
+		} catch (e: any) {
+			throw Error(e);
 		}
 
 		this.api_info = await this.view_api();
@@ -226,9 +225,8 @@ export class Client {
 			}
 
 			return this.config_success(config);
-		} catch (e) {
-			console.error(e);
-			if (space_id) {
+		} catch (e: any) {
+			if (space_id && status_callback) {
 				check_space_status(
 					space_id,
 					RE_SPACE_NAME.test(space_id) ? "space_name" : "subdomain",
@@ -242,6 +240,7 @@ export class Client {
 						load_status: "error",
 						detail: "NOT_FOUND"
 					});
+				throw Error(e);
 			}
 		}
 	}
@@ -271,6 +270,9 @@ export class Client {
 	}
 
 	async handle_space_success(status: SpaceStatus): Promise<Config | void> {
+		if (!this) {
+			throw new Error(CONFIG_ERROR_MSG);
+		}
 		const { status_callback } = this.options;
 		if (status_callback) status_callback(status);
 		if (status.status === "running") {
@@ -284,7 +286,6 @@ export class Client {
 
 				return _config as Config;
 			} catch (e) {
-				console.error(e);
 				if (status_callback) {
 					status_callback({
 						status: "error",
@@ -293,6 +294,7 @@ export class Client {
 						detail: "NOT_FOUND"
 					});
 				}
+				throw e;
 			}
 		}
 	}
