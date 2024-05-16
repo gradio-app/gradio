@@ -1,6 +1,7 @@
 import type { Config } from "../types";
-import { CONFIG_ERROR_MSG, CONFIG_URL } from "../constants";
+import { CONFIG_ERROR_MSG, CONFIG_URL, LOGIN_URL } from "../constants";
 import { Client } from "..";
+import { process_endpoint } from "./api_info";
 
 /**
  * This function is used to resolve the URL for making requests when the app has a root path.
@@ -25,12 +26,14 @@ export function resolve_root(
 
 export async function get_jwt(
 	space: string,
-	token: `hf_${string}`
+	token: `hf_${string}`,
+	cookies?: string | null
 ): Promise<string | false> {
 	try {
 		const r = await fetch(`https://huggingface.co/api/spaces/${space}/jwt`, {
 			headers: {
-				Authorization: `Bearer ${token}`
+				Authorization: `Bearer ${token}`,
+				...(cookies ? { Cookie: cookies } : {})
 			}
 		});
 
@@ -76,7 +79,8 @@ export async function resolve_config(
 		return { ...config, path } as Config;
 	} else if (endpoint) {
 		const response = await this.fetch(`${endpoint}/${CONFIG_URL}`, {
-			headers
+			headers,
+			credentials: "include"
 		});
 
 		if (response?.status === 200) {
@@ -84,11 +88,57 @@ export async function resolve_config(
 			config.path = config.path ?? "";
 			config.root = endpoint;
 			return config;
+		} else if (response?.status === 401) {
+			throw new Error("Not authorized to access this space");
 		}
 		throw new Error(CONFIG_ERROR_MSG);
 	}
 
 	throw new Error(CONFIG_ERROR_MSG);
+}
+
+export async function resolve_cookies(this: Client): Promise<void> {
+	const { http_protocol, host } = await process_endpoint(
+		this.app_reference,
+		this.options.hf_token
+	);
+
+	try {
+		// todo: check whether we can know a space has simple auth before calling /login
+		// if so, also let the user know that they need to provide credentials if not provided
+		if (this.options.auth) {
+			const cookie_header = await get_cookie_header(
+				http_protocol,
+				host,
+				this.options.auth,
+				this.fetch
+			);
+
+			if (cookie_header) this.set_cookies(cookie_header);
+		}
+	} catch (e: unknown) {
+		throw Error((e as Error).message);
+	}
+}
+
+// separating this out from client-bound resolve_cookies so that it can be used in duplicate
+export async function get_cookie_header(
+	http_protocol: string,
+	host: string,
+	auth: [string, string],
+	_fetch: typeof fetch
+): Promise<string | null> {
+	const formData = new FormData();
+	formData.append("username", auth?.[0]);
+	formData.append("password", auth?.[1]);
+
+	const res = await _fetch(`${http_protocol}//${host}/${LOGIN_URL}`, {
+		method: "POST",
+		body: formData,
+		credentials: "include"
+	});
+
+	return res.headers.get("set-cookie");
 }
 
 export function determine_protocol(endpoint: string): {
@@ -128,3 +178,15 @@ export function determine_protocol(endpoint: string): {
 		host: endpoint
 	};
 }
+
+export const parse_and_set_cookies = (cookie_header: string): string[] => {
+	let cookies: string[] = [];
+	const parts = cookie_header.split(/,(?=\s*[^\s=;]+=[^\s=;]+)/);
+	parts.forEach((cookie) => {
+		const [cookie_name, cookie_value] = cookie.split(";")[0].split("=");
+		if (cookie_name && cookie_value) {
+			cookies.push(`${cookie_name.trim()}=${cookie_value.trim()}`);
+		}
+	});
+	return cookies;
+};
