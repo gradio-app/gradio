@@ -5,7 +5,8 @@ import {
 	INVALID_CREDENTIALS_MSG,
 	LOGIN_URL,
 	MISSING_CREDENTIALS_MSG,
-	SPACE_METADATA_ERROR_MSG
+	SPACE_METADATA_ERROR_MSG,
+	UNAUTHORIZED_MSG
 } from "../constants";
 import { Client } from "..";
 import { process_endpoint } from "./api_info";
@@ -101,7 +102,7 @@ export async function resolve_config(
 			config.root = endpoint;
 			return config;
 		} else if (response?.status === 401) {
-			throw new Error("Not authorized to access this space");
+			throw new Error(UNAUTHORIZED_MSG);
 		}
 		throw new Error(CONFIG_ERROR_MSG);
 	}
