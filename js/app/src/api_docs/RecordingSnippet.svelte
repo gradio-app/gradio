@@ -19,6 +19,7 @@
 		let call_data_excluding_state = call.data.filter(
 			(d) => typeof d !== "undefined"
 		);
+		console.log(call_data_excluding_state);
 
 		const params = call_data_excluding_state
 			.map((param, index) => {

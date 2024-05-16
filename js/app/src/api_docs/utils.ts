@@ -45,6 +45,7 @@ export function represent_value(
 }
 
 export function is_potentially_nested_file_data(obj: any): boolean {
+	return true;
 	if (typeof obj === "object" && obj !== null) {
 		if (obj.hasOwnProperty("url") && obj.hasOwnProperty("meta")) {
 			if (
@@ -73,6 +74,7 @@ function replace_file_data_with_file_function(obj: any): any {
 	if (typeof obj === "object" && obj !== null && !Array.isArray(obj)) {
 		if (
 			"url" in obj &&
+			obj.url &&
 			"meta" in obj &&
 			obj.meta?._type === "gradio.FileData"
 		) {

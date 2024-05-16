@@ -262,6 +262,7 @@
 		}
 
 		async function make_prediction(payload: Payload): Promise<void> {
+			console.log("payload", payload);
 			if (api_recorder_visible) {
 				api_calls = [...api_calls, payload];
 			}
