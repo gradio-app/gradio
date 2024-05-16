@@ -19,7 +19,7 @@ import gradio_client.utils as client_utils
 from gradio import utils
 from gradio.blocks import Block, BlockContext
 from gradio.component_meta import ComponentMeta
-from gradio.data_classes import GradioDataModel
+from gradio.data_classes import GradioDataModel, JsonData
 from gradio.events import EventListener
 from gradio.layouts import Form
 from gradio.processing_utils import move_files_to_cache
@@ -298,6 +298,8 @@ class Component(ComponentBase, Block):
             payload = self.data_model.from_json(payload)
             Path(flag_dir).mkdir(exist_ok=True)
             payload = payload.copy_to_dir(flag_dir).model_dump()
+        if isinstance(payload, JsonData):
+            payload = payload.model_dump()
         if not isinstance(payload, str):
             payload = json.dumps(payload)
         return payload

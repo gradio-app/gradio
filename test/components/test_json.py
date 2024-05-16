@@ -75,7 +75,7 @@ class TestJSON:
             await iface.process_api(
                 0, [{"data": y_data, "headers": ["gender", "age"]}], state={}
             )
-        )["data"][0] == {
+        )["data"][0].model_dump() == {
             "M": 35,
             "F": 25,
             "O": 20,
@@ -95,5 +95,8 @@ class TestJSON:
     def test_postprocess_returns_json_serializable_value(self, value, expected):
         json_component = gr.JSON()
         postprocessed_value = json_component.postprocess(value)
-        assert postprocessed_value == expected
-        assert json.loads(json.dumps(postprocessed_value)) == expected
+        if postprocessed_value is None:
+            assert value is None
+        else:
+            assert postprocessed_value.model_dump() == expected
+            assert json.loads(json.dumps(postprocessed_value.model_dump())) == expected
