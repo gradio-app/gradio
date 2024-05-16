@@ -30,7 +30,11 @@ import {
 } from "./helpers/init_helpers";
 import { check_space_status } from "./helpers/spaces";
 import { open_stream } from "./utils/stream";
-import { API_INFO_ERROR_MSG, CONFIG_ERROR_MSG, LOGIN_URL } from "./constants";
+import {
+	API_INFO_ERROR_MSG,
+	CONFIG_ERROR_MSG,
+	INVALID_CREDENTIALS_MSG
+} from "./constants";
 
 export class NodeBlob extends Blob {
 	constructor(blobParts?: BlobPart[], options?: BlobPropertyBag) {
@@ -146,12 +150,11 @@ export class Client {
 		}
 
 		try {
-			if (this.options.auth) await this.resolve_cookies();
-		} catch (e: unknown) {
-			throw Error((e as Error).message);
-		}
+			if (this.options.auth)
+				await this.resolve_cookies().catch(() => {
+					throw new Error(INVALID_CREDENTIALS_MSG);
+				});
 
-		try {
 			await this._resolve_config().then(async ({ config }) => {
 				if (config) {
 					this.config = config;

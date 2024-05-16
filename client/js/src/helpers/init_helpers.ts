@@ -1,5 +1,11 @@
 import type { Config } from "../types";
-import { CONFIG_ERROR_MSG, CONFIG_URL, LOGIN_URL } from "../constants";
+import {
+	CONFIG_ERROR_MSG,
+	CONFIG_URL,
+	INVALID_CREDENTIALS_MSG,
+	LOGIN_URL,
+	SPACE_METADATA_ERROR_MSG
+} from "../constants";
 import { Client } from "..";
 import { process_endpoint } from "./api_info";
 
@@ -121,7 +127,7 @@ export async function resolve_cookies(this: Client): Promise<void> {
 	}
 }
 
-// separating this out from client-bound resolve_cookies so that it can be used in duplicate
+// separating this from client-bound resolve_cookies so that it can be used in duplicate
 export async function get_cookie_header(
 	http_protocol: string,
 	host: string,
@@ -137,6 +143,9 @@ export async function get_cookie_header(
 			body: formData,
 			credentials: "include"
 		});
+
+		if (res.status === 401) throw new Error(INVALID_CREDENTIALS_MSG);
+		if (res.status !== 200) throw new Error(SPACE_METADATA_ERROR_MSG);
 
 		return res.headers.get("set-cookie");
 	} catch (e) {

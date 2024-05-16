@@ -1,10 +1,12 @@
 import {
 	resolve_root,
 	get_jwt,
-	determine_protocol
+	determine_protocol,
+	parse_and_set_cookies
 } from "../helpers/init_helpers";
 import { initialise_server } from "./server";
 import { beforeAll, afterEach, afterAll, it, expect, describe } from "vitest";
+import { Client } from "../client";
 
 const server = initialise_server();
 
@@ -91,4 +93,40 @@ describe("determine_protocol", () => {
 			host: "huggingface.co"
 		});
 	});
+});
+
+describe("parse_and_set_cookies", () => {
+	it("should return an empty array when the cookie header is empty", () => {
+		const cookie_header = "";
+		const result = parse_and_set_cookies(cookie_header);
+		expect(result).toEqual([]);
+	});
+
+	it("should parse the cookie header and return an array of cookies", () => {
+		const cookie_header = "access-token-123=abc;access-token-unsecured-456=def";
+		const result = parse_and_set_cookies(cookie_header);
+		expect(result).toEqual(["access-token-123=abc"]);
+	});
+});
+
+describe("resolve_cookies", () => {
+	it("should set the cookies when correct auth credentials are provided", async () => {
+		const client = await Client.connect("hmb/auth_space", {
+			auth: ["admin", "pass1234"]
+		});
+
+		const api = client.view_api();
+		expect((await api).named_endpoints["/predict"]).toBeDefined();
+	});
+
+	it("should not set the cookies when auth credentials are invalid", async () => {
+		await expect(
+			Client.connect("hmb/auth_space", {
+				auth: ["admin", "wrong_password"]
+			})
+		).rejects.toThrowError("Invalid credentials");
+	});
+
+	// todo: write this test once we know how to check if a space has auth enabled
+	it("should not set the cookies when auth option is not provided in an auth space", async () => {});
 });
