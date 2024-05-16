@@ -271,6 +271,8 @@ def save_file_to_cache(file_path: str | Path, cache_dir: str) -> str:
 def save_url_to_cache(url: str, cache_dir: str) -> str:
     """Downloads a file and makes a temporary file path for a copy if does not already
     exist. Otherwise returns the path to the existing temp file."""
+    if not client_utils.is_safe_url(url):
+        raise ValueError("URL is not safe or violates security policy.")
     temp_dir = hash_url(url)
     temp_dir = Path(cache_dir) / temp_dir
     temp_dir.mkdir(exist_ok=True, parents=True)
@@ -278,7 +280,7 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
     full_temp_file_path = str(abspath(temp_dir / name))
 
     if not Path(full_temp_file_path).exists():
-        with sync_client.stream("GET", url, follow_redirects=True) as r, open(
+        with sync_client.stream("GET", url) as r, open(
             full_temp_file_path, "wb"
         ) as f:
             for chunk in r.iter_raw():
@@ -290,6 +292,8 @@ def save_url_to_cache(url: str, cache_dir: str) -> str:
 async def async_save_url_to_cache(url: str, cache_dir: str) -> str:
     """Downloads a file and makes a temporary file path for a copy if does not already
     exist. Otherwise returns the path to the existing temp file. Uses async httpx."""
+    if not client_utils.is_safe_url(url):
+        raise ValueError("URL is not safe or violates security policy.")
     temp_dir = hash_url(url)
     temp_dir = Path(cache_dir) / temp_dir
     temp_dir.mkdir(exist_ok=True, parents=True)
@@ -297,7 +301,7 @@ async def async_save_url_to_cache(url: str, cache_dir: str) -> str:
     full_temp_file_path = str(abspath(temp_dir / name))
 
     if not Path(full_temp_file_path).exists():
-        async with async_client.stream("GET", url, follow_redirects=True) as response:
+        async with async_client.stream("GET", url) as response:
             async with aiofiles.open(full_temp_file_path, "wb") as f:
                 async for chunk in response.aiter_raw():
                     await f.write(chunk)
