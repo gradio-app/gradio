@@ -130,7 +130,7 @@
 /* links
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 .prose a {
-	color: var(--color-text-link);
+	color: var(--link-text-color);
 	text-decoration: underline;
 }
 
