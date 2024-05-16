@@ -6,4 +6,4 @@
 "gradio": minor
 ---
 
-feat:Gradio components in `gr.Chatbot()`
+feat:Click to preview images in chatbot
