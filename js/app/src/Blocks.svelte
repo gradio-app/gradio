@@ -229,7 +229,6 @@
 			event_data: dep.collects_event_data ? event_data : null,
 			trigger_id: trigger_id
 		};
-		console.log("payload 1", JSON.stringify(payload["data"][10]));
 
 		if (dep.frontend_fn) {
 			dep
@@ -291,7 +290,6 @@
 
 			submission
 				.on("data", ({ data, fn_index }) => {
-					console.log("payload 3.1", JSON.stringify(payload["data"][10]));
 					if (dep.pending_request && dep.final_event) {
 						dep.pending_request = false;
 						make_prediction(dep.final_event);
@@ -299,7 +297,6 @@
 					dep.pending_request = false;
 					handle_update(data, fn_index);
 					set_status($loading_status);
-					console.log("payload 3", JSON.stringify(payload["data"][10]));
 				})
 				.on("render", ({ data, fn_index }) => {
 					let _components: ComponentMeta[] = data.components;
@@ -310,7 +307,6 @@
 						layout: render_layout,
 						root: root
 					});
-					console.log("payload 4", JSON.stringify(payload["data"][10]));
 				})
 				.on("status", ({ fn_index, ...status }) => {
 					//@ts-ignore

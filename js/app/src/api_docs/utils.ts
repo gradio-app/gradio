@@ -45,7 +45,6 @@ export function represent_value(
 }
 
 export function is_potentially_nested_file_data(obj: any): boolean {
-	return true;
 	if (typeof obj === "object" && obj !== null) {
 		if (obj.hasOwnProperty("url") && obj.hasOwnProperty("meta")) {
 			if (
