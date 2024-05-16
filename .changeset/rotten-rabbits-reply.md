@@ -1,7 +1,7 @@
 ---
-"@gradio/app": minor
-"gradio": minor
-"gradio_client": minor
+"@gradio/app": patch
+"gradio": patch
+"gradio_client": patch
 ---
 
 feat:Fix api recorder
