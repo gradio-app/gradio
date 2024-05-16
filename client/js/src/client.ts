@@ -154,9 +154,9 @@ export class Client {
 				await this.resolve_cookies();
 			}
 
-			await this._resolve_config().then(async (res) => {
-				if (res && res.config) {
-					this.config = res.config;
+			await this._resolve_config().then(async ({ config }) => {
+				if (config) {
+					this.config = config;
 					if (this.config && this.config.connect_heartbeat) {
 						if (this.config.space_id && this.options.hf_token) {
 							this.jwt = await get_jwt(
@@ -165,19 +165,25 @@ export class Client {
 								this.cookies
 							);
 						}
-
-						// connect to the heartbeat endpoint via GET request
-						const heartbeat_url = new URL(
-							`${this.config.root}/heartbeat/${this.session_hash}`
-						);
-
-						// if the jwt is available, add it to the query params
-						if (this.jwt) {
-							heartbeat_url.searchParams.set("__sign", this.jwt);
-						}
-
-						this.heartbeat_event = await this.stream(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
 					}
+				}
+
+				if (config.space_id && this.options.hf_token) {
+					this.jwt = await get_jwt(config.space_id, this.options.hf_token);
+				}
+
+				if (this.config && this.config.connect_heartbeat) {
+					// connect to the heartbeat endpoint via GET request
+					const heartbeat_url = new URL(
+						`${this.config.root}/heartbeat/${this.session_hash}`
+					);
+
+					// if the jwt is available, add it to the query params
+					if (this.jwt) {
+						heartbeat_url.searchParams.set("__sign", this.jwt);
+					}
+
+					this.heartbeat_event = await this.stream(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
 				}
 			});
 		} catch (e: any) {

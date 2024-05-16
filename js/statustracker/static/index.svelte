@@ -275,6 +275,7 @@
 
 		{#if !timer}
 			<p class="loading">{loading_text}</p>
+			<slot name="additional-loading-text" />
 		{/if}
 	{:else if status === "error"}
 		<div class="clear-status">
