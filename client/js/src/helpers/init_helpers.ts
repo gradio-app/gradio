@@ -116,8 +116,6 @@ export async function resolve_cookies(this: Client): Promise<void> {
 	);
 
 	try {
-		// todo: check whether we can know a space has simple auth before calling /login
-		// if so, also let the user know that they need to provide credentials if not provided
 		if (this.options.auth) {
 			const cookie_header = await get_cookie_header(
 				http_protocol,
