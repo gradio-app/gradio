@@ -15,4 +15,4 @@ with gr.Blocks() as demo:
     inp.change(fn=lambda x: x, inputs=inp, outputs=out)
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(auth=("admin", "admin"))
