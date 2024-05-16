@@ -229,6 +229,7 @@
 			event_data: dep.collects_event_data ? event_data : null,
 			trigger_id: trigger_id
 		};
+		console.log("payload 1", payload);
 
 		if (dep.frontend_fn) {
 			dep
