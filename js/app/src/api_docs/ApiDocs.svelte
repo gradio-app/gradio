@@ -140,8 +140,8 @@
 							endpoints_info={info.named_endpoints}
 						/>
 						<p>
-							Note: the above list may include extra API calls that affect the
-							UI, but are not necessary for the clients.
+							Note: Some API calls only affect the UI, so when using the clients, the 
+							desired result may be achieved with only a subset of the recorded calls.
 						</p>
 					</div>
 					<p
