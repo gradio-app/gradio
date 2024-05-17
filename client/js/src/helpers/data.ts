@@ -41,9 +41,9 @@ export async function walk_and_store_blobs(
 		let blob_refs: BlobRef[] = [];
 
 		await Promise.all(
-			data.map(async (item) => {
+			data.map(async (_, item) => {
 				let new_path = path.slice();
-				new_path.push(item);
+				new_path.push(String(item));
 
 				const array_refs = await walk_and_store_blobs(
 					data[item],
