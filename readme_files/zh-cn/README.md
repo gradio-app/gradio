@@ -39,7 +39,7 @@ Gradio适用于:
 
 ### 快速开始
 
-**依赖**: Gradio只需要Python 3.7及以上版本！
+**依赖**: Gradio只需要[Python 3.8及以上版本](https://www.python.org/downloads/)！
 
 #### Gradio能做什么？
 
