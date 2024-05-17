@@ -78,7 +78,7 @@
 		import_promise = import(`/src/lib/templates/${page_path.slice(0, page_path.length - 4)}.svx`)
 		// import_promise = import(`/src/lib/templates/gradio/03_components/chatbot.svx`);
 	}
-	$: console.log("import path", `/src/lib/templates/${page_path}`);
+	// $: console.log("import path", `/src/lib/templates/${page_path}`);
 
 	$: import_component(page_path);
 		
@@ -98,7 +98,9 @@
 
 	$: if (dynamic_component) {
 		headers = get_headers();
+		console.log(headers)
 	}
+
 
 </script>
 

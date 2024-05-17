@@ -2,12 +2,11 @@ import html
 import json
 import os
 import re
+import requests
+
 
 from gradio_client.documentation import document_cls, generate_documentation
-import gradio
 from ..guides import guides
-
-import requests
 
 DIR = os.path.dirname(__file__)
 DEMOS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../demo"))
@@ -16,7 +15,6 @@ JS_DIR = os.path.abspath(os.path.join(DIR, "../../../../../js/"))
 TEMPLATES_DIR = os.path.abspath(os.path.join(DIR, "../../../src/lib/templates"))
 
 docs = generate_documentation()
-docs["component"].sort(key=lambda x: x["name"])
 
 def add_component_shortcuts():
     for component in docs["component"]:
@@ -109,9 +107,6 @@ def escape_parameters(parameters):
 def escape_html_string_fields():
     for mode in docs:
         for cls in docs[mode]:
-            # print(cls["description"])
-            # cls["description"] = html.escape(cls["description"])
-            # print(cls["description"])
             for tag in [
                 "preprocessing",
                 "postprocessing",
@@ -126,7 +121,6 @@ def escape_html_string_fields():
             for fn in cls["fns"]:
                 fn["description"] = html.escape(fn["description"])
                 fn["parameters"] = escape_parameters(fn["parameters"])
-            # 1/0
 
 escape_html_string_fields()
 
@@ -140,14 +134,16 @@ def find_cls(target_cls):
 
 def organize_docs(d):
     organized = {
-        "building": {},
-        "components": {},
-        "helpers": {},
-        "modals": {},
-        "routes": {},
-        "events": {},
-        "py-client": {},
-        "chatinterface": {}
+        "gradio": {
+            "building": {},
+            "components": {},
+            "helpers": {},
+            "modals": {},
+            "routes": {},
+            "events": {},
+            "chatinterface": {}
+        },
+        "python-client": {}
     }
     for mode in d:
         for c in d[mode]:
@@ -167,11 +163,13 @@ def organize_docs(d):
                     if "default" in p:
                         p["default"] = str(p["default"])
             if mode == "component":
-                organized["components"][c["name"].lower()] = c
-            elif mode in ["helpers", "routes", "py-client", "chatinterface", "modals"]:
-                organized[mode][c["name"].lower()] = c                
+                organized["gradio"]["components"][c["name"].lower()] = c
+            elif mode == "py-client":
+                organized["python-client"][c["name"].lower()] = c
+            elif mode in ["helpers", "routes", "chatinterface", "modals"]:
+                organized["gradio"][mode][c["name"].lower()] = c                
             else:
-                organized["building"][c["name"].lower()] = c
+                organized["gradio"]["building"][c["name"].lower()] = c
     
 
     def format_name(page_name):
@@ -203,123 +201,6 @@ def organize_docs(d):
         return pages
 
     pages = organize_pages()
-
-    c_keys = list(organized["components"].keys())
-    for i, cls in enumerate(organized["components"]):
-        if not i:
-            organized["components"][cls]["prev_obj"] = "Components"
-            organized["components"][cls]["next_obj"] = organized["components"][
-                c_keys[1]
-            ]["name"]
-        elif i == len(c_keys) - 1:
-            organized["components"][cls]["prev_obj"] = organized["components"][
-                c_keys[len(c_keys) - 2]
-            ]["name"]
-            organized["components"][cls]["next_obj"] = "load"
-        else:
-            organized["components"][cls]["prev_obj"] = organized["components"][
-                c_keys[i - 1]
-            ]["name"]
-            organized["components"][cls]["next_obj"] = organized["components"][
-                c_keys[i + 1]
-            ]["name"]
-    c_keys = list(organized["helpers"].keys())
-    for i, cls in enumerate(organized["helpers"]):
-        if not i:
-            organized["helpers"][cls]["prev_obj"] = "Video"
-            organized["helpers"][cls]["next_obj"] = organized["helpers"][c_keys[1]][
-                "name"
-            ]
-        elif i == len(c_keys) - 1:
-            organized["helpers"][cls]["prev_obj"] = organized["helpers"][
-                c_keys[len(c_keys) - 2]
-            ]["name"]
-            organized["helpers"][cls]["next_obj"] = "Error"
-        else:
-            organized["helpers"][cls]["prev_obj"] = organized["helpers"][c_keys[i - 1]][
-                "name"
-            ]
-            organized["helpers"][cls]["next_obj"] = organized["helpers"][c_keys[i + 1]][
-                "name"
-            ]
-    c_keys = list(organized["modals"].keys())
-    for i, cls in enumerate(organized["modals"]):
-        if not i:
-            organized["modals"][cls]["prev_obj"] = "EventData"
-            organized["modals"][cls]["next_obj"] = organized["modals"][c_keys[1]][
-                "name"
-            ]
-        elif i == len(c_keys) - 1:
-            organized["modals"][cls]["prev_obj"] = organized["modals"][
-                c_keys[len(c_keys) - 2]
-            ]["name"]
-            organized["modals"][cls]["next_obj"] = "Request"
-        else:
-            organized["modals"][cls]["prev_obj"] = organized["modals"][c_keys[i - 1]][
-                "name"
-            ]
-            organized["modals"][cls]["next_obj"] = organized["modals"][c_keys[i + 1]][
-                "name"
-            ]
-
-    c_keys = list(organized["routes"].keys())
-    for i, cls in enumerate(organized["routes"]):
-        if not i:
-            organized["routes"][cls]["prev_obj"] = "Info"
-            organized["routes"][cls]["next_obj"] = organized["routes"][c_keys[1]][
-                "name"
-            ]
-        elif i == len(c_keys) - 1:
-            organized["routes"][cls]["prev_obj"] = organized["routes"][
-                c_keys[len(c_keys) - 2]
-            ]["name"]
-            organized["routes"][cls]["next_obj"] = "Flagging"
-        else:
-            organized["routes"][cls]["prev_obj"] = organized["routes"][c_keys[i - 1]][
-                "name"
-            ]
-            organized["routes"][cls]["next_obj"] = organized["routes"][c_keys[i + 1]][
-                "name"
-            ]
-    c_keys = list(organized["py-client"].keys())
-    for i, cls in enumerate(organized["py-client"]):
-        if not i:
-            organized["py-client"][cls]["prev_obj"] = "Intro"
-            organized["py-client"][cls]["next_obj"] = organized["py-client"][c_keys[1]][
-                "name"
-            ]
-        elif i == len(c_keys) - 1:
-            organized["py-client"][cls]["prev_obj"] = organized["py-client"][
-                c_keys[len(c_keys) - 2]
-            ]["name"]
-        else:
-            organized["py-client"][cls]["prev_obj"] = organized["py-client"][
-                c_keys[i - 1]
-            ]["name"]
-            organized["py-client"][cls]["next_obj"] = organized["py-client"][
-                c_keys[i + 1]
-            ]["name"]
-    
-    for cls in organized["chatinterface"]:
-        organized["chatinterface"][cls]["prev_obj"] = "Block-Layouts"
-        organized["chatinterface"][cls]["next_obj"] = "Themes"
-
-    layout_keys = ["row", "column", "tab", "group", "accordion"]
-    for i, cls in enumerate(layout_keys):
-        if not i:
-            organized["building"][cls]["prev_obj"] = "Blocks"
-            organized["building"][cls]["next_obj"] = layout_keys[i+1].capitalize()
-        elif i == len(layout_keys) - 1:
-            organized["building"][cls]["prev_obj"] = layout_keys[i-1].capitalize()
-            organized["building"][cls]["next_obj"] = "Components"
-        else:
-            organized["building"][cls]["prev_obj"] = layout_keys[i-1].capitalize()
-            organized["building"][cls]["next_obj"] = layout_keys[i+1].capitalize()
-
-
-    organized["building"][cls]["prev_obj"]
-    
-
 
     organized["events_matrix"] = component_events
     organized["events"] = events

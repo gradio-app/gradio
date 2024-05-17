@@ -25,7 +25,8 @@ export async function load({ params, url }) {
 	let docs_json =
 		params?.version === "main"
 			? await load_main_docs()
-			: await load_release_docs(params.version || VERSION);
+			// : await load_release_docs(params.version || VERSION);
+			: await load_main_docs();
 
 	let docs: { [key: string]: any } = docs_json.docs;
 	let components = docs_json.docs.components;

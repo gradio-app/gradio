@@ -1,24 +1,4 @@
-import Prism from "prismjs";
-import "prismjs/components/prism-python";
-import { make_slug_processor } from "$lib/utils";
 import { error } from "@sveltejs/kit";
-import { style_formatted_text } from "$lib/text";
-import { compile } from "mdsvex";
-import { readFileSync } from 'fs';
-import path from 'path';
-
-
-
-let language = "python";
-
-const COLOR_SETS = [
-	["from-green-100", "to-green-50"],
-	["from-yellow-100", "to-yellow-50"],
-	["from-red-100", "to-red-50"],
-	["from-blue-100", "to-blue-50"],
-	["from-pink-100", "to-pink-50"],
-	["from-purple-100", "to-purple-50"]
-];
 
 export async function load({ params, parent }) {
 	const {
@@ -40,10 +20,6 @@ export async function load({ params, parent }) {
 	let headers = [];
 	let method_headers = [];
 	const get_slug = make_slug_processor();
-
-	// if (!pages.gradio.flatMap((cat: { pages: any; }) => cat.pages).some((page: { name: string; }) => page.name === params.doc)) {
-	// 	throw error(404);
-	// }
 
 	let page_path : string | null = null;
 
@@ -74,19 +50,6 @@ export async function load({ params, parent }) {
 			if (o == name) {
 				obj = docs[key][o];
 				mode = key;
-
-				if (obj.name == "Interface") {
-					obj.next_obj = "ChatInterface";
-				} else if (obj.name == "ChatInterface") {
-					obj.prev_obj = "Interface";
-					obj.next_obj = "TabbedInterface";
-				} else if (obj.name == "TabbedInterface") {
-					obj.prev_obj = "ChatInterface";
-					obj.next_obj = "Blocks";
-				} else if (obj.name == "Blocks") {
-					obj.prev_obj = "TabbedInterface";
-					obj.next_obj = "Row";
-				}
 
 				if ("description" in obj) {
 					headers.push(["Description", "description"]);
