@@ -1,5 +1,11 @@
 # @gradio/statustracker
 
+## 0.5.4
+
+### Features
+
+- [#8279](https://github.com/gradio-app/gradio/pull/8279) [`4350215`](https://github.com/gradio-app/gradio/commit/4350215348981aba6dea473884b047f096dcdf0f) - Link to troubleshooting guide in the custom component loading status.  Thanks @freddyaboulton!
+
 ## 0.5.3
 
 ### Fixes
