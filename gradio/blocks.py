@@ -2662,15 +2662,19 @@ Received outputs:
     def queue_enabled_for_fn(self, fn_index: int):
         return self.fns[fn_index].queue is not False
 
-    def get_api_info(self):
+    def get_api_info(self, all_endpoints: bool = False) -> dict[str, Any] | None:
         """
         Gets the information needed to generate the API docs from a Blocks.
+        Parameters:
+            all_endpoints: If True, returns information about all endpoints, including those with show_api=False.
         """
         config = self.config
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
         for fn in self.fns:
             if not fn.fn or fn.api_name is False:
+                continue
+            if not all_endpoints and not fn.show_api:
                 continue
 
             dependency_info = {"parameters": [], "returns": [], "show_api": fn.show_api}

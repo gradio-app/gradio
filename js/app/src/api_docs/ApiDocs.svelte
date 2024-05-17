@@ -138,7 +138,6 @@
 							{api_calls}
 							{dependencies}
 							root={space_id || root}
-							endpoints_info={info.named_endpoints}
 						/>
 						<p>
 							Note: Some API calls only affect the UI, so when using the
