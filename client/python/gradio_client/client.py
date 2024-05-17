@@ -581,7 +581,8 @@ class Client:
                 raise ValueError(
                     f"Could not fetch api info for {self.src}: {fetch.text}"
                 )
-
+        info["named_endpoints"] = {a:e for a, e in info["named_endpoints"].items() if e.pop("show_api", True)}
+        info["unnamed_endpoints"] = {a:e for a, e in info["unnamed_endpoints"].items() if e.pop("show_api", True)}
         return info
 
     def view_api(
@@ -668,8 +669,7 @@ class Client:
         human_info += f"Named API endpoints: {num_named_endpoints}\n"
 
         for api_name, endpoint_info in self._info["named_endpoints"].items():
-            if endpoint_info.get("show_api", True):
-                human_info += self._render_endpoints_info(api_name, endpoint_info)
+            human_info += self._render_endpoints_info(api_name, endpoint_info)
 
         if all_endpoints:
             human_info += f"\nUnnamed API endpoints: {num_unnamed_endpoints}\n"
