@@ -74,6 +74,7 @@
 	onMount(async () => {
 		const data = await get_info();
 		endpoints_info = data["named_endpoints"];
+		console.loe("data", data)
 		console.log("endpoints_info", endpoints_info)
 
 		let py_api_calls: string[] = api_calls.map((call) =>
