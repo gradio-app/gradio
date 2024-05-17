@@ -6,7 +6,7 @@
 	import { onMount, tick } from "svelte";
 
 	export let dependencies: Dependency[];
-	export let short_root: string
+	export let short_root: string;
 	export let root: string;
 	export let current_language: "python" | "javascript";
 
@@ -122,7 +122,8 @@ client.<span class="highlight"
 				{:else if current_language === "javascript"}
 					<pre>import &lbrace; Client &rbrace; from "@gradio/client";
 
-const app = await Client.connect(<span class="token string">"{short_root}"</span>);
+const app = await Client.connect(<span class="token string">"{short_root}"</span
+						>);
 {#each js_zipped as { call, api_name }}<!--
 -->
 await client.predict(<span
