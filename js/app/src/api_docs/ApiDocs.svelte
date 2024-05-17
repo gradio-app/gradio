@@ -137,7 +137,8 @@
 							{current_language}
 							{api_calls}
 							{dependencies}
-							root={space_id || root}
+							{root}
+							short_root={space_id || root}
 						/>
 						<p>
 							Note: Some API calls only affect the UI, so when using the

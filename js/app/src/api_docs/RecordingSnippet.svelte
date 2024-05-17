@@ -6,6 +6,7 @@
 	import { onMount, tick } from "svelte";
 
 	export let dependencies: Dependency[];
+	export let short_root: string
 	export let root: string;
 	export let current_language: "python" | "javascript";
 
@@ -72,11 +73,15 @@
 	}
 
 	onMount(async () => {
+		console.log("mount")
 		const data = await get_info();
+		console.log(data, "data");
 		endpoints_info = data["named_endpoints"];
+		console.log("endpoints_info", endpoints_info)
 		let py_api_calls: string[] = api_calls.map((call) =>
 			format_api_call(call, "py")
 		);
+		console.log("py_api_calls", py_api_calls)
 		let js_api_calls: string[] = api_calls.map((call) =>
 			format_api_call(call, "js")
 		);
@@ -110,7 +115,7 @@
 							class="highlight">import</span
 						> Client, file
 
-client = Client(<span class="token string">"{root}"</span>)
+client = Client(<span class="token string">"{short_root}"</span>)
 {#each py_zipped as { call, api_name }}<!--
 -->
 client.<span class="highlight"
@@ -121,7 +126,7 @@ client.<span class="highlight"
 				{:else if current_language === "javascript"}
 					<pre>import &lbrace; Client &rbrace; from "@gradio/client";
 
-const app = await Client.connect(<span class="token string">"{root}"</span>);
+const app = await Client.connect(<span class="token string">"{short_root}"</span>);
 {#each js_zipped as { call, api_name }}<!--
 -->
 await client.predict(<span
