@@ -1,5 +1,11 @@
 # website
 
+## 0.30.3
+
+### Features
+
+- [#8319](https://github.com/gradio-app/gradio/pull/8319) [`1f9a5f0`](https://github.com/gradio-app/gradio/commit/1f9a5f0aa395ab51731f7d2a6ef0268a319cdc1b) - Fix bad redirect breaking website build.  Thanks @aliabd!
+
 ## 0.30.2
 
 ### Dependency updates

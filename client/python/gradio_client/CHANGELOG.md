@@ -1,5 +1,11 @@
 # gradio_client
 
+## 0.16.4
+
+### Fixes
+
+- [#8247](https://github.com/gradio-app/gradio/pull/8247) [`8f46556`](https://github.com/gradio-app/gradio/commit/8f46556b38e35cffbadac74ff80445dceea3bcf5) - Fix api recorder.  Thanks @abidlabs!
+
 ## 0.16.3
 
 ### Features

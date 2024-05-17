@@ -1,5 +1,15 @@
 # gradio
 
+## 4.31.4
+
+### Features
+
+- [#8318](https://github.com/gradio-app/gradio/pull/8318) [`9e31697`](https://github.com/gradio-app/gradio/commit/9e31697d9435ea926a194262d9e845624df0e74e) - Added image-to-image diffusers pipeline.  Thanks @cswamy!
+
+### Fixes
+
+- [#8247](https://github.com/gradio-app/gradio/pull/8247) [`8f46556`](https://github.com/gradio-app/gradio/commit/8f46556b38e35cffbadac74ff80445dceea3bcf5) - Fix api recorder.  Thanks @abidlabs!
+
 ## 4.31.3
 
 ### Features
