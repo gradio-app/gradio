@@ -581,7 +581,14 @@ class Client:
                 raise ValueError(
                     f"Could not fetch api info for {self.src}: {fetch.text}"
                 )
-
+        info["named_endpoints"] = {
+            a: e for a, e in info["named_endpoints"].items() if e.pop("show_api", True)
+        }
+        info["unnamed_endpoints"] = {
+            a: e
+            for a, e in info["unnamed_endpoints"].items()
+            if e.pop("show_api", True)
+        }
         return info
 
     def view_api(
