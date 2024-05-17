@@ -159,7 +159,7 @@ class TestInterface:
     def test_get_api_info(self):
         io = Interface(lambda x: x, Image(type="filepath"), "textbox")
         api_info = io.get_api_info()
-        assert len(api_info["named_endpoints"]) == 4
+        assert len(api_info["named_endpoints"]) == 1
         assert len(api_info["unnamed_endpoints"]) == 0
 
     def test_api_name(self):

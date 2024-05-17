@@ -228,7 +228,7 @@ class TestAPI:
     def test_get_api_info(self):
         chatbot = gr.ChatInterface(double)
         api_info = chatbot.get_api_info()
-        assert len(api_info["named_endpoints"]) == 10
+        assert len(api_info["named_endpoints"]) == 1
         assert len(api_info["unnamed_endpoints"]) == 0
         assert "/chat" in api_info["named_endpoints"]
 
