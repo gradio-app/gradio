@@ -72,14 +72,15 @@
 	}
 
 	onMount(async () => {
+		console.log("mount")
 		const data = await get_info();
+		console.log(data, "data");
 		endpoints_info = data["named_endpoints"];
-		console.loe("data", data)
 		console.log("endpoints_info", endpoints_info)
-
 		let py_api_calls: string[] = api_calls.map((call) =>
 			format_api_call(call, "py")
 		);
+		console.log("py_api_calls", py_api_calls)
 		let js_api_calls: string[] = api_calls.map((call) =>
 			format_api_call(call, "js")
 		);
