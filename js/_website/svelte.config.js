@@ -81,7 +81,7 @@ function plugin() {
 							tagName: "img",
 							properties: {
 								src: "https://raw.githubusercontent.com/gradio-app/gradio/main/js/_website/src/lib/assets/img/anchor.svg",
-								className: ["anchor-img"]
+								className: ["anchor-img-small"]
 							},
 							children: []
 						}

@@ -7,18 +7,9 @@
 	export let data: any = {};
 
 	let name: string = data.name;
-	let obj = data.obj;
-	let mode = data.mode;
-	let components = data.components;
-	let helpers = data.helpers;
-	let modals = data.modals;
-	let routes = data.routes;
-	let py_client = data.py_client;
 	let on_main: boolean;
 	let wheel: string = data.wheel;
 	let url_version: string = data.url_version;
-
-	let current_selection = 0;
 
 	let y: number;
 	let header_targets: { [key: string]: HTMLElement } = {};
@@ -37,23 +28,17 @@
 			y < target_elem?.offsetTop + target_elem?.offsetHeight
 		) {
 			current_target = header_targets[target];
-			current_target.classList.add("text-orange-500");
+			current_target.classList.add("current-nav-link");
 			Object.values(header_targets).forEach((target) => {
-				if (target !== current_target) {
-					target.classList.remove("text-orange-500");
+				if (target !== current_target && target) {
+					target.classList.remove("current-nav-link");
 				}
 			});
 		} 
 	}
 
-	$: obj = data.obj;
-	$: mode = data.mode;
+	$: name = data.name;
 	$: on_main = data.on_main;
-	$: components = data.components;
-	$: helpers = data.helpers;
-	$: modals = data.modals;
-	$: routes = data.routes;
-	$: py_client = data.py_client;
 	$: url_version = data.url_version;
 	$: pages = data.pages.gradio;
 	$: page_path = data.page_path;
@@ -76,39 +61,41 @@
 
 	function import_component(page_path: string) {
 		import_promise = import(`/src/lib/templates/${page_path.slice(0, page_path.length - 4)}.svx`)
-		// import_promise = import(`/src/lib/templates/gradio/03_components/chatbot.svx`);
 	}
-	// $: console.log("import path", `/src/lib/templates/${page_path}`);
 
 	$: import_component(page_path);
-		
-	
+			
 	function get_headers() {
 		let headers : any[] = []
 		const h3_elements = document.querySelectorAll('h3');
-		console.log("h3_elements", h3_elements);
 		h3_elements.forEach((element) => {
 			headers.push({ title: element.textContent, id: element.id });
 	});
-		return headers;
+		const page_title_elem = document.querySelector('h1');
+		let page_title = {title: "", id: ""}
+		if (page_title_elem) {
+			page_title_elem.id = page_title_elem?.textContent?.toLowerCase().replace(/ /g, "-") || "";
+			page_title = {title: page_title_elem?.textContent || "", id: page_title_elem.id};
+		}
+		return { headers: headers, page_title: page_title};
 	}
-	var headers : any[] = []
+	
+	var all_headers : {headers: any[], page_title: {title: string, id: string}} = {headers: [], page_title: {title: "", id: ""}};
 
 	var dynamic_component: any = null;
 
 	$: if (dynamic_component) {
-		headers = get_headers();
-		console.log(headers)
+		all_headers = get_headers();
 	}
 
 
 </script>
 
 <MetaTags
-	title={"Gradio " + obj.name + " Docs"}
+	title={"Gradio " + all_headers.page_title.title + " Docs"}
 	url={$page.url.pathname}
 	canonical={$page.url.pathname}
-	description={obj.description}
+	description={"Gradio docs for using " + all_headers.page_title.title}
 />
 
 <svelte:window bind:scrollY={y} />
@@ -116,7 +103,7 @@
 <main class="container mx-auto px-4 flex gap-4">
 	<div class="flex w-full">
 		<DocsNav
-			current_nav_link={obj.name.toLowerCase()}
+			current_nav_link={name}
 			library_pages={pages}
 		/>
 
@@ -186,7 +173,7 @@
 
 				<div class="flex flex-row">
 					<div class="lg:ml-10">
-						<div class="obj" id={obj.slug}>
+						<div class="obj">
 							{#if import_promise}
 								{#await import_promise}
 								{:then {default: def}}
@@ -232,11 +219,11 @@
 			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:block lg:w-2/12"
 		>
 			<div class="mx-8">
-				<a class="thin-link py-2 block text-lg" href="#{obj.slug}">{obj.name}</a
+				<a class="thin-link py-2 block text-lg" href="#{all_headers.page_title.id}">{all_headers.page_title.title}</a
 				>
-				{#if headers && headers.length > 0}
+				{#if all_headers.headers && all_headers.headers.length > 0}
 					<ul class="text-slate-700 text-lg leading-6">
-						{#each headers as header}
+						{#each all_headers.headers as header}
 							<li>
 								<a
 									bind:this={header_targets[header.id]}
@@ -248,30 +235,6 @@
 						{/each}
 					</ul>
 				{/if}
-						<!-- {#if method_headers.length > 0}
-							{#each method_headers as method_header}
-								<li class="">
-									<a
-										bind:this={header_targets[method_header[1]]}
-										href="#{method_header[1]}"
-										class="thin-link block py-2 font-light second-nav-link sub-link"
-										>&nbsp&nbsp&nbsp&nbsp{method_header[0]}</a
-									>
-								</li>
-							{/each}
-						{/if} -->
-						<!-- {#if obj.guides && obj.guides.length > 0}
-							<li>
-								<a
-									bind:this={header_targets["guides"]}
-									href="#guides"
-									class="thin-link block py-2 font-light second-nav-link"
-									>Guides</a
-								>
-							</li>
-						{/if}
-					</ul>
-				{/if} -->
 			</div>
 		</div>
 	</div>

@@ -5,11 +5,13 @@ let docs: { [key: string]: any } = docs_json.docs;
 
 export function get_object(name: string) {
     let obj: any;
-    for (const key in docs) {
-        for (const o in docs[key]) {
-            if (o === name) {
-                obj = docs[key][o];
-                break;
+    for (const library in docs) {
+        for (const key in docs[library]) {
+            for (const o in docs[library][key]) {
+                if (o === name) {
+                    obj = docs[library][key][o];
+                    break;
+                }
             }
         }
     }

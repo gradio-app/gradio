@@ -6,6 +6,7 @@ import requests
 
 
 from gradio_client.documentation import document_cls, generate_documentation
+import gradio
 from ..guides import guides
 
 DIR = os.path.dirname(__file__)

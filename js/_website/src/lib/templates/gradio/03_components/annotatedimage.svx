@@ -6,24 +6,32 @@
     import DemosSection from "$lib/components/DemosSection.svelte";
     import FunctionsSection from "$lib/components/FunctionsSection.svelte";
     import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
 
 
     let obj = get_object("annotatedimage");
+    let usage_snippet = `${obj.parent}.${obj.name}(···)`
+
 </script>
 
 <!--- Title -->
 # {obj.name}
 
 <!--- Usage -->
-<div class="codeblock"><pre><code class="code language-python">{obj.parent}.{obj.name}(···)</code></pre></div>
+<div class="codeblock">
+    <CopyButton content={usage_snippet}/>
+    <pre><code class="code language-python">{usage_snippet}</code></pre>
+</div>
 
 <!--- Description -->
 ### Description
-## {obj.description}
+## {style_formatted_text(obj.description)}
 
 <!-- Behavior -->
 ### Behavior
-## **As input component**: {obj.preprocess.return_doc.doc}
+## **As input component**: {style_formatted_text(obj.preprocess.return_doc.doc)}
 ##### Your function should accept one of these types:
 <!-- <div class="codeblock"><pre><code class="code language-python">{obj.preprocess_code_snippet}</code></pre></div> -->
 
