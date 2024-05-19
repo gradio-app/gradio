@@ -263,7 +263,7 @@
 
 		async function make_prediction(payload: Payload): Promise<void> {
 			if (api_recorder_visible) {
-				api_calls = [...api_calls, payload];
+				api_calls = [...api_calls, JSON.parse(JSON.stringify(payload))];
 			}
 
 			let submission: ReturnType<typeof app.submit>;
