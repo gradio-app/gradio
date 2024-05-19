@@ -3,7 +3,12 @@
 	import { copy } from "@gradio/utils";
 
 	import { dequal } from "dequal/lite";
-	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
+	import {
+		onMount,
+		beforeUpdate,
+		afterUpdate,
+		createEventDispatcher
+	} from "svelte";
 	import { ShareButton } from "@gradio/atoms";
 	import { BaseStaticAudio } from "@gradio/audio";
 	import { BaseGallery } from "@gradio/gallery";
@@ -76,7 +81,8 @@
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
-	let isModalOpen = false;
+	let isImagePreviewOpen = false;
+	let image_preview_close_button: HTMLButtonElement;
 
 	$: adjust_text_size = () => {
 		let style = getComputedStyle(document.body);
@@ -112,6 +118,14 @@
 		like: LikeData;
 	}>();
 
+	onMount(() => {
+		div.querySelectorAll("img").forEach((n) => {
+			n.addEventListener("click", () => {
+				isImagePreviewOpen = true;
+			});
+		});
+	});
+
 	beforeUpdate(() => {
 		autoscroll =
 			div && div.offsetHeight + div.scrollTop > div.scrollHeight - 100;
@@ -131,11 +145,6 @@
 				});
 			});
 		}
-		div.querySelectorAll("img").forEach((n) => {
-			n.addEventListener("click", () => {
-				isModalOpen = true
-			});
-		});
 	});
 
 	$: {
@@ -203,10 +212,19 @@
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
 					{#if message !== null}
-						{#if isModalOpen && message !== null && typeof message !== "string" && "component" in message}
-							<div class="modal">
-								<button class="modal-close-button" on:click={event => {event.stopPropagation(); isModalOpen = false;}}><Clear /></button>
-								<img class="modal-content" src={message.value.file.url} alt={message.value.file.alt_text} />
+						{#if isImagePreviewOpen && message !== null && typeof message !== "string" && "component" in message && message.component == "image"}
+							<div class="image-preview">
+								<img
+									src={message.value.file.url}
+									alt={message.value.file.alt_text}
+								/>
+								<button
+									bind:this={image_preview_close_button}
+									class="image-preview-close-button"
+									on:click={() => {
+										isImagePreviewOpen = false;
+									}}><Clear /></button
+								>
 							</div>
 						{/if}
 						<div class="message-row {layout} {j == 0 ? 'user-row' : 'bot-row'}">
@@ -360,41 +378,6 @@
 </div>
 
 <style>
-	.modal {
-        position: absolute;
-        z-index: 999;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0,0,0,0.9);
-    }
-
-    .modal-content {
-        margin: auto;
-        display: flex;
-        width: 80%;
-        max-width: 700px;
-    }
-
-	.modal :global(img) {
-		width: 100%;
-		height: 100%;
-		object-fit: contain;
-	}
-
-	.modal-close-button {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: none;
-        border: none;
-        font-size: 1.5em;
-        cursor: pointer;
-		height: 30px;
-		width: 30px;
-    }
 	.placeholder-container {
 		display: flex;
 		justify-content: center;
@@ -703,9 +686,45 @@
 		max-width: 600px;
 		object-fit: contain;
 	}
+
+	/* Image preview */
 	.message :global(.preview) {
 		object-fit: contain;
 		width: 95%;
 		max-height: 93%;
+	}
+
+	.image-preview {
+		position: absolute;
+		z-index: 999;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		overflow: auto;
+		background-color: rgba(0, 0, 0, 0.9);
+	}
+
+	.image-preview :global(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+	}
+
+	.image-preview-close-button {
+		position: absolute;
+		top: 10px;
+		right: 10px;
+		background: none;
+		border: none;
+		font-size: 1.5em;
+		cursor: pointer;
+		height: 30px;
+		width: 30px;
+		padding: 3px;
+		background: var(--bg-color);
+		box-shadow: var(--shadow-drop);
+		border: 1px solid var(--button-secondary-border-color);
+		border-radius: var(--radius-lg);
 	}
 </style>
