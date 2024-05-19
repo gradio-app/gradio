@@ -295,7 +295,7 @@
 					handle_update(data, fn_index);
 					set_status($loading_status);
 				})
-				.on("render", ({ data, fn_index }) => {
+				.on("render", ({ data }) => {
 					let _components: ComponentMeta[] = data.components;
 					let render_layout: LayoutNode = data.layout;
 					let _dependencies: Dependency[] = data.dependencies;
