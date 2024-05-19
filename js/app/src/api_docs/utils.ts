@@ -73,6 +73,7 @@ function replace_file_data_with_file_function(obj: any): any {
 	if (typeof obj === "object" && obj !== null && !Array.isArray(obj)) {
 		if (
 			"url" in obj &&
+			obj.url &&
 			"meta" in obj &&
 			obj.meta?._type === "gradio.FileData"
 		) {
