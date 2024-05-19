@@ -933,6 +933,7 @@ def special_args(
         ):
             event_data_index = i
             if inputs is not None and event_data is not None:
+                processing_utils.check_all_files_in_cache(event_data._data)
                 inputs.insert(i, type_hint(event_data.target, event_data._data))
         elif (
             param.default is not param.empty and inputs is not None and len(inputs) <= i

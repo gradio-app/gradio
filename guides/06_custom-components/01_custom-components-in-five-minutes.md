@@ -10,6 +10,7 @@ This guide will cover how to get started making custom components.
 You will need to have:
 
 * Python 3.8+ (<a href="https://www.python.org/downloads/" target="_blank">install here</a>)
+* pip 21.3+ (`python -m pip install --upgrade pip`)
 * Node.js v16.14+ (<a href="https://nodejs.dev/en/download/package-manager/" target="_blank">install here</a>)
 * npm 9+ (<a href="https://docs.npmjs.com/downloading-and-installing-node-js-and-npm/" target="_blank">install here</a>)
 * Gradio 4.0+ (`pip install --upgrade gradio`)

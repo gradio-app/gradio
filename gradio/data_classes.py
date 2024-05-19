@@ -16,7 +16,7 @@ from gradio_client.utils import traverse
 from . import wasm_utils
 
 if not wasm_utils.IS_WASM or TYPE_CHECKING:
-    from pydantic import BaseModel, RootModel, ValidationError
+    from pydantic import BaseModel, JsonValue, RootModel, ValidationError
 else:
     # XXX: Currently Pyodide V2 is not available on Pyodide,
     # so we install V1 for the Wasm version.
@@ -24,6 +24,8 @@ else:
 
     from pydantic import BaseModel as BaseModelV1
     from pydantic import ValidationError, schema_of
+
+    JsonValue = Any
 
     # Map V2 method calls to V1 implementations.
     # Ref: https://docs.pydantic.dev/latest/migration/#changes-to-pydanticbasemodel
@@ -159,6 +161,12 @@ class GradioBaseModel(ABC):
     @abstractmethod
     def from_json(cls, x) -> GradioDataModel:
         pass
+
+
+class JsonData(RootModel):
+    """JSON data returned from a component that should not be modified further."""
+
+    root: JsonValue
 
 
 class GradioModel(GradioBaseModel, BaseModel):

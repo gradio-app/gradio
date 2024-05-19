@@ -17,7 +17,7 @@ from starlette.testclient import TestClient
 from tqdm import tqdm
 
 import gradio as gr
-from gradio import utils
+from gradio import helpers, utils
 
 
 @patch("gradio.utils.get_cache_folder", return_value=Path(tempfile.mkdtemp()))
@@ -879,3 +879,21 @@ async def test_info_isolation(async_handler: bool):
 
     assert alice_logs == "Hello Alice"
     assert bob_logs == "Hello Bob"
+
+
+def test_check_event_data_in_cache():
+    def get_select_index(evt: gr.SelectData):
+        return evt.index
+
+    with pytest.raises(gr.Error):
+        helpers.special_args(
+            get_select_index,
+            inputs=[],
+            event_data=helpers.EventData(
+                None,
+                {
+                    "index": {"path": "foo", "meta": {"_type": "gradio.FileData"}},
+                    "value": "whatever",
+                },
+            ),
+        )

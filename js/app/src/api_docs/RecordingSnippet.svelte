@@ -3,78 +3,136 @@
 	import CopyButton from "./CopyButton.svelte";
 	import { Block } from "@gradio/atoms";
 	import { represent_value } from "./utils";
+	import { onMount, tick } from "svelte";
 
 	export let dependencies: Dependency[];
+	export let short_root: string;
 	export let root: string;
 	export let current_language: "python" | "javascript";
-	export let endpoints_info: any;
 
-	let python_code: HTMLElement;
-	let js_code: HTMLElement;
+	let code: HTMLElement;
+	let code_text: string;
 	export let api_calls: Payload[] = [];
 
-	function format_api_call(call: Payload): string {
+	async function get_info(): Promise<{
+		named_endpoints: any;
+		unnamed_endpoints: any;
+	}> {
+		let response = await fetch(root + "info/?all_endpoints=true");
+		let data = await response.json();
+		return data;
+	}
+
+	let endpoints_info: any;
+	let py_zipped: { call: string; api_name: string }[] = [];
+	let js_zipped: { call: string; api_name: string }[] = [];
+
+	function format_api_call(call: Payload, lang: "py" | "js"): string {
 		const api_name = `/${dependencies[call.fn_index].api_name}`;
-		const params = call.data
+		// If an input is undefined (distinct from null) then it corresponds to a State component.
+		let call_data_excluding_state = call.data.filter(
+			(d) => typeof d !== "undefined"
+		);
+
+		const params = call_data_excluding_state
 			.map((param, index) => {
-				const param_info = endpoints_info[api_name].parameters[index];
-				const param_name = param_info.parameter_name;
-				const python_type = param_info.python_type.type;
-				return `  ${param_name}=${represent_value(
-					param as string,
-					python_type,
-					"py"
-				)}`;
+				if (endpoints_info[api_name]) {
+					const param_info = endpoints_info[api_name].parameters[index];
+					if (!param_info) {
+						return undefined;
+					}
+					const param_name = param_info.parameter_name;
+					const python_type = param_info.python_type.type;
+					if (lang === "py") {
+						return `  ${param_name}=${represent_value(
+							param as string,
+							python_type,
+							"py"
+						)}`;
+					}
+					return `    ${param_name}: ${represent_value(
+						param as string,
+						python_type,
+						"js"
+					)}`;
+				}
+				return `  ${represent_value(param as string, undefined, lang)}`;
 			})
+			.filter((d) => typeof d !== "undefined")
 			.join(",\n");
 		if (params) {
-			return `${params},\n`;
+			if (lang === "py") {
+				return `${params},\n`;
+			}
+			return ` {\n${params},\n}`;
 		}
-		return `${params}`;
+		if (lang === "py") {
+			return "";
+		}
+		return "\n";
 	}
+
+	onMount(async () => {
+		const data = await get_info();
+		endpoints_info = data["named_endpoints"];
+		let py_api_calls: string[] = api_calls.map((call) =>
+			format_api_call(call, "py")
+		);
+		let js_api_calls: string[] = api_calls.map((call) =>
+			format_api_call(call, "js")
+		);
+		let api_names: string[] = api_calls.map(
+			(call) => dependencies[call.fn_index].api_name || ""
+		);
+		py_zipped = py_api_calls.map((call, index) => ({
+			call,
+			api_name: api_names[index]
+		}));
+		js_zipped = js_api_calls.map((call, index) => ({
+			call,
+			api_name: api_names[index]
+		}));
+
+		await tick();
+		code_text = code.innerText;
+	});
 </script>
 
 <div class="container">
 	<!-- <EndpointDetail {named} api_name={dependency.api_name} /> -->
 	<Block border_mode={"focus"}>
 		<code>
-			{#if current_language === "python"}
-				<div class="copy">
-					<CopyButton code={python_code?.innerText} />
-				</div>
-				<div bind:this={python_code}>
+			<div class="copy">
+				<CopyButton code={code_text} />
+			</div>
+			<div bind:this={code}>
+				{#if current_language === "python"}
 					<pre><span class="highlight">from</span> gradio_client <span
 							class="highlight">import</span
 						> Client, file
 
-client = Client(<span class="token string">"{root}"</span>)
-{#each api_calls as call}<!--
+client = Client(<span class="token string">"{short_root}"</span>)
+{#each py_zipped as { call, api_name }}<!--
 -->
 client.<span class="highlight"
 								>predict(
-{format_api_call(call)}  api_name=<span class="api-name"
-									>"/{dependencies[call.fn_index].api_name}"</span
-								>
+{call}  api_name=<span class="api-name">"/{api_name}"</span>
 )
 </span>{/each}</pre>
-				</div>
-			{:else if current_language === "javascript"}
-				<div class="copy">
-					<CopyButton code={js_code?.innerText} />
-				</div>
-				<div bind:this={js_code}>
+				{:else if current_language === "javascript"}
 					<pre>import &lbrace; Client &rbrace; from "@gradio/client";
 
-const app = await Client.connect(<span class="token string">"{root}"</span>);
-{#each api_calls as call}<!--
+const app = await Client.connect(<span class="token string">"{short_root}"</span
+						>);
+{#each js_zipped as { call, api_name }}<!--
 -->
-{#if dependencies[call.fn_index].backend_fn}client.predict(<span
-									class="api-name"
-									>"/{dependencies[call.fn_index].api_name}"</span
-								>", {JSON.stringify(call.data, null, 2)});{/if}
-						{/each}</pre>
-				</div>{/if}
-		</code>
+await client.predict(<span
+								class="api-name">
+	"/{api_name}"</span
+							>{#if call},{/if}{call});
+						{/each}</pre>{/if}
+			</div></code
+		>
 	</Block>
 </div>
 
