@@ -716,7 +716,7 @@ class App(FastAPI):
                 blocks=app.get_blocks(), api_name=api_name, body=body
             )
 
-            if not app.get_blocks().api_open and not fn.queue:
+            if not app.get_blocks().api_open and fn.queue:
                 raise HTTPException(
                     detail="This API endpoint does not accept direct HTTP POST requests. Please join the queue to use this API.",
                     status_code=status.HTTP_404_NOT_FOUND,
