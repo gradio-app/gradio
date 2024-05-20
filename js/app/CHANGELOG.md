@@ -1,5 +1,197 @@
 # @gradio/app
 
+## 1.35.4
+
+### Fixes
+
+- [#8247](https://github.com/gradio-app/gradio/pull/8247) [`8f46556`](https://github.com/gradio-app/gradio/commit/8f46556b38e35cffbadac74ff80445dceea3bcf5) - Fix api recorder.  Thanks @abidlabs!
+
+## 1.35.3
+
+### Features
+
+- [#8279](https://github.com/gradio-app/gradio/pull/8279) [`4350215`](https://github.com/gradio-app/gradio/commit/4350215348981aba6dea473884b047f096dcdf0f) - Link to troubleshooting guide in the custom component loading status.  Thanks @freddyaboulton!
+
+### Dependency updates
+
+- @gradio/code@0.6.5
+- @gradio/client@0.19.3
+- @gradio/statustracker@0.5.4
+- @gradio/annotatedimage@0.6.4
+- @gradio/audio@0.11.4
+- @gradio/button@0.2.37
+- @gradio/chatbot@0.10.4
+- @gradio/dataframe@0.8.4
+- @gradio/dataset@0.1.37
+- @gradio/downloadbutton@0.1.14
+- @gradio/file@0.7.4
+- @gradio/fileexplorer@0.4.5
+- @gradio/gallery@0.10.4
+- @gradio/image@0.11.4
+- @gradio/imageeditor@0.7.4
+- @gradio/model3d@0.10.4
+- @gradio/multimodaltextbox@0.4.4
+- @gradio/simpleimage@0.5.4
+- @gradio/upload@0.10.4
+- @gradio/uploadbutton@0.6.5
+- @gradio/video@0.8.4
+- @gradio/accordion@0.3.14
+- @gradio/checkbox@0.3.4
+- @gradio/checkboxgroup@0.5.4
+- @gradio/colorpicker@0.3.4
+- @gradio/dropdown@0.7.4
+- @gradio/fallback@0.3.4
+- @gradio/highlightedtext@0.6.3
+- @gradio/html@0.2.4
+- @gradio/json@0.2.4
+- @gradio/label@0.3.4
+- @gradio/markdown@0.7.4
+- @gradio/number@0.4.4
+- @gradio/paramviewer@0.4.13
+- @gradio/plot@0.4.4
+- @gradio/radio@0.5.4
+- @gradio/simpledropdown@0.2.4
+- @gradio/simpletextbox@0.2.4
+- @gradio/slider@0.4.4
+- @gradio/textbox@0.6.3
+
+## 1.35.2
+
+### Dependency updates
+
+- @gradio/upload@0.10.3
+- @gradio/code@0.6.4
+- @gradio/client@0.19.2
+- @gradio/annotatedimage@0.6.3
+- @gradio/audio@0.11.3
+- @gradio/button@0.2.36
+- @gradio/chatbot@0.10.3
+- @gradio/dataframe@0.8.3
+- @gradio/dataset@0.1.36
+- @gradio/downloadbutton@0.1.13
+- @gradio/file@0.7.3
+- @gradio/fileexplorer@0.4.4
+- @gradio/gallery@0.10.3
+- @gradio/image@0.11.3
+- @gradio/imageeditor@0.7.3
+- @gradio/model3d@0.10.3
+- @gradio/multimodaltextbox@0.4.3
+- @gradio/simpleimage@0.5.3
+- @gradio/uploadbutton@0.6.4
+- @gradio/video@0.8.3
+
+## 1.35.1
+
+### Features
+
+- [#8263](https://github.com/gradio-app/gradio/pull/8263) [`de52f0e`](https://github.com/gradio-app/gradio/commit/de52f0e5af75688713e4e96a195208576a4d64ad) - Reduce the analytics that are collected in Gradio.  Thanks @abidlabs!
+
+### Fixes
+
+- [#8272](https://github.com/gradio-app/gradio/pull/8272) [`fbf4edd`](https://github.com/gradio-app/gradio/commit/fbf4edde7c896cdf4c903463e44c31ed96111b3c) - ensure client works for private spaces.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/code@0.6.3
+- @gradio/statustracker@0.5.3
+- @gradio/client@0.19.1
+- @gradio/accordion@0.3.13
+- @gradio/annotatedimage@0.6.2
+- @gradio/audio@0.11.2
+- @gradio/chatbot@0.10.2
+- @gradio/checkbox@0.3.3
+- @gradio/checkboxgroup@0.5.3
+- @gradio/colorpicker@0.3.3
+- @gradio/dataframe@0.8.2
+- @gradio/dropdown@0.7.3
+- @gradio/fallback@0.3.3
+- @gradio/file@0.7.2
+- @gradio/fileexplorer@0.4.3
+- @gradio/gallery@0.10.2
+- @gradio/highlightedtext@0.6.2
+- @gradio/html@0.2.3
+- @gradio/image@0.11.2
+- @gradio/imageeditor@0.7.2
+- @gradio/json@0.2.3
+- @gradio/label@0.3.3
+- @gradio/markdown@0.7.3
+- @gradio/model3d@0.10.2
+- @gradio/multimodaltextbox@0.4.2
+- @gradio/number@0.4.3
+- @gradio/paramviewer@0.4.12
+- @gradio/plot@0.4.3
+- @gradio/radio@0.5.3
+- @gradio/simpledropdown@0.2.3
+- @gradio/simpleimage@0.5.2
+- @gradio/simpletextbox@0.2.3
+- @gradio/slider@0.4.3
+- @gradio/textbox@0.6.2
+- @gradio/video@0.8.2
+- @gradio/button@0.2.35
+- @gradio/dataset@0.1.35
+- @gradio/downloadbutton@0.1.12
+- @gradio/upload@0.10.2
+- @gradio/uploadbutton@0.6.3
+
+## 1.35.0
+
+### Features
+
+- [#8219](https://github.com/gradio-app/gradio/pull/8219) [`32d915a`](https://github.com/gradio-app/gradio/commit/32d915aad5c6d9b2f5fdcafef39e246fc1b2d852) - Apply clean_indent() to the file contents specified with <gradio-file> tags.  Thanks @whitphx!
+- [#8110](https://github.com/gradio-app/gradio/pull/8110) [`5436031`](https://github.com/gradio-app/gradio/commit/5436031f92c1596282eb64e1e74d555f279e9697) - Render decorator 2.  Thanks @aliabid94!
+- [#8197](https://github.com/gradio-app/gradio/pull/8197) [`e09b4e8`](https://github.com/gradio-app/gradio/commit/e09b4e8216b970bc1b142a0f08e7d190b954eb35) - Add support for passing keyword args to `data` in JS client.  Thanks @hannahblair!
+
+### Fixes
+
+- [#8252](https://github.com/gradio-app/gradio/pull/8252) [`22df61a`](https://github.com/gradio-app/gradio/commit/22df61a26adf8023f6dd49c051979990e8d3879a) - Client node fix.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/atoms@0.7.3
+- @gradio/statustracker@0.5.2
+- @gradio/code@0.6.2
+- @gradio/markdown@0.7.2
+- @gradio/client@0.19.0
+- @gradio/icons@0.4.1
+- @gradio/audio@0.11.1
+- @gradio/image@0.11.1
+- @gradio/upload@0.10.1
+- @gradio/video@0.8.1
+- @gradio/chatbot@0.10.1
+- @gradio/multimodaltextbox@0.4.1
+- @gradio/dataframe@0.8.1
+- @gradio/file@0.7.1
+- @gradio/gallery@0.10.1
+- @gradio/imageeditor@0.7.1
+- @gradio/model3d@0.10.1
+- @gradio/simpleimage@0.5.1
+- @gradio/annotatedimage@0.6.1
+- @gradio/button@0.2.34
+- @gradio/dataset@0.1.34
+- @gradio/downloadbutton@0.1.11
+- @gradio/fileexplorer@0.4.2
+- @gradio/uploadbutton@0.6.2
+- @gradio/dropdown@0.7.2
+- @gradio/form@0.1.17
+- @gradio/highlightedtext@0.6.1
+- @gradio/json@0.2.2
+- @gradio/label@0.3.2
+- @gradio/plot@0.4.2
+- @gradio/simpledropdown@0.2.2
+- @gradio/simpletextbox@0.2.2
+- @gradio/textbox@0.6.1
+- @gradio/accordion@0.3.12
+- @gradio/box@0.1.17
+- @gradio/checkbox@0.3.2
+- @gradio/checkboxgroup@0.5.2
+- @gradio/colorpicker@0.3.2
+- @gradio/fallback@0.3.2
+- @gradio/html@0.2.2
+- @gradio/number@0.4.2
+- @gradio/paramviewer@0.4.11
+- @gradio/radio@0.5.2
+- @gradio/slider@0.4.2
+
 ## 1.34.0
 
 ### Features

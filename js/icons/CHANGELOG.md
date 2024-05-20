@@ -1,5 +1,11 @@
 # @gradio/icons
 
+## 0.4.1
+
+### Features
+
+- [#8236](https://github.com/gradio-app/gradio/pull/8236) [`bf909bd`](https://github.com/gradio-app/gradio/commit/bf909bd14532a27e119fb401003a7d94c0618ffb) - Change upload icon for MultimodalTextbox.  Thanks @dawoodkhan82!
+
 ## 0.4.0
 
 ### Features

@@ -82,13 +82,26 @@ class TestBlocksMethods:
             gr.Image(height=54, width=240)
 
         config1 = demo1.get_config_file()
-        demo2 = gr.Blocks.from_config(config1, [update], "https://fake.hf.space")
+        demo2 = gr.Blocks.from_config(config1, [update], fake_url)
 
         for component in config1["components"]:
             component["props"]["proxy_url"] = f"{fake_url}/"
         config2 = demo2.get_config_file()
 
         assert assert_configs_are_equivalent_besides_ids(config1, config2)
+
+    def test_load_config_with_sucess(self):
+        fake_url = "https://fake.hf.space"
+        with gr.Blocks() as demo1:
+            t1 = gr.Textbox()
+            t2 = gr.Textbox()
+            t3 = gr.Textbox()
+            t4 = gr.Textbox()
+            t1.change(lambda x: x, t1, t2).then(lambda x: x, t2, t3).success(
+                lambda x: x, t3, t4
+            )
+        config1 = demo1.get_config_file()
+        gr.Blocks.from_config(config1, [lambda x: x] * 3, fake_url)
 
     def test_partial_fn_in_config(self):
         def greet(name, formatter):
@@ -1269,7 +1282,7 @@ class TestCancel:
 
         cancel_fun = demo.fns[-1].fn
         task = asyncio.create_task(long_job())
-        task.set_name("foo_0")
+        task.set_name("foo_0<gradio-sep>event")
         # If cancel_fun didn't cancel long_job the message would be printed to the console
         # The test would also take 10 seconds
         await asyncio.gather(task, cancel_fun("foo"), return_exceptions=True)
@@ -1301,7 +1314,7 @@ class TestCancel:
         cancel_fun = demo.fns[-1].fn
 
         task = asyncio.create_task(long_job())
-        task.set_name("foo_1")
+        task.set_name("foo_1<gradio-sep>event")
         await asyncio.gather(task, cancel_fun("foo"), return_exceptions=True)
         captured = capsys.readouterr()
         assert "HELLO FROM LONG JOB" not in captured.out

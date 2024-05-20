@@ -12,7 +12,7 @@
 	export let show_label: boolean;
 	export let root: string;
 	export let upload: Client["upload"];
-	export let stream_handler: Client["stream_factory"];
+	export let stream_handler: Client["stream"];
 
 	let upload_component: Upload;
 	let uploading = false;

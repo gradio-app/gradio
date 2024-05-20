@@ -226,7 +226,7 @@
 			{waveform_options}
 			{trim_region_settings}
 			upload={gradio.client.upload}
-			stream_handler={gradio.client.stream_factory}
+			stream_handler={gradio.client.stream}
 		>
 			<UploadText i18n={gradio.i18n} type="audio" />
 		</InteractiveAudio>

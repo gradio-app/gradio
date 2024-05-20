@@ -89,7 +89,7 @@ What if you want to create a Gradio app that spans multiple files? Or that has c
 
 ### Multiple Files
 
-Adding multiple files within a `@gradio/lite` app is very straightrward: use the `<gradio-file>` tag. You can have as many `<gradio-file>` tags as you want, but each one needs to have a `name` attribute and the entry point to your Gradio app should have the `entrypoint` attribute.
+Adding multiple files within a `@gradio/lite` app is very straightforward: use the `<gradio-file>` tag. You can have as many `<gradio-file>` tags as you want, but each one needs to have a `name` attribute and the entry point to your Gradio app should have the `entrypoint` attribute.
 
 Here's an example:
 
