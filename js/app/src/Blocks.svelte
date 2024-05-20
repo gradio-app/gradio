@@ -359,6 +359,13 @@
 					}
 
 					if (status.stage === "complete") {
+						status.changed_state_ids?.forEach((id) => {
+							dependencies
+								.filter((dep) => dep.targets.some(([_id, _]) => _id === id))
+								.forEach((dep) => {
+									wait_then_trigger_api_call(dep.id, payload.trigger_id);
+								});
+						});
 						dependencies.forEach(async (dep) => {
 							if (dep.trigger_after === fn_index) {
 								wait_then_trigger_api_call(dep.id, payload.trigger_id);
