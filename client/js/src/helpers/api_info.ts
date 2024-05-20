@@ -206,6 +206,7 @@ export function get_description(
 	return type?.description;
 }
 
+/* eslint-disable complexity */
 export function handle_message(
 	data: any,
 	last_status: Status["stage"]
@@ -338,6 +339,8 @@ export function handle_message(
 
 	return { type: "none", status: { stage: "error", queue } };
 }
+/* eslint-enable complexity */
+
 
 /**
  * Maps the provided `data` to the parameters defined by the `/info` endpoint response.
