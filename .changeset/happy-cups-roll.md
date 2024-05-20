@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Use Any if JsonValue cannot be imported
+fix:Use Any if JsonValue cannot be imported
