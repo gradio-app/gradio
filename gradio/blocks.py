@@ -2124,7 +2124,7 @@ Received outputs:
     def validate_queue_settings(self):
         for dep in self.fns.values():
             for i in dep.cancels:
-                if dep.queue == False:
+                if self.fns[i].queue == False:
                     raise ValueError(
                         "Queue needs to be enabled! "
                         "You may get this error by either 1) passing a function that uses the yield keyword "
