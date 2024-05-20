@@ -31,7 +31,6 @@
 }
 
 .prose h1 {
-	margin-top: 0;
 	font-size: var(--text-xxl);
 }
 
@@ -62,7 +61,7 @@
 
 .prose ul > p,
 .prose li > p {
-	display: inline-block;
+	display: inline;
 }
 .prose ol,
 .prose ul {
@@ -75,6 +74,7 @@
 .prose ol ul {
 	margin: 0.5em 0 0.5em 0em;
 	font-size: 90%;
+	padding-inline-start: 2em;
 }
 .prose li {
 	margin-bottom: 0.5em;
@@ -88,7 +88,7 @@
 .prose th,
 .prose td {
 	border-bottom: 1px solid #e1e1e1;
-	padding: 12px 15px;
+	padding: var(--text-xs) var(--text-md);
 	text-align: left;
 }
 
@@ -114,6 +114,17 @@
 .prose ol,
 .prose form {
 	margin-bottom: var(--spacing-md);
+}
+
+.prose table,
+.prose tr,
+.prose td,
+.prose th {
+	border: 1px solid var(--body-text-color);
+}
+.prose table {
+	border-collapse: collapse;
+	margin-bottom: var(--spacing-xxl);
 }
 
 /* links
@@ -150,6 +161,6 @@
 	padding-left: var(--size-2);
 }
 
-.prose:last-child {
+.prose :last-child {
 	margin-bottom: 0 !important;
 }
