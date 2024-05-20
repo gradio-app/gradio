@@ -107,9 +107,10 @@
 		<p class="font-semibold px-4 my-2 block">{category_pages.category}</p>
 		{#each category_pages.pages as page}
 			<a
-			class:current-nav-link={current_nav_link == page.name}
-			class="thin-link px-4 block leading-8"
-			href="{page.name}">{page.pretty_name}</a>
+				class:current-nav-link={current_nav_link == page.name}
+				class="thin-link px-4 block leading-8"
+				href={page.name}>{page.pretty_name}</a
+			>
 		{/each}
 	{/each}
 </div>

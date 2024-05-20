@@ -1,7 +1,6 @@
 <script lang="ts">
 	export let fns: any[];
 	import { style_formatted_text } from "$lib/text";
-
 </script>
 
 <div id="event-listeners-description">
@@ -44,7 +43,9 @@
 				<tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80 align-top">
 					<td class="p-3 w-2/5 break-words">
 						<p>
-							<code class="lang-python">{fn.parent.replace("gradio.", "")}.{fn.name}(fn, ···)</code>
+							<code class="lang-python"
+								>{fn.parent.replace("gradio.", "")}.{fn.name}(fn, ···)</code
+							>
 						</p>
 					</td>
 					<td class="p-3 break-words text-gray-700">

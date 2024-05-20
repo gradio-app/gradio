@@ -4,10 +4,9 @@ import { redirects } from "./src/routes/redirects.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import {mdsvex, code_highlighter} from "mdsvex";
+import { mdsvex, code_highlighter } from "mdsvex";
 import slugify from "@sindresorhus/slugify";
 import { toString as to_string } from "hast-util-to-string";
-
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 let version = "4.0.0";
@@ -45,17 +44,14 @@ export function make_slug_processor() {
 	return function (name) {
 		const slug = slugify(name, { separator: "-", lowercase: true });
 		return slug;
-		};
+	};
 }
 const doc_slug = [];
 function plugin() {
 	const get_slug = make_slug_processor();
 	return function transform(tree) {
 		tree.children.forEach((n) => {
-			if (
-				n.type === "element" &&
-				["h3"].includes(n.tagName)
-			) {
+			if (n.type === "element" && ["h3"].includes(n.tagName)) {
 				const str_of_heading = to_string(n);
 				const slug = get_slug(str_of_heading);
 
@@ -92,25 +88,25 @@ function plugin() {
 	};
 }
 
-
-
-
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	extensions: [".svelte", ".svx"],
-	preprocess: [mdsvex({
-		extensions: ['.svx'],
-		rehypePlugins: [plugin],
-		highlight: {
-			highlighter: async (code, lang) => {
-				const h = (await code_highlighter(code, lang, "")).replace(
-					/\{@html `|`\}/g,
-					""
-				);
-				return `<div class="codeblock"><CopyButton content={\`${code}\`}/>${h}</div>`;
+	preprocess: [
+		mdsvex({
+			extensions: [".svx"],
+			rehypePlugins: [plugin],
+			highlight: {
+				highlighter: async (code, lang) => {
+					const h = (await code_highlighter(code, lang, "")).replace(
+						/\{@html `|`\}/g,
+						""
+					);
+					return `<div class="codeblock"><CopyButton content={\`${code}\`}/>${h}</div>`;
+				}
 			}
-		}
-	}), vitePreprocess()],
+		}),
+		vitePreprocess()
+	],
 	kit: {
 		prerender: {
 			crawl: true,
@@ -129,10 +125,9 @@ const config = {
 				`/main/docs/js`,
 				`/main/docs/js/storybook`,
 				`/main/docs/js/`,
-				...Object.keys(redirects),
-
+				...Object.keys(redirects)
 			],
-			handleMissingId: 'warn'
+			handleMissingId: "warn"
 		},
 		files: {
 			lib: "src/lib"

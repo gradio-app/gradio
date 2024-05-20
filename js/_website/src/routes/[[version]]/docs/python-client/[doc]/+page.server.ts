@@ -1,15 +1,10 @@
 import { error } from "@sveltejs/kit";
 
 export async function load({ params, parent }) {
-	const {
-		on_main,
-		wheel,
-		pages,
-		url_version
-	} = await parent();
+	const { on_main, wheel, pages, url_version } = await parent();
 
 	let name = params.doc;
-	let page_path : string | null = null;
+	let page_path: string | null = null;
 
 	for (const category of pages["python-client"]) {
 		for (const page of category.pages) {
@@ -22,7 +17,6 @@ export async function load({ params, parent }) {
 	if (page_path === null) {
 		throw error(404);
 	}
-
 
 	return {
 		name,

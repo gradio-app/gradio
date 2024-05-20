@@ -5,7 +5,6 @@
 	import { page } from "$app/stores";
 	import { python_client_templates as templates } from "$lib/utils";
 
-
 	export let data: any = {};
 
 	let name: string = data.name;
@@ -36,7 +35,7 @@
 					target.classList.remove("current-nav-link");
 				}
 			});
-		} 
+		}
 	}
 
 	$: name = data.name;
@@ -47,14 +46,17 @@
 
 	$: flattened_pages = pages.map((category: any) => category.pages).flat();
 	$: prev_obj =
-	flattened_pages[
-		flattened_pages.findIndex((page: any) => page.name === $page.params?.doc) - 1
+		flattened_pages[
+			flattened_pages.findIndex(
+				(page: any) => page.name === $page.params?.doc
+			) - 1
 		];
 	$: next_obj =
 		flattened_pages[
-			flattened_pages.findIndex((page: any) => page.name === $page.params?.doc) + 1
+			flattened_pages.findIndex(
+				(page: any) => page.name === $page.params?.doc
+			) + 1
 		];
-
 
 	let import_promise: any = null;
 	let component_name = $page.params?.doc;
@@ -67,31 +69,35 @@
 
 	$: import_component(component_name);
 
-			
 	function get_headers() {
-		let headers : any[] = []
-		const h3_elements = document.querySelectorAll('h3');
+		let headers: any[] = [];
+		const h3_elements = document.querySelectorAll("h3");
 		h3_elements.forEach((element) => {
 			headers.push({ title: element.textContent, id: element.id });
-	});
-		const page_title_elem = document.querySelector('h1');
-		let page_title = {title: "", id: ""}
+		});
+		const page_title_elem = document.querySelector("h1");
+		let page_title = { title: "", id: "" };
 		if (page_title_elem) {
-			page_title_elem.id = page_title_elem?.textContent?.toLowerCase().replace(/ /g, "-") || "";
-			page_title = {title: page_title_elem?.textContent || "", id: page_title_elem.id};
+			page_title_elem.id =
+				page_title_elem?.textContent?.toLowerCase().replace(/ /g, "-") || "";
+			page_title = {
+				title: page_title_elem?.textContent || "",
+				id: page_title_elem.id
+			};
 		}
-		return { headers: headers, page_title: page_title};
+		return { headers: headers, page_title: page_title };
 	}
-	
-	var all_headers : {headers: any[], page_title: {title: string, id: string}} = {headers: [], page_title: {title: "", id: ""}};
+
+	var all_headers: {
+		headers: any[];
+		page_title: { title: string; id: string };
+	} = { headers: [], page_title: { title: "", id: "" } };
 
 	var dynamic_component: any = null;
 
 	$: if (dynamic_component) {
 		all_headers = get_headers();
 	}
-
-
 </script>
 
 <MetaTags
@@ -105,10 +111,7 @@
 
 <main class="container mx-auto px-4 flex gap-4">
 	<div class="flex w-full">
-		<DocsNav
-			current_nav_link={name}
-			library_pages={pages}
-		/>
+		<DocsNav current_nav_link={name} library_pages={pages} />
 
 		<div class="flex flex-col w-full min-w-full lg:w-8/12 lg:min-w-0">
 			<div>
@@ -174,55 +177,55 @@
 				{/if}
 			</div>
 
-				<div class="flex flex-row">
-					<div class="lg:ml-10">
-						<div class="obj">
-							{#if import_promise}
-								{#await import_promise}
-								{:then {default: def}}
+			<div class="flex flex-row">
+				<div class="lg:ml-10">
+					<div class="obj">
+						{#if import_promise}
+							{#await import_promise then { default: def }}
 								<svelte:component this={def} bind:this={dynamic_component} />
-								{/await}
-							{/if}
-						</div>
+							{/await}
+						{/if}
 					</div>
 				</div>
+			</div>
 
-
-				<div class="flex justify-between mt-4 lg:ml-10">
-					{#if prev_obj}
-						<a
-							href="./{prev_obj.name}"
-							class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
-						>
-							<div class="text-lg">
-								<span class="text-orange-500">&#8592;</span>
-								{prev_obj.pretty_name}
-							</div>
-						</a>
-					{:else}
-						<div />
-					{/if}
-					{#if next_obj}
-						<a
-							href="./{next_obj.name}"
-							class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
-						>
-							<div class="text-lg">
-								{next_obj.pretty_name}
-								<span class="text-orange-500">&#8594;</span>
-							</div>
-						</a>
-					{:else}
-						<div />
-					{/if}
-				</div>
+			<div class="flex justify-between mt-4 lg:ml-10">
+				{#if prev_obj}
+					<a
+						href="./{prev_obj.name}"
+						class="text-left px-4 py-1 bg-gray-50 rounded-full hover:underline"
+					>
+						<div class="text-lg">
+							<span class="text-orange-500">&#8592;</span>
+							{prev_obj.pretty_name}
+						</div>
+					</a>
+				{:else}
+					<div />
+				{/if}
+				{#if next_obj}
+					<a
+						href="./{next_obj.name}"
+						class="text-right px-4 py-1 bg-gray-50 rounded-full hover:underline"
+					>
+						<div class="text-lg">
+							{next_obj.pretty_name}
+							<span class="text-orange-500">&#8594;</span>
+						</div>
+					</a>
+				{:else}
+					<div />
+				{/if}
+			</div>
 		</div>
 
 		<div
 			class="float-right top-8 hidden sticky h-screen overflow-y-auto lg:block lg:w-2/12"
 		>
 			<div class="mx-8">
-				<a class="thin-link py-2 block text-lg" href="#{all_headers.page_title.id}">{all_headers.page_title.title}</a
+				<a
+					class="thin-link py-2 block text-lg"
+					href="#{all_headers.page_title.id}">{all_headers.page_title.title}</a
 				>
 				{#if all_headers.headers && all_headers.headers.length > 0}
 					<ul class="text-slate-700 text-lg leading-6">

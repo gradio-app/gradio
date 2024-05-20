@@ -2,16 +2,24 @@
 	export let fn: any;
 	import anchor from "../assets/img/anchor.svg";
 	import { style_formatted_text } from "$lib/text";
-
 </script>
 
 <!-- name, signature, description, params -->
 
 <div class="obj">
 	<div class="flex flex-row items-center justify-between">
-		<h3 class="group text-3xl font-light py-4" id="{fn.parent.toLowerCase().replace("gradio.","")}-{fn.name.toLowerCase()}">
+		<h3
+			class="group text-3xl font-light py-4"
+			id="{fn.parent
+				.toLowerCase()
+				.replace('gradio.', '')}-{fn.name.toLowerCase()}"
+		>
 			{fn.name}
-			<a href="#{fn.parent.toLowerCase().replace("gradio.","")}-{fn.name.toLowerCase()}" class="invisible group-hover-visible"
+			<a
+				href="#{fn.parent
+					.toLowerCase()
+					.replace('gradio.', '')}-{fn.name.toLowerCase()}"
+				class="invisible group-hover-visible"
 				><img class="anchor-img" src={anchor} /></a
 			>
 		</h3>
@@ -44,7 +52,9 @@
 		id="{fn.name.toLowerCase()}-description"
 	>
 		Description
-		<a href="#{fn.name.toLowerCase()}-description" class="invisible group-hover-visible"
+		<a
+			href="#{fn.name.toLowerCase()}-description"
+			class="invisible group-hover-visible"
 			><img class="anchor-img-small" src={anchor} /></a
 		>
 	</h4>
@@ -56,14 +66,14 @@
 			id="{fn.name.toLowerCase()}-example-usage"
 		>
 			Example Usage
-			<a href="#{fn.name.toLowerCase()}-example-usage" class="invisible group-hover-visible"
+			<a
+				href="#{fn.name.toLowerCase()}-example-usage"
+				class="invisible group-hover-visible"
 				><img class="anchor-img-small" src={anchor} /></a
 			>
 		</h4>
 		<div class="codeblock">
-			<pre><code class="code language-python"
-					>{@html fn.example}</code
-				></pre>
+			<pre><code class="code language-python">{@html fn.example}</code></pre>
 		</div>
 	{/if}
 
@@ -73,7 +83,9 @@
 			id="{fn.name.toLowerCase()}-arguments"
 		>
 			Arguments
-			<a href="#{fn.name.toLowerCase()}-arguments" class="invisible group-hover-visible"
+			<a
+				href="#{fn.name.toLowerCase()}-arguments"
+				class="invisible group-hover-visible"
 				><img class="anchor-img-small" src={anchor} /></a
 			>
 		</h4>

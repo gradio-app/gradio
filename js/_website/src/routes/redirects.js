@@ -175,7 +175,8 @@ export const redirects = {
 	"/docs/no-reload": "/docs/gradio/NO_RELOAD",
 	"/docs/python-client/python-client": "/docs/python-client/introduction",
 	"/docs/python-client/js-client": "/docs/js-client",
-	"/3.50.2/docs/python-client/python-client": "/docs/python-client/introduction",
+	"/3.50.2/docs/python-client/python-client":
+		"/docs/python-client/introduction",
 	"/3.50.2/docs/python-client/js-client": "/docs/js-client",
 	"/docs/gradio/interface#interface-queue": "/docs/gradio/interface"
 };

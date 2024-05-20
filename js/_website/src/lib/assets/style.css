@@ -263,7 +263,6 @@ h6 > code {
 	background-color: transparent;
 }
 
-
 h5 {
 	@apply text-gray-500;
 }
@@ -273,7 +272,7 @@ h5 {
 }
 
 strong {
-    font-weight: 600;
+	font-weight: 600;
 }
 
 .codeblock > pre {
