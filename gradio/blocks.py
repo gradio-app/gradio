@@ -488,7 +488,7 @@ class BlockFunction:
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
         trigger_mode: Literal["always_last", "once", "multiple"] = "once",
-        queue: bool | None = None,
+        queue: bool = True,
         scroll_to_output: bool = False,
         show_api: bool = True,
         renderable: Renderable | None = None,
@@ -666,7 +666,7 @@ class BlocksConfig:
         api_name: str | None | Literal[False] = None,
         js: str | None = None,
         no_target: bool = False,
-        queue: bool | None = None,
+        queue: bool = True,
         batch: bool = False,
         max_batch_size: int = 4,
         cancels: list[int] | None = None,
@@ -706,7 +706,7 @@ class BlocksConfig:
             trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` and `.key_up()` events) would allow a second submission after the pending event is complete.
             concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `queue()`, which itself is 1 by default).
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
-            show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps to use this event. If fn is None, show_api will automatically be set to False.
+            show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
             is_cancel_function: whether this event cancels another running event.
         Returns: dependency information, dependency index
         """
@@ -1317,7 +1317,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             api_name=None,
             js=None,
             no_target=True,
-            queue=None,
             batch=False,
             max_batch_size=4,
             cancels=None,
@@ -2131,7 +2130,7 @@ Received outputs:
     def validate_queue_settings(self):
         for dep in self.fns.values():
             for i in dep.cancels:
-                if not self.queue_enabled_for_fn(i):
+                if not self.fns[i].queue:
                     raise ValueError(
                         "Queue needs to be enabled! "
                         "You may get this error by either 1) passing a function that uses the yield keyword "
@@ -2530,10 +2529,6 @@ Received outputs:
                 "launch_method": "browser" if inbrowser else "inline",
                 "is_google_colab": self.is_colab,
                 "is_sharing_on": self.share,
-                "share_url": self.share_url,
-                "enable_queue": True,
-                "server_name": server_name,
-                "server_port": server_port,
                 "is_space": self.space_id is not None,
                 "mode": self.mode,
             }
@@ -2680,7 +2675,7 @@ Received outputs:
                         # else, let the enable_queue parameter take precedence
                         # this will raise a nice error message is every is used
                         # without queue
-                        queue=False if every is None else None,
+                        queue=every is not None,
                         every=every,
                     )[0]
                     component.load_event = dep.get_config()
@@ -2693,21 +2688,22 @@ Received outputs:
         self.is_running = True
         self.create_limiter()
 
-    def queue_enabled_for_fn(self, fn_index: int):
-        return self.fns[fn_index].queue is not False
-
-    def get_api_info(self):
+    def get_api_info(self, all_endpoints: bool = False) -> dict[str, Any] | None:
         """
         Gets the information needed to generate the API docs from a Blocks.
+        Parameters:
+            all_endpoints: If True, returns information about all endpoints, including those with show_api=False.
         """
         config = self.config
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
         for fn in self.fns.values():
-            if not fn.fn or not fn.show_api or fn.api_name is False:
+            if not fn.fn or fn.api_name is False:
+                continue
+            if not all_endpoints and not fn.show_api:
                 continue
 
-            dependency_info = {"parameters": [], "returns": []}
+            dependency_info = {"parameters": [], "returns": [], "show_api": fn.show_api}
             fn_info = utils.get_function_params(fn.fn)  # type: ignore
             skip_endpoint = False
 

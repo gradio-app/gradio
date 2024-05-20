@@ -202,6 +202,8 @@ class Queue:
             fn = session_state.blocks_config.fns[body.fn_index]
         else:
             fn = self.blocks.fns[body.fn_index]
+
+        fn = route_utils.get_fn(self.blocks, None, body)
         self.create_event_queue_for_fn(fn)
         event = Event(
             body.session_hash,

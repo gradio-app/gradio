@@ -9,6 +9,7 @@ import orjson
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
+from gradio.data_classes import JsonData
 from gradio.events import Events
 
 
@@ -77,7 +78,7 @@ class JSON(Component):
         """
         return payload
 
-    def postprocess(self, value: dict | list | str | None) -> dict | list | None:
+    def postprocess(self, value: dict | list | str | None) -> JsonData | None:
         """
         Parameters:
             value: Expects a valid JSON `str` -- or a `list` or `dict` that can be serialized to a JSON string. The `list` or `dict` value can contain numpy arrays.
@@ -87,16 +88,19 @@ class JSON(Component):
         if value is None:
             return None
         if isinstance(value, str):
-            return orjson.loads(value)
+            return JsonData(orjson.loads(value))
         else:
             # Use orjson to convert NumPy arrays and datetime objects to JSON.
             # This ensures a backward compatibility with the previous behavior.
             # See https://github.com/gradio-app/gradio/pull/8041
-            return orjson.loads(
-                orjson.dumps(
-                    value,
-                    option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_PASSTHROUGH_DATETIME,
-                    default=str,
+            return JsonData(
+                orjson.loads(
+                    orjson.dumps(
+                        value,
+                        option=orjson.OPT_SERIALIZE_NUMPY
+                        | orjson.OPT_PASSTHROUGH_DATETIME,
+                        default=str,
+                    )
                 )
             )
 

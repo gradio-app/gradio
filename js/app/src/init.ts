@@ -63,6 +63,7 @@ export function create_components(): {
 	let app: client_return;
 	let keyed_component_values: Record<string | number, any> = {};
 	let rendered_fns_per_render_id: Record<number, number[]> = {};
+	let _rootNode: ComponentMeta;
 
 	function create_layout({
 		app: _app,
@@ -93,7 +94,7 @@ export function create_components(): {
 
 		instance_map = {};
 
-		const _rootNode: ComponentMeta = {
+		_rootNode = {
 			id: layout.id,
 			type: "column",
 			props: { interactive: false, scale: options.fill_height ? 1 : null },
@@ -205,7 +206,9 @@ export function create_components(): {
 			] = instance_map[layout.id];
 		}
 
-		walk_layout(layout, root, current_element.parent);
+		walk_layout(layout, root, current_element.parent).then(() => {
+			layout_store.set(_rootNode);
+		});
 	}
 
 	async function walk_layout(

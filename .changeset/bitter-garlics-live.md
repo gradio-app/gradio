@@ -1,8 +1,8 @@
 ---
-"@gradio/app": minor
-"@gradio/client": minor
-"gradio": minor
-"gradio_client": minor
+"@gradio/app": patch
+"@gradio/client": patch
+"gradio": patch
+"gradio_client": patch
 ---
 
 feat:Add event listener support to render blocks
