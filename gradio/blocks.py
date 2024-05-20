@@ -488,7 +488,7 @@ class BlockFunction:
         trigger_after: int | None = None,
         trigger_only_on_success: bool = False,
         trigger_mode: Literal["always_last", "once", "multiple"] = "once",
-        queue: bool | None = None,
+        queue: bool = True,
         scroll_to_output: bool = False,
         show_api: bool = True,
         renderable: Renderable | None = None,
@@ -2124,7 +2124,7 @@ Received outputs:
     def validate_queue_settings(self):
         for dep in self.fns.values():
             for i in dep.cancels:
-                if self.fns[i].queue == False:
+                if not self.fns[i].queue:
                     raise ValueError(
                         "Queue needs to be enabled! "
                         "You may get this error by either 1) passing a function that uses the yield keyword "
