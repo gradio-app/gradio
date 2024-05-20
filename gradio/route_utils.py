@@ -170,15 +170,23 @@ class FnIndexInferError(Exception):
     pass
 
 
-def infer_fn_index(app: App, api_name: str, body: PredictBody) -> int:
-    if body.fn_index is None:
-        for i, fn in app.get_blocks().fns.items():
-            if fn.api_name == api_name:
-                return i
-
-        raise FnIndexInferError(f"Could not infer fn_index for api_name {api_name}.")
+def get_fn(blocks: Blocks, api_name: str | None, body: PredictBody) -> BlockFunction:
+    if body.session_hash:
+        session_state = blocks.state_holder[body.session_hash]
+        fns = session_state.blocks_config.fns
     else:
-        return body.fn_index
+        fns = blocks.fns
+
+    if body.fn_index is None:
+        if api_name is not None:
+            for fn in fns.values():
+                if fn.api_name == api_name:
+                    return fn
+        raise FnIndexInferError(
+            f"Could not infer function index for API name: {api_name}"
+        )
+    else:
+        return fns[body.fn_index]
 
 
 def compile_gr_request(
