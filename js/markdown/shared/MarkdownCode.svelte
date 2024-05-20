@@ -66,6 +66,7 @@
 					value.includes(delimiter.left) && value.includes(delimiter.right)
 			);
 			if (containsDelimiter) {
+				//@ts-ignore
 				render_math_in_element(el, {
 					delimiters: latex_delimiters,
 					throwOnError: false
