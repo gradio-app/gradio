@@ -520,11 +520,6 @@
 		}
 	}
 
-	.message-wrap .message :global(a) {
-		color: var(--color-text-link);
-		text-decoration: underline;
-	}
-
 	.message-wrap .bot :global(table),
 	.message-wrap .bot :global(tr),
 	.message-wrap .bot :global(td),
