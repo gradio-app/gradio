@@ -45,15 +45,20 @@
 >
 	<table class="file-preview">
 		<tbody>
-			{#each normalized_files as file, i}
+			{#each normalized_files as file, i (file)}
 				<tr
 					class="file"
 					class:selectable
-					on:click={() =>
-						dispatch("select", {
-							value: file.orig_name,
-							index: i
-						})}
+					on:click={(event) => {
+						const tr = event.currentTarget;
+						const should_select =
+							event.target === tr || // Only select if the click is on the row itself
+							event.composedPath().includes(tr.firstElementChild); // Or if the click is on the name column
+
+						if (should_select) {
+							dispatch("select", { value: file, index: i });
+						}
+					}}
 				>
 					<td class="filename" aria-label={file.orig_name}>
 						<span class="stem">{file.filename_stem}</span>
@@ -74,12 +79,15 @@
 							{i18n("file.uploading")}
 						{/if}
 					</td>
+
 					{#if normalized_files.length > 1}
 						<td>
 							<button
 								class="label-clear-button"
 								aria-label="Remove this file"
-								on:click={() => remove_file(i)}
+								on:click={() => {
+									remove_file(i);
+								}}
 								on:keydown={(event) => {
 									if (event.key === "Enter") {
 										remove_file(i);
