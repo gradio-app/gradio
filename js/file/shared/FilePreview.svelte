@@ -34,7 +34,7 @@
 	function handle_row_click(
 		event: MouseEvent & { currentTarget: HTMLTableRowElement },
 		index: number
-	) {
+	): void {
 		const tr = event.currentTarget;
 		const should_select =
 			event.target === tr || // Only select if the click is on the row itself
