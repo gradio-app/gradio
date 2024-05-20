@@ -712,21 +712,15 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            fn = route_utils.get_fn(
-                blocks=app.get_blocks(), api_name=api_name, body=body
-            )
-
             if not app.get_blocks().api_open and not fn.queue:
                 raise HTTPException(
                     detail="This API endpoint does not accept direct HTTP POST requests. Please join the queue to use this API.",
                     status_code=status.HTTP_404_NOT_FOUND,
                 )
 
-            if body.session_hash:
-                session_state = app.get_blocks().state_holder[body.session_hash]
-                fn = session_state.blocks_config.fns[body.fn_index]
-            else:
-                fn = app.get_blocks().fns[body.fn_index]
+            fn = route_utils.get_fn(
+                blocks=app.get_blocks(), api_name=api_name, body=body
+            )
 
             gr_request = route_utils.compile_gr_request(
                 body,

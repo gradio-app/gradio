@@ -666,7 +666,7 @@ class BlocksConfig:
         api_name: str | None | Literal[False] = None,
         js: str | None = None,
         no_target: bool = False,
-        queue: bool | None = None,
+        queue: bool = True,
         batch: bool = False,
         max_batch_size: int = 4,
         cancels: list[int] | None = None,
