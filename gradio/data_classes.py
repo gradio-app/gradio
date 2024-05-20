@@ -16,7 +16,12 @@ from gradio_client.utils import traverse
 from . import wasm_utils
 
 if not wasm_utils.IS_WASM or TYPE_CHECKING:
-    from pydantic import BaseModel, JsonValue, RootModel, ValidationError
+    from pydantic import BaseModel, RootModel, ValidationError
+
+    try:
+        from pydantic import JsonValue
+    except ImportError:
+        JsonValue = Any
 else:
     # XXX: Currently Pyodide V2 is not available on Pyodide,
     # so we install V1 for the Wasm version.
