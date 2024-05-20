@@ -1317,7 +1317,6 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             api_name=None,
             js=None,
             no_target=True,
-            queue=None,
             batch=False,
             max_batch_size=4,
             cancels=None,
@@ -2669,7 +2668,7 @@ Received outputs:
                         # else, let the enable_queue parameter take precedence
                         # this will raise a nice error message is every is used
                         # without queue
-                        queue=False if every is None else None,
+                        queue=every is not None,
                         every=every,
                     )[0]
                     component.load_event = dep.get_config()
