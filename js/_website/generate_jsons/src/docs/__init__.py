@@ -203,8 +203,8 @@ def organize_docs(d):
 
     pages = organize_pages()
 
-    organized["events_matrix"] = component_events
-    organized["events"] = events
+    organized["gradio"]["events_matrix"] = component_events
+    organized["gradio"]["events"] = events
 
     js = {}
     js_pages = []

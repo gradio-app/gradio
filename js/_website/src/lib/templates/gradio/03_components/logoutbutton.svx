@@ -6,7 +6,8 @@
     import DemosSection from "$lib/components/DemosSection.svelte";
     import FunctionsSection from "$lib/components/FunctionsSection.svelte";
     import GuidesSection from "$lib/components/GuidesSection.svelte";
-
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("logoutbutton");
 </script>
@@ -15,38 +16,60 @@
 # {obj.name}
 
 <!--- Usage -->
-<div class="codeblock"><pre><code class="code language-python">{obj.parent}.{obj.name}(···)</code></pre></div>
+```python
+gradio.LogoutButton(···)
+```
 
 <!--- Description -->
 ### Description
-## {obj.description}
+## {@html style_formatted_text(obj.description)}
 
 <!-- Behavior -->
 ### Behavior
-## **As input component**: {obj.preprocess.return_doc.doc}
+## **As input component**: {@html style_formatted_text(obj.preprocess.return_doc.doc)}
 ##### Your function should accept one of these types:
 
-## **As output component**: {obj.postprocess.parameter_doc[0].doc}
+```python
+def predict(
+	value: str | None
+)
+	...
+```
+
+<br>
+
+## **As output component**: {@html style_formatted_text(obj.postprocess.parameter_doc[0].doc)}
 ##### Your function should return one of these types:
 
+```python
+def predict(···) -> str | None
+	...	
+	return value
+```
 
 
 <!--- Initialization -->
 ### Initialization
 <ParamTable parameters={obj.parameters} />
 
+
+{#if obj.string_shortcuts && obj.string_shortcuts.length > 0}
 <!--- Shortcuts -->
 ### Shortcuts
 <ShortcutTable shortcuts={obj.string_shortcuts} />
+{/if}
 
-
+{#if obj.demos && obj.demos.length > 0}
 <!--- Demos -->
 ### Demos 
 <DemosSection demos={obj.demos} />
+{/if}
 
+{#if obj.fns && obj.fns.length > 0}
 <!--- Event Listeners -->
 ### Event Listeners 
 <FunctionsSection fns={obj.fns} event_listeners={true} />
+{/if}
 
 {#if obj.guides && obj.guides.length > 0}
 <!--- Guides -->

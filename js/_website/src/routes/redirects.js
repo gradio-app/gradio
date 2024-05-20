@@ -122,8 +122,6 @@ export const redirects = {
 	"/docs/flagging": "/docs/gradio/flagging",
 	"/docs/request": "/docs/gradio/request",
 	"/docs/mount_gradio_app": "/docs/gradio/mount_gradio_app",
-	"/docs/base": "/docs/gradio/base",
-	"/docs/queue": "/docs/gradio/queue",
 	"/docs/blocks": "/docs/gradio/blocks",
 	"/docs/accordion": "/docs/gradio/accordion",
 	"/docs/column": "/docs/gradio/column",
@@ -175,9 +173,13 @@ export const redirects = {
 	"/docs/interface": "/docs/gradio/interface",
 	"/docs/tabbedinterface": "/docs/gradio/tabbedinterface",
 	"/docs/themes": "/docs/gradio/themes",
-	"/docs/no-reload": "/docs/gradio/no-reload",
-	"/docs/python-client/python-client": "/docs/python-client/intro",
+	"/docs/no-reload": "/docs/gradio/NO_RELOAD",
+	"/docs/python-client/python-client": "/docs/python-client/introduction",
 	"/docs/python-client/js-client": "/docs/js-client",
-	"/3.50.2/docs/python-client/python-client": "/docs/python-client/intro",
-	"/3.50.2/docs/python-client/js-client": "/docs/js-client"
+	"/3.50.2/docs/python-client/python-client": "/docs/python-client/introduction",
+	"/3.50.2/docs/python-client/js-client": "/docs/js-client",
+	"/docs/gradio/components": "/docs/gradio/introduction",
+	"/docs/python-client/python-client/intro": "/docs/python-client/introduction",
+	"/3.50.2/docs/python-client/python-client/intro": "/docs/python-client/introduction",
+	"/docs/gradio/interface#interface-queue": "/docs/gradio/interface"
 };

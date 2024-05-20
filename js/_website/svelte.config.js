@@ -4,7 +4,7 @@ import { redirects } from "./src/routes/redirects.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import {mdsvex} from "mdsvex";
+import {mdsvex, code_highlighter} from "mdsvex";
 import slugify from "@sindresorhus/slugify";
 import { toString as to_string } from "hast-util-to-string";
 
@@ -100,28 +100,36 @@ const config = {
 	extensions: [".svelte", ".svx"],
 	preprocess: [mdsvex({
 		extensions: ['.svx'],
-		rehypePlugins: [plugin]
+		rehypePlugins: [plugin],
+		highlight: {
+			highlighter: async (code, lang) => {
+				const h = (await code_highlighter(code, lang, "")).replace(
+					/\{@html `|`\}/g,
+					""
+				);
+				return `<div class="codeblock"><CopyButton content={\`${code}\`}/>${h}</div>`;
+			}
+		}
 	}), vitePreprocess()],
 	kit: {
 		prerender: {
 			crawl: true,
 			entries: [
 				"*",
+				...Object.keys(redirects),
 				`/${version}/docs`,
 				`/${version}/guides`,
 				`/main/docs`,
 				`/main/guides`,
 				`/3.50.2/docs`,
 				`/3.50.2/docs/gradio/interface`,
-				`/3.50.2/docs/python-client/intro`,
+				`/3.50.2/docs/python-client/introduction`,
 				`/docs/js`,
 				`/docs/js/storybook`,
 				`/docs/js/`,
 				`/main/docs/js`,
 				`/main/docs/js/storybook`,
-				`/main/docs/js/`,
-
-				...Object.keys(redirects)
+				`/main/docs/js/`
 			]
 		},
 		files: {

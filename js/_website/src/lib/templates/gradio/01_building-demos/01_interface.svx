@@ -6,7 +6,8 @@
     import DemosSection from "$lib/components/DemosSection.svelte";
     import FunctionsSection from "$lib/components/FunctionsSection.svelte";
     import GuidesSection from "$lib/components/GuidesSection.svelte";
-
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
 
     let obj = get_object("interface");
 </script>
@@ -14,29 +15,49 @@
 <!--- Title -->
 # {obj.name}
 
-<!--- Usage and Embedded Component -->
-<div class="codeblock"><pre><code class="code language-python">{obj.parent}.{obj.name}(···)</code></pre></div>
+<!--- Usage -->
+```python
+gradio.Interface(···)
+```
 
 <!--- Description -->
 ### Description
-## {obj.description}
+## {@html style_formatted_text(obj.description)}
 
 <!-- Example Usage --> 
+
+{#if obj.example}
 ### Example Usage
-<div class="codeblock"><pre><code class="code language-python">{obj.example}</code></pre></div>
+```python
+import gradio as gr
+
+def image_classifier(inp):
+    return {'cat': 0.3, 'dog': 0.7}
+
+demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label")
+demo.launch()
+```
+{/if}
 
 <!--- Initialization -->
 ### Initialization
 <ParamTable parameters={obj.parameters} />
 
+
+{#if obj.demos && obj.demos.length > 0}
 <!--- Demos -->
 ### Demos 
 <DemosSection demos={obj.demos} />
+{/if}
 
+{#if obj.fns && obj.fns.length > 0}
 <!--- Methods -->
 ### Methods 
 <FunctionsSection fns={obj.fns} event_listeners={false} />
+{/if}
 
+{#if obj.guides && obj.guides.length > 0}
 <!--- Guides -->
 ### Guides
 <GuidesSection guides={obj.guides}/>
+{/if}

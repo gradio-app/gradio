@@ -1,5 +1,6 @@
 <script lang="ts">
     export let parameters = [] as any[];
+    import { style_formatted_text } from "$lib/text";
 </script>
 
 
@@ -42,7 +43,7 @@
                             {/if}
                         </td>
                         <td class="p-3 text-gray-700 break-words">
-                            <p>{@html param["doc"] || ""}</p>
+                            <p>{@html style_formatted_text(param["doc"]) || ""}</p>
                         </td>
                     </tr>
                 {/if}

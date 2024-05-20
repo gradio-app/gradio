@@ -172,7 +172,7 @@
 			</div>
 
 				<div class="flex flex-row">
-					<div class="lg:ml-10">
+					<div class="lg:ml-10 w-full">
 						<div class="obj">
 							{#if import_promise}
 								{#await import_promise}
