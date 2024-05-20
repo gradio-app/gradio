@@ -280,4 +280,5 @@ export interface Status {
 		desc: string | null;
 	}[];
 	time?: Date;
+	changed_state_ids?: number[];
 }

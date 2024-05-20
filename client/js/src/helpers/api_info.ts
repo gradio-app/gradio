@@ -313,7 +313,10 @@ export function handle_message(
 					message: !data.success ? data.output.error : undefined,
 					stage: data.success ? "complete" : "error",
 					code: data.code,
-					progress_data: data.progress_data
+					progress_data: data.progress_data,
+					changed_state_ids: data.success
+						? data.output.changed_state_ids
+						: undefined
 				},
 				data: data.success ? data.output : null
 			};

@@ -1712,6 +1712,7 @@ Received outputs:
         self.validate_outputs(block_fn, predictions)  # type: ignore
 
         output = []
+        changed_state_ids = []
         for i, block in enumerate(block_fn.outputs):
             try:
                 if predictions[i] is components._Keywords.FINISHED_ITERATING:
@@ -1725,6 +1726,8 @@ Received outputs:
 
             if block.stateful:
                 if not utils.is_update(predictions[i]):
+                    if block._id not in state or state[block._id] != predictions[i]:
+                        changed_state_ids.append(block._id)
                     state[block._id] = predictions[i]
                 output.append(None)
             else:
@@ -1768,7 +1771,7 @@ Received outputs:
                 )
                 output.append(outputs_cached)
 
-        return output
+        return output, changed_state_ids
 
     async def handle_streaming_outputs(
         self,
@@ -1907,10 +1910,11 @@ Received outputs:
                 state,
             )
             preds = result["prediction"]
-            data = [
+            data_and_changed_state_ids = [
                 await self.postprocess_data(block_fn, list(o), state)
                 for o in zip(*preds)
             ]
+            data, changed_state_ids = zip(*data_and_changed_state_ids)
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)
             data = list(zip(*data))
@@ -1934,7 +1938,9 @@ Received outputs:
                 in_event_listener,
                 state,
             )
-            data = await self.postprocess_data(block_fn, result["prediction"], state)
+            data, changed_state_ids = await self.postprocess_data(
+                block_fn, result["prediction"], state
+            )
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
@@ -1965,6 +1971,7 @@ Received outputs:
             "duration": result["duration"],
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
             "render_config": None,
+            "changed_state_ids": changed_state_ids,
         }
         if block_fn.renderable and state:
             output["render_config"] = state.blocks_config.get_config(
