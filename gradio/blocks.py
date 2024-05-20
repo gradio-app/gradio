@@ -2124,7 +2124,7 @@ Received outputs:
     def validate_queue_settings(self):
         for dep in self.fns.values():
             for i in dep.cancels:
-                if not self.queue_enabled_for_fn(i):
+                if dep.queue == False:
                     raise ValueError(
                         "Queue needs to be enabled! "
                         "You may get this error by either 1) passing a function that uses the yield keyword "
@@ -2681,9 +2681,6 @@ Received outputs:
         self._queue.stopped = False
         self.is_running = True
         self.create_limiter()
-
-    def queue_enabled_for_fn(self, fn_index: int):
-        return self.fns[fn_index].queue is not False
 
     def get_api_info(self, all_endpoints: bool = False) -> dict[str, Any] | None:
         """

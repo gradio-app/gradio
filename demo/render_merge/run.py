@@ -23,7 +23,7 @@ with gr.Blocks() as demo:
         def countup():
             return [i for i in range(count)]
         
-        count_btn.click(countup, None, boxes)
+        count_btn.click(countup, None, boxes, queue=False)
 
     with gr.Row():
         merge_btn = gr.Button("Merge")
