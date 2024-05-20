@@ -2,7 +2,6 @@ export const redirects = {
 	"/guides/creating-a-new-component":
 		"/guides/custom-components-in-five-minutes",
 	"/guides/five-minute-guide": "/guides/custom-components-in-five-minutes",
-	"/controlling-layout": "/guides/controlling-layout",
 	"/state-in-blocks": "/guides/state-in-blocks",
 	"/custom-CSS-and-JS": "/guides/custom-CSS-and-JS",
 	"/blocks-and-event-listeners": "/guides/blocks-and-event-listeners",
@@ -178,8 +177,5 @@ export const redirects = {
 	"/docs/python-client/js-client": "/docs/js-client",
 	"/3.50.2/docs/python-client/python-client": "/docs/python-client/introduction",
 	"/3.50.2/docs/python-client/js-client": "/docs/js-client",
-	"/docs/gradio/components": "/docs/gradio/introduction",
-	"/docs/python-client/python-client/intro": "/docs/python-client/introduction",
-	"/3.50.2/docs/python-client/python-client/intro": "/docs/python-client/introduction",
 	"/docs/gradio/interface#interface-queue": "/docs/gradio/interface"
 };

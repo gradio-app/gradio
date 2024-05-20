@@ -240,7 +240,6 @@ def organize_docs(d):
 
     js_pages.sort()
 
-
     return {"docs": organized, "pages": pages, "js": js, "js_pages": js_pages, "js_client": readme_content}
 
 

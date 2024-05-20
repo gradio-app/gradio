@@ -149,6 +149,8 @@ with open("../json/docs.json", "r") as j:
 
     components = data["docs"]["gradio"]["components"]
     building = data["docs"]["gradio"]["building"]
+    helpers = data["docs"]["gradio"]["helpers"]
+    modals = data["docs"]["gradio"]["modals"]
     routes = data["docs"]["gradio"]["routes"]
 
     # for name, obj in components.items():
@@ -156,9 +158,12 @@ with open("../json/docs.json", "r") as j:
     #         file.write(components_content.format(name=name, obj=obj))
     #     print(f"Created {name}.svx")
 
-    for name, obj in routes.items():
-        with open(PATH + f"gradio/06_routes/{name}.svx", "w+") as file:
-            file.write(other_contnet.format(name=name, obj=obj))
-        print(f"Created {name}.svx")
+    # for name, obj in routes.items():
+    #     with open(PATH + f"gradio/06_routes/{name}.svx", "w+") as file:
+    #         file.write(other_contnet.format(name=name, obj=obj))
+    #     print(f"Created {name}.svx")
+
+    for name in routes.keys(): 
+        print(f"'{name}': () => import('/src/lib/templates/gradio/06_routes/{name}.svx'),")
 
 

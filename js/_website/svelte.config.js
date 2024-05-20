@@ -116,7 +116,6 @@ const config = {
 			crawl: true,
 			entries: [
 				"*",
-				...Object.keys(redirects),
 				`/${version}/docs`,
 				`/${version}/guides`,
 				`/main/docs`,
@@ -129,8 +128,11 @@ const config = {
 				`/docs/js/`,
 				`/main/docs/js`,
 				`/main/docs/js/storybook`,
-				`/main/docs/js/`
-			]
+				`/main/docs/js/`,
+				...Object.keys(redirects),
+
+			],
+			handleMissingId: 'warn'
 		},
 		files: {
 			lib: "src/lib"

@@ -3,6 +3,7 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
+	import { gradio_templates as templates } from "$lib/utils";
 
 	export let data: any = {};
 
@@ -58,12 +59,12 @@
 	let component_name = $page.params?.doc;
 
 	$: component_name = $page.params?.doc;
-
-	function import_component(page_path: string) {
-		import_promise = import(`/src/lib/templates/${page_path.slice(0, page_path.length - 4)}.svx`)
+	
+	function import_component(name: string) {
+		import_promise = templates[name]();
 	}
 
-	$: import_component(page_path);
+	$: import_component(component_name);
 			
 	function get_headers() {
 		let headers : any[] = []
