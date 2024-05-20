@@ -27,7 +27,6 @@
 	export let layout: LayoutNode;
 	export let dependencies: Dependency[];
 	export let title = "Gradio";
-	export let analytics_enabled = false;
 	export let target: HTMLElement;
 	export let autoscroll: boolean;
 	export let show_api = true;
@@ -264,7 +263,7 @@
 
 		async function make_prediction(payload: Payload): Promise<void> {
 			if (api_recorder_visible) {
-				api_calls = [...api_calls, payload];
+				api_calls = [...api_calls, JSON.parse(JSON.stringify(payload))];
 			}
 
 			let submission: ReturnType<typeof app.submit>;
@@ -539,23 +538,6 @@
 <svelte:head>
 	{#if control_page_title}
 		<title>{title}</title>
-	{/if}
-	{#if analytics_enabled}
-		<script
-			async
-			defer
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
-		></script>
-		<script>
-			window.dataLayer = window.dataLayer || [];
-			function gtag() {
-				dataLayer.push(arguments);
-			}
-			gtag("js", new Date());
-			gtag("config", "UA-156449732-1", {
-				cookie_flags: "samesite=none;secure"
-			});
-		</script>
 	{/if}
 </svelte:head>
 

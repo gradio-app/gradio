@@ -4,7 +4,7 @@ Gradio is an open-source Python package that allows you to quickly **build** a d
 
 <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-guides/lcm-screenshot-3.gif" style="padding-bottom: 10px">
 
-It just takes a few lines of Python to create a beautiful demo like the one above, so let's get started 💫
+It just takes a few lines of Python to create a demo like the one above, so let's get started 💫
 
 ## Installation
 
@@ -53,7 +53,7 @@ The `Interface` class has three core arguments:
 
 The `fn` argument is very flexible -- you can pass *any* Python function that you want to wrap with a UI. In the example above, we saw a relatively simple function, but the function could be anything from a music generator to a tax calculator to the prediction function of a pretrained machine learning model.
 
-The `input` and `output` arguments take one or more Gradio components. As we'll see, Gradio includes more than [30 built-in components](https://www.gradio.app/docs/components) (such as the `gr.Textbox()`, `gr.Image()`, and `gr.HTML()` components) that are designed for machine learning applications. 
+The `inputs` and `outputs` arguments take one or more Gradio components. As we'll see, Gradio includes more than [30 built-in components](https://www.gradio.app/docs/components) (such as the `gr.Textbox()`, `gr.Image()`, and `gr.HTML()` components) that are designed for machine learning applications. 
 
 Tip: For the `inputs` and `outputs` arguments, you can pass in the name of these components as a string (`"textbox"`) or an instance of the class (`gr.Textbox()`).
 
@@ -85,9 +85,9 @@ Now, anyone around the world can try your Gradio demo from their browser, while 
 To learn more about sharing your demo, read our dedicated guide on [sharing your Gradio application](https://www.gradio.app/guides/sharing-your-app).
 
 
-## An Overview of Gradio
+## Core Gradio Classes
 
-So far, we've been discussing the `Interface` class, which is a high-level class that lets to build demos quickly with Gradio. But what else does Gradio do?
+So far, we've been discussing the `Interface` class, which is a high-level class that lets to build demos quickly with Gradio. But what else does Gradio include?aaa
 
 ### Chatbots with `gr.ChatInterface`
 
@@ -111,7 +111,7 @@ That's the gist of the core `gradio` Python library, but Gradio is actually so m
 
 ## What's Next?
 
-Keep learning about Gradio sequentially using the Gradio Guides, which include explanations as well as example code and embedded interactive demos. Next up: [key features about Gradio demos](https://www.gradio.app/guides/key-features).
+Keep learning about Gradio sequentially using the Gradio Guides, which include explanations as well as example code and embedded interactive demos. Next up: [let's dive deeper into the Interface class](https://www.gradio.app/guides/the-interface-class).
 
 Or, if you already know the basics and are looking for something specific, you can search the more [technical API documentation](https://www.gradio.app/docs/).
 

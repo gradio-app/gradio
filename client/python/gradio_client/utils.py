@@ -38,12 +38,13 @@ WS_URL = "queue/join"
 UPLOAD_URL = "upload"
 LOGIN_URL = "login"
 CONFIG_URL = "config"
-API_INFO_URL = "info"
+API_INFO_URL = "info?all_endpoints=True"
 RAW_API_INFO_URL = "info?serialize=False"
 SPACE_FETCHER_URL = "https://gradio-space-api-fetcher-v2.hf.space/api"
 RESET_URL = "reset"
 SPACE_URL = "https://hf.space/{}"
 HEARTBEAT_URL = "heartbeat/{session_hash}"
+CANCEL_URL = "cancel"
 
 STATE_COMPONENT = "state"
 INVALID_RUNTIME = [
@@ -118,7 +119,7 @@ class ServerMessage(str, Enum):
     log = "log"
     progress = "progress"
     heartbeat = "heartbeat"
-    server_stopped = "server_stopped"
+    server_stopped = "Server stopped unexpectedly."
     unexpected_error = "unexpected_error"
     close_stream = "close_stream"
 
@@ -1125,18 +1126,18 @@ def construct_args(
     for key, value in kwargs.items():
         if key in kwarg_arg_mapping:
             if kwarg_arg_mapping[key] < num_args:
-                raise ValueError(
+                raise TypeError(
                     f"Parameter `{key}` is already set as a positional argument. Please click on 'view API' in the footer of the Gradio app to see usage."
                 )
             else:
                 _args[kwarg_arg_mapping[key]] = value
         else:
-            raise ValueError(
+            raise TypeError(
                 f"Parameter `{key}` is not a valid key-word argument. Please click on 'view API' in the footer of the Gradio app to see usage."
             )
 
     if _Keywords.NO_VALUE in _args:
-        raise ValueError(
+        raise TypeError(
             f"No value provided for required argument: {kwarg_names[_args.index(_Keywords.NO_VALUE)]}"
         )
 

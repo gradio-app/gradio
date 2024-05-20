@@ -1,5 +1,24 @@
 # @gradio/statustracker
 
+## 0.5.4
+
+### Features
+
+- [#8279](https://github.com/gradio-app/gradio/pull/8279) [`4350215`](https://github.com/gradio-app/gradio/commit/4350215348981aba6dea473884b047f096dcdf0f) - Link to troubleshooting guide in the custom component loading status.  Thanks @freddyaboulton!
+
+## 0.5.3
+
+### Fixes
+
+- [#8261](https://github.com/gradio-app/gradio/pull/8261) [`719d596`](https://github.com/gradio-app/gradio/commit/719d5962bb7018412f073b55eb3b62d8b4e02d63) - Fix bug where status tracker was the target of pointer events.  Thanks @freddyaboulton!
+
+## 0.5.2
+
+### Dependency updates
+
+- @gradio/atoms@0.7.3
+- @gradio/icons@0.4.1
+
 ## 0.5.1
 
 ### Dependency updates

@@ -190,3 +190,4 @@ inference time of 80 seconds). Many Hugging Face `transformers` and `diffusers` 
 generate images in batches](https://github.com/gradio-app/gradio/blob/main/demo/diffusers_with_batching/run.py)
 
 
+

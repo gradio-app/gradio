@@ -11,7 +11,7 @@ import pytest
 from gradio_client import media_data
 from PIL import Image, ImageCms
 
-from gradio import processing_utils, utils
+from gradio import components, data_classes, processing_utils, utils
 
 
 class TestTempFileManagement:
@@ -382,3 +382,32 @@ def test_hash_url_encodes_url():
     assert processing_utils.hash_url(
         "https://www.gradio.app/image 1.jpg"
     ) == processing_utils.hash_bytes(b"https://www.gradio.app/image 1.jpg")
+
+
+@pytest.mark.asyncio
+async def test_json_data_not_moved_to_cache():
+    data = data_classes.JsonData(
+        root={
+            "file": {
+                "path": "path",
+                "url": "/file=path",
+                "meta": {"_type": "gradio.FileData"},
+            }
+        }
+    )
+    assert (
+        processing_utils.move_files_to_cache(data, components.Number(), False) == data
+    )
+    assert processing_utils.move_files_to_cache(data, components.Number(), True) == data
+    assert (
+        await processing_utils.async_move_files_to_cache(
+            data, components.Number(), False
+        )
+        == data
+    )
+    assert (
+        await processing_utils.async_move_files_to_cache(
+            data, components.Number(), True
+        )
+        == data
+    )

@@ -490,6 +490,7 @@ class BlockFunction:
         scroll_to_output: bool = False,
         show_api: bool = True,
         renderable: Renderable | None = None,
+        is_cancel_function: bool = False,
     ):
         self.fn = fn
         self.inputs = inputs
@@ -526,6 +527,15 @@ class BlockFunction:
             or bool(self.every)
         )
         self.renderable = renderable
+
+        # We need to keep track of which events are cancel events
+        # in two places:
+        # 1. So that we can skip postprocessing for cancel events.
+        #   They return event_ids that have been cancelled but there
+        #   are no output components
+        # 2. So that we can place the ProcessCompletedMessage in the
+        #   event stream so that clients can close the stream when necessary
+        self.is_cancel_function = is_cancel_function
 
         self.spaces_auto_wrap()
 
@@ -990,7 +1000,10 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 # This assumes that you cannot combine multiple .then() events in a single
                 # gr.on() event, which is true for now. If this changes, we will need to
                 # update this code.
-                if not isinstance(_targets[0], int) and _targets[0][1] == "then":
+                if not isinstance(_targets[0], int) and _targets[0][1] in [
+                    "then",
+                    "success",
+                ]:
                     if len(_targets) != 1:
                         raise ValueError(
                             "This logic assumes that .then() events are not combined with other events in a single gr.on() event"
@@ -1140,6 +1153,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         concurrency_id: str | None = None,
         show_api: bool = True,
         renderable: Renderable | None = None,
+        is_cancel_function: bool = False,
     ) -> tuple[BlockFunction, int]:
         """
         Adds an event to the component's dependencies.
@@ -1166,7 +1180,8 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` and `.key_up()` events) would allow a second submission after the pending event is complete.
             concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `queue()`, which itself is 1 by default).
             concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
-            show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps to use this event. If fn is None, show_api will automatically be set to False.
+            show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
+            is_cancel_function: whether this event cancels another running event.
         Returns: dependency information, dependency index
         """
         # Support for singular parameter
@@ -1289,6 +1304,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
             scroll_to_output=scroll_to_output,
             show_api=show_api,
             renderable=renderable,
+            is_cancel_function=is_cancel_function,
         )
 
         self.fns.append(block_fn)
@@ -1653,9 +1669,17 @@ Received outputs:
 
     async def postprocess_data(
         self, fn_index: int, predictions: list | dict, state: SessionState | None
-    ):
+    ) -> Any:
         state = state or SessionState(self)
         block_fn = self.fns[fn_index]
+
+        # If the function is a cancel function, 'predictions' are the ids of
+        # the event in the queue that has been cancelled. We need these
+        # so that the server can put the ProcessCompleted message in the event stream
+        # Cancel events have no output components, so we need to return early otherise the output
+        # be None.
+        if block_fn.is_cancel_function:
+            return predictions
 
         if isinstance(predictions, dict) and len(predictions) > 0:
             predictions = convert_component_dict_to_list(
@@ -2476,10 +2500,6 @@ Received outputs:
                 "launch_method": "browser" if inbrowser else "inline",
                 "is_google_colab": self.is_colab,
                 "is_sharing_on": self.share,
-                "share_url": self.share_url,
-                "enable_queue": True,
-                "server_name": server_name,
-                "server_port": server_port,
                 "is_space": self.space_id is not None,
                 "mode": self.mode,
             }
@@ -2642,18 +2662,22 @@ Received outputs:
     def queue_enabled_for_fn(self, fn_index: int):
         return self.fns[fn_index].queue is not False
 
-    def get_api_info(self):
+    def get_api_info(self, all_endpoints: bool = False) -> dict[str, Any] | None:
         """
         Gets the information needed to generate the API docs from a Blocks.
+        Parameters:
+            all_endpoints: If True, returns information about all endpoints, including those with show_api=False.
         """
         config = self.config
         api_info = {"named_endpoints": {}, "unnamed_endpoints": {}}
 
         for fn in self.fns:
-            if not fn.fn or not fn.show_api or fn.api_name is False:
+            if not fn.fn or fn.api_name is False:
+                continue
+            if not all_endpoints and not fn.show_api:
                 continue
 
-            dependency_info = {"parameters": [], "returns": []}
+            dependency_info = {"parameters": [], "returns": [], "show_api": fn.show_api}
             fn_info = utils.get_function_params(fn.fn)  # type: ignore
             skip_endpoint = False
 

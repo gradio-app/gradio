@@ -208,7 +208,7 @@
 			{layers}
 			status={loading_status?.status}
 			upload={gradio.client.upload}
-			stream_handler={gradio.client.stream_factory}
+			stream_handler={gradio.client.stream}
 		></InteractiveImageEditor>
 	</Block>
 {/if}

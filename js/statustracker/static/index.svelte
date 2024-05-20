@@ -275,6 +275,7 @@
 
 		{#if !timer}
 			<p class="loading">{loading_text}</p>
+			<slot name="additional-loading-text" />
 		{/if}
 	{:else if status === "error"}
 		<div class="clear-status">
@@ -330,6 +331,7 @@
 		border: 2px solid var(--color-accent);
 		background: transparent;
 		z-index: var(--layer-1);
+		pointer-events: none;
 	}
 
 	.translucent {
