@@ -26,7 +26,6 @@ jobs:
       source_branch: ${{ steps.changes.outputs.source_branch }}
       source_repo: ${{ steps.changes.outputs.source_repo }}
       mergeable: ${{ steps.changes.outputs.mergeable }}
-      found_pr: ${{ steps.changes.outputs.found_pr }}
     steps:
       - uses: actions/checkout@v4
       - uses: "gradio-app/gradio/.github/actions/changes@main"
@@ -82,10 +81,9 @@ jobs:
           . venv/bin/activate
           pnpm --filter @gradio/app test:browser:lite
       - name: Get the performance result
-        id: get_perf
         run: |
           export LITE_APP_LOAD_TIME=$(jq -r '.app_load_time' .lite-perf.json)
-          echo "LITE_APP_LOAD_TIME=$LITE_APP_LOAD_TIME" >> $GITHUB_OUTPUT
+          echo "LITE_APP_LOAD_TIME=$LITE_APP_LOAD_TIME" >> $GITHUB_ENV
       - name: do check
         if: always()
         uses: "gradio-app/github/actions/commit-status@main"
@@ -97,18 +95,3 @@ jobs:
           name: "test / functional"
           result: ${{ job.status }}
           job_id: "test-functional"
-    outputs:
-      app_load_time: ${{ steps.get_perf.outputs.LITE_APP_LOAD_TIME }}
-
-  comment-functional-success:
-    uses: "./.github/workflows/comment-queue.yml"
-    needs: [test-functional, changes]
-    if: needs.changes.outputs.found_pr == 'true'
-    secrets:
-      gh_token: ${{ secrets.COMMENT_TOKEN }}
-    with:
-      pr_number: ${{ needs.changes.outputs.pr_number }}
-      message: functional~success~null
-      additional_text: |
-        **Lite Performance**
-        - App Load Time: ${{ needs.test-functional.outputs.app_load_time }}
