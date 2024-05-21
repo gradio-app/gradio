@@ -1056,10 +1056,10 @@ class Base(ThemeClass):
             self, "body_text_color_subdued_dark", "*neutral_400"
         )
         self.accordion_text_color = accordion_text_color or getattr(
-            self, "accordion_text_color", "*button_primary_text_color"
+            self, "accordion_text_color", "*body_text_color"
         )
         self.accordion_text_color_dark = accordion_text_color_dark or getattr(
-            self, "accordion_text_color_dark", "*button_primary_text_color"
+            self, "accordion_text_color_dark", "*body_text_color"
         )
         # Shadows
         self.shadow_drop = shadow_drop or getattr(
