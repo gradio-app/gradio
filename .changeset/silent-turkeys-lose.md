@@ -1,6 +1,6 @@
 ---
-"@gradio/file": minor
-"gradio": minor
+"@gradio/file": patch
+"gradio": patch
 ---
 
-feat:add missing orig_name (follow up to #8334)
+fix:add missing orig_name (follow up to #8334)
