@@ -44,6 +44,8 @@ class Monochrome(Base):
             # Colors
             slider_color="*neutral_900",
             slider_color_dark="*neutral_500",
+            accordion_text_color="*body_text_color*",
+            accordion_text_color_dark="*body_text_color_dark*",
             body_text_color="*neutral_900",
             block_label_text_color="*body_text_color",
             block_title_text_color="*body_text_color",
