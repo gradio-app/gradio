@@ -488,16 +488,23 @@ describe("process_endpoint", () => {
 
 describe("join_urls", () => {
 	it("joins URLs correctly", () => {
-		expect(join_urls("localhost:7860", "/gradio")).toBe(
-			"localhost:7860/gradio"
+		expect(join_urls("http://localhost:7860", "/gradio")).toBe(
+			"http://localhost:7860/gradio"
+		);
+		expect(join_urls("http://localhost:7860/", "/gradio")).toBe(
+			"http://localhost:7860/gradio"
+		);
+		expect(join_urls("http://localhost:7860/", "/app/", "/gradio/")).toBe(
+			"http://localhost:7860/app/gradio/"
+		);
+	});
+	it("throws an error when the URLs are not valid", () => {
+		expect(() => join_urls("localhost:7860", "/gradio")).toThrowError(
+			"Invalid URL. A full URL path is required."
 		);
 
-		expect(join_urls("localhost:7860/", "/gradio")).toBe(
-			"localhost:7860/gradio"
-		);
-
-		expect(join_urls("localhost:7860/", "/app/", "/gradio/")).toBe(
-			"localhost:7860/app/gradio/"
+		expect(() => join_urls("localhost:7860", "/gradio", "app")).toThrowError(
+			"Invalid URL. A full URL path is required."
 		);
 	});
 });

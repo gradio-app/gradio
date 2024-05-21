@@ -63,9 +63,15 @@ export async function process_endpoint(
 }
 
 export const join_urls = (...urls: string[]): string => {
-	return urls.reduce((base_url, part) => {
-		return `${base_url.replace(/\/+$/, "")}/${part.replace(/^\/+/, "")}`;
-	});
+	try {
+		return urls.reduce((base_url: string, part: string) => {
+			base_url = base_url.replace(/\/+$/, "");
+			part = part.replace(/^\/+/, "");
+			return new URL(part, base_url + "/").toString();
+		});
+	} catch (e) {
+		throw new Error("Invalid URL. A full URL path is required.");
+	}
 };
 
 export function transform_api_info(
