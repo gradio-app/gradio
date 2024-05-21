@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { afterUpdate, createEventDispatcher } from "svelte";
 	import DOMPurify from "dompurify";
-	import * as render_math_in_element from "katex/contrib/auto-render";
+	import render_math_in_element from "katex/contrib/auto-render";
 	import "katex/dist/katex.min.css";
 	import { create_marked } from "./utils";
 
@@ -66,7 +66,6 @@
 					value.includes(delimiter.left) && value.includes(delimiter.right)
 			);
 			if (containsDelimiter) {
-				//@ts-ignore
 				render_math_in_element(el, {
 					delimiters: latex_delimiters,
 					throwOnError: false
