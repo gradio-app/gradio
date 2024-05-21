@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:Walk blobs ignoring blobs in arrays directly
+fix:ensure the client correctly handles all binary data
