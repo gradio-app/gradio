@@ -72,12 +72,15 @@ def render(
     concurrency_limit: int | None | Literal["default"] = None,
     concurrency_id: str | None = None,
 ):
+    if Context.root_block is None:
+        raise ValueError("Reactive render must be inside a Blocks context.")
+
     inputs = (
         [inputs] if isinstance(inputs, Component) else [] if inputs is None else inputs
     )
     _triggers: list[tuple[Block | None, str]] = []
     if triggers is None:
-        triggers = []
+        _triggers = [(Context.root_block, "load")]
         for input in inputs:
             if hasattr(input, "change"):
                 _triggers.append((input, "change"))

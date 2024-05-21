@@ -2,9 +2,11 @@ import { test, expect } from "@gradio/tootils";
 
 test("Test re-renders reattach components and listeners", async ({ page }) => {
 	const output = page.getByLabel("Textbox", { exact: true });
-	await page.getByLabel("range slider for Textbox Count").fill("3");
 	await page.getByLabel("Box 0").click();
 	await page.getByLabel("Box 0").fill("c");
+
+	await page.getByLabel("range slider for Textbox Count").fill("3");
+	await expect(page.getByLabel("Box 0")).toHaveValue("c");
 	await page.getByLabel("Box 1").click();
 	await page.getByLabel("Box 1").fill("a");
 	await page.getByLabel("Box 2").click();
