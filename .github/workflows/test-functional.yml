@@ -84,6 +84,7 @@ jobs:
         run: |
           export LITE_APP_LOAD_TIME=$(jq -r '.app_load_time' .lite-perf.json)
           echo "LITE_APP_LOAD_TIME=$LITE_APP_LOAD_TIME" >> $GITHUB_ENV
+          cat .lite-perf.json  # For debugging
       - name: do check
         if: always()
         uses: "gradio-app/github/actions/commit-status@main"
