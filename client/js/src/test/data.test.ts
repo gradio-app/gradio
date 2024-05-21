@@ -151,18 +151,6 @@ describe("walk_and_store_blobs", () => {
 		expect(parts[0].path).toEqual(["a", "b", "data", "image"]);
 		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
 	});
-
-	it("should convert an object with primitive values to BlobRefs", async () => {
-		const param = {
-			test: "test"
-		};
-		const parts = await walk_and_store_blobs(param);
-
-		expect(parts).toHaveLength(1);
-		expect(parts[0].path).toEqual([]);
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
-		expect(parts[0].type).toEqual("object");
-	});
 });
 describe("update_object", () => {
 	it("should update the value of a nested property", () => {

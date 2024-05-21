@@ -87,22 +87,6 @@ export async function walk_and_store_blobs(
 			);
 		}
 
-		if (
-			!blob_refs.length &&
-			!(
-				data instanceof Blob ||
-				data instanceof ArrayBuffer ||
-				data instanceof Uint8Array
-			)
-		) {
-			return [
-				{
-					path: path,
-					blob: new NodeBlob([JSON.stringify(data)]),
-					type: typeof data
-				}
-			];
-		}
 		return blob_refs;
 	}
 
