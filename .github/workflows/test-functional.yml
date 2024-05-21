@@ -103,11 +103,10 @@ jobs:
   comment-functional-success:
     uses: "./.github/workflows/comment-queue.yml"
     needs: [test-functional, changes]
-    if: needs.changes.outputs.found_pr == 'true'
     secrets:
       gh_token: ${{ secrets.COMMENT_TOKEN }}
     with:
-      pr_number: ${{ needs.changes.outputs.pr_number }}
+      pr_number: 8222
       message: functional~success~null
       additional_text: |
         **Lite Performance**
