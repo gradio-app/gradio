@@ -1695,7 +1695,9 @@ async def test_blocks_postprocessing_with_copies_of_component_instance():
             fn=clear_func, outputs=[chatbot, chatbot2, chatbot3], api_name="clear"
         )
 
-        output, _ = await demo.postprocess_data(demo.fns[0], [gr.Chatbot(value=[])] * 3, None)
+        output, _ = await demo.postprocess_data(
+            demo.fns[0], [gr.Chatbot(value=[])] * 3, None
+        )
         assert output == [{"value": [], "__type__": "update"}] * 3
 
 
