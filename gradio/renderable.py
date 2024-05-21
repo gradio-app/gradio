@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Callable, Literal, Sequence
-from gradio.components import Component
+from typing import Callable, Literal
+
 from gradio.blocks import Block
+from gradio.components import Component
 from gradio.context import Context, LocalContext
 from gradio.events import EventListener, EventListenerMethod
 from gradio.layouts import Column
