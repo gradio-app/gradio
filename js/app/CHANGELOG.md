@@ -1,5 +1,57 @@
 # @gradio/app
 
+## 1.35.5
+
+### Dependency updates
+
+- @gradio/utils@0.4.2
+- @gradio/atoms@0.7.4
+- @gradio/statustracker@0.5.5
+- @gradio/upload@0.10.5
+- @gradio/tabs@0.2.9
+- @gradio/code@0.6.6
+- @gradio/markdown@0.7.5
+- @gradio/theme@0.2.3
+- @gradio/client@0.19.4
+- @gradio/audio@0.11.5
+- @gradio/image@0.11.5
+- @gradio/video@0.8.5
+- @gradio/chatbot@0.10.5
+- @gradio/file@0.7.5
+- @gradio/dataframe@0.8.5
+- @gradio/highlightedtext@0.6.4
+- @gradio/plot@0.4.5
+- @gradio/fileexplorer@0.4.6
+- @gradio/gallery@0.10.5
+- @gradio/annotatedimage@0.6.5
+- @gradio/button@0.2.38
+- @gradio/dataset@0.1.38
+- @gradio/downloadbutton@0.1.15
+- @gradio/imageeditor@0.7.5
+- @gradio/model3d@0.10.5
+- @gradio/multimodaltextbox@0.4.5
+- @gradio/simpleimage@0.5.5
+- @gradio/uploadbutton@0.6.6
+- @gradio/accordion@0.3.15
+- @gradio/checkbox@0.3.5
+- @gradio/checkboxgroup@0.5.5
+- @gradio/colorpicker@0.3.5
+- @gradio/dropdown@0.7.5
+- @gradio/fallback@0.3.5
+- @gradio/form@0.1.18
+- @gradio/html@0.2.5
+- @gradio/json@0.2.5
+- @gradio/label@0.3.5
+- @gradio/number@0.4.5
+- @gradio/paramviewer@0.4.14
+- @gradio/radio@0.5.5
+- @gradio/simpledropdown@0.2.5
+- @gradio/simpletextbox@0.2.5
+- @gradio/slider@0.4.5
+- @gradio/tabitem@0.2.9
+- @gradio/textbox@0.6.4
+- @gradio/box@0.1.18
+
 ## 1.35.4
 
 ### Fixes

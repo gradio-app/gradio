@@ -1,5 +1,11 @@
 # @gradio/client
 
+## 0.19.4
+
+### Fixes
+
+- [#8322](https://github.com/gradio-app/gradio/pull/8322) [`47012a0`](https://github.com/gradio-app/gradio/commit/47012a0c4e3e8a80fcae620aaf08b16ceb343cde) - ensure the client correctly handles all binary data.  Thanks @Saghen!
+
 ## 0.19.3
 
 ### Features
