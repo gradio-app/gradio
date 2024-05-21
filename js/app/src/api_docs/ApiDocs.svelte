@@ -122,6 +122,7 @@
 				{#if api_calls.length}
 					<div>
 						<p
+							id="num-recorded-api-calls"
 							style="font-size: var(--text-lg); font-weight:bold; margin: 10px 0px;"
 						>
 							🪄 Recorded API Calls ({api_calls.length})
@@ -136,12 +137,13 @@
 							{current_language}
 							{api_calls}
 							{dependencies}
-							root={space_id || root}
-							endpoints_info={info.named_endpoints}
+							{root}
+							short_root={space_id || root}
 						/>
 						<p>
-							Note: the above list may include extra API calls that affect the
-							UI, but are not necessary for the clients.
+							Note: Some API calls only affect the UI, so when using the
+							clients, the desired result may be achieved with only a subset of
+							the recorded calls.
 						</p>
 					</div>
 					<p

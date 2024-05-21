@@ -1,5 +1,21 @@
 # @gradio/client
 
+## 0.19.3
+
+### Features
+
+- [#8229](https://github.com/gradio-app/gradio/pull/8229) [`7c81897`](https://github.com/gradio-app/gradio/commit/7c81897076ddcd0bb05e0e4ffec35bb9a986d330) - chore(deps): update dependency esbuild to ^0.21.0.  Thanks @renovate!
+
+### Fixes
+
+- [#8296](https://github.com/gradio-app/gradio/pull/8296) [`929d216`](https://github.com/gradio-app/gradio/commit/929d216d49aa05614bc83f0761cf7b1cd803d8fe) - always create a jwt when connecting to a space if a hf_token is present.  Thanks @pngwn!
+
+## 0.19.2
+
+### Fixes
+
+- [#8285](https://github.com/gradio-app/gradio/pull/8285) [`7d9d8ea`](https://github.com/gradio-app/gradio/commit/7d9d8eab50d36cbecbb84c6a0f3cc1bca7215604) - use the correct query param to pass the jwt to the heartbeat event.  Thanks @pngwn!
+
 ## 0.19.1
 
 ### Fixes

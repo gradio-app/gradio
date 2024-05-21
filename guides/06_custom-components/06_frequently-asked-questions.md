@@ -13,10 +13,27 @@ When you run `gradio cc dev`, a development server will load and run a Gradio ap
 This is like when you run `python <app-file>.py`, however the `gradio` command will hot reload so you can instantly see your changes. 
 
 ## The development server didn't work for me 
-Make sure you have your package installed along with any dependencies you have added by running `gradio cc install`.
-Make sure there aren't any syntax or import errors in the Python or JavaScript code.
-If the development server is still not working for you, please use the `--python-path` and `gradio-path` CLI arguments to specify the path of the python and gradio executables for the environment your component is installed in.
-It is likely that the wrong envrironment is being used. For example, if you are using a virtualenv located at `/Users/mary/venv`, pass in `/Users/mary/bin/python` and `/Users/mary/bin/gradio` respectively.
+
+**1. Check your terminal and browser console**
+
+Make sure there are no syntax errors or other obvious problems in your code. Exceptions triggered from python will be displayed in the terminal. Exceptions from javascript will be displayed in the browser console and/or the terminal.
+
+**2. Are you developing on Windows?**
+
+Chrome on Windows will block the local compiled svelte files for security reasons. We recommend developing your custom component in the windows subsystem for linux (WSL) while the team looks at this issue.
+
+**3. Inspect the window.__GRADIO_CC__ variable**
+
+In the browser console, print the `window.__GRADIO__CC` variable (just type it into the console). If it is an empty object, that means
+that the CLI could not find your custom component source code. Typically, this happens when the custom component is installed in a different virtual environment than the one used to run the dev command. Please use the `--python-path` and `gradio-path` CLI arguments to specify the path of the python and gradio executables for the environment your component is installed in. For example, if you are using a virtualenv located at `/Users/mary/venv`, pass in `/Users/mary/bin/python` and `/Users/mary/bin/gradio` respectively.
+
+If the `window.__GRADIO__CC` variable is not empty (see below for an example), then the dev server should be working correctly. 
+
+![](https://gradio-builds.s3.amazonaws.com/demo-files/gradio_CC_DEV.png)
+
+**4. Make sure you are using a virtual environment**
+It is highly recommended you use a virtual environment to prevent conflicts with other python dependencies installed in your system.
+
 
 ## Do I need to host my custom component on HuggingFace Spaces?
 You can develop and build your custom component without hosting or connecting to HuggingFace.

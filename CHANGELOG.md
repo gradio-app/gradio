@@ -1,5 +1,33 @@
 # gradio
 
+## 4.31.4
+
+### Features
+
+- [#8318](https://github.com/gradio-app/gradio/pull/8318) [`9e31697`](https://github.com/gradio-app/gradio/commit/9e31697d9435ea926a194262d9e845624df0e74e) - Added image-to-image diffusers pipeline.  Thanks @cswamy!
+
+### Fixes
+
+- [#8247](https://github.com/gradio-app/gradio/pull/8247) [`8f46556`](https://github.com/gradio-app/gradio/commit/8f46556b38e35cffbadac74ff80445dceea3bcf5) - Fix api recorder.  Thanks @abidlabs!
+
+## 4.31.3
+
+### Features
+
+- [#8229](https://github.com/gradio-app/gradio/pull/8229) [`7c81897`](https://github.com/gradio-app/gradio/commit/7c81897076ddcd0bb05e0e4ffec35bb9a986d330) - chore(deps): update dependency esbuild to ^0.21.0.  Thanks @renovate!
+- [#8279](https://github.com/gradio-app/gradio/pull/8279) [`4350215`](https://github.com/gradio-app/gradio/commit/4350215348981aba6dea473884b047f096dcdf0f) - Link to troubleshooting guide in the custom component loading status.  Thanks @freddyaboulton!
+
+### Fixes
+
+- [#8292](https://github.com/gradio-app/gradio/pull/8292) [`ee1e294`](https://github.com/gradio-app/gradio/commit/ee1e2942e0a1ae84a08a05464e41c8108a03fa9c) - Ensure JSON component outputs handled properly in postprocess.  Thanks @freddyaboulton!
+- [#8296](https://github.com/gradio-app/gradio/pull/8296) [`929d216`](https://github.com/gradio-app/gradio/commit/929d216d49aa05614bc83f0761cf7b1cd803d8fe) - always create a jwt when connecting to a space if a hf_token is present.  Thanks @pngwn!
+
+## 4.31.2
+
+### Fixes
+
+- [#8285](https://github.com/gradio-app/gradio/pull/8285) [`7d9d8ea`](https://github.com/gradio-app/gradio/commit/7d9d8eab50d36cbecbb84c6a0f3cc1bca7215604) - use the correct query param to pass the jwt to the heartbeat event.  Thanks @pngwn!
+
 ## 4.31.1
 
 ### Features
