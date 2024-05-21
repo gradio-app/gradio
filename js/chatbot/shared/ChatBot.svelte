@@ -520,37 +520,6 @@
 		}
 	}
 
-	.message-wrap .message :global(a) {
-		color: var(--color-text-link);
-		text-decoration: underline;
-	}
-
-	.message-wrap .bot :global(table),
-	.message-wrap .bot :global(tr),
-	.message-wrap .bot :global(td),
-	.message-wrap .bot :global(th) {
-		border: 1px solid var(--border-color-primary);
-	}
-
-	.message-wrap .user :global(table),
-	.message-wrap .user :global(tr),
-	.message-wrap .user :global(td),
-	.message-wrap .user :global(th) {
-		border: 1px solid var(--border-color-accent);
-	}
-
-	/* Lists */
-	.message-wrap :global(ol),
-	.message-wrap :global(ul) {
-		padding-inline-start: 2em;
-	}
-
-	/* KaTeX */
-	.message-wrap :global(span.katex) {
-		font-size: var(--text-lg);
-		direction: ltr;
-	}
-
 	/* Copy button */
 	.message-wrap :global(div[class*="code_wrap"] > button) {
 		position: absolute;
@@ -584,9 +553,5 @@
 		width: 100%;
 		height: 100%;
 		color: var(--body-text-color);
-	}
-
-	.message-wrap :global(pre) {
-		position: relative;
 	}
 </style>
