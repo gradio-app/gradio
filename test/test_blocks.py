@@ -525,7 +525,7 @@ class TestBlocksPostprocessing:
                 outputs=io_components,
             )
 
-        output = await demo.postprocess_data(
+        output, _ = await demo.postprocess_data(
             demo.fns[0], [gr.update(value=None) for _ in io_components], state=None
         )
 
@@ -550,7 +550,7 @@ class TestBlocksPostprocessing:
                 outputs=text,
             )
 
-        output = await demo.postprocess_data(
+        output, _ = await demo.postprocess_data(
             demo.fns[0], gr.update(value="NO_VALUE"), state=None
         )
         assert output[0]["value"] == "NO_VALUE"
@@ -566,7 +566,7 @@ class TestBlocksPostprocessing:
             checkbox = gr.Checkbox(value=True, label="Show image")
             checkbox.change(change_visibility, inputs=checkbox, outputs=im_list)
 
-        output = await demo.postprocess_data(
+        output, _ = await demo.postprocess_data(
             demo.fns[0], [gr.update(visible=False)] * 2, state=None
         )
         assert output == [
@@ -586,12 +586,12 @@ class TestBlocksPostprocessing:
 
             update.click(update_values, inputs=[num], outputs=[num2])
 
-        output = await demo.postprocess_data(
+        output, _ = await demo.postprocess_data(
             demo.fns[0], {num2: gr.Number(value=42)}, state=None
         )
         assert output[0]["value"] == 42
 
-        output = await demo.postprocess_data(demo.fns[0], {num2: 23}, state=None)
+        output, _ = await demo.postprocess_data(demo.fns[0], {num2: 23}, state=None)
         assert output[0] == 23
 
     @pytest.mark.asyncio
@@ -1695,10 +1695,8 @@ async def test_blocks_postprocessing_with_copies_of_component_instance():
             fn=clear_func, outputs=[chatbot, chatbot2, chatbot3], api_name="clear"
         )
 
-        assert (
-            await demo.postprocess_data(demo.fns[0], [gr.Chatbot(value=[])] * 3, None)
-            == [{"value": [], "__type__": "update"}] * 3
-        )
+        output, _ = await demo.postprocess_data(demo.fns[0], [gr.Chatbot(value=[])] * 3, None)
+        assert output == [{"value": [], "__type__": "update"}] * 3
 
 
 def test_static_files_single_app(connect, gradio_temp_dir):
