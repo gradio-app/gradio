@@ -1,6 +1,5 @@
 ---
 "@gradio/app": patch
-"@gradio/chatbot": patch
 "@gradio/client": patch
 "gradio": patch
 "gradio_client": patch
