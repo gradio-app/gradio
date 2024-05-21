@@ -23,6 +23,7 @@
 		justify-content: space-between;
 		cursor: pointer;
 		width: var(--size-full);
+		color: var(--accordion-text-color);
 	}
 	.label-wrap.open {
 		margin-bottom: var(--size-2);
