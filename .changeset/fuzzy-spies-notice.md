@@ -1,8 +1,8 @@
 ---
-"@gradio/chatbot": minor
-"@gradio/markdown": minor
-"@gradio/theme": minor
-"gradio": minor
+"@gradio/chatbot": patch
+"@gradio/markdown": patch
+"@gradio/theme": patch
+"gradio": patch
 ---
 
 feat:Cleanup markdown styling
