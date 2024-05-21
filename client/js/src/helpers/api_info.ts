@@ -341,7 +341,6 @@ export function handle_message(
 }
 /* eslint-enable complexity */
 
-
 /**
  * Maps the provided `data` to the parameters defined by the `/info` endpoint response.
  * This allows us to support both positional and keyword arguments passed to the client
