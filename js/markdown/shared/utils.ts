@@ -1,7 +1,7 @@
 import { type Renderer, Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
 import { gfmHeadingId } from "marked-gfm-heading-id";
-import Prism from "prismjs";
+import * as Prism from "prismjs";
 import "prismjs/components/prism-python";
 import "prismjs/components/prism-latex";
 import "prismjs/components/prism-bash";
