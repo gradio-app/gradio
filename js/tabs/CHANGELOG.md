@@ -1,5 +1,11 @@
 # @gradio/tabs
 
+## 0.2.9
+
+### Dependency updates
+
+- @gradio/utils@0.4.2
+
 ## 0.2.8
 
 ### Dependency updates
