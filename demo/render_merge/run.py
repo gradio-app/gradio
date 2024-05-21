@@ -3,7 +3,7 @@ import gradio as gr
 with gr.Blocks() as demo:
     text_count = gr.Slider(1, 5, step=1, label="Textbox Count")
 
-    @gr.render(inputs=[text_count], triggers=[text_count.change])
+    @gr.render(inputs=text_count, triggers=[text_count.change])
     def render_count(count):
         boxes = []
         for i in range(count):

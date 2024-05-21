@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from typing import Callable, Literal, Sequence
-
 from gradio.components import Component
+from gradio.blocks import Block
 from gradio.context import Context, LocalContext
 from gradio.events import EventListener, EventListenerMethod
 from gradio.layouts import Column
@@ -12,10 +12,10 @@ class Renderable:
     def __init__(
         self,
         fn: Callable,
-        inputs: list[Component] | None = None,
-        triggers: EventListener | Sequence[EventListener] | None = None,
-        concurrency_limit: int | None | Literal["default"] = "default",
-        concurrency_id: str | None = None,
+        inputs: list[Component],
+        triggers: list[tuple[Block | None, str]],
+        concurrency_limit: int | None | Literal["default"],
+        concurrency_id: str | None,
     ):
         if Context.root_block is None:
             raise ValueError("Reactive render must be inside a Blocks context.")
@@ -28,27 +28,18 @@ class Renderable:
         self.fn = fn
         self.inputs = inputs
         self.triggers: list[EventListenerMethod] = []
-        if isinstance(triggers, EventListener):
-            triggers = [triggers]
 
-        if triggers:
-            self.triggers = [
-                EventListenerMethod(
-                    getattr(t, "__self__", None) if t.has_trigger else None,
-                    t.event_name,
-                )
-                for t in triggers
-            ]
-            Context.root_block.default_config.set_event_trigger(
-                self.triggers,
-                self.apply,
-                self.inputs,
-                None,
-                show_api=False,
-                concurrency_limit=concurrency_limit,
-                concurrency_id=concurrency_id,
-                renderable=self,
-            )
+        self.triggers = [EventListenerMethod(*t) for t in triggers]
+        Context.root_block.default_config.set_event_trigger(
+            self.triggers,
+            self.apply,
+            self.inputs,
+            None,
+            show_api=False,
+            concurrency_limit=concurrency_limit,
+            concurrency_id=concurrency_id,
+            renderable=self,
+        )
 
     def apply(self, *args, **kwargs):
         blocks_config = LocalContext.blocks_config.get()
@@ -76,19 +67,28 @@ class Renderable:
 
 def render(
     inputs: list[Component] | None = None,
-    triggers: list[EventListener] | None = None,
+    triggers: list[EventListener] | EventListener | None = None,
     concurrency_limit: int | None | Literal["default"] = None,
     concurrency_id: str | None = None,
 ):
-    inputs = [inputs] if isinstance(inputs, Component) else inputs
-    if triggers is None and inputs is not None:
+    inputs = (
+        [inputs] if isinstance(inputs, Component) else [] if inputs is None else inputs
+    )
+    _triggers: list[tuple[Block | None, str]] = []
+    if triggers is None:
         triggers = []
         for input in inputs:
             if hasattr(input, "change"):
-                triggers.append(input.change)
+                _triggers.append((input, "change"))
+    else:
+        triggers = [triggers] if isinstance(triggers, EventListener) else triggers
+        _triggers = [
+            (getattr(t, "__self__", None) if t.has_trigger else None, t.event_name)
+            for t in triggers
+        ]
 
     def wrapper_function(fn):
-        Renderable(fn, inputs, triggers, concurrency_limit, concurrency_id)
+        Renderable(fn, inputs, _triggers, concurrency_limit, concurrency_id)
         return fn
 
     return wrapper_function
