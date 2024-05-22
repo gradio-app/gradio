@@ -3,4 +3,4 @@
 "gradio": minor
 ---
 
-feat:Enable hidding inline_category in HighlightedText
+feat:Enable hiding the inline category in HighlightedText with a `show_inline_category` argument
