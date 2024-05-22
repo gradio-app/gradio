@@ -2616,13 +2616,16 @@ Received outputs:
         """Block main thread until interrupted by user."""
         try:
             while True:
-                time.sleep(0.1)
+                if self.is_running:
+                    time.sleep(0.1)
+                else:
+                    break
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
-            if self.server:
-                self.server.close()
-            for tunnel in CURRENT_TUNNELS:
-                tunnel.kill()
+        if self.server:
+            self.server.close()
+        for tunnel in CURRENT_TUNNELS:
+            tunnel.kill()
 
     def attach_load_events(self):
         """Add a load event for every component whose initial value should be randomized."""
