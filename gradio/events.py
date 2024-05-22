@@ -240,9 +240,9 @@ class EventListener(str):
                 preprocess: If False, will not run preprocessing of component data before running 'fn' (e.g. leaving it as a base64 string if this method is called with the `Image` component).
                 postprocess: If False, will not run postprocessing of component data before returning 'fn' output to the browser.
                 cancels: A list of other events to cancel when this listener is triggered. For example, setting cancels=[click_event] will cancel the click_event, where click_event is the return value of another components .click method. Functions that have not yet run (or generators that are iterating) will be cancelled, but functions that are currently running will be allowed to finish.
-                every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds.
                 trigger_mode: If "once" (default for all events except `.change()`) would not allow any submissions while an event is pending. If set to "multiple", unlimited submissions are allowed while pending, and "always_last" (default for `.change()` and `.key_up()` events) would allow a second submission after the pending event is complete.
-                js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+                every: Run this event 'every' number of seconds while the client connection is open. Interpreted in seconds.
+                js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs', return should be a list of values for output components.
                 concurrency_limit: If set, this is the maximum number of this event that can be running simultaneously. Can be set to None to mean no concurrency_limit (any number of this event can be running simultaneously). Set to "default" to use the default concurrency limit (defined by the `default_concurrency_limit` parameter in `Blocks.queue()`, which itself is 1 by default).
                 concurrency_id: If set, this is the id of the concurrency group. Events with the same concurrency_id will be limited by the lowest set concurrency_limit.
                 show_api: whether to show this event in the "view API" page of the Gradio app, or in the ".view_api()" method of the Gradio clients. Unlike setting api_name to False, setting show_api to False will still allow downstream apps as well as the Clients to use this event. If fn is None, show_api will automatically be set to False.
@@ -266,11 +266,11 @@ class EventListener(str):
                         postprocess=postprocess,
                         cancels=cancels,
                         every=every,
-                        trigger_mode=trigger_mode,
                         js=js,
                         concurrency_limit=concurrency_limit,
                         concurrency_id=concurrency_id,
                         show_api=show_api,
+                        trigger_mode=trigger_mode,
                     )
 
                     @wraps(func)
@@ -543,6 +543,10 @@ class Events:
     apply = EventListener(
         "apply",
         doc="This listener is triggered when the user applies changes to the {{ component }} through an integrated UI action.",
+    )
+    delete = EventListener(
+        "delete",
+        doc="This listener is triggered when the user deletes a file from the {{ component }}.",
     )
 
 

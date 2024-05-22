@@ -537,7 +537,6 @@ class Interface(Blocks):
         return [Button(label) for label, _ in self.flagging_options]
 
     def render_input_column(
-        self,
     ) -> tuple[
         Button | None,
         ClearButton | None,
