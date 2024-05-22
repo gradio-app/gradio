@@ -20,7 +20,7 @@ class TestPlot:
 
         iface = gr.Interface(plot, "slider", "plot")
         with utils.MatplotlibBackendMananger():
-            output = await iface.process_api(fn_index=0, inputs=[10], state={})
+            output = await iface.process_api(block_fn=0, inputs=[10], state={})
         assert output["data"][0]["type"] == "matplotlib"
         assert output["data"][0]["plot"].startswith("data:image/webp;base64")
 
