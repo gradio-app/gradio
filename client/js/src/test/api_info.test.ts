@@ -494,8 +494,11 @@ describe("join_urls", () => {
 		expect(join_urls("http://localhost:7860/", "/gradio")).toBe(
 			"http://localhost:7860/gradio"
 		);
+		expect(join_urls("http://localhost:7860", "app/", "/gradio")).toBe(
+			"http://localhost:7860/app/gradio"
+		);
 		expect(join_urls("http://localhost:7860/", "/app/", "/gradio/")).toBe(
-			"http://localhost:7860/app/gradio/"
+			"http://localhost:7860/app/gradio"
 		);
 	});
 	it("throws an error when the URLs are not valid", () => {
