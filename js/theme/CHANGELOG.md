@@ -1,5 +1,11 @@
 # @gradio/theme
 
+## 0.2.3
+
+### Features
+
+- [#8311](https://github.com/gradio-app/gradio/pull/8311) [`35905c5`](https://github.com/gradio-app/gradio/commit/35905c5c8f7acbe669486ac8f57b6955328e4783) - Cleanup markdown styling.  Thanks @aliabid94!
+
 ## 0.2.2
 
 ### Features
