@@ -187,7 +187,7 @@
 				{/if}
 
 				{#each dependencies as dependency, dependency_index}
-					{#if dependency.show_api}
+					{#if dependency.show_api && info.named_endpoints["/" + dependency.api_name]}
 						<div class="endpoint-container">
 							<CodeSnippet
 								named={true}

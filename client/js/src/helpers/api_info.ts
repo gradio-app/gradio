@@ -94,27 +94,30 @@ export function transform_api_info(
 			Object.entries(api_info[category]).forEach(
 				([endpoint, { parameters, returns }]) => {
 					const dependencyIndex =
-						config.dependencies.findIndex(
+						config.dependencies.find(
 							(dep) =>
 								dep.api_name === endpoint ||
 								dep.api_name === endpoint.replace("/", "")
-						) ||
+						)?.id ||
 						api_map[endpoint.replace("/", "")] ||
 						-1;
 
 					const dependencyTypes =
 						dependencyIndex !== -1
-							? config.dependencies[dependencyIndex].types
+							? config.dependencies.find((dep) => dep.id == dependencyIndex)
+									?.types
 							: { continuous: false, generator: false };
 
 					if (
 						dependencyIndex !== -1 &&
-						config.dependencies[dependencyIndex]?.inputs?.length !==
-							parameters.length
+						config.dependencies.find((dep) => dep.id == dependencyIndex)?.inputs
+							?.length !== parameters.length
 					) {
-						const components = config.dependencies[dependencyIndex].inputs.map(
-							(input) => config.components.find((c) => c.id === input)?.type
-						);
+						const components = config.dependencies
+							.find((dep) => dep.id == dependencyIndex)!
+							.inputs.map(
+								(input) => config.components.find((c) => c.id === input)?.type
+							);
 
 						try {
 							components.forEach((comp, idx) => {
@@ -132,7 +135,9 @@ export function transform_api_info(
 									parameters.splice(idx, 0, new_param);
 								}
 							});
-						} catch (e) {}
+						} catch (e) {
+							console.error(e);
+						}
 					}
 
 					const transform_type = (
@@ -218,6 +223,7 @@ export function get_description(
 	return type?.description;
 }
 
+/* eslint-disable complexity */
 export function handle_message(
 	data: any,
 	last_status: Status["stage"]
@@ -325,7 +331,10 @@ export function handle_message(
 					message: !data.success ? data.output.error : undefined,
 					stage: data.success ? "complete" : "error",
 					code: data.code,
-					progress_data: data.progress_data
+					progress_data: data.progress_data,
+					changed_state_ids: data.success
+						? data.output.changed_state_ids
+						: undefined
 				},
 				data: data.success ? data.output : null
 			};
@@ -347,6 +356,7 @@ export function handle_message(
 
 	return { type: "none", status: { stage: "error", queue } };
 }
+/* eslint-enable complexity */
 
 /**
  * Maps the provided `data` to the parameters defined by the `/info` endpoint response.

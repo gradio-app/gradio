@@ -179,10 +179,12 @@ class Client:
         endpoint_class = (
             Endpoint if self.protocol.startswith("sse") else EndpointV3Compatibility
         )
-        self.endpoints = [
-            endpoint_class(self, fn_index, dependency, self.protocol)
+        self.endpoints = {
+            dependency.get("id", fn_index): endpoint_class(
+                self, dependency.get("id", fn_index), dependency, self.protocol
+            )
             for fn_index, dependency in enumerate(self.config["dependencies"])
-        ]
+        }
 
         # Create a pool of threads to handle the requests
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
@@ -793,7 +795,7 @@ class Client:
                 if config_api_name is None or config_api_name is False:
                     continue
                 if "/" + config_api_name == api_name:
-                    inferred_fn_index = i
+                    inferred_fn_index = d.get("id", i)
                     break
             else:
                 error_message = f"Cannot find a function with `api_name`: {api_name}."
@@ -803,14 +805,14 @@ class Client:
         elif fn_index is not None:
             inferred_fn_index = fn_index
             if (
-                inferred_fn_index >= len(self.endpoints)
+                inferred_fn_index not in self.endpoints
                 or not self.endpoints[inferred_fn_index].is_valid
             ):
                 raise ValueError(f"Invalid function index: {fn_index}.")
         else:
             valid_endpoints = [
                 e
-                for e in self.endpoints
+                for e in self.endpoints.values()
                 if e.is_valid
                 and e.api_name is not None
                 and e.backend_fn is not None
@@ -924,7 +926,12 @@ class Client:
                 api_names[i] = (name, name)
 
         fn = next(
-            (ep for ep in self.endpoints if ep.api_name == f"/{api_names[0][0]}"), None
+            (
+                ep
+                for ep in self.endpoints.values()
+                if ep.api_name == f"/{api_names[0][0]}"
+            ),
+            None,
         )
         if not fn:
             raise ValueError(

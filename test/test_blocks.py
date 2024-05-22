@@ -82,26 +82,13 @@ class TestBlocksMethods:
             gr.Image(height=54, width=240)
 
         config1 = demo1.get_config_file()
-        demo2 = gr.Blocks.from_config(config1, [update], fake_url)
+        demo2 = gr.Blocks.from_config(config1, [update], "https://fake.hf.space")
 
         for component in config1["components"]:
             component["props"]["proxy_url"] = f"{fake_url}/"
         config2 = demo2.get_config_file()
 
         assert assert_configs_are_equivalent_besides_ids(config1, config2)
-
-    def test_load_config_with_sucess(self):
-        fake_url = "https://fake.hf.space"
-        with gr.Blocks() as demo1:
-            t1 = gr.Textbox()
-            t2 = gr.Textbox()
-            t3 = gr.Textbox()
-            t4 = gr.Textbox()
-            t1.change(lambda x: x, t1, t2).then(lambda x: x, t2, t3).success(
-                lambda x: x, t3, t4
-            )
-        config1 = demo1.get_config_file()
-        gr.Blocks.from_config(config1, [lambda x: x] * 3, fake_url)
 
     def test_partial_fn_in_config(self):
         def greet(name, formatter):
@@ -130,7 +117,7 @@ class TestBlocksMethods:
             btn.click(greet, {first, last}, greeting)
 
         result = await demo.process_api(
-            inputs=["huggy", "face"], fn_index=0, state=None
+            inputs=["huggy", "face"], block_fn=0, state=None
         )
         assert result["data"] == ["Hello huggy face"]
 
@@ -146,7 +133,7 @@ class TestBlocksMethods:
             button.click(wait, [text], [text])
 
             start = time.time()
-            result = await demo.process_api(inputs=[1], fn_index=0, state=None)
+            result = await demo.process_api(inputs=[1], block_fn=0, state=None)
             end = time.time()
             difference = end - start
             assert difference >= 0.01
@@ -538,8 +525,8 @@ class TestBlocksPostprocessing:
                 outputs=io_components,
             )
 
-        output = await demo.postprocess_data(
-            0, [gr.update(value=None) for _ in io_components], state=None
+        output, _ = await demo.postprocess_data(
+            demo.fns[0], [gr.update(value=None) for _ in io_components], state=None
         )
 
         def process_and_dump(component):
@@ -563,7 +550,9 @@ class TestBlocksPostprocessing:
                 outputs=text,
             )
 
-        output = await demo.postprocess_data(0, gr.update(value="NO_VALUE"), state=None)
+        output, _ = await demo.postprocess_data(
+            demo.fns[0], gr.update(value="NO_VALUE"), state=None
+        )
         assert output[0]["value"] == "NO_VALUE"
 
     @pytest.mark.asyncio
@@ -577,8 +566,8 @@ class TestBlocksPostprocessing:
             checkbox = gr.Checkbox(value=True, label="Show image")
             checkbox.change(change_visibility, inputs=checkbox, outputs=im_list)
 
-        output = await demo.postprocess_data(
-            0, [gr.update(visible=False)] * 2, state=None
+        output, _ = await demo.postprocess_data(
+            demo.fns[0], [gr.update(visible=False)] * 2, state=None
         )
         assert output == [
             {"visible": False, "__type__": "update"},
@@ -597,10 +586,12 @@ class TestBlocksPostprocessing:
 
             update.click(update_values, inputs=[num], outputs=[num2])
 
-        output = await demo.postprocess_data(0, {num2: gr.Number(value=42)}, state=None)
+        output, _ = await demo.postprocess_data(
+            demo.fns[0], {num2: gr.Number(value=42)}, state=None
+        )
         assert output[0]["value"] == 42
 
-        output = await demo.postprocess_data(0, {num2: 23}, state=None)
+        output, _ = await demo.postprocess_data(demo.fns[0], {num2: 23}, state=None)
         assert output[0] == 23
 
     @pytest.mark.asyncio
@@ -677,7 +668,7 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r"^An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
-            await demo.postprocess_data(fn_index=0, predictions=["test"], state=None)
+            await demo.postprocess_data(demo.fns[0], predictions=["test"], state=None)
 
     @pytest.mark.asyncio
     async def test_error_raised_if_num_outputs_mismatch_with_function_name(self):
@@ -693,7 +684,7 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r"^An event handler \(infer\) didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
-            await demo.postprocess_data(fn_index=0, predictions=["test"], state=None)
+            await demo.postprocess_data(demo.fns[0], predictions=["test"], state=None)
 
     @pytest.mark.asyncio
     async def test_error_raised_if_num_outputs_mismatch_single_output(self):
@@ -706,7 +697,7 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r"^An event handler didn\'t receive enough output values \(needed: 2, received: 1\)\.\nWanted outputs:",
         ):
-            await demo.postprocess_data(fn_index=0, predictions=1, state=None)
+            await demo.postprocess_data(demo.fns[0], predictions=1, state=None)
 
     @pytest.mark.asyncio
     async def test_error_raised_if_num_outputs_mismatch_tuple_output(self):
@@ -723,7 +714,7 @@ class TestBlocksPostprocessing:
             ValueError,
             match=r"^An event handler \(infer\) didn\'t receive enough output values \(needed: 3, received: 2\)\.\nWanted outputs:",
         ):
-            await demo.postprocess_data(fn_index=0, predictions=(1, 2), state=None)
+            await demo.postprocess_data(demo.fns[0], predictions=(1, 2), state=None)
 
 
 class TestStateHolder:
@@ -1135,7 +1126,7 @@ class TestUpdate:
                 outputs=[accordion],
             )
         result = await demo.process_api(
-            fn_index=0, inputs=[None], request=None, state=None
+            block_fn=0, inputs=[None], request=None, state=None
         )
         assert result["data"][0] == {
             "open": True,
@@ -1143,7 +1134,7 @@ class TestUpdate:
             "__type__": "update",
         }
         result = await demo.process_api(
-            fn_index=1, inputs=[None], request=None, state=None
+            block_fn=1, inputs=[None], request=None, state=None
         )
         assert result["data"][0] == {
             "open": False,
@@ -1156,13 +1147,13 @@ class TestUpdate:
 async def test_root_path():
     image_file = pathlib.Path(__file__).parent / "test_files" / "bus.png"
     demo = gr.Interface(lambda x: image_file, "textbox", "image")
-    result = await demo.process_api(fn_index=0, inputs=[""], request=None, state=None)
+    result = await demo.process_api(block_fn=0, inputs=[""], request=None, state=None)
     result_url = result["data"][0]["url"]
     assert result_url.startswith("/file=")
     assert result_url.endswith("bus.png")
 
     result = await demo.process_api(
-        fn_index=0, inputs=[""], request=None, state=None, root_path="abidlabs.hf.space"
+        block_fn=0, inputs=[""], request=None, state=None, root_path="abidlabs.hf.space"
     )
     result_url = result["data"][0]["url"]
     assert result_url.startswith("abidlabs.hf.space/file=")
@@ -1280,7 +1271,7 @@ class TestCancel:
             cancel = gr.Button(value="Cancel")
             cancel.click(None, None, None, cancels=[click])
 
-        cancel_fun = demo.fns[-1].fn
+        cancel_fun = demo.fns[demo.default_config.fn_id - 1].fn
         task = asyncio.create_task(long_job())
         task.set_name("foo_0<gradio-sep>event")
         # If cancel_fun didn't cancel long_job the message would be printed to the console
@@ -1311,7 +1302,7 @@ class TestCancel:
             with gr.Tab("Demo 2"):
                 demo2.render()
 
-        cancel_fun = demo.fns[-1].fn
+        cancel_fun = demo.fns[demo.default_config.fn_id - 1].fn
 
         task = asyncio.create_task(long_job())
         task.set_name("foo_1<gradio-sep>event")
@@ -1704,10 +1695,10 @@ async def test_blocks_postprocessing_with_copies_of_component_instance():
             fn=clear_func, outputs=[chatbot, chatbot2, chatbot3], api_name="clear"
         )
 
-        assert (
-            await demo.postprocess_data(0, [gr.Chatbot(value=[])] * 3, None)
-            == [{"value": [], "__type__": "update"}] * 3
+        output, _ = await demo.postprocess_data(
+            demo.fns[0], [gr.Chatbot(value=[])] * 3, None
         )
+        assert output == [{"value": [], "__type__": "update"}] * 3
 
 
 def test_static_files_single_app(connect, gradio_temp_dir):

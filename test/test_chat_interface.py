@@ -53,7 +53,11 @@ class TestInit:
     def test_concurrency_limit(self):
         chat = gr.ChatInterface(double, concurrency_limit=10)
         assert chat.concurrency_limit == 10
-        fns = [fn for fn in chat.fns if fn.name in {"_submit_fn", "_api_submit_fn"}]
+        fns = [
+            fn
+            for fn in chat.fns.values()
+            if fn.name in {"_submit_fn", "_api_submit_fn"}
+        ]
         assert all(fn.concurrency_limit == 10 for fn in fns)
 
     def test_custom_textbox(self):
@@ -77,7 +81,7 @@ class TestInit:
 
     def test_events_attached(self):
         chatbot = gr.ChatInterface(double)
-        dependencies = chatbot.fns
+        dependencies = chatbot.fns.values()
         textbox = chatbot.textbox._id
         submit_btn = chatbot.submit_btn._id
         assert next(

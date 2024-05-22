@@ -10,7 +10,7 @@ from typing import Literal
 from gradio_client.documentation import document
 
 from gradio.components import Button
-from gradio.context import Context
+from gradio.context import get_blocks_context
 from gradio.routes import Request
 
 
@@ -68,7 +68,7 @@ class LoginButton(Button):
             scale=scale,
             min_width=min_width,
         )
-        if Context.root_block:
+        if get_blocks_context():
             self.activate()
         else:
             warnings.warn(

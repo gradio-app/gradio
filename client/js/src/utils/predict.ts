@@ -15,10 +15,12 @@ export async function predict(
 	}
 
 	if (typeof endpoint === "number") {
-		dependency = this.config.dependencies[endpoint];
+		dependency = this.config.dependencies.find((dep) => dep.id == endpoint)!;
 	} else {
 		const trimmed_endpoint = endpoint.replace(/^\//, "");
-		dependency = this.config.dependencies[this.api_map[trimmed_endpoint]];
+		dependency = this.config.dependencies.find(
+			(dep) => dep.id == this.api_map[trimmed_endpoint]
+		)!;
 	}
 
 	if (dependency?.types.continuous) {

@@ -131,7 +131,10 @@ def create_or_modify_pyi(
 def get_local_contexts():
     from gradio.context import LocalContext
 
-    return LocalContext.in_event_listener.get(), LocalContext.is_render.get()
+    return (
+        LocalContext.in_event_listener.get(),
+        LocalContext.renderable.get() is not None,
+    )
 
 
 def updateable(fn):

@@ -13,7 +13,7 @@ from jinja2 import Template
 if TYPE_CHECKING:
     from gradio.blocks import Block, Component
 
-from gradio.context import Context
+from gradio.context import get_blocks_context
 from gradio.utils import get_cancel_function
 
 
@@ -26,10 +26,11 @@ def set_cancel_events(
             cancels = [cancels]
         cancel_fn, fn_indices_to_cancel = get_cancel_function(cancels)
 
-        if Context.root_block is None:
+        root_block = get_blocks_context()
+        if root_block is None:
             raise AttributeError("Cannot cancel outside of a gradio.Blocks context.")
 
-        Context.root_block.set_event_trigger(
+        root_block.set_event_trigger(
             triggers,
             cancel_fn,
             inputs=None,
@@ -213,7 +214,7 @@ class EventListener(str):
             api_name: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
             show_progress: Literal["full", "minimal", "hidden"] = _show_progress,
-            queue: bool | None = None,
+            queue: bool = True,
             batch: bool = False,
             max_batch_size: int = 4,
             preprocess: bool = True,
@@ -288,12 +289,13 @@ class EventListener(str):
             if isinstance(show_progress, bool):
                 show_progress = "full" if show_progress else "hidden"
 
-            if Context.root_block is None:
+            root_block = get_blocks_context()
+            if root_block is None:
                 raise AttributeError(
                     f"Cannot call {_event_name} outside of a gradio.Blocks context."
                 )
 
-            dep, dep_index = Context.root_block.set_event_trigger(
+            dep, dep_index = root_block.set_event_trigger(
                 [EventListenerMethod(block if _has_trigger else None, _event_name)],
                 fn,
                 inputs,
@@ -337,7 +339,7 @@ def on(
     api_name: str | None | Literal[False] = None,
     scroll_to_output: bool = False,
     show_progress: Literal["full", "minimal", "hidden"] = "full",
-    queue: bool | None = None,
+    queue: bool = True,
     batch: bool = False,
     max_batch_size: int = 4,
     preprocess: bool = True,
@@ -412,7 +414,8 @@ def on(
 
         return Dependency(None, {}, None, wrapper)
 
-    if Context.root_block is None:
+    root_block = get_blocks_context()
+    if root_block is None:
         raise Exception("Cannot call on() outside of a gradio.Blocks context.")
     if triggers is None:
         triggers = (
@@ -425,7 +428,7 @@ def on(
             EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name)
             for t in triggers
         ]  # type: ignore
-    dep, dep_index = Context.root_block.set_event_trigger(
+    dep, dep_index = root_block.set_event_trigger(
         triggers,
         fn,
         inputs,
