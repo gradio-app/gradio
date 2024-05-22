@@ -1,5 +1,5 @@
 import type { Status } from "../types";
-import { QUEUE_FULL_MSG } from "../constants";
+import { QUEUE_FULL_MSG, SPACE_METADATA_ERROR_MSG } from "../constants";
 import type { ApiData, ApiInfo, Config, JsApiData } from "../types";
 import { determine_protocol } from "./init_helpers";
 
@@ -36,9 +36,7 @@ export async function process_endpoint(
 				...determine_protocol(_host)
 			};
 		} catch (e) {
-			throw new Error(
-				"Space metadata could not be loaded. " + (e as Error).message
-			);
+			throw new Error(SPACE_METADATA_ERROR_MSG);
 		}
 	}
 
