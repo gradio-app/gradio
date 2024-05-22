@@ -9,7 +9,7 @@ import {
 	UNAUTHORIZED_MSG
 } from "../constants";
 import { Client } from "..";
-import { process_endpoint } from "./api_info";
+import { join_urls, process_endpoint } from "./api_info";
 
 /**
  * This function is used to resolve the URL for making requests when the app has a root path.
@@ -86,7 +86,8 @@ export async function resolve_config(
 		config.root = config_root;
 		return { ...config, path } as Config;
 	} else if (endpoint) {
-		const response = await this.fetch(`${endpoint}/${CONFIG_URL}`, {
+		const config_url = join_urls(endpoint, CONFIG_URL);
+		const response = await this.fetch(config_url, {
 			headers,
 			credentials: "include"
 		});
@@ -173,7 +174,7 @@ export function determine_protocol(endpoint: string): {
 	host: string;
 } {
 	if (endpoint.startsWith("http")) {
-		const { protocol, host } = new URL(endpoint);
+		const { protocol, host, pathname } = new URL(endpoint);
 
 		if (host.endsWith("hf.space")) {
 			return {
@@ -185,7 +186,7 @@ export function determine_protocol(endpoint: string): {
 		return {
 			ws_protocol: protocol === "https:" ? "wss" : "ws",
 			http_protocol: protocol as "http:" | "https:",
-			host
+			host: host + (pathname !== "/" ? pathname : "")
 		};
 	} else if (endpoint.startsWith("file:")) {
 		// This case is only expected to be used for the Wasm mode (Gradio-lite),
