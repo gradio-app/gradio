@@ -1,6 +1,11 @@
 name: "deploy / spaces"
 
 on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+    branches:
+      - js-client-test-tgz
+
   workflow_dispatch:
   workflow_run:
     workflows: ["trigger"]
