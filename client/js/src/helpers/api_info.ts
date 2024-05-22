@@ -1,5 +1,5 @@
 import type { Status } from "../types";
-import { HOST_URL, QUEUE_FULL_MSG } from "../constants";
+import { HOST_URL, INVALID_URL_MSG, QUEUE_FULL_MSG } from "../constants";
 import type { ApiData, ApiInfo, Config, JsApiData } from "../types";
 import { determine_protocol } from "./init_helpers";
 
@@ -71,7 +71,7 @@ export const join_urls = (...urls: string[]): string => {
 
 		return new URL(parts, urls[0]).toString();
 	} catch (e) {
-		throw new Error("Invalid URL. A full URL path is required.");
+		throw new Error(INVALID_URL_MSG);
 	}
 };
 
