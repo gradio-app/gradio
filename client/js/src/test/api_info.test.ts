@@ -500,7 +500,15 @@ describe("join_urls", () => {
 			"http://localhost:7860/app/gradio"
 		);
 		expect(join_urls("http://localhost:7860/", "/app/", "/gradio/")).toBe(
-			"http://localhost:7860/app/gradio"
+			"http://localhost:7860/app/gradio/"
+		);
+
+		expect(join_urls("http://127.0.0.1:8000/app", "/config")).toBe(
+			"http://127.0.0.1:8000/app/config"
+		);
+
+		expect(join_urls("http://127.0.0.1:8000/app/gradio", "/config")).toBe(
+			"http://127.0.0.1:8000/app/gradio/config"
 		);
 	});
 	it("throws an error when the URLs are not valid", () => {

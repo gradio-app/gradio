@@ -67,12 +67,11 @@ export async function process_endpoint(
 
 export const join_urls = (...urls: string[]): string => {
 	try {
-		const parts = urls
-			.map((s) => s.replace(/^\/|\/$/g, ""))
-			.slice(1, urls.length)
-			.join("/");
-
-		return new URL(parts, urls[0]).toString();
+		return urls.reduce((base_url: string, part: string) => {
+			base_url = base_url.replace(/\/+$/, "");
+			part = part.replace(/^\/+/, "");
+			return new URL(part, base_url + "/").toString();
+		});
 	} catch (e) {
 		throw new Error(INVALID_URL_MSG);
 	}
