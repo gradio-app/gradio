@@ -19,7 +19,8 @@ export async function post_data(
 		var response = await this.fetch(url, {
 			method: "POST",
 			body: JSON.stringify(body),
-			headers: { ...headers, ...additional_headers }
+			headers: { ...headers, ...additional_headers },
+			credentials: "include"
 		});
 	} catch (e) {
 		return [{ error: BROKEN_CONNECTION_MSG }, 500];
