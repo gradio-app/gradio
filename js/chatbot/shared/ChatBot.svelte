@@ -269,7 +269,7 @@
 											/>
 										{:else if message.component == "audio"}
 											<BaseStaticAudio
-												value={message.value.file}
+												value={message.value}
 												show_label={false}
 												show_share_button={true}
 												{i18n}
@@ -290,7 +290,7 @@
 											</BaseStaticVideo>
 										{:else if message.component == "image"}
 											<BaseStaticImage
-												value={message.value.file}
+												value={message.value}
 												show_label={false}
 												show_share_button={true}
 												{i18n}

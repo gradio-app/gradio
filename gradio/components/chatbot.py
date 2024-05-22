@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 import inspect
 from pathlib import Path
 from typing import Any, Callable, List, Literal, Optional, Tuple, Union
@@ -13,14 +14,35 @@ from gradio import utils
 from gradio.components import (
     Component as GradioComponent,
 )
-from gradio.components.audio import Audio
 from gradio.components.base import Component
-from gradio.components.gallery import Gallery, GalleryData
-from gradio.components.image import Image
-from gradio.components.plot import Plot, PlotData
-from gradio.components.video import Video, VideoData
 from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
+
+
+def import_component_and_data(component_name: str) -> Optional[Tuple[Any, Any]]:
+    try:
+        # Dynamically import the module
+        module_path = f"gradio.components.{component_name.lower()}"
+        module = importlib.import_module(module_path)
+
+        # Get the component from the module
+        component = getattr(module, component_name, None)
+
+        # Dynamically import the data model
+        data_model_name = f"{component_name}Data"
+        data_model = getattr(module, data_model_name, None)
+
+        if component is not None and data_model is not None:
+            return component, data_model
+        elif component is not None:
+            return component, None
+        else:
+            print(f"Component or data model not found in module {module_path}")
+            return None
+    except ModuleNotFoundError as e:
+        raise ValueError(f"Error importing {component_name} from {module_path}: {e}")
+    except AttributeError:
+        pass
 
 
 class FileMessage(GradioModel):
@@ -29,8 +51,8 @@ class FileMessage(GradioModel):
 
 
 class ComponentMessage(GradioModel):
-    component: Literal["plot", "gallery", "audio", "video", "image"]
-    value: Union[PlotData, GalleryData, VideoData, FileMessage]
+    component: str
+    value: Union[Any, FileMessage]
 
 
 class ChatbotData(GradioRootModel):
@@ -172,22 +194,28 @@ class Chatbot(Component):
         elif isinstance(chat_message, (str)):
             return chat_message
         elif isinstance(chat_message, ComponentMessage):
-            if chat_message.component == "plot":
-                plot = Plot(value=chat_message.value)
-                return plot
-            elif chat_message.component == "gallery":
-                value = [x.image.path for x in chat_message.value.root]
-                gallery = Gallery(value=value)
-                return gallery
-            elif chat_message.component == "image":
-                image = Image(value=chat_message.value.file.path)
-                return image
-            elif chat_message.component == "video":
-                video = Video(value=chat_message.value.video.path)
-                return video
-            elif chat_message.component == "audio":
-                audio = Audio(value=chat_message.value.file.path)
-                return audio
+            component, data_model = import_component_and_data(
+                chat_message.component.capitalize()
+            )
+            if chat_message.component in {"image", "video", "audio"}:
+                if (
+                    isinstance(chat_message.value, dict)
+                    and "path" in chat_message.value
+                ):
+                    return component(value=chat_message.value.get("path"))
+                if (
+                    isinstance(chat_message.value, dict)
+                    and "video" in chat_message.value
+                ):
+                    video_data = chat_message.value.get("video")
+                    return component(value=video_data.get("path"))
+            elif component is not None and data_model is not None:
+                if chat_message.component == "gallery":
+                    chat_message.value = data_model.parse_obj(chat_message.value)
+                    value = [x.image.path for x in chat_message.value.root]
+                    return component(value=value)
+                chat_message.value = data_model.parse_obj(chat_message.value)
+                return component(value=chat_message.value)
             else:
                 raise ValueError(
                     f"Invalid component for Chatbot component: {chat_message.component}"
@@ -241,23 +269,21 @@ class Chatbot(Component):
         if chat_message is None:
             return None
         elif isinstance(chat_message, GradioComponent):
-            if isinstance(chat_message, (Plot, Gallery, Video)):
-                return ComponentMessage(
+            component, _ = import_component_and_data(type(chat_message).__name__)
+            if component:
+                test = ComponentMessage(
                     component=type(chat_message).__name__.lower(),
-                    value=type(chat_message).postprocess(
+                    value=component.postprocess(
                         chat_message,
                         chat_message._constructor_args[1]["value"],
                     ),
                 )
-            elif isinstance(chat_message, (Image, Audio)):
-                filepath = chat_message._constructor_args[1]["value"]
                 return ComponentMessage(
                     component=type(chat_message).__name__.lower(),
-                    value=create_file_message(chat_message, filepath),
-                )
-            else:
-                raise ValueError(
-                    f"Chatbot does not currently support this component: {chat_message}"
+                    value=component.postprocess(
+                        chat_message,
+                        chat_message._constructor_args[1]["value"],
+                    ),
                 )
         elif isinstance(chat_message, (tuple, list)):
             filepath = str(chat_message[0])
