@@ -1,4 +1,8 @@
-import { QUEUE_FULL_MSG, SPACE_METADATA_ERROR_MSG } from "../constants";
+import {
+	INVALID_URL_MSG,
+	QUEUE_FULL_MSG,
+	SPACE_METADATA_ERROR_MSG
+} from "../constants";
 import { beforeAll, afterEach, afterAll, it, expect, describe } from "vitest";
 import {
 	handle_message,
@@ -503,11 +507,11 @@ describe("join_urls", () => {
 	});
 	it("throws an error when the URLs are not valid", () => {
 		expect(() => join_urls("localhost:7860", "/gradio")).toThrowError(
-			"Invalid URL. A full URL path is required."
+			INVALID_URL_MSG
 		);
 
 		expect(() => join_urls("localhost:7860", "/gradio", "app")).toThrowError(
-			"Invalid URL. A full URL path is required."
+			INVALID_URL_MSG
 		);
 	});
 });
