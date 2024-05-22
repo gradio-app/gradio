@@ -20,7 +20,8 @@ from gradio_client import utils as client_utils
 from PIL import Image, ImageOps, PngImagePlugin
 
 from gradio import utils, wasm_utils
-from gradio.data_classes import FileData, GradioModel, GradioRootModel
+from gradio.data_classes import FileData, GradioModel, GradioRootModel, JsonData
+from gradio.exceptions import Error
 from gradio.utils import abspath, get_upload_folder, is_in_or_equal
 
 with warnings.catch_warnings():
@@ -341,6 +342,20 @@ def move_resource_to_block_cache(
     return block.move_resource_to_block_cache(url_or_file_path)
 
 
+def check_all_files_in_cache(data: JsonData):
+    def _in_cache(d: dict):
+        if (
+            (path := d.get("path", ""))
+            and not client_utils.is_http_url_like(path)
+            and not is_in_or_equal(path, get_upload_folder())
+        ):
+            raise Error(
+                f"File {path} is not in the cache folder and cannot be accessed."
+            )
+
+    client_utils.traverse(data, _in_cache, client_utils.is_file_obj)
+
+
 def move_files_to_cache(
     data: Any,
     block: Block,
@@ -475,7 +490,6 @@ async def async_move_files_to_cache(
 
     if isinstance(data, (GradioRootModel, GradioModel)):
         data = data.model_dump()
-
     return await client_utils.async_traverse(
         data, _move_to_cache, client_utils.is_file_obj
     )

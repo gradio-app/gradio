@@ -43,6 +43,15 @@ describe("walk_and_store_blobs", () => {
 		expect(parts[0].blob).toBe(false);
 	});
 
+	it("should handle arrays", async () => {
+		const image = new Blob([]);
+		const parts = await walk_and_store_blobs([image]);
+
+		expect(parts).toHaveLength(1);
+		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].path).toEqual(["0"]);
+	});
+
 	it("should handle deep structures", async () => {
 		const image = new Blob([]);
 		const parts = await walk_and_store_blobs({ a: { b: { data: { image } } } });
@@ -141,18 +150,6 @@ describe("walk_and_store_blobs", () => {
 		expect(parts).toHaveLength(1);
 		expect(parts[0].path).toEqual(["a", "b", "data", "image"]);
 		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
-	});
-
-	it("should convert an object with primitive values to BlobRefs", async () => {
-		const param = {
-			test: "test"
-		};
-		const parts = await walk_and_store_blobs(param);
-
-		expect(parts).toHaveLength(1);
-		expect(parts[0].path).toEqual([]);
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
-		expect(parts[0].type).toEqual("object");
 	});
 });
 describe("update_object", () => {

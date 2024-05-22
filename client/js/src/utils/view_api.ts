@@ -34,12 +34,14 @@ export async function view_api(this: Client): Promise<any> {
 					serialize: false,
 					config: JSON.stringify(config)
 				}),
-				headers
+				headers,
+				credentials: "include"
 			});
 		} else {
 			const url = join_urls(config.root, API_INFO_URL);
 			response = await this.fetch(url, {
-				headers
+				headers,
+				credentials: "include"
 			});
 		}
 

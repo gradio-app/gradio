@@ -441,9 +441,7 @@ describe("process_endpoint", () => {
 		try {
 			await process_endpoint(app_reference, hf_token);
 		} catch (error) {
-			expect(error.message).toEqual(
-				SPACE_METADATA_ERROR_MSG + "Unexpected end of JSON input"
-			);
+			expect(error.message).toEqual(SPACE_METADATA_ERROR_MSG);
 		}
 	});
 
