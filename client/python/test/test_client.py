@@ -992,8 +992,11 @@ class TestAPIInfo:
             "gradio-tests/not-actually-private-space",
         )
         assert len(client.endpoints) == 3
-        assert len([e for e in client.endpoints if e.is_valid]) == 2
-        assert len([e for e in client.endpoints if e.is_valid and e.api_name]) == 1
+        assert len([e for e in client.endpoints.values() if e.is_valid]) == 2
+        assert (
+            len([e for e in client.endpoints.values() if e.is_valid and e.api_name])
+            == 1
+        )
         assert client.view_api(return_format="dict") == {
             "named_endpoints": {
                 "/predict": {
