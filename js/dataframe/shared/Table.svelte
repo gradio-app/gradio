@@ -948,7 +948,6 @@
 		left: 0;
 		z-index: var(--layer-1);
 		box-shadow: var(--shadow-drop);
-		color: var(--table-text-color);
 	}
 
 	tr {
