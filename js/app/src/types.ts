@@ -46,6 +46,7 @@ export interface Payload {
 
 /** A dependency as received from the backend */
 export interface Dependency {
+	id: number;
 	targets: [number, string][];
 	inputs: number[];
 	outputs: number[];
@@ -66,6 +67,7 @@ export interface Dependency {
 	trigger_mode: "once" | "multiple" | "always_last";
 	final_event: Payload | null;
 	show_api: boolean;
+	rendered_in: number | null;
 }
 
 interface TypeDescription {

@@ -50,7 +50,7 @@ from gradio_client.documentation import document
 from typing_extensions import ParamSpec
 
 import gradio
-from gradio.context import Context
+from gradio.context import get_blocks_context
 from gradio.data_classes import FileData
 from gradio.strings import en
 
@@ -109,12 +109,10 @@ class BaseReloader(ABC):
         assert self.running_app.blocks  # noqa: S101
         # Copy over the blocks to get new components and events but
         # not a new queue
-        self.running_app.blocks._queue.block_fns = demo.fns
         demo._queue = self.running_app.blocks._queue
         demo.max_file_size = self.running_app.blocks.max_file_size
         self.running_app.state_holder.reset(demo)
         self.running_app.blocks = demo
-        demo._queue.reload()
 
 
 class SourceFileReloader(BaseReloader):
@@ -872,13 +870,12 @@ def get_cancel_function(
 ) -> tuple[Callable, list[int]]:
     fn_to_comp = {}
     for dep in dependencies:
-        if Context.root_block:
+        root_block = get_blocks_context()
+        if root_block:
             fn_index = next(
-                i for i, d in enumerate(Context.root_block.fns) if d.get_config() == dep
+                i for i, d in root_block.fns.items() if d.get_config() == dep
             )
-            fn_to_comp[fn_index] = [
-                Context.root_block.blocks[o] for o in dep["outputs"]
-            ]
+            fn_to_comp[fn_index] = [root_block.blocks[o] for o in dep["outputs"]]
 
     async def cancel(session_hash: str) -> list[str]:
         task_ids = {f"{session_hash}_{fn}" for fn in fn_to_comp}

@@ -9,11 +9,12 @@ from typing import Any, Callable
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
+from gradio.events import Events
 
 
 @document()
 class State(Component):
-    EVENTS = []
+    EVENTS = [Events.change]
     """
     Special hidden component that stores session state across runs of the demo by the
     same user. The value of the State variable is cleared when the user refreshes the page.

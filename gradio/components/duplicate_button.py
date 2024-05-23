@@ -7,7 +7,7 @@ from typing import Literal
 from gradio_client.documentation import document
 
 from gradio.components import Button
-from gradio.context import Context
+from gradio.context import get_blocks_context
 from gradio.utils import get_space
 
 
@@ -71,7 +71,7 @@ class DuplicateButton(Button):
             scale=scale,
             min_width=min_width,
         )
-        if _activate and Context.root_block:
+        if _activate and get_blocks_context():
             self.activate()
 
     def activate(self):

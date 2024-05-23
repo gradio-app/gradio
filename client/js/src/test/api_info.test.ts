@@ -1,16 +1,22 @@
-import { QUEUE_FULL_MSG, SPACE_METADATA_ERROR_MSG } from "../constants";
+import {
+	INVALID_URL_MSG,
+	QUEUE_FULL_MSG,
+	SPACE_METADATA_ERROR_MSG
+} from "../constants";
 import { beforeAll, afterEach, afterAll, it, expect, describe } from "vitest";
 import {
 	handle_message,
 	get_description,
 	get_type,
 	process_endpoint,
+	join_urls,
 	map_data_to_params
 } from "../helpers/api_info";
 import { initialise_server } from "./server";
 import { transformed_api_info } from "./test_data";
 
 const server = initialise_server();
+const IS_NODE = process.env.TEST_MODE === "node";
 
 beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
@@ -435,9 +441,7 @@ describe("process_endpoint", () => {
 		try {
 			await process_endpoint(app_reference, hf_token);
 		} catch (error) {
-			expect(error.message).toEqual(
-				SPACE_METADATA_ERROR_MSG + "Unexpected end of JSON input"
-			);
+			expect(error.message).toEqual(SPACE_METADATA_ERROR_MSG);
 		}
 	});
 
@@ -454,6 +458,67 @@ describe("process_endpoint", () => {
 
 		const result = await process_endpoint("hmb/hello_world");
 		expect(result).toEqual(expected);
+	});
+
+	it("processes local server URLs correctly", async () => {
+		const local_url = "http://localhost:7860/gradio";
+		const response_local_url = await process_endpoint(local_url);
+		expect(response_local_url.space_id).toBe(false);
+		expect(response_local_url.host).toBe("localhost:7860/gradio");
+
+		const local_url_2 = "http://localhost:7860/gradio/";
+		const response_local_url_2 = await process_endpoint(local_url_2);
+		expect(response_local_url_2.space_id).toBe(false);
+		expect(response_local_url_2.host).toBe("localhost:7860/gradio");
+	});
+
+	it("handles hugging face space references", async () => {
+		const space_id = "hmb/hello_world";
+
+		const response = await process_endpoint(space_id);
+		expect(response.space_id).toBe(space_id);
+		expect(response.host).toContain("hf.space");
+	});
+
+	it("handles hugging face domain URLs", async () => {
+		const app_reference = "https://hmb-hello-world.hf.space/";
+		const response = await process_endpoint(app_reference);
+		expect(response.space_id).toBe("hmb-hello-world");
+		expect(response.host).toBe("hmb-hello-world.hf.space");
+	});
+});
+
+describe("join_urls", () => {
+	it("joins URLs correctly", () => {
+		expect(join_urls("http://localhost:7860", "/gradio")).toBe(
+			"http://localhost:7860/gradio"
+		);
+		expect(join_urls("http://localhost:7860/", "/gradio")).toBe(
+			"http://localhost:7860/gradio"
+		);
+		expect(join_urls("http://localhost:7860", "app/", "/gradio")).toBe(
+			"http://localhost:7860/app/gradio"
+		);
+		expect(join_urls("http://localhost:7860/", "/app/", "/gradio/")).toBe(
+			"http://localhost:7860/app/gradio/"
+		);
+
+		expect(join_urls("http://127.0.0.1:8000/app", "/config")).toBe(
+			"http://127.0.0.1:8000/app/config"
+		);
+
+		expect(join_urls("http://127.0.0.1:8000/app/gradio", "/config")).toBe(
+			"http://127.0.0.1:8000/app/gradio/config"
+		);
+	});
+	it("throws an error when the URLs are not valid", () => {
+		expect(() => join_urls("localhost:7860", "/gradio")).toThrowError(
+			INVALID_URL_MSG
+		);
+
+		expect(() => join_urls("localhost:7860", "/gradio", "app")).toThrowError(
+			INVALID_URL_MSG
+		);
 	});
 });
 

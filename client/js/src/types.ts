@@ -154,6 +154,7 @@ export interface Config {
 }
 
 export interface Dependency {
+	id: number;
 	targets: [number, string][];
 	inputs: number[];
 	outputs: number[];
@@ -179,6 +180,7 @@ export interface Dependency {
 	final_event: Payload | null;
 	show_api: boolean;
 	zerogpu?: boolean;
+	rendered_in: number | null;
 }
 
 export interface DependencyTypes {
@@ -215,6 +217,7 @@ export interface DuplicateOptions extends ClientOptions {
 export interface ClientOptions {
 	hf_token?: `hf_${string}`;
 	status_callback?: SpaceStatusCallback | null;
+	auth?: [string, string] | null;
 }
 
 export interface FileData {
@@ -255,6 +258,8 @@ export interface RenderMessage {
 	data: {
 		components: any[];
 		layout: any;
+		dependencies: Dependency[];
+		render_id: number;
 	};
 }
 
@@ -276,4 +281,5 @@ export interface Status {
 		desc: string | null;
 	}[];
 	time?: Date;
+	changed_state_ids?: number[];
 }

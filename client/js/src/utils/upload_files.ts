@@ -33,7 +33,8 @@ export async function upload_files(
 			response = await this.fetch(upload_url, {
 				method: "POST",
 				body: formData,
-				headers
+				headers,
+				credentials: "include"
 			});
 		} catch (e) {
 			throw new Error(BROKEN_CONNECTION_MSG + (e as Error).message);
