@@ -180,6 +180,7 @@ class App(FastAPI):
         self._asyncio_tasks: list[asyncio.Task] = []
         self.auth_dependency = auth_dependency
         self.api_info = None
+        self.all_app_info = None
         # Allow user to manually set `docs_url` and `redoc_url`
         # when instantiating an App; when they're not set, disable docs and redoc.
         kwargs.setdefault("docs_url", None)
@@ -415,8 +416,11 @@ class App(FastAPI):
 
         @app.get("/info/", dependencies=[Depends(login_check)])
         @app.get("/info", dependencies=[Depends(login_check)])
-        def api_info():
-            # The api info is set in create_app
+        def api_info(all_endpoints: bool = False):
+            if all_endpoints:
+                if not app.all_app_info:
+                    app.all_app_info = app.get_blocks().get_api_info(all_endpoints=True)
+                return app.all_app_info
             if not app.api_info:
                 app.api_info = app.get_blocks().get_api_info()
             return app.api_info
@@ -676,7 +680,7 @@ class App(FastAPI):
                         )
                         unload_fn_indices = [
                             i
-                            for i, dep in enumerate(app.get_blocks().fns)
+                            for i, dep in app.get_blocks().fns.items()
                             if any(t for t in dep.targets if t[1] == "unload")
                         ]
                         for fn_index in unload_fn_indices:
@@ -687,7 +691,7 @@ class App(FastAPI):
                                 app=app,
                                 body=body,
                                 gr_request=req,
-                                fn_index_inferred=fn_index,
+                                fn=app.get_blocks().fns[fn_index],
                                 root_path=root_path,
                             )
                         # This will mark the state to be deleted in an hour
@@ -708,22 +712,19 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            fn_index_inferred = route_utils.infer_fn_index(
-                app=app, api_name=api_name, body=body
+            fn = route_utils.get_fn(
+                blocks=app.get_blocks(), api_name=api_name, body=body
             )
 
-            if not app.get_blocks().api_open and app.get_blocks().queue_enabled_for_fn(
-                fn_index_inferred
-            ):
+            if not app.get_blocks().api_open and fn.queue:
                 raise HTTPException(
                     detail="This API endpoint does not accept direct HTTP POST requests. Please join the queue to use this API.",
                     status_code=status.HTTP_404_NOT_FOUND,
                 )
 
             gr_request = route_utils.compile_gr_request(
-                app,
                 body,
-                fn_index_inferred=fn_index_inferred,
+                fn=fn,
                 username=username,
                 request=request,
             )
@@ -735,15 +736,12 @@ class App(FastAPI):
                     app=app,
                     body=body,
                     gr_request=gr_request,
-                    fn_index_inferred=fn_index_inferred,
+                    fn=fn,
                     root_path=root_path,
                 )
-                if (  # noqa: SIM102
-                    (blocks := app.get_blocks())
-                    .fns[fn_index_inferred]
-                    .is_cancel_function
-                ):
+                if fn.is_cancel_function:
                     # Need to complete the job so that the client disconnects
+                    blocks = app.get_blocks()
                     if body.session_hash in blocks._queue.pending_messages_per_session:
                         for event_id in output["data"]:
                             message = ProcessCompletedMessage(
@@ -771,10 +769,10 @@ class App(FastAPI):
             username: str = Depends(get_current_user),
         ):
             full_body = PredictBody(**body.model_dump(), simple_format=True)
-            inferred_fn_index = route_utils.infer_fn_index(
-                app=app, api_name=api_name, body=full_body
+            fn = route_utils.get_fn(
+                blocks=app.get_blocks(), api_name=api_name, body=full_body
             )
-            full_body.fn_index = inferred_fn_index
+            full_body.fn_index = fn._id
             return await queue_join_helper(full_body, request, username)
 
         @app.post("/queue/join", dependencies=[Depends(login_check)])

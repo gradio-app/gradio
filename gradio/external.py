@@ -348,6 +348,20 @@ def from_model(model_name: str, hf_token: str | None, alias: str | None, **kwarg
         inputs = components.Image(type="filepath", label="Input Image")
         outputs = components.AnnotatedImage(label="Annotations")
         fn = external_utils.object_detection_wrapper(client)
+    # example model: stabilityai/stable-diffusion-xl-refiner-1.0
+    elif p == "image-to-image":
+        inputs = [
+            components.Image(type="filepath", label="Input Image"),
+            components.Textbox(label="Input"),
+        ]
+        outputs = components.Image(label="Output")
+        examples = [
+            [
+                "https://gradio-builds.s3.amazonaws.com/demo-files/cheetah-002.jpg",
+                "Photo of a cheetah with green eyes",
+            ]
+        ]
+        fn = client.image_to_image
     else:
         raise ValueError(f"Unsupported pipeline type: {p}")
 
@@ -441,7 +455,7 @@ def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
 
     # Use end_to_end_fn here to properly upload/download all files
     predict_fns = []
-    for fn_index, endpoint in enumerate(client.endpoints):
+    for fn_index, endpoint in client.endpoints.items():
         if not isinstance(endpoint, Endpoint):
             raise TypeError(
                 f"Expected endpoint to be an Endpoint, but got {type(endpoint)}"

@@ -6,7 +6,8 @@ import {
 	RUNTIME_URL,
 	SLEEPTIME_URL,
 	UPLOAD_URL,
-	BROKEN_CONNECTION_MSG
+	BROKEN_CONNECTION_MSG,
+	LOGIN_URL
 } from "../constants";
 import {
 	response_api_info,
@@ -22,16 +23,24 @@ const root_url = "https://huggingface.co";
 
 const direct_space_url = "https://hmb-hello-world.hf.space";
 const private_space_url = "https://hmb-secret-world.hf.space";
+const private_auth_space_url = "https://hmb-private-auth-space.hf.space";
 
 const server_error_space_url = "https://hmb-server-error.hf.space";
 const upload_server_test_space_url = "https://hmb-server-test.hf.space";
-const server_error_reference = "hmb/server_error";
+const auth_app_space_url = "https://hmb-auth-space.hf.space";
+const unauth_app_space_url = "https://hmb-unauth-space.hf.space";
+const invalid_auth_space_url = "https://hmb-invalid-auth-space.hf.space";
 
+const server_error_reference = "hmb/server_error";
 const app_reference = "hmb/hello_world";
 const broken_app_reference = "hmb/bye_world";
 const duplicate_app_reference = "gradio/hello_world";
 const private_app_reference = "hmb/secret_world";
 const server_test_app_reference = "hmb/server_test";
+const auth_app_reference = "hmb/auth_space";
+const unauth_app_reference = "hmb/unauth_space";
+const invalid_auth_app_reference = "hmb/invalid_auth_space";
+const private_auth_app_reference = "hmb/private_auth_space";
 
 export const handlers: RequestHandler[] = [
 	// /host requests
@@ -58,6 +67,23 @@ export const handlers: RequestHandler[] = [
 			}
 		});
 	}),
+	http.get(
+		`${root_url}/api/spaces/${private_auth_app_reference}/${HOST_URL}`,
+		() => {
+			return new HttpResponse(
+				JSON.stringify({
+					subdomain: "hmb-private-auth-space",
+					host: "https://hmb-private-auth-space.hf.space"
+				}),
+				{
+					status: 200,
+					headers: {
+						"Content-Type": "application/json"
+					}
+				}
+			);
+		}
+	),
 	http.get(
 		`${root_url}/api/spaces/${private_app_reference}/${HOST_URL}`,
 		({ request }) => {
@@ -120,6 +146,68 @@ export const handlers: RequestHandler[] = [
 			);
 		}
 	),
+	http.get(`${root_url}/api/spaces/${auth_app_reference}/${HOST_URL}`, () => {
+		return new HttpResponse(
+			JSON.stringify({
+				subdomain: "hmb-auth-space",
+				host: "https://hmb-auth-space.hf.space"
+			}),
+			{
+				status: 200,
+				headers: {
+					"Content-Type": "application/json"
+				}
+			}
+		);
+	}),
+	http.get(
+		`${root_url}/api/spaces/${invalid_auth_app_reference}/${HOST_URL}`,
+		() => {
+			return new HttpResponse(
+				JSON.stringify({
+					subdomain: "hmb-invalid-auth-space",
+					host: "https://hmb-invalid-auth-space.hf.space"
+				}),
+				{
+					status: 200,
+					headers: {
+						"Content-Type": "application/json"
+					}
+				}
+			);
+		}
+	),
+	http.get(
+		`${root_url}/api/spaces/${duplicate_app_reference}/${HOST_URL}`,
+		() => {
+			return new HttpResponse(
+				JSON.stringify({
+					subdomain: "gradio-hello-world",
+					host: "https://gradio-hello-world.hf.space"
+				}),
+				{
+					status: 200,
+					headers: {
+						"Content-Type": "application/json"
+					}
+				}
+			);
+		}
+	),
+	http.get(`${root_url}/api/spaces/${unauth_app_reference}/${HOST_URL}`, () => {
+		return new HttpResponse(
+			JSON.stringify({
+				subdomain: "hmb-unath-space",
+				host: "https://hmb-unauth-space.hf.space"
+			}),
+			{
+				status: 200,
+				headers: {
+					"Content-Type": "application/json"
+				}
+			}
+		);
+	}),
 	// /info requests
 	http.get(`${direct_space_url}/${API_INFO_URL}`, () => {
 		return new HttpResponse(JSON.stringify(response_api_info), {
@@ -146,6 +234,22 @@ export const handlers: RequestHandler[] = [
 		});
 	}),
 	http.get(`${server_error_space_url}/${API_INFO_URL}`, () => {
+		return new HttpResponse(JSON.stringify(response_api_info), {
+			status: 200,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
+	http.get(`${auth_app_space_url}/${API_INFO_URL}`, async () => {
+		return new HttpResponse(JSON.stringify(response_api_info), {
+			status: 200,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
+	http.get(`${private_auth_space_url}/${API_INFO_URL}`, async () => {
 		return new HttpResponse(JSON.stringify(response_api_info), {
 			status: 200,
 			headers: {
@@ -190,6 +294,20 @@ export const handlers: RequestHandler[] = [
 			}
 		);
 	}),
+	http.get(`${private_auth_space_url}/${CONFIG_URL}`, () => {
+		return new HttpResponse(
+			JSON.stringify({
+				...config_response,
+				root: "https://hmb-private-auth-space.hf.space"
+			}),
+			{
+				status: 200,
+				headers: {
+					"Content-Type": "application/json"
+				}
+			}
+		);
+	}),
 	http.get(`${direct_space_url}/${CONFIG_URL}`, () => {
 		return new HttpResponse(JSON.stringify(config_response), {
 			status: 500,
@@ -205,6 +323,42 @@ export const handlers: RequestHandler[] = [
 				"Content-Type": "application/json"
 			}
 		});
+	}),
+	http.get(`${invalid_auth_space_url}/${CONFIG_URL}`, () => {
+		return new HttpResponse(JSON.stringify({ detail: "Unauthorized" }), {
+			status: 401,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
+	http.get(`${auth_app_space_url}/${CONFIG_URL}`, ({ request }) => {
+		return new HttpResponse(
+			JSON.stringify({
+				...config_response,
+				root: "https://hmb-auth-space.hf.space",
+				space_id: "hmb/auth_space"
+			}),
+			{
+				status: 200,
+				headers: {
+					"Content-Type": "application/json"
+				}
+			}
+		);
+	}),
+	http.get(`${unauth_app_space_url}/${CONFIG_URL}`, () => {
+		return new HttpResponse(
+			JSON.stringify({
+				detail: "Unauthorized"
+			}),
+			{
+				status: 401,
+				headers: {
+					"Content-Type": "application/json"
+				}
+			}
+		);
 	}),
 	// /whoami requests
 	http.get(`${root_url}/api/whoami-v2`, () => {
@@ -387,6 +541,20 @@ export const handlers: RequestHandler[] = [
 			}
 		});
 	}),
+	http.get(`${root_url}/api/spaces/${unauth_app_reference}`, () => {
+		return new HttpResponse(
+			JSON.stringify({
+				id: unauth_app_reference,
+				runtime: { ...runtime_response }
+			}),
+			{
+				status: 200,
+				headers: {
+					"Content-Type": "application/json"
+				}
+			}
+		);
+	}),
 	// jwt requests
 	http.get(`${root_url}/api/spaces/${app_reference}/jwt`, () => {
 		return new HttpResponse(
@@ -430,6 +598,85 @@ export const handlers: RequestHandler[] = [
 	http.get(`*/heartbeat/*`, () => {
 		return new HttpResponse(null, {
 			status: 200,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
+	// login requests
+	http.post(`${auth_app_space_url}/${LOGIN_URL}`, async ({ request }) => {
+		let username;
+		let password;
+
+		await request.formData().then((data) => {
+			username = data.get("username");
+			password = data.get("password");
+		});
+
+		if (username === "admin" && password === "pass1234") {
+			return new HttpResponse(
+				JSON.stringify({
+					success: true
+				}),
+				{
+					status: 200,
+					headers: {
+						"Content-Type": "application/json",
+						"Set-Cookie":
+							"access-token-123=abc; HttpOnly; Path=/; SameSite=none; Secure",
+						// @ts-ignore - multiple Set-Cookie headers are returned
+						"Set-Cookie":
+							"access-token-unsecure-123=abc; HttpOnly; Path=/; SameSite=none; Secure"
+					}
+				}
+			);
+		}
+
+		return new HttpResponse(null, {
+			status: 401,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
+	http.post(`${invalid_auth_space_url}/${LOGIN_URL}`, async () => {
+		return new HttpResponse(null, {
+			status: 401,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
+	http.post(`${private_auth_space_url}/${LOGIN_URL}`, async ({ request }) => {
+		let username;
+		let password;
+
+		await request.formData().then((data) => {
+			username = data.get("username");
+			password = data.get("password");
+		});
+
+		if (username === "admin" && password === "pass1234") {
+			return new HttpResponse(
+				JSON.stringify({
+					success: true
+				}),
+				{
+					status: 200,
+					headers: {
+						"Content-Type": "application/json",
+						"Set-Cookie":
+							"access-token-123=abc; HttpOnly; Path=/; SameSite=none; Secure",
+						// @ts-ignore - multiple Set-Cookie headers are returned
+						"Set-Cookie":
+							"access-token-unsecure-123=abc; HttpOnly; Path=/; SameSite=none; Secure"
+					}
+				}
+			);
+		}
+
+		return new HttpResponse(null, {
+			status: 401,
 			headers: {
 				"Content-Type": "application/json"
 			}
