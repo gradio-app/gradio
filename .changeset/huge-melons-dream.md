@@ -1,5 +1,6 @@
 ---
 "@gradio/dataframe": patch
+"@gradio/dataset": patch
 "gradio": patch
 ---
 
