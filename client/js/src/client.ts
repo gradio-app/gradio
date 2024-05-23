@@ -23,8 +23,10 @@ import { submit } from "./utils/submit";
 import { RE_SPACE_NAME, process_endpoint } from "./helpers/api_info";
 import {
 	map_names_to_ids,
+	resolve_cookies,
 	resolve_config,
-	get_jwt
+	get_jwt,
+	parse_and_set_cookies
 } from "./helpers/init_helpers";
 import { check_space_status } from "./helpers/spaces";
 import { open_stream } from "./utils/stream";
@@ -47,6 +49,8 @@ export class Client {
 	jwt: string | false = false;
 	last_status: Record<string, Status["stage"]> = {};
 
+	private cookies: string | null = null;
+
 	// streaming
 	stream_status = { open: false };
 	pending_stream_messages: Record<string, any[][]> = {};
@@ -56,7 +60,12 @@ export class Client {
 	heartbeat_event: EventSource | null = null;
 
 	fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-		return fetch(input, init);
+		const headers = new Headers(init?.headers || {});
+		if (this && this.cookies) {
+			headers.append("Cookie", this.cookies);
+		}
+
+		return fetch(input, { ...init, headers });
 	}
 
 	async stream(url: URL): Promise<EventSource> {
@@ -108,6 +117,7 @@ export class Client {
 	) => Promise<SubmitReturn>;
 	open_stream: () => Promise<void>;
 	private resolve_config: (endpoint: string) => Promise<Config | undefined>;
+	private resolve_cookies: () => Promise<void>;
 	constructor(app_reference: string, options: ClientOptions = {}) {
 		this.app_reference = app_reference;
 		this.options = options;
@@ -120,6 +130,7 @@ export class Client {
 		this.predict = predict.bind(this);
 		this.open_stream = open_stream.bind(this);
 		this.resolve_config = resolve_config.bind(this);
+		this.resolve_cookies = resolve_cookies.bind(this);
 		this.upload = upload.bind(this);
 	}
 
@@ -135,8 +146,23 @@ export class Client {
 		}
 
 		try {
+			if (this.options.auth) {
+				await this.resolve_cookies();
+			}
+
 			await this._resolve_config().then(async ({ config }) => {
-				this.config = config;
+				if (config) {
+					this.config = config;
+					if (this.config && this.config.connect_heartbeat) {
+						if (this.config.space_id && this.options.hf_token) {
+							this.jwt = await get_jwt(
+								this.config.space_id,
+								this.options.hf_token,
+								this.cookies
+							);
+						}
+					}
+				}
 
 				if (config.space_id && this.options.hf_token) {
 					this.jwt = await get_jwt(config.space_id, this.options.hf_token);
@@ -156,8 +182,8 @@ export class Client {
 					this.heartbeat_event = await this.stream(heartbeat_url); // Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
 				}
 			});
-		} catch (e) {
-			throw Error(CONFIG_ERROR_MSG + (e as Error).message);
+		} catch (e: any) {
+			throw Error(e);
 		}
 
 		this.api_info = await this.view_api();
@@ -201,9 +227,8 @@ export class Client {
 			}
 
 			return this.config_success(config);
-		} catch (e) {
-			console.error(e);
-			if (space_id) {
+		} catch (e: any) {
+			if (space_id && status_callback) {
 				check_space_status(
 					space_id,
 					RE_SPACE_NAME.test(space_id) ? "space_name" : "subdomain",
@@ -217,6 +242,7 @@ export class Client {
 						load_status: "error",
 						detail: "NOT_FOUND"
 					});
+				throw Error(e);
 			}
 		}
 	}
@@ -246,6 +272,9 @@ export class Client {
 	}
 
 	async handle_space_success(status: SpaceStatus): Promise<Config | void> {
+		if (!this) {
+			throw new Error(CONFIG_ERROR_MSG);
+		}
 		const { status_callback } = this.options;
 		if (status_callback) status_callback(status);
 		if (status.status === "running") {
@@ -259,7 +288,6 @@ export class Client {
 
 				return _config as Config;
 			} catch (e) {
-				console.error(e);
 				if (status_callback) {
 					status_callback({
 						status: "error",
@@ -268,6 +296,7 @@ export class Client {
 						detail: "NOT_FOUND"
 					});
 				}
+				throw e;
 			}
 		}
 	}
@@ -333,7 +362,8 @@ export class Client {
 			const response = await this.fetch(`${root_url}/component_server/`, {
 				method: "POST",
 				body: body,
-				headers
+				headers,
+				credentials: "include"
 			});
 
 			if (!response.ok) {
@@ -347,6 +377,10 @@ export class Client {
 		} catch (e) {
 			console.warn(e);
 		}
+	}
+
+	public set_cookies(raw_cookies: string): void {
+		this.cookies = parse_and_set_cookies(raw_cookies).join("; ");
 	}
 
 	private prepare_return_obj(): client_return {

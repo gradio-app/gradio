@@ -39,6 +39,7 @@ class HighlightedText(Component):
         color_map: dict[str, str]
         | None = None,  # Parameter moved to HighlightedText.style()
         show_legend: bool = False,
+        show_inline_category: bool = True,
         combine_adjacent: bool = False,
         adjacent_separator: str = "",
         label: str | None = None,
@@ -59,6 +60,7 @@ class HighlightedText(Component):
             value: Default value to show. If callable, the function will be called whenever the app loads to set the initial value of the component.
             color_map: A dictionary mapping labels to colors. The colors may be specified as hex codes or by their names. For example: {"person": "red", "location": "#FFEE22"}
             show_legend: whether to show span categories in a separate legend or inline.
+            show_inline_category: If False, will not display span category label. Only applies if show_legend=False and interactive=False.
             combine_adjacent: If True, will merge the labels of adjacent tokens belonging to the same category.
             adjacent_separator: Specifies the separator to be used between tokens if combine_adjacent is True.
             label: The label for this component. Appears above the component and is also used as the header if there are a table of examples for this component. If None and used in a `gr.Interface`, the label will be the name of the parameter this component is assigned to.
@@ -76,6 +78,7 @@ class HighlightedText(Component):
         """
         self.color_map = color_map
         self.show_legend = show_legend
+        self.show_inline_category = show_inline_category
         self.combine_adjacent = combine_adjacent
         self.adjacent_separator = adjacent_separator
         super().__init__(
