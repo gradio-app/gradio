@@ -696,6 +696,7 @@ class CustomCORSMiddleware:
         self.preflight_headers = {
             "Access-Control-Allow-Methods": ", ".join(self.all_methods),
             "Access-Control-Max-Age": str(600),
+            "Access-Control-Allow-Credentials": "true",
         }
         self.simple_headers = {"Access-Control-Allow-Credentials": "true"}
         # Any of these hosts suggests that the Gradio app is running locally.
