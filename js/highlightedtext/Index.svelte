@@ -27,6 +27,7 @@
 	}[];
 	let old_value: typeof value;
 	export let show_legend: boolean;
+	export let show_inline_category: boolean;
 	export let color_map: Record<string, string> = {};
 	export let label = gradio.i18n("highlighted_text.highlighted_text");
 	export let container = true;
@@ -87,6 +88,7 @@
 				selectable={_selectable}
 				{value}
 				{show_legend}
+				{show_inline_category}
 				{color_map}
 			/>
 		{:else}
