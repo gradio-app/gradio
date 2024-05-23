@@ -13,7 +13,7 @@ class TestClearButton:
                 textbox = gr.Textbox(scale=3, interactive=True)
                 gr.ClearButton([textbox, chatbot], scale=1)
 
-        clear_event_trigger = demo.fns.pop()
+        clear_event_trigger = demo.fns.pop(demo.default_config.fn_id - 1)
         assert not clear_event_trigger.fn
         assert clear_event_trigger.js
         assert clear_event_trigger.outputs == [textbox, chatbot]
@@ -24,7 +24,7 @@ class TestClearButton:
             state = gr.State("")
             gr.ClearButton([state, chatbot], scale=1)
 
-        clear_event_trigger_state = demo.fns.pop()
+        clear_event_trigger_state = demo.fns.pop(demo.default_config.fn_id - 1)
         assert clear_event_trigger_state.fn
 
 
