@@ -34,6 +34,7 @@ export interface ComponentMeta {
 export interface DependencyTypes {
 	continuous: boolean;
 	generator: boolean;
+	cancel: boolean;
 }
 
 /** An event payload that is sent with an API request */

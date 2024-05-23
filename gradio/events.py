@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from gradio.blocks import Block, Component
 
 from gradio.context import get_blocks_context
-from gradio.utils import get_cancel_function
+from gradio.utils import get_cancelled_fn_indices
 
 
 def set_cancel_events(
@@ -24,7 +24,7 @@ def set_cancel_events(
     if cancels:
         if not isinstance(cancels, list):
             cancels = [cancels]
-        cancel_fn, fn_indices_to_cancel = get_cancel_function(cancels)
+        fn_indices_to_cancel = get_cancelled_fn_indices(cancels)
 
         root_block = get_blocks_context()
         if root_block is None:
@@ -32,7 +32,7 @@ def set_cancel_events(
 
         root_block.set_event_trigger(
             triggers,
-            cancel_fn,
+            fn=None,
             inputs=None,
             outputs=None,
             queue=False,
