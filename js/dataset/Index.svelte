@@ -279,6 +279,7 @@
 		table-layout: auto;
 		overflow-x: auto;
 		line-height: var(--line-sm);
+		color: var(--block-label-text-color);
 	}
 	table {
 		width: var(--size-full);
