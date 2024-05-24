@@ -1338,6 +1338,7 @@ class Endpoint:
             file_path = f
         else:
             file_path = f["path"]
+        orig_name = None
         if not utils.is_http_url_like(file_path):
             component_id = self.dependency["inputs"][data_index]
             component_config = next(
@@ -1355,8 +1356,9 @@ class Endpoint:
                     f"File {file_path} exceeds the maximum file size of {max_file_size} bytes "
                     f"set in {component_config.get('label', '') + ''} component."
                 )
+            orig_name = Path(file_path).name
             with open(file_path, "rb") as f:
-                files = [("files", (Path(file_path).name, f))]
+                files = [("files", (orig_name, f))]
                 r = httpx.post(
                     self.client.upload_url,
                     headers=self.client.headers,
@@ -1367,7 +1369,7 @@ class Endpoint:
             r.raise_for_status()
             result = r.json()
             file_path = result[0]
-        return {"path": file_path}
+        return {"path": file_path, "orig_name": orig_name}
 
     def _download_file(self, x: dict) -> str:
         url_path = self.root_url + "file=" + x["path"]
