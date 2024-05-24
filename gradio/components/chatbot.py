@@ -271,13 +271,13 @@ class Chatbot(Component):
         elif isinstance(chat_message, GradioComponent):
             component, _ = import_component_and_data(type(chat_message).__name__)
             if component:
-                test = ComponentMessage(
-                    component=type(chat_message).__name__.lower(),
-                    value=component.postprocess(
-                        chat_message,
-                        chat_message._constructor_args[1]["value"],
-                    ),
-                )
+                # test = ComponentMessage(
+                #     component=type(chat_message).__name__.lower(),
+                #     value=component.postprocess(
+                #         chat_message,
+                #         chat_message._constructor_args[1]["value"],
+                #     ),
+                # )
                 return ComponentMessage(
                     component=type(chat_message).__name__.lower(),
                     value=component.postprocess(
