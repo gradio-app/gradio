@@ -1684,7 +1684,7 @@ Received outputs:
         block_fn: BlockFunction,
         predictions: list | dict,
         state: SessionState | None,
-    ):
+    ) -> tuple[list[Any], list[int]]:
         state = state or SessionState(self)
 
         if isinstance(predictions, dict) and len(predictions) > 0:
@@ -1904,7 +1904,7 @@ Received outputs:
             ]
             data, changed_state_ids = zip(*data_and_changed_state_ids)
             if root_path is not None:
-                data = processing_utils.add_root_url(data, root_path, None)
+                data = processing_utils.add_root_url(data, root_path, None)  # type: ignore
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
