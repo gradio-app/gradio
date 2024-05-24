@@ -27,7 +27,8 @@ with gr.Blocks() as demo:
     chatbot = gr.Chatbot(
         [],
         elem_id="chatbot",
-        bubble_full_width=False
+        bubble_full_width=False,
+        avatar_images=[None, "files/avatar.png"]
     )
 
     chat_input = gr.MultimodalTextbox(interactive=True, file_types=["image"], placeholder="Enter message or upload file...", show_label=False)
