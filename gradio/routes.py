@@ -625,6 +625,7 @@ class App(FastAPI):
         @app.post("/reset/")
         @app.post("/reset")
         async def reset_iterator(body: ResetBody):  # noqa: ARG001
+            # No-op, all the cancelling/reset logic handled by /cancel
             return {"success": True}
 
         @app.get("/heartbeat/{session_hash}")
@@ -1140,7 +1141,6 @@ class App(FastAPI):
                 bg_tasks.add_task(
                     move_uploaded_files_to_cache, files_to_copy, locations
                 )
-            print("Uploaded files: ", output_files)
             return output_files
 
         @app.on_event("startup")
