@@ -997,12 +997,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.fill_height = fill_height
         self.delete_cache = delete_cache
         if css is not None and os.path.exists(css):
-            with open(css) as css_file:
+            with open(css, encoding="utf-8") as css_file:
                 self.css = css_file.read()
         else:
             self.css = css
         if js is not None and os.path.exists(js):
-            with open(js) as js_file:
+            with open(js, encoding="utf-8") as js_file:
                 self.js = js_file.read()
         else:
             self.js = js

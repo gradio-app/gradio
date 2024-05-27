@@ -83,7 +83,7 @@ def _docs(
                 f"Cannot find pyproject.toml file in [orange3]{_component_dir}[/]"
             )
 
-        with open(_component_dir / "pyproject.toml") as f:
+        with open(_component_dir / "pyproject.toml", encoding="utf-8") as f:
             data = toml.loads(f.read())
 
         name = get_deep(data, ["project", "name"])
@@ -122,7 +122,7 @@ def run_command(
     _component_dir: Path,
     simple: bool = False,
 ):
-    with open(_demo_path) as f:
+    with open(_demo_path, encoding="utf-8") as f:
         demo = f.read()
 
     pypi_exists = requests.get(f"https://pypi.org/pypi/{name}/json").status_code
@@ -163,13 +163,13 @@ def run_command(
             suppress_demo_check=suppress_demo_check,
         )
 
-        with open(_demo_dir / "space.py", "w") as f:
+        with open(_demo_dir / "space.py", "w", encoding="utf-8") as f:
             f.write(source)
             if not simple:
                 live.update(
                     f":white_check_mark: Space created in [orange3]{_demo_dir}/space.py[/]\n"
                 )
-        with open(_demo_dir / "css.css", "w") as f:
+        with open(_demo_dir / "css.css", "w", encoding="utf-8") as f:
             f.write(css)
 
     if generate_readme:
@@ -181,7 +181,7 @@ def run_command(
 
         readme_content = Path(_readme_path).read_text()
 
-        with open(_readme_path, "w") as f:
+        with open(_readme_path, "w", encoding="utf-8") as f:
             yaml_regex = re.search(
                 "(?:^|[\r\n])---[\n\r]+([\\S\\s]*?)[\n\r]+---([\n\r]|$)", readme_content
             )

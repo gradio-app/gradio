@@ -104,11 +104,11 @@ class SimpleCSVLogger(FlaggingCallback):
                 )
             )
 
-        with open(log_filepath, "a", newline="") as csvfile:
+        with open(log_filepath, "a", encoding="utf-8", newline="") as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(utils.sanitize_list_for_csv(csv_data))
 
-        with open(log_filepath) as csvfile:
+        with open(log_filepath, encoding="utf-8") as csvfile:
             line_count = len(list(csv.reader(csvfile))) - 1
         return line_count
 
@@ -393,7 +393,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
     def _save_as_jsonl(data_file: Path, headers: list[str], row: list[Any]) -> str:
         """Save data as JSONL and return the sample name (uuid)."""
         Path.mkdir(data_file.parent, parents=True, exist_ok=True)
-        with open(data_file, "w") as f:
+        with open(data_file, "w", encoding="utf-8") as f:
             json.dump(dict(zip(headers, row)), f)
         return data_file.parent.name
 

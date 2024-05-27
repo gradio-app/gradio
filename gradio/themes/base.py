@@ -136,7 +136,7 @@ class ThemeClass:
         Parameters:
             path: The filepath to read.
         """
-        with open(path) as fp:
+        with open(path, encoding="utf-8") as fp:
             return cls.from_dict(json.load(fp, object_hook=fonts.as_font))
 
     @classmethod
