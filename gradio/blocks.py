@@ -1198,19 +1198,23 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                 _targets = dependency.pop("targets")
                 trigger = dependency.pop("trigger", None)
                 is_then_event = False
+                is_load_event = False
 
                 # This assumes that you cannot combine multiple .then() events in a single
                 # gr.on() event, which is true for now. If this changes, we will need to
                 # update this code.
-                if not isinstance(_targets[0], int) and _targets[0][1] in [
-                    "then",
-                    "success",
-                ]:
+                if not isinstance(_targets[0], int):
                     if len(_targets) != 1:
                         raise ValueError(
                             "This logic assumes that .then() events are not combined with other events in a single gr.on() event"
                         )
-                    is_then_event = True
+                    if _targets[0][1] in [
+                    "then",
+                    "success",
+                    ]:
+                        is_then_event = True
+                    if _targets[0][1] == "load":
+                        is_load_event = True
 
                 dependency.pop("backend_fn")
                 dependency.pop("documentation", None)
@@ -1233,7 +1237,11 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         "trigger_only_on_success"
                     )
                     dependency["no_target"] = True
+                elif is_load_event:
+                    targets = [EventListenerMethod(None, "load")]
+                    # dependency["every"] = dependency.pop("every")
                 else:
+                    print("targets", _targets)
                     targets = [
                         getattr(
                             original_mapping[
@@ -1250,6 +1258,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                         )
                         for t in targets
                     ]
+                print("**dependency", dependency)
                 dependency = blocks.default_config.set_event_trigger(
                     targets=targets, fn=fn, **dependency
                 )[0]
@@ -2671,11 +2680,7 @@ Received outputs:
                         None,
                         component,
                         no_target=True,
-                        # If every is None, for sure skip the queue
-                        # else, let the enable_queue parameter take precedence
-                        # this will raise a nice error message is every is used
-                        # without queue
-                        queue=every is not None,
+                        queue=True,
                         every=every,
                     )[0]
                     component.load_event = dep.get_config()
