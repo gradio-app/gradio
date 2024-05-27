@@ -1726,7 +1726,9 @@ Received outputs:
 
             if block.stateful:
                 if not utils.is_update(predictions[i]):
-                    if block._id not in state or state[block._id] != predictions[i]:
+                    if block._id not in state or not utils.gradio_deep_equal(
+                        state[block._id], predictions[i]
+                    ):
                         changed_state_ids.append(block._id)
                     state[block._id] = predictions[i]
                 output.append(None)
