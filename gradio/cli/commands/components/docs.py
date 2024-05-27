@@ -196,7 +196,7 @@ def run_command(
         short_readme_path = Path(_readme_path).relative_to(_component_dir)
         short_demo_path = Path(_demo_dir / "space.py").relative_to(_component_dir)
         live.update(
-            f":white_check_mark: Documention generated in [orange3]{short_demo_path}[/] and [orange3]{short_readme_path}[/]. Pass --no-generate-docs to disable auto documentation."
+            f":white_check_mark: Documentation generated in [orange3]{short_demo_path}[/] and [orange3]{short_readme_path}[/]. Pass --no-generate-docs to disable auto documentation."
         )
 
     if type_mode == "simple":
