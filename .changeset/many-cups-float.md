@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:fixes
+fix:fixes to `gr.load()` with `load` events and `every` events
