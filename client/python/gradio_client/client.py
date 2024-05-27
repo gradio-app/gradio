@@ -1338,6 +1338,7 @@ class Endpoint:
             file_path = f
         else:
             file_path = f["path"]
+        orig_name = Path(file_path)
         if not utils.is_http_url_like(file_path):
             component_id = self.dependency["inputs"][data_index]
             component_config = next(
@@ -1356,7 +1357,7 @@ class Endpoint:
                     f"set in {component_config.get('label', '') + ''} component."
                 )
             with open(file_path, "rb") as f:
-                files = [("files", (Path(file_path).name, f))]
+                files = [("files", (orig_name.name, f))]
                 r = httpx.post(
                     self.client.upload_url,
                     headers=self.client.headers,
@@ -1367,7 +1368,14 @@ class Endpoint:
             r.raise_for_status()
             result = r.json()
             file_path = result[0]
-        return {"path": file_path}
+        # Only return orig_name if has a suffix because components
+        # use the suffix of the original name to determine format to save it to in cache.
+        return {
+            "path": file_path,
+            "orig_name": utils.strip_invalid_filename_characters(orig_name.name)
+            if orig_name.suffix
+            else None,
+        }
 
     def _download_file(self, x: dict) -> str:
         url_path = self.root_url + "file=" + x["path"]
