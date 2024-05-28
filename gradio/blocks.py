@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import dataclasses
 import hashlib
 import inspect
 import json
@@ -235,7 +236,11 @@ class Block:
         for parameter in signature.parameters.values():
             if hasattr(self, parameter.name):
                 value = getattr(self, parameter.name)
-                config[parameter.name] = utils.convert_to_dict_if_dataclass(value)
+                if isinstance(value, Callable):
+                    continue
+                if dataclasses.is_dataclass(value):
+                    value = dataclasses.asdict(value)
+                config[parameter.name] = value
         for e in self.events:
             to_add = e.config_data()
             if to_add:
