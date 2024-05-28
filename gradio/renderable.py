@@ -6,7 +6,7 @@ from gradio.blocks import Block
 from gradio.components import Component
 from gradio.context import Context, LocalContext
 from gradio.events import EventListener, EventListenerMethod
-from gradio.layouts import Column
+from gradio.layouts import Row, Column
 
 
 class Renderable:
@@ -17,14 +17,17 @@ class Renderable:
         triggers: list[tuple[Block | None, str]],
         concurrency_limit: int | None | Literal["default"],
         concurrency_id: str | None,
+        trigger_mode: Literal["once", "multiple", "always_last"] | None,
     ):
         if Context.root_block is None:
             raise ValueError("Reactive render must be inside a Blocks context.")
 
         self._id = len(Context.root_block.renderables)
         Context.root_block.renderables.append(self)
-        self.column = Column(render=False)
-        self.column_id = Column()._id
+        self.ContainerClass = Row if isinstance(Context.block, Row) else Column
+        self.container = self.ContainerClass(show_progress=True)
+        self.container_id = self.container._id
+        print(self.container_id)
 
         self.fn = fn
         self.inputs = inputs
@@ -35,11 +38,13 @@ class Renderable:
             self.triggers,
             self.apply,
             self.inputs,
-            None,
+            self.container,
             show_api=False,
             concurrency_limit=concurrency_limit,
             concurrency_id=concurrency_id,
             renderable=self,
+            trigger_mode=trigger_mode,
+            postprocess=False
         )
 
     def apply(self, *args, **kwargs):
@@ -54,14 +59,14 @@ class Renderable:
         for _id in fn_ids_to_remove_from_last_render:
             del blocks_config.fns[_id]
 
-        column_copy = Column(render=False)
-        column_copy._id = self.column_id
+        container_copy = self.ContainerClass(render=False, show_progress=True)
+        container_copy._id = self.container_id
         LocalContext.renderable.set(self)
 
         try:
-            with column_copy:
+            with container_copy:
                 self.fn(*args, **kwargs)
-                blocks_config.blocks[self.column_id] = column_copy
+                blocks_config.blocks[self.container_id] = container_copy
         finally:
             LocalContext.renderable.set(None)
 
@@ -71,6 +76,7 @@ def render(
     triggers: list[EventListener] | EventListener | None = None,
     concurrency_limit: int | None | Literal["default"] = None,
     concurrency_id: str | None = None,
+    trigger_mode: Literal["once", "multiple", "always_last"] | None = "always_last",
 ):
     if Context.root_block is None:
         raise ValueError("Reactive render must be inside a Blocks context.")
@@ -92,7 +98,7 @@ def render(
         ]
 
     def wrapper_function(fn):
-        Renderable(fn, inputs, _triggers, concurrency_limit, concurrency_id)
+        Renderable(fn, inputs, _triggers, concurrency_limit, concurrency_id, trigger_mode)
         return fn
 
     return wrapper_function
