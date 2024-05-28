@@ -291,7 +291,7 @@ def watchfn(reloader: SourceFileReloader):
         time.sleep(0.05)
 
 
-def gradio_deep_equal(a: Any, b: Any) -> bool:
+def deep_equal(a: Any, b: Any) -> bool:
     """
     Deep equality check for component values.
 
