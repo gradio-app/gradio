@@ -3,7 +3,6 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
-	import { python_client_templates as templates } from "$lib/utils";
 
 	export let data: any = {};
 
@@ -11,6 +10,7 @@
 	let on_main: boolean;
 	let wheel: string = data.wheel;
 	let url_version: string = data.url_version;
+	let module = data.module.default;
 
 	let y: number;
 	let header_targets: { [key: string]: HTMLElement } = {};
@@ -43,6 +43,7 @@
 	$: url_version = data.url_version;
 	$: pages = data.pages["python-client"];
 	$: page_path = data.page_path;
+	$: module = data.module.default;
 
 	$: flattened_pages = pages.map((category: any) => category.pages).flat();
 	$: prev_obj =
@@ -58,16 +59,9 @@
 			) + 1
 		];
 
-	let import_promise: any = null;
 	let component_name = $page.params?.doc;
 
 	$: component_name = $page.params?.doc;
-
-	function import_component(name: string) {
-		import_promise = templates[name]();
-	}
-
-	$: import_component(component_name);
 
 	function get_headers() {
 		let headers: any[] = [];
@@ -180,11 +174,7 @@
 			<div class="flex flex-row">
 				<div class="lg:ml-10">
 					<div class="obj">
-						{#if import_promise}
-							{#await import_promise then { default: def }}
-								<svelte:component this={def} bind:this={dynamic_component} />
-							{/await}
-						{/if}
+						<svelte:component this={module} bind:this={dynamic_component}/>
 					</div>
 				</div>
 			</div>

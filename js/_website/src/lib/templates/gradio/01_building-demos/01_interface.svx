@@ -1,5 +1,5 @@
 
-<script lang="ts">
+<script lang="ts" context="module">
     import {get_object} from "$lib/components/process_json.ts";
     import ParamTable from "$lib/components/ParamTable.svelte";
     import ShortcutTable from "$lib/components/ShortcutTable.svelte";

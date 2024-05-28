@@ -3,7 +3,6 @@
 	import MetaTags from "$lib/components/MetaTags.svelte";
 	import { onDestroy } from "svelte";
 	import { page } from "$app/stores";
-	import { gradio_templates as templates } from "$lib/utils";
 
 	export let data: any = {};
 
@@ -15,7 +14,8 @@
 	let y: number;
 	let header_targets: { [key: string]: HTMLElement } = {};
 	let target_elem: HTMLElement;
-
+	let module = data.module.default;
+	$: module = data.module.default;
 	onDestroy(() => {
 		header_targets = {};
 	});
@@ -55,17 +55,10 @@
 		];
 
 
-	let import_promise: any = null;
 	let component_name = $page.params?.doc;
 
 	$: component_name = $page.params?.doc;
 	
-	function import_component(name: string) {
-		import_promise = templates[name]();
-	}
-
-	$: import_component(component_name);
-			
 	function get_headers() {
 		let headers : any[] = []
 		const h3_elements = document.querySelectorAll('h3');
@@ -175,12 +168,7 @@
 				<div class="flex flex-row">
 					<div class="lg:ml-10 w-full">
 						<div class="obj">
-							{#if import_promise}
-								{#await import_promise}
-								{:then {default: def}}
-								<svelte:component this={def} bind:this={dynamic_component} />
-								{/await}
-							{/if}
+							<svelte:component this={module} bind:this={dynamic_component}/>
 						</div>
 					</div>
 				</div>
