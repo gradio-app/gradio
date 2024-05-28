@@ -477,7 +477,7 @@ class BlockFunction:
         self,
         fn: Callable | None,
         inputs: list[Component],
-        outputs: list[Block],
+        outputs: list[Block] | list[Component],
         preprocess: bool,
         postprocess: bool,
         inputs_as_dict: bool,
