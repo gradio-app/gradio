@@ -188,12 +188,12 @@ export function create_components(): {
 		Object.entries(instance_map).forEach(([id, component]) => {
 			let _id = Number(id);
 			if (component.rendered_in === render_id) {
-				delete instance_map[_id]
+				delete instance_map[_id];
 				if (_component_map.has(_id)) {
 					_component_map.delete(_id);
 				}
 			}
-		})
+		});
 
 		components.forEach((c) => {
 			instance_map[c.id] = c;

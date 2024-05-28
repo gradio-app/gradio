@@ -11,7 +11,7 @@
 	export let visible = true;
 	export let variant: "default" | "panel" | "compact" = "default";
 	export let loading_status: LoadingStatus | undefined = undefined;
-	export let gradio: Gradio<{}>;
+	export let gradio: Gradio<{}> | undefined = undefined;
 	export let show_progress = false;
 </script>
 
@@ -25,7 +25,7 @@
 	style:flex-grow={scale}
 	style:min-width="calc(min({min_width}px, 100%))"
 >
-	{#if loading_status && show_progress}
+	{#if loading_status && show_progress && gradio}
 		<StatusTracker
 			autoscroll={gradio.autoscroll}
 			i18n={gradio.i18n}
