@@ -5,6 +5,8 @@ with gr.Blocks() as demo:
 
     @gr.render(inputs=text_count)
     def render_count(count):
+        import time
+        time.sleep(0.4)
         boxes = []
         for i in range(count):
             box = gr.Textbox(key=i, label=f"Box {i}")
