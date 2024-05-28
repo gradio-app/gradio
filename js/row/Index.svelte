@@ -9,7 +9,7 @@
 	export let visible = true;
 	export let variant: "default" | "panel" | "compact" = "default";
 	export let loading_status: LoadingStatus | undefined = undefined;
-	export let gradio: Gradio<{}> | undefined = undefined;
+	export let gradio: Gradio | undefined = undefined;
 	export let show_progress = false;
 </script>
 
