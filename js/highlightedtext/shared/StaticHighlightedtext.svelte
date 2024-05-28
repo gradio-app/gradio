@@ -10,6 +10,7 @@
 		class_or_confidence: string | number | null;
 	}[] = [];
 	export let show_legend = false;
+	export let show_inline_category = true;
 	export let color_map: Record<string, string> = {};
 	export let selectable = false;
 
@@ -122,7 +123,7 @@
 									!_color_map[v.class_or_confidence]}
 								class="text">{line}</span
 							>
-							{#if !show_legend && v.class_or_confidence !== null}
+							{#if !show_legend && show_inline_category && v.class_or_confidence !== null}
 								&nbsp;
 								<span
 									class="label"

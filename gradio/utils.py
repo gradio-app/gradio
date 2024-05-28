@@ -414,15 +414,15 @@ def launch_counter() -> None:
     try:
         if not os.path.exists(JSON_PATH):
             launches = {"launches": 1}
-            with open(JSON_PATH, "w+") as j:
+            with open(JSON_PATH, "w+", encoding="utf-8") as j:
                 json.dump(launches, j)
         else:
-            with open(JSON_PATH) as j:
+            with open(JSON_PATH, encoding="utf-8") as j:
                 launches = json.load(j)
             launches["launches"] += 1
             if launches["launches"] in [25, 50, 150, 500, 1000]:
                 print(en["BETA_INVITE"])
-            with open(JSON_PATH, "w") as j:
+            with open(JSON_PATH, "w", encoding="utf-8") as j:
                 j.write(json.dumps(launches))
     except Exception:
         pass

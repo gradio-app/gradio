@@ -41,7 +41,7 @@
 			event.composedPath().includes(tr.firstElementChild); // Or if the click is on the name column
 
 		if (should_select) {
-			dispatch("select", { value: normalized_files[index], index });
+			dispatch("select", { value: normalized_files[index].orig_name, index });
 		}
 	}
 
