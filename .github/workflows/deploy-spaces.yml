@@ -49,6 +49,7 @@ jobs:
     outputs:
       space_url: ${{ steps.upload-demo.outputs.SPACE_URL }}
       gradio_version: ${{ steps.get_gradio_version.outputs.gradio_version }}
+      js_tarball_url: ${{ steps.upload_js_tarball.outputs.js_tarball_url }}
     needs: changes
     if: ${{ needs.changes.outputs.should_run == 'true' }}
     runs-on: ubuntu-latest
@@ -100,6 +101,17 @@ jobs:
         export AWS_SECRET_ACCESS_KEY=${{ secrets.PR_DEPLOY_SECRET }}
         export AWS_DEFAULT_REGION=us-east-1
         aws s3 cp dist/gradio-${{ steps.get_gradio_version.outputs.GRADIO_VERSION }}-py3-none-any.whl s3://gradio-builds/${{ needs.changes.outputs.sha  }}/
+    - name: Create and Upload JS Client Tarball to S3
+      id: upload_js_tarball
+      continue-on-error: true
+      run: |
+        cd client/js
+        tarball_name=$(npm pack)
+        export AWS_ACCESS_KEY_ID=${{ secrets.PR_DEPLOY_KEY }}
+        export AWS_SECRET_ACCESS_KEY=${{ secrets.PR_DEPLOY_SECRET }}
+        export AWS_DEFAULT_REGION=us-east-1
+        aws s3 cp $tarball_name s3://gradio-builds/${{ needs.changes.outputs.sha }}/$tarball_name
+        echo "js_tarball_url=https://gradio-builds.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/$tarball_name" >> $GITHUB_OUTPUT
     - name: Install Hub Client Library
       run: pip install huggingface-hub
     - name: Upload demo to spaces
@@ -142,6 +154,11 @@ jobs:
         **Install Gradio Python Client from this PR**
         ```bash
         pip install "gradio-client @ git+https://github.com/gradio-app/gradio@${{ needs.changes.outputs.sha }}#subdirectory=client/python"
+        ```
+        
+        **Install Gradio JS Client from this PR**
+        ```bash
+        npm install ${{ needs.deploy-spaces.outputs.js_tarball_url }}
         ```
   comment-spaces-failure:
     uses: "./.github/workflows/comment-queue.yml"

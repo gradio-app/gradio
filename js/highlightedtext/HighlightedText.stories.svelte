@@ -1,7 +1,6 @@
 <script>
 	import { Meta, Template, Story } from "@storybook/addon-svelte-csf";
 	import HighlightedText from "./Index.svelte";
-	import { Gradio } from "@gradio/utils";
 </script>
 
 <Meta title="Components/HighlightedText" component={HighlightedText} />
@@ -96,5 +95,19 @@
 			{ token: "fox", class_or_confidence: 0.3 }
 		],
 		show_legend: true
+	}}
+/>
+
+<Story
+	name="Highlighted Text with hidden inline category"
+	args={{
+		value: [
+			{ token: "the", class_or_confidence: -1 },
+			{ token: "quick", class_or_confidence: 1 },
+			{ token: "fox", class_or_confidence: 0.3 }
+		],
+		show_legend: false,
+		show_inline_category: false,
+		interactive: false
 	}}
 />

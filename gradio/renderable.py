@@ -27,7 +27,6 @@ class Renderable:
         self.ContainerClass = Row if isinstance(Context.block, Row) else Column
         self.container = self.ContainerClass(show_progress=True)
         self.container_id = self.container._id
-        print(self.container_id)
 
         self.fn = fn
         self.inputs = inputs

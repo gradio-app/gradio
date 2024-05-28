@@ -88,7 +88,7 @@ def _build(
                 "Set [bold][magenta]--no-bump-version[/][/] to use the version in pyproject.toml file."
             )
             pyproject_toml["project"]["version"] = str(version)  # type: ignore
-            with open(path / "pyproject.toml", "w") as f:
+            with open(path / "pyproject.toml", "w", encoding="utf-8") as f:
                 dump(pyproject_toml, f)
         else:
             version = pyproject_toml["project"]["version"]  # type: ignore

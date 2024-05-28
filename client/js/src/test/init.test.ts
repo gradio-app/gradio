@@ -67,7 +67,7 @@ describe("Client class", () => {
 				Client.connect("hmb/secret_world", {
 					hf_token: "hf_bad_token"
 				})
-			).rejects.toThrow(CONFIG_ERROR_MSG);
+			).rejects.toThrowError(SPACE_METADATA_ERROR_MSG);
 		});
 
 		test("viewing the api info of a running app", async () => {
@@ -77,7 +77,7 @@ describe("Client class", () => {
 
 		test("viewing the api info of a non-existent app", async () => {
 			const app = Client.connect(broken_app_reference);
-			await expect(app).rejects.toThrow(CONFIG_ERROR_MSG);
+			await expect(app).rejects.toThrowError();
 		});
 	});
 

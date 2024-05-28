@@ -25,3 +25,8 @@ export const CONFIG_ERROR_MSG = "Could not resolve app config. ";
 export const SPACE_STATUS_ERROR_MSG = "Could not get space status. ";
 export const API_INFO_ERROR_MSG = "Could not get API info. ";
 export const SPACE_METADATA_ERROR_MSG = "Space metadata could not be loaded. ";
+export const INVALID_URL_MSG = "Invalid URL. A full URL path is required.";
+export const UNAUTHORIZED_MSG = "Not authorized to access this space. ";
+export const INVALID_CREDENTIALS_MSG = "Invalid credentials. Could not login. ";
+export const MISSING_CREDENTIALS_MSG =
+	"Login credentials are required to access this space.";

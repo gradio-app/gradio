@@ -82,7 +82,7 @@ def add_configuration_to_readme(
             requirement = input("Enter a dependency (leave blank to end): ")
             if not requirement:
                 break
-            with open(requirements_file, "a") as f:
+            with open(requirements_file, "a", encoding="utf-8") as f:
                 f.write(requirement + "\n")
 
     if (
@@ -96,10 +96,10 @@ def add_configuration_to_readme(
             repo_directory, ".github/workflows/update_space.yml"
         )
         os.makedirs(os.path.dirname(github_action_file), exist_ok=True)
-        with open(github_action_template) as f:
+        with open(github_action_template, encoding="utf-8") as f:
             github_action_content = f.read()
         github_action_content = github_action_content.replace("$branch", track_branch)
-        with open(github_action_file, "w") as f:
+        with open(github_action_file, "w", encoding="utf-8") as f:
             f.write(github_action_content)
 
         print(

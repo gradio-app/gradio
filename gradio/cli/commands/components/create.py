@@ -177,7 +177,7 @@ def _create(
                         break
                 current_keywords = pyproject_toml["project"].get("keywords", [])  # type: ignore
                 pyproject_toml["project"]["keywords"] = current_keywords + keywords  # type: ignore
-                with open(directory / "pyproject.toml", "w") as f:
+                with open(directory / "pyproject.toml", "w", encoding="utf-8") as f:
                     dump(pyproject_toml, f)
 
         (directory / "demo" / "requirements.txt").write_text(package_name)

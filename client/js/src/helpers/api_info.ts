@@ -1,9 +1,14 @@
 import type { Status } from "../types";
-import { QUEUE_FULL_MSG } from "../constants";
+import {
+	HOST_URL,
+	INVALID_URL_MSG,
+	QUEUE_FULL_MSG,
+	SPACE_METADATA_ERROR_MSG
+} from "../constants";
 import type { ApiData, ApiInfo, Config, JsApiData } from "../types";
 import { determine_protocol } from "./init_helpers";
 
-export const RE_SPACE_NAME = /^[^\/]*\/[^\/]*$/;
+export const RE_SPACE_NAME = /^[a-zA-Z0-9_\-\.]+\/[a-zA-Z0-9_\-\.]+$/;
 export const RE_SPACE_DOMAIN = /.*hf\.space\/{0,1}$/;
 
 export async function process_endpoint(
@@ -20,12 +25,13 @@ export async function process_endpoint(
 		headers.Authorization = `Bearer ${hf_token}`;
 	}
 
-	const _app_reference = app_reference.trim();
+	const _app_reference = app_reference.trim().replace(/\/$/, "");
 
 	if (RE_SPACE_NAME.test(_app_reference)) {
+		// app_reference is a HF space name
 		try {
 			const res = await fetch(
-				`https://huggingface.co/api/spaces/${_app_reference}/host`,
+				`https://huggingface.co/api/spaces/${_app_reference}/${HOST_URL}`,
 				{ headers }
 			);
 
@@ -36,13 +42,12 @@ export async function process_endpoint(
 				...determine_protocol(_host)
 			};
 		} catch (e) {
-			throw new Error(
-				"Space metadata could not be loaded. " + (e as Error).message
-			);
+			throw new Error(SPACE_METADATA_ERROR_MSG);
 		}
 	}
 
 	if (RE_SPACE_DOMAIN.test(_app_reference)) {
+		// app_reference is a direct HF space domain
 		const { ws_protocol, http_protocol, host } =
 			determine_protocol(_app_reference);
 
@@ -59,6 +64,18 @@ export async function process_endpoint(
 		...determine_protocol(_app_reference)
 	};
 }
+
+export const join_urls = (...urls: string[]): string => {
+	try {
+		return urls.reduce((base_url: string, part: string) => {
+			base_url = base_url.replace(/\/+$/, "");
+			part = part.replace(/^\/+/, "");
+			return new URL(part, base_url + "/").toString();
+		});
+	} catch (e) {
+		throw new Error(INVALID_URL_MSG);
+	}
+};
 
 export function transform_api_info(
 	api_info: ApiInfo<ApiData>,

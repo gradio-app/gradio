@@ -136,7 +136,7 @@ class ThemeClass:
         Parameters:
             path: The filepath to read.
         """
-        with open(path) as fp:
+        with open(path, encoding="utf-8") as fp:
             return cls.from_dict(json.load(fp, object_hook=fonts.as_font))
 
     @classmethod
@@ -586,6 +586,10 @@ class Base(ThemeClass):
         section_header_text_size=None,
         section_header_text_weight=None,
         # Component Atoms: These set the style for elements within components.
+        accordion_text_color=None,
+        accordion_text_color_dark=None,
+        table_text_color=None,
+        table_text_color_dark=None,
         checkbox_background_color=None,
         checkbox_background_color_dark=None,
         checkbox_background_color_focus=None,
@@ -822,6 +826,10 @@ class Base(ThemeClass):
             panel_border_color_dark: The border color of a panel in dark mode.
             panel_border_width: The border width of a panel.
             panel_border_width_dark: The border width of a panel in dark mode.
+            accordion_text_color: The body text color in the accordion.
+            accordion_text_color_dark: The body text color in the accordion in dark mode.
+            table_text_color: The body text color in the table.
+            table_text_color_dark: The body text color in the table in dark mode.
             section_header_text_size: The text size of a section header (e.g. tab name).
             section_header_text_weight: The text weight of a section header (e.g. tab name).
             checkbox_background_color: The background of a checkbox square or radio circle.
@@ -1050,6 +1058,18 @@ class Base(ThemeClass):
         )
         self.body_text_color_subdued_dark = body_text_color_subdued_dark or getattr(
             self, "body_text_color_subdued_dark", "*neutral_400"
+        )
+        self.accordion_text_color = accordion_text_color or getattr(
+            self, "accordion_text_color", "*body_text_color"
+        )
+        self.accordion_text_color_dark = accordion_text_color_dark or getattr(
+            self, "accordion_text_color_dark", "*body_text_color"
+        )
+        self.table_text_color = table_text_color or getattr(
+            self, "table_text_color", "*body_text_color"
+        )
+        self.table_text_color_dark = table_text_color_dark or getattr(
+            self, "table_text_color_dark", "*body_text_color"
         )
         # Shadows
         self.shadow_drop = shadow_drop or getattr(
