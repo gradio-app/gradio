@@ -1728,7 +1728,7 @@ Received outputs:
                 if not utils.is_update(predictions[i]):
                     has_change_event = False
                     for dep in state.blocks_config.fns.values():
-                        if block._id in [t[0] for t in dep.targets]:
+                        if block._id in [t[0] for t in dep.targets if t[1] == "change"]:
                             has_change_event = True
                             break
                     if has_change_event and (
