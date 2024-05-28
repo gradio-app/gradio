@@ -6,7 +6,7 @@ from gradio.blocks import Block
 from gradio.components import Component
 from gradio.context import Context, LocalContext
 from gradio.events import EventListener, EventListenerMethod
-from gradio.layouts import Row, Column
+from gradio.layouts import Column, Row
 
 
 class Renderable:
@@ -43,7 +43,7 @@ class Renderable:
             concurrency_id=concurrency_id,
             renderable=self,
             trigger_mode=trigger_mode,
-            postprocess=False
+            postprocess=False,
         )
 
     def apply(self, *args, **kwargs):
@@ -97,7 +97,9 @@ def render(
         ]
 
     def wrapper_function(fn):
-        Renderable(fn, inputs, _triggers, concurrency_limit, concurrency_id, trigger_mode)
+        Renderable(
+            fn, inputs, _triggers, concurrency_limit, concurrency_id, trigger_mode
+        )
         return fn
 
     return wrapper_function
