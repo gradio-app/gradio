@@ -123,6 +123,7 @@ class Block:
         self.proxy_url = proxy_url
         self.share_token = secrets.token_urlsafe(32)
         self.parent: BlockContext | None = None
+        self.rendered_in: Renderable | None = None
         self.is_rendered: bool = False
         self._constructor_args: list[dict]
         self.state_session_capacity = 10000
@@ -166,6 +167,7 @@ class Block:
         """
         root_context = get_blocks_context()
         render_context = get_render_context()
+        self.rendered_in = LocalContext.renderable.get()
         if root_context is not None and self._id in root_context.blocks:
             raise DuplicateBlockError(
                 f"A block with id: {self._id} has already been rendered in the current Blocks."
@@ -240,6 +242,8 @@ class Block:
                 config = {**to_add, **config}
         config.pop("render", None)
         config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_class()}
+        if self.rendered_in is not None:
+            config["rendered_in"] = self.rendered_in._id
         if (_selectable := getattr(self, "_selectable", None)) is not None:
             config["_selectable"] = _selectable
         return config
@@ -860,7 +864,7 @@ class BlocksConfig:
             return {"id": block._id, "children": children_layout}
 
         if renderable:
-            root_block = self.blocks[renderable.column_id]
+            root_block = self.blocks[renderable.container_id]
         else:
             root_block = self.root_block
         config["layout"] = get_layout(root_block)

@@ -181,8 +181,7 @@ export function submit(
 					});
 
 					post_data(
-						`${config.root}/run${
-							_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
+						`${config.root}/run${_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
 						}${url_params ? "?" + url_params : ""}`,
 						{
 							...payload,
@@ -370,8 +369,7 @@ export function submit(
 						session_hash: session_hash
 					}).toString();
 					let url = new URL(
-						`${config.root}/queue/join?${
-							url_params ? url_params + "&" : ""
+						`${config.root}/queue/join?${url_params ? url_params + "&" : ""
 						}${params}`
 					);
 
@@ -606,12 +604,13 @@ export function submit(
 											fn_index
 										});
 										if (data.render_config) {
+											let render_id: number = data.render_config.render_id;
 											config.components = [
-												...config.components,
+												...(config.components.filter(c => c.rendered_in !== render_id)),
 												...data.render_config.components
 											];
 											config.dependencies = [
-												...config.dependencies,
+												...(config.dependencies.filter(d => d.rendered_in !== render_id)),
 												...data.render_config.dependencies
 											];
 											fire_event({
