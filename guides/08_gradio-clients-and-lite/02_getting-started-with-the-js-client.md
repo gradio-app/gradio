@@ -46,8 +46,9 @@ For quick addition to your web project, you can use the jsDelivr CDN to load the
 ```bash
 <script defer src="https://cdn.jsdelivr.net/npm/@gradio/client@0.x.x/dist/index.min.js"></script>
 ```
+Be sure to add this to the `<head>` of your HTML.
 
-This method is ideal for prototypes or projects where you want to avoid local setup. Be sure to add this to the `<head>` of your HTML. `0.x.x` will install the latest version but we advise hardcoding the latest version in production. 
+This approach is ideal for experimental or prototying purposes. `0.x.x` will install the latest version but we advise hardcoding the latest version in production. 
 
 ## Connecting to a running Gradio App
 
