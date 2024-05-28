@@ -41,13 +41,15 @@ export async function walk_and_store_blobs(
 		let blob_refs: BlobRef[] = [];
 
 		await Promise.all(
-			data.map(async (item) => {
+			data.map(async (_, index) => {
 				let new_path = path.slice();
-				new_path.push(item);
+				new_path.push(String(index));
 
 				const array_refs = await walk_and_store_blobs(
-					data[item],
-					root ? endpoint_info?.parameters[item]?.component || undefined : type,
+					data[index],
+					root
+						? endpoint_info?.parameters[index]?.component || undefined
+						: type,
 					new_path,
 					false,
 					endpoint_info
@@ -87,22 +89,6 @@ export async function walk_and_store_blobs(
 			);
 		}
 
-		if (
-			!blob_refs.length &&
-			!(
-				data instanceof Blob ||
-				data instanceof ArrayBuffer ||
-				data instanceof Uint8Array
-			)
-		) {
-			return [
-				{
-					path: path,
-					blob: new NodeBlob([JSON.stringify(data)]),
-					type: typeof data
-				}
-			];
-		}
 		return blob_refs;
 	}
 
@@ -110,8 +96,9 @@ export async function walk_and_store_blobs(
 }
 
 export function skip_queue(id: number, config: Config): boolean {
-	if (config?.dependencies?.[id]?.queue !== null) {
-		return !config.dependencies[id].queue;
+	let fn_queue = config?.dependencies?.find((dep) => dep.id == id)?.queue;
+	if (fn_queue != null) {
+		return !fn_queue;
 	}
 	return !config.enable_queue;
 }

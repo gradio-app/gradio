@@ -26,7 +26,7 @@ The Custom Components workflow consists of 4 steps: create, dev, build, and publ
 
 Each of these steps is done via the Custom Component CLI. You can invoke it with `gradio cc` or `gradio component`
 
-Tip: Run `gradio cc --help` to get a help menu of all available commands. You can also append `--help` to any command name to bring up a help page for that command, e.g. `gradio cc create --help`.
+Tip: Run `gradio cc --help` to get a help menu of all available commands. There are some commands that are not covered in this guide. You can also append `--help` to any command name to bring up a help page for that command, e.g. `gradio cc create --help`.
 
 ## 1. create
 
@@ -121,4 +121,4 @@ Here is an example of what publishing looks like:
 Now that you know the high-level workflow of creating custom components, you can go in depth in the next guides!
 After reading the guides, check out this [collection](https://huggingface.co/collections/gradio/custom-components-65497a761c5192d981710b12) of custom components on the HuggingFace Hub so you can learn from other's code.
 
-
+Tip: If you want to start off from someone else's custom component see this [guide](./frequently-asked-questions#do-i-always-need-to-start-my-component-from-scratch).

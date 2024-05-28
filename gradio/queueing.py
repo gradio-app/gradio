@@ -33,24 +33,23 @@ from gradio.server_messages import (
 from gradio.utils import LRUCache, run_coro_in_background, safe_get_lock, set_task_name
 
 if TYPE_CHECKING:
-    from gradio.blocks import BlockFunction
+    from gradio.blocks import BlockFunction, Blocks
 
 
 class Event:
     def __init__(
         self,
         session_hash: str | None,
-        fn_index: int,
+        fn: BlockFunction,
         request: fastapi.Request,
         username: str | None,
-        concurrency_id: str,
     ):
         self._id = uuid.uuid4().hex
         self.session_hash: str = session_hash or self._id
-        self.fn_index = fn_index
+        self.fn = fn
         self.request = request
         self.username = username
-        self.concurrency_id = concurrency_id
+        self.concurrency_id = fn.concurrency_id
         self.data: PredictBody | None = None
         self.progress: ProgressMessage | None = None
         self.progress_pending: bool = False
@@ -63,7 +62,9 @@ class EventQueue:
         self.concurrency_id = concurrency_id
         self.concurrency_limit = concurrency_limit
         self.current_concurrency = 0
-        self.start_times_per_fn_index: defaultdict[int, set[float]] = defaultdict(set)
+        self.start_times_per_fn: defaultdict[BlockFunction, set[float]] = defaultdict(
+            set
+        )
 
 
 class ProcessTime:
@@ -85,7 +86,7 @@ class Queue:
         concurrency_count: int,
         update_intervals: float,
         max_size: int | None,
-        block_fns: list[BlockFunction],
+        blocks: Blocks,
         default_concurrency_limit: int | None | Literal["not_set"] = "not_set",
     ):
         self.pending_messages_per_session: LRUCache[str, ThreadQueue[EventMessage]] = (
@@ -100,14 +101,14 @@ class Queue:
         self.active_jobs: list[None | list[Event]] = []
         self.delete_lock = safe_get_lock()
         self.server_app = None
-        self.process_time_per_fn_index: defaultdict[int, ProcessTime] = defaultdict(
+        self.process_time_per_fn: defaultdict[BlockFunction, ProcessTime] = defaultdict(
             ProcessTime
         )
         self.live_updates = live_updates
         self.sleep_when_free = 0.05
         self.progress_update_sleep_when_free = 0.1
         self.max_size = max_size
-        self.block_fns = block_fns
+        self.blocks = blocks
         self.continuous_tasks: list[Event] = []
         self._asyncio_tasks: list[asyncio.Task] = []
         self.default_concurrency_limit = self._resolve_concurrency_limit(
@@ -116,39 +117,32 @@ class Queue:
 
     def start(self):
         self.active_jobs = [None] * self.max_thread_count
-        self.set_event_queue_per_concurrency_id()
 
         run_coro_in_background(self.start_processing)
         run_coro_in_background(self.start_progress_updates)
         if not self.live_updates:
             run_coro_in_background(self.notify_clients)
 
-    def set_event_queue_per_concurrency_id(self):
-        for block_fn in self.block_fns:
-            concurrency_id = block_fn.concurrency_id
-            concurrency_limit: int | None
-            if block_fn.concurrency_limit == "default":
-                concurrency_limit = self.default_concurrency_limit
-            else:
-                concurrency_limit = block_fn.concurrency_limit
-            if concurrency_id not in self.event_queue_per_concurrency_id:
-                self.event_queue_per_concurrency_id[concurrency_id] = EventQueue(
-                    concurrency_id, concurrency_limit
-                )
-            elif (
-                concurrency_limit is not None
-            ):  # Update concurrency limit if it is lower than existing limit
-                existing_event_queue = self.event_queue_per_concurrency_id[
-                    concurrency_id
-                ]
-                if (
-                    existing_event_queue.concurrency_limit is None
-                    or concurrency_limit < existing_event_queue.concurrency_limit
-                ):
-                    existing_event_queue.concurrency_limit = concurrency_limit
-
-    def reload(self):
-        self.set_event_queue_per_concurrency_id()
+    def create_event_queue_for_fn(self, block_fn: BlockFunction):
+        concurrency_id = block_fn.concurrency_id
+        concurrency_limit: int | None
+        if block_fn.concurrency_limit == "default":
+            concurrency_limit = self.default_concurrency_limit
+        else:
+            concurrency_limit = block_fn.concurrency_limit
+        if concurrency_id not in self.event_queue_per_concurrency_id:
+            self.event_queue_per_concurrency_id[concurrency_id] = EventQueue(
+                concurrency_id, concurrency_limit
+            )
+        elif (
+            concurrency_limit is not None
+        ):  # Update concurrency limit if it is lower than existing limit
+            existing_event_queue = self.event_queue_per_concurrency_id[concurrency_id]
+            if (
+                existing_event_queue.concurrency_limit is None
+                or concurrency_limit < existing_event_queue.concurrency_limit
+            ):
+                existing_event_queue.concurrency_limit = concurrency_limit
 
     def close(self):
         self.stopped = True
@@ -203,12 +197,19 @@ class Queue:
                 f"Queue is full. Max size is {self.max_size} and size is {len(self)}.",
             )
 
+        if body.session_hash:
+            session_state = self.blocks.state_holder[body.session_hash]
+            fn = session_state.blocks_config.fns[body.fn_index]
+        else:
+            fn = self.blocks.fns[body.fn_index]
+
+        fn = route_utils.get_fn(self.blocks, None, body)
+        self.create_event_queue_for_fn(fn)
         event = Event(
             body.session_hash,
-            body.fn_index,
+            fn,
             request,
             username,
-            self.block_fns[body.fn_index].concurrency_id,
         )
         event.data = body
         if body.session_hash is None:
@@ -256,14 +257,14 @@ class Queue:
                 or event_queue.current_concurrency < event_queue.concurrency_limit
             ):
                 first_event = event_queue.queue[0]
-                block_fn = self.block_fns[first_event.fn_index]
+                block_fn = first_event.fn
                 events = [first_event]
                 batch = block_fn.batch
                 if batch:
                     events += [
                         event
                         for event in event_queue.queue[1:]
-                        if event.fn_index == first_event.fn_index
+                        if event.fn == first_event.fn
                     ][: block_fn.max_batch_size - 1]
 
                 for event in events:
@@ -292,16 +293,14 @@ class Queue:
                     event_queue = self.event_queue_per_concurrency_id[concurrency_id]
                     event_queue.current_concurrency += 1
                     start_time = time.time()
-                    event_queue.start_times_per_fn_index[events[0].fn_index].add(
-                        start_time
-                    )
+                    event_queue.start_times_per_fn[events[0].fn].add(start_time)
                     process_event_task = run_coro_in_background(
                         self.process_events, events, batch, start_time
                     )
                     set_task_name(
                         process_event_task,
                         events[0].session_hash,
-                        events[0].fn_index,
+                        events[0].fn._id,
                         events[0]._id,
                         batch,
                     )
@@ -419,11 +418,11 @@ class Queue:
 
         if event_queue.current_concurrency == event_queue.concurrency_limit:
             expected_end_times = []
-            for fn_index, start_times in event_queue.start_times_per_fn_index.items():
-                if fn_index not in self.process_time_per_fn_index:
+            for fn, start_times in event_queue.start_times_per_fn.items():
+                if fn not in self.process_time_per_fn:
                     time_till_available_worker = None
                     break
-                process_time = self.process_time_per_fn_index[fn_index].avg_time
+                process_time = self.process_time_per_fn[fn].avg_time
                 expected_end_times += [
                     start_time + process_time for start_time in start_times
                 ]
@@ -435,8 +434,8 @@ class Queue:
 
         for rank, event in enumerate(event_queue.queue):
             process_time_for_fn = (
-                self.process_time_per_fn_index[event.fn_index].avg_time
-                if event.fn_index in self.process_time_per_fn_index
+                self.process_time_per_fn[event.fn].avg_time
+                if event.fn in self.process_time_per_fn
                 else None
             )
             rank_eta = (
@@ -470,15 +469,15 @@ class Queue:
         self, events: list[Event], batch: bool, begin_time: float
     ) -> None:
         awake_events: list[Event] = []
-        fn_index = events[0].fn_index
+        fn = events[0].fn
         try:
             for event in events:
                 if event.alive:
                     self.send_message(
                         event,
                         ProcessStartsMessage(
-                            eta=self.process_time_per_fn_index[fn_index].avg_time
-                            if fn_index in self.process_time_per_fn_index
+                            eta=self.process_time_per_fn[fn].avg_time
+                            if fn in self.process_time_per_fn
                             else None
                         ),
                     )
@@ -507,16 +506,10 @@ class Queue:
             app = self.server_app
             if app is None:
                 raise Exception("Server app has not been set.")
-            api_name = "predict"
-
-            fn_index_inferred = route_utils.infer_fn_index(
-                app=app, api_name=api_name, body=body
-            )
 
             gr_request = route_utils.compile_gr_request(
-                app=app,
                 body=body,
-                fn_index_inferred=fn_index_inferred,
+                fn=fn,
                 username=username,
                 request=None,
             )
@@ -529,7 +522,7 @@ class Queue:
                     app=app,
                     body=body,
                     gr_request=gr_request,
-                    fn_index_inferred=fn_index_inferred,
+                    fn=fn,
                     root_path=root_path,
                 )
                 err = None
@@ -568,7 +561,7 @@ class Queue:
                             app=app,
                             body=body,
                             gr_request=gr_request,
-                            fn_index_inferred=fn_index_inferred,
+                            fn=fn,
                             root_path=root_path,
                         )
                     except Exception as e:
@@ -603,15 +596,13 @@ class Queue:
                     )
             end_time = time.time()
             if response is not None:
-                self.process_time_per_fn_index[events[0].fn_index].add(
-                    end_time - begin_time
-                )
+                self.process_time_per_fn[events[0].fn].add(end_time - begin_time)
         except Exception as e:
             traceback.print_exc()
         finally:
             event_queue = self.event_queue_per_concurrency_id[events[0].concurrency_id]
             event_queue.current_concurrency -= 1
-            start_times = event_queue.start_times_per_fn_index[fn_index]
+            start_times = event_queue.start_times_per_fn[fn]
             if begin_time in start_times:
                 start_times.remove(begin_time)
             try:

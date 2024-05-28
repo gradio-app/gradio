@@ -113,6 +113,7 @@ class TestHighlightedText:
             "show_label": True,
             "label": None,
             "show_legend": False,
+            "show_inline_category": True,
             "container": True,
             "min_width": 160,
             "scale": None,

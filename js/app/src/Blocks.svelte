@@ -23,7 +23,6 @@
 
 	export let root: string;
 	export let components: ComponentMeta[];
-	let old_components: ComponentMeta[] = components;
 	export let layout: LayoutNode;
 	export let dependencies: Dependency[];
 	export let title = "Gradio";
@@ -85,7 +84,7 @@
 
 	export let render_complete = false;
 	async function handle_update(data: any, fn_index: number): Promise<void> {
-		const outputs = dependencies[fn_index].outputs;
+		const outputs = dependencies.find((dep) => dep.id == fn_index)!.outputs;
 
 		const meta_updates = data?.map((value: any, i: number) => {
 			return {
@@ -132,8 +131,6 @@
 	}
 
 	let submit_map: Map<number, ReturnType<typeof app.submit>> = new Map();
-
-	let handled_dependencies: number[][] = [];
 
 	let messages: (ToastMessage & { fn_index: number })[] = [];
 	function new_message(
@@ -206,7 +203,7 @@
 		trigger_id: number | null = null,
 		event_data: unknown = null
 	): Promise<void> {
-		let dep = dependencies[dep_index];
+		let dep = dependencies.find((dep) => dep.id === dep_index)!;
 
 		const current_status = loading_status.get_status_for_fn(dep_index);
 		messages = messages.filter(({ fn_index }) => fn_index !== dep_index);
@@ -298,14 +295,31 @@
 					handle_update(data, fn_index);
 					set_status($loading_status);
 				})
-				.on("render", ({ data, fn_index }) => {
+				.on("render", ({ data }) => {
 					let _components: ComponentMeta[] = data.components;
 					let render_layout: LayoutNode = data.layout;
+					let _dependencies: Dependency[] = data.dependencies;
+					let render_id = data.render_id;
+
+					let deps_to_remove: number[] = [];
+					dependencies.forEach((dep, i) => {
+						if (dep.rendered_in === render_id) {
+							deps_to_remove.push(i);
+						}
+					});
+					deps_to_remove.reverse().forEach((i) => {
+						dependencies.splice(i, 1);
+					});
+					_dependencies.forEach((dep) => {
+						dependencies.push(dep);
+					});
 
 					rerender_layout({
 						components: _components,
 						layout: render_layout,
-						root: root
+						root: root,
+						dependencies: dependencies,
+						render_id: render_id
 					});
 				})
 				.on("status", ({ fn_index, ...status }) => {
@@ -345,9 +359,16 @@
 					}
 
 					if (status.stage === "complete") {
-						dependencies.map(async (dep, i) => {
+						status.changed_state_ids?.forEach((id) => {
+							dependencies
+								.filter((dep) => dep.targets.some(([_id, _]) => _id === id))
+								.forEach((dep) => {
+									wait_then_trigger_api_call(dep.id, payload.trigger_id);
+								});
+						});
+						dependencies.forEach(async (dep) => {
 							if (dep.trigger_after === fn_index) {
-								wait_then_trigger_api_call(i, payload.trigger_id);
+								wait_then_trigger_api_call(dep.id, payload.trigger_id);
 							}
 						});
 
@@ -360,11 +381,7 @@
 								...messages
 							];
 						}, 0);
-						wait_then_trigger_api_call(
-							dep_index,
-							payload.trigger_id,
-							event_data
-						);
+						wait_then_trigger_api_call(dep.id, payload.trigger_id, event_data);
 						user_left_page = false;
 					} else if (status.stage === "error") {
 						if (status.message) {
@@ -377,12 +394,12 @@
 								...messages
 							];
 						}
-						dependencies.map(async (dep, i) => {
+						dependencies.map(async (dep) => {
 							if (
 								dep.trigger_after === fn_index &&
 								!dep.trigger_only_on_success
 							) {
-								wait_then_trigger_api_call(i, payload.trigger_id);
+								wait_then_trigger_api_call(dep.id, payload.trigger_id);
 							}
 						});
 
@@ -442,9 +459,9 @@
 		}
 
 		// handle load triggers
-		dependencies.forEach((dep, i) => {
+		dependencies.forEach((dep) => {
 			if (dep.targets[0][1] === "load") {
-				wait_then_trigger_api_call(i);
+				wait_then_trigger_api_call(dep.id);
 			}
 		});
 
@@ -481,12 +498,6 @@
 		render_complete = true;
 	}
 
-	function handle_destroy(id: number): void {
-		handled_dependencies = handled_dependencies.map((dep) => {
-			return dep.filter((_id) => _id !== id);
-		});
-	}
-
 	$: set_status($loading_status);
 
 	function update_status(
@@ -505,15 +516,25 @@
 	}
 
 	function set_status(statuses: LoadingStatusCollection): void {
-		const updates = Object.entries(statuses).map(([id, loading_status]) => {
-			let dependency = dependencies[loading_status.fn_index];
+		let updates: {
+			id: number;
+			prop: string;
+			value: LoadingStatus;
+		}[] = [];
+		Object.entries(statuses).forEach(([id, loading_status]) => {
+			let dependency = dependencies.find(
+				(dep) => dep.id == loading_status.fn_index
+			);
+			if (dependency === undefined) {
+				return;
+			}
 			loading_status.scroll_to_output = dependency.scroll_to_output;
 			loading_status.show_progress = dependency.show_progress;
-			return {
+			updates.push({
 				id: parseInt(id),
 				prop: "loading_status",
 				value: loading_status
-			};
+			});
 		});
 
 		const inputs_to_update = loading_status.get_inputs_to_update();
@@ -550,7 +571,6 @@
 				{target}
 				{theme_mode}
 				on:mount={handle_mount}
-				on:destroy={({ detail }) => handle_destroy(detail)}
 				{version}
 				{autoscroll}
 				max_file_size={app.config.max_file_size}

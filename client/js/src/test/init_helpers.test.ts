@@ -1,10 +1,13 @@
 import {
 	resolve_root,
 	get_jwt,
-	determine_protocol
+	determine_protocol,
+	parse_and_set_cookies
 } from "../helpers/init_helpers";
 import { initialise_server } from "./server";
 import { beforeAll, afterEach, afterAll, it, expect, describe } from "vitest";
+import { Client } from "../client";
+import { INVALID_CREDENTIALS_MSG, MISSING_CREDENTIALS_MSG } from "../constants";
 
 const server = initialise_server();
 
@@ -90,5 +93,54 @@ describe("determine_protocol", () => {
 			http_protocol: "https:",
 			host: "huggingface.co"
 		});
+	});
+});
+
+describe("parse_and_set_cookies", () => {
+	it("should return an empty array when the cookie header is empty", () => {
+		const cookie_header = "";
+		const result = parse_and_set_cookies(cookie_header);
+		expect(result).toEqual([]);
+	});
+
+	it("should parse the cookie header and return an array of cookies", () => {
+		const cookie_header = "access-token-123=abc;access-token-unsecured-456=def";
+		const result = parse_and_set_cookies(cookie_header);
+		expect(result).toEqual(["access-token-123=abc"]);
+	});
+});
+
+describe("resolve_cookies", () => {
+	it("should set the cookies when correct auth credentials are provided", async () => {
+		const client = await Client.connect("hmb/auth_space", {
+			auth: ["admin", "pass1234"]
+		});
+
+		const api = client.view_api();
+		expect((await api).named_endpoints["/predict"]).toBeDefined();
+	});
+
+	it("should connect to a private and authenticated space", async () => {
+		const client = await Client.connect("hmb/private_auth_space", {
+			hf_token: "hf_123",
+			auth: ["admin", "pass1234"]
+		});
+
+		const api = client.view_api();
+		expect((await api).named_endpoints["/predict"]).toBeDefined();
+	});
+
+	it("should not set the cookies when auth credentials are invalid", async () => {
+		await expect(
+			Client.connect("hmb/invalid_auth_space", {
+				auth: ["admin", "wrong_password"]
+			})
+		).rejects.toThrowError(INVALID_CREDENTIALS_MSG);
+	});
+
+	it("should not set the cookies when auth option is not provided in an auth space", async () => {
+		await expect(Client.connect("hmb/unauth_space")).rejects.toThrowError(
+			MISSING_CREDENTIALS_MSG
+		);
 	});
 });

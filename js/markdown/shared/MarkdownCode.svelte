@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { afterUpdate, createEventDispatcher } from "svelte";
 	import DOMPurify from "dompurify";
-	import render_math_in_element from "katex/dist/contrib/auto-render.js";
+	import render_math_in_element from "katex/contrib/auto-render";
 	import "katex/dist/katex.min.css";
 	import { create_marked } from "./utils";
 
@@ -130,17 +130,6 @@
 		color: var(--body-text-color);
 	}
 
-	span :global(pre) {
-		position: relative;
-	}
-
-	span:not(.chatbot) :global(ul) {
-		list-style-position: inside;
-	}
-
-	span:not(.chatbot) :global(ol) {
-		list-style-position: inside;
-	}
 	span :global(p:not(:first-child)) {
 		margin-top: var(--spacing-xxl);
 	}
@@ -165,20 +154,5 @@
 
 	span.md :global(.md-header-anchor > svg) {
 		color: var(--body-text-color-subdued);
-	}
-
-	span :global(h1),
-	span :global(h2),
-	span :global(h3),
-	span :global(h4),
-	span :global(h5),
-	span :global(h6) {
-		display: flex;
-		align-items: center;
-		white-space-collapse: break-spaces;
-	}
-
-	.prose :global(:last-child) {
-		margin-bottom: 0;
 	}
 </style>

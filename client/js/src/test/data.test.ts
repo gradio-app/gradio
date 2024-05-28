@@ -43,6 +43,15 @@ describe("walk_and_store_blobs", () => {
 		expect(parts[0].blob).toBe(false);
 	});
 
+	it("should handle arrays", async () => {
+		const image = new Blob([]);
+		const parts = await walk_and_store_blobs([image]);
+
+		expect(parts).toHaveLength(1);
+		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].path).toEqual(["0"]);
+	});
+
 	it("should handle deep structures", async () => {
 		const image = new Blob([]);
 		const parts = await walk_and_store_blobs({ a: { b: { data: { image } } } });
@@ -142,18 +151,6 @@ describe("walk_and_store_blobs", () => {
 		expect(parts[0].path).toEqual(["a", "b", "data", "image"]);
 		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
 	});
-
-	it("should convert an object with primitive values to BlobRefs", async () => {
-		const param = {
-			test: "test"
-		};
-		const parts = await walk_and_store_blobs(param);
-
-		expect(parts).toHaveLength(1);
-		expect(parts[0].path).toEqual([]);
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
-		expect(parts[0].type).toEqual("object");
-	});
 });
 describe("update_object", () => {
 	it("should update the value of a nested property", () => {
@@ -198,7 +195,7 @@ describe("skip_queue", () => {
 
 	it("should not skip queue when global and dependency queue is enabled", () => {
 		config.enable_queue = true;
-		config.dependencies[id].queue = true;
+		config.dependencies.find((dep) => dep.id === id)!.queue = true;
 
 		const result = skip_queue(id, config_response);
 
@@ -207,7 +204,7 @@ describe("skip_queue", () => {
 
 	it("should not skip queue when global queue is disabled and dependency queue is enabled", () => {
 		config.enable_queue = false;
-		config.dependencies[id].queue = true;
+		config.dependencies.find((dep) => dep.id === id)!.queue = true;
 
 		const result = skip_queue(id, config_response);
 
@@ -216,7 +213,7 @@ describe("skip_queue", () => {
 
 	it("should should skip queue when global queue and dependency queue is disabled", () => {
 		config.enable_queue = false;
-		config.dependencies[id].queue = false;
+		config.dependencies.find((dep) => dep.id === id)!.queue = false;
 
 		const result = skip_queue(id, config_response);
 
@@ -225,7 +222,7 @@ describe("skip_queue", () => {
 
 	it("should should skip queue when global queue is enabled and dependency queue is disabled", () => {
 		config.enable_queue = true;
-		config.dependencies[id].queue = false;
+		config.dependencies.find((dep) => dep.id === id)!.queue = false;
 
 		const result = skip_queue(id, config_response);
 
