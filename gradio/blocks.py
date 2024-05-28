@@ -667,7 +667,7 @@ class BlocksConfig:
         targets: Sequence[EventListenerMethod],
         fn: Callable | None,
         inputs: Component | list[Component] | set[Component] | None,
-        outputs: Block | list[Block] | None,
+        outputs: Block | list[Block] |list[Component] | None,
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
