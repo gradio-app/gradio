@@ -597,6 +597,9 @@
 		height: 100%;
 		object-fit: contain;
 	}
+	.image-preview :global(svg) {
+		stroke: white;
+	}
 	.image-preview-close-button {
 		position: absolute;
 		top: 10px;
