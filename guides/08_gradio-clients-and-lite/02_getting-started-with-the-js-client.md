@@ -29,13 +29,25 @@ The Gradio Client works with any hosted Gradio app, whether it be an image gener
 
 **Prequisites**: To use the Gradio client, you do _not_ need to know the `gradio` library in great detail. However, it is helpful to have general familiarity with Gradio's concepts of input and output components.
 
-## Installation
+## Installation via npm
 
-The lightweight `@gradio/client` package can be installed from the npm registry with a package manager of your choice and support node version 18 and above:
+Install the @gradio/client package to interact with Gradio APIs using Node.js version >=18.0.0 or in browser-based projects. Use npm or any compatible package manager:
 
 ```bash
 npm i @gradio/client
 ```
+
+This command adds @gradio/client to your project dependencies, allowing you to `require` or `import` it in your JavaScript or TypeScript files.
+
+## Installation via CDN
+
+For quick addition to your web project, you can use the jsDelivr CDN to load the latest version of @gradio/client directly into your HTML:
+
+```bash
+<script defer src="https://cdn.jsdelivr.net/npm/@gradio/client@0.x.x/dist/index.min.js"></script>
+```
+
+This method is ideal for prototypes or projects where you want to avoid local setup. Be sure to add this to the `<head>` of your HTML. `0.x.x` will install the latest version but we advise hardcoding the latest version in production. 
 
 ## Connecting to a running Gradio App
 
