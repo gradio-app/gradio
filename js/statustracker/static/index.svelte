@@ -299,7 +299,7 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		z-index: var(--layer-top);
+		z-index: var(--layer-2);
 		transition: opacity 0.1s ease-in-out;
 		border-radius: var(--block-radius);
 		background: var(--block-background-fill);
