@@ -1,6 +1,6 @@
 ---
-"@gradio/client": minor
-"gradio": minor
+"@gradio/client": patch
+"gradio": patch
 ---
 
-feat:Connect heartbeat if state created in render. Also fix config cleanup bug #8407
+fix:Connect heartbeat if state created in render. Also fix config cleanup bug #8407
