@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from typing import Callable, Literal
 
+from gradio_client.documentation import document
+
 from gradio.blocks import Block
 from gradio.components import Component
 from gradio.context import Context, LocalContext
 from gradio.events import EventListener, EventListenerMethod
 from gradio.layouts import Column, Row
 
-from gradio_client.documentation import document
 
 class Renderable:
     def __init__(
@@ -72,6 +73,7 @@ class Renderable:
         finally:
             LocalContext.renderable.set(None)
 
+
 @document()
 def render(
     inputs: list[Component] | None = None,
@@ -86,7 +88,7 @@ def render(
     The render decorator allows Gradio Blocks apps to have dynamic layouts, so that the components and event listeners in your app can change depending on custom logic.
     Attaching a @gr.render decorator to a function will cause the function to be re-run whenever the inputs are changed (or specified triggers are activated). The function contains the components and event listeners that will update based on the inputs.
 
-    The basic usage of @gr.render is as follows: 
+    The basic usage of @gr.render is as follows:
     1) Create a function and attach the @gr.render decorator to it.
     2) Add the input components to the `inputs=` argument of @gr.render, and create a corresponding argument in your function for each component.
     3) Add all components inside the function that you want to update based on the inputs. Any event listeners that use these components should also be inside this function.
@@ -113,7 +115,7 @@ def render(
                             text = gr.Textbox(letter)
                             btn = gr.Button("Clear")
                             btn.click(lambda: gr.Textbox(value=""), None, text)
-    """    
+    """
     if Context.root_block is None:
         raise ValueError("Reactive render must be inside a Blocks context.")
 
