@@ -18,6 +18,7 @@ class Renderable:
         concurrency_limit: int | None | Literal["default"],
         concurrency_id: str | None,
         trigger_mode: Literal["once", "multiple", "always_last"] | None,
+        queue: bool,
     ):
         if Context.root_block is None:
             raise ValueError("Reactive render must be inside a Blocks context.")
@@ -44,6 +45,7 @@ class Renderable:
             renderable=self,
             trigger_mode=trigger_mode,
             postprocess=False,
+            queue=queue,
         )
 
     def apply(self, *args, **kwargs):
@@ -76,6 +78,7 @@ def render(
     concurrency_limit: int | None | Literal["default"] = None,
     concurrency_id: str | None = None,
     trigger_mode: Literal["once", "multiple", "always_last"] | None = "always_last",
+    queue: bool = True,
 ):
     if Context.root_block is None:
         raise ValueError("Reactive render must be inside a Blocks context.")
@@ -98,7 +101,13 @@ def render(
 
     def wrapper_function(fn):
         Renderable(
-            fn, inputs, _triggers, concurrency_limit, concurrency_id, trigger_mode
+            fn,
+            inputs,
+            _triggers,
+            concurrency_limit,
+            concurrency_id,
+            trigger_mode,
+            queue,
         )
         return fn
 

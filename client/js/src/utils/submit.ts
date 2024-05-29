@@ -162,6 +162,25 @@ export function submit(
 			}
 		}
 
+		function handle_render_config(render_config: any) {
+			if (!config) return;
+			let render_id: number = render_config.render_id;
+			config.components = [
+				...config.components.filter((c) => c.rendered_in !== render_id),
+				...render_config.components
+			];
+			config.dependencies = [
+				...config.dependencies.filter((d) => d.rendered_in !== render_id),
+				...render_config.dependencies
+			];
+			fire_event({
+				type: "render",
+				data: render_config,
+				endpoint: _endpoint,
+				fn_index
+			});
+		}
+
 		this.handle_blob(config.root, resolved_data, endpoint_info).then(
 			async (_payload) => {
 				payload = {
@@ -201,6 +220,9 @@ export function submit(
 									event_data,
 									trigger_id
 								});
+								if (output.render_config) {
+									handle_render_config(output.render_config);
+								}
 
 								fire_event({
 									type: "status",
@@ -606,25 +628,7 @@ export function submit(
 											fn_index
 										});
 										if (data.render_config) {
-											let render_id: number = data.render_config.render_id;
-											config.components = [
-												...config.components.filter(
-													(c) => c.rendered_in !== render_id
-												),
-												...data.render_config.components
-											];
-											config.dependencies = [
-												...config.dependencies.filter(
-													(d) => d.rendered_in !== render_id
-												),
-												...data.render_config.dependencies
-											];
-											fire_event({
-												type: "render",
-												data: data.render_config,
-												endpoint: _endpoint,
-												fn_index
-											});
+											handle_render_config(data.render_config);
 										}
 
 										if (complete) {

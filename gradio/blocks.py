@@ -236,8 +236,6 @@ class Block:
         for parameter in signature.parameters.values():
             if hasattr(self, parameter.name):
                 value = getattr(self, parameter.name)
-                if isinstance(value, Callable):
-                    continue
                 if dataclasses.is_dataclass(value):
                     value = dataclasses.asdict(value)
                 config[parameter.name] = value
