@@ -905,10 +905,6 @@ class BlocksConfig:
             if renderable is None or fn.rendered_in == renderable:
                 dependencies.append(fn.get_config())
         config["dependencies"] = dependencies
-        config["connect_heartbeat"] = utils.connect_heartbeat(
-            config, self.blocks.values()
-        )
-
         return config
 
     def __copy__(self):
