@@ -45,6 +45,7 @@ from typing import (
 import anyio
 import gradio_client.utils as client_utils
 import httpx
+import orjson
 from gradio_client.documentation import document
 from typing_extensions import ParamSpec
 
@@ -289,6 +290,29 @@ def watchfn(reloader: SourceFileReloader):
         time.sleep(0.05)
 
 
+def deep_equal(a: Any, b: Any) -> bool:
+    """
+    Deep equality check for component values.
+
+    Prefer orjson for performance and compatibility with numpy arrays/dataframes/torch tensors.
+    If objects are not serializable by orjson, fall back to regular equality check.
+    """
+
+    def _serialize(a: Any) -> bytes:
+        return orjson.dumps(
+            a,
+            option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_PASSTHROUGH_DATETIME,
+        )
+
+    try:
+        return _serialize(a) == _serialize(b)
+    except TypeError:
+        try:
+            return a == b
+        except Exception:
+            return False
+
+
 def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
     from gradio.blocks import BlockContext
 
@@ -309,8 +333,10 @@ def reassign_keys(old_blocks: Blocks, new_blocks: Blocks):
                     old_block.__class__ == new_block.__class__
                     and old_block is not None
                     and old_block.key not in assigned_keys
-                    and json.dumps(getattr(old_block, "value", None))
-                    == json.dumps(getattr(new_block, "value", None))
+                    and deep_equal(
+                        getattr(old_block, "value", None),
+                        getattr(new_block, "value", None),
+                    )
                 ):
                     new_block.key = old_block.key
                 else:
