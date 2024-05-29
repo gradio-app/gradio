@@ -174,7 +174,7 @@
 			<div class="flex flex-row">
 				<div class="lg:ml-10">
 					<div class="obj">
-						<svelte:component this={module} bind:this={dynamic_component}/>
+						<svelte:component this={module} bind:this={dynamic_component} />
 					</div>
 				</div>
 			</div>
