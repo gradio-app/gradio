@@ -35,6 +35,11 @@ If the `window.__GRADIO__CC` variable is not empty (see below for an example), t
 It is highly recommended you use a virtual environment to prevent conflicts with other python dependencies installed in your system.
 
 
+## Do I always need to start my component from scratch?
+No! You can start off from an existing gradio component as a template, see the [five minute guide](./custom-components-in-five-minutes).
+You can also start from an existing custom component if you'd like to tweak it further. Once you find the source code of a custom component you like, clone the code to your computer and run `gradio cc install`. Then you can run the development server to make changes.If you run into any issues, contact the author of the component by opening an issue in their repository. The [gallery](https://www.gradio.app/custom-components/gallery) is a good place to look for published components. For example, to start from the [PDF component](https://www.gradio.app/custom-components/gallery?id=freddyaboulton%2Fgradio_pdf), clone the space with `git clone https://huggingface.co/spaces/freddyaboulton/gradio_pdf`, `cd` into the `src` directory, and run `gradio cc install`.
+
+
 ## Do I need to host my custom component on HuggingFace Spaces?
 You can develop and build your custom component without hosting or connecting to HuggingFace.
 If you would like to share your component with the gradio community, it is recommended to publish your package to PyPi and host a demo on HuggingFace so that anyone can install it or try it out.
