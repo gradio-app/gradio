@@ -624,6 +624,7 @@ export function submit(
 												...data.render_config.dependencies
 											];
 											config.connect_heartbeat =
+												config.connect_heartbeat ||
 												data.render_config.connect_heartbeat;
 											await resolve_heartbeat(config);
 											fire_event({
