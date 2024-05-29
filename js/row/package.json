@@ -8,7 +8,9 @@
 	"private": false,
 	"main_changeset": true,
 	"devDependencies": {
-		"@gradio/preview": "workspace:^"
+		"@gradio/preview": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/utils": "workspace:^"
 	},
 	"exports": {
 		".": "./Index.svelte",
