@@ -818,6 +818,12 @@ importers:
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/dataframe:
     dependencies:
@@ -1515,6 +1521,12 @@ importers:
       '@gradio/preview':
         specifier: workspace:^
         version: link:../preview
+      '@gradio/statustracker':
+        specifier: workspace:^
+        version: link:../statustracker
+      '@gradio/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   js/simpledropdown:
     dependencies:
@@ -1614,9 +1626,6 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
-      '@gradio/column':
-        specifier: workspace:^
-        version: link:../column
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
