@@ -48,46 +48,49 @@
 	}>;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 
-	let _value: [
-		string | { file: FileData; alt_text: string | null } | null,
-		string | { file: FileData; alt_text: string | null } | null
-	][];
+	let _value: Message[] = [];
 
 	const redirect_src_url = (src: string): string =>
 		src.replace('src="/file', `src="${root}file`);
 
 	function normalize_messages(
 		message: { file: FileData; alt_text: string | null } | null
-	): FileMessage | null {
+	): FileData | null {
 		if (message === null) {
 			return message;
 		}
-		return {
-			file: message?.file as FileData,
-			alt_text: message?.alt_text
-		};
+		const file = message?.file;
+		if (message.alt_text) file.alt_text = message?.alt_text;
+		return file;
 	}
 
-	function consolidate_msg_format(value: TupleFormat | Message[], msg_format: "openai" | "tuples"): Message[] {
+	function consolidate_msg_format(
+		value: TupleFormat | Message[],
+		msg_format: "openai" | "tuples"
+	): Message[] {
 		if (msg_format === "tuples") {
 			if (!value) {
 				return [];
 			}
 			const openai = (value as TupleFormat).flatMap(([user_msg, bot_msg]) => [
-				{"content": typeof user_msg === "string"
-					? redirect_src_url(user_msg)
-					: normalize_messages(user_msg),
-				"role": "user" as MessageRole,
-				"metadata": {"error": false, "tool_name": null}
+				{
+					content:
+						typeof user_msg === "string"
+							? redirect_src_url(user_msg)
+							: normalize_messages(user_msg),
+					role: "user" as MessageRole,
+					metadata: { error: false, tool_name: null }
 				},
-				{"content": typeof bot_msg === "string"
-					? redirect_src_url(bot_msg)
-					: normalize_messages(bot_msg),
-				"role": "assistant" as MessageRole,
-				"metadata": {"error": false, "tool_name": null}
+				{
+					content:
+						typeof bot_msg === "string"
+							? redirect_src_url(bot_msg)
+							: normalize_messages(bot_msg),
+					role: "assistant" as MessageRole,
+					metadata: { error: false, tool_name: null }
 				}
 			]);
-			return openai as Message[];
+			return openai.filter((c) => c.content != null) as Message[];
 		}
 		return value as Message[];
 	}

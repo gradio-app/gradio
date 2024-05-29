@@ -42,6 +42,7 @@ class MessageDict(TypedDict):
 
 TupleFormat = list[list[str | tuple[str] | tuple[str, str] | None]]
 
+
 class FileMessage(GradioModel):
     file: FileData
     alt_text: Optional[str] = None
@@ -59,12 +60,11 @@ class Metadata(GradioModel):
 class Message(GradioModel):
     role: Literal["user", "assistant", "system", "tool"]
     metadata: Metadata = Field(default_factory=Metadata)
-    content: str | FileMessage
+    content: str | FileData
 
 
 class ChatbotDataOpenAi(GradioRootModel):
     root: List[Message]
-
 
 
 @document()
@@ -197,12 +197,12 @@ class Chatbot(Component):
                     "Data incompatible with openai format. Each message should be a dictionary with 'role' and 'content' keys."
                 )
         elif not all(
-                isinstance(message, (tuple, list)) and len(message) == 2
-                for message in messages
-            ):
-                raise Error(
-                    "Data incompatible with tuples format. Each message should be a list of length 2."
-                )
+            isinstance(message, (tuple, list)) and len(message) == 2
+            for message in messages
+        ):
+            raise Error(
+                "Data incompatible with tuples format. Each message should be a list of length 2."
+            )
 
     def _preprocess_chat_messages(
         self, chat_message: str | FileMessage | None
@@ -219,7 +219,9 @@ class Chatbot(Component):
         else:
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
 
-    def _preprocess_messages_tuples(self, payload: ChatbotData) -> list[list[str | tuple[str] | tuple[str, str] | None]]:
+    def _preprocess_messages_tuples(
+        self, payload: ChatbotData
+    ) -> list[list[str | tuple[str] | tuple[str, str] | None]]:
         processed_messages = []
         for message_pair in payload.root:
             if not isinstance(message_pair, (tuple, list)):
@@ -241,7 +243,9 @@ class Chatbot(Component):
     def preprocess(
         self,
         payload: ChatbotData | ChatbotDataOpenAi | None,
-    ) -> list[list[str | tuple[str] | tuple[str, str] | None]] | list[MessageDict] | None:
+    ) -> (
+        list[list[str | tuple[str] | tuple[str, str] | None]] | list[MessageDict] | None
+    ):
         """
         Parameters:
             payload: data as a ChatbotData object
@@ -289,14 +293,12 @@ class Chatbot(Component):
         return ChatbotData(root=processed_messages)
 
     def _postprocess_message_openai(self, msg: Message | MessageDict) -> list[Message]:
-
         if isinstance(msg, dict):
-            msg = Message(**msg) # pyright: ignore
-        if isinstance(msg.content, FileMessage):
-            cached_file = move_resource_to_block_cache(
-                msg.content.file.path, block=self
-            )
-            msg.content.file.path = cast(str, cached_file)
+            msg = Message(**msg)  # pyright: ignore
+        if isinstance(msg.content, FileData):
+            cached_file = move_resource_to_block_cache(msg.content.path, block=self)
+            msg.content.path = cast(str, cached_file)
+            msg.content.mime_type = client_utils.get_mimetype(msg.content.path)
             return [cast(Message, msg)]
 
         # extract file path from message
@@ -308,17 +310,15 @@ class Chatbot(Component):
             except OSError:
                 is_file = False
             if is_file:
-                filepath = move_resource_to_block_cache(filepath, block=self)
+                filepath = cast(str, move_resource_to_block_cache(filepath, block=self))
 
                 mime_type = client_utils.get_mimetype(filepath)
                 new_messages.append(
                     Message(
                         role=msg.role,
                         metadata=msg.metadata,
-                        content=FileMessage(
-                            file=FileData(path=filepath, mime_type=mime_type)
-                        ),
-                    )
+                        content=FileData(path=filepath, mime_type=mime_type),
+                    ),
                 )
 
         return [msg, *new_messages]
@@ -340,7 +340,9 @@ class Chatbot(Component):
             return self._postprocess_messages_tuples(cast(TupleFormat, value))
         self._check_format(value, "openai")
         processed_messages = [
-            msg for message in value for msg in self._postprocess_message_openai(message)
+            msg
+            for message in value
+            for msg in self._postprocess_message_openai(cast(MessageDict, message))
         ]
         return ChatbotDataOpenAi(root=processed_messages)
 

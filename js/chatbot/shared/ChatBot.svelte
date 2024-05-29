@@ -9,16 +9,23 @@
 	import { Image } from "@gradio/image/shared";
 	import { Video } from "@gradio/video/shared";
 	import type { SelectData, LikeData } from "@gradio/utils";
+	import type {
+		Message,
+		MessageRole,
+		ChatFileMessage,
+		ChatStringMessage
+	} from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
-	import { type FileData } from "@gradio/client";
+	import { FileData } from "@gradio/client";
 	import Copy from "./Copy.svelte";
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import LikeDislike from "./LikeDislike.svelte";
 	import Pending from "./Pending.svelte";
-	import type { Message } from "../types";
+	import ToolMessage from "./ToolMessage.svelte";
+	import ErrorMessage from "./ErrorMessage.svelte";
 
-	export let value: Message[];
-	let old_value: Message[] = [];
+	export let value: Message[] = [];
+	let old_value: Message[] | null = null;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -104,28 +111,55 @@
 		}
 	}
 
-	function handle_select(
-		i: number,
-		j: number,
-		message: string | { file: FileData; alt_text: string | null } | null
-	): void {
+	function handle_select(i: number, message: Message): void {
 		dispatch("select", {
-			index: [i, j],
-			value: message
+			index: i,
+			value: (message.content as FileData).url || message.content
 		});
 	}
 
 	function handle_like(
 		i: number,
-		j: number,
-		message: string | { file: FileData; alt_text: string | null } | null,
+		message: Message | null,
 		selected: string | null
 	): void {
 		dispatch("like", {
-			index: [i, j],
-			value: message,
+			index: i,
+			value: (message.content as FileData).url || message.content,
 			liked: selected === "like"
 		});
+	}
+
+	function isFileMessage(message: Message): message is ChatFileMessage {
+		return !(typeof message.content === "string");
+	}
+
+	function isStringMessage(message: Message): message is ChatStringMessage {
+		return typeof message.content === "string";
+	}
+
+	function groupMessages(messages: Message[]): Message[][] {
+		const groupedMessages: Message[][] = [];
+		let currentGroup: Message[] = [];
+		let currentRole: MessageRole | null = null;
+
+		for (const message of messages) {
+			if (message.role === currentRole) {
+				currentGroup.push(message);
+			} else {
+				if (currentGroup.length > 0) {
+					groupedMessages.push(currentGroup);
+				}
+				currentGroup = [message];
+				currentRole = message.role;
+			}
+		}
+
+		if (currentGroup.length > 0) {
+			groupedMessages.push(currentGroup);
+		}
+
+		return groupedMessages;
 	}
 </script>
 
@@ -151,129 +185,154 @@
 >
 	<div class="message-wrap" class:bubble-gap={layout === "bubble"} use:copy>
 		{#if value !== null && value.length > 0}
-			{#each value as message_pair, i}
-				{#each message_pair as message, j}
-					{#if message !== null}
-						<div class="message-row {layout} {j == 0 ? 'user-row' : 'bot-row'}">
-							{#if avatar_images[j] !== null}
-								<div class="avatar-container">
-									<Image
-										class="avatar-image"
-										src={avatar_images[j]?.url}
-										alt="{j == 0 ? 'user' : 'bot'} avatar"
-									/>
-								</div>
-							{/if}
-
-							<div
-								class="message {j == 0 ? 'user' : 'bot'}"
-								class:message-fit={layout === "bubble" && !bubble_full_width}
-								class:panel-full-width={layout === "panel"}
-								class:message-bubble-border={layout === "bubble"}
-								class:message-markdown-disabled={!render_markdown}
-								style:text-align={rtl && j == 0 ? "left" : "right"}
-							>
+			{@const groupedMessages = groupMessages(value)}
+			{#each groupedMessages as messages, i}
+				{#if messages.length}
+					{@const role = messages[0].role === "user" ? "user" : "bot"}
+					{@const avatar_img = avatar_images[role === "user" ? 0 : 1]}
+					<div
+						class="message-row {layout} {role === 'user'
+							? 'user-row'
+							: 'bot-row'}"
+					>
+						{#if avatar_img}
+							<div class="avatar-container">
+								<Image
+									class="avatar-image"
+									src={avatar_img.url}
+									alt="{role} avatar"
+								/>
+							</div>
+						{/if}
+						<div
+							class="message {role === 'user' ? 'user' : 'bot'}"
+							class:message-fit={layout === "bubble" && !bubble_full_width}
+							class:panel-full-width={layout === "panel"}
+							class:message-bubble-border={layout === "bubble"}
+							class:message-markdown-disabled={!render_markdown}
+							style:text-align={rtl && role == "bot" ? "left" : "right"}
+						>
+							{#each messages as message, thought_index}
 								<button
-									data-testid={j == 0 ? "user" : "bot"}
-									class:latest={i === value.length - 1}
+									data-testid={role}
+									class:latest={i === groupedMessages.length - 1}
 									class:message-markdown-disabled={!render_markdown}
 									style:user-select="text"
 									class:selectable
 									style:text-align={rtl ? "right" : "left"}
-									on:click={() => handle_select(i, j, message)}
+									on:click={() => handle_select(i, messages[0])}
 									on:keydown={(e) => {
 										if (e.key === "Enter") {
-											handle_select(i, j, message);
+											handle_select(i, messages[0]);
 										}
 									}}
 									dir={rtl ? "rtl" : "ltr"}
-									aria-label={(j == 0 ? "user" : "bot") +
-										"'s message: " +
-										(typeof message === "string"
-											? message
-											: `a file of type ${message.file?.mime_type}, ${
-													message.file?.alt_text ??
-													message.file?.orig_name ??
-													""
-												}`)}
 								>
-									{#if typeof message === "string"}
-										<Markdown
-											{message}
-											{latex_delimiters}
-											{sanitize_html}
-											{render_markdown}
-											{line_breaks}
-											on:load={scroll}
-										/>
-									{:else if message !== null && message.file?.mime_type?.includes("audio")}
-										<Audio
-											data-testid="chatbot-audio"
-											controls
-											preload="metadata"
-											src={message.file?.url}
-											title={message.alt_text}
-											on:play
-											on:pause
-											on:ended
-										/>
-									{:else if message !== null && message.file?.mime_type?.includes("video")}
-										<Video
-											data-testid="chatbot-video"
-											controls
-											src={message.file?.url}
-											title={message.alt_text}
-											preload="auto"
-											on:play
-											on:pause
-											on:ended
+									{#if isStringMessage(message)}
+										<div class:thought={thought_index > 0}>
+											{#if message.metadata.tool_name}
+												<ToolMessage
+													title={`Used tool ${message.metadata.tool_name}`}
+												>
+													<Markdown
+														message={message.content}
+														{latex_delimiters}
+														{sanitize_html}
+														{render_markdown}
+														{line_breaks}
+														on:load={scroll}
+													/>
+												</ToolMessage>
+											{:else if message.metadata.error}
+												<ErrorMessage>
+													<Markdown
+														message={message.content}
+														{latex_delimiters}
+														{sanitize_html}
+														{render_markdown}
+														{line_breaks}
+														on:load={scroll}
+													/>
+												</ErrorMessage>
+											{:else}
+												<Markdown
+													message={message.content}
+													{latex_delimiters}
+													{sanitize_html}
+													{render_markdown}
+													{line_breaks}
+													on:load={scroll}
+												/>
+											{/if}
+										</div>
+									{:else if isFileMessage(message)}
+										{#if message.content.mime_type?.includes("audio")}
+											<Audio
+												data-testid="chatbot-audio"
+												controls
+												preload="metadata"
+												src={message.content.url}
+												title={message.content.alt_text}
+												on:play
+												on:pause
+												on:ended
+											/>
+										{:else if message !== null && message.content.mime_type?.includes("video")}
+											<Video
+												data-testid="chatbot-video"
+												controls
+												src={message.content?.url}
+												title={message.content.alt_text}
+												preload="auto"
+												on:play
+												on:pause
+												on:ended
+											>
+												<track kind="captions" />
+											</Video>
+										{:else if message !== null && message.content?.mime_type?.includes("image")}
+											<Image
+												data-testid="chatbot-image"
+												src={message.content?.url}
+												alt={message.content.alt_text}
+											/>
+										{:else if message !== null && message.content?.url !== null}
+											<a
+												data-testid="chatbot-file"
+												href={message.content?.url}
+												target="_blank"
+												download={window.__is_colab__
+													? null
+													: message.content?.orig_name || message.content?.path}
+											>
+												{message.content?.orig_name || message.content?.path}
+											</a>
+										{/if}
+									{/if}
+									{#if (likeable && role === "bot") || (show_copy_button && message && typeof message === "string")}
+										<div
+											class="message-buttons-{role} message-buttons-{layout} {avatar_img !==
+												null && 'with-avatar'}"
+											class:message-buttons-fit={layout === "bubble" &&
+												!bubble_full_width}
+											class:bubble-buttons-user={layout === "bubble"}
 										>
-											<track kind="captions" />
-										</Video>
-									{:else if message !== null && message.file?.mime_type?.includes("image")}
-										<Image
-											data-testid="chatbot-image"
-											src={message.file?.url}
-											alt={message.alt_text}
-										/>
-									{:else if message !== null && message.file?.url !== null}
-										<a
-											data-testid="chatbot-file"
-											href={message.file?.url}
-											target="_blank"
-											download={window.__is_colab__
-												? null
-												: message.file?.orig_name || message.file?.path}
-										>
-											{message.file?.orig_name || message.file?.path}
-										</a>
+											{#if likeable && role === "bot"}
+												<LikeDislike
+													handle_action={(selected) =>
+														handle_like(i, message, selected)}
+												/>
+											{/if}
+											{#if show_copy_button && message && typeof message === "string"}
+												<Copy value={message} />
+											{/if}
+										</div>
 									{/if}
 								</button>
-							</div>
-							{#if (likeable && j !== 0) || (show_copy_button && message && typeof message === "string")}
-								<div
-									class="message-buttons-{j == 0
-										? 'user'
-										: 'bot'} message-buttons-{layout} {avatar_images[j] !==
-										null && 'with-avatar'}"
-									class:message-buttons-fit={layout === "bubble" &&
-										!bubble_full_width}
-									class:bubble-buttons-user={layout === "bubble"}
-								>
-									{#if likeable && j == 1}
-										<LikeDislike
-											handle_action={(selected) =>
-												handle_like(i, j, message, selected)}
-										/>
-									{/if}
-									{#if show_copy_button && message && typeof message === "string"}
-										<Copy value={message} />
-									{/if}
-								</div>
-							{/if}
+							{/each}
 						</div>
-					{/if}
-				{/each}
+					</div>
+				{/if}
 			{/each}
 			{#if pending_message}
 				<Pending {layout} />
@@ -340,6 +399,11 @@
 		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
 		padding: calc(var(--spacing-xxl) + var(--spacing-sm));
 	}
+
+	.thought {
+		margin-top: var(--spacing-xxl);
+	}
+
 	.message :global(.prose) {
 		font-size: var(--chatbot-body-text-size);
 	}
@@ -511,6 +575,37 @@
 		}
 	}
 
+	.message-wrap .message :global(a) {
+		color: var(--color-text-link);
+		text-decoration: underline;
+	}
+
+	.message-wrap .bot :global(table),
+	.message-wrap .bot :global(tr),
+	.message-wrap .bot :global(td),
+	.message-wrap .bot :global(th) {
+		border: 1px solid var(--border-color-primary);
+	}
+
+	.message-wrap .user :global(table),
+	.message-wrap .user :global(tr),
+	.message-wrap .user :global(td),
+	.message-wrap .user :global(th) {
+		border: 1px solid var(--border-color-accent);
+	}
+
+	/* Lists */
+	.message-wrap :global(ol),
+	.message-wrap :global(ul) {
+		padding-inline-start: 2em;
+	}
+
+	/* KaTeX */
+	.message-wrap :global(span.katex) {
+		font-size: var(--text-lg);
+		direction: ltr;
+	}
+
 	/* Copy button */
 	.message-wrap :global(div[class*="code_wrap"] > button) {
 		position: absolute;
@@ -544,5 +639,9 @@
 		width: 100%;
 		height: 100%;
 		color: var(--body-text-color);
+	}
+
+	.message-wrap :global(pre) {
+		position: relative;
 	}
 </style>
