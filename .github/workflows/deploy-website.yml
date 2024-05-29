@@ -72,6 +72,7 @@ jobs:
           export AWS_DEFAULT_REGION=us-west-2
           version=$(jq -r .version js/_website/src/lib/json/version.json)
           aws s3 cp ./js/_website/src/lib/json/ s3://gradio-docs-json/$version/ --recursive
+          aws s3 cp ./js/_website/src/lib/templates/ s3://gradio-docs-json/$version/templates/ --recursive
       - name: Install Vercel CLI
         run: pnpm install --global vercel@latest
       # preview

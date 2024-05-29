@@ -1,0 +1,29 @@
+
+<script lang="ts">
+    import CopyButton from "$lib/components/CopyButton.svelte";
+</script>
+
+<!--- Title -->
+# NO_RELOAD
+
+<!--- Usage -->
+```python
+if gr.NO_RELOAD:
+```
+
+<!--- Description -->
+### Description
+## Any code in a `if gr.NO_RELOAD` code-block will not be re-evaluated when the source file is reloaded. This is helpful for importing modules that do not like to be reloaded (tiktoken, numpy) as well as database connections and long running set up code.
+
+<!-- Example Usage --> 
+
+### Example Usage
+```python
+import gradio as gr
+
+if gr.NO_RELOAD:
+	from transformers import pipeline
+	pipe = pipeline("text-classification", model="cardiffnlp/twitter-roberta-base-sentiment-latest")
+
+gr.Interface.from_pipeline(pipe).launch()
+```

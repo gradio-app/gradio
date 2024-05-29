@@ -1,6 +1,9 @@
 import json
 import os
 from subprocess import run
+import boto3
+from botocore import UNSIGNED
+from botocore.client import Config
 
 from src import changelog, demos, docs, guides
 
@@ -10,6 +13,18 @@ GRADIO_DIR = os.path.abspath(os.path.join(WEBSITE_DIR, "..", "..", "gradio"))
 def make_dir(root, path):
     return os.path.abspath(os.path.join(root, path))
 
+def download_from_s3(bucket_name, s3_folder, local_dir):
+    print("Downloading templates from S3: " + bucket_name + "/" + s3_folder + " to " + local_dir)
+    s3 = boto3.client('s3', config=Config(signature_version=UNSIGNED))
+    objects = s3.list_objects_v2(Bucket=bucket_name, Prefix=s3_folder)
+    for obj in objects.get('Contents', []):
+        s3_key = obj['Key']
+        local_file_path = os.path.join(local_dir, os.path.relpath(s3_key, s3_folder))
+        if not os.path.exists(os.path.dirname(local_file_path)):
+            os.makedirs(os.path.dirname(local_file_path))
+        s3.download_file(bucket_name, s3_key, local_file_path)
+
+   
 def get_latest_release():
     with open(make_dir(GRADIO_DIR, "package.json")) as f:
         version = json.load(f)["version"]
@@ -22,6 +37,8 @@ def get_latest_release():
             json.dump({
                         "wheel": f"https://gradio-builds.s3.amazonaws.com/{sha}/gradio-{version}-py3-none-any.whl"
                         }, j)
+        if not os.path.exists(make_dir(WEBSITE_DIR, f"src/lib/templates_{version.replace('.', '-')}")):
+            download_from_s3("gradio-docs-json", f"{version}/templates/", make_dir(WEBSITE_DIR, f"src/lib/templates_{version.replace('.', '-')}"))
 
             
 def create_dir_if_not_exists(path):
@@ -34,6 +51,7 @@ create_dir_if_not_exists(make_dir(WEBSITE_DIR, "src/lib/json/guides"))
 demos.generate(make_dir(WEBSITE_DIR, "src/lib/json/demos.json"))
 guides.generate(make_dir(WEBSITE_DIR, "src/lib/json/guides/") + "/")
 docs.generate(make_dir(WEBSITE_DIR, "src/lib/json/docs.json"))
+docs.generate(make_dir(WEBSITE_DIR, "src/lib/templates/docs.json"))
 changelog.generate(make_dir(WEBSITE_DIR, "src/lib/json/changelog.json"))
 get_latest_release()
 
