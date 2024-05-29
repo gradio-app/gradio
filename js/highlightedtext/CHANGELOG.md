@@ -1,5 +1,15 @@
 # @gradio/highlightedtext
 
+## 0.7.0
+
+### Features
+
+- [#8355](https://github.com/gradio-app/gradio/pull/8355) [`33e8bab`](https://github.com/gradio-app/gradio/commit/33e8babb17b2094327860bc1996ab855d6c22d46) - Enable hiding the inline category in HighlightedText with a `show_inline_category` argument.  Thanks @xu-song!
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+
 ## 0.6.4
 
 ### Dependency updates

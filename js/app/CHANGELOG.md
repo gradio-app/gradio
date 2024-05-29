@@ -1,5 +1,58 @@
 # @gradio/app
 
+## 1.35.6
+
+### Features
+
+- [#8243](https://github.com/gradio-app/gradio/pull/8243) [`55f664f`](https://github.com/gradio-app/gradio/commit/55f664f2979a49acc29a73cde16c6ebdfcc91db2) - Add event listener support to render blocks.  Thanks @aliabid94!
+- [#8398](https://github.com/gradio-app/gradio/pull/8398) [`945ac83`](https://github.com/gradio-app/gradio/commit/945ac837e779b120790814ea6f6f81bd2712f5f8) - Improve rendering.  Thanks @aliabid94!
+
+### Dependency updates
+
+- @gradio/code@0.6.7
+- @gradio/client@0.20.0
+- @gradio/model3d@0.10.6
+- @gradio/column@0.1.2
+- @gradio/row@0.1.3
+- @gradio/statustracker@0.6.0
+- @gradio/dataset@0.1.39
+- @gradio/accordion@0.3.16
+- @gradio/highlightedtext@0.7.0
+- @gradio/annotatedimage@0.6.6
+- @gradio/audio@0.11.6
+- @gradio/button@0.2.39
+- @gradio/chatbot@0.10.6
+- @gradio/dataframe@0.8.6
+- @gradio/downloadbutton@0.1.16
+- @gradio/file@0.7.6
+- @gradio/fileexplorer@0.4.7
+- @gradio/gallery@0.10.6
+- @gradio/image@0.11.6
+- @gradio/imageeditor@0.7.6
+- @gradio/multimodaltextbox@0.4.6
+- @gradio/simpleimage@0.5.6
+- @gradio/upload@0.10.6
+- @gradio/uploadbutton@0.6.7
+- @gradio/video@0.8.6
+- @gradio/tabitem@0.2.10
+- @gradio/checkbox@0.3.6
+- @gradio/checkboxgroup@0.5.6
+- @gradio/colorpicker@0.3.6
+- @gradio/dropdown@0.7.6
+- @gradio/fallback@0.3.6
+- @gradio/html@0.2.6
+- @gradio/json@0.2.6
+- @gradio/label@0.3.6
+- @gradio/markdown@0.7.6
+- @gradio/number@0.4.6
+- @gradio/paramviewer@0.4.15
+- @gradio/plot@0.4.6
+- @gradio/radio@0.5.6
+- @gradio/simpledropdown@0.2.6
+- @gradio/simpletextbox@0.2.6
+- @gradio/slider@0.4.6
+- @gradio/textbox@0.6.5
+
 ## 1.35.5
 
 ### Dependency updates
