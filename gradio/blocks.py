@@ -1733,7 +1733,15 @@ Received outputs:
 
             if block.stateful:
                 if not utils.is_update(predictions[i]):
-                    if block._id not in state or state[block._id] != predictions[i]:
+                    has_change_event = False
+                    for dep in state.blocks_config.fns.values():
+                        if block._id in [t[0] for t in dep.targets if t[1] == "change"]:
+                            has_change_event = True
+                            break
+                    if has_change_event and (
+                        block._id not in state
+                        or not utils.deep_equal(state[block._id], predictions[i])
+                    ):
                         changed_state_ids.append(block._id)
                     state[block._id] = predictions[i]
                 output.append(None)
