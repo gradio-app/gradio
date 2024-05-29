@@ -76,7 +76,7 @@ def _build(
         except ModuleNotFoundError as e:
             raise ValueError(
                 f"Your custom component package ({package_name}) is not installed! "
-                "Please install it with the gradio cc install command before buillding it."
+                "Please install it with the gradio cc install command before building it."
             ) from e
         if bump_version:
             pyproject_toml = parse((path / "pyproject.toml").read_text())
