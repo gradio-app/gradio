@@ -61,6 +61,7 @@
 		scene = new BABYLON.Scene(engine);
 
 		scene.createDefaultCameraOrLight();
+		scene.useRightHandedSystem = true;
 		scene.clearColor = scene.clearColor = new BABYLON.Color4(...clear_color);
 
 		engine.runRenderLoop(() => {
