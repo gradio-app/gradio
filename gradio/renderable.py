@@ -88,14 +88,10 @@ def render(
     The render decorator allows Gradio Blocks apps to have dynamic layouts, so that the components and event listeners in your app can change depending on custom logic.
     Attaching a @gr.render decorator to a function will cause the function to be re-run whenever the inputs are changed (or specified triggers are activated). The function contains the components and event listeners that will update based on the inputs.
 
-    The basic usage of @gr.render is as follows:
-
-    1. Create a function and attach the @gr.render decorator to it.
-
-    2. Add the input components to the `inputs=` argument of @gr.render, and create a corresponding argument in your function for each component.
-    
-    3. Add all components inside the function that you want to update based on the inputs. Any event listeners that use these components should also be inside this function.
-   
+    The basic usage of @gr.render is as follows:\n
+    1. Create a function and attach the @gr.render decorator to it.\n
+    2. Add the input components to the `inputs=` argument of @gr.render, and create a corresponding argument in your function for each component.\n
+    3. Add all components inside the function that you want to update based on the inputs. Any event listeners that use these components should also be inside this function.\n
     Parameters:
         inputs: List of gradio.components to use as inputs. If the function takes no inputs, this should be an empty list.
         triggers: List of triggers to listen to, e.g. [btn.click, number.change]. If None, will listen to changes to any inputs.
