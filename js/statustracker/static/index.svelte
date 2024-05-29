@@ -327,7 +327,9 @@
 	}
 
 	.generating {
-		animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+		animation:
+			pulseStart 1s cubic-bezier(0.4, 0, 0.6, 1),
+			pulse 2s cubic-bezier(0.4, 0, 0.6, 1) 1s infinite;
 		border: 2px solid var(--color-accent);
 		background: transparent;
 		z-index: var(--layer-1);
@@ -336,6 +338,15 @@
 
 	.translucent {
 		background: none;
+	}
+
+	@keyframes pulseStart {
+		0% {
+			opacity: 0;
+		}
+		100% {
+			opacity: 1;
+		}
 	}
 
 	@keyframes pulse {
