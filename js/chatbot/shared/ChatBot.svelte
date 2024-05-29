@@ -109,7 +109,6 @@
 		}
 		div.querySelectorAll("img").forEach((n) => {
 			n.addEventListener("click", () => {
-				console.log("open");
 				isImagePreviewOpen = true;
 			});
 		});
@@ -171,8 +170,8 @@
 		{#if value !== null && value.length > 0}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
-					{#if message !== null && typeof message !== "string" && message.file?.mime_type?.includes("image")}
-						{#if isImagePreviewOpen}
+					{#if message !== null}
+						{#if isImagePreviewOpen && typeof message !== "string" && message.file?.mime_type?.includes("image")}
 							<div class="image-preview">
 								<img src={message.file.url} alt={message.alt_text} />
 								<button
