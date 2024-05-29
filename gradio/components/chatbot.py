@@ -20,28 +20,19 @@ from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
 
 
-def import_component_and_data(component_name: str) -> Optional[Tuple[Any, Any]]:
+def import_component_and_data(component_name: str) -> GradioComponent | None:
     try:
-        # Dynamically import the module
         module_path = f"gradio.components.{component_name.lower()}"
         module = importlib.import_module(module_path)
-
-        # Get the component from the module
         component = getattr(module, component_name, None)
 
-        # Dynamically import the data model
-        data_model_name = f"{component_name}Data"
-        data_model = getattr(module, data_model_name, None)
-
-        if component is not None and data_model is not None:
-            return component, data_model
-        elif component is not None:
-            return component, None
+        if component is not None:
+            return component
         else:
             print(f"Component or data model not found in module {module_path}")
-            return None, None
+            return None
     except ModuleNotFoundError as e:
-        raise ValueError(f"Error importing {component_name} from {module_path}: {e}")
+        raise ValueError(f"Error importing {component_name} from {module_path}: {e}") from e
     except AttributeError:
         pass
 
@@ -196,11 +187,11 @@ class Chatbot(Component):
         elif isinstance(chat_message, (str)):
             return chat_message
         elif isinstance(chat_message, ComponentMessage):
-            component, data_model = import_component_and_data(
+            component = import_component_and_data(
                 chat_message.component.capitalize()
             )
             if component is not None:
-                return component(**chat_message.constructor_args[0])
+                return component(**chat_message.constructor_args[0]) # type: ignore
             else:
                 raise ValueError(
                     f"Invalid component for Chatbot component: {chat_message.component}"
@@ -263,7 +254,6 @@ class Chatbot(Component):
                     return False
 
             def extract_serializable_dict(obj):
-                """Convert an object to a serializable dictionary, skipping non-encodable keys."""
                 if isinstance(obj, dict):
                     result = {}
                     for k, v in obj.items():
@@ -272,9 +262,8 @@ class Chatbot(Component):
                     return result
                 return {}
 
-            component, _ = import_component_and_data(type(chat_message).__name__)
+            component = import_component_and_data(type(chat_message).__name__)
             if component:
-                # Extract and filter constructor args ensuring they are serializable
                 extracted_args = []
                 for arg in chat_message._constructor_args:
                     if isinstance(arg, dict):
@@ -284,7 +273,7 @@ class Chatbot(Component):
                     component=type(chat_message).__name__.lower(),
                     value=component.postprocess(
                         chat_message,
-                        chat_message._constructor_args[1]["value"],
+                        chat_message._constructor_args[1]["value"], # type: ignore
                     ),
                     constructor_args=extracted_args,
                 )
