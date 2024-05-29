@@ -47,7 +47,7 @@ For quick addition to your web project, you can use the jsDelivr CDN to load the
 <script src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
 ```
 
-Be sure to add this to the `<head>` of your HTML. This approach is ideal for experimental or prototying purposes, though has some limitations.
+Be sure to add this to the `<head>` of your HTML. This will install the latest version but we advise hardcoding the version in production. You can find all available versions [here](https://www.jsdelivr.com/package/npm/@gradio/client). This approach is ideal for experimental or prototying purposes, though has some limitations.
 
 ## Connecting to a running Gradio App
 
