@@ -162,17 +162,29 @@ export function submit(
 			}
 		}
 
-		function handle_render_config(render_config: any): void {
+		const resolve_heartbeat = async (config: Config): Promise<void> => {
+			await this._resolve_hearbeat(config);
+		};
+	
+		async function handle_render_config(render_config: any): Promise<void> {
 			if (!config) return;
 			let render_id: number = render_config.render_id;
 			config.components = [
-				...config.components.filter((c) => c.rendered_in !== render_id),
+				...config.components.filter((c) => c.props.rendered_in !== render_id),
 				...render_config.components
 			];
 			config.dependencies = [
 				...config.dependencies.filter((d) => d.rendered_in !== render_id),
 				...render_config.dependencies
 			];
+			const any_state = config.components.some(
+				(c) => c.type === "state"
+			);
+			const any_unload = config.dependencies.some((d) =>
+				d.targets.some((t) => t[1] === "unload")
+			);
+			config.connect_heartbeat = any_state || any_unload;
+			await resolve_heartbeat(config);
 			fire_event({
 				type: "render",
 				data: render_config,
@@ -628,7 +640,7 @@ export function submit(
 											fn_index
 										});
 										if (data.render_config) {
-											handle_render_config(data.render_config);
+											await handle_render_config(data.render_config);
 										}
 
 										if (complete) {
