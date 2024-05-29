@@ -19,13 +19,13 @@
 		(
 			| string
 			| { file: FileData | FileData[]; alt_text: string | null }
-			| { component: string; value: any }
+			| { component: string; value: any; constructor_args: any }
 			| null
 		),
 		(
 			| string
 			| { file: FileData | FileData[]; alt_text: string | null }
-			| { component: string; value: any }
+			| { component: string; value: any; constructor_args: any }
 			| null
 		)
 	][] = [];
@@ -63,13 +63,13 @@
 		(
 			| string
 			| { file: FileData | FileData[]; alt_text: string | null }
-			| { component: string; value: any }
+			| { component: string; value: any; constructor_args: any }
 			| null
 		),
 		(
 			| string
 			| { file: FileData | FileData[]; alt_text: string | null }
-			| { component: string; value: any }
+			| { component: string; value: any; constructor_args: any }
 			| null
 		)
 	][];

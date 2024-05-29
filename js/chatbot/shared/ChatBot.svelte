@@ -1,9 +1,14 @@
 <script lang="ts">
-	import { format_chat_for_sharing } from "./utils";
+	import { format_chat_for_sharing, dynamicImportComponent } from "./utils";
 	import { copy } from "@gradio/utils";
 
 	import { dequal } from "dequal/lite";
-	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
+	import {
+		beforeUpdate,
+		afterUpdate,
+		createEventDispatcher,
+		SvelteComponent
+	} from "svelte";
 	import { ShareButton } from "@gradio/atoms";
 	import { BaseStaticAudio } from "@gradio/audio";
 	import { BaseGallery } from "@gradio/gallery";
@@ -24,13 +29,13 @@
 				(
 					| string
 					| { file: FileData | FileData[]; alt_text: string | null }
-					| { component: string; value: any }
+					| { component: string; value: any; constructor_args: any }
 					| null
 				),
 				(
 					| string
 					| { file: FileData | FileData[]; alt_text: string | null }
-					| { component: string; value: any }
+					| { component: string; value: any; constructor_args: any }
 					| null
 				)
 		  ][]
@@ -40,13 +45,17 @@
 				(
 					| string
 					| { file: FileData | FileData[]; alt_text: string | null }
-					| { component: string; value: any }
+					| { component: string; value: any; constructor_args: any }
 					| null
 				),
 				(
 					| string
 					| { file: FileData | FileData[]; alt_text: string | null }
-					| { component: string; value: any }
+					| {
+							component: string | SvelteComponent;
+							value: any;
+							constructor_args: any;
+					  }
 					| null
 				)
 		  ][]

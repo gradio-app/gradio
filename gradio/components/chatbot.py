@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import importlib
 import inspect
+import json
 from pathlib import Path
-from typing import Any, Callable, List, Literal, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
@@ -38,7 +39,7 @@ def import_component_and_data(component_name: str) -> Optional[Tuple[Any, Any]]:
             return component, None
         else:
             print(f"Component or data model not found in module {module_path}")
-            return None
+            return None, None
     except ModuleNotFoundError as e:
         raise ValueError(f"Error importing {component_name} from {module_path}: {e}")
     except AttributeError:
@@ -52,7 +53,8 @@ class FileMessage(GradioModel):
 
 class ComponentMessage(GradioModel):
     component: str
-    value: Union[Any, FileMessage]
+    value: Any
+    constructor_args: List[Dict[str, Any]]
 
 
 class ChatbotData(GradioRootModel):
@@ -197,25 +199,8 @@ class Chatbot(Component):
             component, data_model = import_component_and_data(
                 chat_message.component.capitalize()
             )
-            if chat_message.component in {"image", "video", "audio"}:
-                if (
-                    isinstance(chat_message.value, dict)
-                    and "path" in chat_message.value
-                ):
-                    return component(value=chat_message.value.get("path"))
-                if (
-                    isinstance(chat_message.value, dict)
-                    and "video" in chat_message.value
-                ):
-                    video_data = chat_message.value.get("video")
-                    return component(value=video_data.get("path"))
-            elif component is not None and data_model is not None:
-                if chat_message.component == "gallery":
-                    chat_message.value = data_model.parse_obj(chat_message.value)
-                    value = [x.image.path for x in chat_message.value.root]
-                    return component(value=value)
-                chat_message.value = data_model.parse_obj(chat_message.value)
-                return component(value=chat_message.value)
+            if component is not None:
+                return component(**chat_message.constructor_args[0])
             else:
                 raise ValueError(
                     f"Invalid component for Chatbot component: {chat_message.component}"
@@ -269,21 +254,39 @@ class Chatbot(Component):
         if chat_message is None:
             return None
         elif isinstance(chat_message, GradioComponent):
+
+            def is_json_encodable(obj):
+                try:
+                    json.dumps(obj)
+                    return True
+                except TypeError:
+                    return False
+
+            def extract_serializable_dict(obj):
+                """Convert an object to a serializable dictionary, skipping non-encodable keys."""
+                if isinstance(obj, dict):
+                    result = {}
+                    for k, v in obj.items():
+                        if is_json_encodable(v):
+                            result[k] = v
+                    return result
+                return {}
+
             component, _ = import_component_and_data(type(chat_message).__name__)
             if component:
-                # test = ComponentMessage(
-                #     component=type(chat_message).__name__.lower(),
-                #     value=component.postprocess(
-                #         chat_message,
-                #         chat_message._constructor_args[1]["value"],
-                #     ),
-                # )
+                # Extract and filter constructor args ensuring they are serializable
+                extracted_args = []
+                for arg in chat_message._constructor_args:
+                    if isinstance(arg, dict):
+                        serializable_arg = extract_serializable_dict(arg)
+                        extracted_args.append(serializable_arg)
                 return ComponentMessage(
                     component=type(chat_message).__name__.lower(),
                     value=component.postprocess(
                         chat_message,
                         chat_message._constructor_args[1]["value"],
                     ),
+                    constructor_args=extracted_args,
                 )
         elif isinstance(chat_message, (tuple, list)):
             filepath = str(chat_message[0])
