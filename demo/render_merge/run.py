@@ -7,7 +7,11 @@ with gr.Blocks() as demo:
     def render_count(count):
         boxes = []
         for i in range(count):
-            box = gr.Textbox(key=i, label=f"Box {i}")
+            with gr.Row():
+                box = gr.Textbox(key=i, label=f"Box {i}")
+                repeat_btn = gr.Button("Repeat")
+                repeat_btn.click(lambda x: x * 2, box, box)
+                
             boxes.append(box)
 
         def merge(*args):
