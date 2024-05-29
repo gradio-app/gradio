@@ -139,7 +139,6 @@ for guide_folder in guide_folders:
         guide_urls.append(guide_name)
         absolute_index += 1
 
-
 def generate(json_path):
     if not os.path.isdir(json_path):
         os.mkdir(json_path)
