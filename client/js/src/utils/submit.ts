@@ -162,6 +162,10 @@ export function submit(
 			}
 		}
 
+		const resolve_heartbeat = async (config: Config): Promise<void> => {
+			await this._resolve_hearbeat(config);
+		};
+
 		this.handle_blob(config.root, resolved_data, endpoint_info).then(
 			async (_payload) => {
 				payload = {
@@ -619,6 +623,9 @@ export function submit(
 												),
 												...data.render_config.dependencies
 											];
+											config.connect_heartbeat =
+												data.render_config.connect_heartbeat;
+											await resolve_heartbeat(config);
 											fire_event({
 												type: "render",
 												data: data.render_config,

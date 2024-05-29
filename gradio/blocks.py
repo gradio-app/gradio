@@ -905,6 +905,9 @@ class BlocksConfig:
             if renderable is None or fn.rendered_in == renderable:
                 dependencies.append(fn.get_config())
         config["dependencies"] = dependencies
+        config["connect_heartbeat"] = utils.connect_heartbeat(
+            config, self.blocks.values()
+        )
 
         return config
 
@@ -2037,18 +2040,9 @@ Received outputs:
             "fill_height": self.fill_height,
         }
         config.update(self.default_config.get_config())
-        any_state = any(
-            isinstance(block, components.State) for block in self.blocks.values()
+        config["connect_heartbeat"] = utils.connect_heartbeat(
+            config, self.blocks.values()
         )
-        any_unload = False
-        for dep in config["dependencies"]:
-            for target in dep["targets"]:
-                if isinstance(target, (list, tuple)) and len(target) == 2:
-                    any_unload = target[1] == "unload"
-                    if any_unload:
-                        break
-        config["connect_heartbeat"] = any_state or any_unload
-
         return config
 
     def __enter__(self):
