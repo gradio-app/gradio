@@ -165,7 +165,7 @@ export function submit(
 		const resolve_heartbeat = async (config: Config): Promise<void> => {
 			await this._resolve_hearbeat(config);
 		};
-	
+
 		async function handle_render_config(render_config: any): Promise<void> {
 			if (!config) return;
 			let render_id: number = render_config.render_id;
@@ -177,9 +177,7 @@ export function submit(
 				...config.dependencies.filter((d) => d.rendered_in !== render_id),
 				...render_config.dependencies
 			];
-			const any_state = config.components.some(
-				(c) => c.type === "state"
-			);
+			const any_state = config.components.some((c) => c.type === "state");
 			const any_unload = config.dependencies.some((d) =>
 				d.targets.some((t) => t[1] === "unload")
 			);
