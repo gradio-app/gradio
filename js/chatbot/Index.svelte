@@ -11,14 +11,12 @@
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/client";
 	import { StatusTracker } from "@gradio/statustracker";
+	import type { Message, TupleFormat, MessageRole, FileMessage } from "./types";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: [
-		string | { file: FileData; alt_text: string | null } | null,
-		string | { file: FileData; alt_text: string | null } | null
-	][] = [];
+	export let value: TupleFormat | Message[] = [];
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let label: string;
@@ -32,6 +30,7 @@
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
 	export let layout: "bubble" | "panel" = "bubble";
+	export let msg_format: "tuples" | "openai" = "tuples";
 	export let render_markdown = true;
 	export let line_breaks = true;
 	export let latex_delimiters: {
@@ -59,7 +58,7 @@
 
 	function normalize_messages(
 		message: { file: FileData; alt_text: string | null } | null
-	): { file: FileData; alt_text: string | null } | null {
+	): FileMessage | null {
 		if (message === null) {
 			return message;
 		}
@@ -69,16 +68,31 @@
 		};
 	}
 
-	$: _value = value
-		? value.map(([user_msg, bot_msg]) => [
-				typeof user_msg === "string"
+	function consolidate_msg_format(value: TupleFormat | Message[], msg_format: "openai" | "tuples"): Message[] {
+		if (msg_format === "tuples") {
+			if (!value) {
+				return [];
+			}
+			const openai = (value as TupleFormat).flatMap(([user_msg, bot_msg]) => [
+				{"content": typeof user_msg === "string"
 					? redirect_src_url(user_msg)
 					: normalize_messages(user_msg),
-				typeof bot_msg === "string"
+				"role": "user" as MessageRole,
+				"metadata": {"error": false, "tool_name": null}
+				},
+				{"content": typeof bot_msg === "string"
 					? redirect_src_url(bot_msg)
-					: normalize_messages(bot_msg)
-			])
-		: [];
+					: normalize_messages(bot_msg),
+				"role": "assistant" as MessageRole,
+				"metadata": {"error": false, "tool_name": null}
+				}
+			]);
+			return openai as Message[];
+		}
+		return value as Message[];
+	}
+
+	$: _value = consolidate_msg_format(value, msg_format);
 
 	export let loading_status: LoadingStatus | undefined = undefined;
 	export let height = 400;

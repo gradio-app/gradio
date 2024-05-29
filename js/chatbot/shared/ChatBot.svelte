@@ -15,19 +15,10 @@
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import LikeDislike from "./LikeDislike.svelte";
 	import Pending from "./Pending.svelte";
+	import type { Message } from "../types";
 
-	export let value:
-		| [
-				string | { file: FileData; alt_text: string | null } | null,
-				string | { file: FileData; alt_text: string | null } | null
-		  ][]
-		| null;
-	let old_value:
-		| [
-				string | { file: FileData; alt_text: string | null } | null,
-				string | { file: FileData; alt_text: string | null } | null
-		  ][]
-		| null = null;
+	export let value: Message[];
+	let old_value: Message[] = [];
 	export let latex_delimiters: {
 		left: string;
 		right: string;
