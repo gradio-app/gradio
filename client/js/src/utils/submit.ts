@@ -162,7 +162,7 @@ export function submit(
 			}
 		}
 
-		function handle_render_config(render_config: any) {
+		function handle_render_config(render_config: any): void {
 			if (!config) return;
 			let render_id: number = render_config.render_id;
 			config.components = [
