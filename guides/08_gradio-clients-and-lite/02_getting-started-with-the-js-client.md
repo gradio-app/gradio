@@ -37,7 +37,7 @@ Install the @gradio/client package to interact with Gradio APIs using Node.js ve
 npm i @gradio/client
 ```
 
-This command adds @gradio/client to your project dependencies, allowing you to `require` or `import` it in your JavaScript or TypeScript files.
+This command adds @gradio/client to your project dependencies, allowing you to import it in your JavaScript or TypeScript files.
 
 ## Installation via CDN
 
