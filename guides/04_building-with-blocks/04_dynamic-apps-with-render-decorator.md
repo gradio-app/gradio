@@ -13,9 +13,9 @@ $demo_render_split_simple
 
 See how we can now create a variable number of Textboxes using our custom logic - in this case, a simple `for` loop. The `@gr.render` decorator enables this with the following steps:
 
-1) Create a function and attach the @gr.render decorator to it.
-2) Add the input components to the `inputs=` argument of @gr.render, and create a corresponding argument in your function for each component. This function will automatically re-run on any change to a component.
-3) Add all components inside the function that you want to render based on the inputs.
+1. Create a function and attach the @gr.render decorator to it.
+2. Add the input components to the `inputs=` argument of @gr.render, and create a corresponding argument in your function for each component. This function will automatically re-run on any change to a component.
+3. Add all components inside the function that you want to render based on the inputs.
 
 Now whenever the inputs change, the funciton re-runs, and replaces the components created from the previous funciton run with the latest run. Pretty straightforward! Let's add a little more complexity to this app:
 
