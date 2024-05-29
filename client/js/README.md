@@ -14,7 +14,7 @@ npm i @gradio/client
 Or, you can include it directly in your HTML via the jsDelivr CDN:
 
 ```shell
-<script src="https://cdn.jsdelivr.net/npm/@gradio/client@0.19.4/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
 ```
 
 ## Usage
