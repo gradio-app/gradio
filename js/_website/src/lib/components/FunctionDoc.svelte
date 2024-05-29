@@ -1,15 +1,25 @@
 <script lang="ts">
 	export let fn: any;
 	import anchor from "../assets/img/anchor.svg";
+	import { style_formatted_text } from "$lib/text";
 </script>
 
 <!-- name, signature, description, params -->
 
-<div class="obj" id={fn.slug}>
+<div class="obj">
 	<div class="flex flex-row items-center justify-between">
-		<h3 class="group text-3xl font-light py-4">
+		<h3
+			class="group text-3xl font-light py-4"
+			id="{fn.parent
+				.toLowerCase()
+				.replace('gradio.', '')}-{fn.name.toLowerCase()}"
+		>
 			{fn.name}
-			<a href="#{fn.slug}" class="invisible group-hover-visible"
+			<a
+				href="#{fn.parent
+					.toLowerCase()
+					.replace('gradio.', '')}-{fn.name.toLowerCase()}"
+				class="invisible group-hover-visible"
 				><img class="anchor-img" src={anchor} /></a
 			>
 		</h3>
@@ -39,10 +49,12 @@
 
 	<h4
 		class="mt-8 text-xl text-orange-500 font-light group"
-		id="{fn.slug}-description"
+		id="{fn.name.toLowerCase()}-description"
 	>
 		Description
-		<a href="#{fn.slug}-description" class="invisible group-hover-visible"
+		<a
+			href="#{fn.name.toLowerCase()}-description"
+			class="invisible group-hover-visible"
 			><img class="anchor-img-small" src={anchor} /></a
 		>
 	</h4>
@@ -51,27 +63,29 @@
 	{#if fn.example}
 		<h4
 			class="mt-4 text-xl text-orange-500 font-light group"
-			id="{fn.slug}-example-usage"
+			id="{fn.name.toLowerCase()}-example-usage"
 		>
 			Example Usage
-			<a href="#{fn.slug}-example-usage" class="invisible group-hover-visible"
+			<a
+				href="#{fn.name.toLowerCase()}-example-usage"
+				class="invisible group-hover-visible"
 				><img class="anchor-img-small" src={anchor} /></a
 			>
 		</h4>
 		<div class="codeblock">
-			<pre><code class="code language-python"
-					>{@html fn.highlighted_example}</code
-				></pre>
+			<pre><code class="code language-python">{@html fn.example}</code></pre>
 		</div>
 	{/if}
 
 	{#if (fn.parameters.length > 0 && fn.parameters[0].name != "self") || fn.parameters.length > 1}
 		<h4
 			class="mt-6 text-xl text-orange-500 font-light group"
-			id="{fn.slug}-arguments"
+			id="{fn.name.toLowerCase()}-arguments"
 		>
-			Agruments
-			<a href="#{fn.slug}-arguments" class="invisible group-hover-visible"
+			Arguments
+			<a
+				href="#{fn.name.toLowerCase()}-arguments"
+				class="invisible group-hover-visible"
 				><img class="anchor-img-small" src={anchor} /></a
 			>
 		</h4>

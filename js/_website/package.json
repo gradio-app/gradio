@@ -1,9 +1,9 @@
 {
 	"name": "website",
-	"version": "0.30.4",
+	"version": "0.31.0",
 	"private": true,
 	"scripts": {
-		"dev": "python generate_jsons/generate.py && vite dev",
+		"dev": "pip install boto3 && python generate_jsons/generate.py && vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",

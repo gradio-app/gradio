@@ -1,5 +1,11 @@
 # @gradio/slider
 
+## 0.4.6
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+
 ## 0.4.5
 
 ### Dependency updates
