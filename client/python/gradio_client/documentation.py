@@ -143,7 +143,7 @@ def document_fn(fn: Callable, cls) -> tuple[str, list[dict], dict, str | None]:
                 print(line)
             if not (line.startswith("    ") or line.strip() == ""):
                 raise SyntaxError(
-                    f"Documentation format for {fn.__name__} has format error in line: {line} in mode {mode}"
+                    f"Documentation format for {fn.__name__} has format error in line: {line}"
                 )
             line = line[4:]
             if mode == "parameter":
