@@ -1,10 +1,9 @@
 <script lang="ts">
     import dataflow from "$lib/assets/img/dataflow.svg"
-    import {get_object} from "$lib/components/process_json.ts";
+    import {get_object} from "../../process_json.ts";
     let components = get_object("components");
     let events = get_object("events");
     let events_matrix = get_object("events_matrix");
-    console.log(events);
 </script>
 
 # Components 

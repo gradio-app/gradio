@@ -1,6 +1,7 @@
 import { redirect } from "@sveltejs/kit";
 import version from "$lib/json/version.json";
 import wheel from "$lib/json/wheel.json";
+
 export const prerender = true;
 
 const DOCS_BUCKET = "https://gradio-docs-json.s3.us-west-2.amazonaws.com";
@@ -25,7 +26,7 @@ export async function load({ params, url }) {
 	let docs_json =
 		params?.version === "main"
 			? await load_main_docs()
-			: // : await load_release_docs(params.version || VERSION);
+			: await load_release_docs(params.version || VERSION);
 				await load_main_docs();
 
 	let docs: { [key: string]: any } = docs_json.docs;
@@ -46,6 +47,7 @@ export async function load({ params, url }) {
 		wheel,
 		pages,
 		js_client,
-		url_version
+		url_version,
+		VERSION
 	};
 }

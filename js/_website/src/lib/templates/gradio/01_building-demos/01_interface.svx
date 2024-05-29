@@ -1,6 +1,6 @@
 
 <script lang="ts" context="module">
-    import {get_object} from "$lib/components/process_json.ts";
+    import {get_object} from "../../process_json.ts";
     import ParamTable from "$lib/components/ParamTable.svelte";
     import ShortcutTable from "$lib/components/ShortcutTable.svelte";
     import DemosSection from "$lib/components/DemosSection.svelte";

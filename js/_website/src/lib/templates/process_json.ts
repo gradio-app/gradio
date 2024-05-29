@@ -1,4 +1,4 @@
-import docs_json from "$lib/json/docs.json";
+import docs_json from "./docs.json";
 
 let docs: { [key: string]: any } = docs_json.docs;
 

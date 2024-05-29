@@ -143,7 +143,6 @@
 				(TypeScript) from the browser or server-side.
 			</div>
 		</a>
-		{#if $page.params?.version !== "3.50.2"}
 			<a
 				href="./docs/js"
 				target="_self"
@@ -172,7 +171,6 @@
 					application.
 				</div>
 			</a>
-		{/if}
 		<a
 			href="../guides/gradio-lite"
 			target="_self"

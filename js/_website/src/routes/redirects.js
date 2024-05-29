@@ -24,9 +24,6 @@ export const redirects = {
 	"/four-kinds-of-interfaces": "/guides/four-kinds-of-interfaces",
 	"/interface-state": "/guides/interface-state",
 	"/more-on-examples": "/guides/more-on-examples",
-	"/advanced-interface-features": "/3.50.2/guides/advanced-interface-features",
-	"/guides/advanced-interface-features":
-		"/3.50.2/guides/advanced-interface-features",
 	"/key-features": "/guides/key-features",
 	"/quickstart": "/guides/quickstart",
 	"/sharing-your-app": "/guides/sharing-your-app",
@@ -176,8 +173,5 @@ export const redirects = {
 	"/docs/no-reload": "/docs/gradio/NO_RELOAD",
 	"/docs/python-client/python-client": "/docs/python-client/introduction",
 	"/docs/python-client/js-client": "/docs/js-client",
-	"/3.50.2/docs/python-client/python-client":
-		"/docs/python-client/introduction",
-	"/3.50.2/docs/python-client/js-client": "/docs/js-client",
 	"/docs/gradio/interface#interface-queue": "/docs/gradio/interface"
 };
