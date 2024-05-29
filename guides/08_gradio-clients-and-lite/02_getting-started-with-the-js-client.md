@@ -44,7 +44,7 @@ This command adds @gradio/client to your project dependencies, allowing you to `
 For quick addition to your web project, you can use the jsDelivr CDN to load the latest version of @gradio/client directly into your HTML:
 
 ```bash
-<script src="https://cdn.jsdelivr.net/npm/@gradio/client@0.x.x/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
 ```
 
 Be sure to add this to the `<head>` of your HTML. This approach is ideal for experimental or prototying purposes, though has some limitations.
