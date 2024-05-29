@@ -997,12 +997,12 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.fill_height = fill_height
         self.delete_cache = delete_cache
         if css is not None and os.path.exists(css):
-            with open(css) as css_file:
+            with open(css, encoding="utf-8") as css_file:
                 self.css = css_file.read()
         else:
             self.css = css
         if js is not None and os.path.exists(js):
-            with open(js) as js_file:
+            with open(js, encoding="utf-8") as js_file:
                 self.js = js_file.read()
         else:
             self.js = js
@@ -1726,7 +1726,15 @@ Received outputs:
 
             if block.stateful:
                 if not utils.is_update(predictions[i]):
-                    if block._id not in state or state[block._id] != predictions[i]:
+                    has_change_event = False
+                    for dep in state.blocks_config.fns.values():
+                        if block._id in [t[0] for t in dep.targets if t[1] == "change"]:
+                            has_change_event = True
+                            break
+                    if has_change_event and (
+                        block._id not in state
+                        or not utils.deep_equal(state[block._id], predictions[i])
+                    ):
                         changed_state_ids.append(block._id)
                     state[block._id] = predictions[i]
                 output.append(None)
