@@ -1,6 +1,6 @@
 ---
-"@gradio/model3d": minor
-"gradio": minor
+"@gradio/model3d": patch
+"gradio": patch
 ---
 
-feat:Model3D right-handed coordinate system
+fix:Model3D right-handed coordinate system
