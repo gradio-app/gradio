@@ -1626,9 +1626,6 @@ importers:
       '@gradio/atoms':
         specifier: workspace:^
         version: link:../atoms
-      '@gradio/column':
-        specifier: workspace:^
-        version: link:../column
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
