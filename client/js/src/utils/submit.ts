@@ -162,6 +162,7 @@ export function submit(
 			}
 		}
 
+		const original_heartbeat = config.connect_heartbeat;
 		const resolve_heartbeat = async (config: Config): Promise<void> => {
 			await this._resolve_hearbeat(config);
 		};
@@ -613,7 +614,7 @@ export function submit(
 											let render_id: number = data.render_config.render_id;
 											config.components = [
 												...config.components.filter(
-													(c) => c.rendered_in !== render_id
+													(c) => c.props.rendered_in !== render_id
 												),
 												...data.render_config.components
 											];
@@ -623,9 +624,13 @@ export function submit(
 												),
 												...data.render_config.dependencies
 											];
-											config.connect_heartbeat =
-												config.connect_heartbeat ||
-												data.render_config.connect_heartbeat;
+											const any_state = config.components.some(
+												(c) => c.type === "state"
+											);
+											const any_unload = config.dependencies.some((d) =>
+												d.targets.some((t) => t[1] === "unload")
+											);
+											config.connect_heartbeat = any_state || any_unload;
 											await resolve_heartbeat(config);
 											fire_event({
 												type: "render",
