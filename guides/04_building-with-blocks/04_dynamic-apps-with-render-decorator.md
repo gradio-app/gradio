@@ -17,7 +17,7 @@ See how we can now create a variable number of Textboxes using our custom logic 
 2. Add the input components to the `inputs=` argument of @gr.render, and create a corresponding argument in your function for each component. This function will automatically re-run on any change to a component.
 3. Add all components inside the function that you want to render based on the inputs.
 
-Now whenever the inputs change, the funciton re-runs, and replaces the components created from the previous funciton run with the latest run. Pretty straightforward! Let's add a little more complexity to this app:
+Now whenever the inputs change, the function re-runs, and replaces the components created from the previous function run with the latest run. Pretty straightforward! Let's add a little more complexity to this app:
 
 $code_render_split
 $demo_render_split
@@ -40,7 +40,27 @@ Let's take a look at what's happening here:
 
 Just as with Components, whenever a function re-renders, the event listeners created from the previous render are cleared and the new event listeners from the latest run are attached. 
 
-This allows us to create highly customizable and complex interactions! Take a look at the example below, which spices up the previous example with a lot more event listeners:
+This allows us to create highly customizable and complex interactions! 
 
-$code_render_merge
-$demo_render_merge
+## Putting it Together
+
+Let's look at two examples that use all the features above. First, try out the to-do list app below: 
+
+$code_todo_list
+$demo_todo_list
+
+Note that almost the entire app is inside a single `gr.render` that reacts to the tasks `gr.State` variable. This variable is a nested list, which presents some complexity. If you design a `gr.render` to react to a list or dict structure, ensure you do the following:
+
+1. Any event listener that modifies the state variable in a manner that should trigger a re-render should return a new value, not simply modify the state variable directly. A `gr.State` change event listener will not trigger if the state is provided as input and then modified directly. A new variable must be returned that can be compared against. That's why in the `mark_done` method, we create a new list that we edit. Similarly, in `delete`, we create a new list instead of calling `task_list.remove(task)`, and in `add_task`, we don't use `task_list.append`. 
+2. In a `gr.render`, if a variable in a loop is used inside an event listener function, that variable should be "frozen" via setting it to itself as a default argument in the function header. See how we have `task=task` in both `mark_done` and `delete`. This freezes the variable to its "loop-time" value.
+
+Let's take a look at one last example that uses everything we learned. Below is an audio mixer. Provide multiple audio tracks and mix them together.
+
+$code_audio_mixer
+$demo_audio_mixer
+
+Two things to not in this app:
+1. Here we provide `key=` to all the components! We need to do this so that if we add another track after setting the values for an existing track, our input values to the existing track do not get reset on re-render.
+2. When there are lots of components of different types and arbitrary counts passed to an event listener, it is easier to use the set and dictionary notation for inputs rather than list notation. Above, we make one large set of all the input `gr.Audio` and `gr.Slider` components when we pass the inputs to the `merge` function. In the function body we query the component values as a dict.
+
+The `gr.render` expands gradio capabilities extensively - see what you can make out of it! 
