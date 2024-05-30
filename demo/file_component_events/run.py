@@ -2,7 +2,6 @@ import gradio as gr
 
 
 def delete_file(n: int, file: gr.DeletedFileData):
-    print(file.file.path, file.target)
     return [file.file.path, n + 1]
 
 
