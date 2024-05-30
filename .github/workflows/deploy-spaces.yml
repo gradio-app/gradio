@@ -113,7 +113,7 @@ jobs:
         aws s3 cp $tarball_name s3://gradio-builds/${{ needs.changes.outputs.sha }}/$tarball_name
         echo "js_tarball_url=https://gradio-builds.s3.amazonaws.com/${{ needs.changes.outputs.sha }}/$tarball_name" >> $GITHUB_OUTPUT
     - name: Install Hub Client Library
-      run: pip install huggingface-hub
+      run: pip install huggingface-hub==0.23.2
     - name: Upload demo to spaces
       if: github.event.workflow_run.event == 'pull_request'
       id: upload-demo
