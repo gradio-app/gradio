@@ -1,5 +1,11 @@
 # gradio
 
+## 4.32.1
+
+### Features
+
+- [#8415](https://github.com/gradio-app/gradio/pull/8415) [`227de35`](https://github.com/gradio-app/gradio/commit/227de352982b3dcdf9384eaa28b7e9cf09afb6e8) - Fix spaces load error.  Thanks @aliabid94!
+
 ## 4.32.0
 
 ### Features
