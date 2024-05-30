@@ -320,7 +320,7 @@ class Chatbot(Component):
                         content=FileData(path=filepath, mime_type=mime_type),
                     ),
                 )
-
+        msg.content = inspect.cleandoc(msg.content)
         return [msg, *new_messages]
 
     def postprocess(
