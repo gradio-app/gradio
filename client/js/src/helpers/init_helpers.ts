@@ -101,7 +101,7 @@ export async function resolve_config(
 			let config = await response.json();
 			config.path = config.path ?? "";
 			config.root = endpoint;
-			config.dependencies.forEach((dep: any, i: number) => {
+			config.dependencies?.forEach((dep: any, i: number) => {
 				if (dep.id === undefined) {
 					dep.id = i;
 				}
