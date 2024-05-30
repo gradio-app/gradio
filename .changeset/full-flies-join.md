@@ -7,4 +7,4 @@
 "gradio": minor
 ---
 
-feat:8354 file delete
+feat:add delete event to `File` component
