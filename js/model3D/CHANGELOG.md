@@ -1,5 +1,12 @@
 # @gradio/model3d
 
+## 0.10.7
+
+### Dependency updates
+
+- @gradio/upload@0.10.7
+- @gradio/client@0.20.1
+
 ## 0.10.6
 
 ### Fixes
