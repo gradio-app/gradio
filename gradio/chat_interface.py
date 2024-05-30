@@ -499,20 +499,20 @@ class ChatInterface(Blocks):
             if message.text is None or not isinstance(message.text, str):
                 return
             elif message.text == "" and message.files != []:
-                history.append([None, response]) # type: ignore
+                history.append([None, response])  # type: ignore
             else:
-                history.append([message.text, cast(str, response)]) # type: ignore
+                history.append([message.text, cast(str, response)])  # type: ignore
         else:
             for x in message.files:
                 history.append(
-                    {"role": "user", "content": cast(FileDataDict, x.model_dump())} # type: ignore
+                    {"role": "user", "content": cast(FileDataDict, x.model_dump())}  # type: ignore
                 )
             if message.text is None or not isinstance(message.text, str):
                 return
             else:
-                history.append({"role": "user", "content": message.text}) # type: ignore
+                history.append({"role": "user", "content": message.text})  # type: ignore
             if response:
-                history.append(cast(MessageDict, response)) # type: ignore
+                history.append(cast(MessageDict, response))  # type: ignore
 
     async def _display_input(
         self, message: str | MultimodalData, history: TupleFormat | list[MessageDict]
@@ -589,7 +589,7 @@ class ChatInterface(Blocks):
             history.append([message, response])  # type: ignore
         elif isinstance(message, str) and self.msg_format == "openai":
             history.append({"role": "user", "content": message})  # type: ignore
-        return history, history # type: ignore
+        return history, history  # type: ignore
 
     async def _stream_fn(
         self,
@@ -632,7 +632,7 @@ class ChatInterface(Blocks):
                 and self.msg_format == "tuples"
             ):
                 for x in message.files:
-                    history.append([(x,), None]) # type: ignore
+                    history.append([(x,), None])  # type: ignore
                 update = history + [[message.text, first_response]]
                 yield update, update
             elif (
@@ -642,7 +642,7 @@ class ChatInterface(Blocks):
             ):
                 for x in message.files:
                     history.append(
-                        {"role": "user", "content": cast(FileDataDict, x.model_dump())} # type: ignore
+                        {"role": "user", "content": cast(FileDataDict, x.model_dump())}  # type: ignore
                     )
                 update = history + [
                     {"role": "user", "content": message.text},

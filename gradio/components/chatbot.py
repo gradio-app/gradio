@@ -8,7 +8,7 @@ from typing import Any, Callable, List, Literal, Optional, Tuple, TypedDict, Uni
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
-from pydantic import Field
+from pydantic import Field, field_validator
 from typing_extensions import NotRequired
 
 from gradio import utils
@@ -61,6 +61,15 @@ class Message(GradioModel):
     role: Literal["user", "assistant", "system", "tool"]
     metadata: Metadata = Field(default_factory=Metadata)
     content: str | FileData
+
+    # Use a literal type for IDE type hints but
+    # only validate its a string for max flexibility
+    @field_validator("role", mode="plain")
+    @classmethod
+    def _validate_role(cls, role):
+        if not isinstance(role, str):
+            raise ValueError("role must be a string")
+        return role
 
 
 class ChatbotDataOpenAi(GradioRootModel):

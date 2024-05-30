@@ -282,7 +282,7 @@ class Examples:
             if len(self.inputs_with_examples) == 1:
                 return update(
                     value=processed_example[0],
-                    **self.dataset.component_props[0],
+                    **self.dataset.component_props[0],  # type: ignore
                 )
             return [
                 update(value=processed_example[i], **self.dataset.component_props[i])  # type: ignore
@@ -294,7 +294,7 @@ class Examples:
             self.load_input_event = self.dataset.click(
                 load_example,
                 inputs=[self.dataset],
-                outputs=self.inputs_with_examples,
+                outputs=self.inputs_with_examples,  # type: ignore
                 show_progress="hidden",
                 postprocess=False,
                 queue=False,
