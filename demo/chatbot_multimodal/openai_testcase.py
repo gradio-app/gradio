@@ -21,11 +21,6 @@ def bot(history: list):
         history[-1]['content'] += character
         time.sleep(0.05)
         yield history
-    history.append({"role": "assistant", "content": ""})
-    for character in response:
-        history[-1]['content'] += character
-        time.sleep(0.05)
-        yield history
 
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot(

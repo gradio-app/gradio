@@ -8,7 +8,7 @@ from typing import Any, Callable, List, Literal, Optional, Tuple, TypedDict, Uni
 
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
-from pydantic import Field, field_validator
+from pydantic import Field
 from typing_extensions import NotRequired
 
 from gradio import utils
@@ -26,11 +26,11 @@ class MetadataDict(TypedDict):
 
 class FileDataDict(TypedDict):
     path: str  # server filepath
-    url: Optional[str]  # normalised server url
-    size: Optional[int]  # size in bytes
-    orig_name: Optional[str]  # original filename
-    mime_type: Optional[str]
-    is_stream: bool
+    url: NotRequired[Optional[str]]  # normalised server url
+    size: NotRequired[Optional[int]]  # size in bytes
+    orig_name: NotRequired[Optional[str]]  # original filename
+    mime_type: NotRequired[Optional[str]]
+    is_stream: NotRequired[bool]
     meta: dict[Literal["_type"], Literal["gradio.FileData"]]
 
 
@@ -58,18 +58,9 @@ class Metadata(GradioModel):
 
 
 class Message(GradioModel):
-    role: Literal["user", "assistant", "system", "tool"]
+    role: str
     metadata: Metadata = Field(default_factory=Metadata)
     content: str | FileData
-
-    # Use a literal type for IDE type hints but
-    # only validate its a string for max flexibility
-    @field_validator("role", mode="plain")
-    @classmethod
-    def _validate_role(cls, role):
-        if not isinstance(role, str):
-            raise ValueError("role must be a string")
-        return role
 
 
 class ChatbotDataOpenAi(GradioRootModel):
