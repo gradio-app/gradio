@@ -23,7 +23,7 @@
 	export let stream_handler: Client["stream"];
 
 	async function handle_upload({
-		detail
+		detail,
 	}: CustomEvent<FileData | FileData[]>): Promise<void> {
 		value = detail;
 		await tick();
@@ -59,7 +59,15 @@
 
 {#if value && (Array.isArray(value) ? value.length > 0 : true)}
 	<ModifyUpload {i18n} on:clear={handle_clear} absolute />
-	<FilePreview {i18n} on:select {selectable} {value} {height} on:change />
+	<FilePreview
+		{i18n}
+		on:select
+		{selectable}
+		{value}
+		{height}
+		on:change
+		on:delete
+	/>
 {:else}
 	<Upload
 		on:load={handle_upload}

@@ -8,6 +8,7 @@
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
 		change: FileData[] | FileData;
+		delete: FileData;
 	}>();
 	export let value: FileData | FileData[];
 	export let selectable = false;
@@ -27,13 +28,13 @@
 		return {
 			...file,
 			filename_stem,
-			filename_ext
+			filename_ext,
 		};
 	});
 
 	function handle_row_click(
 		event: MouseEvent & { currentTarget: HTMLTableRowElement },
-		index: number
+		index: number,
 	): void {
 		const tr = event.currentTarget;
 		const should_select =
@@ -46,9 +47,10 @@
 	}
 
 	function remove_file(index: number): void {
-		normalized_files.splice(index, 1);
+		const removed = normalized_files.splice(index, 1);
 		normalized_files = [...normalized_files];
 		value = normalized_files;
+		dispatch("delete", removed[0]);
 		dispatch("change", normalized_files);
 	}
 </script>
