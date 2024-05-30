@@ -40,7 +40,7 @@ class MessageDict(TypedDict):
     metadata: NotRequired[MetadataDict]
 
 
-TupleFormat = List[List[str | Tuple[str] | Tuple[str, str] | None]]
+TupleFormat = List[List[Union[str, Tuple[str], Tuple[str, str], None]]]
 
 
 class FileMessage(GradioModel):
