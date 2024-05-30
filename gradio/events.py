@@ -559,7 +559,7 @@ class Events:
     )
     delete = EventListener(
         "delete",
-        doc="This listener is triggered when the user deletes and item from the {{ component }}. Uses event data gradio.SelectData to carry `value` referring to the path of the {{ component }}. See EventData documentation on how to use this event data",
+        doc="This listener is triggered when the user deletes and item from the {{ component }}. Uses event data gradio.DeletedFileData to carry `value` referring to the file that was deleted as an instance of FileData. See EventData documentation on how to use this event data",
     )
 
 

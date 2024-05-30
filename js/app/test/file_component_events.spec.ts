@@ -94,11 +94,10 @@ test("Delete event is fired correctly", async ({ page }) => {
 		2
 	);
 
-	const btn = await page.getByLabel("Remove this file").first().click();
-	// await error_modal_showed(page);
+	await page.getByLabel("Remove this file").first().click();
 
 	await expect(page.getByLabel("# Deleted File")).toHaveValue("1");
-	await expect(
+	expect(
 		(await page.getByLabel("Delete file data").inputValue()).length
 	).toBeGreaterThan(5);
 });
