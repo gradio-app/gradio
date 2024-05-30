@@ -60,7 +60,7 @@ $code_audio_mixer
 $demo_audio_mixer
 
 Two things to not in this app:
-1. Here we provide `key=` to all the components! We need to do this so taht if we add another track after setting the values for an existing track, our input values to the existing track do not get reset on re-render.
+1. Here we provide `key=` to all the components! We need to do this so that if we add another track after setting the values for an existing track, our input values to the existing track do not get reset on re-render.
 2. When there are lots of components of different types and arbitrary counts passed to an event listener, it is easier to use the set and dictionary notation for inputs rather than list notation. Above, we make one large set of all the input `gr.Audio` and `gr.Slider` components when we pass the inputs to the `merge` function. In the function body we query the component values as a dict.
 
 The `gr.render` expands gradio capabilities extensively - see what you can make out of it! 
