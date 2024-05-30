@@ -21,6 +21,7 @@ GRADIO_DEMO_DIR = os.path.abspath(os.path.join(ROOT, "demo"))
 # 4. The same reason as 2 for kitchen_sink_random and blocks_kitchen_sink
 DEMOS_TO_SKIP = {"all_demos", "clear_components", "custom_path", "kitchen_sink_random", "blocks_kitchen_sink"}
 
+api = huggingface_hub.HfApi()
 
 def upload_demo_to_space(
     demo_name: str, 
@@ -39,7 +40,6 @@ def upload_demo_to_space(
         gradio_wheel_url: If not None, will install the version of gradio using the wheel url in the created Space.
         gradio_client_url: If not None, will install the version of gradio client using the wheel url in the created Space.
     """
-
     with tempfile.TemporaryDirectory() as tmpdir:
         demo_path = pathlib.Path(GRADIO_DEMO_DIR, demo_name)
         shutil.copytree(demo_path, tmpdir, dirs_exist_ok=True)
@@ -70,22 +70,25 @@ def upload_demo_to_space(
                 with open(os.path.join(requirements_path), "w") as f:
                     f.seek(0, 0)
                     f.write(gradio_client_url + "\n" + gradio_wheel_url + "\n" + content)
-
-        api = huggingface_hub.HfApi()
-        huggingface_hub.create_repo(
-            space_id,
-            space_sdk="gradio",
-            repo_type="space",
-            token=hf_token,
-            exist_ok=True,
-        )
-        api.upload_folder(
-            token=hf_token,
-            repo_id=space_id,
-            repo_type="space",
-            folder_path=tmpdir,
-            path_in_repo="",
-        )
+        
+        try: 
+            huggingface_hub.create_repo(
+                space_id,
+                space_sdk="gradio",
+                repo_type="space",
+                token=hf_token,
+                exist_ok=True,
+            )
+            api.upload_folder(
+                token=hf_token,
+                repo_id=space_id,
+                repo_type="space",
+                folder_path=tmpdir,
+                path_in_repo="",
+            )
+        except Exception as e:
+            print(f"Failed to upload {demo_name} to {space_id}. Error: {e}")
+            return
     return f"https://huggingface.co/spaces/{space_id}"
 
 demos = os.listdir(GRADIO_DEMO_DIR)
