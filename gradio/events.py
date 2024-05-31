@@ -7,9 +7,10 @@ import dataclasses
 from functools import partial, wraps
 from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
 
-from gradio.data_classes import FileData, FileDataDict
 from gradio_client.documentation import document
 from jinja2 import Template
+
+from gradio.data_classes import FileData, FileDataDict
 
 if TYPE_CHECKING:
     from gradio.blocks import Block, Component
