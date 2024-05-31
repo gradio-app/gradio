@@ -56,7 +56,7 @@
 	function normalize_messages(
 		message: { file: FileData; alt_text: string | null } | null
 	): FileData | null {
-		if (message === null) {
+		if (message == null) {
 			return message;
 		}
 		const file = message?.file;
