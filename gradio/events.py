@@ -5,7 +5,17 @@ from __future__ import annotations
 
 import dataclasses
 from functools import partial, wraps
-from typing import TYPE_CHECKING, Any, Callable, List, Literal, Sequence, Union, cast, Dict
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Sequence,
+    Union,
+    cast,
+)
 
 from gradio_client.documentation import document
 from jinja2 import Template
