@@ -120,7 +120,7 @@
 
 	function handle_like(
 		i: number,
-		message: Message | null,
+		message: Message,
 		selected: string | null
 	): void {
 		dispatch("like", {

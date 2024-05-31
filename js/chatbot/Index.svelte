@@ -11,7 +11,7 @@
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/client";
 	import { StatusTracker } from "@gradio/statustracker";
-	import type { Message, TupleFormat, MessageRole, FileMessage } from "./types";
+	import type { Message, TupleFormat, MessageRole } from "./types";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
@@ -64,11 +64,17 @@
 		return file;
 	}
 
+	function is_tuple_format(
+		value: TupleFormat | Message[]
+	): value is TupleFormat {
+		return Array.isArray(value[0]);
+	}
+
 	function consolidate_msg_format(
 		value: TupleFormat | Message[],
 		msg_format: "openai" | "tuples"
 	): Message[] {
-		if (msg_format === "tuples") {
+		if (msg_format === "tuples" && is_tuple_format(value)) {
 			if (!value) {
 				return [];
 			}
@@ -94,7 +100,7 @@
 				(c) => c.content != null && ["user", "assistant"].includes(c.role)
 			) as Message[];
 		}
-		return value.filter(
+		return (value as Message[]).filter(
 			(c) => c.content != null && ["user", "assistant"].includes(c.role)
 		) as Message[];
 	}
