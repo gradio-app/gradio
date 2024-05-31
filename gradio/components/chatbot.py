@@ -260,7 +260,7 @@ class Chatbot(Component):
             return self._preprocess_messages_tuples(cast(ChatbotData, payload))
         if not isinstance(payload, ChatbotDataOpenAi):
             raise Error("Data incompatible with openai format")
-        return cast(list[MessageDict], payload.model_dump())
+        return cast(List[MessageDict], payload.model_dump())
 
     def _postprocess_chat_messages(
         self, chat_message: str | tuple | list | None
