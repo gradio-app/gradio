@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import dataclasses
 from functools import partial, wraps
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence, Union, cast
+from typing import TYPE_CHECKING, Any, Callable, List, Literal, Sequence, Union, cast, Dict
 
 from gradio_client.documentation import document
 from jinja2 import Template
@@ -159,7 +159,7 @@ if TYPE_CHECKING:
             int,
             bool,
             bool,
-            Union[dict[str, Any], list[dict[str, Any]], None],
+            Union[Dict[str, Any], List[Dict[str, Any]], None],
             Union[float, None],
             Union[Literal["once", "multiple", "always_last"], None],
             Union[str, None],
