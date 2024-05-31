@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import dataclasses
 from functools import partial, wraps
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence, cast
+from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence, Union, cast
 
 from gradio_client.documentation import document
 from jinja2 import Template
@@ -148,23 +148,23 @@ class EventListenerMethod:
 if TYPE_CHECKING:
     EventListenerCallable = Callable[
         [
-            Callable | None,
-            Component | list[Component] | set[Component] | None,
-            Block | list[Block] | list[Component] | Component | None,
-            str | None | Literal[False],
+            Union[Callable, None],
+            Union[Component, Sequence[Component], None],
+            Union[Block, Sequence[Block], Sequence[Component], Component, None],
+            Union[str, None, Literal[False]],
             bool,
             Literal["full", "minimal", "hidden"],
-            bool | None,
+            Union[bool, None],
             bool,
             int,
             bool,
             bool,
-            dict[str, Any] | list[dict[str, Any]] | None,
-            float | None,
-            Literal["once", "multiple", "always_last"] | None,
-            str | None,
-            int | None | Literal["default"],
-            str | None,
+            Union[dict[str, Any], list[dict[str, Any]], None],
+            Union[float, None],
+            Union[Literal["once", "multiple", "always_last"], None],
+            Union[str, None],
+            Union[int, None, Literal["default"]],
+            Union[str, None],
             bool,
         ],
         Dependency,

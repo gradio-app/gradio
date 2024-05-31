@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, List, Literal, Union, cast
+from typing import TYPE_CHECKING, Callable, List, Literal, Sequence, Union, cast
 
 from gradio_client.documentation import document
 
@@ -80,7 +80,7 @@ class Renderable:
 @document()
 def render(
     inputs: list[Component] | Component | None = None,
-    triggers: list[EventListenerCallable] | EventListenerCallable | None = None,
+    triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
     *,
     queue: bool = True,
     trigger_mode: Literal["once", "multiple", "always_last"] | None = "always_last",
