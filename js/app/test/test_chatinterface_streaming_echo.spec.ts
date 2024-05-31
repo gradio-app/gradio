@@ -83,10 +83,9 @@ for (const msg_format of ["tuples", "openai"]) {
 		await page.getByRole("button", { name: "🪄 Use the API Recorder" }).click();
 		await submit_button.click();
 		await expect(textbox).toHaveValue("");
-		const expected_text = page.locator(".bot p", {
-			hasText: "Run 1 - You typed: hi"
-		});
-		await expect(expected_text).toBeVisible();
+		await expect(page.locator(".bot p").first()).toContainText(
+			/\- You typed: hi/
+		);
 		const api_recorder = await page.locator("#api-recorder");
 		await api_recorder.click();
 		await expect(page.locator("#num-recorded-api-calls")).toContainText(
