@@ -90,9 +90,13 @@
 					metadata: { error: false, tool_name: null }
 				}
 			]);
-			return openai.filter((c) => c.content != null) as Message[];
+			return openai.filter(
+				(c) => c.content != null && ["user", "assistant"].includes(c.role)
+			) as Message[];
 		}
-		return value as Message[];
+		return value.filter(
+			(c) => c.content != null && ["user", "assistant"].includes(c.role)
+		) as Message[];
 	}
 
 	$: _value = consolidate_msg_format(value, msg_format);

@@ -60,7 +60,7 @@ class Metadata(GradioModel):
 class Message(GradioModel):
     role: str
     metadata: Metadata = Field(default_factory=Metadata)
-    content: str | FileData
+    content: Union[str, FileData]
 
 
 class ChatbotDataOpenAi(GradioRootModel):
