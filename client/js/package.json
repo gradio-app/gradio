@@ -18,6 +18,7 @@
 		"eventsource": "^2.0.2",
 		"msw": "^2.2.1",
 		"semiver": "^1.1.0",
+		"textlinestream": "^1.1.1",
 		"typescript": "^5.0.0",
 		"ws": "^8.13.0"
 	},

@@ -29,7 +29,7 @@ import {
 	parse_and_set_cookies
 } from "./helpers/init_helpers";
 import { check_space_status } from "./helpers/spaces";
-import { open_stream } from "./utils/stream";
+import { open_stream, readable_stream } from "./utils/stream";
 import { API_INFO_ERROR_MSG, CONFIG_ERROR_MSG } from "./constants";
 
 export class NodeBlob extends Blob {
@@ -68,18 +68,20 @@ export class Client {
 		return fetch(input, { ...init, headers });
 	}
 
-	async stream(url: URL): Promise<EventSource> {
-		if (typeof window === "undefined" || typeof EventSource === "undefined") {
-			try {
-				const EventSourceModule = await import("eventsource");
-				return new EventSourceModule.default(url.toString()) as EventSource;
-			} catch (error) {
-				console.error("Failed to load EventSource module:", error);
-				throw error;
-			}
-		} else {
-			return new EventSource(url.toString());
-		}
+	stream(url: URL): Promise<EventSource> {
+		// if (typeof window === "undefined" || typeof EventSource === "undefined") {
+		// 	try {
+		// 		const EventSourceModule = await import("eventsource");
+		// 		return new EventSourceModule.default(url.toString()) as EventSource;
+		// 	} catch (error) {
+		// 		console.error("Failed to load EventSource module:", error);
+		// 		throw error;
+		// 	}
+		// } else {
+		// 	return new EventSource(url.toString());
+		// }
+
+		return readable_stream(url.toString());
 	}
 
 	view_api: () => Promise<ApiInfo<JsApiData>>;

@@ -1,3 +1,5 @@
+//@ts-nocheck
+
 import { BROKEN_CONNECTION_MSG } from "../constants";
 import type { Client } from "../client";
 
@@ -28,15 +30,17 @@ export async function open_stream(this: Client): Promise<void> {
 		url.searchParams.set("__sign", jwt);
 	}
 
-	stream = await this.stream(url);
+	stream = this.stream(url);
 
 	if (!stream) {
 		console.warn("Cannot connect to SSE endpoint: " + url.toString());
 		return;
 	}
 
+	console.log({ stream });
 	stream.onmessage = async function (event: MessageEvent) {
 		let _data = JSON.parse(event.data);
+		console.log({ _data });
 		if (_data.msg === "close_stream") {
 			close_stream(stream_status, stream);
 			return;
@@ -172,4 +176,122 @@ function apply_edit(
 			throw new Error(`Unknown action: ${action}`);
 	}
 	return target;
+}
+
+// eslint-disable-next-line complexity
+export function readable_stream(
+	input: RequestInfo | URL,
+	init?: RequestInit
+): Promise<EventSource> {
+	// TODO: throw error?
+	let req = new Request(input, init);
+	fallback_util(req.headers, "Accept", "text/event-stream");
+	fallback_util(req.headers, "Content-Type", "application/json");
+	let iter: ReadableStream<string> | undefined;
+	const instance = { close: () => iter?.cancel() };
+
+	// eslint-disable-next-line complexity
+	fetch(req).then(async (res) => {
+		if (!res.ok) throw res;
+
+		if (!res.body) throw new Error("Response body is not readable stream");
+
+		iter = stream_util(res.body);
+		let line;
+		let reader = iter.getReader();
+		let event: ServerSentEventMessage | undefined;
+
+		const event_callbacks: Callback[] = [];
+
+		// function onmessage(fn: (event: ServerSentEventMessage) => void): void {
+		// 	console.log({ fn });
+		// 	event_callbacks.push(fn);
+		// }
+
+		// function onerror(fn: (error: Error) => void): void {
+		// 	reader.closed.then(() => {
+		// 		fn(new Error("Stream closed"));
+		// 	});
+		// }
+
+		for (;;) {
+			if (req.signal && req.signal.aborted) {
+				reader.cancel();
+				break;
+			}
+
+			line = await reader.read();
+			console.log({ line });
+
+			if (line.value) {
+				// console.log({ event });
+
+				if (event && instance.onmessage) {
+					console.log({ event });
+					instance.onmessage(event);
+					// event_callbacks.forEach((fn) => fn(event));
+				}
+				console.log("RESETTING EVENT", event);
+				event = undefined;
+				if (line.done) break;
+				// continue;
+			}
+
+			if (line.done) break;
+
+			let [field, value] = split_util(line.value) || [];
+			if (!field) continue; // comment or invalid
+
+			if (field === "data") {
+				event ||= {};
+				event[field] = event[field] ? event[field] + "\n" + value : value;
+			} else if (field === "event") {
+				event ||= {};
+				event[field] = value;
+			} else if (field === "id") {
+				event ||= {};
+				event[field] = +value || value;
+			} else if (field === "retry") {
+				event ||= {};
+				event[field] = +value || undefined;
+			}
+		}
+		console.log("done");
+		reader.cancel();
+	});
+
+	return instance as EventSource;
+}
+
+// @ts-ignore
+import TextLineStream from "textlinestream";
+
+export function stream_util(
+	input: ReadableStream<Uint8Array>
+): ReadableStream<string> {
+	let decoder = new TextDecoderStream();
+	let split = new TextLineStream({ allowCR: true }) as TransformStream<
+		string,
+		string
+	>;
+	return input.pipeThrough(decoder).pipeThrough(split);
+}
+
+export function split_util(input: string): [string, string] | undefined {
+	let rgx = /[:]\s*/;
+	let match = rgx.exec(input);
+	// ": comment" -> index=0 -> ignore
+	let idx = match && match.index;
+	if (idx) {
+		return [input.substring(0, idx), input.substring(idx + match![0].length)];
+	}
+}
+
+export function fallback_util(
+	headers: Headers,
+	key: string,
+	value: string
+): void {
+	let tmp = headers.get(key);
+	if (!tmp) headers.set(key, value);
 }
