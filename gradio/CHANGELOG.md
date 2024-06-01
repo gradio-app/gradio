@@ -1,5 +1,17 @@
 # gradio
 
+## 4.32.2
+
+### Fixes
+
+- [#8431](https://github.com/gradio-app/gradio/pull/8431) [`9909b28`](https://github.com/gradio-app/gradio/commit/9909b28364b82b5e8bfd7d47a858a204f68b963a) - fix scrolling on spaces.  Thanks @pngwn!
+
+## 4.32.1
+
+### Features
+
+- [#8415](https://github.com/gradio-app/gradio/pull/8415) [`227de35`](https://github.com/gradio-app/gradio/commit/227de352982b3dcdf9384eaa28b7e9cf09afb6e8) - Fix spaces load error.  Thanks @aliabid94!
+
 ## 4.32.0
 
 ### Features
