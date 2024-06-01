@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-fix:If
+fix:fix scrolling on spaces
