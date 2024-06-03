@@ -9,7 +9,7 @@ importlib_resources>=1.3,<7.0
 Jinja2<4.0
 markupsafe~=2.0
 matplotlib~=3.0
-numpy~=1.0
+numpy>=1.0,<3.0
 orjson~=3.0
 packaging
 pandas>=1.0,<3.0
