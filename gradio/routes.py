@@ -470,7 +470,7 @@ class App(FastAPI):
 
             if key not in app.custom_component_hashes:
                 app.custom_component_hashes[key] = hashlib.md5(
-                    Path(path).read_text().encode()
+                    Path(path).read_text(encoding="utf-8").encode()
                 ).hexdigest()
 
             version = app.custom_component_hashes.get(key)
@@ -860,7 +860,7 @@ class App(FastAPI):
             session_hash: str,
         ):
             def process_msg(message: EventMessage) -> str:
-                return f"data: {orjson.dumps(message.model_dump()).decode('utf-8')}\n\n"
+                return f"data: {orjson.dumps(message.model_dump(), default=str).decode('utf-8')}\n\n"
 
             return await queue_data_helper(request, session_hash, process_msg)
 

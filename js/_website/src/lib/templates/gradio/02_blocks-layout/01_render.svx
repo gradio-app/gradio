@@ -1,0 +1,72 @@
+
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let obj = get_object("render");
+    let guides = [{url: "/guides/dynamic-apps-with-render-decorator/", pretty_name: "Dynamic Apps with the Render Decorator"}]
+</script>
+
+<!--- Title -->
+# {obj.name}
+
+<!--- Usage -->
+```python
+@gr.render(inputs=···)
+def hello(···):
+   ... 
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(obj.description)}
+
+<!-- Example Usage --> 
+
+{#if obj.example}
+### Example Usage
+```python
+import gradio as gr
+
+with gr.Blocks() as demo:
+    input_text = gr.Textbox()
+
+    @gr.render(inputs=input_text)
+    def show_split(text):
+        if len(text) == 0:
+            gr.Markdown("## No Input Provided")
+        else:
+            for letter in text:
+                with gr.Row():
+                    text = gr.Textbox(letter)
+                    btn = gr.Button("Clear")
+                    btn.click(lambda: gr.Textbox(value=""), None, text)
+```
+{/if}
+
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={obj.parameters} />
+
+
+{#if obj.demos && obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={obj.demos} />
+{/if}
+
+{#if obj.fns && obj.fns.length > 0}
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={obj.fns} event_listeners={false} />
+{/if}
+
+<!--- Guides -->
+### Guides
+<GuidesSection guides={guides}/>
