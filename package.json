@@ -82,7 +82,7 @@
 		"svelte-i18n": "^4.0.0",
 		"svelte-preprocess": "^5.1.4",
 		"tailwindcss": "^3.4.3",
-		"tinyspy": "^2.2.1",
+		"tinyspy": "^3.0.0",
 		"typescript": "^5.4.5",
 		"typescript-svelte-plugin": "^0.3.38",
 		"vite": "^5.2.11",
