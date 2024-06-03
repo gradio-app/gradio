@@ -313,6 +313,7 @@
 		background: var(--input-background-fill);
 		padding: var(--input-padding);
 		width: 90%;
+		max-width: 95%;
 		max-height: 100%;
 		height: 25px;
 		color: var(--body-text-color);
@@ -322,7 +323,7 @@
 		border: none;
 		margin-top: 0px;
 		margin-bottom: 0px;
-		margin-left: 30px;
+		margin-left: 35px;
 		padding-top: 12px;
 		resize: none;
 	}
@@ -352,7 +353,6 @@
 		border-radius: 50%;
 		width: 30px;
 		height: 30px;
-		bottom: 15px;
 	}
 
 	.upload-button:hover,
@@ -366,7 +366,7 @@
 	}
 
 	.submit-button {
-		right: 10px;
+		right: 15px;
 		margin-left: 5px;
 		padding-bottom: 5px;
 		padding-left: 2px;
