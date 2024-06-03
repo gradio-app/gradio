@@ -58,6 +58,7 @@ export class Client {
 	event_callbacks: Record<string, (data?: unknown) => Promise<void>> = {};
 	unclosed_events: Set<string> = new Set();
 	heartbeat_event: EventSource | null = null;
+	abort_controller: AbortController | null = null;
 
 	fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 		const headers = new Headers(init?.headers || {});
@@ -68,7 +69,7 @@ export class Client {
 		return fetch(input, { ...init, headers });
 	}
 
-	stream(url: URL): Promise<EventSource> {
+	stream(url: URL): EventSource {
 		// if (typeof window === "undefined" || typeof EventSource === "undefined") {
 		// 	try {
 		// 		const EventSourceModule = await import("eventsource");
@@ -81,7 +82,13 @@ export class Client {
 		// 	return new EventSource(url.toString());
 		// }
 
-		return readable_stream(url.toString());
+		this.abort_controller = new AbortController();
+
+		console.log(this.abort_controller);
+
+		return readable_stream(url.toString(), {
+			signal: this.abort_controller.signal
+		});
 	}
 
 	view_api: () => Promise<ApiInfo<JsApiData>>;

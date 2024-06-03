@@ -50,6 +50,8 @@ export function submit(
 			post_data
 		} = this;
 
+		const that = this;
+
 		if (!api_info) throw new Error("No API found");
 		if (!config) throw new Error("Could not resolve app config");
 
@@ -411,7 +413,7 @@ export function submit(
 						url.searchParams.set("__sign", this.jwt);
 					}
 
-					stream = await this.stream(url);
+					stream = this.stream(url);
 
 					if (!stream) {
 						return Promise.reject(
@@ -677,7 +679,7 @@ export function submit(
 										time: new Date()
 									});
 									if (["sse_v2", "sse_v2.1"].includes(protocol)) {
-										close_stream(stream_status, stream);
+										close_stream(stream_status, that.abort_controller);
 										stream_status.open = false;
 									}
 								}
