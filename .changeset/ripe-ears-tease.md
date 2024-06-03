@@ -2,4 +2,4 @@
 "gradio": patch
 ---
 
-fix:Numpy 2.0 compatibility
+fix:Add support for `numpy~=2.0`
