@@ -1,5 +1,5 @@
 ---
-"gradio": minor
+"gradio": patch
 ---
 
-feat:Numpy 2.0 compatibility
+fix:Numpy 2.0 compatibility
