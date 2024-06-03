@@ -470,7 +470,7 @@ class App(FastAPI):
 
             if key not in app.custom_component_hashes:
                 app.custom_component_hashes[key] = hashlib.md5(
-                    Path(path).read_text().encode()
+                    Path(path).read_text(encoding="utf-8").encode()
                 ).hexdigest()
 
             version = app.custom_component_hashes.get(key)
