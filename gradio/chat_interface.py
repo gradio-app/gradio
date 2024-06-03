@@ -452,7 +452,7 @@ class ChatInterface(Blocks):
         if self.is_generator:
 
             @functools.wraps(self.fn)
-            async def api_fn(message, history, *args, **kwargs):
+            async def api_fn(message, history, *args, **kwargs):  # type: ignore
                 if self.is_async:
                     generator = self.fn(message, history, *args, **kwargs)
                 else:
