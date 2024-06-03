@@ -59,6 +59,7 @@ export class Client {
 	unclosed_events: Set<string> = new Set();
 	heartbeat_event: EventSource | null = null;
 	abort_controller: AbortController | null = null;
+	stream_instance: EventSource | null = null;
 
 	fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 		const headers = new Headers(init?.headers || {});
@@ -84,11 +85,11 @@ export class Client {
 
 		this.abort_controller = new AbortController();
 
-		console.log(this.abort_controller);
-
-		return readable_stream(url.toString(), {
+		this.stream_instance = readable_stream(url.toString(), {
 			signal: this.abort_controller.signal
 		});
+
+		return this.stream_instance;
 	}
 
 	view_api: () => Promise<ApiInfo<JsApiData>>;

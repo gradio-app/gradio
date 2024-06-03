@@ -33,7 +33,8 @@
 		"build": "pnpm bundle && pnpm generate_types",
 		"test": "pnpm test:client && pnpm test:client:node",
 		"test:client": "vitest run -c vite.config.js",
-		"test:client:node": "TEST_MODE=node vitest run -c vite.config.js"
+		"test:client:node": "TEST_MODE=node vitest run -c vite.config.js",
+		"preview:browser": "vite dev --mode=preview"
 	},
 	"engines": {
 		"node": ">=18.0.0"

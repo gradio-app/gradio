@@ -25,6 +25,7 @@ import semiver from "semiver";
 import { BROKEN_CONNECTION_MSG, QUEUE_FULL_MSG } from "../constants";
 import { apply_diff_stream, close_stream } from "./stream";
 import { Client } from "../client";
+import { stat } from "fs";
 
 export function submit(
 	this: Client,
@@ -32,7 +33,7 @@ export function submit(
 	data: unknown[] | Record<string, unknown>,
 	event_data?: unknown,
 	trigger_id?: number | null
-): SubmitReturn {
+): AsyncGenerator<MessageEvent> {
 	try {
 		const { hf_token } = this.options;
 		const {
@@ -81,32 +82,11 @@ export function submit(
 
 		// event subscription methods
 		function fire_event<K extends EventType>(event: Event<K>): void {
-			const narrowed_listener_map: ListenerMap<K> = listener_map;
-			const listeners = narrowed_listener_map[event.type] || [];
-			listeners?.forEach((l) => l(event));
-		}
-
-		function on<K extends EventType>(
-			eventType: K,
-			listener: EventListener<K>
-		): SubmitReturn {
-			const narrowed_listener_map: ListenerMap<K> = listener_map;
-			const listeners = narrowed_listener_map[eventType] || [];
-			narrowed_listener_map[eventType] = listeners;
-			listeners?.push(listener);
-
-			return { on, off, cancel, destroy };
-		}
-
-		function off<K extends EventType>(
-			eventType: K,
-			listener: EventListener<K>
-		): SubmitReturn {
-			const narrowed_listener_map: ListenerMap<K> = listener_map;
-			let listeners = narrowed_listener_map[eventType] || [];
-			listeners = listeners?.filter((l) => l !== listener);
-			narrowed_listener_map[eventType] = listeners;
-			return { on, off, cancel, destroy };
+			if (event.type === "status" && event.stage === "error") {
+				push_error(event);
+			} else {
+				push_event(event);
+			}
 		}
 
 		async function cancel(): Promise<void> {
@@ -135,6 +115,7 @@ export function submit(
 				cancel_request = { fn_index, session_hash };
 			} else {
 				stream?.close();
+				close();
 				cancel_request = { event_id };
 			}
 
@@ -152,15 +133,6 @@ export function submit(
 				console.warn(
 					"The `/reset` endpoint could not be called. Subsequent endpoint results may be unreliable."
 				);
-			}
-		}
-
-		function destroy(): void {
-			for (const event_type in listener_map) {
-				listener_map &&
-					listener_map[event_type as "data" | "status"]?.forEach((fn) => {
-						off(event_type as "data" | "status", fn);
-					});
 			}
 		}
 
@@ -439,6 +411,7 @@ export function submit(
 							});
 							if (status.stage === "error") {
 								stream?.close();
+								close();
 							}
 						} else if (type === "data") {
 							event_id = _data.event_id as string;
@@ -458,6 +431,7 @@ export function submit(
 									time: new Date()
 								});
 								stream?.close();
+								close();
 							}
 						} else if (type === "complete") {
 							complete = status;
@@ -502,6 +476,7 @@ export function submit(
 									fn_index
 								});
 								stream?.close();
+								close();
 							}
 						}
 					};
@@ -653,6 +628,8 @@ export function submit(
 												endpoint: _endpoint,
 												fn_index
 											});
+											close();
+											console.log("closed stream");
 										}
 									}
 
@@ -681,6 +658,7 @@ export function submit(
 									if (["sse_v2", "sse_v2.1"].includes(protocol)) {
 										close_stream(stream_status, that.abort_controller);
 										stream_status.open = false;
+										close();
 									}
 								}
 							};
@@ -703,11 +681,94 @@ export function submit(
 			}
 		);
 
-		return { on, off, cancel, destroy };
+		let done = false;
+		const values: (IteratorResult<MessageEvent> | PromiseLike<never>)[] = [];
+		const resolvers: ((
+			value: IteratorResult<MessageEvent> | PromiseLike<never>
+		) => void)[] = [];
+
+		function close(): void {
+			done = true;
+			while (resolvers.length > 0)
+				(resolvers.shift() as (typeof resolvers)[0])({
+					value: undefined,
+					done: true
+				});
+		}
+
+		function push(
+			data: { value: MessageEvent; done: boolean } | PromiseLike<never>
+		): void {
+			if (done) return;
+			if (resolvers.length > 0) {
+				(resolvers.shift() as (typeof resolvers)[0])(data);
+			} else {
+				values.push(data);
+			}
+		}
+
+		function push_error(error: unknown): void {
+			push(thenable_reject(error));
+			close();
+		}
+
+		function push_event(event: MessageEvent): void {
+			push({ value: event, done: false });
+		}
+
+		function next(): Promise<IteratorResult<MessageEvent, unknown>> {
+			if (values.length > 0)
+				return Promise.resolve(values.shift() as (typeof values)[0]);
+			if (done) return Promise.resolve({ value: undefined, done: true });
+			return new Promise((resolve) => resolvers.push(resolve));
+		}
+
+		// function initSocket(): void {
+		// 	websocket.addEventListener("close", close);
+		// 	websocket.addEventListener("error", push_error);
+		// 	websocket.addEventListener("message", push_event);
+		// }
+
+		// if (websocket.readyState === WebSocket.CONNECTING) {
+		// 	websocket.addEventListener("open", (event) => {
+		// 		if (emitOpen) push_event(event);
+		// 		initSocket();
+		// 	});
+		// } else {
+		// 	initSocket();
+		// }
+
+		// return { on, off, cancel, destroy };
+		const iterator = {
+			[Symbol.asyncIterator]: () => iterator,
+			next,
+			throw: async (value: unknown) => {
+				push_error(value);
+				if (websocket.readyState === WebSocket.OPEN) websocket.close();
+				return next();
+			},
+			return: async () => {
+				close();
+				if (websocket.readyState === WebSocket.OPEN) websocket.close();
+				return next();
+			},
+			cancel
+		};
+
+		return iterator;
 	} catch (error) {
 		console.error("Submit function encountered an error:", error);
 		throw error;
 	}
+}
+
+function thenable_reject<T>(error: T): PromiseLike<never> {
+	return {
+		then: (
+			resolve: (value: never) => PromiseLike<never>,
+			reject: (error: T) => PromiseLike<never>
+		) => reject(error)
+	};
 }
 
 function get_endpoint_info(

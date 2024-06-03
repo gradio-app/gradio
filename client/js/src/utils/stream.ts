@@ -40,7 +40,7 @@ export async function open_stream(this: Client): Promise<void> {
 
 	stream.onmessage = async function (event: MessageEvent) {
 		let _data = JSON.parse(event.data);
-
+		console.log(_data);
 		if (_data.msg === "close_stream") {
 			close_stream(stream_status, that.abort_controller);
 			return;
@@ -53,11 +53,15 @@ export async function open_stream(this: Client): Promise<void> {
 				)
 			);
 		} else if (event_callbacks[event_id] && config) {
+			console.log("BOOOOOOO", _data.msg, config.protocol);
 			if (
 				_data.msg === "process_completed" &&
-				["sse", "sse_v1", "sse_v2", "sse_v2.1"].includes(config.protocol)
+				["sse", "sse_v1", "sse_v2", "sse_v2.1", "sse_v3"].includes(
+					config.protocol
+				)
 			) {
 				unclosed_events.delete(event_id);
+				console.log("unclosed_events", unclosed_events.size);
 				if (unclosed_events.size === 0) {
 					close_stream(stream_status, that.abort_controller);
 				}
@@ -94,6 +98,7 @@ export function close_stream(
 	abort_controller: AbortController | null
 ): void {
 	if (stream_status) {
+		console.log("CLOSING STREAM FULLY");
 		stream_status.open = false;
 		abort_controller?.abort();
 	}
@@ -206,19 +211,29 @@ export function readable_stream(
 		}
 	};
 
-	stream(input, init).then(async (res) => {
-		instance.readyState = instance.OPEN;
-		try {
-			for await (const chunk of res) {
-				//@ts-ignore
-				instance.onmessage && instance.onmessage(chunk);
+	console.log({ init });
+
+	stream(input, init)
+		.then(async (res) => {
+			instance.readyState = instance.OPEN;
+			try {
+				for await (const chunk of res) {
+					//@ts-ignore
+					instance.onmessage && instance.onmessage(chunk);
+				}
+				instance.readyState = instance.CLOSED;
+				console.log("======DONE=======");
+			} catch (e) {
+				instance.onerror && instance.onerror(e as Event);
+				instance.readyState = instance.CLOSED;
+				console.log("ERRORED");
 			}
-			instance.readyState = instance.CLOSED;
-		} catch (e) {
+		})
+		.catch((e) => {
+			console.error(e);
 			instance.onerror && instance.onerror(e as Event);
 			instance.readyState = instance.CLOSED;
-		}
-	});
+		});
 
 	return instance as EventSource;
 }
