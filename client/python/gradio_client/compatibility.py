@@ -61,8 +61,6 @@ class EndpointV3Compatibility:
             if not self.is_valid:
                 raise utils.InvalidAPIEndpointError()
             data = self.insert_state(*data)
-            if self.client.upload_files:
-                data = self.serialize(*data)
             predictions = _predict(*data)
             predictions = self.process_predictions(*predictions)
             # Append final output only if not already present
