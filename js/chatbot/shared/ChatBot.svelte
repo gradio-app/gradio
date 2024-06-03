@@ -51,8 +51,6 @@
 
 	let div: HTMLDivElement;
 	let autoscroll: boolean;
-	let isImagePreviewOpen = false;
-	let image_preview_close_button: HTMLButtonElement;
 
 	$: adjust_text_size = () => {
 		let style = getComputedStyle(document.body);
@@ -98,6 +96,12 @@
 			div.scrollTo(0, div.scrollHeight);
 		}
 	};
+
+	let image_preview_source: string;
+	let image_preview_source_alt: string;
+	let is_image_preview_open = false;
+	let image_preview_close_button: HTMLButtonElement;
+
 	afterUpdate(() => {
 		if (autoscroll) {
 			scroll();
@@ -108,8 +112,13 @@
 			});
 		}
 		div.querySelectorAll("img").forEach((n) => {
-			n.addEventListener("click", () => {
-				isImagePreviewOpen = true;
+			n.addEventListener("click", (e) => {
+				const target = e.target as HTMLImageElement;
+				if (target) {
+					image_preview_source = target.src;
+					image_preview_source_alt = target.alt;
+					is_image_preview_open = true;
+				}
 			});
 		});
 	});
@@ -171,14 +180,17 @@
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
 					{#if message !== null}
-						{#if isImagePreviewOpen && typeof message !== "string" && message.file?.mime_type?.includes("image")}
+						{#if is_image_preview_open}
 							<div class="image-preview">
-								<img src={message.file.url} alt={message.alt_text} />
+								<img
+									src={image_preview_source}
+									alt={image_preview_source_alt}
+								/>
 								<button
 									bind:this={image_preview_close_button}
 									class="image-preview-close-button"
 									on:click={() => {
-										isImagePreviewOpen = false;
+										is_image_preview_open = false;
 									}}><Clear /></button
 								>
 							</div>
