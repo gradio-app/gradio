@@ -668,9 +668,9 @@ def _convert(image, dtype, force_copy=False, uniform=False):
     }
 
     if hasattr(np, "float_"):
-        dtype_range[np.float_] = dtype_range[float]
+        dtype_range[np.float_] = dtype_range[float]  # type: ignore
     if hasattr(np, "bool8"):
-        dtype_range[np.bool8] = dtype_range[np.bool_]
+        dtype_range[np.bool8] = dtype_range[np.bool_]  # type: ignore
 
     def _dtype_itemsize(itemsize, *dtypes):
         """Return first of `dtypes` with itemsize greater than `itemsize`
