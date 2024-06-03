@@ -661,7 +661,6 @@ def _convert(image, dtype, force_copy=False, uniform=False):
     dtype_range = {
         bool: (False, True),
         np.bool_: (False, True),
-        np.bool8: (False, True),  # type: ignore
         float: (-1, 1),
         np.float16: (-1, 1),
         np.float32: (-1, 1),
@@ -670,6 +669,8 @@ def _convert(image, dtype, force_copy=False, uniform=False):
 
     if hasattr(np, "float_"):
         dtype_range[np.float_] = dtype_range[float]
+    if hasattr(np, "bool8"):
+        dtype_range[np.bool8] = dtype_range[np.bool_]
 
     def _dtype_itemsize(itemsize, *dtypes):
         """Return first of `dtypes` with itemsize greater than `itemsize`
