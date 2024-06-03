@@ -11,7 +11,8 @@ import type {
 	EndpointInfo,
 	ApiInfo,
 	Config,
-	Dependency
+	Dependency,
+	ComponentMeta
 } from "../types";
 
 import { skip_queue, post_message } from "../helpers/data";
@@ -191,10 +192,26 @@ export function submit(
 			});
 		}
 
+		// Builds the payload for submitting data to the server, replacing state components with null
+		function build_payload(
+			resolved_payload: unknown[],
+			dependency: Dependency,
+			components: ComponentMeta[]
+		): any[] {
+			return dependency.inputs.map((input_id: number, index: number) => {
+				const component = components.find((c: any) => c.id === input_id);
+				if (component?.type === "state") {
+					return null;
+				}
+				return resolved_payload[index];
+			});
+		}
+
 		this.handle_blob(config.root, resolved_data, endpoint_info).then(
 			async (_payload) => {
+				let input_data = build_payload(_payload, dependency, config.components);
 				payload = {
-					data: _payload || [],
+					data: input_data || [],
 					event_data,
 					fn_index,
 					trigger_id
@@ -676,7 +693,7 @@ export function submit(
 										fn_index,
 										time: new Date()
 									});
-									if (["sse_v2", "sse_v2.1"].includes(protocol)) {
+									if (["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)) {
 										close_stream(stream_status, stream);
 										stream_status.open = false;
 									}
