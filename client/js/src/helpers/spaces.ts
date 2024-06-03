@@ -4,12 +4,13 @@ import {
 	SPACE_STATUS_ERROR_MSG
 } from "../constants";
 import type { SpaceStatusCallback } from "../types";
+import { RE_SPACE_DOMAIN, RE_SPACE_NAME } from "./api_info";
 
 export async function check_space_status(
 	id: string,
 	type: "subdomain" | "space_name",
 	status_callback: SpaceStatusCallback
-): Promise<void> {
+): Promise<string | void> {
 	let endpoint =
 		type === "subdomain"
 			? `https://huggingface.co/api/spaces/by-subdomain/${id}`
@@ -94,6 +95,7 @@ export async function check_space_status(
 			});
 			break;
 	}
+	return stage;
 }
 
 const RE_DISABLED_DISCUSSION =
@@ -195,3 +197,38 @@ export const hardware_types = [
 	"h100",
 	"h100x8"
 ] as const;
+
+const delay = (ms: number): Promise<void> => {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
+// check space status and wait if it's not running
+export async function wait_for_space(
+	app_reference: string,
+	timeout_ms: number
+): Promise<void> {
+	let elapsed = 0;
+	const check_interval = 5000;
+
+	while (elapsed < timeout_ms) {
+		let status;
+
+		if (RE_SPACE_NAME.test(app_reference)) {
+			status = await check_space_status(app_reference, "space_name", () => {});
+		} else {
+			RE_SPACE_DOMAIN.test(app_reference);
+			status = await check_space_status(app_reference, "subdomain", () => {});
+		}
+
+		if (status === "running" || status === "running_building") {
+			return;
+		}
+
+		await delay(check_interval);
+		elapsed += check_interval;
+	}
+
+	throw new Error(
+		"Space is still not available after " + timeout_ms + " milliseconds."
+	);
+}

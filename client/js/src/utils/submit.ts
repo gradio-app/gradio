@@ -25,6 +25,7 @@ import semiver from "semiver";
 import { BROKEN_CONNECTION_MSG, QUEUE_FULL_MSG } from "../constants";
 import { apply_diff_stream, close_stream } from "./stream";
 import { Client } from "../client";
+import { wait_for_space } from "../helpers/spaces";
 
 export function submit(
 	this: Client,
@@ -193,6 +194,7 @@ export function submit(
 
 		this.handle_blob(config.root, resolved_data, endpoint_info).then(
 			async (_payload) => {
+				await wait_for_space(this.app_reference, 1800000);
 				payload = {
 					data: _payload || [],
 					event_data,
