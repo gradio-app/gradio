@@ -153,9 +153,11 @@
 				{:else}
 					<p class="padded">
 						{#if current_language == "python" || current_language == "javascript"}
-						1. Install the <span style="text-transform:capitalize">{current_language}</span> client if you don't already have it installed.
+							1. Install the <span style="text-transform:capitalize"
+								>{current_language}</span
+							> client if you don't already have it installed.
 						{:else}
-						1. Confirm that you have cURL installed on your system.
+							1. Confirm that you have cURL installed on your system.
 						{/if}
 					</p>
 
@@ -171,15 +173,23 @@
 									spaces_docs_suffix}
 								class="underline"
 								target="_blank">read more</a
-							>).{/if} {#if current_language == "bash"}Note: making a prediction and getting a result requires <strong>2 requests</strong>: a <code>POST</code> and a <code>GET</code> request. The <code>POST</code> request returns an <code>EVENT_ID</code>, which is used in the second <code>GET</code> request to fetch the results. {:else}Or
-						<Button
-							size="sm"
-							variant="primary"
-							on:click={() => dispatch("close", { api_recorder_visible: true })}
-						>
-							🪄 Use the API Recorder
-						</Button>
-						to automatically generate your API requests.
+							>).{/if}
+						{#if current_language == "bash"}Note: making a prediction and
+							getting a result requires <strong>2 requests</strong>: a
+							<code>POST</code>
+							and a <code>GET</code> request. The <code>POST</code> request
+							returns an <code>EVENT_ID</code>, which is used in the second
+							<code>GET</code> request to fetch the results.
+						{:else}Or
+							<Button
+								size="sm"
+								variant="primary"
+								on:click={() =>
+									dispatch("close", { api_recorder_visible: true })}
+							>
+								🪄 Use the API Recorder
+							</Button>
+							to automatically generate your API requests.
 						{/if}
 
 						<!-- <span

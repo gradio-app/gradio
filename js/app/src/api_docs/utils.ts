@@ -122,7 +122,6 @@ function replace_file_data_with_file_function(obj: any): any {
 	return obj;
 }
 
-
 function stringify_except_file_function(obj: any): string {
 	let jsonString = JSON.stringify(obj, (key, value) => {
 		if (value === null) {

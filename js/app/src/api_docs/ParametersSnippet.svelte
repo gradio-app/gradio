@@ -21,7 +21,9 @@
 		<div style="margin:10px;">
 			<p style="white-space: nowrap; overflow-x: auto;">
 				<span class="code" style="margin-right: 10px;"
-					>{current_language !== "bash" && parameter_name ? parameter_name : "[" + i + "]"}</span
+					>{current_language !== "bash" && parameter_name
+						? parameter_name
+						: "[" + i + "]"}</span
 				>
 				<span class="code highlight" style="margin-right: 10px;"
 					>{#if current_language === "python"}{python_type.type}{#if parameter_has_default && parameter_default === null}&nbsp;|

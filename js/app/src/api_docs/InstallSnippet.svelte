@@ -31,7 +31,7 @@
 			</div>
 			<div>
 				<pre>$ {bash_install}</pre>
-			</div>		
+			</div>
 		{/if}
 	</code>
 </Block>
