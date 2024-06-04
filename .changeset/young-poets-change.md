@@ -5,4 +5,4 @@
 "gradio": patch
 ---
 
-fix:Handle spaces using `state` in the JS Client
+fix:Handle gradio apps using `state` in the JS Client
