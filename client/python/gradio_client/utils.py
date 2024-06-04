@@ -1092,9 +1092,13 @@ def handle_file(filepath_or_url: str | Path):
             f"File {s} does not exist on local filesystem and is not a valid URL."
         )
 
+
 def file(filepath_or_url: str | Path):
-    warnings.warn("file() is deprecated and will be removed in a future version. Use handle_file() instead.")
+    warnings.warn(
+        "file() is deprecated and will be removed in a future version. Use handle_file() instead."
+    )
     return handle_file(filepath_or_url)
+
 
 def construct_args(
     parameters_info: list[ParameterInfo] | None, args: tuple, kwargs: dict

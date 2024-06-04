@@ -430,7 +430,9 @@ class TestClientPredictions:
     def test_stream_audio(self, stream_audio):
         with connect(stream_audio) as client:
             job1 = client.submit(
-                handle_file("https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4"),
+                handle_file(
+                    "https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4"
+                ),
                 api_name="/predict",
             )
             assert Path(job1.result()).exists()
