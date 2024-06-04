@@ -384,7 +384,7 @@ class TestTempFile:
 
     def test_no_empty_image_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(__file__).parent / "test_files"
-        image = str(file_dir / "bus.png")
+        image = grc.handle_file(str(file_dir / "bus.png"))
 
         demo = gr.Interface(
             lambda x: x,
@@ -400,7 +400,7 @@ class TestTempFile:
 
     @pytest.mark.parametrize("component", [gr.UploadButton, gr.File])
     def test_file_component_uploads(self, component, connect, gradio_temp_dir):
-        code_file = str(pathlib.Path(__file__))
+        code_file = grc.handle_file(str(pathlib.Path(__file__)))
         demo = gr.Interface(lambda x: x.name, component(), gr.File())
         with connect(demo) as client:
             _ = client.predict(code_file, api_name="/predict")
@@ -413,7 +413,7 @@ class TestTempFile:
 
     def test_no_empty_video_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-        video = str(file_dir / "video_sample.mp4")
+        video = grc.handle_file(str(file_dir / "video_sample.mp4"))
         demo = gr.Interface(lambda x: x, gr.Video(), gr.Video())
         with connect(demo) as client:
             _ = client.predict({"video": video}, api_name="/predict")
@@ -423,7 +423,7 @@ class TestTempFile:
 
     def test_no_empty_audio_files(self, gradio_temp_dir, connect):
         file_dir = pathlib.Path(pathlib.Path(__file__).parent, "test_files")
-        audio = str(file_dir / "audio_sample.wav")
+        audio = grc.handle_file(str(file_dir / "audio_sample.wav"))
 
         def reverse_audio(audio):
             sr, data = audio
@@ -1716,7 +1716,7 @@ def test_static_files_single_app(connect, gradio_temp_dir):
     assert len(list(gradio_temp_dir.glob("**/*.*"))) == 0
 
     with connect(demo) as client:
-        client.predict("test/test_files/bus.png")
+        client.predict(grc.handle_file("test/test_files/bus.png"))
 
     # Input/Output got saved to cache
     assert len(list(gradio_temp_dir.glob("**/*.*"))) == 2
