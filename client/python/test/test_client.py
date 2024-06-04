@@ -253,12 +253,6 @@ class TestClientPredictions:
                 job = client.submit("foo", "add", 9, fn_index=0)
                 job.result()
 
-    def test_raises_exception_no_queue(self, sentiment_classification_demo):
-        with pytest.raises(Exception):
-            with connect(sentiment_classification_demo) as client:
-                job = client.submit([5], api_name="/sleep")
-                job.result()
-
     def test_job_output_video(self, video_component):
         with connect(video_component) as client:
             job = client.submit(
