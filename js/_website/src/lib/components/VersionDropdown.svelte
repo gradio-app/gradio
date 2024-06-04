@@ -4,7 +4,7 @@
 	import { goto } from "$app/navigation";
 	import { version } from "$lib/json/version.json";
 
-	export let choices = [version, "3.50.2", "main"];
+	export let choices = [version, "main"];
 	export let value: string = $page.params?.version || version;
 	export let docs_type = "python";
 

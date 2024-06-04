@@ -16,6 +16,7 @@
 	import { BaseStaticImage } from "@gradio/image";
 	import { BaseStaticVideo } from "@gradio/video";
 	import { BasePlot } from "@gradio/plot";
+	import { Clear } from "@gradio/icons";
 	import type { SelectData, LikeData } from "@gradio/utils";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import { type FileData, type Client } from "@gradio/client";
@@ -129,6 +130,12 @@
 			div.scrollTo(0, div.scrollHeight);
 		}
 	};
+
+	let image_preview_source: string;
+	let image_preview_source_alt: string;
+	let is_image_preview_open = false;
+	let image_preview_close_button: HTMLButtonElement;
+
 	afterUpdate(() => {
 		if (autoscroll) {
 			scroll();
@@ -138,6 +145,16 @@
 				});
 			});
 		}
+		div.querySelectorAll("img").forEach((n) => {
+			n.addEventListener("click", (e) => {
+				const target = e.target as HTMLImageElement;
+				if (target) {
+					image_preview_source = target.src;
+					image_preview_source_alt = target.alt;
+					is_image_preview_open = true;
+				}
+			});
+		});
 	});
 
 	$: {
@@ -205,6 +222,21 @@
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
 					{#if message !== null}
+						{#if is_image_preview_open}
+							<div class="image-preview">
+								<img
+									src={image_preview_source}
+									alt={image_preview_source_alt}
+								/>
+								<button
+									bind:this={image_preview_close_button}
+									class="image-preview-close-button"
+									on:click={() => {
+										is_image_preview_open = false;
+									}}><Clear /></button
+								>
+							</div>
+						{/if}
 						<div class="message-row {layout} {j == 0 ? 'user-row' : 'bot-row'}">
 							{#if avatar_images[j] !== null}
 								<div class="avatar-container">
@@ -624,6 +656,7 @@
 		color: var(--body-text-color);
 	}
 
+<<<<<<< HEAD
 	.message-wrap :global(pre) {
 		position: relative;
 	}
@@ -633,9 +666,49 @@
 		max-width: 600px;
 		object-fit: contain;
 	}
+=======
+	/* Image preview */
+>>>>>>> main
 	.message :global(.preview) {
 		object-fit: contain;
 		width: 95%;
 		max-height: 93%;
 	}
+<<<<<<< HEAD
+=======
+	.image-preview {
+		position: absolute;
+		z-index: 999;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		overflow: auto;
+		background-color: rgba(0, 0, 0, 0.9);
+	}
+	.image-preview :global(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+	}
+	.image-preview :global(svg) {
+		stroke: white;
+	}
+	.image-preview-close-button {
+		position: absolute;
+		top: 10px;
+		right: 10px;
+		background: none;
+		border: none;
+		font-size: 1.5em;
+		cursor: pointer;
+		height: 30px;
+		width: 30px;
+		padding: 3px;
+		background: var(--bg-color);
+		box-shadow: var(--shadow-drop);
+		border: 1px solid var(--button-secondary-border-color);
+		border-radius: var(--radius-lg);
+	}
+>>>>>>> main
 </style>

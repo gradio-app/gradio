@@ -62,7 +62,6 @@ export function create_components(): {
 	let _components: ComponentMeta[] = [];
 	let app: client_return;
 	let keyed_component_values: Record<string | number, any> = {};
-	let rendered_fns_per_render_id: Record<number, number[]> = {};
 	let _rootNode: ComponentMeta;
 
 	function create_layout({
@@ -157,16 +156,6 @@ export function create_components(): {
 			constructor_map.set(k, v);
 		});
 
-		let previous_rendered_fn_ids = rendered_fns_per_render_id[render_id] || [];
-		Object.values(_target_map).forEach((event_fn_ids_map) => {
-			Object.values(event_fn_ids_map).forEach((fn_ids) => {
-				previous_rendered_fn_ids.forEach((fn_id) => {
-					if (fn_ids.includes(fn_id)) {
-						fn_ids.splice(fn_ids.indexOf(fn_id), 1);
-					}
-				});
-			});
-		});
 		_target_map = {};
 
 		dependencies.forEach((dep) => {
@@ -195,6 +184,16 @@ export function create_components(): {
 		};
 		add_to_current_children(current_element);
 		store_keyed_values(all_current_children);
+
+		Object.entries(instance_map).forEach(([id, component]) => {
+			let _id = Number(id);
+			if (component.rendered_in === render_id) {
+				delete instance_map[_id];
+				if (_component_map.has(_id)) {
+					_component_map.delete(_id);
+				}
+			}
+		});
 
 		components.forEach((c) => {
 			instance_map[c.id] = c;

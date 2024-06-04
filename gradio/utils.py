@@ -5,7 +5,6 @@ from __future__ import annotations
 import ast
 import asyncio
 import copy
-import dataclasses
 import functools
 import importlib
 import importlib.util
@@ -1228,12 +1227,6 @@ def get_extension_from_file_path_or_url(file_path_or_url: str) -> str:
     return file_extension[1:] if file_extension else ""
 
 
-def convert_to_dict_if_dataclass(value):
-    if dataclasses.is_dataclass(value):
-        return dataclasses.asdict(value)
-    return value
-
-
 K = TypeVar("K")
 V = TypeVar("V")
 
@@ -1388,3 +1381,17 @@ def _parse_file_size(size: str | int | None) -> int | None:
     if not multiple:
         raise ValueError(f"Invalid file size unit: {unit}")
     return multiple * size_int
+
+
+def connect_heartbeat(config: dict[str, Any], blocks) -> bool:
+    from gradio.components import State
+
+    any_state = any(isinstance(block, State) for block in blocks)
+    any_unload = False
+    for dep in config["dependencies"]:
+        for target in dep["targets"]:
+            if isinstance(target, (list, tuple)) and len(target) == 2:
+                any_unload = target[1] == "unload"
+                if any_unload:
+                    break
+    return any_state or any_unload

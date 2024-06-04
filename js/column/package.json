@@ -1,6 +1,6 @@
 {
 	"name": "@gradio/column",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"author": "",
@@ -13,6 +13,8 @@
 		"./package.json": "./package.json"
 	},
 	"devDependencies": {
-		"@gradio/preview": "workspace:^"
+		"@gradio/preview": "workspace:^",
+		"@gradio/statustracker": "workspace:^",
+		"@gradio/utils": "workspace:^"
 	}
 }
