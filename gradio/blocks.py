@@ -1996,11 +1996,12 @@ Received outputs:
         state_ids_to_track = []
         hashed_values = []
         for block in block_fn.outputs:
-            if block.stateful:
-                if any((block._id, "change") in fn.targets for fn in self.fns.values()):
-                    value = state[block._id]
-                    state_ids_to_track.append(block._id)
-                    hashed_values.append(utils.deep_hash(value))
+            if block.stateful and any(
+                (block._id, "change") in fn.targets for fn in self.fns.values()
+            ):
+                value = state[block._id]
+                state_ids_to_track.append(block._id)
+                hashed_values.append(utils.deep_hash(value))
         return state_ids_to_track, hashed_values
 
     def create_limiter(self):
