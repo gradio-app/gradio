@@ -181,6 +181,7 @@ To stream the results for your prediction, make a `GET` request with the followi
 $ curl -N $URL/call/$API_NAME/$EVENT_ID
 ```
 
+
 Tip: If you are fetching results from a private Space, include a header with your HF token like this: `-H "Authorization: Bearer $HF_TOKEN"` in the `GET` request.
 
 This should produce a stream of responses in this format:
