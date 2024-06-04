@@ -3,4 +3,4 @@
 "gradio": patch
 ---
 
-feat:curl docs
+feat:Add cURL to view API Page and add a dedicated Guide
