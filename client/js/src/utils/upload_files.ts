@@ -41,7 +41,6 @@ export async function upload_files(
 		}
 		if (!response.ok) {
 			const error_text = await response.text();
-			console.log("hello");
 			return { error: `HTTP ${response.status}: ${error_text}` };
 		}
 		const output: UploadResponse["files"] = await response.json();
