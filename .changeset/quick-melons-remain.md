@@ -1,10 +1,10 @@
 ---
-"@gradio/app": minor
-"@gradio/client": minor
-"@gradio/file": minor
-"@gradio/preview": minor
-"@gradio/spaces-test": minor
-"gradio": minor
+"@gradio/app": patch
+"@gradio/client": patch
+"@gradio/file": patch
+"@gradio/preview": patch
+"@gradio/spaces-test": patch
+"gradio": patch
 ---
 
-feat:8207 fetch stream 2
+fix:8207 fetch stream 2
