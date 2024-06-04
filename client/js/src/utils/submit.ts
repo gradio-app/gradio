@@ -640,7 +640,11 @@ export function submit(
 										fire_event({
 											type: "data",
 											time: new Date(),
-											data: data.data,
+											data: handle_payload(
+												data.data,
+												dependency,
+												config.components
+											),
 											endpoint: _endpoint,
 											fn_index
 										});
