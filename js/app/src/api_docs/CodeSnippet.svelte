@@ -17,13 +17,15 @@
 	export let dependency: Dependency;
 	export let dependency_index: number;
 	export let root: string;
+	export let space_id: string | null;
 	export let endpoint_parameters: any;
 	export let named: boolean;
 
-	export let current_language: "python" | "javascript";
+	export let current_language: "python" | "javascript" | "bash";
 
 	let python_code: HTMLElement;
 	let js_code: HTMLElement;
+	let bash_code: HTMLElement;
 
 	let has_file_path = endpoint_parameters.some((param: EndpointParameter) =>
 		is_potentially_nested_file_data(param.example_input)
@@ -51,7 +53,7 @@
 							class="highlight">import</span
 						> Client{#if has_file_path}, file{/if}
 
-client = Client(<span class="token string">"{root}"</span>)
+client = Client(<span class="token string">"{space_id || root}"</span>)
 result = client.<span class="highlight">predict</span
 						>(<!--
 -->{#each endpoint_parameters as { python_type, example_input, parameter_name, parameter_has_default, parameter_default }, i}<!--
@@ -84,7 +86,7 @@ const response_{i} = await fetch("{example_input.url}");
 const example{component} = await response_{i}.blob();
 						{/each}<!--
 -->
-const client = await Client.connect(<span class="token string">"{root}"</span>);
+const client = await Client.connect(<span class="token string">"{space_id || root}"</span>);
 const result = await client.predict({#if named}<span class="api-name"
 								>"/{dependency.api_name}"</span
 							>{:else}{dependency_index}{/if}, &lbrace; <!--
@@ -118,6 +120,13 @@ const result = await client.predict({#if named}<span class="api-name"
 
 console.log(result.data);
 </pre>
+				</div>
+			{:else if current_language === "bash"}
+				<div class="copy">
+					<CopyButton code={bash_code?.innerText}></CopyButton>
+				</div>
+				<div bind:this={bash_code}>
+					<pre>curl -N {root}predict/{dependency_index} </pre>
 				</div>
 			{/if}
 		</code>

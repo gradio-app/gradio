@@ -171,7 +171,7 @@
 									spaces_docs_suffix}
 								class="underline"
 								target="_blank">read more</a
-							>).{/if} {#if current_language == "bash"}Note that we need to make two requests to get the result of the prediction. {/if}Or
+							>).{/if} {#if current_language == "bash"}Note: making a prediction and getting a result requires two requests: a <code>POST</code> and a <code>GET</code> request. The <code>POST</code> request returns an <code>EVENT_ID</code>, which is used in the second <code>GET</code> request to fetch the results. {:else}Or
 						<Button
 							size="sm"
 							variant="primary"
@@ -180,6 +180,7 @@
 							🪄 Use the API Recorder
 						</Button>
 						to automatically generate your API requests.
+						{/if}
 
 						<!-- <span
 							id="api-recorder"
@@ -200,7 +201,8 @@
 								{dependency}
 								{dependency_index}
 								{current_language}
-								root={space_id || root}
+								{root}
+								{space_id}
 							/>
 
 							<ParametersSnippet
