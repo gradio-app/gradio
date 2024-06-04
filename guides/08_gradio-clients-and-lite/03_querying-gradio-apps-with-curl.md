@@ -25,6 +25,7 @@ $ curl -N https://abidlabs-en2fr.hf.space/call/predict/$EVENT_ID
 > data: ["Bonjour, mon ami."]
 ```
 
+
 Tip: making a prediction and getting a result requires two `curl` requests: a `POST` and a `GET`. The `POST` request returns an `EVENT_ID` and prints  it to the console , which is used in the second `GET` request to fetch the results. We'll cover these two steps in more detail in the Guide below.
 
 
@@ -179,6 +180,7 @@ To stream the results for your prediction, make a `GET` request with the followi
 ```bash
 $ curl -N $URL/call/$API_NAME/$EVENT_ID
 ```
+
 
 Tip: If you are fetching results from a private Space, include a header with your HF token like this: `-H "Authorization: Bearer $HF_TOKEN"` in the `GET` request.
 
