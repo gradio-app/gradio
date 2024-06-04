@@ -1,5 +1,11 @@
 # @gradio/app
 
+## 1.35.8
+
+### Fixes
+
+- [#8431](https://github.com/gradio-app/gradio/pull/8431) [`9909b28`](https://github.com/gradio-app/gradio/commit/9909b28364b82b5e8bfd7d47a858a204f68b963a) - fix scrolling on spaces.  Thanks @pngwn!
+
 ## 1.35.7
 
 ### Dependency updates

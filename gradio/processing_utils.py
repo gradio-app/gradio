@@ -104,6 +104,7 @@ log = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from gradio.blocks import Block
 
+
 #########################
 # GENERAL
 #########################
@@ -660,13 +661,16 @@ def _convert(image, dtype, force_copy=False, uniform=False):
     dtype_range = {
         bool: (False, True),
         np.bool_: (False, True),
-        np.bool8: (False, True),  # type: ignore
         float: (-1, 1),
-        np.float_: (-1, 1),
         np.float16: (-1, 1),
         np.float32: (-1, 1),
         np.float64: (-1, 1),
     }
+
+    if hasattr(np, "float_"):
+        dtype_range[np.float_] = dtype_range[float]  # type: ignore
+    if hasattr(np, "bool8"):
+        dtype_range[np.bool8] = dtype_range[np.bool_]  # type: ignore
 
     def _dtype_itemsize(itemsize, *dtypes):
         """Return first of `dtypes` with itemsize greater than `itemsize`
@@ -786,7 +790,12 @@ def _convert(image, dtype, force_copy=False, uniform=False):
     #   is a subclass of that type (e.g. `np.floating` will allow
     #   `float32` and `float64` arrays through)
 
-    if np.issubdtype(dtype_in, np.obj2sctype(dtype)):
+    if hasattr(np, "obj2sctype"):
+        is_subdtype = np.issubdtype(dtype_in, np.obj2sctype(dtype))
+    else:
+        is_subdtype = np.issubdtype(dtype_in, dtypeobj_out.type)
+
+    if is_subdtype:
         if force_copy:
             image = image.copy()
         return image
