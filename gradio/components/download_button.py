@@ -6,7 +6,7 @@ import tempfile
 from pathlib import Path
 from typing import Callable, Literal
 
-from gradio_client import file
+from gradio_client import handle_file
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
@@ -104,7 +104,7 @@ class DownloadButton(Component):
         return FileData(path=str(value))
 
     def example_payload(self) -> dict:
-        return file(
+        return handle_file(
             "https://github.com/gradio-app/gradio/raw/main/test/test_files/sample_file.pdf"
         )
 

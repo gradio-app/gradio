@@ -20,7 +20,7 @@ from gradio.http_server import Server
 from huggingface_hub import HfFolder
 from huggingface_hub.utils import RepositoryNotFoundError
 
-from gradio_client import Client, file
+from gradio_client import Client, handle_file
 from gradio_client.client import DEFAULT_TEMP_DIR
 from gradio_client.exceptions import AppError, AuthenticationError
 from gradio_client.utils import (
@@ -92,11 +92,11 @@ class TestClientPredictions:
         with connect(max_file_size_demo, max_file_size="15kb") as client:
             with pytest.raises(ValueError, match="exceeds the maximum file size"):
                 client.predict(
-                    file(Path(__file__).parent / "files" / "cheetah1.jpg"),
+                    handle_file(Path(__file__).parent / "files" / "cheetah1.jpg"),
                     api_name="/upload_1b",
                 )
             client.predict(
-                file(Path(__file__).parent / "files" / "alphabet.txt"),
+                handle_file(Path(__file__).parent / "files" / "alphabet.txt"),
                 api_name="/upload_1b",
             )
 
@@ -264,7 +264,7 @@ class TestClientPredictions:
         with connect(video_component) as client:
             job = client.submit(
                 {
-                    "video": file(
+                    "video": handle_file(
                         "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
                     )
                 },
@@ -280,7 +280,7 @@ class TestClientPredictions:
         with connect(video_component, output_dir=temp_dir) as client:
             job = client.submit(
                 {
-                    "video": file(
+                    "video": handle_file(
                         "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
                     )
                 },
@@ -430,13 +430,13 @@ class TestClientPredictions:
     def test_stream_audio(self, stream_audio):
         with connect(stream_audio) as client:
             job1 = client.submit(
-                file("https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4"),
+                handle_file("https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4"),
                 api_name="/predict",
             )
             assert Path(job1.result()).exists()
 
             job2 = client.submit(
-                file(
+                handle_file(
                     "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
                 ),
                 api_name="/predict",
