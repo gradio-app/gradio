@@ -108,7 +108,7 @@ function stringify_except_file_function(obj: any): string {
 		}
 		return value;
 	});
-	const regex = /"UNQUOTEDfile\(([^)]*)\)"/g;
+	const regex = /"UNQUOTEDhandle_file\(([^)]*)\)"/g;
 	jsonString = jsonString.replace(regex, (match, p1) => `handle_file(${p1})`);
 	const regexNone = /"UNQUOTEDNone"/g;
 	return jsonString.replace(regexNone, "None");
