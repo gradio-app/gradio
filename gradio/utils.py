@@ -1303,14 +1303,21 @@ def get_upload_folder() -> str:
 
 
 def get_function_params(func: Callable) -> list[tuple[str, bool, Any]]:
+    """
+    Gets the parameters of a function as a list of tuples of the form (name, has_default, default_value).
+    Excludes *args and **kwargs, as well as args that are Gradio-specific, such as gr.Request, gr.EventData, gr.OAuthProfile, and gr.OAuthToken.
+    """
     params_info = []
     signature = inspect.signature(func)
+    type_hints = get_type_hints(func)
     for name, parameter in signature.parameters.items():
         if parameter.kind in (
             inspect.Parameter.VAR_POSITIONAL,
             inspect.Parameter.VAR_KEYWORD,
         ):
             break
+        if is_special_typed_parameter(name, type_hints):
+            continue
         if parameter.default is inspect.Parameter.empty:
             params_info.append((name, False, None))
         else:

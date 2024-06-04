@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Literal
+from typing import TYPE_CHECKING, Callable, List, Literal, Sequence, Union, cast
 
 from gradio_client.documentation import document
 
@@ -9,6 +9,9 @@ from gradio.components import Component
 from gradio.context import Context, LocalContext
 from gradio.events import EventListener, EventListenerMethod
 from gradio.layouts import Column, Row
+
+if TYPE_CHECKING:
+    from gradio.events import EventListenerCallable
 
 
 class Renderable:
@@ -76,8 +79,8 @@ class Renderable:
 
 @document()
 def render(
-    inputs: list[Component] | None = None,
-    triggers: list[EventListener] | EventListener | None = None,
+    inputs: list[Component] | Component | None = None,
+    triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
     *,
     queue: bool = True,
     trigger_mode: Literal["once", "multiple", "always_last"] | None = "always_last",
@@ -116,6 +119,8 @@ def render(
                             btn = gr.Button("Clear")
                             btn.click(lambda: gr.Textbox(value=""), None, text)
     """
+    new_triggers = cast(Union[List[EventListener], EventListener, None], triggers)
+
     if Context.root_block is None:
         raise ValueError("Reactive render must be inside a Blocks context.")
 
@@ -123,16 +128,18 @@ def render(
         [inputs] if isinstance(inputs, Component) else [] if inputs is None else inputs
     )
     _triggers: list[tuple[Block | None, str]] = []
-    if triggers is None:
+    if new_triggers is None:
         _triggers = [(Context.root_block, "load")]
         for input in inputs:
             if hasattr(input, "change"):
                 _triggers.append((input, "change"))
     else:
-        triggers = [triggers] if isinstance(triggers, EventListener) else triggers
+        new_triggers = (
+            [new_triggers] if isinstance(new_triggers, EventListener) else new_triggers
+        )
         _triggers = [
             (getattr(t, "__self__", None) if t.has_trigger else None, t.event_name)
-            for t in triggers
+            for t in new_triggers
         ]
 
     def wrapper_function(fn):
