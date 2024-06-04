@@ -25,7 +25,8 @@
 
 	let python_code: HTMLElement;
 	let js_code: HTMLElement;
-	let bash_code: HTMLElement;
+	let bash_post_code: HTMLElement;
+	let bash_get_code: HTMLElement;
 
 	let has_file_path = endpoint_parameters.some((param: EndpointParameter) =>
 		is_potentially_nested_file_data(param.example_input)
@@ -42,10 +43,11 @@
 	{:else}
 		<EndpointDetail {named} fn_index={dependency_index} />
 	{/if}
-	<Block>
-		<code>
 			{#if current_language === "python"}
-				<div class="copy">
+			<Block>
+				<code>
+		
+			<div class="copy">
 					<CopyButton code={python_code?.innerText} />
 				</div>
 				<div bind:this={python_code}>
@@ -74,7 +76,12 @@ result = client.<span class="highlight">predict</span
 )
 <span class="highlight">print</span>(result)</pre>
 				</div>
+				</code>
+				</Block>
 			{:else if current_language === "javascript"}
+			<Block>
+				<code>
+		
 				<div class="copy">
 					<CopyButton code={js_code?.innerText} />
 				</div>
@@ -106,7 +113,7 @@ const result = await client.predict({#if named}<span class="api-name"
 								><!--
 		-->{:else}<!--
 	-->		
-				<span class="example-inputs"
+		<span class="example-inputs"
 									>{parameter_name}: {represent_value(
 										example_input,
 										python_type.type,
@@ -121,16 +128,43 @@ const result = await client.predict({#if named}<span class="api-name"
 console.log(result.data);
 </pre>
 				</div>
+			</code>
+			</Block>	
 			{:else if current_language === "bash"}
-				<div class="copy">
-					<CopyButton code={bash_code?.innerText}></CopyButton>
-				</div>
-				<div bind:this={bash_code}>
-					<pre>curl -N {root}predict/{dependency_index} </pre>
-				</div>
+
+						<Block>
+							<code>
+								<div class="copy">
+								<CopyButton code={bash_post_code?.innerText}></CopyButton>
+							</div>
+		
+							<div bind:this={bash_post_code}>
+								<pre>curl -X POST {root}call/{dependency.api_name} -H "Content-Type: application/json" -d '{'{'}
+  "data": [{#each endpoint_parameters as { label, parameter_name, type, python_type, component, example_input, serializer }, i}
+    {represent_value(
+	example_input,
+	python_type.type,
+	"js"
+)}{#if i < endpoint_parameters.length - 1}, {/if}
+{/each}
+]{'}'}'</pre>
+							</div>
+					</code>
+				</Block>
+
+				<Block>
+					<code>
+							<div class="copy">
+								<CopyButton code={bash_get_code?.innerText}></CopyButton>
+							</div>
+		
+							<div bind:this={bash_get_code}>
+								<pre>curl -N {root}call/{dependency.api_name}/$EVENT_ID </pre>
+							</div>
+					</code>
+				</Block>
+
 			{/if}
-		</code>
-	</Block>
 </div>
 
 <style>

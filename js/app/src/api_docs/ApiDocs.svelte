@@ -171,7 +171,7 @@
 									spaces_docs_suffix}
 								class="underline"
 								target="_blank">read more</a
-							>).{/if} {#if current_language == "bash"}Note: making a prediction and getting a result requires two requests: a <code>POST</code> and a <code>GET</code> request. The <code>POST</code> request returns an <code>EVENT_ID</code>, which is used in the second <code>GET</code> request to fetch the results. {:else}Or
+							>).{/if} {#if current_language == "bash"}Note: making a prediction and getting a result requires <strong>2 requests</strong>: a <code>POST</code> and a <code>GET</code> request. The <code>POST</code> request returns an <code>EVENT_ID</code>, which is used in the second <code>GET</code> request to fetch the results. {:else}Or
 						<Button
 							size="sm"
 							variant="primary"
