@@ -15,6 +15,7 @@
 
 	import python from "./img/python.svg";
 	import javascript from "./img/javascript.svg";
+	import bash from "./img/bash.svg";
 	import ResponseSnippet from "./ResponseSnippet.svelte";
 
 	export let dependencies: Dependency[];
@@ -40,11 +41,12 @@
 	}
 
 	export let api_calls: Payload[] = [];
-	let current_language: "python" | "javascript" = "python";
+	let current_language: "python" | "javascript" | "bash" = "python";
 
 	const langs = [
 		["python", python],
-		["javascript", javascript]
+		["javascript", javascript],
+		["bash", bash]
 	] as const;
 
 	let is_running = false;
@@ -98,12 +100,9 @@
 
 		<div class="docs-wrap">
 			<div class="client-doc">
-				<p>
-					Use the <code class="library">gradio_client</code>
-					<a href={py_docs} target="_blank">Python library</a> or the
-					<code class="library">@gradio/client</code>
-					<a href={js_docs} target="_blank">Javascript package</a> to query the app
-					via API.
+				<p style="font-size: var(--text-lg);">
+					Choose a language to see the code snippets for interacting with the
+					API.
 				</p>
 			</div>
 			<div class="endpoint">
@@ -153,7 +152,11 @@
 					</p>
 				{:else}
 					<p class="padded">
-						1. Install the client if you don't already have it installed.
+						{#if current_language == "python" || current_language == "javascript"}
+						1. Install the <span style="text-transform:capitalize">{current_language}</span> client if you don't already have it installed.
+						{:else}
+						1. Confirm that you have cURL installed on your system.
+						{/if}
 					</p>
 
 					<InstallSnippet {current_language} />
@@ -168,7 +171,7 @@
 									spaces_docs_suffix}
 								class="underline"
 								target="_blank">read more</a
-							>).{/if} Or
+							>).{/if} {#if current_language == "bash"}Note that we need to make two requests to get the result of the prediction. {/if}Or
 						<Button
 							size="sm"
 							variant="primary"
