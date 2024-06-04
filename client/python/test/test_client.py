@@ -37,13 +37,12 @@ HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
 @contextmanager
 def connect(
     demo: gr.Blocks,
-    serialize: bool = True,
-    output_dir: str = DEFAULT_TEMP_DIR,
+    download_files: str = DEFAULT_TEMP_DIR,
     **kwargs,
 ):
     _, local_url, _ = demo.launch(prevent_thread_lock=True, **kwargs)
     try:
-        yield Client(local_url, serialize=serialize, output_dir=output_dir)
+        yield Client(local_url, download_files=download_files)
     finally:
         # A more verbose version of .close()
         # because we should set a timeout
@@ -277,7 +276,7 @@ class TestClientPredictions:
             )
 
         temp_dir = tempfile.mkdtemp()
-        with connect(video_component, output_dir=temp_dir) as client:
+        with connect(video_component, download_files=temp_dir) as client:
             job = client.submit(
                 {
                     "video": handle_file(
@@ -553,13 +552,6 @@ class TestClientPredictions:
 
                 client.submit(1, "foo", f.name, fn_index=0).result()
                 serialize.assert_called_once_with(1, "foo", f.name)
-
-    def test_state_without_serialize(self, stateful_chatbot):
-        with connect(stateful_chatbot, serialize=False) as client:
-            initial_history = [["", None]]
-            message = "Hello"
-            ret = client.predict(message, initial_history, api_name="/submit")
-            assert ret == ("", [["", None], ["Hello", "I love you"]])
 
     def test_does_not_upload_dir(self, stateful_chatbot):
         with connect(stateful_chatbot) as client:
