@@ -326,9 +326,7 @@ class Examples:
             [output.render() for output in self.outputs]
             demo.load(self.fn, self.inputs, self.outputs)
         demo.unrender()
-        return (await demo.postprocess_data(demo.default_config.fns[0], output, None))[
-            0
-        ]
+        return await demo.postprocess_data(demo.default_config.fns[0], output, None)
 
     def _get_cached_index_if_cached(self, example_index) -> int | None:
         if Path(self.cached_indices_file).exists():

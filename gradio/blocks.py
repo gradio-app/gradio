@@ -1718,7 +1718,6 @@ Received outputs:
         self.validate_outputs(block_fn, predictions)  # type: ignore
 
         output = []
-        changed_state_ids = []
         for i, block in enumerate(block_fn.outputs):
             try:
                 if predictions[i] is components._Keywords.FINISHED_ITERATING:
@@ -1732,16 +1731,6 @@ Received outputs:
 
             if block.stateful:
                 if not utils.is_update(predictions[i]):
-                    has_change_event = False
-                    for dep in state.blocks_config.fns.values():
-                        if block._id in [t[0] for t in dep.targets if t[1] == "change"]:
-                            has_change_event = True
-                            break
-                    if has_change_event and (
-                        block._id not in state
-                        or not utils.deep_equal(state[block._id], predictions[i])
-                    ):
-                        changed_state_ids.append(block._id)
                     state[block._id] = predictions[i]
                 output.append(None)
             else:
@@ -1785,7 +1774,7 @@ Received outputs:
                 )
                 output.append(outputs_cached)
 
-        return output, changed_state_ids
+        return output
 
     async def handle_streaming_outputs(
         self,
@@ -1892,6 +1881,8 @@ Received outputs:
         if isinstance(block_fn, int):
             block_fn = self.fns[block_fn]
         batch = block_fn.batch
+        state_ids_to_track, hashed_values = self.get_state_ids_to_track(block_fn, state)
+        changed_state_ids = []
 
         if batch:
             max_batch_size = block_fn.max_batch_size
@@ -1924,11 +1915,10 @@ Received outputs:
                 state,
             )
             preds = result["prediction"]
-            data_and_changed_state_ids = [
+            data = [
                 await self.postprocess_data(block_fn, list(o), state)
                 for o in zip(*preds)
             ]
-            data, changed_state_ids = zip(*data_and_changed_state_ids)
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)
             data = list(zip(*data))
@@ -1952,9 +1942,14 @@ Received outputs:
                 in_event_listener,
                 state,
             )
-            data, changed_state_ids = await self.postprocess_data(
-                block_fn, result["prediction"], state
-            )
+            data = await self.postprocess_data(block_fn, result["prediction"], state)
+            if state:
+                changed_state_ids = [
+                    state_id
+                    for hash_value, state_id in zip(hashed_values, state_ids_to_track)
+                    if hash_value != utils.deep_hash(state[state_id])
+                ]
+
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
@@ -1994,6 +1989,22 @@ Received outputs:
             output["render_config"]["render_id"] = block_fn.renderable._id
 
         return output
+
+    def get_state_ids_to_track(
+        self, block_fn: BlockFunction, state: SessionState | None
+    ) -> tuple[list[int], list]:
+        if state is None:
+            return [], []
+        state_ids_to_track = []
+        hashed_values = []
+        for block in block_fn.outputs:
+            if block.stateful and any(
+                (block._id, "change") in fn.targets for fn in self.fns.values()
+            ):
+                value = state[block._id]
+                state_ids_to_track.append(block._id)
+                hashed_values.append(utils.deep_hash(value))
+        return state_ids_to_track, hashed_values
 
     def create_limiter(self):
         self.limiter = (
