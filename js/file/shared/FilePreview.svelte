@@ -27,13 +27,13 @@
 		return {
 			...file,
 			filename_stem,
-			filename_ext,
+			filename_ext
 		};
 	});
 
 	function handle_row_click(
 		event: MouseEvent & { currentTarget: HTMLTableRowElement },
-		index: number,
+		index: number
 	): void {
 		const tr = event.currentTarget;
 		const should_select =

@@ -46,7 +46,7 @@
 		if (!api || (hf_token && !hf_token.startsWith("hf_"))) return;
 
 		app = await Client.connect(api, {
-			hf_token,
+			hf_token
 		});
 
 		const { named_endpoints, unnamed_endpoints } = await app.view_api();
@@ -193,11 +193,7 @@
 			<EndpointInputs app_info={app_info.parameters} bind:request_data />
 			<button class="submit" on:click={submit}>Submit Request</button>
 			{#if app_info.type.generator || app_info.type.continuous}
-				<button
-					class="cancel"
-					on:click={cancel}
-					>Cancel Request</button
-				>
+				<button class="cancel" on:click={cancel}>Cancel Request</button>
 			{/if}
 		</div>
 		<div>
