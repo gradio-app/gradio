@@ -46,7 +46,7 @@
 		if (!api || (hf_token && !hf_token.startsWith("hf_"))) return;
 
 		app = await Client.connect(api, {
-			hf_token
+			hf_token,
 		});
 
 		const { named_endpoints, unnamed_endpoints } = await app.view_api();
@@ -83,14 +83,13 @@
 	async function submit() {
 		response_data = { data: [], fn_index: 0, endpoint: "" };
 
-		job = app
-			.submit(active_endpoint, request_data)
-			.on("data", (data) => {
-				response_data = data;
-			})
-			.on("status", (_status) => {
-				status = _status.stage;
-			});
+		job = app.submit(active_endpoint, request_data);
+		// .on("data", (data) => {
+		// 	response_data = data;
+		// })
+		// .on("status", (_status) => {
+		// 	status = _status.stage;
+		// });
 	}
 
 	function cancel() {
@@ -197,7 +196,6 @@
 				<button
 					class="cancel"
 					on:click={cancel}
-					disabled={status !== "generating" && status !== "pending"}
 					>Cancel Request</button
 				>
 			{/if}

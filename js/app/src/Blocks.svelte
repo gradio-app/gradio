@@ -18,7 +18,11 @@
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import { create_components, AsyncFunction } from "./init";
-	import type { LogMessage, RenderMessage, Status } from "@gradio/client";
+	import type {
+		LogMessage,
+		RenderMessage,
+		StatusMessage
+	} from "@gradio/client";
 
 	setupi18n();
 
@@ -211,7 +215,6 @@
 		if (dep.cancels) {
 			await Promise.all(
 				dep.cancels.map(async (fn_index) => {
-					console.log("boo", submit_map);
 					const submission = submit_map.get(fn_index);
 					submission?.cancel();
 					return submission;
@@ -346,7 +349,7 @@
 				messages = [new_message(log, fn_index, level), ...messages];
 			}
 
-			function handle_status_update(message: Status): void {
+			function handle_status_update(message: StatusMessage): void {
 				const { fn_index, ...status } = message;
 				//@ts-ignore
 				loading_status.update({
@@ -409,7 +412,6 @@
 					wait_then_trigger_api_call(dep.id, payload.trigger_id, event_data);
 					user_left_page = false;
 				} else if (status.stage === "error") {
-					console.log("ERROR: ", status);
 					if (status.message) {
 						const _message = status.message.replace(
 							MESSAGE_QUOTE_RE,

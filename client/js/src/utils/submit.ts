@@ -85,7 +85,6 @@ export function submit(
 		}
 
 		async function cancel(): Promise<void> {
-			console.log("cancel called");
 			const _status: Status = {
 				stage: "complete",
 				queue: false,

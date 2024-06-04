@@ -7,7 +7,7 @@ export { FileData, upload, prepare_files } from "./upload";
 
 export type {
 	SpaceStatus,
-	Status,
+	StatusMessage,
 	client_return,
 	UploadResponse,
 	RenderMessage,

@@ -27,18 +27,20 @@
 		return {
 			...file,
 			filename_stem,
-			filename_ext
+			filename_ext,
 		};
 	});
 
 	function handle_row_click(
 		event: MouseEvent & { currentTarget: HTMLTableRowElement },
-		index: number
+		index: number,
 	): void {
 		const tr = event.currentTarget;
 		const should_select =
 			event.target === tr || // Only select if the click is on the row itself
-			event.composedPath().includes(tr.firstElementChild); // Or if the click is on the name column
+			(tr &&
+				tr.firstElementChild &&
+				event.composedPath().includes(tr.firstElementChild)); // Or if the click is on the name column
 
 		if (should_select) {
 			dispatch("select", { value: normalized_files[index].orig_name, index });

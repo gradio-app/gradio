@@ -64,13 +64,6 @@ export type PredictFunction = (
 	event_data?: unknown
 ) => Promise<unknown>;
 
-// Event and Submission Types
-
-// type event = <K extends EventType>(
-// 	eventType: K,
-// 	listener: EventListener<K>
-// ) => SubmitReturn;
-
 export type client_return = {
 	config: Config | undefined;
 	predict: PredictFunction;
@@ -82,13 +75,6 @@ export type client_return = {
 	) => any;
 	view_api: (_fetch: typeof fetch) => Promise<ApiInfo<JsApiData>>;
 };
-
-// export type SubmitReturn = {
-// 	on: event;
-// 	off: event;
-// 	cancel: () => Promise<void>;
-// 	destroy: () => void;
-// };
 
 export interface SubmitIterable<T> extends AsyncIterable<T> {
 	[Symbol.asyncIterator](): AsyncIterator<T>;
@@ -241,31 +227,25 @@ export interface FileData {
 export type EventType = "data" | "status" | "log" | "render";
 
 export interface EventMap {
-	data: Payload;
-	status: Status;
+	data: PayloadMessage;
+	status: StatusMessage;
 	log: LogMessage;
 	render: RenderMessage;
 }
 
 export type GradioEvent = {
-	[P in EventType]: EventMap[P] & {
-		type: P;
-		endpoint: string;
-		fn_index: number;
-	};
+	[P in EventType]: EventMap[P];
 }[EventType];
 
 // export type EventListener<K extends EventType> = (event: Event<K>) => void;
 // export type ListenerMap<K extends EventType> = {
 // 	[P in K]?: EventListener<K>[];
 // };
-export interface LogMessage {
-	fn_index: number;
+export interface Log {
 	log: string;
 	level: "warning" | "info";
 }
-export interface RenderMessage {
-	fn_index: number;
+export interface Render {
 	data: {
 		components: any[];
 		layout: any;
@@ -275,7 +255,6 @@ export interface RenderMessage {
 }
 
 export interface Status {
-	fn_index?: number;
 	queue: boolean;
 	code?: string;
 	success?: boolean;
@@ -294,4 +273,28 @@ export interface Status {
 	}[];
 	time?: Date;
 	changed_state_ids?: number[];
+}
+
+export interface StatusMessage extends Status {
+	type: "status";
+	endpoint: string;
+	fn_index: number;
+}
+
+export interface PayloadMessage extends Payload {
+	type: "data";
+	endpoint: string;
+	fn_index: number;
+}
+
+export interface LogMessage extends Log {
+	type: "log";
+	endpoint: string;
+	fn_index: number;
+}
+
+export interface RenderMessage extends Render {
+	type: "render";
+	endpoint: string;
+	fn_index: number;
 }

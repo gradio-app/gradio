@@ -4,7 +4,6 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 const TEST_MODE = process.env.TEST_MODE || "happy-dom";
 
 export default defineConfig(({ mode }) => {
-	console.log(mode);
 	if (mode === "preview") {
 		return {
 			entry: "index.html"
