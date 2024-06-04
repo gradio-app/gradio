@@ -9,7 +9,10 @@ export type {
 	SpaceStatus,
 	Status,
 	client_return,
-	UploadResponse
+	UploadResponse,
+	RenderMessage,
+	LogMessage,
+	Payload
 } from "./types";
 
 // todo: remove in @gradio/client v1.0

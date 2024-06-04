@@ -260,6 +260,7 @@ export type GradioEvent = {
 // 	[P in K]?: EventListener<K>[];
 // };
 export interface LogMessage {
+	fn_index: number;
 	log: string;
 	level: "warning" | "info";
 }
@@ -274,6 +275,7 @@ export interface RenderMessage {
 }
 
 export interface Status {
+	fn_index?: number;
 	queue: boolean;
 	code?: string;
 	success?: boolean;

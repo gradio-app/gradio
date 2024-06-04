@@ -553,6 +553,8 @@ export function submit(
 										last_status[fn_index]
 									);
 
+									console.log(type, status, data);
+
 									if (type == "heartbeat") {
 										return;
 									}
