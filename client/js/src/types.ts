@@ -267,6 +267,7 @@ export interface ClientOptions {
 	hf_token?: `hf_${string}`;
 	status_callback?: SpaceStatusCallback | null;
 	auth?: [string, string] | null;
+	with_null_state?: boolean;
 }
 
 export interface FileData {

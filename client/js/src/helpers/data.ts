@@ -135,24 +135,47 @@ export function handle_payload(
 	resolved_payload: unknown[],
 	dependency: Dependency,
 	components: ComponentMeta[],
+	type: "input" | "output",
 	with_null_state = false
 ): unknown[] {
-	let payload_index = 0;
-	let updated_payload: unknown[] = [];
+	if (type === "input" && !with_null_state) {
+		throw new Error("Invalid code path. Cannot skip state inputs for input.");
+	}
+	// data comes from the server with null state values so we skip
+	if (type === "output" && with_null_state) {
+		return resolved_payload;
+	}
 
-	dependency.inputs.forEach((input_id) => {
+	let updated_payload: unknown[] = [];
+	let payload_index = 0;
+	for (let i = 0; i < dependency.inputs.length; i++) {
+		const input_id = dependency.inputs[i];
 		const component = components.find((c) => c.id === input_id);
+
 		if (component?.type === "state") {
+			// input + with_null_state needs us to fill state with null values
 			if (with_null_state) {
-				updated_payload.push(null);
+				if (resolved_payload.length === dependency.inputs.length) {
+					const value = resolved_payload[payload_index];
+					updated_payload.push(value);
+					payload_index++;
+				} else {
+					updated_payload.push(null);
+				}
+			} else {
+				// this is output & !with_null_state, we skip state inputs
+				// the server payload always comes with null state values so we move along the payload index
+				payload_index++;
+				continue;
 			}
-			if (!with_null_state) payload_index++;
+			// input & !with_null_state isn't a case we care about, server needs null
+			continue;
 		} else {
 			const value = resolved_payload[payload_index];
 			updated_payload.push(value);
 			payload_index++;
 		}
-	});
+	}
 
 	return updated_payload;
 }

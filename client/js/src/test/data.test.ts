@@ -279,7 +279,7 @@ describe("post_message", () => {
 });
 
 describe("handle_payload", () => {
-	it("should return a payload with null in place of `state` when with_null_state is true", () => {
+	it("should return an input payload with null in place of `state` when with_null_state is true", () => {
 		const resolved_payload = [2];
 		const dependency = {
 			inputs: [1, 2]
@@ -294,11 +294,12 @@ describe("handle_payload", () => {
 			// @ts-ignore
 			dependency,
 			components,
+			"input",
 			with_null_state
 		);
 		expect(result).toEqual([2, null]);
 	});
-	it("should return a payload with null in place of two `state` components when with_null_state is true", () => {
+	it("should return an input payload with null in place of two `state` components when with_null_state is true", () => {
 		const resolved_payload = ["hello", "goodbye"];
 		const dependency = {
 			inputs: [1, 2, 3, 4]
@@ -315,12 +316,13 @@ describe("handle_payload", () => {
 			// @ts-ignore
 			dependency,
 			components,
+			"input",
 			with_null_state
 		);
 		expect(result).toEqual(["hello", null, "goodbye", null]);
 	});
 
-	it("should return a payload without the state component value when with_null_state is false", () => {
+	it("should return an output payload without the state component value when with_null_state is false", () => {
 		const resolved_payload = ["hello", null];
 		const dependency = {
 			inputs: [2, 3]
@@ -335,12 +337,13 @@ describe("handle_payload", () => {
 			// @ts-ignore
 			dependency,
 			components,
+			"output",
 			with_null_state
 		);
 		expect(result).toEqual(["hello"]);
 	});
 
-	it("should return a payload without the two state component values when with_null_state is false", () => {
+	it("should return an ouput payload without the two state component values when with_null_state is false", () => {
 		const resolved_payload = ["hello", null, "world", null];
 		const dependency = {
 			inputs: [2, 3, 4, 5]
@@ -357,9 +360,33 @@ describe("handle_payload", () => {
 			// @ts-ignore
 			dependency,
 			components,
+			"output",
 			with_null_state
 		);
 		expect(result).toEqual(["hello", "world"]);
+	});
+
+	it("should return an ouput payload with the two state component values when with_null_state is true", () => {
+		const resolved_payload = ["hello", null, "world", null];
+		const dependency = {
+			inputs: [2, 3, 4, 5]
+		};
+		const components = [
+			{ id: 2, type: "textbox" },
+			{ id: 3, type: "state" },
+			{ id: 4, type: "textbox" },
+			{ id: 5, type: "state" }
+		];
+		const with_null_state = true;
+		const result = handle_payload(
+			resolved_payload,
+			// @ts-ignore
+			dependency,
+			components,
+			"output",
+			with_null_state
+		);
+		expect(result).toEqual(["hello", null, "world", null]);
 	});
 
 	it("should return the same payload where no state components are defined", () => {

@@ -47,7 +47,8 @@ export function submit(
 			pending_diff_streams,
 			event_callbacks,
 			unclosed_events,
-			post_data
+			post_data,
+			options
 		} = this;
 
 		if (!api_info) throw new Error("No API found");
@@ -197,6 +198,7 @@ export function submit(
 					_payload,
 					dependency,
 					config.components,
+					"input",
 					true
 				);
 				payload = {
@@ -231,7 +233,13 @@ export function submit(
 									type: "data",
 									endpoint: _endpoint,
 									fn_index,
-									data: handle_payload(data, dependency, config.components),
+									data: handle_payload(
+										data,
+										dependency,
+										config.components,
+										"output",
+										options.with_null_state
+									),
 									time: new Date(),
 									event_data,
 									trigger_id
@@ -365,7 +373,13 @@ export function submit(
 							fire_event({
 								type: "data",
 								time: new Date(),
-								data: handle_payload(data.data, dependency, config.components),
+								data: handle_payload(
+									data.data,
+									dependency,
+									config.components,
+									"output",
+									options.with_null_state
+								),
 								endpoint: _endpoint,
 								fn_index,
 								event_data,
@@ -488,7 +502,13 @@ export function submit(
 							fire_event({
 								type: "data",
 								time: new Date(),
-								data: handle_payload(data.data, dependency, config.components),
+								data: handle_payload(
+									data.data,
+									dependency,
+									config.components,
+									"output",
+									options.with_null_state
+								),
 								endpoint: _endpoint,
 								fn_index,
 								event_data,
@@ -642,7 +662,9 @@ export function submit(
 											data: handle_payload(
 												data.data,
 												dependency,
-												config.components
+												config.components,
+												"output",
+												options.with_null_state
 											),
 											endpoint: _endpoint,
 											fn_index
