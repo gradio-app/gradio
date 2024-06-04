@@ -77,8 +77,9 @@ export function submit(
 
 		// event subscription methods
 		function fire_event(event: GradioEvent): void {
+			console.log(event);
 			if (event.type === "status" && event.stage === "error") {
-				push_error(event);
+				push_event(event);
 			} else {
 				push_event(event);
 			}
@@ -630,7 +631,7 @@ export function submit(
 												endpoint: _endpoint,
 												fn_index
 											});
-											close();
+											// close();
 										}
 									}
 
@@ -689,6 +690,7 @@ export function submit(
 		) => void)[] = [];
 
 		function close(): void {
+			console.log("close called");
 			done = true;
 			while (resolvers.length > 0)
 				(resolvers.shift() as (typeof resolvers)[0])({
@@ -729,12 +731,10 @@ export function submit(
 			next,
 			throw: async (value: unknown) => {
 				push_error(value);
-				if (websocket.readyState === WebSocket.OPEN) websocket.close();
 				return next();
 			},
 			return: async () => {
 				close();
-				if (websocket.readyState === WebSocket.OPEN) websocket.close();
 				return next();
 			},
 			cancel
