@@ -20,15 +20,14 @@ with gr.Blocks() as demo:
                 gr.Textbox(task['name'], show_label=False, container=False)
                 done_btn = gr.Button("Done", scale=0)
                 def mark_done(task=task):
-                    _task_list = task_list[:]
-                    _task_list[task_list.index(task)] = {"name": task["name"], "complete": True}
-                    return _task_list
+                    task["complete"] = True
+                    return task_list
                 done_btn.click(mark_done, None, [tasks])
 
                 delete_btn = gr.Button("Delete", scale=0, variant="stop")
                 def delete(task=task):
-                    task_index = task_list.index(task)
-                    return task_list[:task_index] + task_list[task_index+1:]
+                    task_list.remove(task)
+                    return task_list
                 delete_btn.click(delete, None, [tasks])
 
         gr.Markdown(f"### Complete Tasks ({len(complete)})")
