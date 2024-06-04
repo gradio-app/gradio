@@ -7,4 +7,4 @@
 "gradio": patch
 ---
 
-fix:8207 fetch stream 2
+fix:Change client submit API to be an AsyncIterable and support more platforms
