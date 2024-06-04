@@ -38,7 +38,7 @@ with gr.Blocks() as demo:
             merge_btn.click(merge, set(audios + volumes), output_audio)
 
     merge_btn = gr.Button("Merge Tracks")
-    output_audio = gr.Audio(label="Output")
+    output_audio = gr.Audio(label="Output", interactive=False)
                     
 if __name__ == "__main__":
     demo.launch()
