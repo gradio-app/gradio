@@ -4,6 +4,7 @@ This file defines a useful high-level abstraction to build Gradio chatbots: Chat
 
 from __future__ import annotations
 
+import functools
 import inspect
 from typing import AsyncGenerator, Callable, Literal, Union, cast
 
@@ -448,7 +449,36 @@ class ChatInterface(Blocks):
             )
 
     def _setup_api(self) -> None:
-        api_fn = self._api_stream_fn if self.is_generator else self._api_submit_fn
+        if self.is_generator:
+
+            @functools.wraps(self.fn)
+            async def api_fn(message, history, *args, **kwargs):  # type: ignore
+                if self.is_async:
+                    generator = self.fn(message, history, *args, **kwargs)
+                else:
+                    generator = await anyio.to_thread.run_sync(
+                        self.fn, message, history, *args, **kwargs, limiter=self.limiter
+                    )
+                    generator = SyncToAsyncIterator(generator, self.limiter)
+                try:
+                    first_response = await async_iteration(generator)
+                    yield first_response, history + [[message, first_response]]
+                except StopIteration:
+                    yield None, history + [[message, None]]
+                async for response in generator:
+                    yield response, history + [[message, response]]
+        else:
+
+            @functools.wraps(self.fn)
+            async def api_fn(message, history, *args, **kwargs):
+                if self.is_async:
+                    response = await self.fn(message, history, *args, **kwargs)
+                else:
+                    response = await anyio.to_thread.run_sync(
+                        self.fn, message, history, *args, **kwargs, limiter=self.limiter
+                    )
+                history.append([message, response])
+                return response, history
 
         self.fake_api_btn.click(
             api_fn,
@@ -574,44 +604,6 @@ class ChatInterface(Blocks):
             else:
                 update = history + [[message, response]]
                 yield update, update
-
-    async def _api_submit_fn(
-        self, message: str, history: list[list[str | None]], request: Request, *args
-    ) -> tuple[str, list[list[str | None]]]:
-        inputs, _, _ = special_args(
-            self.fn, inputs=[message, history, *args], request=request
-        )
-
-        if self.is_async:
-            response = await self.fn(*inputs)
-        else:
-            response = await anyio.to_thread.run_sync(
-                self.fn, *inputs, limiter=self.limiter
-            )
-        history.append([message, response])
-        return response, history
-
-    async def _api_stream_fn(
-        self, message: str, history: list[list[str | None]], request: Request, *args
-    ) -> AsyncGenerator:
-        inputs, _, _ = special_args(
-            self.fn, inputs=[message, history, *args], request=request
-        )
-
-        if self.is_async:
-            generator = self.fn(*inputs)
-        else:
-            generator = await anyio.to_thread.run_sync(
-                self.fn, *inputs, limiter=self.limiter
-            )
-            generator = SyncToAsyncIterator(generator, self.limiter)
-        try:
-            first_response = await async_iteration(generator)
-            yield first_response, history + [[message, first_response]]
-        except StopIteration:
-            yield None, history + [[message, None]]
-        async for response in generator:
-            yield response, history + [[message, response]]
 
     async def _examples_fn(self, message: str, *args) -> list[list[str | None]]:
         inputs, _, _ = special_args(self.fn, inputs=[message, [], *args], request=None)
