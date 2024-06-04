@@ -11,11 +11,10 @@ import type {
 	EndpointInfo,
 	ApiInfo,
 	Config,
-	Dependency,
-	ComponentMeta
+	Dependency
 } from "../types";
 
-import { skip_queue, post_message } from "../helpers/data";
+import { skip_queue, post_message, handle_payload } from "../helpers/data";
 import { resolve_root } from "../helpers/init_helpers";
 import {
 	handle_message,
@@ -192,24 +191,14 @@ export function submit(
 			});
 		}
 
-		// Builds the payload for submitting data to the server, replacing state components with null
-		function build_payload(
-			resolved_payload: unknown[],
-			dependency: Dependency,
-			components: ComponentMeta[]
-		): any[] {
-			return dependency.inputs.map((input_id: number, index: number) => {
-				const component = components.find((c: any) => c.id === input_id);
-				if (component?.type === "state") {
-					return null;
-				}
-				return resolved_payload[index];
-			});
-		}
-
 		this.handle_blob(config.root, resolved_data, endpoint_info).then(
 			async (_payload) => {
-				let input_data = build_payload(_payload, dependency, config.components);
+				let input_data = handle_payload(
+					_payload,
+					dependency,
+					config.components,
+					true
+				);
 				payload = {
 					data: input_data || [],
 					event_data,
@@ -242,7 +231,7 @@ export function submit(
 									type: "data",
 									endpoint: _endpoint,
 									fn_index,
-									data: data,
+									data: handle_payload(data, dependency, config.components),
 									time: new Date(),
 									event_data,
 									trigger_id
@@ -376,7 +365,7 @@ export function submit(
 							fire_event({
 								type: "data",
 								time: new Date(),
-								data: data.data,
+								data: handle_payload(data.data, dependency, config.components),
 								endpoint: _endpoint,
 								fn_index,
 								event_data,
@@ -499,7 +488,7 @@ export function submit(
 							fire_event({
 								type: "data",
 								time: new Date(),
-								data: data.data,
+								data: handle_payload(data.data, dependency, config.components),
 								endpoint: _endpoint,
 								fn_index,
 								event_data,
@@ -650,7 +639,11 @@ export function submit(
 										fire_event({
 											type: "data",
 											time: new Date(),
-											data: data.data,
+											data: handle_payload(
+												data.data,
+												dependency,
+												config.components
+											),
 											endpoint: _endpoint,
 											fn_index
 										});
@@ -693,7 +686,7 @@ export function submit(
 										fn_index,
 										time: new Date()
 									});
-									if (["sse_v2", "sse_v2.1"].includes(protocol)) {
+									if (["sse_v2", "sse_v2.1", ""].includes(protocol)) {
 										close_stream(stream_status, stream);
 										stream_status.open = false;
 									}
