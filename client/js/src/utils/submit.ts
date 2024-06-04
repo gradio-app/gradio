@@ -686,7 +686,7 @@ export function submit(
 										fn_index,
 										time: new Date()
 									});
-									if (["sse_v2", "sse_v2.1", ""].includes(protocol)) {
+									if (["sse_v2", "sse_v2.1"].includes(protocol)) {
 										close_stream(stream_status, stream);
 										stream_status.open = false;
 									}
