@@ -32,7 +32,7 @@ Tip: making a prediction and getting a result requires two `curl` requests: a `P
 
 ## Installation
 
-Generally speaking, you don't need to install cURL, as it comes pre-installed on many operating systems. Run 
+You generally don't need to install cURL, as it comes pre-installed on many operating systems. Run:
 
 ```bash
 curl --version
@@ -66,7 +66,7 @@ Note: to query private Spaces, you will need to pass in your Hugging Face (HF) t
 -H "Authorization: Bearer $HF_TOKEN"
 ```
 
-Now, we are ready to make the two `curl` request
+Now, we are ready to make the two `curl` requests.
 
 ## Step 1: Make a Prediction (POST)
 
@@ -148,6 +148,8 @@ $ curl -X POST https://gradio-image-mod.hf.space/call/predict -H "Content-Type: 
 If your Gradio demo [persists user state](/guides/interface-state) across multiple interactions (e.g. is a chatbot), you can pass in a `session_hash` alongside the `data`. Requests with the same `session_hash` are assumed to be part of the same user session. Here's how that might look:
 
 ```bash
+# These two requests will share a session
+
 curl -X POST https://gradio-chatinterface-random-response.hf.space/call/chat -H "Content-Type: application/json" -d '{
   "data": ["Are you sentient?"],
   "session_hash": "randomsequence1234"
@@ -157,13 +159,22 @@ curl -X POST https://gradio-chatinterface-random-response.hf.space/call/chat -H 
   "data": ["Really?"],
   "session_hash": "randomsequence1234"
 }'
+
+# This request will be treated as a new session
+
+curl -X POST https://gradio-chatinterface-random-response.hf.space/call/chat -H "Content-Type: application/json" -d '{
+  "data": ["Are you sentient?"],
+  "session_hash": "newsequence5678"
+}'
 ```
 
 
 
 ## Step 2: GET the result
 
-Once you have received the `EVENT_ID` corresponding to your prediction, you can stream the results. Gradio uses server-side events, which work naturally with `curl`. You should make a `GET` request with the following syntax:
+Once you have received the `EVENT_ID` corresponding to your prediction, you can stream the results. Gradio stores these results  in a least-recently-used cache in the Gradio app. By default, the cache can store 2,000 results (across all users and endpoints of the app). 
+
+To stream the results for your prediction, make a `GET` request with the following syntax:
 
 ```bash
 $ curl -N $URL/call/$API_NAME/$EVENT_ID
@@ -198,6 +209,15 @@ Revisiting the example at the beginning of the page, we would expect the result 
 ```bash
 event: complete
 data: ["Bonjour, mon ami."]
+```
+
+**Multiple Outputs**
+
+If your endpoint returns multiple values, they will appear as elements of the `data` list:
+
+```bash
+event: complete
+data: ["Good morning Hello. It is 5 degrees today", -15.0]
 ```
 
 **Streaming Example**
