@@ -136,23 +136,45 @@ export function handle_payload(
 	dependency: Dependency,
 	components: ComponentMeta[],
 	with_null_state = false
-): unknown[] {
-	let payload_index = 0;
+): any[] {
+	try {
+		let payload_index = 0;
+		let updated_payload: unknown[] = [];
+
+		dependency.inputs.forEach((input_id) => {
+			const component = components.find((c) => c.id === input_id);
+			if (component?.type === "state") {
+				if (with_null_state) {
+					updated_payload.push(null);
+				}
+				if (!with_null_state) payload_index++;
+			} else {
+				const value = resolved_payload[payload_index];
+				updated_payload.push(value);
+				payload_index++;
+			}
+		});
+
+		return updated_payload;
+	} catch (e) {
+		console.error(e);
+		return resolved_payload;
+	}
+}
+
+export function build_payload(
+	resolved_payload: unknown[],
+	dependency: Dependency,
+	components: ComponentMeta[]
+): any[] {
 	let updated_payload: unknown[] = [];
 
-	dependency.inputs.forEach((input_id) => {
-		const component = components.find((c) => c.id === input_id);
+	dependency.inputs.map((input_id: number, index: number): any => {
+		const component = components.find((c: any) => c.id === input_id);
 		if (component?.type === "state") {
-			if (with_null_state) {
-				updated_payload.push(null);
-			}
-			if (!with_null_state) payload_index++;
-		} else {
-			const value = resolved_payload[payload_index];
-			updated_payload.push(value);
-			payload_index++;
+			return null;
 		}
+		updated_payload.push(resolved_payload[index]);
 	});
-
 	return updated_payload;
 }
