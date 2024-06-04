@@ -656,7 +656,6 @@
 		color: var(--body-text-color);
 	}
 
-<<<<<<< HEAD
 	.message-wrap :global(pre) {
 		position: relative;
 	}
@@ -666,16 +665,13 @@
 		max-width: 600px;
 		object-fit: contain;
 	}
-=======
+
 	/* Image preview */
->>>>>>> main
 	.message :global(.preview) {
 		object-fit: contain;
 		width: 95%;
 		max-height: 93%;
 	}
-<<<<<<< HEAD
-=======
 	.image-preview {
 		position: absolute;
 		z-index: 999;
@@ -710,5 +706,4 @@
 		border: 1px solid var(--button-secondary-border-color);
 		border-radius: var(--radius-lg);
 	}
->>>>>>> main
 </style>
