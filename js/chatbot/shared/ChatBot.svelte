@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { format_chat_for_sharing, dynamicImportComponent } from "./utils";
-	import { copy } from "@gradio/utils";
+	import { Gradio, copy } from "@gradio/utils";
 
 	import { dequal } from "dequal/lite";
 	import {
@@ -24,7 +24,7 @@
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import LikeDislike from "./LikeDislike.svelte";
 	import Pending from "./Pending.svelte";
-
+	export let _fetch: typeof fetch;
 	export let value:
 		| [
 				(
@@ -170,7 +170,7 @@
 		message:
 			| string
 			| { file: FileData | FileData[]; alt_text: string | null }
-			| { type: string; plot: string | null }
+			| { component: string; value: any; constructor_args: any }
 			| null
 	): void {
 		dispatch("select", {
@@ -185,7 +185,7 @@
 		message:
 			| string
 			| { file: FileData | FileData[]; alt_text: string | null }
-			| { type: string; plot: string | null }
+			| { component: string; value: any; constructor_args: any }
 			| null,
 		selected: string | null
 	): void {
@@ -299,6 +299,10 @@
 												value={message.value}
 												show_label={false}
 												{i18n}
+												label=""
+												_fetch={_fetch}
+												preview={true}
+												interactive={true}
 											/>
 										{:else if message.component == "plot"}
 											<BasePlot
@@ -338,16 +342,46 @@
 											/>
 										{/if}
 									{:else if message !== null && "file" in message && message.file !== undefined && !Array.isArray(message.file) && message.file.url !== undefined && message.file.url !== null}
-										<a
-											data-testid="chatbot-file"
-											href={message.file?.url}
-											target="_blank"
-											download={window.__is_colab__
-												? null
-												: message.file?.orig_name || message.file?.path}
-										>
-											{message.file?.orig_name || message.file?.path}
-										</a>
+										{#if message.file?.mime_type?.includes("audio")}
+											<BaseStaticAudio
+												value={message.file}
+												show_label={false}
+												show_share_button={true}
+												{i18n}
+												label=""
+												waveform_settings={{}}
+												waveform_options={{}}
+											/>
+										{:else if message.file?.mime_type?.includes("video")}
+											<BaseStaticVideo
+												autoplay={true}
+												value={message.file}
+												show_label={false}
+												show_share_button={true}
+												{i18n}
+												{upload}
+											>
+												<track kind="captions" />
+											</BaseStaticVideo>
+										{:else if message.file?.mime_type?.includes("image")}
+											<BaseStaticImage
+												value={message.file}
+												show_label={false}
+												show_share_button={true}
+												{i18n}
+											/>
+										{:else}
+											<a
+												data-testid="chatbot-file"
+												href={message.file?.url}
+												target="_blank"
+												download={window.__is_colab__
+													? null
+													: message.file?.orig_name || message.file?.path}
+											>
+												{message.file?.orig_name || message.file?.path}
+											</a>
+										{/if}
 									{/if}
 								</button>
 							</div>

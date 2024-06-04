@@ -28,19 +28,12 @@ fig = random_plot()
 
 with gr.Blocks(fill_height=True) as demo:
     chatbot = gr.Chatbot(
-        [["Image", gr.Image(value=os.path.join(os.path.dirname(__file__), "files/avatar.png"), render=False)],
-         ["Video", gr.Video(value=os.path.join(os.path.dirname(__file__), "files/world.mp4"), render=False)],
-         ["Audio", gr.Audio(value=os.path.join(os.path.dirname(__file__), "files/cantina.wav"), render=False)],
-         ["Plot", gr.Plot(value=fig, render=False)],
-         ["Gallery", gr.Gallery(value=[os.path.join(os.path.dirname(__file__), "files/lion.jpg"),
-                                os.path.join(os.path.dirname(__file__), "files/cheetah.jpg"),
-                                os.path.join(os.path.dirname(__file__), "files/zebra.jpg")], render=False)]],
         elem_id="chatbot",
         bubble_full_width=False,
         scale=1,
     )
 
-    chat_input = gr.MultimodalTextbox(interactive=True, file_types=["image"], placeholder="Enter message or upload file...", show_label=False)
+    chat_input = gr.MultimodalTextbox(interactive=True, placeholder="Enter message or upload file...", show_label=False)
 
     chat_msg = chat_input.submit(add_message, [chatbot, chat_input], [chatbot, chat_input])
     bot_msg = chat_msg.then(bot, chatbot, chatbot, api_name="bot_response")

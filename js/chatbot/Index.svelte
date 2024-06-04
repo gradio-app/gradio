@@ -168,6 +168,7 @@
 			{layout}
 			{placeholder}
 			upload={gradio.client.upload}
+			_fetch={gradio.client.fetch}
 		/>
 	</div>
 </Block>
