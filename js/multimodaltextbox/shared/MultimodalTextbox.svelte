@@ -329,11 +329,11 @@
 	}
 
 	textarea:disabled {
-		-webkit-text-fill-color: var(--body-text-color);
 		-webkit-opacity: 1;
 		opacity: 1;
-		width: 100%;
-		margin-left: 0px;
+		width: 90%;
+		max-width: 95%;
+		margin-left: 35px;
 	}
 
 	textarea::placeholder {
