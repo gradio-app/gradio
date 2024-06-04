@@ -77,7 +77,6 @@ export function submit(
 
 		// event subscription methods
 		function fire_event(event: GradioEvent): void {
-			console.log(event);
 			if (event.type === "status" && event.stage === "error") {
 				push_event(event);
 			} else {
@@ -86,6 +85,7 @@ export function submit(
 		}
 
 		async function cancel(): Promise<void> {
+			console.log("cancel called");
 			const _status: Status = {
 				stage: "complete",
 				queue: false,
@@ -554,8 +554,6 @@ export function submit(
 										last_status[fn_index]
 									);
 
-									console.log(type, status, data);
-
 									if (type == "heartbeat") {
 										return;
 									}
@@ -690,7 +688,6 @@ export function submit(
 		) => void)[] = [];
 
 		function close(): void {
-			console.log("close called");
 			done = true;
 			while (resolvers.length > 0)
 				(resolvers.shift() as (typeof resolvers)[0])({
