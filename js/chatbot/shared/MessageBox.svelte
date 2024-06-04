@@ -1,17 +1,18 @@
 <script lang="ts">
-	export let title: string;
 	let expanded = false;
+	export let emoji: string;
+	export let title: string;
 
-	function toggle_expanded(): void {
+	function toggleExpanded(): void {
 		expanded = !expanded;
 	}
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="box" on:click={toggle_expanded}>
+<div class="box" on:click={toggleExpanded}>
 	<div class="title">
-		<div class="wrench-icon">🛠️</div>
+		<div class="icon">{emoji}</div>
 		<span>{title}</span>
 	</div>
 	{#if expanded}
@@ -33,9 +34,10 @@
 		display: flex;
 		align-items: center;
 		padding: 8px;
+		color: var(--color-red-50);
 	}
 
-	.wrench-icon {
+	.icon {
 		width: 18px;
 		height: 18px;
 		margin-right: 8px;

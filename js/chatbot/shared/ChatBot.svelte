@@ -22,8 +22,7 @@
 	import type { I18nFormatter } from "js/app/src/gradio_helper";
 	import LikeDislike from "./LikeDislike.svelte";
 	import Pending from "./Pending.svelte";
-	import ToolMessage from "./ToolMessage.svelte";
-	import ErrorMessage from "./ErrorMessage.svelte";
+	import MessageBox from "./MessageBox.svelte";
 
 	export let value: Message[] = [];
 	let old_value: Message[] | null = null;
@@ -202,21 +201,18 @@
 >
 	<div class="message-wrap" class:bubble-gap={layout === "bubble"} use:copy>
 		{#if value !== null && value.length > 0}
-		{#if is_image_preview_open}
-			<div class="image-preview">
-				<img
-					src={image_preview_source}
-					alt={image_preview_source_alt}
-				/>
-				<button
-					bind:this={image_preview_close_button}
-					class="image-preview-close-button"
-					on:click={() => {
-						is_image_preview_open = false;
-					}}><Clear /></button
-				>
-			</div>
-		{/if}
+			{#if is_image_preview_open}
+				<div class="image-preview">
+					<img src={image_preview_source} alt={image_preview_source_alt} />
+					<button
+						bind:this={image_preview_close_button}
+						class="image-preview-close-button"
+						on:click={() => {
+							is_image_preview_open = false;
+						}}><Clear /></button
+					>
+				</div>
+			{/if}
 			{@const groupedMessages = groupMessages(value)}
 			{#each groupedMessages as messages, i}
 				{#if messages.length}
@@ -263,8 +259,9 @@
 									{#if isStringMessage(message)}
 										<div class:thought={thought_index > 0}>
 											{#if message.metadata.tool_name}
-												<ToolMessage
+												<MessageBox
 													title={`Used tool ${message.metadata.tool_name}`}
+													emoji="🛠️"
 												>
 													<Markdown
 														message={message.content}
@@ -274,9 +271,9 @@
 														{line_breaks}
 														on:load={scroll}
 													/>
-												</ToolMessage>
+												</MessageBox>
 											{:else if message.metadata.error}
-												<ErrorMessage>
+												<MessageBox title={"Error"} emoji={"💥"}>
 													<Markdown
 														message={message.content}
 														{latex_delimiters}
@@ -285,7 +282,7 @@
 														{line_breaks}
 														on:load={scroll}
 													/>
-												</ErrorMessage>
+												</MessageBox>
 											{:else}
 												<Markdown
 													message={message.content}
