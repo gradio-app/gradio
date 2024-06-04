@@ -2,16 +2,13 @@
 import type {
 	Status,
 	Payload,
-	EventType,
-	ListenerMap,
-	SubmitReturn,
-	EventListener,
-	Event,
+	GradioEvent,
 	JsApiData,
 	EndpointInfo,
 	ApiInfo,
 	Config,
-	Dependency
+	Dependency,
+	SubmitIterable
 } from "../types";
 
 import { skip_queue, post_message } from "../helpers/data";
@@ -25,7 +22,6 @@ import semiver from "semiver";
 import { BROKEN_CONNECTION_MSG, QUEUE_FULL_MSG } from "../constants";
 import { apply_diff_stream, close_stream } from "./stream";
 import { Client } from "../client";
-import { stat } from "fs";
 
 export function submit(
 	this: Client,
@@ -33,7 +29,7 @@ export function submit(
 	data: unknown[] | Record<string, unknown>,
 	event_data?: unknown,
 	trigger_id?: number | null
-): AsyncGenerator<MessageEvent> {
+): SubmitIterable<GradioEvent> {
 	try {
 		const { hf_token } = this.options;
 		const {
@@ -73,15 +69,14 @@ export function submit(
 		let payload: Payload;
 		let event_id: string | null = null;
 		let complete: Status | undefined | false = false;
-		const listener_map: ListenerMap<EventType> = {};
 		let last_status: Record<string, Status["stage"]> = {};
 		let url_params =
-			typeof window !== "undefined"
+			typeof window !== "undefined" && typeof document !== "undefined"
 				? new URLSearchParams(window.location.search).toString()
 				: "";
 
 		// event subscription methods
-		function fire_event<K extends EventType>(event: Event<K>): void {
+		function fire_event(event: GradioEvent): void {
 			if (event.type === "status" && event.stage === "error") {
 				push_error(event);
 			} else {
@@ -497,7 +492,10 @@ export function submit(
 						time: new Date()
 					});
 					let hostname = "";
-					if (typeof window !== "undefined") {
+					if (
+						typeof window !== "undefined" &&
+						typeof document !== "undefined"
+					) {
 						hostname = window?.location?.hostname;
 					}
 
@@ -507,7 +505,9 @@ export function submit(
 						: `https://huggingface.co`;
 
 					const is_iframe =
-						typeof window !== "undefined" && window.parent != window;
+						typeof window !== "undefined" &&
+						typeof document !== "undefined" &&
+						window.parent != window;
 					const is_zerogpu_space = dependency.zerogpu && config.space_id;
 					const zerogpu_auth_promise =
 						is_iframe && is_zerogpu_space
@@ -629,7 +629,6 @@ export function submit(
 												fn_index
 											});
 											close();
-											console.log("closed stream");
 										}
 									}
 
@@ -682,9 +681,9 @@ export function submit(
 		);
 
 		let done = false;
-		const values: (IteratorResult<MessageEvent> | PromiseLike<never>)[] = [];
+		const values: (IteratorResult<GradioEvent> | PromiseLike<never>)[] = [];
 		const resolvers: ((
-			value: IteratorResult<MessageEvent> | PromiseLike<never>
+			value: IteratorResult<GradioEvent> | PromiseLike<never>
 		) => void)[] = [];
 
 		function close(): void {
@@ -697,7 +696,7 @@ export function submit(
 		}
 
 		function push(
-			data: { value: MessageEvent; done: boolean } | PromiseLike<never>
+			data: { value: GradioEvent; done: boolean } | PromiseLike<never>
 		): void {
 			if (done) return;
 			if (resolvers.length > 0) {
@@ -712,33 +711,17 @@ export function submit(
 			close();
 		}
 
-		function push_event(event: MessageEvent): void {
+		function push_event(event: GradioEvent): void {
 			push({ value: event, done: false });
 		}
 
-		function next(): Promise<IteratorResult<MessageEvent, unknown>> {
+		function next(): Promise<IteratorResult<GradioEvent, unknown>> {
 			if (values.length > 0)
 				return Promise.resolve(values.shift() as (typeof values)[0]);
 			if (done) return Promise.resolve({ value: undefined, done: true });
 			return new Promise((resolve) => resolvers.push(resolve));
 		}
 
-		// function initSocket(): void {
-		// 	websocket.addEventListener("close", close);
-		// 	websocket.addEventListener("error", push_error);
-		// 	websocket.addEventListener("message", push_event);
-		// }
-
-		// if (websocket.readyState === WebSocket.CONNECTING) {
-		// 	websocket.addEventListener("open", (event) => {
-		// 		if (emitOpen) push_event(event);
-		// 		initSocket();
-		// 	});
-		// } else {
-		// 	initSocket();
-		// }
-
-		// return { on, off, cancel, destroy };
 		const iterator = {
 			[Symbol.asyncIterator]: () => iterator,
 			next,

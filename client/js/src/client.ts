@@ -8,9 +8,10 @@ import type {
 	JsApiData,
 	SpaceStatus,
 	Status,
-	SubmitReturn,
 	UploadResponse,
-	client_return
+	client_return,
+	SubmitIterable,
+	GradioEvent
 } from "./types";
 import { view_api } from "./utils/view_api";
 import { upload_files } from "./utils/upload_files";
@@ -119,12 +120,12 @@ export class Client {
 		data: unknown[] | Record<string, unknown>,
 		event_data?: unknown,
 		trigger_id?: number | null
-	) => SubmitReturn;
+	) => SubmitIterable<GradioEvent>;
 	predict: (
 		endpoint: string | number,
 		data: unknown[] | Record<string, unknown>,
 		event_data?: unknown
-	) => Promise<SubmitReturn>;
+	) => Promise<unknown>;
 	open_stream: () => Promise<void>;
 	private resolve_config: (endpoint: string) => Promise<Config | undefined>;
 	private resolve_cookies: () => Promise<void>;
@@ -270,7 +271,7 @@ export class Client {
 	): Promise<Config | client_return> {
 		this.config = _config;
 
-		if (typeof window !== "undefined") {
+		if (typeof window !== "undefined" && typeof document !== "undefined") {
 			if (window.location.protocol === "https:") {
 				this.config.root = this.config.root.replace("http://", "https://");
 			}

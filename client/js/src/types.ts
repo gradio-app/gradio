@@ -56,20 +56,20 @@ export type SubmitFunction = (
 	data: unknown[] | Record<string, unknown>,
 	event_data?: unknown,
 	trigger_id?: number | null
-) => SubmitReturn;
+) => SubmitIterable<GradioEvent>;
 
 export type PredictFunction = (
 	endpoint: string | number,
 	data: unknown[] | Record<string, unknown>,
 	event_data?: unknown
-) => Promise<SubmitReturn>;
+) => Promise<unknown>;
 
 // Event and Submission Types
 
-type event = <K extends EventType>(
-	eventType: K,
-	listener: EventListener<K>
-) => SubmitReturn;
+// type event = <K extends EventType>(
+// 	eventType: K,
+// 	listener: EventListener<K>
+// ) => SubmitReturn;
 
 export type client_return = {
 	config: Config | undefined;
@@ -83,12 +83,17 @@ export type client_return = {
 	view_api: (_fetch: typeof fetch) => Promise<ApiInfo<JsApiData>>;
 };
 
-export type SubmitReturn = {
-	on: event;
-	off: event;
+// export type SubmitReturn = {
+// 	on: event;
+// 	off: event;
+// 	cancel: () => Promise<void>;
+// 	destroy: () => void;
+// };
+
+export interface SubmitIterable<T> extends AsyncIterable<T> {
+	[Symbol.asyncIterator](): AsyncIterator<T>;
 	cancel: () => Promise<void>;
-	destroy: () => void;
-};
+}
 
 // Space Status Types
 
@@ -242,13 +247,18 @@ export interface EventMap {
 	render: RenderMessage;
 }
 
-export type Event<K extends EventType> = {
-	[P in K]: EventMap[P] & { type: P; endpoint: string; fn_index: number };
-}[K];
-export type EventListener<K extends EventType> = (event: Event<K>) => void;
-export type ListenerMap<K extends EventType> = {
-	[P in K]?: EventListener<K>[];
-};
+export type GradioEvent = {
+	[P in EventType]: EventMap[P] & {
+		type: P;
+		endpoint: string;
+		fn_index: number;
+	};
+}[EventType];
+
+// export type EventListener<K extends EventType> = (event: Event<K>) => void;
+// export type ListenerMap<K extends EventType> = {
+// 	[P in K]?: EventListener<K>[];
+// };
 export interface LogMessage {
 	log: string;
 	level: "warning" | "info";

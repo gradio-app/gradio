@@ -40,7 +40,6 @@ export async function open_stream(this: Client): Promise<void> {
 
 	stream.onmessage = async function (event: MessageEvent) {
 		let _data = JSON.parse(event.data);
-		console.log(_data);
 		if (_data.msg === "close_stream") {
 			close_stream(stream_status, that.abort_controller);
 			return;
@@ -53,7 +52,6 @@ export async function open_stream(this: Client): Promise<void> {
 				)
 			);
 		} else if (event_callbacks[event_id] && config) {
-			console.log("BOOOOOOO", _data.msg, config.protocol);
 			if (
 				_data.msg === "process_completed" &&
 				["sse", "sse_v1", "sse_v2", "sse_v2.1", "sse_v3"].includes(
@@ -61,17 +59,16 @@ export async function open_stream(this: Client): Promise<void> {
 				)
 			) {
 				unclosed_events.delete(event_id);
-				console.log("unclosed_events", unclosed_events.size);
 				if (unclosed_events.size === 0) {
 					close_stream(stream_status, that.abort_controller);
 				}
 			}
 			let fn: (data: any) => void = event_callbacks[event_id];
 
-			if (typeof window !== "undefined") {
+			if (typeof window !== "undefined" && typeof document !== "undefined") {
 				window.setTimeout(fn, 0, _data); // need to do this to put the event on the end of the event loop, so the browser can refresh between callbacks and not freeze in case of quick generations. See https://github.com/gradio-app/gradio/pull/7055
 			} else {
-				setImmediate(fn, _data);
+				fn(_data);
 			}
 		} else {
 			if (!pending_stream_messages[event_id]) {
@@ -98,7 +95,6 @@ export function close_stream(
 	abort_controller: AbortController | null
 ): void {
 	if (stream_status) {
-		console.log("CLOSING STREAM FULLY");
 		stream_status.open = false;
 		abort_controller?.abort();
 	}
@@ -211,8 +207,6 @@ export function readable_stream(
 		}
 	};
 
-	console.log({ init });
-
 	stream(input, init)
 		.then(async (res) => {
 			instance.readyState = instance.OPEN;
@@ -222,11 +216,9 @@ export function readable_stream(
 					instance.onmessage && instance.onmessage(chunk);
 				}
 				instance.readyState = instance.CLOSED;
-				console.log("======DONE=======");
 			} catch (e) {
 				instance.onerror && instance.onerror(e as Event);
 				instance.readyState = instance.CLOSED;
-				console.log("ERRORED");
 			}
 		})
 		.catch((e) => {
