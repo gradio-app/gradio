@@ -144,7 +144,7 @@ console.log(result.data);
     {represent_value(
 	example_input,
 	python_type.type,
-	"js"
+	"bash"
 )}{#if i < endpoint_parameters.length - 1}, {/if}
 {/each}
 ]{'}'}'</pre>
