@@ -14,12 +14,7 @@ import type {
 	Dependency
 } from "../types";
 
-import {
-	skip_queue,
-	post_message,
-	handle_payload,
-	build_payload
-} from "../helpers/data";
+import { skip_queue, post_message, handle_payload } from "../helpers/data";
 import { resolve_root } from "../helpers/init_helpers";
 import {
 	handle_message,
@@ -198,9 +193,14 @@ export function submit(
 
 		this.handle_blob(config.root, resolved_data, endpoint_info).then(
 			async (_payload) => {
-				let input_data = build_payload(_payload, dependency, config.components);
+				let input_data = handle_payload(
+					_payload,
+					dependency,
+					config.components,
+					true
+				);
 				payload = {
-					data: input_data || _payload || [],
+					data: input_data || [],
 					event_data,
 					fn_index,
 					trigger_id
@@ -231,8 +231,7 @@ export function submit(
 									type: "data",
 									endpoint: _endpoint,
 									fn_index,
-									// data: handle_payload(data, dependency, config.components),
-									data: data,
+									data: handle_payload(data, dependency, config.components),
 									time: new Date(),
 									event_data,
 									trigger_id

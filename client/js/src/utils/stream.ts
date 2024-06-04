@@ -51,9 +51,7 @@ export async function open_stream(this: Client): Promise<void> {
 		} else if (event_callbacks[event_id] && config) {
 			if (
 				_data.msg === "process_completed" &&
-				["sse", "sse_v1", "sse_v2", "sse_v2.1", "sse_v3"].includes(
-					config.protocol
-				)
+				["sse", "sse_v1", "sse_v2", "sse_v2.1"].includes(config.protocol)
 			) {
 				unclosed_events.delete(event_id);
 				if (unclosed_events.size === 0) {
