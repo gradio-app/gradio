@@ -1943,11 +1943,15 @@ Received outputs:
                 state,
             )
             data = await self.postprocess_data(block_fn, result["prediction"], state)
-            changed_state_ids = [
-                state_id
-                for hash_value, state_id in zip(hashed_values, state_ids_to_track)
-                if hash_value != utils.deep_hash(state[state_id])
-            ]
+            changed_state_ids = (
+                [
+                    state_id
+                    for hash_value, state_id in zip(hashed_values, state_ids_to_track)
+                    if hash_value != utils.deep_hash(state[state_id])
+                ]
+                if state
+                else []
+            )
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
