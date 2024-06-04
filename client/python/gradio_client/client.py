@@ -92,7 +92,7 @@ class Client:
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
             verbose: Whether the client should print statements to the console.
             headers: Additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. This parameter will override the default headers if they have the same keys.
-            download_files: Whether and where the client should download output files from the remote API and return them as string filepaths on the local machine. By default, reads from the GRADIO_TEMP_DIR environment variable which, if not set, is a temporary directory on your machine. If False, the client does not download files and returns a FileData dataclass object with the filepath on the remote machine instead.
+            download_files: Directory where the client should download output files  on the local machine from the remote API. By default, uses the value of the GRADIO_TEMP_DIR environment variable which, if not set by the user, is a temporary directory on your machine. If False, the client does not download files and returns a FileData dataclass object with the filepath on the remote machine instead.
             ssl_verify: If False, skips certificate validation which allows the client to connect to Gradio apps that are using self-signed certificates.
         """
         self.verbose = verbose
@@ -110,6 +110,14 @@ class Client:
         self.space_id = None
         self.cookies: dict[str, str] = {}
         if isinstance(self.download_files, (str, Path)):
+            if not os.path.exists(self.download_files):
+                raise ValueError(
+                    f"Download directory: {self.download_files} does not exist."
+                )
+            if not os.path.isdir(self.download_files):
+                raise ValueError(
+                    f"Path: {self.download_files} is not a directory."
+                )
             self.output_dir = str(self.download_files)
         else:
             self.output_dir = DEFAULT_TEMP_DIR
