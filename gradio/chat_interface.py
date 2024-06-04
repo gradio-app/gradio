@@ -57,7 +57,7 @@ class ChatInterface(Blocks):
         fn: Callable,
         *,
         multimodal: bool = False,
-        msg_format: Literal["openai", "tuples"] = "tuples",
+        msg_format: Literal["messages", "tuples"] = "tuples",
         chatbot: Chatbot | None = None,
         textbox: Textbox | MultimodalTextbox | None = None,
         additional_inputs: str | Component | list[str | Component] | None = None,
@@ -123,7 +123,7 @@ class ChatInterface(Blocks):
             fill_height=fill_height,
             delete_cache=delete_cache,
         )
-        self.msg_format: Literal["openai", "tuples"] = msg_format
+        self.msg_format: Literal["messages", "tuples"] = msg_format
         self.multimodal = multimodal
         self.concurrency_limit = concurrency_limit
         self.fn = fn
@@ -521,7 +521,7 @@ class ChatInterface(Blocks):
             self._append_multimodal_history(message, None, history)
         elif isinstance(message, str) and self.msg_format == "tuples":
             history.append([message, None])  # type: ignore
-        elif isinstance(message, str) and self.msg_format == "openai":
+        elif isinstance(message, str) and self.msg_format == "messages":
             history.append({"role": "user", "content": message})  # type: ignore
         return history, history  # type: ignore
 
@@ -578,7 +578,7 @@ class ChatInterface(Blocks):
                 self.fn, *inputs, limiter=self.limiter
             )
 
-        if self.msg_format == "openai":
+        if self.msg_format == "messages":
             new_response = self.response_as_dict(response)
         else:
             new_response = response
@@ -587,7 +587,7 @@ class ChatInterface(Blocks):
             self._append_multimodal_history(message, new_response, history)  # type: ignore
         elif isinstance(message, str) and self.msg_format == "tuples":
             history.append([message, response])  # type: ignore
-        elif isinstance(message, str) and self.msg_format == "openai":
+        elif isinstance(message, str) and self.msg_format == "messages":
             history.append({"role": "user", "content": message})  # type: ignore
         return history, history  # type: ignore
 
@@ -622,7 +622,7 @@ class ChatInterface(Blocks):
             generator = SyncToAsyncIterator(generator, self.limiter)
         try:
             first_response = await async_iteration(generator)
-            if self.msg_format == "openai":
+            if self.msg_format == "messages":
                 first_response = self.response_as_dict(
                     first_response, current_response=cast(MessageDict, current_response)
                 )
@@ -638,7 +638,7 @@ class ChatInterface(Blocks):
             elif (
                 self.multimodal
                 and isinstance(message, MultimodalData)
-                and self.msg_format == "openai"
+                and self.msg_format == "messages"
             ):
                 for x in message.files:
                     history.append(
@@ -666,7 +666,7 @@ class ChatInterface(Blocks):
                 update = history + [[message, None]]
                 yield update, update
         async for response in generator:
-            if self.msg_format == "openai":
+            if self.msg_format == "messages":
                 response = self.response_as_dict(
                     response, current_response=cast(MessageDict, current_response)
                 )
@@ -680,7 +680,7 @@ class ChatInterface(Blocks):
             elif (
                 self.multimodal
                 and isinstance(message, MultimodalData)
-                and self.msg_format == "openai"
+                and self.msg_format == "messages"
             ):
                 update = history + [
                     {"role": "user", "content": message.text},
@@ -807,7 +807,7 @@ class ChatInterface(Blocks):
         str | MultimodalData,
         list[MessageDict] | TupleFormat,
     ]:
-        extra = 1 if self.msg_format == "openai" else 0
+        extra = 1 if self.msg_format == "messages" else 0
         if self.multimodal and isinstance(message, MultimodalData):
             remove_input = (
                 len(message.files) + 1

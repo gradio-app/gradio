@@ -30,7 +30,7 @@
 	export let sanitize_html = true;
 	export let bubble_full_width = true;
 	export let layout: "bubble" | "panel" = "bubble";
-	export let msg_format: "tuples" | "openai" = "tuples";
+	export let msg_format: "tuples" | "messages" = "tuples";
 	export let render_markdown = true;
 	export let line_breaks = true;
 	export let latex_delimiters: {
@@ -72,13 +72,13 @@
 
 	function consolidate_msg_format(
 		value: TupleFormat | Message[],
-		msg_format: "openai" | "tuples"
+		msg_format: "messages" | "tuples"
 	): Message[] {
 		if (msg_format === "tuples" && is_tuple_format(value)) {
 			if (!value) {
 				return [];
 			}
-			const openai = (value as TupleFormat).flatMap(([user_msg, bot_msg]) => [
+			const messages = (value as TupleFormat).flatMap(([user_msg, bot_msg]) => [
 				{
 					content:
 						typeof user_msg === "string"
@@ -96,7 +96,7 @@
 					metadata: { error: false, tool_name: null }
 				}
 			]);
-			return openai.filter(
+			return messages.filter(
 				(c) => c.content != null && ["user", "assistant"].includes(c.role)
 			) as Message[];
 		}

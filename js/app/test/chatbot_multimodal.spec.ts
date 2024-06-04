@@ -1,11 +1,11 @@
 import { test, expect, go_to_testcase } from "@gradio/tootils";
 
-for (const msg_format of ["tuples", "openai"]) {
+for (const msg_format of ["tuples", "messages"]) {
 	test(`message format ${msg_format} - text input by a user should be shown in the chatbot as a paragraph`, async ({
 		page
 	}) => {
-		if (msg_format === "openai") {
-			await go_to_testcase(page, "openai");
+		if (msg_format === "messages") {
+			await go_to_testcase(page, "messages");
 		}
 		const textbox = await page.getByTestId("textbox");
 		await textbox.fill("Lorem ipsum");
@@ -27,8 +27,8 @@ for (const msg_format of ["tuples", "openai"]) {
 	test(`message format ${msg_format} - images uploaded by a user should be shown in the chat`, async ({
 		page
 	}) => {
-		if (msg_format === "openai") {
-			await go_to_testcase(page, "openai");
+		if (msg_format === "messages") {
+			await go_to_testcase(page, "messages");
 		}
 		const fileChooserPromise = page.waitForEvent("filechooser");
 		await page.getByTestId("upload-button").click();
@@ -55,8 +55,8 @@ for (const msg_format of ["tuples", "openai"]) {
 	test(`message format ${msg_format} - audio uploaded by a user should be shown in the chatbot`, async ({
 		page
 	}) => {
-		if (msg_format === "openai") {
-			await go_to_testcase(page, "openai");
+		if (msg_format === "messages") {
+			await go_to_testcase(page, "messages");
 		}
 		const fileChooserPromise = page.waitForEvent("filechooser");
 		await page.getByTestId("upload-button").click();
@@ -82,8 +82,8 @@ for (const msg_format of ["tuples", "openai"]) {
 	test(`message format ${msg_format} - videos uploaded by a user should be shown in the chatbot`, async ({
 		page
 	}) => {
-		if (msg_format === "openai") {
-			await go_to_testcase(page, "openai");
+		if (msg_format === "messages") {
+			await go_to_testcase(page, "messages");
 		}
 		const fileChooserPromise = page.waitForEvent("filechooser");
 		await page.getByTestId("upload-button").click();
@@ -109,8 +109,8 @@ for (const msg_format of ["tuples", "openai"]) {
 	test(`message format ${msg_format} - markdown input by a user should be correctly formatted: bold, italics, links`, async ({
 		page
 	}) => {
-		if (msg_format === "openai") {
-			await go_to_testcase(page, "openai");
+		if (msg_format === "messages") {
+			await go_to_testcase(page, "messages");
 		}
 		const textbox = await page.getByTestId("textbox");
 		await textbox.fill(
@@ -136,8 +136,8 @@ for (const msg_format of ["tuples", "openai"]) {
 	test(`message format ${msg_format} - inline code markdown input by the user should be correctly formatted`, async ({
 		page
 	}) => {
-		if (msg_format === "openai") {
-			await go_to_testcase(page, "openai");
+		if (msg_format === "messages") {
+			await go_to_testcase(page, "messages");
 		}
 		const textbox = await page.getByTestId("textbox");
 		await textbox.fill("This is `code`.");
@@ -159,8 +159,8 @@ for (const msg_format of ["tuples", "openai"]) {
 	test(`message format ${msg_format} - markdown code blocks input by a user should be rendered correctly with the correct language tag`, async ({
 		page
 	}) => {
-		if (msg_format === "openai") {
-			await go_to_testcase(page, "openai");
+		if (msg_format === "messages") {
+			await go_to_testcase(page, "messages");
 		}
 		const textbox = await page.getByTestId("textbox");
 		await textbox.fill("```python\nprint('Hello')\nprint('World!')\n```");
@@ -182,8 +182,8 @@ for (const msg_format of ["tuples", "openai"]) {
 	test(`message format ${msg_format} - LaTeX input by a user should be rendered correctly`, async ({
 		page
 	}) => {
-		if (msg_format === "openai") {
-			await go_to_testcase(page, "openai");
+		if (msg_format === "messages") {
+			await go_to_testcase(page, "messages");
 		}
 		const textbox = await page.getByTestId("textbox");
 		await textbox.fill("This is LaTeX $$x^2$$");
@@ -205,8 +205,8 @@ for (const msg_format of ["tuples", "openai"]) {
 	test(`message format ${msg_format} - when a new message is sent the chatbot should scroll to the latest message`, async ({
 		page
 	}) => {
-		if (msg_format === "openai") {
-			await go_to_testcase(page, "openai");
+		if (msg_format === "messages") {
+			await go_to_testcase(page, "messages");
 		}
 		const textbox = await page.getByTestId("textbox");
 		const line_break = "<br>";
@@ -224,8 +224,8 @@ for (const msg_format of ["tuples", "openai"]) {
 	test(`message format ${msg_format} - chatbot like and dislike functionality`, async ({
 		page
 	}) => {
-		if (msg_format === "openai") {
-			await go_to_testcase(page, "openai");
+		if (msg_format === "messages") {
+			await go_to_testcase(page, "messages");
 		}
 		await page.getByTestId("textbox").click();
 		await page.getByTestId("textbox").fill("hello");

@@ -86,7 +86,7 @@ class Chatbot(Component):
         | Callable
         | None = None,
         *,
-        msg_format: Literal["openai", "tuples"] = "tuples",
+        msg_format: Literal["messages", "tuples"] = "tuples",
         label: str | None = None,
         every: float | None = None,
         show_label: bool | None = None,
@@ -141,8 +141,8 @@ class Chatbot(Component):
             placeholder: a placeholder message to display in the chatbot when it is empty. Centered vertically and horizontally in the Chatbot. Supports Markdown and HTML. If None, no placeholder is displayed.
         """
         self.likeable = likeable
-        self.msg_format: Literal["tuples", "openai"] = msg_format
-        if msg_format == "openai":
+        self.msg_format: Literal["tuples", "messages"] = msg_format
+        if msg_format == "messages":
             self.data_model = ChatbotDataOpenAi
         else:
             self.data_model = ChatbotData
@@ -187,8 +187,8 @@ class Chatbot(Component):
         self.placeholder = placeholder
 
     @staticmethod
-    def _check_format(messages: list[Any], msg_format: Literal["openai", "tuples"]):
-        if msg_format == "openai":
+    def _check_format(messages: list[Any], msg_format: Literal["messages", "tuples"]):
+        if msg_format == "messages":
             all_dicts = all(
                 isinstance(message, dict) and "role" in message and "content" in message
                 for message in messages
@@ -196,7 +196,7 @@ class Chatbot(Component):
             all_msgs = all(isinstance(msg, Message) for msg in messages)
             if not (all_dicts or all_msgs):
                 raise Error(
-                    "Data incompatible with openai format. Each message should be a dictionary with 'role' and 'content' keys or an instance of gr.components.chatbot.Message."
+                    "Data incompatible with messages format. Each message should be a dictionary with 'role' and 'content' keys or an instance of gr.components.chatbot.Message."
                 )
         elif not all(
             isinstance(message, (tuple, list)) and len(message) == 2
@@ -340,7 +340,7 @@ class Chatbot(Component):
         if self.msg_format == "tuples":
             self._check_format(value, "tuples")
             return self._postprocess_messages_tuples(cast(TupleFormat, value))
-        self._check_format(value, "openai")
+        self._check_format(value, "messages")
         processed_messages = [
             msg
             for message in value
@@ -349,7 +349,7 @@ class Chatbot(Component):
         return ChatbotDataOpenAi(root=processed_messages)
 
     def example_payload(self) -> Any:
-        if self.msg_format == "openai":
+        if self.msg_format == "messages":
             return [
                 Message(role="user", content="Hello!").model_dump(),
                 Message(role="assistant", content="How can I help you?").model_dump(),
@@ -357,7 +357,7 @@ class Chatbot(Component):
         return [["Hello!", None]]
 
     def example_value(self) -> Any:
-        if self.msg_format == "openai":
+        if self.msg_format == "messages":
             return [
                 Message(role="user", content="Hello!").model_dump(),
                 Message(role="assistant", content="How can I help you?").model_dump(),

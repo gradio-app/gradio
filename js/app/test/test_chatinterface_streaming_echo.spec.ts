@@ -1,11 +1,11 @@
 import { test, expect, go_to_testcase } from "@gradio/tootils";
 
-for (const msg_format of ["tuples", "openai"]) {
+for (const msg_format of ["tuples", "messages"]) {
 	test(`msg format ${msg_format} chatinterface works with streaming functions and all buttons behave as expected`, async ({
 		page
 	}) => {
-		if (msg_format === "openai") {
-			await go_to_testcase(page, "openai");
+		if (msg_format === "messages") {
+			await go_to_testcase(page, "messages");
 		}
 		const submit_button = page.getByRole("button", { name: "Submit" });
 		const retry_button = page.getByRole("button", { name: "🔄 Retry" });
@@ -72,8 +72,8 @@ for (const msg_format of ["tuples", "openai"]) {
 	test(`msg format ${msg_format} the api recorder correctly records the api calls`, async ({
 		page
 	}) => {
-		if (msg_format === "openai") {
-			await go_to_testcase(page, "openai");
+		if (msg_format === "messages") {
+			await go_to_testcase(page, "messages");
 		}
 		const textbox = page.getByPlaceholder("Type a message...");
 		const submit_button = page.getByRole("button", { name: "Submit" });
