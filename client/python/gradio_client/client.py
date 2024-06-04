@@ -115,9 +115,7 @@ class Client:
                     f"Download directory: {self.download_files} does not exist."
                 )
             if not os.path.isdir(self.download_files):
-                raise ValueError(
-                    f"Path: {self.download_files} is not a directory."
-                )
+                raise ValueError(f"Path: {self.download_files} is not a directory.")
             self.output_dir = str(self.download_files)
         else:
             self.output_dir = DEFAULT_TEMP_DIR
