@@ -20,6 +20,7 @@ import threading
 import time
 import traceback
 import typing
+import hashlib
 import urllib.parse
 import warnings
 from abc import ABC, abstractmethod
@@ -1395,3 +1396,25 @@ def connect_heartbeat(config: dict[str, Any], blocks) -> bool:
                 if any_unload:
                     break
     return any_state or any_unload
+
+
+def deep_hash(obj):
+    """Compute a hash for a deeply nested data structure."""
+    hasher = hashlib.sha256()
+    if isinstance(obj, (int, float, str, bytes)):
+        items = obj
+    elif isinstance(obj, dict):
+        items = tuple(
+            [
+                (k, deep_hash(v))
+                for k, v in sorted(obj.items(), key=lambda x: hash(x[0]))
+            ]
+        )
+    elif isinstance(obj, (list, tuple)):
+        items = tuple(deep_hash(x) for x in obj)
+    elif isinstance(obj, set):
+        items = tuple(deep_hash(x) for x in sorted(obj, key=hash))
+    else:
+        items = str(id(obj)).encode("utf-8")
+    hasher.update(repr(items).encode("utf-8"))
+    return hasher.hexdigest()
