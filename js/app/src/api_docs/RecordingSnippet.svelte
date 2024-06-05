@@ -10,8 +10,11 @@
 	export let root: string;
 	export let current_language: "python" | "javascript" | "bash";
 
-	let code: HTMLElement;
-	let code_text: string;
+	let python_code: HTMLElement;
+	let python_code_text: string;
+	let js_code: HTMLElement;
+	let bash_code: HTMLElement;
+
 	export let api_calls: Payload[] = [];
 
 	async function get_info(): Promise<{
@@ -112,19 +115,20 @@
 		}));
 
 		await tick();
-		$: code_text = code.innerText;
+
+		python_code_text = python_code.innerText;
 	});
 </script>
 
 <div class="container">
 	<!-- <EndpointDetail {named} api_name={dependency.api_name} /> -->
 	<Block border_mode={"focus"}>
-		<code>
-			<div class="copy">
-				<CopyButton code={code_text} />
-			</div>
-			<div bind:this={code}>
-				{#if current_language === "python"}
+		{#if current_language === "python"}
+			<code>
+				<div class="copy">
+					<CopyButton code={python_code_text} />
+				</div>
+				<div bind:this={python_code}>
 					<pre><span class="highlight">from</span> gradio_client <span
 							class="highlight">import</span
 						> Client, file
@@ -137,19 +141,33 @@ client.<span class="highlight"
 {call}  api_name=<span class="api-name">"/{api_name}"</span>
 )
 </span>{/each}</pre>
-				{:else if current_language === "javascript"}
+				</div>
+			</code>
+		{:else if current_language === "javascript"}
+			<code>
+				<div class="copy">
+					<CopyButton code={js_code?.innerText} />
+				</div>
+				<div bind:this={js_code}>
 					<pre>import &lbrace; Client &rbrace; from "@gradio/client";
 
-const app = await Client.connect(<span class="token string">"{short_root}"</span
+					const app = await Client.connect(<span class="token string">"{short_root}"</span
 						>);
-{#each js_zipped as { call, api_name }}<!--
--->
-await client.predict(<span
+					{#each js_zipped as { call, api_name }}<!--
+					-->
+					await client.predict(<span
 								class="api-name">
-	"/{api_name}"</span
+						"/{api_name}"</span
 							>{#if call},{/if}{call});
 						{/each}</pre>
-				{:else if current_language === "bash"}
+				</div>
+			</code>
+		{:else if current_language === "bash"}
+			<code>
+				<div class="copy">
+					<CopyButton code={bash_code?.innerText} />
+				</div>
+				<div bind:this={bash_code}>
 					{#each bash_zipped as { call, api_name }}
 						<pre>EVENT_ID=$(
 curl -X POST {short_root}call/{api_name} -s -H "Content-Type: application/json" -d '{"{"} 
@@ -159,9 +177,9 @@ curl -X POST {short_root}call/{api_name} -s -H "Content-Type: application/json" 
 					</pre>
 						<br />
 					{/each}
-				{/if}
-			</div></code
-		>
+				</div>
+			</code>
+		{/if}
 	</Block>
 </div>
 
