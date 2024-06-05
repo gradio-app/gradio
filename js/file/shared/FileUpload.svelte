@@ -50,12 +50,7 @@
 	$: dispatch("drag", dragging);
 </script>
 
-<BlockLabel
-	{show_label}
-	Icon={File}
-	float={value === null}
-	label={label || "File"}
-/>
+<BlockLabel {show_label} Icon={File} float={!value} label={label || "File"} />
 
 {#if value && (Array.isArray(value) ? value.length > 0 : true)}
 	<ModifyUpload {i18n} on:clear={handle_clear} absolute />
