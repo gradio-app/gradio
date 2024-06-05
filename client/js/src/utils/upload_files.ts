@@ -5,7 +5,7 @@ import type { UploadResponse } from "../types";
 export async function upload_files(
 	this: Client,
 	root_url: string,
-	files: (Blob | File)[],
+	files: (Blob | File | Buffer)[],
 	upload_id?: string
 ): Promise<UploadResponse> {
 	const headers: {
@@ -23,7 +23,8 @@ export async function upload_files(
 		const chunk = files.slice(i, i + chunkSize);
 		const formData = new FormData();
 		chunk.forEach((file) => {
-			formData.append("files", file);
+			const blob = new Blob([file]);
+			formData.append("files", blob);
 		});
 		try {
 			const upload_url = upload_id

@@ -1,12 +1,14 @@
-import type {
+import {
 	ApiData,
 	BlobRef,
 	Config,
 	EndpointInfo,
 	JsApiData,
-	DataType
+	DataType,
+	Command
 } from "../types";
-import { FileData } from "../upload";
+import { FileData, prepare_files } from "../upload";
+import path from "path";
 
 export function update_object(
 	object: { [x: string]: any },
@@ -120,17 +122,25 @@ export function post_message<Res = any>(
 
 export function handle_file(
 	file_or_url: File | string | Blob | Buffer
-): FileData | Blob {
-	if (
-		typeof file_or_url === "string" &&
-		(file_or_url.startsWith("http://") || file_or_url.startsWith("https://"))
-	) {
-		return {
+): FileData | Blob | Command {
+	if (typeof file_or_url === "string") {
+		if (
+			file_or_url.startsWith("http://") ||
+			file_or_url.startsWith("https://")
+		) {
+			return {
+				path: file_or_url,
+				url: file_or_url,
+				orig_name: file_or_url.split("/").pop() ?? "unknown",
+				meta: { _type: "gradio.FileData" }
+			};
+		}
+		// Handle local file paths
+		return new Command("command", "upload_file", {
 			path: file_or_url,
-			url: file_or_url,
-			orig_name: file_or_url.split("/").pop() ?? "unknown",
-			meta: { _type: "gradio.FileData" }
-		};
+			name: path.basename(file_or_url),
+			orig_path: file_or_url
+		});
 	} else if (file_or_url instanceof File || file_or_url instanceof Buffer) {
 		return {
 			path: file_or_url instanceof File ? file_or_url.name : "blob",
