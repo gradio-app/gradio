@@ -7,6 +7,11 @@ import {
 } from "../types";
 import { FileData } from "../upload";
 import type { Client } from "..";
+import {
+	FILE_PROCESSING_ERROR_MSG,
+	NODEJS_FS_ERROR_MSG,
+	ROOT_URL_ERROR_MSG
+} from "../constants";
 
 export async function handle_blob(
 	this: Client,
@@ -60,20 +65,17 @@ export async function process_local_file_commands(
 	const root = client.config?.root || client.config?.root_url;
 
 	if (!root) {
-		throw new Error("Root URL not found in client config");
+		throw new Error(ROOT_URL_ERROR_MSG);
 	}
 
 	for (let i = 0; i < data.length; i++) {
 		const item = data[i];
-		if (
-			item instanceof Command &&
-			item.type === "command" &&
-			item.command === "upload_file"
-		) {
+		if (item instanceof Command) {
 			let cmd_item = item as Command;
 
 			try {
 				let fileBuffer: Buffer;
+				let fullPath: string;
 
 				// check if running in a Node.js environment
 				if (
@@ -82,17 +84,19 @@ export async function process_local_file_commands(
 					process.versions.node
 				) {
 					const fs = await import("fs/promises");
-					fileBuffer = await fs.readFile(cmd_item.meta.path);
+					const path = await import("path");
+
+					fullPath = path.resolve(process.cwd(), cmd_item.meta.path);
+					fileBuffer = await fs.readFile(fullPath); // Read file from disk
 				} else {
-					throw new Error(
-						"File system access is only available in Node.js environments"
-					);
+					throw new Error(NODEJS_FS_ERROR_MSG);
 				}
 
-				const blob = new Blob([fileBuffer], {
+				const file = new File([fileBuffer], cmd_item.meta.name, {
 					type: "application/octet-stream"
 				});
-				const response = await client.upload_files(root, [blob]); // Upload the file
+
+				const response = await client.upload_files(root, [file]);
 
 				const file_url = response.files && response.files[0];
 
@@ -104,11 +108,9 @@ export async function process_local_file_commands(
 
 					// replace the command object with the fileData object
 					data[i] = fileData;
-				} else {
-					console.error("File upload failed, no file URL returned");
 				}
 			} catch (error) {
-				console.error("Error processing upload_file command:", error);
+				console.error(FILE_PROCESSING_ERROR_MSG, error);
 			}
 		}
 	}

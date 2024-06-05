@@ -7,7 +7,7 @@ import {
 	DataType,
 	Command
 } from "../types";
-import { FileData, prepare_files } from "../upload";
+import { FileData } from "../upload";
 import path from "path";
 
 export function update_object(
@@ -141,7 +141,7 @@ export function handle_file(
 			name: path.basename(file_or_url),
 			orig_path: file_or_url
 		});
-	} else if (file_or_url instanceof File || file_or_url instanceof Buffer) {
+	} else if (file_or_url instanceof File) {
 		return {
 			path: file_or_url instanceof File ? file_or_url.name : "blob",
 			orig_name: file_or_url instanceof File ? file_or_url.name : "unknown",
@@ -157,6 +157,8 @@ export function handle_file(
 					: "application/octet-stream", // Default MIME type for buffers
 			meta: { _type: "gradio.FileData" }
 		};
+	} else if (file_or_url instanceof Buffer) {
+		return new Blob([file_or_url]);
 	} else if (file_or_url instanceof Blob) {
 		return file_or_url;
 	}

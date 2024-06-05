@@ -79,7 +79,7 @@ export class Client {
 	view_api: () => Promise<ApiInfo<JsApiData>>;
 	upload_files: (
 		root_url: string,
-		files: (Blob | File | Buffer)[],
+		files: (Blob | File)[],
 		upload_id?: string
 	) => Promise<UploadResponse>;
 	upload: (
