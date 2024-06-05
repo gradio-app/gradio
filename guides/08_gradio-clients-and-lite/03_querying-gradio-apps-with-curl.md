@@ -39,10 +39,10 @@ $ curl -X POST https://abidlabs-en2fr.hf.space/call/predict -H "Content-Type: ap
 >> data: ["Bonjour, mon ami."]
 ```
 
+In the rest of this Guide, we'll explain these two steps in more detail and provide additional examples of querying Gradio apps with `curl`.
 
 
-
-**Prerequisites**: For this Guide, you do _not_ need to know the `gradio` library in great detail. However, it is helpful to have general familiarity with Gradio's concepts of input and output components.
+**Prerequisites**: For this Guide, you do _not_ need to know how to build Gradio apps in great detail. However, it is helpful to have general familiarity with Gradio's concepts of input and output components.
 
 ## Installation
 
@@ -142,7 +142,7 @@ $ curl -X POST https://private-space.hf.space/call/predict -H "Content-Type: app
 
 **Files**
 
-If your Gradio application requires file inputs, you can pass in files as URLs through `curl`. The URL needs to be enclosed in a dictionary in this format:
+If you are using `curl` to query a Gradio application that requires file inputs, the files *need* to be provided as URLs, and The URL needs to be enclosed in a dictionary in this format:
 
 ```bash
 {"path": $URL}
