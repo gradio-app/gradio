@@ -8,7 +8,7 @@ from typing import Any, Literal, cast
 
 import numpy as np
 import PIL.Image
-from gradio_client import file
+from gradio_client import handle_file
 from gradio_client.documentation import document
 from PIL import ImageOps
 
@@ -216,7 +216,7 @@ class Image(StreamingInput, Component):
             )
 
     def example_payload(self) -> Any:
-        return file(
+        return handle_file(
             "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
         )
 

@@ -20,7 +20,7 @@ from gradio.http_server import Server
 from huggingface_hub import HfFolder
 from huggingface_hub.utils import RepositoryNotFoundError
 
-from gradio_client import Client, file
+from gradio_client import Client, handle_file
 from gradio_client.client import DEFAULT_TEMP_DIR
 from gradio_client.exceptions import AppError, AuthenticationError
 from gradio_client.utils import (
@@ -37,13 +37,12 @@ HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
 @contextmanager
 def connect(
     demo: gr.Blocks,
-    serialize: bool = True,
-    output_dir: str = DEFAULT_TEMP_DIR,
+    download_files: str = DEFAULT_TEMP_DIR,
     **kwargs,
 ):
     _, local_url, _ = demo.launch(prevent_thread_lock=True, **kwargs)
     try:
-        yield Client(local_url, serialize=serialize, output_dir=output_dir)
+        yield Client(local_url, download_files=download_files)
     finally:
         # A more verbose version of .close()
         # because we should set a timeout
@@ -92,11 +91,11 @@ class TestClientPredictions:
         with connect(max_file_size_demo, max_file_size="15kb") as client:
             with pytest.raises(ValueError, match="exceeds the maximum file size"):
                 client.predict(
-                    file(Path(__file__).parent / "files" / "cheetah1.jpg"),
+                    handle_file(Path(__file__).parent / "files" / "cheetah1.jpg"),
                     api_name="/upload_1b",
                 )
             client.predict(
-                file(Path(__file__).parent / "files" / "alphabet.txt"),
+                handle_file(Path(__file__).parent / "files" / "alphabet.txt"),
                 api_name="/upload_1b",
             )
 
@@ -254,17 +253,11 @@ class TestClientPredictions:
                 job = client.submit("foo", "add", 9, fn_index=0)
                 job.result()
 
-    def test_raises_exception_no_queue(self, sentiment_classification_demo):
-        with pytest.raises(Exception):
-            with connect(sentiment_classification_demo) as client:
-                job = client.submit([5], api_name="/sleep")
-                job.result()
-
     def test_job_output_video(self, video_component):
         with connect(video_component) as client:
             job = client.submit(
                 {
-                    "video": file(
+                    "video": handle_file(
                         "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
                     )
                 },
@@ -277,10 +270,10 @@ class TestClientPredictions:
             )
 
         temp_dir = tempfile.mkdtemp()
-        with connect(video_component, output_dir=temp_dir) as client:
+        with connect(video_component, download_files=temp_dir) as client:
             job = client.submit(
                 {
-                    "video": file(
+                    "video": handle_file(
                         "https://huggingface.co/spaces/gradio/video_component/resolve/main/files/a.mp4"
                     )
                 },
@@ -430,13 +423,15 @@ class TestClientPredictions:
     def test_stream_audio(self, stream_audio):
         with connect(stream_audio) as client:
             job1 = client.submit(
-                file("https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4"),
+                handle_file(
+                    "https://gradio-builds.s3.amazonaws.com/demo-files/bark_demo.mp4"
+                ),
                 api_name="/predict",
             )
             assert Path(job1.result()).exists()
 
             job2 = client.submit(
-                file(
+                handle_file(
                     "https://gradio-builds.s3.amazonaws.com/demo-files/audio_sample.wav"
                 ),
                 api_name="/predict",
@@ -551,13 +546,6 @@ class TestClientPredictions:
 
                 client.submit(1, "foo", f.name, fn_index=0).result()
                 serialize.assert_called_once_with(1, "foo", f.name)
-
-    def test_state_without_serialize(self, stateful_chatbot):
-        with connect(stateful_chatbot, serialize=False) as client:
-            initial_history = [["", None]]
-            message = "Hello"
-            ret = client.predict(message, initial_history, api_name="/submit")
-            assert ret == ("", [["", None], ["Hello", "I love you"]])
 
     def test_does_not_upload_dir(self, stateful_chatbot):
         with connect(stateful_chatbot) as client:

@@ -77,7 +77,7 @@ function replace_file_data_with_file_function(obj: any): any {
 			"meta" in obj &&
 			obj.meta?._type === "gradio.FileData"
 		) {
-			return `file('${obj.url}')`;
+			return `handle_file('${obj.url}')`;
 		}
 	}
 	if (Array.isArray(obj)) {
@@ -101,15 +101,15 @@ function stringify_except_file_function(obj: any): string {
 		}
 		if (
 			typeof value === "string" &&
-			value.startsWith("file(") &&
+			value.startsWith("handle_file(") &&
 			value.endsWith(")")
 		) {
 			return `UNQUOTED${value}`; // Flag the special strings
 		}
 		return value;
 	});
-	const regex = /"UNQUOTEDfile\(([^)]*)\)"/g;
-	jsonString = jsonString.replace(regex, (match, p1) => `file(${p1})`);
+	const regex = /"UNQUOTEDhandle_file\(([^)]*)\)"/g;
+	jsonString = jsonString.replace(regex, (match, p1) => `handle_file(${p1})`);
 	const regexNone = /"UNQUOTEDNone"/g;
 	return jsonString.replace(regexNone, "None");
 }
