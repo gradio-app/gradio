@@ -660,7 +660,6 @@ export function submit(
 												endpoint: _endpoint,
 												fn_index
 											});
-											// close();
 										}
 									}
 
@@ -686,7 +685,7 @@ export function submit(
 										fn_index,
 										time: new Date()
 									});
-									if (["sse_v2", "sse_v2.1"].includes(protocol)) {
+									if (["sse_v2", "sse_v2.1", "sse_v3"].includes(protocol)) {
 										close_stream(stream_status, that.abort_controller);
 										stream_status.open = false;
 										close();

@@ -287,10 +287,6 @@ export type GradioEvent = {
 	[P in EventType]: EventMap[P];
 }[EventType];
 
-// export type EventListener<K extends EventType> = (event: Event<K>) => void;
-// export type ListenerMap<K extends EventType> = {
-// 	[P in K]?: EventListener<K>[];
-// };
 export interface Log {
 	log: string;
 	level: "warning" | "info";

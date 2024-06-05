@@ -73,18 +73,6 @@ export class Client {
 	}
 
 	stream(url: URL): EventSource {
-		// if (typeof window === "undefined" || typeof EventSource === "undefined") {
-		// 	try {
-		// 		const EventSourceModule = await import("eventsource");
-		// 		return new EventSourceModule.default(url.toString()) as EventSource;
-		// 	} catch (error) {
-		// 		console.error("Failed to load EventSource module:", error);
-		// 		throw error;
-		// 	}
-		// } else {
-		// 	return new EventSource(url.toString());
-		// }
-
 		this.abort_controller = new AbortController();
 
 		this.stream_instance = readable_stream(url.toString(), {
