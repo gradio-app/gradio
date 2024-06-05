@@ -95,7 +95,7 @@
 {#if info}
 	{#if api_count}
 		<div class="banner-wrap">
-			<ApiBanner on:close root={space_id || root} {api_count} />
+			<ApiBanner on:close root={space_id || root} {api_count} {current_language} />
 		</div>
 
 		<div class="docs-wrap">
@@ -118,7 +118,7 @@
 						</li>
 					{/each}
 				</div>
-				{#if api_calls.length}
+				{#if api_calls.length && current_language !== "bash"}
 					<div>
 						<p
 							id="num-recorded-api-calls"
