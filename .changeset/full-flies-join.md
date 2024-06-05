@@ -1,6 +1,5 @@
 ---
 "@gradio/file": minor
-"@gradio/preview": minor
 "@gradio/tootils": minor
 "@gradio/upload": minor
 "gradio": minor
