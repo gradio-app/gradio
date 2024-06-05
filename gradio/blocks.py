@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import dataclasses
 import hashlib
 import inspect
 import json
@@ -123,6 +124,7 @@ class Block:
         self.proxy_url = proxy_url
         self.share_token = secrets.token_urlsafe(32)
         self.parent: BlockContext | None = None
+        self.rendered_in: Renderable | None = None
         self.is_rendered: bool = False
         self._constructor_args: list[dict]
         self.state_session_capacity = 10000
@@ -166,6 +168,7 @@ class Block:
         """
         root_context = get_blocks_context()
         render_context = get_render_context()
+        self.rendered_in = LocalContext.renderable.get()
         if root_context is not None and self._id in root_context.blocks:
             raise DuplicateBlockError(
                 f"A block with id: {self._id} has already been rendered in the current Blocks."
@@ -233,13 +236,17 @@ class Block:
         for parameter in signature.parameters.values():
             if hasattr(self, parameter.name):
                 value = getattr(self, parameter.name)
-                config[parameter.name] = utils.convert_to_dict_if_dataclass(value)
+                if dataclasses.is_dataclass(value):
+                    value = dataclasses.asdict(value)
+                config[parameter.name] = value
         for e in self.events:
             to_add = e.config_data()
             if to_add:
                 config = {**to_add, **config}
         config.pop("render", None)
         config = {**config, "proxy_url": self.proxy_url, "name": self.get_block_class()}
+        if self.rendered_in is not None:
+            config["rendered_in"] = self.rendered_in._id
         if (_selectable := getattr(self, "_selectable", None)) is not None:
             config["_selectable"] = _selectable
         return config
@@ -468,7 +475,7 @@ class BlockFunction:
         self,
         fn: Callable | None,
         inputs: list[Component],
-        outputs: list[Component],
+        outputs: list[Block] | list[Component],
         preprocess: bool,
         postprocess: bool,
         inputs_as_dict: bool,
@@ -658,7 +665,7 @@ class BlocksConfig:
         targets: Sequence[EventListenerMethod],
         fn: Callable | None,
         inputs: Component | list[Component] | set[Component] | None,
-        outputs: Component | list[Component] | None,
+        outputs: Block | list[Block] | list[Component] | None,
         preprocess: bool = True,
         postprocess: bool = True,
         scroll_to_output: bool = False,
@@ -860,7 +867,7 @@ class BlocksConfig:
             return {"id": block._id, "children": children_layout}
 
         if renderable:
-            root_block = self.blocks[renderable.column_id]
+            root_block = self.blocks[renderable.container_id]
         else:
             root_block = self.root_block
         config["layout"] = get_layout(root_block)
@@ -896,7 +903,6 @@ class BlocksConfig:
             if renderable is None or fn.rendered_in == renderable:
                 dependencies.append(fn.get_config())
         config["dependencies"] = dependencies
-
         return config
 
     def __copy__(self):
@@ -1712,7 +1718,6 @@ Received outputs:
         self.validate_outputs(block_fn, predictions)  # type: ignore
 
         output = []
-        changed_state_ids = []
         for i, block in enumerate(block_fn.outputs):
             try:
                 if predictions[i] is components._Keywords.FINISHED_ITERATING:
@@ -1726,8 +1731,6 @@ Received outputs:
 
             if block.stateful:
                 if not utils.is_update(predictions[i]):
-                    if block._id not in state or state[block._id] != predictions[i]:
-                        changed_state_ids.append(block._id)
                     state[block._id] = predictions[i]
                 output.append(None)
             else:
@@ -1771,7 +1774,7 @@ Received outputs:
                 )
                 output.append(outputs_cached)
 
-        return output, changed_state_ids
+        return output
 
     async def handle_streaming_outputs(
         self,
@@ -1878,6 +1881,8 @@ Received outputs:
         if isinstance(block_fn, int):
             block_fn = self.fns[block_fn]
         batch = block_fn.batch
+        state_ids_to_track, hashed_values = self.get_state_ids_to_track(block_fn, state)
+        changed_state_ids = []
 
         if batch:
             max_batch_size = block_fn.max_batch_size
@@ -1910,11 +1915,10 @@ Received outputs:
                 state,
             )
             preds = result["prediction"]
-            data_and_changed_state_ids = [
+            data = [
                 await self.postprocess_data(block_fn, list(o), state)
                 for o in zip(*preds)
             ]
-            data, changed_state_ids = zip(*data_and_changed_state_ids)
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)
             data = list(zip(*data))
@@ -1938,9 +1942,14 @@ Received outputs:
                 in_event_listener,
                 state,
             )
-            data, changed_state_ids = await self.postprocess_data(
-                block_fn, result["prediction"], state
-            )
+            data = await self.postprocess_data(block_fn, result["prediction"], state)
+            if state:
+                changed_state_ids = [
+                    state_id
+                    for hash_value, state_id in zip(hashed_values, state_ids_to_track)
+                    if hash_value != utils.deep_hash(state[state_id])
+                ]
+
             if root_path is not None:
                 data = processing_utils.add_root_url(data, root_path, None)
             is_generating, iterator = result["is_generating"], result["iterator"]
@@ -1980,6 +1989,22 @@ Received outputs:
             output["render_config"]["render_id"] = block_fn.renderable._id
 
         return output
+
+    def get_state_ids_to_track(
+        self, block_fn: BlockFunction, state: SessionState | None
+    ) -> tuple[list[int], list]:
+        if state is None:
+            return [], []
+        state_ids_to_track = []
+        hashed_values = []
+        for block in block_fn.outputs:
+            if block.stateful and any(
+                (block._id, "change") in fn.targets for fn in self.fns.values()
+            ):
+                value = state[block._id]
+                state_ids_to_track.append(block._id)
+                hashed_values.append(utils.deep_hash(value))
+        return state_ids_to_track, hashed_values
 
     def create_limiter(self):
         self.limiter = (
@@ -2028,18 +2053,9 @@ Received outputs:
             "fill_height": self.fill_height,
         }
         config.update(self.default_config.get_config())
-        any_state = any(
-            isinstance(block, components.State) for block in self.blocks.values()
+        config["connect_heartbeat"] = utils.connect_heartbeat(
+            config, self.blocks.values()
         )
-        any_unload = False
-        for dep in config["dependencies"]:
-            for target in dep["targets"]:
-                if isinstance(target, (list, tuple)) and len(target) == 2:
-                    any_unload = target[1] == "unload"
-                    if any_unload:
-                        break
-        config["connect_heartbeat"] = any_state or any_unload
-
         return config
 
     def __enter__(self):

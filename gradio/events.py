@@ -5,7 +5,17 @@ from __future__ import annotations
 
 import dataclasses
 from functools import partial, wraps
-from typing import TYPE_CHECKING, Any, Callable, Literal, Sequence
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Sequence,
+    Union,
+    cast,
+)
 
 from gradio_client.documentation import document
 from jinja2 import Template
@@ -156,6 +166,32 @@ class EventListenerMethod:
     event_name: str
 
 
+if TYPE_CHECKING:
+    EventListenerCallable = Callable[
+        [
+            Union[Callable, None],
+            Union[Component, Sequence[Component], None],
+            Union[Block, Sequence[Block], Sequence[Component], Component, None],
+            Union[str, None, Literal[False]],
+            bool,
+            Literal["full", "minimal", "hidden"],
+            Union[bool, None],
+            bool,
+            int,
+            bool,
+            bool,
+            Union[Dict[str, Any], List[Dict[str, Any]], None],
+            Union[float, None],
+            Union[Literal["once", "multiple", "always_last"], None],
+            Union[str, None],
+            Union[int, None, Literal["default"]],
+            Union[str, None],
+            bool,
+        ],
+        Dependency,
+    ]
+
+
 class EventListener(str):
     def __new__(cls, event_name, *_args, **_kwargs):
         return super().__new__(cls, event_name)
@@ -221,7 +257,7 @@ class EventListener(str):
             block: Block | None,
             fn: Callable | None | Literal["decorator"] = "decorator",
             inputs: Component | list[Component] | set[Component] | None = None,
-            outputs: Component | list[Component] | None = None,
+            outputs: Block | list[Block] | list[Component] | None = None,
             api_name: str | None | Literal[False] = None,
             scroll_to_output: bool = False,
             show_progress: Literal["full", "minimal", "hidden"] = _show_progress,
@@ -342,10 +378,10 @@ class EventListener(str):
 
 
 def on(
-    triggers: Sequence[Any] | Any | None = None,
+    triggers: Sequence[EventListenerCallable] | EventListenerCallable | None = None,
     fn: Callable | None | Literal["decorator"] = "decorator",
     inputs: Component | list[Component] | set[Component] | None = None,
-    outputs: Component | list[Component] | None = None,
+    outputs: Block | list[Block] | list[Component] | None = None,
     *,
     api_name: str | None | Literal[False] = None,
     scroll_to_output: bool = False,
@@ -387,8 +423,10 @@ def on(
     """
     from gradio.components.base import Component
 
-    if isinstance(triggers, EventListener):
-        triggers = [triggers]
+    triggers_typed = cast(EventListener, triggers)
+
+    if isinstance(triggers_typed, EventListener):
+        triggers_typed = [triggers_typed]
     if isinstance(inputs, Component):
         inputs = [inputs]
 
@@ -429,18 +467,18 @@ def on(
     if root_block is None:
         raise Exception("Cannot call on() outside of a gradio.Blocks context.")
     if triggers is None:
-        triggers = (
+        methods = (
             [EventListenerMethod(input, "change") for input in inputs]
             if inputs is not None
             else []
         )  # type: ignore
     else:
-        triggers = [
-            EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name)
-            for t in triggers
-        ]  # type: ignore
+        methods = [
+            EventListenerMethod(t.__self__ if t.has_trigger else None, t.event_name)  # type: ignore
+            for t in triggers_typed
+        ]
     dep, dep_index = root_block.set_event_trigger(
-        triggers,
+        methods,
         fn,
         inputs,
         outputs,
@@ -459,7 +497,7 @@ def on(
         show_api=show_api,
         trigger_mode=trigger_mode,
     )
-    set_cancel_events(triggers, cancels)
+    set_cancel_events(methods, cancels)
     return Dependency(None, dep.get_config(), dep_index, fn)
 
 

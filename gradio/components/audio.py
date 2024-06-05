@@ -8,7 +8,7 @@ from typing import Any, Callable, Literal
 
 import httpx
 import numpy as np
-from gradio_client import file
+from gradio_client import handle_file
 from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
@@ -186,7 +186,7 @@ class Audio(
         )
 
     def example_payload(self) -> Any:
-        return file(
+        return handle_file(
             "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
         )
 

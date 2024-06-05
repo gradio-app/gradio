@@ -470,7 +470,7 @@ class App(FastAPI):
 
             if key not in app.custom_component_hashes:
                 app.custom_component_hashes[key] = hashlib.md5(
-                    Path(path).read_text().encode()
+                    Path(path).read_text(encoding="utf-8").encode()
                 ).hexdigest()
 
             version = app.custom_component_hashes.get(key)
@@ -768,7 +768,9 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            full_body = PredictBody(**body.model_dump(), simple_format=True)
+            full_body = PredictBody(
+                **body.model_dump(), request=request, simple_format=True
+            )
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=full_body
             )
@@ -860,7 +862,7 @@ class App(FastAPI):
             session_hash: str,
         ):
             def process_msg(message: EventMessage) -> str:
-                return f"data: {orjson.dumps(message.model_dump()).decode('utf-8')}\n\n"
+                return f"data: {orjson.dumps(message.model_dump(), default=str).decode('utf-8')}\n\n"
 
             return await queue_data_helper(request, session_hash, process_msg)
 

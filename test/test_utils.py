@@ -495,6 +495,12 @@ class TestFunctionParams:
 
         assert get_function_params(func) == [("a", False, None)]
 
+    def test_function_with_special_args(self):
+        def func(a, r: Request, b=10):
+            pass
+
+        assert get_function_params(func) == [("a", False, None), ("b", True, 10)]
+
     def test_class_method_skip_first_param(self):
         class MyClass:
             def method(self, arg1, arg2=42):

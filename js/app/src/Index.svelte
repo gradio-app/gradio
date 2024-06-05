@@ -274,7 +274,8 @@
 				: host || space || src || location.origin;
 
 		app = await Client.connect(api_url, {
-			status_callback: handle_status
+			status_callback: handle_status,
+			with_null_state: true
 		});
 
 		if (!app.config) {

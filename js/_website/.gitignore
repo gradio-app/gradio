@@ -8,3 +8,5 @@ node_modules
 !.env.example
 src/lib/json/
 .vercel
+src/lib/templates_*
+src/lib/templates/docs.json

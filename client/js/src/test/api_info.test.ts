@@ -16,7 +16,6 @@ import { initialise_server } from "./server";
 import { transformed_api_info } from "./test_data";
 
 const server = initialise_server();
-const IS_NODE = process.env.TEST_MODE === "node";
 
 beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
