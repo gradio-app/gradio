@@ -119,7 +119,7 @@ export function submit(
 				}
 				reset_request = { fn_index, session_hash };
 			} else {
-				stream?.close();
+				close_stream(stream_status, that.abort_controller);
 				close();
 				reset_request = { event_id };
 				cancel_request = { event_id, session_hash, fn_index };
