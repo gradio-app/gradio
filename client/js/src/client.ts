@@ -32,12 +32,6 @@ import { check_space_status } from "./helpers/spaces";
 import { open_stream } from "./utils/stream";
 import { API_INFO_ERROR_MSG, CONFIG_ERROR_MSG } from "./constants";
 
-export class NodeBlob extends Blob {
-	constructor(blobParts?: BlobPart[], options?: BlobPropertyBag) {
-		super(blobParts, options);
-	}
-}
-
 export class Client {
 	app_reference: string;
 	options: ClientOptions;
@@ -140,8 +134,6 @@ export class Client {
 			!global.WebSocket
 		) {
 			const ws = await import("ws");
-			// @ts-ignore
-			NodeBlob = (await import("node:buffer")).Blob;
 			global.WebSocket = ws.WebSocket as unknown as typeof WebSocket;
 		}
 

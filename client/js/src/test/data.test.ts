@@ -6,7 +6,6 @@ import {
 	post_message,
 	handle_file
 } from "../helpers/data";
-import { NodeBlob } from "../client";
 import { config_response, endpoint_info } from "./test_data";
 import { BlobRef } from "../types";
 import { FileData } from "../upload";
@@ -17,7 +16,7 @@ describe("walk_and_store_blobs", () => {
 		const parts = await walk_and_store_blobs(buffer, "text");
 
 		expect(parts).toHaveLength(1);
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].blob).toBeInstanceOf(Blob);
 	});
 
 	it("should return a Blob when passed a Blob", async () => {
@@ -30,7 +29,7 @@ describe("walk_and_store_blobs", () => {
 			endpoint_info
 		);
 
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].blob).toBeInstanceOf(Blob);
 	});
 
 	it("should handle arrays", async () => {
@@ -38,7 +37,7 @@ describe("walk_and_store_blobs", () => {
 		const parts = await walk_and_store_blobs([image]);
 
 		expect(parts).toHaveLength(1);
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].blob).toBeInstanceOf(Blob);
 		expect(parts[0].path).toEqual(["0"]);
 	});
 
@@ -47,7 +46,7 @@ describe("walk_and_store_blobs", () => {
 		const parts = await walk_and_store_blobs({ a: { b: { data: { image } } } });
 
 		expect(parts).toHaveLength(1);
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].blob).toBeInstanceOf(Blob);
 		expect(parts[0].path).toEqual(["a", "b", "data", "image"]);
 	});
 
@@ -69,7 +68,7 @@ describe("walk_and_store_blobs", () => {
 			]
 		});
 
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].blob).toBeInstanceOf(Blob);
 	});
 
 	it("should handle deep structures with arrays (with equality check)", async () => {
@@ -93,8 +92,8 @@ describe("walk_and_store_blobs", () => {
 			let ref = obj;
 			path.forEach((p) => (ref = ref[p]));
 
-			// since ref is a Blob and blob is a NodeBlob, we deep equal check the two buffers instead
-			if (ref instanceof Blob && blob instanceof NodeBlob) {
+			// since ref is a Blob and blob is a Blob, we deep equal check the two buffers instead
+			if (ref instanceof Blob && blob instanceof Blob) {
 				const refBuffer = Buffer.from(await ref.arrayBuffer());
 				const blobBuffer = Buffer.from(await blob.arrayBuffer());
 				return refBuffer.equals(blobBuffer);
@@ -103,7 +102,7 @@ describe("walk_and_store_blobs", () => {
 			return ref === blob;
 		}
 
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].blob).toBeInstanceOf(Blob);
 		expect(map_path(obj, parts)).toBeTruthy();
 	});
 
@@ -112,7 +111,7 @@ describe("walk_and_store_blobs", () => {
 		const parts = await walk_and_store_blobs(buffer, undefined, ["blob"]);
 
 		expect(parts).toHaveLength(1);
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].blob).toBeInstanceOf(Blob);
 		expect(parts[0].path).toEqual(["blob"]);
 	});
 
@@ -122,7 +121,7 @@ describe("walk_and_store_blobs", () => {
 
 		expect(parts).toHaveLength(1);
 		expect(parts[0].path).toEqual([]);
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].blob).toBeInstanceOf(Blob);
 	});
 
 	it("should convert an object with deep structures to BlobRefs", async () => {
@@ -139,7 +138,7 @@ describe("walk_and_store_blobs", () => {
 
 		expect(parts).toHaveLength(1);
 		expect(parts[0].path).toEqual(["a", "b", "data", "image"]);
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].blob).toBeInstanceOf(Blob);
 	});
 });
 describe("update_object", () => {

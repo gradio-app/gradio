@@ -1,4 +1,3 @@
-import { NodeBlob } from "../client";
 import type {
 	ApiData,
 	BlobRef,
@@ -65,11 +64,10 @@ export async function walk_and_store_blobs(
 		(globalThis.Buffer && data instanceof globalThis.Buffer) ||
 		data instanceof Blob
 	) {
-		// const is_image = type === "Image";
 		return [
 			{
 				path: path,
-				blob: new NodeBlob([data]),
+				blob: new Blob([data]),
 				type
 			}
 		];
