@@ -6,7 +6,6 @@
 	export let endpoint_returns: any;
 	export let js_returns: any;
 	export let current_language: "python" | "javascript" | "bash";
-	console.log(js_returns);
 </script>
 
 <h4>
