@@ -140,12 +140,9 @@ console.log(result.data);
 				<div bind:this={bash_post_code}>
 					<pre>curl -X POST {root}call/{dependency.api_name} -H "Content-Type: application/json" -d '{"{"}
   "data": [{#each endpoint_parameters as { label, parameter_name, type, python_type, component, example_input, serializer }, i}
-    {represent_value(
-			example_input,
-			python_type.type,
-			"bash"
-		)}{#if i < endpoint_parameters.length - 1},
-		{/if}
+    <!-- 
+-->{represent_value(example_input, python_type.type, "bash")}{#if i < endpoint_parameters.length - 1},
+							{/if}
 						{/each}
 ]{"}"}'</pre>
 				</div>

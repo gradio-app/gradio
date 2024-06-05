@@ -95,7 +95,12 @@
 {#if info}
 	{#if api_count}
 		<div class="banner-wrap">
-			<ApiBanner on:close root={space_id || root} {api_count} {current_language} />
+			<ApiBanner
+				on:close
+				root={space_id || root}
+				{api_count}
+				{current_language}
+			/>
 		</div>
 
 		<div class="docs-wrap">

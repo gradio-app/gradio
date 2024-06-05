@@ -30,3 +30,4 @@ sweep.yaml
 **/playwright/.cache/**/*
 **/theme/src/pollen.css
 **/venv/**
+../js/app/src/api_docs/CodeSnippet.svelte
