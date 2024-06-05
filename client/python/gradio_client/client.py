@@ -111,9 +111,7 @@ class Client:
         self.cookies: dict[str, str] = {}
         if isinstance(self.download_files, (str, Path)):
             if not os.path.exists(self.download_files):
-                raise ValueError(
-                    f"Download directory: {self.download_files} does not exist."
-                )
+                os.makedirs(self.download_files, exist_ok=True)
             if not os.path.isdir(self.download_files):
                 raise ValueError(f"Path: {self.download_files} is not a directory.")
             self.output_dir = str(self.download_files)
