@@ -169,12 +169,8 @@ client.<span class="highlight"
 				</div>
 				<div bind:this={bash_code}>
 					{#each bash_zipped as { call, api_name }}
-						<pre>EVENT_ID=$(
-curl -X POST {short_root}call/{api_name} -s -H "Content-Type: application/json" -d '{"{"} 
-	"data": [{call}]{"}"}' | jq -r '.event_id'
-)</pre>
-						<pre>curl -N {short_root}call/{api_name}/$EVENT_ID 
-					</pre>
+						<pre>curl -X POST {short_root}call/{api_name} -s -H "Content-Type: application/json" -d '{"{"} 
+	"data": [{call}]{"}"}' | awk -F'"' '{"{"} print $4{"}"}' | read EVENT_ID; curl -N {short_root}call/{api_name}/$EVENT_ID</pre>
 						<br />
 					{/each}
 				</div>
