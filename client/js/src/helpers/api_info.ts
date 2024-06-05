@@ -106,7 +106,7 @@ export function transform_api_info(
 						dependencyIndex !== -1
 							? config.dependencies.find((dep) => dep.id == dependencyIndex)
 									?.types
-							: { continuous: false, generator: false };
+							: { continuous: false, generator: false, cancel: false };
 
 					if (
 						dependencyIndex !== -1 &&

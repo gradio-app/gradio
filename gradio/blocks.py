@@ -73,7 +73,7 @@ from gradio.utils import (
     TupleNoPrint,
     check_function_inputs_match,
     component_or_layout_class,
-    get_cancel_function,
+    get_cancelled_fn_indices,
     get_continuous_fn,
     get_package_version,
     get_upload_folder,
@@ -541,12 +541,7 @@ class BlockFunction:
         self.rendered_in = rendered_in
 
         # We need to keep track of which events are cancel events
-        # in two places:
-        # 1. So that we can skip postprocessing for cancel events.
-        #   They return event_ids that have been cancelled but there
-        #   are no output components
-        # 2. So that we can place the ProcessCompletedMessage in the
-        #   event stream so that clients can close the stream when necessary
+        # so that the client can call the /cancel route directly
         self.is_cancel_function = is_cancel_function
 
         self.spaces_auto_wrap()
@@ -589,6 +584,7 @@ class BlockFunction:
             "types": {
                 "continuous": self.types_continuous,
                 "generator": self.types_generator,
+                "cancel": self.is_cancel_function,
             },
             "collects_event_data": self.collects_event_data,
             "trigger_after": self.trigger_after,
@@ -1377,7 +1373,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
                     updated_cancels = [
                         root_context.fns[i].get_config() for i in dependency.cancels
                     ]
-                    dependency.fn = get_cancel_function(updated_cancels)[0]
+                    dependency.cancels = get_cancelled_fn_indices(updated_cancels)
                 root_context.fns[root_context.fn_id] = dependency
                 root_context.fn_id += 1
             Context.root_block.temp_file_sets.extend(self.temp_file_sets)
@@ -1694,16 +1690,8 @@ Received outputs:
         block_fn: BlockFunction,
         predictions: list | dict,
         state: SessionState | None,
-    ) -> Any:
+    ) -> list[Any]:
         state = state or SessionState(self)
-
-        # If the function is a cancel function, 'predictions' are the ids of
-        # the event in the queue that has been cancelled. We need these
-        # so that the server can put the ProcessCompleted message in the event stream
-        # Cancel events have no output components, so we need to return early otherise the output
-        # be None.
-        if block_fn.is_cancel_function:
-            return predictions
 
         if isinstance(predictions, dict) and len(predictions) > 0:
             predictions = convert_component_dict_to_list(
@@ -1920,7 +1908,7 @@ Received outputs:
                 for o in zip(*preds)
             ]
             if root_path is not None:
-                data = processing_utils.add_root_url(data, root_path, None)
+                data = processing_utils.add_root_url(data, root_path, None)  # type: ignore
             data = list(zip(*data))
             is_generating, iterator = None, None
         else:
