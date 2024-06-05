@@ -1,5 +1,12 @@
 # @gradio/app
 
+## 1.35.9
+
+### Dependency updates
+
+- @gradio/chatbot@0.10.8
+- @gradio/multimodaltextbox@0.4.8
+
 ## 1.35.8
 
 ### Fixes
