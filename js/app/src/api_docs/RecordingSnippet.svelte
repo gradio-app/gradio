@@ -10,8 +10,11 @@
 	export let root: string;
 	export let current_language: "python" | "javascript" | "bash";
 
-	let code: HTMLElement;
-	let code_text: string;
+	let python_code: HTMLElement;
+	let python_code_text: string;
+	let js_code: HTMLElement;
+	let bash_code: HTMLElement;
+
 	export let api_calls: Payload[] = [];
 
 	async function get_info(): Promise<{
@@ -26,8 +29,9 @@
 	let endpoints_info: any;
 	let py_zipped: { call: string; api_name: string }[] = [];
 	let js_zipped: { call: string; api_name: string }[] = [];
+	let bash_zipped: { call: string; api_name: string }[] = [];
 
-	function format_api_call(call: Payload, lang: "py" | "js"): string {
+	function format_api_call(call: Payload, lang: "py" | "js" | "bash"): string {
 		const api_name = `/${dependencies[call.fn_index].api_name}`;
 		// If an input is undefined (distinct from null) then it corresponds to a State component.
 		let call_data_excluding_state = call.data.filter(
@@ -49,12 +53,19 @@
 							python_type,
 							"py"
 						)}`;
+					} else if (lang === "js") {
+						return `    ${param_name}: ${represent_value(
+							param as string,
+							python_type,
+							"js"
+						)}`;
+					} else if (lang === "bash") {
+						return `    ${represent_value(
+							param as string,
+							python_type,
+							"bash"
+						)}`;
 					}
-					return `    ${param_name}: ${represent_value(
-						param as string,
-						python_type,
-						"js"
-					)}`;
 				}
 				return `  ${represent_value(param as string, undefined, lang)}`;
 			})
@@ -63,8 +74,11 @@
 		if (params) {
 			if (lang === "py") {
 				return `${params},\n`;
+			} else if (lang === "js") {
+				return `{\n${params},\n}`;
+			} else if (lang === "bash") {
+				return `\n${params}\n`;
 			}
-			return ` {\n${params},\n}`;
 		}
 		if (lang === "py") {
 			return "";
@@ -81,6 +95,9 @@
 		let js_api_calls: string[] = api_calls.map((call) =>
 			format_api_call(call, "js")
 		);
+		let bash_api_calls: string[] = api_calls.map((call) =>
+			format_api_call(call, "bash")
+		);
 		let api_names: string[] = api_calls.map(
 			(call) => dependencies[call.fn_index].api_name || ""
 		);
@@ -92,21 +109,26 @@
 			call,
 			api_name: api_names[index]
 		}));
+		bash_zipped = bash_api_calls.map((call, index) => ({
+			call,
+			api_name: api_names[index]
+		}));
 
 		await tick();
-		code_text = code.innerText;
+
+		python_code_text = python_code.innerText;
 	});
 </script>
 
 <div class="container">
 	<!-- <EndpointDetail {named} api_name={dependency.api_name} /> -->
 	<Block border_mode={"focus"}>
-		<code>
-			<div class="copy">
-				<CopyButton code={code_text} />
-			</div>
-			<div bind:this={code}>
-				{#if current_language === "python"}
+		{#if current_language === "python"}
+			<code>
+				<div class="copy">
+					<CopyButton code={python_code_text} />
+				</div>
+				<div bind:this={python_code}>
 					<pre><span class="highlight">from</span> gradio_client <span
 							class="highlight">import</span
 						> Client, file
@@ -119,20 +141,42 @@ client.<span class="highlight"
 {call}  api_name=<span class="api-name">"/{api_name}"</span>
 )
 </span>{/each}</pre>
-				{:else if current_language === "javascript"}
+				</div>
+			</code>
+		{:else if current_language === "javascript"}
+			<code>
+				<div class="copy">
+					<CopyButton code={js_code?.innerText} />
+				</div>
+				<div bind:this={js_code}>
 					<pre>import &lbrace; Client &rbrace; from "@gradio/client";
 
 const app = await Client.connect(<span class="token string">"{short_root}"</span
 						>);
-{#each js_zipped as { call, api_name }}<!--
--->
-await client.predict(<span
-								class="api-name">
-	"/{api_name}"</span
+					{#each js_zipped as { call, api_name }}<!--
+					-->
+await client.predict(<span class="api-name">
+  "/{api_name}"</span
 							>{#if call},{/if}{call});
-						{/each}</pre>{/if}
-			</div></code
-		>
+						{/each}</pre>
+				</div>
+			</code>
+		{:else if current_language === "bash"}
+			<code>
+				<div class="copy">
+					<CopyButton code={bash_code?.innerText} />
+				</div>
+				<div bind:this={bash_code}>
+					{#each bash_zipped as { call, api_name }}
+						<pre>curl -X POST {short_root}call/{api_name} -s -H "Content-Type: application/json" -d '{"{"} 
+	"data": [{call}]{"}"}' \
+  | awk -F'"' '{"{"} print $4{"}"}' \
+  | read EVENT_ID; curl -N {short_root}call/{api_name}/$EVENT_ID</pre>
+						<br />
+					{/each}
+				</div>
+			</code>
+		{/if}
 	</Block>
 </div>
 
