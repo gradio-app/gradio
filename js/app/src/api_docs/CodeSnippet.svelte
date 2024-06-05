@@ -144,7 +144,9 @@ console.log(result.data);
 -->{represent_value(example_input, python_type.type, "bash")}{#if i < endpoint_parameters.length - 1},
 							{/if}
 						{/each}
-]{"}"}' | awk -F'"' '{"{"} print $4{"}"}' | read EVENT_ID; curl -N {root}call/{dependency.api_name}/$EVENT_ID</pre>
+]{"}"}' \
+  | awk -F'"' '{"{"} print $4{"}"}'  \
+  | read EVENT_ID; curl -N {root}call/{dependency.api_name}/$EVENT_ID</pre>
 				</div>
 			</code>
 		</Block>
