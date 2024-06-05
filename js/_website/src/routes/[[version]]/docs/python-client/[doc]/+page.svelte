@@ -94,15 +94,25 @@
 	}
 	let title: string;
 	let description: string;
-	$: title = all_headers.page_title.title === "Introduction" ? "Gradio Python Client - " + all_headers.page_title.title + " Docs" : "Gradio Python Client - " + all_headers.page_title.title + " Class Docs";
-	$: description = all_headers.page_title.title === "Introduction" ? "Make programmatic requests to Gradio applications from Python environments." : "Using the " + all_headers.page_title.title + " class in the Gradio Python Client.";
+	$: title =
+		all_headers.page_title.title === "Introduction"
+			? "Gradio Python Client - " + all_headers.page_title.title + " Docs"
+			: "Gradio Python Client - " +
+				all_headers.page_title.title +
+				" Class Docs";
+	$: description =
+		all_headers.page_title.title === "Introduction"
+			? "Make programmatic requests to Gradio applications from Python environments."
+			: "Using the " +
+				all_headers.page_title.title +
+				" class in the Gradio Python Client.";
 </script>
 
 <MetaTags
-	title={title}
+	{title}
 	url={$page.url.pathname}
 	canonical={$page.url.pathname}
-	description={description}
+	{description}
 />
 
 <svelte:window bind:scrollY={y} />
