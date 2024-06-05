@@ -92,13 +92,17 @@
 	$: if (dynamic_component) {
 		all_headers = get_headers();
 	}
+	let title: string;
+	let description: string;
+	$: title = all_headers.page_title.title === "Introduction" ? "Gradio Python Client - " + all_headers.page_title.title + " Docs" : "Gradio Python Client - " + all_headers.page_title.title + " Class Docs";
+	$: description = all_headers.page_title.title === "Introduction" ? "Introduction to the Gradio Python Client." : "Using the " + all_headers.page_title.title + " class in the Gradio Python Client.";
 </script>
 
 <MetaTags
-	title={"Gradio Client " + all_headers.page_title.title + " Docs"}
+	title={title}
 	url={$page.url.pathname}
 	canonical={$page.url.pathname}
-	description={"Gradio Client docs for using " + all_headers.page_title.title}
+	description={description}
 />
 
 <svelte:window bind:scrollY={y} />
