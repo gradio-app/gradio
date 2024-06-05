@@ -11,6 +11,8 @@ import { config_response, endpoint_info } from "./test_data";
 import { BlobRef, Command } from "../types";
 import { FileData } from "../upload";
 
+const IS_NODE = process.env.TEST_MODE === "node";
+
 describe("walk_and_store_blobs", () => {
 	it("should convert a Buffer to a Blob", async () => {
 		const buffer = Buffer.from("test data");
@@ -293,9 +295,11 @@ describe("handle_file", () => {
 	});
 
 	it("should handle a File object and return it as FileData", () => {
+		if (IS_NODE) {
+			return;
+		}
 		const file = new File(["test image"], "test.png", { type: "image/png" });
 		const result = handle_file(file) as FileData;
-		console.log(result);
 		expect(result.path).toBe("test.png");
 		expect(result.orig_name).toBe("test.png");
 		expect(result.blob).toBeInstanceOf(Blob);

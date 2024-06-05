@@ -143,7 +143,7 @@ export function handle_file(
 			name: path.basename(file_or_url),
 			orig_path: file_or_url
 		});
-	} else if (file_or_url instanceof File) {
+	} else if (typeof window !== "undefined" && file_or_url instanceof File) {
 		return {
 			path: file_or_url instanceof File ? file_or_url.name : "blob",
 			orig_name: file_or_url instanceof File ? file_or_url.name : "unknown",
