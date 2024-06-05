@@ -440,7 +440,6 @@ def from_spaces_blocks(space: str, hf_token: str | None) -> Blocks:
     client = Client(
         space,
         hf_token=hf_token,
-        upload_files=False,
         download_files=False,
         _skip_components=False,
     )

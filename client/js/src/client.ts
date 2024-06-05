@@ -6,6 +6,7 @@ import type {
 	DuplicateOptions,
 	EndpointInfo,
 	JsApiData,
+	PredictReturn,
 	SpaceStatus,
 	Status,
 	UploadResponse,
