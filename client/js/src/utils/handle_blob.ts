@@ -68,50 +68,72 @@ export async function process_local_file_commands(
 		throw new Error(ROOT_URL_ERROR_MSG);
 	}
 
-	for (let i = 0; i < data.length; i++) {
-		const item = data[i];
-		if (item instanceof Command) {
-			let cmd_item = item as Command;
+	await recursively_process_commands(client, data);
+}
 
-			try {
-				let fileBuffer: Buffer;
-				let fullPath: string;
-
-				// check if running in a Node.js environment
-				if (
-					typeof process !== "undefined" &&
-					process.versions &&
-					process.versions.node
-				) {
-					const fs = await import("fs/promises");
-					const path = await import("path");
-
-					fullPath = path.resolve(process.cwd(), cmd_item.meta.path);
-					fileBuffer = await fs.readFile(fullPath); // Read file from disk
-				} else {
-					throw new Error(NODEJS_FS_ERROR_MSG);
-				}
-
-				const file = new File([fileBuffer], cmd_item.meta.name, {
-					type: "application/octet-stream"
-				});
-
-				const response = await client.upload_files(root, [file]);
-
-				const file_url = response.files && response.files[0];
-
-				if (file_url) {
-					const fileData = new FileData({
-						path: file_url,
-						orig_name: cmd_item.meta.name || ""
-					});
-
-					// replace the command object with the fileData object
-					data[i] = fileData;
-				}
-			} catch (error) {
-				console.error(FILE_PROCESSING_ERROR_MSG, error);
-			}
+async function recursively_process_commands(
+	client: Client,
+	data: any,
+	path: string[] = []
+): Promise<void> {
+	for (const key in data) {
+		if (data[key] instanceof Command) {
+			await process_single_command(client, data, key);
+		} else if (typeof data[key] === "object" && data[key] !== null) {
+			await recursively_process_commands(client, data[key], [...path, key]);
 		}
+	}
+}
+
+async function process_single_command(
+	client: Client,
+	data: any,
+	key: string
+): Promise<void> {
+	let cmd_item = data[key] as Command;
+	const root = client.config?.root || client.config?.root_url;
+
+	if (!root) {
+		throw new Error(ROOT_URL_ERROR_MSG);
+	}
+
+	try {
+		let fileBuffer: Buffer;
+		let fullPath: string;
+
+		// check if running in a Node.js environment
+		if (
+			typeof process !== "undefined" &&
+			process.versions &&
+			process.versions.node
+		) {
+			const fs = await import("fs/promises");
+			const path = await import("path");
+
+			fullPath = path.resolve(process.cwd(), cmd_item.meta.path);
+			fileBuffer = await fs.readFile(fullPath); // Read file from disk
+		} else {
+			throw new Error(NODEJS_FS_ERROR_MSG);
+		}
+
+		const file = new File([fileBuffer], cmd_item.meta.name, {
+			type: "application/octet-stream"
+		});
+
+		const response = await client.upload_files(root, [file]);
+
+		const file_url = response.files && response.files[0];
+
+		if (file_url) {
+			const fileData = new FileData({
+				path: file_url,
+				orig_name: cmd_item.meta.name || ""
+			});
+
+			// replace the command object with the fileData object
+			data[key] = fileData;
+		}
+	} catch (error) {
+		console.error(FILE_PROCESSING_ERROR_MSG, error);
 	}
 }
