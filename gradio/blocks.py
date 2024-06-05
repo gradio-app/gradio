@@ -1690,7 +1690,7 @@ Received outputs:
         block_fn: BlockFunction,
         predictions: list | dict,
         state: SessionState | None,
-    ) -> tuple[list[Any], list[int]]:
+    ) -> list[Any]:
         state = state or SessionState(self)
 
         if isinstance(predictions, dict) and len(predictions) > 0:
