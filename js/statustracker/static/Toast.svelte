@@ -7,6 +7,8 @@
 
 	$: scroll_to_top(messages);
 
+	$: console.log(messages.map((m) => [m.message, m.duration]));
+
 	function scroll_to_top(_messages: ToastMessage[]): void {
 		if (_messages.length > 0) {
 			if ("parentIFrame" in window) {
@@ -17,9 +19,9 @@
 </script>
 
 <div class="toast-wrap">
-	{#each messages as { type, message, id } (id)}
+	{#each messages as { type, message, id, display, duration } (id)}
 		<div animate:flip={{ duration: 300 }} style:width="100%">
-			<ToastContent {type} {message} on:close {id} />
+			<ToastContent {type} {message} {display} {duration} on:close {id} />
 		</div>
 	{/each}
 </div>

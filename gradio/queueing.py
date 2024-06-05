@@ -30,7 +30,7 @@ from gradio.server_messages import (
     ProgressMessage,
     ProgressUnit,
 )
-from gradio.utils import LRUCache, run_coro_in_background, safe_get_lock, set_task_name
+from gradio.utils import LRUCache, run_coro_in_background, safe_get_lock, set_task_name, error_payload
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction, Blocks
@@ -538,15 +538,15 @@ class Queue:
                 )
                 err = None
             except Exception as e:
-                show_error = app.get_blocks().show_error or isinstance(e, Error)
                 traceback.print_exc()
                 response = None
                 err = e
                 for event in awake_events:
+                    content = error_payload(err, app.get_blocks().show_error)
                     self.send_message(
                         event,
                         ProcessCompletedMessage(
-                            output={"error": str(e) if show_error else None},
+                            output=content,
                             success=False,
                         ),
                     )
@@ -586,8 +586,7 @@ class Queue:
                 else:
                     success = False
                     error = err or old_err
-                    show_error = app.get_blocks().show_error or isinstance(error, Error)
-                    output = {"error": str(error) if show_error else None}
+                    output = error_payload(error, app.get_blocks().show_error)
                 for event in awake_events:
                     self.send_message(
                         event, ProcessCompletedMessage(output=output, success=success)

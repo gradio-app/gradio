@@ -141,13 +141,17 @@
 	function new_message(
 		message: string,
 		fn_index: number,
-		type: ToastMessage["type"]
+		type: ToastMessage["type"],
+		display=true,
+		duration=10000,
 	): ToastMessage & { fn_index: number } {
 		return {
 			message,
 			fn_index,
 			type,
-			id: ++_error_id
+			id: ++_error_id,
+			display,
+			duration
 		};
 	}
 
@@ -416,7 +420,7 @@
 							MESSAGE_QUOTE_RE,
 							(_, b) => b
 						);
-						messages = [new_message(_message, fn_index, "error"), ...messages];
+						messages = [new_message(_message, fn_index, "error", status.display, status.duration), ...messages];
 					}
 					dependencies.map(async (dep) => {
 						if (

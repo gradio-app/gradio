@@ -7,6 +7,8 @@
 	export let message = "";
 	export let type: ToastMessage["type"];
 	export let id: number;
+	export let duration = 10000;
+	export let display = true;
 
 	const dispatch = createEventDispatcher();
 
@@ -17,7 +19,7 @@
 	onMount(() => {
 		setTimeout(() => {
 			close_message();
-		}, 10000);
+		}, duration);
 	});
 </script>
 
@@ -27,6 +29,7 @@
 	class="toast-body {type}"
 	role="alert"
 	data-testid="toast-body"
+	class:hidden={!display}
 	on:click|stopPropagation
 	on:keydown|stopPropagation
 	in:fade={{ duration: 200, delay: 100 }}
@@ -59,7 +62,7 @@
 		<span aria-hidden="true">&#215;</span>
 	</button>
 
-	<div class="timer {type}" />
+	<div class="timer {type}"/>
 </div>
 
 <style>
@@ -274,5 +277,8 @@
 
 	:global(.dark) .timer.info {
 		background: var(--color-grey-500);
+	}
+	.hidden {
+		display: none;
 	}
 </style>

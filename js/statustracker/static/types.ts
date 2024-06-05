@@ -21,4 +21,6 @@ export interface ToastMessage {
 	type: "error" | "warning" | "info";
 	message: string;
 	id: number;
+	display: boolean;
+	duration: number;
 }

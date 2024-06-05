@@ -737,10 +737,10 @@ class App(FastAPI):
                     root_path=root_path,
                 )
             except BaseException as error:
-                show_error = app.get_blocks().show_error or isinstance(error, Error)
+                content = utils.error_payload(error, app.get_blocks().show_error)
                 traceback.print_exc()
                 return JSONResponse(
-                    content={"error": str(error) if show_error else None},
+                    content=content,
                     status_code=500,
                 )
             return output
