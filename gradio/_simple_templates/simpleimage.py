@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from gradio_client import file
+from gradio_client import handle_file
 from gradio_client.documentation import document
 
 from gradio.components.base import Component
@@ -102,7 +102,7 @@ class SimpleImage(Component):
         return FileData(path=str(value), orig_name=Path(value).name)
 
     def example_payload(self) -> Any:
-        return file(
+        return handle_file(
             "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
         )
 

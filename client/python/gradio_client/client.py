@@ -77,39 +77,26 @@ class Client:
         src: str,
         hf_token: str | None = None,
         max_workers: int = 40,
-        serialize: bool | None = None,  # TODO: remove in 1.0
-        output_dir: str
-        | Path = DEFAULT_TEMP_DIR,  # Maybe this can be combined with `download_files` in 1.0
         verbose: bool = True,
         auth: tuple[str, str] | None = None,
         *,
         headers: dict[str, str] | None = None,
-        upload_files: bool = True,  # TODO: remove and hardcode to False in 1.0
-        download_files: bool = True,  # TODO: consider setting to False in 1.0
-        _skip_components: bool = True,  # internal parameter to skip values certain components (e.g. State) that do not need to be displayed to users.
+        download_files: str | Path | Literal[False] = DEFAULT_TEMP_DIR,
         ssl_verify: bool = True,
+        _skip_components: bool = True,  # internal parameter to skip values certain components (e.g. State) that do not need to be displayed to users.
     ):
         """
         Parameters:
             src: Either the name of the Hugging Face Space to load, (e.g. "abidlabs/whisper-large-v2") or the full URL (including "http" or "https") of the hosted Gradio app to load (e.g. "http://mydomain.com/app" or "https://bec81a83-5b5c-471e.gradio.live/").
             hf_token: The Hugging Face token to use to access private Spaces. Automatically fetched if you are logged in via the Hugging Face Hub CLI. Obtain from: https://huggingface.co/settings/token
             max_workers: The maximum number of thread workers that can be used to make requests to the remote Gradio app simultaneously.
-            serialize: Deprecated. Please use the equivalent `upload_files` parameter instead.
-            output_dir: The directory to save files that are downloaded from the remote API. If None, reads from the GRADIO_TEMP_DIR environment variable. Defaults to a temporary directory on your machine.
             verbose: Whether the client should print statements to the console.
-            headers: Additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. These headers will override the default headers if they have the same keys.
-            upload_files: Whether the client should treat input string filepath as files and upload them to the remote server. If False, the client will treat input string filepaths as strings always and not modify them, and files should be passed in explicitly using `gradio_client.file("path/to/file/or/url")` instead. This parameter will be deleted and False will become the default in a future version.
-            download_files: Whether the client should download output files from the remote API and return them as string filepaths on the local machine. If False, the client will return a FileData dataclass object with the filepath on the remote machine instead.
+            headers: Additional headers to send to the remote Gradio app on every request. By default only the HF authorization and user-agent headers are sent. This parameter will override the default headers if they have the same keys.
+            download_files: Directory where the client should download output files  on the local machine from the remote API. By default, uses the value of the GRADIO_TEMP_DIR environment variable which, if not set by the user, is a temporary directory on your machine. If False, the client does not download files and returns a FileData dataclass object with the filepath on the remote machine instead.
             ssl_verify: If False, skips certificate validation which allows the client to connect to Gradio apps that are using self-signed certificates.
         """
         self.verbose = verbose
         self.hf_token = hf_token
-        if serialize is not None:
-            warnings.warn(
-                "The `serialize` parameter is deprecated and will be removed. Please use the equivalent `upload_files` parameter instead."
-            )
-            upload_files = serialize
-        self.upload_files = upload_files
         self.download_files = download_files
         self._skip_components = _skip_components
         self.headers = build_hf_headers(
@@ -122,9 +109,14 @@ class Client:
         self.ssl_verify = ssl_verify
         self.space_id = None
         self.cookies: dict[str, str] = {}
-        self.output_dir = (
-            str(output_dir) if isinstance(output_dir, Path) else output_dir
-        )
+        if isinstance(self.download_files, (str, Path)):
+            if not os.path.exists(self.download_files):
+                os.makedirs(self.download_files, exist_ok=True)
+            if not os.path.isdir(self.download_files):
+                raise ValueError(f"Path: {self.download_files} is not a directory.")
+            self.output_dir = str(self.download_files)
+        else:
+            self.output_dir = DEFAULT_TEMP_DIR
 
         if src.startswith("http://") or src.startswith("https://"):
             _src = src if src.endswith("/") else src + "/"
@@ -554,10 +546,7 @@ class Client:
         return job
 
     def _get_api_info(self):
-        if self.upload_files:
-            api_info_url = urllib.parse.urljoin(self.src, utils.API_INFO_URL)
-        else:
-            api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
+        api_info_url = urllib.parse.urljoin(self.src, utils.RAW_API_INFO_URL)
         if self.app_version > version.Version("3.36.1"):
             r = httpx.get(
                 api_info_url,
@@ -574,7 +563,7 @@ class Client:
                 utils.SPACE_FETCHER_URL,
                 json={
                     "config": json.dumps(self.config),
-                    "serialize": self.upload_files,
+                    "serialize": False,
                 },
             )
             if fetch.is_success:
@@ -737,7 +726,7 @@ class Client:
                 default_value = info.get("parameter_default")
                 default_value = utils.traverse(
                     default_value,
-                    lambda x: f"file(\"{x['url']}\")",
+                    lambda x: f"handle_file(\"{x['url']}\")",
                     utils.is_file_obj_with_meta,
                 )
                 default_info = (
@@ -1273,20 +1262,11 @@ class Endpoint:
     def process_input_files(self, *data) -> tuple:
         data_ = []
         for i, d in enumerate(data):
-            if self.client.upload_files and self.input_component_types[i].value_is_file:
-                d = utils.traverse(
-                    d,
-                    partial(self._upload_file, data_index=i),
-                    lambda f: utils.is_filepath(f)
-                    or utils.is_file_obj_with_meta(f)
-                    or utils.is_http_url_like(f),
-                )
-            elif not self.client.upload_files:
-                d = utils.traverse(
-                    d,
-                    partial(self._upload_file, data_index=i),
-                    utils.is_file_obj_with_meta,
-                )
+            d = utils.traverse(
+                d,
+                partial(self._upload_file, data_index=i),
+                utils.is_file_obj_with_meta,
+            )
             data_.append(d)
         return tuple(data_)
 
@@ -1329,15 +1309,7 @@ class Endpoint:
             return data
 
     def _upload_file(self, f: str | dict, data_index: int) -> dict[str, str]:
-        if isinstance(f, str):
-            warnings.warn(
-                f'The Client is treating: "{f}" as a file path. In future versions, this behavior will not happen automatically. '
-                f'\n\nInstead, please provide file path or URLs like this: gradio_client.file("{f}"). '
-                "\n\nNote: to stop treating strings as filepaths unless file() is used, set upload_files=False in Client()."
-            )
-            file_path = f
-        else:
-            file_path = f["path"]
+        file_path = f["path"]
         orig_name = Path(file_path)
         if not utils.is_http_url_like(file_path):
             component_id = self.dependency["inputs"][data_index]

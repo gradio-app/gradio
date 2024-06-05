@@ -10,7 +10,7 @@ from typing import Any, Iterable, List, Literal, Optional, Tuple, Union, cast
 
 import numpy as np
 import PIL.Image
-from gradio_client import file
+from gradio_client import handle_file
 from gradio_client.documentation import document
 from typing_extensions import TypedDict
 
@@ -398,7 +398,7 @@ class ImageEditor(Component):
 
     def example_payload(self) -> Any:
         return {
-            "background": file(
+            "background": handle_file(
                 "https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png"
             ),
             "layers": [],

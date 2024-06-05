@@ -1080,7 +1080,7 @@ SKIP_COMPONENTS = {
 }
 
 
-def file(filepath_or_url: str | Path):
+def handle_file(filepath_or_url: str | Path):
     s = str(filepath_or_url)
     data = {"path": s, "meta": {"_type": "gradio.FileData"}}
     if is_http_url_like(s):
@@ -1091,6 +1091,13 @@ def file(filepath_or_url: str | Path):
         raise ValueError(
             f"File {s} does not exist on local filesystem and is not a valid URL."
         )
+
+
+def file(filepath_or_url: str | Path):
+    warnings.warn(
+        "file() is deprecated and will be removed in a future version. Use handle_file() instead."
+    )
+    return handle_file(filepath_or_url)
 
 
 def construct_args(
