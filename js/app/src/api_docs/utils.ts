@@ -2,7 +2,7 @@
 export function represent_value(
 	value: string,
 	type: string | undefined,
-	lang: "js" | "py" | null = null
+	lang: "js" | "py" | "bash" | null = null
 ): string | null | number | boolean | Record<string, unknown> {
 	if (type === undefined) {
 		return lang === "py" ? "None" : null;
@@ -18,7 +18,7 @@ export function represent_value(
 		if (lang === "py") {
 			value = String(value);
 			return value === "true" ? "True" : "False";
-		} else if (lang === "js") {
+		} else if (lang === "js" || lang === "bash") {
 			return value;
 		}
 		return value === "true";
@@ -37,6 +37,9 @@ export function represent_value(
 			return lang === "py" ? "None" : "null";
 		}
 		return value;
+	}
+	if (lang === "bash") {
+		value = simplify_file_data(value);
 	}
 	if (lang === "py") {
 		value = replace_file_data_with_file_function(value);
@@ -67,6 +70,31 @@ export function is_potentially_nested_file_data(obj: any): boolean {
 		}
 	}
 	return false;
+}
+
+function simplify_file_data(obj: any): any {
+	if (typeof obj === "object" && obj !== null && !Array.isArray(obj)) {
+		if (
+			"url" in obj &&
+			obj.url &&
+			"meta" in obj &&
+			obj.meta?._type === "gradio.FileData"
+		) {
+			return { path: obj.url };
+		}
+	}
+	if (Array.isArray(obj)) {
+		obj.forEach((item, index) => {
+			if (typeof item === "object" && item !== null) {
+				obj[index] = simplify_file_data(item); // Recurse and update array elements
+			}
+		});
+	} else if (typeof obj === "object" && obj !== null) {
+		Object.keys(obj).forEach((key) => {
+			obj[key] = simplify_file_data(obj[key]); // Recurse and update object properties
+		});
+	}
+	return obj;
 }
 
 function replace_file_data_with_file_function(obj: any): any {

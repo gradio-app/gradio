@@ -2,10 +2,11 @@
 	import CopyButton from "./CopyButton.svelte";
 	import { Block } from "@gradio/atoms";
 
-	export let current_language: "python" | "javascript";
+	export let current_language: "python" | "javascript" | "bash";
 
 	let py_install = "pip install gradio_client";
 	let js_install = "npm i -D @gradio/client";
+	let bash_install = "curl --version";
 </script>
 
 <Block border_mode="contrast">
@@ -23,6 +24,13 @@
 			</div>
 			<div>
 				<pre>$ {js_install}</pre>
+			</div>
+		{:else if current_language === "bash"}
+			<div class="copy">
+				<CopyButton code={bash_install} />
+			</div>
+			<div>
+				<pre>$ {bash_install}</pre>
 			</div>
 		{/if}
 	</code>
