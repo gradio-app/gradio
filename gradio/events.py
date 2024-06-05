@@ -20,6 +20,8 @@ from typing import (
 from gradio_client.documentation import document
 from jinja2 import Template
 
+from gradio.data_classes import FileData, FileDataDict
+
 if TYPE_CHECKING:
     from gradio.blocks import Block, Component
 
@@ -146,6 +148,15 @@ class KeyUpData(EventData):
         The displayed value in the input textbox after the key was pressed. This may be different than the `value`
         attribute of the component itself, as the `value` attribute of some components (e.g. Dropdown) are not updated
         until the user presses Enter.
+        """
+
+
+class DeletedFileData(EventData):
+    def __init__(self, target: Block | None, data: FileDataDict):
+        super().__init__(target, data)
+        self.file: FileData = FileData(**data)
+        """
+        The file that was deleted.
         """
 
 
@@ -584,6 +595,10 @@ class Events:
     apply = EventListener(
         "apply",
         doc="This listener is triggered when the user applies changes to the {{ component }} through an integrated UI action.",
+    )
+    delete = EventListener(
+        "delete",
+        doc="This listener is triggered when the user deletes and item from the {{ component }}. Uses event data gradio.DeletedFileData to carry `value` referring to the file that was deleted as an instance of FileData. See EventData documentation on how to use this event data",
     )
 
 
