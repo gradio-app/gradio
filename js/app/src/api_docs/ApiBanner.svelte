@@ -6,7 +6,6 @@
 
 	export let root: string;
 	export let api_count: number;
-	export let current_language: "python" | "javascript" | "bash";
 
 	const dispatch = createEventDispatcher();
 </script>

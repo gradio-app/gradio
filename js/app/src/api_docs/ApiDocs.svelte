@@ -99,7 +99,6 @@
 				on:close
 				root={space_id || root}
 				{api_count}
-				{current_language}
 			/>
 		</div>
 
