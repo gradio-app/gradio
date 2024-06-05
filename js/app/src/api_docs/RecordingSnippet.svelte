@@ -151,13 +151,12 @@ client.<span class="highlight"
 				<div bind:this={js_code}>
 					<pre>import &lbrace; Client &rbrace; from "@gradio/client";
 
-					const app = await Client.connect(<span class="token string">"{short_root}"</span
+const app = await Client.connect(<span class="token string">"{short_root}"</span
 						>);
 					{#each js_zipped as { call, api_name }}<!--
 					-->
-					await client.predict(<span
-								class="api-name">
-						"/{api_name}"</span
+await client.predict(<span class="api-name">
+  "/{api_name}"</span
 							>{#if call},{/if}{call});
 						{/each}</pre>
 				</div>
@@ -170,7 +169,9 @@ client.<span class="highlight"
 				<div bind:this={bash_code}>
 					{#each bash_zipped as { call, api_name }}
 						<pre>curl -X POST {short_root}call/{api_name} -s -H "Content-Type: application/json" -d '{"{"} 
-	"data": [{call}]{"}"}' | awk -F'"' '{"{"} print $4{"}"}' | read EVENT_ID; curl -N {short_root}call/{api_name}/$EVENT_ID</pre>
+	"data": [{call}]{"}"}' \
+  | awk -F'"' '{"{"} print $4{"}"}' \
+  | read EVENT_ID; curl -N {short_root}call/{api_name}/$EVENT_ID</pre>
 						<br />
 					{/each}
 				</div>
