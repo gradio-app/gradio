@@ -64,7 +64,7 @@ export type PredictFunction = (
 	endpoint: string | number,
 	data: unknown[] | Record<string, unknown>,
 	event_data?: unknown
-) => Promise<unknown>;
+) => Promise<PredictReturn>;
 
 export type client_return = {
 	config: Config | undefined;
