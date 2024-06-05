@@ -150,6 +150,7 @@
 		} else {
 			return false;
 		}
+
 		return (
 			acceptArray.includes(uploaded_file_extension) ||
 			acceptArray.some((type) => {

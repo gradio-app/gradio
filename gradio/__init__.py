@@ -60,7 +60,14 @@ from gradio.components import (
 from gradio.components.audio import WaveformOptions
 from gradio.components.image_editor import Brush, Eraser
 from gradio.data_classes import FileData
-from gradio.events import EventData, KeyUpData, LikeData, SelectData, on
+from gradio.events import (
+    DeletedFileData,
+    EventData,
+    KeyUpData,
+    LikeData,
+    SelectData,
+    on,
+)
 from gradio.exceptions import Error
 from gradio.external import load
 from gradio.flagging import (

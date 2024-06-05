@@ -1,4 +1,4 @@
-import { test as base, type Page } from "@playwright/test";
+import { test as base, type Locator, type Page } from "@playwright/test";
 import { spy } from "tinyspy";
 import url from "url";
 import path from "path";
@@ -163,29 +163,40 @@ export * from "./render";
 
 export const drag_and_drop_file = async (
 	page: Page,
-	selector: string,
+	selector: string | Locator,
 	filePath: string,
 	fileName: string,
-	fileType = ""
+	fileType = "",
+	count = 1
 ): Promise<void> => {
 	const buffer = (await fsPromises.readFile(filePath)).toString("base64");
 
 	const dataTransfer = await page.evaluateHandle(
-		async ({ bufferData, localFileName, localFileType }) => {
+		async ({ bufferData, localFileName, localFileType, count }) => {
 			const dt = new DataTransfer();
 
 			const blobData = await fetch(bufferData).then((res) => res.blob());
 
-			const file = new File([blobData], localFileName, { type: localFileType });
-			dt.items.add(file);
+			const file = new File([blobData], localFileName, {
+				type: localFileType
+			});
+
+			for (let i = 0; i < count; i++) {
+				dt.items.add(file);
+			}
 			return dt;
 		},
 		{
 			bufferData: `data:application/octet-stream;base64,${buffer}`,
 			localFileName: fileName,
-			localFileType: fileType
+			localFileType: fileType,
+			count
 		}
 	);
 
-	await page.dispatchEvent(selector, "drop", { dataTransfer });
+	if (typeof selector === "string") {
+		await page.dispatchEvent(selector, "drop", { dataTransfer });
+	} else {
+		await selector.dispatchEvent("drop", { dataTransfer });
+	}
 };

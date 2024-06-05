@@ -1,5 +1,13 @@
 import { test, expect, drag_and_drop_file } from "@gradio/tootils";
 
+async function error_modal_showed(page) {
+	const toast = page.getByTestId("toast-body");
+	expect(toast).toContainText("error");
+	const close = page.getByTestId("toast-close");
+	await close.click();
+	await expect(page.getByTestId("toast-body")).toHaveCount(0);
+}
+
 test("File component properly dispatches load event for the single file case.", async ({
 	page
 }) => {
@@ -63,11 +71,33 @@ test("File component properly handles drag and drop of pdf file.", async ({
 test("File component properly handles invalid file_types.", async ({
 	page
 }) => {
-	const uploader = await page.locator("input[type=file]").last();
-	await uploader.setInputFiles(["./test/files/cheetah1.jpg"]);
+	const locator = page.locator("input[type=file]").nth(4);
+	await drag_and_drop_file(
+		page,
+		locator,
+		"./test/files/cheetah1.jpg",
+		"cheetah1.jpg",
+		"image/jpeg"
+	);
 
-	// Check that the pdf file was uploaded
-	await expect(
-		page.getByLabel("# Load Upload File with Invalid file_types")
-	).toHaveValue("1");
+	await error_modal_showed(page);
+});
+
+test("Delete event is fired correctly", async ({ page }) => {
+	const locator = page.locator("input[type=file]").nth(5);
+	await drag_and_drop_file(
+		page,
+		locator,
+		"./test/files/cheetah1.jpg",
+		"cheetah1.jpg",
+		"image/jpeg",
+		2
+	);
+
+	await page.getByLabel("Remove this file").first().click();
+
+	await expect(page.getByLabel("# Deleted File")).toHaveValue("1");
+	expect(
+		(await page.getByLabel("Delete file data").inputValue()).length
+	).toBeGreaterThan(5);
 });

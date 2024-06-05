@@ -8,7 +8,7 @@ import secrets
 import shutil
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, TypedDict, Union
 
 from fastapi import Request
 from gradio_client.utils import traverse
@@ -187,6 +187,16 @@ class GradioRootModel(GradioBaseModel, RootModel):
 
 
 GradioDataModel = Union[GradioModel, GradioRootModel]
+
+
+class FileDataDict(TypedDict):
+    path: str  # server filepath
+    url: Optional[str]  # normalised server url
+    size: Optional[int]  # size in bytes
+    orig_name: Optional[str]  # original filename
+    mime_type: Optional[str]
+    is_stream: bool
+    meta: dict
 
 
 class FileData(GradioModel):

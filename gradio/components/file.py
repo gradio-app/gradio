@@ -26,7 +26,7 @@ class File(Component):
     Demo: zip_files, zip_to_json
     """
 
-    EVENTS = [Events.change, Events.select, Events.clear, Events.upload]
+    EVENTS = [Events.change, Events.select, Events.clear, Events.upload, Events.delete]
 
     def __init__(
         self,
