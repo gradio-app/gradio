@@ -259,6 +259,7 @@ export interface ClientOptions {
 	status_callback?: SpaceStatusCallback | null;
 	auth?: [string, string] | null;
 	with_null_state?: boolean;
+	events?: EventType[];
 }
 
 export interface FileData {

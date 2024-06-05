@@ -76,11 +76,19 @@ export function submit(
 				? new URLSearchParams(window.location.search).toString()
 				: "";
 
+		const events_to_publish =
+			options?.events?.reduce(
+				(acc, event) => {
+					acc[event] = true;
+					return acc;
+				},
+				{} as Record<string, boolean>
+			) || {};
+
 		// event subscription methods
 		function fire_event(event: GradioEvent): void {
-			if (event.type === "status" && event.stage === "error") {
-				push_event(event);
-			} else {
+			console.log("Firing event", event.type, events_to_publish);
+			if (events_to_publish[event.type]) {
 				push_event(event);
 			}
 		}

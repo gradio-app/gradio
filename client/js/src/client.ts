@@ -118,8 +118,15 @@ export class Client {
 	open_stream: () => Promise<void>;
 	private resolve_config: (endpoint: string) => Promise<Config | undefined>;
 	private resolve_cookies: () => Promise<void>;
-	constructor(app_reference: string, options: ClientOptions = {}) {
+	constructor(
+		app_reference: string,
+		options: ClientOptions = { events: ["data"] }
+	) {
 		this.app_reference = app_reference;
+		if (!options.events) {
+			options.events = ["data"];
+		}
+
 		this.options = options;
 
 		this.view_api = view_api.bind(this);
@@ -200,7 +207,9 @@ export class Client {
 
 	static async connect(
 		app_reference: string,
-		options: ClientOptions = {}
+		options: ClientOptions = {
+			events: ["data"]
+		}
 	): Promise<Client> {
 		const client = new this(app_reference, options); // this refers to the class itself, not the instance
 		await client.init();
@@ -213,7 +222,9 @@ export class Client {
 
 	static async duplicate(
 		app_reference: string,
-		options: DuplicateOptions = {}
+		options: DuplicateOptions = {
+			events: ["data"]
+		}
 	): Promise<Client> {
 		return duplicate(app_reference, options);
 	}
@@ -412,7 +423,9 @@ export class Client {
  */
 export async function client(
 	app_reference: string,
-	options: ClientOptions = {}
+	options: ClientOptions = {
+		events: ["data"]
+	}
 ): Promise<Client> {
 	return await Client.connect(app_reference, options);
 }
