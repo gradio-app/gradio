@@ -118,6 +118,31 @@ if __name__ == "__main__":
       app.run(host="0.0.0.0", port=5000)
 ```
 
+#### Migration Guide and Breaking Changes
+
+**Python**
+- The `serialize` argument of the `Client` class was removed. Has no effect.
+- The `upload_files` argument of the `Client` was removed.
+- All filepaths must be wrapped in the `handle_file` method. Example:
+```python
+from gradio_client import Client, handle_file
+
+client = Client("gradio/image_captioner")
+client.predict(handle_file("cute_cat.jpg"))
+```
+- The `output_dir` argument was removed. It is not specified in the `download_files` argument.
+
+
+**Javascript**
+The client has been redesigned entirely. It was refactored from a function into a class. An instance can now be constructed by awaiting the `connect` method.
+
+```js
+const app = await Client.connect("gradio/whisper")
+```
+The app variable has the same methods as the python class (`submit`, `predict`, `view_api`, `duplicate`).
+
+
+
 #### Additional Changes
 
 - [#8243](https://github.com/gradio-app/gradio/pull/8243) -  Set orig_name in python client file uploads.
