@@ -26,8 +26,9 @@
 	let endpoints_info: any;
 	let py_zipped: { call: string; api_name: string }[] = [];
 	let js_zipped: { call: string; api_name: string }[] = [];
+	let bash_zipped: { call: string; api_name: string }[] = [];
 
-	function format_api_call(call: Payload, lang: "py" | "js"): string {
+	function format_api_call(call: Payload, lang: "py" | "js" | "bash"): string {
 		const api_name = `/${dependencies[call.fn_index].api_name}`;
 		// If an input is undefined (distinct from null) then it corresponds to a State component.
 		let call_data_excluding_state = call.data.filter(
@@ -49,12 +50,19 @@
 							python_type,
 							"py"
 						)}`;
-					}
-					return `    ${param_name}: ${represent_value(
-						param as string,
-						python_type,
-						"js"
-					)}`;
+					} else if (lang === "js") {
+						return `    ${param_name}: ${represent_value(
+							param as string,
+							python_type,
+							"js"
+						)}`;
+					} else if (lang === "bash") {
+						return `    ${represent_value(
+							param as string,
+							python_type,
+							"bash"
+						)}`;
+						}
 				}
 				return `  ${represent_value(param as string, undefined, lang)}`;
 			})
@@ -63,8 +71,11 @@
 		if (params) {
 			if (lang === "py") {
 				return `${params},\n`;
+			} else if (lang === "js") {
+				return `{\n${params},\n}`;
+			} else if (lang === "bash") {
+				return `\n${params}\n`;
 			}
-			return ` {\n${params},\n}`;
 		}
 		if (lang === "py") {
 			return "";
@@ -81,6 +92,9 @@
 		let js_api_calls: string[] = api_calls.map((call) =>
 			format_api_call(call, "js")
 		);
+		let bash_api_calls: string[] = api_calls.map((call) =>
+			format_api_call(call, "bash")
+		);
 		let api_names: string[] = api_calls.map(
 			(call) => dependencies[call.fn_index].api_name || ""
 		);
@@ -92,9 +106,13 @@
 			call,
 			api_name: api_names[index]
 		}));
+		bash_zipped = bash_api_calls.map((call, index) => ({
+			call,
+			api_name: api_names[index]
+		}));
 
 		await tick();
-		code_text = code.innerText;
+		$: code_text = code.innerText;
 	});
 </script>
 
@@ -130,7 +148,18 @@ await client.predict(<span
 								class="api-name">
 	"/{api_name}"</span
 							>{#if call},{/if}{call});
-						{/each}</pre>{/if}
+						{/each}</pre>
+					{:else if current_language === "bash"}
+						{#each bash_zipped as { call, api_name }}
+					<pre>EVENT_ID=$(
+curl -X POST {short_root}call/{api_name} -s -H "Content-Type: application/json" -d '{"{"} 
+	"data": [{call}]{"}"}' | jq -r '.event_id'
+)</pre>
+					<pre>curl -N {short_root}call/{api_name}/$EVENT_ID 
+					</pre>
+	<br>
+					  {/each}
+					{/if}
 			</div></code
 		>
 	</Block>

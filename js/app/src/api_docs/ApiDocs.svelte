@@ -123,7 +123,7 @@
 						</li>
 					{/each}
 				</div>
-				{#if api_calls.length && current_language !== "bash"}
+				{#if api_calls.length}
 					<div>
 						<p
 							id="num-recorded-api-calls"
@@ -179,13 +179,8 @@
 								class="underline"
 								target="_blank">read more</a
 							>).{/if}
-						{#if current_language == "bash"}Note: making a prediction and
-							getting a result requires <strong>2 requests</strong>: a
-							<code>POST</code>
-							and a <code>GET</code> request. The <code>POST</code> request
-							returns an <code>EVENT_ID</code>, which is used in the second
-							<code>GET</code> request to fetch the results.
-						{:else}Or
+
+							Or
 							<Button
 								size="sm"
 								variant="primary"
@@ -195,6 +190,12 @@
 								🪄 Use the API Recorder
 							</Button>
 							to automatically generate your API requests.
+						{#if current_language == "bash"}Note: making a prediction and
+							getting a result requires <strong>2 requests</strong>: a
+							<code>POST</code>
+							and a <code>GET</code> request. The <code>POST</code> request
+							returns an <code>EVENT_ID</code>, which is used in the second
+							<code>GET</code> request to fetch the results.
 						{/if}
 
 						<!-- <span
