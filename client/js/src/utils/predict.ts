@@ -1,11 +1,11 @@
 import { Client } from "../client";
-import type { Dependency, SubmitReturn } from "../types";
+import type { Dependency, PredictReturn } from "../types";
 
 export async function predict(
 	this: Client,
 	endpoint: string | number,
 	data: unknown[] | Record<string, unknown>
-): Promise<SubmitReturn> {
+): Promise<PredictReturn> {
 	let data_returned = false;
 	let status_complete = false;
 	let dependency: Dependency;
@@ -38,7 +38,7 @@ export async function predict(
 				// if complete message comes before data, resolve here
 				if (status_complete) {
 					app.destroy();
-					resolve(d as SubmitReturn);
+					resolve(d as PredictReturn);
 				}
 				data_returned = true;
 				result = d;
@@ -50,7 +50,7 @@ export async function predict(
 					// if complete message comes after data, resolve here
 					if (data_returned) {
 						app.destroy();
-						resolve(result as SubmitReturn);
+						resolve(result as PredictReturn);
 					}
 				}
 			});
