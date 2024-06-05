@@ -40,6 +40,7 @@ with gr.Blocks() as demo:
     )
 
     all_textbox = gr.Textbox(label="Output")
+    click_count = gr.Number(label="Clicks")
     change_count = gr.Number(label="Changes")
     gr.on(
         inputs=[change_count, dict_state, nested_list_state, set_state],
@@ -54,6 +55,8 @@ with gr.Blocks() as demo:
     zero_all_btn.click(
         lambda x: [0] * len(x), inputs=list_state, outputs=list_state
     )
+
+    gr.on([count_to_3_btn.click, zero_all_btn.click], lambda x: x + 1, click_count, click_count)
 
 if __name__ == "__main__":
     demo.launch()
