@@ -15,6 +15,7 @@
 
 	import python from "./img/python.svg";
 	import javascript from "./img/javascript.svg";
+	import bash from "./img/bash.svg";
 	import ResponseSnippet from "./ResponseSnippet.svelte";
 
 	export let dependencies: Dependency[];
@@ -40,11 +41,12 @@
 	}
 
 	export let api_calls: Payload[] = [];
-	let current_language: "python" | "javascript" = "python";
+	let current_language: "python" | "javascript" | "bash" = "python";
 
 	const langs = [
 		["python", python],
-		["javascript", javascript]
+		["javascript", javascript],
+		["bash", bash]
 	] as const;
 
 	let is_running = false;
@@ -93,17 +95,19 @@
 {#if info}
 	{#if api_count}
 		<div class="banner-wrap">
-			<ApiBanner on:close root={space_id || root} {api_count} />
+			<ApiBanner
+				on:close
+				root={space_id || root}
+				{api_count}
+				{current_language}
+			/>
 		</div>
 
 		<div class="docs-wrap">
 			<div class="client-doc">
-				<p>
-					Use the <code class="library">gradio_client</code>
-					<a href={py_docs} target="_blank">Python library</a> or the
-					<code class="library">@gradio/client</code>
-					<a href={js_docs} target="_blank">Javascript package</a> to query the app
-					via API.
+				<p style="font-size: var(--text-lg);">
+					Choose a language to see the code snippets for interacting with the
+					API.
 				</p>
 			</div>
 			<div class="endpoint">
@@ -119,7 +123,7 @@
 						</li>
 					{/each}
 				</div>
-				{#if api_calls.length}
+				{#if api_calls.length && current_language !== "bash"}
 					<div>
 						<p
 							id="num-recorded-api-calls"
@@ -153,7 +157,13 @@
 					</p>
 				{:else}
 					<p class="padded">
-						1. Install the client if you don't already have it installed.
+						{#if current_language == "python" || current_language == "javascript"}
+							1. Install the <span style="text-transform:capitalize"
+								>{current_language}</span
+							> client if you don't already have it installed.
+						{:else}
+							1. Confirm that you have cURL installed on your system.
+						{/if}
 					</p>
 
 					<InstallSnippet {current_language} />
@@ -168,15 +178,24 @@
 									spaces_docs_suffix}
 								class="underline"
 								target="_blank">read more</a
-							>).{/if} Or
-						<Button
-							size="sm"
-							variant="primary"
-							on:click={() => dispatch("close", { api_recorder_visible: true })}
-						>
-							🪄 Use the API Recorder
-						</Button>
-						to automatically generate your API requests.
+							>).{/if}
+						{#if current_language == "bash"}Note: making a prediction and
+							getting a result requires <strong>2 requests</strong>: a
+							<code>POST</code>
+							and a <code>GET</code> request. The <code>POST</code> request
+							returns an <code>EVENT_ID</code>, which is used in the second
+							<code>GET</code> request to fetch the results.
+						{:else}Or
+							<Button
+								size="sm"
+								variant="primary"
+								on:click={() =>
+									dispatch("close", { api_recorder_visible: true })}
+							>
+								🪄 Use the API Recorder
+							</Button>
+							to automatically generate your API requests.
+						{/if}
 
 						<!-- <span
 							id="api-recorder"
@@ -197,7 +216,8 @@
 								{dependency}
 								{dependency_index}
 								{current_language}
-								root={space_id || root}
+								{root}
+								{space_id}
 							/>
 
 							<ParametersSnippet

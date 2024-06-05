@@ -768,7 +768,9 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            full_body = PredictBody(**body.model_dump(), simple_format=True)
+            full_body = PredictBody(
+                **body.model_dump(), request=request, simple_format=True
+            )
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=full_body
             )

@@ -8,7 +8,7 @@
 	export let dependencies: Dependency[];
 	export let short_root: string;
 	export let root: string;
-	export let current_language: "python" | "javascript";
+	export let current_language: "python" | "javascript" | "bash";
 
 	let code: HTMLElement;
 	let code_text: string;
