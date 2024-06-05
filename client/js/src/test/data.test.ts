@@ -3,11 +3,13 @@ import {
 	update_object,
 	walk_and_store_blobs,
 	skip_queue,
-	post_message
+	post_message,
+	handle_file
 } from "../helpers/data";
 import { NodeBlob } from "../client";
 import { config_response, endpoint_info } from "./test_data";
 import { BlobRef } from "../types";
+import { FileData } from "../upload";
 
 describe("walk_and_store_blobs", () => {
 	it("should convert a Buffer to a Blob", async () => {
@@ -29,18 +31,6 @@ describe("walk_and_store_blobs", () => {
 		);
 
 		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
-	});
-
-	it("should return blob: false when passed an image", async () => {
-		const blob = new Blob([]);
-		const parts = await walk_and_store_blobs(
-			blob,
-			"Image",
-			[],
-			true,
-			endpoint_info
-		);
-		expect(parts[0].blob).toBe(false);
 	});
 
 	it("should handle arrays", async () => {
@@ -274,5 +264,58 @@ describe("post_message", () => {
 		expect(post_message_mock).toHaveBeenCalledWith(test_data, test_origin, [
 			message_channel_mock.port2
 		]);
+	});
+});
+
+describe("handle_file", () => {
+	it("should handle a URL and return FileData", () => {
+		const file_or_url =
+			"https://raw.githubusercontent.com/gradio-app/gradio/main/test/test_files/bus.png";
+		const result = handle_file(file_or_url) as FileData;
+
+		expect(result.path).toBe(file_or_url);
+		expect(result.url).toBe(file_or_url);
+		expect(result.orig_name).toBe("bus.png");
+		expect(result.meta._type).toBe("gradio.FileData");
+	});
+
+	it("should handle a File object and return FileData", () => {
+		const file = new File(["test data"], "test.txt", { type: "text/plain" });
+		const result = handle_file(file) as FileData;
+
+		expect(result.path).toBe(file.name);
+		expect(result.orig_name).toBe(file.name);
+		expect(result.blob).toBe(file);
+		expect(result.size).toBe(file.size);
+		expect(result.mime_type).toBe(file.type);
+		expect(result.meta._type).toBe("gradio.FileData");
+	});
+
+	it("should handle a Buffer object and return FileData", () => {
+		const buffer = Buffer.from("test data");
+		const result = handle_file(buffer) as FileData;
+
+		expect(result.blob).toBeInstanceOf(Blob);
+		expect(result.path).toBe("blob");
+		expect(result.orig_name).toBe("unknown");
+		expect(result.meta._type).toBe("gradio.FileData");
+	});
+
+	it("should handle a Blob object and return the blob", () => {
+		const blob = new Blob(["test data"], { type: "image/png" });
+		const result = handle_file(blob) as FileData;
+
+		expect(result).toBe(blob);
+	});
+
+	it("should throw an error for invalid input", () => {
+		const invalid_input = 123;
+
+		expect(() => {
+			// @ts-ignore
+			handle_file(invalid_input);
+		}).toThrowError(
+			"Invalid input: must be a URL, File, Blob, or Buffer object."
+		);
 	});
 });

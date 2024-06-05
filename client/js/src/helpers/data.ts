@@ -7,6 +7,7 @@ import type {
 	JsApiData,
 	DataType
 } from "../types";
+import { FileData } from "../upload";
 
 export function update_object(
 	object: { [x: string]: any },
@@ -64,11 +65,11 @@ export async function walk_and_store_blobs(
 		(globalThis.Buffer && data instanceof globalThis.Buffer) ||
 		data instanceof Blob
 	) {
-		const is_image = type === "Image";
+		// const is_image = type === "Image";
 		return [
 			{
 				path: path,
-				blob: is_image ? false : new NodeBlob([data]),
+				blob: new NodeBlob([data]),
 				type
 			}
 		];
@@ -117,4 +118,41 @@ export function post_message<Res = any>(
 		}) as (ev: MessageEvent<Res>) => void;
 		window.parent.postMessage(message, origin, [channel.port2]);
 	});
+}
+
+export function handle_file(
+	file_or_url: File | string | Blob | Buffer
+): FileData | Blob {
+	if (
+		typeof file_or_url === "string" &&
+		(file_or_url.startsWith("http://") || file_or_url.startsWith("https://"))
+	) {
+		return {
+			path: file_or_url,
+			url: file_or_url,
+			orig_name: file_or_url.split("/").pop() ?? "unknown",
+			meta: { _type: "gradio.FileData" }
+		};
+	} else if (file_or_url instanceof File || file_or_url instanceof Buffer) {
+		return {
+			path: file_or_url instanceof File ? file_or_url.name : "blob",
+			orig_name: file_or_url instanceof File ? file_or_url.name : "unknown",
+			// @ts-ignore
+			blob: file_or_url instanceof File ? file_or_url : new Blob([file_or_url]),
+			size:
+				file_or_url instanceof Blob
+					? file_or_url.size
+					: Buffer.byteLength(file_or_url as Buffer),
+			mime_type:
+				file_or_url instanceof File
+					? file_or_url.type
+					: "application/octet-stream", // Default MIME type for buffers
+			meta: { _type: "gradio.FileData" }
+		};
+	} else if (file_or_url instanceof Blob) {
+		return file_or_url;
+	}
+	throw new Error(
+		"Invalid input: must be a URL, File, Blob, or Buffer object."
+	);
 }
