@@ -143,7 +143,7 @@ if __name__ == "__main__":
 - [#8209](https://github.com/gradio-app/gradio/pull/8209) - Rename `eventSource_Factory` and `fetch_implementation`. 
 - [#8109](https://github.com/gradio-app/gradio/pull/8109) - Implement JS Client tests.
 - [#8211](https://github.com/gradio-app/gradio/pull/8211) - remove redundant event source logic.  
-- [#8179](https://github.com/gradio-app/gradio/pull/8179) - rework upload to be a class method + pass client into each component.  Thanks @pngwn!
+- [#8179](https://github.com/gradio-app/gradio/pull/8179) - rework upload to be a class method + pass client into each component.
 - [#8181](https://github.com/gradio-app/gradio/pull/8181) - Ensure connectivity to private HF spaces with SSE protocol.
 - [#8169](https://github.com/gradio-app/gradio/pull/8169) - Only connect to heartbeat if needed.
 - [#8118](https://github.com/gradio-app/gradio/pull/8118) - Add eventsource polyfill for Node.js and browser environments.
