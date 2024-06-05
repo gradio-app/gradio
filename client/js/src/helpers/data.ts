@@ -10,7 +10,9 @@ import {
 	type ComponentMeta
 } from "../types";
 import { FileData } from "../upload";
-import path from "path";
+
+const is_node =
+	typeof process !== "undefined" && process.versions && process.versions.node;
 
 export function update_object(
 	object: { [x: string]: any },
@@ -137,12 +139,16 @@ export function handle_file(
 				meta: { _type: "gradio.FileData" }
 			};
 		}
-		// Handle local file paths
-		return new Command("upload_file", {
-			path: file_or_url,
-			name: path.basename(file_or_url),
-			orig_path: file_or_url
-		});
+
+		if (is_node) {
+			const path = require("path");
+			// Handle local file paths
+			return new Command("upload_file", {
+				path: file_or_url,
+				name: path.basename(file_or_url),
+				orig_path: file_or_url
+			});
+		}
 	} else if (typeof File !== "undefined" && file_or_url instanceof File) {
 		return {
 			path: file_or_url instanceof File ? file_or_url.name : "blob",
