@@ -1,6 +1,8 @@
 // API Data Types
 
 import { hardware_types } from "./helpers/spaces";
+import type { SvelteComponent } from "svelte";
+import type { ComponentType } from "svelte";
 
 export interface ApiData {
 	label: string;
@@ -84,7 +86,7 @@ export type PredictFunction = (
 	endpoint: string | number,
 	data: unknown[] | Record<string, unknown>,
 	event_data?: unknown
-) => Promise<SubmitReturn>;
+) => Promise<PredictReturn>;
 
 // Event and Submission Types
 
@@ -110,6 +112,14 @@ export type SubmitReturn = {
 	off: event;
 	cancel: () => Promise<void>;
 	destroy: () => void;
+};
+
+export type PredictReturn = {
+	type: EventType;
+	time: Date;
+	data: unknown;
+	endpoint: string;
+	fn_index: number;
 };
 
 // Space Status Types
@@ -150,7 +160,7 @@ export interface Config {
 	analytics_enabled: boolean;
 	connect_heartbeat: boolean;
 	auth_message: string;
-	components: any[];
+	components: ComponentMeta[];
 	css: string | null;
 	js: string | null;
 	head: string | null;
@@ -173,6 +183,45 @@ export interface Config {
 	path: string;
 	protocol: "sse_v3" | "sse_v2.1" | "sse_v2" | "sse_v1" | "sse" | "ws";
 	max_file_size?: number;
+}
+
+// todo: DRY up types
+export interface ComponentMeta {
+	type: string;
+	id: number;
+	has_modes: boolean;
+	props: SharedProps;
+	instance: SvelteComponent;
+	component: ComponentType<SvelteComponent>;
+	documentation?: Documentation;
+	children?: ComponentMeta[];
+	parent?: ComponentMeta;
+	value?: any;
+	component_class_id: string;
+	key: string | number | null;
+	rendered_in?: number;
+}
+
+interface SharedProps {
+	elem_id?: string;
+	elem_classes?: string[];
+	components?: string[];
+	server_fns?: string[];
+	interactive: boolean;
+	[key: string]: unknown;
+	root_url?: string;
+}
+
+export interface Documentation {
+	type?: TypeDescription;
+	description?: TypeDescription;
+	example_data?: string;
+}
+
+interface TypeDescription {
+	input_payload?: string;
+	response_object?: string;
+	payload?: string;
 }
 
 export interface Dependency {
@@ -240,6 +289,7 @@ export interface ClientOptions {
 	hf_token?: `hf_${string}`;
 	status_callback?: SpaceStatusCallback | null;
 	auth?: [string, string] | null;
+	with_null_state?: boolean;
 }
 
 export interface FileData {

@@ -4,7 +4,8 @@ import {
 	walk_and_store_blobs,
 	skip_queue,
 	post_message,
-	handle_file
+	handle_file,
+	handle_payload
 } from "../helpers/data";
 import { config_response, endpoint_info } from "./test_data";
 import { BlobRef, Command } from "../types";
@@ -265,6 +266,7 @@ describe("post_message", () => {
 		]);
 	});
 });
+
 describe("handle_file", () => {
 	it("should handle a Blob object and return the blob", () => {
 		const blob = new Blob(["test data"], { type: "image/png" });
@@ -311,5 +313,137 @@ describe("handle_file", () => {
 		}).toThrowError(
 			"Invalid input: must be a URL, File, Blob, or Buffer object."
 		);
+	});
+});
+
+describe("handle_payload", () => {
+	it("should return an input payload with null in place of `state` when with_null_state is true", () => {
+		const resolved_payload = [2];
+		const dependency = {
+			inputs: [1, 2]
+		};
+		const components = [
+			{ id: 1, type: "number" },
+			{ id: 2, type: "state" }
+		];
+		const with_null_state = true;
+		const result = handle_payload(
+			resolved_payload,
+			// @ts-ignore
+			dependency,
+			components,
+			"input",
+			with_null_state
+		);
+		expect(result).toEqual([2, null]);
+	});
+	it("should return an input payload with null in place of two `state` components when with_null_state is true", () => {
+		const resolved_payload = ["hello", "goodbye"];
+		const dependency = {
+			inputs: [1, 2, 3, 4]
+		};
+		const components = [
+			{ id: 1, type: "textbox" },
+			{ id: 2, type: "state" },
+			{ id: 3, type: "textbox" },
+			{ id: 4, type: "state" }
+		];
+		const with_null_state = true;
+		const result = handle_payload(
+			resolved_payload,
+			// @ts-ignore
+			dependency,
+			components,
+			"input",
+			with_null_state
+		);
+		expect(result).toEqual(["hello", null, "goodbye", null]);
+	});
+
+	it("should return an output payload without the state component value when with_null_state is false", () => {
+		const resolved_payload = ["hello", null];
+		const dependency = {
+			inputs: [2, 3]
+		};
+		const components = [
+			{ id: 2, type: "textbox" },
+			{ id: 3, type: "state" }
+		];
+		const with_null_state = false;
+		const result = handle_payload(
+			resolved_payload,
+			// @ts-ignore
+			dependency,
+			components,
+			"output",
+			with_null_state
+		);
+		expect(result).toEqual(["hello"]);
+	});
+
+	it("should return an ouput payload without the two state component values when with_null_state is false", () => {
+		const resolved_payload = ["hello", null, "world", null];
+		const dependency = {
+			inputs: [2, 3, 4, 5]
+		};
+		const components = [
+			{ id: 2, type: "textbox" },
+			{ id: 3, type: "state" },
+			{ id: 4, type: "textbox" },
+			{ id: 5, type: "state" }
+		];
+		const with_null_state = false;
+		const result = handle_payload(
+			resolved_payload,
+			// @ts-ignore
+			dependency,
+			components,
+			"output",
+			with_null_state
+		);
+		expect(result).toEqual(["hello", "world"]);
+	});
+
+	it("should return an ouput payload with the two state component values when with_null_state is true", () => {
+		const resolved_payload = ["hello", null, "world", null];
+		const dependency = {
+			inputs: [2, 3, 4, 5]
+		};
+		const components = [
+			{ id: 2, type: "textbox" },
+			{ id: 3, type: "state" },
+			{ id: 4, type: "textbox" },
+			{ id: 5, type: "state" }
+		];
+		const with_null_state = true;
+		const result = handle_payload(
+			resolved_payload,
+			// @ts-ignore
+			dependency,
+			components,
+			"output",
+			with_null_state
+		);
+		expect(result).toEqual(["hello", null, "world", null]);
+	});
+
+	it("should return the same payload where no state components are defined", () => {
+		const resolved_payload = ["hello", "world"];
+		const dependency = {
+			inputs: [2, 3]
+		};
+		const components = [
+			{ id: 2, type: "textbox" },
+			{ id: 3, type: "textbox" }
+		];
+		const with_null_state = true;
+		const result = handle_payload(
+			resolved_payload,
+			// @ts-ignore
+			dependency,
+			components,
+			with_null_state
+		);
+		expect(result).toEqual(["hello", "world"]);
 	});
 });

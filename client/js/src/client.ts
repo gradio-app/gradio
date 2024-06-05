@@ -6,6 +6,7 @@ import type {
 	DuplicateOptions,
 	EndpointInfo,
 	JsApiData,
+	PredictReturn,
 	SpaceStatus,
 	Status,
 	SubmitReturn,
@@ -108,7 +109,7 @@ export class Client {
 		endpoint: string | number,
 		data: unknown[] | Record<string, unknown>,
 		event_data?: unknown
-	) => Promise<SubmitReturn>;
+	) => Promise<PredictReturn>;
 	open_stream: () => Promise<void>;
 	private resolve_config: (endpoint: string) => Promise<Config | undefined>;
 	private resolve_cookies: () => Promise<void>;
