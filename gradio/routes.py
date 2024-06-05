@@ -624,13 +624,8 @@ class App(FastAPI):
 
         @app.post("/reset/")
         @app.post("/reset")
-        async def reset_iterator(body: ResetBody):
-            if body.event_id not in app.iterators:
-                return {"success": False}
-            async with app.lock:
-                del app.iterators[body.event_id]
-                app.iterators_to_reset.add(body.event_id)
-                await app.get_blocks()._queue.clean_events(event_id=body.event_id)
+        async def reset_iterator(body: ResetBody):  # noqa: ARG001
+            # No-op, all the cancelling/reset logic handled by /cancel
             return {"success": True}
 
         @app.get("/heartbeat/{session_hash}")
@@ -739,18 +734,6 @@ class App(FastAPI):
                     fn=fn,
                     root_path=root_path,
                 )
-                if fn.is_cancel_function:
-                    # Need to complete the job so that the client disconnects
-                    blocks = app.get_blocks()
-                    if body.session_hash in blocks._queue.pending_messages_per_session:
-                        for event_id in output["data"]:
-                            message = ProcessCompletedMessage(
-                                output={}, success=True, event_id=event_id
-                            )
-                            blocks._queue.pending_messages_per_session[  # type: ignore
-                                body.session_hash
-                            ].put_nowait(message)
-
             except BaseException as error:
                 show_error = app.get_blocks().show_error or isinstance(error, Error)
                 traceback.print_exc()
@@ -823,13 +806,24 @@ class App(FastAPI):
             await cancel_tasks({f"{body.session_hash}_{body.fn_index}"})
             blocks = app.get_blocks()
             # Need to complete the job so that the client disconnects
-            if body.session_hash in blocks._queue.pending_messages_per_session:
+            session_open = (
+                body.session_hash in blocks._queue.pending_messages_per_session
+            )
+            event_running = (
+                body.event_id
+                in blocks._queue.pending_event_ids_session.get(body.session_hash, {})
+            )
+            if session_open and event_running:
                 message = ProcessCompletedMessage(
                     output={}, success=True, event_id=body.event_id
                 )
                 blocks._queue.pending_messages_per_session[
                     body.session_hash
                 ].put_nowait(message)
+            if body.event_id in app.iterators:
+                async with app.lock:
+                    del app.iterators[body.event_id]
+                    app.iterators_to_reset.add(body.event_id)
             return {"success": True}
 
         @app.get("/call/{api_name}/{event_id}", dependencies=[Depends(login_check)])

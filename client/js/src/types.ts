@@ -235,6 +235,7 @@ export interface Dependency {
 export interface DependencyTypes {
 	continuous: boolean;
 	generator: boolean;
+	cancel: boolean;
 }
 
 export interface Payload {

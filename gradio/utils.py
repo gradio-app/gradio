@@ -872,7 +872,7 @@ def get_function_with_locals(
 
 async def cancel_tasks(task_ids: set[str]) -> list[str]:
     tasks = [(task, task.get_name()) for task in asyncio.all_tasks()]
-    event_ids = []
+    event_ids: list[str] = []
     matching_tasks = []
     for task, name in tasks:
         if "<gradio-sep>" not in name:
@@ -891,27 +891,19 @@ def set_task_name(task, session_hash: str, fn_index: int, event_id: str, batch: 
         task.set_name(f"{session_hash}_{fn_index}<gradio-sep>{event_id}")
 
 
-def get_cancel_function(
+def get_cancelled_fn_indices(
     dependencies: list[dict[str, Any]],
-) -> tuple[Callable, list[int]]:
-    fn_to_comp = {}
+) -> list[int]:
+    fn_indices = []
     for dep in dependencies:
         root_block = get_blocks_context()
         if root_block:
             fn_index = next(
                 i for i, d in root_block.fns.items() if d.get_config() == dep
             )
-            fn_to_comp[fn_index] = [root_block.blocks[o] for o in dep["outputs"]]
+            fn_indices.append(fn_index)
 
-    async def cancel(session_hash: str) -> list[str]:
-        task_ids = {f"{session_hash}_{fn}" for fn in fn_to_comp}
-        event_ids = await cancel_tasks(task_ids)
-        return event_ids
-
-    return (
-        cancel,
-        list(fn_to_comp.keys()),
-    )
+    return fn_indices
 
 
 def get_type_hints(fn):

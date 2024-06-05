@@ -207,15 +207,6 @@
 
 		const current_status = loading_status.get_status_for_fn(dep_index);
 		messages = messages.filter(({ fn_index }) => fn_index !== dep_index);
-		if (dep.cancels) {
-			await Promise.all(
-				dep.cancels.map(async (fn_index) => {
-					const submission = submit_map.get(fn_index);
-					submission?.cancel();
-					return submission;
-				})
-			);
-		}
 		if (current_status === "pending" || current_status === "generating") {
 			dep.pending_request = true;
 		}
@@ -242,6 +233,14 @@
 						handle_update(v, dep_index);
 					}
 				});
+		} else if (dep.types.cancel && dep.cancels) {
+			await Promise.all(
+				dep.cancels.map(async (fn_index) => {
+					const submission = submit_map.get(fn_index);
+					submission?.cancel();
+					return submission;
+				})
+			);
 		} else {
 			if (dep.backend_fn) {
 				if (dep.trigger_mode === "once") {
