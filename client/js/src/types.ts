@@ -63,11 +63,10 @@ export class Command {
 	fileData?: FileData;
 
 	constructor(
-		type: string,
 		command: string,
 		meta: { path: string; name: string; orig_path: string }
 	) {
-		this.type = type;
+		this.type = "command";
 		this.command = command;
 		this.meta = meta;
 	}

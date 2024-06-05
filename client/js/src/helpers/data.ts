@@ -1,13 +1,13 @@
 import {
-	ApiData,
-	BlobRef,
-	Config,
-	EndpointInfo,
-	JsApiData,
-	DataType,
+	type ApiData,
+	type BlobRef,
+	type Config,
+	type EndpointInfo,
+	type JsApiData,
+	type DataType,
 	Command,
-	Dependency,
-	ComponentMeta
+	type Dependency,
+	type ComponentMeta
 } from "../types";
 import { FileData } from "../upload";
 import path from "path";
@@ -138,7 +138,7 @@ export function handle_file(
 			};
 		}
 		// Handle local file paths
-		return new Command("command", "upload_file", {
+		return new Command("upload_file", {
 			path: file_or_url,
 			name: path.basename(file_or_url),
 			orig_path: file_or_url
