@@ -52,7 +52,7 @@
 				<div bind:this={python_code}>
 					<pre><span class="highlight">from</span> gradio_client <span
 							class="highlight">import</span
-						> Client{#if has_file_path}, file{/if}
+						> Client{#if has_file_path}, handle_file{/if}
 
 client = Client(<span class="token string">"{space_id || root}"</span>)
 result = client.<span class="highlight">predict</span
