@@ -14,7 +14,7 @@ import type {
 	Dependency
 } from "../types";
 
-import { skip_queue, post_message } from "../helpers/data";
+import { skip_queue, post_message, handle_payload } from "../helpers/data";
 import { resolve_root } from "../helpers/init_helpers";
 import {
 	handle_message,
@@ -47,7 +47,8 @@ export function submit(
 			pending_diff_streams,
 			event_callbacks,
 			unclosed_events,
-			post_data
+			post_data,
+			options
 		} = this;
 
 		if (!api_info) throw new Error("No API found");
@@ -193,8 +194,15 @@ export function submit(
 
 		this.handle_blob(config.root, resolved_data, endpoint_info).then(
 			async (_payload) => {
+				let input_data = handle_payload(
+					_payload,
+					dependency,
+					config.components,
+					"input",
+					true
+				);
 				payload = {
-					data: _payload || [],
+					data: input_data || [],
 					event_data,
 					fn_index,
 					trigger_id
@@ -225,7 +233,13 @@ export function submit(
 									type: "data",
 									endpoint: _endpoint,
 									fn_index,
-									data: data,
+									data: handle_payload(
+										data,
+										dependency,
+										config.components,
+										"output",
+										options.with_null_state
+									),
 									time: new Date(),
 									event_data,
 									trigger_id
@@ -359,7 +373,13 @@ export function submit(
 							fire_event({
 								type: "data",
 								time: new Date(),
-								data: data.data,
+								data: handle_payload(
+									data.data,
+									dependency,
+									config.components,
+									"output",
+									options.with_null_state
+								),
 								endpoint: _endpoint,
 								fn_index,
 								event_data,
@@ -482,7 +502,13 @@ export function submit(
 							fire_event({
 								type: "data",
 								time: new Date(),
-								data: data.data,
+								data: handle_payload(
+									data.data,
+									dependency,
+									config.components,
+									"output",
+									options.with_null_state
+								),
 								endpoint: _endpoint,
 								fn_index,
 								event_data,
@@ -633,7 +659,13 @@ export function submit(
 										fire_event({
 											type: "data",
 											time: new Date(),
-											data: data.data,
+											data: handle_payload(
+												data.data,
+												dependency,
+												config.components,
+												"output",
+												options.with_null_state
+											),
 											endpoint: _endpoint,
 											fn_index
 										});
