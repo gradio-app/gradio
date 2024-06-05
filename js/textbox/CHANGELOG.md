@@ -1,5 +1,11 @@
 # @gradio/textbox
 
+## 0.6.5
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+
 ## 0.6.4
 
 ### Dependency updates

@@ -8,6 +8,7 @@
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
 		change: FileData[] | FileData;
+		delete: FileData;
 	}>();
 	export let value: FileData | FileData[];
 	export let selectable = false;
@@ -46,9 +47,10 @@
 	}
 
 	function remove_file(index: number): void {
-		normalized_files.splice(index, 1);
+		const removed = normalized_files.splice(index, 1);
 		normalized_files = [...normalized_files];
 		value = normalized_files;
+		dispatch("delete", removed[0]);
 		dispatch("change", normalized_files);
 	}
 </script>

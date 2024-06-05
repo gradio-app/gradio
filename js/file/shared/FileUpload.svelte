@@ -50,16 +50,19 @@
 	$: dispatch("drag", dragging);
 </script>
 
-<BlockLabel
-	{show_label}
-	Icon={File}
-	float={value === null}
-	label={label || "File"}
-/>
+<BlockLabel {show_label} Icon={File} float={!value} label={label || "File"} />
 
 {#if value && (Array.isArray(value) ? value.length > 0 : true)}
 	<ModifyUpload {i18n} on:clear={handle_clear} absolute />
-	<FilePreview {i18n} on:select {selectable} {value} {height} on:change />
+	<FilePreview
+		{i18n}
+		on:select
+		{selectable}
+		{value}
+		{height}
+		on:change
+		on:delete
+	/>
 {:else}
 	<Upload
 		on:load={handle_upload}

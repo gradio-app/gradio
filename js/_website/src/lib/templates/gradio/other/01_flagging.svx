@@ -1,0 +1,185 @@
+
+<script lang="ts">
+    import {get_object} from "../../process_json.ts";
+    import ParamTable from "$lib/components/ParamTable.svelte";
+    import ShortcutTable from "$lib/components/ShortcutTable.svelte";
+    import DemosSection from "$lib/components/DemosSection.svelte";
+    import FunctionsSection from "$lib/components/FunctionsSection.svelte";
+    import GuidesSection from "$lib/components/GuidesSection.svelte";
+    import CopyButton from "$lib/components/CopyButton.svelte";
+    import { style_formatted_text } from "$lib/text";
+
+    let simple_csv_logger_obj = get_object("simplecsvlogger");
+    let csv_logger_obj = get_object("csvlogger");
+    let hf_dataset_saver_obj = get_object("huggingfacedatasetsaver");
+</script>
+
+<!--- Title -->
+# Flagging
+
+<!-- Description -->
+### Description
+## A Gradio Interface includes a 'Flag' button that appears underneath the output. By default, clicking on the Flag button sends the input and output data back to the machine where the gradio demo is running, and saves it to a CSV log file. But this default behavior can be changed. To set what happens when the Flag button is clicked, you pass an instance of a subclass of _FlaggingCallback_ to the _flagging_callback_ parameter in the _Interface_ constructor. You can use one of the _FlaggingCallback_ subclasses that are listed below, or you can create your own, which lets you do whatever you want with the data that is being flagged.
+
+
+<!--------- SimpleCSVLogger --------->
+
+<!-- Title -->
+# {simple_csv_logger_obj.name}
+
+
+<!--- Usage -->
+```python
+gradio.SimpleCSVLogger(···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(simple_csv_logger_obj.description)}
+
+<!-- Example Usage --> 
+
+{#if simple_csv_logger_obj.example}
+### Example Usage
+```python
+import gradio as gr
+def image_classifier(inp):
+    return {'cat': 0.3, 'dog': 0.7}
+demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
+                    flagging_callback=SimpleCSVLogger())
+```
+{/if}
+
+{#if (simple_csv_logger_obj.parameters.length > 0 && simple_csv_logger_obj.parameters[0].name != "self") || simple_csv_logger_obj.parameters.length > 1}
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={simple_csv_logger_obj.parameters} />
+{/if}
+
+{#if simple_csv_logger_obj.demos && simple_csv_logger_obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={simple_csv_logger_obj.demos} />
+{/if}
+
+{#if simple_csv_logger_obj.fns && simple_csv_logger_obj.fns.length > 0}
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={simple_csv_logger_obj.fns} event_listeners={false} />
+{/if}
+
+{#if simple_csv_logger_obj.guides && simple_csv_logger_obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={simple_csv_logger_obj.guides}/>
+{/if}
+
+
+
+<!--------- CSVLogger --------->
+
+<!-- Title -->
+# {csv_logger_obj.name}
+
+
+<!--- Usage -->
+```python
+gradio.CSVLogger(···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(csv_logger_obj.description)}
+
+<!-- Example Usage --> 
+
+{#if csv_logger_obj.example}
+### Example Usage
+```python
+import gradio as gr
+def image_classifier(inp):
+    return {'cat': 0.3, 'dog': 0.7}
+demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
+                    flagging_callback=CSVLogger())
+```
+{/if}
+
+{#if (csv_logger_obj.parameters.length > 0 && csv_logger_obj.parameters[0].name != "self") || csv_logger_obj.parameters.length > 1}
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={csv_logger_obj.parameters} />
+{/if}
+
+{#if csv_logger_obj.demos && csv_logger_obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={csv_logger_obj.demos} />
+{/if}
+
+{#if csv_logger_obj.fns && csv_logger_obj.fns.length > 0}
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={csv_logger_obj.fns} event_listeners={false} />
+{/if}
+
+{#if csv_logger_obj.guides && csv_logger_obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={csv_logger_obj.guides}/>
+{/if}
+
+
+<!--------- HuggingFaceDatasetSaver --------->
+
+<!-- Title -->
+# {hf_dataset_saver_obj.name}
+
+
+<!--- Usage -->
+```python
+gradio.HuggingFaceDatasetSaver(hf_token, dataset_name, ···)
+```
+
+<!--- Description -->
+### Description
+## {@html style_formatted_text(hf_dataset_saver_obj.description)}
+
+<!-- Example Usage --> 
+
+{#if hf_dataset_saver_obj.example}
+### Example Usage
+```python
+import gradio as gr
+hf_writer = gr.HuggingFaceDatasetSaver(HF_API_TOKEN, "image-classification-mistakes")
+def image_classifier(inp):
+    return {'cat': 0.3, 'dog': 0.7}
+demo = gr.Interface(fn=image_classifier, inputs="image", outputs="label",
+                    allow_flagging="manual", flagging_callback=hf_writer)
+```
+{/if}
+
+{#if (hf_dataset_saver_obj.parameters.length > 0 && hf_dataset_saver_obj.parameters[0].name != "self") || hf_dataset_saver_obj.parameters.length > 1}
+<!--- Initialization -->
+### Initialization
+<ParamTable parameters={hf_dataset_saver_obj.parameters} />
+{/if}
+
+{#if hf_dataset_saver_obj.demos && hf_dataset_saver_obj.demos.length > 0}
+<!--- Demos -->
+### Demos 
+<DemosSection demos={hf_dataset_saver_obj.demos} />
+{/if}
+
+{#if hf_dataset_saver_obj.fns && hf_dataset_saver_obj.fns.length > 0}
+<!--- Methods -->
+### Methods 
+<FunctionsSection fns={hf_dataset_saver_obj.fns} event_listeners={false} />
+{/if}
+
+{#if hf_dataset_saver_obj.guides && hf_dataset_saver_obj.guides.length > 0}
+<!--- Guides -->
+### Guides
+<GuidesSection guides={hf_dataset_saver_obj.guides}/>
+{/if}
+
+

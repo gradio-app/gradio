@@ -14,7 +14,7 @@ import type {
 	Dependency
 } from "../types";
 
-import { skip_queue, post_message } from "../helpers/data";
+import { skip_queue, post_message, handle_payload } from "../helpers/data";
 import { resolve_root } from "../helpers/init_helpers";
 import {
 	handle_message,
@@ -47,7 +47,8 @@ export function submit(
 			pending_diff_streams,
 			event_callbacks,
 			unclosed_events,
-			post_data
+			post_data,
+			options
 		} = this;
 
 		if (!api_info) throw new Error("No API found");
@@ -172,10 +173,46 @@ export function submit(
 			}
 		}
 
+		const resolve_heartbeat = async (config: Config): Promise<void> => {
+			await this._resolve_hearbeat(config);
+		};
+
+		async function handle_render_config(render_config: any): Promise<void> {
+			if (!config) return;
+			let render_id: number = render_config.render_id;
+			config.components = [
+				...config.components.filter((c) => c.props.rendered_in !== render_id),
+				...render_config.components
+			];
+			config.dependencies = [
+				...config.dependencies.filter((d) => d.rendered_in !== render_id),
+				...render_config.dependencies
+			];
+			const any_state = config.components.some((c) => c.type === "state");
+			const any_unload = config.dependencies.some((d) =>
+				d.targets.some((t) => t[1] === "unload")
+			);
+			config.connect_heartbeat = any_state || any_unload;
+			await resolve_heartbeat(config);
+			fire_event({
+				type: "render",
+				data: render_config,
+				endpoint: _endpoint,
+				fn_index
+			});
+		}
+
 		this.handle_blob(config.root, resolved_data, endpoint_info).then(
 			async (_payload) => {
+				let input_data = handle_payload(
+					_payload,
+					dependency,
+					config.components,
+					"input",
+					true
+				);
 				payload = {
-					data: _payload || [],
+					data: input_data || [],
 					event_data,
 					fn_index,
 					trigger_id
@@ -206,11 +243,20 @@ export function submit(
 									type: "data",
 									endpoint: _endpoint,
 									fn_index,
-									data: data,
+									data: handle_payload(
+										data,
+										dependency,
+										config.components,
+										"output",
+										options.with_null_state
+									),
 									time: new Date(),
 									event_data,
 									trigger_id
 								});
+								if (output.render_config) {
+									handle_render_config(output.render_config);
+								}
 
 								fire_event({
 									type: "status",
@@ -337,7 +383,13 @@ export function submit(
 							fire_event({
 								type: "data",
 								time: new Date(),
-								data: data.data,
+								data: handle_payload(
+									data.data,
+									dependency,
+									config.components,
+									"output",
+									options.with_null_state
+								),
 								endpoint: _endpoint,
 								fn_index,
 								event_data,
@@ -460,7 +512,13 @@ export function submit(
 							fire_event({
 								type: "data",
 								time: new Date(),
-								data: data.data,
+								data: handle_payload(
+									data.data,
+									dependency,
+									config.components,
+									"output",
+									options.with_null_state
+								),
 								endpoint: _endpoint,
 								fn_index,
 								event_data,
@@ -611,25 +669,18 @@ export function submit(
 										fire_event({
 											type: "data",
 											time: new Date(),
-											data: data.data,
+											data: handle_payload(
+												data.data,
+												dependency,
+												config.components,
+												"output",
+												options.with_null_state
+											),
 											endpoint: _endpoint,
 											fn_index
 										});
 										if (data.render_config) {
-											config.components = [
-												...config.components,
-												...data.render_config.components
-											];
-											config.dependencies = [
-												...config.dependencies,
-												...data.render_config.dependencies
-											];
-											fire_event({
-												type: "render",
-												data: data.render_config,
-												endpoint: _endpoint,
-												fn_index
-											});
+											await handle_render_config(data.render_config);
 										}
 
 										if (complete) {

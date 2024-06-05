@@ -1,6 +1,7 @@
 ## JavaScript Client Library
 
-A JavaScript (and TypeScript) Client to call Gradio APIs.
+Interact with Gradio APIs using our JavaScript (and TypeScript) client.
+
 
 ## Installation
 
@@ -8,6 +9,12 @@ The Gradio JavaScript Client is available on npm as `@gradio/client`. You can in
 
 ```shell
 npm i @gradio/client
+```
+
+Or, you can include it directly in your HTML via the jsDelivr CDN:
+
+```shell
+<script src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
 ```
 
 ## Usage

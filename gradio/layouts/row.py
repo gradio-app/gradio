@@ -32,6 +32,7 @@ class Row(BlockContext, metaclass=ComponentMeta):
         elem_classes: list[str] | str | None = None,
         render: bool = True,
         equal_height: bool = True,
+        show_progress: bool = False,
     ):
         """
         Parameters:
@@ -41,11 +42,13 @@ class Row(BlockContext, metaclass=ComponentMeta):
             elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
             render: If False, this layout will not be rendered in the Blocks context. Should be used if the intention is to assign event listeners now but render the component later.
             equal_height: If True, makes every child element have equal height
+            show_progress: If True, shows progress animation when being updated.
         """
         self.variant = variant
         self.equal_height = equal_height
         if variant == "compact":
             self.allow_expected_parents = False
+        self.show_progress = show_progress
         BlockContext.__init__(
             self,
             visible=visible,
