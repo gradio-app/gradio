@@ -122,6 +122,7 @@ export function submit(
 				fn_index: fn_index
 			});
 
+			let reset_request = {};
 			let cancel_request = {};
 			if (protocol === "ws") {
 				if (websocket && websocket.readyState === 0) {
@@ -131,10 +132,11 @@ export function submit(
 				} else {
 					websocket.close();
 				}
-				cancel_request = { fn_index, session_hash };
+				reset_request = { fn_index, session_hash };
 			} else {
 				stream?.close();
-				cancel_request = { event_id };
+				reset_request = { event_id };
+				cancel_request = { event_id, session_hash, fn_index };
 			}
 
 			try {
@@ -142,10 +144,18 @@ export function submit(
 					throw new Error("Could not resolve app config");
 				}
 
+				if ("event_id" in cancel_request) {
+					await fetch(`${config.root}/cancel`, {
+						headers: { "Content-Type": "application/json" },
+						method: "POST",
+						body: JSON.stringify(cancel_request)
+					});
+				}
+
 				await fetch(`${config.root}/reset`, {
 					headers: { "Content-Type": "application/json" },
 					method: "POST",
-					body: JSON.stringify(cancel_request)
+					body: JSON.stringify(reset_request)
 				});
 			} catch (e) {
 				console.warn(
