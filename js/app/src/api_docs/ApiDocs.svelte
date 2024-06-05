@@ -180,16 +180,15 @@
 								target="_blank">read more</a
 							>).{/if}
 
-							Or
-							<Button
-								size="sm"
-								variant="primary"
-								on:click={() =>
-									dispatch("close", { api_recorder_visible: true })}
-							>
-								🪄 Use the API Recorder
-							</Button>
-							to automatically generate your API requests.
+						Or
+						<Button
+							size="sm"
+							variant="primary"
+							on:click={() => dispatch("close", { api_recorder_visible: true })}
+						>
+							🪄 Use the API Recorder
+						</Button>
+						to automatically generate your API requests.
 						{#if current_language == "bash"}Note: making a prediction and
 							getting a result requires <strong>2 requests</strong>: a
 							<code>POST</code>

@@ -62,7 +62,7 @@
 							python_type,
 							"bash"
 						)}`;
-						}
+					}
 				}
 				return `  ${represent_value(param as string, undefined, lang)}`;
 			})
@@ -149,17 +149,17 @@ await client.predict(<span
 	"/{api_name}"</span
 							>{#if call},{/if}{call});
 						{/each}</pre>
-					{:else if current_language === "bash"}
-						{#each bash_zipped as { call, api_name }}
-					<pre>EVENT_ID=$(
+				{:else if current_language === "bash"}
+					{#each bash_zipped as { call, api_name }}
+						<pre>EVENT_ID=$(
 curl -X POST {short_root}call/{api_name} -s -H "Content-Type: application/json" -d '{"{"} 
 	"data": [{call}]{"}"}' | jq -r '.event_id'
 )</pre>
-					<pre>curl -N {short_root}call/{api_name}/$EVENT_ID 
+						<pre>curl -N {short_root}call/{api_name}/$EVENT_ID 
 					</pre>
-	<br>
-					  {/each}
-					{/if}
+						<br />
+					{/each}
+				{/if}
 			</div></code
 		>
 	</Block>
