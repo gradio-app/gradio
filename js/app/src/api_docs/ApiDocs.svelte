@@ -27,6 +27,8 @@
 		"https://www.gradio.app/guides/getting-started-with-the-js-client";
 	const py_docs =
 		"https://www.gradio.app/guides/getting-started-with-the-python-client";
+	const bash_docs =
+		"https://www.gradio.app/guides/querying-gradio-apps-with-curl";
 	const spaces_docs_suffix = "#connecting-to-a-hugging-face-space";
 
 	let api_count = dependencies.filter(
@@ -153,9 +155,12 @@
 				{:else}
 					<p class="padded">
 						{#if current_language == "python" || current_language == "javascript"}
-							1. Install the <span style="text-transform:capitalize"
-								>{current_language}</span
-							> client if you don't already have it installed.
+							1. Install the
+							<span style="text-transform:capitalize">{current_language}</span>
+							client (<a
+								href={current_language == "python" ? py_docs : js_docs}
+								target="_blank">docs</a
+							>) if you don't already have it installed.
 						{:else}
 							1. Confirm that you have cURL installed on your system.
 						{/if}
@@ -169,8 +174,11 @@
 						placeholder values with your own input data.
 						{#if space_id}If this is a private Space, you may need to pass your
 							Hugging Face token as well (<a
-								href={(current_language == "python" ? py_docs : js_docs) +
-									spaces_docs_suffix}
+								href={current_language == "python"
+									? py_docs + spaces_docs_suffix
+									: current_language == "javascript"
+										? js_docs + spaces_docs_suffix
+										: bash_docs}
 								class="underline"
 								target="_blank">read more</a
 							>).{/if}
@@ -184,12 +192,16 @@
 							🪄 Use the API Recorder
 						</Button>
 						to automatically generate your API requests.
-						{#if current_language == "bash"}Note: making a prediction and
-							getting a result requires <strong>2 requests</strong>: a
+						{#if current_language == "bash"}<br />&nbsp;<br />Note: making a
+							prediction and getting a result requires
+							<strong>2 requests</strong>: a
 							<code>POST</code>
 							and a <code>GET</code> request. The <code>POST</code> request
 							returns an <code>EVENT_ID</code>, which is used in the second
-							<code>GET</code> request to fetch the results.
+							<code>GET</code> request to fetch the results. In these snippets,
+							we've used <code>awk</code> and <code>read</code> to parse the
+							results, combining these two requests into one command for ease of
+							use. See <a href={bash_docs} target="_blank">curl docs</a>.
 						{/if}
 
 						<!-- <span
@@ -363,5 +375,9 @@
 		padding: 0px var(--size-2);
 		border-radius: var(--size-1);
 		cursor: pointer;
+	}
+
+	code {
+		font-size: var(--text-md);
 	}
 </style>

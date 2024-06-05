@@ -106,9 +106,6 @@ const result = await client.predict({#if named}<span class="api-name"
 								>, <!--
 		--><span class="desc"
 									><!--
-		-->	// blob <!--
-		-->in '{label}' <!--
-		-->{component} component<!--
 		--></span
 								><!--
 		-->{:else}<!--
