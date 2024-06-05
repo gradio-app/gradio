@@ -6,6 +6,7 @@
 	export let endpoint_returns: any;
 	export let js_returns: any;
 	export let current_language: "python" | "javascript" | "bash";
+	console.log(js_returns);
 </script>
 
 <h4>
@@ -27,7 +28,7 @@
 				>
 				<span class="code highlight" style="margin-right: 10px;"
 					>{#if current_language === "python"}{python_type.type}{#if parameter_has_default && parameter_default === null}&nbsp;|
-							None{/if}{:else}{js_returns[i].type}{/if}</span
+							None{/if}{:else}{js_returns[i].type || "any"}{/if}</span
 				>
 				{#if !parameter_has_default || current_language == "bash"}<span
 						style="font-weight:bold">Required</span
