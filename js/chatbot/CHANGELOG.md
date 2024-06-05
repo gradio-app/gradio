@@ -1,5 +1,11 @@
 # @gradio/chatbot
 
+## 0.10.8
+
+### Features
+
+- [#8377](https://github.com/gradio-app/gradio/pull/8377) [`341844f`](https://github.com/gradio-app/gradio/commit/341844f04efe0e7e512c7ca443f3f2b195a32fa7) - Click to preview images in chatbot.  Thanks @dawoodkhan82!
+
 ## 0.10.7
 
 ### Dependency updates
