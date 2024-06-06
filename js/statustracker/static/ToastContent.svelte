@@ -7,7 +7,7 @@
 	export let message = "";
 	export let type: ToastMessage["type"];
 	export let id: number;
-	export let duration = 10000;
+	export let duration = 10000; // Add duration prop
 	export let display = true;
 
 	const dispatch = createEventDispatcher();
@@ -17,10 +17,14 @@
 	}
 
 	onMount(() => {
-		setTimeout(() => {
-			close_message();
-		}, duration);
+		if (duration !== null) {
+			setTimeout(() => {
+				close_message();
+			}, duration);
+		}
 	});
+
+	$: timer_animation_duration = duration !== null ? `${duration / 1000}s` : null;
 </script>
 
 <!-- TODO: fix-->
@@ -62,7 +66,7 @@
 		<span aria-hidden="true">&#215;</span>
 	</button>
 
-	<div class="timer {type}"/>
+	<div class="timer {type}" style="{timer_animation_duration !== null ? `animation-duration: ${timer_animation_duration};` : ''}" />
 </div>
 
 <style>
@@ -278,6 +282,7 @@
 	:global(.dark) .timer.info {
 		background: var(--color-grey-500);
 	}
+
 	.hidden {
 		display: none;
 	}
