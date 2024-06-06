@@ -118,7 +118,7 @@ if __name__ == "__main__":
       app.run(host="0.0.0.0", port=5000)
 ```
 
-#### Migration Guide and Breaking Changes
+#### 1.0 Migration Guide and Breaking Changes
 
 **Python**
 - The `serialize` argument of the `Client` class was removed. Has no effect.
