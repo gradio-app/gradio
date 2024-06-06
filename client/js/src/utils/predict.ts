@@ -33,26 +33,25 @@ export async function predict(
 		const app = this.submit(endpoint, data);
 		let result: unknown;
 
-		app
-			.on("data", (d: unknown) => {
-				// if complete message comes before data, resolve here
+		for await (const message of app) {
+			if (message.type === "data") {
 				if (status_complete) {
-					app.destroy();
-					resolve(d as PredictReturn);
+					resolve(result as PredictReturn);
 				}
 				data_returned = true;
-				result = d;
-			})
-			.on("status", (status) => {
-				if (status.stage === "error") reject(status);
-				if (status.stage === "complete") {
+				result = message;
+			}
+
+			if (message.type === "status") {
+				if (message.stage === "error") reject(message);
+				if (message.stage === "complete") {
 					status_complete = true;
 					// if complete message comes after data, resolve here
 					if (data_returned) {
-						app.destroy();
 						resolve(result as PredictReturn);
 					}
 				}
-			});
+			}
+		}
 	});
 }

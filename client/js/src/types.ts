@@ -51,6 +51,27 @@ export interface BlobRef {
 
 export type DataType = string | Buffer | Record<string, any> | any[];
 
+// custom class used for uploading local files
+export class Command {
+	type: string;
+	command: string;
+	meta: {
+		path: string;
+		name: string;
+		orig_path: string;
+	};
+	fileData?: FileData;
+
+	constructor(
+		command: string,
+		meta: { path: string; name: string; orig_path: string }
+	) {
+		this.type = "command";
+		this.command = command;
+		this.meta = meta;
+	}
+}
+
 // Function Signature Types
 
 export type SubmitFunction = (
@@ -58,20 +79,13 @@ export type SubmitFunction = (
 	data: unknown[] | Record<string, unknown>,
 	event_data?: unknown,
 	trigger_id?: number | null
-) => SubmitReturn;
+) => SubmitIterable<GradioEvent>;
 
 export type PredictFunction = (
 	endpoint: string | number,
 	data: unknown[] | Record<string, unknown>,
 	event_data?: unknown
 ) => Promise<PredictReturn>;
-
-// Event and Submission Types
-
-type event = <K extends EventType>(
-	eventType: K,
-	listener: EventListener<K>
-) => SubmitReturn;
 
 export type client_return = {
 	config: Config | undefined;
@@ -85,12 +99,10 @@ export type client_return = {
 	view_api: (_fetch: typeof fetch) => Promise<ApiInfo<JsApiData>>;
 };
 
-export type SubmitReturn = {
-	on: event;
-	off: event;
+export interface SubmitIterable<T> extends AsyncIterable<T> {
+	[Symbol.asyncIterator](): AsyncIterator<T>;
 	cancel: () => Promise<void>;
-	destroy: () => void;
-};
+}
 
 export type PredictReturn = {
 	type: EventType;
@@ -269,6 +281,7 @@ export interface ClientOptions {
 	status_callback?: SpaceStatusCallback | null;
 	auth?: [string, string] | null;
 	with_null_state?: boolean;
+	events?: EventType[];
 }
 
 export interface FileData {
@@ -287,25 +300,21 @@ export interface FileData {
 export type EventType = "data" | "status" | "log" | "render";
 
 export interface EventMap {
-	data: Payload;
-	status: Status;
+	data: PayloadMessage;
+	status: StatusMessage;
 	log: LogMessage;
 	render: RenderMessage;
 }
 
-export type Event<K extends EventType> = {
-	[P in K]: EventMap[P] & { type: P; endpoint: string; fn_index: number };
-}[K];
-export type EventListener<K extends EventType> = (event: Event<K>) => void;
-export type ListenerMap<K extends EventType> = {
-	[P in K]?: EventListener<K>[];
-};
-export interface LogMessage {
+export type GradioEvent = {
+	[P in EventType]: EventMap[P];
+}[EventType];
+
+export interface Log {
 	log: string;
 	level: "warning" | "info";
 }
-export interface RenderMessage {
-	fn_index: number;
+export interface Render {
 	data: {
 		components: any[];
 		layout: any;
@@ -333,4 +342,28 @@ export interface Status {
 	}[];
 	time?: Date;
 	changed_state_ids?: number[];
+}
+
+export interface StatusMessage extends Status {
+	type: "status";
+	endpoint: string;
+	fn_index: number;
+}
+
+export interface PayloadMessage extends Payload {
+	type: "data";
+	endpoint: string;
+	fn_index: number;
+}
+
+export interface LogMessage extends Log {
+	type: "log";
+	endpoint: string;
+	fn_index: number;
+}
+
+export interface RenderMessage extends Render {
+	type: "render";
+	endpoint: string;
+	fn_index: number;
 }

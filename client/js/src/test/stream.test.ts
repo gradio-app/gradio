@@ -1,6 +1,8 @@
 import { vi, type Mock } from "vitest";
 import { Client } from "../client";
+import { readable_stream } from "../utils/stream";
 import { initialise_server } from "./server";
+import { direct_space_url } from "./handlers.ts";
 
 import {
 	describe,
@@ -11,27 +13,23 @@ import {
 	afterAll,
 	beforeEach
 } from "vitest";
-import "./mock_eventsource.ts";
-import NodeEventSource from "eventsource";
 
 const server = initialise_server();
-const IS_NODE = process.env.TEST_MODE === "node";
 
 beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 describe("open_stream", () => {
-	let mock_eventsource: any;
 	let app: Client;
 
 	beforeEach(async () => {
 		app = await Client.connect("hmb/hello_world");
 		app.stream = vi.fn().mockImplementation(() => {
-			mock_eventsource = IS_NODE
-				? new NodeEventSource("")
-				: new EventSource("");
-			return mock_eventsource;
+			app.stream_instance = readable_stream(
+				new URL(`${direct_space_url}/queue/data`)
+			);
+			return app.stream_instance;
 		});
 	});
 
@@ -58,8 +56,12 @@ describe("open_stream", () => {
 
 		expect(app.stream).toHaveBeenCalledWith(eventsource_mock_call);
 
-		const onMessageCallback = mock_eventsource.onmessage;
-		const onErrorCallback = mock_eventsource.onerror;
+		if (!app.stream_instance?.onmessage || !app.stream_instance?.onerror) {
+			throw new Error("stream instance is not defined");
+		}
+
+		const onMessageCallback = app.stream_instance.onmessage.bind(app);
+		const onErrorCallback = app.stream_instance.onerror.bind(app);
 
 		const message = { msg: "hello jerry" };
 

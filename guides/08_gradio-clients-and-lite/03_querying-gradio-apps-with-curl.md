@@ -15,21 +15,34 @@ $ curl -X POST https://abidlabs-en2fr.hf.space/call/predict -H "Content-Type: ap
   "data": ["Hello, my friend."] 
 }'
 
-> {"event_id": $EVENT_ID}   
+>> {"event_id": $EVENT_ID}   
 ```
 
 ```bash
 $ curl -N https://abidlabs-en2fr.hf.space/call/predict/$EVENT_ID
 
-> event: complete
-> data: ["Bonjour, mon ami."]
+>> event: complete
+>> data: ["Bonjour, mon ami."]
 ```
 
 
-Tip: making a prediction and getting a result requires two `curl` requests: a `POST` and a `GET`. The `POST` request returns an `EVENT_ID` and prints  it to the console , which is used in the second `GET` request to fetch the results. We'll cover these two steps in more detail in the Guide below.
+Note: making a prediction and getting a result requires two `curl` requests: a `POST` and a `GET`. The `POST` request returns an `EVENT_ID` and prints  it to the console, which is used in the second `GET` request to fetch the results. You can combine these into a single command using `awk` and `read` to parse the results of the first command and pipe into the second, like this:
+
+```bash
+$ curl -X POST https://abidlabs-en2fr.hf.space/call/predict -H "Content-Type: application/json" -d '{
+  "data": ["Hello, my friend."] 
+}' \
+  | awk -F'"' '{ print $4}'  \
+  | read EVENT_ID; curl -N https://abidlabs-en2fr.hf.space/call/predict/$EVENT_ID
+
+>> event: complete
+>> data: ["Bonjour, mon ami."]
+```
+
+In the rest of this Guide, we'll explain these two steps in more detail and provide additional examples of querying Gradio apps with `curl`.
 
 
-**Prerequisites**: For this Guide, you do _not_ need to know the `gradio` library in great detail. However, it is helpful to have general familiarity with Gradio's concepts of input and output components.
+**Prerequisites**: For this Guide, you do _not_ need to know how to build Gradio apps in great detail. However, it is helpful to have general familiarity with Gradio's concepts of input and output components.
 
 ## Installation
 
@@ -90,7 +103,7 @@ Here:
 When you make this `POST` request successfully, you will get an event id that is printed to the terminal in this format:
 
 ```bash
-> {"event_id": $EVENT_ID}   
+>> {"event_id": $EVENT_ID}   
 ```
 
 This `EVENT_ID` will be needed in the subsequent `curl` request to fetch the results of the prediction. 
@@ -129,7 +142,7 @@ $ curl -X POST https://private-space.hf.space/call/predict -H "Content-Type: app
 
 **Files**
 
-If your Gradio application requires file inputs, you can pass in files as URLs through `curl`. The URL needs to be enclosed in a dictionary in this format:
+If you are using `curl` to query a Gradio application that requires file inputs, the files *need* to be provided as URLs, and The URL needs to be enclosed in a dictionary in this format:
 
 ```bash
 {"path": $URL}
