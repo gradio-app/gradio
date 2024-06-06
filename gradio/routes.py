@@ -164,6 +164,8 @@ class App(FastAPI):
     ):
         self.tokens = {}
         self.auth = None
+        self.analytics_key = secrets.token_urlsafe(16)
+        self.analytics_enabled = False
         self.blocks: gradio.Blocks | None = None
         self.state_holder = StateHolder()
         self.iterators: dict[str, AsyncIterator] = {}
@@ -1164,6 +1166,31 @@ class App(FastAPI):
                 return "User-agent: *\nDisallow: /"
             else:
                 return "User-agent: *\nDisallow: "
+
+        @app.get("/analytics")
+        async def analytics_login():
+            print(
+                f"Analytics URL: {app.get_blocks().local_url}analytics/{app.analytics_key}"
+            )
+            return HTMLResponse("See console for analytics URL.")
+
+        @app.get("/analytics/{key}")
+        async def analytics_dashboard(key: str):
+            if key == app.analytics_key:
+                analytics_url = f"/analytics/{app.analytics_key}/dashboard"
+                if not app.analytics_enabled:
+                    from gradio.analytics_dashboard import demo as dashboard, data
+
+                    mount_gradio_app(app, dashboard, path=analytics_url)
+                    dashboard._queue.start()
+                    analytics = app.get_blocks()._queue.event_analytics
+                    data["data"] = analytics
+                    app.analytics_enabled = True
+                return RedirectResponse(
+                    url=analytics_url, status_code=status.HTTP_302_FOUND
+                )
+            else:
+                raise HTTPException(status_code=403, detail="Invalid key.")
 
         return app
 
