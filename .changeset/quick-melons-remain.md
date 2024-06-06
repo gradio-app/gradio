@@ -2,7 +2,6 @@
 "@gradio/app": patch
 "@gradio/client": patch
 "@gradio/file": patch
-"@gradio/spaces-test": patch
 "gradio": patch
 ---
 
