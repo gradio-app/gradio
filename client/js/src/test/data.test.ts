@@ -4,11 +4,14 @@ import {
 	walk_and_store_blobs,
 	skip_queue,
 	post_message,
+	handle_file,
 	handle_payload
 } from "../helpers/data";
-import { NodeBlob } from "../client";
 import { config_response, endpoint_info } from "./test_data";
-import { BlobRef } from "../types";
+import { BlobRef, Command } from "../types";
+import { FileData } from "../upload";
+
+const IS_NODE = process.env.TEST_MODE === "node";
 
 describe("walk_and_store_blobs", () => {
 	it("should convert a Buffer to a Blob", async () => {
@@ -16,7 +19,7 @@ describe("walk_and_store_blobs", () => {
 		const parts = await walk_and_store_blobs(buffer, "text");
 
 		expect(parts).toHaveLength(1);
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].blob).toBeInstanceOf(Blob);
 	});
 
 	it("should return a Blob when passed a Blob", async () => {
@@ -29,19 +32,7 @@ describe("walk_and_store_blobs", () => {
 			endpoint_info
 		);
 
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
-	});
-
-	it("should return blob: false when passed an image", async () => {
-		const blob = new Blob([]);
-		const parts = await walk_and_store_blobs(
-			blob,
-			"Image",
-			[],
-			true,
-			endpoint_info
-		);
-		expect(parts[0].blob).toBe(false);
+		expect(parts[0].blob).toBeInstanceOf(Blob);
 	});
 
 	it("should handle arrays", async () => {
@@ -49,7 +40,7 @@ describe("walk_and_store_blobs", () => {
 		const parts = await walk_and_store_blobs([image]);
 
 		expect(parts).toHaveLength(1);
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].blob).toBeInstanceOf(Blob);
 		expect(parts[0].path).toEqual(["0"]);
 	});
 
@@ -58,7 +49,7 @@ describe("walk_and_store_blobs", () => {
 		const parts = await walk_and_store_blobs({ a: { b: { data: { image } } } });
 
 		expect(parts).toHaveLength(1);
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].blob).toBeInstanceOf(Blob);
 		expect(parts[0].path).toEqual(["a", "b", "data", "image"]);
 	});
 
@@ -80,7 +71,7 @@ describe("walk_and_store_blobs", () => {
 			]
 		});
 
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].blob).toBeInstanceOf(Blob);
 	});
 
 	it("should handle deep structures with arrays (with equality check)", async () => {
@@ -104,8 +95,8 @@ describe("walk_and_store_blobs", () => {
 			let ref = obj;
 			path.forEach((p) => (ref = ref[p]));
 
-			// since ref is a Blob and blob is a NodeBlob, we deep equal check the two buffers instead
-			if (ref instanceof Blob && blob instanceof NodeBlob) {
+			// since ref is a Blob and blob is a Blob, we deep equal check the two buffers instead
+			if (ref instanceof Blob && blob instanceof Blob) {
 				const refBuffer = Buffer.from(await ref.arrayBuffer());
 				const blobBuffer = Buffer.from(await blob.arrayBuffer());
 				return refBuffer.equals(blobBuffer);
@@ -114,7 +105,7 @@ describe("walk_and_store_blobs", () => {
 			return ref === blob;
 		}
 
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].blob).toBeInstanceOf(Blob);
 		expect(map_path(obj, parts)).toBeTruthy();
 	});
 
@@ -123,7 +114,7 @@ describe("walk_and_store_blobs", () => {
 		const parts = await walk_and_store_blobs(buffer, undefined, ["blob"]);
 
 		expect(parts).toHaveLength(1);
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].blob).toBeInstanceOf(Blob);
 		expect(parts[0].path).toEqual(["blob"]);
 	});
 
@@ -133,7 +124,7 @@ describe("walk_and_store_blobs", () => {
 
 		expect(parts).toHaveLength(1);
 		expect(parts[0].path).toEqual([]);
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].blob).toBeInstanceOf(Blob);
 	});
 
 	it("should convert an object with deep structures to BlobRefs", async () => {
@@ -150,7 +141,7 @@ describe("walk_and_store_blobs", () => {
 
 		expect(parts).toHaveLength(1);
 		expect(parts[0].path).toEqual(["a", "b", "data", "image"]);
-		expect(parts[0].blob).toBeInstanceOf(NodeBlob);
+		expect(parts[0].blob).toBeInstanceOf(Blob);
 	});
 });
 describe("update_object", () => {
@@ -275,6 +266,57 @@ describe("post_message", () => {
 		expect(post_message_mock).toHaveBeenCalledWith(test_data, test_origin, [
 			message_channel_mock.port2
 		]);
+	});
+});
+
+describe("handle_file", () => {
+	it("should handle a Blob object and return the blob", () => {
+		const blob = new Blob(["test data"], { type: "image/png" });
+		const result = handle_file(blob) as FileData;
+
+		expect(result).toBe(blob);
+	});
+
+	it("should handle a Buffer object and return it as a blob", () => {
+		const buffer = Buffer.from("test data");
+		const result = handle_file(buffer) as FileData;
+		expect(result).toBeInstanceOf(Blob);
+	});
+	it("should handle a local file path and return a Command object", () => {
+		const file_path = "./owl.png";
+		const result = handle_file(file_path) as Command;
+		expect(result).toBeInstanceOf(Command);
+		expect(result).toEqual({
+			type: "command",
+			command: "upload_file",
+			meta: { path: "./owl.png", name: "./owl.png", orig_path: "./owl.png" },
+			fileData: undefined
+		});
+	});
+
+	it("should handle a File object and return it as FileData", () => {
+		if (IS_NODE) {
+			return;
+		}
+		const file = new File(["test image"], "test.png", { type: "image/png" });
+		const result = handle_file(file) as FileData;
+		expect(result.path).toBe("test.png");
+		expect(result.orig_name).toBe("test.png");
+		expect(result.blob).toBeInstanceOf(Blob);
+		expect(result.size).toBe(file.size);
+		expect(result.mime_type).toBe("image/png");
+		expect(result.meta).toEqual({ _type: "gradio.FileData" });
+	});
+
+	it("should throw an error for invalid input", () => {
+		const invalid_input = 123;
+
+		expect(() => {
+			// @ts-ignore
+			handle_file(invalid_input);
+		}).toThrowError(
+			"Invalid input: must be a URL, File, Blob, or Buffer object."
+		);
 	});
 });
 

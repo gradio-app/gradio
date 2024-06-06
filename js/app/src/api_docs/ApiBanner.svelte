@@ -6,7 +6,6 @@
 
 	export let root: string;
 	export let api_count: number;
-	export let current_language: "python" | "javascript" | "bash";
 
 	const dispatch = createEventDispatcher();
 </script>
@@ -22,15 +21,13 @@
 	<span class="counts">
 		<span class="url">{api_count}</span> API endpoint{#if api_count > 1}s{/if}<br
 		/>
-		{#if current_language !== "bash"}
-			<Button
-				size="sm"
-				variant="primary"
-				on:click={() => dispatch("close", { api_recorder_visible: true })}
-			>
-				🪄 API Recorder
-			</Button>
-		{/if}
+		<Button
+			size="sm"
+			variant="primary"
+			on:click={() => dispatch("close", { api_recorder_visible: true })}
+		>
+			🪄 API Recorder
+		</Button>
 	</span>
 </h2>
 
