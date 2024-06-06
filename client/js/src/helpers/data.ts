@@ -141,11 +141,10 @@ export function handle_file(
 		}
 
 		if (is_node) {
-			const path = require("path");
 			// Handle local file paths
 			return new Command("upload_file", {
 				path: file_or_url,
-				name: path.basename(file_or_url),
+				name: file_or_url,
 				orig_path: file_or_url
 			});
 		}
