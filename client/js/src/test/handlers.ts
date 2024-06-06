@@ -21,7 +21,7 @@ import {
 
 const root_url = "https://huggingface.co";
 
-const direct_space_url = "https://hmb-hello-world.hf.space";
+export const direct_space_url = "https://hmb-hello-world.hf.space";
 const private_space_url = "https://hmb-secret-world.hf.space";
 const private_auth_space_url = "https://hmb-private-auth-space.hf.space";
 
@@ -431,6 +431,14 @@ export const handlers: RequestHandler[] = [
 		});
 	}),
 	// queue requests
+	http.get(`${direct_space_url}/queue/data`, () => {
+		return new HttpResponse(JSON.stringify({ event_id: "123" }), {
+			status: 200,
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
+	}),
 	http.post(`${direct_space_url}/queue/join`, () => {
 		return new HttpResponse(JSON.stringify({ event_id: "123" }), {
 			status: 200,

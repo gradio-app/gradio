@@ -8,6 +8,7 @@
 	const dispatch = createEventDispatcher<{
 		select: SelectData;
 		change: FileData[] | FileData;
+		delete: FileData;
 	}>();
 	export let value: FileData | FileData[];
 	export let selectable = false;
@@ -38,7 +39,9 @@
 		const tr = event.currentTarget;
 		const should_select =
 			event.target === tr || // Only select if the click is on the row itself
-			event.composedPath().includes(tr.firstElementChild); // Or if the click is on the name column
+			(tr &&
+				tr.firstElementChild &&
+				event.composedPath().includes(tr.firstElementChild)); // Or if the click is on the name column
 
 		if (should_select) {
 			dispatch("select", { value: normalized_files[index].orig_name, index });
@@ -46,9 +49,10 @@
 	}
 
 	function remove_file(index: number): void {
-		normalized_files.splice(index, 1);
+		const removed = normalized_files.splice(index, 1);
 		normalized_files = [...normalized_files];
 		value = normalized_files;
+		dispatch("delete", removed[0]);
 		dispatch("change", normalized_files);
 	}
 </script>

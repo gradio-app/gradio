@@ -1,5 +1,27 @@
 # website
 
+## 0.31.4
+
+### Dependency updates
+
+- @gradio/code@0.6.10
+
+## 0.31.3
+
+### Features
+
+- [#8471](https://github.com/gradio-app/gradio/pull/8471) [`a9e6595`](https://github.com/gradio-app/gradio/commit/a9e6595817b741c3dcf1eaedf58ee4f901784e57) - Tweak meta titles and descriptions for clients.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.6.9
+
+## 0.31.2
+
+### Features
+
+- [#8456](https://github.com/gradio-app/gradio/pull/8456) [`881f11c`](https://github.com/gradio-app/gradio/commit/881f11c862c769c21710735604c0733e0cfefe66) - Add website banner for clients launch.  Thanks @aliabd!
+
 ## 0.31.1
 
 ### Dependency updates

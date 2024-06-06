@@ -1,5 +1,33 @@
 # @gradio/chatbot
 
+## 0.10.10
+
+### Dependency updates
+
+- @gradio/upload@0.11.1
+- @gradio/client@1.1.0
+- @gradio/audio@0.11.9
+- @gradio/image@0.11.9
+- @gradio/video@0.8.9
+
+## 0.10.9
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+- @gradio/client@1.0.0
+- @gradio/upload@0.11.0
+- @gradio/audio@0.11.8
+- @gradio/image@0.11.8
+- @gradio/video@0.8.8
+- @gradio/markdown@0.7.6
+
+## 0.10.8
+
+### Features
+
+- [#8377](https://github.com/gradio-app/gradio/pull/8377) [`341844f`](https://github.com/gradio-app/gradio/commit/341844f04efe0e7e512c7ca443f3f2b195a32fa7) - Click to preview images in chatbot.  Thanks @dawoodkhan82!
+
 ## 0.10.7
 
 ### Dependency updates

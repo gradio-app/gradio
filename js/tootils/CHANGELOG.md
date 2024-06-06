@@ -1,5 +1,15 @@
 # @gradio/tootils
 
+## 0.5.0
+
+### Features
+
+- [#8417](https://github.com/gradio-app/gradio/pull/8417) [`96d8de2`](https://github.com/gradio-app/gradio/commit/96d8de231270321da5f310768643363276df3204) - add delete event to `File` component.  Thanks @pngwn!
+
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+
 ## 0.4.5
 
 ### Dependency updates

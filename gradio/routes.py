@@ -164,6 +164,8 @@ class App(FastAPI):
     ):
         self.tokens = {}
         self.auth = None
+        self.analytics_key = secrets.token_urlsafe(16)
+        self.analytics_enabled = False
         self.blocks: gradio.Blocks | None = None
         self.state_holder = StateHolder()
         self.iterators: dict[str, AsyncIterator] = {}
@@ -624,13 +626,8 @@ class App(FastAPI):
 
         @app.post("/reset/")
         @app.post("/reset")
-        async def reset_iterator(body: ResetBody):
-            if body.event_id not in app.iterators:
-                return {"success": False}
-            async with app.lock:
-                del app.iterators[body.event_id]
-                app.iterators_to_reset.add(body.event_id)
-                await app.get_blocks()._queue.clean_events(event_id=body.event_id)
+        async def reset_iterator(body: ResetBody):  # noqa: ARG001
+            # No-op, all the cancelling/reset logic handled by /cancel
             return {"success": True}
 
         @app.get("/heartbeat/{session_hash}")
@@ -739,18 +736,6 @@ class App(FastAPI):
                     fn=fn,
                     root_path=root_path,
                 )
-                if fn.is_cancel_function:
-                    # Need to complete the job so that the client disconnects
-                    blocks = app.get_blocks()
-                    if body.session_hash in blocks._queue.pending_messages_per_session:
-                        for event_id in output["data"]:
-                            message = ProcessCompletedMessage(
-                                output={}, success=True, event_id=event_id
-                            )
-                            blocks._queue.pending_messages_per_session[  # type: ignore
-                                body.session_hash
-                            ].put_nowait(message)
-
             except BaseException as error:
                 show_error = app.get_blocks().show_error or isinstance(error, Error)
                 traceback.print_exc()
@@ -768,7 +753,9 @@ class App(FastAPI):
             request: fastapi.Request,
             username: str = Depends(get_current_user),
         ):
-            full_body = PredictBody(**body.model_dump(), simple_format=True)
+            full_body = PredictBody(
+                **body.model_dump(), request=request, simple_format=True
+            )
             fn = route_utils.get_fn(
                 blocks=app.get_blocks(), api_name=api_name, body=full_body
             )
@@ -821,13 +808,24 @@ class App(FastAPI):
             await cancel_tasks({f"{body.session_hash}_{body.fn_index}"})
             blocks = app.get_blocks()
             # Need to complete the job so that the client disconnects
-            if body.session_hash in blocks._queue.pending_messages_per_session:
+            session_open = (
+                body.session_hash in blocks._queue.pending_messages_per_session
+            )
+            event_running = (
+                body.event_id
+                in blocks._queue.pending_event_ids_session.get(body.session_hash, {})
+            )
+            if session_open and event_running:
                 message = ProcessCompletedMessage(
                     output={}, success=True, event_id=body.event_id
                 )
                 blocks._queue.pending_messages_per_session[
                     body.session_hash
                 ].put_nowait(message)
+            if body.event_id in app.iterators:
+                async with app.lock:
+                    del app.iterators[body.event_id]
+                    app.iterators_to_reset.add(body.event_id)
             return {"success": True}
 
         @app.get("/call/{api_name}/{event_id}", dependencies=[Depends(login_check)])
@@ -1168,6 +1166,32 @@ class App(FastAPI):
                 return "User-agent: *\nDisallow: /"
             else:
                 return "User-agent: *\nDisallow: "
+
+        @app.get("/monitoring")
+        async def analytics_login():
+            print(
+                f"Monitoring URL: {app.get_blocks().local_url}monitoring/{app.analytics_key}"
+            )
+            return HTMLResponse("See console for monitoring URL.")
+
+        @app.get("/monitoring/{key}")
+        async def analytics_dashboard(key: str):
+            if key == app.analytics_key:
+                analytics_url = f"/monitoring/{app.analytics_key}/dashboard"
+                if not app.analytics_enabled:
+                    from gradio.analytics_dashboard import data
+                    from gradio.analytics_dashboard import demo as dashboard
+
+                    mount_gradio_app(app, dashboard, path=analytics_url)
+                    dashboard._queue.start()
+                    analytics = app.get_blocks()._queue.event_analytics
+                    data["data"] = analytics
+                    app.analytics_enabled = True
+                return RedirectResponse(
+                    url=analytics_url, status_code=status.HTTP_302_FOUND
+                )
+            else:
+                raise HTTPException(status_code=403, detail="Invalid key.")
 
         return app
 

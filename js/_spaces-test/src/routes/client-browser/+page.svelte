@@ -83,14 +83,13 @@
 	async function submit() {
 		response_data = { data: [], fn_index: 0, endpoint: "" };
 
-		job = app
-			.submit(active_endpoint, request_data)
-			.on("data", (data) => {
-				response_data = data;
-			})
-			.on("status", (_status) => {
-				status = _status.stage;
-			});
+		job = app.submit(active_endpoint, request_data);
+		// .on("data", (data) => {
+		// 	response_data = data;
+		// })
+		// .on("status", (_status) => {
+		// 	status = _status.stage;
+		// });
 	}
 
 	function cancel() {
@@ -194,12 +193,7 @@
 			<EndpointInputs app_info={app_info.parameters} bind:request_data />
 			<button class="submit" on:click={submit}>Submit Request</button>
 			{#if app_info.type.generator || app_info.type.continuous}
-				<button
-					class="cancel"
-					on:click={cancel}
-					disabled={status !== "generating" && status !== "pending"}
-					>Cancel Request</button
-				>
+				<button class="cancel" on:click={cancel}>Cancel Request</button>
 			{/if}
 		</div>
 		<div>
