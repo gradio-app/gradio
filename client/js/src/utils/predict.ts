@@ -30,7 +30,7 @@ export async function predict(
 	}
 
 	return new Promise(async (resolve, reject) => {
-		const app = this.submit(endpoint, data);
+		const app = this.submit(endpoint, data, null, null, true);
 		let result: unknown;
 
 		for await (const message of app) {
