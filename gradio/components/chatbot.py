@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import importlib
 import inspect
 import json
 from pathlib import Path
@@ -12,6 +11,7 @@ from gradio_client import utils as client_utils
 from gradio_client.documentation import document
 
 from gradio import utils
+from gradio.component_meta import ComponentMeta
 from gradio.components import (
     Component as GradioComponent,
 )
@@ -20,19 +20,17 @@ from gradio.data_classes import FileData, GradioModel, GradioRootModel
 from gradio.events import Events
 
 
-def import_component_and_data(component_name: str) -> GradioComponent | None:
+def import_component_and_data(
+    component_name: str,
+) -> GradioComponent | ComponentMeta | Any | None:
     try:
-        module_path = f"gradio.components.{component_name.lower()}"
-        module = importlib.import_module(module_path)
-        component = getattr(module, component_name, None)
-
-        if component is not None:
-            return component
-        else:
-            print(f"Component or data model not found in module {module_path}")
-            return None
+        for component in utils.get_all_components():
+            if component_name == component.__name__ and isinstance(
+                component, ComponentMeta
+            ):
+                return component
     except ModuleNotFoundError as e:
-        raise ValueError(f"Error importing {component_name} from {module_path}: {e}") from e
+        raise ValueError(f"Error importing {component_name}: {e}") from e
     except AttributeError:
         pass
 
@@ -187,11 +185,20 @@ class Chatbot(Component):
         elif isinstance(chat_message, (str)):
             return chat_message
         elif isinstance(chat_message, ComponentMessage):
-            component = import_component_and_data(
-                chat_message.component.capitalize()
-            )
+            component = import_component_and_data(chat_message.component.capitalize())
             if component is not None:
-                return component(**chat_message.constructor_args[0]) # type: ignore
+                instance = component()  # type: ignore
+                if issubclass(instance.data_model, GradioModel):
+                    payload = instance.data_model(**chat_message.value)
+                elif issubclass(instance.data_model, GradioRootModel):
+                    payload = instance.data_model(root=chat_message.value)
+                value = instance.preprocess(payload)
+                args = {
+                    k: v
+                    for k, v in chat_message.constructor_args[0].items()
+                    if k != "value"
+                }
+                return component(value=value, **args)  # type: ignore
             else:
                 raise ValueError(
                     f"Invalid component for Chatbot component: {chat_message.component}"
@@ -271,7 +278,7 @@ class Chatbot(Component):
                         extracted_args.append(serializable_arg)
                 return ComponentMessage(
                     component=type(chat_message).__name__.lower(),
-                    value=component.postprocess(
+                    value=component.postprocess(  # type: ignore
                         chat_message,
                         chat_message._constructor_args[1]["value"], # type: ignore
                     ),

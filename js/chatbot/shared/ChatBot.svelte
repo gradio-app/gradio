@@ -300,7 +300,7 @@
 												show_label={false}
 												{i18n}
 												label=""
-												_fetch={_fetch}
+												{_fetch}
 												preview={true}
 												interactive={true}
 											/>
