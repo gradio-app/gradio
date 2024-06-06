@@ -158,7 +158,7 @@ The `submit` method does not return a promise and should not be awaited, instead
 
 ##### Accessing values
 
-Iterating the submisison allow you too access the events related to the submitted API request. There are two types of event that can be listened for: `"data"` updates and `"status"` updates. By default only the `"data"` event is reported, but you can listen for the `"status"` event by manually passing the events you care about when injstantiating the client:
+Iterating the submission allows you to access the events related to the submitted API request. There are two types of events that can be listened for: `"data"` updates and `"status"` updates. By default only the `"data"` event is reported, but you can listen for the `"status"` event by manually passing the events you care about when instantiating the client:
 
 ```ts
 import { Client } from "@gradio/client";
