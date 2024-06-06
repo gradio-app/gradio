@@ -22,6 +22,7 @@
 		<Button
 			size="sm"
 			variant="secondary"
+			elem_id="start-api-recorder"
 			on:click={() => dispatch("close", { api_recorder_visible: true })}
 		>
 			<div class="loading-dot self-baseline"></div>
