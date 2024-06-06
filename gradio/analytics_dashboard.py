@@ -1,8 +1,9 @@
-import gradio as gr
-import pandas as pd
 import random
 import time
 
+import pandas as pd
+
+import gradio as gr
 
 data = {"data": {}}
 
@@ -18,7 +19,7 @@ with gr.Blocks() as demo:
         demo.load(
             lambda: gr.Dropdown(
                 choices=["All"]
-                + list(set(row["function"] for row in data["data"].values()))
+                + list({row["function"] for row in data["data"].values()})
             ),
             None,
             selected_function,
@@ -53,13 +54,8 @@ with gr.Blocks() as demo:
         if df.empty:
             return 0, 0, 0, gr.skip()
         df["time"] = pd.to_datetime(df["time"], unit="s")
-        if function == "All":
-            df_filtered = df
-        else:
-            df_filtered = df[df["function"] == function]
-        if timespan == "All Time":
-            df_filtered = df_filtered
-        else:
+        df_filtered = df if function == "All" else df[df["function"] == function]
+        if timespan != "All Time":
             df_filtered = df_filtered[
                 df_filtered["time"] > pd.Timestamp.now() - pd.Timedelta(timespan)
             ]

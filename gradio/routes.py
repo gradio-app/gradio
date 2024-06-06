@@ -1179,7 +1179,8 @@ class App(FastAPI):
             if key == app.analytics_key:
                 analytics_url = f"/analytics/{app.analytics_key}/dashboard"
                 if not app.analytics_enabled:
-                    from gradio.analytics_dashboard import demo as dashboard, data
+                    from gradio.analytics_dashboard import data
+                    from gradio.analytics_dashboard import demo as dashboard
 
                     mount_gradio_app(app, dashboard, path=analytics_url)
                     dashboard._queue.start()
