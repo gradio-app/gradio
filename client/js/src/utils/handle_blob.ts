@@ -116,9 +116,7 @@ async function process_single_command(
 			throw new Error(NODEJS_FS_ERROR_MSG);
 		}
 
-		const file = new File([fileBuffer], cmd_item.meta.name, {
-			type: "application/octet-stream"
-		});
+		const file = new Blob([fileBuffer], { type: "application/octet-stream" });
 
 		const response = await client.upload_files(root, [file]);
 
