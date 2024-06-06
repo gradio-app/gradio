@@ -24,12 +24,12 @@
 			variant="secondary"
 			on:click={() => dispatch("close", { api_recorder_visible: true })}
 		>
-		<div class="loading-dot self-baseline"></div>
-		<p class="self-baseline btn-text"> API Recorder </p>		
-	</Button>
-	<p>
-		<span class="url">{api_count}</span> API endpoint{#if api_count > 1}s{/if}<br
-		/>
+			<div class="loading-dot self-baseline"></div>
+			<p class="self-baseline btn-text">API Recorder</p>
+		</Button>
+		<p>
+			<span class="url">{api_count}</span> API endpoint{#if api_count > 1}s{/if}<br
+			/>
 		</p>
 	</span>
 </h2>

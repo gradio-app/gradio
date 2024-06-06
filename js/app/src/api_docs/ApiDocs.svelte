@@ -126,7 +126,9 @@
 							id="num-recorded-api-calls"
 							style="font-size: var(--text-lg); font-weight:bold; margin: 10px 0px;"
 						>
-							🪄 Recorded API Calls <span class="api-count">[{api_calls.length}]</span>
+							🪄 Recorded API Calls <span class="api-count"
+								>[{api_calls.length}]</span
+							>
 						</p>
 						<p>
 							Here is the code snippet to replay the most recently recorded API
@@ -183,14 +185,14 @@
 								target="_blank">read more</a
 							>).{/if}
 
-						Or use the 
+						Or use the
 						<Button
 							size="sm"
 							variant="secondary"
 							on:click={() => dispatch("close", { api_recorder_visible: true })}
 						>
-						<div class="loading-dot"></div>
-						<p class="self-baseline"> API Recorder </p>
+							<div class="loading-dot"></div>
+							<p class="self-baseline">API Recorder</p>
 						</Button>
 						to automatically generate your API requests.
 						{#if current_language == "bash"}<br />&nbsp;<br />Note: making a
@@ -401,7 +403,7 @@
 	}
 	.api-count {
 		font-weight: bold;
-		color:#fd7b00;
+		color: #fd7b00;
 		align-self: baseline;
 		font-family: var(--font-mono);
 		font-size: var(--text-md);

@@ -2,30 +2,26 @@
 	import type { Payload, Dependency } from "../types";
 	import Button from "../../../button/shared/Button.svelte";
 
-
 	export let api_calls: Payload[] = [];
 	export let dependencies: Dependency[];
 </script>
 
 <div id="api-recorder">
-	<Button
-			size="sm"
-			variant="secondary"
-		>
+	<Button size="sm" variant="secondary">
 		<div class="loading-dot self-baseline"></div>
-		<p class="self-baseline"> Recording API Calls: </p>	
-		<p class="self-baseline api-section">	
+		<p class="self-baseline">Recording API Calls:</p>
+		<p class="self-baseline api-section">
 			<span class="api-count">
 				[{api_calls.length}]
 			</span>
 			{#if api_calls.length > 0}
-			 <span class="api-name"
-				>/{dependencies[api_calls[api_calls.length - 1].fn_index].api_name}</span
-			>
+				<span class="api-name"
+					>/{dependencies[api_calls[api_calls.length - 1].fn_index]
+						.api_name}</span
+				>
 			{/if}
 		</p>
 	</Button>
-	
 </div>
 
 <style>
@@ -68,7 +64,7 @@
 	}
 	.api-count {
 		font-weight: bold;
-		color:#fd7b00;
+		color: #fd7b00;
 		align-self: baseline;
 		font-family: var(--font-mono);
 		font-size: var(--text-sm);
