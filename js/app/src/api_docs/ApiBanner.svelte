@@ -23,11 +23,12 @@
 		/>
 		<Button
 			size="sm"
-			variant="primary"
+			variant="secondary"
 			on:click={() => dispatch("close", { api_recorder_visible: true })}
 		>
-			🪄 API Recorder
-		</Button>
+		<div class="loading-dot"></div>
+		<p class="self-baseline"> API Recorder </p>		
+	</Button>
 	</span>
 </h2>
 
@@ -83,5 +84,21 @@
 		margin-left: auto;
 		color: var(--body-text-color);
 		font-weight: var(--weight-light);
+	}
+
+	.loading-dot {
+		position: relative;
+		left: -9999px;
+		width: 10px;
+		height: 10px;
+		border-radius: 5px;
+		background-color: #fd7b00;
+		color: #fd7b00;
+		box-shadow: 9999px 0 0 -1px;
+		margin-right: 0.25rem;
+	}
+	
+	.self-baseline {
+		align-self: baseline;
 	}
 </style>
