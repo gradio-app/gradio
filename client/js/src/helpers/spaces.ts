@@ -106,9 +106,10 @@ export async function discussions_enabled(space_id: string): Promise<boolean> {
 				method: "HEAD"
 			}
 		);
+
 		const error = r.headers.get("x-error-message");
 
-		if (error && RE_DISABLED_DISCUSSION.test(error)) return false;
+		if (!r.ok || (error && RE_DISABLED_DISCUSSION.test(error))) return false;
 		return true;
 	} catch (e) {
 		return false;

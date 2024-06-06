@@ -18,6 +18,11 @@
 	import logo from "./images/logo.svg";
 	import api_logo from "./api_docs/img/api-logo.svg";
 	import { create_components, AsyncFunction } from "./init";
+	import type {
+		LogMessage,
+		RenderMessage,
+		StatusMessage
+	} from "@gradio/client";
 
 	setupi18n();
 
@@ -284,132 +289,145 @@
 				return;
 			}
 
-			submission
-				.on("data", ({ data, fn_index }) => {
-					if (dep.pending_request && dep.final_event) {
-						dep.pending_request = false;
-						make_prediction(dep.final_event);
-					}
+			submit_map.set(dep_index, submission);
+
+			for await (const message of submission) {
+				if (message.type === "data") {
+					handle_data(message);
+				} else if (message.type === "render") {
+					handle_render(message);
+				} else if (message.type === "status") {
+					handle_status_update(message);
+				} else if (message.type === "log") {
+					handle_log(message);
+				}
+			}
+
+			function handle_data(message: Payload): void {
+				const { data, fn_index } = message;
+				if (dep.pending_request && dep.final_event) {
 					dep.pending_request = false;
-					handle_update(data, fn_index);
-					set_status($loading_status);
-				})
-				.on("render", ({ data }) => {
-					let _components: ComponentMeta[] = data.components;
-					let render_layout: LayoutNode = data.layout;
-					let _dependencies: Dependency[] = data.dependencies;
-					let render_id = data.render_id;
+					make_prediction(dep.final_event);
+				}
+				dep.pending_request = false;
+				handle_update(data, fn_index);
+				set_status($loading_status);
+			}
 
-					let deps_to_remove: number[] = [];
-					dependencies.forEach((dep, i) => {
-						if (dep.rendered_in === render_id) {
-							deps_to_remove.push(i);
-						}
-					});
-					deps_to_remove.reverse().forEach((i) => {
-						dependencies.splice(i, 1);
-					});
-					_dependencies.forEach((dep) => {
-						dependencies.push(dep);
-					});
+			function handle_render(message: RenderMessage): void {
+				const { data } = message;
+				let _components: ComponentMeta[] = data.components;
+				let render_layout: LayoutNode = data.layout;
+				let _dependencies: Dependency[] = data.dependencies;
+				let render_id = data.render_id;
 
-					rerender_layout({
-						components: _components,
-						layout: render_layout,
-						root: root,
-						dependencies: dependencies,
-						render_id: render_id
-					});
-				})
-				.on("status", ({ fn_index, ...status }) => {
-					//@ts-ignore
-					loading_status.update({
-						...status,
-						status: status.stage,
-						progress: status.progress_data,
-						fn_index
-					});
-					set_status($loading_status);
-					if (
-						!showed_duplicate_message &&
-						space_id !== null &&
-						status.position !== undefined &&
-						status.position >= 2 &&
-						status.eta !== undefined &&
-						status.eta > SHOW_DUPLICATE_MESSAGE_ON_ETA
-					) {
-						showed_duplicate_message = true;
-						messages = [
-							new_message(DUPLICATE_MESSAGE, fn_index, "warning"),
-							...messages
-						];
+				let deps_to_remove: number[] = [];
+				dependencies.forEach((dep, i) => {
+					if (dep.rendered_in === render_id) {
+						deps_to_remove.push(i);
 					}
-					if (
-						!showed_mobile_warning &&
-						is_mobile_device &&
-						status.eta !== undefined &&
-						status.eta > SHOW_MOBILE_QUEUE_WARNING_ON_ETA
-					) {
-						showed_mobile_warning = true;
-						messages = [
-							new_message(MOBILE_QUEUE_WARNING, fn_index, "warning"),
-							...messages
-						];
-					}
-
-					if (status.stage === "complete") {
-						status.changed_state_ids?.forEach((id) => {
-							dependencies
-								.filter((dep) => dep.targets.some(([_id, _]) => _id === id))
-								.forEach((dep) => {
-									wait_then_trigger_api_call(dep.id, payload.trigger_id);
-								});
-						});
-						dependencies.forEach(async (dep) => {
-							if (dep.trigger_after === fn_index) {
-								wait_then_trigger_api_call(dep.id, payload.trigger_id);
-							}
-						});
-
-						submission.destroy();
-					}
-					if (status.broken && is_mobile_device && user_left_page) {
-						window.setTimeout(() => {
-							messages = [
-								new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
-								...messages
-							];
-						}, 0);
-						wait_then_trigger_api_call(dep.id, payload.trigger_id, event_data);
-						user_left_page = false;
-					} else if (status.stage === "error") {
-						if (status.message) {
-							const _message = status.message.replace(
-								MESSAGE_QUOTE_RE,
-								(_, b) => b
-							);
-							messages = [
-								new_message(_message, fn_index, "error"),
-								...messages
-							];
-						}
-						dependencies.map(async (dep) => {
-							if (
-								dep.trigger_after === fn_index &&
-								!dep.trigger_only_on_success
-							) {
-								wait_then_trigger_api_call(dep.id, payload.trigger_id);
-							}
-						});
-
-						submission.destroy();
-					}
-				})
-				.on("log", ({ log, fn_index, level }) => {
-					messages = [new_message(log, fn_index, level), ...messages];
+				});
+				deps_to_remove.reverse().forEach((i) => {
+					dependencies.splice(i, 1);
+				});
+				_dependencies.forEach((dep) => {
+					dependencies.push(dep);
 				});
 
-			submit_map.set(dep_index, submission);
+				rerender_layout({
+					components: _components,
+					layout: render_layout,
+					root: root,
+					dependencies: dependencies,
+					render_id: render_id
+				});
+			}
+
+			function handle_log(msg: LogMessage): void {
+				const { log, fn_index, level } = msg;
+				messages = [new_message(log, fn_index, level), ...messages];
+			}
+
+			function handle_status_update(message: StatusMessage): void {
+				const { fn_index, ...status } = message;
+				//@ts-ignore
+				loading_status.update({
+					...status,
+					status: status.stage,
+					progress: status.progress_data,
+					fn_index
+				});
+				set_status($loading_status);
+				if (
+					!showed_duplicate_message &&
+					space_id !== null &&
+					status.position !== undefined &&
+					status.position >= 2 &&
+					status.eta !== undefined &&
+					status.eta > SHOW_DUPLICATE_MESSAGE_ON_ETA
+				) {
+					showed_duplicate_message = true;
+					messages = [
+						new_message(DUPLICATE_MESSAGE, fn_index, "warning"),
+						...messages
+					];
+				}
+				if (
+					!showed_mobile_warning &&
+					is_mobile_device &&
+					status.eta !== undefined &&
+					status.eta > SHOW_MOBILE_QUEUE_WARNING_ON_ETA
+				) {
+					showed_mobile_warning = true;
+					messages = [
+						new_message(MOBILE_QUEUE_WARNING, fn_index, "warning"),
+						...messages
+					];
+				}
+
+				if (status.stage === "complete") {
+					status.changed_state_ids?.forEach((id) => {
+						dependencies
+							.filter((dep) => dep.targets.some(([_id, _]) => _id === id))
+							.forEach((dep) => {
+								wait_then_trigger_api_call(dep.id, payload.trigger_id);
+							});
+					});
+					dependencies.forEach(async (dep) => {
+						if (dep.trigger_after === fn_index) {
+							wait_then_trigger_api_call(dep.id, payload.trigger_id);
+						}
+					});
+
+					// submission.destroy();
+				}
+				if (status.broken && is_mobile_device && user_left_page) {
+					window.setTimeout(() => {
+						messages = [
+							new_message(MOBILE_RECONNECT_MESSAGE, fn_index, "error"),
+							...messages
+						];
+					}, 0);
+					wait_then_trigger_api_call(dep.id, payload.trigger_id, event_data);
+					user_left_page = false;
+				} else if (status.stage === "error") {
+					if (status.message) {
+						const _message = status.message.replace(
+							MESSAGE_QUOTE_RE,
+							(_, b) => b
+						);
+						messages = [new_message(_message, fn_index, "error"), ...messages];
+					}
+					dependencies.map(async (dep) => {
+						if (
+							dep.trigger_after === fn_index &&
+							!dep.trigger_only_on_success
+						) {
+							wait_then_trigger_api_call(dep.id, payload.trigger_id);
+						}
+					});
+				}
+			}
 		}
 	}
 

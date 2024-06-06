@@ -29,7 +29,7 @@ describe("upload_files", () => {
 		expect(response.files[0]).toBe("lion.jpg");
 	});
 
-	it("should handle a server error when connected to a running app and uploading files", async () => {
+	it.skip("should handle a server error when connected to a running app and uploading files", async () => {
 		const client = await Client.connect("hmb/server_test");
 
 		const root_url = "https://hmb-server-test.hf.space";

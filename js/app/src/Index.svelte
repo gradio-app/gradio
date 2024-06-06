@@ -275,7 +275,8 @@
 
 		app = await Client.connect(api_url, {
 			status_callback: handle_status,
-			with_null_state: true
+			with_null_state: true,
+			events: ["data", "log", "status", "render"]
 		});
 
 		if (!app.config) {
@@ -312,7 +313,8 @@
 				stream.addEventListener("reload", async (event) => {
 					app.close();
 					app = await Client.connect(api_url, {
-						status_callback: handle_status
+						status_callback: handle_status,
+						events: ["data", "log", "status", "render"]
 					});
 
 					if (!app.config) {

@@ -231,12 +231,18 @@ importers:
       eventsource:
         specifier: ^2.0.2
         version: 2.0.2
+      fetch-event-stream:
+        specifier: ^0.1.5
+        version: 0.1.5
       msw:
         specifier: ^2.2.1
         version: 2.2.8(typescript@5.4.3)
       semiver:
         specifier: ^1.1.0
         version: 1.1.0
+      textlinestream:
+        specifier: ^1.1.1
+        version: 1.1.1
       typescript:
         specifier: ^5.0.0
         version: 5.4.3
@@ -5851,6 +5857,9 @@ packages:
   fastq@1.15.0:
     resolution: {integrity: sha512-wBrocU2LCXXa+lWBt8RoIRD89Fi8OdABODa/kEnyeyjS5aZO5/GNvI5sEINADqP/h8M29UHTHUb53sUu5Ihqdw==}
 
+  fetch-event-stream@0.1.5:
+    resolution: {integrity: sha512-V1PWovkspxQfssq/NnxoEyQo1DV+MRK/laPuPblIZmSjMN8P5u46OhlFQznSr9p/t0Sp8Uc6SbM3yCMfr0KU8g==}
+
   fetch-retry@5.0.6:
     resolution: {integrity: sha512-3yurQZ2hD9VISAhJJP9bpYFNQrHHBXE2JxxjY5aLEcDi46RmAzJE2OC9FAde0yis5ElW0jTTzs0zfg/Cca4XqQ==}
 
@@ -8459,6 +8468,9 @@ packages:
 
   text-table@0.2.0:
     resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}
+
+  textlinestream@1.1.1:
+    resolution: {integrity: sha512-iBHbi7BQxrFmwZUQJsT0SjNzlLLsXhvW/kg7EyOMVMBIrlnj/qYofwo1LVLZi+3GbUEo96Iu2eqToI2+lZoAEQ==}
 
   thenify-all@1.6.0:
     resolution: {integrity: sha512-RNxQH/qI8/t3thXJDwcstUO4zeqo64+Uy/+sNVRBx4Xn2OX+OZ9oP+iJnNFqplFra2ZUVeKCSa2oVWi3T4uVmA==}
@@ -14170,6 +14182,8 @@ snapshots:
     dependencies:
       reusify: 1.0.4
 
+  fetch-event-stream@0.1.5: {}
+
   fetch-retry@5.0.6: {}
 
   figures@3.2.0:
@@ -16997,6 +17011,8 @@ snapshots:
   term-size@2.2.1: {}
 
   text-table@0.2.0: {}
+
+  textlinestream@1.1.1: {}
 
   thenify-all@1.6.0:
     dependencies:
