@@ -1,5 +1,12 @@
 # @gradio/file
 
+## 0.8.1
+
+### Dependency updates
+
+- @gradio/upload@0.11.1
+- @gradio/client@1.1.0
+
 ## 0.8.0
 
 ### Features
