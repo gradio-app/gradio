@@ -159,12 +159,18 @@ class TestClientPredictions:
         space_id = "gradio-tests/space_with_files_v4_sse_v2"
         client = Client(space_id)
         payload = (
-            handle_file("https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"),
+            handle_file(
+                "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
+            ),
             {
-                "video": handle_file("https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"),
+                "video": handle_file(
+                    "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+                ),
                 "subtitle": None,
             },
-            handle_file("https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"),
+            handle_file(
+                "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
+            ),
         )
         output = client.predict(*payload, api_name="/predict")
         assert output[0].endswith(".wav")  # Audio files are converted to wav
@@ -853,7 +859,131 @@ class TestAPIInfo:
     @pytest.mark.flaky
     def test_numerical_to_label_space(self):
         client = Client("gradio-tests/titanic-survival")
-        assert client.view_api(return_format="dict") == {'named_endpoints': {'/predict': {'parameters': [{'label': 'Sex', 'type': {'type': 'string'}, 'python_type': {'type': 'str', 'description': ''}, 'component': 'Radio', 'example_input': 'Howdy!', 'serializer': 'StringSerializable'}, {'label': 'Age', 'type': {'type': 'number'}, 'python_type': {'type': 'int | float', 'description': ''}, 'component': 'Slider', 'example_input': 5, 'serializer': 'NumberSerializable'}, {'label': 'Fare (british pounds)', 'type': {'type': 'number'}, 'python_type': {'type': 'int | float', 'description': ''}, 'component': 'Slider', 'example_input': 5, 'serializer': 'NumberSerializable'}], 'returns': [{'label': 'output', 'type': {'type': {}, 'description': 'any valid json'}, 'python_type': {'type': 'Dict[Any, Any]', 'description': 'any valid json'}, 'component': 'Label', 'serializer': 'JSONSerializable'}]}, '/predict_1': {'parameters': [{'label': 'Sex', 'type': {'type': 'string'}, 'python_type': {'type': 'str', 'description': ''}, 'component': 'Radio', 'example_input': 'Howdy!', 'serializer': 'StringSerializable'}, {'label': 'Age', 'type': {'type': 'number'}, 'python_type': {'type': 'int | float', 'description': ''}, 'component': 'Slider', 'example_input': 5, 'serializer': 'NumberSerializable'}, {'label': 'Fare (british pounds)', 'type': {'type': 'number'}, 'python_type': {'type': 'int | float', 'description': ''}, 'component': 'Slider', 'example_input': 5, 'serializer': 'NumberSerializable'}], 'returns': [{'label': 'output', 'type': {'type': {}, 'description': 'any valid json'}, 'python_type': {'type': 'Dict[Any, Any]', 'description': 'any valid json'}, 'component': 'Label', 'serializer': 'JSONSerializable'}]}, '/predict_2': {'parameters': [{'label': 'Sex', 'type': {'type': 'string'}, 'python_type': {'type': 'str', 'description': ''}, 'component': 'Radio', 'example_input': 'Howdy!', 'serializer': 'StringSerializable'}, {'label': 'Age', 'type': {'type': 'number'}, 'python_type': {'type': 'int | float', 'description': ''}, 'component': 'Slider', 'example_input': 5, 'serializer': 'NumberSerializable'}, {'label': 'Fare (british pounds)', 'type': {'type': 'number'}, 'python_type': {'type': 'int | float', 'description': ''}, 'component': 'Slider', 'example_input': 5, 'serializer': 'NumberSerializable'}], 'returns': [{'label': 'output', 'type': {'type': {}, 'description': 'any valid json'}, 'python_type': {'type': 'Dict[Any, Any]', 'description': 'any valid json'}, 'component': 'Label', 'serializer': 'JSONSerializable'}]}}, 'unnamed_endpoints': {}}
+        assert client.view_api(return_format="dict") == {
+            "named_endpoints": {
+                "/predict": {
+                    "parameters": [
+                        {
+                            "label": "Sex",
+                            "type": {"type": "string"},
+                            "python_type": {"type": "str", "description": ""},
+                            "component": "Radio",
+                            "example_input": "Howdy!",
+                            "serializer": "StringSerializable",
+                        },
+                        {
+                            "label": "Age",
+                            "type": {"type": "number"},
+                            "python_type": {"type": "int | float", "description": ""},
+                            "component": "Slider",
+                            "example_input": 5,
+                            "serializer": "NumberSerializable",
+                        },
+                        {
+                            "label": "Fare (british pounds)",
+                            "type": {"type": "number"},
+                            "python_type": {"type": "int | float", "description": ""},
+                            "component": "Slider",
+                            "example_input": 5,
+                            "serializer": "NumberSerializable",
+                        },
+                    ],
+                    "returns": [
+                        {
+                            "label": "output",
+                            "type": {"type": {}, "description": "any valid json"},
+                            "python_type": {
+                                "type": "Dict[Any, Any]",
+                                "description": "any valid json",
+                            },
+                            "component": "Label",
+                            "serializer": "JSONSerializable",
+                        }
+                    ],
+                },
+                "/predict_1": {
+                    "parameters": [
+                        {
+                            "label": "Sex",
+                            "type": {"type": "string"},
+                            "python_type": {"type": "str", "description": ""},
+                            "component": "Radio",
+                            "example_input": "Howdy!",
+                            "serializer": "StringSerializable",
+                        },
+                        {
+                            "label": "Age",
+                            "type": {"type": "number"},
+                            "python_type": {"type": "int | float", "description": ""},
+                            "component": "Slider",
+                            "example_input": 5,
+                            "serializer": "NumberSerializable",
+                        },
+                        {
+                            "label": "Fare (british pounds)",
+                            "type": {"type": "number"},
+                            "python_type": {"type": "int | float", "description": ""},
+                            "component": "Slider",
+                            "example_input": 5,
+                            "serializer": "NumberSerializable",
+                        },
+                    ],
+                    "returns": [
+                        {
+                            "label": "output",
+                            "type": {"type": {}, "description": "any valid json"},
+                            "python_type": {
+                                "type": "Dict[Any, Any]",
+                                "description": "any valid json",
+                            },
+                            "component": "Label",
+                            "serializer": "JSONSerializable",
+                        }
+                    ],
+                },
+                "/predict_2": {
+                    "parameters": [
+                        {
+                            "label": "Sex",
+                            "type": {"type": "string"},
+                            "python_type": {"type": "str", "description": ""},
+                            "component": "Radio",
+                            "example_input": "Howdy!",
+                            "serializer": "StringSerializable",
+                        },
+                        {
+                            "label": "Age",
+                            "type": {"type": "number"},
+                            "python_type": {"type": "int | float", "description": ""},
+                            "component": "Slider",
+                            "example_input": 5,
+                            "serializer": "NumberSerializable",
+                        },
+                        {
+                            "label": "Fare (british pounds)",
+                            "type": {"type": "number"},
+                            "python_type": {"type": "int | float", "description": ""},
+                            "component": "Slider",
+                            "example_input": 5,
+                            "serializer": "NumberSerializable",
+                        },
+                    ],
+                    "returns": [
+                        {
+                            "label": "output",
+                            "type": {"type": {}, "description": "any valid json"},
+                            "python_type": {
+                                "type": "Dict[Any, Any]",
+                                "description": "any valid json",
+                            },
+                            "component": "Label",
+                            "serializer": "JSONSerializable",
+                        }
+                    ],
+                },
+            },
+            "unnamed_endpoints": {},
+        }
 
     def test_state_does_not_appear(self, state_demo):
         with connect(state_demo) as client:
@@ -1139,7 +1269,9 @@ class TestEndpoints:
         client = Client(
             src="gradio/zip_files",
         )
-        url_path = handle_file("https://gradio-tests-not-actually-private-spacev4-sse.hf.space/file=lion.jpg")
+        url_path = handle_file(
+            "https://gradio-tests-not-actually-private-spacev4-sse.hf.space/file=lion.jpg"
+        )
         file = client.endpoints[0]._upload_file(url_path, 0)  # type: ignore
         assert file["path"].endswith(".jpg")
 
