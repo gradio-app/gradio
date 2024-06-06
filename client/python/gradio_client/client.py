@@ -1308,7 +1308,7 @@ class Endpoint:
         else:
             return data
 
-    def _upload_file(self, f: str | dict, data_index: int) -> dict[str, str]:
+    def _upload_file(self, f: dict, data_index: int) -> dict[str, str]:
         file_path = f["path"]
         orig_name = Path(file_path)
         if not utils.is_http_url_like(file_path):

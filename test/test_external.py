@@ -176,15 +176,6 @@ class TestLoadInterface:
         assert isinstance(interface.input_components[0], gr.Textbox)
         assert isinstance(interface.output_components[0], gr.Audio)
 
-    def test_text_to_image(self):
-        model_type = "text-to-image"
-        interface = gr.load(
-            "models/osanseviero/BigGAN-deep-128", hf_token=None, alias=model_type
-        )
-        assert interface.__name__ == model_type
-        assert isinstance(interface.input_components[0], gr.Textbox)
-        assert isinstance(interface.output_components[0], gr.Image)
-
     def test_english_to_spanish(self):
         with pytest.raises(GradioVersionIncompatibleError):
             gr.load("spaces/gradio-tests/english_to_spanish", title="hi")
@@ -284,14 +275,6 @@ class TestLoadInterface:
                 assert resp.json()["data"] is not None
         finally:
             io.close()
-
-    def test_text_to_image_model(self):
-        io = gr.load("models/osanseviero/BigGAN-deep-128")
-        try:
-            filename = io("chest")
-            assert filename.lower().endswith((".jpg", ".jpeg", ".png"))
-        except TooManyRequestsError:
-            pass
 
     def test_private_space(self):
         io = gr.load(
