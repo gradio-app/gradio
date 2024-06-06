@@ -289,7 +289,7 @@ describe("handle_file", () => {
 		expect(result).toEqual({
 			type: "command",
 			command: "upload_file",
-			meta: { path: "./owl.png", name: "owl.png", orig_path: "./owl.png" },
+			meta: { path: "./owl.png", name: "./owl.png", orig_path: "./owl.png" },
 			fileData: undefined
 		});
 	});
