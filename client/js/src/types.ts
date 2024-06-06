@@ -51,6 +51,27 @@ export interface BlobRef {
 
 export type DataType = string | Buffer | Record<string, any> | any[];
 
+// custom class used for uploading local files
+export class Command {
+	type: string;
+	command: string;
+	meta: {
+		path: string;
+		name: string;
+		orig_path: string;
+	};
+	fileData?: FileData;
+
+	constructor(
+		command: string,
+		meta: { path: string; name: string; orig_path: string }
+	) {
+		this.type = "command";
+		this.command = command;
+		this.meta = meta;
+	}
+}
+
 // Function Signature Types
 
 export type SubmitFunction = (

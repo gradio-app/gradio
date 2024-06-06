@@ -30,3 +30,7 @@ export const UNAUTHORIZED_MSG = "Not authorized to access this space. ";
 export const INVALID_CREDENTIALS_MSG = "Invalid credentials. Could not login. ";
 export const MISSING_CREDENTIALS_MSG =
 	"Login credentials are required to access this space.";
+export const NODEJS_FS_ERROR_MSG =
+	"File system access is only available in Node.js environments";
+export const ROOT_URL_ERROR_MSG = "Root URL not found in client config";
+export const FILE_PROCESSING_ERROR_MSG = "Error uploading file";
