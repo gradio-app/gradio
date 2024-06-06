@@ -2,7 +2,7 @@
     import CopyButton from "$lib/components/CopyButton.svelte";
 </script>
 
-# Python Client
+# Introduction
 
 ## The lightweight Gradio client libraries make it easy to use any Gradio app as an API. We currently support both a Python client library as well as a JavaScript client library.
 
