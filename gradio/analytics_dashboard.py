@@ -60,14 +60,14 @@ with gr.Blocks() as demo:
                 df_filtered["time"] > pd.Timestamp.now() - pd.Timedelta(timespan)
             ]
 
-        df_filtered["time"] = df_filtered["time"].dt.floor("T")
+        df_filtered["time"] = df_filtered["time"].dt.floor("min")
         plot = df_filtered.groupby(["time", "status"]).size().reset_index(name="count")  # type: ignore
         mean_process_time_for_success = df_filtered[df_filtered["status"] == "success"][
             "process_time"
         ].mean()
 
         return (
-            df_filtered["status"].nunique(),
+            df_filtered["session_hash"].nunique(),
             df_filtered.shape[0],
             round(mean_process_time_for_success, 2),
             plot,
@@ -83,6 +83,7 @@ if __name__ == "__main__":
             ),
             "function": random.choice(["predict", "chat", "chat"]),
             "process_time": random.randint(0, 10),
+            "session_hash": str(random.randint(0, 4)),
         }
         for r in range(random.randint(100, 200))
     }

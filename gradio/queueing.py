@@ -233,6 +233,7 @@ class Queue:
             "status": "queued",
             "process_time": None,
             "function": fn.api_name,
+            "session_hash": body.session_hash,
         }
 
         self.broadcast_estimations(event.concurrency_id, len(event_queue.queue) - 1)
