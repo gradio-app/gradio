@@ -159,22 +159,25 @@ class TestClientPredictions:
         space_id = "gradio-tests/space_with_files_v4_sse_v2"
         client = Client(space_id)
         payload = (
-            "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+            handle_file(
+                "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
+            ),
             {
-                "video": "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4",
+                "video": handle_file(
+                    "https://github.com/gradio-app/gradio/raw/main/demo/video_component/files/world.mp4"
+                ),
                 "subtitle": None,
             },
-            "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3",
+            handle_file(
+                "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
+            ),
         )
         output = client.predict(*payload, api_name="/predict")
         assert output[0].endswith(".wav")  # Audio files are converted to wav
         assert output[1]["video"].endswith(
             "world.mp4"
         )  # Video files are not converted by default
-        assert (
-            output[2]
-            == "https://audio-samples.github.io/samples/mp3/blizzard_unconditional/sample-0.mp3"
-        )  # textbox string should remain exactly the same
+        assert "sample-0.mp3" in output[2]
 
     def test_state(self, increment_demo):
         with connect(increment_demo) as client:
@@ -890,8 +893,8 @@ class TestAPIInfo:
                             "label": "output",
                             "type": {"type": {}, "description": "any valid json"},
                             "python_type": {
-                                "type": "str",
-                                "description": "filepath to JSON file",
+                                "type": "Dict[Any, Any]",
+                                "description": "any valid json",
                             },
                             "component": "Label",
                             "serializer": "JSONSerializable",
@@ -930,8 +933,8 @@ class TestAPIInfo:
                             "label": "output",
                             "type": {"type": {}, "description": "any valid json"},
                             "python_type": {
-                                "type": "str",
-                                "description": "filepath to JSON file",
+                                "type": "Dict[Any, Any]",
+                                "description": "any valid json",
                             },
                             "component": "Label",
                             "serializer": "JSONSerializable",
@@ -970,8 +973,8 @@ class TestAPIInfo:
                             "label": "output",
                             "type": {"type": {}, "description": "any valid json"},
                             "python_type": {
-                                "type": "str",
-                                "description": "filepath to JSON file",
+                                "type": "Dict[Any, Any]",
+                                "description": "any valid json",
                             },
                             "component": "Label",
                             "serializer": "JSONSerializable",
@@ -1266,7 +1269,9 @@ class TestEndpoints:
         client = Client(
             src="gradio/zip_files",
         )
-        url_path = "https://gradio-tests-not-actually-private-spacev4-sse.hf.space/file=lion.jpg"
+        url_path = handle_file(
+            "https://gradio-tests-not-actually-private-spacev4-sse.hf.space/file=lion.jpg"
+        )
         file = client.endpoints[0]._upload_file(url_path, 0)  # type: ignore
         assert file["path"].endswith(".jpg")
 

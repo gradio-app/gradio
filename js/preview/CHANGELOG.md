@@ -1,5 +1,11 @@
 # @gradio/preview
 
+## 0.9.1
+
+### Fixes
+
+- [#8439](https://github.com/gradio-app/gradio/pull/8439) [`63d36fb`](https://github.com/gradio-app/gradio/commit/63d36fbbf4bf6dc909be9a0ffc7b6bf6621d83e8) - Handle gradio apps using `state` in the JS Client.  Thanks @hannahblair!
+
 ## 0.9.0
 
 ### Features
