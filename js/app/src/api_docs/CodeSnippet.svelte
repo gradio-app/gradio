@@ -106,9 +106,6 @@ const result = await client.predict({#if named}<span class="api-name"
 								>, <!--
 		--><span class="desc"
 									><!--
-		-->	// blob <!--
-		-->in '{label}' <!--
-		-->{component} component<!--
 		--></span
 								><!--
 		-->{:else}<!--
@@ -138,25 +135,15 @@ console.log(result.data);
 				</div>
 
 				<div bind:this={bash_post_code}>
-					<pre>curl -X POST {root}call/{dependency.api_name} -H "Content-Type: application/json" -d '{"{"}
+					<pre>curl -X POST {root}call/{dependency.api_name} -s -H "Content-Type: application/json" -d '{"{"}
   "data": [{#each endpoint_parameters as { label, parameter_name, type, python_type, component, example_input, serializer }, i}
     <!-- 
 -->{represent_value(example_input, python_type.type, "bash")}{#if i < endpoint_parameters.length - 1},
 							{/if}
 						{/each}
-]{"}"}'</pre>
-				</div>
-			</code>
-		</Block>
-
-		<Block>
-			<code>
-				<div class="copy">
-					<CopyButton code={bash_get_code?.innerText}></CopyButton>
-				</div>
-
-				<div bind:this={bash_get_code}>
-					<pre>curl -N {root}call/{dependency.api_name}/$EVENT_ID </pre>
+]{"}"}' \
+  | awk -F'"' '{"{"} print $4{"}"}'  \
+  | read EVENT_ID; curl -N {root}call/{dependency.api_name}/$EVENT_ID</pre>
 				</div>
 			</code>
 		</Block>
