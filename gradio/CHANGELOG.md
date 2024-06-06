@@ -1,5 +1,11 @@
 # gradio
 
+## 4.36.0
+
+### Features
+
+- [#8478](https://github.com/gradio-app/gradio/pull/8478) [`73e1108`](https://github.com/gradio-app/gradio/commit/73e11087a0d212c568c361e84e50fcb59d4a37b0) - Adds a monitoring dashboard to Gradio apps that can be used to view usage.  Thanks @aliabid94!
+
 ## 4.35.0
 
 ### Features
