@@ -1,5 +1,69 @@
 # @gradio/app
 
+## 1.36.0
+
+### Features
+
+- [#8370](https://github.com/gradio-app/gradio/pull/8370) [`48eeea4`](https://github.com/gradio-app/gradio/commit/48eeea4eaab7e24168688e3c3fbafb30e4e78d51) - Refactor Cancelling Logic To Use /cancel.  Thanks @freddyaboulton!
+- [#8460](https://github.com/gradio-app/gradio/pull/8460) [`8628899`](https://github.com/gradio-app/gradio/commit/86288993d9589ceb7bcc3e4d10f0adb6419d4ac5) - Support Bash in Api Recorder.  Thanks @aliabd!
+- [#8444](https://github.com/gradio-app/gradio/pull/8444) [`2cd02ff`](https://github.com/gradio-app/gradio/commit/2cd02ff3b7c57cd69635d111ff25643eba30b9b0) - Remove deprecated parameters from Python Client.  Thanks @abidlabs!
+- [#8473](https://github.com/gradio-app/gradio/pull/8473) [`8ca93d4`](https://github.com/gradio-app/gradio/commit/8ca93d45dd9f8948cfe87fe16ef5943139e756a7) - Improve design of api recorder.  Thanks @aliabd!
+- [#8445](https://github.com/gradio-app/gradio/pull/8445) [`5c8915b`](https://github.com/gradio-app/gradio/commit/5c8915b11308756c3b7279864d240ea85f5a0b4a) - Add cURL to view API Page and add a dedicated Guide.  Thanks @abidlabs!
+
+### Fixes
+
+- [#8451](https://github.com/gradio-app/gradio/pull/8451) [`9d2d605`](https://github.com/gradio-app/gradio/commit/9d2d6051caed5c8749a26a6fa7480a5ae6e6c4f3) - Change client submit API to be an AsyncIterable and support more platforms.  Thanks @pngwn!
+- [#8439](https://github.com/gradio-app/gradio/pull/8439) [`63d36fb`](https://github.com/gradio-app/gradio/commit/63d36fbbf4bf6dc909be9a0ffc7b6bf6621d83e8) - Handle gradio apps using `state` in the JS Client.  Thanks @hannahblair!
+
+### Dependency updates
+
+- @gradio/code@0.6.9
+- @gradio/statustracker@0.6.0
+- @gradio/client@1.0.0
+- @gradio/file@0.8.0
+- @gradio/upload@0.11.0
+- @gradio/annotatedimage@0.6.8
+- @gradio/audio@0.11.8
+- @gradio/button@0.2.41
+- @gradio/chatbot@0.10.9
+- @gradio/dataframe@0.8.8
+- @gradio/dataset@0.1.41
+- @gradio/downloadbutton@0.1.18
+- @gradio/fileexplorer@0.4.9
+- @gradio/gallery@0.10.8
+- @gradio/image@0.11.8
+- @gradio/imageeditor@0.7.8
+- @gradio/model3d@0.10.8
+- @gradio/multimodaltextbox@0.4.9
+- @gradio/simpleimage@0.5.8
+- @gradio/uploadbutton@0.6.9
+- @gradio/video@0.8.8
+- @gradio/accordion@0.3.16
+- @gradio/checkbox@0.3.6
+- @gradio/checkboxgroup@0.5.6
+- @gradio/colorpicker@0.3.6
+- @gradio/column@0.1.2
+- @gradio/dropdown@0.7.6
+- @gradio/fallback@0.3.6
+- @gradio/form@0.1.18
+- @gradio/group@0.1.1
+- @gradio/highlightedtext@0.7.0
+- @gradio/html@0.2.6
+- @gradio/json@0.2.6
+- @gradio/label@0.3.6
+- @gradio/markdown@0.7.6
+- @gradio/number@0.4.6
+- @gradio/paramviewer@0.4.15
+- @gradio/plot@0.4.6
+- @gradio/radio@0.5.6
+- @gradio/row@0.1.3
+- @gradio/simpledropdown@0.2.6
+- @gradio/simpletextbox@0.2.6
+- @gradio/slider@0.4.6
+- @gradio/tabitem@0.2.10
+- @gradio/tabs@0.2.9
+- @gradio/textbox@0.6.5
+
 ## 1.35.9
 
 ### Dependency updates
