@@ -1,5 +1,23 @@
 # gradio
 
+## 4.34.0
+
+### Features
+
+- [#8370](https://github.com/gradio-app/gradio/pull/8370) [`48eeea4`](https://github.com/gradio-app/gradio/commit/48eeea4eaab7e24168688e3c3fbafb30e4e78d51) - Refactor Cancelling Logic To Use /cancel.  Thanks @freddyaboulton!
+- [#8460](https://github.com/gradio-app/gradio/pull/8460) [`8628899`](https://github.com/gradio-app/gradio/commit/86288993d9589ceb7bcc3e4d10f0adb6419d4ac5) - Support Bash in Api Recorder.  Thanks @aliabd!
+- [#8417](https://github.com/gradio-app/gradio/pull/8417) [`96d8de2`](https://github.com/gradio-app/gradio/commit/96d8de231270321da5f310768643363276df3204) - add delete event to `File` component.  Thanks @pngwn!
+- [#8444](https://github.com/gradio-app/gradio/pull/8444) [`2cd02ff`](https://github.com/gradio-app/gradio/commit/2cd02ff3b7c57cd69635d111ff25643eba30b9b0) - Remove deprecated parameters from Python Client.  Thanks @abidlabs!
+- [#8473](https://github.com/gradio-app/gradio/pull/8473) [`8ca93d4`](https://github.com/gradio-app/gradio/commit/8ca93d45dd9f8948cfe87fe16ef5943139e756a7) - Improve design of api recorder.  Thanks @aliabd!
+- [#8445](https://github.com/gradio-app/gradio/pull/8445) [`5c8915b`](https://github.com/gradio-app/gradio/commit/5c8915b11308756c3b7279864d240ea85f5a0b4a) - Add cURL to view API Page and add a dedicated Guide.  Thanks @abidlabs!
+
+### Fixes
+
+- [#8477](https://github.com/gradio-app/gradio/pull/8477) [`d5a9604`](https://github.com/gradio-app/gradio/commit/d5a960493017a4890685af61d78ce7d3b3b12e6b) - Fix js client bundle.  Thanks @pngwn!
+- [#8451](https://github.com/gradio-app/gradio/pull/8451) [`9d2d605`](https://github.com/gradio-app/gradio/commit/9d2d6051caed5c8749a26a6fa7480a5ae6e6c4f3) - Change client submit API to be an AsyncIterable and support more platforms.  Thanks @pngwn!
+- [#8462](https://github.com/gradio-app/gradio/pull/8462) [`6447dfa`](https://github.com/gradio-app/gradio/commit/6447dface4d46db1c69460e8325a1928d0476a46) - Improve file handling in JS Client.  Thanks @hannahblair!
+- [#8439](https://github.com/gradio-app/gradio/pull/8439) [`63d36fb`](https://github.com/gradio-app/gradio/commit/63d36fbbf4bf6dc909be9a0ffc7b6bf6621d83e8) - Handle gradio apps using `state` in the JS Client.  Thanks @hannahblair!
+
 ## 4.33.0
 
 ### Features

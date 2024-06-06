@@ -1,5 +1,15 @@
 # website
 
+## 0.31.3
+
+### Features
+
+- [#8471](https://github.com/gradio-app/gradio/pull/8471) [`a9e6595`](https://github.com/gradio-app/gradio/commit/a9e6595817b741c3dcf1eaedf58ee4f901784e57) - Tweak meta titles and descriptions for clients.  Thanks @aliabd!
+
+### Dependency updates
+
+- @gradio/code@0.6.9
+
 ## 0.31.2
 
 ### Features
