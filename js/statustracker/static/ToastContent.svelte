@@ -24,7 +24,7 @@
 		}
 	});
 
-	$: timer_animation_duration = duration !== null ? `${duration / 1000}s` : null;
+	$: timer_animation_duration = `${(duration || 0) / 1000}s`;
 </script>
 
 <!-- TODO: fix-->
@@ -66,7 +66,7 @@
 		<span aria-hidden="true">&#215;</span>
 	</button>
 
-	<div class="timer {type}" style="{timer_animation_duration !== null ? `animation-duration: ${timer_animation_duration};` : ''}" />
+	<div class="timer {type}" style="{`animation-duration: ${timer_animation_duration};`}" />
 </div>
 
 <style>
