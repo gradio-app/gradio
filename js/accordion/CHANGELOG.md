@@ -2,6 +2,13 @@
 
 ## 0.3.16
 
+### Dependency updates
+
+- @gradio/statustracker@0.6.0
+- @gradio/column@0.1.2
+
+## 0.3.16
+
 ### Fixes
 
 - [#8284](https://github.com/gradio-app/gradio/pull/8284) [`2d705bc`](https://github.com/gradio-app/gradio/commit/2d705bcf7475eb46822358fed21dc081a800a73d) - Add body color to `gr.Accordion`.  Thanks @hannahblair!
