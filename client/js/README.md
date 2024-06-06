@@ -154,7 +154,7 @@ const submission = app.submit("/predict", { name: "Chewbacca" });
 
 The `submit` method accepts the same [`endpoint`](#endpoint) and [`payload`](#payload) arguments as `predict`.
 
-The `submit` method does not return a promise and should not be awaited, instead it returns an async iterator with a  `cancel` methods.
+The `submit` method does not return a promise and should not be awaited, instead it returns an async iterator with a  `cancel` method.
 
 ##### Accessing values
 
