@@ -1167,17 +1167,17 @@ class App(FastAPI):
             else:
                 return "User-agent: *\nDisallow: "
 
-        @app.get("/analytics")
+        @app.get("/monitoring")
         async def analytics_login():
             print(
-                f"Analytics URL: {app.get_blocks().local_url}analytics/{app.analytics_key}"
+                f"Monitoring URL: {app.get_blocks().local_url}monitoring/{app.analytics_key}"
             )
-            return HTMLResponse("See console for analytics URL.")
+            return HTMLResponse("See console for monitoring URL.")
 
-        @app.get("/analytics/{key}")
+        @app.get("/monitoring/{key}")
         async def analytics_dashboard(key: str):
             if key == app.analytics_key:
-                analytics_url = f"/analytics/{app.analytics_key}/dashboard"
+                analytics_url = f"/monitoring/{app.analytics_key}/dashboard"
                 if not app.analytics_enabled:
                     from gradio.analytics_dashboard import data
                     from gradio.analytics_dashboard import demo as dashboard
