@@ -65,7 +65,7 @@ console.log(result.data);
 
 **Better Error Messages**
 
-If something goes wrong in the upstream app, the client will raise the same exception as the app provided it's a `gr.Error` exception.
+If something goes wrong in the upstream app, the client will raise the same exception as the app provided that `show_error=True` in the original app's `launch()` function, or it's a `gr.Error` exception.
 
 #### Transparent Design 🪟
 
