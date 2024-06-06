@@ -13,3 +13,4 @@ This limits the number of requests processed for this event listener at a single
 
 See the [docs on queueing](/docs/gradio/interface#interface-queue) for more details on configuring the queuing parameters.
 
+You can see analytics on the number and status of all requests processed by the queue by visiting the `/monitoring` endpoint of your app. This endpoint will print a secret URL to your console that links to the full analytics dashboard.

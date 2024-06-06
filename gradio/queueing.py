@@ -114,6 +114,7 @@ class Queue:
         self.default_concurrency_limit = self._resolve_concurrency_limit(
             default_concurrency_limit
         )
+        self.event_analytics: dict[str, dict[str, float | str | None]] = {}
 
     def start(self):
         self.active_jobs = [None] * self.max_thread_count
@@ -227,6 +228,13 @@ class Queue:
                 "Event not found in queue. If you are deploying this Gradio app with multiple replicas, please enable stickiness to ensure that all requests from the same user are routed to the same instance."
             ) from e
         event_queue.queue.append(event)
+        self.event_analytics[event._id] = {
+            "time": time.time(),
+            "status": "queued",
+            "process_time": None,
+            "function": fn.api_name,
+            "session_hash": body.session_hash,
+        }
 
         self.broadcast_estimations(event.concurrency_id, len(event_queue.queue) - 1)
 
@@ -294,6 +302,8 @@ class Queue:
                     event_queue.current_concurrency += 1
                     start_time = time.time()
                     event_queue.start_times_per_fn[events[0].fn].add(start_time)
+                    for event in events:
+                        self.event_analytics[event._id]["status"] = "processing"
                     process_event_task = run_coro_in_background(
                         self.process_events, events, batch, start_time
                     )
@@ -470,6 +480,7 @@ class Queue:
     ) -> None:
         awake_events: list[Event] = []
         fn = events[0].fn
+        success = False
         try:
             for event in events:
                 if event.alive:
@@ -587,16 +598,20 @@ class Queue:
                 for e, event in enumerate(awake_events):
                     if batch and "data" in output:
                         output["data"] = list(zip(*response.get("data")))[e]
+                    success = response is not None
                     self.send_message(
                         event,
                         ProcessCompletedMessage(
                             output=output,
-                            success=response is not None,
+                            success=success,
                         ),
                     )
             end_time = time.time()
             if response is not None:
-                self.process_time_per_fn[events[0].fn].add(end_time - begin_time)
+                duration = end_time - begin_time
+                self.process_time_per_fn[events[0].fn].add(duration)
+                for event in events:
+                    self.event_analytics[event._id]["process_time"] = duration
         except Exception as e:
             traceback.print_exc()
         finally:
@@ -619,6 +634,13 @@ class Queue:
                 # If the job is cancelled, this will enable future runs
                 # to start "from scratch"
                 await self.reset_iterators(event._id)
+
+                if event in awake_events:
+                    self.event_analytics[event._id]["status"] = (
+                        "success" if success else "failed"
+                    )
+                else:
+                    self.event_analytics[event._id]["status"] = "cancelled"
 
     async def reset_iterators(self, event_id: str):
         # Do the same thing as the /reset route

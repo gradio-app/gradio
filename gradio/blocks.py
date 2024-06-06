@@ -2178,6 +2178,7 @@ Received outputs:
         auth_dependency: Callable[[fastapi.Request], str | None] | None = None,
         max_file_size: str | int | None = None,
         _frontend: bool = True,
+        enable_monitoring: bool = False,
     ) -> tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -2396,6 +2397,11 @@ Received outputs:
                     self.share = True
         else:
             self.share = share
+
+        if enable_monitoring:
+            print(
+                f"Monitoring URL: {self.local_url}monitoring/{self.app.analytics_key}"
+            )
 
         # If running in a colab or not able to access localhost,
         # a shareable link must be created.
