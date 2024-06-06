@@ -1,5 +1,11 @@
 # gradio_client
 
+## 1.0.1
+
+### Features
+
+- [#8481](https://github.com/gradio-app/gradio/pull/8481) [`41a4493`](https://github.com/gradio-app/gradio/commit/41a449383a34b7d6e4c83cfbf61c222fd5501206) - fix client flaky tests.  Thanks @abidlabs!
+
 ## 1.0.0
 
 ### Highlights
