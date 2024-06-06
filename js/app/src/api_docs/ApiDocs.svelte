@@ -126,7 +126,9 @@
 							id="num-recorded-api-calls"
 							style="font-size: var(--text-lg); font-weight:bold; margin: 10px 0px;"
 						>
-							🪄 Recorded API Calls ({api_calls.length})
+							🪄 Recorded API Calls <span class="api-count"
+								>[{api_calls.length}]</span
+							>
 						</p>
 						<p>
 							Here is the code snippet to replay the most recently recorded API
@@ -183,13 +185,14 @@
 								target="_blank">read more</a
 							>).{/if}
 
-						Or
+						Or use the
 						<Button
 							size="sm"
-							variant="primary"
+							variant="secondary"
 							on:click={() => dispatch("close", { api_recorder_visible: true })}
 						>
-							🪄 Use the API Recorder
+							<div class="loading-dot"></div>
+							<p class="self-baseline">API Recorder</p>
 						</Button>
 						to automatically generate your API requests.
 						{#if current_language == "bash"}<br />&nbsp;<br />Note: making a
@@ -378,6 +381,31 @@
 	}
 
 	code {
+		font-size: var(--text-md);
+	}
+	.loading-dot {
+		position: relative;
+		left: -9999px;
+		width: 10px;
+		height: 10px;
+		border-radius: 5px;
+		background-color: #fd7b00;
+		color: #fd7b00;
+		box-shadow: 9999px 0 0 -1px;
+		margin-right: 0.25rem;
+	}
+	:global(.docs-wrap .sm.secondary) {
+		padding-top: 1px;
+		padding-bottom: 1px;
+	}
+	.self-baseline {
+		align-self: baseline;
+	}
+	.api-count {
+		font-weight: bold;
+		color: #fd7b00;
+		align-self: baseline;
+		font-family: var(--font-mono);
 		font-size: var(--text-md);
 	}
 </style>

@@ -1,33 +1,75 @@
 <script lang="ts">
 	import type { Payload, Dependency } from "../types";
+	import Button from "../../../button/shared/Button.svelte";
 
 	export let api_calls: Payload[] = [];
 	export let dependencies: Dependency[];
 </script>
 
 <div id="api-recorder">
-	🟠 <span class="message">Recording API Calls...</span>
-	({api_calls.length}) {#if api_calls.length > 0}
-		| <span class="api-name"
-			>/{dependencies[api_calls[api_calls.length - 1].fn_index].api_name}</span
-		>
-	{/if}
+	<Button size="sm" variant="secondary">
+		<div class="loading-dot self-baseline"></div>
+		<p class="self-baseline">Recording API Calls:</p>
+		<p class="self-baseline api-section">
+			<span class="api-count">
+				[{api_calls.length}]
+			</span>
+			{#if api_calls.length > 0}
+				<span class="api-name"
+					>/{dependencies[api_calls[api_calls.length - 1].fn_index]
+						.api_name}</span
+				>
+			{/if}
+		</p>
+	</Button>
 </div>
 
 <style>
-	#api-recorder {
-		border: 1px solid var(--color-accent);
-		background-color: var(--color-accent-soft);
-		padding: 0px var(--size-2);
-		border-radius: var(--size-1);
-		cursor: pointer;
-		color: var(--body-text-color);
-	}
-	.message {
-		font-style: italic;
-	}
 	.api-name {
-		font-size: var(--text-md);
+		font-size: var(--text-sm);
 		font-family: var(--font-mono);
+		color: #fd7b00;
+	}
+	.loading-dot {
+		position: relative;
+		left: -9999px;
+		width: 10px;
+		height: 10px;
+		border-radius: 5px;
+		background-color: #fd7b00;
+		color: #fd7b00;
+		box-shadow: 9999px 0 0 -1px;
+		animation: loading-dot 2s infinite linear;
+		animation-delay: 0.25s;
+		margin-left: 0.25rem;
+		margin-right: 0.5rem;
+	}
+	:global(.docs-wrap .sm.secondary) {
+		padding-top: 1px;
+		padding-bottom: 1px;
+	}
+	.self-baseline {
+		align-self: baseline;
+	}
+	@keyframes loading-dot {
+		0% {
+			box-shadow: 9999px 0 0 -1px;
+		}
+		50% {
+			box-shadow: 9999px 0 0 2px;
+		}
+		100% {
+			box-shadow: 9999px 0 0 -1px;
+		}
+	}
+	.api-count {
+		font-weight: bold;
+		color: #fd7b00;
+		align-self: baseline;
+		font-family: var(--font-mono);
+		font-size: var(--text-sm);
+	}
+	.api-section {
+		margin-left: 4px;
 	}
 </style>
