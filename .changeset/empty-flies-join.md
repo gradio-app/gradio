@@ -12,7 +12,7 @@ We've made it even easier to turn any Gradio application into a production endpo
 
 #### Ergonomic API 💆
 
-**Stream From a Gradio APP in 5 lines**
+**Stream From a Gradio app in 5 lines**
 
 Use the `submit` method to get a job you can iterate over:
 
