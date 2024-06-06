@@ -32,7 +32,7 @@ with gr.Blocks() as demo:
         )
     with gr.Group():
         with gr.Row():
-            unique_users = gr.Label(label="Unique Sessions")
+            unique_users = gr.Label(label="Unique Users")
             unique_requests = gr.Label(label="Unique Requests")
             process_time = gr.Label(label="Avg Process Time")
     plot = gr.BarPlot(
