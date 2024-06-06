@@ -154,11 +154,19 @@ const submission = app.submit("/predict", { name: "Chewbacca" });
 
 The `submit` method accepts the same [`endpoint`](#endpoint) and [`payload`](#payload) arguments as `predict`.
 
-The `submit` method does not return a promise and should not be awaited, instead it returns an object with a `on`, `off`, and `cancel` methods.
+The `submit` method does not return a promise and should not be awaited, instead it returns an async iterator with a  `cancel` method.
 
-##### `on`
+##### Accessing values
 
-The `on` method allows you to subscribe to events related to the submitted API request. There are two types of event that can be subscribed to: `"data"` updates and `"status"` updates.
+Iterating the submission allows you to access the events related to the submitted API request. There are two types of events that can be listened for: `"data"` updates and `"status"` updates. By default only the `"data"` event is reported, but you can listen for the `"status"` event by manually passing the events you care about when instantiating the client:
+
+```ts
+import { Client } from "@gradio/client";
+
+const app = await Client.connect("user/space-name", {
+	events: ["data", "status"]
+});
+```
 
 `"data"` updates are issued when the API computes a value, the callback provided as the second argument will be called when such a value is sent to the client. The shape of the data depends on the way the API itself is constructed. This event may fire more than once if that endpoint supports emmitting new values over time.
 
@@ -187,7 +195,7 @@ interface Status {
 }
 ```
 
-Usage of these subscribe callback looks like this:
+Usage looks like this:
 
 ```ts
 import { Client } from "@gradio/client";
@@ -195,41 +203,18 @@ import { Client } from "@gradio/client";
 const app = await Client.connect("user/space-name");
 const submission = app
 	.submit("/predict", { name: "Chewbacca" })
-	.on("data", (data) => console.log(data))
-	.on("status", (status: Status) => console.log(status));
+
+	for await (const msg of submission) {
+		if (msg.type === "data") {
+			console.log(msg.data);
+		}
+
+		if (msg.type === "status") {
+			console.log(msg);
+		}
+	}
 ```
 
-##### `off`
-
-The `off` method unsubscribes from a specific event of the submitted job and works similarly to `document.removeEventListener`; both the event name and the original callback must be passed in to successfully unsubscribe:
-
-```ts
-import { Client } from "@gradio/client";
-
-const app = await Client.connect("user/space-name");
-const handle_data = (data) => console.log(data);
-
-const submission = app.submit("/predict", { name: "Chewbacca" }).on("data", handle_data);
-
-// later
-submission.off("/predict", handle_data);
-```
-
-##### `destroy`
-
-The `destroy` method will remove all subscriptions to a job, regardless of whether or not they are `"data"` or `"status"` events. This is a convenience method for when you do not want to unsubscribe use the `off` method.
-
-```js
-import { Client } from "@gradio/client";
-
-const app = await Client.connect("user/space-name");
-const handle_data = (data) => console.log(data);
-
-const submission = app.submit("/predict", { name: "Chewbacca" }).on("data", handle_data);
-
-// later
-submission.destroy();
-```
 
 ##### `cancel`
 
@@ -241,7 +226,7 @@ import { Client } from "@gradio/client";
 const app = await Client.connect("user/space-name");
 const submission = app
 	.submit("/predict", { name: "Chewbacca" })
-	.on("data", (data) => console.log(data));
+
 
 // later
 
