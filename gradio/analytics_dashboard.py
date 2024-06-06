@@ -19,7 +19,7 @@ with gr.Blocks() as demo:
         demo.load(
             lambda: gr.Dropdown(
                 choices=["All"]
-                + list({row["function"] for row in data["data"].values()})
+                + list({row["function"] for row in data["data"].values()})  # type: ignore
             ),
             None,
             selected_function,
@@ -61,7 +61,7 @@ with gr.Blocks() as demo:
             ]
 
         df_filtered["time"] = df_filtered["time"].dt.floor("T")
-        plot = df_filtered.groupby(["time", "status"]).size().reset_index(name="count")
+        plot = df_filtered.groupby(["time", "status"]).size().reset_index(name="count")  # type: ignore
         mean_process_time_for_success = df_filtered[df_filtered["status"] == "success"][
             "process_time"
         ].mean()

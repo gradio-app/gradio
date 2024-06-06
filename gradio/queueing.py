@@ -114,7 +114,7 @@ class Queue:
         self.default_concurrency_limit = self._resolve_concurrency_limit(
             default_concurrency_limit
         )
-        self.event_analytics: dict[str, dict[str, int]] = {}
+        self.event_analytics: dict[str, dict[str, float | str | None]] = {}
 
     def start(self):
         self.active_jobs = [None] * self.max_thread_count
