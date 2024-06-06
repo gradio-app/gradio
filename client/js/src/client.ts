@@ -198,10 +198,9 @@ export class Client {
 			}
 
 			// Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
-			if (!this.heartbeat_event)
-				this.heartbeat_event = await this.stream(heartbeat_url);
-		} else {
-			this.heartbeat_event?.close();
+			if (!this.heartbeat_event) {
+				this.heartbeat_event = this.stream(heartbeat_url);
+			}
 		}
 	}
 

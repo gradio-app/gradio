@@ -87,7 +87,6 @@ export function submit(
 
 		// event subscription methods
 		function fire_event(event: GradioEvent): void {
-			console.log("Firing event", event.type, events_to_publish);
 			if (events_to_publish[event.type]) {
 				push_event(event);
 			}
