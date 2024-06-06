@@ -71,12 +71,12 @@ test("the api recorder correctly records the api calls", async ({ page }) => {
 	await textbox.fill("hi");
 
 	await page.getByRole("button", { name: "Use via API logo" }).click();
-	await page.getByRole("button", { name: "🪄 Use the API Recorder" }).click();
+	await page.locator("#start-api-recorder").click();
 	await submit_button.click();
 	await expect(textbox).toHaveValue("");
 	const api_recorder = await page.locator("#api-recorder");
 	await api_recorder.click();
 
 	const num_calls = await page.locator("#num-recorded-api-calls").innerText();
-	await expect(num_calls).toBe("🪄 Recorded API Calls (5)");
+	await expect(num_calls).toBe("🪄 Recorded API Calls [5]");
 });
