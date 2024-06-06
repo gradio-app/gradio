@@ -5,14 +5,22 @@ test("test 2d state-based render", async ({ page }) => {
 	await expect(
 		page.locator("button").filter({ hasText: "Button" })
 	).toHaveCount(0);
+
+	await expect(page.getByLabel("Number A")).toHaveValue("1");
 	await page.getByRole("button", { name: "Increment B" }).click();
 	await page.getByRole("button", { name: "Increment A" }).click();
+	await expect(page.getByLabel("Number B")).toHaveValue("1");
 	await expect(
 		page.locator("button").filter({ hasText: "Button" })
 	).toHaveCount(2);
 	await page.getByRole("button", { name: "Increment A" }).click();
+	await expect(page.getByLabel("Number A")).toHaveValue("2");
+
 	await page.getByRole("button", { name: "Increment B" }).click();
+	await expect(page.getByLabel("Number B")).toHaveValue("2");
+
 	await page.getByRole("button", { name: "Increment A" }).click();
+	await expect(page.getByLabel("Number A").first()).toHaveValue("4");
 	await expect(
 		page.locator("button").filter({ hasText: "Button" })
 	).toHaveCount(8);

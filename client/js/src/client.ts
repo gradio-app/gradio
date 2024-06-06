@@ -9,9 +9,10 @@ import type {
 	PredictReturn,
 	SpaceStatus,
 	Status,
-	SubmitReturn,
 	UploadResponse,
-	client_return
+	client_return,
+	SubmitIterable,
+	GradioEvent
 } from "./types";
 import { view_api } from "./utils/view_api";
 import { upload_files } from "./utils/upload_files";
@@ -30,7 +31,7 @@ import {
 	parse_and_set_cookies
 } from "./helpers/init_helpers";
 import { check_space_status } from "./helpers/spaces";
-import { open_stream } from "./utils/stream";
+import { open_stream, readable_stream } from "./utils/stream";
 import { API_INFO_ERROR_MSG, CONFIG_ERROR_MSG } from "./constants";
 
 export class Client {
@@ -53,6 +54,8 @@ export class Client {
 	event_callbacks: Record<string, (data?: unknown) => Promise<void>> = {};
 	unclosed_events: Set<string> = new Set();
 	heartbeat_event: EventSource | null = null;
+	abort_controller: AbortController | null = null;
+	stream_instance: EventSource | null = null;
 
 	fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 		const headers = new Headers(init?.headers || {});
@@ -63,18 +66,14 @@ export class Client {
 		return fetch(input, { ...init, headers });
 	}
 
-	async stream(url: URL): Promise<EventSource> {
-		if (typeof window === "undefined" || typeof EventSource === "undefined") {
-			try {
-				const EventSourceModule = await import("eventsource");
-				return new EventSourceModule.default(url.toString()) as EventSource;
-			} catch (error) {
-				console.error("Failed to load EventSource module:", error);
-				throw error;
-			}
-		} else {
-			return new EventSource(url.toString());
-		}
+	stream(url: URL): EventSource {
+		this.abort_controller = new AbortController();
+
+		this.stream_instance = readable_stream(url.toString(), {
+			signal: this.abort_controller.signal
+		});
+
+		return this.stream_instance;
 	}
 
 	view_api: () => Promise<ApiInfo<JsApiData>>;
@@ -104,7 +103,7 @@ export class Client {
 		data: unknown[] | Record<string, unknown>,
 		event_data?: unknown,
 		trigger_id?: number | null
-	) => SubmitReturn;
+	) => SubmitIterable<GradioEvent>;
 	predict: (
 		endpoint: string | number,
 		data: unknown[] | Record<string, unknown>,
@@ -113,8 +112,15 @@ export class Client {
 	open_stream: () => Promise<void>;
 	private resolve_config: (endpoint: string) => Promise<Config | undefined>;
 	private resolve_cookies: () => Promise<void>;
-	constructor(app_reference: string, options: ClientOptions = {}) {
+	constructor(
+		app_reference: string,
+		options: ClientOptions = { events: ["data"] }
+	) {
 		this.app_reference = app_reference;
+		if (!options.events) {
+			options.events = ["data"];
+		}
+
 		this.options = options;
 
 		this.view_api = view_api.bind(this);
@@ -184,16 +190,17 @@ export class Client {
 			}
 
 			// Just connect to the endpoint without parsing the response. Ref: https://github.com/gradio-app/gradio/pull/7974#discussion_r1557717540
-			if (!this.heartbeat_event)
-				this.heartbeat_event = await this.stream(heartbeat_url);
-		} else {
-			this.heartbeat_event?.close();
+			if (!this.heartbeat_event) {
+				this.heartbeat_event = this.stream(heartbeat_url);
+			}
 		}
 	}
 
 	static async connect(
 		app_reference: string,
-		options: ClientOptions = {}
+		options: ClientOptions = {
+			events: ["data"]
+		}
 	): Promise<Client> {
 		const client = new this(app_reference, options); // this refers to the class itself, not the instance
 		await client.init();
@@ -206,7 +213,9 @@ export class Client {
 
 	static async duplicate(
 		app_reference: string,
-		options: DuplicateOptions = {}
+		options: DuplicateOptions = {
+			events: ["data"]
+		}
 	): Promise<Client> {
 		return duplicate(app_reference, options);
 	}
@@ -253,7 +262,7 @@ export class Client {
 	): Promise<Config | client_return> {
 		this.config = _config;
 
-		if (typeof window !== "undefined") {
+		if (typeof window !== "undefined" && typeof document !== "undefined") {
 			if (window.location.protocol === "https:") {
 				this.config.root = this.config.root.replace("http://", "https://");
 			}
@@ -405,7 +414,9 @@ export class Client {
  */
 export async function client(
 	app_reference: string,
-	options: ClientOptions = {}
+	options: ClientOptions = {
+		events: ["data"]
+	}
 ): Promise<Client> {
 	return await Client.connect(app_reference, options);
 }
