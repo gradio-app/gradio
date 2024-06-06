@@ -28,7 +28,8 @@ export function submit(
 	endpoint: string | number,
 	data: unknown[] | Record<string, unknown>,
 	event_data?: unknown,
-	trigger_id?: number | null
+	trigger_id?: number | null,
+	all_events?: boolean
 ): SubmitIterable<GradioEvent> {
 	try {
 		const { hf_token } = this.options;
@@ -87,7 +88,7 @@ export function submit(
 
 		// event subscription methods
 		function fire_event(event: GradioEvent): void {
-			if (events_to_publish[event.type]) {
+			if (all_events || events_to_publish[event.type]) {
 				push_event(event);
 			}
 		}
