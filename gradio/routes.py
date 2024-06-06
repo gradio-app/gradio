@@ -165,7 +165,7 @@ class App(FastAPI):
         self.tokens = {}
         self.auth = None
         self.analytics_key = secrets.token_urlsafe(16)
-        self.analytics_enabled = False
+        self.monitoring_enabled = False
         self.blocks: gradio.Blocks | None = None
         self.state_holder = StateHolder()
         self.iterators: dict[str, AsyncIterator] = {}
@@ -1169,8 +1169,9 @@ class App(FastAPI):
 
         @app.get("/monitoring")
         async def analytics_login():
-            print(
-                f"Monitoring URL: {app.get_blocks().local_url}monitoring/{app.analytics_key}"
+            from rich import print as rich_print
+            rich_print(
+                f"[cyan]Monitoring URL: {app.get_blocks().local_url}monitoring/{app.analytics_key}[/cyan]"
             )
             return HTMLResponse("See console for monitoring URL.")
 
@@ -1178,7 +1179,7 @@ class App(FastAPI):
         async def analytics_dashboard(key: str):
             if key == app.analytics_key:
                 analytics_url = f"/monitoring/{app.analytics_key}/dashboard"
-                if not app.analytics_enabled:
+                if not app.monitoring_enabled:
                     from gradio.analytics_dashboard import data
                     from gradio.analytics_dashboard import demo as dashboard
 
@@ -1186,7 +1187,7 @@ class App(FastAPI):
                     dashboard._queue.start()
                     analytics = app.get_blocks()._queue.event_analytics
                     data["data"] = analytics
-                    app.analytics_enabled = True
+                    app.monitoring_enabled = True
                 return RedirectResponse(
                     url=analytics_url, status_code=status.HTTP_302_FOUND
                 )
