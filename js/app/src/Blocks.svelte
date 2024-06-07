@@ -142,7 +142,7 @@
 		message: string,
 		fn_index: number,
 		type: ToastMessage["type"],
-		duration: number | null = 10000
+		duration: number | null = 10
 	): ToastMessage & { fn_index: number } {
 		return {
 			message,
