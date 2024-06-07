@@ -1172,7 +1172,7 @@ class App(FastAPI):
             from rich import print as rich_print
 
             rich_print(
-                f"[cyan]Monitoring URL: {app.get_blocks().local_url}monitoring/{app.analytics_key}[/cyan]"
+                f"[orange_red1]Monitoring URL: {app.get_blocks().local_url}monitoring/{app.analytics_key}[/orange_red1]"
             )
             return HTMLResponse("See console for monitoring URL.")
 
