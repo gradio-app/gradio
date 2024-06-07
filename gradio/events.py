@@ -600,6 +600,10 @@ class Events:
         "delete",
         doc="This listener is triggered when the user deletes and item from the {{ component }}. Uses event data gradio.DeletedFileData to carry `value` referring to the file that was deleted as an instance of FileData. See EventData documentation on how to use this event data",
     )
+    tick = EventListener(
+        "tick",
+        doc="This listener is triggered at regular intervals defined by the {{ component }}.",
+    )
 
 
 class LikeData(EventData):
