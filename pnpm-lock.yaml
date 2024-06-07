@@ -1714,9 +1714,6 @@ importers:
       '@gradio/icons':
         specifier: workspace:^
         version: link:../icons
-      '@gradio/upload':
-        specifier: workspace:^
-        version: 'link:'
       '@gradio/utils':
         specifier: workspace:^
         version: link:../utils
