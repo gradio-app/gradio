@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from gradio_client.documentation import document
 
 
