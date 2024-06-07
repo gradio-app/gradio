@@ -282,6 +282,7 @@ strong {
 .obj ul > li {
 	list-style: circle;
 }
-.obj ol, .obj ul {
+.obj ol,
+.obj ul {
 	padding-inline-start: 40px;
 }
