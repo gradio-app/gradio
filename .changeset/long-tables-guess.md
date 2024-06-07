@@ -1,4 +1,6 @@
 ---
+"@gradio/upload": minor
+"gradio": minor
 "website": minor
 ---
 
