@@ -1428,6 +1428,5 @@ def error_payload(
     if show_error:
         content["error"] = str(error)
     if isinstance(error, Error):
-        content["display"] = error.display
         content["duration"] = error.duration
     return content

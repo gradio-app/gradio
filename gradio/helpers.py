@@ -1229,8 +1229,7 @@ def make_waveform(
 def log_message(
     message: str,
     level: Literal["info", "warning"] = "info",
-    display: bool = True,
-    duration: int | None = 10000,
+    duration: int | None = 10,
 ):
     from gradio.context import LocalContext
 
@@ -1245,19 +1244,20 @@ def log_message(
             warnings.warn(message)
         return
     blocks._queue.log_message(
-        event_id=event_id, log=message, level=level, display=display, duration=duration
+        event_id=event_id, log=message, level=level, duration=duration
     )
 
 
 @document(documentation_group="modals")
 def Warning(  # noqa: N802
-    message: str = "Warning issued.", display: bool = True, duration: int | None = 10000
+    message: str = "Warning issued.", duration: int | None = 10
 ):
     """
     This function allows you to pass custom warning messages to the user. You can do so simply by writing `gr.Warning('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is yellow by default and has the heading: "Warning." Queue must be enabled for this behavior; otherwise, the warning will be printed to the console using the `warnings` library.
     Demos: blocks_chained_events
     Parameters:
         message: The warning message to be displayed to the user.
+        duration: The duration in seconds that the warning message should be displayed for. If None, the message will be displayed indefinitely until the user closes it.  If 0, the error message will not be displayed in the UI but will still be logged to the console.
     Example:
         import gradio as gr
         def hello_world():
@@ -1268,18 +1268,19 @@ def Warning(  # noqa: N802
             demo.load(hello_world, inputs=None, outputs=[md])
         demo.queue().launch()
     """
-    log_message(message, level="warning", display=display, duration=duration)
+    log_message(message, level="warning", duration=duration)
 
 
 @document(documentation_group="modals")
 def Info(  # noqa: N802
-    message: str = "Info issued.", display: bool = True, duration: int | None = 10000
+    message: str = "Info issued.", duration: int | None = 10
 ):
     """
     This function allows you to pass custom info messages to the user. You can do so simply by writing `gr.Info('message here')` in your function, and when that line is executed the custom message will appear in a modal on the demo. The modal is gray by default and has the heading: "Info." Queue must be enabled for this behavior; otherwise, the message will be printed to the console.
     Demos: blocks_chained_events
     Parameters:
         message: The info message to be displayed to the user.
+        duration: The duration in seconds that the info message should be displayed for. If None, the message will be displayed indefinitely until the user closes it. If 0, the error message will not be displayed in the UI but will still be logged to the console.
     Example:
         import gradio as gr
         def hello_world():
@@ -1290,4 +1291,4 @@ def Info(  # noqa: N802
             demo.load(hello_world, inputs=None, outputs=[md])
         demo.queue().launch()
     """
-    log_message(message, level="info", display=display, duration=duration)
+    log_message(message, level="info", duration=duration)

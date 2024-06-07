@@ -7,8 +7,9 @@
 	export let message = "";
 	export let type: ToastMessage["type"];
 	export let id: number;
-	export let duration: number | null = 10000; // Add duration prop
-	export let display = true;
+	export let duration: number | null = 10; // Add duration prop
+
+	$: display = duration ? duration > 0 : true;
 
 	const dispatch = createEventDispatcher();
 
@@ -20,11 +21,11 @@
 		if (duration !== null) {
 			setTimeout(() => {
 				close_message();
-			}, duration);
+			}, duration * 1000);
 		}
 	});
 
-	$: timer_animation_duration = `${(duration || 0) / 1000}s`;
+	$: timer_animation_duration = `${duration || 0}s`;
 </script>
 
 <!-- TODO: fix-->

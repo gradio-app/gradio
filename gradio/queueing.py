@@ -381,7 +381,6 @@ class Queue:
         event_id: str,
         log: str,
         level: Literal["info", "warning"],
-        display: bool = True,
         duration: int | None = 10000,
     ):
         events = [
@@ -392,7 +391,6 @@ class Queue:
                 log_message = LogMessage(
                     log=log,
                     level=level,
-                    display=display,
                     duration=duration,
                 )
                 self.send_message(event, log_message)

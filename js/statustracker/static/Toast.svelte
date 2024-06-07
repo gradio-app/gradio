@@ -17,9 +17,9 @@
 </script>
 
 <div class="toast-wrap">
-	{#each messages as { type, message, id, display, duration } (id)}
+	{#each messages as { type, message, id, duration } (id)}
 		<div animate:flip={{ duration: 300 }} style:width="100%">
-			<ToastContent {type} {message} {display} {duration} on:close {id} />
+			<ToastContent {type} {message} {duration} on:close {id} />
 		</div>
 	{/each}
 </div>

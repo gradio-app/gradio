@@ -76,15 +76,14 @@ class Error(Exception):
     def __init__(
         self,
         message: str = "Error raised.",
-        display: bool = True,
-        duration: int | None = 10000,
+        duration: int | None = 10,
     ):
         """
         Parameters:
             message: The error message to be displayed to the user.
+            duration: The duration in seconds to display the error message. If None, the error message will be displayed until the user closes it. If 0, the error message will not be displayed in the UI but will still be raised as an exception.
         """
         self.message = message
-        self.display = display
         self.duration = duration
         super().__init__(self.message)
 
