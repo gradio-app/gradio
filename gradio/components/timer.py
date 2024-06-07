@@ -1,4 +1,4 @@
-"""gr.Audio() component."""
+"""gr.Timer() component."""
 
 from __future__ import annotations
 
