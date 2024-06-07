@@ -10,7 +10,6 @@
 		"@gradio/atoms": "workspace:^",
 		"@gradio/icons": "workspace:^",
 		"@gradio/client": "workspace:^",
-		"@gradio/upload": "workspace:^",
 		"@gradio/utils": "workspace:^",
 		"@gradio/wasm": "workspace:^"
 	},
