@@ -989,7 +989,7 @@ class Blocks(BlockContext, BlocksEvents, metaclass=BlocksMeta):
         self.theme_css = theme._get_theme_css()
         self.stylesheets = theme._stylesheets
         theme_hasher = hashlib.sha256()
-        theme_hasher.update(self.theme_css.encode('utf-8'))
+        theme_hasher.update(self.theme_css.encode("utf-8"))
         self.theme_hash = theme_hasher.hexdigest()
 
         self.encrypt = False
