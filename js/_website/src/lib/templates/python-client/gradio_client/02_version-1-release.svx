@@ -141,7 +141,7 @@ if __name__ == "__main__":
 <ul>
     <li>The `serialize` argument of the `Client` class was removed and has no effect. </li>
     <li>The `upload_files` argument of the `Client` was removed.</li>
-    <li>All filepaths must be wrapped in the `handle_file` method</li>
+    <li>All filepaths must be wrapped in the `handle_file` method. For example, `caption = client.predict(handle_file('./dog.jpg'))`.</li>
     <li>The `output_dir` argument was removed. It is not specified in the `download_files` argument.</li>
 </ul>
 <br>
