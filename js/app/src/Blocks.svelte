@@ -142,8 +142,8 @@
 		message: string,
 		fn_index: number,
 		type: ToastMessage["type"],
-		display=true,
-		duration=10000,
+		display = true,
+		duration: number | null = 10000
 	): ToastMessage & { fn_index: number } {
 		return {
 			message,
@@ -348,8 +348,11 @@
 			}
 
 			function handle_log(msg: LogMessage): void {
-				const { log, fn_index, level } = msg;
-				messages = [new_message(log, fn_index, level), ...messages];
+				const { log, fn_index, level, display, duration } = msg;
+				messages = [
+					new_message(log, fn_index, level, display, duration),
+					...messages
+				];
 			}
 
 			function handle_status_update(message: StatusMessage): void {
@@ -420,7 +423,16 @@
 							MESSAGE_QUOTE_RE,
 							(_, b) => b
 						);
-						messages = [new_message(_message, fn_index, "error", status.display, status.duration), ...messages];
+						messages = [
+							new_message(
+								_message,
+								fn_index,
+								"error",
+								status.display,
+								status.duration
+							),
+							...messages
+						];
 					}
 					dependencies.map(async (dep) => {
 						if (

@@ -7,8 +7,6 @@
 
 	$: scroll_to_top(messages);
 
-	$: console.log(messages.map((m) => [m.message, m.duration]));
-
 	function scroll_to_top(_messages: ToastMessage[]): void {
 		if (_messages.length > 0) {
 			if ("parentIFrame" in window) {

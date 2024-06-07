@@ -18,7 +18,6 @@ from gradio import route_utils, routes
 from gradio.data_classes import (
     PredictBody,
 )
-from gradio.exceptions import Error
 from gradio.helpers import TrackedIterable
 from gradio.server_messages import (
     EstimationMessage,
@@ -30,7 +29,13 @@ from gradio.server_messages import (
     ProgressMessage,
     ProgressUnit,
 )
-from gradio.utils import LRUCache, run_coro_in_background, safe_get_lock, set_task_name, error_payload
+from gradio.utils import (
+    LRUCache,
+    error_payload,
+    run_coro_in_background,
+    safe_get_lock,
+    set_task_name,
+)
 
 if TYPE_CHECKING:
     from gradio.blocks import BlockFunction, Blocks
@@ -376,6 +381,8 @@ class Queue:
         event_id: str,
         log: str,
         level: Literal["info", "warning"],
+        display: bool = True,
+        duration: int | None = 10000,
     ):
         events = [
             evt for job in self.active_jobs if job is not None for evt in job
@@ -385,6 +392,8 @@ class Queue:
                 log_message = LogMessage(
                     log=log,
                     level=level,
+                    display=display,
+                    duration=duration,
                 )
                 self.send_message(event, log_message)
 

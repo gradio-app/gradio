@@ -7,7 +7,7 @@
 	export let message = "";
 	export let type: ToastMessage["type"];
 	export let id: number;
-	export let duration = 10000; // Add duration prop
+	export let duration: number | null = 10000; // Add duration prop
 	export let display = true;
 
 	const dispatch = createEventDispatcher();
@@ -66,7 +66,10 @@
 		<span aria-hidden="true">&#215;</span>
 	</button>
 
-	<div class="timer {type}" style="{`animation-duration: ${timer_animation_duration};`}" />
+	<div
+		class="timer {type}"
+		style={`animation-duration: ${timer_animation_duration};`}
+	/>
 </div>
 
 <style>

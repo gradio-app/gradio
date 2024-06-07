@@ -73,9 +73,12 @@ class Error(Exception):
     Demos: calculator, blocks_chained_events
     """
 
-    def __init__(self, message: str = "Error raised.",
-                 display: bool = True,
-                 duration: int | None = 10000):
+    def __init__(
+        self,
+        message: str = "Error raised.",
+        display: bool = True,
+        duration: int | None = 10000,
+    ):
         """
         Parameters:
             message: The error message to be displayed to the user.

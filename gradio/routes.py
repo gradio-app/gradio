@@ -76,7 +76,6 @@ from gradio.data_classes import (
     ResetBody,
     SimplePredictBody,
 )
-from gradio.exceptions import Error
 from gradio.oauth import attach_oauth
 from gradio.route_utils import (  # noqa: F401
     CustomCORSMiddleware,
