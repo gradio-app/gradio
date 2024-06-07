@@ -31,7 +31,7 @@ class LogMessage(BaseMessage):
     msg: Literal[ServerMessage.log] = ServerMessage.log
     log: str
     level: Literal["info", "warning"]
-    duration: int | None = 10000
+    duration: Optional[int] = 10
 
 
 class EstimationMessage(BaseMessage):
