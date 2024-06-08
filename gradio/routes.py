@@ -1168,9 +1168,12 @@ class App(FastAPI):
                 return "User-agent: *\nDisallow: "
 
         @app.get("/monitoring")
-        async def analytics_login():
+        async def analytics_login(request: fastapi.Request, user: str = Depends(get_current_user)):
+            root = route_utils.get_root_url(
+                request=request, route_path="/monitoring", root_path=app.root_path
+            )
             print(
-                f"Monitoring URL: {app.get_blocks().local_url}monitoring/{app.analytics_key}"
+                f"Monitoring URL: {root}/monitoring/{app.analytics_key}"
             )
             return HTMLResponse("See console for monitoring URL.")
 
